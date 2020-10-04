@@ -30,9 +30,9 @@ setup(
 
     author="semuadmin",
     author_email="semuadmin@semuconsulting.com",
-    description="PyGPSClient NMEA GPS Client",
-    long_description="NMEA GPS Client application written in Python3 and tkinter",
-    keywords="PyGPSClient GPS NMEA",
+    description="PyGPSClient GPS Client",
+    long_description="NMEA & UBX GPS Client application written in Python3 and tkinter",
+    keywords="PyGPSClient GPS NMEA UBX",
     platforms="Windows, MacOS, Linux",
     license="BSD 3-Clause 'Modified' License",
     url="https://github.com/semuconsulting/PyGPSClient",

@@ -11,4 +11,4 @@
 *.pyc
 /references
 apikey
-buid.xml
+build.xml
