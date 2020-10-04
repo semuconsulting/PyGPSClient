@@ -1,0 +1,46 @@
+<?xml version = "1.0"?>
+<project name = "PyGPSClient" default = "pclean">
+    <!-- CHECK FOR WINDOWS FAMILY OS -->
+    <condition property="is_windows" value="true">
+        <os family="windows"/>
+    </condition>
+    <condition property="is_posix" value="true">
+		<os family="unix"/>
+    </condition>
+ 	<target name = "wbuild"  if="is_windows">
+		<echo>Building for Windows platform...</echo>
+		<exec executable="python">
+			 <arg value="setup.py"/>
+			<arg value="sdist"/>
+			<arg value="bdist_wheel"/>
+  		</exec>
+   	</target>
+   	<target name = "pbuild"  if="is_posix">
+		<echo>Building for Posix platform...</echo>
+		<exec executable="python3">
+			 <arg value="setup.py"/>
+			<arg value="sdist"/>
+			<arg value="bdist_wheel"/>
+  		</exec>
+   	</target>
+   	<target name = "wclean" if="is_windows">
+		<echo>Cleaning for Windows platform...</echo>
+		<delete includeEmptyDirs="true" quiet="true">
+  			<fileset dir="build"/>
+  			<fileset dir="dist"/>
+  			<fileset dir="PyGPSClient.egg-info"/>
+  			<fileset dir="__pycache__" includes="*.nbc, *.nbi, *.pyc"/>
+  			<fileset dir="pygpsclient\__pycache__" includes="*.nbc, *.nbi, *.pyc"/>
+		</delete>
+    </target>
+	<target name = "pclean" if="is_posix">
+		<echo>Cleaning for Posix platform...</echo>
+		<delete includeEmptyDirs="true" quiet="true">
+  			<fileset dir="build"/>
+  			<fileset dir="dist"/>
+  			<fileset dir="PyGPSClient.egg-info"/>
+  			<fileset dir="__pycache__" includes="*.nbc, *.nbi, *.pyc"/>
+  			<fileset dir="pygpsclient/__pycache__" includes="*.nbc, *.nbi, *.pyc"/>
+		</delete>
+   	</target>
+</project>

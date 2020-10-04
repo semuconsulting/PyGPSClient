@@ -1,0 +1,14 @@
+.DS_Store
+.dropbox
+.project
+.pydevproject
+/.settings
+/build
+/dist
+/__pycache__
+/.dbeaver
+/pygpsclient/__pycache__
+*.pyc
+/references
+apikey
+buid.xml
