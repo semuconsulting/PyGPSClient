@@ -12,6 +12,7 @@ Created on 30 Sep 2020
 from pynmea2 import parse as nmea_parse, ParseError, types, RMC, VTG, GSV, GGA, GSA
 from pynmea2.types.proprietary.ubx import UBX00
 
+from pygpsclient.globals import DEVICE_ACCURACY, HDOP_RATIO
 from pygpsclient.strings import NMEAVALERROR
 
 
@@ -107,6 +108,18 @@ class NMEAHandler():
         else:
             self.__app.frm_console.update_console(repr(parsed_data))
 
+    def _estimate_acc(self, dop):
+        '''
+        Derive a graphic indication of positional accuracy (in m) based on the HDOP
+        (Horizontal Dilution of Precision) value and the nominal native device
+        accuracy (datasheet CEP)
+
+        NB: this is a largely arbitrary estimate - there is no direct correlation 
+        between HDOP and accuracy based solely on generic NMEA data.
+        '''
+
+        return float(dop) * DEVICE_ACCURACY * HDOP_RATIO / 1000
+
     def _process_RMC(self, data: types.talker):
         '''
         Process RMC sentence - Recommended minimum data for GPS.
@@ -135,6 +148,8 @@ class NMEAHandler():
         self.pdop = data.pdop
         self.hdop = data.hdop
         self.vdop = data.vdop
+#         self.hacc = self._estimate_acc(self.hdop)
+#         self.vacc = self._estimate_acc(self.vdop)
         if data.mode_fix_type == '3':
             fix = '3D'
         elif data.mode_fix_type == '2':
@@ -143,9 +158,9 @@ class NMEAHandler():
             fix = 'NO FIX'
 
         if self.__app.frm_settings.get_settings()['webmap']:
-            self.__app.frm_mapview.update_map(self.lat, self.lon, self.hdop, self.vdop, fix, False)
+            self.__app.frm_mapview.update_map(self.lat, self.lon, self.hacc, self.vacc, fix, False)
         else:
-            self.__app.frm_mapview.update_map(self.lat, self.lon, self.hdop, self.vdop, fix, True)
+            self.__app.frm_mapview.update_map(self.lat, self.lon, self.hacc, self.vacc, fix, True)
 
         self.__app.frm_banner.update_banner(dop=self.pdop, hdop=self.hdop, vdop=self.vdop, fix=fix)
 

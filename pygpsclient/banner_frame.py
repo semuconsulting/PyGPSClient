@@ -109,6 +109,7 @@ class BannerFrame(Frame):
                                 anchor=S)
         self._lbl_hvdop = Label(self._frm_advanced, textvariable=self._hvdop, bg=self._bgcol, fg="magenta")
         self._lbl_hvacc = Label(self._frm_advanced, textvariable=self._hvacc, bg=self._bgcol, fg="magenta")
+        self._lbl_lacc_u = Label(self._frm_advanced, textvariable=self._alt_u, bg=self._bgcol, fg="magenta", anchor=N)
 
     def _do_layout(self):
         '''
@@ -142,6 +143,7 @@ class BannerFrame(Frame):
         self._lbl_hvdop.grid(column=6, row=0, pady=0, sticky=W)
         self._lbl_lacc.grid(column=7, row=0, pady=3, sticky=W)
         self._lbl_hvacc.grid(column=8, row=0, pady=0, sticky=W)
+        self._lbl_lacc_u.grid(column=9, row=0, pady=0, sticky=W)
 
         self._btn_toggle.grid(column=0, row=0, padx=8, pady=3, sticky=(N, E))
 
@@ -235,17 +237,23 @@ class BannerFrame(Frame):
             if kwargs['track'] is None:
                 self._track.set('N/A')
             else:
-                self._track.set(kwargs['track'])
+                self._track.set(str(kwargs['track']))
         if 'siv' in kwargs:
-            self._siv.set(kwargs['siv'])
+            self._siv.set(str(kwargs['siv']).zfill(2))
         if 'sip' in kwargs:
-            self._sip.set(kwargs['sip'])
+            self._sip.set(str(kwargs['sip']).zfill(2))
         if 'dop' in kwargs:
-            self._dop.set(kwargs['dop'])
+            self._dop.set(str(kwargs['dop']))
         if 'hdop' in kwargs and 'vdop' in kwargs:
-            self._hvdop.set("hdop " + kwargs['hdop'] + "\nvdop " + kwargs['vdop'])
+            self._hvdop.set("hdop " + str(kwargs['hdop']) + "\nvdop " + str(kwargs['vdop']))
         if 'hacc' in kwargs and 'vacc' in kwargs:
-            self._hvacc.set("hacc " + kwargs['hacc'] + "\nvacc " + kwargs['vacc'])
+            if units in (UI, UIK):
+                hacc = round(m2ft(kwargs['hacc']), 1)
+                vacc = round(m2ft(kwargs['vacc']), 1)
+            else:
+                hacc = round(kwargs['hacc'], 1)
+                vacc = round(kwargs['vacc'], 1)
+            self._hvacc.set("hacc " + str(hacc) + "\nvacc " + str(vacc))
         if 'fix' in kwargs:
             if kwargs['fix'] == '3D':
                 self._lbl_fix.config(fg="green2")

@@ -40,7 +40,7 @@ This is a personal project and I have no affiliation whatsoever with u-blox &cop
 ![Contributors](https://img.shields.io/github/contributors/semuconsulting/PyGPSClient.svg)
 ![Open Issues](https://img.shields.io/github/issues-raw/semuconsulting/PyGPSClient)
 
-Pre-Alpha. Main application and widgets are fully functional. NMEA implementation is solid. UBX implementation is partial at present (incoming UBX data is streamed to the console widget but not yet to the other widgets) but in hand, along with improvements to exception handling and threading performance. The UBX config dialog is under development and additional configuration functionality will be added in due course.
+Alpha. Main application and widgets are fully functional for both NMEA and UBX protocols. The UBX configuration dialog is a work in progress and additional configuration functionality will be added in due course. Needs slightly more robust exception handling in a few areas.
 
 Constructive feedback welcome.
 
@@ -83,8 +83,7 @@ The following additional standard libraries are required, and can be installed u
 
 `python -m pip install pyubx2 pyserial pynmea2 Pillow requests`
 
-On Windows and MacOS, pip, tkinter and the necessary imaging libraries are generally packaged with Python. 
-On some Linux distributions like Ubuntu 18+, they may need to be installed separately, e.g.:
+On Windows and MacOS, pip, tkinter and the necessary imaging libraries are generally packaged with Python.  On some Linux distributions like Ubuntu 18+ and Raspberry Pi OS, they may need to be installed separately, e.g.:
 
 `sudo apt-get install python3-pip python3-tk python3-pil python3-pil.imagetk`
 

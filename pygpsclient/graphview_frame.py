@@ -87,7 +87,7 @@ class GraphviewFrame(Frame):
         resize_font = font.Font(size=min(int(colwidth / 2), 10))
         for d in data:
             prn, _, _, snr = d
-            if snr == '':
+            if snr in ('', '0', 0):
                 snr = 1
             else:
                 snr = int(snr)

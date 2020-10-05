@@ -22,8 +22,8 @@ from tkinter import Frame, Canvas, font, NW, N, S, E, W
 from PIL import ImageTk, Image
 import requests
 
-from pygpsclient.globals import WIDGETU2, MAPURL, MAP_UPDATE_INTERVAL, DEVICE_ACCURACY, \
-                                HDOP_RATIO, IMG_WORLD, ICON_POS
+from pygpsclient.globals import WIDGETU2, MAPURL, MAP_UPDATE_INTERVAL, \
+                                IMG_WORLD, ICON_POS
 from pygpsclient.strings import NOWEBMAPERROR1, NOWEBMAPERROR2, NOWEBMAPERROR3, \
                                 NOWEBMAPERROR4, NOWEBMAPERROR5
 
@@ -63,7 +63,7 @@ class MapviewFrame(Frame):
         self.can_mapview = Canvas(self, width=self.width, height=self.height, bg="white")
         self.can_mapview.grid(column=0, row=0, sticky=(N, S, E, W))
 
-    def update_map(self, lat, lon, hdop, vdop, fix, static=True):
+    def update_map(self, lat, lon, hacc, vacc, fix, static=True):
         '''
         Draw map and mark current known position.
         '''
@@ -83,7 +83,7 @@ class MapviewFrame(Frame):
         if static:
             self._draw_static_map(lat, lon)
         else:
-            self._draw_web_map(lat, lon, hdop, vdop)
+            self._draw_web_map(lat, lon, hacc, vacc)
 
     def _draw_static_map(self, lat, lon):
         '''
@@ -102,7 +102,7 @@ class MapviewFrame(Frame):
         y = (h / 2) - (lat * (h / 180)) + OFFSET_Y
         self.can_mapview.create_image(x, y, image=self._marker, anchor=S)
 
-    def _draw_web_map(self, lat, lon, hdop, vdop):
+    def _draw_web_map(self, lat, lon, hacc, vacc):
         '''
         Draw scalable web map via MapQuest API
         '''
@@ -127,7 +127,7 @@ class MapviewFrame(Frame):
         else:
             self._last_map_update = now
 
-        url = self._format_url(apikey, lat, lon, hdop, vdop)
+        url = self._format_url(apikey, lat, lon, hacc, vacc)
 
         try:
             response = requests.get(url)
@@ -154,28 +154,16 @@ class MapviewFrame(Frame):
                                             fill="#ffffff", outline="")
         self.can_mapview.update()
 
-    def _format_url(self, apikey, lat, lon, hdop, vdop):
+    def _format_url(self, apikey, lat, lon, hacc, vacc):
         '''
         Formats URL for web map download.
         '''
 
         w, h = self.width, self.height
         zoom = self.__app.frm_settings.get_settings()['mapzoom']
-        radius = self._get_accuracy(hdop)
+        radius = str(hacc / 1000) # km
 
         return MAPURL.format(apikey, lat, lon, zoom, radius, lat, lon, w, h)
-
-    def _get_accuracy(self, hdop):
-        '''
-        Derive a graphic indication of horizontal accuracy (in km) based on the HDOP
-        (Horizontal Dilution of Precision) value and the nominal native device
-        accuracy (datasheet CEP)
-
-        NB: this is a largely arbitrary estimate - there is no direct correlation 
-        between HDOP and accuracy based solely on generic NMEA data.
-        '''
-
-        return float(hdop) * DEVICE_ACCURACY * HDOP_RATIO / 1000
 
     def reset_map_refresh(self):
         '''

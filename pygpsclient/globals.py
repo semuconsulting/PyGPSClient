@@ -69,7 +69,9 @@ TAGS = [("DTM", "pink"), ("GBS", "pink"), \
         ("true_track", "lightblue1"), ("mode_fix_type", "lightblue1"), \
         ("datum", "lightblue1"), ("ACK-ACK", "green2"), ("ACK-NAK", "orange red"), \
         ("CFG-MSG", "cyan"), ("xb5b", "coral"), ("NAV-SOL", "pink"), ("NAV-POSLLH", "red"), \
-        ("NAV-VELECEF", "cyan"), ("NAV-VELNED", "cyan")]
+        ("NAV-VELECEF", "cyan"), ("NAV-VELNED", "cyan"),("NAV-SVINFO", "yellow"),
+        ("NAV-SOL", "pink"),("NAV-TIMEUTC", "lightblue1"), ("NAV-STATUS", "orange"),
+        ("NAV-DOP", "coral"),("NAV-CLOCK", "lightblue1")]
 
 
 def deg2rad(deg: float) -> float:
