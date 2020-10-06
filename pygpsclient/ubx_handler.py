@@ -117,8 +117,8 @@ class UBXHandler():
         '''
 
         try:
-            self.track = str(data.heading)
-            self.speed = str(data.gspeed)
+            self.track = data.heading / 10 ** 5
+            self.speed = data.gSpeed / 100
             self.__app.frm_banner.update_banner(speed=self.speed, track=self.track)
         except ValueError:
             # self.__app.set_status(ube.UBXMessageError(err), "red")

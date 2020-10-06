@@ -237,7 +237,7 @@ class BannerFrame(Frame):
             if kwargs['track'] is None:
                 self._track.set('N/A')
             else:
-                self._track.set(str(kwargs['track']))
+                self._track.set(str(round(kwargs['track'], 1)))
         if 'siv' in kwargs:
             self._siv.set(str(kwargs['siv']).zfill(2))
         if 'sip' in kwargs:
