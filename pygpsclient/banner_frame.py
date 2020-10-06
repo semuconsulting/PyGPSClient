@@ -13,7 +13,7 @@ from tkinter import Frame, Label, Button, StringVar, font, N, S, W, E, SUNKEN
 
 from PIL import ImageTk, Image
 
-from pygpsclient.globals import deg2dmm, deg2dms, m2ft, kmph2mph, kmph2ms, kmph2knots, \
+from .globals import deg2dmm, deg2dms, m2ft, kmph2mph, kmph2ms, kmph2knots, \
                                 DMM, DMS, UMM, UI, UIK, ICON_CONN, ICON_DISCONN, \
                                 CONNECTED, BGCOL, FGCOL, ADVOFF, ADVON
 

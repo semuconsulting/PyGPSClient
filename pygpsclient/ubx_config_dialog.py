@@ -14,8 +14,8 @@ from tkinter import ttk, Toplevel, Frame, Checkbutton, Listbox, Scrollbar, \
 
 from PIL import ImageTk, Image
 
-from pygpsclient.globals import BGCOL, FGCOL, ENTCOL, READONLY, BAUDRATES, ICON_APP
-from pygpsclient.strings import DLGUBXCONFIG
+from .globals import BGCOL, FGCOL, ENTCOL, READONLY, BAUDRATES, ICON_APP
+from .strings import DLGUBXCONFIG
 from pyubx2.ubxmessage import UBXMessage
 import pyubx2.ubxtypes_core as ubt
 

@@ -15,7 +15,7 @@ from tkinter import ttk, Frame, Button, Label, Spinbox, Scrollbar, Listbox, Scal
 from PIL import ImageTk, Image
 from serial.tools.list_ports import comports
 
-from pygpsclient.globals import ENTCOL, DDD, DMM, DMS, UMM, UMK, UI, UIK, ADVON, \
+from .globals import ENTCOL, DDD, DMM, DMS, UMM, UMK, UI, UIK, ADVON, \
                                 ADVOFF, READONLY, CONNECTED, DISCONNECTED, NOPORTS, \
                                 KNOWNGPS, ICON_CONN, ICON_DISCONN, BAUDRATES, \
                                 NMEA_PROTOCOL, UBX_PROTOCOL, MIXED_PROTOCOL
@@ -324,6 +324,10 @@ class SettingsFrame(Frame):
         self._btn_connect.config(state=(DISABLED if status in (CONNECTED, NOPORTS) else NORMAL))
         self._btn_disconnect.config(state=(DISABLED if status in (DISCONNECTED, NOPORTS) else NORMAL))
 
+#         self._rad_nmea.config(state=(DISABLED if status in (CONNECTED, NOPORTS) else NORMAL))
+#         self._rad_ubx.config(state=(DISABLED if status in (CONNECTED, NOPORTS) else NORMAL))
+#         self._rad_all.config(state=(DISABLED if status in (CONNECTED, NOPORTS) else NORMAL))
+        
     def get_settings(self):
         '''
         Public method returns all settings as a dict.

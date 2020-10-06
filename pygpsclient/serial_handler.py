@@ -13,11 +13,11 @@ from threading import Thread
 
 from serial import Serial, SerialException, SerialTimeoutException
 
-from pygpsclient.globals import CONNECTED, DISCONNECTED, SERIAL_TIMEOUT, \
+from .globals import CONNECTED, DISCONNECTED, SERIAL_TIMEOUT, \
                                 NMEA_PROTOCOL, MIXED_PROTOCOL, UBX_PROTOCOL, PARITIES
-from pygpsclient.nmea_handler import NMEAHandler
-from pygpsclient.strings import WAITUBXDATA, STOPDATA, NOTCONN, SEROPENERROR
-from pygpsclient.ubx_handler import UBXHandler
+from .nmea_handler import NMEAHandler
+from .strings import WAITUBXDATA, STOPDATA, NOTCONN, SEROPENERROR
+from .ubx_handler import UBXHandler
 import pyubx2.ubxtypes_core as ubt
 
 

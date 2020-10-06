@@ -7,17 +7,16 @@ Created on 30 Sep 2020
 
 @author: semuadmin
 '''
+# pylint: disable=invalid-name
 
 from datetime import datetime, timedelta
 
 from pyubx2.ubxmessage import UBXMessage
 
-import pyubx2.exceptions as ube
-
 
 def itow2utc(iTOW: int) -> str:
     '''
-    `Convert UBX iTOW to UTC time
+    Convert UBX iTOW to UTC time
     '''
 
     utc = datetime(1980, 1, 6) + timedelta(seconds=(iTOW / 1000) - (35 - 19))
@@ -36,6 +35,23 @@ class UBXHandler():
 
         self.__app = app  # Reference to main application class
         self.__master = self.__app.get_master()  # Reference to root class (Tk)
+
+        self._raw_data = None
+        self._parsed_data = None
+        self.gsv_data = []  # Holds array of current satellites in view from NMEA GSV sentences
+        self.lon = 0
+        self.lat = 0
+        self.alt = 0
+        self.track = 0
+        self.speed = 0
+        self.pdop = 0
+        self.hdop = 0
+        self.vdop = 0
+        self.hacc = 0
+        self.vacc = 0
+        self.utc = ''
+        self.sip = 0
+        self.fix = '-'
 
     def process_data(self, data: bytes) -> UBXMessage:
         '''
@@ -78,9 +94,9 @@ class UBXHandler():
             self.utc = itow2utc(data.iTOW)
             self.lat = data.lat / 10 ** 7
             self.lon = data.lon / 10 ** 7
-            self.alt = data.hMSL / 10 ** 3
-            self.hacc = data.HAcc / 10 ** 3
-            self.vacc = data.vAcc / 10 ** 3
+            self.alt = data.hMSL / 1000
+            self.hacc = data.hAcc / 1000
+            self.vacc = data.vAcc / 1000
             self.__app.frm_banner.update_banner(time=self.utc, lat=self.lat,
                                                 lon=self.lon, alt=self.alt,
                                                 hacc=self.hacc, vacc=self.vacc)
@@ -91,8 +107,8 @@ class UBXHandler():
             else:
                 self.__app.frm_mapview.update_map(self.lat, self.lon, self.hacc,
                                                   self.vacc, '3D', True)
-        except ValueError as err:
-            #self.__app.set_status(ube.UBXMessageError(err), "red")
+        except ValueError:
+            # self.__app.set_status(ube.UBXMessageError(err), "red")
             pass
 
     def _process_NAV_VELNED(self, data: UBXMessage):
@@ -104,8 +120,8 @@ class UBXHandler():
             self.track = str(data.heading)
             self.speed = str(data.gspeed)
             self.__app.frm_banner.update_banner(speed=self.speed, track=self.track)
-        except ValueError as err:
-            #self.__app.set_status(ube.UBXMessageError(err), "red")
+        except ValueError:
+            # self.__app.set_status(ube.UBXMessageError(err), "red")
             pass
 
     def _process_NAV_SVINFO(self, data: UBXMessage):
@@ -127,8 +143,8 @@ class UBXHandler():
                      ", data.azim" + str(idx) + ", data.cno" + str(idx) + "))")
             self.__app.frm_satview.update_sats(self.gsv_data)
             self.__app.frm_graphview.update_graph(self.gsv_data)
-        except ValueError as err:
-            #self.__app.set_status(ube.UBXMessageError(err), "red")
+        except ValueError:
+            # self.__app.set_status(ube.UBXMessageError(err), "red")
             pass
 
     def _process_NAV_SOL(self, data: UBXMessage):
@@ -137,7 +153,7 @@ class UBXHandler():
         '''
 
         try:
-            self.pdop = str(data.pDOP / 10 ** 2)
+            self.pdop = str(data.pDOP / 100)
             self.sip = str(data.numSV)
             if data.gpsFix == 3:
                 fix = '3D'
@@ -147,8 +163,8 @@ class UBXHandler():
                 fix = 'NO FIX'
 
             self.__app.frm_banner.update_banner(dop=self.pdop, fix=fix, sip=self.sip)
-        except ValueError as err:
-            #self.__app.set_status(ube.UBXMessageError(err), "red")
+        except ValueError:
+            # self.__app.set_status(ube.UBXMessageError(err), "red")
             pass
 
     def _process_NAV_DOP(self, data: UBXMessage):
@@ -157,11 +173,11 @@ class UBXHandler():
         '''
 
         try:
-            self.pdop = str(data.pDOP / 10 ** 2)
-            self.hdop = str(data.hDOP / 10 ** 2)
-            self.vdop = str(data.vDOP / 10 ** 2)
+            self.pdop = str(data.pDOP / 100)
+            self.hdop = str(data.hDOP / 100)
+            self.vdop = str(data.vDOP / 100)
 
             self.__app.frm_banner.update_banner(dop=self.pdop, hdop=self.hdop, vdop=self.vdop)
-        except ValueError as err:
-            #self.__app.set_status(ube.UBXMessageError(err), "red")
+        except ValueError:
+            # self.__app.set_status(ube.UBXMessageError(err), "red")
             pass

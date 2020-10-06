@@ -12,8 +12,8 @@ Created on 30 Sep 2020
 from pynmea2 import parse as nmea_parse, ParseError, types, RMC, VTG, GSV, GGA, GSA
 from pynmea2.types.proprietary.ubx import UBX00
 
-from pygpsclient.globals import DEVICE_ACCURACY, HDOP_RATIO
-from pygpsclient.strings import NMEAVALERROR
+from .globals import DEVICE_ACCURACY, HDOP_RATIO
+from .strings import NMEAVALERROR
 
 
 def gga2latlon(data: types.talker.GGA) -> (float, float):
@@ -196,15 +196,21 @@ class NMEAHandler():
         Process VTG sentence - GPS Vector track and Speed over the Ground.
         '''
 
-        self.track = data.true_track
-        self.speed = data.spd_over_grnd_kmph
-        self.__app.frm_banner.update_banner(speed=self.speed, track=self.track)
+        try:
+            self.track = data.true_track
+            self.speed = data.spd_over_grnd_kmph
+            self.__app.frm_banner.update_banner(speed=self.speed, track=self.track)
+        except ValueError as err:
+            self.__app.set_status(NMEAVALERROR.format(err), "red")
 
     def _process_UBX00(self, data: types.ubx.UBX00):
         '''
         Process UXB00 sentence - GPS Vector track and Speed over the Ground.
         '''
 
-        self.hacc = data.h_acc
-        self.vacc = data.v_acc
-        self.__app.frm_banner.update_banner(hacc=self.hacc, vacc=self.vacc)
+        try:
+            self.hacc = float(data.h_acc)
+            self.vacc = float(data.v_acc)
+            self.__app.frm_banner.update_banner(hacc=self.hacc, vacc=self.vacc)
+        except ValueError as err:
+            self.__app.set_status(NMEAVALERROR.format(err), "red")

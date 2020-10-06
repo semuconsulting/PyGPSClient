@@ -6,8 +6,6 @@ Created on 12 Sep 2020
 @author: semuadmin
 '''
 
-from pygpsclient.globals import VERSION
-
 TITLE = "PyGPSClient"
 WIKIURL = "https://en.wikipedia.org/wiki/NMEA_0183"
 GITHUBURL = "https://github.com/semuconsulting/PyGPSClient"

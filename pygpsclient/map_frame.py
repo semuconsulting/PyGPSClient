@@ -22,9 +22,9 @@ from tkinter import Frame, Canvas, font, NW, N, S, E, W
 from PIL import ImageTk, Image
 import requests
 
-from pygpsclient.globals import WIDGETU2, MAPURL, MAP_UPDATE_INTERVAL, \
+from .globals import WIDGETU2, MAPURL, MAP_UPDATE_INTERVAL, \
                                 IMG_WORLD, ICON_POS
-from pygpsclient.strings import NOWEBMAPERROR1, NOWEBMAPERROR2, NOWEBMAPERROR3, \
+from .strings import NOWEBMAPERROR1, NOWEBMAPERROR2, NOWEBMAPERROR3, \
                                 NOWEBMAPERROR4, NOWEBMAPERROR5
 
 

@@ -8,24 +8,24 @@ Created on 12 Sep 2020
 
 from tkinter import Frame, N, S, E, W, PhotoImage, font
 
-from pygpsclient.about_dialog import AboutDialog
-from pygpsclient.banner_frame import BannerFrame
-from pygpsclient.console_frame import ConsoleFrame
-from pygpsclient.filehandler import FileHandler
-from pygpsclient.globals import ICON_APP
-from pygpsclient.graphview_frame import GraphviewFrame
-from pygpsclient.map_frame import MapviewFrame
-from pygpsclient.menu_bar import MenuBar
-from pygpsclient.serial_handler import SerialHandler
-from pygpsclient.settings_frame import SettingsFrame
-from pygpsclient.skyview_frame import SkyviewFrame
-from pygpsclient.status_frame import StatusFrame
-from pygpsclient.strings import TITLE, INTROTXT, MENUHIDESE, MENUSHOWSE, \
+from .about_dialog import AboutDialog
+from .banner_frame import BannerFrame
+from .console_frame import ConsoleFrame
+from .filehandler import FileHandler
+from .globals import ICON_APP
+from .graphview_frame import GraphviewFrame
+from .map_frame import MapviewFrame
+from .menu_bar import MenuBar
+from .serial_handler import SerialHandler
+from .settings_frame import SettingsFrame
+from .skyview_frame import SkyviewFrame
+from .status_frame import StatusFrame
+from .strings import TITLE, INTROTXT, MENUHIDESE, MENUSHOWSE, \
                                 MENUHIDESB, MENUSHOWSB, MENUHIDECON, MENUSHOWCON, MENUHIDEMAP, \
                                 MENUSHOWMAP, MENUHIDESATS, MENUSHOWSATS, INTROTXTNOPORTS
-from pygpsclient.ubx_config_dialog import UBXConfigDialog
+from .ubx_config_dialog import UBXConfigDialog
 
-from version import __version__
+from ._version import __version__
 
 VERSION = __version__
 

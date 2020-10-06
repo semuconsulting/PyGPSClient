@@ -10,7 +10,7 @@ Created on 14 Sep 2020
 
 from tkinter import Frame, Canvas, font, BOTH, YES
 
-from pygpsclient.globals import hsv2rgb, WIDGETU2, BGCOL, FGCOL
+from .globals import hsv2rgb, WIDGETU2, BGCOL, FGCOL
 
 # Relative offsets of graph axes
 AXIS_XL = 19
@@ -71,8 +71,8 @@ class GraphviewFrame(Frame):
             self.can_graphview.create_line(AXIS_XL, y, w - AXIS_XR, y, fill=self._fgcol)
             self.can_graphview.create_text(10, y, text=str(MAX_SNR - (i * 10)), angle=90,
                                            fill=self._fgcol, font=resize_font)
-        self.can_graphview.create_text(10, (h - AXIS_Y - 1) / 2, text="snr", angle=90,
-                                       fill="cyan", font=resize_font)
+        self.can_graphview.create_text(10, (h - AXIS_Y - 1) / 2, text="dbHz", angle=90,
+                                       fill=self._fgcol, font=resize_font)
 
     def update_graph(self, data):
         '''

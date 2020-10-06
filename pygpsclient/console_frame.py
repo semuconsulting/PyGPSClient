@@ -11,7 +11,7 @@ Created on 12 Sep 2020
 from threading import Event as ThreadEvent
 from tkinter import Frame, Text, Scrollbar, S, E, W, END, HORIZONTAL, VERTICAL, N
 
-from pygpsclient.globals import TAGS, BGCOL, FGCOL
+from .globals import TAGS, BGCOL, FGCOL
 
 
 class ConsoleFrame(Frame):

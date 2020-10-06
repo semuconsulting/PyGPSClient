@@ -10,7 +10,7 @@ Created on 13 Sep 2020
 
 from tkinter import Frame, Canvas, font, BOTH, YES
 
-from pygpsclient.globals import cel2cart, hsv2rgb, WIDGETU1, BGCOL, FGCOL
+from .globals import cel2cart, hsv2rgb, WIDGETU1, BGCOL, FGCOL
 
 
 def _create_circle(self, x, y, r, **kwargs):

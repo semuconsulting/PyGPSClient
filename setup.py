@@ -11,7 +11,7 @@ Created on 12 Sep 2020
 
 from setuptools import setup, find_packages
 
-from version import VERSION
+from pygpsclient._version import VERSION
 
 setup(
     name="PyGPSClient",
@@ -19,7 +19,7 @@ setup(
     packages=find_packages(),
     scripts=["__main__.py"],
 
-    install_requires=["pyubx2>=0.1.3", "pynmea2>=1.15.0", "requests>=2.24.0",
+    install_requires=["pyubx2>=0.1.4", "pynmea2>=1.15.0", "requests>=2.24.0",
                       "Pillow>=7.2.0", "pyserial>=3.4"],
 
     package_data={
