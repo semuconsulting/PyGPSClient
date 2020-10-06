@@ -14,7 +14,7 @@ into a more general purpose multi-platform NMEA / UBX GPS client.
 ## Features:
 
 1. Supports both NMEA and UBX protocols. It uses the existing pynmea2 library for NMEA parsing and 
-implements a **new pyubx2 library** for UBX parsing. 
+implements a **[new pyubx2 library](https://github.com/semuconsulting/pyubx2)** for UBX parsing. 
 1. Configurable GUI with selectable and resizeable widgets.
 1. Serial console widget showing either raw or parsed data stream.
 1. Skyview widget showing current satellite visibility and position (elevation / azimuth).
@@ -77,7 +77,7 @@ no extension) and place this file in the application's root directory.
 
 See [requirements.txt](requirements.txt).
 
-The application implements a **new python library pyubx2** for UBX protocol handling.
+The application implements a **new python library [pyubx2](https://pypi.org/project/pyubx2/)** for UBX protocol handling.
 
 The following additional standard libraries are required, and can be installed using pip, e.g.:
 

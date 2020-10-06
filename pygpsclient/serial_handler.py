@@ -12,13 +12,13 @@ from io import BufferedRWPair
 from threading import Thread
 
 from serial import Serial, SerialException, SerialTimeoutException
+import pyubx2.ubxtypes_core as ubt
 
 from .globals import CONNECTED, DISCONNECTED, SERIAL_TIMEOUT, \
                                 NMEA_PROTOCOL, MIXED_PROTOCOL, UBX_PROTOCOL, PARITIES
 from .nmea_handler import NMEAHandler
 from .strings import WAITUBXDATA, STOPDATA, NOTCONN, SEROPENERROR
 from .ubx_handler import UBXHandler
-import pyubx2.ubxtypes_core as ubt
 
 
 class SerialHandler():
@@ -41,6 +41,15 @@ class SerialHandler():
         self._serial_thread = None
         self._connected = False
         self._reading = False
+
+    def __del__(self):
+        '''
+        Destructor.
+        '''
+
+        if self._serial_thread is not None:
+            self._reading = False
+            self._serial_thread = None
 
     def connect(self):
         '''
@@ -166,36 +175,32 @@ class SerialHandler():
         while parsing:
             filt = self.__app.frm_settings.get_settings()['protocol']
             # if it's a UBX message
-            if byte1 == ubt.UBX_HDR[0:1]:  # NB 'b1 == UBX_HDR[0]' doesn't work in python3
-                # if we're not filtering out UBX messages
-                # TODO MOVE THIS BLOCK TO UBX_HANDLER??
-                if filt in (UBX_PROTOCOL, MIXED_PROTOCOL):
-                    byte2 = ser.read(1)
-                    if byte2 == ubt.UBX_HDR[1:2]:
-                        byten = ser.read(4)
-                        clsid = byten[0:1]
-                        msgid = byten[1:2]
-                        lenb = byten[2:4]
-                        leni = int.from_bytes(lenb, 'little', signed=False)
-                        byten = ser.read(leni + 2)
-                        plb = byten[0:leni]
-                        cksum = byten[leni:leni + 2]
+            if byte1 == ubt.UBX_HDR[0:1]:
+                byte2 = ser.read(1)
+                if byte2 == ubt.UBX_HDR[1:2]:
+                    byten = ser.read(4)
+                    clsid = byten[0:1]
+                    msgid = byten[1:2]
+                    lenb = byten[2:4]
+                    leni = int.from_bytes(lenb, 'little', signed=False)
+                    byten = ser.read(leni + 2)
+                    plb = byten[0:leni]
+                    cksum = byten[leni:leni + 2]
+                    # if we're not filtering out UBX messages
+                    if filt in (UBX_PROTOCOL, MIXED_PROTOCOL):
                         raw_data = ubt.UBX_HDR + clsid + msgid + lenb + plb + cksum
                         self._ubx_handler.process_data(raw_data)
-                    else:
-                        parsing = False
+                else:
+                    parsing = False
             # if it's an NMEA message
             elif byte1 == ubt.NMEA_HDR[0:1]:
-                # if we're not filtering out NMEA messages
-                if filt in (NMEA_PROTOCOL, MIXED_PROTOCOL):
-                    # TODO Decode errors can happen if
-                    # mixed binary/text protocols get garbled
-                    try:
-                        raw_data = ser.readline().decode("utf-8")
-                        # raw_data = '$' + ser.readline().decode("utf-8")
+                try:
+                    raw_data = ser.readline().decode("utf-8")
+                    # if we're not filtering out NMEA messages
+                    if filt in (NMEA_PROTOCOL, MIXED_PROTOCOL):
                         self._nmea_handler.process_data(raw_data)
-                    except UnicodeDecodeError:
-                        continue
+                except UnicodeDecodeError:
+                    continue
                 parsing = False
             # unrecognised message header
             else:
