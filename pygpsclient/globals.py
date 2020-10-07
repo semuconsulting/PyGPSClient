@@ -20,6 +20,8 @@ ICON_DISCONN = os.path.join(DIRNAME, 'resources/iconmonstr-link-10-24.png')
 ICON_GO = os.path.join(DIRNAME, 'resources/iconmonstr-media-control-4-32.png')
 ICON_STOP = os.path.join(DIRNAME, 'resources/iconmonstr-media-control-12-32.png')
 ICON_POS = os.path.join(DIRNAME, 'resources/iconmonstr-location-1-24.png')
+ICON_SEND = os.path.join(DIRNAME, 'resources/iconmonstr-arrow-12-24.png')
+ICON_EXIT = os.path.join(DIRNAME, 'resources/iconmonstr-door-6-24.png')
 IMG_WORLD = os.path.join(DIRNAME, 'resources/world.png')
 BTN_CONNECT = "\u25b6"  # text on "Connected" button
 BTN_DISCONNECT = "\u2587"  # text on "Disconnected" button
@@ -69,9 +71,9 @@ TAGS = [("DTM", "pink"), ("GBS", "pink"), \
         ("true_track", "lightblue1"), ("mode_fix_type", "lightblue1"), \
         ("datum", "lightblue1"), ("ACK-ACK", "green2"), ("ACK-NAK", "orange red"), \
         ("CFG-MSG", "cyan"), ("xb5b", "coral"), ("NAV-SOL", "pink"), ("NAV-POSLLH", "red"), \
-        ("NAV-VELECEF", "cyan"), ("NAV-VELNED", "cyan"),("NAV-SVINFO", "yellow"),
-        ("NAV-SOL", "pink"),("NAV-TIMEUTC", "lightblue1"), ("NAV-STATUS", "orange"),
-        ("NAV-DOP", "coral"),("NAV-CLOCK", "lightblue1")]
+        ("NAV-VELECEF", "cyan"), ("NAV-VELNED", "cyan"), ("NAV-SVINFO", "yellow"),
+        ("NAV-SOL", "pink"), ("NAV-TIMEUTC", "lightblue1"), ("NAV-STATUS", "orange"),
+        ("NAV-DOP", "coral"), ("NAV-CLOCK", "lightblue1"), ("NAV-PVT", "red")]
 
 
 def deg2rad(deg: float) -> float:

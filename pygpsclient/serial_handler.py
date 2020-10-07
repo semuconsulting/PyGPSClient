@@ -128,6 +128,7 @@ class SerialHandler():
             self._reading = True
             self.__app.set_status(WAITUBXDATA, "blue")
             self.__app.frm_mapview.reset_map_refresh()
+            self._serial_object.flushInput()
             self._serial_thread = Thread(target=self._read_thread, daemon=True)
             self._serial_thread.start()
 
@@ -149,7 +150,7 @@ class SerialHandler():
         '''
 
         while self._reading and self._serial_object:
-#             print(f"Bytes in buffer: {self._serial_object.in_waiting}")
+            # print(f"Bytes in buffer: {self._serial_object.in_waiting}")
             if self._serial_object.in_waiting:
                 self.__master.event_generate('<<ubx_read>>')
 
@@ -173,9 +174,9 @@ class SerialHandler():
         byte1 = ser.read(1)
 
         while parsing:
-            filt = self.__app.frm_settings.get_settings()['protocol']
+            filter = self.__app.frm_settings.get_settings()['protocol']
             # if it's a UBX message
-            if byte1 == ubt.UBX_HDR[0:1]:
+            if byte1 == ubt.UBX_HDR[0:1] and filter in (UBX_PROTOCOL, MIXED_PROTOCOL):
                 byte2 = ser.read(1)
                 if byte2 == ubt.UBX_HDR[1:2]:
                     byten = ser.read(4)
@@ -186,19 +187,15 @@ class SerialHandler():
                     byten = ser.read(leni + 2)
                     plb = byten[0:leni]
                     cksum = byten[leni:leni + 2]
-                    # if we're not filtering out UBX messages
-                    if filt in (UBX_PROTOCOL, MIXED_PROTOCOL):
-                        raw_data = ubt.UBX_HDR + clsid + msgid + lenb + plb + cksum
-                        self._ubx_handler.process_data(raw_data)
+                    raw_data = ubt.UBX_HDR + clsid + msgid + lenb + plb + cksum
+                    self._ubx_handler.process_data(raw_data)
                 else:
                     parsing = False
             # if it's an NMEA message
-            elif byte1 == ubt.NMEA_HDR[0:1]:
+            elif byte1 == ubt.NMEA_HDR[0:1] and filter in (NMEA_PROTOCOL, MIXED_PROTOCOL):
                 try:
                     raw_data = ser.readline().decode("utf-8")
-                    # if we're not filtering out NMEA messages
-                    if filt in (NMEA_PROTOCOL, MIXED_PROTOCOL):
-                        self._nmea_handler.process_data(raw_data)
+                    self._nmea_handler.process_data(raw_data)
                 except UnicodeDecodeError:
                     continue
                 parsing = False

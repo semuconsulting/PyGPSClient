@@ -6,7 +6,8 @@ PyGPSClient is a free, open source graphical GPS testing and diagnostic client a
 
 The application runs on any platform which supports a Python3 interpreter (>=3.6) and tkinter (>=8.6) GUI framework, 
 including Windows, MacOS, Linux and Raspberry Pi OS. It displays location and diagnostic data from any NMEA or UBX (u-blox &copy;) 
-compatible GPS device over a standard serial (UART) or USB port.
+compatible GPS device over a standard serial (UART) or USB port, *in addition to* providing a small but useful subset of the 
+configuration functionality in u-blox's Windows-only [u-center](https://www.u-blox.com/en/product/u-center) tool.
 
 Originally designed as a platform-agnostic evaluation, development and educational tool for the [u-blox NEO-6M series](https://www.u-blox.com/en/product/neo-6-series) GPS modules, and in particular the [Makerhawk Hobbyist GPS Board](https://www.amazon.co.uk/MakerHawk-Microcontroller-Compatible-Navigation-Positioning/dp/B0783H7BLW), it has evolved
 into a more general purpose multi-platform NMEA / UBX GPS client.
@@ -21,7 +22,7 @@ implements a **[new pyubx2 library](https://github.com/semuconsulting/pyubx2)** 
 1. Graphview widget showing current satellite reception (signal-to-noise ratio).
 1. Mapview widget with location marker, showing either a static Mercator world map, or an optional dynamic web-based map downloaded via a MapQuest API (requires an Internet connection and free 
 [MapQuest API Key](https://developer.mapquest.com/plan_purchase/steps/business_edition/business_edition_free/register)).
-1. **WORK IN PROGRESS** The ability to configure certain key parameters on u-blox GPS devices via the proprietary UBX protocol, including serial port protocols, dynamic navigation mode and standard/proprietary NMEA message filters.
+1. **WORK IN PROGRESS** UBX Configuration Dialog (under Menu...Options), with the ability to send UBX configuration messages to u-blox GPS devices e.g. NMEA and UBX message filters. This includes the facility to add **user-defined preset configuration messages** - see instructions under [installation](#installation) below.
 
 ![fullubx](/images/fullubx.png)
 ![banneronly](/images/banneronly.png)
@@ -44,7 +45,7 @@ Alpha. Main application and widgets are fully functional for both NMEA and UBX p
 
 Constructive feedback welcome.
 
-## Installation
+## <a name="installation">Installation</a>
 
 First, check the [dependencies](#dependencies) listed below.
 
@@ -59,6 +60,19 @@ e.g. if you downloaded and unzipped to a folder named `PyGPSClient`, run:
 **NB:** to access the serial port on most linux platforms, you will need to be a member of the 
 tty and dialout groups.
 
+**User Preset Configuration Messages**
+
+The UBX Configuration Dialog includes the facility to add user-defined preset UBX configuration messages. These can be set up by adding
+appropriate message descriptions and payload definitions to a file named 'userpresets' (lower case, no extension), and then placing this 
+file in the application's root directory. An illustrative user preset file is given below - the payload definition follows the format passed
+to a [pyubx2 UBXMessage constructor](https://pypi.org/project/pyubx2/) i.e. `msgClass, msgID, payload`:
+
+```
+<--------- description --------->: <----- UBXMessage Constructor ------>
+
+CFG-MSG Add GLL to message filter: 'CFG', 'CFG-MSG', b'\x01\x02\xd2\x06'
+CFG-MSG Add GSV to message filter: 'CFG', 'CFG-MSG', b'\x01\x06\xb0\x33'
+```
 
 ## <a name="dependencies">Dependencies</a>
 

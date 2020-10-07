@@ -1,0 +1,2 @@
+CFG-MSG Add GLL to message filter: 'CFG', 'CFG-MSG', b'\x01\x02\xd2\x06'
+CFG-MSG Add GSV to message filter: 'CFG', 'CFG-MSG', b'\x01\x06\xb0\x33'

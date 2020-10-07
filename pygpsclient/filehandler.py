@@ -41,3 +41,23 @@ class FileHandler():
             apikey = ''
 
         return apikey
+
+    def load_user_presets(self) -> str:
+        '''
+        Load user configuration message presets from PyGPSCLient application directory.
+        '''
+
+        presets = []
+        dirname = os.path.dirname(__file__)
+        filepath = os.path.join(dirname, "..", 'userpresets')
+        try:
+            with open(filepath, 'r') as file:
+                for line in file:
+                    presets.append(line)
+            # print("apikey _reading: ", apikey)
+        except OSError:
+            # Error message will be displayed on mapview widget if invoked
+            # print("Error reading apikey {}".format(err))
+            presets = ''
+
+        return presets
