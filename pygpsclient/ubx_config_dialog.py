@@ -200,34 +200,34 @@ class UBXConfigDialog():
                                       command=lambda: self._on_cfg_msg(msg=b'\xF1\x03', var=self._ubx03_state),
                                       variable=self._ubx03_state)
         self._chk_ubx04 = Checkbutton(con, text="UBX,04",
-                                      command=lambda: self._on_cfg_msg(msg=b'\xF1\x04', var=self._ubx04_state),
+                                      command=lambda: self._on_cfg_msg(msg=b'\x01\x60', var=self._ubx04_state),
                                       variable=self._ubx04_state)
         self._chk_navaopstatus = Checkbutton(con, text="NAV-AOPSTATUS",
-                                    command=lambda: self._on_cfg_msg(msg=b'\xF0\x03', var=self._navaopstatus_state),
+                                    command=lambda: self._on_cfg_msg(msg=b'\x01\x03', var=self._navaopstatus_state),
                                     variable=self._navaopstatus_state)
         self._chk_navclock = Checkbutton(con, text="NAV-CLOCK",
-                                    command=lambda: self._on_cfg_msg(msg=b'\xF0\x04', var=self._navclock_state),
+                                    command=lambda: self._on_cfg_msg(msg=b'\x01\x22', var=self._navclock_state),
                                     variable=self._navclock_state)
         self._chk_navdop = Checkbutton(con, text="NAV-DOP",
-                                    command=lambda: self._on_cfg_msg(msg=b'\xF0\x05', var=self._navdop_state),
+                                    command=lambda: self._on_cfg_msg(msg=b'\x01\x04', var=self._navdop_state),
                                     variable=self._navdop_state)
         self._chk_navposllh = Checkbutton(con, text="NAV-POSLLH",
-                                    command=lambda: self._on_cfg_msg(msg=b'\xF0\x41', var=self._navposllh_state),
+                                    command=lambda: self._on_cfg_msg(msg=b'\x01\x02', var=self._navposllh_state),
                                     variable=self._navposllh_state)
         self._chk_navpvt = Checkbutton(con, text="NAV-PVT",
-                                    command=lambda: self._on_cfg_msg(msg=b'\xF0\x08', var=self._navpvt_state),
+                                    command=lambda: self._on_cfg_msg(msg=b'\x01\x07', var=self._navpvt_state),
                                     variable=self._navpvt_state)
         self._chk_navsvinfo = Checkbutton(con, text="NAV-SVINFO",
-                                    command=lambda: self._on_cfg_msg(msg=b'\x66\x66', var=self._navsvinfo_state),
+                                    command=lambda: self._on_cfg_msg(msg=b'\x01\x30', var=self._navsvinfo_state),
                                     variable=self._navsvinfo_state)
         self._chk_navsbas = Checkbutton(con, text="NAV-SBAS",
-                                      command=lambda: self._on_cfg_msg(msg=b'\xF1\x00', var=self._navsbas_state),
+                                      command=lambda: self._on_cfg_msg(msg=b'\x01\x32', var=self._navsbas_state),
                                       variable=self._navsbas_state)
         self._chk_navvelned = Checkbutton(con, text="NAV-VELNED",
-                                      command=lambda: self._on_cfg_msg(msg=b'\xF1\x03', var=self._navvelned_state),
+                                      command=lambda: self._on_cfg_msg(msg=b'\x01\x12', var=self._navvelned_state),
                                       variable=self._navvelned_state)
         self._chk_navtimeutc = Checkbutton(con, text="NAV-TIMEUTC",
-                                      command=lambda: self._on_cfg_msg(msg=b'\xF1\x04', var=self._navtimeutc_state),
+                                      command=lambda: self._on_cfg_msg(msg=b'\x01\x21', var=self._navtimeutc_state),
                                       variable=self._navtimeutc_state)
 
         self._frm_preset = Frame(con)
