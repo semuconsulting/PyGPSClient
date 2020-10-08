@@ -33,7 +33,7 @@ HDOP_RATIO = 20  # arbitrary calibration of accuracy against HDOP
 KNOWNGPS = ('GPS', 'gps', 'GNSS', 'gnss', 'Garmin', 'garmin', 'U-Blox', 'u-blox')
 BAUDRATES = (115200, 57600, 38400, 19200, 9600, 4800)
 PARITIES = {"Even":PARITY_EVEN, "Odd": PARITY_ODD, "Mark": PARITY_MARK, "Space": PARITY_SPACE, "None": PARITY_NONE}
-SERIAL_TIMEOUT = 0.5
+SERIAL_TIMEOUT = .5
 
 NMEA_PROTOCOL = 0
 UBX_PROTOCOL = 1
@@ -61,19 +61,21 @@ UI = "Imperial mph"
 UIK = "Imperial knots"
 
 # List of tags to highlight in console
-TAGS = [("DTM", "pink"), ("GBS", "pink"), \
-        ("GGA", "red"), ("GSV", "yellow"), ("GLL", "orange"), ("TXT", "lightgrey"), \
-        ("GSA", "pink"), ("RMC", "green2"), ("VTG", "cyan"), ("lat", "lightblue1"), \
+TAGS = [("DTM", "deepskyblue"), ("GBS", "pink"), \
+        ("GGA", "orange"), ("GSV", "yellow"), ("GLL", "orange"), ("TXT", "lightgrey"), \
+        ("GSA", "green2"), ("RMC", "orange"), ("VTG", "deepskyblue"), ("lat", "lightblue1"), \
         ("lon", "lightblue1"), ("lat_dir", "lightblue1"), ("lon_dir", "lightblue1"), \
-        ("altitude", "lightblue1"), ("pdop", "lightblue1"), ("UBX", "coral"), \
+        ("altitude", "lightblue1"), ("pdop", "lightblue1"), ("UBX", "lightblue1"), \
+        ("UBX00", "aquamarine2"), ("UBX03", "yellow"), ("UBX04", "cyan"), ("UBX05", "orange"), \
+        ("UBX06", "orange"), \
         ("vdop", "lightblue1"), ("hdop", "lightblue1"), ("h_acc", "lightblue1"), \
         ("v_acc", "lightblue1"), ("spd_over_grnd_kmph", "lightblue1"), \
         ("true_track", "lightblue1"), ("mode_fix_type", "lightblue1"), \
         ("datum", "lightblue1"), ("ACK-ACK", "green2"), ("ACK-NAK", "orange red"), \
-        ("CFG-MSG", "cyan"), ("xb5b", "coral"), ("NAV-SOL", "pink"), ("NAV-POSLLH", "red"), \
-        ("NAV-VELECEF", "cyan"), ("NAV-VELNED", "cyan"), ("NAV-SVINFO", "yellow"),
-        ("NAV-SOL", "pink"), ("NAV-TIMEUTC", "lightblue1"), ("NAV-STATUS", "orange"),
-        ("NAV-DOP", "coral"), ("NAV-CLOCK", "lightblue1"), ("NAV-PVT", "red")]
+        ("CFG-MSG", "cyan"), ("xb5b", "lightblue1"), ("NAV-SOL", "green2"), ("NAV-POSLLH", "orange"), \
+        ("NAV-VELECEF", "deepskyblue"), ("NAV-VELNED", "deepskyblue"), ("NAV-SVINFO", "yellow"),
+        ("NAV-TIMEUTC", "cyan"), ("NAV-STATUS", "green2"), ("NAV-PVT", "orange"),
+        ("NAV-DOP", "mediumpurple2"), ("NAV-CLOCK", "cyan"), ("NAV-SBAS", "yellow")]
 
 
 def deg2rad(deg: float) -> float:

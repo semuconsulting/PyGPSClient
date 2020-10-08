@@ -145,11 +145,9 @@ class NMEAHandler():
         Process GSA sentence - GPS DOP (Dilution of Precision) and active satellites.
         '''
 
-        self.pdop = data.pdop
-        self.hdop = data.hdop
-        self.vdop = data.vdop
-#         self.hacc = self._estimate_acc(self.hdop)
-#         self.vacc = self._estimate_acc(self.vdop)
+        self.pdop = float(data.pdop)
+        self.hdop = float(data.hdop)
+        self.vdop = float(data.vdop)
         if data.mode_fix_type == '3':
             fix = '3D'
         elif data.mode_fix_type == '2':

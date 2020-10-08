@@ -17,6 +17,7 @@ into a more general purpose multi-platform NMEA / UBX GPS client.
 1. Supports both NMEA and UBX protocols. It uses the existing pynmea2 library for NMEA parsing and 
 implements a **[new pyubx2 library](https://github.com/semuconsulting/pyubx2)** for UBX parsing. 
 1. Configurable GUI with selectable and resizeable widgets.
+1. Expandable banner widget showing key navigation information.
 1. Serial console widget showing either raw or parsed data stream.
 1. Skyview widget showing current satellite visibility and position (elevation / azimuth).
 1. Graphview widget showing current satellite reception (signal-to-noise ratio).
@@ -32,6 +33,14 @@ implements a **[new pyubx2 library](https://github.com/semuconsulting/pyubx2)** 
 Future versions may include additional features like GPX track recording, though the application is *not* intended to be used for real-time navigation or route planning.
 
 This is a personal project and I have no affiliation whatsoever with u-blox &copy;, Makerhawk &copy; or MapQuest &copy;.
+
+### Glossary of Terms
+
+* utc - coordinated universal time 
+* siv - satellites in view
+* sip - satellites used in position solution
+* dop - [dilution of precision](https://gisgeography.com/gps-accuracy-hdop-pdop-gdop-multipath/) (pdop - position, hdop - horizontal, vdop - vertical)
+* acc - accuracy of location in real units (hacc - horizontal, vacc - vertical)
 
 ### Current Status
 

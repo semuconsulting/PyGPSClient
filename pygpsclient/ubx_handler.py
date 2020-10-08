@@ -13,14 +13,7 @@ from datetime import datetime, timedelta
 
 from pyubx2.ubxmessage import UBXMessage
 
-
-def itow2utc(iTOW: int) -> str:
-    '''
-    Convert UBX iTOW to UTC time
-    '''
-
-    utc = datetime(1980, 1, 6) + timedelta(seconds=(iTOW / 1000) - (35 - 19))
-    return utc.time()
+import string
 
 
 class UBXHandler():
@@ -61,7 +54,9 @@ class UBXHandler():
         parsed_data = UBXMessage.parse(data, False)
 
         if parsed_data.identity == 'NAV-POSLLH':
-            self._process_NAV_LLH(parsed_data)
+            self._process_NAV_POSLLH(parsed_data)
+        if parsed_data.identity == 'NAV-PVT':
+            self._process_NAV_PVT(parsed_data)
         if parsed_data.identity == 'NAV-VELNED':
             self._process_NAV_VELNED(parsed_data)
         if parsed_data.identity == 'NAV-SVINFO':
@@ -85,13 +80,13 @@ class UBXHandler():
         else:
             self.__app.frm_console.update_console(str(parsed_data))
 
-    def _process_NAV_LLH(self, data: UBXMessage):
+    def _process_NAV_POSLLH(self, data: UBXMessage):
         '''
         Process NAV-LLH sentence - Latitude, Longitude, Height.
         '''
 
         try:
-            self.utc = itow2utc(data.iTOW)
+            self.utc = UBXMessage.itow2utc(data.iTOW)
             self.lat = data.lat / 10 ** 7
             self.lon = data.lon / 10 ** 7
             self.alt = data.hMSL / 1000
@@ -100,6 +95,40 @@ class UBXHandler():
             self.__app.frm_banner.update_banner(time=self.utc, lat=self.lat,
                                                 lon=self.lon, alt=self.alt,
                                                 hacc=self.hacc, vacc=self.vacc)
+
+            if self.__app.frm_settings.get_settings()['webmap']:
+                self.__app.frm_mapview.update_map(self.lat, self.lon, self.hacc,
+                                                  self.vacc, '3D', False)
+            else:
+                self.__app.frm_mapview.update_map(self.lat, self.lon, self.hacc,
+                                                  self.vacc, '3D', True)
+        except ValueError:
+            # self.__app.set_status(ube.UBXMessageError(err), "red")
+            pass
+
+    def _process_NAV_PVT(self, data: UBXMessage):
+        '''
+        Process NAV-PVT sentence -  Navigation position velocity time solution
+        '''
+
+        try:
+            self.utc = UBXMessage.itow2utc(data.iTOW)
+            self.lat = data.lat / 10 ** 7
+            self.lon = data.lon / 10 ** 7
+            self.alt = data.hMSL / 1000
+            self.hacc = data.hAcc / 1000
+            self.vacc = data.vAcc / 1000
+            self.pdop = data.pDOP
+            self.sip = data.numSV
+            self.speed = data.gSpeed / 100
+            self.track = data.headMot / 10 ** 5
+            fix = UBXMessage.gpsfix2str(data.fixType)
+            self.__app.frm_banner.update_banner(time=self.utc, lat=self.lat,
+                                                lon=self.lon, alt=self.alt,
+                                                hacc=self.hacc, vacc=self.vacc,
+                                                pdop=self.pdop, sip=self.sip,
+                                                speed=self.speed, fix=fix,
+                                                track=self.track)
 
             if self.__app.frm_settings.get_settings()['webmap']:
                 self.__app.frm_mapview.update_map(self.lat, self.lon, self.hacc,
@@ -153,14 +182,9 @@ class UBXHandler():
         '''
 
         try:
-            self.pdop = str(data.pDOP / 100)
-            self.sip = str(data.numSV)
-            if data.gpsFix == 3:
-                fix = '3D'
-            elif data.gpsFix == 2:
-                fix = '2D'
-            else:
-                fix = 'NO FIX'
+            self.pdop = data.pDOP / 100
+            self.sip = data.numSV
+            fix = UBXMessage.gpsfix2str(data.gpsFix)
 
             self.__app.frm_banner.update_banner(dop=self.pdop, fix=fix, sip=self.sip)
         except ValueError:
@@ -173,9 +197,9 @@ class UBXHandler():
         '''
 
         try:
-            self.pdop = str(data.pDOP / 100)
-            self.hdop = str(data.hDOP / 100)
-            self.vdop = str(data.vDOP / 100)
+            self.pdop = data.pDOP / 100
+            self.hdop = data.hDOP / 100
+            self.vdop = data.vDOP / 100
 
             self.__app.frm_banner.update_banner(dop=self.pdop, hdop=self.hdop, vdop=self.vdop)
         except ValueError:

@@ -7,11 +7,13 @@ Created on 13 Sep 2020
 
 @author: semuadmin
 '''
+# pylint: disable=line-too-long
 
 from platform import system
 from tkinter import Frame, Label, Button, StringVar, font, N, S, W, E, SUNKEN
 
 from PIL import ImageTk, Image
+from pyubx2 import UBXMessage
 
 from .globals import deg2dmm, deg2dms, m2ft, kmph2mph, kmph2ms, kmph2knots, \
                                 DMM, DMS, UMM, UI, UIK, ICON_CONN, ICON_DISCONN, \
@@ -95,21 +97,21 @@ class BannerFrame(Frame):
         self._lbl_lat = Label(self._frm_basic, textvariable=self._lat, bg=self._bgcol, fg="orange")
         self._lbl_lon = Label(self._frm_basic, textvariable=self._lon, bg=self._bgcol, fg="orange")
         self._lbl_alt = Label(self._frm_basic, textvariable=self._alt, bg=self._bgcol, fg="orange")
-        self._lbl_spd = Label(self._frm_basic, textvariable=self._speed, bg=self._bgcol, fg="yellow")
-        self._lbl_trk = Label(self._frm_basic, textvariable=self._track, bg=self._bgcol, fg="yellow")
+        self._lbl_spd = Label(self._frm_basic, textvariable=self._speed, bg=self._bgcol, fg="deepskyblue")
+        self._lbl_trk = Label(self._frm_basic, textvariable=self._track, bg=self._bgcol, fg="deepskyblue")
         self._lbl_fix = Label(self._frm_basic, textvariable=self._fix, bg=self._bgcol, fg="white")
-        self._lbl_siv = Label(self._frm_advanced, textvariable=self._siv, bg=self._bgcol, fg="deep sky blue")
-        self._lbl_sip = Label(self._frm_advanced, textvariable=self._sip, bg=self._bgcol, fg="deep sky blue")
-        self._lbl_pdop = Label(self._frm_advanced, textvariable=self._dop, bg=self._bgcol, fg="magenta")
+        self._lbl_siv = Label(self._frm_advanced, textvariable=self._siv, bg=self._bgcol, fg="yellow")
+        self._lbl_sip = Label(self._frm_advanced, textvariable=self._sip, bg=self._bgcol, fg="yellow")
+        self._lbl_pdop = Label(self._frm_advanced, textvariable=self._dop, bg=self._bgcol, fg="mediumpurple2")
 
         self.option_add("*Font", self.__app.font_sm)
         self._lbl_lalt_u = Label(self._frm_basic, textvariable=self._alt_u, bg=self._bgcol, fg="orange",
                                 anchor=S)
-        self._lbl_lspd_u = Label(self._frm_basic, textvariable=self._speed_u, bg=self._bgcol, fg="yellow",
+        self._lbl_lspd_u = Label(self._frm_basic, textvariable=self._speed_u, bg=self._bgcol, fg="deepskyblue",
                                 anchor=S)
-        self._lbl_hvdop = Label(self._frm_advanced, textvariable=self._hvdop, bg=self._bgcol, fg="magenta")
-        self._lbl_hvacc = Label(self._frm_advanced, textvariable=self._hvacc, bg=self._bgcol, fg="magenta")
-        self._lbl_lacc_u = Label(self._frm_advanced, textvariable=self._alt_u, bg=self._bgcol, fg="magenta", anchor=N)
+        self._lbl_hvdop = Label(self._frm_advanced, textvariable=self._hvdop, bg=self._bgcol, fg="mediumpurple2")
+        self._lbl_hvacc = Label(self._frm_advanced, textvariable=self._hvacc, bg=self._bgcol, fg="aquamarine2")
+        self._lbl_lacc_u = Label(self._frm_advanced, textvariable=self._alt_u, bg=self._bgcol, fg="aquamarine2", anchor=N)
 
     def _do_layout(self):
         '''
@@ -243,7 +245,8 @@ class BannerFrame(Frame):
         if 'sip' in kwargs:
             self._sip.set(str(kwargs['sip']).zfill(2))
         if 'dop' in kwargs:
-            self._dop.set(str(kwargs['dop']))
+            dop = kwargs['dop']
+            self._dop.set(str(dop) + " " + UBXMessage.dop2str(dop))
         if 'hdop' in kwargs and 'vdop' in kwargs:
             self._hvdop.set("hdop " + str(kwargs['hdop']) + "\nvdop " + str(kwargs['vdop']))
         if 'hacc' in kwargs and 'vacc' in kwargs:
@@ -255,9 +258,9 @@ class BannerFrame(Frame):
                 vacc = round(kwargs['vacc'], 1)
             self._hvacc.set("hacc " + str(hacc) + "\nvacc " + str(vacc))
         if 'fix' in kwargs:
-            if kwargs['fix'] == '3D':
+            if kwargs['fix'] in ('3D', '3D + DR'):
                 self._lbl_fix.config(fg="green2")
-            elif kwargs['fix'] == '2D':
+            elif kwargs['fix'] in ('2D', 'DR'):
                 self._lbl_fix.config(fg="orange")
             else:
                 self._lbl_fix.config(fg="red")

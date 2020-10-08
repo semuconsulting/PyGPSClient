@@ -98,8 +98,8 @@ class MapviewFrame(Frame):
         self._img = ImageTk.PhotoImage(Image.open(IMG_WORLD).resize((w, h), Image.ANTIALIAS))
         self._marker = ImageTk.PhotoImage(Image.open(ICON_POS))
         self.can_mapview.create_image(0, 0, image=self._img, anchor=NW)
-        x = (w / 2) + (lon * (w / 360)) + OFFSET_X
-        y = (h / 2) - (lat * (h / 180)) + OFFSET_Y
+        x = (w / 2) + int((lon * (w / 360))) + OFFSET_X
+        y = (h / 2) - int((lat * (h / 180))) + OFFSET_Y
         self.can_mapview.create_image(x, y, image=self._marker, anchor=S)
 
     def _draw_web_map(self, lat, lon, hacc, vacc):
@@ -161,7 +161,7 @@ class MapviewFrame(Frame):
 
         w, h = self.width, self.height
         zoom = self.__app.frm_settings.get_settings()['mapzoom']
-        radius = str(hacc / 1000) # km
+        radius = str(hacc / 1000)  # km
 
         return MAPURL.format(apikey, lat, lon, zoom, radius, lat, lon, w, h)
 
