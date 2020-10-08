@@ -1,7 +1,8 @@
 '''
 SerialHandler class for PyGPSClient application
 
-This handles all the serial i/o , threaded read process and data parsing
+This handles all the serial i/o , threaded read process and direction to
+the appropriate protocol handler
 
 Created on 16 Sep 2020
 
@@ -128,7 +129,7 @@ class SerialHandler():
             self._reading = True
             self.__app.set_status(WAITUBXDATA, "blue")
             self.__app.frm_mapview.reset_map_refresh()
-            self._serial_object.flushInput()
+            self._serial_object.reset_input_buffer()
             self._serial_thread = Thread(target=self._read_thread, daemon=True)
             self._serial_thread.start()
 
@@ -156,49 +157,50 @@ class SerialHandler():
 
     def on_read(self, event):  # pylint: disable=unused-argument
         '''
-        Read any data in the buffer.
+        Action on <<ubx_read>> event - read any data in the buffer.
         '''
 
         self.__app.set_status("",)
         self._parse_data(self._serial_buffer)
 
     def _parse_data(self, ser: Serial) -> object:
-
         '''
-        Parse the binary data.
+        Read the binary data and direct to the appropriate
+        UBX and/or NMEA protocol handler, depending on which protocols
+        are filtered.
         '''
 
         parsing = True
         raw_data = None
-
-        byte1 = ser.read(1)
+        byte1 = ser.read(2)  # read first two bytes to determine protocol
 
         while parsing:
-            filter = self.__app.frm_settings.get_settings()['protocol']
-            # if it's a UBX message
-            if byte1 == ubt.UBX_HDR[0:1] and filter in (UBX_PROTOCOL, MIXED_PROTOCOL):
-                byte2 = ser.read(1)
-                if byte2 == ubt.UBX_HDR[1:2]:
-                    byten = ser.read(4)
-                    clsid = byten[0:1]
-                    msgid = byten[1:2]
-                    lenb = byten[2:4]
-                    leni = int.from_bytes(lenb, 'little', signed=False)
-                    byten = ser.read(leni + 2)
-                    plb = byten[0:leni]
-                    cksum = byten[leni:leni + 2]
-                    raw_data = ubt.UBX_HDR + clsid + msgid + lenb + plb + cksum
-                    self._ubx_handler.process_data(raw_data)
-                else:
-                    parsing = False
-            # if it's an NMEA message
-            elif byte1 == ubt.NMEA_HDR[0:1] and filter in (NMEA_PROTOCOL, MIXED_PROTOCOL):
+            self.__app.update_idletasks()
+            filt = self.__app.frm_settings.get_settings()['protocol']
+            # if it's a UBX message (b'\b5\x62')
+            if byte1 == ubt.UBX_HDR and filt in (UBX_PROTOCOL, MIXED_PROTOCOL):
+#                 print(f"doing ubx {ser.peek()}")
+                byten = ser.read(4)
+                clsid = byten[0:1]
+                msgid = byten[1:2]
+                lenb = byten[2:4]
+                leni = int.from_bytes(lenb, 'little', signed=False)
+                byten = ser.read(leni + 2)
+                plb = byten[0:leni]
+                cksum = byten[leni:leni + 2]
+                raw_data = ubt.UBX_HDR + clsid + msgid + lenb + plb + cksum
+                self._ubx_handler.process_data(raw_data)
+                parsing = False
+            # if it's an NMEA message ('$G' or '$P')
+            elif byte1 in (b'\x24\x47', b'\x24\x50') and filt in (NMEA_PROTOCOL, MIXED_PROTOCOL):
+#                 print(f"doing nmea {ser.peek()}")
                 try:
-                    raw_data = ser.readline().decode("utf-8")
-                    self._nmea_handler.process_data(raw_data)
+                    raw_data = byte1 + ser.readline()
+                    self._nmea_handler.process_data(raw_data.decode("utf-8"))
                 except UnicodeDecodeError:
                     continue
                 parsing = False
-            # unrecognised message header
+            # else drop it like it's hot
             else:
+#                 print(f"dropping {ser.peek()}")
                 parsing = False
