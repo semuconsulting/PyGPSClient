@@ -34,6 +34,7 @@ KNOWNGPS = ('GPS', 'gps', 'GNSS', 'gnss', 'Garmin', 'garmin', 'U-Blox', 'u-blox'
 BAUDRATES = (115200, 57600, 38400, 19200, 9600, 4800)
 PARITIES = {"Even":PARITY_EVEN, "Odd": PARITY_ODD, "Mark": PARITY_MARK, "Space": PARITY_SPACE, "None": PARITY_NONE}
 SERIAL_TIMEOUT = .5
+MAX_SVID = 999 # restrict range of satellites displayed (GPS, SBAS, Galileo etc.)
 
 NMEA_PROTOCOL = 0
 UBX_PROTOCOL = 1

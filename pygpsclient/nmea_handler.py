@@ -114,7 +114,7 @@ class NMEAHandler():
         (Horizontal Dilution of Precision) value and the nominal native device
         accuracy (datasheet CEP)
 
-        NB: this is a largely arbitrary estimate - there is no direct correlation 
+        NB: this is a largely arbitrary estimate - there is no direct correlation
         between HDOP and accuracy based solely on generic NMEA data.
         '''
 
@@ -168,26 +168,30 @@ class NMEAHandler():
         These come in batches of 1-4 sentences, each containing the positions
         of up to 4 satellites (up to 16 satellites in total).
         '''
+        # TODO Gen8 devices pump out multiple sets of GSV corresponding to different
+        # satellite prn ranges. need to accumulate these into a single array
+        # rather than alternating between them
 
         num_msgs = int(data.num_messages)
         msg_num = int(data.msg_num)
-        num_sv = int(data.num_sv_in_view)
-        self.__app.frm_banner.update_banner(siv=num_sv)
+        num_siv = int(data.num_sv_in_view)
+        self.__app.frm_banner.update_banner(siv=num_siv)
 
         if msg_num == 1:
             self.gsv_data = []
-        if num_sv >= (msg_num * 4):
+        if num_siv >= (msg_num * 4):
             siv = 4
         else:
-            siv = num_sv - ((msg_num - 1) * 4)
-        for i in range(1, siv + 1):
+            siv = num_siv - ((msg_num - 1) * 4)
+
+        for idx in range(1, siv + 1):
             # TODO is there an easier/better way to do this without exec()?:
-            exec("self.gsv_data.append((data.sv_prn_num_" + str(i) + \
-                 ", data.elevation_deg_" + str(i) + \
-                 ", data.azimuth_" + str(i) + ", data.snr_" + str(i) + "))")
+            exec("self.gsv_data.append((data.sv_prn_num_" + str(idx) + \
+                 ", data.elevation_deg_" + str(idx) + \
+                 ", data.azimuth_" + str(idx) + ", data.snr_" + str(idx) + "))")
         if msg_num == num_msgs:  # When we've received all the expected GSV sentences
             self.__app.frm_satview.update_sats(self.gsv_data)
-            self.__app.frm_graphview.update_graph(self.gsv_data)
+            self.__app.frm_graphview.update_graph(self.gsv_data, 32)
 
     def _process_VTG(self, data: types.talker):
         '''

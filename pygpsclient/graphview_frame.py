@@ -16,7 +16,7 @@ from .globals import hsv2rgb, WIDGETU2, BGCOL, FGCOL
 AXIS_XL = 19
 AXIS_XR = 10
 AXIS_Y = 18
-MAX_NUM_SATS = 17
+MAX_NUM_SATS = 32
 MAX_SNR = 50
 
 
@@ -64,26 +64,27 @@ class GraphviewFrame(Frame):
         ticks = int(MAX_SNR / 10)
         self.can_graphview.delete("all")
         self.can_graphview.create_line(AXIS_XL, 5, AXIS_XL , h - AXIS_Y, fill=self._fgcol)
-        self.can_graphview.create_line(w - AXIS_XR, 5 , w - AXIS_XR, h - AXIS_Y,
+        self.can_graphview.create_line(w - AXIS_XR + 2, 5 , w - AXIS_XR + 2, h - AXIS_Y,
                                        fill=self._fgcol)
         for i in range(ticks, 0, -1):
             y = (h - AXIS_Y) * i / ticks
-            self.can_graphview.create_line(AXIS_XL, y, w - AXIS_XR, y, fill=self._fgcol)
+            self.can_graphview.create_line(AXIS_XL, y, w - AXIS_XR + 2, y, fill=self._fgcol)
             self.can_graphview.create_text(10, y, text=str(MAX_SNR - (i * 10)), angle=90,
                                            fill=self._fgcol, font=resize_font)
         self.can_graphview.create_text(10, (h - AXIS_Y - 1) / 2, text="dbHz", angle=90,
                                        fill=self._fgcol, font=resize_font)
 
-    def update_graph(self, data):
+    def update_graph(self, data, siv):
         '''
         Plot satellites' elevation and azimuth position.
+        Automatically adjust y axis according to number of satellites in view.
         '''
 
         w, h = self.width, self.height
         self.init_graph()
 
         offset = AXIS_XL + 1
-        colwidth = (w - AXIS_XL - AXIS_XR) / MAX_NUM_SATS
+        colwidth = (w - AXIS_XL - AXIS_XR) / siv
         resize_font = font.Font(size=min(int(colwidth / 2), 10))
         for d in data:
             prn, _, _, snr = d
@@ -96,7 +97,7 @@ class GraphviewFrame(Frame):
                                                 h - AXIS_Y - 1 - snr_y,
                                                 fill=hsv2rgb(snr / 100, .8, .8))
             self.can_graphview.create_text(offset + colwidth / 2, h - 10, text=prn,
-                                           fill=self._fgcol, font=resize_font)
+                                           fill=self._fgcol, font=resize_font, angle=35)
             offset += colwidth
 
         self.can_graphview.update()

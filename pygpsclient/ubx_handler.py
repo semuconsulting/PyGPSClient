@@ -9,12 +9,11 @@ Created on 30 Sep 2020
 '''
 # pylint: disable=invalid-name
 
-from datetime import datetime, timedelta
 
 from pyubx2.ubxmessage import UBXMessage
 
-import string
 
+from .globals import MAX_SVID
 
 class UBXHandler():
     '''
@@ -166,12 +165,12 @@ class UBXHandler():
             for i in range(num_siv):
                 idx = "_{0:0=2d}".format(i + 1)
                 # TODO is there an easier/better way to do this without exec()?:
-                exec("if data.svid" + str(idx) + " < 100: " + \
+                exec("if data.svid" + str(idx) + " <= " + str(MAX_SVID) + ":" + \
                      "self.gsv_data.append((data.svid" + str(idx) + \
                      ", data.elev" + str(idx) + \
                      ", data.azim" + str(idx) + ", data.cno" + str(idx) + "))")
             self.__app.frm_satview.update_sats(self.gsv_data)
-            self.__app.frm_graphview.update_graph(self.gsv_data)
+            self.__app.frm_graphview.update_graph(self.gsv_data, num_siv)
         except ValueError:
             # self.__app.set_status(ube.UBXMessageError(err), "red")
             pass
