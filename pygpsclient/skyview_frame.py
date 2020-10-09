@@ -8,7 +8,7 @@ Created on 13 Sep 2020
 @author: semuadmin
 '''
 
-from tkinter import Frame, Canvas, font, BOTH, YES
+from tkinter import Frame, Canvas, font, BOTH, YES, LEFT
 
 from .globals import cel2cart, hsv2rgb, WIDGETU1, BGCOL, FGCOL
 
@@ -51,7 +51,7 @@ class SkyviewFrame(Frame):
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
-        self.can_satview = Canvas(self, width=self.width, height=self.height, 
+        self.can_satview = Canvas(self, width=self.width, height=self.height,
                                   bg=self.bg_col)
         self.can_satview.pack(fill=BOTH, expand=YES)
 
@@ -101,9 +101,16 @@ class SkyviewFrame(Frame):
                     snr = 0
                 else:
                     snr = int(snr)
+                if 65 <= int(prn) <= 96:  # GLONASS
+                    ol_col = "brown"
+                elif 33 <= int(prn) <= 64:  # SBAS
+                    ol_col = "blue"
+                else:  # original GPS
+                    ol_col = "black"
                 self.can_satview.create_circle(x + (w / 2), y + (h / 2),
-                                               (maxr / 10), fill=hsv2rgb(snr / 100, .8, .8))
-                self.can_satview.create_text(x + (w / 2), y + (h / 2), text=prn, 
+                                               (maxr / 10), outline=ol_col,
+                                               fill=hsv2rgb(snr / 100, .8, .8))
+                self.can_satview.create_text(x + (w / 2), y + (h / 2), text=prn,
                                              fill=self.fg_col, font=resize_font)
             except ValueError:
                 pass

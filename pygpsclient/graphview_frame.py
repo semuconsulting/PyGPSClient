@@ -74,7 +74,7 @@ class GraphviewFrame(Frame):
         self.can_graphview.create_text(10, (h - AXIS_Y - 1) / 2, text="dbHz", angle=90,
                                        fill=self._fgcol, font=resize_font)
 
-    def update_graph(self, data, siv):
+    def update_graph(self, data, siv=16):
         '''
         Plot satellites' elevation and azimuth position.
         Automatically adjust y axis according to number of satellites in view.
@@ -86,15 +86,21 @@ class GraphviewFrame(Frame):
         offset = AXIS_XL + 1
         colwidth = (w - AXIS_XL - AXIS_XR) / siv
         resize_font = font.Font(size=min(int(colwidth / 2), 10))
-        for d in data:
+        for d in sorted(data):
             prn, _, _, snr = d
             if snr in ('', '0', 0):
                 snr = 1
             else:
                 snr = int(snr)
             snr_y = int(snr) * (h - AXIS_Y - 1) / MAX_SNR
+            if 65 <= int(prn) <= 96:  # GLONASS
+                ol_col = "brown"
+            elif 33 <= int(prn) <= 64:  # SBAS
+                ol_col = "blue"
+            else:  # original GPS
+                ol_col = "black"
             self.can_graphview.create_rectangle(offset, h - AXIS_Y - 1, offset + colwidth,
-                                                h - AXIS_Y - 1 - snr_y,
+                                                h - AXIS_Y - 1 - snr_y, outline=ol_col,
                                                 fill=hsv2rgb(snr / 100, .8, .8))
             self.can_graphview.create_text(offset + colwidth / 2, h - 10, text=prn,
                                            fill=self._fgcol, font=resize_font, angle=35)

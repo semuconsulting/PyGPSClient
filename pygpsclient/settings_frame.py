@@ -154,7 +154,7 @@ class SettingsFrame(Frame):
         self._spn_maxlines = Spinbox(self._frm_options, values=("100", "200", "500", "1000", "2000"),
                                     width=6, readonlybackground=ENTCOL, wrap=True,
                                     textvariable=self._maxlines, state=READONLY)
-        self._chk_webmap = Checkbutton(self._frm_options, text="Web\nMap",
+        self._chk_webmap = Checkbutton(self._frm_options, text="Web Map  Zoom",
                                       variable=self._webmap)
         self._scl_mapzoom = Scale(self._frm_options, from_=1, to=20, orient=HORIZONTAL,
                                  relief="sunken", bg=ENTCOL, variable=self._mapzoom)
@@ -327,7 +327,7 @@ class SettingsFrame(Frame):
 #         self._rad_nmea.config(state=(DISABLED if status in (CONNECTED, NOPORTS) else NORMAL))
 #         self._rad_ubx.config(state=(DISABLED if status in (CONNECTED, NOPORTS) else NORMAL))
 #         self._rad_all.config(state=(DISABLED if status in (CONNECTED, NOPORTS) else NORMAL))
-        
+
     def get_settings(self):
         '''
         Public method returns all settings as a dict.

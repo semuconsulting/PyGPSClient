@@ -175,7 +175,7 @@ class SerialHandler():
         byte1 = ser.read(2)  # read first two bytes to determine protocol
 
         while parsing:
-            self.__app.update_idletasks()
+#             self.__app.update_idletasks()
             filt = self.__app.frm_settings.get_settings()['protocol']
             # if it's a UBX message (b'\b5\x62')
             if byte1 == ubt.UBX_HDR and filt in (UBX_PROTOCOL, MIXED_PROTOCOL):
