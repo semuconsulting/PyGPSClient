@@ -48,7 +48,7 @@ class UBXHandler():
         self.utc = ''
         self.sip = 0
         self.fix = '-'
-        self.ubx_state = {} # dict containing current UBX device config
+        self._ubx_state = {} # dict containing current UBX device config
 
     @staticmethod
     def poll_ubx_config(serial):
@@ -60,7 +60,6 @@ class UBXHandler():
         may take several seconds to arrive and will only be
         processed if the input protocol is set to UBX or BOTH
         '''
-        # TODO block access to UBX-Config if in NMEA only mode?
 
         for msgtype in ('CFG-PRT', 'CFG-USB'):
             msg = UBXMessage('CFG', msgtype, None, POLL)
@@ -70,8 +69,17 @@ class UBXHandler():
             msg = UBXMessage('CFG', 'CFG-MSG', payload, POLL)
             serial.write(msg.serialize())
 
-        msg = UBXMessage('CFG', 'CFG-INF', b'\x00', POLL)
-        serial.write(msg.serialize())
+        for payload in (b'\x00', b'\x01'): # UBX & NMEA
+            msg = UBXMessage('CFG', 'CFG-INF', payload, POLL)
+            serial.write(msg.serialize())
+
+    @property
+    def state(self):
+        '''
+        Return last known UBX configuration state
+        '''
+        
+        return self._ubx_state
 
     def process_data(self, data: bytes) -> UBXMessage:
         '''
@@ -122,7 +130,7 @@ class UBXHandler():
         msgtype = UBX_CONFIG_MESSAGES[data.msgClass + data.msgID]
         rates = (data.rateDDC, data.rateUART1, data.rateUART2, data.rateUSB,
                  data.rateSPI, data.reserved)
-        self.ubx_state[msgtype] = rates
+        self._ubx_state[msgtype] = rates
 
     def _process_CFG_INF(self, data: UBXMessage):
         '''
@@ -130,9 +138,8 @@ class UBXHandler():
         Update the UBX state dictionary to reflect current UBX device config.
         '''
 
-        cfg = (data.infMsgMaskDDC, data.infMsgMaskUART1, data.infMsgMaskUART2,
-               data.infMsgMaskUSB, data.infMsgMaskSPI)
-        self.ubx_state['CFG-INF'] = cfg
+        cfg = (data.protocolID, data.infMsgMask)
+        self._ubx_state['CFG-INF'] = cfg
 
     def _process_CFG_PRT(self, data: UBXMessage):
         '''
@@ -141,7 +148,7 @@ class UBXHandler():
         '''
 
         cfg = (data.mode, data.baudRate, data.inProtoMask, data.outProtoMask)
-        self.ubx_state['CFG-PRT'] = cfg
+        self._ubx_state['CFG-PRT'] = cfg
 
     def _process_NAV_POSLLH(self, data: UBXMessage):
         '''

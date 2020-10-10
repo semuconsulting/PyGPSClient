@@ -17,9 +17,7 @@ import pyubx2.ubxtypes_core as ubt
 
 from .globals import CONNECTED, DISCONNECTED, SERIAL_TIMEOUT, \
                                 NMEA_PROTOCOL, MIXED_PROTOCOL, UBX_PROTOCOL, PARITIES
-from .nmea_handler import NMEAHandler
 from .strings import WAITUBXDATA, STOPDATA, NOTCONN, SEROPENERROR
-from .ubx_handler import UBXHandler
 
 
 class SerialHandler():
@@ -35,12 +33,11 @@ class SerialHandler():
         self.__app = app  # Reference to main application class
         self.__master = self.__app.get_master()  # Reference to root class (Tk)
 
-        self._nmea_handler = None
-        self._ubx_handler = None
         self._serial_object = None
         self._serial_buffer = None
         self._serial_thread = None
         self._connected = False
+        self._port = None
         self._reading = False
 
     def __del__(self):
@@ -59,7 +56,7 @@ class SerialHandler():
 
         settings = self.__app.frm_settings.get_settings()
 
-        port = settings['port']
+        self._port = settings['port']
         port_desc = settings['port_desc']
         baudrate = settings['baudrate']
         databits = settings['databits']
@@ -69,7 +66,7 @@ class SerialHandler():
         rtscts = settings['rtscts']
 
         try:
-            self._serial_object = Serial(port,
+            self._serial_object = Serial(self._port,
                                          baudrate,
                                          bytesize=databits,
                                          stopbits=stopbits,
@@ -78,16 +75,14 @@ class SerialHandler():
                                          rtscts=rtscts,
                                          timeout=SERIAL_TIMEOUT)
             self._serial_buffer = BufferedRWPair(self._serial_object, self._serial_object)
-            self._nmea_handler = NMEAHandler(self.__app)
-            self._ubx_handler = UBXHandler(self.__app)
             self.__app.frm_banner.update_banner(status=True)
-            self.__app.set_connection(f"{port}:{port_desc} @ {str(baudrate)}", "green")
+            self.__app.set_connection(f"{self._port}:{port_desc} @ {str(baudrate)}", "green")
             self.__app.frm_settings.set_controls(CONNECTED)
             self._connected = True
             self.start_read_thread()
         except (SerialException, SerialTimeoutException) as err:
             self._connected = False
-            self.__app.set_connection(f"{port}:{port_desc} @ {str(baudrate)}", "red")
+            self.__app.set_connection(f"{self._port}:{port_desc} @ {str(baudrate)}", "red")
             self.__app.set_status(SEROPENERROR.format(err), "red")
             self.__app.frm_banner.update_banner(status=False)
             self.__app.frm_settings.set_controls(DISCONNECTED)
@@ -111,6 +106,22 @@ class SerialHandler():
         self.__app.frm_settings.set_controls(self._connected)
 
     @property
+    def port(self):
+        '''
+        Getter for port
+        '''
+
+        return self._port
+
+    @property
+    def connected(self):
+        '''
+        Getter for connection status
+        '''
+
+        return self._connected
+
+    @property
     def serial(self):
         '''
         Getter for serial object
@@ -118,9 +129,16 @@ class SerialHandler():
 
         return self._serial_object
 
+    @property
+    def buffer(self):
+        '''
+        Getter for serial buffer
+        '''
+
+        return self._serial_buffer
 
     @property
-    def reader_thread(self):
+    def thread(self):
         '''
         Getter for serial thread
         '''
@@ -208,14 +226,14 @@ class SerialHandler():
                 plb = byten[0:leni]
                 cksum = byten[leni:leni + 2]
                 raw_data = ubt.UBX_HDR + clsid + msgid + lenb + plb + cksum
-                self._ubx_handler.process_data(raw_data)
+                self.__app.ubx_handler.process_data(raw_data)
                 parsing = False
             # if it's an NMEA message ('$G' or '$P')
             elif byte1 in (b'\x24\x47', b'\x24\x50') and filt in (NMEA_PROTOCOL, MIXED_PROTOCOL):
 #                 print(f"doing nmea {ser.peek()}")
                 try:
                     raw_data = byte1 + ser.readline()
-                    self._nmea_handler.process_data(raw_data.decode("utf-8"))
+                    self.__app.nmea_handler.process_data(raw_data.decode("utf-8"))
                 except UnicodeDecodeError:
                     continue
                 parsing = False

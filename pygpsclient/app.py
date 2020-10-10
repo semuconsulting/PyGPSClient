@@ -24,6 +24,8 @@ from .strings import TITLE, INTROTXT, MENUHIDESE, MENUSHOWSE, \
                                 MENUHIDESB, MENUSHOWSB, MENUHIDECON, MENUSHOWCON, MENUHIDEMAP, \
                                 MENUSHOWMAP, MENUHIDESATS, MENUSHOWSATS, INTROTXTNOPORTS
 from .ubx_config_dialog import UBXConfigDialog
+from .nmea_handler import NMEAHandler
+from .ubx_handler import UBXHandler
 
 from ._version import __version__
 
@@ -57,6 +59,8 @@ class App(Frame):
         # Instantiate protocol handler classes
         self.file_handler = FileHandler(self)
         self.serial_handler = SerialHandler(self)
+        self.nmea_handler = NMEAHandler(self)
+        self.ubx_handler = UBXHandler(self)
 
         # Load web map api key if there is one
         self.api_key = self.file_handler.load_apikey()

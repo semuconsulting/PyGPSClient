@@ -13,18 +13,22 @@ from tkinter import ttk, Toplevel, Frame, Checkbutton, Radiobutton, Listbox, \
                     N, S, E, W, LEFT, VERTICAL
 
 from PIL import ImageTk, Image
-from pyubx2 import UBXMessage, SET
+from pyubx2 import UBXMessage, SET, UBX_CONFIG_MESSAGES
 
 from .globals import BGCOL, FGCOL, ENTCOL, ICON_APP, ICON_SEND, ICON_EXIT
 from .strings import DLGUBXCONFIG
 from .ubx_handler import UBXHandler as ubh, CFG_MSG_OFF, CFG_MSG_ON, BOTH, UBX, NMEA
 
 MSG_PRESETS = {
-'CFG-MSG - Turn on all NMEA nav msgs': 'CFG-MSG',
-'CFG-MSG - Turn off all NMEA nav msgs': 'CFG-MSG',
-'CFG-MSG - Turn on all UBX nav msgs': 'CFG-MSG',
-'CFG-MSG - Turn off all UBX nav msgs': 'CFG-MSG',
-'CFG-INF - Poll device info': 'CFG-INF',
+'CFG-CFG - Restore factory defaults': 'CFG-CFG',
+'CFG-CFG - Store current configuration': 'CFG-CFG',
+'CFG-MSG - Turn ON all NMEA msgs': 'CFG-MSG',
+'CFG-MSG - Turn OFF all NMEA msgs': 'CFG-MSG',
+'CFG-MSG - Turn ON all UBX NAV msgs': 'CFG-MSG',
+'CFG-MSG - Turn OFF all UBX NAV msgs': 'CFG-MSG',
+'CFG-MSG - Turn ON all MON msgs': 'CFG-MSG',
+'CFG-MSG - Turn OFF all MON msgs': 'CFG-MSG',
+'CFG-INF - Turn ON all INF msgs': 'CFG-INF'
 }
 
 
@@ -52,12 +56,14 @@ class UBXConfigDialog():
         self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
 
         # Poll current UBX configuration
-        ubh.poll_ubx_config(self.__app.serial_handler.serial)
+        if self.__app.serial_handler.connected:
+            ubh.poll_ubx_config(self.__app.serial_handler.serial)
 
         # Load user presets if there are any
         self._userpresets = self.__app.file_handler.load_user_presets()
 
         #  Initialise up key variables
+        self._preset_command = None
         self._ubx_baudrate = IntVar()
         self._ubx_prot = IntVar()
         self._dtm_state = IntVar()
@@ -380,7 +386,7 @@ class UBXConfigDialog():
         '''
 
         idx = self._lbx_preset.curselection()
-        preset = self._lbx_preset.get(idx)
+        self._preset_command = self._lbx_preset.get(idx)
 #        TODO do stuff here
 
     def _on_send(self, *args, **kwargs):
@@ -388,7 +394,90 @@ class UBXConfigDialog():
         Handle Send button press.
         '''
 
-        messagebox.showwarning("UBX Configuration Presets", "Sorry - not yet implemented!\n\nWatch this space.",)
+        if self._preset_command == 'CFG-CFG - Restore factory defaults':
+            self._do_factory_reset()
+        elif self._preset_command == 'CFG-INF - Turn ON all INF msgs':
+            self._do_setinfo()
+        elif self._preset_command == 'CFG-MSG - Turn ON all MON msgs':
+            self._do_setmon(True)
+        elif self._preset_command == 'CFG-MSG - Turn OFF all MON msgs':
+            self._do_setmon(False)
+        elif self._preset_command == 'CFG-MSG - Turn ON all NMEA msgs':
+            self._do_setnmea(True)
+        elif self._preset_command == 'CFG-MSG - Turn OFF all NMEA msgs':
+            self._do_setnmea(False)
+        elif self._preset_command == 'CFG-MSG - Turn ON all UBX NAV msgs':
+            self._do_setNAV(True)
+        elif self._preset_command == 'CFG-MSG - Turn OFF all UBX NAV msgs':
+            self._do_setNAV(False)
+        else:
+            messagebox.showwarning("UBX Configuration Presets", "Sorry - not yet implemented!\n\nWatch this space.",)
+
+    def _do_setinfo(self):
+        '''
+        Turn on device information messages INF
+        '''
+
+        for protocolID in (b'\x00', b'\x01'):  # UBX and NMEA
+            reserved0 = b'\x00'
+            reserved1 = b'\x00\x00'
+            infMsgMask = b'\x00\x31\x00\x00\x00\x00'
+            payload = protocolID + reserved0 + reserved1 + infMsgMask
+            msg = UBXMessage('CFG', 'CFG-INF', payload, SET)
+            self.__app.serial_handler.serial_write(msg.serialize())
+
+    def _do_setmon(self, onoff):
+        '''
+        Turn on all device monitoring messages MON
+        '''
+
+        for msgtype in UBX_CONFIG_MESSAGES:
+            if msgtype[0:1] == b'\x0A':
+                self._do_cfgmsg(msgtype, onoff)
+
+    def _do_setnmea(self, onoff):
+        '''
+        Turn on all NMEA messages
+        '''
+
+        for msgtype in UBX_CONFIG_MESSAGES:
+            if msgtype[0:1] not in (b'\x0A', b'\x01'):
+                self._do_cfgmsg(msgtype, onoff)
+
+    def _do_setNAV(self, onoff):
+        '''
+        Turn on all device monitoring messages MON
+        '''
+
+        for msgtype in UBX_CONFIG_MESSAGES:
+            if msgtype[0:1] == b'\x01':
+                self._do_cfgmsg(msgtype, onoff)
+
+    def _do_cfgmsg(self, msgtype, onoff):
+        '''
+        Send CFG-MSG for specified message type
+        '''
+
+        if onoff:
+            rate = CFG_MSG_ON
+        else:
+            rate = CFG_MSG_OFF
+        payload = msgtype + rate
+        msg = UBXMessage('CFG', 'CFG-MSG', payload, SET)
+        self.__app.serial_handler.serial_write(msg.serialize())
+
+    def _do_factory_reset(self):
+        '''
+        Restore to factory defaults
+        '''
+
+        clearMask = b'\x07\x00\x00\x00'
+        saveMask = b'\x00\x00\x00\x00'
+        loadMask = b'\x07\x00\x00\x00'
+        devicerMask = b'\x01'
+        payload = clearMask + saveMask + loadMask + devicerMask
+        msg = UBXMessage('CFG', 'CFG-CFG', payload, SET)
+        self.__app.serial_handler.serial_write(msg.serialize())
 
     def _on_exit(self, *args, **kwargs):
         '''

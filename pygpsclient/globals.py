@@ -34,7 +34,7 @@ KNOWNGPS = ('GPS', 'gps', 'GNSS', 'gnss', 'Garmin', 'garmin', 'U-Blox', 'u-blox'
 BAUDRATES = (115200, 57600, 38400, 19200, 9600, 4800)
 PARITIES = {"Even":PARITY_EVEN, "Odd": PARITY_ODD, "Mark": PARITY_MARK, "Space": PARITY_SPACE, "None": PARITY_NONE}
 SERIAL_TIMEOUT = .5
-SAT_EXPIRY = 60 # how long passed satellites are kept in the sky and graph views
+SAT_EXPIRY = 60  # how long passed satellites are kept in the sky and graph views
 
 NMEA_PROTOCOL = 0
 UBX_PROTOCOL = 1
@@ -76,7 +76,10 @@ TAGS = [("DTM", "deepskyblue"), ("GBS", "pink"), \
         ("CFG-MSG", "cyan"), ("xb5b", "lightblue1"), ("NAV-SOL", "green2"), ("NAV-POSLLH", "orange"), \
         ("NAV-VELECEF", "deepskyblue"), ("NAV-VELNED", "deepskyblue"), ("NAV-SVINFO", "yellow"),
         ("NAV-TIMEUTC", "cyan"), ("NAV-STATUS", "green2"), ("NAV-PVT", "orange"),
-        ("NAV-DOP", "mediumpurple2"), ("NAV-CLOCK", "cyan"), ("NAV-SBAS", "yellow")]
+        ("NAV-DOP", "mediumpurple2"), ("NAV-CLOCK", "cyan"), ("NAV-SBAS", "yellow"),
+        ("NAV-SAT", "yellow"), ("NAV-POSECEF", "orange"), ("NAV-TIMEGLO", "cyan"),
+        ("NAV-TIMEBDS", "cyan"), ("NAV-TIMEGAL", "cyan"), ("NAV-ORB", "yellow"),
+        ("NAV-TIMELS", "cyan"),("NAV-TIMEGPS", "cyan")]
 
 
 def deg2rad(deg: float) -> float:
