@@ -9,8 +9,14 @@ Created on 30 Sep 2020
 '''
 # pylint: disable=invalid-name
 
+from pyubx2 import UBXMessage, POLL, UBX_CONFIG_MESSAGES
 
-from pyubx2.ubxmessage import UBXMessage
+
+CFG_MSG_OFF = b'\x00\x00\x00\x00\x00\x01'
+CFG_MSG_ON = b'\x00\x01\x01\x01\x00\x01'
+BOTH = 3
+UBX = 1
+NMEA = 2
 
 
 class UBXHandler():
@@ -42,6 +48,30 @@ class UBXHandler():
         self.utc = ''
         self.sip = 0
         self.fix = '-'
+        self.ubx_state = {} # dict containing current UBX device config
+
+    @staticmethod
+    def poll_ubx_config(serial):
+        '''
+        POLL current UBX device configuration (port protocols
+        and message rates).
+
+        NB: The responses and acknowledgements to these polls
+        may take several seconds to arrive and will only be
+        processed if the input protocol is set to UBX or BOTH
+        '''
+        # TODO block access to UBX-Config if in NMEA only mode?
+
+        for msgtype in ('CFG-PRT', 'CFG-USB'):
+            msg = UBXMessage('CFG', msgtype, None, POLL)
+            serial.write(msg.serialize())
+
+        for payload in UBX_CONFIG_MESSAGES:
+            msg = UBXMessage('CFG', 'CFG-MSG', payload, POLL)
+            serial.write(msg.serialize())
+
+        msg = UBXMessage('CFG', 'CFG-INF', b'\x00', POLL)
+        serial.write(msg.serialize())
 
     def process_data(self, data: bytes) -> UBXMessage:
         '''
@@ -50,6 +80,12 @@ class UBXHandler():
 
         parsed_data = UBXMessage.parse(data, False)
 
+        if parsed_data.identity == 'CFG-MSG':
+            self._process_CFG_MSG(parsed_data)
+        if parsed_data.identity == 'CFG-PRT':
+            self._process_CFG_PRT(parsed_data)
+        if parsed_data.identity == 'CFG-INF':
+            self._process_CFG_INF(parsed_data)
         if parsed_data.identity == 'NAV-POSLLH':
             self._process_NAV_POSLLH(parsed_data)
         if parsed_data.identity == 'NAV-PVT':
@@ -76,6 +112,36 @@ class UBXHandler():
             self.__app.frm_console.update_console(str(raw_data))
         else:
             self.__app.frm_console.update_console(str(parsed_data))
+
+    def _process_CFG_MSG(self, data: UBXMessage):
+        '''
+        Process CFG-MSG sentence - UBX message configuration.
+        Update the UBX state dictionary to reflect current UBX device config.
+        '''
+
+        msgtype = UBX_CONFIG_MESSAGES[data.msgClass + data.msgID]
+        rates = (data.rateDDC, data.rateUART1, data.rateUART2, data.rateUSB,
+                 data.rateSPI, data.reserved)
+        self.ubx_state[msgtype] = rates
+
+    def _process_CFG_INF(self, data: UBXMessage):
+        '''
+        Process CFG-INF sentence - UBX info message configuration.
+        Update the UBX state dictionary to reflect current UBX device config.
+        '''
+
+        cfg = (data.infMsgMaskDDC, data.infMsgMaskUART1, data.infMsgMaskUART2,
+               data.infMsgMaskUSB, data.infMsgMaskSPI)
+        self.ubx_state['CFG-INF'] = cfg
+
+    def _process_CFG_PRT(self, data: UBXMessage):
+        '''
+        Process CFG-PRT sentence - UBX port configuration.
+        Update the UBX state dictionary to reflect current UBX device config.
+        '''
+
+        cfg = (data.mode, data.baudRate, data.inProtoMask, data.outProtoMask)
+        self.ubx_state['CFG-PRT'] = cfg
 
     def _process_NAV_POSLLH(self, data: UBXMessage):
         '''

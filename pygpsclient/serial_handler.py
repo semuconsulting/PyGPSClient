@@ -110,6 +110,23 @@ class SerialHandler():
         self._connected = False
         self.__app.frm_settings.set_controls(self._connected)
 
+    @property
+    def serial(self):
+        '''
+        Getter for serial object
+        '''
+
+        return self._serial_object
+
+
+    @property
+    def reader_thread(self):
+        '''
+        Getter for serial thread
+        '''
+
+        return self._serial_thread
+
     def serial_write(self, data: bytes):
         '''
         Write binary data to serial port.
@@ -117,6 +134,7 @@ class SerialHandler():
 
         try:
             self._serial_object.write(data)
+#             self._serial_buffer.write(data)
         except (SerialException, SerialTimeoutException) as err:
             print(f"Error writing to serial port {err}")
 
@@ -160,8 +178,9 @@ class SerialHandler():
         Action on <<ubx_read>> event - read any data in the buffer.
         '''
 
-        self.__app.set_status("",)
-        self._parse_data(self._serial_buffer)
+        if self._reading and self._serial_object is not None:
+            self.__app.set_status("",)
+            self._parse_data(self._serial_buffer)
 
     def _parse_data(self, ser: Serial) -> object:
         '''

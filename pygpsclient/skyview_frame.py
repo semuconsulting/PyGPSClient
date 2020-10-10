@@ -9,7 +9,7 @@ Created on 13 Sep 2020
 '''
 
 from tkinter import Frame, Canvas, font, BOTH, YES, LEFT
-
+from operator import itemgetter
 from .globals import cel2cart, hsv2rgb, WIDGETU1, BGCOL, FGCOL
 
 
@@ -89,7 +89,7 @@ class SkyviewFrame(Frame):
         resize_font = font.Font(size=min(int(maxr / 10), 10))
         self.init_sats()
 
-        for d in data:
+        for d in sorted(data, key=itemgetter(3)): # sort by ascending snr
             try:
                 prn, ele, azi, snr = d
                 ele = int(ele)
@@ -107,6 +107,7 @@ class SkyviewFrame(Frame):
                     ol_col = "blue"
                 else:  # original GPS
                     ol_col = "black"
+                prn = f"{int(prn):02}"
                 self.can_satview.create_circle(x + (w / 2), y + (h / 2),
                                                (maxr / 10), outline=ol_col,
                                                fill=hsv2rgb(snr / 100, .8, .8))

@@ -42,6 +42,7 @@ WAITNMEADATA = "Waiting for NMEA data..."
 WAITUBXDATA = "Waiting for UBX data..."
 STOPDATA = "Serial reader process stopped"
 NOTCONN = "Not connected"
+UBXPOLL = "Polling current UBX configuration..."
 
 # Menu text
 MENUFILE = "File"

@@ -34,7 +34,7 @@ KNOWNGPS = ('GPS', 'gps', 'GNSS', 'gnss', 'Garmin', 'garmin', 'U-Blox', 'u-blox'
 BAUDRATES = (115200, 57600, 38400, 19200, 9600, 4800)
 PARITIES = {"Even":PARITY_EVEN, "Odd": PARITY_ODD, "Mark": PARITY_MARK, "Space": PARITY_SPACE, "None": PARITY_NONE}
 SERIAL_TIMEOUT = .5
-SAT_EXPIRY = 600 # how long passed satellites are kept in the sky and graph views
+SAT_EXPIRY = 60 # how long passed satellites are kept in the sky and graph views
 
 NMEA_PROTOCOL = 0
 UBX_PROTOCOL = 1
@@ -68,7 +68,7 @@ TAGS = [("DTM", "deepskyblue"), ("GBS", "pink"), \
         ("lon", "lightblue1"), ("lat_dir", "lightblue1"), ("lon_dir", "lightblue1"), \
         ("altitude", "lightblue1"), ("pdop", "lightblue1"), ("UBX", "lightblue1"), \
         ("UBX00", "aquamarine2"), ("UBX03", "yellow"), ("UBX04", "cyan"), ("UBX05", "orange"), \
-        ("UBX06", "orange"), \
+        ("UBX06", "orange"), ("ZDA", "cyan"), \
         ("vdop", "lightblue1"), ("hdop", "lightblue1"), ("h_acc", "lightblue1"), \
         ("v_acc", "lightblue1"), ("spd_over_grnd_kmph", "lightblue1"), \
         ("true_track", "lightblue1"), ("mode_fix_type", "lightblue1"), \

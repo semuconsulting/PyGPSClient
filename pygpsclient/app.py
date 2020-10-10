@@ -250,5 +250,6 @@ class App(Frame):
         Kill any running processes and quit application
         '''
 
+        self.serial_handler.stop_read_thread()
         self.serial_handler.disconnect()
         self.__master.destroy()

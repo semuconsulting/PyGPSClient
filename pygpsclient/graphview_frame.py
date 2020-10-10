@@ -16,7 +16,6 @@ from .globals import hsv2rgb, WIDGETU2, BGCOL, FGCOL
 AXIS_XL = 19
 AXIS_XR = 10
 AXIS_Y = 18
-MAX_NUM_SATS = 32
 MAX_SNR = 50
 
 
@@ -86,7 +85,7 @@ class GraphviewFrame(Frame):
         offset = AXIS_XL + 1
         colwidth = (w - AXIS_XL - AXIS_XR) / siv
         resize_font = font.Font(size=min(int(colwidth / 2), 10))
-        for d in sorted(data):
+        for d in sorted(data): # sort by ascending prn
             prn, _, _, snr = d
             if snr in ('', '0', 0):
                 snr = 1
@@ -99,6 +98,7 @@ class GraphviewFrame(Frame):
                 ol_col = "blue"
             else:  # original GPS
                 ol_col = "black"
+            prn = f"{int(prn):02}"
             self.can_graphview.create_rectangle(offset, h - AXIS_Y - 1, offset + colwidth,
                                                 h - AXIS_Y - 1 - snr_y, outline=ol_col,
                                                 fill=hsv2rgb(snr / 100, .8, .8))

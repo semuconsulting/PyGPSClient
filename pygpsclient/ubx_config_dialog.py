@@ -8,21 +8,16 @@ Created on 22 Sep 2020
 @author: semuadmin
 '''
 
-from tkinter import ttk, Toplevel, Frame, Checkbutton, Radiobutton, Listbox, Scrollbar, \
-                         messagebox, Button, Label, Spinbox, IntVar, \
-                         N, S, E, W, LEFT, VERTICAL
+from tkinter import ttk, Toplevel, Frame, Checkbutton, Radiobutton, Listbox, \
+                    Scrollbar, messagebox, Button, Label, IntVar, \
+                    N, S, E, W, LEFT, VERTICAL
 
 from PIL import ImageTk, Image
-from pyubx2 import UBXMessage, POLL, SET
+from pyubx2 import UBXMessage, SET
 
-from .globals import BGCOL, FGCOL, ENTCOL, READONLY, BAUDRATES, ICON_APP, ICON_SEND, ICON_EXIT
+from .globals import BGCOL, FGCOL, ENTCOL, ICON_APP, ICON_SEND, ICON_EXIT
 from .strings import DLGUBXCONFIG
-
-CFG_MSG_OFF = b'\x00\x00\x00\x00\x00\x01'
-CFG_MSG_ON = b'\x00\x01\x01\x01\x00\x01'
-BOTH = 3
-UBX = 1
-NMEA = 2
+from .ubx_handler import UBXHandler as ubh, CFG_MSG_OFF, CFG_MSG_ON, BOTH, UBX, NMEA
 
 MSG_PRESETS = {
 'CFG-MSG - Turn on all NMEA nav msgs': 'CFG-MSG',
@@ -56,6 +51,9 @@ class UBXConfigDialog():
         self._img_send = ImageTk.PhotoImage(Image.open(ICON_SEND))
         self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
 
+        # Poll current UBX configuration
+        ubh.poll_ubx_config(self.__app.serial_handler.serial)
+
         # Load user presets if there are any
         self._userpresets = self.__app.file_handler.load_user_presets()
 
@@ -88,32 +86,32 @@ class UBXConfigDialog():
         self._navtimeutc_state = IntVar()
         self._navvelned_state = IntVar()
 
-        self._cfg_msg_states = {
-        'DTM': self._dtm_state,
-        'GBS': self._gbs_state,
-        'GGA': self._gga_state,
-        'GLL': self._gll_state,
-        'GSA': self._gsa_state,
-        'GSV': self._gsv_state,
-        'RMC': self._rmc_state,
-        'TXT': self._txt_state,
-        'VTG': self._vtg_state,
-        'ZDA': self._zda_state,
-        'XXX': self._xxx_state,  # for error testing
-        'UBX00': self._ubx00_state,
-        'UBX03': self._ubx03_state,
-        'UBX04': self._ubx04_state,
-        'UBX05': self._ubx05_state,
-        'UBX06': self._ubx06_state,
-        'NAV-AOPSTATUS': self._navaopstatus_state,
-        'NAV-DOP': self._navdop_state,
-        'NAV-POSLLH': self._navposllh_state,
-        'NAV-PVT': self._navpvt_state,
-        'NAV-SOL': self._navsol_state,
-        'NAV-SVINFO': self._navsvinfo_state,
-        'NAV-SBAS': self._navsbas_state,
-        'NAV-TIMEUTC': self._navtimeutc_state,
-        'NAV-VELNED': self._navvelned_state}
+#         self._cfg_msg_states = {
+#         'DTM': self._dtm_state,
+#         'GBS': self._gbs_state,
+#         'GGA': self._gga_state,
+#         'GLL': self._gll_state,
+#         'GSA': self._gsa_state,
+#         'GSV': self._gsv_state,
+#         'RMC': self._rmc_state,
+#         'TXT': self._txt_state,
+#         'VTG': self._vtg_state,
+#         'ZDA': self._zda_state,
+#         'XXX': self._xxx_state,  # for error testing
+#         'UBX00': self._ubx00_state,
+#         'UBX03': self._ubx03_state,
+#         'UBX04': self._ubx04_state,
+#         'UBX05': self._ubx05_state,
+#         'UBX06': self._ubx06_state,
+#         'NAV-AOPSTATUS': self._navaopstatus_state,
+#         'NAV-DOP': self._navdop_state,
+#         'NAV-POSLLH': self._navposllh_state,
+#         'NAV-PVT': self._navpvt_state,
+#         'NAV-SOL': self._navsol_state,
+#         'NAV-SVINFO': self._navsvinfo_state,
+#         'NAV-SBAS': self._navsbas_state,
+#         'NAV-TIMEUTC': self._navtimeutc_state,
+#         'NAV-VELNED': self._navvelned_state}
 
         self._body()
         self._do_layout()
@@ -313,7 +311,6 @@ class UBXConfigDialog():
         Reset settings to defaults.
         '''
 
-#         self._ubx_baudrate.set(BAUDRATES[4])
         self._ubx_prot.set(BOTH)
         self._gbs_state.set(False)
         self._dtm_state.set(False)

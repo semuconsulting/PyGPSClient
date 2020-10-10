@@ -33,7 +33,7 @@ class NMEAHandler():
         self._raw_data = None
         self._parsed_data = None
         self.gsv_data = []  # Holds array of current satellites in view from NMEA GSV sentences
-        self.gsv_array = {}
+        self.gsv_log = {} # Holds cumulative log of all satellites seen
         self.lon = 0
         self.lat = 0
         self.alt = 0
@@ -59,7 +59,6 @@ class NMEAHandler():
             # Parsing errors at this point are typically due to NMEA and UBX
             # protocols getting garbled in the input stream. It only happens
             # rarely so we ignore them and carry on.
-            # TODO more rigorous approach here for mixed protocols?
             return None
 
         if data or parsed_data:
@@ -89,18 +88,6 @@ class NMEAHandler():
             self.__app.frm_console.update_console(repr(raw_data))
         else:
             self.__app.frm_console.update_console(repr(parsed_data))
-
-    def _estimate_acc(self, dop):
-        '''
-        Derive a graphic indication of positional accuracy (in m) based on the HDOP
-        (Horizontal Dilution of Precision) value and the nominal native device
-        accuracy (datasheet CEP)
-
-        NB: this is a largely arbitrary estimate - there is no direct correlation
-        between HDOP and accuracy based solely on generic NMEA data.
-        '''
-
-        return float(dop) * DEVICE_ACCURACY * HDOP_RATIO / 1000
 
     def _process_RMC(self, data: types.talker):
         '''
@@ -148,33 +135,38 @@ class NMEAHandler():
         '''
         Process GSV sentences - GPS Satellites in View
         These come in batches of 1-4 sentences, each containing the positions
-        of up to 4 satellites (up to 16 satellites in total).
-        Some modern receivers can send multiple batches corresponding to different
+        of up to 4 satellites (16 satellites in total).
+        Modern receivers can send multiple batches corresponding to different
         NMEA assigned 'ID' ranges (GPS 1-32, SBAS 33-64, GLONASS 65-96)
         '''
 
+        self.gsv_data = []
         gsv_dict = {}
+        now = time()
+
         try:
             if data.sv_prn_num_1 != '':
-                gsv_dict[data.sv_prn_num_1] = (data.elevation_deg_1, data.azimuth_1, data.snr_1, time())
+                gsv_dict[data.sv_prn_num_1] = (data.elevation_deg_1, 
+                                               data.azimuth_1, data.snr_1, now)
             if data.sv_prn_num_2 != '':
-                gsv_dict[data.sv_prn_num_2] = (data.elevation_deg_2, data.azimuth_2, data.snr_2, time())
+                gsv_dict[data.sv_prn_num_2] = (data.elevation_deg_2, 
+                                               data.azimuth_2, data.snr_2, now)
             if data.sv_prn_num_3 != '':
-                gsv_dict[data.sv_prn_num_3] = (data.elevation_deg_3, data.azimuth_3, data.snr_3, time())
+                gsv_dict[data.sv_prn_num_3] = (data.elevation_deg_3, 
+                                               data.azimuth_3, data.snr_3, now)
             if data.sv_prn_num_4 != '':
-                gsv_dict[data.sv_prn_num_4] = (data.elevation_deg_4, data.azimuth_4, data.snr_4, time())
+                gsv_dict[data.sv_prn_num_4] = (data.elevation_deg_4, 
+                                               data.azimuth_4, data.snr_4, now)
         except AttributeError:
             pass
 
         for key in gsv_dict:
-            self.gsv_array[key] = gsv_dict[key]
+            self.gsv_log[key] = gsv_dict[key]
 
-        self.gsv_data = []
-        for key in self.gsv_array:
-            prn = f"{int(key):02}"
-            elev, azim, snr, lastupdate = self.gsv_array[key]
-            if time() - lastupdate < SAT_EXPIRY:  # expire passed satellites after 10 minutes
-                self.gsv_data.append((prn, elev, azim, snr))
+        for key in self.gsv_log:
+            elev, azim, snr, lastupdate = self.gsv_log[key]
+            if now - lastupdate < SAT_EXPIRY:  # expire passed satellites
+                self.gsv_data.append((key, elev, azim, snr))
 
         self.__app.frm_satview.update_sats(self.gsv_data)
         self.__app.frm_banner.update_banner(siv=len(self.gsv_data))
@@ -223,3 +215,18 @@ class NMEAHandler():
             lonmin = float(data.lon[3:])
             lon = (londeg + lonmin / 60) * (-1 if data.lon_dir == 'W' else 1)
         return (lat, lon)
+
+    @staticmethod
+    def _estimate_acc(dop) -> float:
+        '''
+        Derive a graphic indication of positional accuracy (in m) based on the HDOP
+        (Horizontal Dilution of Precision) value and the nominal native device
+        accuracy (datasheet CEP)
+
+        NB: this is a largely arbitrary estimate - there is no direct correlation
+        between HDOP and accuracy based solely on generic NMEA data.
+        The NMEA PUBX,00 or UBX NAV-POSLLH message types return an explicit estimate
+        of horizontal and vertical accuracy and are the preferred source.
+        '''
+
+        return float(dop) * DEVICE_ACCURACY * HDOP_RATIO / 1000
