@@ -18,10 +18,10 @@ from pyubx2 import UBXMessage, POLL, SET, UBX_CONFIG_MESSAGES
 from .globals import BGCOL, FGCOL, ENTCOL, ICON_APP, ICON_SEND, ICON_EXIT, \
                      ICON_PENDING, ICON_CONFIRMED, BAUDRATES, READONLY
 from .strings import DLGUBXCONFIG
-from .ubx_handler import UBXHandler as ubh, CFG_MSG_OFF, CFG_MSG_ON, BOTH, UBX, NMEA
+from .ubx_handler import UBXHandler as ubh, CFG_MSG_OFF, CFG_MSG_ON
 
 MSG_PRESETS = {
-'CFG-CFG - Restore factory defaults': 'CFG-CFG',
+'CFG-CFG - RESTORE FACTORY DEFAULTS': 'CFG-CFG',
 'CFG-CFG - Store current configuration': 'CFG-CFG',
 'CFG-MSG - Turn ON minimum NMEA msgs': 'CFG-MSG',
 'CFG-MSG - Turn ON all NMEA msgs': 'CFG-MSG',
@@ -50,12 +50,14 @@ class UBXConfigDialog():
         self.__app = app  # Reference to main application class
         self.__master = self.__app.get_master()  # Reference to root class (Tk)
         self._dialog = Toplevel()
+        self._dialog.transient(self.__app)
+        self._dialog.resizable(False, False)
         self._dialog.title = DLGUBXCONFIG
         wd, hd = self.get_size()
         wa = self.__master.winfo_width()
         ha = self.__master.winfo_height()
         self._dialog.geometry("+%d+%d" % (int(wa / 2 - wd / 2), int(ha / 2 - hd / 2)))
-        self._dialog.attributes('-topmost', 'true')
+#         self._dialog.attributes('true')
         self._img_icon = ImageTk.PhotoImage(Image.open (ICON_APP))
         self._img_pending = ImageTk.PhotoImage(Image.open(ICON_PENDING))
         self._img_confirmed = ImageTk.PhotoImage(Image.open(ICON_CONFIRMED))
@@ -137,6 +139,7 @@ class UBXConfigDialog():
         Set up frame and widgets.
         '''
 
+        LBL_COL = "snow2"
         self._frm_container = Frame(self._dialog, borderwidth=2, relief="groove")
         con = self._frm_container
         for i in range(7):
@@ -147,25 +150,36 @@ class UBXConfigDialog():
 
         self._lbl_title = Label(con, text="UBX Configuration", bg=BGCOL, fg=FGCOL,
                                 justify=LEFT, font=self.__app.font_md)
-        self._lbl_cfg_port = Label(con, text="CFG-PRT Port Configuration")
+        self._lbl_cfg_port = Label(con, text="CFG-PRT Port and Protocol Configuration",
+                                   bg=LBL_COL, anchor='w')
         self._lbl_ubx_baudrate = Label(con, text="Baud rate")
         self._spn_ubx_baudrate = Spinbox(con,
                                          values=(BAUDRATES),
                                          width=8, state=READONLY, readonlybackground=ENTCOL,
                                          wrap=True, textvariable=self._ubx_baudrate)
-        self._lbl_ubx_prot = Label(con, text="Output Protocol(s)")
-        self._rad_ubx_protnmea = Radiobutton(con, text="NMEA",
+        self._lbl_inprot = Label(con, text="Input")
+        self._rad_inprot_nmea = Radiobutton(con, text="NMEA",
+                                             variable=self._ubx_inprot, value=2)
+        self._rad_inprot_ubx = Radiobutton(con, text="UBX",
+                                            variable=self._ubx_inprot, value=1)
+        self._rad_inprot_rtcm = Radiobutton(con, text="RTCM",
+                                            variable=self._ubx_inprot, value=4)
+        self._rad_inprot_both = Radiobutton(con, text="ALL",
+                                             variable=self._ubx_inprot, value=7)
+        self._lbl_outprot = Label(con, text="Output")
+        self._rad_outprot_nmea = Radiobutton(con, text="NMEA",
                                              variable=self._ubx_outprot, value=2)
-        self._rad_ubx_protubx = Radiobutton(con, text="UBX",
+        self._rad_outprot_ubx = Radiobutton(con, text="UBX",
                                             variable=self._ubx_outprot, value=1)
-        self._rad_ubx_protboth = Radiobutton(con, text="NMEA + UBX",
+        self._rad_outprot_both = Radiobutton(con, text="ALL",
                                              variable=self._ubx_outprot, value=3)
         self._lbl_send_port = Label(con)
         self._btn_send_port = Button(con, image=self._img_send, width=50,
                                      command=self._on_send_port,
                                      font=self.__app.font_md)
 
-        self._lbl_cfg_msg = Label(con, text="CFG-MSG - NMEA Message Filters")
+        self._lbl_cfg_msg = Label(con, text="CFG-MSG - NMEA Message Filters",
+                                  bg=LBL_COL, anchor='w')
         self._chk_dtm = Checkbutton(con, text="DTM",
                                     command=lambda: self._on_cfg_msg(msg=b'\xF0\x0A',
                                                                      var=self._dtm_state),
@@ -206,11 +220,6 @@ class UBXConfigDialog():
                                     command=lambda: self._on_cfg_msg(msg=b'\xF0\x08',
                                                                      var=self._zda_state),
                                     variable=self._zda_state)
-        self._chk_xxx = Checkbutton(con, text="XXX",
-                                    command=lambda: self._on_cfg_msg(msg=b'\x66\x66',
-                                                                     var=self._xxx_state),
-                                    variable=self._xxx_state)
-        self._lbl_ubx_msg = Label(con, text="CFG-MSG - UBX Message Filters")
         self._chk_ubx00 = Checkbutton(con, text="UBX,00",
                                       command=lambda: self._on_cfg_msg(msg=b'\xF1\x00',
                                                                        var=self._ubx00_state),
@@ -223,59 +232,60 @@ class UBXConfigDialog():
                                       command=lambda: self._on_cfg_msg(msg=b'\xF1\x04',
                                                                        var=self._ubx04_state),
                                       variable=self._ubx04_state)
-        self._chk_navaopstatus = Checkbutton(con, text="NAV-AOPSTATUS",
+        self._lbl_ubx_msg = Label(con, text="CFG-MSG - UBX NAV Message Filters",
+                                  bg=LBL_COL, anchor='w')
+        self._chk_navaopstatus = Checkbutton(con, text="AOPSTATUS",
                                     command=lambda: self._on_cfg_msg(msg=b'\x01\x03',
                                                                      var=self._navaopstatus_state),
                                     variable=self._navaopstatus_state)
-        self._chk_navsol = Checkbutton(con, text="NAV-SOL",
+        self._chk_navsol = Checkbutton(con, text="SOL",
                                     command=lambda: self._on_cfg_msg(msg=b'\x01\x06',
                                                                      var=self._navsol_state),
                                     variable=self._navsol_state)
-        self._chk_navdop = Checkbutton(con, text="NAV-DOP",
+        self._chk_navdop = Checkbutton(con, text="DOP",
                                     command=lambda: self._on_cfg_msg(msg=b'\x01\x04',
                                                                      var=self._navdop_state),
                                     variable=self._navdop_state)
-        self._chk_navposllh = Checkbutton(con, text="NAV-POSLLH",
+        self._chk_navposllh = Checkbutton(con, text="POSLLH",
                                     command=lambda: self._on_cfg_msg(msg=b'\x01\x02',
                                                                      var=self._navposllh_state),
                                     variable=self._navposllh_state)
-        self._chk_navpvt = Checkbutton(con, text="NAV-PVT",
+        self._chk_navpvt = Checkbutton(con, text="PVT",
                                     command=lambda: self._on_cfg_msg(msg=b'\x01\x07',
                                                                      var=self._navpvt_state),
                                     variable=self._navpvt_state)
-        self._chk_navsvinfo = Checkbutton(con, text="NAV-SVINFO",
+        self._chk_navsvinfo = Checkbutton(con, text="SVINFO",
                                     command=lambda: self._on_cfg_msg(msg=b'\x01\x30',
                                                                      var=self._navsvinfo_state),
                                     variable=self._navsvinfo_state)
-        self._chk_navsbas = Checkbutton(con, text="NAV-SBAS",
+        self._chk_navsbas = Checkbutton(con, text="SBAS",
                                       command=lambda: self._on_cfg_msg(msg=b'\x01\x32',
                                                                        var=self._navsbas_state),
                                       variable=self._navsbas_state)
-        self._chk_navvelned = Checkbutton(con, text="NAV-VELNED",
+        self._chk_navvelned = Checkbutton(con, text="VELNED",
                                       command=lambda: self._on_cfg_msg(msg=b'\x01\x12',
                                                                        var=self._navvelned_state),
                                       variable=self._navvelned_state)
-        self._chk_navtimeutc = Checkbutton(con, text="NAV-TIMEUTC",
+        self._chk_navtimeutc = Checkbutton(con, text="TIMEUTC",
                                       command=lambda: self._on_cfg_msg(msg=b'\x01\x21',
                                                                        var=self._navtimeutc_state),
                                       variable=self._navtimeutc_state)
 
-#         self._frm_preset = Frame(con)
-#         man = self._frm_preset
-        self._lbl_presets = Label(con, text="Preset UBX Configuration Commands")
+        self._lbl_presets = Label(con, text="Preset UBX Configuration Commands",
+                                  bg=LBL_COL, anchor='w')
         self._lbl_preset = Label(con, text="Preset")
         self._lbx_preset = Listbox(con, border=2,
                                  relief="sunken", bg=ENTCOL,
-                                 height=5, justify=LEFT,
+                                 height=7, justify=LEFT,
                                  exportselection=False)
         self._scr_preset = Scrollbar(con, orient=VERTICAL)
         self._lbx_preset.config(yscrollcommand=self._scr_preset.set)
         self._scr_preset.config(command=self._lbx_preset.yview)
 
         self._lbl_send_preset = Label(con)
-        self._btn_send_preset = Button(con, image=self._img_send, width=50, fg="green", 
+        self._btn_send_preset = Button(con, image=self._img_send, width=50, fg="green",
                                        command=self._on_send_preset, font=self.__app.font_md)
-        self._btn_exit = Button(con, image=self._img_exit, width=50, fg="red", 
+        self._btn_exit = Button(con, image=self._img_exit, width=50, fg="red",
                                 command=self._on_exit, font=self.__app.font_md)
 
     def _do_layout(self):
@@ -285,22 +295,27 @@ class UBXConfigDialog():
 
         self._frm_container.grid(column=0, row=0, columnspan=6, padx=3, pady=3,
                                  ipadx=5, ipady=5, sticky=(N, S, W, E))
-        self._lbl_title.grid(column=0, row=0, columnspan=6, sticky=(W, E))
-        self._lbl_cfg_port.grid(column=0, row=1, columnspan=6, sticky=(W))
+        self._lbl_title.grid(column=0, row=0, columnspan=6, ipady=3, sticky=(W, E))
+        self._lbl_cfg_port.grid(column=0, row=1, columnspan=6, padx=3, sticky=(W, E))
         self._lbl_ubx_baudrate.grid(column=0, row=2, columnspan=3, sticky=(W))
         self._spn_ubx_baudrate.grid(column=1, row=2, columnspan=3, sticky=(W))
-        self._lbl_ubx_prot.grid(column=0, row=3, sticky=(W))
-        self._rad_ubx_protnmea.grid(column=1, row=3, sticky=(W))
-        self._rad_ubx_protubx.grid(column=2, row=3, sticky=(W))
-        self._rad_ubx_protboth.grid(column=3, row=3, sticky=(W))
-        self._btn_send_port.grid(column=4, row=2, rowspan=2, ipadx=3, 
+        self._lbl_inprot.grid(column=0, row=3, sticky=(W))
+        self._rad_inprot_nmea.grid(column=1, row=3, sticky=(W))
+        self._rad_inprot_ubx.grid(column=2, row=3, sticky=(W))
+        self._rad_inprot_rtcm.grid(column=3, row=3, sticky=(W))
+        self._rad_inprot_both.grid(column=4, row=3, sticky=(W))
+        self._lbl_outprot.grid(column=0, row=4, sticky=(W))
+        self._rad_outprot_nmea.grid(column=1, row=4, sticky=(W))
+        self._rad_outprot_ubx.grid(column=2, row=4, sticky=(W))
+        self._rad_outprot_both.grid(column=3, row=4, sticky=(W))
+        self._btn_send_port.grid(column=4, row=2, ipadx=3,
                                  ipady=3, sticky=(E))
-        self._lbl_send_port.grid(column=5, row=2, rowspan=2, ipadx=3, 
+        self._lbl_send_port.grid(column=5, row=2, ipadx=3,
                                  ipady=3, sticky=(W))
 
         ttk.Separator(self._frm_container).grid(column=0, row=5, columnspan=6,
                                                 padx=3, pady=3, sticky=(W, E))
-        self._lbl_cfg_msg.grid(column=0, row=6, columnspan=6, sticky=(W))
+        self._lbl_cfg_msg.grid(column=0, row=6, columnspan=6, padx=3, sticky=(W, E))
         self._chk_dtm.grid(column=0, row=7, sticky=(W))
         self._chk_gbs.grid(column=1, row=7, sticky=(W))
         self._chk_gga.grid(column=2, row=7, sticky=(W))
@@ -311,14 +326,13 @@ class UBXConfigDialog():
         self._chk_txt.grid(column=1, row=8, sticky=(W))
         self._chk_vtg.grid(column=2, row=8, sticky=(W))
         self._chk_zda.grid(column=3, row=8, sticky=(W))
-        self._chk_xxx.grid(column=4, row=8, sticky=(W))
         self._chk_ubx00.grid(column=0, row=9, sticky=(W))
         self._chk_ubx03.grid(column=1, row=9, sticky=(W))
         self._chk_ubx04.grid(column=2, row=9, sticky=(W))
 
         ttk.Separator(self._frm_container).grid(column=0, row=10, columnspan=6,
                                                 padx=3, pady=3, sticky=(W, E))
-        self._lbl_ubx_msg.grid(column=0, row=11, columnspan=6, sticky=(W))
+        self._lbl_ubx_msg.grid(column=0, row=11, columnspan=6, padx=3, sticky=(W, E))
         self._chk_navaopstatus.grid(column=0, row=12, sticky=(W))
         self._chk_navdop.grid(column=1, row=12, sticky=(W))
         self._chk_navposllh.grid(column=2, row=12, sticky=(W))
@@ -331,12 +345,10 @@ class UBXConfigDialog():
 
         ttk.Separator(self._frm_container).grid(column=0, row=14, columnspan=6,
                                                 padx=3, pady=3, sticky=(W, E))
-#         self._frm_preset.grid(column=0, row=15, columnspan=6, sticky=(W))
-        self._lbl_presets.grid(column=0, row=15, columnspan=6, sticky=(W))
-#         self._lbl_preset.grid(column=0, row=16, padx=3, pady=3, sticky=(W, E))
-        self._lbx_preset.grid(column=0, row=16, columnspan=3, padx=3, pady=3, sticky=(W, E))
-        self._scr_preset.grid(column=2, row=16, sticky=(N, S, E))
-        self._btn_send_preset.grid(column=4, row=16, ipadx=3, ipady=3, 
+        self._lbl_presets.grid(column=0, row=15, columnspan=6, padx=3, sticky=(W, E))
+        self._lbx_preset.grid(column=0, row=16, columnspan=4, padx=3, pady=3, sticky=(W, E))
+        self._scr_preset.grid(column=3, row=16, sticky=(N, S, E))
+        self._btn_send_preset.grid(column=4, row=16, ipadx=3, ipady=3,
                                    sticky=(E))
         self._lbl_send_preset.grid(column=5, row=16, rowspan=2, ipadx=3,
                                  ipady=3, sticky=(W))
@@ -414,15 +426,6 @@ class UBXConfigDialog():
         data = UBXMessage('CFG', 'CFG-MSG', msg_payload, 1).serialize()
         self.__app.serial_handler.serial_write(data)
 
-    def _on_select_preset(self, *args, **kwargs):
-        '''
-        Actions when preset message is selected
-        '''
-
-        idx = self._lbx_preset.curselection()
-        self._preset_command = self._lbx_preset.get(idx)
-#        TODO do stuff here
-
     def _on_send_port(self, *args, **kwargs):
         '''
         Handle Send port config button press.
@@ -430,28 +433,35 @@ class UBXConfigDialog():
 
         portID = b'\x03'
         reserved0 = b'\x00'
+        reserved4 = b'\x00\00'
+        reserved5 = b'\x00\00'
         txReady = b'\x00\x00'
         mode = b'\x00\x00\x00\x00'
         baudRate = int.to_bytes(int(self._ubx_baudrate.get()), 4, 'little', signed=False)
         inProtoMask = int.to_bytes(self._ubx_inprot.get(), 2, 'little', signed=False)
         outProtoMask = int.to_bytes(self._ubx_outprot.get(), 2, 'little', signed=False)
-        reserved4 = b'\x00\00'
-        reserved5 = b'\x00\00'
         payload = portID + reserved0 + txReady + mode + baudRate + inProtoMask \
                   +outProtoMask + reserved4 + reserved5
-        print(f"doing send port {baudRate} {inProtoMask} {outProtoMask} {payload}")
         msg = UBXMessage('CFG', 'CFG-PRT', payload, SET)
         self.__app.serial_handler.serial_write(msg.serialize())
 
-        self._do_poll_prt()
+        self._do_poll_prt()  # poll for confirmation
         self._lbl_send_port.config(image=self._img_pending)
+
+    def _on_select_preset(self, *args, **kwargs):
+        '''
+        Preset command has been selected.
+        '''
+
+        idx = self._lbx_preset.curselection()
+        self._preset_command = self._lbx_preset.get(idx)
 
     def _on_send_preset(self, *args, **kwargs):
         '''
         Handle Send preset button press.
         '''
 
-        if self._preset_command == 'CFG-CFG - Restore factory defaults':
+        if self._preset_command == 'CFG-CFG - RESTORE FACTORY DEFAULTS':
             self._do_factory_reset()
         elif self._preset_command == 'CFG-INF - Turn ON all INF msgs':
             self._do_setinf()
@@ -478,20 +488,7 @@ class UBXConfigDialog():
         else:
             messagebox.showwarning("UBX Configuration Presets", "Sorry - not yet implemented!\n\nWatch this space.",)
 
-        self._lbl_send_port.config(image=self._img_pending)
-
-    def _do_setinf(self):
-        '''
-        Turn on device information messages INF
-        '''
-
-        for protocolID in (b'\x00', b'\x01'):  # UBX and NMEA
-            reserved0 = b'\x00'
-            reserved1 = b'\x00\x00'
-            infMsgMask = b'\x00\x07\x00\x00\x00\x00'
-            payload = protocolID + reserved0 + reserved1 + infMsgMask
-            msg = UBXMessage('CFG', 'CFG-INF', payload, SET)
-            self.__app.serial_handler.serial_write(msg.serialize())
+#         self._lbl_send_port.config(image=self._img_pending)
 
     def _do_poll_inf(self):
         '''
@@ -509,6 +506,19 @@ class UBXConfigDialog():
 
         msg = UBXMessage('CFG', 'CFG-PRT', None, POLL)
         self.__app.serial_handler.serial_write(msg.serialize())
+
+    def _do_setinf(self):
+        '''
+        Turn on device information messages INF
+        '''
+
+        for protocolID in (b'\x00', b'\x01'):  # UBX and NMEA
+            reserved0 = b'\x00'
+            reserved1 = b'\x00\x00'
+            infMsgMask = b'\x00\x07\x00\x00\x00\x00'
+            payload = protocolID + reserved0 + reserved1 + infMsgMask
+            msg = UBXMessage('CFG', 'CFG-INF', payload, SET)
+            self.__app.serial_handler.serial_write(msg.serialize())
 
     def _do_setmon(self, onoff):
         '''
