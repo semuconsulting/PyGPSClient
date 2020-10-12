@@ -32,10 +32,10 @@ class MenuBar(Menu):
         self.option_add("*Font", 'TkMenuFont')
         # Create a pull-down menu for file operations
         self.file_menu = Menu(self, tearoff=False)
-        self.file_menu.add_command(label=MENUSAVE, underline=1,
-                                   command=self.__app.frm_settings._save_settings)
-        self.file_menu.add_command(label=MENULOAD, underline=1,
-                                   command=self.__app.frm_settings._load_settings)
+#         self.file_menu.add_command(label=MENUSAVE, underline=1,
+#                                    command=self.__app.frm_settings._save_settings)
+#         self.file_menu.add_command(label=MENULOAD, underline=1,
+#                                    command=self.__app.frm_settings._load_settings)
         self.file_menu.add_command(label=MENUEXIT, underline=1, accelerator="Ctrl-Q",
                                    command=self.__app.exit)
         self.add_cascade(menu=self.file_menu, label=MENUFILE)

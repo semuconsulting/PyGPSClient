@@ -11,7 +11,6 @@ Created on 30 Sep 2020
 
 from pyubx2 import UBXMessage, POLL, UBX_CONFIG_MESSAGES
 
-
 CFG_MSG_OFF = b'\x00\x00\x00\x00\x00\x01'
 CFG_MSG_ON = b'\x00\x01\x01\x01\x00\x01'
 BOTH = 3
@@ -48,7 +47,10 @@ class UBXHandler():
         self.utc = ''
         self.sip = 0
         self.fix = '-'
-        self._ubx_state = {} # dict containing current UBX device config
+        self._ubx_state = {}  # dict containing current UBX device config
+        self.ubx_baudrate = 9600
+        self.ubx_inprot = 7
+        self.ubx_outprot = 3
 
     @staticmethod
     def poll_ubx_config(serial):
@@ -65,20 +67,20 @@ class UBXHandler():
             msg = UBXMessage('CFG', msgtype, None, POLL)
             serial.write(msg.serialize())
 
-        for payload in UBX_CONFIG_MESSAGES:
-            msg = UBXMessage('CFG', 'CFG-MSG', payload, POLL)
-            serial.write(msg.serialize())
-
-        for payload in (b'\x00', b'\x01'): # UBX & NMEA
-            msg = UBXMessage('CFG', 'CFG-INF', payload, POLL)
-            serial.write(msg.serialize())
+#         for payload in UBX_CONFIG_MESSAGES:
+#             msg = UBXMessage('CFG', 'CFG-MSG', payload, POLL)
+#             serial.write(msg.serialize())
+# 
+#         for payload in (b'\x00', b'\x01'):  # UBX & NMEA
+#             msg = UBXMessage('CFG', 'CFG-INF', payload, POLL)
+#             serial.write(msg.serialize())
 
     @property
     def state(self):
         '''
         Return last known UBX configuration state
         '''
-        
+
         return self._ubx_state
 
     def process_data(self, data: bytes) -> UBXMessage:
@@ -149,6 +151,15 @@ class UBXHandler():
 
         cfg = (data.mode, data.baudRate, data.inProtoMask, data.outProtoMask)
         self._ubx_state['CFG-PRT'] = cfg
+        self.ubx_baudrate = data.baudRate
+        self.ubx_inprot = int.from_bytes(data.inProtoMask, 'little', signed=False)
+        self.ubx_outprot = int.from_bytes(data.outProtoMask, 'little', signed=False)
+        
+        # update the UBX config panel
+        if self.__app.dlg_ubxconfig is not None:
+            self.__app.dlg_ubxconfig.update(baudrate=self.ubx_baudrate, 
+                                            inprot=self.ubx_inprot,
+                                            outprot=self.ubx_outprot)
 
     def _process_NAV_POSLLH(self, data: UBXMessage):
         '''
@@ -167,11 +178,11 @@ class UBXHandler():
                                                 hacc=self.hacc, vacc=self.vacc)
 
             if self.__app.frm_settings.get_settings()['webmap']:
-                self.__app.frm_mapview.update_map(self.lat, self.lon, self.hacc,
-                                                  self.vacc, '3D', False)
+                self.__app.frm_mapview.update_map(lat=self.lat, lon=self.lon, hacc=self.hacc,
+                                                  vacc=self.vacc, fix='3D', static=False)
             else:
-                self.__app.frm_mapview.update_map(self.lat, self.lon, self.hacc,
-                                                  self.vacc, '3D', True)
+                self.__app.frm_mapview.update_map(lat=self.lat, lon=self.lon, hacc=self.hacc,
+                                                  vacc=self.vacc, fix='3D', static=True)
         except ValueError:
             # self.__app.set_status(ube.UBXMessageError(err), "red")
             pass
@@ -188,7 +199,7 @@ class UBXHandler():
             self.alt = data.hMSL / 1000
             self.hacc = data.hAcc / 1000
             self.vacc = data.vAcc / 1000
-            self.pdop = data.pDOP
+            self.pdop = data.pDOP / 100
             self.sip = data.numSV
             self.speed = data.gSpeed / 100
             self.track = data.headMot / 10 ** 5
@@ -196,16 +207,16 @@ class UBXHandler():
             self.__app.frm_banner.update_banner(time=self.utc, lat=self.lat,
                                                 lon=self.lon, alt=self.alt,
                                                 hacc=self.hacc, vacc=self.vacc,
-                                                pdop=self.pdop, sip=self.sip,
+                                                dop=self.pdop, sip=self.sip,
                                                 speed=self.speed, fix=fix,
                                                 track=self.track)
 
             if self.__app.frm_settings.get_settings()['webmap']:
-                self.__app.frm_mapview.update_map(self.lat, self.lon, self.hacc,
-                                                  self.vacc, '3D', False)
+                self.__app.frm_mapview.update_map(lat=self.lat, lon=self.lon, hacc=self.hacc,
+                                                  vacc=self.vacc, fix='3D', static=False)
             else:
-                self.__app.frm_mapview.update_map(self.lat, self.lon, self.hacc,
-                                                  self.vacc, '3D', True)
+                self.__app.frm_mapview.update_map(lat=self.lat, lon=self.lon, hacc=self.hacc,
+                                                  vacc=self.vacc, fix='3D', static=True)
         except ValueError:
             # self.__app.set_status(ube.UBXMessageError(err), "red")
             pass

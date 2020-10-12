@@ -17,7 +17,7 @@ from pyubx2 import UBXMessage
 
 from .globals import deg2dmm, deg2dms, m2ft, kmph2mph, kmph2ms, kmph2knots, \
                                 DMM, DMS, UMM, UI, UIK, ICON_CONN, ICON_DISCONN, \
-                                CONNECTED, BGCOL, FGCOL, ADVOFF, ADVON
+                                CONNECTED, DISCONNECTED, BGCOL, FGCOL, ADVOFF, ADVON
 
 
 class BannerFrame(Frame):

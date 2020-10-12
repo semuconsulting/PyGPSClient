@@ -61,6 +61,7 @@ class App(Frame):
         self.serial_handler = SerialHandler(self)
         self.nmea_handler = NMEAHandler(self)
         self.ubx_handler = UBXHandler(self)
+        self.dlg_ubxconfig = None
 
         # Load web map api key if there is one
         self.api_key = self.file_handler.load_apikey()
@@ -240,7 +241,7 @@ class App(Frame):
         Open About dialog
         '''
 
-        UBXConfigDialog(self)
+        self.dlg_ubxconfig = UBXConfigDialog(self)
 
     def get_master(self):
         '''

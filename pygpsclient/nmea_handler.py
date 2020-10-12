@@ -10,7 +10,7 @@ Created on 30 Sep 2020
 
 # pylint: disable=invalid-name
 from time import time
-from pynmea2 import parse as nmea_parse, ParseError, types, RMC, VTG, GSV, GGA, GSA
+from pynmea2 import parse as nmea_parse, ParseError, types, RMC, VTG, GSV, GGA, GSA, GLL
 from pynmea2.types.proprietary.ubx import UBX00
 
 from .globals import DEVICE_ACCURACY, HDOP_RATIO, SAT_EXPIRY
@@ -33,7 +33,7 @@ class NMEAHandler():
         self._raw_data = None
         self._parsed_data = None
         self.gsv_data = []  # Holds array of current satellites in view from NMEA GSV sentences
-        self.gsv_log = {} # Holds cumulative log of all satellites seen
+        self.gsv_log = {}  # Holds cumulative log of all satellites seen
         self.lon = 0
         self.lat = 0
         self.alt = 0
@@ -68,6 +68,8 @@ class NMEAHandler():
             self._process_RMC(parsed_data)
         if isinstance(parsed_data, GGA):  # GPS Fix Data
             self._process_GGA(parsed_data)
+        if isinstance(parsed_data, GLL):  # GLL Lat Lon Data
+            self._process_GLL(parsed_data)
         if isinstance(parsed_data, GSA):  # GPS DOP (Dilution of Precision) and active satellites
             self._process_GSA(parsed_data)
         if isinstance(parsed_data, VTG):  # GPS Vector track and Speed over the Ground
@@ -94,6 +96,21 @@ class NMEAHandler():
         Process RMC sentence - Recommended minimum data for GPS.
         '''
 
+        try:
+            self.utc = data.timestamp
+            (self.lat, self.lon) = self.nmea2latlon(data)
+            self.speed = data.spd_over_grnd
+            self.track = data.true_course
+            self.__app.frm_banner.update_banner(time=self.utc, lat=self.lat,
+                                                lon=self.lon, speed=self.speed,
+                                                track=self.track)
+            if self.__app.frm_settings.get_settings()['webmap']:
+                self.__app.frm_mapview.update_map(lat=self.lat, lon=self.lon, static=False)
+            else:
+                self.__app.frm_mapview.update_map(lat=self.lat, lon=self.lon, static=True)
+        except ValueError as err:
+            self.__app.set_status(NMEAVALERROR.format(err), "red")
+
     def _process_GGA(self, data: types.talker):
         '''
         Process GGA sentence - GPS Fix Data.
@@ -102,10 +119,30 @@ class NMEAHandler():
         try:
             self.utc = data.timestamp
             self.sip = data.num_sats
-            (self.lat, self.lon) = self.gga2latlon(data)
+            (self.lat, self.lon) = self.nmea2latlon(data)
             self.alt = data.altitude
             self.__app.frm_banner.update_banner(time=self.utc, lat=self.lat,
                                                 lon=self.lon, alt=self.alt, sip=self.sip)
+            if self.__app.frm_settings.get_settings()['webmap']:
+                self.__app.frm_mapview.update_map(lat=self.lat, lon=self.lon, static=False)
+            else:
+                self.__app.frm_mapview.update_map(lat=self.lat, lon=self.lon, static=True)
+        except ValueError as err:
+            self.__app.set_status(NMEAVALERROR.format(err), "red")
+
+    def _process_GLL(self, data: types.talker):
+        '''
+        Process GLL sentence - GPS Lat Lon.
+        '''
+
+        try:
+            self.utc = data.timestamp
+            (self.lat, self.lon) = self.nmea2latlon(data)
+            self.__app.frm_banner.update_banner(time=self.utc, lat=self.lat, lon=self.lon)
+            if self.__app.frm_settings.get_settings()['webmap']:
+                self.__app.frm_mapview.update_map(lat=self.lat, lon=self.lon, static=False)
+            else:
+                self.__app.frm_mapview.update_map(lat=self.lat, lon=self.lon, static=True)
         except ValueError as err:
             self.__app.set_status(NMEAVALERROR.format(err), "red")
 
@@ -125,9 +162,11 @@ class NMEAHandler():
             fix = 'NO FIX'
 
         if self.__app.frm_settings.get_settings()['webmap']:
-            self.__app.frm_mapview.update_map(self.lat, self.lon, self.hacc, self.vacc, fix, False)
+            self.__app.frm_mapview.update_map(lat=self.lat, lon=self.lon, hacc=self.hacc,
+                                              vacc=self.vacc, fix=fix, static=False)
         else:
-            self.__app.frm_mapview.update_map(self.lat, self.lon, self.hacc, self.vacc, fix, True)
+            self.__app.frm_mapview.update_map(lat=self.lat, lon=self.lon, hacc=self.hacc,
+                                              vacc=self.vacc, fix=fix, static=True)
 
         self.__app.frm_banner.update_banner(dop=self.pdop, hdop=self.hdop, vdop=self.vdop, fix=fix)
 
@@ -146,16 +185,16 @@ class NMEAHandler():
 
         try:
             if data.sv_prn_num_1 != '':
-                gsv_dict[data.sv_prn_num_1] = (data.elevation_deg_1, 
+                gsv_dict[data.sv_prn_num_1] = (data.elevation_deg_1,
                                                data.azimuth_1, data.snr_1, now)
             if data.sv_prn_num_2 != '':
-                gsv_dict[data.sv_prn_num_2] = (data.elevation_deg_2, 
+                gsv_dict[data.sv_prn_num_2] = (data.elevation_deg_2,
                                                data.azimuth_2, data.snr_2, now)
             if data.sv_prn_num_3 != '':
-                gsv_dict[data.sv_prn_num_3] = (data.elevation_deg_3, 
+                gsv_dict[data.sv_prn_num_3] = (data.elevation_deg_3,
                                                data.azimuth_3, data.snr_3, now)
             if data.sv_prn_num_4 != '':
-                gsv_dict[data.sv_prn_num_4] = (data.elevation_deg_4, 
+                gsv_dict[data.sv_prn_num_4] = (data.elevation_deg_4,
                                                data.azimuth_4, data.snr_4, now)
         except AttributeError:
             pass
@@ -197,7 +236,7 @@ class NMEAHandler():
             self.__app.set_status(NMEAVALERROR.format(err), "red")
 
     @staticmethod
-    def gga2latlon(data: types.talker.GGA) -> (float, float):
+    def nmea2latlon(data: types.talker) -> (float, float):
         '''
         Convert parsed NMEA GGA sentence to decimal lat, lon
         '''

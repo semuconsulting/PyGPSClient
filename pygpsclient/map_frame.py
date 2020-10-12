@@ -63,10 +63,20 @@ class MapviewFrame(Frame):
         self.can_mapview = Canvas(self, width=self.width, height=self.height, bg="white")
         self.can_mapview.grid(column=0, row=0, sticky=(N, S, E, W))
 
-    def update_map(self, lat, lon, hacc, vacc, fix, static=True):
+    def update_map(self, **kwargs):
         '''
         Draw map and mark current known position.
         '''
+
+        if 'lat' in kwargs and 'lon' in kwargs:
+            lat = kwargs['lat']
+            lon = kwargs['lon']
+        else:
+            return
+        vacc = kwargs.get('vacc',0)
+        hacc = kwargs.get('hacc',0)
+        fix = kwargs.get('fix','NO-FIX')
+        static = kwargs.get('static',True)
 
         w, h = self.width, self.height
         resize_font = font.Font(size=min(int(w / 20), 14))
