@@ -9,10 +9,10 @@ Created on 30 Sep 2020
 '''
 # pylint: disable=invalid-name
 
-from pyubx2 import UBXMessage, POLL, UBX_CONFIG_MESSAGES
+from pyubx2 import UBXMessage, POLL, UBX_CONFIG_MESSAGES, UBX_MSGIDS
 
 CFG_MSG_OFF = b'\x00\x00\x00\x00\x00\x01'
-CFG_MSG_ON = b'\x00\x01\x01\x01\x00\x01'
+CFG_MSG_ON = b'\x01\x01\x01\x01\x01\x01'
 BOTH = 3
 UBX = 1
 NMEA = 2
@@ -59,8 +59,8 @@ class UBXHandler():
         and message rates).
 
         NB: The responses and acknowledgements to these polls
-        may take several seconds to arrive and will only be
-        processed if the input protocol is set to UBX or BOTH
+        may take several seconds to arrive, particularly in
+        heavy traffic.
         '''
 
         for msgtype in ('CFG-PRT', 'CFG-USB'):
@@ -70,7 +70,7 @@ class UBXHandler():
 #         for payload in UBX_CONFIG_MESSAGES:
 #             msg = UBXMessage('CFG', 'CFG-MSG', payload, POLL)
 #             serial.write(msg.serialize())
-# 
+#
 #         for payload in (b'\x00', b'\x01'):  # UBX & NMEA
 #             msg = UBXMessage('CFG', 'CFG-INF', payload, POLL)
 #             serial.write(msg.serialize())
@@ -90,6 +90,10 @@ class UBXHandler():
 
         parsed_data = UBXMessage.parse(data, False)
 
+        if parsed_data.identity == 'ACK-ACK':
+            self._process_ACK_ACK(parsed_data)
+        if parsed_data.identity == 'ACK-NAK':
+            self._process_ACK_NAK(parsed_data)
         if parsed_data.identity == 'CFG-MSG':
             self._process_CFG_MSG(parsed_data)
         if parsed_data.identity == 'CFG-PRT':
@@ -123,6 +127,30 @@ class UBXHandler():
         else:
             self.__app.frm_console.update_console(str(parsed_data))
 
+    def _process_ACK_ACK(self, data: UBXMessage):
+        '''
+        Process CFG-MSG sentence - UBX message configuration.
+        Update the UBX state dictionary to reflect current UBX device config.
+        '''
+
+        msgtype = UBX_MSGIDS[data.clsID + data.msgID]
+
+        # update the UBX config panel
+        if self.__app.dlg_ubxconfig is not None:
+            self.__app.dlg_ubxconfig.update('ACK-ACK', msgtype=msgtype)
+
+    def _process_ACK_NAK(self, data: UBXMessage):
+        '''
+        Process CFG-MSG sentence - UBX message configuration.
+        Update the UBX state dictionary to reflect current UBX device config.
+        '''
+
+        msgtype = UBX_MSGIDS[data.clsID + data.msgID]
+
+        # update the UBX config panel
+        if self.__app.dlg_ubxconfig is not None:
+            self.__app.dlg_ubxconfig.update('ACK-NAK', msgtype=msgtype)
+
     def _process_CFG_MSG(self, data: UBXMessage):
         '''
         Process CFG-MSG sentence - UBX message configuration.
@@ -134,6 +162,10 @@ class UBXHandler():
                  data.rateSPI, data.reserved)
         self._ubx_state[msgtype] = rates
 
+        # update the UBX config panel
+        if self.__app.dlg_ubxconfig is not None:
+            self.__app.dlg_ubxconfig.update('CFG-MSG', msgtype=msgtype)
+
     def _process_CFG_INF(self, data: UBXMessage):
         '''
         Process CFG-INF sentence - UBX info message configuration.
@@ -142,6 +174,10 @@ class UBXHandler():
 
         cfg = (data.protocolID, data.infMsgMask)
         self._ubx_state['CFG-INF'] = cfg
+
+        # update the UBX config panel
+        if self.__app.dlg_ubxconfig is not None:
+            self.__app.dlg_ubxconfig.update('CFG-INF')
 
     def _process_CFG_PRT(self, data: UBXMessage):
         '''
@@ -154,10 +190,10 @@ class UBXHandler():
         self.ubx_baudrate = data.baudRate
         self.ubx_inprot = int.from_bytes(data.inProtoMask, 'little', signed=False)
         self.ubx_outprot = int.from_bytes(data.outProtoMask, 'little', signed=False)
-        
+
         # update the UBX config panel
         if self.__app.dlg_ubxconfig is not None:
-            self.__app.dlg_ubxconfig.update(baudrate=self.ubx_baudrate, 
+            self.__app.dlg_ubxconfig.update('CFG-PRT', baudrate=self.ubx_baudrate,
                                             inprot=self.ubx_inprot,
                                             outprot=self.ubx_outprot)
 
@@ -179,10 +215,10 @@ class UBXHandler():
 
             if self.__app.frm_settings.get_settings()['webmap']:
                 self.__app.frm_mapview.update_map(lat=self.lat, lon=self.lon, hacc=self.hacc,
-                                                  vacc=self.vacc, fix='3D', static=False)
+                                                    vacc=self.vacc, fix='3D', static=False)
             else:
                 self.__app.frm_mapview.update_map(lat=self.lat, lon=self.lon, hacc=self.hacc,
-                                                  vacc=self.vacc, fix='3D', static=True)
+                                                    vacc=self.vacc, fix='3D', static=True)
         except ValueError:
             # self.__app.set_status(ube.UBXMessageError(err), "red")
             pass

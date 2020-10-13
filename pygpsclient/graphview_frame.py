@@ -79,20 +79,25 @@ class GraphviewFrame(Frame):
         Automatically adjust y axis according to number of satellites in view.
         '''
 
+        if siv == 0:
+            return
+
         w, h = self.width, self.height
         self.init_graph()
 
         offset = AXIS_XL + 1
         colwidth = (w - AXIS_XL - AXIS_XR) / siv
         resize_font = font.Font(size=min(int(colwidth / 2), 10))
-        for d in sorted(data): # sort by ascending prn
+        for d in sorted(data):  # sort by ascending prn
             prn, _, _, snr = d
             if snr in ('', '0', 0):
                 snr = 1
             else:
                 snr = int(snr)
             snr_y = int(snr) * (h - AXIS_Y - 1) / MAX_SNR
-            if 65 <= int(prn) <= 96:  # GLONASS
+            if int(prn) > 96:  # OTHER e.g. GAL
+                ol_col = "grey"
+            elif 65 <= int(prn) <= 96:  # GLONASS
                 ol_col = "brown"
             elif 33 <= int(prn) <= 64:  # SBAS
                 ol_col = "blue"

@@ -73,15 +73,15 @@ class MapviewFrame(Frame):
             lon = kwargs['lon']
         else:
             return
-        vacc = kwargs.get('vacc',0)
-        hacc = kwargs.get('hacc',0)
-        fix = kwargs.get('fix','NO-FIX')
-        static = kwargs.get('static',True)
+        vacc = kwargs.get('vacc', 0)
+        hacc = kwargs.get('hacc', 0)
+        fix = kwargs.get('fix', 'NO-FIX')
+        static = kwargs.get('static', True)
 
         w, h = self.width, self.height
         resize_font = font.Font(size=min(int(w / 20), 14))
 
-        if fix == 'NO FIX':
+        if fix == 'NO FIX' or lat == '' or lon == '':
             self.can_mapview.delete("all")
             self.reset_map_refresh()
             self.can_mapview.create_text(w / 2, h / 2 - (w / 20), text=NOWEBMAPERROR1,

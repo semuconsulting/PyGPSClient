@@ -89,7 +89,7 @@ class SkyviewFrame(Frame):
         resize_font = font.Font(size=min(int(maxr / 10), 10))
         self.init_sats()
 
-        for d in sorted(data, key=itemgetter(3)): # sort by ascending snr
+        for d in sorted(data, key=itemgetter(3)):  # sort by ascending snr
             try:
                 prn, ele, azi, snr = d
                 ele = int(ele)
@@ -101,7 +101,9 @@ class SkyviewFrame(Frame):
                     snr = 0
                 else:
                     snr = int(snr)
-                if 65 <= int(prn) <= 96:  # GLONASS
+                if int(prn) > 96:  # OTHER e.g. GAL
+                    ol_col = "grey"
+                elif 65 <= int(prn) <= 96:  # GLONASS
                     ol_col = "brown"
                 elif 33 <= int(prn) <= 64:  # SBAS
                     ol_col = "blue"

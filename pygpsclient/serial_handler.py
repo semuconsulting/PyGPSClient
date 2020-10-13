@@ -18,6 +18,7 @@ import pyubx2.ubxtypes_core as ubt
 from .globals import CONNECTED, DISCONNECTED, SERIAL_TIMEOUT, \
                                 NMEA_PROTOCOL, MIXED_PROTOCOL, UBX_PROTOCOL, PARITIES
 from .strings import WAITUBXDATA, STOPDATA, NOTCONN, SEROPENERROR
+from wx.py import buffer
 
 
 class SerialHandler():
@@ -241,3 +242,13 @@ class SerialHandler():
             else:
 #                 print(f"dropping {ser.peek()}")
                 parsing = False
+
+    def flush(self):
+        '''
+        Flush input buffer
+        '''
+
+        if self._serial_buffer is not None:
+            self._serial_buffer.flush()
+        if self._serial_object is not None:
+            self._serial_object.flushInput()

@@ -63,6 +63,7 @@ class UBXConfigDialog():
         self._img_confirmed = ImageTk.PhotoImage(Image.open(ICON_CONFIRMED))
         self._img_send = ImageTk.PhotoImage(Image.open(ICON_SEND))
         self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
+        self._awaiting_ack = False
 
         # Poll current UBX configuration
         if self.__app.serial_handler.connected:
@@ -73,6 +74,7 @@ class UBXConfigDialog():
 
         #  Initialise up key variables
         self._preset_command = None
+        self._status = StringVar()
         self._ubx_baudrate = StringVar()
         self._ubx_inprot = IntVar()
         self._ubx_outprot = IntVar()
@@ -285,6 +287,7 @@ class UBXConfigDialog():
         self._lbl_send_preset = Label(con)
         self._btn_send_preset = Button(con, image=self._img_send, width=50, fg="green",
                                        command=self._on_send_preset, font=self.__app.font_md)
+        self._lbl_status = Label(con, textvariable=self._status, anchor='w')
         self._btn_exit = Button(con, image=self._img_exit, width=50, fg="red",
                                 command=self._on_exit, font=self.__app.font_md)
 
@@ -356,6 +359,8 @@ class UBXConfigDialog():
         ttk.Separator(self._frm_container).grid(column=0, row=18, columnspan=6,
                                                 padx=3, pady=3, sticky=(W, E))
 
+        self._lbl_status.grid(column=0, row=19, columnspan=4, ipadx=3, ipady=3,
+                            sticky=(W, E))
         self._btn_exit.grid(column=4, row=19, ipadx=3, ipady=3,
                             sticky=(E))
 
@@ -366,7 +371,7 @@ class UBXConfigDialog():
 
         self._lbx_preset.bind("<<ListboxSelect>>", self._on_select_preset)
 
-    def update(self, **kwargs):
+    def update(self, cfgtype='CFG-MSG', **kwargs):
         '''
         Update panel with latest polled configuration
         '''
@@ -379,6 +384,14 @@ class UBXConfigDialog():
             self._ubx_outprot.set(kwargs['outprot'])
         self._lbl_send_port.config(image=self._img_confirmed)
 #         self._lbl_send_preset.config(image=self._img_confirmed)
+        if self._awaiting_ack and cfgtype == 'ACK-ACK':
+            self.set_status(f"{cfgtype} acknowledgement received", "green")
+            self._awaiting_ack = False
+        if self._awaiting_ack and cfgtype == 'ACK-NAK':
+            self.set_status(f"{cfgtype} rejection received", "red")
+            self._awaiting_ack = False
+        elif not self._awaiting_ack and cfgtype not in ('ACK-ACK', 'ACK-NAK'):
+            self.set_status(f"{cfgtype} response received", "green")
 
     def _reset(self):
         '''
@@ -447,6 +460,7 @@ class UBXConfigDialog():
 
         self._do_poll_prt()  # poll for confirmation
         self._lbl_send_port.config(image=self._img_pending)
+        self.set_status("CFG-PRT configuration message(s) sent")
 
     def _on_select_preset(self, *args, **kwargs):
         '''
@@ -488,6 +502,8 @@ class UBXConfigDialog():
         else:
             messagebox.showwarning("UBX Configuration Presets", "Sorry - not yet implemented!\n\nWatch this space.",)
 
+        self.set_status("Configuration message(s) sent")
+        self._awaiting_ack = True
 #         self._lbl_send_port.config(image=self._img_pending)
 
     def _do_poll_inf(self):
@@ -598,6 +614,15 @@ class UBXConfigDialog():
         payload = clearMask + saveMask + loadMask + devicerMask
         msg = UBXMessage('CFG', 'CFG-CFG', payload, SET)
         self.__app.serial_handler.serial_write(msg.serialize())
+
+    def set_status(self, message, color="blue"):
+        '''
+        Set status message.
+        '''
+
+        message = (message[:50] + '..') if len(message) > 50 else message
+        self._lbl_status.config(fg=color)
+        self._status.set("  " + message)
 
     def _on_exit(self, *args, **kwargs):
         '''

@@ -238,9 +238,14 @@ class App(Frame):
 
     def ubxconfig(self):
         '''
-        Open About dialog
+        Open UBX Config dialog
+        Update idle tasks and flush input buffer first
+        to minimise blocking on startup during heavy
+        traffic
         '''
 
+        self.__master.update_idletasks()
+        self.serial_handler.flush()
         self.dlg_ubxconfig = UBXConfigDialog(self)
 
     def get_master(self):

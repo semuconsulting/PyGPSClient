@@ -60,6 +60,7 @@ class StatusFrame(Frame):
         Sets message in status bar.
         '''
 
+        message = (message[:75] + '..') if len(message) > 75 else message
         self._lbl_status.config(fg=color)
         self._status.set("  " + message)
 
