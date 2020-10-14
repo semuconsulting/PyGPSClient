@@ -18,7 +18,6 @@ import pyubx2.ubxtypes_core as ubt
 from .globals import CONNECTED, DISCONNECTED, SERIAL_TIMEOUT, \
                                 NMEA_PROTOCOL, MIXED_PROTOCOL, UBX_PROTOCOL, PARITIES
 from .strings import WAITUBXDATA, STOPDATA, NOTCONN, SEROPENERROR
-from wx.py import buffer
 
 
 class SerialHandler():
