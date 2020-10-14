@@ -9,7 +9,7 @@ Created on 30 Sep 2020
 '''
 # pylint: disable=invalid-name
 
-from pyubx2 import UBXMessage, POLL, UBX_CONFIG_MESSAGES, UBX_MSGIDS
+from pyubx2 import UBXMessage, POLL, UBX_MSGIDS
 
 CFG_MSG_OFF = b'\x00\x00\x00\x00\x00\x01'
 CFG_MSG_ON = b'\x01\x01\x01\x01\x01\x01'
@@ -47,7 +47,6 @@ class UBXHandler():
         self.utc = ''
         self.sip = 0
         self.fix = '-'
-        self._ubx_state = {}  # dict containing current UBX device config
         self.ubx_baudrate = 9600
         self.ubx_inprot = 7
         self.ubx_outprot = 3
@@ -74,14 +73,6 @@ class UBXHandler():
 #         for payload in (b'\x00', b'\x01'):  # UBX & NMEA
 #             msg = UBXMessage('CFG', 'CFG-INF', payload, POLL)
 #             serial.write(msg.serialize())
-
-    @property
-    def state(self):
-        '''
-        Return last known UBX configuration state
-        '''
-
-        return self._ubx_state
 
     def process_data(self, data: bytes) -> UBXMessage:
         '''
@@ -130,7 +121,6 @@ class UBXHandler():
     def _process_ACK_ACK(self, data: UBXMessage):
         '''
         Process CFG-MSG sentence - UBX message configuration.
-        Update the UBX state dictionary to reflect current UBX device config.
         '''
 
         msgtype = UBX_MSGIDS[data.clsID + data.msgID]
@@ -142,7 +132,6 @@ class UBXHandler():
     def _process_ACK_NAK(self, data: UBXMessage):
         '''
         Process CFG-MSG sentence - UBX message configuration.
-        Update the UBX state dictionary to reflect current UBX device config.
         '''
 
         msgtype = UBX_MSGIDS[data.clsID + data.msgID]
@@ -154,13 +143,9 @@ class UBXHandler():
     def _process_CFG_MSG(self, data: UBXMessage):
         '''
         Process CFG-MSG sentence - UBX message configuration.
-        Update the UBX state dictionary to reflect current UBX device config.
         '''
 
-        msgtype = UBX_CONFIG_MESSAGES[data.msgClass + data.msgID]
-        rates = (data.rateDDC, data.rateUART1, data.rateUART2, data.rateUSB,
-                 data.rateSPI, data.reserved)
-        self._ubx_state[msgtype] = rates
+        msgtype = UBX_MSGIDS[data.msgClass + data.msgID]
 
         # update the UBX config panel
         if self.__app.dlg_ubxconfig is not None:
@@ -169,11 +154,7 @@ class UBXHandler():
     def _process_CFG_INF(self, data: UBXMessage):
         '''
         Process CFG-INF sentence - UBX info message configuration.
-        Update the UBX state dictionary to reflect current UBX device config.
         '''
-
-        cfg = (data.protocolID, data.infMsgMask)
-        self._ubx_state['CFG-INF'] = cfg
 
         # update the UBX config panel
         if self.__app.dlg_ubxconfig is not None:
@@ -182,11 +163,8 @@ class UBXHandler():
     def _process_CFG_PRT(self, data: UBXMessage):
         '''
         Process CFG-PRT sentence - UBX port configuration.
-        Update the UBX state dictionary to reflect current UBX device config.
         '''
 
-        cfg = (data.mode, data.baudRate, data.inProtoMask, data.outProtoMask)
-        self._ubx_state['CFG-PRT'] = cfg
         self.ubx_baudrate = data.baudRate
         self.ubx_inprot = int.from_bytes(data.inProtoMask, 'little', signed=False)
         self.ubx_outprot = int.from_bytes(data.outProtoMask, 'little', signed=False)

@@ -10,7 +10,7 @@ Created on 12 Sep 2020
 
 from tkinter import Menu
 
-from .strings import MENUFILE, MENUVIEW, MENUOPTION, MENUSAVE, MENULOAD, MENUEXIT, \
+from .strings import MENUFILE, MENUVIEW, MENUOPTION, MENUEXIT, \
                                 MENUHIDESE, MENUHIDESB, MENUHIDECON, MENUHIDEMAP, \
                                 MENUHIDESATS, MENUABOUT, MENUHELP, MENUUBXCONFIG
 

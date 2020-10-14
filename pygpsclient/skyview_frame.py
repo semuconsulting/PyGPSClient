@@ -8,9 +8,9 @@ Created on 13 Sep 2020
 @author: semuadmin
 '''
 
-from tkinter import Frame, Canvas, font, BOTH, YES, LEFT
+from tkinter import Frame, Canvas, font, BOTH, YES
 from operator import itemgetter
-from .globals import cel2cart, hsv2rgb, WIDGETU1, BGCOL, FGCOL
+from .globals import snr2col, cel2cart, WIDGETU1, BGCOL, FGCOL
 
 
 def _create_circle(self, x, y, r, **kwargs):
@@ -112,7 +112,7 @@ class SkyviewFrame(Frame):
                 prn = f"{int(prn):02}"
                 self.can_satview.create_circle(x + (w / 2), y + (h / 2),
                                                (maxr / 10), outline=ol_col,
-                                               fill=hsv2rgb(snr / 100, .8, .8))
+                                               fill=snr2col(snr))
                 self.can_satview.create_text(x + (w / 2), y + (h / 2), text=prn,
                                              fill=self.fg_col, font=resize_font)
             except ValueError:

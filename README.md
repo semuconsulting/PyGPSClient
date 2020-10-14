@@ -2,7 +2,7 @@
 
 PyGPSClient is a free, open source graphical GPS testing and diagnostic client application written entirely in Python and tkinter.
 
-![fullmap](/images/fullmapquest.png)
+![full app](/images/all_widgets.png)
 
 The application runs on any platform which supports a Python3 interpreter (>=3.6) and tkinter (>=8.6) GUI framework, 
 including Windows, MacOS, Linux and Raspberry Pi OS. It displays location and diagnostic data from any NMEA or UBX (u-blox &copy;) 
@@ -25,12 +25,9 @@ implements a **[new pyubx2 library](https://github.com/semuconsulting/pyubx2)** 
 [MapQuest API Key](https://developer.mapquest.com/plan_purchase/steps/business_edition/business_edition_free/register)).
 1. **WORK IN PROGRESS** UBX Configuration Dialog (under Menu...Options), with the ability to send UBX configuration messages to u-blox GPS devices e.g. NMEA and UBX message filters. This includes the facility to add **user-defined preset configuration messages** - see instructions under [installation](#installation) below.
 
-![fullubx](/images/fullubx.png)
-![banneronly](/images/banneronly.png)
-![basicview](/images/basicview.png)
-![ubxconfig](/images/ubxconfig.png)
-
-Future versions may include additional features like GPX track recording, though the application is *not* intended to be used for real-time navigation or route planning.
+![banner widget](/images/banner_widget.png)
+![sats & mercator widget](/images/sats_mercator.png)
+![ubxconfig widget](/images/ubxconfig_widget.png)
 
 This is a personal project and I have no affiliation whatsoever with u-blox &copy;, Makerhawk &copy; or MapQuest &copy;.
 
@@ -77,10 +74,10 @@ file in the application's root directory. An illustrative user preset file is gi
 to a [pyubx2 UBXMessage constructor](https://pypi.org/project/pyubx2/) i.e. `msgClass, msgID, payload`:
 
 ```
-<--------- description --------->: <----- UBXMessage Constructor ------>
+<--------- description -------->: <----------------- UBXMessage Constructor --------------->
 
-CFG-MSG Add GLL to message filter: 'CFG', 'CFG-MSG', b'\x01\x02\xd2\x06'
-CFG-MSG Add GSV to message filter: 'CFG', 'CFG-MSG', b'\x01\x06\xb0\x33'
+USER CFG-MSG Add RMC to messages: 'CFG', 'CFG-MSG', b'\xf0\x04\x01\x01\x01\x00\x01\x00', SET
+USER CFG-MSG Add VTG to messages: 'CFG', 'CFG-MSG', b'\xf0\x05\x01\x01\x01\x00\x01\x00', SET
 ```
 
 ## <a name="dependencies">Dependencies</a>

@@ -29,9 +29,14 @@ MSG_PRESETS = {
 'CFG-MSG - Turn ON minimum UBX NAV msgs': 'CFG-MSG',
 'CFG-MSG - Turn ON all UBX NAV msgs': 'CFG-MSG',
 'CFG-MSG - Turn OFF all UBX NAV msgs': 'CFG-MSG',
+'CFG-INF - Turn ON all INF msgs': 'CFG-INF',
+'CFG-INF - Turn OFF all non-error INF msgs': 'CFG-INF',
+'CFG-MSG - Turn ON all LOG msgs': 'CFG-MSG',
+'CFG-MSG - Turn OFF all LOG msgs': 'CFG-MSG',
 'CFG-MSG - Turn ON all MON msgs': 'CFG-MSG',
 'CFG-MSG - Turn OFF all MON msgs': 'CFG-MSG',
-'CFG-INF - Turn ON all INF msgs': 'CFG-INF',
+'CFG-MSG - Turn ON all RXM msgs': 'CFG-MSG',
+'CFG-MSG - Turn OFF all RXM msgs': 'CFG-MSG',
 'CFG-PRT - Poll Port config': 'CFG-PRT',
 'CFG-INF - Poll Info message config': 'CFG:INF',
 }
@@ -478,23 +483,33 @@ class UBXConfigDialog():
         if self._preset_command == 'CFG-CFG - RESTORE FACTORY DEFAULTS':
             self._do_factory_reset()
         elif self._preset_command == 'CFG-INF - Turn ON all INF msgs':
-            self._do_setinf()
+            self._do_set_inf(True)
+        elif self._preset_command == 'CFG-INF - Turn OFF all non-error INF msgs':
+            self._do_set_inf(False)
+        elif self._preset_command == 'CFG-MSG - Turn ON all LOG msgs':
+            self._do_set_log(True)
+        elif self._preset_command == 'CFG-MSG - Turn OFF all LOG msgs':
+            self._do_set_log(False)
         elif self._preset_command == 'CFG-MSG - Turn ON all MON msgs':
-            self._do_setmon(True)
+            self._do_set_mon(True)
         elif self._preset_command == 'CFG-MSG - Turn OFF all MON msgs':
-            self._do_setmon(False)
+            self._do_set_mon(False)
+        elif self._preset_command == 'CFG-MSG - Turn ON all RXM msgs':
+            self._do_set_rxm(True)
+        elif self._preset_command == 'CFG-MSG - Turn OFF all RXM msgs':
+            self._do_set_rxm(False)
         elif self._preset_command == 'CFG-MSG - Turn ON minimum NMEA msgs':
-            self._do_setminnmea()
+            self._do_set_minnmea()
         elif self._preset_command == 'CFG-MSG - Turn ON all NMEA msgs':
-            self._do_setallnmea(True)
+            self._do_set_allnmea(True)
         elif self._preset_command == 'CFG-MSG - Turn OFF all NMEA msgs':
-            self._do_setallnmea(False)
+            self._do_set_allnmea(False)
         elif self._preset_command == 'CFG-MSG - Turn ON minimum UBX NAV msgs':
-            self._do_setminNAV()
+            self._do_set_minNAV()
         elif self._preset_command == 'CFG-MSG - Turn ON all UBX NAV msgs':
-            self._do_setallNAV(True)
+            self._do_set_allNAV(True)
         elif self._preset_command == 'CFG-MSG - Turn OFF all UBX NAV msgs':
-            self._do_setallNAV(False)
+            self._do_set_allNAV(False)
         elif self._preset_command == 'CFG-PRT - Poll Port config':
             self._do_poll_prt()
         elif self._preset_command == 'CFG-INF - Poll Info message config':
@@ -523,20 +538,40 @@ class UBXConfigDialog():
         msg = UBXMessage('CFG', 'CFG-PRT', None, POLL)
         self.__app.serial_handler.serial_write(msg.serialize())
 
-    def _do_setinf(self):
+    def _do_set_inf(self, onoff):
         '''
         Turn on device information messages INF
         '''
 
+        if onoff:
+            mask = b'\x31'  # all INF msgs
+        else:
+            mask = b'\x01'  # errors only
         for protocolID in (b'\x00', b'\x01'):  # UBX and NMEA
-            reserved0 = b'\x00'
-            reserved1 = b'\x00\x00'
-            infMsgMask = b'\x00\x07\x00\x00\x00\x00'
-            payload = protocolID + reserved0 + reserved1 + infMsgMask
+            reserved1 = b'\x00\x00\x00'
+            infMsgMaskDDC = mask
+            infMsgMaskUART1 = mask
+            infMsgMaskUART2 = mask
+            infMsgMaskUSB = mask
+            infMsgMaskSPI = mask
+            reserved2 = b'\x00'
+            payload = protocolID + reserved1 + infMsgMaskDDC + \
+                      infMsgMaskUART1 + infMsgMaskUART2 + infMsgMaskUSB + \
+                      infMsgMaskSPI + reserved2
             msg = UBXMessage('CFG', 'CFG-INF', payload, SET)
             self.__app.serial_handler.serial_write(msg.serialize())
+            self._do_poll_inf()  # poll results
 
-    def _do_setmon(self, onoff):
+    def _do_set_log(self, onoff):
+        '''
+        Turn on all device logging messages LOG
+        '''
+
+        for msgtype in UBX_CONFIG_MESSAGES:
+            if msgtype[0:1] == b'\x21':
+                self._do_cfgmsg(msgtype, onoff)
+
+    def _do_set_mon(self, onoff):
         '''
         Turn on all device monitoring messages MON
         '''
@@ -545,7 +580,16 @@ class UBXConfigDialog():
             if msgtype[0:1] == b'\x0A':
                 self._do_cfgmsg(msgtype, onoff)
 
-    def _do_setminnmea(self):
+    def _do_set_rxm(self, onoff):
+        '''
+        Turn on all device receiver management messages RXM
+        '''
+
+        for msgtype in UBX_CONFIG_MESSAGES:
+            if msgtype[0:1] == b'\x02':
+                self._do_cfgmsg(msgtype, onoff)
+
+    def _do_set_minnmea(self):
         '''
         Turn on minimum set of NMEA messages (GGA & GSA & GSV)
         '''
@@ -559,7 +603,7 @@ class UBXConfigDialog():
             if msgtype[0:1] in (b'\xF1'):  # proprietary NMEA
                 self._do_cfgmsg(msgtype, False)
 
-    def _do_setminNAV(self):
+    def _do_set_minNAV(self):
         '''
         Turn on minimum set of UBX-NAV messages (PVT & SVINFO)
         '''
@@ -571,7 +615,7 @@ class UBXConfigDialog():
                 else:
                     self._do_cfgmsg(msgtype, False)
 
-    def _do_setallnmea(self, onoff):
+    def _do_set_allnmea(self, onoff):
         '''
         Turn on all NMEA messages
         '''
@@ -580,7 +624,7 @@ class UBXConfigDialog():
             if msgtype[0:1] not in (b'\x0A', b'\x01'):
                 self._do_cfgmsg(msgtype, onoff)
 
-    def _do_setallNAV(self, onoff):
+    def _do_set_allNAV(self, onoff):
         '''
         Turn on all UBX-NAV messages
         '''

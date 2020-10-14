@@ -42,7 +42,7 @@ class ConsoleFrame(Frame):
         self._console_fg = FGCOL
         self._console_bg = BGCOL
         self.width, self.height = self.get_size()
-        
+
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
         self.sblogv = Scrollbar(self, orient=VERTICAL)
@@ -62,18 +62,18 @@ class ConsoleFrame(Frame):
         '''
         Set position of widgets in frame
         '''
-        
+
         self.txt_console.grid(column=0, row=0, pady=1, padx=1, sticky=(N, S, E, W))
         self.sblogv.grid(column=1, row=0, sticky=(N, S , E))
         self.sblogh.grid(column=0, row=1, sticky=(S, E , W))
-   
+
     def _attach_events(self):
         '''
         Bind events to frame
         '''
 
-        self.bind("<Configure>", self._on_resize)  
-   
+        self.bind("<Configure>", self._on_resize)
+
     def update_console(self, data):
         '''
         Print the latest data stream to the console in raw (NMEA) or 
@@ -87,7 +87,7 @@ class ConsoleFrame(Frame):
         con = self.txt_console
         con.configure(state='normal')
         con.insert(END, data + '\n')
-        
+
         # format of this array of tuples is (tag, highlight color)
         self._tag_line(data, TAGS)
 

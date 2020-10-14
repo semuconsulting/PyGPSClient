@@ -13,29 +13,31 @@ from setuptools import setup, find_packages
 
 from pygpsclient._version import VERSION
 
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
 setup(
     name="PyGPSClient",
     version=VERSION,
     packages=find_packages(),
     scripts=["__main__.py"],
-
-    install_requires=["pyubx2>=0.1.4", "pynmea2>=1.15.0", "requests>=2.24.0",
+    install_requires=["pyubx2>=0.1.7", "pynmea2>=1.15.0", "requests>=2.24.0",
                       "Pillow>=7.2.0", "pyserial>=3.4"],
-
     package_data={
         "pygpsclient": ["resources/*.gif", "resources/*.png",
                      "resources/*.ico", "resources/*.icns",
                      "images/*.png"],
     },
-
+    include_package_data=True,
     author="semuadmin",
     author_email="semuadmin@semuconsulting.com",
     description="PyGPSClient GPS Client",
-    long_description="NMEA & UBX GPS Client application written in Python3 and tkinter",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    url="https://github.com/semuconsulting/PyGPSClient",
     keywords="PyGPSClient GPS NMEA UBX",
     platforms="Windows, MacOS, Linux",
     license="BSD 3-Clause 'Modified' License",
-    url="https://github.com/semuconsulting/PyGPSClient",
     project_urls={
         "Bug Tracker": "https://github.com/semuconsulting/PyGPSClient",
         "Documentation": "https://github.com/semuconsulting/PyGPSClient",
@@ -43,7 +45,7 @@ setup(
     },
     classifiers=[
         "License :: OSI Approved :: BSD License",
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 3 - Alpha',
         'Environment :: MacOS X',
         'Environment :: X11 Applications',
         'Environment :: Win32 (MS Windows)',
@@ -52,7 +54,7 @@ setup(
         'Operating System :: MacOS :: MacOS X',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX',
-        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3',
         'Topic :: Desktop Environment',
         'Topic :: Terminals :: Serial',
     ]

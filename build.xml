@@ -1,46 +1,37 @@
 <?xml version = "1.0"?>
-<project name = "PyGPSClient" default = "pclean">
-    <!-- CHECK FOR WINDOWS FAMILY OS -->
-    <condition property="is_windows" value="true">
-        <os family="windows"/>
-    </condition>
-    <condition property="is_posix" value="true">
-		<os family="unix"/>
-    </condition>
- 	<target name = "wbuild"  if="is_windows">
-		<echo>Building for Windows platform...</echo>
-		<exec executable="python">
-			 <arg value="setup.py"/>
-			<arg value="sdist"/>
-			<arg value="bdist_wheel"/>
-  		</exec>
-   	</target>
-   	<target name = "pbuild"  if="is_posix">
-		<echo>Building for Posix platform...</echo>
-		<exec executable="python3">
-			 <arg value="setup.py"/>
-			<arg value="sdist"/>
-			<arg value="bdist_wheel"/>
-  		</exec>
-   	</target>
-   	<target name = "wclean" if="is_windows">
-		<echo>Cleaning for Windows platform...</echo>
-		<delete includeEmptyDirs="true" quiet="true">
-  			<fileset dir="build"/>
-  			<fileset dir="dist"/>
-  			<fileset dir="PyGPSClient.egg-info"/>
-  			<fileset dir="__pycache__" includes="*.nbc, *.nbi, *.pyc"/>
-  			<fileset dir="pygpsclient\__pycache__" includes="*.nbc, *.nbi, *.pyc"/>
+<project name="PyGPSClient" default="build">
+	<condition property="python" value="python" else="python3">
+		<os family="windows" />
+	</condition>
+	<property name="test_args" value="tests/testsuite.py" />
+	<property name="build_args" value="setup.py sdist bdist_wheel" />
+	<property name="deploy_args" value="-m twine upload --config-file .pypirc dist/*" />
+	<target name="test">
+		<echo>Testing...</echo>
+		<exec executable="${python}">
+			<arg line="${test_args}" />
+		</exec>
+	</target>
+	<target name="clean" depends="test">
+		<echo>Cleaning...</echo>
+		<delete includeEmptyDirs="true" quiet="true" failonerror="false">
+			<fileset dir="build" />
+			<fileset dir="dist" />
+			<fileset dir="PyGPSClient.egg-info/" />
+			<fileset dir="PyGPSClient-*/" />
+			<fileset dir="PyGPSClient/__pycache__" includes="*.nbc, *.nbi, *.pyc" />
 		</delete>
-    </target>
-	<target name = "pclean" if="is_posix">
-		<echo>Cleaning for Posix platform...</echo>
-		<delete includeEmptyDirs="true" quiet="true">
-  			<fileset dir="build"/>
-  			<fileset dir="dist"/>
-  			<fileset dir="PyGPSClient.egg-info"/>
-  			<fileset dir="__pycache__" includes="*.nbc, *.nbi, *.pyc"/>
-  			<fileset dir="pygpsclient/__pycache__" includes="*.nbc, *.nbi, *.pyc"/>
-		</delete>
+	</target>
+	<target name="build" depends="clean">
+		<echo>Building...</echo>
+		<exec executable="${python}">
+			<arg line="${build_args}" />
+		</exec>
+	</target>
+	<target name = "deploy" depends="build">
+		<echo>Deploying...</echo>
+		<exec executable="${python}">
+			<arg line="${deploy_args}"/>
+  		</exec>
    	</target>
 </project>

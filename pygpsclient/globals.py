@@ -11,8 +11,6 @@ import os
 from math import sin, cos, pi
 from serial import PARITY_NONE, PARITY_EVEN, PARITY_ODD, PARITY_MARK, PARITY_SPACE
 
-VERSION = "0.1.5"
-
 DIRNAME = os.path.dirname(__file__)
 ICON_APP = os.path.join(DIRNAME, 'resources/iconmonstr-location-27-32.png')
 ICON_CONN = os.path.join(DIRNAME, 'resources/iconmonstr-link-8-24.png')
@@ -29,14 +27,17 @@ BTN_CONNECT = "\u25b6"  # text on "Connected" button
 BTN_DISCONNECT = "\u2587"  # text on "Disconnected" button
 
 MAPURL = "https://www.mapquestapi.com/staticmap/v5/map?key={}&locations={},{}&zoom={}&defaultMarker=marker-sm-616161-ff4444&shape=radius:{}|weight:1|fill:ccffff50|border:88888850|{},{}&size={},{}"
-MAP_UPDATE_INTERVAL = 60
+MAP_UPDATE_INTERVAL = 60  # how frequently the mapquest api is called to update the web map
+SAT_EXPIRY = 60  # how long passed satellites are kept in the sky and graph views
+MAX_SNR = 60  # upper limit of graphview snr axis
 DEVICE_ACCURACY = 2.5  # nominal GPS device accuracy (CEP) in meters
 HDOP_RATIO = 20  # arbitrary calibration of accuracy against HDOP
 KNOWNGPS = ('GPS', 'gps', 'GNSS', 'gnss', 'Garmin', 'garmin', 'U-Blox', 'u-blox')
 BAUDRATES = (115200, 57600, 38400, 19200, 9600, 4800)
 PARITIES = {"Even":PARITY_EVEN, "Odd": PARITY_ODD, "Mark": PARITY_MARK, "Space": PARITY_SPACE, "None": PARITY_NONE}
-SERIAL_TIMEOUT = .5
-SAT_EXPIRY = 60  # how long passed satellites are kept in the sky and graph views
+# serial port timeout; lower is better for app response
+# but you may lose packets on high latency connections
+SERIAL_TIMEOUT = .2
 
 NMEA_PROTOCOL = 0
 UBX_PROTOCOL = 1
@@ -70,7 +71,8 @@ TAGS = [("DTM", "deepskyblue"), ("GBS", "pink"), \
         ("lon", "lightblue1"), ("lat_dir", "lightblue1"), ("lon_dir", "lightblue1"), \
         ("altitude", "lightblue1"), ("pdop", "lightblue1"), ("UBX", "lightblue1"), \
         ("UBX00", "aquamarine2"), ("UBX03", "yellow"), ("UBX04", "cyan"), ("UBX05", "orange"), \
-        ("UBX06", "orange"), ("ZDA", "cyan"), \
+        ("UBX06", "orange"), ("ZDA", "cyan"), ("GNS", "orange"), ("VLW", "deepskyblue"),
+        ("GST", "mediumpurple2"), ("INF-ERROR", "red3"), ("INF-WARNING", "orange"), ("INF-NOTICE", "blue"), \
         ("vdop", "lightblue1"), ("hdop", "lightblue1"), ("h_acc", "lightblue1"), \
         ("v_acc", "lightblue1"), ("spd_over_grnd_kmph", "lightblue1"), \
         ("true_track", "lightblue1"), ("mode_fix_type", "lightblue1"), \
@@ -81,7 +83,8 @@ TAGS = [("DTM", "deepskyblue"), ("GBS", "pink"), \
         ("NAV-DOP", "mediumpurple2"), ("NAV-CLOCK", "cyan"), ("NAV-SBAS", "yellow"),
         ("NAV-SAT", "yellow"), ("NAV-POSECEF", "orange"), ("NAV-TIMEGLO", "cyan"),
         ("NAV-TIMEBDS", "cyan"), ("NAV-TIMEGAL", "cyan"), ("NAV-ORB", "yellow"),
-        ("NAV-TIMELS", "cyan"),("NAV-TIMEGPS", "cyan")]
+        ("NAV-TIMELS", "cyan"), ("NAV-TIMEGPS", "cyan"), ("RXM", "skyblue1"), \
+        ("MON", "skyblue1"), ("LOG", "skyblue1")]
 
 
 def deg2rad(deg: float) -> float:
@@ -233,3 +236,12 @@ def hsv2rgb(h: float, s: float, v: float) -> str:
 
     rgb = int(r * 255), int(g * 255), int(b * 255)
     return "#%02x%02x%02x" % rgb
+
+
+def snr2col(snr: int) -> str:
+    '''
+    Convert satellite signal-to-noise ratio to a color
+    high = green, low = red 
+    '''
+
+    return hsv2rgb(snr / (MAX_SNR * 2.5), .8, .8)

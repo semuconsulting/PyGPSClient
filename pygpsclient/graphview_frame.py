@@ -10,13 +10,12 @@ Created on 14 Sep 2020
 
 from tkinter import Frame, Canvas, font, BOTH, YES
 
-from .globals import hsv2rgb, WIDGETU2, BGCOL, FGCOL
+from .globals import snr2col, WIDGETU2, BGCOL, FGCOL, MAX_SNR
 
 # Relative offsets of graph axes
 AXIS_XL = 19
 AXIS_XR = 10
 AXIS_Y = 18
-MAX_SNR = 50
 
 
 class GraphviewFrame(Frame):
@@ -70,8 +69,8 @@ class GraphviewFrame(Frame):
             self.can_graphview.create_line(AXIS_XL, y, w - AXIS_XR + 2, y, fill=self._fgcol)
             self.can_graphview.create_text(10, y, text=str(MAX_SNR - (i * 10)), angle=90,
                                            fill=self._fgcol, font=resize_font)
-        self.can_graphview.create_text(10, (h - AXIS_Y - 1) / 2, text="dbHz", angle=90,
-                                       fill=self._fgcol, font=resize_font)
+#         self.can_graphview.create_text(10, (h - AXIS_Y - 1) / 2, text="dbHz", angle=90,
+#                                        fill=self._fgcol, font=resize_font)
 
     def update_graph(self, data, siv=16):
         '''
@@ -106,7 +105,7 @@ class GraphviewFrame(Frame):
             prn = f"{int(prn):02}"
             self.can_graphview.create_rectangle(offset, h - AXIS_Y - 1, offset + colwidth,
                                                 h - AXIS_Y - 1 - snr_y, outline=ol_col,
-                                                fill=hsv2rgb(snr / 100, .8, .8))
+                                                fill=snr2col(snr))
             self.can_graphview.create_text(offset + colwidth / 2, h - 10, text=prn,
                                            fill=self._fgcol, font=resize_font, angle=35)
             offset += colwidth
