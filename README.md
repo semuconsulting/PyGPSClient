@@ -26,7 +26,7 @@ implements a **[new pyubx2 library](https://github.com/semuconsulting/pyubx2)** 
 1. **WORK IN PROGRESS** UBX Configuration Dialog (under Menu...Options), with the ability to send UBX configuration messages to u-blox GPS devices e.g. NMEA and UBX message filters. This includes the facility to add **user-defined preset configuration messages** - see instructions under [installation](#installation) below.
 
 ![banner widget](/images/banner_widget.png)
-![sats & mercator widget](/images/sats_mercator.png)
+![sats & mercator widget](/images/sats_mercator_widget.png)
 ![ubxconfig widget](/images/ubxconfig_widget.png)
 
 This is a personal project and I have no affiliation whatsoever with u-blox &copy;, Makerhawk &copy; or MapQuest &copy;.
