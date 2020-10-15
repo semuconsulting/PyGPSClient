@@ -111,15 +111,19 @@ no extension) and place this file in the user's home directory.
 ### User Defined Presets
 
 The UBX Configuration Dialog includes the facility to add user-defined preset UBX configuration messages. These can be set up by adding
-appropriate message descriptions and payload definitions to a file named `ubxpresets` (lower case, no extension), and then placing this 
-file in the user's home directory. An illustrative user preset file is given below - the payload definition follows the format passed
-to a [pyubx2 UBXMessage constructor](https://pypi.org/project/pyubx2/) i.e. `msgClass, msgID, payload`:
+appropriate comma-delimited message descriptions and payload definitions to a file named `ubxpresets` (lower case, no extension), and then placing this file in the user's home directory. The message definition comprises a free-format text description (*avoid embedded commas*) 
+followed by one or more [pyubx2 UBXMessage constructors](https://pypi.org/project/pyubx2/), i.e. 
+* ubx_class as a string e.g. `CFG` (must be a valid class from pyubx2.UBX_CONFIG_CATEGORIES)
+* ubx_id as a string e.g. `CFG-MSG` (must be a valid id from pyubx2.UBX_CONFIG_MESSAGES)
+* payload as a hexadecimal string e.g. `f004010100010100`
+* mode as an integer (`1` = SET, `2` = POLL)
+
+Multiple commands can be concatenated on a single line. An illustrative example is given below:
 
 ```
-<--------- description -------->: <----------------- UBXMessage Constructor --------------->
-
-USER CFG-MSG Add RMC to messages: 'CFG', 'CFG-MSG', b'\xf0\x04\x01\x01\x01\x00\x01\x00', SET
-USER CFG-MSG Add VTG to messages: 'CFG', 'CFG-MSG', b'\xf0\x05\x01\x01\x01\x00\x01\x00', SET
+CFG-MSG Enable RMC message, CFG, CFG-MSG, f004010100010100, 1
+CFG-MSG Enable VTG message, CFG, CFG-MSG, f005010100010100, 1
+CFG-MSG Enable UBX00 & UBX03 messages, CFG, CFG-MSG, f100010100010100, 1, CFG, CFG-MSG, f103010100010100, 1
 ```
 
 ## License

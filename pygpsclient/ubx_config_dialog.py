@@ -9,13 +9,13 @@ Created on 22 Sep 2020
 '''
 
 from tkinter import ttk, Toplevel, Frame, Checkbutton, Radiobutton, Listbox, \
-                    Spinbox, Scrollbar, messagebox, Button, Label, StringVar, \
+                    Spinbox, Scrollbar, Button, Label, StringVar, \
                     IntVar, N, S, E, W, LEFT, VERTICAL
 
 from PIL import ImageTk, Image
-from pyubx2 import UBXMessage, POLL, SET, UBX_CONFIG_MESSAGES
+from pyubx2 import UBXMessage, POLL, SET, UBX_CONFIG_MESSAGES, UBXTypeError, UBXMessageError
 
-from .globals import BGCOL, FGCOL, ENTCOL, ICON_APP, ICON_SEND, ICON_EXIT, \
+from .globals import BGCOL, FGCOL, ENTCOL, ICON_APP, ICON_SEND, ICON_EXIT, ICON_WARNING, \
                      ICON_PENDING, ICON_CONFIRMED, BAUDRATES, READONLY
 from .strings import DLGUBXCONFIG
 from .ubx_handler import UBXHandler as ubh, CFG_MSG_OFF, CFG_MSG_ON
@@ -68,6 +68,7 @@ class UBXConfigDialog():
         self._img_confirmed = ImageTk.PhotoImage(Image.open(ICON_CONFIRMED))
         self._img_send = ImageTk.PhotoImage(Image.open(ICON_SEND))
         self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
+        self._img_warn = ImageTk.PhotoImage(Image.open(ICON_WARNING))
         self._awaiting_ack = False
 
         # Poll current UBX configuration
@@ -376,28 +377,6 @@ class UBXConfigDialog():
 
         self._lbx_preset.bind("<<ListboxSelect>>", self._on_select_preset)
 
-    def update(self, cfgtype='CFG-MSG', **kwargs):
-        '''
-        Update panel with latest polled configuration
-        '''
-
-        if 'baudrate' in kwargs:
-            self._ubx_baudrate.set(str(kwargs['baudrate']))
-        if 'inprot' in kwargs:
-            self._ubx_inprot.set(kwargs['inprot'])
-        if 'outprot' in kwargs:
-            self._ubx_outprot.set(kwargs['outprot'])
-        self._lbl_send_port.config(image=self._img_confirmed)
-#         self._lbl_send_preset.config(image=self._img_confirmed)
-        if self._awaiting_ack and cfgtype == 'ACK-ACK':
-            self.set_status(f"{cfgtype} acknowledgement received", "green")
-            self._awaiting_ack = False
-        if self._awaiting_ack and cfgtype == 'ACK-NAK':
-            self.set_status(f"{cfgtype} rejection received", "red")
-            self._awaiting_ack = False
-        elif not self._awaiting_ack and cfgtype not in ('ACK-ACK', 'ACK-NAK'):
-            self.set_status(f"{cfgtype} response received", "green")
-
     def _reset(self):
         '''
         Reset settings to defaults.
@@ -425,9 +404,33 @@ class UBXConfigDialog():
         for pre in MSG_PRESETS:
             idx += 1
             self._lbx_preset.insert(idx, pre)
-        for userpre in self._userpresets:
+        for upt in self._userpresets:
             idx += 1
-            self._lbx_preset.insert(idx, userpre)
+            self._lbx_preset.insert(idx, "USER " + upt)
+
+    def update(self, cfgtype='CFG-MSG', **kwargs):
+        '''
+        Update panel with latest polled configuration
+        '''
+
+        if 'baudrate' in kwargs:
+            self._ubx_baudrate.set(str(kwargs['baudrate']))
+        if 'inprot' in kwargs:
+            self._ubx_inprot.set(kwargs['inprot'])
+        if 'outprot' in kwargs:
+            self._ubx_outprot.set(kwargs['outprot'])
+        self._lbl_send_port.config(image=self._img_confirmed)
+#         self._lbl_send_preset.config(image=self._img_confirmed)
+        if self._awaiting_ack and cfgtype == 'ACK-ACK':
+            self.set_status(f"{cfgtype} acknowledgement received", "green")
+            self._lbl_send_preset.config(image=self._img_confirmed)
+            self._awaiting_ack = False
+        if self._awaiting_ack and cfgtype == 'ACK-NAK':
+            self.set_status(f"{cfgtype} rejection received", "red")
+            self._lbl_send_preset.config(image=self._img_confirmed)
+            self._awaiting_ack = False
+        elif not self._awaiting_ack and cfgtype not in ('ACK-ACK', 'ACK-NAK'):
+            self.set_status(f"{cfgtype} response received", "green")
 
     def _on_cfg_msg(self, *args, **kwargs):
         '''
@@ -441,8 +444,8 @@ class UBXConfigDialog():
         else:
             onoff = CFG_MSG_OFF
         msg_payload = msg + onoff
-        data = UBXMessage('CFG', 'CFG-MSG', msg_payload, 1).serialize()
-        self.__app.serial_handler.serial_write(data)
+        data = UBXMessage('CFG', 'CFG-MSG', msg_payload, 1)
+        self.__app.serial_handler.serial_write(data.serialize())
 
     def _on_send_port(self, *args, **kwargs):
         '''
@@ -480,46 +483,53 @@ class UBXConfigDialog():
         Handle Send preset button press.
         '''
 
-        if self._preset_command == 'CFG-CFG - RESTORE FACTORY DEFAULTS':
-            self._do_factory_reset()
-        elif self._preset_command == 'CFG-INF - Turn ON all INF msgs':
-            self._do_set_inf(True)
-        elif self._preset_command == 'CFG-INF - Turn OFF all non-error INF msgs':
-            self._do_set_inf(False)
-        elif self._preset_command == 'CFG-MSG - Turn ON all LOG msgs':
-            self._do_set_log(True)
-        elif self._preset_command == 'CFG-MSG - Turn OFF all LOG msgs':
-            self._do_set_log(False)
-        elif self._preset_command == 'CFG-MSG - Turn ON all MON msgs':
-            self._do_set_mon(True)
-        elif self._preset_command == 'CFG-MSG - Turn OFF all MON msgs':
-            self._do_set_mon(False)
-        elif self._preset_command == 'CFG-MSG - Turn ON all RXM msgs':
-            self._do_set_rxm(True)
-        elif self._preset_command == 'CFG-MSG - Turn OFF all RXM msgs':
-            self._do_set_rxm(False)
-        elif self._preset_command == 'CFG-MSG - Turn ON minimum NMEA msgs':
-            self._do_set_minnmea()
-        elif self._preset_command == 'CFG-MSG - Turn ON all NMEA msgs':
-            self._do_set_allnmea(True)
-        elif self._preset_command == 'CFG-MSG - Turn OFF all NMEA msgs':
-            self._do_set_allnmea(False)
-        elif self._preset_command == 'CFG-MSG - Turn ON minimum UBX NAV msgs':
-            self._do_set_minNAV()
-        elif self._preset_command == 'CFG-MSG - Turn ON all UBX NAV msgs':
-            self._do_set_allNAV(True)
-        elif self._preset_command == 'CFG-MSG - Turn OFF all UBX NAV msgs':
-            self._do_set_allNAV(False)
-        elif self._preset_command == 'CFG-PRT - Poll Port config':
-            self._do_poll_prt()
-        elif self._preset_command == 'CFG-INF - Poll Info message config':
-            self._do_poll_inf()
-        else:
-            messagebox.showwarning("UBX Configuration Presets", "Sorry - not yet implemented!\n\nWatch this space.",)
+        try:
 
-        self.set_status("Configuration message(s) sent")
-        self._awaiting_ack = True
-#         self._lbl_send_port.config(image=self._img_pending)
+            if self._preset_command == 'CFG-CFG - RESTORE FACTORY DEFAULTS':
+                self._do_factory_reset()
+            elif self._preset_command == 'CFG-INF - Turn ON all INF msgs':
+                self._do_set_inf(True)
+            elif self._preset_command == 'CFG-INF - Turn OFF all non-error INF msgs':
+                self._do_set_inf(False)
+            elif self._preset_command == 'CFG-MSG - Turn ON all LOG msgs':
+                self._do_set_log(True)
+            elif self._preset_command == 'CFG-MSG - Turn OFF all LOG msgs':
+                self._do_set_log(False)
+            elif self._preset_command == 'CFG-MSG - Turn ON all MON msgs':
+                self._do_set_mon(True)
+            elif self._preset_command == 'CFG-MSG - Turn OFF all MON msgs':
+                self._do_set_mon(False)
+            elif self._preset_command == 'CFG-MSG - Turn ON all RXM msgs':
+                self._do_set_rxm(True)
+            elif self._preset_command == 'CFG-MSG - Turn OFF all RXM msgs':
+                self._do_set_rxm(False)
+            elif self._preset_command == 'CFG-MSG - Turn ON minimum NMEA msgs':
+                self._do_set_minnmea()
+            elif self._preset_command == 'CFG-MSG - Turn ON all NMEA msgs':
+                self._do_set_allnmea(True)
+            elif self._preset_command == 'CFG-MSG - Turn OFF all NMEA msgs':
+                self._do_set_allnmea(False)
+            elif self._preset_command == 'CFG-MSG - Turn ON minimum UBX NAV msgs':
+                self._do_set_minNAV()
+            elif self._preset_command == 'CFG-MSG - Turn ON all UBX NAV msgs':
+                self._do_set_allNAV(True)
+            elif self._preset_command == 'CFG-MSG - Turn OFF all UBX NAV msgs':
+                self._do_set_allNAV(False)
+            elif self._preset_command == 'CFG-PRT - Poll Port config':
+                self._do_poll_prt()
+            elif self._preset_command == 'CFG-INF - Poll Info message config':
+                self._do_poll_inf()
+            else:
+                self._do_user_defined(self._preset_command)
+
+            self.set_status("Command(s) sent")
+            self._awaiting_ack = True
+            self._lbl_send_preset.config(image=self._img_pending)
+
+        except (UBXMessageError, UBXTypeError, ValueError) as err:
+            # exc_type, _, _ = sys.exc_info()
+            self.set_status(f"Error {err}", "red")
+            self._lbl_send_preset.config(image=self._img_warn)
 
     def _do_poll_inf(self):
         '''
@@ -645,6 +655,21 @@ class UBXConfigDialog():
         payload = msgtype + rate
         msg = UBXMessage('CFG', 'CFG-MSG', payload, SET)
         self.__app.serial_handler.serial_write(msg.serialize())
+
+    def _do_user_defined(self, command):
+        '''
+        Send user-defined config message
+        '''
+
+        seg = command.split(",")
+        for i in range(1, len(seg), 4):
+            ubx_class = seg[i].strip()
+            ubx_id = seg[i + 1].strip()
+            payload = seg[i + 2].strip()
+            payload = bytes(bytearray.fromhex(payload))
+            mode = int(seg[i + 3].rstrip('\r\n'))
+            msg = UBXMessage(ubx_class, ubx_id, payload, mode)
+            self.__app.serial_handler.serial_write(msg.serialize())
 
     def _do_factory_reset(self):
         '''

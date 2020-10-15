@@ -22,6 +22,7 @@ ICON_SEND = os.path.join(DIRNAME, 'resources/iconmonstr-arrow-12-24.png')
 ICON_EXIT = os.path.join(DIRNAME, 'resources/iconmonstr-door-6-24.png')
 ICON_PENDING = os.path.join(DIRNAME, 'resources/iconmonstr-time-6-24.png')
 ICON_CONFIRMED = os.path.join(DIRNAME, 'resources/iconmonstr-check-mark-8-24.png')
+ICON_WARNING = os.path.join(DIRNAME, 'resources/iconmonstr-warning-1-24.png')
 IMG_WORLD = os.path.join(DIRNAME, 'resources/world.png')
 BTN_CONNECT = "\u25b6"  # text on "Connected" button
 BTN_DISCONNECT = "\u2587"  # text on "Disconnected" button
