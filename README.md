@@ -31,7 +31,7 @@ implements a **[new pyubx2 library](https://github.com/semuconsulting/pyubx2)** 
 
 This is a personal project and I have no affiliation whatsoever with u-blox &copy;, Makerhawk &copy; or MapQuest &copy;.
 
-### Glossary of Terms
+#### Glossary of Terms
 
 * utc - coordinated universal time 
 * siv - satellites in view
@@ -53,6 +53,10 @@ Constructive feedback welcome.
 
 ## <a name="installation">Installation</a>
 
+![Python version](https://img.shields.io/pypi/pyversions/pyubx2.svg?style=flat)
+
+In the following, `python` refers to the python 3 executable (this application will **not** run under python 2). You may need to type `python3`, depending on your particular environment.
+
 ### Dependencies
 
 See [requirements.txt](requirements.txt).
@@ -72,7 +76,7 @@ To access the serial port on most linux platforms, you will need to be a member 
 
 ### 1. Install using pip
 
-The easiest way to install PyGPSClient is via pip:
+The easiest way to install PyGPSClient is via [pip](http://pypi.python.org/pypi/pip/):
 
 `python -m pip PyGPSClient`
 
@@ -82,11 +86,9 @@ If not, run `python -m \full_path_to_site_packages\pygspclient`.
 
 ### 2. Manual installation
 
-First, check the [dependencies](#dependencies) listed below.
-
 To install and run, download and unzip this repository and run:
 
-`python -m /path_to_folder/foldername/pygpsclient` (or `python3...`, depending on your environment)
+`python -m /path_to_folder/foldername/pygpsclient`
 
 e.g. if you downloaded and unzipped to a folder named `PyGPSClient-0.1.6`, run: 
 
