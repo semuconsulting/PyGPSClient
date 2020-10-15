@@ -2,7 +2,7 @@
 
 PyGPSClient is a free, open source graphical GPS testing and diagnostic client application written entirely in Python and tkinter.
 
-![full app](/images/all_widgets.png)
+![full app screenshot](/images/all_widgets.png)
 
 The application runs on any platform which supports a Python3 interpreter (>=3.6) and tkinter (>=8.6) GUI framework, 
 including Windows, MacOS, Linux and Raspberry Pi OS. It displays location and diagnostic data from any NMEA or UBX (u-blox &copy;) 
@@ -25,9 +25,9 @@ implements a **[new pyubx2 library](https://github.com/semuconsulting/pyubx2)** 
 [MapQuest API Key](https://developer.mapquest.com/plan_purchase/steps/business_edition/business_edition_free/register)).
 1. **WORK IN PROGRESS** UBX Configuration Dialog (under Menu...Options), with the ability to send UBX configuration messages to u-blox GPS devices e.g. NMEA and UBX message filters. This includes the facility to add **user-defined preset configuration messages** - see instructions under [installation](#installation) below.
 
-![banner widget](/images/banner_widget.png)
-![sats & mercator widget](/images/sats_mercator_widget.png)
-![ubxconfig widget](/images/ubxconfig_widget.png)
+![banner widget screenshot](/images/banner_widget.png)
+![sats & mercator widget screenshot](/images/sats_mercator_widget.png)
+![ubxconfig widget screenshot](/images/ubxconfig_widget.png)
 
 This is a personal project and I have no affiliation whatsoever with u-blox &copy;, Makerhawk &copy; or MapQuest &copy;.
 
@@ -81,11 +81,11 @@ To access the serial port on most linux platforms, you will need to be a member 
 
 The easiest way to install PyGPSClient is via [pip](http://pypi.python.org/pypi/pip/):
 
-`python -m pip PyGPSClient`
+`python -m pip install PyGPSClient`
 
-If the python3 site_packages are in your path, simply run `python -m pygpsclient`.
+To run the appliation, if the python3 site_packages are in your path, simply type `python -m pygpsclient`.
 
-If not, run `python -m \full_path_to_site_packages\pygspclient`.
+If not, type `python -m \full_path_to_site_packages\pygpsclient`.
 
 ### 2. Manual installation
 
