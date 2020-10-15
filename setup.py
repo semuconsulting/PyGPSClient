@@ -20,7 +20,6 @@ setup(
     name="PyGPSClient",
     version=VERSION,
     packages=find_packages(),
-    scripts=["__main__.py"],
     install_requires=["pyubx2>=0.1.7", "pynmea2>=1.15.0", "requests>=2.24.0",
                       "Pillow>=7.2.0", "pyserial>=3.4"],
     package_data={

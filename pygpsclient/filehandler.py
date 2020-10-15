@@ -9,6 +9,9 @@ Created on 16 Sep 2020
 '''
 
 import os
+from pathlib import Path
+
+HOME = str(Path.home())
 
 
 class FileHandler():
@@ -26,38 +29,31 @@ class FileHandler():
 
     def load_apikey(self) -> str:
         '''
-        Load MapQuest web map api key from PyGPSCLient application directory.
+        Load MapQuest web map api key from user's home directory.
         '''
 
-        dirname = os.path.dirname(__file__)
-        filepath = os.path.join(dirname, "..", 'apikey')
+        filepath = os.path.join(HOME, 'mqapikey')
         try:
             with open(filepath, 'r') as file:
                 apikey = file.read()
-            # print("apikey _reading: ", apikey)
         except OSError:
             # Error message will be displayed on mapview widget if invoked
-            # print("Error reading apikey {}".format(err))
             apikey = ''
 
         return apikey
 
     def load_user_presets(self) -> str:
         '''
-        Load user configuration message presets from PyGPSCLient application directory.
+        Load user configuration message presets from user's home directory.
         '''
 
         presets = []
-        dirname = os.path.dirname(__file__)
-        filepath = os.path.join(dirname, "..", 'userpresets')
+        filepath = os.path.join(HOME, 'ubxpresets')
         try:
             with open(filepath, 'r') as file:
                 for line in file:
                     presets.append(line)
-            # print("apikey _reading: ", apikey)
         except OSError:
-            # Error message will be displayed on mapview widget if invoked
-            # print("Error reading apikey {}".format(err))
             presets = ''
 
         return presets

@@ -14,8 +14,8 @@ from importlib import import_module
 # inject local copy to avoid testing the installed version instead of the one in the repo
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 currdir = os.path.dirname(__file__)
-import pyubx2
-print(f"Testing Local Version: {pyubx2.VERSION}")
+import pygpsclient
+print(f"Testing Local Version: {pygpsclient.VERSION}")
 
 if sys.platform == "win32":
     PORT = 'COM6'

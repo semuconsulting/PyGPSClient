@@ -6,7 +6,7 @@ Created on 12 Sep 2020
 @author: semuadmin
 '''
 
-from tkinter import Frame, N, S, E, W, PhotoImage, font
+from tkinter import Tk, Frame, N, S, E, W, PhotoImage, font
 
 from .about_dialog import AboutDialog
 from .banner_frame import BannerFrame
@@ -263,3 +263,9 @@ class App(Frame):
         self.serial_handler.stop_read_thread()
         self.serial_handler.disconnect()
         self.__master.destroy()
+
+
+if __name__ == "__main__":
+    ROOT = Tk()
+    APP = App(ROOT)
+    ROOT.mainloop()

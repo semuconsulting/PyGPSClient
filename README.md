@@ -53,24 +53,61 @@ Constructive feedback welcome.
 
 ## <a name="installation">Installation</a>
 
+### Dependencies
+
+See [requirements.txt](requirements.txt).
+
+On Windows and MacOS, pip, tkinter and the necessary imaging libraries are generally packaged with Python.  On some Linux distributions like Ubuntu 18+ and Raspberry Pi OS, they may need to be installed separately, e.g.:
+
+`sudo apt-get install python3-pip python3-tk python3-pil python3-pil.imagetk`
+
+The following python libraries are required (these will be installed automatically if using pip):
+
+`python -m pip install pyubx2 pyserial pynmea2 Pillow requests`
+
+### User Privileges
+
+To access the serial port on most linux platforms, you will need to be a member of the 
+`tty` and `dialout` groups.
+
+### 1. Install using pip
+
+The easiest way to install PyGPSClient is via pip:
+
+`python -m pip PyGPSClient`
+
+If the python3 site_packages are in your path, simply run `python -m pygpsclient`.
+
+If not, run `python -m \full_path_to_site_packages\pygspclient`.
+
+### 2. Manual installation
+
 First, check the [dependencies](#dependencies) listed below.
 
 To install and run, download and unzip this repository and run:
 
-`python /path_to_folder/foldername` (or `python3...`, depending on your environment)
+`python -m /path_to_folder/foldername/pygpsclient` (or `python3...`, depending on your environment)
 
-e.g. if you downloaded and unzipped to a folder named `PyGPSClient`, run: 
+e.g. if you downloaded and unzipped to a folder named `PyGPSClient-0.1.6`, run: 
 
-`python /path_to_folder/PyGPSClient`.
+`python -m /path_to_folder/PyGPSClient-0.1.6/pygpsclient`.
 
-**NB:** to access the serial port on most linux platforms, you will need to be a member of the 
-tty and dialout groups.
+### MapQuest API Key
 
-**User Preset Configuration Messages**
+To use the optional dynamic web-based mapview facility, you need to request and install a 
+[MapQuest API key](https://developer.mapquest.com/plan_purchase/steps/business_edition/business_edition_free/register).
+The free edition of this API allows for up to 15,000 transactions/month (roughly 500/day) on a non-commercial basis.
+For this reason, the map refresh rate is intentionally limited to 1/minute to avoid exceeding the free transaction
+limit under normal use. **NB:** this application is *not* intended to be used for real time navigational purposes.
+
+Once you have received the API key (a 32-character alphanumeric string), copy it to a file named `mqapikey` (lower case, 
+no extension) and place this file in the user's home directory.
+
+### User Defined Presets
 
 The UBX Configuration Dialog includes the facility to add user-defined preset UBX configuration messages. These can be set up by adding
-appropriate message descriptions and payload definitions to a file named 'userpresets' (lower case, no extension), and then placing this 
-file in the application's root directory. An illustrative user preset file is given below - the payload definition follows the format passed
+appropriate message descriptions and payload definitions to a file named `ubxpresets` (lower case, no extension), and then placing this 
+file in the user's home directory. An illustrative user preset file is given below - the payload definition follows the format passed
 to a [pyubx2 UBXMessage constructor](https://pypi.org/project/pyubx2/) i.e. `msgClass, msgID, payload`:
 
 ```
@@ -79,33 +116,6 @@ to a [pyubx2 UBXMessage constructor](https://pypi.org/project/pyubx2/) i.e. `msg
 USER CFG-MSG Add RMC to messages: 'CFG', 'CFG-MSG', b'\xf0\x04\x01\x01\x01\x00\x01\x00', SET
 USER CFG-MSG Add VTG to messages: 'CFG', 'CFG-MSG', b'\xf0\x05\x01\x01\x01\x00\x01\x00', SET
 ```
-
-## <a name="dependencies">Dependencies</a>
-
-**MapQuest API Key**
-
-To use the optional dynamic web-based mapview facility, you need to request and install a 
-[MapQuest API key](https://developer.mapquest.com/plan_purchase/steps/business_edition/business_edition_free/register).
-The free edition of this API allows for up to 15,000 transactions/month (roughly 500/day) on a non-commercial basis.
-For this reason, the map refresh rate is intentionally limited to 1/minute to avoid exceeding the free transaction
-limit under normal use. **NB:** this application is *not* intended to be used for real time navigational purposes.
-
-Once you have received the API key (a 32-character alphanumeric string), copy it to a file named `apikey` (lower case, 
-no extension) and place this file in the application's root directory.
-
-**Python Libraries**
-
-See [requirements.txt](requirements.txt).
-
-The application implements a **new python library [pyubx2](https://pypi.org/project/pyubx2/)** for UBX protocol handling.
-
-The following additional standard libraries are required, and can be installed using pip, e.g.:
-
-`python -m pip install pyubx2 pyserial pynmea2 Pillow requests`
-
-On Windows and MacOS, pip, tkinter and the necessary imaging libraries are generally packaged with Python.  On some Linux distributions like Ubuntu 18+ and Raspberry Pi OS, they may need to be installed separately, e.g.:
-
-`sudo apt-get install python3-pip python3-tk python3-pil python3-pil.imagetk`
 
 ## License
 
