@@ -3,12 +3,14 @@
 .project
 .pydevproject
 /.settings
+Pipfile*.*
 /build
 /dist
+/PyGPSClient_*
+/PyGPSClient-*
+/PyGPSClient.egg*
 /__pycache__
 /.dbeaver
 /pygpsclient/__pycache__
 *.pyc
-/references
-apikey
-build.xml
+mqapikey
