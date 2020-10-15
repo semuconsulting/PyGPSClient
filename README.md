@@ -53,7 +53,7 @@ Constructive feedback welcome.
 
 ## <a name="installation">Installation</a>
 
-![Python version](https://img.shields.io/pypi/pyversions/pyubx2.svg?style=flat)
+![Python version](https://img.shields.io/pypi/pyversions/PyGPSClient.svg?style=flat)
 
 In the following, `python` refers to the python 3 executable (this application will **not** run under python 2). You may need to type `python3`, depending on your particular environment.
 
@@ -72,9 +72,12 @@ The following python libraries are required (these will be installed automatical
 ### User Privileges
 
 To access the serial port on most linux platforms, you will need to be a member of the 
-`tty` and `dialout` groups.
+`tty` and `dialout` groups. Other than this, no special privileges are required.
 
 ### 1. Install using pip
+
+[![PyPI version](https://img.shields.io/pypi/v/PyGPSClient.svg?style=flat)](https://pypi.org/project/PyGPSClient/)
+![PyPI downloads](https://img.shields.io/pypi/dm/PyGPSClient.svg?style=flat)
 
 The easiest way to install PyGPSClient is via [pip](http://pypi.python.org/pypi/pip/):
 
