@@ -107,9 +107,9 @@ To install manually, download and unzip this repository and run:
 
 `python -m /path_to_folder/foldername/pygpsclient`
 
-e.g. if you downloaded and unzipped to a folder named `PyGPSClient-0.1.6`, run: 
+e.g. if you downloaded and unzipped to a folder named `PyGPSClient-0.2.0`, run: 
 
-`python -m /path_to_folder/PyGPSClient-0.1.6/pygpsclient`.
+`python -m /path_to_folder/PyGPSClient-0.2.0/pygpsclient`.
 
 ### MapQuest API Key
 
