@@ -22,7 +22,7 @@ implements a **[new pyubx2 library](https://github.com/semuconsulting/pyubx2)** 
 1. Graphview widget showing current satellite reception (signal-to-noise ratio).
 1. Mapview widget with location marker, showing either a static Mercator world map, or an optional dynamic web-based map downloaded via a MapQuest API (requires an Internet connection and free 
 [MapQuest API Key](https://developer.mapquest.com/plan_purchase/steps/business_edition/business_edition_free/register)).
-1. UBX Configuration Dialog, with the ability to send a variety of UBX configuration messages to u-blox GNSS devices. This includes the facility to add **user-defined preset configuration messages** - see instructions under [installation](#installation) below.
+1. UBX Configuration Dialog, with the ability to send and receive a variety of UBX configuration messages to u-blox GNSS devices. This includes the facility to add **user-defined preset configuration messages** - see instructions under [installation](#installation) below.
 
 ![sats & mercator widget screenshot](/images/sats_mercator_widget.png)
 
@@ -36,7 +36,7 @@ The UBX Configuration Dialog currently supports the following UBX configuration 
 1. PRESET commands support a variety of preset and user-defined commands - see [user defined presets](#userdefined)
 
 An icon to the right of each 'SEND' button indicates the latest polled state of the displayed configuration 
-(pending, confirmed or warning). **NB** this is not a 100% reliable indication as the UBX protocol does not
+(pending, confirmed or warning). A warning icon may simply indicate that this particular configuration message type is not supported by your receiver (typically accompanied by an ACK-NAK response). **NB** this is not a 100% reliable indication as the UBX protocol does not
 support explicit command handshaking, and confirmation responses can occasionally get lost or delayed in heavy
 inbound traffic. To ensure timely confirmation responses, try temporarily disabling periodic inbound traffic 
 using the preset commands provided.
