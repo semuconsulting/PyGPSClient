@@ -10,7 +10,7 @@ TITLE = "PyGPSClient"
 WIKIURL = "https://en.wikipedia.org/wiki/NMEA_0183"
 GITHUBURL = "https://github.com/semuconsulting/PyGPSClient"
 
-COPYRIGHTTXT = "\u00A9 SEMU Consulting 2020\nBSD 2 Clause License. All Rights Reserved"
+COPYRIGHTTXT = "\u00A9 SEMU Consulting 2020\nBSD 3 License. All Rights Reserved"
 
 INTROTXT = "Welcome to PyGPSClient!"
 INTROTXTNOPORTS = "Welcome to PyGPSClient! Please connect a serial GPS device and restart."
@@ -77,6 +77,8 @@ BTNCAN = "Cancel"
 BTNRST = "Reset"
 
 # Label text
+LBLPROTDISP = "Protocols Displayed"
+LBLDATADISP = "Console Display"
 LBLUBXCONFIG = "UBX Configuration"
 LBLCTL = "Controls"
 LBLSET = "Settings"
