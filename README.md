@@ -93,9 +93,9 @@ To access the serial port on most linux platforms, you will need to be a member 
 [![PyPI version](https://img.shields.io/pypi/v/PyGPSClient.svg?style=flat)](https://pypi.org/project/PyGPSClient/)
 ![PyPI downloads](https://img.shields.io/pypi/dm/PyGPSClient.svg?style=flat)
 
-The easiest way to install PyGPSClient is via [pip](http://pypi.python.org/pypi/pip/):
+The easiest way to install the latest version of PyGPSClient is via [pip](http://pypi.python.org/pypi/pip/):
 
-`python -m pip install PyGPSClient`
+`python -m pip install --upgrade PyGPSClient`
 
 To run the appliation, if the python3 site_packages are in your PATH, simply type `python -m pygpsclient`.
 
