@@ -1,7 +1,8 @@
 '''
 UBX Configuration frame class for PyGPSClient application.
 
-This handles the configuration of a U-BLox GPS device via the UBX protocol.
+This handles the UBX Configuration Dialog panel and receives polled
+responses from the ubx_handler module.
 
 Created on 22 Sep 2020
 
@@ -46,7 +47,7 @@ MSG_PRESETS = {
 
 class UBXConfigDialog():
     ''',
-    Frame inheritance class for application settings and controls.
+    UBXConfigDialog class.
     '''
 
     def __init__(self, app, *args, **kwargs):
@@ -477,7 +478,7 @@ class UBXConfigDialog():
         '''
 
         if onoff:
-            mask = b'\x31'  # all INF msgs
+            mask = b'\x1f'  # all INF msgs
         else:
             mask = b'\x01'  # errors only
         for protocolID in (b'\x00', b'\x01'):  # UBX and NMEA
