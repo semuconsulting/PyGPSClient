@@ -9,7 +9,7 @@ Created on 30 Sep 2020
 '''
 # pylint: disable=invalid-name
 
-from pyubx2 import UBXMessage, POLL, UBX_MSGIDS
+from pyubx2 import UBXMessage, POLL, UBX_MSGIDS, UBX_CONFIG_MESSAGES
 
 CFG_MSG_OFF = b'\x00\x00\x00\x00\x00\x01'
 CFG_MSG_ON = b'\x01\x01\x01\x01\x01\x01'
@@ -145,11 +145,17 @@ class UBXHandler():
         Process CFG-MSG sentence - UBX message configuration.
         '''
 
-        msgtype = UBX_MSGIDS[data.msgClass + data.msgID]
+        msgtype = UBX_CONFIG_MESSAGES[data.msgClass + data.msgID]
+        ddcrate = data.rateDDC
+        uart1rate = data.rateUART1
+        uart2rate = data.rateUART2,
+        usbrate = data.rateUSB
+        spirate = data.rateSPI
 
         # update the UBX config panel
         if self.__app.dlg_ubxconfig is not None:
-            self.__app.dlg_ubxconfig.update('CFG-MSG', msgtype=msgtype)
+            self.__app.dlg_ubxconfig.update('CFG-MSG', msgtype=msgtype, ddcrate=ddcrate, uart1rate=uart1rate,
+                                            uart2rate=uart2rate, usbrate=usbrate, spirate=spirate)
 
     def _process_CFG_INF(self, data: UBXMessage):
         '''

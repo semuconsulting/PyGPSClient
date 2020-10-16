@@ -92,7 +92,7 @@ class BannerFrame(Frame):
         self._lbl_lacc = Label(self._frm_advanced, text="acc:", bg=self._bgcol, fg=self._fgcol, anchor=N)
 
         self.option_add("*Font", self.__app.font_lg)
-        self._lbl_status = Label(self._frm_connect, bg=self._bgcol, image=self._img_conn, fg="blue")
+        self._lbl_status_preset = Label(self._frm_connect, bg=self._bgcol, image=self._img_conn, fg="blue")
         self._lbl_time = Label(self._frm_basic, textvariable=self._time, bg=self._bgcol, fg="cyan")
         self._lbl_lat = Label(self._frm_basic, textvariable=self._lat, bg=self._bgcol, fg="orange")
         self._lbl_lon = Label(self._frm_basic, textvariable=self._lon, bg=self._bgcol, fg="orange")
@@ -118,7 +118,7 @@ class BannerFrame(Frame):
         Position widgets in frame.
         '''
 
-        self._lbl_status.grid(column=0, row=0, padx=8, pady=3, sticky=W)
+        self._lbl_status_preset.grid(column=0, row=0, padx=8, pady=3, sticky=W)
         self._lbl_ltime.grid(column=1, row=0, pady=3, sticky=W)
         self._lbl_time.grid(column=2, row=0, pady=3, sticky=W)
         self._lbl_llat.grid(column=3, row=0, pady=3, sticky=W)
@@ -268,9 +268,9 @@ class BannerFrame(Frame):
         if 'status' in kwargs:
             self._status = kwargs['status']
             if self._status == CONNECTED:
-                self._lbl_status.configure(image=self._img_conn)
+                self._lbl_status_preset.configure(image=self._img_conn)
             else:
-                self._lbl_status.configure(image=self._img_disconn)
+                self._lbl_status_preset.configure(image=self._img_disconn)
 
     def _set_fontsize(self):
         '''
@@ -289,7 +289,7 @@ class BannerFrame(Frame):
             sup = 95
 
         sz = min(int(w / val), 18)
-        self._lbl_status.config(font=font.Font(size=sz))
+        self._lbl_status_preset.config(font=font.Font(size=sz))
         self._lbl_time.config(font=font.Font(size=sz))
         self._lbl_lat.config(font=font.Font(size=sz))
         self._lbl_lon.config(font=font.Font(size=sz))

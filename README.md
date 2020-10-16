@@ -1,16 +1,15 @@
 # PyGPSClient
 
-PyGPSClient is a free, open source graphical GPS testing and diagnostic client application written entirely in Python and tkinter.
+PyGPSClient is a graphical GNSS/GPS testing and diagnostic client application written entirely in Python and tkinter.
 
-![full app screenshot](/images/all_widgets.png)
+![full app screenshot](/images/all_widgets2.png)
 
 The application runs on any platform which supports a Python3 interpreter (>=3.6) and tkinter (>=8.6) GUI framework, 
 including Windows, MacOS, Linux and Raspberry Pi OS. It displays location and diagnostic data from any NMEA or UBX (u-blox &copy;) 
-compatible GPS device over a standard serial (UART) or USB port, *in addition to* providing a small but useful subset of the 
+compatible GNSS/GPS device over a standard serial (UART) or USB port, *in addition to* providing a small but useful subset of the 
 configuration functionality in u-blox's Windows-only [u-center](https://www.u-blox.com/en/product/u-center) tool.
 
-Originally designed as a platform-agnostic evaluation, development and educational tool for the [u-blox NEO-6M series](https://www.u-blox.com/en/product/neo-6-series) GPS modules, and in particular the [Makerhawk Hobbyist GPS Board](https://www.amazon.co.uk/MakerHawk-Microcontroller-Compatible-Navigation-Positioning/dp/B0783H7BLW), it has evolved
-into a more general purpose multi-platform NMEA / UBX GPS client.
+This is a personal project and I have no affiliation whatsoever with u-blox &copy;.
 
 ## Features:
 
@@ -23,13 +22,24 @@ implements a **[new pyubx2 library](https://github.com/semuconsulting/pyubx2)** 
 1. Graphview widget showing current satellite reception (signal-to-noise ratio).
 1. Mapview widget with location marker, showing either a static Mercator world map, or an optional dynamic web-based map downloaded via a MapQuest API (requires an Internet connection and free 
 [MapQuest API Key](https://developer.mapquest.com/plan_purchase/steps/business_edition/business_edition_free/register)).
-1. **WORK IN PROGRESS** UBX Configuration Dialog (under Menu...Options), with the ability to send UBX configuration messages to u-blox GPS devices e.g. NMEA and UBX message filters. This includes the facility to add **user-defined preset configuration messages** - see instructions under [installation](#installation) below.
+1. UBX Configuration Dialog, with the ability to send a variety of UBX configuration messages to u-blox GNSS devices. This includes the facility to add **user-defined preset configuration messages** - see instructions under [installation](#installation) below.
 
-![banner widget screenshot](/images/banner_widget.png)
 ![sats & mercator widget screenshot](/images/sats_mercator_widget.png)
+
+### UBX Configuration Facilities
 ![ubxconfig widget screenshot](/images/ubxconfig_widget.png)
 
-This is a personal project and I have no affiliation whatsoever with u-blox &copy;, Makerhawk &copy; or MapQuest &copy;.
+The UBX Configuration Dialog currently supports the following UBX configuration commands:
+1. CFG-PRT sets baudrate and inbound/outbound protocols across all available ports 
+(*note that* an active USB port will always report a baudrate of 0).
+1. CFG-MSG sets message rates per port for NMEA protocol messages (standard & proprietary) and UBX protocol messages.
+1. PRESET commands support a variety of preset and user-defined commands - see [user defined presets](#userdefined)
+
+An icon to the right of each 'SEND' button indicates the latest polled state of the displayed configuration 
+(pending, confirmed or warning). **NB** this is not a 100% reliable indication as the UBX protocol does not
+support explicit command handshaking, and confirmation responses can occasionally get lost or delayed in heavy
+inbound traffic. To ensure timely confirmation responses, try temporarily disabling periodic inbound traffic 
+using the preset commands provided.
 
 #### Glossary of Terms
 
@@ -47,7 +57,11 @@ This is a personal project and I have no affiliation whatsoever with u-blox &cop
 ![Contributors](https://img.shields.io/github/contributors/semuconsulting/PyGPSClient.svg)
 ![Open Issues](https://img.shields.io/github/issues-raw/semuconsulting/PyGPSClient)
 
-Alpha. Main application and widgets are fully functional for both NMEA and UBX protocols. The UBX configuration dialog is a work in progress and additional configuration functionality will be added in due course. Needs slightly more robust exception handling in a few areas.
+Alpha. Main application and widgets are fully functional for both NMEA and UBX protocols.
+
+Known Issues:
+1. Application menu options can occasionally become momentarily unresponsive in heavy inbound traffic 
+due to serial read blocking. This is in hand.
 
 Constructive feedback welcome.
 
@@ -55,7 +69,7 @@ Constructive feedback welcome.
 
 ![Python version](https://img.shields.io/pypi/pyversions/PyGPSClient.svg?style=flat)
 
-In the following, `python` refers to the python 3 executable (this application will **not** run under python 2). You may need to type `python3`, depending on your particular environment.
+In the following, `python` refers to the python3 executable. You may need to type `python3`, depending on your particular environment.
 
 ### Dependencies
 
@@ -65,7 +79,7 @@ On Windows and MacOS, pip, tkinter and the necessary imaging libraries are gener
 
 `sudo apt-get install python3-pip python3-tk python3-pil python3-pil.imagetk`
 
-The following python libraries are required (these will be installed automatically if using pip):
+The following python libraries are required (these will be installed automatically if using pip to install PyGPSClient):
 
 `python -m pip install pyubx2 pyserial pynmea2 Pillow requests`
 
@@ -83,13 +97,13 @@ The easiest way to install PyGPSClient is via [pip](http://pypi.python.org/pypi/
 
 `python -m pip install PyGPSClient`
 
-To run the appliation, if the python3 site_packages are in your path, simply type `python -m pygpsclient`.
+To run the appliation, if the python3 site_packages are in your PATH, simply type `python -m pygpsclient`.
 
 If not, type `python -m \full_path_to_site_packages\pygpsclient`.
 
 ### 2. Manual installation
 
-To install and run, download and unzip this repository and run:
+To install manually, download and unzip this repository and run:
 
 `python -m /path_to_folder/foldername/pygpsclient`
 
@@ -103,20 +117,20 @@ To use the optional dynamic web-based mapview facility, you need to request and 
 [MapQuest API key](https://developer.mapquest.com/plan_purchase/steps/business_edition/business_edition_free/register).
 The free edition of this API allows for up to 15,000 transactions/month (roughly 500/day) on a non-commercial basis.
 For this reason, the map refresh rate is intentionally limited to 1/minute to avoid exceeding the free transaction
-limit under normal use. **NB:** this application is *not* intended to be used for real time navigational purposes.
+limit under normal use. **NB:** this facility is *not* intended to be used for real time navigational purposes.
 
 Once you have received the API key (a 32-character alphanumeric string), copy it to a file named `mqapikey` (lower case, 
 no extension) and place this file in the user's home directory.
 
-### User Defined Presets
+### <a name="userdefined">User Defined Presets</a>
 
 The UBX Configuration Dialog includes the facility to add user-defined preset UBX configuration messages. These can be set up by adding
 appropriate comma-delimited message descriptions and payload definitions to a file named `ubxpresets` (lower case, no extension), and then placing this file in the user's home directory. The message definition comprises a free-format text description (*avoid embedded commas*) 
 followed by one or more [pyubx2 UBXMessage constructors](https://pypi.org/project/pyubx2/), i.e. 
-* ubx_class as a string e.g. `CFG` (must be a valid class from pyubx2.UBX_CONFIG_CATEGORIES)
-* ubx_id as a string e.g. `CFG-MSG` (must be a valid id from pyubx2.UBX_CONFIG_MESSAGES)
-* payload as a hexadecimal string e.g. `f004010100010100`
-* mode as an integer (`1` = SET, `2` = POLL)
+1. ubx_class as a string e.g. `CFG` (must be a valid class from pyubx2.UBX_CONFIG_CATEGORIES)
+2. ubx_id as a string e.g. `CFG-MSG` (must be a valid id from pyubx2.UBX_CONFIG_MESSAGES)
+3. payload as a hexadecimal string e.g. `f004010100010100`
+4. mode as an integer (`1` = SET, `2` = POLL)
 
 Multiple commands can be concatenated on a single line. An illustrative example is given below:
 
@@ -130,7 +144,7 @@ CFG-MSG Enable UBX00 & UBX03 messages, CFG, CFG-MSG, f100010100010100, 1, CFG, C
 
 ![License](https://img.shields.io/github/license/semuconsulting/PyGPSClient.svg)
 
-BSD 3-Clause License ("BSD License 2.0", "Revised BSD License", "New BSD License", or "Modified BSD License")
+BSD 3-Clause License
 
 Copyright (c) 2020, SEMU Consulting
 All rights reserved.

@@ -42,10 +42,10 @@ class StatusFrame(Frame):
         self.option_add("*Font", self.__app.font_md)
 
         self._lbl_connection = Label(self, textvariable=self._connection, anchor=W)
-        self._lbl_status = Label(self, textvariable=self._status, anchor=W)
+        self._lbl_status_preset = Label(self, textvariable=self._status, anchor=W)
         self._lbl_connection.grid(column=0, row=0, sticky=(W, E))
         ttk.Separator(self, orient=VERTICAL).grid(column=1, row=0, sticky=(N, S))
-        self._lbl_status.grid(column=2, row=0, sticky=(W, E))
+        self._lbl_status_preset.grid(column=2, row=0, sticky=(W, E))
 
     def set_connection(self, connection, color="blue"):
         '''
@@ -61,7 +61,7 @@ class StatusFrame(Frame):
         '''
 
         message = (message[:75] + '..') if len(message) > 75 else message
-        self._lbl_status.config(fg=color)
+        self._lbl_status_preset.config(fg=color)
         self._status.set("  " + message)
 
     def clear_status(self):

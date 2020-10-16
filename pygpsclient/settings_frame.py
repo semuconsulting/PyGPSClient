@@ -17,8 +17,9 @@ from serial.tools.list_ports import comports
 
 from .globals import ENTCOL, DDD, DMM, DMS, UMM, UMK, UI, UIK, ADVON, \
                                 ADVOFF, READONLY, CONNECTED, DISCONNECTED, NOPORTS, \
-                                KNOWNGPS, ICON_CONN, ICON_DISCONN, BAUDRATES, \
+                                KNOWNGPS, ICON_CONN, ICON_DISCONN, ICON_UBXCONFIG, BAUDRATES, \
                                 NMEA_PROTOCOL, UBX_PROTOCOL, MIXED_PROTOCOL
+from .strings import LBLUBXCONFIG
 
 
 class SettingsFrame(Frame):
@@ -58,6 +59,7 @@ class SettingsFrame(Frame):
         self._validsettings = True
         self._img_conn = ImageTk.PhotoImage(Image.open(ICON_CONN))
         self._img_disconn = ImageTk.PhotoImage(Image.open(ICON_DISCONN))
+        self._img_ubxconfig = ImageTk.PhotoImage(Image.open(ICON_UBXCONFIG))
 
         self._body()
         self._do_layout()
@@ -123,7 +125,7 @@ class SettingsFrame(Frame):
                                      image=self._img_disconn,
                                      command=lambda: self.__app.serial_handler.disconnect(),
                                      state=DISABLED)
-        self._lbl_status = Label(self._frm_buttons, font=self.__app.font_md2, text='')
+        self._lbl_status_preset = Label(self._frm_buttons, font=self.__app.font_md2, text='')
 
         # Other configuration options
         self._frm_options = Frame(self)
@@ -157,7 +159,12 @@ class SettingsFrame(Frame):
         self._chk_webmap = Checkbutton(self._frm_options, text="Web Map  Zoom",
                                       variable=self._webmap)
         self._scl_mapzoom = Scale(self._frm_options, from_=1, to=20, orient=HORIZONTAL,
-                                 relief="sunken", bg=ENTCOL, variable=self._mapzoom)
+                                  relief="sunken", bg=ENTCOL, variable=self._mapzoom)
+
+        self._lbl_ubxconfig = Label(self._frm_options, text=LBLUBXCONFIG)
+        self._btn_ubxconfig = Button(self._frm_options, width=45, height=35,
+                                     text='UBX', image=self._img_ubxconfig,
+                                     command=lambda: self._on_ubx_config())
 
     def _do_layout(self):
         '''
@@ -189,7 +196,7 @@ class SettingsFrame(Frame):
         self._frm_buttons.grid(column=0, row=3, columnspan=4, sticky=(W, E))
         self._btn_connect.grid(column=0, row=0, padx=3, pady=3)
         self._btn_disconnect.grid(column=1, row=0, padx=3, pady=3)
-        self._lbl_status.grid(column=2, row=0, padx=3, pady=3, sticky=(E))
+        self._lbl_status_preset.grid(column=2, row=0, padx=3, pady=3, sticky=(E))
 
         ttk.Separator(self).grid(column=0, row=4, columnspan=4,
                                             padx=3, pady=3, sticky=(W, E))
@@ -211,6 +218,11 @@ class SettingsFrame(Frame):
         self._chk_webmap.grid(column=0, row=5, sticky=(W))
         self._scl_mapzoom.grid(column=1, row=5, columnspan=3, sticky=(W))
 
+        ttk.Separator(self._frm_options).grid(column=0, row=6, columnspan=4,
+                                 padx=3, pady=3, sticky=(W, E))
+        self._lbl_ubxconfig.grid(column=0, row=7, padx=3, pady=3, sticky=(W))
+        self._btn_ubxconfig.grid(column=1, row=7, padx=3, pady=3, sticky=(W))
+
     def _on_select_port(self, *args, **kwargs):
         '''
         Get selected port from listbox and set global variable.
@@ -226,6 +238,13 @@ class SettingsFrame(Frame):
             desc = "device"
         self._port.set(port)
         self._port_desc.set(desc)
+
+    def _on_ubx_config(self, *args, **kwargs):
+        '''
+        Open UBX configuration dialog panel.
+        '''
+
+        self.__app.ubxconfig()
 
     def _toggle_advanced(self):
         '''

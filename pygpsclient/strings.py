@@ -77,10 +77,18 @@ BTNCAN = "Cancel"
 BTNRST = "Reset"
 
 # Label text
+LBLUBXCONFIG = "UBX Configuration"
 LBLCTL = "Controls"
 LBLSET = "Settings"
+LBLCFGPRT = "CFG-PRT Port and Protocol Configuration"
+LBLCFGMSG = "CFG-MSG - UBX & NMEA Message Rate / Port Selection"
+LBLPRESET = "Preset UBX Configuration Commands"
 
 # Dialog text
 DLGUBXCONFIG = "UBX Configuration"
 DLGABOUT = "PyGPSClient"
 DLGHOWTO = "How To Use PyGPSCLient"
+DLGRESET = "Confirm Reset"
+DLGSAVE = "Confirm Save"
+DLGRESETCONFIRM = "Are you sure you want to reset the\ncurrent configuration to the\nfactory default in battery-backed RAM?"
+DLGSAVECONFIRM = "Are you sure you want to save\nthe current configuration to\nbattery-backed RAM?"
