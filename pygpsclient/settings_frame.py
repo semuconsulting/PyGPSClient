@@ -179,7 +179,8 @@ class SettingsFrame(Frame):
         self._lbl_ubxconfig = Label(self._frm_options, text=LBLUBXCONFIG)
         self._btn_ubxconfig = Button(self._frm_options, width=45, height=35,
                                      text='UBX', image=self._img_ubxconfig,
-                                     command=lambda: self._on_ubx_config())
+                                     command=lambda: self._on_ubx_config(),
+                                     state=DISABLED)
 
     def _do_layout(self):
         '''
@@ -381,6 +382,9 @@ class SettingsFrame(Frame):
         self._btn_connect_file.config(state=(DISABLED if status in \
                                              (CONNECTED, CONNECTED_FILE, NOPORTS) \
                                              else NORMAL))
+        self._btn_ubxconfig.config(state=(DISABLED if status in \
+                                          (CONNECTED_FILE, DISCONNECTED, NOPORTS) \
+                                          else NORMAL))
 
 #         self._rad_nmea.config(state=(DISABLED if status in (CONNECTED, NOPORTS) else NORMAL))
 #         self._rad_ubx.config(state=(DISABLED if status in (CONNECTED, NOPORTS) else NORMAL))
