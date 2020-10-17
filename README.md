@@ -69,7 +69,8 @@ Constructive feedback welcome.
 
 ![Python version](https://img.shields.io/pypi/pyversions/PyGPSClient.svg?style=flat)
 
-In the following, `python` refers to the python3 executable. You may need to type `python3`, depending on your particular environment.
+In the following, `python` & `pip` refer to the python3 executables. You may need to type 
+`python3` or `pip3`, depending on your particular environment.
 
 ### Dependencies
 
@@ -105,6 +106,10 @@ The easiest way to install the latest version of PyGPSClient is via [pip](http:/
 To run the appliation, if the python3 site_packages are in your PATH, simply type `python -m pygpsclient`.
 
 If not, type `python -m \full_path_to_site_packages\pygpsclient`.
+
+**Tip**: to find the site_packages location, type `pip show PyGPSClient` and look for the `Location:` entry in the response, e.g.
+
+`Location: /Library/Frameworks/Python.framework/Versions/3.8/lib/python3.8/site-packages`
 
 ### 2. Manual installation
 
