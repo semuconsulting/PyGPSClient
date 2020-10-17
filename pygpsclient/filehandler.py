@@ -10,6 +10,11 @@ Created on 16 Sep 2020
 
 import os
 from pathlib import Path
+from time import strftime
+from tkinter import filedialog
+
+from .strings import SAVETITLE, READTITLE
+from .globals import MQAPIKEY, UBXPRESETS, MAXLOGLINES
 
 HOME = str(Path.home())
 
@@ -26,13 +31,17 @@ class FileHandler():
 
         self.__app = app  # Reference to main application class
         self.__master = self.__app.get_master()  # Reference to root class (Tk)
+        self._filepath = None
+        self._filename = None
+        self._logfile = None
+        self._lines = 0
 
     def load_apikey(self) -> str:
         '''
         Load MapQuest web map api key from user's home directory.
         '''
 
-        filepath = os.path.join(HOME, 'mqapikey')
+        filepath = os.path.join(HOME, MQAPIKEY)
         try:
             with open(filepath, 'r') as file:
                 apikey = file.read()
@@ -48,7 +57,7 @@ class FileHandler():
         '''
 
         presets = []
-        filepath = os.path.join(HOME, 'ubxpresets')
+        filepath = os.path.join(HOME, UBXPRESETS)
         try:
             with open(filepath, 'r') as file:
                 for line in file:
@@ -57,3 +66,60 @@ class FileHandler():
             presets = ''
 
         return presets
+
+    def open_logfile_output(self) -> str:
+        '''
+        Set logfile directory and open logfile for output
+        '''
+
+        self._filepath = filedialog.askdirectory(title=SAVETITLE, initialdir=HOME,
+                                       mustexist=True)
+        if self._filepath == "":
+            return None  # User cancelled
+        self._filename = self._set_filename()
+        self._logfile = open(self._filename, 'a+b')
+        return self._filename
+
+    def open_logfile_input(self) -> str:
+        '''
+        Set logfile name and open logfile for input
+        '''
+
+        self._filepath = filedialog.askopenfilename(title=READTITLE, initialdir=HOME,
+                                          filetypes=(("log files", "*.log"),
+                                                    ("all files", "*.*")))
+        if self._filepath == "":
+            return None  # User cancelled
+#         self._logfile = open(self._filename, 'a+b')
+        return self._filepath
+
+    def write_logfile(self, data: bytes):
+        '''
+        Append binary data to log file
+        '''
+
+        self._logfile.write(data)
+        self._lines += 1
+
+        if self._lines > MAXLOGLINES:
+            self.close_logfile()
+            self._filename = self._set_filename()
+            self._logfile = open(self._filename, 'a+b')
+
+    def close_logfile(self):
+        '''
+        Close the logfile
+        '''
+
+        if self._logfile is not None:
+            self._logfile.close()
+
+    def _set_filename(self) -> str:
+        '''
+        Set log file name with timestamp
+        '''
+
+        self._lines = 0
+        timestr = strftime("%Y%m%d%H%M%S")
+        filename = os.path.join(self._filepath, 'pygpsdata-' + timestr + '.log')
+        return filename

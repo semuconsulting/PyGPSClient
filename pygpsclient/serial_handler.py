@@ -9,13 +9,13 @@ Created on 16 Sep 2020
 @author: semuadmin
 '''
 
-from io import BufferedRWPair
+from io import BufferedReader
 from threading import Thread
 
 from serial import Serial, SerialException, SerialTimeoutException
 import pyubx2.ubxtypes_core as ubt
 
-from .globals import CONNECTED, DISCONNECTED, SERIAL_TIMEOUT, \
+from .globals import CONNECTED, CONNECTED_FILE, DISCONNECTED, SERIAL_TIMEOUT, \
                                 NMEA_PROTOCOL, MIXED_PROTOCOL, UBX_PROTOCOL, PARITIES
 from .strings import WAITUBXDATA, STOPDATA, NOTCONN, SEROPENERROR
 
@@ -37,6 +37,8 @@ class SerialHandler():
         self._serial_buffer = None
         self._serial_thread = None
         self._connected = False
+        self._logpath = None
+        self._datalogging = False
         self._port = None
         self._reading = False
 
@@ -64,6 +66,7 @@ class SerialHandler():
         parity = PARITIES[settings['parity']]
         xonxoff = settings['xonxoff']
         rtscts = settings['rtscts']
+        self._datalogging = settings['datalogging']
 
         try:
             self._serial_object = Serial(self._port,
@@ -74,17 +77,41 @@ class SerialHandler():
                                          xonxoff=xonxoff,
                                          rtscts=rtscts,
                                          timeout=SERIAL_TIMEOUT)
-            self._serial_buffer = BufferedRWPair(self._serial_object, self._serial_object)
-            self.__app.frm_banner.update_banner(status=True)
+            self._serial_buffer = BufferedReader(self._serial_object)
+            self.__app.frm_banner.update_banner(status=CONNECTED)
             self.__app.set_connection(f"{self._port}:{port_desc} @ {str(baudrate)}", "green")
             self.__app.frm_settings.set_controls(CONNECTED)
             self._connected = True
             self.start_read_thread()
-        except (SerialException, SerialTimeoutException) as err:
+        except (IOError, SerialException, SerialTimeoutException) as err:
             self._connected = False
             self.__app.set_connection(f"{self._port}:{port_desc} @ {str(baudrate)}", "red")
             self.__app.set_status(SEROPENERROR.format(err), "red")
-            self.__app.frm_banner.update_banner(status=False)
+            self.__app.frm_banner.update_banner(status=DISCONNECTED)
+            self.__app.frm_settings.set_controls(DISCONNECTED)
+
+    def connect_file(self):
+        '''
+        Open binary data file connection.
+        '''
+
+        settings = self.__app.frm_settings.get_settings()
+        self._datalogging = False
+        self._logpath = settings['logpath']
+
+        try:
+            self._serial_object = open(self._logpath, 'rb')
+            self._serial_buffer = BufferedReader(self._serial_object)
+            self.__app.frm_banner.update_banner(status=CONNECTED_FILE)
+            self.__app.set_connection(f"{self._logpath}", "green")
+            self.__app.frm_settings.set_controls(CONNECTED_FILE)
+            self._connected = True
+            self.start_read_thread()
+        except (IOError, SerialException, SerialTimeoutException) as err:
+            self._connected = False
+            self.__app.set_connection(f"{self._logpath}", "red")
+            self.__app.set_status(SEROPENERROR.format(err), "red")
+            self.__app.frm_banner.update_banner(status=DISCONNECTED)
             self.__app.frm_settings.set_controls(DISCONNECTED)
 
     def disconnect(self):
@@ -165,7 +192,8 @@ class SerialHandler():
             self._reading = True
             self.__app.set_status(WAITUBXDATA, "blue")
             self.__app.frm_mapview.reset_map_refresh()
-            self._serial_object.reset_input_buffer()
+            if self._serial_object.isatty():
+                self._serial_object.reset_input_buffer()
             self._serial_thread = Thread(target=self._read_thread, daemon=True)
             self._serial_thread.start()
 
@@ -188,7 +216,10 @@ class SerialHandler():
 
         while self._reading and self._serial_object:
             # print(f"Bytes in buffer: {self._serial_object.in_waiting}")
-            if self._serial_object.in_waiting:
+            if self._serial_object.isatty():
+                if self._serial_object.in_waiting:
+                    self.__master.event_generate('<<ubx_read>>')
+            else:
                 self.__master.event_generate('<<ubx_read>>')
 
     def on_read(self, event):  # pylint: disable=unused-argument
@@ -241,6 +272,10 @@ class SerialHandler():
             else:
 #                 print(f"dropping {ser.peek()}")
                 parsing = False
+
+        # if datalogging, write to log file
+        if self._datalogging and raw_data is not None:
+            self.__app.file_handler.write_logfile(raw_data)
 
     def flush(self):
         '''

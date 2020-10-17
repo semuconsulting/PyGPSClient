@@ -21,7 +21,8 @@ ICON_EXIT = os.path.join(DIRNAME, 'resources/iconmonstr-door-6-24.png')
 ICON_PENDING = os.path.join(DIRNAME, 'resources/iconmonstr-time-6-24.png')
 ICON_CONFIRMED = os.path.join(DIRNAME, 'resources/iconmonstr-check-mark-8-24.png')
 ICON_WARNING = os.path.join(DIRNAME, 'resources/iconmonstr-warning-1-24.png')
-ICON_UBXCONFIG = os.path.join(DIRNAME, 'resources/iconmonstr-gear-2-32.png')
+ICON_UBXCONFIG = os.path.join(DIRNAME, 'resources/iconmonstr-gear-2-24.png')
+ICON_LOGREAD = os.path.join(DIRNAME, 'resources/iconmonstr-note-37-24.png')
 IMG_WORLD = os.path.join(DIRNAME, 'resources/world.png')
 BTN_CONNECT = "\u25b6"  # text on "Connected" button
 BTN_DISCONNECT = "\u2587"  # text on "Disconnected" button
@@ -38,6 +39,9 @@ PARITIES = {"Even":PARITY_EVEN, "Odd": PARITY_ODD, "Mark": PARITY_MARK, "Space":
 # serial port timeout; lower is better for app response
 # but you may lose packets on high latency connections
 SERIAL_TIMEOUT = .2
+MQAPIKEY = 'mqapikey'
+UBXPRESETS = 'ubxpresets'
+MAXLOGLINES = 5000 # maximum number of lines per log file
 
 NMEA_PROTOCOL = 0
 UBX_PROTOCOL = 1
@@ -45,7 +49,8 @@ MIXED_PROTOCOL = 2
 
 DISCONNECTED = 0
 CONNECTED = 1
-NOPORTS = 2
+CONNECTED_FILE = 2
+NOPORTS = 3
 WIDGETU1 = (250, 250)
 WIDGETU2 = (350, 250)
 WIDGETU3 = (950, 350)
@@ -72,9 +77,9 @@ TAGS = [("DTM", "deepskyblue"), ("GBS", "pink"), \
         ("altitude", "lightblue1"), ("pdop", "lightblue1"), ("UBX", "lightblue1"), \
         ("UBX00", "aquamarine2"), ("UBX03", "yellow"), ("UBX04", "cyan"), ("UBX05", "orange"), \
         ("UBX06", "orange"), ("ZDA", "cyan"), ("GNS", "orange"), ("VLW", "deepskyblue"),
-        ("GST", "mediumpurple2"), ("INF-ERROR", "red3"), ("INF-WARNING", "orange"), ("INF-NOTICE", "blue"), \
-        ("vdop", "lightblue1"), ("hdop", "lightblue1"), ("h_acc", "lightblue1"), \
-        ("v_acc", "lightblue1"), ("spd_over_grnd_kmph", "lightblue1"), \
+        ("GST", "mediumpurple2"), ("INF-ERROR", "red2"), ("INF-WARNING", "orange"), \
+        ("INF-NOTICE", "deepskyblue"), ("vdop", "lightblue1"), ("hdop", "lightblue1"), \
+        ("h_acc", "lightblue1"), ("v_acc", "lightblue1"), ("spd_over_grnd_kmph", "lightblue1"), \
         ("true_track", "lightblue1"), ("mode_fix_type", "lightblue1"), \
         ("datum", "lightblue1"), ("ACK-ACK", "green2"), ("ACK-NAK", "orange red"), \
         ("CFG-MSG", "cyan"), ("xb5b", "lightblue1"), ("NAV-SOL", "green2"), ("NAV-POSLLH", "orange"), \

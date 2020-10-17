@@ -30,13 +30,13 @@ setup(
     include_package_data=True,
     author="semuadmin",
     author_email="semuadmin@semuconsulting.com",
-    description="PyGPSClient GPS Client",
+    description="PyGPSClient GNSS/GPS Graphical Client",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/semuconsulting/PyGPSClient",
-    keywords="PyGPSClient GPS NMEA UBX",
-    platforms="Windows, MacOS, Linux",
     license="BSD 3-Clause 'Modified' License",
+    keywords="PyGPSClient GNSS GPS NMEA UBX GIS",
+    platforms="Windows, MacOS, Linux",
     project_urls={
         "Bug Tracker": "https://github.com/semuconsulting/PyGPSClient",
         "Documentation": "https://github.com/semuconsulting/PyGPSClient",
@@ -48,14 +48,16 @@ setup(
         'Environment :: MacOS X',
         'Environment :: X11 Applications',
         'Environment :: Win32 (MS Windows)',
-        'Environment :: Console',
         'Intended Audience :: End Users/Desktop',
+        'Intended Audience :: Science/Research',
         'Operating System :: MacOS :: MacOS X',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX',
         'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.8',
         'Topic :: Desktop Environment',
         'Topic :: Terminals :: Serial',
+        'Topic :: Scientific/Engineering :: GIS'
     ]
 
 )

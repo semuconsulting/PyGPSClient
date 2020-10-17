@@ -18,9 +18,9 @@ INTROTXTNOPORTS = "Benvenuto in PyGPSClient! Connetti un dispositivo GPS seriale
 
 HELPTXT = "Aiuto..Informazioni - visualizza la finestra di dialogo Informazioni."
 
-ABOUTTXT = "PyGPSClient è un'applicazione client NMEA e UBX GPS gratuita e open source scritta" \
+ABOUTTXT = "PyGPSClient è un'applicazione client NMEA e UBX GNSS/GPS gratuita e open source scritta" \
     + "interamente in Python e tkinter.\n\n" \
-    + "Le istruzioni e il codice sorgente sono disponibili su Github al link sottostante."
+    + "Le istruzioni e il codice sorgente sono disponibili su GitHub al link sottostante."
 
 # Messaggio di testo
 SETINITTXT = "Impostazioni inizializzate"
@@ -38,7 +38,7 @@ NOWEBMAPERROR5 = "Nessun fix satellitare."
 WEBMAPHTTPERROR = "Errore HTTP durante il download della mappa web. Sei connesso a Internet?"
 WEBMAPERROR = 'Errore durante il download della mappa web'
 SAVETITLE = "Seleziona Salva directory"
-SELTITLE = "Seleziona file per importazione"
+READTITLE = "Seleziona file per importazione"
 WAITNMEADATA = "In attesa di dati NMEA ..."
 WAITUBXDATA = "In attesa di dati UBX ..."
 STOPDATA = "Processo del lettore seriale interrotto"
@@ -86,6 +86,8 @@ LBLSET = "Impostazioni"
 LBLCFGPRT = "Configurazione porta e protocollo CFG-PRT"
 LBLCFGMSG = "CFG-MSG - Velocità messaggi UBX e NMEA / Selezione porta"
 LBLPRESET = "Comandi di configurazione UBX preimpostati"
+LBLDATALOG = "Abilita registrazione dati"
+LBLSTREAM = "Stream\nfrom file"
 
 # Testo della finestra di dialogo
 DLGUBXCONFIG = "Configurazione UBX"

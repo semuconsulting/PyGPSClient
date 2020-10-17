@@ -10,16 +10,17 @@ Created on 12 Sep 2020
 
 from tkinter import ttk, Frame, Button, Label, Spinbox, Scrollbar, Listbox, Scale, \
                     Checkbutton, Radiobutton, StringVar, IntVar, DoubleVar, N, S, E, \
-                    W, LEFT, NORMAL, DISABLED, VERTICAL, HORIZONTAL
+                    W, LEFT, RIGHT, NORMAL, DISABLED, VERTICAL, HORIZONTAL
 
 from PIL import ImageTk, Image
 from serial.tools.list_ports import comports
 
 from .globals import ENTCOL, DDD, DMM, DMS, UMM, UMK, UI, UIK, ADVON, \
-                                ADVOFF, READONLY, CONNECTED, DISCONNECTED, NOPORTS, \
-                                KNOWNGPS, ICON_CONN, ICON_DISCONN, ICON_UBXCONFIG, BAUDRATES, \
+                                ADVOFF, READONLY, CONNECTED, CONNECTED_FILE, DISCONNECTED, \
+                                NOPORTS, KNOWNGPS, ICON_CONN, ICON_DISCONN, ICON_UBXCONFIG, \
+                                ICON_LOGREAD, BAUDRATES, \
                                 NMEA_PROTOCOL, UBX_PROTOCOL, MIXED_PROTOCOL
-from .strings import LBLUBXCONFIG
+from .strings import LBLUBXCONFIG, LBLPROTDISP, LBLDATADISP, LBLDATALOG, LBLSTREAM
 
 
 class SettingsFrame(Frame):
@@ -55,11 +56,15 @@ class SettingsFrame(Frame):
         self._mapzoom = IntVar()
         self._units = StringVar()
         self._format = StringVar()
+        self._datalog = IntVar()
         self._noports = True
         self._validsettings = True
+        self._logpath = None
+        self._datalogging = False
         self._img_conn = ImageTk.PhotoImage(Image.open(ICON_CONN))
         self._img_disconn = ImageTk.PhotoImage(Image.open(ICON_DISCONN))
         self._img_ubxconfig = ImageTk.PhotoImage(Image.open(ICON_UBXCONFIG))
+        self._img_dataread = ImageTk.PhotoImage(Image.open(ICON_LOGREAD))
 
         self._body()
         self._do_layout()
@@ -76,6 +81,7 @@ class SettingsFrame(Frame):
         self.grid_rowconfigure(0, weight=1)
 
         self.option_add("*Font", self.__app.font_sm)
+
         # Serial port settings
         self._frm_basic = Frame(self)
         self._lbl_port = Label(self._frm_basic, text="Port")
@@ -125,18 +131,23 @@ class SettingsFrame(Frame):
                                      image=self._img_disconn,
                                      command=lambda: self.__app.serial_handler.disconnect(),
                                      state=DISABLED)
+        self._lbl_connect_file = Label(self._frm_buttons, text=LBLSTREAM,
+                                   justify=RIGHT)
+        self._btn_connect_file = Button(self._frm_buttons, width=45, height=35,
+                                     image=self._img_dataread,
+                                     command=lambda: self._on_data_stream())
         self._lbl_status_preset = Label(self._frm_buttons, font=self.__app.font_md2, text='')
 
         # Other configuration options
         self._frm_options = Frame(self)
-        self._lbl_protocol = Label(self._frm_options, text="Protocol")
+        self._lbl_protocol = Label(self._frm_options, text=LBLPROTDISP)
         self._rad_nmea = Radiobutton(self._frm_options, text="NMEA",
                                     variable=self._protocol, value=NMEA_PROTOCOL)
         self._rad_ubx = Radiobutton(self._frm_options, text="UBX",
                                     variable=self._protocol, value=UBX_PROTOCOL)
         self._rad_all = Radiobutton(self._frm_options, text="ALL",
                                     variable=self._protocol, value=MIXED_PROTOCOL)
-        self._lbl_display = Label(self._frm_options, text="Console Display")
+        self._lbl_consoledisplay = Label(self._frm_options, text=LBLDATADISP)
         self._rad_parsed = Radiobutton(self._frm_options, text="Parsed",
                                     variable=self._raw, value=0)
         self._rad_raw = Radiobutton(self._frm_options, text="Raw",
@@ -153,13 +164,17 @@ class SettingsFrame(Frame):
                                   wrap=True, textvariable=self._units)
         self._chk_scroll = Checkbutton(self._frm_options, text="Autoscroll",
                                       variable=self._autoscroll)
-        self._spn_maxlines = Spinbox(self._frm_options, values=("100", "200", "500", "1000", "2000"),
+        self._spn_maxlines = Spinbox(self._frm_options,
+                                     values=("100", "200", "500", "1000", "2000"),
                                     width=6, readonlybackground=ENTCOL, wrap=True,
                                     textvariable=self._maxlines, state=READONLY)
         self._chk_webmap = Checkbutton(self._frm_options, text="Web Map  Zoom",
                                       variable=self._webmap)
         self._scl_mapzoom = Scale(self._frm_options, from_=1, to=20, orient=HORIZONTAL,
                                   relief="sunken", bg=ENTCOL, variable=self._mapzoom)
+        self._chk_datalog = Checkbutton(self._frm_options, text=LBLDATALOG,
+                                        variable=self._datalog,
+                                        command=lambda: self._on_data_log())
 
         self._lbl_ubxconfig = Label(self._frm_options, text=LBLUBXCONFIG)
         self._btn_ubxconfig = Button(self._frm_options, width=45, height=35,
@@ -195,19 +210,21 @@ class SettingsFrame(Frame):
 
         self._frm_buttons.grid(column=0, row=3, columnspan=4, sticky=(W, E))
         self._btn_connect.grid(column=0, row=0, padx=3, pady=3)
-        self._btn_disconnect.grid(column=1, row=0, padx=3, pady=3)
-        self._lbl_status_preset.grid(column=2, row=0, padx=3, pady=3, sticky=(E))
+        self._btn_connect_file.grid(column=1, row=0, padx=3, pady=3)
+        self._btn_disconnect.grid(column=3, row=0, padx=3, pady=3)
+#         self._lbl_connect_file.grid(column=2, row=0, padx=3, pady=3)
+#         self._lbl_status_preset.grid(column=2, row=0, padx=3, pady=3, sticky=(E))
 
-        ttk.Separator(self).grid(column=0, row=4, columnspan=4,
+        ttk.Separator(self).grid(column=0, row=7, columnspan=4,
                                             padx=3, pady=3, sticky=(W, E))
 
-        self._frm_options.grid(column=0, row=5, columnspan=4, sticky=(W))
+        self._frm_options.grid(column=0, row=8, columnspan=4, sticky=(W, E))
         self._lbl_protocol.grid(column=0, row=0, padx=3, pady=3, sticky=(W))
         self._rad_nmea.grid(column=1, row=0, padx=0, pady=0, sticky=(W))
         self._rad_ubx.grid(column=2, row=0, padx=0, pady=0, sticky=(W))
         self._rad_all.grid(column=3, row=0, padx=0, pady=0, sticky=(W))
-        self._lbl_display.grid(column=0, row=1, padx=2, pady=3, sticky=(W))
-        self._rad_parsed.grid(column=1, row=1, padx=2, pady=3, sticky=(W))
+        self._lbl_consoledisplay.grid(column=0, row=1, padx=2, pady=3, sticky=(W))
+        self._rad_parsed.grid(column=1, row=1, padx=1, pady=3, sticky=(W))
         self._rad_raw.grid(column=2, row=1, padx=2, pady=3, sticky=(W))
         self._lbl_format.grid(column=0, row=2, padx=3, pady=3, sticky=(W))
         self._spn_format.grid(column=1, row=2, padx=2, pady=3, sticky=(W))
@@ -217,11 +234,12 @@ class SettingsFrame(Frame):
         self._spn_maxlines.grid(column=1, row=4, columnspan=3, padx=3, pady=3, sticky=(W))
         self._chk_webmap.grid(column=0, row=5, sticky=(W))
         self._scl_mapzoom.grid(column=1, row=5, columnspan=3, sticky=(W))
+        self._chk_datalog.grid(column=0, row=6, padx=3, pady=3, sticky=(W))
 
-        ttk.Separator(self._frm_options).grid(column=0, row=6, columnspan=4,
+        ttk.Separator(self._frm_options).grid(column=0, row=7, columnspan=4,
                                  padx=3, pady=3, sticky=(W, E))
-        self._lbl_ubxconfig.grid(column=0, row=7, padx=3, pady=3, sticky=(W))
-        self._btn_ubxconfig.grid(column=1, row=7, padx=3, pady=3, sticky=(W))
+        self._lbl_ubxconfig.grid(column=0, row=8, padx=3, pady=3, sticky=(W))
+        self._btn_ubxconfig.grid(column=1, row=8, padx=3, pady=3, sticky=(W))
 
     def _on_select_port(self, *args, **kwargs):
         '''
@@ -246,6 +264,32 @@ class SettingsFrame(Frame):
 
         self.__app.ubxconfig()
 
+    def _on_data_log(self):
+        '''
+        Start or stop data logger
+        '''
+
+        if self._datalog.get() == 1:
+            self._logpath = self.__app.file_handler.open_logfile_output()
+            if self._logpath is not None:
+                self._datalogging = True
+                self.__app.set_status("Data logging enabled: " + self._logpath, "green")
+        else:
+            self._logpath = None
+            self._datalogging = False
+            self.__app.file_handler.close_logfile()
+            self.__app.set_status("Data logging disabled", "blue")
+
+    def _on_data_stream(self):
+        '''
+        Start data file streamer
+        '''
+
+        self._logpath = self.__app.file_handler.open_logfile_input()
+        if self._logpath is not None:
+            self.__app.set_status("Data stream: " + self._logpath, "blue")
+            self.__app.serial_handler.connect_file()
+
     def _toggle_advanced(self):
         '''
         Toggle advanced serial port settings panel on or off
@@ -263,9 +307,9 @@ class SettingsFrame(Frame):
         '''
         Populate list of available serial ports using pyserial comports tool.
         If no ports found, disable all connection-dependent widgets.
-        
-        Attempt to preselect the first port that has a recognisable 
-        GPS designation in its description (usually only works on 
+
+        Attempt to preselect the first port that has a recognisable
+        GPS designation in its description (usually only works on
         Posix platforms - Windows doesn't parse UART device desc or HWID)
         '''
 
@@ -308,20 +352,6 @@ class SettingsFrame(Frame):
         self._webmap.set(False)
         self._mapzoom.set(10)
 
-    def _save_settings(self):
-        '''
-        TODO Save settings.
-        '''
-
-        # print("Save settings clicked")
-
-    def _load_settings(self):
-        '''
-        TODO Load settings. TODO
-        '''
-
-        # print("Load settings clicked")
-
     def set_controls(self, status):
         '''
         Public method to enable and disable serial port controls
@@ -340,8 +370,17 @@ class SettingsFrame(Frame):
         self._spn_parity.configure(state=(READONLY if status == DISCONNECTED else DISABLED))
         self._chk_rts.configure(state=(NORMAL if status == DISCONNECTED else DISABLED))
         self._chk_xon.configure(state=(NORMAL if status == DISCONNECTED else DISABLED))
-        self._btn_connect.config(state=(DISABLED if status in (CONNECTED, NOPORTS) else NORMAL))
-        self._btn_disconnect.config(state=(DISABLED if status in (DISCONNECTED, NOPORTS) else NORMAL))
+        self._btn_connect.config(state=(DISABLED if status in \
+                                        (CONNECTED, CONNECTED_FILE, NOPORTS) \
+                                        else NORMAL))
+        self._btn_disconnect.config(state=(DISABLED if status in \
+                                           (DISCONNECTED, NOPORTS) else NORMAL))
+        self._chk_datalog.config(state=(DISABLED if status in \
+                                        (CONNECTED, CONNECTED_FILE, NOPORTS) \
+                                        else NORMAL))
+        self._btn_connect_file.config(state=(DISABLED if status in \
+                                             (CONNECTED, CONNECTED_FILE, NOPORTS) \
+                                             else NORMAL))
 
 #         self._rad_nmea.config(state=(DISABLED if status in (CONNECTED, NOPORTS) else NORMAL))
 #         self._rad_ubx.config(state=(DISABLED if status in (CONNECTED, NOPORTS) else NORMAL))
@@ -369,6 +408,8 @@ class SettingsFrame(Frame):
         self._settings['mapzoom'] = self._mapzoom.get()
         self._settings['units'] = self._units.get()
         self._settings['format'] = self._format.get()
+        self._settings['logpath'] = self._logpath
+        self._settings['datalogging'] = self._datalogging
         return self._settings
 
     def get_size(self):

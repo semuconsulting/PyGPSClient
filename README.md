@@ -6,15 +6,15 @@ PyGPSClient is a graphical GNSS/GPS testing and diagnostic client application wr
 
 The application runs on any platform which supports a Python3 interpreter (>=3.6) and tkinter (>=8.6) GUI framework, 
 including Windows, MacOS, Linux and Raspberry Pi OS. It displays location and diagnostic data from any NMEA or UBX (u-blox &copy;) 
-compatible GNSS/GPS device over a standard serial (UART) or USB port, *in addition to* providing a small but useful subset of the 
-configuration functionality in u-blox's Windows-only [u-center](https://www.u-blox.com/en/product/u-center) tool.
+compatible GNSS/GPS device over a standard serial (UART) or USB port, or from a previously-saved datalog file, *in addition to* providing a small but useful subset of the configuration functionality in u-blox's Windows-only [u-center](https://www.u-blox.com/en/product/u-center) tool.
 
 This is a personal project and I have no affiliation whatsoever with u-blox &copy;.
 
 ## Features:
 
 1. Supports both NMEA and UBX protocols. It uses the existing pynmea2 library for NMEA parsing and 
-implements a **[new pyubx2 library](https://github.com/semuconsulting/pyubx2)** for UBX parsing. 
+implements a **[new pyubx2 library](https://github.com/semuconsulting/pyubx2)** for UBX parsing.
+1. Capable of reading from serial/USB port or previously-saved datalog file. 
 1. Configurable GUI with selectable and resizeable widgets.
 1. Expandable banner widget showing key navigation information.
 1. Serial console widget showing either raw or parsed data stream.
@@ -22,6 +22,7 @@ implements a **[new pyubx2 library](https://github.com/semuconsulting/pyubx2)** 
 1. Graphview widget showing current satellite reception (signal-to-noise ratio).
 1. Mapview widget with location marker, showing either a static Mercator world map, or an optional dynamic web-based map downloaded via a MapQuest API (requires an Internet connection and free 
 [MapQuest API Key](https://developer.mapquest.com/plan_purchase/steps/business_edition/business_edition_free/register)).
+1. Data logging.
 1. UBX Configuration Dialog, with the ability to send a variety of UBX configuration messages to u-blox GNSS devices. This includes the facility to add **user-defined preset configuration messages** - see instructions under [installation](#installation) below.
 
 ![sats & mercator widget screenshot](/images/sats_mercator_widget.png)

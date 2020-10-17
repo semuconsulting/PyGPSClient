@@ -17,7 +17,8 @@ from pyubx2 import UBXMessage
 
 from .globals import deg2dmm, deg2dms, m2ft, kmph2mph, kmph2ms, kmph2knots, \
                                 DMM, DMS, UMM, UI, UIK, ICON_CONN, ICON_DISCONN, \
-                                CONNECTED, DISCONNECTED, BGCOL, FGCOL, ADVOFF, ADVON
+                                ICON_LOGREAD, CONNECTED, CONNECTED_FILE, DISCONNECTED, \
+                                BGCOL, FGCOL, ADVOFF, ADVON
 
 
 class BannerFrame(Frame):
@@ -55,6 +56,7 @@ class BannerFrame(Frame):
         self._fgcol = FGCOL
         self.config(bg=self._bgcol)
         self._img_conn = ImageTk.PhotoImage(Image.open (ICON_CONN))
+        self._img_connfile = ImageTk.PhotoImage(Image.open (ICON_LOGREAD))
         self._img_disconn = ImageTk.PhotoImage(Image.open (ICON_DISCONN))
         self.width, self.height = self.get_size()
 
@@ -269,6 +271,8 @@ class BannerFrame(Frame):
             self._status = kwargs['status']
             if self._status == CONNECTED:
                 self._lbl_status_preset.configure(image=self._img_conn)
+            elif self._status == CONNECTED_FILE:
+                self._lbl_status_preset.configure(image=self._img_connfile)
             else:
                 self._lbl_status_preset.configure(image=self._img_disconn)
 
