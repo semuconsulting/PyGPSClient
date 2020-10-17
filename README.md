@@ -22,7 +22,7 @@ implements a **[new pyubx2 library](https://github.com/semuconsulting/pyubx2)** 
 1. Graphview widget showing current satellite reception (signal-to-noise ratio).
 1. Mapview widget with location marker, showing either a static Mercator world map, or an optional dynamic web-based map downloaded via a MapQuest API (requires an Internet connection and free 
 [MapQuest API Key](https://developer.mapquest.com/plan_purchase/steps/business_edition/business_edition_free/register)).
-1. UBX Configuration Dialog, with the ability to send and receive a variety of UBX configuration messages to u-blox GNSS devices. This includes the facility to add **user-defined preset configuration messages** - see instructions under [installation](#installation) below.
+1. UBX Configuration Dialog, with the ability to send a variety of UBX configuration messages to u-blox GNSS devices. This includes the facility to add **user-defined preset configuration messages** - see instructions under [installation](#installation) below.
 
 ![sats & mercator widget screenshot](/images/sats_mercator_widget.png)
 
@@ -88,6 +88,11 @@ The following python libraries are required (these will be installed automatical
 To access the serial port on most linux platforms, you will need to be a member of the 
 `tty` and `dialout` groups. Other than this, no special privileges are required.
 
+### Multi-Language Support
+
+All application literals are defined in the module `strings.py`. If required, these can be substituted
+for strings in the language of your choice by copying the relevant `strings-XX.py` module to `strings.py`. My apologies in advance if Google Translate has made a mess of your language - feel free to submit a better translation.
+
 ### 1. Install using pip
 
 [![PyPI version](https://img.shields.io/pypi/v/PyGPSClient.svg?style=flat)](https://pypi.org/project/PyGPSClient/)
@@ -124,7 +129,7 @@ no extension) and place this file in the user's home directory.
 
 ### <a name="userdefined">User Defined Presets</a>
 
-The UBX Configuration Dialog includes the facility to add user-defined preset UBX configuration messages. These can be set up by adding
+The UBX Configuration Dialog includes the facility to send user-defined preset UBX configuration messages. These can be set up by adding
 appropriate comma-delimited message descriptions and payload definitions to a file named `ubxpresets` (lower case, no extension), and then placing this file in the user's home directory. The message definition comprises a free-format text description (*avoid embedded commas*) 
 followed by one or more [pyubx2 UBXMessage constructors](https://pypi.org/project/pyubx2/), i.e. 
 1. ubx_class as a string e.g. `CFG` (must be a valid class from pyubx2.UBX_CONFIG_CATEGORIES)
@@ -149,7 +154,7 @@ BSD 3-Clause License
 Copyright (c) 2020, SEMU Consulting
 All rights reserved.
 
-Application icons from [iconmonstr](https://iconmonstr.com/) &copy;.
+Application icons from [iconmonstr](https://iconmonstr.com/license/) &copy;.
 
 ## Author Information
 

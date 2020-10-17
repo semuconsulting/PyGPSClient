@@ -1,7 +1,7 @@
 '''
 ENGLISH language string literals for PyGPSClient application
 
-Created on 12 Sep 2020
+Created on 17 Oct. 2020
 
 @author: semuadmin
 '''

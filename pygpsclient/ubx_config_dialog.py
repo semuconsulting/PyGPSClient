@@ -20,29 +20,20 @@ from pyubx2 import UBXMessage, POLL, SET, UBX_CONFIG_MESSAGES
 from .globals import BGCOL, FGCOL, ENTCOL, ICON_APP, ICON_SEND, ICON_EXIT, ICON_WARNING, \
                      ICON_PENDING, ICON_CONFIRMED, BAUDRATES, READONLY
 from .strings import LBLUBXCONFIG, LBLCFGPRT, LBLCFGMSG, LBLPRESET, DLGUBXCONFIG, DLGRESET, \
-                     DLGSAVE, DLGRESETCONFIRM, DLGSAVECONFIRM
+                     DLGSAVE, DLGRESETCONFIRM, DLGSAVECONFIRM, PSTRESET, PSTSAVE, \
+                     PSTMINNMEAON, PSTALLNMEAON, PSTALLNMEAOFF, PSTMINUBXON, PSTALLUBXON, \
+                     PSTALLUBXOFF, PSTALLINFON, PSTALLINFOFF, PSTALLLOGON, PSTALLLOGOFF, \
+                     PSTALLMONON, PSTALLMONOFF, PSTALLRXMON, PSTALLRXMOFF, PSTPOLLPORT, \
+                     PSTPOLLINFO
+
 from .ubx_handler import UBXHandler as ubh, CFG_MSG_OFF, CFG_MSG_ON
 
-MSG_PRESETS = {
-'CFG-CFG - RESTORE FACTORY DEFAULTS': 'CFG-CFG',
-'CFG-CFG - Save current configuration to RAM': 'CFG-CFG',
-'CFG-MSG - Turn ON minimum NMEA msgs': 'CFG-MSG',
-'CFG-MSG - Turn ON all NMEA msgs': 'CFG-MSG',
-'CFG-MSG - Turn OFF all NMEA msgs': 'CFG-MSG',
-'CFG-MSG - Turn ON minimum UBX NAV msgs': 'CFG-MSG',
-'CFG-MSG - Turn ON all UBX NAV msgs': 'CFG-MSG',
-'CFG-MSG - Turn OFF all UBX NAV msgs': 'CFG-MSG',
-'CFG-INF - Turn ON all INF msgs': 'CFG-INF',
-'CFG-INF - Turn OFF all non-error INF msgs': 'CFG-INF',
-'CFG-MSG - Turn ON all LOG msgs': 'CFG-MSG',
-'CFG-MSG - Turn OFF all LOG msgs': 'CFG-MSG',
-'CFG-MSG - Turn ON all MON msgs': 'CFG-MSG',
-'CFG-MSG - Turn OFF all MON msgs': 'CFG-MSG',
-'CFG-MSG - Turn ON all RXM msgs': 'CFG-MSG',
-'CFG-MSG - Turn OFF all RXM msgs': 'CFG-MSG',
-'CFG-PRT - Poll Port config': 'CFG-PRT',
-'CFG-INF - Poll Info message config': 'CFG:INF',
-}
+PRESET_COMMMANDS = [
+PSTRESET, PSTSAVE, PSTMINNMEAON, PSTALLNMEAON, PSTALLNMEAOFF,
+PSTMINUBXON, PSTALLUBXON, PSTALLUBXOFF, PSTALLINFON, PSTALLINFOFF,
+PSTALLLOGON, PSTALLLOGOFF, PSTALLMONON, PSTALLMONOFF, PSTALLRXMON,
+PSTALLRXMOFF, PSTPOLLPORT, PSTPOLLINFO
+]
 
 
 class UBXConfigDialog():
@@ -107,7 +98,7 @@ class UBXConfigDialog():
         con.option_add("*Font", self.__app.font_sm)
 
         self._lbl_title = Label(con, text=LBLUBXCONFIG, bg=BGCOL, fg=FGCOL,
-                                justify=LEFT, font=self.__app.font_md, width=50)
+                                justify=LEFT, font=self.__app.font_md, width=55)
         # *******************************************************
         # Port Configuration
         # *******************************************************
@@ -274,12 +265,12 @@ class UBXConfigDialog():
             idx += 1
 
         idx = 1
-        for pre in MSG_PRESETS:
-            self._lbx_preset.insert(idx, pre)
+        for pst in PRESET_COMMMANDS:
+            self._lbx_preset.insert(idx, pst)
             idx += 1
 
-        for upt in self._userpresets:
-            self._lbx_preset.insert(idx, "USER " + upt)
+        for upst in self._userpresets:
+            self._lbx_preset.insert(idx, "USER " + upst)
             idx += 1
 
     def update(self, cfgtype='CFG-MSG', **kwargs):
@@ -405,41 +396,41 @@ class UBXConfigDialog():
         confirmed = True
         try:
 
-            if self._preset_command == 'CFG-CFG - RESTORE FACTORY DEFAULTS':
+            if self._preset_command == PSTRESET:
                 confirmed = self._do_factory_reset()
-            elif self._preset_command == 'CFG-CFG - Save current configuration to RAM':
+            elif self._preset_command == PSTSAVE:
                 confirmed = self._do_save_config()
-            elif self._preset_command == 'CFG-INF - Turn ON all INF msgs':
-                self._do_set_inf(True)
-            elif self._preset_command == 'CFG-INF - Turn OFF all non-error INF msgs':
-                self._do_set_inf(False)
-            elif self._preset_command == 'CFG-MSG - Turn ON all LOG msgs':
-                self._do_set_log(True)
-            elif self._preset_command == 'CFG-MSG - Turn OFF all LOG msgs':
-                self._do_set_log(False)
-            elif self._preset_command == 'CFG-MSG - Turn ON all MON msgs':
-                self._do_set_mon(True)
-            elif self._preset_command == 'CFG-MSG - Turn OFF all MON msgs':
-                self._do_set_mon(False)
-            elif self._preset_command == 'CFG-MSG - Turn ON all RXM msgs':
-                self._do_set_rxm(True)
-            elif self._preset_command == 'CFG-MSG - Turn OFF all RXM msgs':
-                self._do_set_rxm(False)
-            elif self._preset_command == 'CFG-MSG - Turn ON minimum NMEA msgs':
+            elif self._preset_command == PSTMINNMEAON:
                 self._do_set_minnmea()
-            elif self._preset_command == 'CFG-MSG - Turn ON all NMEA msgs':
+            elif self._preset_command == PSTALLNMEAON:
                 self._do_set_allnmea(True)
-            elif self._preset_command == 'CFG-MSG - Turn OFF all NMEA msgs':
+            elif self._preset_command == PSTALLNMEAOFF:
                 self._do_set_allnmea(False)
-            elif self._preset_command == 'CFG-MSG - Turn ON minimum UBX NAV msgs':
+            elif self._preset_command == PSTMINUBXON:
                 self._do_set_minNAV()
-            elif self._preset_command == 'CFG-MSG - Turn ON all UBX NAV msgs':
+            elif self._preset_command == PSTALLUBXON:
                 self._do_set_allNAV(True)
-            elif self._preset_command == 'CFG-MSG - Turn OFF all UBX NAV msgs':
+            elif self._preset_command == PSTALLUBXOFF:
                 self._do_set_allNAV(False)
-            elif self._preset_command == 'CFG-PRT - Poll Port config':
+            elif self._preset_command == PSTALLINFON:
+                self._do_set_inf(True)
+            elif self._preset_command == PSTALLINFOFF:
+                self._do_set_inf(False)
+            elif self._preset_command == PSTALLLOGON:
+                self._do_set_log(True)
+            elif self._preset_command == PSTALLLOGOFF:
+                self._do_set_log(False)
+            elif self._preset_command == PSTALLMONON:
+                self._do_set_mon(True)
+            elif self._preset_command == PSTALLMONOFF:
+                self._do_set_mon(False)
+            elif self._preset_command == PSTALLRXMON:
+                self._do_set_rxm(True)
+            elif self._preset_command == PSTALLRXMOFF:
+                self._do_set_rxm(False)
+            elif self._preset_command == PSTPOLLPORT:
                 self._do_poll_prt()
-            elif self._preset_command == 'CFG-INF - Poll Info message config':
+            elif self._preset_command == PSTPOLLINFO:
                 self._do_poll_inf()
             else:
                 self._do_user_defined(self._preset_command)
