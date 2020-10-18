@@ -122,6 +122,7 @@ class App(Frame):
         '''
 
         self.__master.bind('<<ubx_read>>', self.serial_handler.on_read)
+        self.__master.bind('<<ubx_readfile>>', self.serial_handler.on_read)
         self.__master.bind_all("<Control-q>", self.exit)
 
     def _set_default_fonts(self):

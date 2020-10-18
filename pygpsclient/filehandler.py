@@ -13,8 +13,8 @@ from pathlib import Path
 from time import strftime
 from tkinter import filedialog
 
-from .strings import SAVETITLE, READTITLE
 from .globals import MQAPIKEY, UBXPRESETS, MAXLOGLINES
+from .strings import SAVETITLE, READTITLE
 
 HOME = str(Path.home())
 

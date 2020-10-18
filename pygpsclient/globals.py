@@ -1,4 +1,5 @@
 '''
+PyGPSClient Globals
 
 Collection of global constants and helper methods
 
@@ -41,12 +42,10 @@ PARITIES = {"Even":PARITY_EVEN, "Odd": PARITY_ODD, "Mark": PARITY_MARK, "Space":
 SERIAL_TIMEOUT = .2
 MQAPIKEY = 'mqapikey'
 UBXPRESETS = 'ubxpresets'
-MAXLOGLINES = 5000 # maximum number of lines per log file
-
+MAXLOGLINES = 10000  # maximum number of 'lines' per datalog file
 NMEA_PROTOCOL = 0
 UBX_PROTOCOL = 1
 MIXED_PROTOCOL = 2
-
 DISCONNECTED = 0
 CONNECTED = 1
 CONNECTED_FILE = 2

@@ -42,6 +42,18 @@ support explicit command handshaking, and confirmation responses can occasionall
 inbound traffic. To ensure timely confirmation responses, try temporarily disabling periodic inbound traffic 
 using the preset commands provided.
 
+### How to Use
+
+* To connect to a listed serial device, select the device from the listbox and click 
+![connect icon](/pygpsclient/resources/iconmonstr-link-8-24.png). The application will endeavour to pre-select a recognised GNSS/GPS device but this doesn't always work on all platforms.
+* To stream from a previously-saved datalog (pygps*.log) file, click 
+![connect-file icon](/pygpsclient/resources/iconmonstr-note-37-24.png) and select the file.
+* To disconnect from a serial device or datalog file, click
+![disconnect icon](/pygpsclient/resources/iconmonstr-link-10-24.png)
+* To display the UBX Configuration Dialog (only available when connected to a UBX serial device), click
+![gear icon](/pygpsclient/resources/iconmonstr-gear-2-24.png), or go to Menu..Options.
+* To show or hide the various widgets, go to Menu..View and click on the relevant widget.
+
 #### Glossary of Terms
 
 * utc - coordinated universal time 
@@ -89,11 +101,6 @@ The following python libraries are required (these will be installed automatical
 
 To access the serial port on most linux platforms, you will need to be a member of the 
 `tty` and `dialout` groups. Other than this, no special privileges are required.
-
-### Multi-Language Support
-
-All application literals are defined in the module `strings.py`. If required, these can be substituted
-for strings in the language of your choice by copying the relevant `strings-XX.py` module to `strings.py`. My apologies in advance if Google Translate has made a mess of your language - feel free to submit a better translation.
 
 ### 1. Install using pip
 

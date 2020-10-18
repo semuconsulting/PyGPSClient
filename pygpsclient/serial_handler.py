@@ -13,6 +13,7 @@ from io import BufferedReader
 from threading import Thread
 
 from serial import Serial, SerialException, SerialTimeoutException
+
 import pyubx2.ubxtypes_core as ubt
 
 from .globals import CONNECTED, CONNECTED_FILE, DISCONNECTED, SERIAL_TIMEOUT, \
@@ -220,7 +221,7 @@ class SerialHandler():
                 if self._serial_object.in_waiting:
                     self.__master.event_generate('<<ubx_read>>')
             else:
-                self.__master.event_generate('<<ubx_read>>')
+                self.__master.event_generate('<<ubx_readfile>>')
 
     def on_read(self, event):  # pylint: disable=unused-argument
         '''

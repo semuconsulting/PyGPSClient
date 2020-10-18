@@ -131,8 +131,6 @@ class SettingsFrame(Frame):
                                      image=self._img_disconn,
                                      command=lambda: self.__app.serial_handler.disconnect(),
                                      state=DISABLED)
-        self._lbl_connect_file = Label(self._frm_buttons, text=LBLSTREAM,
-                                   justify=RIGHT)
         self._btn_connect_file = Button(self._frm_buttons, width=45, height=35,
                                      image=self._img_dataread,
                                      command=lambda: self._on_data_stream())
@@ -213,8 +211,6 @@ class SettingsFrame(Frame):
         self._btn_connect.grid(column=0, row=0, padx=3, pady=3)
         self._btn_connect_file.grid(column=1, row=0, padx=3, pady=3)
         self._btn_disconnect.grid(column=3, row=0, padx=3, pady=3)
-#         self._lbl_connect_file.grid(column=2, row=0, padx=3, pady=3)
-#         self._lbl_status_preset.grid(column=2, row=0, padx=3, pady=3, sticky=(E))
 
         ttk.Separator(self).grid(column=0, row=7, columnspan=4,
                                             padx=3, pady=3, sticky=(W, E))
@@ -380,7 +376,7 @@ class SettingsFrame(Frame):
                                         (CONNECTED, CONNECTED_FILE, NOPORTS) \
                                         else NORMAL))
         self._btn_connect_file.config(state=(DISABLED if status in \
-                                             (CONNECTED, CONNECTED_FILE, NOPORTS) \
+                                             (CONNECTED, CONNECTED_FILE) \
                                              else NORMAL))
         self._btn_ubxconfig.config(state=(DISABLED if status in \
                                           (CONNECTED_FILE, DISCONNECTED, NOPORTS) \
