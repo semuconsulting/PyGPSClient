@@ -12,7 +12,7 @@ Created on 22 Sep 2020
 
 from tkinter import ttk, messagebox, Toplevel, Frame, Checkbutton, Radiobutton, Listbox, \
                     Spinbox, Scrollbar, Button, Label, StringVar, \
-                    IntVar, N, S, E, W, LEFT, VERTICAL
+                    IntVar, N, S, E, W, LEFT, VERTICAL, HORIZONTAL
 
 from PIL import ImageTk, Image
 from pyubx2 import UBXMessage, POLL, SET, UBX_CONFIG_MESSAGES
@@ -160,9 +160,12 @@ class UBXConfigDialog():
                                  relief="sunken", bg=ENTCOL,
                                  height=7, justify=LEFT,
                                  exportselection=False)
-        self._scr_preset = Scrollbar(con, orient=VERTICAL)
-        self._lbx_preset.config(yscrollcommand=self._scr_preset.set)
-        self._scr_preset.config(command=self._lbx_preset.yview)
+        self._scr_presetv = Scrollbar(con, orient=VERTICAL)
+        self._scr_preseth = Scrollbar(con, orient=HORIZONTAL)
+        self._lbx_preset.config(yscrollcommand=self._scr_presetv.set)
+        self._lbx_preset.config(xscrollcommand=self._scr_preseth.set)
+        self._scr_presetv.config(command=self._lbx_preset.yview)
+        self._scr_preseth.config(command=self._lbx_preset.xview)
         self._lbl_send_preset = Label(con)
         self._btn_send_preset = Button(con, image=self._img_send, width=50, fg="green",
                                        command=self._on_send_preset, font=self.__app.font_md)
@@ -221,7 +224,8 @@ class UBXConfigDialog():
                                                 padx=3, pady=3, sticky=(W, E))
         self._lbl_presets.grid(column=0, row=15, columnspan=6, padx=3, sticky=(W, E))
         self._lbx_preset.grid(column=0, row=16, columnspan=4, padx=3, pady=3, sticky=(W, E))
-        self._scr_preset.grid(column=3, row=16, sticky=(N, S, E))
+        self._scr_presetv.grid(column=3, row=16, sticky=(N, S, E))
+        self._scr_preseth.grid(column=0, row=17, columnspan=4, sticky=(W, E))
         self._btn_send_preset.grid(column=4, row=16, ipadx=3, ipady=3,
                                    sticky=(E))
         self._lbl_send_preset.grid(column=5, row=16, rowspan=2, ipadx=3,
@@ -622,8 +626,11 @@ class UBXConfigDialog():
             ubx_id = seg[i + 1].strip()
             payload = seg[i + 2].strip()
             mode = int(seg[i + 3].rstrip('\r\n'))
-            payload = bytes(bytearray.fromhex(payload))
-            msg = UBXMessage(ubx_class, ubx_id, payload, mode)
+            if payload != '':
+                payload = bytes(bytearray.fromhex(payload))
+                msg = UBXMessage(ubx_class, ubx_id, payload, mode)
+            else:
+                msg = UBXMessage(ubx_class, ubx_id, None, mode)
             self.__app.serial_handler.serial_write(msg.serialize())
 
     def set_status(self, message, color="blue"):
