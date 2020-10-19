@@ -36,11 +36,12 @@ The UBX Configuration Dialog currently supports the following UBX configuration 
 1. CFG-MSG sets message rates per port for NMEA protocol messages (standard & proprietary) and UBX protocol messages.
 1. PRESET commands support a variety of preset and user-defined commands - see [user defined presets](#userdefined)
 
-An icon to the right of each 'SEND' button indicates the latest polled state of the displayed configuration 
-(pending, confirmed or warning). A warning icon may simply indicate that this particular configuration message type is not supported by your receiver (typically accompanied by an ACK-NAK response). **NB** this is not a 100% reliable indication as the UBX protocol does not
-support explicit command handshaking, and confirmation responses can occasionally get lost or delayed in heavy
-inbound traffic. To ensure timely confirmation responses, try temporarily disabling periodic inbound traffic 
-using the preset commands provided.
+An icon to the right of each 'SEND' 
+![send icon](/pygpsclient/resources/iconmonstr-arrow-12-24.png) button indicates the latest polled state of the displayed configuration 
+(pending ![pending icon](/pygpsclient/resources/iconmonstr-time-6-24.png), 
+confirmed ![confirmed icon](/pygpsclient/resources/iconmonstr-check-mark-8-24.png) or 
+warning ![warning icon](/pygpsclient/resources/iconmonstr-warning-1-24.png)). A warning icon may simply indicate that this particular configuration message type is not supported by your receiver (typically accompanied by an ACK-NAK response). **NB** this is not a 100% reliable indication as the UBX protocol does not
+support explicit command handshaking, and confirmation responses can occasionally get lost or delayed in heavy inbound traffic. To ensure timely confirmation responses, try temporarily disabling or minimising periodic inbound traffic using the preset commands provided.
 
 ### How to Use
 
@@ -49,10 +50,11 @@ using the preset commands provided.
 * To stream from a previously-saved datalog (pygps*.log) file, click 
 ![connect-file icon](/pygpsclient/resources/iconmonstr-note-37-24.png) and select the file.
 * To disconnect from a serial device or datalog file, click
-![disconnect icon](/pygpsclient/resources/iconmonstr-link-10-24.png)
-* To display the UBX Configuration Dialog (only available when connected to a UBX serial device), click
+![disconnect icon](/pygpsclient/resources/iconmonstr-link-10-24.png).
+* To display the UBX Configuration Dialog (*only available when connected to a UBX serial device*), click
 ![gear icon](/pygpsclient/resources/iconmonstr-gear-2-24.png), or go to Menu..Options.
-* To show or hide the various widgets, go to Menu..View and click on the relevant widget.
+* To show or hide the various widgets, go to Menu..View and click on the relevant hide/show option.
+* Widgets (and their associated fonts) are fully resizeable.
 
 #### Glossary of Terms
 
