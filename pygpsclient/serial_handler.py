@@ -230,7 +230,10 @@ class SerialHandler():
 
         if self._reading and self._serial_object is not None:
             self.__app.set_status("",)
-            self._parse_data(self._serial_buffer)
+            try:
+                self._parse_data(self._serial_buffer)
+            except SerialException as err:
+                self.__app.set_status(f"Error {err}", "red")
 
     def _parse_data(self, ser: Serial) -> object:
         '''
