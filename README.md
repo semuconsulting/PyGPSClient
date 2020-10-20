@@ -23,9 +23,27 @@ implements a **[new pyubx2 library](https://github.com/semuconsulting/pyubx2)** 
 1. Mapview widget with location marker, showing either a static Mercator world map, or an optional dynamic web-based map downloaded via a MapQuest API (requires an Internet connection and free 
 [MapQuest API Key](https://developer.mapquest.com/plan_purchase/steps/business_edition/business_edition_free/register)).
 1. Data logging.
-1. UBX Configuration Dialog, with the ability to send a variety of UBX configuration messages to u-blox GNSS devices. This includes the facility to add **user-defined preset configuration messages** - see instructions under [installation](#installation) below.
+1. UBX Configuration Dialog, with the ability to send a variety of UBX configuration messages to u-blox GNSS devices. This includes the facility to add **user-defined messages or message sequences** - see instructions under [installation](#installation) below.
 
 ![sats & mercator widget screenshot](/images/sats_mercator_widget.png)
+
+## How to Use
+
+* To connect to a listed serial device, select the device from the listbox and click 
+![connect icon](/pygpsclient/resources/iconmonstr-link-8-24.png). The application will endeavour to pre-select a recognised GNSS/GPS device but this is platform and device dependent.
+* To stream from a previously-saved datalog (pygpsdata-*.log) file, click 
+![connect-file icon](/pygpsclient/resources/iconmonstr-note-37-24.png) and select the file.
+* To disconnect from a serial device or datalog file, click
+![disconnect icon](/pygpsclient/resources/iconmonstr-link-10-24.png).
+* To display the UBX Configuration Dialog (*only available when connected to a UBX serial device*), click
+![gear icon](/pygpsclient/resources/iconmonstr-gear-2-24.png), or go to Menu..Options.
+* To show or hide the various widgets, go to Menu..View and click on the relevant hide/show option.
+* Change the console display from parsed to raw (hexadecimal) format via the Console Display setting.
+* Change the displayed degree and unit formats via the Degrees Format and Units settings.
+* Change the web map scale via the Zoom setting (any change will take effect at the
+next map refresh, indicated by a small timer icon at the top left of the panel).
+* Data logging (in binary format) can be turned on or off via the Enable Data Logging setting.
+* Widgets (and their associated fonts) are fully resizeable.
 
 ### UBX Configuration Facilities
 ![ubxconfig widget screenshot](/images/ubxconfig_widget.png)
@@ -40,21 +58,8 @@ An icon to the right of each 'SEND'
 ![send icon](/pygpsclient/resources/iconmonstr-arrow-12-24.png) button indicates the latest polled state of the displayed configuration 
 (pending ![pending icon](/pygpsclient/resources/iconmonstr-time-6-24.png), 
 confirmed ![confirmed icon](/pygpsclient/resources/iconmonstr-check-mark-8-24.png) or 
-warning ![warning icon](/pygpsclient/resources/iconmonstr-warning-1-24.png)). A warning icon may simply indicate that this particular configuration message type is not supported by your receiver (typically accompanied by an ACK-NAK response). **NB** this is not a 100% reliable indication as the UBX protocol does not
-support explicit command handshaking, and confirmation responses can occasionally get lost or delayed in heavy inbound traffic. To ensure timely confirmation responses, try temporarily disabling or minimising periodic inbound traffic using the preset commands provided.
-
-### How to Use
-
-* To connect to a listed serial device, select the device from the listbox and click 
-![connect icon](/pygpsclient/resources/iconmonstr-link-8-24.png). The application will endeavour to pre-select a recognised GNSS/GPS device but this doesn't always work on all platforms.
-* To stream from a previously-saved datalog (pygps*.log) file, click 
-![connect-file icon](/pygpsclient/resources/iconmonstr-note-37-24.png) and select the file.
-* To disconnect from a serial device or datalog file, click
-![disconnect icon](/pygpsclient/resources/iconmonstr-link-10-24.png).
-* To display the UBX Configuration Dialog (*only available when connected to a UBX serial device*), click
-![gear icon](/pygpsclient/resources/iconmonstr-gear-2-24.png), or go to Menu..Options.
-* To show or hide the various widgets, go to Menu..View and click on the relevant hide/show option.
-* Widgets (and their associated fonts) are fully resizeable.
+warning ![warning icon](/pygpsclient/resources/iconmonstr-warning-1-24.png)). A warning icon (typically accompanied by an ACK-NAK response) may simply indicate that this particular configuration message type is not supported by your receiver. **NB** this is not a 100% reliable indication as the UBX protocol does not
+support explicit command handshaking, and confirmation responses can occasionally get lost or delayed in heavy inbound traffic. To ensure timely confirmation responses, try temporarily minimising periodic inbound traffic using the preset commands provided.
 
 #### Glossary of Terms
 
@@ -136,23 +141,25 @@ e.g. if you downloaded and unzipped to a folder named `PyGPSClient-0.2.0`, run:
 To use the optional dynamic web-based mapview facility, you need to request and install a 
 [MapQuest API key](https://developer.mapquest.com/plan_purchase/steps/business_edition/business_edition_free/register).
 The free edition of this API allows for up to 15,000 transactions/month (roughly 500/day) on a non-commercial basis.
-For this reason, the map refresh rate is intentionally limited to 1/minute to avoid exceeding the free transaction
+For this reason, the map refresh rate is intentionally limited to 1/minute* to avoid exceeding the free transaction
 limit under normal use. **NB:** this facility is *not* intended to be used for real time navigational purposes.
 
 Once you have received the API key (a 32-character alphanumeric string), copy it to a file named `mqapikey` (lower case, 
 no extension) and place this file in the user's home directory.
 
+** The web map refresh rate can be amended if required by changing the MAP_UPDATE_INTERVAL constant in * `globals.py`.
+
 ### <a name="userdefined">User Defined Presets</a>
 
-The UBX Configuration Dialog includes the facility to send user-defined preset UBX configuration messages. These can be set up by adding
+The UBX Configuration Dialog includes the facility to send user-defined UBX configuration messages or message sequences to the receiver. These can be set up by adding
 appropriate comma-delimited message descriptions and payload definitions to a file named `ubxpresets` (lower case, no extension), and then placing this file in the user's home directory. The message definition comprises a free-format text description (*avoid embedded commas*) 
 followed by one or more [pyubx2 UBXMessage constructors](https://pypi.org/project/pyubx2/), i.e. 
 1. ubx_class as a string e.g. `CFG` (must be a valid class from pyubx2.UBX_CONFIG_CATEGORIES)
 2. ubx_id as a string e.g. `CFG-MSG` (must be a valid id from pyubx2.UBX_CONFIG_MESSAGES)
-3. payload as a hexadecimal string e.g. `f004010100010100`
+3. payload as a hexadecimal string e.g. `f004010100010100` (leave blank for null payloads e.g. most POLL messages)
 4. mode as an integer (`1` = SET, `2` = POLL)
 
-Multiple commands can be concatenated on a single line. An illustrative example is given below:
+Multiple commands can be concatenated on a single line. Illustrative examples are shown below:
 
 ```
 CFG-MSG Enable RMC message, CFG, CFG-MSG, f004010100010100, 1
