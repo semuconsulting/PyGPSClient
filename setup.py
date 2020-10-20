@@ -20,7 +20,7 @@ setup(
     name="PyGPSClient",
     version=VERSION,
     packages=find_packages(),
-    install_requires=["pyubx2>=0.1.8", "pynmea2>=1.15.0", "requests>=2.24.0",
+    install_requires=["pyubx2>=0.1.9", "pynmea2>=1.15.0", "requests>=2.24.0",
                       "Pillow>=7.2.0", "pyserial>=3.4"],
     package_data={
         "pygpsclient": ["resources/*.gif", "resources/*.png",
