@@ -18,7 +18,7 @@ import pyubx2.ubxtypes_core as ubt
 
 from .globals import CONNECTED, CONNECTED_FILE, DISCONNECTED, SERIAL_TIMEOUT, \
                                 NMEA_PROTOCOL, MIXED_PROTOCOL, UBX_PROTOCOL, PARITIES
-from .strings import WAITUBXDATA, STOPDATA, NOTCONN, SEROPENERROR
+from .strings import WAITUBXDATA, STOPDATA, NOTCONN, SEROPENERROR, ENDOFFILE
 
 
 class SerialHandler():
@@ -37,6 +37,7 @@ class SerialHandler():
         self._serial_object = None
         self._serial_buffer = None
         self._serial_thread = None
+        self._file_thread = None
         self._connected = False
         self._logpath = None
         self._datalogging = False
@@ -107,7 +108,7 @@ class SerialHandler():
             self.__app.set_connection(f"{self._logpath}", "green")
             self.__app.frm_settings.set_controls(CONNECTED_FILE)
             self._connected = True
-            self.start_read_thread()
+            self.start_readfile_thread()
         except (IOError, SerialException, SerialTimeoutException) as err:
             self._connected = False
             self.__app.set_connection(f"{self._logpath}", "red")
@@ -193,10 +194,21 @@ class SerialHandler():
             self._reading = True
             self.__app.set_status(WAITUBXDATA, "blue")
             self.__app.frm_mapview.reset_map_refresh()
-            if self._serial_object.isatty():
-                self._serial_object.reset_input_buffer()
+            self._serial_object.reset_input_buffer()  # FLush input buffer to minimise blocking on startup
             self._serial_thread = Thread(target=self._read_thread, daemon=True)
             self._serial_thread.start()
+
+    def start_readfile_thread(self):
+        '''
+        Start the file reader thread.
+        '''
+
+        if self._connected:
+            self._reading = True
+            self.__app.set_status(WAITUBXDATA, "blue")
+            self.__app.frm_mapview.reset_map_refresh()
+            self._file_thread = Thread(target=self._readfile_thread, daemon=True)
+            self._file_thread.start()
 
     def stop_read_thread(self):
         '''
@@ -208,6 +220,16 @@ class SerialHandler():
             self._serial_thread = None
             self.__app.set_status(STOPDATA, "red")
 
+    def stop_readfile_thread(self):
+        '''
+        Stop file reader thread.
+        '''
+
+        if self._file_thread is not None:
+            self._reading = False
+            self._file_thread = None
+            self.__app.set_status(STOPDATA, "red")
+
     def _read_thread(self):
         '''
         THREADED PROCESS
@@ -215,19 +237,32 @@ class SerialHandler():
         trigger data parsing and widget updates.
         '''
 
+#         print("doing serial_handler._read_thread")
         while self._reading and self._serial_object:
-            # print(f"Bytes in buffer: {self._serial_object.in_waiting}")
-            if self._serial_object.isatty():
-                if self._serial_object.in_waiting:
-                    self.__master.event_generate('<<ubx_read>>')
-            else:
-                self.__master.event_generate('<<ubx_readfile>>')
+#             print("doing serial_handler._read_thread while loop")
+            if self._serial_object.in_waiting:
+#                 print(f"Bytes in buffer: {self._serial_object.in_waiting}")
+#                 print("doing serial_handler._read_thread in_waiting")
+                self.__master.event_generate('<<ubx_read>>')
+
+    def _readfile_thread(self):
+        '''
+        THREADED PROCESS
+        Reads binary data from datalog file and generates virtual event to
+        trigger data parsing and widget updates.
+        '''
+
+#         print("doing serial_handler._readfile_thread")
+        while self._reading and self._serial_object:
+#             print("doing serial_handler._readfile_thread while loop")
+            self.__master.event_generate('<<ubx_readfile>>')
 
     def on_read(self, event):  # pylint: disable=unused-argument
         '''
         Action on <<ubx_read>> event - read any data in the buffer.
         '''
 
+#         print("doing serial_handler.on_read")
         if self._reading and self._serial_object is not None:
             self.__app.set_status("",)
             try:
@@ -235,23 +270,35 @@ class SerialHandler():
             except SerialException as err:
                 self.__app.set_status(f"Error {err}", "red")
 
-    def _parse_data(self, ser: Serial) -> object:
+    def on_eof(self, event):  # pylint: disable=unused-argument
+        '''
+        Action on end of file
+        '''
+
+#         print("doing serial_handler.on_eof")
+        self.disconnect()
+        self.__app.set_status(ENDOFFILE, "blue")
+
+    def _parse_data(self, ser: Serial):
         '''
         Read the binary data and direct to the appropriate
         UBX and/or NMEA protocol handler, depending on which protocols
         are filtered.
         '''
 
+#         print("doing serial_handler_parse_data")
         parsing = True
         raw_data = None
         byte1 = ser.read(2)  # read first two bytes to determine protocol
+        if len(byte1) < 2:
+            self.__master.event_generate('<<ubx_eof>>')
+            return
 
         while parsing:
-#             self.__app.update_idletasks()
             filt = self.__app.frm_settings.get_settings()['protocol']
             # if it's a UBX message (b'\b5\x62')
             if byte1 == ubt.UBX_HDR and filt in (UBX_PROTOCOL, MIXED_PROTOCOL):
-#                 print(f"doing ubx {ser.peek()}")
+#                 print(f"doing serial_handler._parse_data if ubx {ser.peek()}")
                 byten = ser.read(4)
                 clsid = byten[0:1]
                 msgid = byten[1:2]
@@ -265,7 +312,7 @@ class SerialHandler():
                 parsing = False
             # if it's an NMEA message ('$G' or '$P')
             elif byte1 in (b'\x24\x47', b'\x24\x50') and filt in (NMEA_PROTOCOL, MIXED_PROTOCOL):
-#                 print(f"doing nmea {ser.peek()}")
+#                 print(f"doing serial_handler._parse_data if nmea {ser.peek()}")
                 try:
                     raw_data = byte1 + ser.readline()
                     self.__app.nmea_handler.process_data(raw_data.decode("utf-8"))

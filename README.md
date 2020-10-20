@@ -38,11 +38,14 @@ implements a **[new pyubx2 library](https://github.com/semuconsulting/pyubx2)** 
 * To display the UBX Configuration Dialog (*only available when connected to a UBX serial device*), click
 ![gear icon](/pygpsclient/resources/iconmonstr-gear-2-24.png), or go to Menu..Options.
 * To show or hide the various widgets, go to Menu..View and click on the relevant hide/show option.
+* Select which protocols to display via the Protocols Displayed setting (NB: this only changes the displayed
+protocols - to change the actual protocols output by the receiver, use the CFG-PRT command).
 * Change the console display from parsed to raw (hexadecimal) format via the Console Display setting.
 * Change the displayed degree and unit formats via the Degrees Format and Units settings.
 * Change the web map scale via the Zoom setting (any change will take effect at the
 next map refresh, indicated by a small timer icon at the top left of the panel).
-* Data logging (in binary format) can be turned on or off via the Enable Data Logging setting.
+* Data logging (in binary format) can be turned on or off via the Enable Data Logging setting. You will be prompted
+to select the directory into which timestamped log files are saved.
 * Widgets (and their associated fonts) are fully resizeable.
 
 ### UBX Configuration Facilities
@@ -147,7 +150,7 @@ limit under normal use. **NB:** this facility is *not* intended to be used for r
 Once you have received the API key (a 32-character alphanumeric string), copy it to a file named `mqapikey` (lower case, 
 no extension) and place this file in the user's home directory.
 
-** The web map refresh rate can be amended if required by changing the MAP_UPDATE_INTERVAL constant in * `globals.py`.
+*The web map refresh rate can be amended if required by changing the MAP_UPDATE_INTERVAL constant in `globals.py` *.
 
 ### <a name="userdefined">User Defined Presets</a>
 

@@ -19,13 +19,12 @@ with open("README.md", "r") as fh:
 setup(
     name="PyGPSClient",
     version=VERSION,
-    packages=find_packages(),
+    packages=find_packages(exclude=['tests', 'references', 'images']),
     install_requires=["pyubx2>=0.1.9", "pynmea2>=1.15.0", "requests>=2.24.0",
                       "Pillow>=7.2.0", "pyserial>=3.4"],
     package_data={
         "pygpsclient": ["resources/*.gif", "resources/*.png",
-                     "resources/*.ico", "resources/*.icns",
-                     "images/*.png"],
+                     "resources/*.ico", "resources/*.icns"],
     },
     include_package_data=True,
     author="semuadmin",
