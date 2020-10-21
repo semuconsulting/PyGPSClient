@@ -49,7 +49,7 @@ class UBXConfigDialog():
         self.__app = app  # Reference to main application class
         self.__master = self.__app.get_master()  # Reference to root class (Tk)
         self._dialog = Toplevel()
-        self._dialog.transient(self.__app)
+#         self._dialog.transient(self.__app)
         self._dialog.resizable(False, False)
         self._dialog.title = DLGUBXCONFIG
         wd, hd = self.get_size()

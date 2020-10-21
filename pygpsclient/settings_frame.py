@@ -381,10 +381,9 @@ class SettingsFrame(Frame):
         self._btn_ubxconfig.config(state=(DISABLED if status in \
                                           (CONNECTED_FILE, DISCONNECTED, NOPORTS) \
                                           else NORMAL))
-
-#         self._rad_nmea.config(state=(DISABLED if status in (CONNECTED, NOPORTS) else NORMAL))
-#         self._rad_ubx.config(state=(DISABLED if status in (CONNECTED, NOPORTS) else NORMAL))
-#         self._rad_all.config(state=(DISABLED if status in (CONNECTED, NOPORTS) else NORMAL))
+        self.__app.menu.options_menu.entryconfig(0, state=(DISABLED if status in \
+                                          (CONNECTED_FILE, DISCONNECTED, NOPORTS) \
+                                          else NORMAL))
 
     def get_settings(self):
         '''

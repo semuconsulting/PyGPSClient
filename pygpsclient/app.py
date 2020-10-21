@@ -6,6 +6,7 @@ Created on 12 Sep 2020
 @author: semuadmin
 '''
 
+from threading import Thread
 from tkinter import Tk, Frame, N, S, E, W, PhotoImage, font
 
 from .about_dialog import AboutDialog
@@ -62,6 +63,7 @@ class App(Frame):
         self.nmea_handler = NMEAHandler(self)
         self.ubx_handler = UBXHandler(self)
         self.dlg_ubxconfig = None
+        self._config_thread = None
 
         # Load web map api key if there is one
         self.api_key = self.file_handler.load_apikey()
@@ -245,11 +247,27 @@ class App(Frame):
         to minimise blocking on startup during heavy
         traffic
         '''
+        
+        self._config_thread = Thread(target=self._ubxconfig_thread, daemon=False)
+        self._config_thread.start()
 
-        self.__master.update_idletasks()
-        self.serial_handler.flush()
-        self.dlg_ubxconfig = UBXConfigDialog(self)
+    def _ubxconfig_thread(self):
+        '''
+        THREADED PROCESS UBX Configuration Dialog
+        '''
 
+#         self.__master.update_idletasks()
+#         self.serial_handler.flush()
+        self.dlg_ubxconfig = UBXConfigDialog(self)        
+  
+    def stop_config_thread(self):
+        '''
+        Stop UBX Configuration dialog thread.
+        '''
+
+        if self._config_thread is not None:
+            self._config_thread.join()
+      
     def get_master(self):
         '''
         Returns application master (Tk)
@@ -264,6 +282,7 @@ class App(Frame):
 
         self.serial_handler.stop_read_thread()
         self.serial_handler.stop_readfile_thread()
+        self.stop_config_thread()
         self.serial_handler.disconnect()
         self.__master.destroy()
 

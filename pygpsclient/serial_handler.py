@@ -9,6 +9,7 @@ Created on 16 Sep 2020
 @author: semuadmin
 '''
 
+from time import sleep
 from io import BufferedReader
 from threading import Thread
 
@@ -243,7 +244,7 @@ class SerialHandler():
             if self._serial_object.in_waiting:
 #                 print(f"Bytes in buffer: {self._serial_object.in_waiting}")
 #                 print("doing serial_handler._read_thread in_waiting")
-                self.__master.event_generate('<<ubx_read>>')
+                self.__master.event_generate('<<ubx_read>>')     
 
     def _readfile_thread(self):
         '''
@@ -300,11 +301,19 @@ class SerialHandler():
             if byte1 == ubt.UBX_HDR and filt in (UBX_PROTOCOL, MIXED_PROTOCOL):
 #                 print(f"doing serial_handler._parse_data if ubx {ser.peek()}")
                 byten = ser.read(4)
+                if len(byten) < 4:
+                    self.__master.event_generate('<<ubx_eof>>')
+                    parsing = False
+                    break
                 clsid = byten[0:1]
                 msgid = byten[1:2]
                 lenb = byten[2:4]
                 leni = int.from_bytes(lenb, 'little', signed=False)
                 byten = ser.read(leni + 2)
+                if len(byten) < leni + 2:
+                    self.__master.event_generate('<<ubx_eof>>')
+                    parsing = False
+                    break
                 plb = byten[0:leni]
                 cksum = byten[leni:leni + 2]
                 raw_data = ubt.UBX_HDR + clsid + msgid + lenb + plb + cksum
@@ -327,7 +336,7 @@ class SerialHandler():
         # if datalogging, write to log file
         if self._datalogging and raw_data is not None:
             self.__app.file_handler.write_logfile(raw_data)
-
+  
     def flush(self):
         '''
         Flush input buffer
