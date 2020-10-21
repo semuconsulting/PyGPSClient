@@ -66,14 +66,6 @@ class UBXHandler():
             msg = UBXMessage('CFG', msgtype, None, POLL)
             serial.write(msg.serialize())
 
-#         for payload in UBX_CONFIG_MESSAGES:
-#             msg = UBXMessage('CFG', 'CFG-MSG', payload, POLL)
-#             serial.write(msg.serialize())
-#
-#         for payload in (b'\x00', b'\x01'):  # UBX & NMEA
-#             msg = UBXMessage('CFG', 'CFG-INF', payload, POLL)
-#             serial.write(msg.serialize())
-
     def process_data(self, data: bytes) -> UBXMessage:
         '''
         Process UBX message type
@@ -148,14 +140,16 @@ class UBXHandler():
         msgtype = UBX_CONFIG_MESSAGES[data.msgClass + data.msgID]
         ddcrate = data.rateDDC
         uart1rate = data.rateUART1
-        uart2rate = data.rateUART2,
+        uart2rate = data.rateUART2
         usbrate = data.rateUSB
         spirate = data.rateSPI
 
         # update the UBX config panel
         if self.__app.dlg_ubxconfig is not None:
-            self.__app.dlg_ubxconfig.update('CFG-MSG', msgtype=msgtype, ddcrate=ddcrate, uart1rate=uart1rate,
-                                            uart2rate=uart2rate, usbrate=usbrate, spirate=spirate)
+            self.__app.dlg_ubxconfig.update('CFG-MSG', msgtype=msgtype,
+                                            ddcrate=ddcrate, uart1rate=uart1rate,
+                                            uart2rate=uart2rate, usbrate=usbrate,
+                                            spirate=spirate)
 
     def _process_CFG_INF(self, data: UBXMessage):
         '''
@@ -266,10 +260,11 @@ class UBXHandler():
 
             for i in range(num_siv):
                 idx = "_{0:0=2d}".format(i + 1)
-                # TODO is there an easier/better way to do this without exec()?:
-                exec("self.gsv_data.append((data.svid" + str(idx) + \
-                     ", data.elev" + str(idx) + \
-                     ", data.azim" + str(idx) + ", data.cno" + str(idx) + "))")
+                svid = getattr(data, 'svid' + idx)
+                elev = getattr(data, 'elev' + idx)
+                azim = getattr(data, 'azim' + idx)
+                cno = getattr(data, 'cno' + idx)
+                self.gsv_data.append((svid, elev, azim, cno))
             self.__app.frm_satview.update_sats(self.gsv_data)
             self.__app.frm_graphview.update_graph(self.gsv_data, num_siv)
         except ValueError:

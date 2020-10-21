@@ -17,7 +17,7 @@ from pyubx2 import UBXMessage
 
 from .globals import deg2dmm, deg2dms, m2ft, kmph2mph, kmph2ms, kmph2knots, \
                                 DMM, DMS, UMM, UI, UIK, ICON_CONN, ICON_DISCONN, \
-                                ICON_LOGREAD, CONNECTED, CONNECTED_FILE, DISCONNECTED, \
+                                ICON_LOGREAD, CONNECTED, CONNECTED_FILE, \
                                 BGCOL, FGCOL, ADVOFF, ADVON
 
 

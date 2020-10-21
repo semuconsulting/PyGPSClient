@@ -21,9 +21,9 @@ from .serial_handler import SerialHandler
 from .settings_frame import SettingsFrame
 from .skyview_frame import SkyviewFrame
 from .status_frame import StatusFrame
-from .strings import TITLE, INTROTXT, MENUHIDESE, MENUSHOWSE, \
-                                MENUHIDESB, MENUSHOWSB, MENUHIDECON, MENUSHOWCON, MENUHIDEMAP, \
-                                MENUSHOWMAP, MENUHIDESATS, MENUSHOWSATS, INTROTXTNOPORTS
+from .strings import TITLE, MENUHIDESE, MENUSHOWSE, \
+                    MENUHIDESB, MENUSHOWSB, MENUHIDECON, MENUSHOWCON, MENUHIDEMAP, \
+                    MENUSHOWMAP, MENUHIDESATS, MENUSHOWSATS, INTROTXTNOPORTS
 from .ubx_config_dialog import UBXConfigDialog
 from .nmea_handler import NMEAHandler
 from .ubx_handler import UBXHandler
@@ -114,9 +114,9 @@ class App(Frame):
 
         if self.frm_settings.get_settings()['noports']:
             self.set_status(INTROTXTNOPORTS, "red")
-        else:
-            self.set_status(INTROTXT, "blue")
-        # self.frm_settings._lbx_port.focus_set()
+#         else:
+#             self.set_status(INTROTXT, "blue")
+#         # self.frm_settings._lbx_port.focus_set()
 
     def _attach_events(self):
         '''
@@ -247,7 +247,7 @@ class App(Frame):
         to minimise blocking on startup during heavy
         traffic
         '''
-        
+
         self._config_thread = Thread(target=self._ubxconfig_thread, daemon=False)
         self._config_thread.start()
 
@@ -256,10 +256,8 @@ class App(Frame):
         THREADED PROCESS UBX Configuration Dialog
         '''
 
-#         self.__master.update_idletasks()
-#         self.serial_handler.flush()
-        self.dlg_ubxconfig = UBXConfigDialog(self)        
-  
+        self.dlg_ubxconfig = UBXConfigDialog(self)
+
     def stop_config_thread(self):
         '''
         Stop UBX Configuration dialog thread.
@@ -267,7 +265,7 @@ class App(Frame):
 
         if self._config_thread is not None:
             self._config_thread.join()
-      
+
     def get_master(self):
         '''
         Returns application master (Tk)

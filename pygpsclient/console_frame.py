@@ -8,7 +8,6 @@ Created on 12 Sep 2020
 @author: semuadmin
 '''
 
-from threading import Event as ThreadEvent
 from tkinter import Frame, Text, Scrollbar, S, E, W, END, HORIZONTAL, VERTICAL, N
 
 from .globals import TAGS, BGCOL, FGCOL
@@ -76,10 +75,10 @@ class ConsoleFrame(Frame):
 
     def update_console(self, data):
         '''
-        Print the latest data stream to the console in raw (NMEA) or 
+        Print the latest data stream to the console in raw (NMEA) or
         parsed (key,value pair) format.
 
-        'maxlines' defines the maximum number of scrollable lines that are 
+        'maxlines' defines the maximum number of scrollable lines that are
         retained in the text box on a FIFO basis.
         '''
 

@@ -7,6 +7,7 @@ Created on 13 Sep 2020
 
 @author: semuadmin
 '''
+# pylint: disable=invalid-name
 
 from tkinter import Frame, Canvas, font, BOTH, YES
 from operator import itemgetter

@@ -9,7 +9,6 @@ Created on 16 Sep 2020
 @author: semuadmin
 '''
 
-from time import sleep
 from io import BufferedReader
 from threading import Thread
 
@@ -19,7 +18,7 @@ import pyubx2.ubxtypes_core as ubt
 
 from .globals import CONNECTED, CONNECTED_FILE, DISCONNECTED, SERIAL_TIMEOUT, \
                                 NMEA_PROTOCOL, MIXED_PROTOCOL, UBX_PROTOCOL, PARITIES
-from .strings import WAITUBXDATA, STOPDATA, NOTCONN, SEROPENERROR, ENDOFFILE
+from .strings import STOPDATA, NOTCONN, SEROPENERROR, ENDOFFILE
 
 
 class SerialHandler():
@@ -106,7 +105,7 @@ class SerialHandler():
             self._serial_object = open(self._logpath, 'rb')
             self._serial_buffer = BufferedReader(self._serial_object)
             self.__app.frm_banner.update_banner(status=CONNECTED_FILE)
-            self.__app.set_connection(f"{self._logpath}", "green")
+            self.__app.set_connection(f"{self._logpath}", "blue")
             self.__app.frm_settings.set_controls(CONNECTED_FILE)
             self._connected = True
             self.start_readfile_thread()
@@ -182,7 +181,6 @@ class SerialHandler():
 
         try:
             self._serial_object.write(data)
-#             self._serial_buffer.write(data)
         except (SerialException, SerialTimeoutException) as err:
             print(f"Error writing to serial port {err}")
 
@@ -193,9 +191,7 @@ class SerialHandler():
 
         if self._connected:
             self._reading = True
-            self.__app.set_status(WAITUBXDATA, "blue")
             self.__app.frm_mapview.reset_map_refresh()
-            self._serial_object.reset_input_buffer()  # FLush input buffer to minimise blocking on startup
             self._serial_thread = Thread(target=self._read_thread, daemon=True)
             self._serial_thread.start()
 
@@ -206,7 +202,6 @@ class SerialHandler():
 
         if self._connected:
             self._reading = True
-            self.__app.set_status(WAITUBXDATA, "blue")
             self.__app.frm_mapview.reset_map_refresh()
             self._file_thread = Thread(target=self._readfile_thread, daemon=True)
             self._file_thread.start()
@@ -244,7 +239,7 @@ class SerialHandler():
             if self._serial_object.in_waiting:
 #                 print(f"Bytes in buffer: {self._serial_object.in_waiting}")
 #                 print("doing serial_handler._read_thread in_waiting")
-                self.__master.event_generate('<<ubx_read>>')     
+                self.__master.event_generate('<<ubx_read>>')
 
     def _readfile_thread(self):
         '''
@@ -265,7 +260,6 @@ class SerialHandler():
 
 #         print("doing serial_handler.on_read")
         if self._reading and self._serial_object is not None:
-            self.__app.set_status("",)
             try:
                 self._parse_data(self._serial_buffer)
             except SerialException as err:
@@ -336,7 +330,7 @@ class SerialHandler():
         # if datalogging, write to log file
         if self._datalogging and raw_data is not None:
             self.__app.file_handler.write_logfile(raw_data)
-  
+
     def flush(self):
         '''
         Flush input buffer

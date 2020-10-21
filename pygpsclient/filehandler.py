@@ -90,7 +90,6 @@ class FileHandler():
                                                     ("all files", "*.*")))
         if self._filepath == "":
             return None  # User cancelled
-#         self._logfile = open(self._filename, 'a+b')
         return self._filepath
 
     def write_logfile(self, data: bytes):

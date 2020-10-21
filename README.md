@@ -10,7 +10,7 @@ compatible GNSS/GPS device over a standard serial (UART) or USB port, or from a 
 
 This is a personal project and I have no affiliation whatsoever with u-blox &copy;.
 
-## Features:
+## Features
 
 1. Supports both NMEA and UBX protocols. It uses the existing pynmea2 library for NMEA parsing and 
 implements a **[new pyubx2 library](https://github.com/semuconsulting/pyubx2)** for UBX parsing.

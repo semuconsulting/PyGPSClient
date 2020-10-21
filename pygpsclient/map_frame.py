@@ -4,7 +4,7 @@ Mapview frame class for PyGPSClient application.
 This handles a frame containing a location map downloaded via a MapQuest API.
 
 *****************************************************************************
-NOTE: The free MapQuest API key is subject to a limit of 15,000 
+NOTE: The free MapQuest API key is subject to a limit of 15,000
 transactions / month, or roughly 500 / day, so the map updates are only
 run periodically (once a minute). This utility is NOT intended to be used for
 real time navigation.
@@ -14,6 +14,7 @@ Created on 13 Sep 2020
 
 @author: semuadmin
 '''
+# pylint: disable=invalid-name
 
 from io import BytesIO
 from time import time
@@ -134,8 +135,7 @@ class MapviewFrame(Frame):
         if now - self._last_map_update < MAP_UPDATE_INTERVAL:
             self._draw_countdown((-360 / MAP_UPDATE_INTERVAL) * (now - self._last_map_update))
             return
-        else:
-            self._last_map_update = now
+        self._last_map_update = now
 
         url = self._format_url(apikey, lat, lon, hacc, vacc)
 
@@ -147,7 +147,7 @@ class MapviewFrame(Frame):
                 self.can_mapview.delete("all")
                 self.can_mapview.create_image(0, 0, image=self._img, anchor=NW)
                 self.can_mapview.update()
-        except Exception:  # Complex exception chain with these calls so catch everything
+        except Exception:  # pylint: disable=broad-except
             self.can_mapview.delete("all")
             self.can_mapview.create_text(w / 2, h / 2 - (w / 20), text=NOWEBMAPERROR3,
                                          fill="red", font=resize_font)

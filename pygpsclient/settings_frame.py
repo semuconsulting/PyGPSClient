@@ -10,7 +10,7 @@ Created on 12 Sep 2020
 
 from tkinter import ttk, Frame, Button, Label, Spinbox, Scrollbar, Listbox, Scale, \
                     Checkbutton, Radiobutton, StringVar, IntVar, DoubleVar, N, S, E, \
-                    W, LEFT, RIGHT, NORMAL, DISABLED, VERTICAL, HORIZONTAL
+                    W, LEFT, NORMAL, DISABLED, VERTICAL, HORIZONTAL
 
 from PIL import ImageTk, Image
 from serial.tools.list_ports import comports
@@ -20,7 +20,7 @@ from .globals import ENTCOL, DDD, DMM, DMS, UMM, UMK, UI, UIK, ADVON, \
                                 NOPORTS, KNOWNGPS, ICON_CONN, ICON_DISCONN, ICON_UBXCONFIG, \
                                 ICON_LOGREAD, BAUDRATES, \
                                 NMEA_PROTOCOL, UBX_PROTOCOL, MIXED_PROTOCOL
-from .strings import LBLUBXCONFIG, LBLPROTDISP, LBLDATADISP, LBLDATALOG, LBLSTREAM
+from .strings import LBLUBXCONFIG, LBLPROTDISP, LBLDATADISP, LBLDATALOG
 
 
 class SettingsFrame(Frame):
@@ -284,7 +284,7 @@ class SettingsFrame(Frame):
 
         self._logpath = self.__app.file_handler.open_logfile_input()
         if self._logpath is not None:
-            self.__app.set_status("Data stream: " + self._logpath, "blue")
+            self.__app.set_status("")
             self.__app.serial_handler.connect_file()
 
     def _toggle_advanced(self):
@@ -317,8 +317,8 @@ class SettingsFrame(Frame):
         if len(self._ports) > 0:
             for idx, (port, desc, _) in enumerate(self._ports, 1):
                 self._lbx_port.insert(idx, port + ": " + desc)
-                for s in KNOWNGPS:
-                    if s in desc:
+                for kgp in KNOWNGPS:
+                    if kgp in desc:
                         init_idx = idx
                         break
             self._noports = False

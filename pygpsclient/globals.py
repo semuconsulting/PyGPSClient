@@ -7,6 +7,7 @@ Created on 14 Sep 2020
 
 @author: semuadmin
 '''
+# pylint: disable=invalid-name, line-too-long
 
 import os
 from math import sin, cos, pi
@@ -70,24 +71,19 @@ UIK = "Imperial knots"
 
 # List of tags to highlight in console
 TAGS = [("DTM", "deepskyblue"), ("GBS", "pink"), \
-        ("GGA", "orange"), ("GSV", "yellow"), ("GLL", "orange"), ("TXT", "lightgrey"), \
-        ("GSA", "green2"), ("RMC", "orange"), ("VTG", "deepskyblue"), ("lat", "lightblue1"), \
-        ("lon", "lightblue1"), ("lat_dir", "lightblue1"), ("lon_dir", "lightblue1"), \
-        ("altitude", "lightblue1"), ("pdop", "lightblue1"), ("UBX", "lightblue1"), \
-        ("UBX00", "aquamarine2"), ("UBX03", "yellow"), ("UBX04", "cyan"), ("UBX05", "orange"), \
+        ("GGA", "orange"), ("GSV", "yellow"), ("GLL", "orange"), ("TXT", "lightgrey"),
+        ("GSA", "green2"), ("RMC", "orange"), ("VTG", "deepskyblue"), ("UBX", "lightblue1"),
+        ("UBX00", "aquamarine2"), ("UBX03", "yellow"), ("UBX04", "cyan"), ("UBX05", "orange"),
         ("UBX06", "orange"), ("ZDA", "cyan"), ("GNS", "orange"), ("VLW", "deepskyblue"),
-        ("GST", "mediumpurple2"), ("INF-ERROR", "red2"), ("INF-WARNING", "orange"), \
-        ("INF-NOTICE", "deepskyblue"), ("vdop", "lightblue1"), ("hdop", "lightblue1"), \
-        ("h_acc", "lightblue1"), ("v_acc", "lightblue1"), ("spd_over_grnd_kmph", "lightblue1"), \
-        ("true_track", "lightblue1"), ("mode_fix_type", "lightblue1"), \
-        ("datum", "lightblue1"), ("ACK-ACK", "green2"), ("ACK-NAK", "orange red"), \
-        ("CFG-MSG", "cyan"), ("xb5b", "lightblue1"), ("NAV-SOL", "green2"), ("NAV-POSLLH", "orange"), \
+        ("GST", "mediumpurple2"), ("INF-ERROR", "red2"), ("INF-WARNING", "orange"),
+        ("INF-NOTICE", "deepskyblue"), ("ACK-ACK", "green2"), ("ACK-NAK", "orange red"),
+        ("CFG-MSG", "cyan"), ("xb5b", "lightblue1"), ("NAV-SOL", "green2"), ("NAV-POSLLH", "orange"),
         ("NAV-VELECEF", "deepskyblue"), ("NAV-VELNED", "deepskyblue"), ("NAV-SVINFO", "yellow"),
         ("NAV-TIMEUTC", "cyan"), ("NAV-STATUS", "green2"), ("NAV-PVT", "orange"),
         ("NAV-DOP", "mediumpurple2"), ("NAV-CLOCK", "cyan"), ("NAV-SBAS", "yellow"),
         ("NAV-SAT", "yellow"), ("NAV-POSECEF", "orange"), ("NAV-TIMEGLO", "cyan"),
         ("NAV-TIMEBDS", "cyan"), ("NAV-TIMEGAL", "cyan"), ("NAV-ORB", "yellow"),
-        ("NAV-TIMELS", "cyan"), ("NAV-TIMEGPS", "cyan"), ("RXM", "skyblue1"), \
+        ("NAV-TIMELS", "cyan"), ("NAV-TIMEGPS", "cyan"), ("RXM", "skyblue1"),
         ("MON", "skyblue1"), ("LOG", "skyblue1")]
 
 
@@ -245,7 +241,7 @@ def hsv2rgb(h: float, s: float, v: float) -> str:
 def snr2col(snr: int) -> str:
     '''
     Convert satellite signal-to-noise ratio to a color
-    high = green, low = red 
+    high = green, low = red
     '''
 
     return hsv2rgb(snr / (MAX_SNR * 2.5), .8, .8)
