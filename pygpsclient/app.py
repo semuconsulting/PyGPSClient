@@ -88,6 +88,7 @@ class App(Frame):
         self.__master.grid_rowconfigure(2, weight=1)
         self._set_default_fonts()
 
+        self.menu = MenuBar(self)
         self.frm_status = StatusFrame(self, borderwidth=2, relief="groove")
         self.frm_banner = BannerFrame(self, borderwidth=2, relief="groove")
         self.frm_settings = SettingsFrame(self, borderwidth=2, relief="groove")
@@ -95,7 +96,6 @@ class App(Frame):
         self.frm_mapview = MapviewFrame(self, borderwidth=2, relief="groove")
         self.frm_satview = SkyviewFrame(self, borderwidth=2, relief="groove")
         self.frm_graphview = GraphviewFrame(self, borderwidth=2, relief="groove")
-        self.menu = MenuBar(self)
 
         self.__master.config(menu=self.menu)
 
@@ -242,10 +242,7 @@ class App(Frame):
 
     def ubxconfig(self):
         '''
-        Open UBX Config dialog
-        Update idle tasks and flush input buffer first
-        to minimise blocking on startup during heavy
-        traffic
+        Start UBX Config dialog thread
         '''
 
         self._config_thread = Thread(target=self._ubxconfig_thread, daemon=False)

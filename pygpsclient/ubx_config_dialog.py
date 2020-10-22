@@ -357,7 +357,7 @@ class UBXConfigDialog():
 
         # poll selected message configuration to get current message rates
         msg = UBXMessage.key_from_val(UBX_CONFIG_MESSAGES, self._cfg_msg_command)
-        data = UBXMessage('CFG', 'CFG-MSG', msg, POLL)
+        data = UBXMessage('CFG', 'CFG-MSG', POLL, payload=msg)
         self.__app.serial_handler.serial_write(data.serialize())
         self._awaiting_cfgmsg = True
         self._lbl_send_cfg_msg.config(image=self._img_pending)
@@ -375,9 +375,9 @@ class UBXConfigDialog():
         rateSPI = b'\x00' if self._spi_onoff.get() == 0 else b'\x01'
         reserved = b'\x00'
         msg_payload = msg + rateDDC + rateUART1 + rateUART2 + rateUSB + rateSPI + reserved
-        data = UBXMessage('CFG', 'CFG-MSG', msg_payload, SET)
+        data = UBXMessage('CFG', 'CFG-MSG', SET, payload=msg_payload)
         self.__app.serial_handler.serial_write(data.serialize())
-        data = UBXMessage('CFG', 'CFG-MSG', msg, POLL)  # poll for a response
+        data = UBXMessage('CFG', 'CFG-MSG', POLL, payload=msg)  # poll for a response
         self.__app.serial_handler.serial_write(data.serialize())
 
         self.set_status("CFG-MSG command sent")
@@ -456,7 +456,7 @@ class UBXConfigDialog():
         '''
 
         for payload in (b'\x00', b'\x01'):  # UBX & NMEA
-            msg = UBXMessage('CFG', 'CFG-INF', payload, POLL)
+            msg = UBXMessage('CFG', 'CFG-INF', POLL, payload=payload)
             self.__app.serial_handler.serial_write(msg.serialize())
 
     def _do_poll_prt(self):
@@ -464,7 +464,7 @@ class UBXConfigDialog():
         Poll PRT message configuration
         '''
 
-        msg = UBXMessage('CFG', 'CFG-PRT', None, POLL)
+        msg = UBXMessage('CFG', 'CFG-PRT', POLL)
         self.__app.serial_handler.serial_write(msg.serialize())
 
     def _do_set_inf(self, onoff):
@@ -487,7 +487,7 @@ class UBXConfigDialog():
             payload = protocolID + reserved1 + infMsgMaskDDC + \
                       infMsgMaskUART1 + infMsgMaskUART2 + infMsgMaskUSB + \
                       infMsgMaskSPI + reserved2
-            msg = UBXMessage('CFG', 'CFG-INF', payload, SET)
+            msg = UBXMessage('CFG', 'CFG-INF', SET, payload=payload)
             self.__app.serial_handler.serial_write(msg.serialize())
             self._do_poll_inf()  # poll results
 
@@ -524,12 +524,12 @@ class UBXConfigDialog():
         '''
 
         for msgtype in UBX_CONFIG_MESSAGES:
-            if msgtype[0:1] == b'\xF0':  # standard NMEA
-                if msgtype in (b'\xF0\x00', b'\xF0\x02', b'\xF0\x03'):  # GGA, GSA, GSV
+            if msgtype[0:1] == b'\xf0':  # standard NMEA
+                if msgtype in (b'\xf0\x00', b'\xf0\x02', b'\xf0\x03'):  # GGA, GSA, GSV
                     self._do_cfgmsg(msgtype, True)
                 else:
                     self._do_cfgmsg(msgtype, False)
-            if msgtype[0:1] == b'\xF1':  # proprietary NMEA
+            if msgtype[0:1] == b'\xf1':  # proprietary NMEA
                 self._do_cfgmsg(msgtype, False)
 
     def _do_set_minNAV(self):
@@ -550,7 +550,7 @@ class UBXConfigDialog():
         '''
 
         for msgtype in UBX_CONFIG_MESSAGES:
-            if msgtype[0:1] not in (b'\x0A', b'\x01'):
+            if msgtype[0:1] not in (b'\x0a', b'\x01'):
                 self._do_cfgmsg(msgtype, onoff)
 
     def _do_set_allNAV(self, onoff):
@@ -572,7 +572,7 @@ class UBXConfigDialog():
         else:
             rate = CFG_MSG_OFF
         payload = msgtype + rate
-        msg = UBXMessage('CFG', 'CFG-MSG', payload, SET)
+        msg = UBXMessage('CFG', 'CFG-MSG', SET, payload=payload)
         self.__app.serial_handler.serial_write(msg.serialize())
 
     def _do_factory_reset(self) -> bool:
@@ -587,7 +587,7 @@ class UBXConfigDialog():
             loadMask = b'\x1f\x1f\x00\x00'
             devicerMask = b'\x01'  # battery backed RAM
             payload = clearMask + saveMask + loadMask + devicerMask
-            msg = UBXMessage('CFG', 'CFG-CFG', payload, SET)
+            msg = UBXMessage('CFG', 'CFG-CFG', SET, payload=payload)
             self.__app.serial_handler.serial_write(msg.serialize())
             return True
 
@@ -605,7 +605,7 @@ class UBXConfigDialog():
             loadMask = b'\x00\x00\x00\x00'
             devicerMask = b'\x01'  # battery backed RAM
             payload = clearMask + saveMask + loadMask + devicerMask
-            msg = UBXMessage('CFG', 'CFG-CFG', payload, SET)
+            msg = UBXMessage('CFG', 'CFG-CFG', SET, payload=payload)
             self.__app.serial_handler.serial_write(msg.serialize())
             return True
 
@@ -628,9 +628,9 @@ class UBXConfigDialog():
             mode = int(seg[i + 3].rstrip('\r\n'))
             if payload != '':
                 payload = bytes(bytearray.fromhex(payload))
-                msg = UBXMessage(ubx_class, ubx_id, payload, mode)
+                msg = UBXMessage(ubx_class, ubx_id, mode, payload=payload)
             else:
-                msg = UBXMessage(ubx_class, ubx_id, None, mode)
+                msg = UBXMessage(ubx_class, ubx_id, mode)
             self.__app.serial_handler.serial_write(msg.serialize())
 
     def set_status(self, message, color="blue"):

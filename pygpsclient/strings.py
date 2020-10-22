@@ -101,7 +101,7 @@ DLGSAVECONFIRM = "Are you sure you want to save\nthe current configuration?"
 
 # UBX Preset Command Descriptions
 PSTRESET = 'CFG-CFG - RESTORE FACTORY DEFAULTS'
-PSTSAVE = 'CFG-CFG - Save current configuration to RAM'
+PSTSAVE = 'CFG-CFG - Save current configuration'
 PSTMINNMEAON = 'CFG-MSG - Turn ON minimum NMEA msgs'
 PSTALLNMEAON = 'CFG-MSG - Turn ON all NMEA msgs'
 PSTALLNMEAOFF = 'CFG-MSG - Turn OFF all NMEA msgs'

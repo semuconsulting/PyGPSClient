@@ -63,7 +63,7 @@ class UBXHandler():
         '''
 
         for msgtype in ('CFG-PRT', 'CFG-USB'):
-            msg = UBXMessage('CFG', msgtype, None, POLL)
+            msg = UBXMessage('CFG', msgtype, POLL)
             serial.write(msg.serialize())
 
     def process_data(self, data: bytes) -> UBXMessage:
@@ -115,7 +115,7 @@ class UBXHandler():
         Process CFG-MSG sentence - UBX message configuration.
         '''
 
-        msgtype = UBX_MSGIDS[data.clsID + data.msgID]
+        msgtype = UBX_MSGIDS[self.msgclass2bytes(data.clsID, data.msgID)]
 
         # update the UBX config panel
         if self.__app.dlg_ubxconfig is not None:
@@ -126,7 +126,7 @@ class UBXHandler():
         Process CFG-MSG sentence - UBX message configuration.
         '''
 
-        msgtype = UBX_MSGIDS[data.clsID + data.msgID]
+        msgtype = UBX_MSGIDS[self.msgclass2bytes(data.clsID, data.msgID)]
 
         # update the UBX config panel
         if self.__app.dlg_ubxconfig is not None:
@@ -137,7 +137,7 @@ class UBXHandler():
         Process CFG-MSG sentence - UBX message configuration.
         '''
 
-        msgtype = UBX_CONFIG_MESSAGES[data.msgClass + data.msgID]
+        msgtype = UBX_CONFIG_MESSAGES[self.msgclass2bytes(data.msgClass, data.msgID)]
         ddcrate = data.rateDDC
         uart1rate = data.rateUART1
         uart2rate = data.rateUART2
@@ -300,3 +300,13 @@ class UBXHandler():
         except ValueError:
             # self.__app.set_status(ube.UBXMessageError(err), "red")
             pass
+
+    @staticmethod
+    def msgclass2bytes(msgClass: int, msgID: int) -> bytes:
+        '''
+        Convert message class/id integers to bytes
+        '''
+
+        msgClass = msgClass.to_bytes(1, byteorder="little", signed=False)
+        msgID = msgID.to_bytes(1, byteorder="little", signed=False)
+        return msgClass + msgID
