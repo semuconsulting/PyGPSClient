@@ -340,7 +340,7 @@ class UBXConfigDialog():
         outProtoMask = int.to_bytes(self._ubx_outprot.get(), 2, 'little', signed=False)
         payload = portID + reserved0 + txReady + mode + baudRate + inProtoMask \
                   +outProtoMask + reserved4 + reserved5
-        msg = UBXMessage('CFG', 'CFG-PRT', payload, SET)
+        msg = UBXMessage('CFG', 'CFG-PRT', SET, payload=payload)
         self.__app.serial_handler.serial_write(msg.serialize())
 
         self._do_poll_prt()  # poll for confirmation
