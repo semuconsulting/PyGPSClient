@@ -611,9 +611,9 @@ class UBXConfigDialog():
         if messagebox.askokcancel(DLGRESET, DLGRESETCONFIRM):
             clearMask = b'\x1f\x1f\x00\x00'
             loadMask = b'\x1f\x1f\x00\x00'
-            devicerMask = b'\x07'  # target RAM, Flash and EEPROM
+            deviceMask = b'\x07'  # target RAM, Flash and EEPROM
             msg = UBXMessage('CFG', 'CFG-CFG', SET, clearMask=clearMask,
-                             loadMask=loadMask, devicerMask=devicerMask)
+                             loadMask=loadMask, deviceMask=deviceMask)
             self.__app.serial_handler.serial_write(msg.serialize())
             return True
 
@@ -621,15 +621,15 @@ class UBXConfigDialog():
 
     def _do_save_config(self) -> bool:
         '''
-        Save current configuration to battery-backed RAM
+        Save current configuration to persistent storage
         but display confirmation message box first.
         '''
 
         if messagebox.askokcancel(DLGSAVE, DLGSAVECONFIRM):
             saveMask = b'\x1f\x1f\x00\x00'
-            devicerMask = b'\x07'  # target RAM, Flash and EEPROM
+            deviceMask = b'\x07'  # target RAM, Flash and EEPROM
             msg = UBXMessage('CFG', 'CFG-CFG', SET, saveMask=saveMask,
-                             devicerMask=devicerMask)
+                             deviceMask=deviceMask)
             self.__app.serial_handler.serial_write(msg.serialize())
             return True
 
