@@ -27,6 +27,7 @@ from .strings import LBLUBXCONFIG, LBLCFGPRT, LBLCFGMSG, LBLPRESET, DLGUBXCONFIG
                      PSTPOLLINFO
 
 from .ubx_handler import UBXHandler as ubh, CFG_MSG_OFF, CFG_MSG_ON
+from numpy import rate
 
 PRESET_COMMMANDS = [
 PSTRESET, PSTSAVE, PSTMINNMEAON, PSTALLNMEAON, PSTALLNMEAOFF,
@@ -133,6 +134,7 @@ class UBXConfigDialog():
         # *******************************************************
         # CFG-MSG Message Selection
         # *******************************************************
+        MAX_RATE = 0xff
         self._lbl_cfg_msg = Label(con, text=LBLCFGMSG,
                                   bg=LBL_COL, anchor='w')
         self._lbx_cfg_msg = Listbox(con, border=2,
@@ -143,19 +145,19 @@ class UBXConfigDialog():
         self._lbx_cfg_msg.config(yscrollcommand=self._scr_cfg_msg.set)
         self._scr_cfg_msg.config(command=self._lbx_cfg_msg.yview)
         self._lbl_ddc = Label(con, text='DDC (I2C)')
-        self._spn_ddc = Spinbox(con, width=2, from_=0, to=9,
+        self._spn_ddc = Spinbox(con, width=3, from_=0, to=MAX_RATE,
                                 textvariable=self._ddc_rate,
                                 state=READONLY, readonlybackground=ENTCOL)
         self._lbl_uart1 = Label(con, text='UART1')
-        self._spn_uart1 = Spinbox(con, width=2, from_=0, to=9,
+        self._spn_uart1 = Spinbox(con, width=3, from_=0, to=MAX_RATE,
                                   textvariable=self._uart1_rate,
                                   state=READONLY, readonlybackground=ENTCOL)
         self._lbl_usb = Label(con, text='USB')
-        self._spn_usb = Spinbox(con, width=2, from_=0, to=9,
+        self._spn_usb = Spinbox(con, width=3, from_=0, to=MAX_RATE,
                                 textvariable=self._usb_rate,
                                 state=READONLY, readonlybackground=ENTCOL)
         self._lbl_spi = Label(con, text='SPI')
-        self._spn_spi = Spinbox(con, width=2, from_=0, to=9,
+        self._spn_spi = Spinbox(con, width=3, from_=0, to=MAX_RATE,
                                 textvariable=self._spi_rate,
                                 state=READONLY, readonlybackground=ENTCOL)
         self._lbl_send_cfg_msg = Label(con)
@@ -425,31 +427,31 @@ class UBXConfigDialog():
             elif self._preset_command == PSTMINNMEAON:
                 self._do_set_minnmea()
             elif self._preset_command == PSTALLNMEAON:
-                self._do_set_allnmea(True)
+                self._do_set_allnmea(1)
             elif self._preset_command == PSTALLNMEAOFF:
-                self._do_set_allnmea(False)
+                self._do_set_allnmea(0)
             elif self._preset_command == PSTMINUBXON:
                 self._do_set_minNAV()
             elif self._preset_command == PSTALLUBXON:
-                self._do_set_allNAV(True)
+                self._do_set_allNAV(1)
             elif self._preset_command == PSTALLUBXOFF:
-                self._do_set_allNAV(False)
+                self._do_set_allNAV(0)
             elif self._preset_command == PSTALLINFON:
                 self._do_set_inf(True)
             elif self._preset_command == PSTALLINFOFF:
                 self._do_set_inf(False)
             elif self._preset_command == PSTALLLOGON:
-                self._do_set_log(True)
+                self._do_set_log(4)
             elif self._preset_command == PSTALLLOGOFF:
-                self._do_set_log(False)
+                self._do_set_log(0)
             elif self._preset_command == PSTALLMONON:
-                self._do_set_mon(True)
+                self._do_set_mon(4)
             elif self._preset_command == PSTALLMONOFF:
-                self._do_set_mon(False)
+                self._do_set_mon(0)
             elif self._preset_command == PSTALLRXMON:
-                self._do_set_rxm(True)
+                self._do_set_rxm(4)
             elif self._preset_command == PSTALLRXMOFF:
-                self._do_set_rxm(False)
+                self._do_set_rxm(0)
             elif self._preset_command == PSTPOLLPORT:
                 self._do_poll_prt()
             elif self._preset_command == PSTPOLLINFO:
@@ -509,32 +511,32 @@ class UBXConfigDialog():
             self.__app.serial_handler.serial_write(msg.serialize())
             self._do_poll_inf()  # poll results
 
-    def _do_set_log(self, onoff):
+    def _do_set_log(self, msgrate):
         '''
         Turn on all device logging messages LOG
         '''
 
         for msgtype in UBX_CONFIG_MESSAGES:
             if msgtype[0:1] == b'\x21':
-                self._do_cfgmsg(msgtype, onoff)
+                self._do_cfgmsg(msgtype, msgrate)
 
-    def _do_set_mon(self, onoff):
+    def _do_set_mon(self, msgrate):
         '''
         Turn on all device monitoring messages MON
         '''
 
         for msgtype in UBX_CONFIG_MESSAGES:
             if msgtype[0:1] == b'\x0A':
-                self._do_cfgmsg(msgtype, onoff)
+                self._do_cfgmsg(msgtype, msgrate)
 
-    def _do_set_rxm(self, onoff):
+    def _do_set_rxm(self, msgrate):
         '''
         Turn on all device receiver management messages RXM
         '''
 
         for msgtype in UBX_CONFIG_MESSAGES:
             if msgtype[0:1] == b'\x02':
-                self._do_cfgmsg(msgtype, onoff)
+                self._do_cfgmsg(msgtype, msgrate)
 
     def _do_set_minnmea(self):
         '''
@@ -543,12 +545,14 @@ class UBXConfigDialog():
 
         for msgtype in UBX_CONFIG_MESSAGES:
             if msgtype[0:1] == b'\xf0':  # standard NMEA
-                if msgtype in (b'\xf0\x00', b'\xf0\x02', b'\xf0\x03'):  # GGA, GSA, GSV
-                    self._do_cfgmsg(msgtype, True)
+                if msgtype in (b'\xf0\x00', b'\xf0\x02'):  # GGA, GSA
+                    self._do_cfgmsg(msgtype, 1)
+                elif msgtype == b'\xf0\x03':  # GSV
+                    self._do_cfgmsg(msgtype, 4)
                 else:
-                    self._do_cfgmsg(msgtype, False)
+                    self._do_cfgmsg(msgtype, 0)
             if msgtype[0:1] == b'\xf1':  # proprietary NMEA
-                self._do_cfgmsg(msgtype, False)
+                self._do_cfgmsg(msgtype, 0)
 
     def _do_set_minNAV(self):
         '''
@@ -557,40 +561,45 @@ class UBXConfigDialog():
 
         for msgtype in UBX_CONFIG_MESSAGES:
             if msgtype[0:1] == b'\x01':  # UBX-NAV
-                if msgtype in (b'\x01\x07', b'\x01\x30'):  # NAV-PVT, NAV-SVINFO
-                    self._do_cfgmsg(msgtype, True)
+                if msgtype == b'\x01\x07':  # NAV-PVT
+                    self._do_cfgmsg(msgtype, 1)
+                elif msgtype == b'\x01\x30':  # NAV-SVINFO
+                    self._do_cfgmsg(msgtype, 4)
                 else:
-                    self._do_cfgmsg(msgtype, False)
+                    self._do_cfgmsg(msgtype, 0)
 
-    def _do_set_allnmea(self, onoff):
+    def _do_set_allnmea(self, msgrate):
         '''
         Turn on all NMEA messages
         '''
 
         for msgtype in UBX_CONFIG_MESSAGES:
             if msgtype[0:1] not in (b'\x0a', b'\x01'):
-                self._do_cfgmsg(msgtype, onoff)
+                self._do_cfgmsg(msgtype, msgrate)
 
-    def _do_set_allNAV(self, onoff):
+    def _do_set_allNAV(self, msgrate):
         '''
         Turn on all UBX-NAV messages
         '''
 
         for msgtype in UBX_CONFIG_MESSAGES:
             if msgtype[0:1] == b'\x01':
-                self._do_cfgmsg(msgtype, onoff)
+                self._do_cfgmsg(msgtype, msgrate)
 
-    def _do_cfgmsg(self, msgtype, onoff):
+    def _do_cfgmsg(self, msgtype, msgrate):
         '''
-        Send CFG-MSG for specified message type
+        Set rate for specified message type via CFG-MSG
+        
+        NB A rate of n means 'for every nth position solution', 
+        so values > 1 mean the message is sent less often.
         '''
 
-        if onoff:
-            rate = CFG_MSG_ON
-        else:
-            rate = CFG_MSG_OFF
-        payload = msgtype + rate
-        msg = UBXMessage('CFG', 'CFG-MSG', SET, payload=payload)
+        msgClass = int.from_bytes(msgtype[0:1], 'little', signed=False)
+        msgID = int.from_bytes(msgtype[1:2], 'little', signed=False)
+        msg = UBXMessage('CFG', 'CFG-MSG', SET,
+                         msgClass=msgClass, msgID=msgID,
+                         rateDDC=msgrate, rateUART1=msgrate,
+                         rateUSB=msgrate, rateSPI=msgrate)
         self.__app.serial_handler.serial_write(msg.serialize())
 
     def _do_factory_reset(self) -> bool:
@@ -601,11 +610,10 @@ class UBXConfigDialog():
 
         if messagebox.askokcancel(DLGRESET, DLGRESETCONFIRM):
             clearMask = b'\x1f\x1f\x00\x00'
-            saveMask = b'\x00\x00\x00\x00'
             loadMask = b'\x1f\x1f\x00\x00'
-            devicerMask = b'\x01'  # battery backed RAM
-            payload = clearMask + saveMask + loadMask + devicerMask
-            msg = UBXMessage('CFG', 'CFG-CFG', SET, payload=payload)
+            devicerMask = b'\x07'  # target RAM, Flash and EEPROM
+            msg = UBXMessage('CFG', 'CFG-CFG', SET, clearMask=clearMask,
+                             loadMask=loadMask, devicerMask=devicerMask)
             self.__app.serial_handler.serial_write(msg.serialize())
             return True
 
@@ -618,12 +626,10 @@ class UBXConfigDialog():
         '''
 
         if messagebox.askokcancel(DLGSAVE, DLGSAVECONFIRM):
-            clearMask = b'\x00\x00\x00\x00'
             saveMask = b'\x1f\x1f\x00\x00'
-            loadMask = b'\x00\x00\x00\x00'
-            devicerMask = b'\x01'  # battery backed RAM
-            payload = clearMask + saveMask + loadMask + devicerMask
-            msg = UBXMessage('CFG', 'CFG-CFG', SET, payload=payload)
+            devicerMask = b'\x07'  # target RAM, Flash and EEPROM
+            msg = UBXMessage('CFG', 'CFG-CFG', SET, saveMask=saveMask,
+                             devicerMask=devicerMask)
             self.__app.serial_handler.serial_write(msg.serialize())
             return True
 
