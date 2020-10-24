@@ -31,7 +31,7 @@ BTN_DISCONNECT = "\u2587"  # text on "Disconnected" button
 
 MAPURL = "https://www.mapquestapi.com/staticmap/v5/map?key={}&locations={},{}&zoom={}&defaultMarker=marker-sm-616161-ff4444&shape=radius:{}|weight:1|fill:ccffff50|border:88888850|{},{}&size={},{}"
 MAP_UPDATE_INTERVAL = 60  # how frequently the mapquest api is called to update the web map
-SAT_EXPIRY = 60  # how long passed satellites are kept in the sky and graph views
+SAT_EXPIRY = 10  # how long passed satellites are kept in the sky and graph views
 MAX_SNR = 60  # upper limit of graphview snr axis
 DEVICE_ACCURACY = 2.5  # nominal GPS device accuracy (CEP) in meters
 HDOP_RATIO = 20  # arbitrary calibration of accuracy against HDOP
