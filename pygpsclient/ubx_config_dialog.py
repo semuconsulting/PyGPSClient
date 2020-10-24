@@ -73,10 +73,10 @@ class UBXConfigDialog():
         self._ubx_baudrate = StringVar()
         self._ubx_inprot = IntVar()
         self._ubx_outprot = IntVar()
-        self._ddc_onoff = IntVar()
-        self._uart1_onoff = IntVar()
-        self._usb_onoff = IntVar()
-        self._spi_onoff = IntVar()
+        self._ddc_rate = IntVar()
+        self._uart1_rate = IntVar()
+        self._usb_rate = IntVar()
+        self._spi_rate = IntVar()
 
         self._body()
         self._do_layout()
@@ -98,7 +98,7 @@ class UBXConfigDialog():
         con.option_add("*Font", self.__app.font_sm)
 
         self._lbl_title = Label(con, text=LBLUBXCONFIG, bg=BGCOL, fg=FGCOL,
-                                justify=LEFT, font=self.__app.font_md, width=55)
+                                justify=LEFT, font=self.__app.font_md)
         # *******************************************************
         # Port Configuration
         # *******************************************************
@@ -125,7 +125,7 @@ class UBXConfigDialog():
                                             variable=self._ubx_outprot, value=1)
         self._rad_outprot_both = Radiobutton(con, text="ALL",
                                              variable=self._ubx_outprot, value=3)
-        self._lbl_send_port = Label(con)
+        self._lbl_send_port = Label(con, image=self._img_pending)
         self._btn_send_port = Button(con, image=self._img_send, width=50,
                                      command=self._on_send_port,
                                      font=self.__app.font_md)
@@ -142,10 +142,22 @@ class UBXConfigDialog():
         self._scr_cfg_msg = Scrollbar(con, orient=VERTICAL)
         self._lbx_cfg_msg.config(yscrollcommand=self._scr_cfg_msg.set)
         self._scr_cfg_msg.config(command=self._lbx_cfg_msg.yview)
-        self._chk_ddc = Checkbutton(con, text='DDC (I2C)', variable=self._ddc_onoff)
-        self._chk_uart1 = Checkbutton(con, text='UART1', variable=self._uart1_onoff)
-        self._chk_usb = Checkbutton(con, text='USB', variable=self._usb_onoff)
-        self._chk_spi = Checkbutton(con, text='SPI', variable=self._spi_onoff)
+        self._lbl_ddc = Label(con, text='DDC (I2C)')
+        self._spn_ddc = Spinbox(con, width=2, from_=0, to=9,
+                                textvariable=self._ddc_rate,
+                                state=READONLY, readonlybackground=ENTCOL)
+        self._lbl_uart1 = Label(con, text='UART1')
+        self._spn_uart1 = Spinbox(con, width=2, from_=0, to=9,
+                                  textvariable=self._uart1_rate,
+                                  state=READONLY, readonlybackground=ENTCOL)
+        self._lbl_usb = Label(con, text='USB')
+        self._spn_usb = Spinbox(con, width=2, from_=0, to=9,
+                                textvariable=self._usb_rate,
+                                state=READONLY, readonlybackground=ENTCOL)
+        self._lbl_spi = Label(con, text='SPI')
+        self._spn_spi = Spinbox(con, width=2, from_=0, to=9,
+                                textvariable=self._spi_rate,
+                                state=READONLY, readonlybackground=ENTCOL)
         self._lbl_send_cfg_msg = Label(con)
         self._btn_send_cfg_msg = Button(con, image=self._img_send, width=50, fg="green",
                                        command=self._on_send_cfg_msg, font=self.__app.font_md)
@@ -205,13 +217,17 @@ class UBXConfigDialog():
         ttk.Separator(self._frm_container).grid(column=0, row=5, columnspan=6,
                                                 padx=3, pady=3, sticky=(W, E))
         self._lbl_cfg_msg.grid(column=0, row=6, columnspan=6, padx=3, sticky=(W, E))
-        self._lbx_cfg_msg.grid(column=0, row=7, columnspan=3, rowspan=4, padx=3,
+        self._lbx_cfg_msg.grid(column=0, row=7, columnspan=2, rowspan=4, padx=3,
                                pady=3, sticky=(W, E))
-        self._scr_cfg_msg.grid(column=2, row=7, rowspan=4, sticky=(N, S, E))
-        self._chk_ddc.grid(column=3, row=7, padx=0, pady=0, sticky=(W))
-        self._chk_uart1.grid(column=3, row=8, padx=0, pady=0, sticky=(W))
-        self._chk_usb.grid(column=3, row=9, padx=0, pady=0, sticky=(W))
-        self._chk_spi.grid(column=3, row=10, padx=0, pady=0, sticky=(W))
+        self._scr_cfg_msg.grid(column=1, row=7, rowspan=4, sticky=(N, S, E))
+        self._lbl_ddc.grid(column=2, row=7, padx=0, pady=0, sticky=(E))
+        self._spn_ddc.grid(column=3, row=7, padx=0, pady=0, sticky=(W))
+        self._lbl_uart1.grid(column=2, row=8, padx=0, pady=0, sticky=(E))
+        self._spn_uart1.grid(column=3, row=8, padx=0, pady=0, sticky=(W))
+        self._lbl_usb.grid(column=2, row=9, padx=0, pady=0, sticky=(E))
+        self._spn_usb.grid(column=3, row=9, padx=0, pady=0, sticky=(W))
+        self._lbl_spi.grid(column=2, row=10, padx=0, pady=0, sticky=(E))
+        self._spn_spi.grid(column=3, row=10, padx=0, pady=0, sticky=(W))
         self._btn_send_cfg_msg.grid(column=4, row=7, rowspan=4, ipadx=3, ipady=3,
                                    sticky=(E))
         self._lbl_send_cfg_msg.grid(column=5, row=7, rowspan=4, ipadx=3,
@@ -300,10 +316,10 @@ class UBXConfigDialog():
         if self._awaiting_cfgmsg:
             if cfgtype == 'CFG-MSG':
                 self.set_status(f"{cfgtype} received", "green")
-                self._ddc_onoff.set(1 if kwargs['ddcrate'] > 0 else 0)
-                self._uart1_onoff.set(1 if kwargs['uart1rate'] > 0 else 0)
-                self._usb_onoff.set(1 if kwargs['usbrate'] > 0 else 0)
-                self._spi_onoff.set(1 if kwargs['spirate'] > 0 else 0)
+                self._ddc_rate.set(kwargs.get('ddcrate', 0))
+                self._uart1_rate.set(kwargs.get('uart1rate', 0))
+                self._usb_rate.set(kwargs.get('usbrate', 0))
+                self._spi_rate.set(kwargs.get('spirate', 0))
                 self._lbl_send_cfg_msg.config(image=self._img_confirmed)
                 self._awaiting_cfgmsg = False
             if cfgtype == 'ACK-NAK':
@@ -368,14 +384,16 @@ class UBXConfigDialog():
         '''
 
         msg = UBXMessage.key_from_val(UBX_CONFIG_MESSAGES, self._cfg_msg_command)
-        rateDDC = b'\x00' if self._ddc_onoff.get() == 0 else b'\x01'
-        rateUART1 = b'\x00' if self._uart1_onoff.get() == 0 else b'\x01'
-        rateUART2 = b'\x00'
-        rateUSB = b'\x00' if self._usb_onoff.get() == 0 else b'\x01'
-        rateSPI = b'\x00' if self._spi_onoff.get() == 0 else b'\x01'
-        reserved = b'\x00'
-        msg_payload = msg + rateDDC + rateUART1 + rateUART2 + rateUSB + rateSPI + reserved
-        data = UBXMessage('CFG', 'CFG-MSG', SET, payload=msg_payload)
+        msgClass = int.from_bytes(msg[0:1], 'little', signed=False)
+        msgID = int.from_bytes(msg[1:2], 'little', signed=False)
+        rateDDC = int(self._ddc_rate.get())
+        rateUART1 = int(self._uart1_rate.get())
+        rateUSB = int(self._usb_rate.get())
+        rateSPI = int(self._spi_rate.get())
+        data = UBXMessage('CFG', 'CFG-MSG', SET,
+                          msgClass=msgClass, msgID=msgID,
+                          rateDDC=rateDDC, rateUART1=rateUART1,
+                          rateUSB=rateUSB, rateSPI=rateSPI)
         self.__app.serial_handler.serial_write(data.serialize())
         data = UBXMessage('CFG', 'CFG-MSG', POLL, payload=msg)  # poll for a response
         self.__app.serial_handler.serial_write(data.serialize())
