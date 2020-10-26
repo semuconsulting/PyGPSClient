@@ -52,17 +52,21 @@ to select the directory into which timestamped log files are saved.
 ![ubxconfig widget screenshot](/images/ubxconfig_widget.png)
 
 The UBX Configuration Dialog currently supports the following UBX configuration commands:
-1. CFG-PRT sets baudrate and inbound/outbound protocols across all available ports 
-(*note that* an active USB port will always report a baudrate of 0).
+1. CFG-PRT sets baud rate and inbound/outbound protocols across all available ports 
+(*note that* an active USB port may report a baud rate of 0 on some platforms).
 1. CFG-MSG sets message rates per port for NMEA protocol messages (standard & proprietary) and UBX protocol messages.
 1. PRESET commands support a variety of preset and user-defined commands - see [user defined presets](#userdefined)
 
 An icon to the right of each 'SEND' 
 ![send icon](/pygpsclient/resources/iconmonstr-arrow-12-24.png) button indicates the latest polled state of the displayed configuration 
-(pending ![pending icon](/pygpsclient/resources/iconmonstr-time-6-24.png), 
+(pending i.e. awaiting confirmation ![pending icon](/pygpsclient/resources/iconmonstr-time-6-24.png), 
 confirmed ![confirmed icon](/pygpsclient/resources/iconmonstr-check-mark-8-24.png) or 
-warning ![warning icon](/pygpsclient/resources/iconmonstr-warning-1-24.png)). A warning icon (typically accompanied by an ACK-NAK response) may simply indicate that this particular configuration message type is not supported by your receiver. **NB** this is not a 100% reliable indication as the UBX protocol does not
-support explicit command handshaking, and confirmation responses can occasionally get lost or delayed in heavy inbound traffic. To ensure timely confirmation responses, try temporarily minimising periodic inbound traffic using the preset commands provided.
+warning ![warning icon](/pygpsclient/resources/iconmonstr-warning-1-24.png)). 
+
+**Note:**
+* Command confirmation is not always 100% reliable as the UBX protocol does not support explicit command handshaking, and confirmation responses can occasionally get discarded or delayed at low baud rates. To ensure timely confirmation responses, try increasing the baud rate and/or temporarily minimising periodic inbound traffic using the preset commands provided.
+* A warning icon (typically accompanied by an ACK-NAK response) is usually an indication that one or more of the messages sent is not supported by your receiver. 
+
 
 #### Glossary of Terms
 
