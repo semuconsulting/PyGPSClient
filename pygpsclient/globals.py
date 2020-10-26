@@ -155,20 +155,28 @@ def ft2m(feet: float) -> float:
     return feet / 3.28084
 
 
-def kmph2mph(kmph: float) -> float:
+def ms2kmph(ms: float) -> float:
     '''
-    Convert kilometers per hour to miles per hour
-    '''
-
-    return kmph * 0.6213712419
-
-
-def mph2kmph(mph: float) -> float:
-    '''
-    Convert miles per hour to kilometers per hour
+    Convert meters per second to kilometers per hour
     '''
 
-    return mph / 0.6213712419
+    return ms * 3.599999532
+
+
+def ms2mph(ms: float) -> float:
+    '''
+    Convert meters per second to miles per hour
+    '''
+
+    return ms * 1.943843307
+
+
+def ms2knots(ms: float) -> float:
+    '''
+    Convert meters per second to knots
+    '''
+
+    return ms * 3.599999532
 
 
 def kmph2ms(kmph: float) -> float:
@@ -179,20 +187,12 @@ def kmph2ms(kmph: float) -> float:
     return kmph * 0.2777778
 
 
-def kmph2knots(kmph: float) -> float:
+def knots2ms(knots: float) -> float:
     '''
-    Convert kilometers per hour to knots
-    '''
-
-    return kmph / 1.852001
-
-
-def ms2kmph(ms: float) -> float:
-    '''
-    Convert meters per second to kilometers per hour
+    Convert knots to meters per second
     '''
 
-    return ms / 0.2777778
+    return knots * 0.5144447324
 
 
 def pos2iso6709(lat :float, lon: float, alt: float, crs: str="WGS_84") -> str:

@@ -2,7 +2,7 @@
 
 PyGPSClient is a graphical GNSS/GPS testing and diagnostic client application written entirely in Python and tkinter.
 
-![full app screenshot](/images/all_widgets2.png)
+![full app screenshot](/images/all_widgets.png)
 
 The application runs on any platform which supports a Python3 interpreter (>=3.6) and tkinter (>=8.6) GUI framework, 
 including Windows, MacOS, Linux and Raspberry Pi OS. It displays location and diagnostic data from any NMEA or UBX (u-blox &copy;) 
@@ -25,7 +25,7 @@ implements a **[new pyubx2 library](https://github.com/semuconsulting/pyubx2)** 
 1. Data logging.
 1. UBX Configuration Dialog, with the ability to send a variety of UBX configuration messages to u-blox GNSS devices. This includes the facility to add **user-defined messages or message sequences** - see instructions under [installation](#installation) below.
 
-![sats & mercator widget screenshot](/images/sats_mercator_widget.png)
+![compact view screenshot](/images/min_widgets.png)
 
 ## How to Use
 
@@ -70,11 +70,11 @@ warning ![warning icon](/pygpsclient/resources/iconmonstr-warning-1-24.png)).
 
 #### Glossary of Terms
 
-* utc - coordinated universal time 
-* siv - satellites in view
-* sip - satellites used in position solution
-* dop - [dilution of precision](https://gisgeography.com/gps-accuracy-hdop-pdop-gdop-multipath/) (pdop - position, hdop - horizontal, vdop - vertical)
-* acc - accuracy of location in real units (hacc - horizontal, vacc - vertical)
+* utc - coordinated universal time.
+* siv - satellites in view.
+* sip - satellites used in position solution.
+* dop - [dilution of precision](https://gisgeography.com/gps-accuracy-hdop-pdop-gdop-multipath/) (pdop - position, hdop - horizontal, vdop - vertical).
+* acc - accuracy of location in real units (hacc - horizontal, vacc - vertical). Note that location accuracy is not directly provided via the standard NMEA message set, but is available via some proprietary NMEA messages e.g. UBX00.
 
 ### Current Status
 
@@ -88,7 +88,7 @@ Alpha. Main application and widgets are fully functional for both NMEA and UBX p
 
 Known Issues:
 1. Application menu options can occasionally become momentarily unresponsive in heavy inbound traffic 
-due to serial read blocking. This is in hand.
+due to serial read blocking.
 
 Constructive feedback welcome.
 
@@ -154,7 +154,7 @@ limit under normal use. **NB:** this facility is *not* intended to be used for r
 Once you have received the API key (a 32-character alphanumeric string), copy it to a file named `mqapikey` (lower case, 
 no extension) and place this file in the user's home directory.
 
-*The web map refresh rate can be amended if required by changing the MAP_UPDATE_INTERVAL constant in `globals.py` *.
+*The web map refresh rate can be amended if required by changing the MAP_UPDATE_INTERVAL constant in `globals.py`.
 
 ### <a name="userdefined">User Defined Presets</a>
 

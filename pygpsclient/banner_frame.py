@@ -15,8 +15,8 @@ from tkinter import Frame, Label, Button, StringVar, font, N, S, W, E, SUNKEN
 from PIL import ImageTk, Image
 from pyubx2 import UBXMessage
 
-from .globals import deg2dmm, deg2dms, m2ft, kmph2mph, kmph2ms, kmph2knots, \
-                                DMM, DMS, UMM, UI, UIK, ICON_CONN, ICON_DISCONN, \
+from .globals import deg2dmm, deg2dms, m2ft, ms2mph, ms2kmph, ms2knots, \
+                                DMM, DMS, UMK, UI, UIK, ICON_CONN, ICON_DISCONN, \
                                 ICON_LOGREAD, CONNECTED, CONNECTED_FILE, \
                                 BGCOL, FGCOL, ADVOFF, ADVON
 
@@ -226,17 +226,17 @@ class BannerFrame(Frame):
                 self._speed_u.set('')
             else:
                 if units == UI:
-                    self._speed.set(round(kmph2mph(float(kwargs['speed'])), 1))
+                    self._speed.set(round(ms2mph(float(kwargs['speed'])), 1))
                     self._speed_u.set('mph')
                 elif units == UIK:
-                    self._speed.set(round(kmph2knots(float(kwargs['speed'])), 1))
+                    self._speed.set(round(ms2knots(float(kwargs['speed'])), 1))
                     self._speed_u.set('knots')
-                elif units == UMM:
-                    self._speed.set(round(kmph2ms(float(kwargs['speed'])), 1))
-                    self._speed_u.set('m/s')
+                elif units == UMK:
+                    self._speed.set(round(ms2kmph(float(kwargs['speed'])), 1))
+                    self._speed_u.set('kmph')
                 else:
                     self._speed.set(round(kwargs['speed'], 1))
-                    self._speed_u.set('kmph')
+                    self._speed_u.set('m/s')
         if 'track' in kwargs:
             if kwargs['track'] is None:
                 self._track.set('N/A')

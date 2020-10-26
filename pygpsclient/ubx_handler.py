@@ -217,7 +217,7 @@ class UBXHandler():
             self.vacc = data.vAcc / 1000
             self.pdop = data.pDOP / 100
             self.sip = data.numSV
-            self.speed = data.gSpeed / 100
+            self.speed = data.gSpeed / 1000  # m/s
             self.track = data.headMot / 10 ** 5
             fix = UBXMessage.gpsfix2str(data.fixType)
             self.__app.frm_banner.update_banner(time=self.utc, lat=self.lat,
@@ -244,7 +244,7 @@ class UBXHandler():
 
         try:
             self.track = data.heading / 10 ** 5
-            self.speed = data.gSpeed / 100
+            self.speed = data.gSpeed / 100  # m/s
             self.__app.frm_banner.update_banner(speed=self.speed, track=self.track)
         except ValueError:
             # self.__app.set_status(ube.UBXMessageError(err), "red")

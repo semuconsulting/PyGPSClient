@@ -13,7 +13,7 @@ from time import time
 from pynmea2 import parse as nmea_parse, ParseError, types, RMC, VTG, GSV, GGA, GSA, GLL
 from pynmea2.types.proprietary.ubx import UBX00
 
-from .globals import DEVICE_ACCURACY, HDOP_RATIO, SAT_EXPIRY
+from .globals import DEVICE_ACCURACY, HDOP_RATIO, SAT_EXPIRY, knots2ms, kmph2ms
 from .strings import NMEAVALERROR
 
 
@@ -99,7 +99,7 @@ class NMEAHandler():
         try:
             self.utc = data.timestamp
             (self.lat, self.lon) = self.nmea2latlon(data)
-            self.speed = data.spd_over_grnd
+            self.speed = knots2ms(data.spd_over_grnd)  # convert to m/s
             self.track = data.true_course
             self.__app.frm_banner.update_banner(time=self.utc, lat=self.lat,
                                                 lon=self.lon, speed=self.speed,
@@ -218,7 +218,7 @@ class NMEAHandler():
 
         try:
             self.track = data.true_track
-            self.speed = data.spd_over_grnd_kmph
+            self.speed = kmph2ms(data.spd_over_grnd_kmph)  # convert to m/s
             self.__app.frm_banner.update_banner(speed=self.speed, track=self.track)
         except ValueError as err:
             self.__app.set_status(NMEAVALERROR.format(err), "red")
