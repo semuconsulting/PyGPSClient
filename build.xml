@@ -34,4 +34,13 @@
 			<arg line="${deploy_args}"/>
   		</exec>
    	</target>
+	<target name = "install_locally" depends="build">
+		<input message="Enter version to be installed:"
+		       addproperty="version"/>
+		<property name="install_args" value="-m pip install dist/PyGPSClient-${version}.tar.gz --user" />
+		<echo>Installing ${version} locally...</echo>
+		<exec executable="${python}">
+			<arg line="${install_args}"/>
+  		</exec>
+   	</target>
 </project>

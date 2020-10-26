@@ -1,6 +1,7 @@
 Enable NMEA RMC sentence, CFG, CFG-MSG, f004010100010100, 1
 Enable NMEA VTG sentence, CFG, CFG-MSG, f005010100010100, 1
 Enable NMEA UBX00 & UBX03 sentences, CFG, CFG-MSG, f100010100010100, 1, CFG, CFG-MSG, f103010100010100, 1
+Poll Receiver Software Version, MON, MON-VER, , 2
 Poll Datum, CFG, CFG-DAT, , 2
 Poll GNSS config, CFG, CFG-GNSS, , 2
 Poll NMEA config, CFG, CFG-NMEA, , 2

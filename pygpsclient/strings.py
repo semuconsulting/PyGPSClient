@@ -101,7 +101,7 @@ DLGSAVECONFIRM = "Are you sure you want to save\nthe current configuration?\nNOT
 
 # UBX Preset Command Descriptions
 PSTRESET = 'CFG-CFG - RESTORE FACTORY DEFAULTS'
-PSTSAVE = 'CFG-CFG - Save current configuration'
+PSTSAVE = 'CFG-CFG - SAVE CURRENT CONFIGURATION'
 PSTMINNMEAON = 'CFG-MSG - Turn ON minimum NMEA msgs'
 PSTALLNMEAON = 'CFG-MSG - Turn ON all NMEA msgs'
 PSTALLNMEAOFF = 'CFG-MSG - Turn OFF all NMEA msgs'
@@ -118,3 +118,4 @@ PSTALLRXMON = 'CFG-MSG - Turn ON all RXM msgs'
 PSTALLRXMOFF = 'CFG-MSG - Turn OFF all RXM msgs'
 PSTPOLLPORT = 'CFG-PRT - Poll Port config'
 PSTPOLLINFO = 'CFG-INF - Poll Info message config'
+PSTPOLLALL = 'CFG-xxx - Poll Everything Available'

@@ -55,15 +55,15 @@ class UBXHandler():
     def poll_ubx_config(serial):
         '''
         POLL current UBX device configuration (port protocols
-        and message rates).
+        and software version).
 
         NB: The responses and acknowledgements to these polls
         may take several seconds to arrive, particularly in
         heavy traffic.
         '''
 
-        for msgtype in ('CFG-PRT', 'CFG-USB'):
-            msg = UBXMessage('CFG', msgtype, POLL)
+        for msgtype in ('CFG-PRT', 'MON-VER'):
+            msg = UBXMessage(msgtype[0:3], msgtype, POLL)
             serial.write(msg.serialize())
 
     def process_data(self, data: bytes) -> UBXMessage:
@@ -95,6 +95,8 @@ class UBXHandler():
             self._process_NAV_SOL(parsed_data)
         if parsed_data.identity == 'NAV-DOP':
             self._process_NAV_DOP(parsed_data)
+        if parsed_data.identity == 'MON-VER':
+            self._process_MON_VER(parsed_data)
         if data or parsed_data:
             self._update_console(data, parsed_data)
 
@@ -297,6 +299,47 @@ class UBXHandler():
             self.vdop = data.vDOP / 100
 
             self.__app.frm_banner.update_banner(dop=self.pdop, hdop=self.hdop, vdop=self.vdop)
+        except ValueError:
+            # self.__app.set_status(ube.UBXMessageError(err), "red")
+            pass
+
+    def _process_MON_VER(self, data: UBXMessage):
+        '''
+        Process MON-VER sentence - Receiver Software / Hardware version information.
+        '''
+
+        exts = []
+        fw_version = 'n/a'
+        protocol = 'n/a'
+        gnss_supported = ''
+
+        try:
+            sw_version = getattr(data, 'swVersion', 'n/a').replace(b'\x00', b'').decode('utf-8')
+            sw_version = sw_version.replace('ROM CORE', 'ROM')
+            sw_version = sw_version.replace('EXT CORE', 'Flash')
+            hw_version = getattr(data, 'hwVersion', 'n/a').replace(b'\x00', b'').decode('utf-8')
+
+            for i in range(4):
+                idx = "_{0:0=2d}".format(i + 1)
+                exts.append(getattr(data, 'extension' + idx, b'').replace(b'\x00', b'').decode('utf-8'))
+                if 'FWVER=' in exts[i]:
+                    fw_version = exts[i].replace('FWVER=', '')
+                if 'PROTVER=' in exts[i]:
+                    protocol = exts[i].replace('PROTVER=', '')
+                if 'PROTVER ' in exts[i]:
+                    protocol = exts[i].replace('PROTVER ', '')
+                for gnss in ('GPS', 'GLO', 'GAL', 'BDS', 'SBAS', 'IMES', 'QZSS'):
+                    if gnss in exts[i]:
+                        gnss_supported = gnss_supported + gnss + ' '
+
+            # update the UBX config panel
+            if self.__app.dlg_ubxconfig is not None:
+                self.__app.dlg_ubxconfig.update('MON-VER', swversion=sw_version,
+                                                hwversion=hw_version,
+                                                fwversion=fw_version,
+                                                protocol=protocol,
+                                                gnsssupported=gnss_supported)
+
         except ValueError:
             # self.__app.set_status(ube.UBXMessageError(err), "red")
             pass

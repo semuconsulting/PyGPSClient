@@ -10,30 +10,29 @@ Created on 22 Sep 2020
 '''
 # pylint: disable=invalid-name, unused-argument
 
-from tkinter import ttk, messagebox, Toplevel, Frame, Checkbutton, Radiobutton, Listbox, \
+from tkinter import ttk, messagebox, Toplevel, Frame, Radiobutton, Listbox, \
                     Spinbox, Scrollbar, Button, Label, StringVar, \
                     IntVar, N, S, E, W, LEFT, VERTICAL, HORIZONTAL
 
 from PIL import ImageTk, Image
-from pyubx2 import UBXMessage, POLL, SET, UBX_CONFIG_MESSAGES
+from pyubx2 import UBXMessage, POLL, SET, UBX_CONFIG_MESSAGES, UBX_PAYLOADS_POLL
 
 from .globals import BGCOL, FGCOL, ENTCOL, ICON_APP, ICON_SEND, ICON_EXIT, ICON_WARNING, \
-                     ICON_PENDING, ICON_CONFIRMED, BAUDRATES, READONLY
+                     ICON_UBXCONFIG, ICON_PENDING, ICON_CONFIRMED, BAUDRATES, READONLY
 from .strings import LBLUBXCONFIG, LBLCFGPRT, LBLCFGMSG, LBLPRESET, DLGUBXCONFIG, DLGRESET, \
                      DLGSAVE, DLGRESETCONFIRM, DLGSAVECONFIRM, PSTRESET, PSTSAVE, \
                      PSTMINNMEAON, PSTALLNMEAON, PSTALLNMEAOFF, PSTMINUBXON, PSTALLUBXON, \
                      PSTALLUBXOFF, PSTALLINFON, PSTALLINFOFF, PSTALLLOGON, PSTALLLOGOFF, \
                      PSTALLMONON, PSTALLMONOFF, PSTALLRXMON, PSTALLRXMOFF, PSTPOLLPORT, \
-                     PSTPOLLINFO
+                     PSTPOLLINFO, PSTPOLLALL
 
-from .ubx_handler import UBXHandler as ubh, CFG_MSG_OFF, CFG_MSG_ON
-from numpy import rate
+from .ubx_handler import UBXHandler as ubh
 
 PRESET_COMMMANDS = [
 PSTRESET, PSTSAVE, PSTMINNMEAON, PSTALLNMEAON, PSTALLNMEAOFF,
 PSTMINUBXON, PSTALLUBXON, PSTALLUBXOFF, PSTALLINFON, PSTALLINFOFF,
 PSTALLLOGON, PSTALLLOGOFF, PSTALLMONON, PSTALLMONOFF, PSTALLRXMON,
-PSTALLRXMOFF, PSTPOLLPORT, PSTPOLLINFO
+PSTALLRXMOFF, PSTPOLLPORT, PSTPOLLINFO, PSTPOLLALL
 ]
 
 
@@ -57,7 +56,7 @@ class UBXConfigDialog():
         wa = self.__master.winfo_width()
         ha = self.__master.winfo_height()
         self._dialog.geometry("+%d+%d" % (int(wa / 2 - wd / 2), int(ha / 2 - hd / 2)))
-        self._img_icon = ImageTk.PhotoImage(Image.open (ICON_APP))
+        self._img_icon = ImageTk.PhotoImage(Image.open (ICON_UBXCONFIG))
         self._img_pending = ImageTk.PhotoImage(Image.open(ICON_PENDING))
         self._img_confirmed = ImageTk.PhotoImage(Image.open(ICON_CONFIRMED))
         self._img_send = ImageTk.PhotoImage(Image.open(ICON_SEND))
@@ -78,6 +77,11 @@ class UBXConfigDialog():
         self._uart1_rate = IntVar()
         self._usb_rate = IntVar()
         self._spi_rate = IntVar()
+        self._sw_version = StringVar()
+        self._hw_version = StringVar()
+        self._fw_version = StringVar()
+        self._protocol = StringVar()
+        self._gnss_supported = StringVar()
 
         self._body()
         self._do_layout()
@@ -100,6 +104,24 @@ class UBXConfigDialog():
 
         self._lbl_title = Label(con, text=LBLUBXCONFIG, bg=BGCOL, fg=FGCOL,
                                 justify=LEFT, font=self.__app.font_md)
+
+        # *******************************************************
+        # Software and Hardware versions
+        # *******************************************************
+        INFCOL = 'steelblue3'
+        self._frm_device_info = Frame(con, borderwidth=2)
+        inf = self._frm_device_info
+        self._lbl_swverl = Label(inf, text="Software")
+        self._lbl_swver = Label(inf, textvariable=self._sw_version, fg=INFCOL)
+        self._lbl_hwverl = Label(inf, text="Hardware")
+        self._lbl_hwver = Label(inf, textvariable=self._hw_version, fg=INFCOL)
+        self._lbl_fwverl = Label(inf, text="Firmware")
+        self._lbl_fwver = Label(inf, textvariable=self._fw_version, fg=INFCOL)
+        self._lbl_romverl = Label(inf, text="Protocol")
+        self._lbl_romver = Label(inf, textvariable=self._protocol, fg=INFCOL)
+        self._lbl_gnssl = Label(inf, text="GNSS/AS")
+        self._lbl_gnss = Label(inf, textvariable=self._gnss_supported, fg=INFCOL)
+
         # *******************************************************
         # Port Configuration
         # *******************************************************
@@ -139,7 +161,7 @@ class UBXConfigDialog():
                                   bg=LBL_COL, anchor='w')
         self._lbx_cfg_msg = Listbox(con, border=2,
                                  relief="sunken", bg=ENTCOL,
-                                 height=7, justify=LEFT,
+                                 height=6, justify=LEFT,
                                  exportselection=False)
         self._scr_cfg_msg = Scrollbar(con, orient=VERTICAL)
         self._lbx_cfg_msg.config(yscrollcommand=self._scr_cfg_msg.set)
@@ -172,7 +194,7 @@ class UBXConfigDialog():
                                   bg=LBL_COL, anchor='w')
         self._lbx_preset = Listbox(con, border=2,
                                  relief="sunken", bg=ENTCOL,
-                                 height=7, justify=LEFT,
+                                 height=5, justify=LEFT,
                                  exportselection=False)
         self._scr_presetv = Scrollbar(con, orient=VERTICAL)
         self._scr_preseth = Scrollbar(con, orient=HORIZONTAL)
@@ -196,65 +218,86 @@ class UBXConfigDialog():
         self._frm_container.grid(column=0, row=0, columnspan=6, padx=3, pady=3,
                                  ipadx=5, ipady=5, sticky=(N, S, W, E))
         self._lbl_title.grid(column=0, row=0, columnspan=6, ipady=3, sticky=(W, E))
-        self._lbl_cfg_port.grid(column=0, row=1, columnspan=6, padx=3, sticky=(W, E))
-        self._lbl_ubx_baudrate.grid(column=0, row=2, columnspan=3, sticky=(W))
-        self._spn_ubx_baudrate.grid(column=1, row=2, columnspan=3, sticky=(W))
-        self._lbl_inprot.grid(column=0, row=3, sticky=(W))
-        self._rad_inprot_nmea.grid(column=1, row=3, sticky=(W))
-        self._rad_inprot_ubx.grid(column=2, row=3, sticky=(W))
-        self._rad_inprot_rtcm.grid(column=3, row=3, sticky=(W))
-        self._rad_inprot_both.grid(column=4, row=3, sticky=(W))
-        self._lbl_outprot.grid(column=0, row=4, sticky=(W))
-        self._rad_outprot_nmea.grid(column=1, row=4, sticky=(W))
-        self._rad_outprot_ubx.grid(column=2, row=4, sticky=(W))
-        self._rad_outprot_both.grid(column=3, row=4, sticky=(W))
-        self._btn_send_port.grid(column=4, row=2, ipadx=3,
+
+        # *******************************************************
+        # MON-VER Device Information
+        # *******************************************************
+        self._frm_device_info.grid(column=0, row=1, columnspan=6, sticky=(W, E))
+        self._lbl_swverl.grid(column=0, row=0, padx=2, sticky=(W))
+        self._lbl_swver.grid(column=1, row=0, columnspan=2, padx=2, sticky=(W))
+        self._lbl_hwverl.grid(column=3, row=0, padx=2, sticky=(W))
+        self._lbl_hwver.grid(column=4, row=0, columnspan=2, padx=2, sticky=(W))
+        self._lbl_fwverl.grid(column=0, row=1, padx=2, sticky=(W))
+        self._lbl_fwver.grid(column=1, row=1, columnspan=2, padx=2, sticky=(W))
+        self._lbl_romverl.grid(column=3, row=1, padx=2, sticky=(W))
+        self._lbl_romver.grid(column=4, row=1, columnspan=2, padx=2, sticky=(W))
+        self._lbl_gnssl.grid(column=0, row=2, columnspan=2, padx=2, sticky=(W))
+        self._lbl_gnss.grid(column=2, row=2, columnspan=4, padx=2, sticky=(W))
+
+        # *******************************************************
+        # CFG-PRT Port Configuration
+        # *******************************************************
+        ttk.Separator(self._frm_container).grid(column=0, row=2, columnspan=6,
+                                                padx=3, pady=3, sticky=(W, E))
+        self._lbl_cfg_port.grid(column=0, row=3, columnspan=6, padx=3, sticky=(W, E))
+        self._lbl_ubx_baudrate.grid(column=0, row=4, columnspan=3, sticky=(W))
+        self._spn_ubx_baudrate.grid(column=1, row=4, columnspan=3, sticky=(W))
+        self._lbl_inprot.grid(column=0, row=5, sticky=(W))
+        self._rad_inprot_nmea.grid(column=1, row=5, sticky=(W))
+        self._rad_inprot_ubx.grid(column=2, row=5, sticky=(W))
+        self._rad_inprot_rtcm.grid(column=3, row=5, sticky=(W))
+        self._rad_inprot_both.grid(column=4, row=5, sticky=(W))
+        self._lbl_outprot.grid(column=0, row=6, sticky=(W))
+        self._rad_outprot_nmea.grid(column=1, row=6, sticky=(W))
+        self._rad_outprot_ubx.grid(column=2, row=6, sticky=(W))
+        self._rad_outprot_both.grid(column=3, row=6, sticky=(W))
+        self._btn_send_port.grid(column=4, row=4, ipadx=3,
                                  ipady=3, sticky=(E))
-        self._lbl_send_port.grid(column=5, row=2, ipadx=3,
+        self._lbl_send_port.grid(column=5, row=4, ipadx=3,
                                  ipady=3, sticky=(W))
 
         # *******************************************************
         # CFG-MSG Message Selection
         # *******************************************************
-        ttk.Separator(self._frm_container).grid(column=0, row=5, columnspan=6,
+        ttk.Separator(self._frm_container).grid(column=0, row=7, columnspan=6,
                                                 padx=3, pady=3, sticky=(W, E))
-        self._lbl_cfg_msg.grid(column=0, row=6, columnspan=6, padx=3, sticky=(W, E))
-        self._lbx_cfg_msg.grid(column=0, row=7, columnspan=2, rowspan=4, padx=3,
+        self._lbl_cfg_msg.grid(column=0, row=8, columnspan=6, padx=3, sticky=(W, E))
+        self._lbx_cfg_msg.grid(column=0, row=9, columnspan=2, rowspan=4, padx=3,
                                pady=3, sticky=(W, E))
-        self._scr_cfg_msg.grid(column=1, row=7, rowspan=4, sticky=(N, S, E))
-        self._lbl_ddc.grid(column=2, row=7, padx=0, pady=0, sticky=(E))
-        self._spn_ddc.grid(column=3, row=7, padx=0, pady=0, sticky=(W))
-        self._lbl_uart1.grid(column=2, row=8, padx=0, pady=0, sticky=(E))
-        self._spn_uart1.grid(column=3, row=8, padx=0, pady=0, sticky=(W))
-        self._lbl_usb.grid(column=2, row=9, padx=0, pady=0, sticky=(E))
-        self._spn_usb.grid(column=3, row=9, padx=0, pady=0, sticky=(W))
-        self._lbl_spi.grid(column=2, row=10, padx=0, pady=0, sticky=(E))
-        self._spn_spi.grid(column=3, row=10, padx=0, pady=0, sticky=(W))
-        self._btn_send_cfg_msg.grid(column=4, row=7, rowspan=4, ipadx=3, ipady=3,
+        self._scr_cfg_msg.grid(column=1, row=9, rowspan=4, sticky=(N, S, E))
+        self._lbl_ddc.grid(column=2, row=9, padx=0, pady=0, sticky=(E))
+        self._spn_ddc.grid(column=3, row=9, padx=0, pady=0, sticky=(W))
+        self._lbl_uart1.grid(column=2, row=10, padx=0, pady=0, sticky=(E))
+        self._spn_uart1.grid(column=3, row=10, padx=0, pady=0, sticky=(W))
+        self._lbl_usb.grid(column=2, row=11, padx=0, pady=0, sticky=(E))
+        self._spn_usb.grid(column=3, row=11, padx=0, pady=0, sticky=(W))
+        self._lbl_spi.grid(column=2, row=12, padx=0, pady=0, sticky=(E))
+        self._spn_spi.grid(column=3, row=12, padx=0, pady=0, sticky=(W))
+        self._btn_send_cfg_msg.grid(column=4, row=9, rowspan=4, ipadx=3, ipady=3,
                                    sticky=(E))
-        self._lbl_send_cfg_msg.grid(column=5, row=7, rowspan=4, ipadx=3,
+        self._lbl_send_cfg_msg.grid(column=5, row=9, rowspan=4, ipadx=3,
                                  ipady=3, sticky=(W))
 
         # *******************************************************
         # PRESET Message Selection
         # *******************************************************
-        ttk.Separator(self._frm_container).grid(column=0, row=14, columnspan=6,
+        ttk.Separator(self._frm_container).grid(column=0, row=16, columnspan=6,
                                                 padx=3, pady=3, sticky=(W, E))
-        self._lbl_presets.grid(column=0, row=15, columnspan=6, padx=3, sticky=(W, E))
-        self._lbx_preset.grid(column=0, row=16, columnspan=4, padx=3, pady=3, sticky=(W, E))
-        self._scr_presetv.grid(column=3, row=16, sticky=(N, S, E))
-        self._scr_preseth.grid(column=0, row=17, columnspan=4, sticky=(W, E))
-        self._btn_send_preset.grid(column=4, row=16, ipadx=3, ipady=3,
+        self._lbl_presets.grid(column=0, row=17, columnspan=6, padx=3, sticky=(W, E))
+        self._lbx_preset.grid(column=0, row=18, columnspan=4, padx=3, pady=3, sticky=(W, E))
+        self._scr_presetv.grid(column=3, row=18, sticky=(N, S, E))
+        self._scr_preseth.grid(column=0, row=19, columnspan=4, sticky=(W, E))
+        self._btn_send_preset.grid(column=4, row=18, ipadx=3, ipady=3,
                                    sticky=(E))
-        self._lbl_send_preset.grid(column=5, row=16, rowspan=2, ipadx=3,
+        self._lbl_send_preset.grid(column=5, row=18, rowspan=2, ipadx=3,
                                  ipady=3, sticky=(W))
 
-        ttk.Separator(self._frm_container).grid(column=0, row=18, columnspan=6,
+        ttk.Separator(self._frm_container).grid(column=0, row=20, columnspan=6,
                                                 padx=3, pady=3, sticky=(W, E))
 
-        self._lbl_status.grid(column=0, row=19, columnspan=4, ipadx=3, ipady=3,
+        self._lbl_status.grid(column=0, row=21, columnspan=4, ipadx=3, ipady=3,
                             sticky=(W, E))
-        self._btn_exit.grid(column=4, row=19, ipadx=3, ipady=3,
+        self._btn_exit.grid(column=4, row=21, ipadx=3, ipady=3,
                             sticky=(E))
 
     def _attach_events(self):
@@ -304,6 +347,14 @@ class UBXConfigDialog():
         be unequivocally linked to specific commands, but the best
         available indication of current state.
         '''
+
+        # MON-VER information
+        if cfgtype == 'MON-VER':
+            self._sw_version.set(kwargs.get('swversion', ''))
+            self._hw_version.set(kwargs.get('hwversion', ''))
+            self._fw_version.set(kwargs.get('fwversion', ''))
+            self._protocol.set(kwargs.get('protocol', ''))
+            self._gnss_supported.set(kwargs.get('gnsssupported', ''))
 
         # CFG-PRT command confirmation
         if 'baudrate' in kwargs:
@@ -456,6 +507,8 @@ class UBXConfigDialog():
                 self._do_poll_prt()
             elif self._preset_command == PSTPOLLINFO:
                 self._do_poll_inf()
+            elif self._preset_command == PSTPOLLALL:
+                self._do_poll_all()
             else:
                 self._do_user_defined(self._preset_command)
 
@@ -469,6 +522,17 @@ class UBXConfigDialog():
         except Exception as err:  # pylint: disable=broad-except
             self.set_status(f"Error {err}", "red")
             self._lbl_send_preset.config(image=self._img_warn)
+
+    def _do_poll_all(self):
+        '''
+        Poll INF message configuration
+        '''
+
+        for msgtype in UBX_PAYLOADS_POLL:
+            if msgtype[0:3] == 'CFG' and \
+                msgtype not in ('CFG-INF', 'CFG-MSG', 'CFG-PRT-IO', 'CFG-TP5-TPX'):
+                msg = UBXMessage('CFG', msgtype, POLL)
+                self.__app.serial_handler.serial_write(msg.serialize())
 
     def _do_poll_inf(self):
         '''
@@ -589,8 +653,8 @@ class UBXConfigDialog():
     def _do_cfgmsg(self, msgtype, msgrate):
         '''
         Set rate for specified message type via CFG-MSG
-        
-        NB A rate of n means 'for every nth position solution', 
+
+        NB A rate of n means 'for every nth position solution',
         so values > 1 mean the message is sent less often.
         '''
 
