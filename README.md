@@ -47,7 +47,7 @@ protocols - to change the actual protocols output by the receiver, use the CFG-P
 next map refresh, indicated by a small timer icon at the top left of the panel).
 * Data logging (in binary format) can be turned on or off via the Enable Data Logging checkbox. You will be prompted
 to select the directory into which timestamped log files are saved.
-* Track recording (in GPX format) can be turned on or off via the Record Track checkboxes.You will be prompted
+* Track recording (in GPX format) can be turned on or off via the Record Track checkbox.You will be prompted
 to select the directory into which timestamped track files are saved.
 * Widgets (and their associated fonts) are fully resizeable.
 

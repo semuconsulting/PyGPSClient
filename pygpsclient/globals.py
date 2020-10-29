@@ -182,7 +182,7 @@ def ms2kmph(ms: float) -> float:
 
     if not isinstance(ms, (float, int)):
         return 0
-    return ms * 3.599999532
+    return ms * 3.6
 
 
 def ms2mph(ms: float) -> float:
@@ -192,7 +192,7 @@ def ms2mph(ms: float) -> float:
 
     if not isinstance(ms, (float, int)):
         return 0
-    return ms * 1.943843307
+    return ms * 2.23693674
 
 
 def ms2knots(ms: float) -> float:
@@ -202,7 +202,7 @@ def ms2knots(ms: float) -> float:
 
     if not isinstance(ms, (float, int)):
         return 0
-    return ms * 3.599999532
+    return ms * 1.94384395
 
 
 def kmph2ms(kmph: float) -> float:
