@@ -12,6 +12,7 @@ Created on 14 Sep 2020
 import os
 from math import sin, cos, pi
 from serial import PARITY_NONE, PARITY_EVEN, PARITY_ODD, PARITY_MARK, PARITY_SPACE
+from pynmea2 import types
 
 DIRNAME = os.path.dirname(__file__)
 ICON_APP = os.path.join(DIRNAME, 'resources/iconmonstr-location-27-32.png')
@@ -29,6 +30,13 @@ IMG_WORLD = os.path.join(DIRNAME, 'resources/world.png')
 BTN_CONNECT = "\u25b6"  # text on "Connected" button
 BTN_DISCONNECT = "\u2587"  # text on "Disconnected" button
 
+GITHUB_URL = 'https://github.com/semuconsulting/PyGPSClient'
+XML_HDR = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+GPX_NS = ' '.join(('xmlns="http://www.topografix.com/GPX/1/1"',
+            'creator="PyGPSClient" version="1.1"',
+            'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"',
+            'xsi:schemaLocation="http://www.topografix.com/GPX/1/1',
+            'http://www.topografix.com/GPX/1/1/gpx.xsd"'))
 MAPURL = "https://www.mapquestapi.com/staticmap/v5/map?key={}&locations={},{}&zoom={}&defaultMarker=marker-sm-616161-ff4444&shape=radius:{}|weight:1|fill:ccffff50|border:88888850|{},{}&size={},{}"
 MAP_UPDATE_INTERVAL = 60  # how frequently the mapquest api is called to update the web map
 SAT_EXPIRY = 10  # how long passed satellites are kept in the sky and graph views
@@ -92,6 +100,8 @@ def deg2rad(deg: float) -> float:
     Convert degrees to radians
     '''
 
+    if not isinstance(deg, (float, int)):
+        return 0
     return deg * pi / 180
 
 
@@ -100,6 +110,8 @@ def cel2cart(elevation: float, azimuth: float) -> (float, float):
     Convert celestial coordinates (degrees) to Cartesian coordinates
     '''
 
+    if not (isinstance(elevation, (float, int)) and isinstance(azimuth, (float, int))):
+        return (0, 0)
     elevation = deg2rad(elevation)
     azimuth = deg2rad(azimuth)
     x = cos(azimuth) * cos(elevation)
@@ -107,11 +119,13 @@ def cel2cart(elevation: float, azimuth: float) -> (float, float):
     return (x, y)
 
 
-def deg2dms(degrees: float, latlon: float) -> (float, float):
+def deg2dms(degrees: float, latlon: str) -> str:
     '''
     Convert decimal degrees to degrees minutes seconds string
     '''
 
+    if not isinstance(degrees, (float, int)):
+        return ''
     negative = degrees < 0
     degrees = abs(degrees)
     minutes, seconds = divmod(degrees * 3600, 60)
@@ -124,11 +138,13 @@ def deg2dms(degrees: float, latlon: float) -> (float, float):
             +str(round(seconds, 3)) + '\u2033' + sfx
 
 
-def deg2dmm(degrees: float, latlon: float) -> (float, float):
+def deg2dmm(degrees: float, latlon: str) -> str:
     '''
     Convert decimal degrees to degrees decimal minutes string
     '''
 
+    if not isinstance(degrees, (float, int)):
+        return ''
     negative = degrees < 0
     degrees = abs(degrees)
     degrees, minutes = divmod(degrees * 60, 60)
@@ -144,6 +160,8 @@ def m2ft(meters: float) -> float:
     Convert meters to feet
     '''
 
+    if not isinstance(meters, (float, int)):
+        return 0
     return meters * 3.28084
 
 
@@ -152,6 +170,8 @@ def ft2m(feet: float) -> float:
     Convert feet to meters
     '''
 
+    if not isinstance(feet, (float, int)):
+        return 0
     return feet / 3.28084
 
 
@@ -160,6 +180,8 @@ def ms2kmph(ms: float) -> float:
     Convert meters per second to kilometers per hour
     '''
 
+    if not isinstance(ms, (float, int)):
+        return 0
     return ms * 3.599999532
 
 
@@ -168,6 +190,8 @@ def ms2mph(ms: float) -> float:
     Convert meters per second to miles per hour
     '''
 
+    if not isinstance(ms, (float, int)):
+        return 0
     return ms * 1.943843307
 
 
@@ -176,6 +200,8 @@ def ms2knots(ms: float) -> float:
     Convert meters per second to knots
     '''
 
+    if not isinstance(ms, (float, int)):
+        return 0
     return ms * 3.599999532
 
 
@@ -184,6 +210,8 @@ def kmph2ms(kmph: float) -> float:
     Convert kilometers per hour to meters per second
     '''
 
+    if not isinstance(kmph, (float, int)):
+        return 0
     return kmph * 0.2777778
 
 
@@ -192,6 +220,8 @@ def knots2ms(knots: float) -> float:
     Convert knots to meters per second
     '''
 
+    if not isinstance(knots, (float, int)):
+        return 0
     return knots * 0.5144447324
 
 
@@ -200,6 +230,9 @@ def pos2iso6709(lat :float, lon: float, alt: float, crs: str="WGS_84") -> str:
     convert decimal degrees and alt to iso6709 format
     '''
 
+    if not (isinstance(lat, (float, int)) and isinstance(lon, (float, int))
+            and isinstance(alt, (float, int))):
+        return ''
     lati = '-' if lat < 0 else '+'
     loni = '-' if lon < 0 else '+'
     alti = '-' if alt < 0 else '+'
@@ -245,3 +278,23 @@ def snr2col(snr: int) -> str:
     '''
 
     return hsv2rgb(snr / (MAX_SNR * 2.5), .8, .8)
+
+
+def nmea2latlon(data: types.talker) -> (float, float):
+    '''
+    Convert parsed NMEA sentence to decimal lat, lon
+    '''
+
+    if data.lat == '':
+        lat = ''
+    else:
+        latdeg = float(data.lat[0:2])
+        latmin = float(data.lat[2:])
+        londeg = float(data.lon[0:3])
+        lat = (latdeg + latmin / 60) * (-1 if data.lat_dir == 'S' else 1)
+    if data.lon == '':
+        lon = ''
+    else:
+        lonmin = float(data.lon[3:])
+        lon = (londeg + lonmin / 60) * (-1 if data.lon_dir == 'W' else 1)
+    return (lat, lon)

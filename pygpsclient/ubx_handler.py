@@ -9,6 +9,7 @@ Created on 30 Sep 2020
 '''
 # pylint: disable=invalid-name
 
+from datetime import datetime
 from pyubx2 import UBXMessage, POLL, UBX_MSGIDS, UBX_CONFIG_MESSAGES
 
 CFG_MSG_OFF = b'\x00\x00\x00\x00\x00\x01'
@@ -33,6 +34,7 @@ class UBXHandler():
 
         self._raw_data = None
         self._parsed_data = None
+        self._record_track = False
         self.gsv_data = []  # Holds array of current satellites in view from NMEA GSV sentences
         self.lon = 0
         self.lat = 0
@@ -233,6 +235,20 @@ class UBXHandler():
             else:
                 self.__app.frm_mapview.update_map(lat=self.lat, lon=self.lon, hacc=self.hacc,
                                                   vacc=self.vacc, fix='3D', static=True)
+
+            if self.__app.frm_settings.get_settings()['recordtrack'] \
+                and self.lat != '' and self.lon != '':
+                time = datetime(data.year, data.month, data.day, data.hour,
+                                data.min, data.second).isoformat() + 'Z'
+                if fix == '3D':
+                    fix = '3d'
+                elif fix == '2D':
+                    fix = '2d'
+                else:
+                    fix = 'none'
+                self.__app.file_handler.add_trackpoint(self.lat, self.lon, ele=self.alt,
+                                                   time=time, fix=fix, sat=self.sip,
+                                                   pdop=self.pdop)
         except ValueError:
             # self.__app.set_status(ube.UBXMessageError(err), "red")
             pass

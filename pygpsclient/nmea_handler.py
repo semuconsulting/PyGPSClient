@@ -10,10 +10,11 @@ Created on 30 Sep 2020
 
 # pylint: disable=invalid-name
 from time import time
+from datetime import datetime
 from pynmea2 import parse as nmea_parse, ParseError, types, RMC, VTG, GSV, GGA, GSA, GLL
 from pynmea2.types.proprietary.ubx import UBX00
 
-from .globals import DEVICE_ACCURACY, HDOP_RATIO, SAT_EXPIRY, knots2ms, kmph2ms
+from .globals import DEVICE_ACCURACY, HDOP_RATIO, SAT_EXPIRY, knots2ms, kmph2ms, nmea2latlon
 from .strings import NMEAVALERROR
 
 
@@ -32,6 +33,7 @@ class NMEAHandler():
 
         self._raw_data = None
         self._parsed_data = None
+        self._record_track = False
         self.gsv_data = []  # Holds array of current satellites in view from NMEA GSV sentences
         self.gsv_log = {}  # Holds cumulative log of all satellites seen
         self.lon = 0
@@ -98,8 +100,9 @@ class NMEAHandler():
 
         try:
             self.utc = data.timestamp
-            (self.lat, self.lon) = self.nmea2latlon(data)
-            self.speed = knots2ms(data.spd_over_grnd)  # convert to m/s
+            (self.lat, self.lon) = nmea2latlon(data)
+            if data.spd_over_grnd != 'None':
+                self.speed = knots2ms(data.spd_over_grnd)  # convert to m/s
             self.track = data.true_course
             self.__app.frm_banner.update_banner(time=self.utc, lat=self.lat,
                                                 lon=self.lon, speed=self.speed,
@@ -119,7 +122,7 @@ class NMEAHandler():
         try:
             self.utc = data.timestamp
             self.sip = data.num_sats
-            (self.lat, self.lon) = self.nmea2latlon(data)
+            (self.lat, self.lon) = nmea2latlon(data)
             self.alt = data.altitude
             self.__app.frm_banner.update_banner(time=self.utc, lat=self.lat,
                                                 lon=self.lon, alt=self.alt, sip=self.sip)
@@ -127,6 +130,13 @@ class NMEAHandler():
                 self.__app.frm_mapview.update_map(lat=self.lat, lon=self.lon, static=False)
             else:
                 self.__app.frm_mapview.update_map(lat=self.lat, lon=self.lon, static=True)
+
+            if self.__app.frm_settings.get_settings()['recordtrack'] \
+                and self.lat != '' and self.lon != '':
+                time = self.ts2utc(data.timestamp)
+                ele = 0 if self.alt == 'None' else self.alt
+                self.__app.file_handler.add_trackpoint(self.lat, self.lon, ele=ele,
+                                                   time=time, sat=self.sip)
         except ValueError as err:
             self.__app.set_status(NMEAVALERROR.format(err), "red")
 
@@ -137,7 +147,7 @@ class NMEAHandler():
 
         try:
             self.utc = data.timestamp
-            (self.lat, self.lon) = self.nmea2latlon(data)
+            (self.lat, self.lon) = nmea2latlon(data)
             self.__app.frm_banner.update_banner(time=self.utc, lat=self.lat, lon=self.lon)
             if self.__app.frm_settings.get_settings()['webmap']:
                 self.__app.frm_mapview.update_map(lat=self.lat, lon=self.lon, static=False)
@@ -218,7 +228,8 @@ class NMEAHandler():
 
         try:
             self.track = data.true_track
-            self.speed = kmph2ms(data.spd_over_grnd_kmph)  # convert to m/s
+            if data.spd_over_grnd_kmph is not None:
+                self.speed = kmph2ms(data.spd_over_grnd_kmph)  # convert to m/s
             self.__app.frm_banner.update_banner(speed=self.speed, track=self.track)
         except ValueError as err:
             self.__app.set_status(NMEAVALERROR.format(err), "red")
@@ -236,26 +247,6 @@ class NMEAHandler():
             self.__app.set_status(NMEAVALERROR.format(err), "red")
 
     @staticmethod
-    def nmea2latlon(data: types.talker) -> (float, float):
-        '''
-        Convert parsed NMEA GGA sentence to decimal lat, lon
-        '''
-
-        if data.lat == '':
-            lat = ''
-        else:
-            latdeg = float(data.lat[0:2])
-            latmin = float(data.lat[2:])
-            londeg = float(data.lon[0:3])
-            lat = (latdeg + latmin / 60) * (-1 if data.lat_dir == 'S' else 1)
-        if data.lon == '':
-            lon = ''
-        else:
-            lonmin = float(data.lon[3:])
-            lon = (londeg + lonmin / 60) * (-1 if data.lon_dir == 'W' else 1)
-        return (lat, lon)
-
-    @staticmethod
     def _estimate_acc(dop) -> float:
         '''
         Derive a graphic indication of positional accuracy (in m) based on the HDOP
@@ -269,3 +260,13 @@ class NMEAHandler():
         '''
 
         return float(dop) * DEVICE_ACCURACY * HDOP_RATIO / 1000
+
+    @staticmethod
+    def ts2utc(timestamp) -> str:
+        '''
+        Convert NMEA timestamp to utc time
+        '''
+
+        t = datetime.now()
+        s = str(t.year) + '-' + str(t.month) + '-' + str(t.day) + 'T' + str(timestamp) + 'Z'
+        return s

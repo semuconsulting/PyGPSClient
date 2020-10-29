@@ -8,8 +8,6 @@ Created on 12 Sep 2020
 # pylint: disable=line-too-long
 
 TITLE = "PyGPSClient"
-WIKIURL = "https://en.wikipedia.org/wiki/NMEA_0183"
-GITHUBURL = "https://github.com/semuconsulting/PyGPSClient"
 
 COPYRIGHTTXT = "\u00A9 SEMU Consulting 2020\nBSD 3 License. All Rights Reserved"
 
@@ -37,8 +35,8 @@ NOWEBMAPERROR4 = "Check Internet connection."
 NOWEBMAPERROR5 = "No satellite fix."
 WEBMAPHTTPERROR = 'HTTP error downloading web map. Are you connected to the Internet?'
 WEBMAPERROR = 'Error downloading web map'
-SAVETITLE = "Select Datalog Directory"
-READTITLE = "Select Datalog File"
+SAVETITLE = "Select Directory"
+READTITLE = "Select File"
 WAITNMEADATA = "Waiting for data..."
 WAITUBXDATA = "Waiting for data..."
 ENDOFFILE = "End of file reached"
@@ -89,6 +87,7 @@ LBLCFGMSG = "CFG-MSG - UBX & NMEA Message Rate / Port Selection"
 LBLPRESET = "Preset UBX Configuration Commands"
 LBLDATALOG = "Enable Data Logging"
 LBLSTREAM = "Stream\nfrom file"
+LBLTRACKRECORD = "Record GPX Track"
 
 # Dialog text
 DLGUBXCONFIG = "UBX Configuration"

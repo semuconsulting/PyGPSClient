@@ -14,7 +14,7 @@ This is a personal project and I have no affiliation whatsoever with u-blox &cop
 
 1. Supports both NMEA and UBX protocols. It uses the existing pynmea2 library for NMEA parsing and 
 implements a **[new pyubx2 library](https://github.com/semuconsulting/pyubx2)** for UBX parsing.
-1. Capable of reading from serial/USB port or previously-saved datalog file. 
+1. Capable of reading from serial/USB port or previously-saved binary datalog file. 
 1. Configurable GUI with selectable and resizeable widgets.
 1. Expandable banner widget showing key navigation information.
 1. Serial console widget showing either raw or parsed data stream.
@@ -23,6 +23,7 @@ implements a **[new pyubx2 library](https://github.com/semuconsulting/pyubx2)** 
 1. Mapview widget with location marker, showing either a static Mercator world map, or an optional dynamic web-based map downloaded via a MapQuest API (requires an Internet connection and free 
 [MapQuest API Key](https://developer.mapquest.com/plan_purchase/steps/business_edition/business_edition_free/register)).
 1. Data logging.
+1. Track recording in GPX format.
 1. UBX Configuration Dialog, with the ability to send a variety of UBX configuration messages to u-blox GNSS devices. This includes the facility to add **user-defined messages or message sequences** - see instructions under [installation](#installation) below.
 
 ![compact view screenshot](/images/min_widgets.png)
@@ -31,7 +32,7 @@ implements a **[new pyubx2 library](https://github.com/semuconsulting/pyubx2)** 
 
 * To connect to a listed serial device, select the device from the listbox and click 
 ![connect icon](/pygpsclient/resources/iconmonstr-link-8-24.png). The application will endeavour to pre-select a recognised GNSS/GPS device but this is platform and device dependent.
-* To stream from a previously-saved datalog (pygpsdata-*.log) file, click 
+* To stream from a previously-saved binary datalog file (pygpsdata-*.log, or any binary dump of an NMEA or UBX GNSS device output), click 
 ![connect-file icon](/pygpsclient/resources/iconmonstr-note-37-24.png) and select the file.
 * To disconnect from a serial device or datalog file, click
 ![disconnect icon](/pygpsclient/resources/iconmonstr-link-10-24.png).
@@ -44,8 +45,10 @@ protocols - to change the actual protocols output by the receiver, use the CFG-P
 * Change the displayed degree and unit formats via the Degrees Format and Units settings.
 * Change the web map scale via the Zoom setting (any change will take effect at the
 next map refresh, indicated by a small timer icon at the top left of the panel).
-* Data logging (in binary format) can be turned on or off via the Enable Data Logging setting. You will be prompted
+* Data logging (in binary format) can be turned on or off via the Enable Data Logging checkbox. You will be prompted
 to select the directory into which timestamped log files are saved.
+* Track recording (in GPX format) can be turned on or off via the Record Track checkboxes.You will be prompted
+to select the directory into which timestamped track files are saved.
 * Widgets (and their associated fonts) are fully resizeable.
 
 ### UBX Configuration Facilities

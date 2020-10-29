@@ -41,6 +41,7 @@ class SerialHandler():
         self._connected = False
         self._logpath = None
         self._datalogging = False
+        self._recordtrack = False
         self._port = None
         self._reading = False
 
@@ -52,6 +53,7 @@ class SerialHandler():
         if self._serial_thread is not None:
             self._reading = False
             self._serial_thread = None
+            self.disconnect()
 
     def connect(self):
         '''
@@ -69,6 +71,7 @@ class SerialHandler():
         xonxoff = settings['xonxoff']
         rtscts = settings['rtscts']
         self._datalogging = settings['datalogging']
+        self._recordtrack = settings['recordtrack']
 
         try:
             self._serial_object = Serial(self._port,
@@ -85,6 +88,10 @@ class SerialHandler():
             self.__app.frm_settings.set_controls(CONNECTED)
             self._connected = True
             self.start_read_thread()
+
+            if self._recordtrack:
+                self.__app.file_handler.open_trackfile()
+
         except (IOError, SerialException, SerialTimeoutException) as err:
             self._connected = False
             self.__app.set_connection(f"{self._port}:{port_desc} @ {str(baudrate)}", "red")
@@ -100,6 +107,7 @@ class SerialHandler():
         settings = self.__app.frm_settings.get_settings()
         self._datalogging = False
         self._logpath = settings['logpath']
+        self._recordtrack = settings['recordtrack']
 
         try:
             self._serial_object = open(self._logpath, 'rb')
@@ -109,6 +117,10 @@ class SerialHandler():
             self.__app.frm_settings.set_controls(CONNECTED_FILE)
             self._connected = True
             self.start_readfile_thread()
+
+            if self._recordtrack:
+                self.__app.file_handler.open_trackfile()
+
         except (IOError, SerialException, SerialTimeoutException) as err:
             self._connected = False
             self.__app.set_connection(f"{self._logpath}", "red")
@@ -128,6 +140,11 @@ class SerialHandler():
                 self.__app.frm_banner.update_banner(status=False)
                 self.__app.set_connection(NOTCONN, "red")
                 self.__app.set_status("", "blue")
+
+                if self._recordtrack:
+                    self.__app.file_handler.close_trackfile()
+                    self._recordtrack = False
+
             except (SerialException, SerialTimeoutException):
                 pass
 
@@ -233,13 +250,16 @@ class SerialHandler():
         trigger data parsing and widget updates.
         '''
 
-#         print("doing serial_handler._read_thread")
-        while self._reading and self._serial_object:
-#             print("doing serial_handler._read_thread while loop")
-            if self._serial_object.in_waiting:
-#                 print(f"Bytes in buffer: {self._serial_object.in_waiting}")
-#                 print("doing serial_handler._read_thread in_waiting")
-                self.__master.event_generate('<<ubx_read>>')
+        try:
+    #         print("doing serial_handler._read_thread")
+            while self._reading and self._serial_object:
+    #             print("doing serial_handler._read_thread while loop")
+                if self._serial_object.in_waiting:
+    #                 print(f"Bytes in buffer: {self._serial_object.in_waiting}")
+    #                 print("doing serial_handler._read_thread in_waiting")
+                    self.__master.event_generate('<<ubx_read>>')
+        except SerialException as err:
+            self.__app.set_status(f'Error in read thread {err}', "red")
 
     def _readfile_thread(self):
         '''

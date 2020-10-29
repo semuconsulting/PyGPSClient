@@ -20,7 +20,7 @@ from .globals import ENTCOL, DDD, DMM, DMS, UMM, UMK, UI, UIK, ADVON, \
                                 NOPORTS, KNOWNGPS, ICON_CONN, ICON_DISCONN, ICON_UBXCONFIG, \
                                 ICON_LOGREAD, BAUDRATES, \
                                 NMEA_PROTOCOL, UBX_PROTOCOL, MIXED_PROTOCOL
-from .strings import LBLUBXCONFIG, LBLPROTDISP, LBLDATADISP, LBLDATALOG
+from .strings import LBLUBXCONFIG, LBLPROTDISP, LBLDATADISP, LBLDATALOG, LBLTRACKRECORD
 
 
 class SettingsFrame(Frame):
@@ -57,10 +57,11 @@ class SettingsFrame(Frame):
         self._units = StringVar()
         self._format = StringVar()
         self._datalog = IntVar()
+        self._record_track = IntVar()
         self._noports = True
         self._validsettings = True
         self._logpath = None
-        self._datalogging = False
+        self._trackpath = None
         self._img_conn = ImageTk.PhotoImage(Image.open(ICON_CONN))
         self._img_disconn = ImageTk.PhotoImage(Image.open(ICON_DISCONN))
         self._img_ubxconfig = ImageTk.PhotoImage(Image.open(ICON_UBXCONFIG))
@@ -174,6 +175,10 @@ class SettingsFrame(Frame):
                                         variable=self._datalog,
                                         command=lambda: self._on_data_log())
 
+        self._chk_recordtrack = Checkbutton(self._frm_options, text=LBLTRACKRECORD,
+                                        variable=self._record_track,
+                                        command=lambda: self._on_record_track())
+
         self._lbl_ubxconfig = Label(self._frm_options, text=LBLUBXCONFIG)
         self._btn_ubxconfig = Button(self._frm_options, width=45, height=35,
                                      text='UBX', image=self._img_ubxconfig,
@@ -232,11 +237,12 @@ class SettingsFrame(Frame):
         self._chk_webmap.grid(column=0, row=5, sticky=(W))
         self._scl_mapzoom.grid(column=1, row=5, columnspan=3, sticky=(W))
         self._chk_datalog.grid(column=0, row=6, padx=3, pady=3, sticky=(W))
+        self._chk_recordtrack.grid(column=0, row=7, padx=3, pady=3, sticky=(W))
 
-        ttk.Separator(self._frm_options).grid(column=0, row=7, columnspan=4,
+        ttk.Separator(self._frm_options).grid(column=0, row=8, columnspan=4,
                                  padx=3, pady=3, sticky=(W, E))
-        self._lbl_ubxconfig.grid(column=0, row=8, padx=3, pady=3, sticky=(W))
-        self._btn_ubxconfig.grid(column=1, row=8, padx=3, pady=3, sticky=(W))
+        self._lbl_ubxconfig.grid(column=0, row=9, padx=3, pady=3, sticky=(W))
+        self._btn_ubxconfig.grid(column=1, row=9, padx=3, pady=3, sticky=(W))
 
     def _on_select_port(self, *args, **kwargs):
         '''
@@ -269,13 +275,31 @@ class SettingsFrame(Frame):
         if self._datalog.get() == 1:
             self._logpath = self.__app.file_handler.open_logfile_output()
             if self._logpath is not None:
-                self._datalogging = True
                 self.__app.set_status("Data logging enabled: " + self._logpath, "green")
+            else:
+                self._datalog.set(False)
         else:
             self._logpath = None
-            self._datalogging = False
+            self._datalog.set(False)
             self.__app.file_handler.close_logfile()
             self.__app.set_status("Data logging disabled", "blue")
+
+    def _on_record_track(self):
+        '''
+        Start or stop track recorder
+        '''
+
+        if self._record_track.get() == 1:
+            self._trackpath = self.__app.file_handler.set_trackfile_path()
+            if self._trackpath is not None:
+                self.__app.set_status("Track recording enabled: " + self._trackpath, "green")
+            else:
+                self._record_track.set(False)
+        else:
+            self._trackpath = None
+            self._record_track.set(False)
+#             self.__app.file_handler.close_trackfile()
+            self.__app.set_status("Track recording disabled", "blue")
 
     def _on_data_stream(self):
         '''
@@ -348,9 +372,12 @@ class SettingsFrame(Frame):
         self._raw.set(False)
         self._webmap.set(False)
         self._mapzoom.set(10)
+        self._datalog.set(False)
+        self._record_track.set(False)
 
     def set_controls(self, status):
         '''
+        ...for the heart of the sun.
         Public method to enable and disable serial port controls
         depending on connection status.
         '''
@@ -375,11 +402,14 @@ class SettingsFrame(Frame):
         self._chk_datalog.config(state=(DISABLED if status in \
                                         (CONNECTED, CONNECTED_FILE, NOPORTS) \
                                         else NORMAL))
+        self._chk_recordtrack.config(state=(DISABLED if status in \
+                                        (CONNECTED, CONNECTED_FILE) \
+                                        else NORMAL))
         self._btn_connect_file.config(state=(DISABLED if status in \
                                              (CONNECTED, CONNECTED_FILE) \
                                              else NORMAL))
         self._btn_ubxconfig.config(state=(DISABLED if status in \
-                                          (CONNECTED_FILE, DISCONNECTED, NOPORTS) \
+                                          (DISCONNECTED, CONNECTED_FILE, NOPORTS) \
                                           else NORMAL))
         self.__app.menu.options_menu.entryconfig(0, state=(DISABLED if status in \
                                           (CONNECTED_FILE, DISCONNECTED, NOPORTS) \
@@ -408,7 +438,9 @@ class SettingsFrame(Frame):
         self._settings['units'] = self._units.get()
         self._settings['format'] = self._format.get()
         self._settings['logpath'] = self._logpath
-        self._settings['datalogging'] = self._datalogging
+        self._settings['datalogging'] = self._datalog.get()
+        self._settings['recordtrack'] = self._record_track.get()
+
         return self._settings
 
     def get_size(self):

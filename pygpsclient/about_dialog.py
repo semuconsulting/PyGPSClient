@@ -10,13 +10,13 @@ from tkinter import Toplevel, Label, Button
 from webbrowser import open_new_tab
 from PIL import ImageTk, Image
 
-from .globals import ICON_APP
-from .strings import ABOUTTXT, COPYRIGHTTXT, DLGABOUT, \
-                                GITHUBURL
+from .globals import ICON_APP, GITHUB_URL
+from .strings import ABOUTTXT, COPYRIGHTTXT, DLGABOUT
 
 from ._version import __version__
 
 VERSION = __version__
+
 
 class AboutDialog():
     '''
@@ -53,10 +53,9 @@ class AboutDialog():
                                font=self.__app.font_sm)
         self._lbl_version = Label(self._dialog, text="Version: " + VERSION, font=self.__app.font_sm)
         self._lbl_copyright = Label(self._dialog, text=COPYRIGHTTXT, fg="blue",
-                                    font=self.__app.font_sm,cursor="hand2")
+                                    font=self.__app.font_sm, cursor="hand2")
         self._btn_ok = Button(self._dialog, text="OK", width=8, command=self.ok_press,
                               font=self.__app.font_md)
-
 
     def _do_layout(self):
         '''
@@ -75,7 +74,7 @@ class AboutDialog():
         Bind events to dialog.
         '''
 
-        self._lbl_copyright.bind("<Button-1>", lambda e: open_new_tab(GITHUBURL))
+        self._lbl_copyright.bind("<Button-1>", lambda e: open_new_tab(GITHUB_URL))
         self._btn_ok.bind("<Return>", self.ok_press)
         self._btn_ok.focus_set()
 

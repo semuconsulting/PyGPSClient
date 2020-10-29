@@ -17,7 +17,7 @@ from tkinter import ttk, messagebox, Toplevel, Frame, Radiobutton, Listbox, \
 from PIL import ImageTk, Image
 from pyubx2 import UBXMessage, POLL, SET, UBX_CONFIG_MESSAGES, UBX_PAYLOADS_POLL
 
-from .globals import BGCOL, FGCOL, ENTCOL, ICON_APP, ICON_SEND, ICON_EXIT, ICON_WARNING, \
+from .globals import BGCOL, FGCOL, ENTCOL, ICON_SEND, ICON_EXIT, ICON_WARNING, \
                      ICON_UBXCONFIG, ICON_PENDING, ICON_CONFIRMED, BAUDRATES, READONLY
 from .strings import LBLUBXCONFIG, LBLCFGPRT, LBLCFGMSG, LBLPRESET, DLGUBXCONFIG, DLGRESET, \
                      DLGSAVE, DLGRESETCONFIRM, DLGSAVECONFIRM, PSTRESET, PSTSAVE, \
@@ -638,7 +638,7 @@ class UBXConfigDialog():
         '''
 
         for msgtype in UBX_CONFIG_MESSAGES:
-            if msgtype[0:1] not in (b'\x0a', b'\x01'):
+            if msgtype[0:1] in (b'\xf0', b'\xf1'):
                 self._do_cfgmsg(msgtype, msgrate)
 
     def _do_set_allNAV(self, msgrate):
@@ -708,18 +708,22 @@ class UBXConfigDialog():
         catch-all-exceptions in the calling routine.
         '''
 
-        seg = command.split(",")
-        for i in range(1, len(seg), 4):
-            ubx_class = seg[i].strip()
-            ubx_id = seg[i + 1].strip()
-            payload = seg[i + 2].strip()
-            mode = int(seg[i + 3].rstrip('\r\n'))
-            if payload != '':
-                payload = bytes(bytearray.fromhex(payload))
-                msg = UBXMessage(ubx_class, ubx_id, mode, payload=payload)
-            else:
-                msg = UBXMessage(ubx_class, ubx_id, mode)
-            self.__app.serial_handler.serial_write(msg.serialize())
+        try:
+            seg = command.split(",")
+            for i in range(1, len(seg), 4):
+                ubx_class = seg[i].strip()
+                ubx_id = seg[i + 1].strip()
+                payload = seg[i + 2].strip()
+                mode = int(seg[i + 3].rstrip('\r\n'))
+                if payload != '':
+                    payload = bytes(bytearray.fromhex(payload))
+                    msg = UBXMessage(ubx_class, ubx_id, mode, payload=payload)
+                else:
+                    msg = UBXMessage(ubx_class, ubx_id, mode)
+                self.__app.serial_handler.serial_write(msg.serialize())
+        except Exception as err:  # pylint: disable=broad-except
+            self.__app.set_status(f"Error {err}", "red")
+            self._lbl_send_preset.config(image=self._img_warn)
 
     def set_status(self, message, color="blue"):
         '''
