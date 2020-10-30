@@ -273,7 +273,7 @@ class SettingsFrame(Frame):
         '''
 
         if self._datalog.get() == 1:
-            self._logpath = self.__app.file_handler.open_logfile_output()
+            self._logpath = self.__app.file_handler.set_logfile_path()
             if self._logpath is not None:
                 self.__app.set_status("Data logging enabled: " + self._logpath, "green")
             else:
@@ -281,7 +281,7 @@ class SettingsFrame(Frame):
         else:
             self._logpath = None
             self._datalog.set(False)
-            self.__app.file_handler.close_logfile()
+#             self.__app.file_handler.close_logfile()
             self.__app.set_status("Data logging disabled", "blue")
 
     def _on_record_track(self):

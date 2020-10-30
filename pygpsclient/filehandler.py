@@ -89,7 +89,7 @@ class FileHandler():
         filename = os.path.join(path, f'pygps{mode}-' + timestr + f'.{ext}')
         return filename
 
-    def open_logfile_output(self) -> str:
+    def set_logfile_path(self) -> str:
         '''
         Set logfile directory and open logfile for output
         '''
@@ -98,9 +98,15 @@ class FileHandler():
                                        mustexist=True)
         if self._datalog_filepath == "":
             return None  # User cancelled
+        return self._datalog_filepath
+
+    def open_logfile_output(self):
+        '''
+        Open logfile
+        '''
+
         self._datalog_filename = self._set_filename(self._datalog_filepath, 'data', 'log')
         self._logfile = open(self._datalog_filename, 'a+b')
-        return self._datalog_filename
 
     def open_logfile_input(self) -> str:
         '''
@@ -119,13 +125,15 @@ class FileHandler():
         Append binary data to log file
         '''
 
-        self._logfile.write(data)
-        self._lines += 1
+        try:
+            self._logfile.write(data)
+            self._lines += 1
 
-        if self._lines > MAXLOGLINES:
-            self.close_logfile()
-            self._datalog_filename = self._set_filename(self._datalog_filepath, 'data', 'log')
-            self._logfile = open(self._datalog_filename, 'a+b')
+            if self._lines > MAXLOGLINES:
+                self.close_logfile()
+                self.open_logfile_output()
+        except ValueError:  # residual thread write to closed file
+            pass
 
     def close_logfile(self):
         '''
@@ -144,9 +152,6 @@ class FileHandler():
                                        mustexist=True)
         if self._track_filepath == "":
             return None  # User cancelled
-#         self._track_filename = self._set_filename(self._track_filepath, 'track', 'gpx')
-#         self._trkfile = open(self._track_filename, 'a')
-#         return self._track_filename
         return self._track_filepath
 
     def open_trackfile(self):
@@ -166,7 +171,10 @@ class FileHandler():
         '<trk><name>GPX track from PyGPSClient</name>'
         '<desc>GPX track from PyGPSClient</desc><trkseg>')
 
-        self._trkfile.write(gpxtrack)
+        try:
+            self._trkfile.write(gpxtrack)
+        except ValueError:  # residual thread write to closed file
+            pass
 
     def add_trackpoint(self, lat: float, lon: float, **kwargs):
         '''
@@ -178,17 +186,21 @@ class FileHandler():
 
         trkpnt = f'<trkpt lat="{lat}" lon="{lon}">'
 
-        # these are the main permissible elements in the GPX schema for wptType
+        # these are the permissible elements in the GPX schema for wptType
         # http://www.topografix.com/GPX/1/1/#type_wptType
         for tag in ('ele', 'time', 'magvar', 'geoidheight', 'name', 'cmt', 'desc', 'src',
-                    'link', 'sym', 'type', 'fix', 'sat', 'hdop', 'vdop', 'pdop'):
+                    'link', 'sym', 'type', 'fix', 'sat', 'hdop', 'vdop', 'pdop',
+                    'ageofdgpsdata', 'dgpsid', 'extensions'):
             if tag in kwargs:
                 val = kwargs[tag]
                 trkpnt += f'<{tag}>{val}</{tag}>'
 
         trkpnt += '</trkpt>'
 
-        self._trkfile.write(trkpnt)
+        try:
+            self._trkfile.write(trkpnt)
+        except ValueError:  # residual thread write to closed file
+            pass
 
     def close_trackfile(self):
         '''
@@ -196,5 +208,8 @@ class FileHandler():
         '''
 
         gpxtrack = '</trkseg></trk></gpx>'
-        self._trkfile.write(gpxtrack)
-        self._trkfile.close()
+        try:
+            self._trkfile.write(gpxtrack)
+            self._trkfile.close()
+        except ValueError:  # residual thread write to closed file
+            pass

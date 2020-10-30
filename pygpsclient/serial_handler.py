@@ -89,6 +89,9 @@ class SerialHandler():
             self._connected = True
             self.start_read_thread()
 
+            if self._datalogging:
+                self.__app.file_handler.open_logfile_output()
+
             if self._recordtrack:
                 self.__app.file_handler.open_trackfile()
 
@@ -141,9 +144,11 @@ class SerialHandler():
                 self.__app.set_connection(NOTCONN, "red")
                 self.__app.set_status("", "blue")
 
+                if self._datalogging:
+                    self.__app.file_handler.close_logfile()
+
                 if self._recordtrack:
                     self.__app.file_handler.close_trackfile()
-                    self._recordtrack = False
 
             except (SerialException, SerialTimeoutException):
                 pass
