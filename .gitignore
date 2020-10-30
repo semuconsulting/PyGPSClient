@@ -6,6 +6,8 @@
 Pipfile*.*
 /build
 /dist
+/references/*.log
+/references/*.gpx
 /PyGPSClient_*
 /PyGPSClient-*
 /PyGPSClient.egg*
