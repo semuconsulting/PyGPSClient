@@ -2,7 +2,7 @@
 
 PyGPSClient is a graphical GNSS/GPS testing and diagnostic client application written entirely in Python and tkinter.
 
-![full app screenshot](/images/all_widgets.png)
+![full app screenshot ubx](/images/all_widgets.png)![full app screenshot nmea](/images/all_widgets_nmea.png)
 
 The application runs on any platform which supports a Python3 interpreter (>=3.6) and tkinter (>=8.6) GUI framework, 
 including Windows, MacOS, Linux and Raspberry Pi OS. It displays location and diagnostic data from any NMEA or UBX (u-blox &copy;) 
