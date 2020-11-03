@@ -128,7 +128,7 @@ The easiest way to install the latest version of PyGPSClient is via [pip](http:/
 
 `python -m pip install --upgrade PyGPSClient`
 
-To run the appliation, if the python3 site_packages are in your PATH, simply type `python -m pygpsclient`.
+To run the application, if the python3 site_packages are in your PATH, simply type `python -m pygpsclient`.
 
 If not, type `python -m \full_path_to_site_packages\pygpsclient`.
 

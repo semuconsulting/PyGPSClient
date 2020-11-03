@@ -3,9 +3,13 @@
 	<condition property="python" value="python" else="python3">
 		<os family="windows" />
 	</condition>
+	<property name="version" value="0.2.9" />
 	<property name="test_args" value="tests/testsuite.py" />
 	<property name="build_args" value="setup.py sdist bdist_wheel" />
 	<property name="deploy_args" value="-m twine upload --config-file .pypirc dist/*" />
+	<property name="install_args" value="-m pip install dist/${ant.project.name}-${version}.tar.gz --user" />
+	<property name="coverage_args" value="-m coverage run --source=${ant.project.name} -m pytest" />
+	<property name="coverage_html_args" value="-m coverage html" />
 	<target name="test">
 		<echo>Testing...</echo>
 		<exec executable="${python}">
@@ -17,9 +21,10 @@
 		<delete includeEmptyDirs="true" quiet="true" failonerror="false">
 			<fileset dir="build" />
 			<fileset dir="dist" />
-			<fileset dir="PyGPSClient.egg-info/" />
-			<fileset dir="PyGPSClient-*/" />
-			<fileset dir="PyGPSClient/__pycache__" includes="*.nbc, *.nbi, *.pyc" />
+			<fileset dir="htmlcov" />
+			<fileset dir="${ant.project.name}.egg-info/" />
+			<fileset dir="${ant.project.name}-*/" />
+			<fileset dir="${ant.project.name}/__pycache__" includes="*.nbc, *.nbi, *.pyc" />
 		</delete>
 	</target>
 	<target name="build" depends="clean">
@@ -35,12 +40,18 @@
   		</exec>
    	</target>
 	<target name = "install_locally" depends="build">
-		<input message="Enter version to be installed:"
-		       addproperty="version"/>
-		<property name="install_args" value="-m pip install dist/PyGPSClient-${version}.tar.gz --user" />
-		<echo>Installing ${version} locally...</echo>
+		<echo>Installing Locally...</echo>
 		<exec executable="${python}">
 			<arg line="${install_args}"/>
+  		</exec>
+   	</target>
+	<target name = "coverage" depends="install_locally">
+		<echo>Testing Coverage...</echo>
+		<exec executable="${python}">
+			<arg line="${coverage_args}"/>
+  		</exec>
+  		<exec executable="${python}">
+			<arg line="${coverage_html_args}"/>
   		</exec>
    	</target>
 </project>

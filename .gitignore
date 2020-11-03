@@ -1,9 +1,11 @@
 .DS_Store
 .dropbox
 .project
+.coverage
 .pydevproject
 /.settings
 Pipfile*.*
+/htmlcov
 /build
 /dist
 /references/*.log

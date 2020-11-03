@@ -1,0 +1,26 @@
+language: python
+
+python:
+  - "3.6"
+  - "3.7"
+  - "3.8"
+
+# command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
+install:
+    - pip install pip --upgrade
+    - pip install pytest --upgrade
+    - pip install pylint --upgrade
+    - pip install -r requirements.txt
+
+# command to run tests, e.g. python setup.py test
+script:
+    - python setup.py sdist bdist_wheel
+    - pip install dist/PyGPSClient-*.tar.gz --user
+    - py.test
+    - pylint -E PyGPSClient
+
+after_success:
+    - pip install coveralls coverage
+    - PYTHONPATH=. coverage run --source=PyGPSClient -m pytest
+    - coverage report
+    - coveralls
