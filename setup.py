@@ -19,7 +19,7 @@ with open("README.md", "r") as fh:
 setup(
     name="PyGPSClient",
     version=VERSION,
-    packages=find_packages(exclude=['tests', 'references', 'images']),
+    packages=find_packages(exclude=['references', 'images']),
     install_requires=["pyubx2>=0.2.2", "pynmea2>=1.15.0", "requests>=2.24.0",
                       "Pillow>=7.2.0", "pyserial>=3.4"],
     package_data={
