@@ -82,6 +82,7 @@ warning ![warning icon](/pygpsclient/resources/iconmonstr-warning-1-24.png)).
 ### Current Status
 
 ![Release](https://img.shields.io/github/v/release/semuconsulting/PyGPSClient?include_prereleases)
+![Build](https://img.shields.io/travis/semuconsulting/PyGPSClient)
 ![Release Date](https://img.shields.io/github/release-date-pre/semuconsulting/PyGPSClient)
 ![Last Commit](https://img.shields.io/github/last-commit/semuconsulting/PyGPSClient)
 ![Contributors](https://img.shields.io/github/contributors/semuconsulting/PyGPSClient.svg)
