@@ -2,7 +2,6 @@
 PyGPSClient - Main tkinter application class
 
 Created on 12 Sep 2020
-
 @author: semuadmin
 '''
 
@@ -13,7 +12,7 @@ from .about_dialog import AboutDialog
 from .banner_frame import BannerFrame
 from .console_frame import ConsoleFrame
 from .filehandler import FileHandler
-from .globals import ICON_APP
+from .globals import ICON_APP, DISCONNECTED
 from .graphview_frame import GraphviewFrame
 from .map_frame import MapviewFrame
 from .menu_bar import MenuBar
@@ -50,12 +49,14 @@ class App(Frame):
         self.__master.protocol('WM_DELETE_WINDOW', self.exit)
         self.__master.title(TITLE)
         self.__master.iconphoto(True, PhotoImage(file=ICON_APP))
-        self._show_settings = False  # Flag to toggle settings frame
-        self._show_ubxconfig = True  # Flag to toggle pyubx2 config frame
-        self._show_status = False  # Flag to toggle status bar
-        self._show_console = False  # Flag to toggler console
-        self._show_map = False  # Flag to toggle status bar
-        self._show_sats = False  # Flag to toggler console
+
+        # Set initial widget visibility
+        self._show_settings = True
+        self._show_ubxconfig = False
+        self._show_status = True
+        self._show_console = True
+        self._show_map = True
+        self._show_sats = True
 
         # Instantiate protocol handler classes
         self.file_handler = FileHandler(self)
@@ -75,16 +76,20 @@ class App(Frame):
         # Initialise widgets
         self.frm_satview.init_sats()
         self.frm_graphview.init_graph()
-        self.frm_banner.update_banner(status=False)
+        self.frm_banner.update_conn_status(DISCONNECTED)
 
     def _body(self):
         '''
         Set up frame and widgets
         '''
 
-        for i in range(3):
-            self.__master.grid_columnconfigure(i, weight=1)
-        self.__master.grid_rowconfigure(1, weight=1)
+        # these grid weights are what gives the grid its
+        # 'pack to window size' behaviour
+        self.__master.grid_columnconfigure(0, weight=1)
+        self.__master.grid_columnconfigure(1, weight=2)
+        self.__master.grid_columnconfigure(2, weight=2)
+        self.__master.grid_rowconfigure(0, weight=0)
+        self.__master.grid_rowconfigure(1, weight=2)
         self.__master.grid_rowconfigure(2, weight=1)
         self._set_default_fonts()
 
@@ -106,17 +111,14 @@ class App(Frame):
 
         self.frm_banner.grid(column=0, row=0, columnspan=5, padx=2, pady=2,
                              sticky=(N, S, E, W))
-        self.toggle_status()
-        self.toggle_settings()
-        self.toggle_console()
-        self.toggle_map()
-        self.toggle_sats()
+        self._grid_console()
+        self._grid_sats()
+        self._grid_map()
+        self._grid_status()
+        self._grid_settings()
 
         if self.frm_settings.get_settings()['noports']:
             self.set_status(INTROTXTNOPORTS, "red")
-#         else:
-#             self.set_status(INTROTXT, "blue")
-#         # self.frm_settings._lbx_port.focus_set()
 
     def _attach_events(self):
         '''
@@ -145,79 +147,116 @@ class App(Frame):
         Toggle Settings Frame on or off
         '''
 
+        self._show_settings = not self._show_settings
+        self._grid_settings()
+
+    def _grid_settings(self):
+        '''
+        Set grid position of Settings Frame
+        '''
+
         if self._show_settings:
-            self.frm_settings.grid_forget()
-            self._show_settings = False
-            self.menu.view_menu.entryconfig(0, label=MENUSHOWSE)
-        else:
             self.frm_settings.grid(column=4, row=1, rowspan=2, padx=2,
                                    pady=2, sticky=(N, W, E))
-            self._show_settings = True
             self.menu.view_menu.entryconfig(0, label=MENUHIDESE)
+        else:
+            self.frm_settings.grid_forget()
+            self.menu.view_menu.entryconfig(0, label=MENUSHOWSE)
 
     def toggle_status(self):
         '''
         Toggle Status Bar on or off
         '''
 
+        self._show_status = not self._show_status
+        self._grid_status()
+
+    def _grid_status(self):
+        '''
+        Position Status Bar in grid
+        '''
+
         if self._show_status:
-            self.frm_status.grid_forget()
-            self._show_status = False
-            self.menu.view_menu.entryconfig(1, label=MENUSHOWSB)
-        else:
             self.frm_status.grid(column=0, row=3, columnspan=5, padx=2,
                                  pady=2, sticky=(W, E))
-            self._show_status = True
             self.menu.view_menu.entryconfig(1, label=MENUHIDESB)
+        else:
+            self.frm_status.grid_forget()
+            self.menu.view_menu.entryconfig(1, label=MENUSHOWSB)
 
     def toggle_console(self):
         '''
         Toggle Console frame on or off
         '''
 
+        self._show_console = not self._show_console
+        self._grid_console()
+        self._grid_sats()
+        self._grid_map()
+
+    def _grid_console(self):
+        '''
+        Position Console Frame in grid
+        '''
+
         if self._show_console:
-            self.frm_console.grid_forget()
-            self._show_console = False
-            self.menu.view_menu.entryconfig(2, label=MENUSHOWCON)
-        else:
-            self.frm_console.grid(column=0, row=1, columnspan=3, padx=2,
-                                  pady=2, sticky=(N, S, E, W))
-            self._show_console = True
-            self.menu.view_menu.entryconfig(2, label=MENUHIDECON)
-
-    def toggle_map(self):
-        '''
-        Toggle Map frame on or off
-        '''
-
-        if self._show_map:
-            self.frm_mapview.grid_forget()
-            self._show_map = False
-            self.menu.view_menu.entryconfig(3, label=MENUSHOWMAP)
-        else:
-            self.frm_mapview.grid(column=2, row=2, padx=2, pady=2,
+            self.frm_console.grid(column=0, row=1,
+                                  columnspan=4,
+                                  padx=2, pady=2,
                                   sticky=(N, S, E, W))
-            self._show_map = True
-            self.menu.view_menu.entryconfig(3, label=MENUHIDEMAP)
+            self.menu.view_menu.entryconfig(2, label=MENUHIDECON)
+        else:
+            self.frm_console.grid_forget()
+            self.menu.view_menu.entryconfig(2, label=MENUSHOWCON)
 
     def toggle_sats(self):
         '''
         Toggle Satview and Graphview frames on or off
         '''
 
+        self._show_sats = not self._show_sats
+        self._grid_sats()
+        self._grid_map()
+
+    def _grid_sats(self):
+        '''
+        Position Satview and Graphview Frames in grid
+        '''
+
         if self._show_sats:
+            self.frm_satview.grid(column=0, row=2,
+                                  padx=2, pady=2,
+                                  sticky=(N, S, E, W))
+            self.frm_graphview.grid(column=1, row=2,
+                                    padx=2, pady=2,
+                                    sticky=(N, S, E, W))
+            self.menu.view_menu.entryconfig(4, label=MENUHIDESATS)
+        else:
             self.frm_satview.grid_forget()
             self.frm_graphview.grid_forget()
-            self._show_sats = False
             self.menu.view_menu.entryconfig(4, label=MENUSHOWSATS)
-        else:
 
-            self.frm_satview.grid(column=0, row=2, padx=2, pady=2,
+    def toggle_map(self):
+        '''
+        Toggle Map Frame on or off
+        '''
+
+        self._show_map = not self._show_map
+        self._grid_map()
+
+    def _grid_map(self):
+        '''
+        Position Map Frame in grid
+        '''
+
+        if self._show_map:
+            self.frm_mapview.grid(column=2, row=2,
+                                  padx=2, pady=2,
                                   sticky=(N, S, E, W))
-            self.frm_graphview.grid(column=1, row=2, padx=2, pady=2,
-                                    sticky=(N, S, E, W))
-            self._show_sats = True
-            self.menu.view_menu.entryconfig(4, label=MENUHIDESATS)
+            self.menu.view_menu.entryconfig(3, label=MENUHIDEMAP)
+        else:
+            self.frm_mapview.grid_forget()
+            self.menu.view_menu.entryconfig(3, label=MENUSHOWMAP)
 
     def set_connection(self, message, color="blue"):
         '''

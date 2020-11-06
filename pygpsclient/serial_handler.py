@@ -83,7 +83,7 @@ class SerialHandler():
                                          rtscts=rtscts,
                                          timeout=SERIAL_TIMEOUT)
             self._serial_buffer = BufferedReader(self._serial_object)
-            self.__app.frm_banner.update_banner(status=CONNECTED)
+            self.__app.frm_banner.update_conn_status(CONNECTED)
             self.__app.set_connection(f"{self._port}:{port_desc} @ {str(baudrate)}", "green")
             self.__app.frm_settings.set_controls(CONNECTED)
             self._connected = True
@@ -99,7 +99,7 @@ class SerialHandler():
             self._connected = False
             self.__app.set_connection(f"{self._port}:{port_desc} @ {str(baudrate)}", "red")
             self.__app.set_status(SEROPENERROR.format(err), "red")
-            self.__app.frm_banner.update_banner(status=DISCONNECTED)
+            self.__app.frm_banner.update_conn_status(DISCONNECTED)
             self.__app.frm_settings.set_controls(DISCONNECTED)
 
     def connect_file(self):
@@ -115,7 +115,7 @@ class SerialHandler():
         try:
             self._serial_object = open(self._logpath, 'rb')
             self._serial_buffer = BufferedReader(self._serial_object)
-            self.__app.frm_banner.update_banner(status=CONNECTED_FILE)
+            self.__app.frm_banner.update_conn_status(CONNECTED_FILE)
             self.__app.set_connection(f"{self._logpath}", "blue")
             self.__app.frm_settings.set_controls(CONNECTED_FILE)
             self._connected = True
@@ -128,7 +128,7 @@ class SerialHandler():
             self._connected = False
             self.__app.set_connection(f"{self._logpath}", "red")
             self.__app.set_status(SEROPENERROR.format(err), "red")
-            self.__app.frm_banner.update_banner(status=DISCONNECTED)
+            self.__app.frm_banner.update_conn_status(DISCONNECTED)
             self.__app.frm_settings.set_controls(DISCONNECTED)
 
     def disconnect(self):
@@ -140,7 +140,7 @@ class SerialHandler():
             try:
                 self._reading = False
                 self._serial_object.close()
-                self.__app.frm_banner.update_banner(status=False)
+                self.__app.frm_banner.update_conn_status(DISCONNECTED)
                 self.__app.set_connection(NOTCONN, "red")
                 self.__app.set_status("", "blue")
 

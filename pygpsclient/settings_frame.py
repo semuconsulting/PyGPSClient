@@ -168,17 +168,16 @@ class SettingsFrame(Frame):
                                     width=6, readonlybackground=ENTCOL, wrap=True,
                                     textvariable=self._maxlines, state=READONLY)
         self._chk_webmap = Checkbutton(self._frm_options, text="Web Map  Zoom",
-                                      variable=self._webmap)
+                                       variable=self._webmap,
+                                       command=lambda: self._on_webmap())
         self._scl_mapzoom = Scale(self._frm_options, from_=1, to=20, orient=HORIZONTAL,
                                   relief="sunken", bg=ENTCOL, variable=self._mapzoom)
         self._chk_datalog = Checkbutton(self._frm_options, text=LBLDATALOG,
                                         variable=self._datalog,
                                         command=lambda: self._on_data_log())
-
         self._chk_recordtrack = Checkbutton(self._frm_options, text=LBLTRACKRECORD,
                                         variable=self._record_track,
                                         command=lambda: self._on_record_track())
-
         self._lbl_ubxconfig = Label(self._frm_options, text=LBLUBXCONFIG)
         self._btn_ubxconfig = Button(self._frm_options, width=45, height=35,
                                      text='UBX', image=self._img_ubxconfig,
@@ -266,6 +265,13 @@ class SettingsFrame(Frame):
         '''
 
         self.__app.ubxconfig()
+
+    def _on_webmap(self):
+        '''
+        Reset webmap refresh timer
+        '''
+
+        self.__app.frm_mapview.reset_map_refresh()
 
     def _on_data_log(self):
         '''

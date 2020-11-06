@@ -178,6 +178,18 @@ class BannerFrame(Frame):
 
         self.bind("<Configure>", self._on_resize)
 
+    def update_conn_status(self, status):
+        '''
+        Update connection status icon
+        '''
+
+        if status == CONNECTED:
+            self._lbl_status_preset.configure(image=self._img_conn)
+        elif status == CONNECTED_FILE:
+            self._lbl_status_preset.configure(image=self._img_connfile)
+        else:
+            self._lbl_status_preset.configure(image=self._img_disconn)
+
     def update_banner(self, **kwargs):
         '''
         Sets text of banner from keyword parms.
@@ -187,65 +199,120 @@ class BannerFrame(Frame):
         disp_format = settings['format']
         units = settings['units']
 
+        self._update_time(**kwargs)
+        self._update_pos(disp_format, units, **kwargs)
+        self._update_track(units, **kwargs)
+        self._update_fix(**kwargs)
+        self._update_siv(**kwargs)
+        self._update_dop(units, **kwargs)
+
+    def _update_time(self, **kwargs):
+        '''
+        Update GNSS time of week
+        '''
+
         if 'time' in kwargs:
             self._time.set(kwargs['time'])
+
+    def _update_pos(self, disp_format, units, **kwargs):
+        '''
+        Update position
+        '''
+
         if 'lat' in kwargs:
-            if kwargs['lat'] == '':
+            lat = kwargs['lat']
+            if lat is None or lat == '':
                 self._lat.set('N/A')
             else:
                 if disp_format == DMS:
-                    self._lat.set(deg2dms(kwargs['lat'], 'lat'))
+                    self._lat.set(deg2dms(lat, 'lat'))
                 elif disp_format == DMM:
-                    self._lat.set(deg2dmm(kwargs['lat'], 'lat'))
+                    self._lat.set(deg2dmm(lat, 'lat'))
                 else:
-                    self._lat.set(round(kwargs['lat'], 5))
+                    self._lat.set(round(lat, 5))
         if 'lon' in kwargs:
-            if kwargs['lon'] == '':
+            lon = kwargs['lon']
+            if lon is None or lon == '':
                 self._lon.set('N/A')
             else:
                 if disp_format == DMS:
-                    self._lon.set(deg2dms(kwargs['lon'], 'lon'))
+                    self._lon.set(deg2dms(lon, 'lon'))
                 elif disp_format == DMM:
-                    self._lon.set(deg2dmm(kwargs['lon'], 'lon'))
+                    self._lon.set(deg2dmm(lon, 'lon'))
                 else:
-                    self._lon.set(round(kwargs['lon'], 5))
+                    self._lon.set(round(lon, 5))
         if 'alt' in kwargs:
-            if kwargs['alt'] is None:
+            alt = kwargs['alt']
+            if alt is None or alt == '':
                 self._alt.set('N/A')
                 self._alt_u.set('')
             else:
                 if units in (UI, UIK):
-                    self._alt.set(round(m2ft(float(kwargs['alt'])), 1))
+                    self._alt.set(round(m2ft(float(alt)), 1))
                     self._alt_u.set('ft')
                 else:
-                    self._alt.set(round(kwargs['alt'], 1))
+                    self._alt.set(round(alt, 1))
                     self._alt_u.set('m')
+
+    def _update_track(self, units, **kwargs):
+        '''
+        Update track and ground speed
+        '''
+
         if 'speed' in kwargs:
-            if kwargs['speed'] is None:
+            speed = kwargs['speed']
+            if speed is None:
                 self._speed.set('N/A')
                 self._speed_u.set('')
             else:
                 if units == UI:
-                    self._speed.set(round(ms2mph(float(kwargs['speed'])), 1))
+                    self._speed.set(round(ms2mph(float(speed)), 1))
                     self._speed_u.set('mph')
                 elif units == UIK:
-                    self._speed.set(round(ms2knots(float(kwargs['speed'])), 1))
+                    self._speed.set(round(ms2knots(float(speed)), 1))
                     self._speed_u.set('knots')
                 elif units == UMK:
-                    self._speed.set(round(ms2kmph(float(kwargs['speed'])), 1))
+                    self._speed.set(round(ms2kmph(float(speed)), 1))
                     self._speed_u.set('kmph')
                 else:
-                    self._speed.set(round(kwargs['speed'], 1))
+                    self._speed.set(round(speed, 1))
                     self._speed_u.set('m/s')
         if 'track' in kwargs:
-            if kwargs['track'] is None:
+            track = kwargs['track']
+            if track is None:
                 self._track.set('N/A')
             else:
-                self._track.set(str(round(kwargs['track'], 1)))
+                self._track.set(str(round(track, 1)))
+
+    def _update_fix(self, **kwargs):
+        '''
+        Update fix type
+        '''
+
+        if 'fix' in kwargs:
+            if kwargs['fix'] in ('3D', '3D + DR'):
+                self._lbl_fix.config(fg="green2")
+            elif kwargs['fix'] in ('2D', 'DR'):
+                self._lbl_fix.config(fg="orange")
+            else:
+                self._lbl_fix.config(fg="red")
+            self._fix.set(kwargs['fix'])
+
+    def _update_siv(self, **kwargs):
+        '''
+        Update siv and sip
+        '''
+
         if 'siv' in kwargs:
             self._siv.set(str(kwargs['siv']).zfill(2))
         if 'sip' in kwargs:
             self._sip.set(str(kwargs['sip']).zfill(2))
+
+    def _update_dop(self, units, **kwargs):
+        '''
+        Update precision and accuracy
+        '''
+
         if 'dop' in kwargs:
             dop = kwargs['dop']
             self._dop.set(str(dop) + " " + UBXMessage.dop2str(dop))
@@ -259,22 +326,6 @@ class BannerFrame(Frame):
                 hacc = round(kwargs['hacc'], 1)
                 vacc = round(kwargs['vacc'], 1)
             self._hvacc.set("hacc " + str(hacc) + "\nvacc " + str(vacc))
-        if 'fix' in kwargs:
-            if kwargs['fix'] in ('3D', '3D + DR'):
-                self._lbl_fix.config(fg="green2")
-            elif kwargs['fix'] in ('2D', 'DR'):
-                self._lbl_fix.config(fg="orange")
-            else:
-                self._lbl_fix.config(fg="red")
-            self._fix.set(kwargs['fix'])
-        if 'status' in kwargs:
-            self._status = kwargs['status']
-            if self._status == CONNECTED:
-                self._lbl_status_preset.configure(image=self._img_conn)
-            elif self._status == CONNECTED_FILE:
-                self._lbl_status_preset.configure(image=self._img_connfile)
-            else:
-                self._lbl_status_preset.configure(image=self._img_disconn)
 
     def _set_fontsize(self):
         '''
