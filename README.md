@@ -135,7 +135,9 @@ If not, type `python -m \full_path_to_site_packages\pygpsclient`.
 
 **Tip**: to find the site_packages location, type `pip show PyGPSClient` and look for the `Location:` entry in the response, e.g.
 
-`Location: /Library/Frameworks/Python.framework/Versions/3.8/lib/python3.8/site-packages`
+- Linux: `Location: /home/username/.local/lib/python3.8/site-packages`
+- MacOS: `Location: /Library/Frameworks/Python.framework/Versions/3.8/lib/python3.8/site-packages`
+- Windows: `Location: c:\users\username\appdata\local\programs\python\python38\lib\site-packages`
 
 ### 2. Manual installation
 
