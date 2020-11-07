@@ -10,8 +10,7 @@ Created on 12 Sep 2020
 '''
 
 from setuptools import setup, find_packages
-
-from pygpsclient._version import VERSION
+from pygpsclient import version as VERSION
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -20,7 +19,7 @@ setup(
     name="PyGPSClient",
     version=VERSION,
     packages=find_packages(exclude=['tests', 'references', 'images']),
-    install_requires=["pyubx2>=0.2.3", "pynmea2>=1.15.0", "requests>=2.24.0",
+    install_requires=["pyubx2>=0.2.4", "pynmea2>=1.15.0", "requests>=2.24.0",
                       "Pillow>=7.2.0", "pyserial>=3.4"],
     package_data={
         "pygpsclient": ["resources/*.gif", "resources/*.png",

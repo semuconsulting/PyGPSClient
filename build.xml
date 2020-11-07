@@ -3,7 +3,7 @@
 	<condition property="python" value="python" else="/Library/Frameworks/Python.framework/Versions/3.8/bin/python3">
 		<os family="windows" />
 	</condition>
-	<property name="version" value="0.2.9" />
+	<property name="version" value="0.2.10" />
 	<property name="test_args" value="tests/testsuite.py" />
 	<property name="build_args" value="setup.py sdist bdist_wheel" />
 	<property name="deploy_args" value="-m twine upload --config-file .pypirc dist/*" />

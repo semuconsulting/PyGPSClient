@@ -18,3 +18,4 @@ Pipfile*.*
 /pygpsclient/__pycache__
 *.pyc
 mqapikey
+/.pytest_cache/

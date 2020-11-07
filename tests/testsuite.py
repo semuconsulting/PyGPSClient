@@ -15,7 +15,7 @@ from importlib import import_module
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 currdir = os.path.dirname(__file__)
 import pygpsclient
-print(f"Testing Local Version: {pygpsclient.VERSION}")
+print(f"Testing Local Version: {pygpsclient.version}")
 
 if sys.platform == "win32":
     PORT = 'COM6'

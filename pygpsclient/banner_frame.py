@@ -7,7 +7,6 @@ Created on 13 Sep 2020
 
 @author: semuadmin
 '''
-# pylint: disable=line-too-long
 
 from platform import system
 from tkinter import Frame, Label, Button, StringVar, font, N, S, W, E, SUNKEN
@@ -79,41 +78,68 @@ class BannerFrame(Frame):
         self._frm_advanced = Frame(self, bg=BGCOL)
 
         self.option_add("*Font", self.__app.font_md2)
-        self._lbl_ltime = Label(self._frm_basic, text="utc:", bg=self._bgcol, fg=self._fgcol, anchor=N)
-        self._lbl_llat = Label(self._frm_basic, text="lat:", bg=self._bgcol, fg=self._fgcol, anchor=N)
-        self._lbl_llon = Label(self._frm_basic, text="lon:", bg=self._bgcol, fg=self._fgcol, anchor=N)
-        self._lbl_lalt = Label(self._frm_basic, text="alt:", bg=self._bgcol, fg=self._fgcol, anchor=N)
-        self._lbl_lspd = Label(self._frm_basic, text="speed:", bg=self._bgcol, fg=self._fgcol, anchor=N)
-        self._lbl_ltrk = Label(self._frm_basic, text="track:", bg=self._bgcol, fg=self._fgcol, anchor=N)
+        self._lbl_ltime = Label(self._frm_basic, text="utc:",
+                                bg=self._bgcol, fg=self._fgcol, anchor=N)
+        self._lbl_llat = Label(self._frm_basic, text="lat:",
+                               bg=self._bgcol, fg=self._fgcol, anchor=N)
+        self._lbl_llon = Label(self._frm_basic, text="lon:",
+                               bg=self._bgcol, fg=self._fgcol, anchor=N)
+        self._lbl_lalt = Label(self._frm_basic, text="alt:",
+                               bg=self._bgcol, fg=self._fgcol, anchor=N)
+        self._lbl_lspd = Label(self._frm_basic, text="speed:",
+                               bg=self._bgcol, fg=self._fgcol, anchor=N)
+        self._lbl_ltrk = Label(self._frm_basic, text="track:",
+                               bg=self._bgcol, fg=self._fgcol, anchor=N)
         self._btn_toggle = Button(self._frm_toggle, text=ADVON, width=3,
                                   command=self._toggle_advanced)
-        self._lbl_lfix = Label(self._frm_basic, text="fix:", bg=self._bgcol, fg=self._fgcol, anchor=N)
-        self._lbl_lsiv = Label(self._frm_advanced, text="siv:", bg=self._bgcol, fg=self._fgcol, anchor=N)
-        self._lbl_lsip = Label(self._frm_advanced, text="sip:", bg=self._bgcol, fg=self._fgcol, anchor=N)
-        self._lbl_lpdop = Label(self._frm_advanced, text="pdop:", bg=self._bgcol, fg=self._fgcol, anchor=N)
-        self._lbl_lacc = Label(self._frm_advanced, text="acc:", bg=self._bgcol, fg=self._fgcol, anchor=N)
+        self._lbl_lfix = Label(self._frm_basic, text="fix:",
+                               bg=self._bgcol, fg=self._fgcol, anchor=N)
+        self._lbl_lsiv = Label(self._frm_advanced, text="siv:",
+                               bg=self._bgcol, fg=self._fgcol, anchor=N)
+        self._lbl_lsip = Label(self._frm_advanced, text="sip:",
+                               bg=self._bgcol, fg=self._fgcol, anchor=N)
+        self._lbl_lpdop = Label(self._frm_advanced, text="pdop:",
+                                bg=self._bgcol, fg=self._fgcol, anchor=N)
+        self._lbl_lacc = Label(self._frm_advanced, text="acc:",
+                               bg=self._bgcol, fg=self._fgcol, anchor=N)
 
         self.option_add("*Font", self.__app.font_lg)
-        self._lbl_status_preset = Label(self._frm_connect, bg=self._bgcol, image=self._img_conn, fg="blue")
-        self._lbl_time = Label(self._frm_basic, textvariable=self._time, bg=self._bgcol, fg="cyan")
-        self._lbl_lat = Label(self._frm_basic, textvariable=self._lat, bg=self._bgcol, fg="orange")
-        self._lbl_lon = Label(self._frm_basic, textvariable=self._lon, bg=self._bgcol, fg="orange")
-        self._lbl_alt = Label(self._frm_basic, textvariable=self._alt, bg=self._bgcol, fg="orange")
-        self._lbl_spd = Label(self._frm_basic, textvariable=self._speed, bg=self._bgcol, fg="deepskyblue")
-        self._lbl_trk = Label(self._frm_basic, textvariable=self._track, bg=self._bgcol, fg="deepskyblue")
-        self._lbl_fix = Label(self._frm_basic, textvariable=self._fix, bg=self._bgcol, fg="white")
-        self._lbl_siv = Label(self._frm_advanced, textvariable=self._siv, bg=self._bgcol, fg="yellow")
-        self._lbl_sip = Label(self._frm_advanced, textvariable=self._sip, bg=self._bgcol, fg="yellow")
-        self._lbl_pdop = Label(self._frm_advanced, textvariable=self._dop, bg=self._bgcol, fg="mediumpurple2")
+        self._lbl_status_preset = Label(self._frm_connect,
+                                        bg=self._bgcol, image=self._img_conn, fg="blue")
+        self._lbl_time = Label(self._frm_basic, textvariable=self._time,
+                               bg=self._bgcol, fg="cyan")
+        self._lbl_lat = Label(self._frm_basic, textvariable=self._lat,
+                              bg=self._bgcol, fg="orange")
+        self._lbl_lon = Label(self._frm_basic, textvariable=self._lon,
+                              bg=self._bgcol, fg="orange")
+        self._lbl_alt = Label(self._frm_basic, textvariable=self._alt,
+                              bg=self._bgcol, fg="orange")
+        self._lbl_spd = Label(self._frm_basic, textvariable=self._speed,
+                              bg=self._bgcol, fg="deepskyblue")
+        self._lbl_trk = Label(self._frm_basic, textvariable=self._track,
+                              bg=self._bgcol, fg="deepskyblue")
+        self._lbl_fix = Label(self._frm_basic, textvariable=self._fix,
+                              bg=self._bgcol, fg="white")
+        self._lbl_siv = Label(self._frm_advanced, textvariable=self._siv,
+                              bg=self._bgcol, fg="yellow")
+        self._lbl_sip = Label(self._frm_advanced, textvariable=self._sip,
+                              bg=self._bgcol, fg="yellow")
+        self._lbl_pdop = Label(self._frm_advanced, textvariable=self._dop,
+                               bg=self._bgcol, fg="mediumpurple2")
 
         self.option_add("*Font", self.__app.font_sm)
-        self._lbl_lalt_u = Label(self._frm_basic, textvariable=self._alt_u, bg=self._bgcol, fg="orange",
+        self._lbl_lalt_u = Label(self._frm_basic, textvariable=self._alt_u,
+                                 bg=self._bgcol, fg="orange",
                                 anchor=S)
-        self._lbl_lspd_u = Label(self._frm_basic, textvariable=self._speed_u, bg=self._bgcol, fg="deepskyblue",
+        self._lbl_lspd_u = Label(self._frm_basic, textvariable=self._speed_u,
+                                 bg=self._bgcol, fg="deepskyblue",
                                 anchor=S)
-        self._lbl_hvdop = Label(self._frm_advanced, textvariable=self._hvdop, bg=self._bgcol, fg="mediumpurple2")
-        self._lbl_hvacc = Label(self._frm_advanced, textvariable=self._hvacc, bg=self._bgcol, fg="aquamarine2")
-        self._lbl_lacc_u = Label(self._frm_advanced, textvariable=self._alt_u, bg=self._bgcol, fg="aquamarine2", anchor=N)
+        self._lbl_hvdop = Label(self._frm_advanced, textvariable=self._hvdop,
+                                bg=self._bgcol, fg="mediumpurple2")
+        self._lbl_hvacc = Label(self._frm_advanced, textvariable=self._hvacc,
+                                bg=self._bgcol, fg="aquamarine2")
+        self._lbl_lacc_u = Label(self._frm_advanced, textvariable=self._alt_u,
+                                 bg=self._bgcol, fg="aquamarine2", anchor=N)
 
     def _do_layout(self):
         '''
