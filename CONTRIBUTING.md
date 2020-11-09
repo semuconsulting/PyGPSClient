@@ -17,7 +17,7 @@ Please help us keep our issue list small by adding fixes: #{$ISSUE_NO} to the co
   * This is open source software. We endeavour to make the code as transparent as possible.
   * We use [Eclipse PyDev](https://www.pydev.org/) for development and testing, but you are at liberty to use your preferred IDE.
   * We use [pylint](https://pypi.org/project/pylint/) (>=2.6.0) for code analysis.
-  * we use [black](https://pypi.org/project/black/) (>= 20.8) for code formatting and ask that you do the same.
+  * We use [black](https://pypi.org/project/black/) (>= 20.8) for code formatting and ask that you do the same.
 
 ## Testing
 
@@ -25,7 +25,7 @@ We use python's native unittest framework for local unit testing, complemented b
 
 Please write unittest examples for new code you create and add them to the /tests folder following the naming convention test_*.py.
 
-We test on the following platforms using u-blox NEO-6, NEO-7 and NEO-8 devices:
+We test on the following platforms using u-blox [NEO-6](https://www.u-blox.com/en/product/neo-6-series), [NEO-7](https://www.u-blox.com/en/product/neo-7-series) and [NEO-8](https://www.u-blox.com/en/product/neo-m8-series) devices:
 * Windows 10
 * MacOS (Catalina)
 * Linux (Ubuntu Xenial)
@@ -45,4 +45,4 @@ Always write a clear log message for your commits. One-line messages are fine fo
 
 Thanks,
 
-SEMU Consulting
+semuadmin

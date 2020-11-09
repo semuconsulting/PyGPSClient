@@ -122,14 +122,9 @@ class NMEAHandler:
                 speed=self.speed,
                 track=self.track,
             )
-            if self.__app.frm_settings.get_settings()["webmap"]:
-                self.__app.frm_mapview.update_map(
-                    lat=self.lat, lon=self.lon, static=False
-                )
-            else:
-                self.__app.frm_mapview.update_map(
-                    lat=self.lat, lon=self.lon, static=True
-                )
+
+            self.__app.frm_mapview.update_map(self.lat, self.lon, self.hacc, False)
+
         except ValueError as err:
             self.__app.set_status(NMEAVALERROR.format(err), "red")
 
@@ -146,14 +141,8 @@ class NMEAHandler:
             self.__app.frm_banner.update_banner(
                 time=self.utc, lat=self.lat, lon=self.lon, alt=self.alt, sip=self.sip
             )
-            if self.__app.frm_settings.get_settings()["webmap"]:
-                self.__app.frm_mapview.update_map(
-                    lat=self.lat, lon=self.lon, static=False
-                )
-            else:
-                self.__app.frm_mapview.update_map(
-                    lat=self.lat, lon=self.lon, static=True
-                )
+
+            self.__app.frm_mapview.update_map(self.lat, self.lon, self.hacc)
 
             if (
                 self.__app.frm_settings.get_settings()["recordtrack"]
@@ -179,14 +168,9 @@ class NMEAHandler:
             self.__app.frm_banner.update_banner(
                 time=self.utc, lat=self.lat, lon=self.lon
             )
-            if self.__app.frm_settings.get_settings()["webmap"]:
-                self.__app.frm_mapview.update_map(
-                    lat=self.lat, lon=self.lon, static=False
-                )
-            else:
-                self.__app.frm_mapview.update_map(
-                    lat=self.lat, lon=self.lon, static=True
-                )
+
+            self.__app.frm_mapview.update_map(self.lat, self.lon, self.hacc)
+
         except ValueError as err:
             self.__app.set_status(NMEAVALERROR.format(err), "red")
 
@@ -205,24 +189,7 @@ class NMEAHandler:
         else:
             fix = "NO FIX"
 
-        if self.__app.frm_settings.get_settings()["webmap"]:
-            self.__app.frm_mapview.update_map(
-                lat=self.lat,
-                lon=self.lon,
-                hacc=self.hacc,
-                vacc=self.vacc,
-                fix=fix,
-                static=False,
-            )
-        else:
-            self.__app.frm_mapview.update_map(
-                lat=self.lat,
-                lon=self.lon,
-                hacc=self.hacc,
-                vacc=self.vacc,
-                fix=fix,
-                static=True,
-            )
+        self.__app.frm_mapview.update_map(self.lat, self.lon, self.hacc)
 
         self.__app.frm_banner.update_banner(
             dop=self.pdop, hdop=self.hdop, vdop=self.vdop, fix=fix
@@ -307,6 +274,7 @@ class NMEAHandler:
             self.hacc = float(data.h_acc)
             self.vacc = float(data.v_acc)
             self.__app.frm_banner.update_banner(hacc=self.hacc, vacc=self.vacc)
+
         except ValueError as err:
             self.__app.set_status(NMEAVALERROR.format(err), "red")
 

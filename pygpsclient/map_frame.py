@@ -70,25 +70,20 @@ class MapviewFrame(Frame):
         )
         self.can_mapview.grid(column=0, row=0, sticky=(N, S, E, W))
 
-    def update_map(self, **kwargs):
+    def update_map(self, lat: float, lon: float, hacc: float):
         """
         Draw map and mark current known position.
         """
 
-        if "lat" in kwargs and "lon" in kwargs:
-            lat = kwargs["lat"]
-            lon = kwargs["lon"]
-        else:
-            return
-        vacc = kwargs.get("vacc", 0)
-        hacc = kwargs.get("hacc", 0)
-        fix = kwargs.get("fix", "NO-FIX")
-        static = kwargs.get("static", True)
-
         w, h = self.width, self.height
         resize_font = font.Font(size=min(int(w / 20), 14))
 
-        if fix == "NO FIX" or lat == "" or lon == "":
+        if self.__app.frm_settings.get_settings()["webmap"]:
+            static = False
+        else:
+            static = True
+
+        if lat is None or lat == "" or lon is None or lon == "":
             self.can_mapview.delete("all")
             self.reset_map_refresh()
             self.can_mapview.create_text(
@@ -110,9 +105,11 @@ class MapviewFrame(Frame):
         if static:
             self._draw_static_map(lat, lon)
         else:
-            self._draw_web_map(lat, lon, hacc, vacc)
+            if hacc is None or hacc == "":
+                hacc = 0
+            self._draw_web_map(lat, lon, hacc)
 
-    def _draw_static_map(self, lat, lon):
+    def _draw_static_map(self, lat: float, lon: float):
         """
         Draw fixed scale Mercator world map
         """
@@ -131,7 +128,7 @@ class MapviewFrame(Frame):
         y = (h / 2) - int((lat * (h / 180))) + OFFSET_Y
         self.can_mapview.create_image(x, y, image=self._marker, anchor=S)
 
-    def _draw_web_map(self, lat, lon, hacc, vacc):
+    def _draw_web_map(self, lat: float, lon: float, hacc: float):
         """
         Draw scalable web map via MapQuest API
         """
@@ -167,7 +164,7 @@ class MapviewFrame(Frame):
             return
         self._last_map_update = now
 
-        url = self._format_url(apikey, lat, lon, hacc, vacc)
+        url = self._format_url(apikey, lat, lon, hacc)
 
         try:
             response = requests.get(url)
@@ -205,7 +202,7 @@ class MapviewFrame(Frame):
         )
         self.can_mapview.update()
 
-    def _format_url(self, apikey, lat, lon, hacc, vacc):
+    def _format_url(self, apikey: str, lat: float, lon: float, hacc: float):
         """
         Formats URL for web map download.
         """

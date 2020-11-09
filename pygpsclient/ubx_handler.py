@@ -210,24 +210,8 @@ class UBXHandler:
                 vacc=self.vacc,
             )
 
-            if self.__app.frm_settings.get_settings()["webmap"]:
-                self.__app.frm_mapview.update_map(
-                    lat=self.lat,
-                    lon=self.lon,
-                    hacc=self.hacc,
-                    vacc=self.vacc,
-                    fix="3D",
-                    static=False,
-                )
-            else:
-                self.__app.frm_mapview.update_map(
-                    lat=self.lat,
-                    lon=self.lon,
-                    hacc=self.hacc,
-                    vacc=self.vacc,
-                    fix="3D",
-                    static=True,
-                )
+            self.__app.frm_mapview.update_map(self.lat, self.lon, self.hacc)
+
         except ValueError:
             # self.__app.set_status(ube.UBXMessageError(err), "red")
             pass
@@ -263,24 +247,7 @@ class UBXHandler:
                 track=self.track,
             )
 
-            if self.__app.frm_settings.get_settings()["webmap"]:
-                self.__app.frm_mapview.update_map(
-                    lat=self.lat,
-                    lon=self.lon,
-                    hacc=self.hacc,
-                    vacc=self.vacc,
-                    fix="3D",
-                    static=False,
-                )
-            else:
-                self.__app.frm_mapview.update_map(
-                    lat=self.lat,
-                    lon=self.lon,
-                    hacc=self.hacc,
-                    vacc=self.vacc,
-                    fix="3D",
-                    static=True,
-                )
+            self.__app.frm_mapview.update_map(self.lat, self.lon, self.hacc)
 
             if (
                 self.__app.frm_settings.get_settings()["recordtrack"]
