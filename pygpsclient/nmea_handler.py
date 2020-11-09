@@ -132,7 +132,7 @@ class NMEAHandler:
                 track=self.track,
             )
 
-            self.__app.frm_mapview.update_map(self.lat, self.lon, self.hacc, False)
+            self.__app.frm_mapview.update_map(self.lat, self.lon, self.hacc)
 
         except ValueError as err:
             self.__app.set_status(NMEAVALERROR.format(err), "red")
@@ -331,12 +331,12 @@ class NMEAHandler:
         t = datetime.now()
         s = (
             str(t.year)
-            + "-"
-            + str(t.month)
-            + "-"
-            + str(t.day)
-            + "T"
-            + str(timestamp)
-            + "Z"
+            +"-"
+            +str(t.month)
+            +"-"
+            +str(t.day)
+            +"T"
+            +str(timestamp)
+            +"Z"
         )
         return s
