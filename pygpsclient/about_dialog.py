@@ -25,6 +25,8 @@ class AboutDialog:
     def __init__(self, app):
         """
         Initialise Toplevel dialog
+
+        :param app: reference to main tkinter application
         """
 
         self.__app = app  # Reference to main application class

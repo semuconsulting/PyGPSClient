@@ -112,6 +112,8 @@ class UBXConfigDialog:
     def __init__(self, app, *args, **kwargs):
         """
         Constructor.
+
+        :param app: reference to main tkinter application
         """
 
         self.__app = app  # Reference to main application class
@@ -502,6 +504,9 @@ class UBXConfigDialog:
         NB: not absolutely bullet-proof as confirmation messages cannot
         be unequivocally linked to specific commands, but the best
         available indication of current state.
+
+        :param cfgtype: type of config message received
+        :kwargs kwargs: optional key value pairs
         """
 
         # MON-VER information
@@ -729,9 +734,11 @@ class UBXConfigDialog:
         msg = UBXMessage("CFG", "CFG-PRT", POLL)
         self.__app.serial_handler.serial_write(msg.serialize())
 
-    def _do_set_inf(self, onoff):
+    def _do_set_inf(self, onoff: int):
         """
         Turn on device information messages INF
+
+        :param onoff: booolean
         """
 
         if onoff:
@@ -760,9 +767,11 @@ class UBXConfigDialog:
             self.__app.serial_handler.serial_write(msg.serialize())
             self._do_poll_inf()  # poll results
 
-    def _do_set_log(self, msgrate):
+    def _do_set_log(self, msgrate: int):
         """
         Turn on all device logging messages LOG
+
+        :param msgrate: message rate (i.e. every nth position solution)
         """
 
         for msgtype in UBX_CONFIG_MESSAGES:
@@ -772,6 +781,8 @@ class UBXConfigDialog:
     def _do_set_mon(self, msgrate):
         """
         Turn on all device monitoring messages MON
+
+        :param msgrate: message rate (i.e. every nth position solution)
         """
 
         for msgtype in UBX_CONFIG_MESSAGES:
@@ -781,6 +792,8 @@ class UBXConfigDialog:
     def _do_set_rxm(self, msgrate):
         """
         Turn on all device receiver management messages RXM
+
+        :param msgrate: message rate (i.e. every nth position solution)
         """
 
         for msgtype in UBX_CONFIG_MESSAGES:
@@ -820,6 +833,8 @@ class UBXConfigDialog:
     def _do_set_allnmea(self, msgrate):
         """
         Turn on all NMEA messages
+
+        :param msgrate: message rate (i.e. every nth position solution)
         """
 
         for msgtype in UBX_CONFIG_MESSAGES:
@@ -829,18 +844,23 @@ class UBXConfigDialog:
     def _do_set_allNAV(self, msgrate):
         """
         Turn on all UBX-NAV messages
+
+        :param msgrate: message rate (i.e. every nth position solution)
         """
 
         for msgtype in UBX_CONFIG_MESSAGES:
             if msgtype[0:1] == b"\x01":
                 self._do_cfgmsg(msgtype, msgrate)
 
-    def _do_cfgmsg(self, msgtype, msgrate):
+    def _do_cfgmsg(self, msgtype: str, msgrate: int):
         """
         Set rate for specified message type via CFG-MSG
 
         NB A rate of n means 'for every nth position solution',
         so values > 1 mean the message is sent less often.
+
+        :param msgtype: type of config message
+        :param msgrate: message rate (i.e. every nth position solution)
         """
 
         msgClass = int.from_bytes(msgtype[0:1], "little", signed=False)
@@ -862,6 +882,8 @@ class UBXConfigDialog:
         """
         Restore to factory defaults stored in battery-backed RAM
         but display confirmation message box first.
+
+        :return boolean signifying whether OK was pressed
         """
 
         if messagebox.askokcancel(DLGRESET, DLGRESETCONFIRM):
@@ -885,6 +907,8 @@ class UBXConfigDialog:
         """
         Save current configuration to persistent storage
         but display confirmation message box first.
+
+        :return boolean signifying whether OK was pressed
         """
 
         if messagebox.askokcancel(DLGSAVE, DLGSAVECONFIRM):
@@ -898,13 +922,15 @@ class UBXConfigDialog:
 
         return False
 
-    def _do_user_defined(self, command):
+    def _do_user_defined(self, command: str):
         """
         Parse and send user-defined command(s).
 
         This could result in any number of errors if the
         uxbpresets file contains garbage, so there's a broad
         catch-all-exceptions in the calling routine.
+
+        :param command: user defined message constructor(s)
         """
 
         try:
@@ -927,6 +953,9 @@ class UBXConfigDialog:
     def set_status(self, message, color="blue"):
         """
         Set status message.
+
+        :param message: message to be displayed
+        :param color: color of text (blue)
         """
 
         message = (message[:50] + "..") if len(message) > 50 else message

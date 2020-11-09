@@ -33,6 +33,8 @@ class NMEAHandler:
     def __init__(self, app):
         """
         Constructor.
+
+        :param app: reference to main tkinter application
         """
 
         self.__app = app  # Reference to main application class
@@ -62,6 +64,8 @@ class NMEAHandler:
     def process_data(self, data: bytes):
         """
         Process NMEA message type
+
+        :param data: bytes
         """
 
         try:
@@ -94,9 +98,12 @@ class NMEAHandler:
 
         return self._parsed_data
 
-    def _update_console(self, raw_data, parsed_data):
+    def _update_console(self, raw_data: bytes, parsed_data: types.talker):
         """
         Write the incoming data to the console in raw or parsed format.
+
+        :param: raw_data: bytes
+        :param: parsed_data: pynmea2.types.talker
         """
 
         if self.__app.frm_settings.get_settings()["raw"]:
@@ -107,6 +114,8 @@ class NMEAHandler:
     def _process_RMC(self, data: types.talker):
         """
         Process RMC sentence - Recommended minimum data for GPS.
+
+        :param: data: pynmea2.types.talker
         """
 
         try:
@@ -131,6 +140,8 @@ class NMEAHandler:
     def _process_GGA(self, data: types.talker):
         """
         Process GGA sentence - GPS Fix Data.
+
+        :param: data: pynmea2.types.talker
         """
 
         try:
@@ -160,6 +171,8 @@ class NMEAHandler:
     def _process_GLL(self, data: types.talker):
         """
         Process GLL sentence - GPS Lat Lon.
+
+        :param: data: pynmea2.types.talker
         """
 
         try:
@@ -177,6 +190,8 @@ class NMEAHandler:
     def _process_GSA(self, data: types.talker):
         """
         Process GSA sentence - GPS DOP (Dilution of Precision) and active satellites.
+
+        :param: data: pynmea2.types.talker
         """
 
         self.pdop = float(data.pdop)
@@ -202,6 +217,8 @@ class NMEAHandler:
         of up to 4 satellites (16 satellites in total).
         Modern receivers can send multiple batches corresponding to different
         NMEA assigned 'ID' ranges (GPS 1-32, SBAS 33-64, GLONASS 65-96)
+
+        :param: data: pynmea2.types.talker
         """
 
         self.gsv_data = []
@@ -255,6 +272,8 @@ class NMEAHandler:
     def _process_VTG(self, data: types.talker):
         """
         Process VTG sentence - GPS Vector track and Speed over the Ground.
+
+        :param: data: pynmea2.types.talker
         """
 
         try:
@@ -268,6 +287,8 @@ class NMEAHandler:
     def _process_UBX00(self, data: types.ubx.UBX00):
         """
         Process UXB00 sentence - GPS Vector track and Speed over the Ground.
+
+        :param: data: pynmea2.types.talker
         """
 
         try:
@@ -279,7 +300,7 @@ class NMEAHandler:
             self.__app.set_status(NMEAVALERROR.format(err), "red")
 
     @staticmethod
-    def _estimate_acc(dop) -> float:
+    def _estimate_acc(dop: float) -> float:
         """
         Derive a graphic indication of positional accuracy (in m) based on the HDOP
         (Horizontal Dilution of Precision) value and the nominal native device
@@ -289,6 +310,10 @@ class NMEAHandler:
         between HDOP and accuracy based solely on generic NMEA data.
         The NMEA PUBX,00 or UBX NAV-POSLLH message types return an explicit estimate
         of horizontal and vertical accuracy and are the preferred source.
+
+        :param: dop: float horizontal dilution of precision
+
+        :return: horizontal accuracy as float:
         """
 
         return float(dop) * DEVICE_ACCURACY * HDOP_RATIO / 1000
@@ -297,6 +322,10 @@ class NMEAHandler:
     def ts2utc(timestamp) -> str:
         """
         Convert NMEA timestamp to utc time
+
+        :param: NMEA timestamp from pynmea2
+
+        :return: utc time as str:
         """
 
         t = datetime.now()

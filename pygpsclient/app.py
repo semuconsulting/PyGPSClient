@@ -51,6 +51,8 @@ class App(Frame):
     def __init__(self, master, *args, **kwargs):
         """
         Set up main application and add frames
+
+        :param master: reference to Tk instance
         """
 
         self.__master = master
@@ -269,7 +271,9 @@ class App(Frame):
 
     def set_connection(self, message, color="blue"):
         """
-        Sets connection description in status bar
+        Sets connection description in status bar.
+
+        :param message: message to be displayed in connection label
         """
 
         self.frm_status.set_connection(message, color)
@@ -277,6 +281,8 @@ class App(Frame):
     def set_status(self, message, color="black"):
         """
         Sets text of status bar
+
+        :param message: message to be displayed in status label
         """
 
         self.frm_status.set_status(message, color)

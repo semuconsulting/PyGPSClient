@@ -28,6 +28,8 @@ class FileHandler:
     def __init__(self, app, *args, **kwargs):
         """
         Constructor.
+
+        :param app: reference to main tkinter application
         """
 
         self.__app = app  # Reference to main application class
@@ -51,6 +53,8 @@ class FileHandler:
     def load_apikey(self) -> str:
         """
         Load MapQuest web map api key from user's home directory.
+
+        :return apikey as str:
         """
 
         filepath = os.path.join(HOME, MQAPIKEY)
@@ -66,6 +70,8 @@ class FileHandler:
     def load_user_presets(self) -> str:
         """
         Load user configuration message presets from user's home directory.
+
+        :return user presets as str:
         """
 
         presets = []
@@ -79,9 +85,13 @@ class FileHandler:
 
         return presets
 
-    def _set_filename(self, path, mode, ext) -> str:
+    def _set_filename(self, path: str, mode: str, ext: str) -> str:
         """
         Return fully qualified and timestamped file name
+
+        :param path: the file path as str
+        :param mode: the type of file being created ('data', 'track') as str
+        :param ext: the file extension ('log', 'gpx') as str
         """
 
         self._lines = 0
@@ -92,6 +102,8 @@ class FileHandler:
     def set_logfile_path(self) -> str:
         """
         Set logfile directory and open logfile for output
+
+        :return file path as str:
         """
 
         self._datalog_filepath = filedialog.askdirectory(
@@ -114,6 +126,8 @@ class FileHandler:
     def open_logfile_input(self) -> str:
         """
         Set logfile name and open logfile for input
+
+        :return file path as str:
         """
 
         self._datalog_filepath = filedialog.askopenfilename(
@@ -127,7 +141,9 @@ class FileHandler:
 
     def write_logfile(self, data: bytes):
         """
-        Append binary data to log file
+        Append binary data to log file.
+
+        :param data: data to be logged as bytes
         """
 
         try:
@@ -151,6 +167,8 @@ class FileHandler:
     def set_trackfile_path(self) -> str:
         """
         Set track directory
+
+        :return file path as str:
         """
 
         self._track_filepath = filedialog.askdirectory(
@@ -187,6 +205,10 @@ class FileHandler:
     def add_trackpoint(self, lat: float, lon: float, **kwargs):
         """
         Creates GPX track point from provided parameters
+
+        :param lat: latitude as float
+        :param lon: longitude as float
+        :param kwargs: optional gpx tags as series of key value pairs
         """
 
         if not (isinstance(lat, (float, int)) and isinstance(lon, (float, int))):

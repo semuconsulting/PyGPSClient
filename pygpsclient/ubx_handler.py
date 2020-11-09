@@ -27,6 +27,8 @@ class UBXHandler:
     def __init__(self, app):
         """
         Constructor.
+
+        :param app: reference to main tkinter application
         """
 
         self.__app = app  # Reference to main application class
@@ -64,6 +66,8 @@ class UBXHandler:
         NB: The responses and acknowledgements to these polls
         may take several seconds to arrive, particularly in
         heavy traffic.
+
+        :param serial
         """
 
         for msgtype in ("CFG-PRT", "MON-VER"):
@@ -73,6 +77,10 @@ class UBXHandler:
     def process_data(self, data: bytes) -> UBXMessage:
         """
         Process UBX message type
+
+        :param data: bytes
+
+        :return UBX message as UBXMessage:
         """
 
         parsed_data = UBXMessage.parse(data, False)
@@ -106,9 +114,12 @@ class UBXHandler:
 
         return parsed_data
 
-    def _update_console(self, raw_data, parsed_data):
+    def _update_console(self, raw_data: bytes, parsed_data: UBXMessage):
         """
         Write the incoming data to the console in raw or parsed format.
+
+        :param raw_data: bytes
+        :param parsed_data: UBXMessage
         """
 
         if self.__app.frm_settings.get_settings()["raw"]:
@@ -119,6 +130,8 @@ class UBXHandler:
     def _process_ACK_ACK(self, data: UBXMessage):
         """
         Process CFG-MSG sentence - UBX message configuration.
+
+        :param data: UBXMessage
         """
 
         msgtype = UBX_MSGIDS[self.msgclass2bytes(data.clsID, data.msgID)]
@@ -130,6 +143,8 @@ class UBXHandler:
     def _process_ACK_NAK(self, data: UBXMessage):
         """
         Process CFG-MSG sentence - UBX message configuration.
+
+        :param data: UBXMessage
         """
 
         msgtype = UBX_MSGIDS[self.msgclass2bytes(data.clsID, data.msgID)]
@@ -141,6 +156,8 @@ class UBXHandler:
     def _process_CFG_MSG(self, data: UBXMessage):
         """
         Process CFG-MSG sentence - UBX message configuration.
+
+        :param data: UBXMessage
         """
 
         msgtype = UBX_CONFIG_MESSAGES[self.msgclass2bytes(data.msgClass, data.msgID)]
@@ -165,6 +182,8 @@ class UBXHandler:
     def _process_CFG_INF(self, data: UBXMessage):
         """
         Process CFG-INF sentence - UBX info message configuration.
+
+        :param data: UBXMessage
         """
 
         # update the UBX config panel
@@ -174,6 +193,8 @@ class UBXHandler:
     def _process_CFG_PRT(self, data: UBXMessage):
         """
         Process CFG-PRT sentence - UBX port configuration.
+
+        :param data: UBXMessage
         """
 
         self.ubx_baudrate = data.baudRate
@@ -192,6 +213,8 @@ class UBXHandler:
     def _process_NAV_POSLLH(self, data: UBXMessage):
         """
         Process NAV-LLH sentence - Latitude, Longitude, Height.
+
+        :param data: UBXMessage
         """
 
         try:
@@ -218,7 +241,9 @@ class UBXHandler:
 
     def _process_NAV_PVT(self, data: UBXMessage):
         """
-        Process NAV-PVT sentence -  Navigation position velocity time solution
+        Process NAV-PVT sentence -  Navigation position velocity time solution.
+
+        :param data: UBXMessage
         """
 
         try:
@@ -287,6 +312,8 @@ class UBXHandler:
     def _process_NAV_VELNED(self, data: UBXMessage):
         """
         Process NAV-VELNED sentence - Velocity Solution in North East Down format.
+
+        :param data: UBXMessage
         """
 
         try:
@@ -300,6 +327,8 @@ class UBXHandler:
     def _process_NAV_SVINFO(self, data: UBXMessage):
         """
         Process NAV-SVINFO sentences - Space Vehicle Information.
+
+        :param data: UBXMessage
         """
 
         try:
@@ -323,6 +352,8 @@ class UBXHandler:
     def _process_NAV_SOL(self, data: UBXMessage):
         """
         Process NAV-SOL sentence - Navigation Solution.
+
+        :param data: UBXMessage
         """
 
         try:
@@ -338,6 +369,8 @@ class UBXHandler:
     def _process_NAV_DOP(self, data: UBXMessage):
         """
         Process NAV-DOP sentence - Dilution of Precision.
+
+        :param data: UBXMessage
         """
 
         try:
@@ -355,6 +388,8 @@ class UBXHandler:
     def _process_MON_VER(self, data: UBXMessage):
         """
         Process MON-VER sentence - Receiver Software / Hardware version information.
+
+        :param data: UBXMessage
         """
 
         exts = []
@@ -407,7 +442,12 @@ class UBXHandler:
     @staticmethod
     def msgclass2bytes(msgClass: int, msgID: int) -> bytes:
         """
-        Convert message class/id integers to bytes
+        Convert message class/id integers to bytes.
+
+        :param msgCLass: int
+        :param msgID: int
+
+        :return message class as string: str
         """
 
         msgClass = msgClass.to_bytes(1, byteorder="little", signed=False)

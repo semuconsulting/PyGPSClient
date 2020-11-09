@@ -27,6 +27,8 @@ class GraphviewFrame(Frame):
     def __init__(self, app, *args, **kwargs):
         """
         Constructor.
+
+        :param app: reference to main tkinter application
         """
 
         self.__app = app  # Reference to main application class
@@ -91,6 +93,9 @@ class GraphviewFrame(Frame):
         """
         Plot satellites' elevation and azimuth position.
         Automatically adjust y axis according to number of satellites in view.
+
+        :param data: array of satellite tuples (svid, elev, azim, cno):
+        :param siv: int number of satellites in view
         """
 
         if siv == 0:

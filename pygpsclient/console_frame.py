@@ -21,6 +21,8 @@ class ConsoleFrame(Frame):
     def __init__(self, app, *args, **kwargs):
         """
         Constructor.
+
+        :param app: reference to main tkinter application
         """
 
         self.__app = app  # Reference to main application class

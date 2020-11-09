@@ -46,6 +46,8 @@ class BannerFrame(Frame):
     def __init__(self, app, *args, **kwargs):
         """
         Constructor.
+
+        :param app: reference to main tkinter application
         """
 
         self.__app = app  # Reference to main application class
@@ -269,9 +271,11 @@ class BannerFrame(Frame):
 
         self.bind("<Configure>", self._on_resize)
 
-    def update_conn_status(self, status):
+    def update_conn_status(self, status: int):
         """
         Update connection status icon
+
+        :param status: connection status as integer (0,1,2)
         """
 
         if status == CONNECTED:
@@ -284,6 +288,8 @@ class BannerFrame(Frame):
     def update_banner(self, **kwargs):
         """
         Sets text of banner from keyword parms.
+
+        :param kwargs: optional key value pairs
         """
 
         settings = self.__app.frm_settings.get_settings()
@@ -300,6 +306,8 @@ class BannerFrame(Frame):
     def _update_time(self, **kwargs):
         """
         Update GNSS time of week
+
+        :param kwargs: optional key value pairs
         """
 
         if "time" in kwargs:
@@ -308,6 +316,10 @@ class BannerFrame(Frame):
     def _update_pos(self, disp_format, units, **kwargs):
         """
         Update position
+
+        :param disp_format: degrees display format as string (DMS, DMM, DDD)
+        :param units: distance units as string (UMM, UMK, UI, UIK)
+        :param kwargs: optional key value pairs
         """
 
         if "lat" in kwargs:
@@ -348,6 +360,9 @@ class BannerFrame(Frame):
     def _update_track(self, units, **kwargs):
         """
         Update track and ground speed
+
+        :param units: distance units as string (UMM, UMK, UI, UIK)
+        :param kwargs: optional key value pairs
         """
 
         if "speed" in kwargs:
@@ -378,6 +393,8 @@ class BannerFrame(Frame):
     def _update_fix(self, **kwargs):
         """
         Update fix type
+
+        :param kwargs: optional key value pairs
         """
 
         if "fix" in kwargs:
@@ -392,6 +409,8 @@ class BannerFrame(Frame):
     def _update_siv(self, **kwargs):
         """
         Update siv and sip
+
+        :param kwargs: optional key value pairs
         """
 
         if "siv" in kwargs:
@@ -402,6 +421,9 @@ class BannerFrame(Frame):
     def _update_dop(self, units, **kwargs):
         """
         Update precision and accuracy
+
+        :param units: distance units as string (UMM, UMK, UI, UIK)
+        :param kwargs: optional key value pairs
         """
 
         if "dop" in kwargs:
@@ -471,6 +493,8 @@ class BannerFrame(Frame):
     def _on_resize(self, event):
         """
         Resize frame
+
+        :param event:
         """
 
         self.width, self.height = self.get_size()

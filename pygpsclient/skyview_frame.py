@@ -29,6 +29,8 @@ class SkyviewFrame(Frame):
     def __init__(self, app, *args, **kwargs):
         """
         Constructor.
+
+        :param app: reference to main tkinter application
         """
 
         self.__app = app  # Reference to main application class
@@ -89,6 +91,9 @@ class SkyviewFrame(Frame):
     def update_sats(self, data):
         """
         Plot satellites' elevation and azimuth position.
+
+        :param data: array of satellite tuples (svid, elev, azim, cno)
+
         """
 
         w, h = self.width, self.height

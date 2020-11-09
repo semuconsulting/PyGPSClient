@@ -37,6 +37,8 @@ class SerialHandler:
     def __init__(self, app):
         """
         Constructor.
+
+        :param app: reference to main tkinter application
         """
 
         self.__app = app  # Reference to main application class
@@ -213,6 +215,8 @@ class SerialHandler:
     def serial_write(self, data: bytes):
         """
         Write binary data to serial port.
+
+        :param data: bytes
         """
 
         try:
@@ -295,6 +299,8 @@ class SerialHandler:
     def on_read(self, event):  # pylint: disable=unused-argument
         """
         Action on <<ubx_read>> event - read any data in the buffer.
+
+        :param event
         """
 
         #         print("doing serial_handler.on_read")
@@ -307,6 +313,8 @@ class SerialHandler:
     def on_eof(self, event):  # pylint: disable=unused-argument
         """
         Action on end of file
+
+        :param event
         """
 
         #         print("doing serial_handler.on_eof")
@@ -318,6 +326,8 @@ class SerialHandler:
         Read the binary data and direct to the appropriate
         UBX and/or NMEA protocol handler, depending on which protocols
         are filtered.
+
+        :param ser: Serial
         """
 
         #         print("doing serial_handler_parse_data")
