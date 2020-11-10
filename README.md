@@ -10,6 +10,19 @@ compatible GNSS/GPS device over a standard serial (UART) or USB port, or from a 
 
 This is an independent project and we have no affiliation whatsoever with u-blox &copy;.
 
+### Current Status
+
+![Release](https://img.shields.io/github/v/release/semuconsulting/PyGPSClient?include_prereleases)
+![Build](https://img.shields.io/travis/semuconsulting/PyGPSClient)
+![Release Date](https://img.shields.io/github/release-date-pre/semuconsulting/PyGPSClient)
+![Last Commit](https://img.shields.io/github/last-commit/semuconsulting/PyGPSClient)
+![Contributors](https://img.shields.io/github/contributors/semuconsulting/PyGPSClient.svg)
+![Open Issues](https://img.shields.io/github/issues-raw/semuconsulting/PyGPSClient)
+
+Alpha. Main application and widgets are fully functional for both NMEA and UBX protocols.
+
+Constructive feedback welcome.
+
 ## Features
 
 1. Supports both NMEA and UBX protocols. It uses the existing pynmea2 library for NMEA parsing and 
@@ -79,26 +92,7 @@ warning ![warning icon](/pygpsclient/resources/iconmonstr-warning-1-24.png)).
 * dop - [dilution of precision](https://gisgeography.com/gps-accuracy-hdop-pdop-gdop-multipath/) (pdop - position, hdop - horizontal, vdop - vertical).
 * acc - accuracy of location in real units (hacc - horizontal, vacc - vertical). Note that location accuracy is not directly provided via the standard NMEA message set, but is available via some proprietary NMEA messages e.g. UBX00.
 
-### Current Status
-
-![Release](https://img.shields.io/github/v/release/semuconsulting/PyGPSClient?include_prereleases)
-![Build](https://img.shields.io/travis/semuconsulting/PyGPSClient)
-![Release Date](https://img.shields.io/github/release-date-pre/semuconsulting/PyGPSClient)
-![Last Commit](https://img.shields.io/github/last-commit/semuconsulting/PyGPSClient)
-![Contributors](https://img.shields.io/github/contributors/semuconsulting/PyGPSClient.svg)
-![Open Issues](https://img.shields.io/github/issues-raw/semuconsulting/PyGPSClient)
-
-Alpha. Main application and widgets are fully functional for both NMEA and UBX protocols.
-
-Known Issues:
-1. Application menu options can occasionally become momentarily unresponsive in heavy inbound traffic 
-due to serial read blocking.
-
-Constructive feedback welcome.
-
 ## <a name="installation">Installation</a>
-
-![Python version](https://img.shields.io/pypi/pyversions/PyGPSClient.svg?style=flat)
 
 In the following, `python` & `pip` refer to the python3 executables. You may need to type 
 `python3` or `pip3`, depending on your particular environment.
@@ -122,6 +116,7 @@ To access the serial port on most linux platforms, you will need to be a member 
 
 ### 1. Install using pip
 
+![Python version](https://img.shields.io/pypi/pyversions/PyGPSClient.svg?style=flat)
 [![PyPI version](https://img.shields.io/pypi/v/PyGPSClient.svg?style=flat)](https://pypi.org/project/PyGPSClient/)
 ![PyPI downloads](https://img.shields.io/pypi/dm/PyGPSClient.svg?style=flat)
 
