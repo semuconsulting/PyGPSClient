@@ -5,6 +5,7 @@
 	</condition>
 	<property name="version" value="0.2.11" />
 	<property name="test_args" value="tests/testsuite.py" />
+	<property name="analyse_args" value="-m pylint --reports=y PyGPSClient" />
 	<property name="format_args" value="-m black pygpsclient" />
 	<property name="build_args" value="setup.py sdist bdist_wheel" />
 	<property name="deploy_args" value="-m twine upload --config-file .pypirc dist/*" />
@@ -22,7 +23,13 @@
 			<fileset dir="${ant.project.name}/__pycache__" includes="*.nbc, *.nbi, *.pyc" />
 		</delete>
 	</target>
-	<target name="format" depends="clean">
+	<target name="analyse" depends="clean">
+		<echo>Analysing...</echo>
+		<exec executable="${python}">
+			<arg line="${analyse_args}" />
+		</exec>
+	</target>
+	<target name="format" depends="analyse">
 		<echo>Formatting...</echo>
 		<exec executable="${python}">
 			<arg line="${format_args}" />
