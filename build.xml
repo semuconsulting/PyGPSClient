@@ -1,22 +1,18 @@
 <?xml version = "1.0"?>
 <project name="PyGPSClient" default="build">
-	<condition property="python" value="python" else="/Library/Frameworks/Python.framework/Versions/3.8/bin/python3">
+	<condition property="python" value="python" else="/Library/Frameworks/Python.framework/Versions/3.9/bin/python3">
 		<os family="windows" />
 	</condition>
-	<property name="version" value="0.2.10" />
+	<property name="version" value="0.2.11" />
 	<property name="test_args" value="tests/testsuite.py" />
+	<property name="analyse_args" value="-m pylint --reports=y ${ant.project.name}" />
+	<property name="format_args" value="-m black ${ant.project.name}" />
 	<property name="build_args" value="setup.py sdist bdist_wheel" />
 	<property name="deploy_args" value="-m twine upload --config-file .pypirc dist/*" />
 	<property name="install_args" value="-m pip install dist/${ant.project.name}-${version}.tar.gz --user" />
 	<property name="coverage_args" value="-m coverage run --source=${ant.project.name} -m pytest" />
 	<property name="coverage_html_args" value="-m coverage html" />
-	<target name="test">
-		<echo>Testing...</echo>
-		<exec executable="${python}">
-			<arg line="${test_args}" />
-		</exec>
-	</target>
-	<target name="clean" depends="test">
+	<target name="clean">
 		<echo>Cleaning...</echo>
 		<delete includeEmptyDirs="true" quiet="true" failonerror="false">
 			<fileset dir="build" />
@@ -27,10 +23,28 @@
 			<fileset dir="${ant.project.name}/__pycache__" includes="*.nbc, *.nbi, *.pyc" />
 		</delete>
 	</target>
-	<target name="build" depends="clean">
+	<target name="analyse" depends="clean">
+		<echo>Analysing...</echo>
+		<exec executable="${python}">
+			<arg line="${analyse_args}" />
+		</exec>
+	</target>
+	<target name="format" depends="analyse">
+		<echo>Formatting...</echo>
+		<exec executable="${python}">
+			<arg line="${format_args}" />
+		</exec>
+	</target>
+	<target name="build" depends="format">
 		<echo>Building...</echo>
 		<exec executable="${python}">
 			<arg line="${build_args}" />
+		</exec>
+	</target>
+	<target name="test" depends="build">
+		<echo>Testing...</echo>
+		<exec executable="${python}">
+			<arg line="${test_args}" />
 		</exec>
 	</target>
 	<target name = "deploy" depends="build">
