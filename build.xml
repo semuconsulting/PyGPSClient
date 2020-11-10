@@ -5,8 +5,8 @@
 	</condition>
 	<property name="version" value="0.2.11" />
 	<property name="test_args" value="tests/testsuite.py" />
-	<property name="analyse_args" value="-m pylint --reports=y PyGPSClient" />
-	<property name="format_args" value="-m black pygpsclient" />
+	<property name="analyse_args" value="-m pylint --reports=y ${ant.project.name}" />
+	<property name="format_args" value="-m black ${ant.project.name}" />
 	<property name="build_args" value="setup.py sdist bdist_wheel" />
 	<property name="deploy_args" value="-m twine upload --config-file .pypirc dist/*" />
 	<property name="install_args" value="-m pip install dist/${ant.project.name}-${version}.tar.gz --user" />

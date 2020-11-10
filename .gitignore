@@ -19,3 +19,4 @@ Pipfile*.*
 *.pyc
 mqapikey
 /.pytest_cache/
+pylint_report.txt
