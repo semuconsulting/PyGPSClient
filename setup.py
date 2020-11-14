@@ -19,7 +19,7 @@ setup(
     name="PyGPSClient",
     version=VERSION,
     packages=find_packages(exclude=['tests', 'references', 'images']),
-    install_requires=["pyubx2>=0.2.5", "pynmea2>=1.15.0", "requests>=2.24.0",
+    install_requires=["pyubx2>=0.2.6", "pynmea2>=1.15.0", "requests>=2.24.0",
                       "Pillow>=7.2.0", "pyserial>=3.4"],
     package_data={
         "pygpsclient": ["resources/*.gif", "resources/*.png",
@@ -33,7 +33,7 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/semuconsulting/PyGPSClient",
     license="BSD 3-Clause 'Modified' License",
-    keywords="PyGPSClient GNSS GPS NMEA UBX GIS",
+    keywords="PyGPSClient GNSS GPS GLONASS NMEA UBX GIS",
     platforms="Windows, MacOS, Linux",
     project_urls={
         "Bug Tracker": "https://github.com/semuconsulting/PyGPSClient",
@@ -42,7 +42,7 @@ setup(
     },
     classifiers=[
         "License :: OSI Approved :: BSD License",
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Environment :: MacOS X',
         'Environment :: X11 Applications',
         'Environment :: Win32 (MS Windows)',

@@ -12,6 +12,7 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 
 ### Current Status
 
+![Status](https://img.shields.io/pypi/status/pyubx2)
 ![Release](https://img.shields.io/github/v/release/semuconsulting/PyGPSClient?include_prereleases)
 ![Build](https://img.shields.io/travis/semuconsulting/PyGPSClient)
 ![Release Date](https://img.shields.io/github/release-date-pre/semuconsulting/PyGPSClient)
@@ -19,9 +20,7 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 ![Contributors](https://img.shields.io/github/contributors/semuconsulting/PyGPSClient.svg)
 ![Open Issues](https://img.shields.io/github/issues-raw/semuconsulting/PyGPSClient)
 
-Alpha. Main application and widgets are fully functional for both NMEA and UBX protocols.
-
-Constructive feedback welcome.
+Contributions and constructive feedback welcome.
 
 ## Features
 
