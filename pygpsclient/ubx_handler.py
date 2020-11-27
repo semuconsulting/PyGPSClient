@@ -71,7 +71,11 @@ class UBXHandler:
         :param serial
         """
 
-        for msgtype in ("CFG-PRT", "MON-VER", "MON-HW"):
+        for portid in (0, 1, 3, 4):  # I2C, UART1, USB, SPI
+            msg = UBXMessage("CFG", "CFG-PRT", POLL, portID=portid)
+            serial.write(msg.serialize())
+
+        for msgtype in ("MON-VER", "MON-HW"):
             msg = UBXMessage(msgtype[0:3], msgtype, POLL)
             serial.write(msg.serialize())
 

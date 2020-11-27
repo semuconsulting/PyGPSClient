@@ -403,8 +403,8 @@ class UBXConfigDialog:
         self._lbl_fwver.grid(column=1, row=1, columnspan=2, padx=2, sticky=(W))
         self._lbl_romverl.grid(column=3, row=1, padx=2, sticky=(W))
         self._lbl_romver.grid(column=4, row=1, columnspan=2, padx=2, sticky=(W))
-        self._lbl_gnssl.grid(column=0, row=2, columnspan=2, padx=2, sticky=(W))
-        self._lbl_gnss.grid(column=2, row=2, columnspan=4, padx=2, sticky=(W))
+        self._lbl_gnssl.grid(column=0, row=2, columnspan=1, padx=2, sticky=(W))
+        self._lbl_gnss.grid(column=1, row=2, columnspan=4, padx=2, sticky=(W))
 
         # *******************************************************
         # MON-HW Antenna Status
