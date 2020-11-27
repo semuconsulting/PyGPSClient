@@ -45,6 +45,7 @@ from .globals import (
     ICON_UBXCONFIG,
     ICON_PENDING,
     ICON_CONFIRMED,
+    PORTIDS,
     BAUDRATES,
     READONLY,
 )
@@ -140,7 +141,8 @@ class UBXConfigDialog:
         self._preset_command = None
         self._status_preset = StringVar()
         self._status_cfgmsg = StringVar()
-        self._ubx_baudrate = StringVar()
+        self._ubx_baudrate = IntVar()
+        self._ubx_portid = StringVar()
         self._ubx_inprot = IntVar()
         self._ubx_outprot = IntVar()
         self._ddc_rate = IntVar()
@@ -202,11 +204,22 @@ class UBXConfigDialog:
         # Port Configuration
         # *******************************************************
         self._lbl_cfg_port = Label(con, text=LBLCFGPRT, bg=LBL_COL, anchor="w")
-        self._lbl_ubx_baudrate = Label(con, text="Baud rate")
+        self._lbl_ubx_portid = Label(con, text="Port ID")
+        self._spn_ubx_portid = Spinbox(
+            con,
+            values=PORTIDS,
+            width=8,
+            state=READONLY,
+            readonlybackground=ENTCOL,
+            wrap=True,
+            textvariable=self._ubx_portid,
+            command=lambda: self._on_select_portid(),
+        )
+        self._lbl_ubx_baudrate = Label(con, text="Baud")
         self._spn_ubx_baudrate = Spinbox(
             con,
             values=(BAUDRATES),
-            width=8,
+            width=6,
             state=READONLY,
             readonlybackground=ENTCOL,
             wrap=True,
@@ -392,8 +405,10 @@ class UBXConfigDialog:
             column=0, row=2, columnspan=6, padx=3, pady=3, sticky=(W, E)
         )
         self._lbl_cfg_port.grid(column=0, row=3, columnspan=6, padx=3, sticky=(W, E))
-        self._lbl_ubx_baudrate.grid(column=0, row=4, columnspan=3, sticky=(W))
-        self._spn_ubx_baudrate.grid(column=1, row=4, columnspan=3, sticky=(W))
+        self._lbl_ubx_portid.grid(column=0, row=4, columnspan=1, sticky=(W))
+        self._spn_ubx_portid.grid(column=1, row=4, columnspan=1, sticky=(W))
+        self._lbl_ubx_baudrate.grid(column=2, row=4, columnspan=1, sticky=(W))
+        self._spn_ubx_baudrate.grid(column=3, row=4, columnspan=2, sticky=(W))
         self._lbl_inprot.grid(column=0, row=5, sticky=(W))
         self._rad_inprot_nmea.grid(column=1, row=5, sticky=(W))
         self._rad_inprot_ubx.grid(column=2, row=5, sticky=(W))
@@ -518,6 +533,8 @@ class UBXConfigDialog:
             self._gnss_supported.set(kwargs.get("gnsssupported", ""))
 
         # CFG-PRT command confirmation
+        #         if "portid" in kwargs:
+        #             self._spn_ubx_portid.set(kwargs["portid"])
         if "baudrate" in kwargs:
             self._ubx_baudrate.set(str(kwargs["baudrate"]))
         if "inprot" in kwargs:
@@ -554,20 +571,33 @@ class UBXConfigDialog:
         elif not self._awaiting_ack and cfgtype not in ("ACK-ACK", "ACK-NAK"):
             self.set_status(f"{cfgtype} response received", "green")
 
+    def _on_select_portid(self):
+        """
+        Handle portid selection
+        """
+
+        self._do_poll_prt()  # poll for confirmation
+        self._lbl_send_port.config(image=self._img_pending)
+        self.set_status("CFG-PRT configuration message(s) sent")
+
     def _on_send_port(self, *args, **kwargs):
         """
         Handle Send port config button press.
         """
 
-        portID = b"\x03"
+        port = int(self._ubx_portid.get()[0:1])
+        portID = int.to_bytes(port, 1, "little", signed=False)
         reserved0 = b"\x00"
         reserved4 = b"\x00\00"
         reserved5 = b"\x00\00"
         txReady = b"\x00\x00"
-        mode = b"\x00\x00\x00\x00"
-        baudRate = int.to_bytes(
-            int(self._ubx_baudrate.get()), 4, "little", signed=False
-        )
+        if port == 0:  # DDC I2C
+            mode = b"\x84\x00\x00\x00"
+        elif port == 1:  # UART1
+            mode = b"\xc0\x08\x00\x00"
+        else:
+            mode = b"\x00\x00\x00\x00"
+        baudRate = int.to_bytes(self._ubx_baudrate.get(), 4, "little", signed=False)
         inProtoMask = int.to_bytes(self._ubx_inprot.get(), 2, "little", signed=False)
         outProtoMask = int.to_bytes(self._ubx_outprot.get(), 2, "little", signed=False)
         payload = (
@@ -731,7 +761,9 @@ class UBXConfigDialog:
         Poll PRT message configuration
         """
 
-        msg = UBXMessage("CFG", "CFG-PRT", POLL)
+        #         msg = UBXMessage("CFG", "CFG-PRT", POLL)
+        portID = int(self._ubx_portid.get()[0:1])
+        msg = UBXMessage("CFG", "CFG-PRT", POLL, portID=portID)
         self.__app.serial_handler.serial_write(msg.serialize())
 
     def _do_set_inf(self, onoff: int):

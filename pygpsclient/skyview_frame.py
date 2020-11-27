@@ -15,6 +15,10 @@ from .globals import snr2col, cel2cart, WIDGETU1, BGCOL, FGCOL
 
 
 def _create_circle(self, x, y, r, **kwargs):
+    """
+    Helper method to simplify drawing circles on canvas
+    """
+
     return self.create_oval(x - r, y - r, x + r, y + r, **kwargs)
 
 

@@ -39,7 +39,7 @@ class UBXHandler:
         self._record_track = False
         self.gsv_data = (
             []
-        )  # Holds array of current satellites in view from NMEA GSV sentences
+        )  # Holds array of current satellites in view from NMEA GSV or UBX NAV-SVINFO sentences
         self.lon = 0
         self.lat = 0
         self.alt = 0
@@ -53,6 +53,7 @@ class UBXHandler:
         self.utc = ""
         self.sip = 0
         self.fix = "-"
+        self.ubx_portid = 3  # USB
         self.ubx_baudrate = 9600
         self.ubx_inprot = 7
         self.ubx_outprot = 3
@@ -197,6 +198,7 @@ class UBXHandler:
         :param data: UBXMessage
         """
 
+        self.ubx_portid = data.portID
         self.ubx_baudrate = data.baudRate
         self.ubx_inprot = int.from_bytes(data.inProtoMask, "little", signed=False)
         self.ubx_outprot = int.from_bytes(data.outProtoMask, "little", signed=False)
@@ -205,6 +207,7 @@ class UBXHandler:
         if self.__app.dlg_ubxconfig is not None:
             self.__app.dlg_ubxconfig.update(
                 "CFG-PRT",
+                portid=self.ubx_portid,
                 baudrate=self.ubx_baudrate,
                 inprot=self.ubx_inprot,
                 outprot=self.ubx_outprot,

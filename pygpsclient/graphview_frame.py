@@ -86,12 +86,9 @@ class GraphviewFrame(Frame):
                 font=resize_font,
             )
 
-    #         self.can_graphview.create_text(10, (h - AXIS_Y - 1) / 2, text="dbHz", angle=90,
-    #                                        fill=self._fgcol, font=resize_font)
-
     def update_graph(self, data, siv=16):
         """
-        Plot satellites' elevation and azimuth position.
+        Plot satellites' signal-to-noise ratio (cno).
         Automatically adjust y axis according to number of satellites in view.
 
         :param data: array of satellite tuples (svid, elev, azim, cno):
