@@ -71,7 +71,7 @@ class UBXHandler:
         :param serial
         """
 
-        for msgtype in ("CFG-PRT", "MON-VER"):
+        for msgtype in ("CFG-PRT", "MON-VER", "MON-HW"):
             msg = UBXMessage(msgtype[0:3], msgtype, POLL)
             serial.write(msg.serialize())
 
@@ -110,6 +110,8 @@ class UBXHandler:
             self._process_NAV_DOP(parsed_data)
         if parsed_data.identity == "MON-VER":
             self._process_MON_VER(parsed_data)
+        if parsed_data.identity == "MON-HW":
+            self._process_MON_HW(parsed_data)
         if data or parsed_data:
             self._update_console(data, parsed_data)
 
@@ -441,6 +443,23 @@ class UBXHandler:
         except ValueError:
             # self.__app.set_status(ube.UBXMessageError(err), "red")
             pass
+
+    def _process_MON_HW(self, data: UBXMessage):
+        """
+        Process MON-VER sentence - Receiver Software / Hardware version information.
+
+        :param data: UBXMessage
+        """
+
+        ant_status = getattr(data, "aStatus", 1)
+        ant_power = getattr(data, "aPower", 2)
+        print(f"_process_MON_VER status {ant_status} power {ant_power}")
+
+        # update the UBX config panel
+        if self.__app.dlg_ubxconfig is not None:
+            self.__app.dlg_ubxconfig.update(
+                "MON-HW", antstatus=ant_status, antpower=ant_power
+            )
 
     @staticmethod
     def msgclass2bytes(msgClass: int, msgID: int) -> bytes:

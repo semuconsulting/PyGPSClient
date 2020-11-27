@@ -48,6 +48,8 @@ from .globals import (
     PORTIDS,
     BAUDRATES,
     READONLY,
+    ANTPOWER,
+    ANTSTATUS,
 )
 from .strings import (
     LBLUBXCONFIG,
@@ -152,6 +154,8 @@ class UBXConfigDialog:
         self._sw_version = StringVar()
         self._hw_version = StringVar()
         self._fw_version = StringVar()
+        self._ant_status = StringVar()
+        self._ant_power = StringVar()
         self._protocol = StringVar()
         self._gnss_supported = StringVar()
 
@@ -199,6 +203,10 @@ class UBXConfigDialog:
         self._lbl_romver = Label(inf, textvariable=self._protocol, fg=INFCOL)
         self._lbl_gnssl = Label(inf, text="GNSS/AS")
         self._lbl_gnss = Label(inf, textvariable=self._gnss_supported, fg=INFCOL)
+        self._lbl_ant_statusl = Label(inf, text="Antenna Status")
+        self._lbl_ant_status = Label(inf, textvariable=self._ant_status, fg=INFCOL)
+        self._lbl_ant_powerl = Label(inf, text="Antenna Power")
+        self._lbl_ant_power = Label(inf, textvariable=self._ant_power, fg=INFCOL)
 
         # *******************************************************
         # Port Configuration
@@ -399,6 +407,14 @@ class UBXConfigDialog:
         self._lbl_gnss.grid(column=2, row=2, columnspan=4, padx=2, sticky=(W))
 
         # *******************************************************
+        # MON-HW Antenna Status
+        # *******************************************************
+        self._lbl_ant_statusl.grid(column=0, row=3, columnspan=1, padx=2, sticky=(W))
+        self._lbl_ant_status.grid(column=1, row=3, columnspan=2, padx=2, sticky=(W))
+        self._lbl_ant_powerl.grid(column=3, row=3, columnspan=1, padx=2, sticky=(W))
+        self._lbl_ant_power.grid(column=4, row=3, columnspan=2, padx=2, sticky=(W))
+
+        # *******************************************************
         # CFG-PRT Port Configuration
         # *******************************************************
         ttk.Separator(self._frm_container).grid(
@@ -524,7 +540,7 @@ class UBXConfigDialog:
         :kwargs kwargs: optional key value pairs
         """
 
-        # MON-VER information
+        # MON-VER information (for firmware version)
         if cfgtype == "MON-VER":
             self._sw_version.set(kwargs.get("swversion", ""))
             self._hw_version.set(kwargs.get("hwversion", ""))
@@ -532,9 +548,12 @@ class UBXConfigDialog:
             self._protocol.set(kwargs.get("protocol", ""))
             self._gnss_supported.set(kwargs.get("gnsssupported", ""))
 
+        # MON-HW information (for antenna status)
+        if cfgtype == "MON-HW":
+            self._ant_status.set(ANTSTATUS[kwargs.get("antstatus", 1)])
+            self._ant_power.set(ANTPOWER[kwargs.get("antpower", 2)])
+
         # CFG-PRT command confirmation
-        #         if "portid" in kwargs:
-        #             self._spn_ubx_portid.set(kwargs["portid"])
         if "baudrate" in kwargs:
             self._ubx_baudrate.set(str(kwargs["baudrate"]))
         if "inprot" in kwargs:

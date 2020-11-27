@@ -51,6 +51,8 @@ DEVICE_ACCURACY = 2.5  # nominal GPS device accuracy (CEP) in meters
 HDOP_RATIO = 20  # arbitrary calibration of accuracy against HDOP
 KNOWNGPS = ("GPS", "gps", "GNSS", "gnss", "Garmin", "garmin", "U-Blox", "u-blox")
 PORTIDS = ("0 I2C", "1 UART1", "3 USB", "4 SPI")
+ANTSTATUS = ("INIT", "DONTKNOW", "OK", "SHORT", "OPEN")
+ANTPOWER = ("OFF", "ON", "DONTKNOW")
 BAUDRATES = (115200, 57600, 38400, 19200, 9600, 4800)
 PARITIES = {
     "Even": PARITY_EVEN,
