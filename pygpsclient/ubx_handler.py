@@ -450,14 +450,13 @@ class UBXHandler:
 
     def _process_MON_HW(self, data: UBXMessage):
         """
-        Process MON-VER sentence - Receiver Software / Hardware version information.
+        Process MON-HW sentence - Receiver Hardware status.
 
         :param data: UBXMessage
         """
 
         ant_status = getattr(data, "aStatus", 1)
         ant_power = getattr(data, "aPower", 2)
-        print(f"_process_MON_VER status {ant_status} power {ant_power}")
 
         # update the UBX config panel
         if self.__app.dlg_ubxconfig is not None:
