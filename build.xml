@@ -3,13 +3,13 @@
 	<condition property="python" value="python" else="/Library/Frameworks/Python.framework/Versions/3.9/bin/python3">
 		<os family="windows" />
 	</condition>
-	<property name="version" value="0.2.14" />
+	<property name="version" value="0.2.15" />
 	<property name="test_args" value="tests/testsuite.py" />
 	<property name="analyse_args" value="-m pylint --reports=y ${ant.project.name}" />
 	<property name="format_args" value="-m black ${ant.project.name}" />
 	<property name="build_args" value="setup.py sdist bdist_wheel" />
 	<property name="deploy_args" value="-m twine upload --config-file .pypirc dist/*" />
-	<property name="install_args" value="-m pip install dist/${ant.project.name}-${version}.tar.gz --user" />
+	<property name="install_args" value="-m pip install dist/${ant.project.name}-${version}.tar.gz --user --force-reinstall" />
 	<property name="coverage_args" value="-m coverage run --source=${ant.project.name} -m pytest" />
 	<property name="coverage_html_args" value="-m coverage html" />
 	<target name="clean">

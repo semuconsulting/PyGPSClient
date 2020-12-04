@@ -8,6 +8,11 @@ python:
   - "3.8"
   - "3.9"
 
+# safelist
+branches:
+  only:
+  - master
+ 
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install:
     - pip install pip --upgrade
