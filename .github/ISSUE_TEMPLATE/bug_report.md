@@ -1,36 +1,51 @@
 ---
-name: Bug report
+name: PyGPSClient bug report
+
 about: Create a report to help us improve
+
 title: ''
+
 labels: ''
+
 assignees: semuadmin
 
 ---
 
 **Describe the bug**
+
 A clear and concise description of what the bug is.
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+Please specify the pygpsclient version (`>>> pygpsclient.version`) and, where possible, include:
+ - A screenshot of the error.
+ - The error message and full traceback.
+ - A binary / hexadecimal dump of the UBX data stream (e.g. from PuTTY, screen or u-center).
 
-**Expected behavior**
+**To Reproduce**
+
+Steps to reproduce the behaviour:
+1. Any relevant device configuration (if other than factory defaults).
+2. Any causal UBX command input(s).
+
+**Expected Behavior**
+
 A clear and concise description of what you expected to happen.
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
-
 **Desktop (please complete the following information):**
- - OS: [e.g. iOS]
 
-**GNSS/GPS Device (please complete the following information):**
- - Device: [e.g. u-blox NEO-8m]
- - Protocol: [e.g. NMEA, UBX]
- - Connection Type [e.g. UART, USB]
- - If possible, provide screen shot of UBX Config dialog panel
+ - The operating system you're using [e.g. Windows 10, MacOS Big Sur, Ubuntu Bionic]
+ - The version of Python you're using (e.g. Python 3.8.3)
+ - The type of serial connection [e.g. USB, UART1, I2C]
+
+**GNSS/GPS Device (please complete the following information as best you can):**
+
+ - Device Model/Generation: [e.g. u-blox NEO-9M]
+ - Firmware Version: [e.g. SPG 4.03]
+ - Protocol: [e.g. 32.00]
+ 
+This information is typically output by the device at startup via a series of NMEA TXT messages. 
+It can also be found by polling the device with a UBX MON-VER message. If you're using the 
+PyGPSClient GUI, a screenshot of the UBXConfig window should suffice.
 
 **Additional context**
+
 Add any other context about the problem here.
