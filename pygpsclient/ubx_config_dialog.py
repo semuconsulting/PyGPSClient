@@ -878,6 +878,8 @@ class UBXConfigDialog:
                     self._do_cfgmsg(msgtype, 1)
                 elif msgtype == b"\x01\x30":  # NAV-SVINFO
                     self._do_cfgmsg(msgtype, 4)
+                elif msgtype == b"\x01\x35":  # NAV-SAT
+                    self._do_cfgmsg(msgtype, 4)
                 else:
                     self._do_cfgmsg(msgtype, 0)
 

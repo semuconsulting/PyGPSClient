@@ -106,6 +106,8 @@ class UBXHandler:
             self._process_NAV_PVT(parsed_data)
         if parsed_data.identity == "NAV-VELNED":
             self._process_NAV_VELNED(parsed_data)
+        if parsed_data.identity == "NAV-SAT":
+            self._process_NAV_SAT(parsed_data)
         if parsed_data.identity == "NAV-SVINFO":
             self._process_NAV_SVINFO(parsed_data)
         if parsed_data.identity == "NAV-SOL":
@@ -333,6 +335,31 @@ class UBXHandler:
             # self.__app.set_status(ube.UBXMessageError(err), "red")
             pass
 
+    def _process_NAV_SAT(self, data: UBXMessage):
+        """
+        Process NAV-SAT sentences - Space Vehicle Information.
+
+        :param data: UBXMessage
+        """
+
+        try:
+            self.gsv_data = []
+            num_siv = int(data.numCh)
+            self.__app.frm_banner.update_banner(siv=num_siv)
+
+            for i in range(num_siv):
+                idx = "_{0:0=2d}".format(i + 1)
+                svid = getattr(data, "svId" + idx)
+                elev = getattr(data, "elev" + idx)
+                azim = getattr(data, "azim" + idx)
+                cno = getattr(data, "cno" + idx)
+                self.gsv_data.append((svid, elev, azim, cno))
+            self.__app.frm_satview.update_sats(self.gsv_data)
+            self.__app.frm_graphview.update_graph(self.gsv_data, num_siv)
+        except ValueError:
+            # self.__app.set_status(ube.UBXMessageError(err), "red")
+            pass
+
     def _process_NAV_SVINFO(self, data: UBXMessage):
         """
         Process NAV-SVINFO sentences - Space Vehicle Information.
@@ -416,7 +443,7 @@ class UBXHandler:
                 getattr(data, "hwVersion", "n/a").replace(b"\x00", b"").decode("utf-8")
             )
 
-            for i in range(4):
+            for i in range(9):
                 idx = "_{0:0=2d}".format(i + 1)
                 exts.append(
                     getattr(data, "extension" + idx, b"")
