@@ -90,6 +90,8 @@ warning ![warning icon](/pygpsclient/resources/iconmonstr-warning-1-24.png)).
 * sip - satellites used in position solution.
 * dop - [dilution of precision](https://gisgeography.com/gps-accuracy-hdop-pdop-gdop-multipath/) (pdop - position, hdop - horizontal, vdop - vertical).
 * acc - accuracy of location in real units (hacc - horizontal, vacc - vertical). Note that location accuracy is not directly provided via the standard NMEA message set, but is available via some proprietary NMEA messages e.g. UBX00.
+* SV - space vehicle number
+* PRN - pseudo-random noise number
 
 ## <a name="installation">Installation</a>
 
@@ -172,8 +174,9 @@ Multiple commands can be concatenated on a single line. Illustrative examples ar
 Enable NMEA RMC sentence, CFG, CFG-MSG, f004010100010100, 1
 Enable NMEA VTG sentence, CFG, CFG-MSG, f005010100010100, 1
 Enable NMEA UBX00 & UBX03 sentences, CFG, CFG-MSG, f100010100010100, 1, CFG, CFG-MSG, f103010100010100, 1
-Poll NEO-9 UART1/2 baud rates, CFG, CFG-VALGET, 000000000100524001005340, 2
-Poll NEO-9 Message Rates, CFG, CFG-VALGET, 00000000ffff9120, 2, CFG, CFG-VALGET, 00004000ffff9120, 2, CFG, CFG-VALGET, 00008000ffff9120, 2
+Poll UART1/2 baud rates, CFG, CFG-VALGET, 000000000100524001005340, 2
+Poll Message Rates, CFG, CFG-VALGET, 00000000ffff9120, 2, CFG, CFG-VALGET, 00004000ffff9120, 2, CFG, CFG-VALGET, 00008000ffff9120, 2
+Use Extended NMEA SV Numbering, CFG, CFG-VALSET, 000000000700932001, 1
 Poll Receiver Software Version, MON, MON-VER, , 2
 Poll Datum, CFG, CFG-DAT, , 2
 Poll GNSS config, CFG, CFG-GNSS, , 2

@@ -11,9 +11,10 @@ Created on 30 Sep 2020
 
 from datetime import datetime
 from pyubx2 import UBXMessage, POLL, UBX_MSGIDS, UBX_CONFIG_MESSAGES
+from .globals import svid2gnssid, GLONASS_NMEA
 
-CFG_MSG_OFF = b"\x00\x00\x00\x00\x00\x01"
-CFG_MSG_ON = b"\x01\x01\x01\x01\x01\x01"
+# CFG_MSG_OFF = b"\x00\x00\x00\x00\x00\x01"
+# CFG_MSG_ON = b"\x01\x01\x01\x01\x01\x01"
 BOTH = 3
 UBX = 1
 NMEA = 2
@@ -28,7 +29,7 @@ class UBXHandler:
         """
         Constructor.
 
-        :param app: reference to main tkinter application
+        :param object app: reference to main tkinter application
         """
 
         self.__app = app  # Reference to main application class
@@ -68,7 +69,7 @@ class UBXHandler:
         may take several seconds to arrive, particularly in
         heavy traffic.
 
-        :param serial
+        :param serial: serial
         """
 
         for portid in (0, 1, 3, 4):  # I2C, UART1, USB, SPI
@@ -83,9 +84,9 @@ class UBXHandler:
         """
         Process UBX message type
 
-        :param data: bytes
-
-        :return UBX message as UBXMessage:
+        :param bytes data: raw data
+        :return UBXMessage:
+        :rtype: UBXMessage
         """
 
         parsed_data = UBXMessage.parse(data, False)
@@ -127,8 +128,8 @@ class UBXHandler:
         """
         Write the incoming data to the console in raw or parsed format.
 
-        :param raw_data: bytes
-        :param parsed_data: UBXMessage
+        :param bytes raw_data: raw data
+        :param UBXMessage parsed_data: UBXMessage
         """
 
         if self.__app.frm_settings.get_settings()["raw"]:
@@ -140,7 +141,7 @@ class UBXHandler:
         """
         Process CFG-MSG sentence - UBX message configuration.
 
-        :param data: UBXMessage
+        :param UBXMessage data: ACK_ACK parsed message
         """
 
         msgtype = UBX_MSGIDS[self.msgclass2bytes(data.clsID, data.msgID)]
@@ -153,7 +154,7 @@ class UBXHandler:
         """
         Process CFG-MSG sentence - UBX message configuration.
 
-        :param data: UBXMessage
+        :param UBXMessage data: ACK_NAK parsed message
         """
 
         msgtype = UBX_MSGIDS[self.msgclass2bytes(data.clsID, data.msgID)]
@@ -166,7 +167,7 @@ class UBXHandler:
         """
         Process CFG-MSG sentence - UBX message configuration.
 
-        :param data: UBXMessage
+        :param UBXMessage data: CFG-MSG parsed message
         """
 
         msgtype = UBX_CONFIG_MESSAGES[self.msgclass2bytes(data.msgClass, data.msgID)]
@@ -188,11 +189,11 @@ class UBXHandler:
                 spirate=spirate,
             )
 
-    def _process_CFG_INF(self, data: UBXMessage):
+    def _process_CFG_INF(self, data: UBXMessage):  # pylint: disable=unused-argument
         """
         Process CFG-INF sentence - UBX info message configuration.
 
-        :param data: UBXMessage
+        :param UBXMessage data: CFG-INF parsed message
         """
 
         # update the UBX config panel
@@ -203,7 +204,7 @@ class UBXHandler:
         """
         Process CFG-PRT sentence - UBX port configuration.
 
-        :param data: UBXMessage
+        :param UBXMessage data: CFG-PRT parsed message
         """
 
         self.ubx_portid = data.portID
@@ -225,7 +226,7 @@ class UBXHandler:
         """
         Process NAV-LLH sentence - Latitude, Longitude, Height.
 
-        :param data: UBXMessage
+        :param UBXMessage data: NAV-POSLLH parsed message
         """
 
         try:
@@ -254,7 +255,7 @@ class UBXHandler:
         """
         Process NAV-PVT sentence -  Navigation position velocity time solution.
 
-        :param data: UBXMessage
+        :param UBXMessage data: NAV-PVT parsed message
         """
 
         try:
@@ -324,7 +325,7 @@ class UBXHandler:
         """
         Process NAV-VELNED sentence - Velocity Solution in North East Down format.
 
-        :param data: UBXMessage
+        :param UBXMessage data: NAV-VELNED parsed message
         """
 
         try:
@@ -339,7 +340,12 @@ class UBXHandler:
         """
         Process NAV-SAT sentences - Space Vehicle Information.
 
-        :param data: UBXMessage
+        NB: For consistency with NMEA GSV and UBX NAV-SVINFO message types,
+        this uses the NMEA SVID numbering range for GLONASS satellites
+        (65 - 96) rather than the Slot ID (1-24) by default.
+        To change this, set the GLONASS_NMEA flag in globals.py to False.
+
+        :param UBXMessage data: NAV-SAT parsed message
         """
 
         try:
@@ -349,11 +355,14 @@ class UBXHandler:
 
             for i in range(num_siv):
                 idx = "_{0:0=2d}".format(i + 1)
+                gnssId = getattr(data, "gnssId" + idx)
                 svid = getattr(data, "svId" + idx)
+                if gnssId == 6 and GLONASS_NMEA and svid != 255:
+                    svid += 64  # use NMEA GLONASS numbering
                 elev = getattr(data, "elev" + idx)
                 azim = getattr(data, "azim" + idx)
                 cno = getattr(data, "cno" + idx)
-                self.gsv_data.append((svid, elev, azim, cno))
+                self.gsv_data.append((gnssId, svid, elev, azim, cno))
             self.__app.frm_satview.update_sats(self.gsv_data)
             self.__app.frm_graphview.update_graph(self.gsv_data, num_siv)
         except ValueError:
@@ -364,7 +373,9 @@ class UBXHandler:
         """
         Process NAV-SVINFO sentences - Space Vehicle Information.
 
-        :param data: UBXMessage
+        NB: Since UBX Gen8 this message is deprecated in favour of NAV-SAT
+
+        :param UBXMessage data: NAV-SVINFO parsed message
         """
 
         try:
@@ -375,10 +386,11 @@ class UBXHandler:
             for i in range(num_siv):
                 idx = "_{0:0=2d}".format(i + 1)
                 svid = getattr(data, "svid" + idx)
+                gnssId = svid2gnssid(svid)  # derive gnssId from svid
                 elev = getattr(data, "elev" + idx)
                 azim = getattr(data, "azim" + idx)
                 cno = getattr(data, "cno" + idx)
-                self.gsv_data.append((svid, elev, azim, cno))
+                self.gsv_data.append((gnssId, svid, elev, azim, cno))
             self.__app.frm_satview.update_sats(self.gsv_data)
             self.__app.frm_graphview.update_graph(self.gsv_data, num_siv)
         except ValueError:
@@ -389,7 +401,7 @@ class UBXHandler:
         """
         Process NAV-SOL sentence - Navigation Solution.
 
-        :param data: UBXMessage
+        :param UBXMessage data: NAV-SOL parsed message
         """
 
         try:
@@ -406,7 +418,7 @@ class UBXHandler:
         """
         Process NAV-DOP sentence - Dilution of Precision.
 
-        :param data: UBXMessage
+        :param UBXMessage data: NAV-DOP parsed message
         """
 
         try:
@@ -425,7 +437,7 @@ class UBXHandler:
         """
         Process MON-VER sentence - Receiver Software / Hardware version information.
 
-        :param data: UBXMessage
+        :param UBXMessage data: MON-VER parsed message
         """
 
         exts = []
@@ -479,7 +491,7 @@ class UBXHandler:
         """
         Process MON-HW sentence - Receiver Hardware status.
 
-        :param data: UBXMessage
+        :param UBXMessage data: MON-HW parsed message
         """
 
         ant_status = getattr(data, "aStatus", 1)
@@ -496,10 +508,10 @@ class UBXHandler:
         """
         Convert message class/id integers to bytes.
 
-        :param msgCLass: int
-        :param msgID: int
-
-        :return message class as string: str
+        :param int msgCLass
+        :param int msgID
+        :return message class as bytes
+        :rtype bytes
         """
 
         msgClass = msgClass.to_bytes(1, byteorder="little", signed=False)

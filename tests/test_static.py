@@ -68,6 +68,21 @@ class StaticTest(unittest.TestCase):
         res = pos2iso6709(53.12, -2.165, 35)
         self.assertEqual(res, '+53.12-2.165+35CRSWGS_84/')
 
+    def testhsv2rgb(self):
+        res = hsv2rgb(0.5, 0.2, 0.9)
+        self.assertEqual(res, "#b7e5e5")
+
+    def testsnr2col(self):
+        res = snr2col(38)
+        self.assertEqual(res, "#77cc28")
+
+    def testsvid2gnss(self):
+        EXPECTED_RESULT = [0, 3, 6, 1, 4, 5, 2]
+        svids = (28, 50, 72, 140, 180, 200, 220)
+        for i, svid in enumerate(svids):
+            res = svid2gnssid(svid)
+            self.assertEqual(res, EXPECTED_RESULT[i])
+
 
 if __name__ == "__main__":
     # import sys;sys.argv = ['', 'Test.testName']

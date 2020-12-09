@@ -38,7 +38,7 @@ class SerialHandler:
         """
         Constructor.
 
-        :param app: reference to main tkinter application
+        :param object app: reference to main tkinter application
         """
 
         self.__app = app  # Reference to main application class
@@ -216,7 +216,7 @@ class SerialHandler:
         """
         Write binary data to serial port.
 
-        :param data: bytes
+        :param bytes data
         """
 
         try:
@@ -327,7 +327,7 @@ class SerialHandler:
         UBX and/or NMEA protocol handler, depending on which protocols
         are filtered.
 
-        :param ser: Serial
+        :param Serial ser: serial port
         """
 
         #         print("doing serial_handler_parse_data")

@@ -42,7 +42,7 @@ class MapviewFrame(Frame):
         """
         Constructor.
 
-        :param app: reference to main tkinter application
+        :param object app: reference to main tkinter application
         """
 
         self.__app = app  # Reference to main application class
@@ -75,6 +75,10 @@ class MapviewFrame(Frame):
     def update_map(self, lat: float, lon: float, hacc: float):
         """
         Draw map and mark current known position.
+
+        :param float lat: latitude
+        :param float lon: longitude
+        :param float hacc: horizontal accuracy
         """
 
         w, h = self.width, self.height
@@ -114,6 +118,9 @@ class MapviewFrame(Frame):
     def _draw_static_map(self, lat: float, lon: float):
         """
         Draw fixed scale Mercator world map
+
+        :param float lat: latitude
+        :param float lon: longitude
         """
 
         OFFSET_X = 0
@@ -133,6 +140,10 @@ class MapviewFrame(Frame):
     def _draw_web_map(self, lat: float, lon: float, hacc: float):
         """
         Draw scalable web map via MapQuest API
+
+        :param float lat: latitude
+        :param float lon: longitude
+        :param float hacc: horizontal accuracy
         """
 
         w, h = self.width, self.height
@@ -196,6 +207,8 @@ class MapviewFrame(Frame):
     def _draw_countdown(self, wait):
         """
         Draw clock icon indicating time until next scheduled map refresh.
+
+        :param int wait: wait time in seconds
         """
 
         self.can_mapview.create_oval((5, 5, 20, 20), fill="#616161", outline="")
@@ -207,6 +220,11 @@ class MapviewFrame(Frame):
     def _format_url(self, apikey: str, lat: float, lon: float, hacc: float):
         """
         Formats URL for web map download.
+
+        :param str apikey: MapQuest API key
+        :param float lat: latitude
+        :param float lon: longitude
+        :param float hacc: horizontal accuracy
         """
 
         w, h = self.width, self.height
@@ -225,6 +243,8 @@ class MapviewFrame(Frame):
     def _on_resize(self, event):
         """
         Resize frame
+
+        :param event
         """
 
         self.width, self.height = self.get_size()

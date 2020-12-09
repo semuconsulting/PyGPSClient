@@ -34,7 +34,7 @@ class NMEAHandler:
         """
         Constructor.
 
-        :param app: reference to main tkinter application
+        :param object app: reference to main tkinter application
         """
 
         self.__app = app  # Reference to main application class
@@ -65,7 +65,7 @@ class NMEAHandler:
         """
         Process NMEA message type
 
-        :param data: bytes
+        :param bytes data: parsed NMEA sentence
         """
 
         try:
@@ -102,8 +102,8 @@ class NMEAHandler:
         """
         Write the incoming data to the console in raw or parsed format.
 
-        :param: raw_data: bytes
-        :param: parsed_data: pynmea2.types.talker
+        :param bytes raw_data: raw data
+        :param pynmea2.types.talker parsed_data: parsed data
         """
 
         if self.__app.frm_settings.get_settings()["raw"]:
@@ -115,7 +115,7 @@ class NMEAHandler:
         """
         Process RMC sentence - Recommended minimum data for GPS.
 
-        :param: data: pynmea2.types.talker
+        :param pynmea2.types.talker data: parsed RMC sentence
         """
 
         try:
@@ -141,7 +141,7 @@ class NMEAHandler:
         """
         Process GGA sentence - GPS Fix Data.
 
-        :param: data: pynmea2.types.talker
+        :param pynmea2.types.talker data: parsed GGA sentence
         """
 
         try:
@@ -160,10 +160,10 @@ class NMEAHandler:
                 and self.lat != ""
                 and self.lon != ""
             ):
-                time = self.ts2utc(data.timestamp)
+                tim = self.ts2utc(data.timestamp)
                 ele = 0 if self.alt == "None" else self.alt
                 self.__app.file_handler.add_trackpoint(
-                    self.lat, self.lon, ele=ele, time=time, sat=self.sip
+                    self.lat, self.lon, ele=ele, time=tim, sat=self.sip
                 )
         except ValueError as err:
             self.__app.set_status(NMEAVALERROR.format(err), "red")
@@ -172,7 +172,7 @@ class NMEAHandler:
         """
         Process GLL sentence - GPS Lat Lon.
 
-        :param: data: pynmea2.types.talker
+        :param pynmea2.types.talker data: parsed GLL sentence
         """
 
         try:
@@ -191,7 +191,7 @@ class NMEAHandler:
         """
         Process GSA sentence - GPS DOP (Dilution of Precision) and active satellites.
 
-        :param: data: pynmea2.types.talker
+        :param pynmea2.types.talker data: parsed GSA sentence
         """
 
         self.pdop = float(data.pdop)
@@ -216,39 +216,63 @@ class NMEAHandler:
         These come in batches of 1-4 sentences, each containing the positions
         of up to 4 satellites (16 satellites in total).
         Modern receivers can send multiple batches corresponding to different
-        NMEA assigned 'ID' ranges (GPS 1-32, SBAS 33-64, GLONASS 65-96)
+        NMEA assigned 'ID' ranges (GPS 1-32, SBAS 33-64, GLONASS 65-96 etc.)
 
-        :param: data: pynmea2.types.talker
+        :param pynmea2.types.talker data: parsed GSV sentence
         """
 
         self.gsv_data = []
         gsv_dict = {}
         now = time()
+        if data.talker == "GA":
+            gnss = 2  # Galileo
+        elif data.talker == "GB":
+            gnss = 3  # Beidou (only available in MMEA 4.11)
+        elif data.talker == "GL":
+            gnss = 6  # GLONASS
+        else:
+            gnss = 0  # GPS, SBAS, QZSS
 
         try:
             if data.sv_prn_num_1 != "":
-                gsv_dict[data.sv_prn_num_1] = (
+                svid = data.sv_prn_num_1
+                key = str(gnss) + "-" + svid
+                gsv_dict[key] = (
+                    gnss,
+                    svid,
                     data.elevation_deg_1,
                     data.azimuth_1,
                     data.snr_1,
                     now,
                 )
             if data.sv_prn_num_2 != "":
-                gsv_dict[data.sv_prn_num_2] = (
+                svid = data.sv_prn_num_2
+                key = str(gnss) + "-" + svid
+                gsv_dict[key] = (
+                    gnss,
+                    svid,
                     data.elevation_deg_2,
                     data.azimuth_2,
                     data.snr_2,
                     now,
                 )
             if data.sv_prn_num_3 != "":
-                gsv_dict[data.sv_prn_num_3] = (
+                svid = data.sv_prn_num_3
+                key = str(gnss) + "-" + svid
+                gsv_dict[key] = (
+                    gnss,
+                    svid,
                     data.elevation_deg_3,
                     data.azimuth_3,
                     data.snr_3,
                     now,
                 )
             if data.sv_prn_num_4 != "":
-                gsv_dict[data.sv_prn_num_4] = (
+                svid = data.sv_prn_num_4
+                key = str(gnss) + "-" + svid
+                gsv_dict[key] = (
+                    gnss,
+                    svid,
                     data.elevation_deg_4,
                     data.azimuth_4,
                     data.snr_4,
@@ -261,9 +285,9 @@ class NMEAHandler:
             self.gsv_log[key] = gsv_dict[key]
 
         for key in self.gsv_log:
-            elev, azim, snr, lastupdate = self.gsv_log[key]
+            gnssId, svid, elev, azim, snr, lastupdate = self.gsv_log[key]
             if now - lastupdate < SAT_EXPIRY:  # expire passed satellites
-                self.gsv_data.append((key, elev, azim, snr))
+                self.gsv_data.append((gnssId, svid, elev, azim, snr))
 
         self.__app.frm_satview.update_sats(self.gsv_data)
         self.__app.frm_banner.update_banner(siv=len(self.gsv_data))
@@ -273,7 +297,7 @@ class NMEAHandler:
         """
         Process VTG sentence - GPS Vector track and Speed over the Ground.
 
-        :param: data: pynmea2.types.talker
+        :param pynmea2.types.talker data: parsed VTG sentence
         """
 
         try:
@@ -288,7 +312,7 @@ class NMEAHandler:
         """
         Process UXB00 sentence - GPS Vector track and Speed over the Ground.
 
-        :param: data: pynmea2.types.talker
+        :param pynmea2.types.talker data: parsed UBX,00 sentence
         """
 
         try:
@@ -311,9 +335,9 @@ class NMEAHandler:
         The NMEA PUBX,00 or UBX NAV-POSLLH message types return an explicit estimate
         of horizontal and vertical accuracy and are the preferred source.
 
-        :param: dop: float horizontal dilution of precision
-
-        :return: horizontal accuracy as float:
+        :param float dop: horizontal dilution of precision
+        :return horizontal accuracy
+        :rtype float
         """
 
         return float(dop) * DEVICE_ACCURACY * HDOP_RATIO / 1000
@@ -323,9 +347,9 @@ class NMEAHandler:
         """
         Convert NMEA timestamp to utc time
 
-        :param: NMEA timestamp from pynmea2
-
-        :return: utc time as str:
+        :param str timestamp: NMEA timestamp from pynmea2
+        :return utc time
+        :rtype str
         """
 
         t = datetime.now()

@@ -10,13 +10,15 @@ Created on 14 Sep 2020
 # pylint: disable=invalid-name
 
 from tkinter import Frame, Canvas, font, BOTH, YES
+from operator import itemgetter
 
-from .globals import snr2col, WIDGETU2, BGCOL, FGCOL, MAX_SNR
+from .globals import snr2col, WIDGETU2, BGCOL, FGCOL, MAX_SNR, GNSS_COLS
 
 # Relative offsets of graph axes
 AXIS_XL = 19
 AXIS_XR = 10
 AXIS_Y = 18
+OL_WID = 2
 
 
 class GraphviewFrame(Frame):
@@ -28,7 +30,7 @@ class GraphviewFrame(Frame):
         """
         Constructor.
 
-        :param app: reference to main tkinter application
+        :param object app: reference to main tkinter application
         """
 
         self.__app = app  # Reference to main application class
@@ -91,8 +93,8 @@ class GraphviewFrame(Frame):
         Plot satellites' signal-to-noise ratio (cno).
         Automatically adjust y axis according to number of satellites in view.
 
-        :param data: array of satellite tuples (svid, elev, azim, cno):
-        :param siv: int number of satellites in view
+        :param list data: array of satellite tuples (gnssId, svid, elev, azim, cno):
+        :param int siv: number of satellites in view
         """
 
         if siv == 0:
@@ -101,32 +103,26 @@ class GraphviewFrame(Frame):
         w, h = self.width, self.height
         self.init_graph()
 
-        offset = AXIS_XL + 1
-        colwidth = (w - AXIS_XL - AXIS_XR) / siv
+        offset = AXIS_XL + 2
+        colwidth = (w - AXIS_XL - AXIS_XR + 1) / siv
         resize_font = font.Font(size=min(int(colwidth / 2), 10))
-        for d in sorted(data):  # sort by ascending prn
-            prn, _, _, snr = d
+        for d in sorted(data, key=itemgetter(1)):  # sort by ascending svid
+            gnssId, prn, _, _, snr = d
             if snr in ("", "0", 0):
-                snr = 1
+                snr = 1  # show 'place marker' in graph
             else:
                 snr = int(snr)
             snr_y = int(snr) * (h - AXIS_Y - 1) / MAX_SNR
-            if int(prn) > 96:  # OTHER e.g. GAL
-                ol_col = "grey"
-            elif 65 <= int(prn) <= 96:  # GLONASS
-                ol_col = "brown"
-            elif 33 <= int(prn) <= 64:  # SBAS
-                ol_col = "blue"
-            else:  # original GPS
-                ol_col = "black"
+            ol_col = GNSS_COLS[gnssId]
             prn = f"{int(prn):02}"
             self.can_graphview.create_rectangle(
                 offset,
                 h - AXIS_Y - 1,
-                offset + colwidth,
+                offset + colwidth - OL_WID,
                 h - AXIS_Y - 1 - snr_y,
                 outline=ol_col,
                 fill=snr2col(snr),
+                width=OL_WID,
             )
             self.can_graphview.create_text(
                 offset + colwidth / 2,

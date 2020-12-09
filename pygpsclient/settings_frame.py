@@ -74,7 +74,7 @@ class SettingsFrame(Frame):
         """
         Constructor.
 
-        :param app: reference to main tkinter application
+        :param object app: reference to main tkinter application
         """
 
         self.__app = app  # Reference to main application class
@@ -525,7 +525,7 @@ class SettingsFrame(Frame):
         Public method to enable and disable serial port controls
         depending on connection status.
 
-        :param status: connection status as integer (0,1,2)
+        :param int status: connection status as integer (0,1,2)
         """
 
         self._lbl_port.configure(state=(NORMAL if status == DISCONNECTED else DISABLED))
@@ -595,7 +595,8 @@ class SettingsFrame(Frame):
         """
         Public method returns all settings as a dict.
 
-        :return current settings as dict:
+        :return current settings
+        :rtype dict
         """
 
         self._settings["port"] = self._port.get()
@@ -625,7 +626,8 @@ class SettingsFrame(Frame):
         """
         Get current frame size.
 
-        :return (width, height) as tuple:
+        :return (width, height)
+        :rtype tuple
         """
 
         self.update_idletasks()  # Make sure we know about any resizing

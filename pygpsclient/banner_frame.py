@@ -275,7 +275,7 @@ class BannerFrame(Frame):
         """
         Update connection status icon
 
-        :param status: connection status as integer (0,1,2)
+        :param int status: connection status as integer (0,1,2)
         """
 
         if status == CONNECTED:
@@ -317,8 +317,8 @@ class BannerFrame(Frame):
         """
         Update position
 
-        :param disp_format: degrees display format as string (DMS, DMM, DDD)
-        :param units: distance units as string (UMM, UMK, UI, UIK)
+        :param str disp_format: degrees display format as string (DMS, DMM, DDD)
+        :param str units: distance units as string (UMM, UMK, UI, UIK)
         :param kwargs: optional key value pairs
         """
 
@@ -361,7 +361,7 @@ class BannerFrame(Frame):
         """
         Update track and ground speed
 
-        :param units: distance units as string (UMM, UMK, UI, UIK)
+        :param str units: distance units as string (UMM, UMK, UI, UIK)
         :param kwargs: optional key value pairs
         """
 
@@ -422,7 +422,7 @@ class BannerFrame(Frame):
         """
         Update precision and accuracy
 
-        :param units: distance units as string (UMM, UMK, UI, UIK)
+        :param str units: distance units as string (UMM, UMK, UI, UIK)
         :param kwargs: optional key value pairs
         """
 

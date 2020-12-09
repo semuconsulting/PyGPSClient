@@ -20,7 +20,7 @@ class StatusFrame(Frame):
         """
         Constructor
 
-        :param app: reference to main tkinter application
+        :param object app: reference to main tkinter application
         """
 
         self.__app = app  # Reference to main application class
@@ -53,8 +53,8 @@ class StatusFrame(Frame):
         """
         Sets connection description in status bar.
 
-        :param connection: description of connection as str
-        :param color: color of text to be displayed (blue)
+        :param str connection: description of connection
+        :param str color: rgb color string
         """
 
         self._lbl_connection.config(fg=color)
@@ -64,8 +64,8 @@ class StatusFrame(Frame):
         """
         Sets message in status bar.
 
-        :param message: message to be displayed in status bar
-        :param color: color of text to be displayed (blue)
+        :param str message: message to be displayed in status bar
+        :param str color: rgb color string
         """
 
         message = (message[:75] + "..") if len(message) > 75 else message
@@ -83,6 +83,8 @@ class StatusFrame(Frame):
     def _on_resize(self, event):
         """
         Resize frame
+
+        :param event
         """
 
         self.width, self.height = self.get_size()

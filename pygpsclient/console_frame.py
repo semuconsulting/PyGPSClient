@@ -22,7 +22,7 @@ class ConsoleFrame(Frame):
         """
         Constructor.
 
-        :param app: reference to main tkinter application
+        :param object app: reference to main tkinter application
         """
 
         self.__app = app  # Reference to main application class
@@ -84,6 +84,8 @@ class ConsoleFrame(Frame):
 
         'maxlines' defines the maximum number of scrollable lines that are
         retained in the text box on a FIFO basis.
+
+        :param str data
         """
 
         settings = self.__app.frm_settings.get_settings()
@@ -107,6 +109,9 @@ class ConsoleFrame(Frame):
         """
         Highlights any occurrence of tags in line - each tag
         must be a tuple of (search term, highlight color)
+
+        :param str line
+        :param tuple tags: (search term, highlight color)
         """
 
         con = self.txt_console
@@ -125,6 +130,8 @@ class ConsoleFrame(Frame):
     def _on_resize(self, event):
         """
         Resize frame
+
+        :param event
         """
 
         self.width, self.height = self.get_size()

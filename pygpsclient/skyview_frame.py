@@ -11,7 +11,9 @@ Created on 13 Sep 2020
 
 from tkinter import Frame, Canvas, font, BOTH, YES
 from operator import itemgetter
-from .globals import snr2col, cel2cart, WIDGETU1, BGCOL, FGCOL
+from .globals import snr2col, cel2cart, WIDGETU1, BGCOL, FGCOL, GNSS_COLS
+
+OL_WID = 2
 
 
 def _create_circle(self, x, y, r, **kwargs):
@@ -34,7 +36,7 @@ class SkyviewFrame(Frame):
         """
         Constructor.
 
-        :param app: reference to main tkinter application
+        :param object app: reference to main tkinter application
         """
 
         self.__app = app  # Reference to main application class
@@ -96,7 +98,7 @@ class SkyviewFrame(Frame):
         """
         Plot satellites' elevation and azimuth position.
 
-        :param data: array of satellite tuples (svid, elev, azim, cno)
+        :param list data: array of satellite tuples (gnssId, svid, elev, azim, cno)
 
         """
 
@@ -106,9 +108,9 @@ class SkyviewFrame(Frame):
         resize_font = font.Font(size=min(int(maxr / 10), 10))
         self.init_sats()
 
-        for d in sorted(data, key=itemgetter(3)):  # sort by ascending snr
+        for d in sorted(data, key=itemgetter(4)):  # sort by ascending snr
             try:
-                prn, ele, azi, snr = d
+                gnssId, prn, ele, azi, snr = d
                 ele = int(ele)
                 azi = (int(azi) - 90) % 360  # adjust so north is upwards
                 x, y = cel2cart(ele, azi)
@@ -118,14 +120,7 @@ class SkyviewFrame(Frame):
                     snr = 0
                 else:
                     snr = int(snr)
-                if int(prn) > 96:  # OTHER e.g. GAL
-                    ol_col = "grey"
-                elif 65 <= int(prn) <= 96:  # GLONASS
-                    ol_col = "brown"
-                elif 33 <= int(prn) <= 64:  # SBAS
-                    ol_col = "blue"
-                else:  # original GPS
-                    ol_col = "black"
+                ol_col = GNSS_COLS[gnssId]
                 prn = f"{int(prn):02}"
                 self.can_satview.create_circle(
                     x + (w / 2),
@@ -133,6 +128,7 @@ class SkyviewFrame(Frame):
                     (maxr / 10),
                     outline=ol_col,
                     fill=snr2col(snr),
+                    width=OL_WID,
                 )
                 self.can_satview.create_text(
                     x + (w / 2),
@@ -149,6 +145,8 @@ class SkyviewFrame(Frame):
     def _on_resize(self, event):
         """
         Resize frame
+
+        :param event
         """
 
         self.width, self.height = self.get_size()

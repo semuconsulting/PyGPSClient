@@ -116,7 +116,7 @@ class UBXConfigDialog:
         """
         Constructor.
 
-        :param app: reference to main tkinter application
+        :param object app: reference to main tkinter application
         """
 
         self.__app = app  # Reference to main application class
@@ -536,7 +536,7 @@ class UBXConfigDialog:
         be unequivocally linked to specific commands, but the best
         available indication of current state.
 
-        :param cfgtype: type of config message received
+        :param str cfgtype: type of config message received
         :kwargs kwargs: optional key value pairs
         """
 
@@ -789,7 +789,7 @@ class UBXConfigDialog:
         """
         Turn on device information messages INF
 
-        :param onoff: booolean
+        :param int onoff: on/off boolean
         """
 
         if onoff:
@@ -822,7 +822,7 @@ class UBXConfigDialog:
         """
         Turn on all device logging messages LOG
 
-        :param msgrate: message rate (i.e. every nth position solution)
+        :param int msgrate: message rate (i.e. every nth position solution)
         """
 
         for msgtype in UBX_CONFIG_MESSAGES:
@@ -833,7 +833,7 @@ class UBXConfigDialog:
         """
         Turn on all device monitoring messages MON
 
-        :param msgrate: message rate (i.e. every nth position solution)
+        :param int msgrate: message rate (i.e. every nth position solution)
         """
 
         for msgtype in UBX_CONFIG_MESSAGES:
@@ -844,7 +844,7 @@ class UBXConfigDialog:
         """
         Turn on all device receiver management messages RXM
 
-        :param msgrate: message rate (i.e. every nth position solution)
+        :param int msgrate: message rate (i.e. every nth position solution)
         """
 
         for msgtype in UBX_CONFIG_MESSAGES:
@@ -876,8 +876,8 @@ class UBXConfigDialog:
             if msgtype[0:1] == b"\x01":  # UBX-NAV
                 if msgtype == b"\x01\x07":  # NAV-PVT
                     self._do_cfgmsg(msgtype, 1)
-                elif msgtype == b"\x01\x30":  # NAV-SVINFO
-                    self._do_cfgmsg(msgtype, 4)
+                #                 elif msgtype == b"\x01\x30":  # NAV-SVINFO (deprecated)
+                #                     self._do_cfgmsg(msgtype, 4)
                 elif msgtype == b"\x01\x35":  # NAV-SAT
                     self._do_cfgmsg(msgtype, 4)
                 else:
@@ -887,7 +887,7 @@ class UBXConfigDialog:
         """
         Turn on all NMEA messages
 
-        :param msgrate: message rate (i.e. every nth position solution)
+        :param int msgrate: message rate (i.e. every nth position solution)
         """
 
         for msgtype in UBX_CONFIG_MESSAGES:
@@ -898,7 +898,7 @@ class UBXConfigDialog:
         """
         Turn on all UBX-NAV messages
 
-        :param msgrate: message rate (i.e. every nth position solution)
+        :param int msgrate: message rate (i.e. every nth position solution)
         """
 
         for msgtype in UBX_CONFIG_MESSAGES:
@@ -912,8 +912,8 @@ class UBXConfigDialog:
         NB A rate of n means 'for every nth position solution',
         so values > 1 mean the message is sent less often.
 
-        :param msgtype: type of config message
-        :param msgrate: message rate (i.e. every nth position solution)
+        :param str msgtype: type of config message
+        :param int msgrate: message rate (i.e. every nth position solution)
         """
 
         msgClass = int.from_bytes(msgtype[0:1], "little", signed=False)
@@ -937,6 +937,7 @@ class UBXConfigDialog:
         but display confirmation message box first.
 
         :return boolean signifying whether OK was pressed
+        :rtype bool
         """
 
         if messagebox.askokcancel(DLGRESET, DLGRESETCONFIRM):
@@ -962,6 +963,7 @@ class UBXConfigDialog:
         but display confirmation message box first.
 
         :return boolean signifying whether OK was pressed
+        :rtype bool
         """
 
         if messagebox.askokcancel(DLGSAVE, DLGSAVECONFIRM):
@@ -983,7 +985,7 @@ class UBXConfigDialog:
         uxbpresets file contains garbage, so there's a broad
         catch-all-exceptions in the calling routine.
 
-        :param command: user defined message constructor(s)
+        :param str command: user defined message constructor(s)
         """
 
         try:
@@ -1003,12 +1005,12 @@ class UBXConfigDialog:
             self.__app.set_status(f"Error {err}", "red")
             self._lbl_send_preset.config(image=self._img_warn)
 
-    def set_status(self, message, color="blue"):
+    def set_status(self, message: str, color: str = "blue"):
         """
         Set status message.
 
-        :param message: message to be displayed
-        :param color: color of text (blue)
+        :param str message: message to be displayed
+        :param str color: rgb color of text (blue)
         """
 
         message = (message[:50] + "..") if len(message) > 50 else message
