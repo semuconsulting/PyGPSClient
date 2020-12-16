@@ -399,7 +399,7 @@ class UBXHandler:
                 if cno == 0 and HIDE_NULL_GNSS:  # omit sats with zero cno
                     continue
                 self.gsv_data.append((gnssId, svid, elev, azim, cno))
-            self.__app.frm_banner.update_banner(siv=siv)
+            self.__app.frm_banner.update_banner(siv=len(self.gsv_data))
             self.__app.frm_satview.update_sats(self.gsv_data)
             self.__app.frm_graphview.update_graph(self.gsv_data, len(self.gsv_data))
         except ValueError:

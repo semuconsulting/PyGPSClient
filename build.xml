@@ -3,7 +3,7 @@
 	<condition property="python" value="python" else="/Library/Frameworks/Python.framework/Versions/3.9/bin/python3">
 		<os family="windows" />
 	</condition>
-	<property name="version" value="0.2.16" />
+	<property name="version" value="0.2.17" />
 	<property name="test_args" value="tests/testsuite.py" />
 	<property name="analyse_args" value="-m pylint --reports=y ${ant.project.name}" />
 	<property name="format_args" value="-m black ${ant.project.name}" />
