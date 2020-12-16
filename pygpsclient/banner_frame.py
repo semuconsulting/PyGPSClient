@@ -12,7 +12,7 @@ from platform import system
 from tkinter import Frame, Label, Button, StringVar, font, N, S, W, E, SUNKEN
 
 from PIL import ImageTk, Image
-from pyubx2 import UBXMessage
+from pyubx2.ubxhelpers import dop2str
 
 from .globals import (
     deg2dmm,
@@ -428,7 +428,7 @@ class BannerFrame(Frame):
 
         if "dop" in kwargs:
             dop = kwargs["dop"]
-            self._dop.set(str(dop) + " " + UBXMessage.dop2str(dop))
+            self._dop.set(str(dop) + " " + dop2str(dop))
         if "hdop" in kwargs and "vdop" in kwargs:
             self._hvdop.set(
                 "hdop " + str(kwargs["hdop"]) + "\nvdop " + str(kwargs["vdop"])

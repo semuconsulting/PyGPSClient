@@ -19,7 +19,7 @@ Please help us keep our issue list small by adding fixes: #{$ISSUE_NO} to the co
 
 ## Testing
 
-While we endeavour to test on as wide a variety of u-blox devices as possible, as a volunteer project we only have a limited number of devices available. We particularly welcome testing contributions relating to specialised devices (e.g. high precision HP, real-time kinetics RTK, Automotive Dead-Reckoning ADR, etc.).
+While we endeavour to test on as wide a variety of u-blox devices as possible, as a volunteer project we only have a limited number of devices available. We particularly welcome testing contributions relating to specialised devices (e.g. high precision HP, real-time kinematics RTK, Automotive Dead-Reckoning ADR, etc.).
 
 We use python's native unittest framework for local unit testing, complemented by the Travis CI automated build and testing workflow. Code coverage is somewhat limited at present so we welcome improvements.
 

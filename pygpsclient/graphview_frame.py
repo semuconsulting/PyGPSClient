@@ -17,7 +17,7 @@ from .globals import snr2col, WIDGETU2, BGCOL, FGCOL, MAX_SNR, GNSS_COLS
 # Relative offsets of graph axes
 AXIS_XL = 19
 AXIS_XR = 10
-AXIS_Y = 18
+AXIS_Y = 22
 OL_WID = 2
 
 
@@ -106,7 +106,8 @@ class GraphviewFrame(Frame):
         offset = AXIS_XL + 2
         colwidth = (w - AXIS_XL - AXIS_XR + 1) / siv
         resize_font = font.Font(size=min(int(colwidth / 2), 10))
-        for d in sorted(data, key=itemgetter(1)):  # sort by ascending svid
+        #         for d in sorted(data, key=itemgetter(1)):  # sort by ascending svid
+        for d in sorted(data):  # sort by ascending gnssid, svid
             gnssId, prn, _, _, snr = d
             if snr in ("", "0", 0):
                 snr = 1  # show 'place marker' in graph

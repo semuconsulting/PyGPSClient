@@ -10,11 +10,10 @@ Created on 30 Sep 2020
 # pylint: disable=invalid-name
 
 from datetime import datetime
-from pyubx2 import UBXMessage, POLL, UBX_MSGIDS, UBX_CONFIG_MESSAGES
-from .globals import svid2gnssid, GLONASS_NMEA
+from pyubx2 import UBXMessage, POLL, UBX_MSGIDS
+from pyubx2.ubxhelpers import itow2utc, gpsfix2str
+from .globals import svid2gnssid, GLONASS_NMEA, HIDE_NULL_GNSS
 
-# CFG_MSG_OFF = b"\x00\x00\x00\x00\x00\x01"
-# CFG_MSG_ON = b"\x01\x01\x01\x01\x01\x01"
 BOTH = 3
 UBX = 1
 NMEA = 2
@@ -144,11 +143,13 @@ class UBXHandler:
         :param UBXMessage data: ACK_ACK parsed message
         """
 
-        msgtype = UBX_MSGIDS[self.msgclass2bytes(data.clsID, data.msgID)]
+        (ubxClass, ubxID) = UBXMessage.msgclass2bytes(data.clsID, data.msgID)
 
         # update the UBX config panel
         if self.__app.dlg_ubxconfig is not None:
-            self.__app.dlg_ubxconfig.update("ACK-ACK", msgtype=msgtype)
+            self.__app.dlg_ubxconfig.update(
+                "ACK-ACK", msgtype=UBX_MSGIDS[ubxClass + ubxID]
+            )
 
     def _process_ACK_NAK(self, data: UBXMessage):
         """
@@ -157,11 +158,13 @@ class UBXHandler:
         :param UBXMessage data: ACK_NAK parsed message
         """
 
-        msgtype = UBX_MSGIDS[self.msgclass2bytes(data.clsID, data.msgID)]
+        (ubxClass, ubxID) = UBXMessage.msgclass2bytes(data.clsID, data.msgID)
 
         # update the UBX config panel
         if self.__app.dlg_ubxconfig is not None:
-            self.__app.dlg_ubxconfig.update("ACK-NAK", msgtype=msgtype)
+            self.__app.dlg_ubxconfig.update(
+                "ACK-NAK", msgtype=UBX_MSGIDS[ubxClass + ubxID]
+            )
 
     def _process_CFG_MSG(self, data: UBXMessage):
         """
@@ -170,7 +173,8 @@ class UBXHandler:
         :param UBXMessage data: CFG-MSG parsed message
         """
 
-        msgtype = UBX_CONFIG_MESSAGES[self.msgclass2bytes(data.msgClass, data.msgID)]
+        (ubxClass, ubxID) = UBXMessage.msgclass2bytes(data.msgClass, data.msgID)
+
         ddcrate = data.rateDDC
         uart1rate = data.rateUART1
         uart2rate = data.rateUART2
@@ -181,7 +185,7 @@ class UBXHandler:
         if self.__app.dlg_ubxconfig is not None:
             self.__app.dlg_ubxconfig.update(
                 "CFG-MSG",
-                msgtype=msgtype,
+                msgtype=UBX_MSGIDS[ubxClass + ubxID],
                 ddcrate=ddcrate,
                 uart1rate=uart1rate,
                 uart2rate=uart2rate,
@@ -230,7 +234,7 @@ class UBXHandler:
         """
 
         try:
-            self.utc = UBXMessage.itow2utc(data.iTOW)
+            self.utc = itow2utc(data.iTOW)
             self.lat = data.lat / 10 ** 7
             self.lon = data.lon / 10 ** 7
             self.alt = data.hMSL / 1000
@@ -259,7 +263,7 @@ class UBXHandler:
         """
 
         try:
-            self.utc = UBXMessage.itow2utc(data.iTOW)
+            self.utc = itow2utc(data.iTOW)
             self.lat = data.lat / 10 ** 7
             self.lon = data.lon / 10 ** 7
             self.alt = data.hMSL / 1000
@@ -269,7 +273,7 @@ class UBXHandler:
             self.sip = data.numSV
             self.speed = data.gSpeed / 1000  # m/s
             self.track = data.headMot / 10 ** 5
-            fix = UBXMessage.gpsfix2str(data.fixType)
+            fix = gpsfix2str(data.fixType)
             self.__app.frm_banner.update_banner(
                 time=self.utc,
                 lat=self.lat,
@@ -351,20 +355,23 @@ class UBXHandler:
         try:
             self.gsv_data = []
             num_siv = int(data.numCh)
-            self.__app.frm_banner.update_banner(siv=num_siv)
 
             for i in range(num_siv):
                 idx = "_{0:0=2d}".format(i + 1)
                 gnssId = getattr(data, "gnssId" + idx)
                 svid = getattr(data, "svId" + idx)
-                if gnssId == 6 and GLONASS_NMEA and svid != 255:
-                    svid += 64  # use NMEA GLONASS numbering
+                # use NMEA GLONASS numbering (65-96) rather than slotID (1-24)
+                if gnssId == 6 and svid < 25 and svid != 255 and GLONASS_NMEA:
+                    svid += 64
                 elev = getattr(data, "elev" + idx)
                 azim = getattr(data, "azim" + idx)
                 cno = getattr(data, "cno" + idx)
+                if cno == 0 and HIDE_NULL_GNSS:  # omit sats with zero cno
+                    continue
                 self.gsv_data.append((gnssId, svid, elev, azim, cno))
+            self.__app.frm_banner.update_banner(siv=len(self.gsv_data))
             self.__app.frm_satview.update_sats(self.gsv_data)
-            self.__app.frm_graphview.update_graph(self.gsv_data, num_siv)
+            self.__app.frm_graphview.update_graph(self.gsv_data, len(self.gsv_data))
         except ValueError:
             # self.__app.set_status(ube.UBXMessageError(err), "red")
             pass
@@ -381,7 +388,6 @@ class UBXHandler:
         try:
             self.gsv_data = []
             num_siv = int(data.numCh)
-            self.__app.frm_banner.update_banner(siv=num_siv)
 
             for i in range(num_siv):
                 idx = "_{0:0=2d}".format(i + 1)
@@ -390,9 +396,12 @@ class UBXHandler:
                 elev = getattr(data, "elev" + idx)
                 azim = getattr(data, "azim" + idx)
                 cno = getattr(data, "cno" + idx)
+                if cno == 0 and HIDE_NULL_GNSS:  # omit sats with zero cno
+                    continue
                 self.gsv_data.append((gnssId, svid, elev, azim, cno))
+            self.__app.frm_banner.update_banner(siv=siv)
             self.__app.frm_satview.update_sats(self.gsv_data)
-            self.__app.frm_graphview.update_graph(self.gsv_data, num_siv)
+            self.__app.frm_graphview.update_graph(self.gsv_data, len(self.gsv_data))
         except ValueError:
             # self.__app.set_status(ube.UBXMessageError(err), "red")
             pass
@@ -407,7 +416,7 @@ class UBXHandler:
         try:
             self.pdop = data.pDOP / 100
             self.sip = data.numSV
-            fix = UBXMessage.gpsfix2str(data.gpsFix)
+            fix = gpsfix2str(data.gpsFix)
 
             self.__app.frm_banner.update_banner(dop=self.pdop, fix=fix, sip=self.sip)
         except ValueError:
@@ -502,18 +511,3 @@ class UBXHandler:
             self.__app.dlg_ubxconfig.update(
                 "MON-HW", antstatus=ant_status, antpower=ant_power
             )
-
-    @staticmethod
-    def msgclass2bytes(msgClass: int, msgID: int) -> bytes:
-        """
-        Convert message class/id integers to bytes.
-
-        :param int msgCLass
-        :param int msgID
-        :return message class as bytes
-        :rtype bytes
-        """
-
-        msgClass = msgClass.to_bytes(1, byteorder="little", signed=False)
-        msgID = msgID.to_bytes(1, byteorder="little", signed=False)
-        return msgClass + msgID

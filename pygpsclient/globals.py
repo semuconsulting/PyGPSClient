@@ -92,6 +92,7 @@ UMK = "Metric kmph"
 UI = "Imperial mph"
 UIK = "Imperial knots"
 
+HIDE_NULL_GNSS = True  # whether to hide GNSS with zero snr in graph view
 GLONASS_NMEA = True  # use GLONASS NMEA SVID (65-96) rather than slot (1-24)
 
 # GNSS graph color scheme
@@ -112,10 +113,16 @@ TAGS = [
     ("ACK-NAK", "orange red"),
     ("CFG-MSG", "cyan"),
     ("DTM", "deepskyblue"),
+    ("GAQ", "pink"),
+    ("GBQ", "pink"),
     ("GBS", "pink"),
     ("GGA", "orange"),
     ("GLL", "orange"),
+    ("GLQ", "pink"),
+    ("GNQ", "pink"),
     ("GNS", "orange"),
+    ("GQQ", "pink"),
+    ("GRS", "yellow"),
     ("GSA", "green2"),
     ("GST", "mediumpurple2"),
     ("GSV", "yellow"),
@@ -124,20 +131,21 @@ TAGS = [
     ("INF-WARNING", "orange"),
     ("LOG", "skyblue1"),
     ("MON", "skyblue1"),
+    ("NAV-ATT", "yellow"),
     ("NAV-AOPSTATUS", "yellow"),
-    ("NAV-COV", "yellow"),
     ("NAV-CLOCK", "cyan"),
+    ("NAV-COV", "yellow"),
     ("NAV-DGPS", "yellow"),
     ("NAV-DOP", "mediumpurple2"),
     ("NAV-EELL", "yellow"),
     ("NAV-EOE", "yellow"),
     ("NAV-GEOFENCE", "yellow"),
+    ("NAV-HPPOSECEF", "orange"),
+    ("NAV-HPPOSLLH", "orange"),
     ("NAV-ODO", "deepskyblue"),
     ("NAV-ORB", "yellow"),
     ("NAV-POSECEF", "orange"),
     ("NAV-POSLLH", "orange"),
-    ("NAV-HPPOSECEF", "orange"),
-    ("NAV-HPPOSLLH", "orange"),
     ("NAV-PVT", "orange"),
     ("NAV-SAT", "yellow"),
     ("NAV-SBAS", "yellow"),
@@ -155,6 +163,7 @@ TAGS = [
     ("NAV-TIMEUTC", "cyan"),
     ("NAV-VELECEF", "deepskyblue"),
     ("NAV-VELNED", "deepskyblue"),
+    ("RLM", "pink"),
     ("RMC", "orange"),
     ("RXM", "skyblue1"),
     ("TXT", "lightgrey"),
@@ -166,8 +175,8 @@ TAGS = [
     ("UBX06", "orange"),
     ("VLW", "deepskyblue"),
     ("VTG", "deepskyblue"),
-    ("xb5b", "lightblue1"),
     ("ZDA", "cyan"),
+    ("xb5b", "lightblue1"),
 ]
 
 

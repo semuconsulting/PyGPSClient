@@ -34,6 +34,7 @@ from tkinter import (
 
 from PIL import ImageTk, Image
 from pyubx2 import UBXMessage, POLL, SET, UBX_CONFIG_MESSAGES, UBX_PAYLOADS_POLL
+from pyubx2.ubxhelpers import key_from_val
 
 from .globals import (
     BGCOL,
@@ -646,7 +647,7 @@ class UBXConfigDialog:
         self._cfg_msg_command = self._lbx_cfg_msg.get(idx)
 
         # poll selected message configuration to get current message rates
-        msg = UBXMessage.key_from_val(UBX_CONFIG_MESSAGES, self._cfg_msg_command)
+        msg = key_from_val(UBX_CONFIG_MESSAGES, self._cfg_msg_command)
         data = UBXMessage("CFG", "CFG-MSG", POLL, payload=msg)
         self.__app.serial_handler.serial_write(data.serialize())
         self._awaiting_cfgmsg = True
@@ -657,7 +658,7 @@ class UBXConfigDialog:
         CFG-MSG command send button has been clicked.
         """
 
-        msg = UBXMessage.key_from_val(UBX_CONFIG_MESSAGES, self._cfg_msg_command)
+        msg = key_from_val(UBX_CONFIG_MESSAGES, self._cfg_msg_command)
         msgClass = int.from_bytes(msg[0:1], "little", signed=False)
         msgID = int.from_bytes(msg[1:2], "little", signed=False)
         rateDDC = int(self._ddc_rate.get())
