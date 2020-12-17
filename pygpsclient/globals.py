@@ -92,9 +92,9 @@ UMK = "Metric kmph"
 UI = "Imperial mph"
 UIK = "Imperial knots"
 
-HIDE_NULL_GNSS = True  # whether to hide GNSS with zero snr in graph view
 GLONASS_NMEA = True  # use GLONASS NMEA SVID (65-96) rather than slot (1-24)
-
+GNSS_HIDE_NULL = True  # whether to hide GNSS with zero snr in graph view
+GNSS_LEGEND = True  # whether to draw GNSS color code legend on graph view
 # GNSS graph color scheme
 # ("GPS","SBAS","Galileo","BeiDou""IMES","QZSS","GLONASS")
 GNSS_COLS = (

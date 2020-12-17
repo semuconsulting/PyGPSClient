@@ -21,7 +21,7 @@ from .globals import (
     knots2ms,
     kmph2ms,
     nmea2latlon,
-    HIDE_NULL_GNSS,
+    GNSS_HIDE_NULL,
 )
 from .strings import NMEAVALERROR
 
@@ -287,7 +287,7 @@ class NMEAHandler:
 
         for key in self.gsv_log:
             gnssId, svid, elev, azim, snr, lastupdate = self.gsv_log[key]
-            if snr in ("", "0", 0) and HIDE_NULL_GNSS:  # omit sats with zero snr
+            if snr in ("", "0", 0) and GNSS_HIDE_NULL:  # omit sats with zero snr
                 continue
             if now - lastupdate < SAT_EXPIRY:  # expire passed satellites
                 self.gsv_data.append((gnssId, svid, elev, azim, snr))

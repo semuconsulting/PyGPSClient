@@ -12,7 +12,7 @@ Created on 30 Sep 2020
 from datetime import datetime
 from pyubx2 import UBXMessage, POLL, UBX_MSGIDS
 from pyubx2.ubxhelpers import itow2utc, gpsfix2str
-from .globals import svid2gnssid, GLONASS_NMEA, HIDE_NULL_GNSS
+from .globals import svid2gnssid, GLONASS_NMEA, GNSS_HIDE_NULL
 
 BOTH = 3
 UBX = 1
@@ -366,7 +366,7 @@ class UBXHandler:
                 elev = getattr(data, "elev" + idx)
                 azim = getattr(data, "azim" + idx)
                 cno = getattr(data, "cno" + idx)
-                if cno == 0 and HIDE_NULL_GNSS:  # omit sats with zero cno
+                if cno == 0 and GNSS_HIDE_NULL:  # omit sats with zero cno
                     continue
                 self.gsv_data.append((gnssId, svid, elev, azim, cno))
             self.__app.frm_banner.update_banner(siv=len(self.gsv_data))
@@ -396,7 +396,7 @@ class UBXHandler:
                 elev = getattr(data, "elev" + idx)
                 azim = getattr(data, "azim" + idx)
                 cno = getattr(data, "cno" + idx)
-                if cno == 0 and HIDE_NULL_GNSS:  # omit sats with zero cno
+                if cno == 0 and GNSS_HIDE_NULL:  # omit sats with zero cno
                     continue
                 self.gsv_data.append((gnssId, svid, elev, azim, cno))
             self.__app.frm_banner.update_banner(siv=len(self.gsv_data))

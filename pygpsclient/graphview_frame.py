@@ -10,15 +10,17 @@ Created on 14 Sep 2020
 # pylint: disable=invalid-name
 
 from tkinter import Frame, Canvas, font, BOTH, YES
-from operator import itemgetter
+from pyubx2.ubxtypes_core import GNSSLIST
+from .globals import snr2col, WIDGETU2, BGCOL, FGCOL, MAX_SNR, GNSS_COLS, GNSS_LEGEND
 
-from .globals import snr2col, WIDGETU2, BGCOL, FGCOL, MAX_SNR, GNSS_COLS
-
-# Relative offsets of graph axes
+# Relative offsets of graph axes and legend
 AXIS_XL = 19
 AXIS_XR = 10
 AXIS_Y = 22
 OL_WID = 2
+LEG_XOFF = AXIS_XL + 10
+LEG_YOFF = 5
+LEG_GAP = 5
 
 
 class GraphviewFrame(Frame):
@@ -84,6 +86,37 @@ class GraphviewFrame(Frame):
                 y,
                 text=str(MAX_SNR - (i * 10)),
                 angle=90,
+                fill=self._fgcol,
+                font=resize_font,
+            )
+
+        if GNSS_LEGEND:
+            self._draw_legend(w, h)
+
+    def _draw_legend(self, width, height):
+        """
+        Draw GNSS color code legend
+        """
+
+        w = width / 9
+        h = height / 15
+        resize_font = font.Font(size=min(int(height / 25), 10))
+
+        for i, _ in enumerate(GNSSLIST):
+            x = LEG_XOFF + w * i
+            self.can_graphview.create_rectangle(
+                x,
+                LEG_YOFF,
+                x + w - LEG_GAP,
+                LEG_YOFF + h,
+                outline=GNSS_COLS[i],
+                fill=BGCOL,
+                width=OL_WID,
+            )
+            self.can_graphview.create_text(
+                (x + x + w - LEG_GAP) / 2,
+                LEG_YOFF + h / 2,
+                text=GNSSLIST[i][0:3].upper(),
                 fill=self._fgcol,
                 font=resize_font,
             )
