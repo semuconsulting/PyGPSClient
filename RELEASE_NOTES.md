@@ -1,10 +1,11 @@
 # PyGPSClient Release Notes
 
-### RELEASE v0.2.18-beta PROVISIONAL
+### RELEASE v0.2.18-beta
 
 ENHANCEMENTS:
 
-1. Add optional GNSS color code legend to graph view (governed by constants `GNSS_LEGEND` and `GNSS_COLS` in `globals.py`)
+1. Add optional GNSS color code legend to graph view.
+2. Add 'Show Legend' and 'Show Zero Signal' options in the settings panel (obviating need to amend `globals.py`).
 
 ### RELEASE v0.2.17-beta
 
@@ -17,8 +18,8 @@ FIXES:
 ENHANCEMENTS:
 
 Improved handling of multiple GNSS in graph and satellite views:
-1. Satellites with zero signal will no longer be displayed by default (this behaviour can be modifed by setting the `GNSS_HIDE_NULL` constant in globals.py)
-2. For consistency between NMEA GSV and UBX NAV-SAT and NAV-SVINFO message types, GLONASS satellites will be assigned an NMEA SVID (65-96) by default, rather than their slot number (1-24) (this behaviour can be modifed by setting the `GLONASS_NMEA` constant in globals.py)
+1. Satellites with zero signal will no longer be displayed by default (this behaviour can be modified via the `GNSS_HIDE_NULL` constant in globals.py)
+2. For consistency between NMEA GSV, UBX NAV-SAT and NAV-SVINFO message types, GLONASS satellites will be assigned an NMEA SVID (65-96) by default, rather than their slot number (1-24) (this behaviour can be modified via the `GLONASS_NMEA` constant in `globals.py`)
 3. Different GNSS will be more clearly color-coded (color code defined in `GNSS_COLS` in `globals.py`).
 4. Minimum required pyubx2 version is now 0.3.1.
 

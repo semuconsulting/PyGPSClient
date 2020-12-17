@@ -2,7 +2,7 @@
 
 PyGPSClient is a graphical GNSS/GPS testing and diagnostic client application written entirely in Python and tkinter.
 
-![full app screenshot ubx](/images/all_widgets.png)![full app screenshot nmea](/images/all_widgets_nmea.png)
+![full app screenshot ubx](/images/all_widgets.png)
 
 The application runs on any platform which supports a Python3 interpreter (>=3.6) and tkinter (>=8.6) GUI framework, 
 including Windows, MacOS, Linux and Raspberry Pi OS. It displays location and diagnostic data from any NMEA or UBX (u-blox &copy;) 
@@ -51,16 +51,14 @@ implements a **[new pyubx2 library](https://github.com/semuconsulting/pyubx2)** 
 * To display the UBX Configuration Dialog (*only available when connected to a UBX serial device*), click
 ![gear icon](/pygpsclient/resources/iconmonstr-gear-2-24.png), or go to Menu..Options.
 * To show or hide the various widgets, go to Menu..View and click on the relevant hide/show option.
-* Select which protocols to display via the Protocols Displayed setting (NB: this only changes the displayed
-protocols - to change the actual protocols output by the receiver, use the CFG-PRT command).
-* Change the console display from parsed to raw (hexadecimal) format via the Console Display setting.
-* Change the displayed degree and unit formats via the Degrees Format and Units settings.
-* Change the web map scale via the Zoom setting (any change will take effect at the
-next map refresh, indicated by a small timer icon at the top left of the panel).
-* Data logging (in binary format) can be turned on or off via the Enable Data Logging checkbox. You will be prompted
-to select the directory into which timestamped log files are saved.
-* Track recording (in GPX format) can be turned on or off via the Record Track checkbox.You will be prompted
-to select the directory into which timestamped track files are saved.
+* Protocols Displayed - Select which protocols to display (NB: this only changes the displayed protocols - to change the actual protocols output by the receiver, use the CFG-PRT command).
+* Console Display - Change the console display from parsed to raw (hexadecimal) format.
+* Degrees Format and Units - Change the displayed degree and unit formats.
+* Zoom - Change the web map scale (any change will take effect at the next map refresh, indicated by a small timer icon at the top left of the panel).
+* Show Legend - Turn the graph legend on or off.
+* Show Zero Signal - Include or exclude satellites with zero signal level in the graph and sky view panels.
+* Enable Data Logging - Turn Data logging (in binary format) on or off. You will be prompted to select the directory into which timestamped log files are saved.
+* Record Track - Turn track recording (in GPX format) on or off. You will be prompted to select the directory into which timestamped track files are saved.
 * Widgets (and their associated fonts) are fully resizeable.
 
 ### UBX Configuration Facilities

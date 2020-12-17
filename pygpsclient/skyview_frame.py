@@ -11,7 +11,7 @@ Created on 13 Sep 2020
 
 from tkinter import Frame, Canvas, font, BOTH, YES
 from operator import itemgetter
-from .globals import snr2col, cel2cart, WIDGETU1, BGCOL, FGCOL, GNSS_COLS
+from .globals import snr2col, cel2cart, WIDGETU1, BGCOL, FGCOL, GNSS_LIST
 
 OL_WID = 2
 
@@ -120,7 +120,7 @@ class SkyviewFrame(Frame):
                     snr = 0
                 else:
                     snr = int(snr)
-                ol_col = GNSS_COLS[gnssId]
+                (_, ol_col) = GNSS_LIST[gnssId]
                 prn = f"{int(prn):02}"
                 self.can_satview.create_circle(
                     x + (w / 2),

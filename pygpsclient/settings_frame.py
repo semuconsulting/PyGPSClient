@@ -62,7 +62,15 @@ from .globals import (
     UBX_PROTOCOL,
     MIXED_PROTOCOL,
 )
-from .strings import LBLUBXCONFIG, LBLPROTDISP, LBLDATADISP, LBLDATALOG, LBLTRACKRECORD
+from .strings import (
+    LBLUBXCONFIG,
+    LBLPROTDISP,
+    LBLDATADISP,
+    LBLDATALOG,
+    LBLTRACKRECORD,
+    LBLSHOWNULL,
+    LBLLEGEND,
+)
 
 
 class SettingsFrame(Frame):
@@ -102,6 +110,8 @@ class SettingsFrame(Frame):
         self._format = StringVar()
         self._datalog = IntVar()
         self._record_track = IntVar()
+        self._show_zerosig = IntVar()
+        self._show_legend = IntVar()
         self._noports = True
         self._validsettings = True
         self._logpath = None
@@ -292,6 +302,12 @@ class SettingsFrame(Frame):
             bg=ENTCOL,
             variable=self._mapzoom,
         )
+        self._chk_zerosig = Checkbutton(
+            self._frm_options, text=LBLSHOWNULL, variable=self._show_zerosig
+        )
+        self._chk_legend = Checkbutton(
+            self._frm_options, text=LBLLEGEND, variable=self._show_legend
+        )
         self._chk_datalog = Checkbutton(
             self._frm_options,
             text=LBLDATALOG,
@@ -368,10 +384,16 @@ class SettingsFrame(Frame):
         self._spn_maxlines.grid(
             column=1, row=4, columnspan=3, padx=3, pady=3, sticky=(W)
         )
-        self._chk_webmap.grid(column=0, row=5, sticky=(W))
+        self._chk_webmap.grid(column=0, row=5, padx=3, pady=3, sticky=(W))
         self._scl_mapzoom.grid(column=1, row=5, columnspan=3, sticky=(W))
-        self._chk_datalog.grid(column=0, row=6, padx=3, pady=3, sticky=(W))
-        self._chk_recordtrack.grid(column=0, row=7, padx=3, pady=3, sticky=(W))
+        self._chk_legend.grid(column=0, row=6, padx=3, pady=3, sticky=(W))
+        self._chk_zerosig.grid(
+            column=1, row=6, columnspan=2, padx=3, pady=3, sticky=(W)
+        )
+        self._chk_datalog.grid(column=0, row=7, padx=3, pady=3, sticky=(W))
+        self._chk_recordtrack.grid(
+            column=1, row=7, columnspan=2, padx=3, pady=3, sticky=(W)
+        )
 
         ttk.Separator(self._frm_options).grid(
             column=0, row=8, columnspan=4, padx=3, pady=3, sticky=(W, E)
@@ -516,6 +538,8 @@ class SettingsFrame(Frame):
         self._raw.set(False)
         self._webmap.set(False)
         self._mapzoom.set(10)
+        self._show_legend.set(True)
+        self._show_zerosig.set(False)
         self._datalog.set(False)
         self._record_track.set(False)
 
@@ -619,6 +643,8 @@ class SettingsFrame(Frame):
         self._settings["logpath"] = self._logpath
         self._settings["datalogging"] = self._datalog.get()
         self._settings["recordtrack"] = self._record_track.get()
+        self._settings["zerosignal"] = self._show_zerosig.get()
+        self._settings["graphlegend"] = self._show_legend.get()
 
         return self._settings
 

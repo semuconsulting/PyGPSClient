@@ -93,19 +93,17 @@ UI = "Imperial mph"
 UIK = "Imperial knots"
 
 GLONASS_NMEA = True  # use GLONASS NMEA SVID (65-96) rather than slot (1-24)
-GNSS_HIDE_NULL = True  # whether to hide GNSS with zero snr in graph view
+GNSS_HIDE_NULL = False  # whether to hide GNSS with zero snr in graph view
 GNSS_LEGEND = True  # whether to draw GNSS color code legend on graph view
-# GNSS graph color scheme
-# ("GPS","SBAS","Galileo","BeiDou""IMES","QZSS","GLONASS")
-GNSS_COLS = (
-    "royalblue",
-    "lightslategray",
-    "green",
-    "purple",
-    "gray",
-    "gray",
-    "indianred",
-)
+GNSS_LIST = {
+    0: ("GPS", "royalblue"),
+    1: ("SBA", "orange"),
+    2: ("GAL", "green4"),
+    3: ("BEI", "purple"),
+    4: ("IME", "violet"),
+    5: ("QZS", "yellow"),
+    6: ("GLO", "indianred"),
+}
 
 # List of tags to highlight in console
 TAGS = [

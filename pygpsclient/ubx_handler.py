@@ -352,6 +352,7 @@ class UBXHandler:
         :param UBXMessage data: NAV-SAT parsed message
         """
 
+        show_zero = self.__app.frm_settings.get_settings()["zerosignal"]
         try:
             self.gsv_data = []
             num_siv = int(data.numCh)
@@ -366,7 +367,7 @@ class UBXHandler:
                 elev = getattr(data, "elev" + idx)
                 azim = getattr(data, "azim" + idx)
                 cno = getattr(data, "cno" + idx)
-                if cno == 0 and GNSS_HIDE_NULL:  # omit sats with zero cno
+                if cno == 0 and not show_zero:  # omit sats with zero signal
                     continue
                 self.gsv_data.append((gnssId, svid, elev, azim, cno))
             self.__app.frm_banner.update_banner(siv=len(self.gsv_data))
@@ -385,6 +386,7 @@ class UBXHandler:
         :param UBXMessage data: NAV-SVINFO parsed message
         """
 
+        show_zero = self.__app.frm_settings.get_settings()["zerosignal"]
         try:
             self.gsv_data = []
             num_siv = int(data.numCh)
@@ -396,7 +398,7 @@ class UBXHandler:
                 elev = getattr(data, "elev" + idx)
                 azim = getattr(data, "azim" + idx)
                 cno = getattr(data, "cno" + idx)
-                if cno == 0 and GNSS_HIDE_NULL:  # omit sats with zero cno
+                if cno == 0 and not show_zero:  # omit sats with zero signal
                     continue
                 self.gsv_data.append((gnssId, svid, elev, azim, cno))
             self.__app.frm_banner.update_banner(siv=len(self.gsv_data))

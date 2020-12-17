@@ -222,6 +222,7 @@ class NMEAHandler:
         :param pynmea2.types.talker data: parsed GSV sentence
         """
 
+        show_zero = self.__app.frm_settings.get_settings()["zerosignal"]
         self.gsv_data = []
         gsv_dict = {}
         now = time()
@@ -287,7 +288,7 @@ class NMEAHandler:
 
         for key in self.gsv_log:
             gnssId, svid, elev, azim, snr, lastupdate = self.gsv_log[key]
-            if snr in ("", "0", 0) and GNSS_HIDE_NULL:  # omit sats with zero snr
+            if snr in ("", "0", 0) and not show_zero:  # omit sats with zero signal
                 continue
             if now - lastupdate < SAT_EXPIRY:  # expire passed satellites
                 self.gsv_data.append((gnssId, svid, elev, azim, snr))

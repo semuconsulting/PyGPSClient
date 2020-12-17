@@ -10,8 +10,7 @@ Created on 14 Sep 2020
 # pylint: disable=invalid-name
 
 from tkinter import Frame, Canvas, font, BOTH, YES
-from pyubx2.ubxtypes_core import GNSSLIST
-from .globals import snr2col, WIDGETU2, BGCOL, FGCOL, MAX_SNR, GNSS_COLS, GNSS_LEGEND
+from .globals import snr2col, WIDGETU2, BGCOL, FGCOL, MAX_SNR, GNSS_LIST
 
 # Relative offsets of graph axes and legend
 AXIS_XL = 19
@@ -43,8 +42,6 @@ class GraphviewFrame(Frame):
         def_w, def_h = WIDGETU2
         self.width = kwargs.get("width", def_w)
         self.height = kwargs.get("height", def_h)
-        self._bgcol = BGCOL
-        self._fgcol = FGCOL
         self._body()
 
         self.bind("<Configure>", self._on_resize)
@@ -57,7 +54,7 @@ class GraphviewFrame(Frame):
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
         self.can_graphview = Canvas(
-            self, width=self.width, height=self.height, bg=self._bgcol
+            self, width=self.width, height=self.height, bg=BGCOL
         )
         self.can_graphview.pack(fill=BOTH, expand=YES)
 
@@ -67,57 +64,54 @@ class GraphviewFrame(Frame):
         """
 
         w, h = self.width, self.height
+        show_legend = self.__app.frm_settings.get_settings()["graphlegend"]
         resize_font = font.Font(size=min(int(h / 25), 10))
         ticks = int(MAX_SNR / 10)
         self.can_graphview.delete("all")
+        self.can_graphview.create_line(AXIS_XL, 5, AXIS_XL, h - AXIS_Y, fill=FGCOL)
         self.can_graphview.create_line(
-            AXIS_XL, 5, AXIS_XL, h - AXIS_Y, fill=self._fgcol
-        )
-        self.can_graphview.create_line(
-            w - AXIS_XR + 2, 5, w - AXIS_XR + 2, h - AXIS_Y, fill=self._fgcol
+            w - AXIS_XR + 2, 5, w - AXIS_XR + 2, h - AXIS_Y, fill=FGCOL
         )
         for i in range(ticks, 0, -1):
             y = (h - AXIS_Y) * i / ticks
-            self.can_graphview.create_line(
-                AXIS_XL, y, w - AXIS_XR + 2, y, fill=self._fgcol
-            )
+            self.can_graphview.create_line(AXIS_XL, y, w - AXIS_XR + 2, y, fill=FGCOL)
             self.can_graphview.create_text(
                 10,
                 y,
                 text=str(MAX_SNR - (i * 10)),
                 angle=90,
-                fill=self._fgcol,
+                fill=FGCOL,
                 font=resize_font,
             )
 
-        if GNSS_LEGEND:
-            self._draw_legend(w, h)
+        if show_legend:
+            self._draw_legend()
 
-    def _draw_legend(self, width, height):
+    def _draw_legend(self):
         """
         Draw GNSS color code legend
         """
 
-        w = width / 9
-        h = height / 15
-        resize_font = font.Font(size=min(int(height / 25), 10))
+        w = self.width / 9
+        h = self.height / 15
+        resize_font = font.Font(size=min(int(self.height / 25), 10))
 
-        for i, _ in enumerate(GNSSLIST):
+        for i, (_, (gnssName, gnssCol)) in enumerate(GNSS_LIST.items()):
             x = LEG_XOFF + w * i
             self.can_graphview.create_rectangle(
                 x,
                 LEG_YOFF,
                 x + w - LEG_GAP,
                 LEG_YOFF + h,
-                outline=GNSS_COLS[i],
+                outline=gnssCol,
                 fill=BGCOL,
                 width=OL_WID,
             )
             self.can_graphview.create_text(
                 (x + x + w - LEG_GAP) / 2,
                 LEG_YOFF + h / 2,
-                text=GNSSLIST[i][0:3].upper(),
-                fill=self._fgcol,
+                text=gnssName,
+                fill=FGCOL,
                 font=resize_font,
             )
 
@@ -139,7 +133,6 @@ class GraphviewFrame(Frame):
         offset = AXIS_XL + 2
         colwidth = (w - AXIS_XL - AXIS_XR + 1) / siv
         resize_font = font.Font(size=min(int(colwidth / 2), 10))
-        #         for d in sorted(data, key=itemgetter(1)):  # sort by ascending svid
         for d in sorted(data):  # sort by ascending gnssid, svid
             gnssId, prn, _, _, snr = d
             if snr in ("", "0", 0):
@@ -147,7 +140,7 @@ class GraphviewFrame(Frame):
             else:
                 snr = int(snr)
             snr_y = int(snr) * (h - AXIS_Y - 1) / MAX_SNR
-            ol_col = GNSS_COLS[gnssId]
+            (_, ol_col) = GNSS_LIST[gnssId]
             prn = f"{int(prn):02}"
             self.can_graphview.create_rectangle(
                 offset,
@@ -162,7 +155,7 @@ class GraphviewFrame(Frame):
                 offset + colwidth / 2,
                 h - 10,
                 text=prn,
-                fill=self._fgcol,
+                fill=FGCOL,
                 font=resize_font,
                 angle=35,
             )

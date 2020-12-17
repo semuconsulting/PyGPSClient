@@ -89,9 +89,11 @@ LBLSET = "Settings"
 LBLCFGPRT = "CFG-PRT Port and Protocol Configuration"
 LBLCFGMSG = "CFG-MSG - UBX & NMEA Message Rate / Port Selection"
 LBLPRESET = "Preset UBX Configuration Commands"
-LBLDATALOG = "Enable Data Logging"
+LBLDATALOG = "Enable DataLog"
 LBLSTREAM = "Stream\nfrom file"
 LBLTRACKRECORD = "Record GPX Track"
+LBLLEGEND = "Show Legend"
+LBLSHOWNULL = "Show Zero Signal"
 
 # Dialog text
 DLGUBXCONFIG = "UBX Configuration"
