@@ -28,4 +28,4 @@ jobs:
         pylint -E pygpsclient
     - name: Test with pytest
       run: |
-        py.test
+        python tests/testsuite.py
