@@ -7,6 +7,7 @@ Created on 13 Sep 2020
 
 @author: semuadmin
 """
+# pylint: disable=invalid-name
 
 from platform import system
 from tkinter import Frame, Label, Button, StringVar, font, N, S, W, E, SUNKEN

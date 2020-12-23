@@ -21,7 +21,6 @@ from .globals import (
     knots2ms,
     kmph2ms,
     nmea2latlon,
-    GNSS_HIDE_NULL,
 )
 from .strings import NMEAVALERROR
 

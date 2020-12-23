@@ -20,7 +20,7 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 ![Contributors](https://img.shields.io/github/contributors/semuconsulting/PyGPSClient.svg)
 ![Open Issues](https://img.shields.io/github/issues-raw/semuconsulting/PyGPSClient)
 
-Contributions and constructive feedback welcome.
+Contributions and constructive feedback welcome - see CONTRIBUTING.md.
 
 ## Features
 
@@ -65,9 +65,11 @@ implements a **[new pyubx2 library](https://github.com/semuconsulting/pyubx2)** 
 ![ubxconfig widget screenshot](/images/ubxconfig_widget.png)
 
 The UBX Configuration Dialog currently supports the following UBX configuration commands:
+1. Shows current device hardware/firmware versions via MON-VER and MON-HW polls.
 1. CFG-PRT sets baud rate and inbound/outbound protocols across all available ports 
 (*note that* an active USB port may report a baud rate of 0 on some platforms).
 1. CFG-MSG sets message rates per port for NMEA protocol messages (standard & proprietary) and UBX protocol messages.
+1. CFG-VALSET, CFG-VALDEL and CFG-VALGET configuration (for Generation 9+ devices).
 1. PRESET commands support a variety of preset and user-defined commands - see [user defined presets](#userdefined)
 
 An icon to the right of each 'SEND' 

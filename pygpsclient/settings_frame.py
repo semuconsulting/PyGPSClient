@@ -7,6 +7,7 @@ Created on 12 Sep 2020
 
 @author: semuadmin
 """
+# pylint: disable=unnecessary-lambda
 
 from tkinter import (
     ttk,
@@ -401,7 +402,7 @@ class SettingsFrame(Frame):
         self._lbl_ubxconfig.grid(column=0, row=9, padx=3, pady=3, sticky=(W))
         self._btn_ubxconfig.grid(column=1, row=9, padx=3, pady=3, sticky=(W))
 
-    def _on_select_port(self, *args, **kwargs):
+    def _on_select_port(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
         Get selected port from listbox and set global variable.
         """
@@ -417,7 +418,7 @@ class SettingsFrame(Frame):
         self._port.set(port)
         self._port_desc.set(desc)
 
-    def _on_ubx_config(self, *args, **kwargs):
+    def _on_ubx_config(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
         Open UBX configuration dialog panel.
         """

@@ -1,5 +1,17 @@
 # PyGPSClient Release Notes
 
+### RELEASE v0.2.19-beta
+
+ENHANCEMENTS:
+
+1. UBX config dialog panel reworked to include CFG-VALSET/DEL/GET config widget.
+2. UBX config widgets separated out into discrete modules/classes.
+3. Minimum required pyubx2 version is now 0.3.4. 
+
+FIXES:
+
+1. Invalid Key error in CFG-MSG config dialog panel for some NMEA message types.
+
 ### RELEASE v0.2.18-beta
 
 ENHANCEMENTS:

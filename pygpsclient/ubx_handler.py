@@ -10,9 +10,9 @@ Created on 30 Sep 2020
 # pylint: disable=invalid-name
 
 from datetime import datetime
-from pyubx2 import UBXMessage, POLL, UBX_MSGIDS
+from pyubx2 import UBXMessage, UBX_MSGIDS, UBX_CONFIG_MESSAGES
 from pyubx2.ubxhelpers import itow2utc, gpsfix2str
-from .globals import svid2gnssid, GLONASS_NMEA, GNSS_HIDE_NULL
+from .globals import svid2gnssid, GLONASS_NMEA
 
 BOTH = 3
 UBX = 1
@@ -58,27 +58,6 @@ class UBXHandler:
         self.ubx_inprot = 7
         self.ubx_outprot = 3
 
-    @staticmethod
-    def poll_ubx_config(serial):
-        """
-        POLL current UBX device configuration (port protocols
-        and software version).
-
-        NB: The responses and acknowledgements to these polls
-        may take several seconds to arrive, particularly in
-        heavy traffic.
-
-        :param serial: serial
-        """
-
-        for portid in (0, 1, 3, 4):  # I2C, UART1, USB, SPI
-            msg = UBXMessage("CFG", "CFG-PRT", POLL, portID=portid)
-            serial.write(msg.serialize())
-
-        for msgtype in ("MON-VER", "MON-HW"):
-            msg = UBXMessage(msgtype[0:3], msgtype, POLL)
-            serial.write(msg.serialize())
-
     def process_data(self, data: bytes) -> UBXMessage:
         """
         Process UBX message type
@@ -100,6 +79,8 @@ class UBXHandler:
             self._process_CFG_PRT(parsed_data)
         if parsed_data.identity == "CFG-INF":
             self._process_CFG_INF(parsed_data)
+        if parsed_data.identity == "CFG-VALGET":
+            self._process_CFG_VALGET(parsed_data)
         if parsed_data.identity == "NAV-POSLLH":
             self._process_NAV_POSLLH(parsed_data)
         if parsed_data.identity == "NAV-PVT":
@@ -147,7 +128,7 @@ class UBXHandler:
 
         # update the UBX config panel
         if self.__app.dlg_ubxconfig is not None:
-            self.__app.dlg_ubxconfig.update(
+            self.__app.dlg_ubxconfig.update_pending(
                 "ACK-ACK", msgtype=UBX_MSGIDS[ubxClass + ubxID]
             )
 
@@ -162,7 +143,7 @@ class UBXHandler:
 
         # update the UBX config panel
         if self.__app.dlg_ubxconfig is not None:
-            self.__app.dlg_ubxconfig.update(
+            self.__app.dlg_ubxconfig.update_pending(
                 "ACK-NAK", msgtype=UBX_MSGIDS[ubxClass + ubxID]
             )
 
@@ -183,9 +164,9 @@ class UBXHandler:
 
         # update the UBX config panel
         if self.__app.dlg_ubxconfig is not None:
-            self.__app.dlg_ubxconfig.update(
+            self.__app.dlg_ubxconfig.update_pending(
                 "CFG-MSG",
-                msgtype=UBX_MSGIDS[ubxClass + ubxID],
+                msgtype=UBX_CONFIG_MESSAGES[ubxClass + ubxID],
                 ddcrate=ddcrate,
                 uart1rate=uart1rate,
                 uart2rate=uart2rate,
@@ -202,7 +183,7 @@ class UBXHandler:
 
         # update the UBX config panel
         if self.__app.dlg_ubxconfig is not None:
-            self.__app.dlg_ubxconfig.update("CFG-INF")
+            self.__app.dlg_ubxconfig.update_pending("CFG-INF")
 
     def _process_CFG_PRT(self, data: UBXMessage):
         """
@@ -213,17 +194,32 @@ class UBXHandler:
 
         self.ubx_portid = data.portID
         self.ubx_baudrate = data.baudRate
-        self.ubx_inprot = int.from_bytes(data.inProtoMask, "little", signed=False)
-        self.ubx_outprot = int.from_bytes(data.outProtoMask, "little", signed=False)
+        #         self.ubx_inprot = int.from_bytes(data.inProtoMask, "little", signed=False)
+        #         self.ubx_outprot = int.from_bytes(data.outProtoMask, "little", signed=False)
+        self.ubx_inprot = data.inProtoMask
+        self.ubx_outprot = data.outProtoMask
 
         # update the UBX config panel
         if self.__app.dlg_ubxconfig is not None:
-            self.__app.dlg_ubxconfig.update(
+            self.__app.dlg_ubxconfig.update_pending(
                 "CFG-PRT",
                 portid=self.ubx_portid,
                 baudrate=self.ubx_baudrate,
                 inprot=self.ubx_inprot,
                 outprot=self.ubx_outprot,
+            )
+
+    def _process_CFG_VALGET(self, data: UBXMessage):  # pylint: disable=unused-argument
+        """
+        Process CFG-VALGET sentence.
+
+        :param UBXMessage data: CFG-VALGET parsed message
+        """
+
+        # update the UBX config panel
+        if self.__app.dlg_ubxconfig is not None:
+            self.__app.dlg_ubxconfig.update_pending(
+                "CFG-VALGET",
             )
 
     def _process_NAV_POSLLH(self, data: UBXMessage):
@@ -485,7 +481,7 @@ class UBXHandler:
 
             # update the UBX config panel
             if self.__app.dlg_ubxconfig is not None:
-                self.__app.dlg_ubxconfig.update(
+                self.__app.dlg_ubxconfig.update_pending(
                     "MON-VER",
                     swversion=sw_version,
                     hwversion=hw_version,
@@ -510,6 +506,6 @@ class UBXHandler:
 
         # update the UBX config panel
         if self.__app.dlg_ubxconfig is not None:
-            self.__app.dlg_ubxconfig.update(
+            self.__app.dlg_ubxconfig.update_pending(
                 "MON-HW", antstatus=ant_status, antpower=ant_power
             )

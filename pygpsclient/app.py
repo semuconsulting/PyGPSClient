@@ -8,18 +8,6 @@ Created on 12 Sep 2020
 from threading import Thread
 from tkinter import Tk, Frame, N, S, E, W, PhotoImage, font
 
-from .about_dialog import AboutDialog
-from .banner_frame import BannerFrame
-from .console_frame import ConsoleFrame
-from .filehandler import FileHandler
-from .globals import ICON_APP, DISCONNECTED
-from .graphview_frame import GraphviewFrame
-from .map_frame import MapviewFrame
-from .menu_bar import MenuBar
-from .serial_handler import SerialHandler
-from .settings_frame import SettingsFrame
-from .skyview_frame import SkyviewFrame
-from .status_frame import StatusFrame
 from .strings import (
     TITLE,
     MENUHIDESE,
@@ -34,11 +22,22 @@ from .strings import (
     MENUSHOWSATS,
     INTROTXTNOPORTS,
 )
+from ._version import __version__
+from .about_dialog import AboutDialog
+from .banner_frame import BannerFrame
+from .console_frame import ConsoleFrame
+from .filehandler import FileHandler
+from .globals import ICON_APP, DISCONNECTED
+from .graphview_frame import GraphviewFrame
+from .map_frame import MapviewFrame
+from .menu_bar import MenuBar
+from .serial_handler import SerialHandler
+from .settings_frame import SettingsFrame
+from .skyview_frame import SkyviewFrame
+from .status_frame import StatusFrame
 from .ubx_config_dialog import UBXConfigDialog
 from .nmea_handler import NMEAHandler
 from .ubx_handler import UBXHandler
-
-from ._version import __version__
 
 VERSION = __version__
 

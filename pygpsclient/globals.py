@@ -50,7 +50,7 @@ MAX_SNR = 60  # upper limit of graphview snr axis
 DEVICE_ACCURACY = 2.5  # nominal GPS device accuracy (CEP) in meters
 HDOP_RATIO = 20  # arbitrary calibration of accuracy against HDOP
 KNOWNGPS = ("GPS", "gps", "GNSS", "gnss", "Garmin", "garmin", "U-Blox", "u-blox")
-PORTIDS = ("0 I2C", "1 UART1", "3 USB", "4 SPI")
+PORTIDS = ("0 I2C", "1 UART1", "2 UART2", "3 USB", "4 SPI")
 ANTSTATUS = ("INIT", "DONTKNOW", "OK", "SHORT", "OPEN")
 ANTPOWER = ("OFF", "ON", "DONTKNOW")
 BAUDRATES = (115200, 57600, 38400, 19200, 9600, 4800)
@@ -79,7 +79,9 @@ WIDGETU2 = (350, 250)
 WIDGETU3 = (950, 350)
 BGCOL = "gray24"  # default widget background color
 FGCOL = "white"  # default widget foreground color
-ENTCOL = "azure"  # default data entry field background color
+ENTCOL = "azure"  # default valiod data entry field background color
+ERRCOL = "pink"  # default invalid data entry field background color
+INFCOL = "steelblue3"  # readonly info field text color
 READONLY = "readonly"
 ADVOFF = "\u25bc"
 ADVON = "\u25b2"
@@ -93,8 +95,6 @@ UI = "Imperial mph"
 UIK = "Imperial knots"
 
 GLONASS_NMEA = True  # use GLONASS NMEA SVID (65-96) rather than slot (1-24)
-GNSS_HIDE_NULL = False  # whether to hide GNSS with zero snr in graph view
-GNSS_LEGEND = True  # whether to draw GNSS color code legend on graph view
 GNSS_LIST = {
     0: ("GPS", "royalblue"),
     1: ("SBA", "orange"),
@@ -110,6 +110,7 @@ TAGS = [
     ("ACK-ACK", "green2"),
     ("ACK-NAK", "orange red"),
     ("CFG-MSG", "cyan"),
+    ("CFG-VALGET", "deepskyblue"),
     ("DTM", "deepskyblue"),
     ("GAQ", "pink"),
     ("GBQ", "pink"),

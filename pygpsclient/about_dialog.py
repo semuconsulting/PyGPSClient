@@ -9,11 +9,10 @@ Created on 20 Sep 2020
 from tkinter import Toplevel, Label, Button
 from webbrowser import open_new_tab
 from PIL import ImageTk, Image
-
-from .globals import ICON_APP, GITHUB_URL
-from .strings import ABOUTTXT, COPYRIGHTTXT, DLGABOUT
 from pynmea2 import version as PNVERSION
 from pyubx2 import version as PUVERSION
+from .globals import ICON_APP, GITHUB_URL
+from .strings import ABOUTTXT, COPYRIGHTTXT, DLGABOUT
 from ._version import __version__ as VERSION
 
 
