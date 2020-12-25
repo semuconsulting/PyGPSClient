@@ -4,9 +4,12 @@
 
 ENHANCEMENTS:
 
-1. Allow button click to refresh UBX hardware/firmware widget.
-2. Simplify pending command confirmations for UBX config widgets.
-3. Pylint tidy up.
+1. Serial port configuration panel refactored to generic Frame subclass
+`SerialConfig` in `common` package, to facilitate reuse in other
+ tkinter apps.
+2. Allow button click to refresh UBX hardware/firmware widget.
+3. Simplify pending command confirmations for UBX config widgets.
+4. Pylint tidy up.
 
 
 ### RELEASE v0.2.19-beta

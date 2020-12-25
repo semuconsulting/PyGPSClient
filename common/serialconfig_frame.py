@@ -1,5 +1,5 @@
 """
-Generic serial port configuration frame class
+Generic serial port configuration Frame subclass
 for use in tkinter applications which require a
 serial port configuration facility.
 
@@ -247,7 +247,7 @@ class SerialConfig(
             self._frm_advanced.grid_forget()
             self._btn_toggle.config(text=ADVOFF)
 
-    def set_controls(self, disabled: bool = False):
+    def set_controls(self, disabled: bool=False):
         """
         Enable or disable controls (e.g. to prevent
         changes when serial device is connected).
