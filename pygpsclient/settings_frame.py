@@ -117,7 +117,7 @@ class SettingsFrame(Frame):
         self.option_add("*Font", self.__app.font_sm)
 
         # port configuration settings panel
-        self._frm_serial = SerialConfig(self, PRESELECT)
+        self._frm_serial = SerialConfig(self)  # , preselect=PRESELECT)
 
         # connection buttons
         self._frm_buttons = Frame(self)

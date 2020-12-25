@@ -1,5 +1,7 @@
 """
-Generic serial port configuration panel class.
+Generic serial port configuration frame class
+for use in tkinter applications which require a
+serial port configuration facility.
 
 Created on 24 Dec 2020
 
@@ -37,24 +39,26 @@ BGCOL = "azure"
 READONLY = "readonly"
 
 
-class SerialConfig(
-    Frame
-):  # pylint: disable=too-many-instance-attributes, too-many-ancestors
+class SerialConfig(Frame):  # pylint: disable=too-many-ancestors, too-many-instance-attributes
     """
     Serial port configuration settings panel.
     """
 
-    def __init__(self, container, preselect=(), *args, **kwargs):
+    def __init__(self, container, *args, **kwargs):
         """
         Constructor.
 
+        Keyword arguments specific to this class:
+        "preselect": array of serial device descriptors to preselect in port listbox
+        "readonlybackground": readonly widget background color
+
         :param tkinter.Frame container: reference to container frame
-        :param tuple preselect: tuple of preselect device descriptors
         """
 
+        self._preselect = kwargs.pop("preselect", ())
+        self._readonlybg = kwargs.pop("readonlybackground", BGCOL)
         Frame.__init__(self, container, *args, **kwargs)
 
-        self._preselect = preselect
         self._show_advanced = False
         self._noports = True
         self._ports = ()
@@ -84,7 +88,7 @@ class SerialConfig(
             self._frm_basic,
             border=2,
             relief="sunken",
-            bg=BGCOL,
+            bg=self._readonlybg,
             width=28,
             height=5,
             justify=LEFT,
@@ -102,7 +106,7 @@ class SerialConfig(
             values=(BAUDRATES),
             width=8,
             state=READONLY,
-            readonlybackground=BGCOL,
+            readonlybackground=self._readonlybg,
             wrap=True,
             textvariable=self._baudrate,
         )
@@ -117,7 +121,7 @@ class SerialConfig(
             values=(8, 7, 6, 5),
             width=3,
             state=READONLY,
-            readonlybackground=BGCOL,
+            readonlybackground=self._readonlybg,
             wrap=True,
             textvariable=self._databits,
         )
@@ -127,7 +131,7 @@ class SerialConfig(
             values=(2, 1.5, 1),
             width=3,
             state=READONLY,
-            readonlybackground=BGCOL,
+            readonlybackground=self._readonlybg,
             wrap=True,
             textvariable=self._stopbits,
         )
@@ -137,7 +141,7 @@ class SerialConfig(
             values=("None", "Even", "Odd", "Mark", "Space"),
             width=6,
             state=READONLY,
-            readonlybackground=BGCOL,
+            readonlybackground=self._readonlybg,
             wrap=True,
             textvariable=self._parity,
         )
