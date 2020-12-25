@@ -53,7 +53,7 @@ PORTIDS = ("0 I2C", "1 UART1", "2 UART2", "3 USB", "4 SPI")
 ANTSTATUS = ("INIT", "DONTKNOW", "OK", "SHORT", "OPEN")
 ANTPOWER = ("OFF", "ON", "DONTKNOW")
 # array of default serial device descriptors
-PRESELECT = ("GPS", "gps", "GNSS", "gnss", "Garmin", "garmin", "U-Blox", "u-blox")
+KNOWNGPS = ("GPS", "gps", "GNSS", "gnss", "Garmin", "garmin", "U-Blox", "u-blox")
 BAUDRATES = (115200, 57600, 38400, 19200, 9600, 4800)
 PARITIES = {
     "Even": PARITY_EVEN,

@@ -28,7 +28,7 @@ from tkinter import (
 )
 
 from PIL import ImageTk, Image
-
+from common.serialconfig_frame import SerialConfig
 from .globals import (
     ENTCOL,
     DDD,
@@ -50,7 +50,7 @@ from .globals import (
     NMEA_PROTOCOL,
     UBX_PROTOCOL,
     MIXED_PROTOCOL,
-    PRESELECT,
+    KNOWNGPS,
 )
 from .strings import (
     LBLUBXCONFIG,
@@ -61,7 +61,6 @@ from .strings import (
     LBLSHOWNULL,
     LBLLEGEND,
 )
-from common.serialconfig_frame import SerialConfig
 
 
 class SettingsFrame(Frame):
@@ -116,8 +115,8 @@ class SettingsFrame(Frame):
 
         self.option_add("*Font", self.__app.font_sm)
 
-        # port configuration settings panel
-        self._frm_serial = SerialConfig(self)  # , preselect=PRESELECT)
+        # serial port configuration panel
+        self._frm_serial = SerialConfig(self, preselect=KNOWNGPS)
 
         # connection buttons
         self._frm_buttons = Frame(self)

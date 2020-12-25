@@ -32,31 +32,38 @@ from tkinter import (
 
 from serial.tools.list_ports import comports
 
-BAUDRATES = (115200, 57600, 38400, 19200, 9600, 4800)
 ADVOFF = "\u25bc"
 ADVON = "\u25b2"
-BGCOL = "azure"
 READONLY = "readonly"
+# these default values can be overridden via keyword arguments:
+BAUDRATES = (115200, 57600, 38400, 19200, 9600, 4800)
+DATABITS = (8, 7, 6, 5)
+STOPBITS = (2, 1.5, 1)
+PARITIES = ("None", "Even", "Odd", "Mark", "Space")
+BGCOL = "azure"
 
 
-class SerialConfig(Frame):  # pylint: disable=too-many-ancestors, too-many-instance-attributes
+class SerialConfig(
+    Frame
+):  # pylint: disable=too-many-ancestors, too-many-instance-attributes
     """
-    Serial port configuration settings panel.
+    Serial port configuration frame class.
     """
 
     def __init__(self, container, *args, **kwargs):
         """
         Constructor.
 
-        Keyword arguments specific to this class:
-        "preselect": array of serial device descriptors to preselect in port listbox
-        "readonlybackground": readonly widget background color
-
         :param tkinter.Frame container: reference to container frame
         """
 
+        self._baudrates_vals = kwargs.pop("baudrates", BAUDRATES)
+        self._databits_vals = kwargs.pop("databits", DATABITS)
+        self._stopbits_vals = kwargs.pop("stopbits", STOPBITS)
+        self._parities_vals = kwargs.pop("parities", PARITIES)
         self._preselect = kwargs.pop("preselect", ())
         self._readonlybg = kwargs.pop("readonlybackground", BGCOL)
+
         Frame.__init__(self, container, *args, **kwargs)
 
         self._show_advanced = False
@@ -75,7 +82,7 @@ class SerialConfig(Frame):  # pylint: disable=too-many-ancestors, too-many-insta
         self._do_layout()
         self._get_ports()
         self._attach_events()
-        self._reset()
+        self.reset()
 
     def _body(self):
         """
@@ -103,7 +110,7 @@ class SerialConfig(Frame):  # pylint: disable=too-many-ancestors, too-many-insta
         self._lbl_baudrate = Label(self._frm_basic, text="Baud rate")
         self._spn_baudrate = Spinbox(
             self._frm_basic,
-            values=(BAUDRATES),
+            values=self._baudrates_vals,
             width=8,
             state=READONLY,
             readonlybackground=self._readonlybg,
@@ -118,7 +125,7 @@ class SerialConfig(Frame):  # pylint: disable=too-many-ancestors, too-many-insta
         self._lbl_databits = Label(self._frm_advanced, text="Data Bits")
         self._spn_databits = Spinbox(
             self._frm_advanced,
-            values=(8, 7, 6, 5),
+            values=self._databits_vals,
             width=3,
             state=READONLY,
             readonlybackground=self._readonlybg,
@@ -128,7 +135,7 @@ class SerialConfig(Frame):  # pylint: disable=too-many-ancestors, too-many-insta
         self._lbl_stopbits = Label(self._frm_advanced, text="Stop Bits")
         self._spn_stopbits = Spinbox(
             self._frm_advanced,
-            values=(2, 1.5, 1),
+            values=self._stopbits_vals,
             width=3,
             state=READONLY,
             readonlybackground=self._readonlybg,
@@ -138,7 +145,7 @@ class SerialConfig(Frame):  # pylint: disable=too-many-ancestors, too-many-insta
         self._lbl_parity = Label(self._frm_advanced, text="Parity")
         self._spn_parity = Spinbox(
             self._frm_advanced,
-            values=("None", "Even", "Odd", "Mark", "Space"),
+            values=self._parities_vals,
             width=6,
             state=READONLY,
             readonlybackground=self._readonlybg,
@@ -183,25 +190,13 @@ class SerialConfig(Frame):  # pylint: disable=too-many-ancestors, too-many-insta
 
         self._lbx_port.bind("<<ListboxSelect>>", self._on_select_port)
 
-    def _reset(self):
-        """
-        Reset widgets to defaults.
-        """
-
-        self._baudrate.set(BAUDRATES[4])  # 9600
-        self._databits.set(8)
-        self._stopbits.set(1)
-        self._parity.set("None")
-        self._rtscts.set(False)
-        self._xonxoff.set(False)
-
     def _get_ports(self):
         """
         Populate list of available serial ports using pyserial comports tool.
 
-        Attempt to preselect the first port whose description matches a
-        list of 'preselect' devices (usually only works on Posix platforms -
-        Windows doesn't parse UART device desc or HWID)
+        Attempt to automatically select a serial device matching
+        a list of 'preselect' devices (only works on platforms
+        which parse UART device desc or HWID e.g. Posix).
         """
 
         self._ports = sorted(comports())
@@ -252,9 +247,10 @@ class SerialConfig(Frame):  # pylint: disable=too-many-ancestors, too-many-insta
             self._frm_advanced.grid_forget()
             self._btn_toggle.config(text=ADVOFF)
 
-    def set_controls(self, disabled: int=False):
+    def set_controls(self, disabled: bool = False):
         """
-        Enable or disable controls.
+        Enable or disable controls (e.g. to prevent
+        changes when serial device is connected).
 
         :param bool disabled: disable controls flag
         """
@@ -277,6 +273,18 @@ class SerialConfig(Frame):  # pylint: disable=too-many-ancestors, too-many-insta
             self._spn_parity,
         ):
             widget.configure(state=(DISABLED if disabled else READONLY))
+
+    def reset(self):
+        """
+        Reset settings to defaults.
+        """
+
+        self._baudrate.set(BAUDRATES[4])  # 9600
+        self._databits.set(8)
+        self._stopbits.set(1)
+        self._parity.set("None")
+        self._rtscts.set(False)
+        self._xonxoff.set(False)
 
     @property
     def noports(self) -> bool:

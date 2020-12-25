@@ -200,7 +200,7 @@ class UBXConfigDialog:
 
     def set_pending(self, key: int, val: list):
         """
-        Set pending confirmation flag(s) for configuration widget to
+        Set pending confirmation flag for configuration widget to
         signify that it's waiting for a confirmation message.
 
         :param int key: integer representing configuration widget (0-3)
@@ -211,7 +211,7 @@ class UBXConfigDialog:
 
     def update_pending(self, cfgtype, **kwargs):
         """
-        Receives polled confirmation messages from the uxb_handler and
+        Receives polled confirmation message from the ubx_handler and
         updates the widget that is waiting for this confirmation.
 
         :param str cfgtype: identity of confirmation message received
@@ -238,7 +238,7 @@ class UBXConfigDialog:
                 elif key == UBX_PRESET:
                     self._frm_preset.update_status(cfgtype, **kwargs)
 
-    def set_status(self, message: str, color: str = "blue"):
+    def set_status(self, message: str, color: str="blue"):
         """
         Set status message.
 
