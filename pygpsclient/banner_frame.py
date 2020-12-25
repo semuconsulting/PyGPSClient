@@ -7,7 +7,7 @@ Created on 13 Sep 2020
 
 @author: semuadmin
 """
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
 
 from platform import system
 from tkinter import Frame, Label, Button, StringVar, font, N, S, W, E, SUNKEN
@@ -491,7 +491,7 @@ class BannerFrame(Frame):
         self._lbl_hvdop.config(font=font.Font(size=sz))
         self._lbl_hvacc.config(font=font.Font(size=sz))
 
-    def _on_resize(self, event):
+    def _on_resize(self, event):  # pylint: disable=unused-argument
         """
         Resize frame
 

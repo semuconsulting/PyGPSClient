@@ -5,7 +5,7 @@ Created on 22 Dec 2020
 
 @author: semuadmin
 """
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
 
 from tkinter import (
     Frame,
@@ -28,6 +28,7 @@ from tkinter import (
 )
 from PIL import ImageTk, Image
 from pyubx2 import UBXMessage, UBX_CONFIG_DATABASE
+from pyubx2.ubxhelpers import atttyp, attsiz
 from .globals import (
     ENTCOL,
     ERRCOL,
@@ -37,8 +38,8 @@ from .globals import (
     ICON_PENDING,
     ICON_CONFIRMED,
     READONLY,
+    UBX_CFGVAL,
 )
-from pyubx2.ubxhelpers import atttyp, attsiz
 
 UBX_CONFIG_CATEGORIES = [
     "CFG_ANA",
@@ -101,7 +102,7 @@ class UBX_CFGVAL_Frame(Frame):
         self.__master = self.__app.get_master()  # Reference to root class (Tk)
         self.__container = container
 
-        Frame.__init__(self, self.__container._frm_container, *args, **kwargs)
+        Frame.__init__(self, self.__container.container, *args, **kwargs)
 
         self._img_send = ImageTk.PhotoImage(Image.open(ICON_SEND))
         self._img_pending = ImageTk.PhotoImage(Image.open(ICON_PENDING))
@@ -115,10 +116,6 @@ class UBX_CFGVAL_Frame(Frame):
         self._cfgkeyid = StringVar()
         self._cfgval = StringVar()
         self._cfglayer = StringVar()
-        self._img_pending = ImageTk.PhotoImage(Image.open(ICON_PENDING))
-        self._img_confirmed = ImageTk.PhotoImage(Image.open(ICON_CONFIRMED))
-        self._img_send = ImageTk.PhotoImage(Image.open(ICON_SEND))
-        self._img_warn = ImageTk.PhotoImage(Image.open(ICON_WARNING))
 
         self._body()
         self._do_layout()
@@ -369,13 +366,16 @@ class UBX_CFGVAL_Frame(Frame):
             self._ent_val.configure(bg=ENTCOL)
             self._lbl_send_command.config(image=self._img_pending)
             self.__container.set_status("CFG-VALSET SET message sent", "blue")
-            self.__container.set_pending(2, ("ACK-ACK", "ACK-NAK"))
+            self.__container.set_pending(UBX_CFGVAL, ("ACK-ACK", "ACK-NAK"))
         else:
             self._ent_val.configure(bg=ERRCOL)
             self._lbl_send_command.config(image=self._img_warn)
             typ = ATTDICT[att]
             self.__container.set_status(
-                f"INVALID ENTRY - must conform to parameter type {att} ({typ}) and size {atts} bytes",
+                (
+                    "INVALID ENTRY - must conform to parameter "
+                    f"type {att} ({typ}) and size {atts} bytes"
+                ),
                 "red",
             )
 
@@ -401,7 +401,7 @@ class UBX_CFGVAL_Frame(Frame):
         self.__app.serial_handler.serial_write(msg.serialize())
         self._lbl_send_command.config(image=self._img_pending)
         self.__container.set_status("CFG-VALDEL SET message sent", "blue")
-        self.__container.set_pending(2, ("ACK-ACK", "ACK-NAK"))
+        self.__container.set_pending(UBX_CFGVAL, ("ACK-ACK", "ACK-NAK"))
 
     def _do_valget(self):
         """
@@ -423,16 +423,16 @@ class UBX_CFGVAL_Frame(Frame):
         self.__app.serial_handler.serial_write(msg.serialize())
         self._lbl_send_command.config(image=self._img_pending)
         self.__container.set_status("CFG-VALGET POLL message sent", "blue")
-        self.__container.set_pending(2, ("CFG-VALGET", "ACK-ACK", "ACK-NAK"))
+        self.__container.set_pending(UBX_CFGVAL, ("CFG-VALGET", "ACK-ACK", "ACK-NAK"))
 
-    def update_status(self, cfgtype, **kwargs):
+    def update_status(self, cfgtype, **kwargs):  # pylint: disable=unused-argument
         """
-        Update command confirmation status.
+        Update pending confirmation status.
         """
 
         if cfgtype in ("ACK-ACK", "CFG-VALGET"):
             self._lbl_send_command.config(image=self._img_confirmed)
-            self.__container.set_status(f"{cfgtype} message received", "green")
+            self.__container.set_status(f"{cfgtype} GET message received", "green")
         elif cfgtype == "ACK-NAK":
             self._lbl_send_command.config(image=self._img_warn)
-            self.__container.set_status(f"{cfgtype} message rejected", "red")
+            self.__container.set_status("CFG-VAL message rejected", "red")

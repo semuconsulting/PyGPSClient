@@ -7,7 +7,7 @@ Created on 13 Sep 2020
 
 @author: semuadmin
 """
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
 
 from tkinter import Frame, Canvas, font, BOTH, YES
 from operator import itemgetter
@@ -142,7 +142,7 @@ class SkyviewFrame(Frame):
 
         self.can_satview.update()
 
-    def _on_resize(self, event):
+    def _on_resize(self, event):  # pylint: disable=unused-argument
         """
         Resize frame
 

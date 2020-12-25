@@ -49,10 +49,11 @@ SAT_EXPIRY = 10  # how long passed satellites are kept in the sky and graph view
 MAX_SNR = 60  # upper limit of graphview snr axis
 DEVICE_ACCURACY = 2.5  # nominal GPS device accuracy (CEP) in meters
 HDOP_RATIO = 20  # arbitrary calibration of accuracy against HDOP
-KNOWNGPS = ("GPS", "gps", "GNSS", "gnss", "Garmin", "garmin", "U-Blox", "u-blox")
 PORTIDS = ("0 I2C", "1 UART1", "2 UART2", "3 USB", "4 SPI")
 ANTSTATUS = ("INIT", "DONTKNOW", "OK", "SHORT", "OPEN")
 ANTPOWER = ("OFF", "ON", "DONTKNOW")
+# array of default serial device descriptors
+PRESELECT = ("GPS", "gps", "GNSS", "gnss", "Garmin", "garmin", "U-Blox", "u-blox")
 BAUDRATES = (115200, 57600, 38400, 19200, 9600, 4800)
 PARITIES = {
     "Even": PARITY_EVEN,
@@ -79,12 +80,10 @@ WIDGETU2 = (350, 250)
 WIDGETU3 = (950, 350)
 BGCOL = "gray24"  # default widget background color
 FGCOL = "white"  # default widget foreground color
-ENTCOL = "azure"  # default valiod data entry field background color
+ENTCOL = "azure"  # default valid data entry field background color
 ERRCOL = "pink"  # default invalid data entry field background color
 INFCOL = "steelblue3"  # readonly info field text color
 READONLY = "readonly"
-ADVOFF = "\u25bc"
-ADVON = "\u25b2"
 ERROR = "ERR!"
 DDD = "DD.D"
 DMM = "DM.M"
@@ -93,6 +92,16 @@ UMM = "Metric m/s"
 UMK = "Metric kmph"
 UI = "Imperial mph"
 UIK = "Imperial knots"
+ADVOFF = "\u25bc"
+ADVON = "\u25b2"
+
+# ubx config widget confirmation flags
+UBX_MONVER = 0
+UBX_MONHW = 1
+UBX_CFGPRT = 2
+UBX_CFGMSG = 3
+UBX_CFGVAL = 4
+UBX_PRESET = 5
 
 GLONASS_NMEA = True  # use GLONASS NMEA SVID (65-96) rather than slot (1-24)
 GNSS_LIST = {

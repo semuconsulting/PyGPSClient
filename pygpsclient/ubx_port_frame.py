@@ -5,7 +5,7 @@ Created on 22 Dec 2020
 
 @author: semuadmin
 """
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
 
 from tkinter import (
     Frame,
@@ -33,6 +33,7 @@ from .globals import (
     PORTIDS,
     BAUDRATES,
     READONLY,
+    UBX_CFGPRT,
 )
 from .strings import LBLCFGPRT
 
@@ -54,13 +55,12 @@ class UBX_PORT_Frame(Frame):
         self.__master = self.__app.get_master()  # Reference to root class (Tk)
         self.__container = container
 
-        Frame.__init__(self, self.__container._frm_container, *args, **kwargs)
+        Frame.__init__(self, self.__container.container, *args, **kwargs)
 
         self._img_send = ImageTk.PhotoImage(Image.open(ICON_SEND))
         self._img_pending = ImageTk.PhotoImage(Image.open(ICON_PENDING))
         self._img_confirmed = ImageTk.PhotoImage(Image.open(ICON_CONFIRMED))
         self._img_warn = ImageTk.PhotoImage(Image.open(ICON_WARNING))
-        self._preset_command = None
         self._baudrate = IntVar()
         self._portid = StringVar()
         self._inprot = b"\x00\x00"
@@ -91,7 +91,7 @@ class UBX_PORT_Frame(Frame):
             readonlybackground=ENTCOL,
             wrap=True,
             textvariable=self._portid,
-            command=lambda: self._on_select_portid(),
+            command=lambda: self._on_select_portid(),  # pylint: disable=unnecessary-lambda
         )
         self._lbl_ubx_baudrate = Label(self, text="Baud")
         self._spn_ubx_baudrate = Spinbox(
@@ -181,7 +181,7 @@ class UBX_PORT_Frame(Frame):
 
     def update_status(self, cfgtype, **kwargs):
         """
-        Update displayed configuration.
+        Update pending confirmation status.
         """
 
         if cfgtype == "CFG-PRT":
@@ -198,7 +198,10 @@ class UBX_PORT_Frame(Frame):
             self._outprot_nmea.set(outprot >> 1 & 1)
             self._outprot_rtcm3.set(outprot >> 5 & 1)
             self._lbl_send_command.config(image=self._img_confirmed)
-            self.__container.set_status(f"{cfgtype} message received", "green")
+            self.__container.set_status("CFG-PRT GET message received", "green")
+        elif cfgtype == "ACK-NAK":
+            self.__container.set_status("CFG-PRT POLL message rejected", "red")
+            self._lbl_send_command.config(image=self._img_warn)
 
     def _on_select_portid(self):
         """
@@ -207,7 +210,7 @@ class UBX_PORT_Frame(Frame):
 
         self._do_poll_prt()
 
-    def _on_send_port(self, *args, **kwargs):
+    def _on_send_port(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
         Handle Send port config button press.
         """
@@ -254,8 +257,8 @@ class UBX_PORT_Frame(Frame):
         msg = UBXMessage("CFG", "CFG-PRT", SET, payload=payload)
         self.__app.serial_handler.serial_write(msg.serialize())
         self._lbl_send_command.config(image=self._img_pending)
-        self.__container.set_status("CFG-PRT SET message sent", "green")
-        self.__container.set_pending(0, ("ACK-ACK", "ACK-NAK"))
+        self.__container.set_status("CFG-PRT SET message sent", "blue")
+        self.__container.set_pending(UBX_CFGPRT, ("ACK-ACK", "ACK-NAK"))
 
         self._do_poll_prt()
 
@@ -269,4 +272,4 @@ class UBX_PORT_Frame(Frame):
         self.__app.serial_handler.serial_write(msg.serialize())
         self._lbl_send_command.config(image=self._img_pending)
         self.__container.set_status("CFG-PRT POLL message sent", "blue")
-        self.__container.set_pending(0, ("CFG-PRT",))
+        self.__container.set_pending(UBX_CFGPRT, ("CFG-PRT", "ACK-NAK"))

@@ -7,6 +7,7 @@ Created on 12 Sep 2020
 
 @author: semuadmin
 """
+# pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
 
 from tkinter import Menu
 

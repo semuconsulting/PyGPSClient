@@ -65,7 +65,7 @@ implements a **[new pyubx2 library](https://github.com/semuconsulting/pyubx2)** 
 ![ubxconfig widget screenshot](/images/ubxconfig_widget.png)
 
 The UBX Configuration Dialog currently supports the following UBX configuration commands:
-1. Shows current device hardware/firmware versions via MON-VER and MON-HW polls.
+1. Shows current device hardware/firmware versions via MON-VER and MON-HW polls. Clicking on the widget will refresh the displayed information.
 1. CFG-PRT sets baud rate and inbound/outbound protocols across all available ports 
 (*note that* an active USB port may report a baud rate of 0 on some platforms).
 1. CFG-MSG sets message rates per port for NMEA protocol messages (standard & proprietary) and UBX protocol messages.
@@ -73,14 +73,14 @@ The UBX Configuration Dialog currently supports the following UBX configuration 
 1. PRESET commands support a variety of preset and user-defined commands - see [user defined presets](#userdefined)
 
 An icon to the right of each 'SEND' 
-![send icon](/pygpsclient/resources/iconmonstr-arrow-12-24.png) button indicates the latest polled state of the displayed configuration 
+![send icon](/pygpsclient/resources/iconmonstr-arrow-12-24.png) button indicates the confirmation status of the configuration command; 
 (pending i.e. awaiting confirmation ![pending icon](/pygpsclient/resources/iconmonstr-time-6-24.png), 
 confirmed ![confirmed icon](/pygpsclient/resources/iconmonstr-check-mark-8-24.png) or 
 warning ![warning icon](/pygpsclient/resources/iconmonstr-warning-1-24.png)). 
 
 **Note:**
-* Command confirmation is not always 100% reliable as the UBX protocol does not support explicit command handshaking, and confirmation responses can occasionally get discarded or delayed at low baud rates. To ensure timely confirmation responses, try increasing the baud rate and/or temporarily minimising periodic inbound traffic using the preset commands provided.
-* A warning icon (typically accompanied by an ACK-NAK response) is usually an indication that one or more of the messages sent is not supported by your receiver. 
+* Confirmation responses can take several seconds at high message transmission rates, or be discarded altogether if the device's transmit buffer is full (*txbuff-alloc error*). To ensure timely confirmation responses, try increasing the baud rate and/or temporarily reducing transmitted message rates using the configuration commands provided.
+* A warning icon (typically accompanied by an ACK-NAK response) is usually an indication that one or more of the commands sent is not supported by your receiver. 
 
 
 #### Glossary of Terms

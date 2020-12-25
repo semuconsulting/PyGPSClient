@@ -8,7 +8,7 @@ Created on 19 Sep 2020
 
 @author: semuadmin
 """
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
 
 from tkinter import (
     Toplevel,
@@ -23,7 +23,17 @@ from tkinter import (
     LEFT,
 )
 from PIL import ImageTk, Image
-from .globals import BGCOL, FGCOL, ICON_EXIT
+from .globals import (
+    BGCOL,
+    FGCOL,
+    ICON_EXIT,
+    UBX_MONVER,
+    UBX_MONHW,
+    UBX_CFGPRT,
+    UBX_CFGMSG,
+    UBX_CFGVAL,
+    UBX_PRESET,
+)
 from .strings import LBLUBXCONFIG, DLGUBXCONFIG
 from .ubx_info_frame import UBX_INFO_Frame
 from .ubx_port_frame import UBX_PORT_Frame
@@ -37,7 +47,7 @@ class UBXConfigDialog:
     UBXConfigDialog class.
     """
 
-    def __init__(self, app, *args, **kwargs):
+    def __init__(self, app, *args, **kwargs):  # pylint: disable=unused-argument
         """
         Constructor.
 
@@ -50,13 +60,21 @@ class UBXConfigDialog:
         self._dialog.transient(self.__app)
         self._dialog.resizable(False, False)
         self._dialog.title = DLGUBXCONFIG
-        wd, hd = self.get_size()
+        #         wd, hd = self.get_size()
+        wd, hd = 750, 470
         wa = self.__master.winfo_width()
         ha = self.__master.winfo_height()
         self._dialog.geometry("+%d+%d" % (int(wa / 2 - wd / 2), int(ha / 2 - hd / 2)))
         self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
         self._cfg_msg_command = None
-        self._pending_confs = {0: (), 1: (), 2: (), 3: ()}
+        self._pending_confs = {
+            UBX_MONVER: (),
+            UBX_MONHW: (),
+            UBX_CFGPRT: (),
+            UBX_CFGMSG: (),
+            UBX_CFGVAL: (),
+            UBX_PRESET: (),
+        }
         self._status = StringVar()
         self._status_cfgmsg = StringVar()
 
@@ -182,10 +200,11 @@ class UBXConfigDialog:
 
     def set_pending(self, key: int, val: list):
         """
-        Set pending confirmation flag(s) for configuration widget.
+        Set pending confirmation flag(s) for configuration widget to
+        signify that it's waiting for a confirmation message.
 
         :param int key: integer representing configuration widget (0-3)
-        :param list val: list of confirmation messages that widget is expecting
+        :param list val: list of confirmation messages that widget is awaiting
         """
 
         self._pending_confs[key] = val
@@ -193,38 +212,31 @@ class UBXConfigDialog:
     def update_pending(self, cfgtype, **kwargs):
         """
         Receives polled confirmation messages from the uxb_handler and
-        updates configuration widget status according to the information received.
+        updates the widget that is waiting for this confirmation.
 
-        :param str cfgtype: type of confirmation message received
+        :param str cfgtype: identity of confirmation message received
         :kwargs kwargs: optional key value pairs
         """
 
-        # Hardware and firmware information
-        if cfgtype == "MON-VER":
-            self.set_status(f"{cfgtype} GET message received", "green")
-            self._frm_device_info.update_status(cfgtype, **kwargs)
-        elif cfgtype == "MON-HW":
-            self.set_status(f"{cfgtype} GET message received", "green")
-            self._frm_device_info.update_status(cfgtype, **kwargs)
-
         for (key, val) in self._pending_confs.items():
             if cfgtype in val:
-                if key == 0:  # CFG-PRT
-                    self.set_status(f"{cfgtype} GET message received", "green")
+                self.set_status(
+                    f"{cfgtype} GET message received",
+                    "red" if cfgtype == "ACK-NAK" else "green",
+                )
+                self._pending_confs[key] = ()  # reset awaiting conf flag
+                if key == UBX_MONVER:
+                    self._frm_device_info.update_status(cfgtype, **kwargs)
+                elif key == UBX_MONHW:
+                    self._frm_device_info.update_status(cfgtype, **kwargs)
+                elif key == UBX_CFGPRT:
                     self._frm_config_port.update_status(cfgtype, **kwargs)
-                    self._pending_confs[0] = ()
-                elif key == 1:  # CFG-MSG
-                    self.set_status(f"{cfgtype} GET message received", "green")
+                elif key == UBX_CFGMSG:
                     self._frm_config_msg.update_status(cfgtype, **kwargs)
-                    self._pending_confs[1] = ()
-                elif key == 2:  # CFG-VAL
-                    self.set_status(f"{cfgtype} GET message received", "green")
+                elif key == UBX_CFGVAL:
                     self._frm_configdb.update_status(cfgtype, **kwargs)
-                    self._pending_confs[2] = ()
-                elif key == 3:  # PRESETS
-                    self.set_status(f"{cfgtype} GET message received", "green")
+                elif key == UBX_PRESET:
                     self._frm_preset.update_status(cfgtype, **kwargs)
-                    self._pending_confs[3] = ()
 
     def set_status(self, message: str, color: str = "blue"):
         """
@@ -238,7 +250,7 @@ class UBXConfigDialog:
         self._lbl_status.config(fg=color)
         self._status.set("  " + message)
 
-    def _on_exit(self, *args, **kwargs):
+    def _on_exit(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
         Handle Exit button press.
         """
@@ -254,3 +266,11 @@ class UBXConfigDialog:
 
         self.__master.update_idletasks()  # Make sure we know about any resizing
         return (self._dialog.winfo_width(), self._dialog.winfo_height())
+
+    @property
+    def container(self):
+        """
+        Getter for container frame.
+        """
+
+        return self._frm_container

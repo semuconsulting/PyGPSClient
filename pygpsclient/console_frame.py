@@ -7,6 +7,7 @@ Created on 12 Sep 2020
 
 @author: semuadmin
 """
+# pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
 
 from tkinter import Frame, Text, Scrollbar, S, E, W, END, HORIZONTAL, VERTICAL, N
 
@@ -30,6 +31,7 @@ class ConsoleFrame(Frame):
 
         Frame.__init__(self, self.__master, *args, **kwargs)
 
+        self.width, self.height = self.get_size()
         self._body()
         self._do_layout()
         self._attach_events()
@@ -127,7 +129,7 @@ class ConsoleFrame(Frame):
                 con.tag_add(count, f"{last}.{connect}", f"{last}.{end}")
                 con.tag_config(count, foreground=color)
 
-    def _on_resize(self, event):
+    def _on_resize(self, event):  # pylint: disable=unused-argument
         """
         Resize frame
 

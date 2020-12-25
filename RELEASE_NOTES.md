@@ -1,5 +1,14 @@
 # PyGPSClient Release Notes
 
+### RELEASE v0.2.20-beta PROVISIONAL
+
+ENHANCEMENTS:
+
+1. Allow button click to refresh UBX hardware/firmware widget.
+2. Simplify pending command confirmations for UBX config widgets.
+3. Pylint tidy up.
+
+
 ### RELEASE v0.2.19-beta
 
 ENHANCEMENTS:

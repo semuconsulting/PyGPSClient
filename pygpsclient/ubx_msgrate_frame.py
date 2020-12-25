@@ -7,7 +7,7 @@ Created on 22 Sep 2020
 
 @author: semuadmin
 """
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
 
 from tkinter import (
     Frame,
@@ -39,6 +39,7 @@ from .globals import (
     ICON_PENDING,
     ICON_CONFIRMED,
     READONLY,
+    UBX_CFGMSG,
 )
 from .strings import LBLCFGMSG
 
@@ -60,21 +61,17 @@ class UBX_MSGRATE_Frame(Frame):
         self.__master = self.__app.get_master()  # Reference to root class (Tk)
         self.__container = container
 
-        Frame.__init__(self, self.__container._frm_container, *args, **kwargs)
+        Frame.__init__(self, self.__container.container, *args, **kwargs)
 
         self._img_send = ImageTk.PhotoImage(Image.open(ICON_SEND))
         self._img_pending = ImageTk.PhotoImage(Image.open(ICON_PENDING))
         self._img_confirmed = ImageTk.PhotoImage(Image.open(ICON_CONFIRMED))
         self._img_warn = ImageTk.PhotoImage(Image.open(ICON_WARNING))
-        self._preset_command = None
-        self._img_pending = ImageTk.PhotoImage(Image.open(ICON_PENDING))
-        self._img_confirmed = ImageTk.PhotoImage(Image.open(ICON_CONFIRMED))
-        self._img_send = ImageTk.PhotoImage(Image.open(ICON_SEND))
-        self._img_warn = ImageTk.PhotoImage(Image.open(ICON_WARNING))
         self._ddc_rate = IntVar()
         self._uart1_rate = IntVar()
         self._usb_rate = IntVar()
         self._spi_rate = IntVar()
+        self._cfg_msg_command = None
 
         self._body()
         self._do_layout()
@@ -201,21 +198,21 @@ class UBX_MSGRATE_Frame(Frame):
 
     def update_status(self, cfgtype, **kwargs):
         """
-        Update panel information.
+        Update pending confirmation status.
         """
 
         if cfgtype == "CFG-MSG":
-            self.__container.set_status(f"{cfgtype} GET message received", "green")
+            self.__container.set_status("CFG-MSG GET message received", "green")
             self._ddc_rate.set(kwargs.get("ddcrate", 0))
             self._uart1_rate.set(kwargs.get("uart1rate", 0))
             self._usb_rate.set(kwargs.get("usbrate", 0))
             self._spi_rate.set(kwargs.get("spirate", 0))
             self._lbl_send_command.config(image=self._img_confirmed)
-        if cfgtype == "ACK-NAK":
-            self.__container.set_status(f"{cfgtype} message rejected", "red")
+        elif cfgtype == "ACK-NAK":
+            self.__container.set_status("CFG-MSG POLL message rejected", "red")
             self._lbl_send_command.config(image=self._img_warn)
 
-    def _on_select_cfg_msg(self, *args, **kwargs):
+    def _on_select_cfg_msg(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
         CFG-MSG command has been selected.
         """
@@ -227,7 +224,7 @@ class UBX_MSGRATE_Frame(Frame):
         msg = key_from_val(UBX_CONFIG_MESSAGES, self._cfg_msg_command)
         self._do_poll_msg(msg)
 
-    def _on_send_cfg_msg(self):
+    def _on_send_cfg_msg(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
         CFG-MSG command send button has been clicked.
         """
@@ -253,7 +250,7 @@ class UBX_MSGRATE_Frame(Frame):
         self.__app.serial_handler.serial_write(data.serialize())
         self._lbl_send_command.config(image=self._img_pending)
         self.__container.set_status("CFG-MSG SET message sent", "green")
-        self.__container.set_pending(0, ("ACK-ACK", "ACK-NAK"))
+        self.__container.set_pending(UBX_CFGMSG, ("ACK-ACK", "ACK-NAK"))
 
         self._do_poll_msg(msg)
 
@@ -266,4 +263,4 @@ class UBX_MSGRATE_Frame(Frame):
         self.__app.serial_handler.serial_write(data.serialize())
         self._lbl_send_command.config(image=self._img_pending)
         self.__container.set_status("CFG-MSG POLL message sent", "blue")
-        self.__container.set_pending(1, ("CFG-MSG",))
+        self.__container.set_pending(UBX_CFGMSG, ("CFG-MSG", "ACK-NAK"))

@@ -101,7 +101,7 @@ class AboutDialog:
         self._btn_ok.bind("<Return>", self.ok_press)
         self._btn_ok.focus_set()
 
-    def ok_press(self, *args, **kwargs):
+    def ok_press(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
         Handle OK button press.
         """

@@ -7,8 +7,8 @@ Created on 30 Sep 2020
 
 @author: semuadmin
 """
-
 # pylint: disable=invalid-name
+
 from time import time
 from datetime import datetime
 from pynmea2 import parse as nmea_parse, ParseError, types, RMC, VTG, GSV, GGA, GSA, GLL

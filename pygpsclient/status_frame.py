@@ -7,6 +7,7 @@ Created on 12 Sep 2020
 
 @author: semuadmin
 """
+# pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
 
 from tkinter import ttk, Frame, Label, StringVar, N, S, W, E, VERTICAL
 
@@ -80,7 +81,7 @@ class StatusFrame(Frame):
         self._connection.set("")
         self._status.set("")
 
-    def _on_resize(self, event):
+    def _on_resize(self, event):  # pylint: disable=unused-argument
         """
         Resize frame
 

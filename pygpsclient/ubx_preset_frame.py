@@ -5,7 +5,7 @@ Created on 22 Dec 2020
 
 @author: semuadmin
 """
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
 
 from tkinter import (
     messagebox,
@@ -36,6 +36,7 @@ from .globals import (
     ICON_WARNING,
     ICON_PENDING,
     ICON_CONFIRMED,
+    UBX_PRESET,
 )
 from .strings import (
     LBLPRESET,
@@ -104,7 +105,7 @@ class UBX_PRESET_Frame(Frame):
         self.__master = self.__app.get_master()  # Reference to root class (Tk)
         self.__container = container
 
-        Frame.__init__(self, self.__container._frm_container, *args, **kwargs)
+        Frame.__init__(self, self.__container.container, *args, **kwargs)
 
         self._img_send = ImageTk.PhotoImage(Image.open(ICON_SEND))
         self._img_pending = ImageTk.PhotoImage(Image.open(ICON_PENDING))
@@ -195,7 +196,7 @@ class UBX_PRESET_Frame(Frame):
             self._lbx_preset.insert(idx, "USER " + upst)
             idx += 1
 
-    def _on_select_preset(self, *args, **kwargs):
+    def _on_select_preset(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
         Preset command has been selected.
         """
@@ -203,7 +204,7 @@ class UBX_PRESET_Frame(Frame):
         idx = self._lbx_preset.curselection()
         self._preset_command = self._lbx_preset.get(idx)
 
-    def _on_send_preset(self, *args, **kwargs):
+    def _on_send_preset(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
         Preset command send button has been clicked.
         """
@@ -255,7 +256,9 @@ class UBX_PRESET_Frame(Frame):
             if confirmed:
                 self._lbl_send_command.config(image=self._img_pending)
                 self.__container.set_status("Command(s) sent", "blue")
-                self.__container.set_pending(3, ("ACK-ACK", "ACK-NAK"))
+                self.__container.set_pending(
+                    UBX_PRESET, ("ACK-ACK", "ACK-NAK", "MON-VER")
+                )
             else:
                 self.__container.set_status("Command(s) cancelled", "blue")
 
@@ -518,11 +521,12 @@ class UBX_PRESET_Frame(Frame):
 
     def update_status(self, cfgtype, **kwargs):
         """
-        Update command confirmation status.
+        Update pending confirmation status.
         """
-        if cfgtype == "ACK-ACK":
+
+        if cfgtype in ("ACK-ACK", "MON-VER"):
             self._lbl_send_command.config(image=self._img_confirmed)
-            self.__container.set_status(f"{cfgtype} message received", "green")
+            self.__container.set_status(f"{cfgtype} GET message received", "green")
         elif cfgtype == "ACK-NAK":
             self._lbl_send_command.config(image=self._img_warn)
-            self.__container.set_status(f"{cfgtype} message rejected", "red")
+            self.__container.set_status("PRESET command rejected", "red")

@@ -7,7 +7,7 @@ Created on 14 Sep 2020
 
 @author: semuadmin
 """
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
 
 from tkinter import Frame, Canvas, font, BOTH, YES
 from .globals import snr2col, WIDGETU2, BGCOL, FGCOL, MAX_SNR, GNSS_LIST
@@ -163,7 +163,7 @@ class GraphviewFrame(Frame):
 
         self.can_graphview.update()
 
-    def _on_resize(self, event):
+    def _on_resize(self, event):  # pylint: disable=unused-argument
         """
         Resize frame
         """

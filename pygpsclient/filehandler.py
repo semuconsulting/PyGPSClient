@@ -25,7 +25,7 @@ class FileHandler:
     File handler class.
     """
 
-    def __init__(self, app, *args, **kwargs):
+    def __init__(self, app, *args, **kwargs):  # pylint: disable=unused-argument
         """
         Constructor.
 

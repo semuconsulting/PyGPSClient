@@ -14,7 +14,7 @@ Created on 13 Sep 2020
 
 @author: semuadmin
 """
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
 
 from io import BytesIO
 from time import time
@@ -240,7 +240,7 @@ class MapviewFrame(Frame):
 
         self._last_map_update = 0
 
-    def _on_resize(self, event):
+    def _on_resize(self, event):  # pylint: disable=unused-argument
         """
         Resize frame
 

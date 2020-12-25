@@ -5,7 +5,7 @@ Created on 22 Dec 2020
 
 @author: semuadmin
 """
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
 
 from tkinter import (
     Frame,
@@ -23,6 +23,8 @@ from .globals import (
     ICON_CONFIRMED,
     ANTPOWER,
     ANTSTATUS,
+    UBX_MONVER,
+    UBX_MONHW,
 )
 
 
@@ -43,7 +45,7 @@ class UBX_INFO_Frame(Frame):
         self.__master = self.__app.get_master()  # Reference to root class (Tk)
         self.__container = container
 
-        Frame.__init__(self, self.__container._frm_container, *args, **kwargs)
+        Frame.__init__(self, self.__container.container, *args, **kwargs)
 
         self._img_send = ImageTk.PhotoImage(Image.open(ICON_SEND))
         self._img_pending = ImageTk.PhotoImage(Image.open(ICON_PENDING))
@@ -59,6 +61,7 @@ class UBX_INFO_Frame(Frame):
 
         self._body()
         self._do_layout()
+        self._attach_events()
 
     def _body(self):
         """
@@ -107,6 +110,14 @@ class UBX_INFO_Frame(Frame):
             self.grid_rowconfigure(i, weight=1)
         self.option_add("*Font", self.__app.font_sm)
 
+    def _attach_events(self):
+        """
+        Bind events to widget.
+        """
+
+        # click mouse button to refresh information
+        self.bind("<Button>", self._do_poll_ver)
+
     def reset(self):
         """
         Reset panel to initial settings
@@ -116,7 +127,7 @@ class UBX_INFO_Frame(Frame):
 
     def update_status(self, cfgtype, **kwargs):
         """
-        Update information.
+        Update pending confirmation status.
         """
 
         # MON-VER information (for firmware version)
@@ -132,7 +143,7 @@ class UBX_INFO_Frame(Frame):
             self._ant_status.set(ANTSTATUS[kwargs.get("antstatus", 1)])
             self._ant_power.set(ANTPOWER[kwargs.get("antpower", 2)])
 
-    def _do_poll_ver(self):
+    def _do_poll_ver(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
         Poll MON-VER & MON-HW
         """
@@ -141,3 +152,5 @@ class UBX_INFO_Frame(Frame):
             msg = UBXMessage(msgtype[0:3], msgtype, POLL)
             self.__app.serial_handler.serial.write(msg.serialize())
             self.__container.set_status(f"{msgtype} POLL message sent", "blue")
+        self.__container.set_pending(UBX_MONVER, ("MON-VER",))
+        self.__container.set_pending(UBX_MONHW, ("MON-HW",))

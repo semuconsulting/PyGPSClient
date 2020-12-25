@@ -42,7 +42,7 @@ from .ubx_handler import UBXHandler
 VERSION = __version__
 
 
-class App(Frame):
+class App(Frame):  # pylint: disable=too-many-ancestors
     """
     Main GUI Application Class
     """
