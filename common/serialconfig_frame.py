@@ -34,6 +34,7 @@ BAUDRATES = (115200, 57600, 38400, 19200, 9600, 4800)
 ADVOFF = "\u25bc"
 ADVON = "\u25b2"
 BGCOL = "azure"
+READONLY = "readonly"
 
 
 class SerialConfig(
@@ -100,7 +101,7 @@ class SerialConfig(
             self._frm_basic,
             values=(BAUDRATES),
             width=8,
-            state="readonly",
+            state=READONLY,
             readonlybackground=BGCOL,
             wrap=True,
             textvariable=self._baudrate,
@@ -115,7 +116,7 @@ class SerialConfig(
             self._frm_advanced,
             values=(8, 7, 6, 5),
             width=3,
-            state="readonly",
+            state=READONLY,
             readonlybackground=BGCOL,
             wrap=True,
             textvariable=self._databits,
@@ -125,7 +126,7 @@ class SerialConfig(
             self._frm_advanced,
             values=(2, 1.5, 1),
             width=3,
-            state="readonly",
+            state=READONLY,
             readonlybackground=BGCOL,
             wrap=True,
             textvariable=self._stopbits,
@@ -135,7 +136,7 @@ class SerialConfig(
             self._frm_advanced,
             values=("None", "Even", "Odd", "Mark", "Space"),
             width=6,
-            state="readonly",
+            state=READONLY,
             readonlybackground=BGCOL,
             wrap=True,
             textvariable=self._parity,
@@ -256,19 +257,22 @@ class SerialConfig(
 
         for widget in (
             self._lbl_port,
-            self._lbx_port,
             self._lbl_baudrate,
-            self._spn_baudrate,
             self._lbl_databits,
-            self._spn_databits,
             self._lbl_stopbits,
-            self._spn_stopbits,
             self._lbl_parity,
-            self._spn_parity,
             self._chk_rts,
             self._chk_xon,
+            self._lbx_port,
         ):
             widget.configure(state=(DISABLED if disabled else NORMAL))
+        for widget in (
+            self._spn_baudrate,
+            self._spn_databits,
+            self._spn_stopbits,
+            self._spn_parity,
+        ):
+            widget.configure(state=(DISABLED if disabled else READONLY))
 
     @property
     def noports(self) -> bool:
