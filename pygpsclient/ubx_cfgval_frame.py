@@ -435,8 +435,9 @@ class UBX_CFGVAL_Frame(Frame):
             self._lbl_send_command.config(image=self._img_confirmed)
             data = kwargs.get("data", None)
             if data is not None:
-                val = getattr(data, self._cfgval_keyname)
-                self._cfgval.set(val)
+                val = getattr(data, self._cfgval_keyname, None)
+                if val is not None:
+                    self._cfgval.set(val)
             self.__container.set_status(f"{cfgtype} GET message received", "green")
         elif cfgtype == "ACK-ACK":
             self._lbl_send_command.config(image=self._img_confirmed)
