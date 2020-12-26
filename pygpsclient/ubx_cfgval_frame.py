@@ -196,10 +196,10 @@ class UBX_CFGVAL_Frame(Frame):
         self._spn_layer = Spinbox(
             self,
             textvariable=self._cfglayer,
-            values=("RAM", "BBR", "FLASH"),
+            values=("RAM", "BBR", "FLASH", "DEFAULT"),
             bg=ENTCOL,
             wrap=True,
-            width=6,
+            width=8,
             state=READONLY,
             readonlybackground=ENTCOL,
         )
@@ -414,6 +414,8 @@ class UBX_CFGVAL_Frame(Frame):
             layers = 1
         elif layers == "FLASH":
             layers = 2
+        elif layers == "DEFAULT":
+            layers = 7
         else:
             layers = 0
         transaction = 0
