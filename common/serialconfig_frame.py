@@ -43,7 +43,7 @@ PARITIES = ("None", "Even", "Odd", "Mark", "Space")
 BGCOL = "azure"
 
 
-class SerialConfig(
+class SerialConfigFrame(
     Frame
 ):  # pylint: disable=too-many-ancestors, too-many-instance-attributes
     """
@@ -213,7 +213,7 @@ class SerialConfig(
             self._noports = False
         else:
             self._noports = True
-            self.set_controls(False)
+            self.set_controls(True)
         self._lbx_port.activate(init_idx)
         self._port.set(port)
         self._port_desc.set(desc)

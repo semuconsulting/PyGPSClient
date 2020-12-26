@@ -1,11 +1,11 @@
 # PyGPSClient Release Notes
 
-### RELEASE v0.2.20-beta PROVISIONAL
+### RELEASE v0.2.20-beta
 
 ENHANCEMENTS:
 
 1. Serial port configuration panel refactored to generic Frame subclass
-`SerialConfig` in `common` package, to facilitate reuse in other
+`SerialConfigFrame` in `common` package, to facilitate reuse in other
  tkinter apps.
 2. Allow button click to refresh UBX hardware/firmware widget.
 3. Simplify pending command confirmations for UBX config widgets.
