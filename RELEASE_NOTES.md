@@ -1,5 +1,15 @@
 # PyGPSClient Release Notes
 
+### RELEASE v0.2.21-beta
+
+ENHANCEMENTS:
+
+1. UBX config panel CFG-VALGET query will return value in 'value' field as well as in Console.
+
+FIXES:
+
+1. Prevent CFG-VAL send command if no keyname selected.
+
 ### RELEASE v0.2.20-beta
 
 ENHANCEMENTS:

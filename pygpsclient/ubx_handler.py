@@ -220,6 +220,7 @@ class UBXHandler:
         if self.__app.dlg_ubxconfig is not None:
             self.__app.dlg_ubxconfig.update_pending(
                 "CFG-VALGET",
+                data=data,
             )
 
     def _process_NAV_POSLLH(self, data: UBXMessage):

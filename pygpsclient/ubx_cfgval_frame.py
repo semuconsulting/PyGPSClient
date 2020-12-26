@@ -146,7 +146,7 @@ class UBX_CFGVAL_Frame(Frame):
         self._lbx_cat.config(xscrollcommand=self._scr_cath.set)
         self._scr_catv.config(command=self._lbx_cat.yview)
         self._scr_cath.config(command=self._lbx_cat.xview)
-        self._lbl_parm = Label(self, text="Parameter", anchor="w")
+        self._lbl_parm = Label(self, text="Keyname", anchor="w")
         self._lbx_parm = Listbox(
             self,
             border=2,
@@ -309,12 +309,13 @@ class UBX_CFGVAL_Frame(Frame):
         Config interface send button has been clicked.
         """
 
-        if self._cfgmode.get() == VALSET:
-            self._do_valset()
-        elif self._cfgmode.get() == VALDEL:
-            self._do_valdel()
-        else:
-            self._do_valget()
+        if self._cfgval_keyname is not None:
+            if self._cfgmode.get() == VALSET:
+                self._do_valset()
+            elif self._cfgmode.get() == VALDEL:
+                self._do_valdel()
+            else:
+                self._do_valget()
 
     def _do_valset(self):
         """
@@ -430,7 +431,14 @@ class UBX_CFGVAL_Frame(Frame):
         Update pending confirmation status.
         """
 
-        if cfgtype in ("ACK-ACK", "CFG-VALGET"):
+        if cfgtype == "CFG-VALGET":
+            self._lbl_send_command.config(image=self._img_confirmed)
+            data = kwargs.get("data", None)
+            if data is not None:
+                val = getattr(data, self._cfgval_keyname)
+                self._cfgval.set(val)
+            self.__container.set_status(f"{cfgtype} GET message received", "green")
+        elif cfgtype == "ACK-ACK":
             self._lbl_send_command.config(image=self._img_confirmed)
             self.__container.set_status(f"{cfgtype} GET message received", "green")
         elif cfgtype == "ACK-NAK":
