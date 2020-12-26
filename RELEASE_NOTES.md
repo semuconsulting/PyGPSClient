@@ -9,6 +9,7 @@ ENHANCEMENTS:
 FIXES:
 
 1. Prevent CFG-VAL send command if no keyname selected.
+2. Default layer (7) added to CFG-VALGET query layer options.
 
 ### RELEASE v0.2.20-beta
 
