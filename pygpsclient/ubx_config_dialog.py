@@ -238,7 +238,7 @@ class UBXConfigDialog:
                 elif key == UBX_PRESET:
                     self._frm_preset.update_status(cfgtype, **kwargs)
 
-    def set_status(self, message: str, color: str = "blue"):
+    def set_status(self, message: str, color: str="blue"):
         """
         Set status message.
 
@@ -246,7 +246,7 @@ class UBXConfigDialog:
         :param str color: rgb color of text (blue)
         """
 
-        message = (message[:80] + "..") if len(message) > 80 else message
+        message = (message[:1200] + "..") if len(message) > 120 else message
         self._lbl_status.config(fg=color)
         self._status.set("  " + message)
 
