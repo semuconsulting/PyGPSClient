@@ -80,7 +80,7 @@ ATTDICT = {
     "R": "float",
     "L": "bool",
     "E": "unsigned int",
-    "X": "byte(s) as hex string",
+    "X": "byte(s)",
     "C": "char(s)",
 }
 
@@ -439,8 +439,6 @@ class UBX_CFGVAL_Frame(Frame):
             if data is not None:
                 val = getattr(data, self._cfgval_keyname, None)
                 if val is not None:
-                    if isinstance(val, bytes):
-                        val = val.hex()
                     self._cfgval.set(val)
             self.__container.set_status(f"{cfgtype} GET message received", "green")
         elif cfgtype == "ACK-ACK":
