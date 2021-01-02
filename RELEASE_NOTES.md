@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE v0.2.22-beta
+
+FIXES:
+
+1. Minor tweaks to CFG-VAL* UBX configuration panel to populate 'Value' field with result of CFG-VALGET poll in the same format as required for updates using CFG-VALSET (e.g. hex string for 'X' attributes).
+
 ### RELEASE v0.2.21-beta
 
 ENHANCEMENTS:
