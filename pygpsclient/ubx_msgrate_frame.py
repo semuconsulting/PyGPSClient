@@ -29,7 +29,7 @@ from pyubx2 import (
     UBXMessage,
     POLL,
     SET,
-    UBX_CONFIG_MESSAGES,
+    UBX_MSGIDS,
 )
 from pyubx2.ubxhelpers import key_from_val
 from .globals import (
@@ -192,9 +192,10 @@ class UBX_MSGRATE_Frame(Frame):
         """
 
         idx = 0
-        for _, val in UBX_CONFIG_MESSAGES.items():
-            self._lbx_cfg_msg.insert(idx, val)
-            idx += 1
+        for _, val in UBX_MSGIDS.items():
+            if val[0:3] not in ("ACK", "CFG", "AID", "MGA", "UPD", "FOO"):
+                self._lbx_cfg_msg.insert(idx, val)
+                idx += 1
 
     def update_status(self, cfgtype, **kwargs):
         """
@@ -221,7 +222,7 @@ class UBX_MSGRATE_Frame(Frame):
         self._cfg_msg_command = self._lbx_cfg_msg.get(idx)
 
         # poll selected message configuration to get current message rates
-        msg = key_from_val(UBX_CONFIG_MESSAGES, self._cfg_msg_command)
+        msg = key_from_val(UBX_MSGIDS, self._cfg_msg_command)
         self._do_poll_msg(msg)
 
     def _on_send_cfg_msg(self, *args, **kwargs):  # pylint: disable=unused-argument
@@ -229,7 +230,7 @@ class UBX_MSGRATE_Frame(Frame):
         CFG-MSG command send button has been clicked.
         """
 
-        msg = key_from_val(UBX_CONFIG_MESSAGES, self._cfg_msg_command)
+        msg = key_from_val(UBX_MSGIDS, self._cfg_msg_command)
         msgClass = int.from_bytes(msg[0:1], "little", signed=False)
         msgID = int.from_bytes(msg[1:2], "little", signed=False)
         rateDDC = int(self._ddc_rate.get())

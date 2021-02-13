@@ -27,7 +27,7 @@ from pyubx2 import (
     UBXMessage,
     POLL,
     SET,
-    UBX_CONFIG_MESSAGES,
+    UBX_MSGIDS,
     UBX_PAYLOADS_POLL,
 )
 from .globals import (
@@ -339,7 +339,7 @@ class UBX_PRESET_Frame(Frame):
         :param int msgrate: message rate (i.e. every nth position solution)
         """
 
-        for msgtype in UBX_CONFIG_MESSAGES:
+        for msgtype in UBX_MSGIDS:
             if msgtype[0:1] == b"\x21":
                 self._do_cfgmsg(msgtype, msgrate)
 
@@ -350,7 +350,7 @@ class UBX_PRESET_Frame(Frame):
         :param int msgrate: message rate (i.e. every nth position solution)
         """
 
-        for msgtype in UBX_CONFIG_MESSAGES:
+        for msgtype in UBX_MSGIDS:
             if msgtype[0:1] == b"\x0A":
                 self._do_cfgmsg(msgtype, msgrate)
 
@@ -361,7 +361,7 @@ class UBX_PRESET_Frame(Frame):
         :param int msgrate: message rate (i.e. every nth position solution)
         """
 
-        for msgtype in UBX_CONFIG_MESSAGES:
+        for msgtype in UBX_MSGIDS:
             if msgtype[0:1] == b"\x02":
                 self._do_cfgmsg(msgtype, msgrate)
 
@@ -370,7 +370,7 @@ class UBX_PRESET_Frame(Frame):
         Turn on minimum set of NMEA messages (GGA & GSA & GSV).
         """
 
-        for msgtype in UBX_CONFIG_MESSAGES:
+        for msgtype in UBX_MSGIDS:
             if msgtype[0:1] == b"\xf0":  # standard NMEA
                 if msgtype in (b"\xf0\x00", b"\xf0\x02"):  # GGA, GSA
                     self._do_cfgmsg(msgtype, 1)
@@ -386,7 +386,7 @@ class UBX_PRESET_Frame(Frame):
         Turn on minimum set of UBX-NAV messages (PVT & SVINFO).
         """
 
-        for msgtype in UBX_CONFIG_MESSAGES:
+        for msgtype in UBX_MSGIDS:
             if msgtype[0:1] == b"\x01":  # UBX-NAV
                 if msgtype == b"\x01\x07":  # NAV-PVT
                     self._do_cfgmsg(msgtype, 1)
@@ -404,7 +404,7 @@ class UBX_PRESET_Frame(Frame):
         :param int msgrate: message rate (i.e. every nth position solution)
         """
 
-        for msgtype in UBX_CONFIG_MESSAGES:
+        for msgtype in UBX_MSGIDS:
             if msgtype[0:1] in (b"\xf0", b"\xf1"):
                 self._do_cfgmsg(msgtype, msgrate)
 
@@ -415,7 +415,7 @@ class UBX_PRESET_Frame(Frame):
         :param int msgrate: message rate (i.e. every nth position solution)
         """
 
-        for msgtype in UBX_CONFIG_MESSAGES:
+        for msgtype in UBX_MSGIDS:
             if msgtype[0:1] == b"\x01":
                 self._do_cfgmsg(msgtype, msgrate)
 

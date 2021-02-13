@@ -10,7 +10,7 @@ Created on 30 Sep 2020
 # pylint: disable=invalid-name
 
 from datetime import datetime
-from pyubx2 import UBXMessage, UBX_MSGIDS, UBX_CONFIG_MESSAGES
+from pyubx2 import UBXMessage, UBX_MSGIDS, UBX_MSGIDS
 from pyubx2.ubxhelpers import itow2utc, gpsfix2str
 from .globals import svid2gnssid, GLONASS_NMEA
 
@@ -166,7 +166,7 @@ class UBXHandler:
         if self.__app.dlg_ubxconfig is not None:
             self.__app.dlg_ubxconfig.update_pending(
                 "CFG-MSG",
-                msgtype=UBX_CONFIG_MESSAGES[ubxClass + ubxID],
+                msgtype=UBX_MSGIDS[ubxClass + ubxID],
                 ddcrate=ddcrate,
                 uart1rate=uart1rate,
                 uart2rate=uart2rate,
