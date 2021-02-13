@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE v0.2.24-beta
+
+FIXES:
+
+1. Setup.py updated to fix previous PyPi deploy failure.
+
 ### RELEASE v0.2.23-beta
 
 ENHANCEMENTS:
