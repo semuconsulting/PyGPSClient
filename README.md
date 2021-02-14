@@ -183,8 +183,8 @@ no extension) and place this file in the user's home directory.
 The UBX Configuration Dialog includes the facility to send user-defined UBX configuration messages or message sequences to the receiver. These can be set up by adding
 appropriate comma-delimited message descriptions and payload definitions to a file named `ubxpresets` (lower case, no extension), and then placing this file in the user's home directory. The message definition comprises a free-format text description (*avoid embedded commas*) 
 followed by one or more [pyubx2 UBXMessage constructors](https://pypi.org/project/pyubx2/), i.e. 
-1. ubx_class as a string e.g. `CFG` (must be a valid class from pyubx2.UBX_CONFIG_CATEGORIES)
-2. ubx_id as a string e.g. `CFG-MSG` (must be a valid id from pyubx2.UBX_CONFIG_MESSAGES)
+1. ubx_class as a string e.g. `CFG` (must be a valid class from pyubx2.UBX_CLASSES)
+2. ubx_id as a string e.g. `CFG-MSG` (must be a valid id from pyubx2.UBX_MSGIDS)
 3. payload as a hexadecimal string e.g. `f004010100010100` (leave blank for null payloads e.g. most POLL messages)
 4. mode as an integer (`1` = SET, `2` = POLL)
 
@@ -197,6 +197,7 @@ Enable NMEA UBX00 & UBX03 sentences, CFG, CFG-MSG, f100010100010100, 1, CFG, CFG
 Poll UART1/2 baud rates, CFG, CFG-VALGET, 000000000100524001005340, 2
 Poll Message Rates, CFG, CFG-VALGET, 00000000ffff9120, 2, CFG, CFG-VALGET, 00004000ffff9120, 2, CFG, CFG-VALGET, 00008000ffff9120, 2
 Use Extended NMEA SV Numbering, CFG, CFG-VALSET, 000000000700932001, 1
+Set NAV Measurement Rate to 5 Hz, CFG, CFG-VALSET, 0001000001002130c800, 1
 Poll Receiver Software Version, MON, MON-VER, , 2
 Poll Datum, CFG, CFG-DAT, , 2
 Poll GNSS config, CFG, CFG-GNSS, , 2
