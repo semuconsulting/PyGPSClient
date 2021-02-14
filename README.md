@@ -105,13 +105,13 @@ See [requirements.txt](requirements.txt).
 On Windows and MacOS, pip, tkinter and the necessary imaging libraries are generally packaged with Python.  On some Linux distributions like Ubuntu 18+ and Raspberry Pi OS, they may need to be installed separately, e.g.:
 
 ```shell
->>> sudo apt-get install python3-pip python3-tk python3-pil python3-pil.imagetk
+sudo apt-get install python3-pip python3-tk python3-pil python3-pil.imagetk
 ```
 
 The following python libraries are required (these will be installed automatically if using pip to install PyGPSClient):
 
 ```shell
->>> python -m pip install pyubx2 pyserial pynmea2 Pillow requests
+python -m pip install pyubx2 pyserial pynmea2 Pillow requests
 ```
 
 ### User Privileges
@@ -129,16 +129,16 @@ The easiest way to install the latest version of `PyGPSClient` is with
 [pip](http://pypi.python.org/pypi/pip/):
 
 ```shell
->>> python -m pip install --upgrade PyGPSClient
+python -m pip install --upgrade PyGPSClient
 ```
 
 If required, `PyGPSClient` can also be installed using virtualenv, e.g.:
 
 ```shell
->>> python -m pip install --user --upgrade virtualenv
->>> python -m venv env
->>> source env/bin/activate
-(env) >>> python -m pip install --upgrade PyGPSClient
+python -m pip install --user --upgrade virtualenv
+python -m venv env
+source env/bin/activate
+(env) python -m pip install --upgrade PyGPSClient
 ```
 
 To run the application, if the python3 site_packages are in your PATH, simply type `python -m pygpsclient`.
@@ -156,13 +156,13 @@ If not, type `python -m \full_path_to_site_packages\pygpsclient`.
 To install manually, download and unzip this repository and run:
 
 ```shell
->>> python -m /path_to_folder/foldername/pygpsclient
+python -m /path_to_folder/foldername/pygpsclient
 ```
 
 e.g. if you downloaded and unzipped to a folder named `PyGPSClient-0.2.0`, run: 
 
 ```shell
->>> python -m /path_to_folder/PyGPSClient-0.2.0/pygpsclient
+python -m /path_to_folder/PyGPSClient-0.2.0/pygpsclient
 ```
 
 ### MapQuest API Key
