@@ -20,12 +20,11 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 ![Contributors](https://img.shields.io/github/contributors/semuconsulting/PyGPSClient.svg)
 ![Open Issues](https://img.shields.io/github/issues-raw/semuconsulting/PyGPSClient)
 
-Contributions and constructive feedback welcome - see CONTRIBUTING.md.
+Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/semuconsulting/PyGPSClient/blob/master/CONTRIBUTING.md).
 
 ## Features
 
-1. Supports both NMEA and UBX protocols. It uses the existing pynmea2 library for NMEA parsing and 
-implements a **[new pyubx2 library](https://github.com/semuconsulting/pyubx2)** for UBX parsing.
+1. Supports both NMEA and UBX protocols. It uses the existing pynmea2 library for NMEA parsing and a **[new pyubx2 library](https://github.com/semuconsulting/pyubx2)** for UBX parsing.
 1. Capable of reading from serial/USB port or previously-saved binary datalog file. 
 1. Configurable GUI with selectable and resizeable widgets.
 1. Expandable banner widget showing key navigation information.
@@ -36,7 +35,7 @@ implements a **[new pyubx2 library](https://github.com/semuconsulting/pyubx2)** 
 [MapQuest API Key](https://developer.mapquest.com/plan_purchase/steps/business_edition/business_edition_free/register)).
 1. Data logging.
 1. Track recording in GPX format.
-1. UBX Configuration Dialog, with the ability to send a variety of UBX configuration messages to u-blox GNSS devices. This includes the facility to add **user-defined messages or message sequences** - see instructions under [installation](#installation) below.
+1. UBX Configuration Dialog, with the ability to send a variety of UBX configuration commands to u-blox GNSS devices. This includes the facility to add **user-defined commands or command sequences** - see instructions under [installation](#installation) below.
 
 ![compact view screenshot](/images/min_widgets.png)
 
@@ -68,7 +67,7 @@ The UBX Configuration Dialog currently supports the following UBX configuration 
 1. Shows current device hardware/firmware versions via MON-VER and MON-HW polls. Clicking on the widget will refresh the displayed information.
 1. CFG-PRT sets baud rate and inbound/outbound protocols across all available ports 
 (*note that* an active USB port may report a baud rate of 0 on some platforms).
-1. CFG-MSG sets message rates per port for NMEA protocol messages (standard & proprietary) and UBX protocol messages.
+1. CFG-MSG sets message rates per port for UBX protocol messages and NMEA protocol messages (standard & proprietary). Message rate is relative to position measurement frequency e.g. a message rate of '4' means 'every 4th position measurement'.
 1. CFG-VALSET, CFG-VALDEL and CFG-VALGET configuration (for Generation 9+ devices).
 1. PRESET commands support a variety of preset and user-defined commands - see [user defined presets](#userdefined)
 
@@ -183,8 +182,8 @@ no extension) and place this file in the user's home directory.
 The UBX Configuration Dialog includes the facility to send user-defined UBX configuration messages or message sequences to the receiver. These can be set up by adding
 appropriate comma-delimited message descriptions and payload definitions to a file named `ubxpresets` (lower case, no extension), and then placing this file in the user's home directory. The message definition comprises a free-format text description (*avoid embedded commas*) 
 followed by one or more [pyubx2 UBXMessage constructors](https://pypi.org/project/pyubx2/), i.e. 
-1. ubx_class as a string e.g. `CFG` (must be a valid class from pyubx2.UBX_CLASSES)
-2. ubx_id as a string e.g. `CFG-MSG` (must be a valid id from pyubx2.UBX_MSGIDS)
+1. message class as a string e.g. `CFG` (must be a valid class from pyubx2.UBX_CLASSES)
+2. message id as a string e.g. `CFG-MSG` (must be a valid id from pyubx2.UBX_MSGIDS)
 3. payload as a hexadecimal string e.g. `f004010100010100` (leave blank for null payloads e.g. most POLL messages)
 4. mode as an integer (`1` = SET, `2` = POLL)
 
