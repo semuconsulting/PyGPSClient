@@ -333,15 +333,23 @@ class SerialHandler:
         #         print("doing serial_handler_parse_data")
         parsing = True
         raw_data = None
-        byte1 = ser.read(2)  # read first two bytes to determine protocol
-        if len(byte1) < 2:
+        byte1 = ser.read(1)  # read first two bytes to determine protocol
+        if len(byte1) < 1:
             self.__master.event_generate("<<ubx_eof>>")
             return
 
         while parsing:
             filt = self.__app.frm_settings.get_settings()["protocol"]
+            byte2 = ser.read(1)
+            if len(byte2) < 1:
+                self.__master.event_generate("<<ubx_eof>>")
+                return
             # if it's a UBX message (b'\b5\x62')
-            if byte1 == ubt.UBX_HDR and filt in (UBX_PROTOCOL, MIXED_PROTOCOL):
+            if (
+                byte1 == b"\xb5"
+                and byte2 == b"\x62"
+                and filt in (UBX_PROTOCOL, MIXED_PROTOCOL)
+            ):
                 #                 print(f"doing serial_handler._parse_data if ubx {ser.peek()}")
                 byten = ser.read(4)
                 if len(byten) < 4:
@@ -363,13 +371,18 @@ class SerialHandler:
                 self.__app.ubx_handler.process_data(raw_data)
                 parsing = False
             # if it's an NMEA message ('$G' or '$P')
-            elif byte1 in (b"\x24\x47", b"\x24\x50") and filt in (
-                NMEA_PROTOCOL,
-                MIXED_PROTOCOL,
+            elif (
+                byte1 == b"\x24"
+                and byte2 in (b"\x47", b"\x50")
+                and filt
+                in (
+                    NMEA_PROTOCOL,
+                    MIXED_PROTOCOL,
+                )
             ):
                 #                 print(f"doing serial_handler._parse_data if nmea {ser.peek()}")
                 try:
-                    raw_data = byte1 + ser.readline()
+                    raw_data = byte1 + byte2 + ser.readline()
                     self.__app.nmea_handler.process_data(raw_data.decode("utf-8"))
                 except UnicodeDecodeError:
                     continue

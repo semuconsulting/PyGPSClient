@@ -190,8 +190,8 @@ followed by one or more [pyubx2 UBXMessage constructors](https://pypi.org/projec
 Multiple commands can be concatenated on a single line. Illustrative examples are shown below:
 
 ```
-Enable NMEA RMC sentence, CFG, CFG-MSG, f004010100010100, 1
-Enable NMEA VTG sentence, CFG, CFG-MSG, f005010100010100, 1
+Stop GNSS, CFG, CFG-RST, 00000800, 1
+Start GNSS, CFG, CFG-RST, 00000900, 1
 Enable NMEA UBX00 & UBX03 sentences, CFG, CFG-MSG, f100010100010100, 1, CFG, CFG-MSG, f103010100010100, 1
 Poll UART1/2 baud rates, CFG, CFG-VALGET, 000000000100524001005340, 2
 Poll Message Rates, CFG, CFG-VALGET, 00000000ffff9120, 2, CFG, CFG-VALGET, 00004000ffff9120, 2, CFG, CFG-VALGET, 00008000ffff9120, 2

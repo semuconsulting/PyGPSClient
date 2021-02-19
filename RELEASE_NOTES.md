@@ -1,5 +1,12 @@
 # PyGPSClient Release Notes
 
+### RELEASE v0.2.25-beta
+
+ENHANCEMENTS:
+
+1. Improved handling of mixed protocol streams.
+2. Add GNSS Stop/Start to ubxpresets examples (tx to djdan7).
+
 ### RELEASE v0.2.24-beta
 
 FIXES:
