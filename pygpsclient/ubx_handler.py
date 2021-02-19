@@ -10,7 +10,7 @@ Created on 30 Sep 2020
 # pylint: disable=invalid-name
 
 from datetime import datetime
-from pyubx2 import UBXMessage, UBX_MSGIDS, UBX_MSGIDS
+from pyubx2 import UBXMessage, UBX_MSGIDS
 from pyubx2.ubxhelpers import itow2utc, gpsfix2str
 from .globals import svid2gnssid, GLONASS_NMEA
 
@@ -57,6 +57,9 @@ class UBXHandler:
         self.ubx_baudrate = 9600
         self.ubx_inprot = 7
         self.ubx_outprot = 3
+        self.ubx_measrate = 1000  # 1 Hz
+        self.ubx_navrate = 1
+        self.ubx_timeref = 0  # UTC
 
     def process_data(self, data: bytes) -> UBXMessage:
         """
@@ -77,6 +80,8 @@ class UBXHandler:
             self._process_CFG_MSG(parsed_data)
         if parsed_data.identity == "CFG-PRT":
             self._process_CFG_PRT(parsed_data)
+        if parsed_data.identity == "CFG-RATE":
+            self._process_CFG_RATE(parsed_data)
         if parsed_data.identity == "CFG-INF":
             self._process_CFG_INF(parsed_data)
         if parsed_data.identity == "CFG-VALGET":
@@ -207,6 +212,26 @@ class UBXHandler:
                 baudrate=self.ubx_baudrate,
                 inprot=self.ubx_inprot,
                 outprot=self.ubx_outprot,
+            )
+
+    def _process_CFG_RATE(self, data: UBXMessage):
+        """
+        Process CFG-RATE sentence - UBX solution rate configuration.
+
+        :param UBXMessage data: CFG-RATE parsed message
+        """
+
+        self.ubx_measrate = data.measRate
+        self.ubx_navrate = data.navRate
+        self.ubx_timeref = data.timeRef
+
+        # update the UBX config panel
+        if self.__app.dlg_ubxconfig is not None:
+            self.__app.dlg_ubxconfig.update_pending(
+                "CFG-RATE",
+                measrate=self.ubx_measrate,
+                navrate=self.ubx_navrate,
+                timeref=self.ubx_timeref,
             )
 
     def _process_CFG_VALGET(self, data: UBXMessage):  # pylint: disable=unused-argument

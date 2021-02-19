@@ -30,6 +30,7 @@ from .globals import (
     UBX_MONVER,
     UBX_MONHW,
     UBX_CFGPRT,
+    UBX_CFGRATE,
     UBX_CFGMSG,
     UBX_CFGVAL,
     UBX_PRESET,
@@ -40,6 +41,7 @@ from .ubx_port_frame import UBX_PORT_Frame
 from .ubx_msgrate_frame import UBX_MSGRATE_Frame
 from .ubx_preset_frame import UBX_PRESET_Frame
 from .ubx_cfgval_frame import UBX_CFGVAL_Frame
+from .ubx_solrate_frame import UBX_RATE_Frame
 
 
 class UBXConfigDialog:
@@ -74,6 +76,7 @@ class UBXConfigDialog:
             UBX_CFGMSG: (),
             UBX_CFGVAL: (),
             UBX_PRESET: (),
+            UBX_CFGRATE: (),
         }
         self._status = StringVar()
         self._status_cfgmsg = StringVar()
@@ -115,6 +118,9 @@ class UBXConfigDialog:
         self._frm_config_port = UBX_PORT_Frame(
             self.__app, self, borderwidth=2, relief="groove"
         )
+        self._frm_config_rate = UBX_RATE_Frame(
+            self.__app, self, borderwidth=2, relief="groove"
+        )
         self._frm_config_msg = UBX_MSGRATE_Frame(
             self.__app, self, borderwidth=2, relief="groove"
         )
@@ -147,7 +153,12 @@ class UBXConfigDialog:
         self._lbl_title.grid(column=col, row=row, columnspan=12, ipadx=3, sticky=(W, E))
         # left column of grid
         rowsp = 1
-        for frm in (self._frm_device_info, self._frm_config_port, self._frm_config_msg):
+        for frm in (
+            self._frm_device_info,
+            self._frm_config_port,
+            self._frm_config_rate,
+            self._frm_config_msg,
+        ):
             row += rowsp
             (colsp, rowsp) = frm.grid_size()
             frm.grid(
@@ -195,6 +206,7 @@ class UBXConfigDialog:
         Reset configuration widgets.
         """
 
+        self._frm_config_rate.reset()
         self._frm_config_port.reset()
         self._frm_device_info.reset()
 
@@ -231,6 +243,8 @@ class UBXConfigDialog:
                     self._frm_device_info.update_status(cfgtype, **kwargs)
                 elif key == UBX_CFGPRT:
                     self._frm_config_port.update_status(cfgtype, **kwargs)
+                elif key == UBX_CFGRATE:
+                    self._frm_config_rate.update_status(cfgtype, **kwargs)
                 elif key == UBX_CFGMSG:
                     self._frm_config_msg.update_status(cfgtype, **kwargs)
                 elif key == UBX_CFGVAL:

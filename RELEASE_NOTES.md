@@ -1,5 +1,12 @@
 # PyGPSClient Release Notes
 
+### RELEASE v0.2.26-beta
+
+ENHANCEMENTS:
+
+1. Add CFG-RATE configuration panel to UBX Configuration dialog for legacy devices (can already use CFG-VALSET for modern devices).
+
+
 ### RELEASE v0.2.25-beta
 
 ENHANCEMENTS:

@@ -63,11 +63,11 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 ### UBX Configuration Facilities
 ![ubxconfig widget screenshot](/images/ubxconfig_widget.png)
 
-The UBX Configuration Dialog currently supports the following UBX configuration commands:
-1. Shows current device hardware/firmware versions via MON-VER and MON-HW polls. Clicking on the widget will refresh the displayed information.
-1. CFG-PRT sets baud rate and inbound/outbound protocols across all available ports 
-(*note that* an active USB port may report a baud rate of 0 on some platforms).
-1. CFG-MSG sets message rates per port for UBX protocol messages and NMEA protocol messages (standard & proprietary). Message rate is relative to position measurement frequency e.g. a message rate of '4' means 'every 4th position measurement'.
+The UBX Configuration Dialog currently supports the following UBX configuration 'widgets':
+1. Shows current device hardware/firmware versions via MON-VER and MON-HW polls. Clicking anywhere in the widget background will refresh the displayed information with the current configuration.
+1. CFG-PRT sets baud rate and inbound/outbound protocols across all available ports.
+1. CFG-RATE sets navigation solution interval in ms (e.g. 1000 = 1/second) and measurement ratio.
+1. CFG-MSG sets message rates per port for UBX protocol messages and NMEA protocol messages (standard & proprietary). Message rate is relative to navigation solution frequency e.g. a message rate of '4' means 'every 4th navigation solution'.
 1. CFG-VALSET, CFG-VALDEL and CFG-VALGET configuration (for Generation 9+ devices).
 1. PRESET commands support a variety of preset and user-defined commands - see [user defined presets](#userdefined)
 
@@ -192,11 +192,12 @@ Multiple commands can be concatenated on a single line. Illustrative examples ar
 ```
 Stop GNSS, CFG, CFG-RST, 00000800, 1
 Start GNSS, CFG, CFG-RST, 00000900, 1
-Enable NMEA UBX00 & UBX03 sentences, CFG, CFG-MSG, f100010100010100, 1, CFG, CFG-MSG, f103010100010100, 1
-Poll UART1/2 baud rates, CFG, CFG-VALGET, 000000000100524001005340, 2
-Poll Message Rates, CFG, CFG-VALGET, 00000000ffff9120, 2, CFG, CFG-VALGET, 00004000ffff9120, 2, CFG, CFG-VALGET, 00008000ffff9120, 2
-Use Extended NMEA SV Numbering, CFG, CFG-VALSET, 000000000700932001, 1
-Set NAV Measurement Rate to 5 Hz, CFG, CFG-VALSET, 0001000001002130c800, 1
+Enable NMEA UBX00 & UBX03 sentences (legacy), CFG, CFG-MSG, f100010100010100, 1, CFG, CFG-MSG, f103010100010100, 1
+Poll UART1/2 baud rates (modern), CFG, CFG-VALGET, 000000000100524001005340, 2
+Poll Message Rates (modern), CFG, CFG-VALGET, 00000000ffff9120, 2, CFG, CFG-VALGET, 00004000ffff9120, 2, CFG, CFG-VALGET, 00008000ffff9120, 2
+Use Extended NMEA SV Numbering (modern), CFG, CFG-VALSET, 000000000700932001, 1
+Set NAV Solution Rate to 5 Hz (modern), CFG, CFG-VALSET, 0001000001002130c800, 1
+Set NAV Solution Rate to 10 Hz (legacy), CFG, CFG-RATE, 640001000000, 1
 Poll Receiver Software Version, MON, MON-VER, , 2
 Poll Datum, CFG, CFG-DAT, , 2
 Poll GNSS config, CFG, CFG-GNSS, , 2
@@ -206,12 +207,12 @@ Poll Receiver Management, CFG, CFG-RXM, , 2
 Poll Navigation Mode, CFG, CFG-NAV5, , 2
 Poll Expert Navigation mode, CFG, CFG-NAVX5, , 2
 Poll Geofencing, CFG, CFG-GEOFENCE, , 2
-Limit NMEA GNSS to GPS only, CFG, CFG-NMEA, 0040000272000000000000010000000000000000, 1
-Limit NMEA GNSS to GLONASS only, CFG, CFG-NMEA, 0040000253000000000000010000000000000000, 1
-Set NMEA GNSS to ALL, CFG, CFG-NMEA, 0040000200000000000000010000000000000000, 1
-Limit UBX GNSS to GPS only, CFG, CFG-GNSS, 0020200700081000010001010101030000000101020408000000010103081000000001010400080000000103050003000000010506080E0000000101, 1
-Limit UBX GNSS to GLONASS only, CFG, CFG-GNSS, 0020200700081000000001010101030000000101020408000000010103081000000001010400080000000103050003000000010506080E0001000101, 1
-Set UBX GNSS to ALL, CFG, CFG-GNSS, 0020200700081000010001010101030001000101020408000000010103081000000001010400080000000103050003000100010506080E0001000101, 1
+Limit NMEA GNSS to GPS only (legacy), CFG, CFG-NMEA, 0040000272000000000000010000000000000000, 1
+Limit NMEA GNSS to GLONASS only (legacy), CFG, CFG-NMEA, 0040000253000000000000010000000000000000, 1
+Set NMEA GNSS to ALL (legacy), CFG, CFG-NMEA, 0040000200000000000000010000000000000000, 1
+Limit UBX GNSS to GPS only (legacy), CFG, CFG-GNSS, 0020200700081000010001010101030000000101020408000000010103081000000001010400080000000103050003000000010506080E0000000101, 1
+Limit UBX GNSS to GLONASS only (legacy), CFG, CFG-GNSS, 0020200700081000000001010101030000000101020408000000010103081000000001010400080000000103050003000000010506080E0001000101, 1
+Set UBX GNSS to ALL (legacy), CFG, CFG-GNSS, 0020200700081000010001010101030001000101020408000000010103081000000001010400080000000103050003000100010506080E0001000101, 1
 FORCE COLD RESTART !*** Expect ClearCommError ***!, CFG, CFG-RST, ffff0100, 1
 ```
 

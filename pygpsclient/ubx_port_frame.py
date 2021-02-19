@@ -75,6 +75,7 @@ class UBX_PORT_Frame(Frame):
 
         self._body()
         self._do_layout()
+        self._attach_events()
 
     def _body(self):
         """
@@ -172,6 +173,14 @@ class UBX_PORT_Frame(Frame):
             self.grid_rowconfigure(i, weight=1)
         self.option_add("*Font", self.__app.font_sm)
 
+    def _attach_events(self):
+        """
+        Bind events to widget.
+        """
+
+        # click mouse button to refresh information
+        self.bind("<Button>", self._do_poll_prt)
+
     def reset(self):
         """
         Reset panel to initial settings
@@ -262,7 +271,7 @@ class UBX_PORT_Frame(Frame):
 
         self._do_poll_prt()
 
-    def _do_poll_prt(self):
+    def _do_poll_prt(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
         Poll PRT message configuration.
         """
