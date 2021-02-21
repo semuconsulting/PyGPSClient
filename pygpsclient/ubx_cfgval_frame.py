@@ -310,10 +310,11 @@ class UBX_CFGVAL_Frame(Frame):
             if self._cfgval_cat in keyname:
                 self._lbx_parm.insert(idx, keyname)
                 idx += 1
+        self._cfgval.set("")
 
     def _on_select_parm(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
-        Configuration parameter has been selected.
+        Configuration parameter (keyname) has been selected.
         """
 
         idx = self._lbx_parm.curselection()
@@ -322,6 +323,7 @@ class UBX_CFGVAL_Frame(Frame):
         (keyid, att) = UBXMessage.cfgname2key(self._cfgval_keyname)
         self._cfgkeyid.set(hex(keyid))
         self._cfgatt.set(att)
+        self._cfgval.set("")
 
     def _on_send_config(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
