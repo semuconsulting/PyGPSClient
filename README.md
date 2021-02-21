@@ -66,8 +66,9 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 The UBX Configuration Dialog currently supports the following UBX configuration 'widgets':
 1. Shows current device hardware/firmware versions via MON-VER and MON-HW polls. Clicking anywhere in the widget background will refresh the displayed information with the current configuration.
 1. CFG-PRT sets baud rate and inbound/outbound protocols across all available ports.
-1. CFG-RATE sets navigation solution interval in ms (e.g. 1000 = 1/second) and measurement ratio.
-1. CFG-MSG sets message rates per port for UBX protocol messages and NMEA protocol messages (standard & proprietary). Message rate is relative to navigation solution frequency e.g. a message rate of '4' means 'every 4th navigation solution'.
+1. CFG-RATE sets navigation solution interval in ms (e.g. 1000 = 1/second) and measurement ratio (ratio between the number of
+measurements and the number of navigation solutions, e.g. 5 = five measurements per navigation solution).
+1. CFG-MSG sets message rates per port for UBX and NMEA messages. Message rate is relative to navigation solution frequency e.g. a message rate of '4' means 'every 4th navigation solution'.
 1. CFG-VALSET, CFG-VALDEL and CFG-VALGET configuration (for Generation 9+ devices).
 1. PRESET commands support a variety of preset and user-defined commands - see [user defined presets](#userdefined)
 

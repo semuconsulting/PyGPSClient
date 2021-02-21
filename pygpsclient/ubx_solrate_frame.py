@@ -13,6 +13,7 @@ from tkinter import (
     Button,
     Label,
     IntVar,
+    StringVar,
     E,
     W,
 )
@@ -34,11 +35,11 @@ from .globals import (
 from .strings import LBLCFGRATE
 
 TIMEREFS = {
-    "UTC": 0,
-    "GPS": 1,
-    "GLO": 2,
-    "BEI": 3,
-    "GAL": 4,
+    0: "UTC",
+    1: "GPS",
+    2: "GLO",
+    3: "BEI",
+    4: "GAL",
 }
 
 
@@ -67,7 +68,7 @@ class UBX_RATE_Frame(Frame):
         self._img_warn = ImageTk.PhotoImage(Image.open(ICON_WARNING))
         self._measint = IntVar()
         self._navrate = IntVar()
-        self._timeref = IntVar()
+        self._timeref = StringVar()
 
         self._body()
         self._do_layout()
@@ -82,7 +83,7 @@ class UBX_RATE_Frame(Frame):
         self._lbl_ubx_measint = Label(self, text="Solution Interval (ms)")
         self._spn_ubx_measint = Spinbox(
             self,
-            values=(50, 100, 200, 500, 1000, 2000, 5000, 10000),
+            values=(25, 50, 100, 200, 500, 1000, 2000, 5000, 10000),
             width=6,
             state=READONLY,
             readonlybackground=ENTCOL,
@@ -103,8 +104,8 @@ class UBX_RATE_Frame(Frame):
         self._lbl_ubx_timeref = Label(self, text="Time Reference")
         self._spn_ubx_timeref = Spinbox(
             self,
-            values=(0, 1, 2, 3, 4),
-            width=4,
+            values=list(TIMEREFS.values()),
+            width=5,
             state=READONLY,
             readonlybackground=ENTCOL,
             wrap=True,
@@ -174,7 +175,7 @@ class UBX_RATE_Frame(Frame):
         if cfgtype == "CFG-RATE":
             self._measint.set(kwargs.get("measrate", 1000))
             self._navrate.set(kwargs.get("navrate", 1))
-            self._timeref.set(kwargs.get("timeref", 0))
+            self._timeref.set(TIMEREFS[kwargs.get("timeref", 0)])
             self._lbl_send_command.config(image=self._img_confirmed)
             self.__container.set_status("CFG-RATE GET message received", "green")
         elif cfgtype == "ACK-NAK":
@@ -186,13 +187,19 @@ class UBX_RATE_Frame(Frame):
         Handle Send rate config button press.
         """
 
+        tref = 0
+        for (key, val) in TIMEREFS.items():
+            if val == self._timeref.get():
+                tref = key
+                break
+
         msg = UBXMessage(
             "CFG",
             "CFG-RATE",
             SET,
             measRate=self._measint.get(),
             navRate=self._navrate.get(),
-            timeRef=self._timeref.get(),
+            timeRef=tref,
         )
         self.__app.serial_handler.serial_write(msg.serialize())
         self._lbl_send_command.config(image=self._img_pending)
