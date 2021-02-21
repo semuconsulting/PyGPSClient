@@ -7,6 +7,8 @@ UBX configuration widgets
 Created on 19 Sep 2020
 
 @author: semuadmin
+@copyright: SEMU Consulting © 2020
+@license: BSD 3-Clause
 """
 # pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
 
@@ -252,7 +254,7 @@ class UBXConfigDialog:
                 elif key == UBX_PRESET:
                     self._frm_preset.update_status(cfgtype, **kwargs)
 
-    def set_status(self, message: str, color: str = "blue"):
+    def set_status(self, message: str, color: str="blue"):
         """
         Set status message.
 

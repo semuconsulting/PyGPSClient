@@ -6,6 +6,8 @@ Uses pynmea2 library for parsing
 Created on 30 Sep 2020
 
 @author: semuadmin
+@copyright: SEMU Consulting © 2020
+@license: BSD 3-Clause
 """
 # pylint: disable=invalid-name
 
@@ -358,12 +360,12 @@ class NMEAHandler:
         t = datetime.now()
         s = (
             str(t.year)
-            + "-"
-            + str(t.month)
-            + "-"
-            + str(t.day)
-            + "T"
-            + str(timestamp)
-            + "Z"
+            +"-"
+            +str(t.month)
+            +"-"
+            +str(t.day)
+            +"T"
+            +str(timestamp)
+            +"Z"
         )
         return s

@@ -4,6 +4,8 @@ UBX Configuration widget for CFG-RATE commands
 Created on 19 Feb 2020
 
 @author: semuadmin
+@copyright: SEMU Consulting © 2020
+@license: BSD 3-Clause
 """
 # pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
 

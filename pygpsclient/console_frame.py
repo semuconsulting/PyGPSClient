@@ -6,6 +6,8 @@ This handles a scrollable text box into which the serial data is printed.
 Created on 12 Sep 2020
 
 @author: semuadmin
+@copyright: SEMU Consulting © 2020
+@license: BSD 3-Clause
 """
 # pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
 
@@ -118,7 +120,7 @@ class ConsoleFrame(Frame):
 
         con = self.txt_console
         idx = con.index("end-1c")
-        last = int(idx[0 : idx.find(".")]) - 1
+        last = int(idx[0: idx.find(".")]) - 1
 
         for count, tag in enumerate(tags):
             match, color = tag

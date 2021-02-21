@@ -4,6 +4,8 @@ UBX Configuration widget for CFG-PRT commands
 Created on 22 Dec 2020
 
 @author: semuadmin
+@copyright: SEMU Consulting © 2020
+@license: BSD 3-Clause
 """
 # pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
 
@@ -241,27 +243,27 @@ class UBX_PORT_Frame(Frame):
         baudRate = UBXMessage.val2bytes(self._baudrate.get(), "U004")
         inprot = (
             self._inprot_ubx.get()
-            + (self._inprot_nmea.get() << 1)
-            + (self._inprot_rtcm2.get() << 2)
-            + (self._inprot_rtcm3.get() << 5)
+            +(self._inprot_nmea.get() << 1)
+            +(self._inprot_rtcm2.get() << 2)
+            +(self._inprot_rtcm3.get() << 5)
         )
         inProtoMask = UBXMessage.val2bytes(inprot, "U002")
         outprot = (
             self._outprot_ubx.get()
-            + (self._outprot_nmea.get() << 1)
-            + (self._outprot_rtcm3.get() << 5)
+            +(self._outprot_nmea.get() << 1)
+            +(self._outprot_rtcm3.get() << 5)
         )
         outProtoMask = UBXMessage.val2bytes(outprot, "U002")
         payload = (
             portID
-            + reserved0
-            + txReady
-            + mode
-            + baudRate
-            + inProtoMask
-            + outProtoMask
-            + reserved4
-            + reserved5
+            +reserved0
+            +txReady
+            +mode
+            +baudRate
+            +inProtoMask
+            +outProtoMask
+            +reserved4
+            +reserved5
         )
         msg = UBXMessage("CFG", "CFG-PRT", SET, payload=payload)
         self.__app.serial_handler.serial_write(msg.serialize())

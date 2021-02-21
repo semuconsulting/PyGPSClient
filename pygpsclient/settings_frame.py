@@ -6,6 +6,8 @@ This handles the settings/configuration panel.
 Created on 12 Sep 2020
 
 @author: semuadmin
+@copyright: SEMU Consulting © 2020
+@license: BSD 3-Clause
 """
 # pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors, unnecessary-lambda
 

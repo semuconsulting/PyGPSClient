@@ -7,6 +7,8 @@ the appropriate protocol handler
 Created on 16 Sep 2020
 
 @author: semuadmin
+@copyright: SEMU Consulting © 2020
+@license: BSD 3-Clause
 """
 
 from io import BufferedReader
@@ -366,7 +368,7 @@ class SerialHandler:
                     parsing = False
                     break
                 plb = byten[0:leni]
-                cksum = byten[leni : leni + 2]
+                cksum = byten[leni: leni + 2]
                 raw_data = ubt.UBX_HDR + clsid + msgid + lenb + plb + cksum
                 self.__app.ubx_handler.process_data(raw_data)
                 parsing = False

@@ -82,17 +82,6 @@ warning ![warning icon](/pygpsclient/resources/iconmonstr-warning-1-24.png)).
 * Confirmation responses can take several seconds at high message transmission rates, or be discarded altogether if the device's transmit buffer is full (*txbuff-alloc error*). To ensure timely confirmation responses, try increasing the baud rate and/or temporarily reducing transmitted message rates using the configuration commands provided.
 * A warning icon (typically accompanied by an ACK-NAK response) is usually an indication that one or more of the commands sent is not supported by your receiver. 
 
-
-#### Glossary of Terms
-
-* utc - coordinated universal time.
-* siv - satellites in view.
-* sip - satellites used in position solution.
-* dop - [dilution of precision](https://gisgeography.com/gps-accuracy-hdop-pdop-gdop-multipath/) (pdop - position, hdop - horizontal, vdop - vertical).
-* acc - accuracy of location in real units (hacc - horizontal, vacc - vertical). Note that location accuracy is not directly provided via the standard NMEA message set, but is available via some proprietary NMEA messages e.g. UBX00.
-* SV - space vehicle number
-* PRN - pseudo-random noise number
-
 ## <a name="installation">Installation</a>
 
 In the following, `python` & `pip` refer to the python3 executables. You may need to type 
@@ -217,6 +206,23 @@ Set UBX GNSS to ALL (legacy), CFG, CFG-GNSS, 00202007000810000100010101010300010
 FORCE COLD RESTART !*** Expect ClearCommError ***!, CFG, CFG-RST, ffff0100, 1
 ```
 
+#### Glossary of Terms
+
+* ACC - accuracy of location in real units (hacc - horizontal, vacc - vertical). Note that location accuracy is not directly provided via the standard NMEA message set, but is available via some proprietary NMEA messages e.g. UBX00.
+* BEI - [BeiDou Navigation Satellite System](https://en.wikipedia.org/wiki/BeiDou).
+* DOP - [dilution of precision](https://gisgeography.com/gps-accuracy-hdop-pdop-gdop-multipath/) (pdop - overall position, hdop - horizontal, vdop - vertical).
+* GAL - [Galileo](https://en.wikipedia.org/wiki/Galileo_(satellite_navigation%29).
+* GLO - [GLONASS, Global Navigation Satellite System](https://en.wikipedia.org/wiki/GLONASS).
+* GNSS - [global navigation satellite system](https://en.wikipedia.org/wiki/Satellite_navigation).
+* GPS - [Global Positioning System](https://en.wikipedia.org/wiki/Global_Positioning_System).
+* PRN - [pseudo-random noise number](https://www.gps.gov/technical/prn-codes/) (code that each satellite transmits to differentiate itself from other satellites in the active constellation).
+* QZS - [QZSS, Quasi-Zenith Satellite System](https://en.wikipedia.org/wiki/Quasi-Zenith_Satellite_System).
+* SBA - [SBAS, Satellite-based Augmentation System](https://en.wikipedia.org/wiki/GNSS_augmentation#Satellite-based_augmentation_system).
+* SIP - satellites used in position solution.
+* SIV - satellites in view.
+* SV(N) - [space vehicle number](https://en.wikipedia.org/wiki/List_of_GPS_satellites) (serial number assigned to each satellite).
+* UTC - coordinated universal time.
+
 ## License
 
 ![License](https://img.shields.io/github/license/semuconsulting/PyGPSClient.svg)
@@ -231,3 +237,5 @@ Application icons from [iconmonstr](https://iconmonstr.com/license/) &copy;.
 ## Author Information
 
 semuadmin@semuconsulting.com
+
+

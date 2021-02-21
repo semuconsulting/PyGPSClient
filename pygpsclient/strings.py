@@ -4,6 +4,8 @@ ENGLISH language string literals for PyGPSClient application
 Created on 12 Sep 2020
 
 @author: semuadmin
+@copyright: SEMU Consulting © 2020
+@license: BSD 3-Clause
 """
 # pylint: disable=line-too-long
 
@@ -20,8 +22,8 @@ HELPTXT = "Help..About - display About dialog."
 
 ABOUTTXT = (
     "PyGPSClient is a free, open-source NMEA & UBX GNSS/GPS client application written"
-    + " entirely in Python and tkinter.\n\n"
-    + "Instructions and source code are available on GitHub at the link below."
+    +" entirely in Python and tkinter.\n\n"
+    +"Instructions and source code are available on GitHub at the link below."
 )
 
 # Message text

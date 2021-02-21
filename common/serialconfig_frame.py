@@ -6,6 +6,8 @@ serial port configuration facility.
 Created on 24 Dec 2020
 
 @author: semuadmin
+@copyright: SEMU Consulting © 2020
+@license: BSD 3-Clause
 """
 
 from tkinter import (
@@ -227,8 +229,8 @@ class SerialConfigFrame(
         if idx == "":
             idx = 0
         port_orig = self._lbx_port.get(idx)
-        port = port_orig[0 : port_orig.find(":")]
-        desc = port_orig[port_orig.find(":") + 1 :]
+        port = port_orig[0: port_orig.find(":")]
+        desc = port_orig[port_orig.find(":") + 1:]
         if desc == "":
             desc = "device"
         self._port.set(port)

@@ -6,6 +6,8 @@ This handles the status bar notifications at the foot of the window.
 Created on 12 Sep 2020
 
 @author: semuadmin
+@copyright: SEMU Consulting © 2020
+@license: BSD 3-Clause
 """
 # pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
 
