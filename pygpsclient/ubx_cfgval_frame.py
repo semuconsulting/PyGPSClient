@@ -25,6 +25,7 @@ from tkinter import (
     LEFT,
     VERTICAL,
     HORIZONTAL,
+    NORMAL,
 )
 from PIL import ImageTk, Image
 from pyubx2 import UBXMessage, UBX_CONFIG_DATABASE
@@ -204,7 +205,14 @@ class UBX_CFGVAL_Frame(Frame):
             readonlybackground=ENTCOL,
         )
         self._lbl_val = Label(self, text="Value")
-        self._ent_val = Entry(self, textvariable=self._cfgval, bg=ENTCOL)
+        self._ent_val = Entry(
+            self,
+            textvariable=self._cfgval,
+            readonlybackground=ENTCOL,
+            fg=INFCOL,
+            state=READONLY,
+            relief="sunken",
+        )
 
         self._lbl_send_command = Label(self)
         self._btn_send_command = Button(
@@ -230,9 +238,9 @@ class UBX_CFGVAL_Frame(Frame):
         )
         self._scr_parmv.grid(column=4, row=2, rowspan=5, sticky=(N, S, E))
         self._scr_parmh.grid(column=1, row=7, columnspan=4, sticky=(W, E))
-        self._rad_cfgset.grid(column=0, row=8, padx=3, pady=0, sticky=(W))
-        self._rad_cfgdel.grid(column=0, row=9, padx=3, pady=0, sticky=(W))
-        self._rad_cfgget.grid(column=0, row=10, padx=3, pady=0, sticky=(W))
+        self._rad_cfgget.grid(column=0, row=8, padx=3, pady=0, sticky=(W))
+        self._rad_cfgset.grid(column=0, row=9, padx=3, pady=0, sticky=(W))
+        self._rad_cfgdel.grid(column=0, row=10, padx=3, pady=0, sticky=(W))
         self._lbl_key.grid(column=1, row=8, padx=3, pady=0, sticky=(E))
         self._lbl_keyid.grid(column=2, row=8, padx=3, pady=0, sticky=(W))
         self._lbl_type.grid(column=3, row=8, padx=3, pady=0, sticky=(E))
@@ -265,6 +273,7 @@ class UBX_CFGVAL_Frame(Frame):
 
         self._lbx_cat.bind("<<ListboxSelect>>", self._on_select_cat)
         self._lbx_parm.bind("<<ListboxSelect>>", self._on_select_parm)
+        self._cfgmode.trace_add("write", self._on_select_mode)
 
     def _reset(self):
         """
@@ -274,6 +283,16 @@ class UBX_CFGVAL_Frame(Frame):
         for i, cat in enumerate(UBX_CONFIG_CATEGORIES):
             self._lbx_cat.insert(i, cat)
         self._cfgmode.set(2)
+
+    def _on_select_mode(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Mode has been selected.
+        """
+
+        if self._cfgmode.get() == VALSET:
+            self._ent_val.config(state=NORMAL, bg=ENTCOL, fg="Black")
+        else:
+            self._ent_val.config(state=READONLY, readonlybackground=ENTCOL, fg=INFCOL)
 
     def _on_select_cat(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
