@@ -360,12 +360,12 @@ class NMEAHandler:
         t = datetime.now()
         s = (
             str(t.year)
-            +"-"
-            +str(t.month)
-            +"-"
-            +str(t.day)
-            +"T"
-            +str(timestamp)
-            +"Z"
+            + "-"
+            + str(t.month)
+            + "-"
+            + str(t.day)
+            + "T"
+            + str(timestamp)
+            + "Z"
         )
         return s

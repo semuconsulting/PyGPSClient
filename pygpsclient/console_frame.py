@@ -120,7 +120,7 @@ class ConsoleFrame(Frame):
 
         con = self.txt_console
         idx = con.index("end-1c")
-        last = int(idx[0: idx.find(".")]) - 1
+        last = int(idx[0 : idx.find(".")]) - 1
 
         for count, tag in enumerate(tags):
             match, color = tag

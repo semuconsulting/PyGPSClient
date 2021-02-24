@@ -12,7 +12,7 @@ Created on 30 Sep 2020
 # pylint: disable=invalid-name
 
 from datetime import datetime
-from pyubx2 import UBXMessage, UBX_MSGIDS
+from pyubx2 import UBXMessage, UBXReader, UBX_MSGIDS
 from pyubx2.ubxhelpers import itow2utc, gpsfix2str
 from .globals import svid2gnssid, GLONASS_NMEA
 
@@ -72,7 +72,7 @@ class UBXHandler:
         :rtype: UBXMessage
         """
 
-        parsed_data = UBXMessage.parse(data, False)
+        parsed_data = UBXReader.parse(data, False)
 
         if parsed_data.identity == "ACK-ACK":
             self._process_ACK_ACK(parsed_data)
@@ -328,7 +328,7 @@ class UBXHandler:
                         data.min,
                         data.second,
                     ).isoformat()
-                    +"Z"
+                    + "Z"
                 )
                 if fix == "3D":
                     fix = "3d"

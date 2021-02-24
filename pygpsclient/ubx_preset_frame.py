@@ -322,13 +322,13 @@ class UBX_PRESET_Frame(Frame):
             reserved2 = b"\x00"
             payload = (
                 protocolID
-                +reserved1
-                +infMsgMaskDDC
-                +infMsgMaskUART1
-                +infMsgMaskUART2
-                +infMsgMaskUSB
-                +infMsgMaskSPI
-                +reserved2
+                + reserved1
+                + infMsgMaskDDC
+                + infMsgMaskUART1
+                + infMsgMaskUART2
+                + infMsgMaskUSB
+                + infMsgMaskSPI
+                + reserved2
             )
             msg = UBXMessage("CFG", "CFG-INF", SET, payload=payload)
             self.__app.serial_handler.serial_write(msg.serialize())

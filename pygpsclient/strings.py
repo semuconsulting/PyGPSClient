@@ -22,8 +22,8 @@ HELPTXT = "Help..About - display About dialog."
 
 ABOUTTXT = (
     "PyGPSClient is a free, open-source NMEA & UBX GNSS/GPS client application written"
-    +" entirely in Python and tkinter.\n\n"
-    +"Instructions and source code are available on GitHub at the link below."
+    + " entirely in Python and tkinter.\n\n"
+    + "Instructions and source code are available on GitHub at the link below."
 )
 
 # Message text

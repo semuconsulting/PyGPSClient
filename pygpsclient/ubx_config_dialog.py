@@ -254,7 +254,7 @@ class UBXConfigDialog:
                 elif key == UBX_PRESET:
                     self._frm_preset.update_status(cfgtype, **kwargs)
 
-    def set_status(self, message: str, color: str="blue"):
+    def set_status(self, message: str, color: str = "blue"):
         """
         Set status message.
 

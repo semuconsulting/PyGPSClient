@@ -1,5 +1,12 @@
 # PyGPSClient Release Notes
 
+### RELEASE v0.2.27-beta
+
+ENHANCEMENTS:
+
+1. Updated for pyubx2 v1.0.4.
+2. Minimum required pyubx2 version is now 1.0.4. 
+
 ### RELEASE v0.2.26-beta
 
 ENHANCEMENTS:
