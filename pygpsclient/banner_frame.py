@@ -5,9 +5,9 @@ This handles the top banner which prominently displays the current coordinates a
 
 Created on 13 Sep 2020
 
-@author: semuadmin
-@copyright: SEMU Consulting © 2020
-@license: BSD 3-Clause
+:author: semuadmin
+:copyright: SEMU Consulting © 2020
+:license: BSD 3-Clause
 """
 # pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
 
@@ -292,7 +292,7 @@ class BannerFrame(Frame):
         """
         Sets text of banner from keyword parms.
 
-        :param kwargs: optional key value pairs
+        :param kwargs: optional key value pairs for each displayed parameter
         """
 
         settings = self.__app.frm_settings.get_settings()
@@ -365,7 +365,7 @@ class BannerFrame(Frame):
         Update track and ground speed
 
         :param str units: distance units as string (UMM, UMK, UI, UIK)
-        :param kwargs: optional key value pairs
+        :param kwargs: optional speed and/or track key/value pairs
         """
 
         if "speed" in kwargs:
@@ -397,7 +397,7 @@ class BannerFrame(Frame):
         """
         Update fix type
 
-        :param kwargs: optional key value pairs
+        :param kwargs: optional fix key/value pair
         """
 
         if "fix" in kwargs:
@@ -497,7 +497,7 @@ class BannerFrame(Frame):
         """
         Resize frame
 
-        :param event:
+        :param event event: resize event
         """
 
         self.width, self.height = self.get_size()
@@ -506,6 +506,9 @@ class BannerFrame(Frame):
     def get_size(self):
         """
         Get current frame size.
+
+        :return: window size (width, height)
+        :rtype: tuple
         """
 
         self.update_idletasks()  # Make sure we know about any resizing

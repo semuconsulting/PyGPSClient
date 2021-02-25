@@ -5,9 +5,9 @@ serial port configuration facility.
 
 Created on 24 Dec 2020
 
-@author: semuadmin
-@copyright: SEMU Consulting © 2020
-@license: BSD 3-Clause
+:author: semuadmin
+:copyright: SEMU Consulting © 2020
+:license: BSD 3-Clause
 """
 
 from tkinter import (
@@ -292,8 +292,9 @@ class SerialConfigFrame(
     def noports(self) -> bool:
         """
         Getter for noports flag.
-        :return noports flag
-        :rtype bool
+
+        :return: noports flag
+        :rtype: bool
         """
 
         return self._noports
@@ -302,8 +303,9 @@ class SerialConfigFrame(
     def port(self) -> str:
         """
         Getter for port.
-        :return selected port
-        :rtype str
+
+        :return: selected port
+        :rtype: str
         """
 
         return self._port.get()
@@ -311,9 +313,10 @@ class SerialConfigFrame(
     @property
     def port_desc(self) -> str:
         """
-        Getter for port description
-        :return selected port description
-        :rtype str
+        Getter for port description.
+
+        :return: selected port description
+        :rtype: str
         """
 
         return self._port_desc.get()
@@ -322,8 +325,9 @@ class SerialConfigFrame(
     def baudrate(self) -> int:
         """
         Getter for baudrate.
-        :return selected baudrate
-        :rtype int
+
+        :return: selected baudrate
+        :rtype: int
         """
 
         return self._baudrate.get()
@@ -332,8 +336,9 @@ class SerialConfigFrame(
     def databits(self) -> int:
         """
         Getter for databits.
-        :return selected databits
-        :rtype int
+
+        :return: selected databits
+        :rtype: int
         """
 
         return self._databits.get()
@@ -342,8 +347,9 @@ class SerialConfigFrame(
     def stopbits(self) -> float:
         """
         Getter for stopbits.
-        :return selected stopbits
-        :rtype float
+
+        :return: selected stopbits
+        :rtype: float
         """
 
         return self._stopbits.get()
@@ -352,8 +358,9 @@ class SerialConfigFrame(
     def parity(self) -> str:
         """
         Getter for parity.
-        :return selected parity
-        :rtype str
+
+        :return: selected parity
+        :rtype: str
         """
 
         return self._parity.get()
@@ -362,8 +369,9 @@ class SerialConfigFrame(
     def rtscts(self) -> bool:
         """
         Getter for rts/cts.
-        :return selected rts/cts
-        :rtype bool
+
+        :return: selected rts/cts
+        :rtype: bool
         """
 
         return self._rtscts.get()
@@ -372,8 +380,9 @@ class SerialConfigFrame(
     def xonxoff(self) -> bool:
         """
         Getter for xon/xoff.
-        :return selected xon/xoff
-        :rtype bool
+
+        :return: selected xon/xoff
+        :rtype: bool
         """
 
         return self._xonxoff.get()

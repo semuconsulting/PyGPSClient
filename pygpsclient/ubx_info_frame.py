@@ -3,9 +3,9 @@ UBX Configuration widget for MON-VER and MON-HW messages
 
 Created on 22 Dec 2020
 
-@author: semuadmin
-@copyright: SEMU Consulting © 2020
-@license: BSD 3-Clause
+:author: semuadmin
+:copyright: SEMU Consulting © 2020
+:license: BSD 3-Clause
 """
 # pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
 
@@ -130,6 +130,9 @@ class UBX_INFO_Frame(Frame):
     def update_status(self, cfgtype, **kwargs):
         """
         Update pending confirmation status.
+
+        :param str cfgtype: MON-VER or MON-HW
+        :param kwargs: optional key/value pairs for each parameter
         """
 
         # MON-VER information (for firmware version)

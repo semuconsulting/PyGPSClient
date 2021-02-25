@@ -6,9 +6,9 @@ the appropriate protocol handler
 
 Created on 16 Sep 2020
 
-@author: semuadmin
-@copyright: SEMU Consulting © 2020
-@license: BSD 3-Clause
+:author: semuadmin
+:copyright: SEMU Consulting © 2020
+:license: BSD 3-Clause
 """
 
 from io import BufferedReader
@@ -41,6 +41,7 @@ class SerialHandler:
         Constructor.
 
         :param object app: reference to main tkinter application
+
         """
 
         self.__app = app  # Reference to main application class
@@ -218,7 +219,7 @@ class SerialHandler:
         """
         Write binary data to serial port.
 
-        :param bytes data
+        :param bytes data: data to write to stream
         """
 
         try:
@@ -302,7 +303,7 @@ class SerialHandler:
         """
         Action on <<ubx_read>> event - read any data in the buffer.
 
-        :param event
+        :param event event: read event
         """
 
         #         print("doing serial_handler.on_read")
@@ -316,7 +317,7 @@ class SerialHandler:
         """
         Action on end of file
 
-        :param event
+        :param event event: eof event
         """
 
         #         print("doing serial_handler.on_eof")

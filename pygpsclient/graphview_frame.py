@@ -5,9 +5,9 @@ This handles a frame containing a graph of current satellite reception.
 
 Created on 14 Sep 2020
 
-@author: semuadmin
-@copyright: SEMU Consulting © 2020
-@license: BSD 3-Clause
+:author: semuadmin
+:copyright: SEMU Consulting © 2020
+:license: BSD 3-Clause
 """
 # pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
 
@@ -168,6 +168,8 @@ class GraphviewFrame(Frame):
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """
         Resize frame
+
+        :param event event: resize event
         """
 
         self.width, self.height = self.get_size()
@@ -175,6 +177,9 @@ class GraphviewFrame(Frame):
     def get_size(self):
         """
         Get current canvas size.
+
+        :return: window size (width, height)
+        :rtype: tuple
         """
 
         self.update_idletasks()  # Make sure we know about any resizing

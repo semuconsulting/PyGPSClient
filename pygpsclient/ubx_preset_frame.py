@@ -3,9 +3,9 @@ UBX Configuration widget for preset and user-defined commands
 
 Created on 22 Dec 2020
 
-@author: semuadmin
-@copyright: SEMU Consulting © 2020
-@license: BSD 3-Clause
+:author: semuadmin
+:copyright: SEMU Consulting © 2020
+:license: BSD 3-Clause
 """
 # pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
 
@@ -452,8 +452,8 @@ class UBX_PRESET_Frame(Frame):
         Restore to factory defaults stored in battery-backed RAM
         but display confirmation message box first.
 
-        :return boolean signifying whether OK was pressed
-        :rtype bool
+        :return: boolean signifying whether OK was pressed
+        :rtype: bool
         """
 
         if messagebox.askokcancel(DLGRESET, DLGRESETCONFIRM):
@@ -478,8 +478,8 @@ class UBX_PRESET_Frame(Frame):
         Save current configuration to persistent storage
         but display confirmation message box first.
 
-        :return boolean signifying whether OK was pressed
-        :rtype bool
+        :return: boolean signifying whether OK was pressed
+        :rtype: bool
         """
 
         if messagebox.askokcancel(DLGSAVE, DLGSAVECONFIRM):

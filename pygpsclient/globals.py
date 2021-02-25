@@ -5,9 +5,10 @@ Collection of global constants and helper methods
 
 Created on 14 Sep 2020
 
-@author: semuadmin
-@copyright: SEMU Consulting © 2020
-@license: BSD 3-Clause
+:author: semuadmin
+:copyright: SEMU Consulting © 2020
+:license: BSD 3-Clause
+
 """
 # pylint: disable=invalid-name, line-too-long
 
@@ -193,11 +194,12 @@ TAGS = [
 
 def deg2rad(deg: float) -> float:
     """
-    Convert degrees to radians
+    Convert degrees to radians.
 
     :param float deg: degrees
-    :return radians
-    :rtype float
+    :return: radians
+    :rtype: float
+
     """
 
     if not isinstance(deg, (float, int)):
@@ -207,12 +209,13 @@ def deg2rad(deg: float) -> float:
 
 def cel2cart(elevation: float, azimuth: float) -> (float, float):
     """
-    Convert celestial coordinates (degrees) to Cartesian coordinates
+    Convert celestial coordinates (degrees) to Cartesian coordinates.
 
-    :param float elevation
-    :param float azimuth
-    :return cartesian x,y coordinates
-    :rtype tuple
+    :param float elevation: elevation
+    :param float azimuth: azimuth
+    :return: cartesian x,y coordinates
+    :rtype: tuple
+
     """
 
     if not (isinstance(elevation, (float, int)) and isinstance(azimuth, (float, int))):
@@ -226,11 +229,12 @@ def cel2cart(elevation: float, azimuth: float) -> (float, float):
 
 def deg2dms(degrees: float, latlon: str) -> str:
     """
-    Convert decimal degrees to degrees minutes seconds string
+    Convert decimal degrees to degrees minutes seconds string.
 
-    :param float degrees
-    :return degrees as d.m.s formatted string
-    :rtype str
+    :param float degrees: degrees
+    :return: degrees as d.m.s formatted string
+    :rtype: str
+
     """
 
     if not isinstance(degrees, (float, int)):
@@ -256,12 +260,13 @@ def deg2dms(degrees: float, latlon: str) -> str:
 
 def deg2dmm(degrees: float, latlon: str) -> str:
     """
-    Convert decimal degrees to degrees decimal minutes string
+    Convert decimal degrees to degrees decimal minutes string.
 
-    :param float: degrees
-    :param str: latlon: whether degrees refer to lat or lon
-    :return degrees as dm.m formatted string
-    :rtype str
+    :param float degrees: degrees
+    :param str latlon: "lat" or "lon"
+    :return: degrees as dm.m formatted string
+    :rtype: str
+
     """
 
     if not isinstance(degrees, (float, int)):
@@ -278,11 +283,12 @@ def deg2dmm(degrees: float, latlon: str) -> str:
 
 def m2ft(meters: float) -> float:
     """
-    Convert meters to feet
+    Convert meters to feet.
 
-    :param float meters
-    :return feet
-    :rtype float
+    :param float meters: meters
+    :return: feet
+    :rtype: float
+
     """
 
     if not isinstance(meters, (float, int)):
@@ -292,12 +298,13 @@ def m2ft(meters: float) -> float:
 
 def ft2m(feet: float) -> float:
     """
-    Convert feet to meters
+    Convert feet to meters.
 
 
-    :param float feet
-    :return elevation in meters
-    :rtype float
+    :param float feet: feet
+    :return: elevation in meters
+    :rtype: float
+
     """
 
     if not isinstance(feet, (float, int)):
@@ -307,11 +314,12 @@ def ft2m(feet: float) -> float:
 
 def ms2kmph(ms: float) -> float:
     """
-    Convert meters per second to kilometers per hour
+    Convert meters per second to kilometers per hour.
 
-    :param float ms
-    :return speed in kmph
-    :rtype float
+    :param float ms: m/s
+    :return: speed in kmph
+    :rtype: float
+
     """
 
     if not isinstance(ms, (float, int)):
@@ -321,11 +329,12 @@ def ms2kmph(ms: float) -> float:
 
 def ms2mph(ms: float) -> float:
     """
-    Convert meters per second to miles per hour
+    Convert meters per second to miles per hour.
 
-    :param float ms
-    :return speed in mph
-    :rtype float
+    :param float ms: m/s
+    :return: speed in mph
+    :rtype: float
+
     """
 
     if not isinstance(ms, (float, int)):
@@ -335,11 +344,12 @@ def ms2mph(ms: float) -> float:
 
 def ms2knots(ms: float) -> float:
     """
-    Convert meters per second to knots
+    Convert meters per second to knots.
 
-    :param float: ms
-    :return speed in knots
-    :rtype float
+    :param float ms: m/s
+    :return: speed in knots
+    :rtype: float
+
     """
 
     if not isinstance(ms, (float, int)):
@@ -349,11 +359,12 @@ def ms2knots(ms: float) -> float:
 
 def kmph2ms(kmph: float) -> float:
     """
-    Convert kilometers per hour to meters per second
+    Convert kilometers per hour to meters per second.
 
-    :param float: kmph
-    :return speed in m/s
-    :rtype float
+    :param float kmph: kmph
+    :return: speed in m/s
+    :rtype: float
+
     """
 
     if not isinstance(kmph, (float, int)):
@@ -363,11 +374,12 @@ def kmph2ms(kmph: float) -> float:
 
 def knots2ms(knots: float) -> float:
     """
-    Convert knots to meters per second
+    Convert knots to meters per second.
 
-    :param float: knots
-    :return speed in m/s
-    :rtype float
+    :param float knots: knots
+    :return: speed in m/s
+    :rtype: float
+
     """
 
     if not isinstance(knots, (float, int)):
@@ -377,14 +389,15 @@ def knots2ms(knots: float) -> float:
 
 def pos2iso6709(lat: float, lon: float, alt: float, crs: str = "WGS_84") -> str:
     """
-    convert decimal degrees and alt to iso6709 format
+    convert decimal degrees and alt to iso6709 format.
 
-    :param float lat
-    :param float lon
+    :param float lat: latitude
+    :param float lon: longitude
     :param float alt: altitude
     :param float crs: coordinate reference system
-    :return position in iso6709 format
-    :rtype str
+    :return: position in iso6709 format
+    :rtype: str
+
     """
 
     if not (
@@ -414,11 +427,12 @@ def hsv2rgb(h: float, s: float, v: float) -> str:
     """
     Convert HSV values (in range 0-1) to RGB color string.
 
-    :param float h: hue
-    :param float s: saturation
-    :param float v: value
-    :return rgb color value
-    :rtype str
+    :param float h: hue (0-1)
+    :param float s: saturation (0-1)
+    :param float v: value (0-1)
+    :return: rgb color value
+    :rtype: str
+
     """
 
     if s == 0.0:
@@ -450,11 +464,12 @@ def hsv2rgb(h: float, s: float, v: float) -> str:
 def snr2col(snr: int) -> str:
     """
     Convert satellite signal-to-noise ratio to a color
-    high = green, low = red
+    high = green, low = red.
 
     :param int snr: signal to noise ratio as integer
-    :return rgb color string
-    :rtype str
+    :return: rgb color string
+    :rtype: str
+
     """
 
     return hsv2rgb(snr / (MAX_SNR * 2.5), 0.8, 0.8)
@@ -462,11 +477,12 @@ def snr2col(snr: int) -> str:
 
 def nmea2latlon(data: types.talker) -> (float, float):
     """
-    Convert parsed NMEA sentence to decimal lat, lon
+    Convert parsed NMEA sentence to decimal lat, lon.
 
     :param pynmea2.types.talker data: parsed NMEA sentence
-    :return (lat, lon)
-    :rtype tuple
+    :return: (lat, lon)
+    :rtype: tuple
+
     """
 
     if data.lat == "":
@@ -486,11 +502,12 @@ def nmea2latlon(data: types.talker) -> (float, float):
 
 def svid2gnssid(svid) -> int:
     """
-    Derive gnssId from svid numbering range
+    Derive gnssId from svid numbering range.
 
-    :param int svid
-    :return gnssId
-    :rtype int
+    :param int svid: space vehicle ID
+    :return: gnssId as integer
+    :rtype: int
+
     """
 
     if 120 <= svid <= 158:

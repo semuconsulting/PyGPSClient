@@ -5,9 +5,9 @@ This handles the status bar notifications at the foot of the window.
 
 Created on 12 Sep 2020
 
-@author: semuadmin
-@copyright: SEMU Consulting © 2020
-@license: BSD 3-Clause
+:author: semuadmin
+:copyright: SEMU Consulting © 2020
+:license: BSD 3-Clause
 """
 # pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
 
@@ -24,6 +24,7 @@ class StatusFrame(Frame):
         Constructor
 
         :param object app: reference to main tkinter application
+
         """
 
         self.__app = app  # Reference to main application class
@@ -58,6 +59,7 @@ class StatusFrame(Frame):
 
         :param str connection: description of connection
         :param str color: rgb color string
+
         """
 
         self._lbl_connection.config(fg=color)
@@ -69,6 +71,7 @@ class StatusFrame(Frame):
 
         :param str message: message to be displayed in status bar
         :param str color: rgb color string
+
         """
 
         message = (message[:75] + "..") if len(message) > 75 else message
@@ -87,7 +90,8 @@ class StatusFrame(Frame):
         """
         Resize frame
 
-        :param event
+        :param event event: resize event
+
         """
 
         self.width, self.height = self.get_size()
@@ -95,6 +99,9 @@ class StatusFrame(Frame):
     def get_size(self):
         """
         Get current frame size.
+
+        :return: window size (width, height)
+        :rtype: tuple
         """
 
         self.update_idletasks()  # Make sure we know about any resizing

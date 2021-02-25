@@ -8,6 +8,7 @@ Pipfile*.*
 /htmlcov
 /build
 /dist
+/docs
 /logs/*.log
 /logs/*.gpx
 /PyGPSClient_*

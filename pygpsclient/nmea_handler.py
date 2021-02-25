@@ -5,9 +5,9 @@ Uses pynmea2 library for parsing
 
 Created on 30 Sep 2020
 
-@author: semuadmin
-@copyright: SEMU Consulting © 2020
-@license: BSD 3-Clause
+:author: semuadmin
+:copyright: SEMU Consulting © 2020
+:license: BSD 3-Clause
 """
 # pylint: disable=invalid-name
 
@@ -341,8 +341,8 @@ class NMEAHandler:
         of horizontal and vertical accuracy and are the preferred source.
 
         :param float dop: horizontal dilution of precision
-        :return horizontal accuracy
-        :rtype float
+        :return: horizontal accuracy
+        :rtype: float
         """
 
         return float(dop) * DEVICE_ACCURACY * HDOP_RATIO / 1000
@@ -353,8 +353,8 @@ class NMEAHandler:
         Convert NMEA timestamp to utc time
 
         :param str timestamp: NMEA timestamp from pynmea2
-        :return utc time
-        :rtype str
+        :return: utc time
+        :rtype: str
         """
 
         t = datetime.now()

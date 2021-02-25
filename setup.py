@@ -6,7 +6,7 @@ python setup.py sdist bdist_wheel
 
 Created on 12 Sep 2020
 
-@author: semuadmin
+:author: semuadmin
 '''
 
 from setuptools import setup, find_packages

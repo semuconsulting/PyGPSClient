@@ -5,9 +5,9 @@ This handles the settings/configuration panel.
 
 Created on 12 Sep 2020
 
-@author: semuadmin
-@copyright: SEMU Consulting © 2020
-@license: BSD 3-Clause
+:author: semuadmin
+:copyright: SEMU Consulting © 2020
+:license: BSD 3-Clause
 """
 # pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors, unnecessary-lambda
 
@@ -75,6 +75,7 @@ class SettingsFrame(Frame):
         Constructor.
 
         :param object app: reference to main tkinter application
+
         """
 
         self.__app = app  # Reference to main application class
@@ -382,6 +383,7 @@ class SettingsFrame(Frame):
         depending on connection status.
 
         :param int status: connection status as integer (0,1,2)
+
         """
 
         self._frm_serial.set_controls(status)
@@ -425,8 +427,9 @@ class SettingsFrame(Frame):
         """
         Public method returns all settings as a dict.
 
-        :return current settings
-        :rtype dict
+        :return: current settings
+        :rtype: dict
+
         """
 
         self._settings["noports"] = self._frm_serial.noports
@@ -459,8 +462,9 @@ class SettingsFrame(Frame):
         """
         Get current frame size.
 
-        :return (width, height)
-        :rtype tuple
+        :return: (width, height)
+        :rtype: tuple
+
         """
 
         self.update_idletasks()  # Make sure we know about any resizing

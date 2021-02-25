@@ -1,10 +1,11 @@
 """
-PyGPSClient - Main tkinter application class
+PyGPSClient - Main tkinter application class.
 
 Created on 12 Sep 2020
-@author: semuadmin
-@copyright: SEMU Consulting © 2020
-@license: BSD 3-Clause
+
+:author: semuadmin
+:copyright: SEMU Consulting © 2020
+:license: BSD 3-Clause
 """
 
 from threading import Thread
@@ -54,6 +55,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         Set up main application and add frames
 
         :param object master: reference to Tk instance
+
         """
 
         self.__master = master
@@ -276,6 +278,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         :param str message: message to be displayed in connection label
         :param str color: rgb color string
+
         """
 
         self.frm_status.set_connection(message, color)
@@ -286,6 +289,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         :param str message: message to be displayed in status label
         :param str color: rgb color string
+
         """
 
         self.frm_status.set_status(message, color)
@@ -323,6 +327,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
     def get_master(self):
         """
         Returns application master (Tk)
+
+        :return: reference to application master (Tk)
         """
 
         return self.__master

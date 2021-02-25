@@ -3,9 +3,9 @@ UBX Configuration widget for CFG-VAL commands
 
 Created on 22 Dec 2020
 
-@author: semuadmin
-@copyright: SEMU Consulting © 2020
-@license: BSD 3-Clause
+:author: semuadmin
+:copyright: SEMU Consulting © 2020
+:license: BSD 3-Clause
 """
 # pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
 
@@ -344,8 +344,8 @@ class UBX_CFGVAL_Frame(Frame):
         """
         Send a CFG-VALSET message.
 
-        :return valid entry flag
-        :rtype bool
+        :return: valid entry flag
+        :rtype: bool
         """
 
         valid_entry = True

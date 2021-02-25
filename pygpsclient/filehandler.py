@@ -5,9 +5,9 @@ This handles all the file i/o
 
 Created on 16 Sep 2020
 
-@author: semuadmin
-@copyright: SEMU Consulting © 2020
-@license: BSD 3-Clause
+:author: semuadmin
+:copyright: SEMU Consulting © 2020
+:license: BSD 3-Clause
 """
 
 import os
@@ -56,8 +56,8 @@ class FileHandler:
         """
         Load MapQuest web map api key from user's home directory.
 
-        :return apikey
-        :rtype str
+        :return: apikey
+        :rtype: str
         """
 
         filepath = os.path.join(HOME, MQAPIKEY)
@@ -74,8 +74,8 @@ class FileHandler:
         """
         Load user configuration message presets from user's home directory.
 
-        :return user presets
-        :rtype str
+        :return: user presets
+        :rtype: str
         """
 
         presets = []
@@ -96,8 +96,8 @@ class FileHandler:
         :param path: the file path as str
         :param mode: the type of file being created ('data', 'track') as str
         :param ext: the file extension ('log', 'gpx') as str
-        :return fully qualified filename
-        :rtype str
+        :return: fully qualified filename
+        :rtype: str
         """
 
         self._lines = 0
@@ -109,8 +109,8 @@ class FileHandler:
         """
         Set logfile directory and open logfile for output
 
-        :return file path
-        :rtype str
+        :return: file path
+        :rtype: str
         """
 
         self._datalog_filepath = filedialog.askdirectory(
@@ -134,8 +134,8 @@ class FileHandler:
         """
         Set logfile name and open logfile for input
 
-        :return file path
-        :rtype str
+        :return: file path
+        :rtype: str
         """
 
         self._datalog_filepath = filedialog.askopenfilename(
@@ -176,8 +176,8 @@ class FileHandler:
         """
         Set track directory
 
-        :return file path
-        :rtype str
+        :return: file path
+        :rtype: str
         """
 
         self._track_filepath = filedialog.askdirectory(

@@ -6,9 +6,9 @@ UBX configuration widgets
 
 Created on 19 Sep 2020
 
-@author: semuadmin
-@copyright: SEMU Consulting © 2020
-@license: BSD 3-Clause
+:author: semuadmin
+:copyright: SEMU Consulting © 2020
+:license: BSD 3-Clause
 """
 # pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
 
@@ -278,6 +278,9 @@ class UBXConfigDialog:
     def get_size(self):
         """
         Get current frame size.
+
+        :return: window size (width, height)
+        :rtype: tuple
         """
 
         self.__master.update_idletasks()  # Make sure we know about any resizing
@@ -287,6 +290,9 @@ class UBXConfigDialog:
     def container(self):
         """
         Getter for container frame.
+
+        :return: reference to container frame
+        :rtype: tkinter.Frame
         """
 
         return self._frm_container

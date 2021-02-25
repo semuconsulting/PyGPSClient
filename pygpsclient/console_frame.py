@@ -5,9 +5,9 @@ This handles a scrollable text box into which the serial data is printed.
 
 Created on 12 Sep 2020
 
-@author: semuadmin
-@copyright: SEMU Consulting © 2020
-@license: BSD 3-Clause
+:author: semuadmin
+:copyright: SEMU Consulting © 2020
+:license: BSD 3-Clause
 """
 # pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
 
@@ -26,6 +26,7 @@ class ConsoleFrame(Frame):
         Constructor.
 
         :param object app: reference to main tkinter application
+
         """
 
         self.__app = app  # Reference to main application class
@@ -89,7 +90,8 @@ class ConsoleFrame(Frame):
         'maxlines' defines the maximum number of scrollable lines that are
         retained in the text box on a FIFO basis.
 
-        :param str data
+        :param str data: data from input stream
+
         """
 
         settings = self.__app.frm_settings.get_settings()
@@ -114,8 +116,9 @@ class ConsoleFrame(Frame):
         Highlights any occurrence of tags in line - each tag
         must be a tuple of (search term, highlight color)
 
-        :param str line
+        :param str line: line in console
         :param tuple tags: (search term, highlight color)
+
         """
 
         con = self.txt_console
@@ -135,7 +138,7 @@ class ConsoleFrame(Frame):
         """
         Resize frame
 
-        :param event
+        :param event event: resize event
         """
 
         self.width, self.height = self.get_size()
@@ -143,6 +146,9 @@ class ConsoleFrame(Frame):
     def get_size(self):
         """
         Get current object size.
+
+        :return: window size (width, height)
+        :rtype: tuple
         """
 
         self.update_idletasks()  # Make sure we know about any resizing

@@ -3,18 +3,16 @@ Mapview frame class for PyGPSClient application.
 
 This handles a frame containing a location map downloaded via a MapQuest API.
 
-*****************************************************************************
 NOTE: The free MapQuest API key is subject to a limit of 15,000
 transactions / month, or roughly 500 / day, so the map updates are only
 run periodically (once a minute). This utility is NOT intended to be used for
 real time navigation.
-*****************************************************************************
 
 Created on 13 Sep 2020
 
-@author: semuadmin
-@copyright: SEMU Consulting © 2020
-@license: BSD 3-Clause
+:author: semuadmin
+:copyright: SEMU Consulting © 2020
+:license: BSD 3-Clause
 """
 # pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
 
@@ -227,6 +225,8 @@ class MapviewFrame(Frame):
         :param float lat: latitude
         :param float lon: longitude
         :param float hacc: horizontal accuracy
+        :return: formatted MapQuest URL
+        :rtype: str
         """
 
         w, h = self.width, self.height
@@ -246,7 +246,7 @@ class MapviewFrame(Frame):
         """
         Resize frame
 
-        :param event
+        :param event event: resize event
         """
 
         self.width, self.height = self.get_size()
@@ -254,6 +254,9 @@ class MapviewFrame(Frame):
     def get_size(self):
         """
         Get current canvas size.
+
+        :return: window size (width, height)
+        :rtype: tuple
         """
 
         self.update_idletasks()  # Make sure we know about any resizing

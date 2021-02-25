@@ -5,9 +5,9 @@ This handles a frame containing a 2D plot of satellite visibility.
 
 Created on 13 Sep 2020
 
-@author: semuadmin
-@copyright: SEMU Consulting © 2020
-@license: BSD 3-Clause
+:author: semuadmin
+:copyright: SEMU Consulting © 2020
+:license: BSD 3-Clause
 """
 # pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
 
@@ -21,6 +21,10 @@ OL_WID = 2
 def _create_circle(self, x, y, r, **kwargs):
     """
     Helper method to simplify drawing circles on canvas
+
+    :param int x: x coordinate
+    :param int y: y coordinate
+    :param int r: radius
     """
 
     return self.create_oval(x - r, y - r, x + r, y + r, **kwargs)
@@ -51,11 +55,11 @@ class SkyviewFrame(Frame):
         self.height = kwargs.get("height", def_h)
         self.bg_col = BGCOL
         self.fg_col = FGCOL
-        self.body()
+        self._body()
 
         self.bind("<Configure>", self._on_resize)
 
-    def body(self):
+    def _body(self):
         """
         Set up frame and widgets.
         """
@@ -148,7 +152,7 @@ class SkyviewFrame(Frame):
         """
         Resize frame
 
-        :param event
+        :param event event: resize event
         """
 
         self.width, self.height = self.get_size()
@@ -156,6 +160,9 @@ class SkyviewFrame(Frame):
     def get_size(self):
         """
         Get current canvas size.
+
+        :return: window size (width, height)
+        :rtype: tuple
         """
 
         self.update_idletasks()  # Make sure we know about any resizing
