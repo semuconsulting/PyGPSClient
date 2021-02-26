@@ -164,7 +164,7 @@ class UBX_RATE_Frame(Frame):
 
     def reset(self):
         """
-        Reset panel to initial settings
+        Reset panel to initial settings.
         """
 
         self._do_poll_rate()
@@ -172,6 +172,9 @@ class UBX_RATE_Frame(Frame):
     def update_status(self, cfgtype, **kwargs):
         """
         Update pending confirmation status.
+
+        :param str cfgtype: identity of UBX message containing config info
+        :param kwargs: status keywords and values from UBX config message
         """
 
         if cfgtype == "CFG-RATE":

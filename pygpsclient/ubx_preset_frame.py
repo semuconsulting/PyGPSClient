@@ -117,7 +117,7 @@ class UBX_PRESET_Frame(Frame):
         self._body()
         self._do_layout()
         self._attach_events()
-        self._reset()
+        self.reset()
 
     def _body(self):
         """
@@ -181,7 +181,7 @@ class UBX_PRESET_Frame(Frame):
 
         self._lbx_preset.bind("<<ListboxSelect>>", self._on_select_preset)
 
-    def _reset(self):
+    def reset(self):
         """
         Reset panel.
         """
@@ -524,6 +524,9 @@ class UBX_PRESET_Frame(Frame):
     def update_status(self, cfgtype, **kwargs):
         """
         Update pending confirmation status.
+
+        :param str cfgtype: identity of UBX message containing config info
+        :param kwargs: status keywords and values from UBX config message
         """
 
         if cfgtype in ("ACK-ACK", "MON-VER"):

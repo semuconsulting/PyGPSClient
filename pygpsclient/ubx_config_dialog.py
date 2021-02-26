@@ -228,8 +228,8 @@ class UBXConfigDialog:
         Receives polled confirmation message from the ubx_handler and
         updates the widget that is waiting for this confirmation.
 
-        :param str cfgtype: identity of confirmation message received
-        :kwargs kwargs: optional key value pairs
+        :param str cfgtype: identity of UBX message containing config info
+        :param kwargs: status keywords and values from UBX config message
         """
 
         for (key, val) in self._pending_confs.items():

@@ -78,7 +78,7 @@ class UBX_MSGRATE_Frame(Frame):
         self._body()
         self._do_layout()
         self._attach_events()
-        self._reset()
+        self.reset()
 
     def _body(self):
         """
@@ -188,7 +188,7 @@ class UBX_MSGRATE_Frame(Frame):
 
         self._lbx_cfg_msg.bind("<<ListboxSelect>>", self._on_select_cfg_msg)
 
-    def _reset(self):
+    def reset(self):
         """
         Reset settings to defaults.
         """
@@ -202,6 +202,9 @@ class UBX_MSGRATE_Frame(Frame):
     def update_status(self, cfgtype, **kwargs):
         """
         Update pending confirmation status.
+
+        :param str cfgtype: identity of UBX message containing config info
+        :param kwargs: status keywords and values from UBX config message
         """
 
         if cfgtype == "CFG-MSG":

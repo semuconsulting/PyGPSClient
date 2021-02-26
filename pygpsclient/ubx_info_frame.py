@@ -131,8 +131,8 @@ class UBX_INFO_Frame(Frame):
         """
         Update pending confirmation status.
 
-        :param str cfgtype: MON-VER or MON-HW
-        :param kwargs: optional key/value pairs for each parameter
+        :param str cfgtype: identity of UBX message containing config info
+        :param kwargs: status keywords and values from UBX config message
         """
 
         # MON-VER information (for firmware version)

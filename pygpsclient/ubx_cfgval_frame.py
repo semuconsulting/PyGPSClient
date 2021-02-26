@@ -123,7 +123,7 @@ class UBX_CFGVAL_Frame(Frame):
         self._body()
         self._do_layout()
         self._attach_events()
-        self._reset()
+        self.reset()
 
     def _body(self):
         """
@@ -277,7 +277,7 @@ class UBX_CFGVAL_Frame(Frame):
         self._lbx_parm.bind("<<ListboxSelect>>", self._on_select_parm)
         self._cfgmode.trace_add("write", self._on_select_mode)
 
-    def _reset(self):
+    def reset(self):
         """
         Reset panel.
         """
@@ -456,6 +456,9 @@ class UBX_CFGVAL_Frame(Frame):
     def update_status(self, cfgtype, **kwargs):  # pylint: disable=unused-argument
         """
         Update pending confirmation status.
+
+        :param str cfgtype: identity of UBX message containing config info
+        :param kwargs: status keywords and values from UBX config message
         """
 
         if cfgtype == "CFG-VALGET":

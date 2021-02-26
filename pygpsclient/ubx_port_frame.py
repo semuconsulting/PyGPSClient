@@ -193,6 +193,9 @@ class UBX_PORT_Frame(Frame):
     def update_status(self, cfgtype, **kwargs):
         """
         Update pending confirmation status.
+
+        :param str cfgtype: identity of UBX message containing config info
+        :param kwargs: status keywords and values from UBX config message
         """
 
         if cfgtype == "CFG-PRT":
