@@ -40,7 +40,7 @@ class SerialHandler:
         """
         Constructor.
 
-        :param object app: reference to main tkinter application
+        :param Frame app: reference to main tkinter application
 
         """
 

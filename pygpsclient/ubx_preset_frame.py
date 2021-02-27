@@ -99,8 +99,10 @@ class UBX_PRESET_Frame(Frame):
         """
         Constructor.
 
-        :param object app: reference to main tkinter application
-        :param frame container: container frame
+        :param Frame app: reference to main tkinter application
+        :param Frame container: reference to container frame (config-dialog)
+        :param args: optional args to pass to Frame parent class
+        :param kwargs: optional kwargs to pass to Frame parent class
         """
 
         self.__app = app  # Reference to main application class

@@ -38,7 +38,9 @@ class MenuBar(Menu):
         """
         Constructor
 
-        :param object app: reference to main tkinter application
+        :param Frame app: reference to main tkinter application
+        :param args: optional args to pass to Menu parent class
+        :param kwargs: optional kwargs to pass to Menu parent class
         """
 
         self.__app = app  # Reference to main application class

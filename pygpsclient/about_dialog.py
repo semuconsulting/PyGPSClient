@@ -27,7 +27,7 @@ class AboutDialog:
         """
         Initialise Toplevel dialog
 
-        :param app: reference to main tkinter application
+        :param Frame app: reference to main tkinter application
         """
 
         self.__app = app  # Reference to main application class

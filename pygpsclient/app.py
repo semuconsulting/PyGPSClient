@@ -47,15 +47,16 @@ VERSION = __version__
 
 class App(Frame):  # pylint: disable=too-many-ancestors
     """
-    Main GUI Application Class
+    Main PyGPSClient GUI Application Class
     """
 
     def __init__(self, master, *args, **kwargs):
         """
         Set up main application and add frames
 
-        :param object master: reference to Tk instance
-
+        :param tkinter.Tk master: reference to Tk root
+        :param args: optional args to pass to Frame parent class
+        :param kwargs: optional kwargs to pass to Frame parent class
         """
 
         self.__master = master

@@ -27,11 +27,11 @@ class FileHandler:
     File handler class.
     """
 
-    def __init__(self, app, *args, **kwargs):  # pylint: disable=unused-argument
+    def __init__(self, app):
         """
         Constructor.
 
-        :param object app: reference to main tkinter application
+        :param Frame app: reference to main tkinter application
         """
 
         self.__app = app  # Reference to main application class

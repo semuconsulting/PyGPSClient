@@ -57,6 +57,8 @@ class SerialConfigFrame(
         Constructor.
 
         :param tkinter.Frame container: reference to container frame
+        :param args: optional args to pass to Frame parent class
+        :param kwargs: optional kwargs to pass to Frame parent class
         """
 
         self._baudrates_vals = kwargs.pop("baudrates", BAUDRATES)
@@ -291,9 +293,10 @@ class SerialConfigFrame(
     @property
     def noports(self) -> bool:
         """
-        Getter for noports flag.
+        Getter for noports flag, which indicates if there are 
+        no serial ports available.
 
-        :return: noports flag
+        :return: noports flag (True/False)
         :rtype: bool
         """
 

@@ -23,8 +23,9 @@ class StatusFrame(Frame):
         """
         Constructor
 
-        :param object app: reference to main tkinter application
-
+        :param Frame app: reference to main tkinter application
+        :param args: optional args to pass to Frame parent class
+        :param kwargs: optional kwargs to pass to Frame parent class
         """
 
         self.__app = app  # Reference to main application class
@@ -58,7 +59,7 @@ class StatusFrame(Frame):
         Sets connection description in status bar.
 
         :param str connection: description of connection
-        :param str color: rgb color string
+        :param str color: rgb color string (default=blue)
 
         """
 
@@ -70,7 +71,7 @@ class StatusFrame(Frame):
         Sets message in status bar.
 
         :param str message: message to be displayed in status bar
-        :param str color: rgb color string
+        :param str color: rgb color string (default=blue)
 
         """
 

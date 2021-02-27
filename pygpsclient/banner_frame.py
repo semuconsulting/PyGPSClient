@@ -50,7 +50,9 @@ class BannerFrame(Frame):
         """
         Constructor.
 
-        :param app: reference to main tkinter application
+        :param Frame app: reference to main tkinter application
+        :param args: optional args to pass to Frame parent class
+        :param kwargs: optional kwargs to pass to Frame parent class
         """
 
         self.__app = app  # Reference to main application class

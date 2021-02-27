@@ -55,7 +55,9 @@ class UBXConfigDialog:
         """
         Constructor.
 
-        :param object app: reference to main tkinter application
+        :param Frame app: reference to main tkinter application
+        :param args: optional args to pass to parent class (not currently used)
+        :param kwargs: optional kwargs to pass to parent class (not currently used)
         """
 
         self.__app = app  # Reference to main application class

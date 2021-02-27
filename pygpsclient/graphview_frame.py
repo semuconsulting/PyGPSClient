@@ -33,7 +33,9 @@ class GraphviewFrame(Frame):
         """
         Constructor.
 
-        :param object app: reference to main tkinter application
+        :param Frame app: reference to main tkinter application
+        :param args: optional args to pass to Frame parent class
+        :param kwargs: optional kwargs to pass to Frame parent class
         """
 
         self.__app = app  # Reference to main application class
@@ -123,7 +125,7 @@ class GraphviewFrame(Frame):
         Automatically adjust y axis according to number of satellites in view.
 
         :param list data: array of satellite tuples (gnssId, svid, elev, azim, cno):
-        :param int siv: number of satellites in view
+        :param int siv: number of satellites in view (default = 16)
         """
 
         if siv == 0:
