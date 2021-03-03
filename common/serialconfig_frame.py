@@ -175,12 +175,12 @@ class SerialConfigFrame(
         self._lbl_timeout = Label(self._frm_advanced, text="Timeout (s)")
         self._spn_timeout = Spinbox(
             self._frm_advanced,
-            values=self._parities_vals,
-            width=6,
+            values=self._timeouts_vals,
+            width=4,
             state=READONLY,
             readonlybackground=self._readonlybg,
             wrap=True,
-            textvariable=self._parity,
+            textvariable=self._timeout,
         )
 
     def _do_layout(self):
