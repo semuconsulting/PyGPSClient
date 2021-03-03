@@ -53,7 +53,6 @@ from .globals import (
     UBX_PROTOCOL,
     MIXED_PROTOCOL,
     KNOWNGPS,
-    SERIAL_TIMEOUT,
 )
 from .strings import (
     LBLUBXCONFIG,
@@ -63,6 +62,18 @@ from .strings import (
     LBLTRACKRECORD,
     LBLSHOWNULL,
     LBLLEGEND,
+)
+
+TIMEOUTS = (
+    "0.2",
+    "1",
+    "2",
+    "5",
+    "10",
+    "20",
+    "None",
+    "0",
+    "0.1",
 )
 
 
@@ -122,7 +133,7 @@ class SettingsFrame(Frame):
 
         # serial port configuration panel
         self._frm_serial = SerialConfigFrame(
-            self, preselect=KNOWNGPS, default_timeout=SERIAL_TIMEOUT
+            self, preselect=KNOWNGPS, timeouts=TIMEOUTS
         )
 
         # connection buttons

@@ -14,7 +14,6 @@ Created on 14 Sep 2020
 
 import os
 from math import sin, cos, pi
-from serial import PARITY_NONE, PARITY_EVEN, PARITY_ODD, PARITY_MARK, PARITY_SPACE
 from pynmea2 import types
 
 DIRNAME = os.path.dirname(__file__)
@@ -57,17 +56,7 @@ ANTSTATUS = ("INIT", "DONTKNOW", "OK", "SHORT", "OPEN")
 ANTPOWER = ("OFF", "ON", "DONTKNOW")
 # array of default serial device descriptors
 KNOWNGPS = ("GPS", "gps", "GNSS", "gnss", "Garmin", "garmin", "U-Blox", "u-blox")
-BAUDRATES = (115200, 57600, 38400, 19200, 9600, 4800)
-PARITIES = {
-    "Even": PARITY_EVEN,
-    "Odd": PARITY_ODD,
-    "Mark": PARITY_MARK,
-    "Space": PARITY_SPACE,
-    "None": PARITY_NONE,
-}
-# serial port timeout; lower is better for app response
-# but you may lose packets on high latency connections
-SERIAL_TIMEOUT = 0.2
+BAUDRATES = (9600, 19200, 38400, 57600, 115200, 4800)
 MQAPIKEY = "mqapikey"
 UBXPRESETS = "ubxpresets"
 MAXLOGLINES = 10000  # maximum number of 'lines' per datalog file

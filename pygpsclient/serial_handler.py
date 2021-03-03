@@ -13,9 +13,7 @@ Created on 16 Sep 2020
 
 from io import BufferedReader
 from threading import Thread
-
 from serial import Serial, SerialException, SerialTimeoutException
-
 import pyubx2.ubxtypes_core as ubt
 
 from .globals import (
@@ -25,8 +23,6 @@ from .globals import (
     NMEA_PROTOCOL,
     MIXED_PROTOCOL,
     UBX_PROTOCOL,
-    PARITIES,
-    #     SERIAL_TIMEOUT,
 )
 from .strings import STOPDATA, NOTCONN, SEROPENERROR, ENDOFFILE
 
@@ -80,7 +76,7 @@ class SerialHandler:
         baudrate = settings["baudrate"]
         databits = settings["databits"]
         stopbits = settings["stopbits"]
-        parity = PARITIES[settings["parity"]]
+        parity = settings["parity"]
         xonxoff = settings["xonxoff"]
         rtscts = settings["rtscts"]
         timeout = settings["timeout"]

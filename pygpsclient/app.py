@@ -30,12 +30,11 @@ from .about_dialog import AboutDialog
 from .banner_frame import BannerFrame
 from .console_frame import ConsoleFrame
 from .filehandler import FileHandler
-from .globals import ICON_APP, DISCONNECTED, KNOWNGPS
+from .globals import ICON_APP, DISCONNECTED
 from .graphview_frame import GraphviewFrame
 from .map_frame import MapviewFrame
 from .menu_bar import MenuBar
 from .serial_handler import SerialHandler
-from common.serialconfig_frame import SerialConfigFrame
 from .settings_frame import SettingsFrame
 from .skyview_frame import SkyviewFrame
 from .status_frame import StatusFrame

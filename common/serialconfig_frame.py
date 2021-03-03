@@ -33,23 +33,26 @@ from tkinter import (
 )
 
 from serial.tools.list_ports import comports
+from serial import PARITY_NONE, PARITY_EVEN, PARITY_ODD, PARITY_MARK, PARITY_SPACE
+
 
 ADVOFF = "\u25bc"
 ADVON = "\u25b2"
 READONLY = "readonly"
-DEFAULT_BAUDRATE = 9600
-DEFAULT_DATABITS = 8
-DEFAULT_STOPBITS = 1
-DEFAULT_PARITY = "None"
-DEFAULT_RTSCTS = False
-DEFAULT_XONXOFF = False
-# these values can be overridden via keyword arguments:
-DEFAULT_TIMEOUT = "None"
-BAUDRATES = (115200, 57600, 38400, 19200, 9600, 4800)
-DATABITS = (8, 7, 6, 5)
-STOPBITS = (2, 1.5, 1)
-PARITIES = ("None", "Even", "Odd", "Mark", "Space")
-TIMEOUTS = ("None", "0", "0.1", "0.2", "1", "2", "5", "10", "20")
+PARITIES = {
+    "None": PARITY_NONE,
+    "Even": PARITY_EVEN,
+    "Odd": PARITY_ODD,
+    "Mark": PARITY_MARK,
+    "Space": PARITY_SPACE,
+}
+# These ranges can be overridden via keyword arguments:
+# (the default value will be the first in the range)
+BAUDRATE_RNG = (9600, 19200, 38400, 57600, 115200, 4800)
+DATABITS_RNG = (8, 5, 6, 7)
+STOPBITS_RNG = (1, 1.5, 2)
+PARITY_RNG = list(PARITIES.keys())
+TIMEOUT_RNG = ("None", "0", "1", "2", "5", "10", "20")
 BGCOL = "azure"
 
 
@@ -66,15 +69,14 @@ class SerialConfigFrame(
 
         :param tkinter.Frame container: reference to container frame
         :param args: optional args to pass to Frame parent class
-        :param kwargs: optional kwargs to pass to Frame parent class
+        :param kwargs: optional kwargs for value ranges, or to pass to Frame parent class
         """
 
-        self._baudrates_vals = kwargs.pop("baudrates", BAUDRATES)
-        self._databits_vals = kwargs.pop("databits", DATABITS)
-        self._stopbits_vals = kwargs.pop("stopbits", STOPBITS)
-        self._parities_vals = kwargs.pop("parities", PARITIES)
-        self._timeouts_vals = kwargs.pop("timeouts", TIMEOUTS)
-        self._default_timeout = kwargs.pop("default_timeout", DEFAULT_TIMEOUT)
+        self._baudrate_rng = kwargs.pop("baudrates", BAUDRATE_RNG)
+        self._databits_rng = kwargs.pop("databits", DATABITS_RNG)
+        self._stopbits_rng = kwargs.pop("stopbits", STOPBITS_RNG)
+        self._parity_rng = kwargs.pop("parities", PARITY_RNG)
+        self._timeout_rng = kwargs.pop("timeouts", TIMEOUT_RNG)
         self._preselect = kwargs.pop("preselect", ())
         self._readonlybg = kwargs.pop("readonlybackground", BGCOL)
 
@@ -125,7 +127,7 @@ class SerialConfigFrame(
         self._lbl_baudrate = Label(self._frm_basic, text="Baud rate")
         self._spn_baudrate = Spinbox(
             self._frm_basic,
-            values=self._baudrates_vals,
+            values=self._baudrate_rng,
             width=8,
             state=READONLY,
             readonlybackground=self._readonlybg,
@@ -140,7 +142,7 @@ class SerialConfigFrame(
         self._lbl_databits = Label(self._frm_advanced, text="Data Bits")
         self._spn_databits = Spinbox(
             self._frm_advanced,
-            values=self._databits_vals,
+            values=self._databits_rng,
             width=3,
             state=READONLY,
             readonlybackground=self._readonlybg,
@@ -150,7 +152,7 @@ class SerialConfigFrame(
         self._lbl_stopbits = Label(self._frm_advanced, text="Stop Bits")
         self._spn_stopbits = Spinbox(
             self._frm_advanced,
-            values=self._stopbits_vals,
+            values=self._stopbits_rng,
             width=3,
             state=READONLY,
             readonlybackground=self._readonlybg,
@@ -160,7 +162,7 @@ class SerialConfigFrame(
         self._lbl_parity = Label(self._frm_advanced, text="Parity")
         self._spn_parity = Spinbox(
             self._frm_advanced,
-            values=self._parities_vals,
+            values=self._parity_rng,
             width=6,
             state=READONLY,
             readonlybackground=self._readonlybg,
@@ -176,7 +178,7 @@ class SerialConfigFrame(
         self._lbl_timeout = Label(self._frm_advanced, text="Timeout (s)")
         self._spn_timeout = Spinbox(
             self._frm_advanced,
-            values=self._timeouts_vals,
+            values=self._timeout_rng,
             width=4,
             state=READONLY,
             readonlybackground=self._readonlybg,
@@ -305,21 +307,21 @@ class SerialConfigFrame(
 
     def reset(self):
         """
-        Reset settings to defaults.
+        Reset settings to defaults (first value in range).
         """
 
-        self._baudrate.set(DEFAULT_BAUDRATE)
-        self._databits.set(DEFAULT_DATABITS)
-        self._stopbits.set(DEFAULT_STOPBITS)
-        self._parity.set(DEFAULT_PARITY)
-        self._rtscts.set(DEFAULT_RTSCTS)
-        self._xonxoff.set(DEFAULT_XONXOFF)
-        self._timeout.set(self._default_timeout)
+        self._baudrate.set(self._baudrate_rng[0])
+        self._databits.set(self._databits_rng[0])
+        self._stopbits.set(self._stopbits_rng[0])
+        self._parity.set(self._parity_rng[0])
+        self._rtscts.set(False)
+        self._xonxoff.set(False)
+        self._timeout.set(self._timeout_rng[0])
 
     @property
     def noports(self) -> bool:
         """
-        Getter for noports flag, which indicates if there are 
+        Getter for noports flag, which indicates if there are
         no serial ports available.
 
         :return: noports flag (True/False)
@@ -392,7 +394,7 @@ class SerialConfigFrame(
         :rtype: str
         """
 
-        return self._parity.get()
+        return PARITIES[self._parity.get()]
 
     @property
     def rtscts(self) -> bool:
@@ -424,7 +426,7 @@ class SerialConfigFrame(
         :return: selected timeout
         :rtype: float (or None)
         """
-        
+
         if self._timeout.get() == "None":
             return None
         return float(self._timeout.get())
