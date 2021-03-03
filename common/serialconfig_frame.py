@@ -43,8 +43,8 @@ DEFAULT_STOPBITS = 1
 DEFAULT_PARITY = "None"
 DEFAULT_RTSCTS = False
 DEFAULT_XONXOFF = False
-DEFAULT_TIMEOUT = "0.2"
-# these range values can be overridden via keyword arguments:
+# these values can be overridden via keyword arguments:
+DEFAULT_TIMEOUT = "None"
 BAUDRATES = (115200, 57600, 38400, 19200, 9600, 4800)
 DATABITS = (8, 7, 6, 5)
 STOPBITS = (2, 1.5, 1)
@@ -74,6 +74,7 @@ class SerialConfigFrame(
         self._stopbits_vals = kwargs.pop("stopbits", STOPBITS)
         self._parities_vals = kwargs.pop("parities", PARITIES)
         self._timeouts_vals = kwargs.pop("timeouts", TIMEOUTS)
+        self._default_timeout = kwargs.pop("default_timeout", DEFAULT_TIMEOUT)
         self._preselect = kwargs.pop("preselect", ())
         self._readonlybg = kwargs.pop("readonlybackground", BGCOL)
 
@@ -313,7 +314,7 @@ class SerialConfigFrame(
         self._parity.set(DEFAULT_PARITY)
         self._rtscts.set(DEFAULT_RTSCTS)
         self._xonxoff.set(DEFAULT_XONXOFF)
-        self._timeout.set(DEFAULT_TIMEOUT)
+        self._timeout.set(self._default_timeout)
 
     @property
     def noports(self) -> bool:

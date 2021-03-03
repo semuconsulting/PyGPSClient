@@ -53,6 +53,7 @@ from .globals import (
     UBX_PROTOCOL,
     MIXED_PROTOCOL,
     KNOWNGPS,
+    SERIAL_TIMEOUT,
 )
 from .strings import (
     LBLUBXCONFIG,
@@ -120,7 +121,9 @@ class SettingsFrame(Frame):
         self.option_add("*Font", self.__app.font_sm)
 
         # serial port configuration panel
-        self._frm_serial = SerialConfigFrame(self, preselect=KNOWNGPS)
+        self._frm_serial = SerialConfigFrame(
+            self, preselect=KNOWNGPS, default_timeout=SERIAL_TIMEOUT
+        )
 
         # connection buttons
         self._frm_buttons = Frame(self)
