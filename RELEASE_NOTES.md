@@ -4,7 +4,8 @@
 
 ENHANCEMENTS:
 
-1. Timeout setting added to common Serial port control dialog.
+1. Timeout setting added to common Serial port control dialog. 
+2. Baudrate range extended to 921600.
 
 ### RELEASE v0.2.27-beta
 

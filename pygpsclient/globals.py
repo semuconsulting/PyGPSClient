@@ -56,7 +56,7 @@ ANTSTATUS = ("INIT", "DONTKNOW", "OK", "SHORT", "OPEN")
 ANTPOWER = ("OFF", "ON", "DONTKNOW")
 # array of default serial device descriptors
 KNOWNGPS = ("GPS", "gps", "GNSS", "gnss", "Garmin", "garmin", "U-Blox", "u-blox")
-BAUDRATES = (9600, 19200, 38400, 57600, 115200, 4800)
+BAUDRATES = (9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600, 4800)
 MQAPIKEY = "mqapikey"
 UBXPRESETS = "ubxpresets"
 MAXLOGLINES = 10000  # maximum number of 'lines' per datalog file

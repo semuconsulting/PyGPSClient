@@ -43,7 +43,7 @@ setup(
     },
     classifiers=[
         "License :: OSI Approved :: BSD License",
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Environment :: MacOS X',
         'Environment :: X11 Applications',
         'Environment :: Win32 (MS Windows)',
