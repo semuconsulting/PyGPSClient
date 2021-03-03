@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE v0.2.28-beta
+
+ENHANCEMENTS:
+
+1. Timeout setting added to common Serial port control dialog.
+
 ### RELEASE v0.2.27-beta
 
 ENHANCEMENTS:

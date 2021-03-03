@@ -19,7 +19,7 @@ setup(
     name="PyGPSClient",
     version=VERSION,
     packages=find_packages(exclude=['tests', 'references', 'images']),
-    install_requires=["pyubx2>=1.0.4", "pynmea2>=1.15.0", "requests>=2.24.0",
+    install_requires=["pyubx2>=1.0.5", "pynmea2>=1.15.0", "requests>=2.24.0",
                       "Pillow>=7.2.0", "pyserial>=3.4"],
     package_data={
         "pygpsclient": ["resources/*.gif", "resources/*.png",
@@ -38,6 +38,7 @@ setup(
     project_urls={
         "Bug Tracker": "https://github.com/semuconsulting/PyGPSClient",
         "Documentation": "https://github.com/semuconsulting/PyGPSClient",
+        "Sphinx API Documentation": "http://semuconsulting.com/pygpsclient",
         "Source Code": "https://github.com/semuconsulting/PyGPSClient",
     },
     classifiers=[

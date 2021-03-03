@@ -442,6 +442,7 @@ class SettingsFrame(Frame):
         self._settings["parity"] = self._frm_serial.parity
         self._settings["rtscts"] = self._frm_serial.rtscts
         self._settings["xonxoff"] = self._frm_serial.xonxoff
+        self._settings["timeout"] = self._frm_serial.timeout
 
         self._settings["protocol"] = self._protocol.get()
         self._settings["raw"] = self._raw.get()

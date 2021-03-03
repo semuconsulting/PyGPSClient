@@ -394,7 +394,7 @@ def pos2iso6709(lat: float, lon: float, alt: float, crs: str = "WGS_84") -> str:
     :param float lat: latitude
     :param float lon: longitude
     :param float alt: altitude
-    :param float crs: coordinate reference system
+    :param float crs: coordinate reference system (default = WGS_84)
     :return: position in iso6709 format
     :rtype: str
 

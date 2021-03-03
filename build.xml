@@ -1,6 +1,6 @@
 <?xml version = "1.0"?>
 <project name="PyGPSClient" default="build">
-	<property name="version" value="0.2.27" />
+	<property name="version" value="0.2.28" />
 	<condition property="python" value="python" else="/Library/Frameworks/Python.framework/Versions/3.9/bin/python3">
 		<os family="windows" />
 	</condition>
@@ -25,7 +25,6 @@
 			<fileset dir="build" />
 			<fileset dir="dist" />
 			<fileset dir="htmlcov" />
-			<fileset dir="doc" />
 			<fileset dir="${ant.project.name}.egg-info/" />
 			<fileset dir="${ant.project.name}-*/" />
 			<fileset dir="${ant.project.name}/__pycache__" includes="*.nbc, *.nbi, *.pyc" />

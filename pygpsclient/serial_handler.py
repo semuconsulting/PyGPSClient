@@ -22,11 +22,11 @@ from .globals import (
     CONNECTED,
     CONNECTED_FILE,
     DISCONNECTED,
-    SERIAL_TIMEOUT,
     NMEA_PROTOCOL,
     MIXED_PROTOCOL,
     UBX_PROTOCOL,
     PARITIES,
+    #     SERIAL_TIMEOUT,
 )
 from .strings import STOPDATA, NOTCONN, SEROPENERROR, ENDOFFILE
 
@@ -83,6 +83,7 @@ class SerialHandler:
         parity = PARITIES[settings["parity"]]
         xonxoff = settings["xonxoff"]
         rtscts = settings["rtscts"]
+        timeout = settings["timeout"]
         self._datalogging = settings["datalogging"]
         self._recordtrack = settings["recordtrack"]
 
@@ -95,7 +96,7 @@ class SerialHandler:
                 parity=parity,
                 xonxoff=xonxoff,
                 rtscts=rtscts,
-                timeout=SERIAL_TIMEOUT,
+                timeout=timeout,
             )
             self._serial_buffer = BufferedReader(self._serial_object)
             self.__app.frm_banner.update_conn_status(CONNECTED)

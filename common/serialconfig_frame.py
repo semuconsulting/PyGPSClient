@@ -37,11 +37,19 @@ from serial.tools.list_ports import comports
 ADVOFF = "\u25bc"
 ADVON = "\u25b2"
 READONLY = "readonly"
-# these default values can be overridden via keyword arguments:
+DEFAULT_BAUDRATE = 9600
+DEFAULT_DATABITS = 8
+DEFAULT_STOPBITS = 1
+DEFAULT_PARITY = "None"
+DEFAULT_RTSCTS = False
+DEFAULT_XONXOFF = False
+DEFAULT_TIMEOUT = "0.2"
+# these range values can be overridden via keyword arguments:
 BAUDRATES = (115200, 57600, 38400, 19200, 9600, 4800)
 DATABITS = (8, 7, 6, 5)
 STOPBITS = (2, 1.5, 1)
 PARITIES = ("None", "Even", "Odd", "Mark", "Space")
+TIMEOUTS = ("None", "0", "0.1", "0.2", "1", "2", "5", "10", "20")
 BGCOL = "azure"
 
 
@@ -65,6 +73,7 @@ class SerialConfigFrame(
         self._databits_vals = kwargs.pop("databits", DATABITS)
         self._stopbits_vals = kwargs.pop("stopbits", STOPBITS)
         self._parities_vals = kwargs.pop("parities", PARITIES)
+        self._timeouts_vals = kwargs.pop("timeouts", TIMEOUTS)
         self._preselect = kwargs.pop("preselect", ())
         self._readonlybg = kwargs.pop("readonlybackground", BGCOL)
 
@@ -81,6 +90,7 @@ class SerialConfigFrame(
         self._parity = StringVar()
         self._rtscts = IntVar()
         self._xonxoff = IntVar()
+        self._timeout = StringVar()
 
         self._body()
         self._do_layout()
@@ -162,6 +172,16 @@ class SerialConfigFrame(
         self._chk_xon = Checkbutton(
             self._frm_advanced, text="Xon/Xoff", variable=self._xonxoff
         )
+        self._lbl_timeout = Label(self._frm_advanced, text="Timeout (s)")
+        self._spn_timeout = Spinbox(
+            self._frm_advanced,
+            values=self._parities_vals,
+            width=6,
+            state=READONLY,
+            readonlybackground=self._readonlybg,
+            wrap=True,
+            textvariable=self._parity,
+        )
 
     def _do_layout(self):
         """
@@ -186,6 +206,8 @@ class SerialConfigFrame(
         self._spn_parity.grid(column=1, row=1, sticky=(W), padx=3, pady=3)
         self._chk_rts.grid(column=2, row=1, sticky=(W))
         self._chk_xon.grid(column=3, row=1, sticky=(W), padx=3, pady=3)
+        self._lbl_timeout.grid(column=0, row=2, sticky=(W))
+        self._spn_timeout.grid(column=1, row=2, sticky=(W), padx=3, pady=3)
 
     def _attach_events(self):
         """
@@ -265,6 +287,7 @@ class SerialConfigFrame(
             self._lbl_databits,
             self._lbl_stopbits,
             self._lbl_parity,
+            self._lbl_timeout,
             self._chk_rts,
             self._chk_xon,
             self._lbx_port,
@@ -275,6 +298,7 @@ class SerialConfigFrame(
             self._spn_databits,
             self._spn_stopbits,
             self._spn_parity,
+            self._spn_timeout,
         ):
             widget.configure(state=(DISABLED if disabled else READONLY))
 
@@ -283,12 +307,13 @@ class SerialConfigFrame(
         Reset settings to defaults.
         """
 
-        self._baudrate.set(BAUDRATES[4])  # 9600
-        self._databits.set(8)
-        self._stopbits.set(1)
-        self._parity.set("None")
-        self._rtscts.set(False)
-        self._xonxoff.set(False)
+        self._baudrate.set(DEFAULT_BAUDRATE)
+        self._databits.set(DEFAULT_DATABITS)
+        self._stopbits.set(DEFAULT_STOPBITS)
+        self._parity.set(DEFAULT_PARITY)
+        self._rtscts.set(DEFAULT_RTSCTS)
+        self._xonxoff.set(DEFAULT_XONXOFF)
+        self._timeout.set(DEFAULT_TIMEOUT)
 
     @property
     def noports(self) -> bool:
@@ -389,3 +414,16 @@ class SerialConfigFrame(
         """
 
         return self._xonxoff.get()
+
+    @property
+    def timeout(self) -> float:
+        """
+        Getter for timeout.
+
+        :return: selected timeout
+        :rtype: float (or None)
+        """
+        
+        if self._timeout.get() == "None":
+            return None
+        return float(self._timeout.get())
