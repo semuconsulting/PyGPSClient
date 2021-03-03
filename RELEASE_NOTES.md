@@ -1,11 +1,14 @@
 # PyGPSClient Release Notes
 
-### RELEASE v0.2.28-beta
+### RELEASE v1.0.0
+
+Version and status updated to v1.0.0 Production/Stable
 
 ENHANCEMENTS:
 
 1. Timeout setting added to common Serial port control dialog. 
-2. Baudrate range extended to 921600.
+2. Serial port baudrate configuration settings range extended to 921600.
+
 
 ### RELEASE v0.2.27-beta
 

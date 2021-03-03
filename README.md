@@ -26,7 +26,7 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 
 ## Features
 
-1. Supports both NMEA and UBX protocols. It uses the existing pynmea2 library for NMEA parsing and a **[new pyubx2 library](https://github.com/semuconsulting/pyubx2)** for UBX parsing.
+1. Supports both NMEA and UBX protocols. It uses the existing pynmea2 library for NMEA parsing and the pyubx2 library](https://github.com/semuconsulting/pyubx2)** for UBX parsing.
 1. Capable of reading from serial/USB port or previously-saved binary datalog file. 
 1. Configurable GUI with selectable and resizeable widgets.
 1. Expandable banner widget showing key navigation information.
