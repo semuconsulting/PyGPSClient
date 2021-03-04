@@ -26,7 +26,7 @@ LEG_GAP = 5
 
 class GraphviewFrame(Frame):
     """
-    Frame inheritance class for plotting satellite view.
+    Graphview frame class.
     """
 
     def __init__(self, app, *args, **kwargs):

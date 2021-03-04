@@ -80,7 +80,7 @@ TIMEOUTS = (
 
 class SettingsFrame(Frame):
     """
-    Frame inheritance class for application settings and controls.
+    Settings frame class.
     """
 
     def __init__(self, app, *args, **kwargs):
@@ -393,10 +393,12 @@ class SettingsFrame(Frame):
 
     def enable_controls(self, status: int):
         """
-        Public method to enable and disable serial port controls
-        depending on connection status.
+        Public method to enable and disable those controls
+        which depend on connection status.
 
-        :param int status: connection status as integer (0,1,2)
+        :param int status: connection status as integer
+               (0=Disconnected, 1=Connected to serial,
+               2=Cnnected to file, 3=No serial ports available)
 
         """
 
@@ -462,9 +464,9 @@ class SettingsFrame(Frame):
     @property
     def protocol(self) -> int:
         """
-        Getter for protocol
+        Getter for displayed protocols
 
-        :return: protocol displayed (0=NMEA,1=UBX,2=BOTH)
+        :return: protocol displayed (0=NMEA, 1=UBX, 2=BOTH)
         :rtype: int
         """
 
@@ -475,7 +477,7 @@ class SettingsFrame(Frame):
         """
         Getter for console display format
 
-        :return: 0 - parsed, 1 = raw
+        :return: display format (0 - parsed, 1 = raw)
         :rtype: int
         """
 
@@ -486,7 +488,7 @@ class SettingsFrame(Frame):
         """
         Getter for autoscroll flag
 
-        :return: 0 = fixed, 1 = scrolling
+        :return: scroll setting (0 = no scroll, 1 = auto)
         :rtype: int
         """
 
@@ -495,9 +497,9 @@ class SettingsFrame(Frame):
     @property
     def maxlines(self) -> int:
         """
-        Getter for max console display lines (default=300)
+        Getter for max console display lines
 
-        :return: max lines in console display
+        :return: max lines in console display (default=300)
         :rtype: int
         """
 
@@ -508,7 +510,7 @@ class SettingsFrame(Frame):
         """
         Getter for webmap flag
 
-        :return: 0 = static map, 1 = dynamic web map
+        :return: map type (0 = static map, 1 = dynamic web map)
         :rtype: int
         """
 
@@ -543,7 +545,7 @@ class SettingsFrame(Frame):
         Getter for degrees format
 
         :return: "DD.D" = decimal degrees, "DM.M" = degrees, decimal minutes,
-                 "D.M.S" = degress, minutes, seconds
+                 "D.M.S" = degrees, minutes, seconds
         :rtype: str
         """
 

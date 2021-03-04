@@ -31,7 +31,7 @@ from .strings import (
 
 class MenuBar(Menu):
     """
-    Menu inheritance class for menu bar.
+    Menu bar class.
     """
 
     def __init__(self, app, *args, **kwargs):

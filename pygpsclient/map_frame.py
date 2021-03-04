@@ -35,7 +35,7 @@ from .strings import (
 
 class MapviewFrame(Frame):
     """
-    Frame inheritance class for plotting satellite view.
+    Map frame class.
     """
 
     def __init__(self, app, *args, **kwargs):

@@ -219,7 +219,7 @@ class UBXConfigDialog:
         Set pending confirmation flag for configuration widget to
         signify that it's waiting for a confirmation message.
 
-        :param int key: integer representing configuration widget (0-3)
+        :param int key: integer representing UBX configuration widget (0-6)
         :param list val: list of confirmation messages that widget is awaiting
         """
 

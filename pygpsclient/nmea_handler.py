@@ -29,7 +29,7 @@ from .strings import NMEAVALERROR
 
 class NMEAHandler:
     """
-    NMEAHandler class
+    NMEA handler class.
     """
 
     def __init__(self, app):

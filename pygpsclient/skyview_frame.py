@@ -35,7 +35,7 @@ Canvas.create_circle = _create_circle
 
 class SkyviewFrame(Frame):
     """
-    Frame inheritance class for plotting satellite view.
+    Skyview frame class.
     """
 
     def __init__(self, app, *args, **kwargs):

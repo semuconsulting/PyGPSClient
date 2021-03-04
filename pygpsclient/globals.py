@@ -51,22 +51,27 @@ SAT_EXPIRY = 10  # how long passed satellites are kept in the sky and graph view
 MAX_SNR = 60  # upper limit of graphview snr axis
 DEVICE_ACCURACY = 2.5  # nominal GPS device accuracy (CEP) in meters
 HDOP_RATIO = 20  # arbitrary calibration of accuracy against HDOP
+MAXLOGLINES = 10000  # maximum number of 'lines' per datalog file
 PORTIDS = ("0 I2C", "1 UART1", "2 UART2", "3 USB", "4 SPI")
 ANTSTATUS = ("INIT", "DONTKNOW", "OK", "SHORT", "OPEN")
 ANTPOWER = ("OFF", "ON", "DONTKNOW")
-# array of default serial device descriptors
-KNOWNGPS = ("GPS", "gps", "GNSS", "gnss", "Garmin", "garmin", "U-Blox", "u-blox")
-BAUDRATES = (9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600, 4800)
+# names of user preset files:
 MQAPIKEY = "mqapikey"
 UBXPRESETS = "ubxpresets"
-MAXLOGLINES = 10000  # maximum number of 'lines' per datalog file
+# list of recognised serial device descriptors:
+KNOWNGPS = ("GPS", "gps", "GNSS", "gnss", "Garmin", "garmin", "U-Blox", "u-blox")
+# list of available baud rates (first entry in list is the default):
+BAUDRATES = (9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600, 4800)
+# displayed protocol flags:
 NMEA_PROTOCOL = 0
 UBX_PROTOCOL = 1
 MIXED_PROTOCOL = 2
+# connection type flags:
 DISCONNECTED = 0
 CONNECTED = 1
 CONNECTED_FILE = 2
 NOPORTS = 3
+# default widget frame sizes:
 WIDGETU1 = (250, 250)
 WIDGETU2 = (350, 250)
 WIDGETU3 = (950, 350)
@@ -87,7 +92,9 @@ UIK = "Imperial knots"
 ADVOFF = "\u25bc"
 ADVON = "\u25b2"
 
-# ubx config widget confirmation flags
+# UBX config widget signifiers - used to
+# identify which widget should receive the
+# data from a given POLL or ACK message:
 UBX_MONVER = 0
 UBX_MONHW = 1
 UBX_CFGPRT = 2
@@ -97,6 +104,7 @@ UBX_PRESET = 5
 UBX_CFGRATE = 6
 
 GLONASS_NMEA = True  # use GLONASS NMEA SVID (65-96) rather than slot (1-24)
+# GNSS color codings:
 GNSS_LIST = {
     0: ("GPS", "royalblue"),
     1: ("SBA", "orange"),
@@ -108,6 +116,7 @@ GNSS_LIST = {
 }
 
 # List of tags to highlight in console
+# (NB there is a slight performance hit in having many tags)
 TAGS = [
     ("ACK-ACK", "green2"),
     ("ACK-NAK", "orange red"),

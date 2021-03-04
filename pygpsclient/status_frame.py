@@ -16,7 +16,7 @@ from tkinter import ttk, Frame, Label, StringVar, N, S, W, E, VERTICAL
 
 class StatusFrame(Frame):
     """
-    Frame inheritance class for _status bar.
+    Status bar frame class.
     """
 
     def __init__(self, app, *args, **kwargs):

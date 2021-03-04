@@ -43,7 +43,7 @@ from .globals import (
 
 class BannerFrame(Frame):
     """
-    Frame inheritance class for banner.
+    Banner frame class.
     """
 
     def __init__(self, app, *args, **kwargs):

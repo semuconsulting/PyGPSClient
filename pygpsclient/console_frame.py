@@ -18,7 +18,7 @@ from .globals import TAGS, BGCOL, FGCOL
 
 class ConsoleFrame(Frame):
     """
-    Frame inheritance class for plotting area.
+    Console frame class.
     """
 
     def __init__(self, app, *args, **kwargs):
