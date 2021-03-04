@@ -242,7 +242,7 @@ class SerialConfigFrame(
             self._noports = False
         else:
             self._noports = True
-            self.set_controls(True)
+            self.enable_controls(True)
         self._lbx_port.activate(init_idx)
         self._port.set(port)
         self._port_desc.set(desc)
@@ -276,7 +276,7 @@ class SerialConfigFrame(
             self._frm_advanced.grid_forget()
             self._btn_toggle.config(text=ADVOFF)
 
-    def set_controls(self, disabled: bool=False):
+    def enable_controls(self, disabled: bool=False):
         """
         Enable or disable controls (e.g. to prevent
         changes when serial device is connected).

@@ -86,7 +86,7 @@ class MapviewFrame(Frame):
         w, h = self.width, self.height
         resize_font = font.Font(size=min(int(w / 20), 14))
 
-        if self.__app.frm_settings.get_settings()["webmap"]:
+        if self.__app.frm_settings.webmap:
             static = False
         else:
             static = True
@@ -232,10 +232,11 @@ class MapviewFrame(Frame):
         """
 
         w, h = self.width, self.height
-        zoom = self.__app.frm_settings.get_settings()["mapzoom"]
         radius = str(hacc / 1000)  # km
 
-        return MAPURL.format(apikey, lat, lon, zoom, radius, lat, lon, w, h)
+        return MAPURL.format(
+            apikey, lat, lon, self.__app.frm_settings.mapzoom, radius, lat, lon, w, h
+        )
 
     def reset_map_refresh(self):
         """

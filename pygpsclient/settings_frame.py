@@ -96,7 +96,6 @@ class SettingsFrame(Frame):
         self.__master = self.__app.get_master()  # Reference to root class (Tk)
         Frame.__init__(self, self.__master, *args, **kwargs)
 
-        self._settings = {}
         self._protocol = IntVar()
         self._raw = IntVar()
         self._autoscroll = IntVar()
@@ -392,9 +391,8 @@ class SettingsFrame(Frame):
         self._datalog.set(False)
         self._record_track.set(False)
 
-    def set_controls(self, status: int):
+    def enable_controls(self, status: int):
         """
-        ...for the heart of the sun.
         Public method to enable and disable serial port controls
         depending on connection status.
 
@@ -402,7 +400,7 @@ class SettingsFrame(Frame):
 
         """
 
-        self._frm_serial.set_controls(status)
+        self._frm_serial.enable_controls(status)
 
         self._btn_connect.config(
             state=(
@@ -439,42 +437,6 @@ class SettingsFrame(Frame):
             ),
         )
 
-    def get_settings(self) -> dict:
-        """
-        Public method returns all settings as a dict.
-
-        :return: current settings
-        :rtype: dict
-
-        """
-
-        self._settings["noports"] = self._frm_serial.noports
-        self._settings["port"] = self._frm_serial.port
-        self._settings["port_desc"] = self._frm_serial.port_desc
-        self._settings["baudrate"] = self._frm_serial.baudrate
-        self._settings["databits"] = self._frm_serial.databits
-        self._settings["stopbits"] = self._frm_serial.stopbits
-        self._settings["parity"] = self._frm_serial.parity
-        self._settings["rtscts"] = self._frm_serial.rtscts
-        self._settings["xonxoff"] = self._frm_serial.xonxoff
-        self._settings["timeout"] = self._frm_serial.timeout
-
-        self._settings["protocol"] = self._protocol.get()
-        self._settings["raw"] = self._raw.get()
-        self._settings["autoscroll"] = self._autoscroll.get()
-        self._settings["maxlines"] = self._maxlines.get()
-        self._settings["webmap"] = self._webmap.get()
-        self._settings["mapzoom"] = self._mapzoom.get()
-        self._settings["units"] = self._units.get()
-        self._settings["format"] = self._format.get()
-        self._settings["logpath"] = self._logpath
-        self._settings["datalogging"] = self._datalog.get()
-        self._settings["recordtrack"] = self._record_track.get()
-        self._settings["zerosignal"] = self._show_zerosig.get()
-        self._settings["graphlegend"] = self._show_legend.get()
-
-        return self._settings
-
     def get_size(self) -> (int, int):
         """
         Get current frame size.
@@ -486,3 +448,158 @@ class SettingsFrame(Frame):
 
         self.update_idletasks()  # Make sure we know about any resizing
         return (self.winfo_width(), self.winfo_height())
+
+    def serial_settings(self) -> Frame:
+        """
+        Return reference to common serial configuration panel
+
+        :return: reference to serial form
+        :rtype: Frame
+        """
+
+        return self._frm_serial
+
+    @property
+    def protocol(self) -> int:
+        """
+        Getter for protocol
+
+        :return: protocol displayed (0=NMEA,1=UBX,2=BOTH)
+        :rtype: int
+        """
+
+        return self._protocol.get()
+
+    @property
+    def raw(self) -> int:
+        """
+        Getter for console display format
+
+        :return: 0 - parsed, 1 = raw
+        :rtype: int
+        """
+
+        return self._raw.get()
+
+    @property
+    def autoscroll(self) -> int:
+        """
+        Getter for autoscroll flag
+
+        :return: 0 = fixed, 1 = scrolling
+        :rtype: int
+        """
+
+        return self._autoscroll.get()
+
+    @property
+    def maxlines(self) -> int:
+        """
+        Getter for max console display lines (default=300)
+
+        :return: max lines in console display
+        :rtype: int
+        """
+
+        return self._maxlines.get()
+
+    @property
+    def webmap(self) -> int:
+        """
+        Getter for webmap flag
+
+        :return: 0 = static map, 1 = dynamic web map
+        :rtype: int
+        """
+
+        return self._webmap.get()
+
+    @property
+    def mapzoom(self) -> int:
+        """
+        Getter for webmap zoom level
+
+        :return: webmap zoom level (1-20)
+        :rtype: int
+        """
+
+        return self._mapzoom.get()
+
+    @property
+    def units(self) -> int:
+        """
+        Getter for display units
+
+        :return: "UMM" = metric m/s, "UMK" = metric kmph,
+                 "UI" = imperial mph, "UIK" = imperial knots
+        :rtype: int
+        """
+
+        return self._units.get()
+
+    @property
+    def format(self) -> str:
+        """
+        Getter for degrees format
+
+        :return: "DD.D" = decimal degrees, "DM.M" = degrees, decimal minutes,
+                 "D.M.S" = degress, minutes, seconds
+        :rtype: str
+        """
+
+        return self._format.get()
+
+    @property
+    def logpath(self) -> str:
+        """
+        Getter for datalog file path
+
+        :return: datalog file path
+        :rtype: str
+        """
+
+        return self._logpath.get()
+
+    @property
+    def datalogging(self) -> int:
+        """
+        Getter for datalogging flag
+
+        :return: 0 = no log, 1 = record datalog
+        :rtype: int
+        """
+
+        return self._datalog.get()
+
+    @property
+    def record_track(self) -> int:
+        """
+        Getter for record track flag
+
+        :return: 0 = no track, 1 = record track
+        :rtype: int
+        """
+
+        return self._record_track.get()
+
+    @property
+    def show_zero(self) -> int:
+        """
+        Getter for zero signal flag
+
+        :return: 0 = exclude, 1 = include
+        :rtype: int
+        """
+
+        return self._show_zerosig.get()
+
+    @property
+    def show_legend(self) -> int:
+        """
+        Getter for graph legend flag
+
+        :return: 0 = hide, 1 = show
+        :rtype: int
+        """
+
+        return self._show_legend.get()

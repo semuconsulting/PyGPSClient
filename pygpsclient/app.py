@@ -135,7 +135,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._grid_status()
         self._grid_settings()
 
-        if self.frm_settings.get_settings()["noports"]:
+        if self.frm_settings.serial_settings().noports:
             self.set_status(INTROTXTNOPORTS, "red")
 
     def _attach_events(self):

@@ -95,7 +95,6 @@ class ConsoleFrame(Frame):
 
         """
 
-        settings = self.__app.frm_settings.get_settings()
         con = self.txt_console
         con.configure(state="normal")
         con.insert(END, data + "\n")
@@ -104,11 +103,11 @@ class ConsoleFrame(Frame):
         self._tag_line(data, TAGS)
 
         idx = float(con.index("end"))  # Lazy but it works
-        if idx > settings["maxlines"]:
+        if idx > self.__app.frm_settings.maxlines:
             con.delete("1.0", "2.0")  # Remember these look like floats but they're not!
 
         con.update()
-        if settings["autoscroll"]:
+        if self.__app.frm_settings.autoscroll:
             con.see("end")
         con.configure(state="disabled")
 

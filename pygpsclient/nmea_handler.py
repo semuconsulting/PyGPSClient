@@ -44,7 +44,6 @@ class NMEAHandler:
 
         self._raw_data = None
         self._parsed_data = None
-        self._record_track = False
         self.gsv_data = (
             []
         )  # Holds array of current satellites in view from NMEA GSV sentences
@@ -108,7 +107,7 @@ class NMEAHandler:
         :param pynmea2.types.talker parsed_data: parsed data
         """
 
-        if self.__app.frm_settings.get_settings()["raw"]:
+        if self.__app.frm_settings.raw:
             self.__app.frm_console.update_console(repr(raw_data))
         else:
             self.__app.frm_console.update_console(repr(parsed_data))
@@ -158,7 +157,7 @@ class NMEAHandler:
             self.__app.frm_mapview.update_map(self.lat, self.lon, self.hacc)
 
             if (
-                self.__app.frm_settings.get_settings()["recordtrack"]
+                self.__app.frm_settings.record_track
                 and self.lat != ""
                 and self.lon != ""
             ):
@@ -223,7 +222,7 @@ class NMEAHandler:
         :param pynmea2.types.talker data: parsed GSV sentence
         """
 
-        show_zero = self.__app.frm_settings.get_settings()["zerosignal"]
+        show_zero = self.__app.frm_settings.show_zero
         self.gsv_data = []
         gsv_dict = {}
         now = time()

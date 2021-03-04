@@ -48,10 +48,6 @@ class SerialHandler:
         self._serial_thread = None
         self._file_thread = None
         self._connected = False
-        self._logpath = None
-        self._datalogging = False
-        self._recordtrack = False
-        self._port = None
         self._reading = False
 
     def __del__(self):
@@ -69,83 +65,76 @@ class SerialHandler:
         Open serial connection.
         """
 
-        settings = self.__app.frm_settings.get_settings()
-
-        self._port = settings["port"]
-        port_desc = settings["port_desc"]
-        baudrate = settings["baudrate"]
-        databits = settings["databits"]
-        stopbits = settings["stopbits"]
-        parity = settings["parity"]
-        xonxoff = settings["xonxoff"]
-        rtscts = settings["rtscts"]
-        timeout = settings["timeout"]
-        self._datalogging = settings["datalogging"]
-        self._recordtrack = settings["recordtrack"]
+        serial_settings = self.__app.frm_settings.serial_settings()
 
         try:
             self._serial_object = Serial(
-                self._port,
-                baudrate,
-                bytesize=databits,
-                stopbits=stopbits,
-                parity=parity,
-                xonxoff=xonxoff,
-                rtscts=rtscts,
-                timeout=timeout,
+                serial_settings.port,
+                serial_settings.baudrate,
+                bytesize=serial_settings.databits,
+                stopbits=serial_settings.stopbits,
+                parity=serial_settings.parity,
+                xonxoff=serial_settings.xonxoff,
+                rtscts=serial_settings.rtscts,
+                timeout=serial_settings.timeout,
             )
             self._serial_buffer = BufferedReader(self._serial_object)
             self.__app.frm_banner.update_conn_status(CONNECTED)
             self.__app.set_connection(
-                f"{self._port}:{port_desc} @ {str(baudrate)}", "green"
+                (
+                    f"{serial_settings.port}:{serial_settings.port_desc} "
+                    + f"@ {str(serial_settings.baudrate)}"
+                ),
+                "green",
             )
-            self.__app.frm_settings.set_controls(CONNECTED)
+            self.__app.frm_settings.enable_controls(CONNECTED)
             self._connected = True
             self.start_read_thread()
 
-            if self._datalogging:
+            if self.__app.frm_settings.datalogging:
                 self.__app.file_handler.open_logfile_output()
 
-            if self._recordtrack:
+            if self.__app.frm_settings.record_track:
                 self.__app.file_handler.open_trackfile()
 
         except (IOError, SerialException, SerialTimeoutException) as err:
             self._connected = False
             self.__app.set_connection(
-                f"{self._port}:{port_desc} @ {str(baudrate)}", "red"
+                (
+                    f"{serial_settings.port}:{serial_settings.port_desc} "
+                    + f"@ {str(serial_settings.baudrate)}"
+                ),
+                "red",
             )
             self.__app.set_status(SEROPENERROR.format(err), "red")
             self.__app.frm_banner.update_conn_status(DISCONNECTED)
-            self.__app.frm_settings.set_controls(DISCONNECTED)
+            self.__app.frm_settings.enable_controls(DISCONNECTED)
 
     def connect_file(self):
         """
         Open binary data file connection.
         """
 
-        settings = self.__app.frm_settings.get_settings()
-        self._datalogging = False
-        self._logpath = settings["logpath"]
-        self._recordtrack = settings["recordtrack"]
+        logpath = self.__app.frm_settings.logpath
 
         try:
-            self._serial_object = open(self._logpath, "rb")
+            self._serial_object = open(logpath, "rb")
             self._serial_buffer = BufferedReader(self._serial_object)
             self.__app.frm_banner.update_conn_status(CONNECTED_FILE)
-            self.__app.set_connection(f"{self._logpath}", "blue")
-            self.__app.frm_settings.set_controls(CONNECTED_FILE)
+            self.__app.set_connection(f"{logpath}", "blue")
+            self.__app.frm_settings.enable_controls(CONNECTED_FILE)
             self._connected = True
             self.start_readfile_thread()
 
-            if self._recordtrack:
+            if self.__app.frm_settings.recordtrack:
                 self.__app.file_handler.open_trackfile()
 
         except (IOError, SerialException, SerialTimeoutException) as err:
             self._connected = False
-            self.__app.set_connection(f"{self._logpath}", "red")
+            self.__app.set_connection(f"{logpath}", "red")
             self.__app.set_status(SEROPENERROR.format(err), "red")
             self.__app.frm_banner.update_conn_status(DISCONNECTED)
-            self.__app.frm_settings.set_controls(DISCONNECTED)
+            self.__app.frm_settings.enable_controls(DISCONNECTED)
 
     def disconnect(self):
         """
@@ -160,17 +149,17 @@ class SerialHandler:
                 self.__app.set_connection(NOTCONN, "red")
                 self.__app.set_status("", "blue")
 
-                if self._datalogging:
+                if self.__app.frm_settings.datalogging:
                     self.__app.file_handler.close_logfile()
 
-                if self._recordtrack:
+                if self.__app.frm_settings.record_track:
                     self.__app.file_handler.close_trackfile()
 
             except (SerialException, SerialTimeoutException):
                 pass
 
         self._connected = False
-        self.__app.frm_settings.set_controls(self._connected)
+        self.__app.frm_settings.enable_controls(self._connected)
 
     @property
     def port(self):
@@ -178,7 +167,7 @@ class SerialHandler:
         Getter for port
         """
 
-        return self._port
+        return self.__app.frm_settings.serial_settings().port
 
     @property
     def connected(self):
@@ -339,7 +328,7 @@ class SerialHandler:
             return
 
         while parsing:
-            filt = self.__app.frm_settings.get_settings()["protocol"]
+            filt = self.__app.frm_settings.protocol
             byte2 = ser.read(1)
             if len(byte2) < 1:
                 self.__master.event_generate("<<ubx_eof>>")
@@ -393,7 +382,7 @@ class SerialHandler:
                 parsing = False
 
         # if datalogging, write to log file
-        if self._datalogging and raw_data is not None:
+        if self.__app.frm_settings.datalogging and raw_data is not None:
             self.__app.file_handler.write_logfile(raw_data)
 
     def flush(self):

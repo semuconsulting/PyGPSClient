@@ -38,7 +38,6 @@ class UBXHandler:
 
         self._raw_data = None
         self._parsed_data = None
-        self._record_track = False
         self.gsv_data = (
             []
         )  # Holds array of current satellites in view from NMEA GSV or UBX NAV-SVINFO sentences
@@ -55,13 +54,6 @@ class UBXHandler:
         self.utc = ""
         self.sip = 0
         self.fix = "-"
-        self.ubx_portid = 3  # USB
-        self.ubx_baudrate = 9600
-        self.ubx_inprot = 7
-        self.ubx_outprot = 3
-        self.ubx_measrate = 1000  # 1 Hz
-        self.ubx_navrate = 1
-        self.ubx_timeref = 0  # UTC
 
     def process_data(self, data: bytes) -> UBXMessage:
         """
@@ -119,7 +111,7 @@ class UBXHandler:
         :param UBXMessage parsed_data: UBXMessage
         """
 
-        if self.__app.frm_settings.get_settings()["raw"]:
+        if self.__app.frm_settings.raw:
             self.__app.frm_console.update_console(str(raw_data))
         else:
             self.__app.frm_console.update_console(str(parsed_data))
@@ -199,21 +191,14 @@ class UBXHandler:
         :param UBXMessage data: CFG-PRT parsed message
         """
 
-        self.ubx_portid = data.portID
-        self.ubx_baudrate = data.baudRate
-        #         self.ubx_inprot = int.from_bytes(data.inProtoMask, "little", signed=False)
-        #         self.ubx_outprot = int.from_bytes(data.outProtoMask, "little", signed=False)
-        self.ubx_inprot = data.inProtoMask
-        self.ubx_outprot = data.outProtoMask
-
         # update the UBX config panel
         if self.__app.dlg_ubxconfig is not None:
             self.__app.dlg_ubxconfig.update_pending(
                 "CFG-PRT",
-                portid=self.ubx_portid,
-                baudrate=self.ubx_baudrate,
-                inprot=self.ubx_inprot,
-                outprot=self.ubx_outprot,
+                portid=data.portID,
+                baudrate=data.baudRate,
+                inprot=data.inProtoMask,
+                outprot=data.outProtoMask,
             )
 
     def _process_CFG_RATE(self, data: UBXMessage):
@@ -223,17 +208,13 @@ class UBXHandler:
         :param UBXMessage data: CFG-RATE parsed message
         """
 
-        self.ubx_measrate = data.measRate
-        self.ubx_navrate = data.navRate
-        self.ubx_timeref = data.timeRef
-
         # update the UBX config panel
         if self.__app.dlg_ubxconfig is not None:
             self.__app.dlg_ubxconfig.update_pending(
                 "CFG-RATE",
-                measrate=self.ubx_measrate,
-                navrate=self.ubx_navrate,
-                timeref=self.ubx_timeref,
+                measrate=data.measRate,
+                navrate=data.navRate,
+                timeref=data.timeRef,
             )
 
     def _process_CFG_VALGET(self, data: UBXMessage):  # pylint: disable=unused-argument
@@ -315,7 +296,7 @@ class UBXHandler:
             self.__app.frm_mapview.update_map(self.lat, self.lon, self.hacc)
 
             if (
-                self.__app.frm_settings.get_settings()["recordtrack"]
+                self.__app.frm_settings.record_track
                 and self.lat != ""
                 and self.lon != ""
             ):
@@ -376,7 +357,6 @@ class UBXHandler:
         :param UBXMessage data: NAV-SAT parsed message
         """
 
-        show_zero = self.__app.frm_settings.get_settings()["zerosignal"]
         try:
             self.gsv_data = []
             num_siv = int(data.numCh)
@@ -391,7 +371,9 @@ class UBXHandler:
                 elev = getattr(data, "elev" + idx)
                 azim = getattr(data, "azim" + idx)
                 cno = getattr(data, "cno" + idx)
-                if cno == 0 and not show_zero:  # omit sats with zero signal
+                if (
+                    cno == 0 and not self.__app.frm_settings.show_zero
+                ):  # omit sats with zero signal
                     continue
                 self.gsv_data.append((gnssId, svid, elev, azim, cno))
             self.__app.frm_banner.update_banner(siv=len(self.gsv_data))
@@ -410,7 +392,6 @@ class UBXHandler:
         :param UBXMessage data: NAV-SVINFO parsed message
         """
 
-        show_zero = self.__app.frm_settings.get_settings()["zerosignal"]
         try:
             self.gsv_data = []
             num_siv = int(data.numCh)
@@ -422,7 +403,9 @@ class UBXHandler:
                 elev = getattr(data, "elev" + idx)
                 azim = getattr(data, "azim" + idx)
                 cno = getattr(data, "cno" + idx)
-                if cno == 0 and not show_zero:  # omit sats with zero signal
+                if (
+                    cno == 0 and not self.__app.frm_settings.show_zero
+                ):  # omit sats with zero signal
                     continue
                 self.gsv_data.append((gnssId, svid, elev, azim, cno))
             self.__app.frm_banner.update_banner(siv=len(self.gsv_data))

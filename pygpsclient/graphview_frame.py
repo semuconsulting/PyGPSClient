@@ -68,7 +68,6 @@ class GraphviewFrame(Frame):
         """
 
         w, h = self.width, self.height
-        show_legend = self.__app.frm_settings.get_settings()["graphlegend"]
         resize_font = font.Font(size=min(int(h / 25), 10))
         ticks = int(MAX_SNR / 10)
         self.can_graphview.delete("all")
@@ -88,7 +87,7 @@ class GraphviewFrame(Frame):
                 font=resize_font,
             )
 
-        if show_legend:
+        if self.__app.frm_settings.show_legend:
             self._draw_legend()
 
     def _draw_legend(self):

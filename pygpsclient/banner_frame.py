@@ -297,9 +297,8 @@ class BannerFrame(Frame):
         :param kwargs: optional key value pairs for each displayed parameter
         """
 
-        settings = self.__app.frm_settings.get_settings()
-        disp_format = settings["format"]
-        units = settings["units"]
+        disp_format = self.__app.frm_settings.format
+        units = self.__app.frm_settings.units
 
         self._update_time(**kwargs)
         self._update_pos(disp_format, units, **kwargs)
