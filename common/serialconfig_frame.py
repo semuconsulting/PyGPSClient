@@ -3,6 +3,8 @@ Generic serial port configuration Frame subclass
 for use in tkinter applications which require a
 serial port configuration facility.
 
+Exposes the serial port settings as properties.
+
 Created on 24 Dec 2020
 
 :author: semuadmin
@@ -35,7 +37,6 @@ from tkinter import (
 from serial.tools.list_ports import comports
 from serial import PARITY_NONE, PARITY_EVEN, PARITY_ODD, PARITY_MARK, PARITY_SPACE
 
-
 ADVOFF = "\u25bc"
 ADVON = "\u25b2"
 READONLY = "readonly"
@@ -48,7 +49,7 @@ PARITIES = {
 }
 # These ranges can be overridden via keyword arguments:
 # (the default value will be the first in the range)
-BAUDRATE_RNG = (9600, 19200, 38400, 57600, 115200, 4800)
+BPSRATE_RNG = (9600, 19200, 38400, 57600, 115200, 4800)
 DATABITS_RNG = (8, 5, 6, 7)
 STOPBITS_RNG = (1, 1.5, 2)
 PARITY_RNG = list(PARITIES.keys())
@@ -72,7 +73,7 @@ class SerialConfigFrame(
         :param kwargs: optional kwargs for value ranges, or to pass to Frame parent class
         """
 
-        self._baudrate_rng = kwargs.pop("baudrates", BAUDRATE_RNG)
+        self._bpsrate_rng = kwargs.pop("baudrates", BPSRATE_RNG)
         self._databits_rng = kwargs.pop("databits", DATABITS_RNG)
         self._stopbits_rng = kwargs.pop("stopbits", STOPBITS_RNG)
         self._parity_rng = kwargs.pop("parities", PARITY_RNG)
@@ -87,7 +88,7 @@ class SerialConfigFrame(
         self._ports = ()
         self._port = StringVar()
         self._port_desc = StringVar()
-        self._baudrate = IntVar()
+        self._bpsrate = IntVar()
         self._databits = IntVar()
         self._stopbits = DoubleVar()
         self._parity = StringVar()
@@ -124,15 +125,15 @@ class SerialConfigFrame(
         self._lbx_port.config(xscrollcommand=self._scr_porth.set)
         self._scr_portv.config(command=self._lbx_port.yview)
         self._scr_porth.config(command=self._lbx_port.xview)
-        self._lbl_baudrate = Label(self._frm_basic, text="Baud rate")
-        self._spn_baudrate = Spinbox(
+        self._lbl_bpsrate = Label(self._frm_basic, text="Bps Rate")
+        self._spn_bpsrate = Spinbox(
             self._frm_basic,
-            values=self._baudrate_rng,
+            values=self._bpsrate_rng,
             width=8,
             state=READONLY,
             readonlybackground=self._readonlybg,
             wrap=True,
-            textvariable=self._baudrate,
+            textvariable=self._bpsrate,
         )
         self._btn_toggle = Button(
             self._frm_basic, text=ADVOFF, width=3, command=self._on_toggle_advanced
@@ -196,8 +197,8 @@ class SerialConfigFrame(
         self._lbx_port.grid(column=1, row=0, sticky=(W, E), padx=3, pady=3)
         self._scr_portv.grid(column=2, row=0, sticky=(N, S))
         self._scr_porth.grid(column=1, row=1, sticky=(E, W))
-        self._lbl_baudrate.grid(column=0, row=2, sticky=(W))
-        self._spn_baudrate.grid(column=1, row=2, sticky=(W), padx=3, pady=3)
+        self._lbl_bpsrate.grid(column=0, row=2, sticky=(W))
+        self._spn_bpsrate.grid(column=1, row=2, sticky=(W), padx=3, pady=3)
         self._btn_toggle.grid(column=2, row=2, sticky=(E))
 
         self._frm_advanced.grid_forget()
@@ -286,7 +287,7 @@ class SerialConfigFrame(
 
         for widget in (
             self._lbl_port,
-            self._lbl_baudrate,
+            self._lbl_bpsrate,
             self._lbl_databits,
             self._lbl_stopbits,
             self._lbl_parity,
@@ -297,7 +298,7 @@ class SerialConfigFrame(
         ):
             widget.configure(state=(DISABLED if disabled else NORMAL))
         for widget in (
-            self._spn_baudrate,
+            self._spn_bpsrate,
             self._spn_databits,
             self._spn_stopbits,
             self._spn_parity,
@@ -310,7 +311,7 @@ class SerialConfigFrame(
         Reset settings to defaults (first value in range).
         """
 
-        self._baudrate.set(self._baudrate_rng[0])
+        self._bpsrate.set(self._bpsrate_rng[0])
         self._databits.set(self._databits_rng[0])
         self._stopbits.set(self._stopbits_rng[0])
         self._parity.set(self._parity_rng[0])
@@ -353,15 +354,15 @@ class SerialConfigFrame(
         return self._port_desc.get()
 
     @property
-    def baudrate(self) -> int:
+    def bpsrate(self) -> int:
         """
-        Getter for baudrate.
+        Getter for bps rate (commonly but incorrectly referred to as baud rate).
 
         :return: selected baudrate
         :rtype: int
         """
 
-        return self._baudrate.get()
+        return self._bpsrate.get()
 
     @property
     def databits(self) -> int:

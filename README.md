@@ -26,7 +26,7 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 
 ## Features
 
-1. Supports both NMEA and UBX protocols. It uses the existing pynmea2 library for NMEA parsing and the pyubx2 library](https://github.com/semuconsulting/pyubx2)** for UBX parsing.
+1. Supports both NMEA and UBX protocols. It uses the [pynmeagps library](https://pypi.org/project/pynmeagps/) for NMEA parsing and the [pyubx2 library](https://pypi.org/project/pyubx2/) for UBX parsing.
 1. Capable of reading from serial/USB port or previously-saved binary datalog file. 
 1. Configurable GUI with selectable and resizeable widgets.
 1. Expandable banner widget showing key navigation information.
@@ -81,7 +81,7 @@ confirmed ![confirmed icon](/pygpsclient/resources/iconmonstr-check-mark-8-24.pn
 warning ![warning icon](/pygpsclient/resources/iconmonstr-warning-1-24.png)). 
 
 **Note:**
-* Confirmation responses can take several seconds at high message transmission rates, or be discarded altogether if the device's transmit buffer is full (*txbuff-alloc error*). To ensure timely confirmation responses, try increasing the baud rate and/or temporarily reducing transmitted message rates using the configuration commands provided.
+* Confirmation responses can take several seconds at high message transmission rates, or be discarded altogether if the device's transmit buffer is full (*txbuff-alloc error* - not uncommon with budget receivers at high message rates). To ensure timely confirmation responses, try increasing the baud rate and/or temporarily reducing transmitted message rates using the configuration commands provided.
 * A warning icon (typically accompanied by an ACK-NAK response) is usually an indication that one or more of the commands sent is not supported by your receiver. 
 
 ## <a name="installation">Installation</a>
@@ -102,7 +102,7 @@ sudo apt install python3-pip python3-tk
 The following python libraries are required (these will be installed automatically if using pip to install PyGPSClient):
 
 ```shell
-python -m pip install pyubx2 pyserial pynmea2 Pillow requests
+python -m pip install pyubx2 pynmeagps pyserial Pillow requests
 ```
 
 ### User Privileges

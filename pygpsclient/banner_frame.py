@@ -389,7 +389,7 @@ class BannerFrame(Frame):
                     self._speed_u.set("m/s")
         if "track" in kwargs:
             track = kwargs["track"]
-            if track is None:
+            if track == "" or track is None:
                 self._track.set("N/A")
             else:
                 self._track.set(str(round(track, 1)))

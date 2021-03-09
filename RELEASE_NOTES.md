@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE v1.0.1
+
+ENHANCEMENTS:
+
+1. NMEA handler updated to use new pynmeagps library (>=0.1.4) rather than pynmea2. This lightweight library obviates the need to perform NMEA lat/lon and other format conversions. **NB** The pynmeagps library is still currently in beta but should deliver all the functionality required by PyGPSClient.
+
 ### RELEASE v1.0.0
 
 Version and status updated to v1.0.0 Production/Stable

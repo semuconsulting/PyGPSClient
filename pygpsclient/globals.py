@@ -173,20 +173,22 @@ TAGS = [
     ("NAV-TIMEUTC", "cyan"),
     ("NAV-VELECEF", "deepskyblue"),
     ("NAV-VELNED", "deepskyblue"),
+    ("NMEA", "lightblue1"),
     ("RLM", "pink"),
     ("RMC", "orange"),
     ("RXM", "skyblue1"),
     ("TXT", "lightgrey"),
     ("UBX", "lightblue1"),
-    ("UBX00", "aquamarine2"),
-    ("UBX03", "yellow"),
-    ("UBX04", "cyan"),
-    ("UBX05", "orange"),
-    ("UBX06", "orange"),
+    ("PUBX, msgId=0", "aquamarine2"),
+    ("PUBX, msgId=3", "yellow"),
+    ("PUBX, msgId=4", "cyan"),
+    ("PUBX, msgId=5", "orange"),
+    ("PUBX, msgId=6", "orange"),
     ("VLW", "deepskyblue"),
     ("VTG", "deepskyblue"),
     ("ZDA", "cyan"),
     ("xb5b", "lightblue1"),
+    ("2447", "lightblue1"),
 ]
 
 
@@ -473,29 +475,30 @@ def snr2col(snr: int) -> str:
     return hsv2rgb(snr / (MAX_SNR * 2.5), 0.8, 0.8)
 
 
-def nmea2latlon(data: types.talker) -> (float, float):
-    """
-    Convert parsed NMEA sentence to decimal lat, lon.
-
-    :param pynmea2.types.talker data: parsed NMEA sentence
-    :return: (lat, lon)
-    :rtype: tuple
-
-    """
-
-    if data.lat == "":
-        lat = ""
-    else:
-        latdeg = float(data.lat[0:2])
-        latmin = float(data.lat[2:])
-        londeg = float(data.lon[0:3])
-        lat = (latdeg + latmin / 60) * (-1 if data.lat_dir == "S" else 1)
-    if data.lon == "":
-        lon = ""
-    else:
-        lonmin = float(data.lon[3:])
-        lon = (londeg + lonmin / 60) * (-1 if data.lon_dir == "W" else 1)
-    return (lat, lon)
+# this method no longer required with pynmeagps library
+# def nmea2latlon(data: types.talker) -> (float, float):
+#     """
+#     Convert parsed NMEA sentence to decimal lat, lon.
+#
+#     :param pynmea2.types.talker data: parsed NMEA sentence
+#     :return: (lat, lon)
+#     :rtype: tuple
+#
+#     """
+#
+#     if data.lat == "":
+#         lat = ""
+#     else:
+#         latdeg = float(data.lat[0:2])
+#         latmin = float(data.lat[2:])
+#         londeg = float(data.lon[0:3])
+#         lat = (latdeg + latmin / 60) * (-1 if data.lat_dir == "S" else 1)
+#     if data.lon == "":
+#         lon = ""
+#     else:
+#         lonmin = float(data.lon[3:])
+#         lon = (londeg + lonmin / 60) * (-1 if data.lon_dir == "W" else 1)
+#     return (lat, lon)
 
 
 def svid2gnssid(svid) -> int:

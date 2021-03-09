@@ -70,7 +70,7 @@ class SerialHandler:
         try:
             self._serial_object = Serial(
                 serial_settings.port,
-                serial_settings.baudrate,
+                serial_settings.bpsrate,
                 bytesize=serial_settings.databits,
                 stopbits=serial_settings.stopbits,
                 parity=serial_settings.parity,
@@ -83,7 +83,7 @@ class SerialHandler:
             self.__app.set_connection(
                 (
                     f"{serial_settings.port}:{serial_settings.port_desc} "
-                    + f"@ {str(serial_settings.baudrate)}"
+                    + f"@ {str(serial_settings.bpsrate)}"
                 ),
                 "green",
             )

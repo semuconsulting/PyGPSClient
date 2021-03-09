@@ -1,7 +1,10 @@
 """
 Settings frame class for PyGPSClient application.
 
-This handles the settings/configuration panel.
+This handles the settings/configuration panel. It references
+the common SerialConfigFrame utility class for serial port settings.
+
+Exposes the various settings as properties.
 
 Created on 12 Sep 2020
 
@@ -66,6 +69,8 @@ from .strings import (
 )
 
 TIMEOUTS = (
+    "0",
+    "0.1",
     "0.2",
     "1",
     "2",
@@ -73,8 +78,6 @@ TIMEOUTS = (
     "10",
     "20",
     "None",
-    "0",
-    "0.1",
 )
 
 

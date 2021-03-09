@@ -11,7 +11,7 @@ Created on 20 Sep 2020
 from tkinter import Toplevel, Label, Button
 from webbrowser import open_new_tab
 from PIL import ImageTk, Image
-from pynmea2 import version as PNVERSION
+from pynmeagps import version as PNVERSION
 from pyubx2 import version as PUVERSION
 from .globals import ICON_APP, GITHUB_URL
 from .strings import ABOUTTXT, COPYRIGHTTXT, DLGABOUT
@@ -63,7 +63,9 @@ class AboutDialog:
             self._dialog, text="pyubx2 Version: " + PUVERSION, font=self.__app.font_sm
         )
         self._lbl_pynmea2_version = Label(
-            self._dialog, text="pynmea2 Version: " + PNVERSION, font=self.__app.font_sm
+            self._dialog,
+            text="pynmeagps Version: " + PNVERSION,
+            font=self.__app.font_sm,
         )
         self._lbl_copyright = Label(
             self._dialog,
