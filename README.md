@@ -43,7 +43,7 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 
 ## How to Use
 
-* To connect to a listed serial device, select the device from the listbox and click 
+* To connect to a listed serial device, select the device from the listbox, set the appropriate serial connection parameters (*Rate bps is typically the only setting that might need adjusting, but tweaking the timeout setting may improve performance on certain platforms*) and click 
 ![connect icon](/pygpsclient/resources/iconmonstr-link-8-24.png). The application will endeavour to pre-select a recognised GNSS/GPS device but this is platform and device dependent.
 * To stream from a previously-saved binary datalog file (pygpsdata-*.log, or any binary dump of an NMEA or UBX GNSS device output), click 
 ![connect-file icon](/pygpsclient/resources/iconmonstr-note-37-24.png) and select the file.

@@ -23,7 +23,6 @@ from .globals import (
     kmph2ms,
 )
 from .strings import NMEAVALERROR
-from pickle import NONE
 
 
 class NMEAHandler:
