@@ -309,7 +309,7 @@ class UBXHandler:
                         data.min,
                         data.second,
                     ).isoformat()
-                    +"Z"
+                    + "Z"
                 )
                 if fix == "3D":
                     fix = "3d"

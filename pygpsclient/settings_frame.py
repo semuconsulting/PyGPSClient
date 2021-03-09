@@ -69,7 +69,6 @@ from .strings import (
 )
 
 TIMEOUTS = (
-    "0",
     "0.1",
     "0.2",
     "1",
@@ -78,6 +77,7 @@ TIMEOUTS = (
     "10",
     "20",
     "None",
+    "0",
 )
 
 

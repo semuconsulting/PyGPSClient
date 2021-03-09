@@ -315,7 +315,11 @@ class BannerFrame(Frame):
         """
 
         if "time" in kwargs:
-            self._time.set(kwargs["time"])
+            tim = kwargs["time"]
+            if tim in (None, ""):
+                self._time.set("N/A")
+            else:
+                self._time.set(tim)
 
     def _update_pos(self, disp_format, units, **kwargs):
         """
@@ -328,7 +332,7 @@ class BannerFrame(Frame):
 
         if "lat" in kwargs:
             lat = kwargs["lat"]
-            if lat is None or lat == "":
+            if lat in (None, ""):
                 self._lat.set("N/A")
             else:
                 if disp_format == DMS:
@@ -339,7 +343,7 @@ class BannerFrame(Frame):
                     self._lat.set(round(lat, 5))
         if "lon" in kwargs:
             lon = kwargs["lon"]
-            if lon is None or lon == "":
+            if lon in (None, ""):
                 self._lon.set("N/A")
             else:
                 if disp_format == DMS:
@@ -350,7 +354,7 @@ class BannerFrame(Frame):
                     self._lon.set(round(lon, 5))
         if "alt" in kwargs:
             alt = kwargs["alt"]
-            if alt is None or alt == "":
+            if alt in (None, ""):
                 self._alt.set("N/A")
                 self._alt_u.set("")
             else:
@@ -371,7 +375,7 @@ class BannerFrame(Frame):
 
         if "speed" in kwargs:
             speed = kwargs["speed"]
-            if speed is None:
+            if speed in (None, ""):
                 self._speed.set("N/A")
                 self._speed_u.set("")
             else:
@@ -389,7 +393,7 @@ class BannerFrame(Frame):
                     self._speed_u.set("m/s")
         if "track" in kwargs:
             track = kwargs["track"]
-            if track == "" or track is None:
+            if track in (None, ""):
                 self._track.set("N/A")
             else:
                 self._track.set(str(round(track, 1)))
@@ -402,13 +406,14 @@ class BannerFrame(Frame):
         """
 
         if "fix" in kwargs:
-            if kwargs["fix"] in ("3D", "3D + DR"):
+            fix = kwargs["fix"]
+            if fix in ("3D", "3D + DR"):
                 self._lbl_fix.config(fg="green2")
-            elif kwargs["fix"] in ("2D", "DR"):
+            elif fix in ("2D", "DR"):
                 self._lbl_fix.config(fg="orange")
             else:
                 self._lbl_fix.config(fg="red")
-            self._fix.set(kwargs["fix"])
+            self._fix.set(fix)
 
     def _update_siv(self, **kwargs):
         """
@@ -418,9 +423,11 @@ class BannerFrame(Frame):
         """
 
         if "siv" in kwargs:
-            self._siv.set(str(kwargs["siv"]).zfill(2))
+            siv = kwargs["siv"]
+            self._siv.set(str(siv).zfill(2))
         if "sip" in kwargs:
-            self._sip.set(str(kwargs["sip"]).zfill(2))
+            sip = kwargs["sip"]
+            self._sip.set(str(sip).zfill(2))
 
     def _update_dop(self, units, **kwargs):
         """

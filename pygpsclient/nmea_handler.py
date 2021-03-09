@@ -13,7 +13,7 @@ Created on 30 Sep 2020
 
 from time import time
 from datetime import datetime
-from pynmeagps import NMEAReader, NMEAMessage, NMEAParseError
+from pynmeagps import NMEAReader, NMEAMessage, NMEAParseError, VALCKSUM, GET
 
 from .globals import (
     DEVICE_ACCURACY,
@@ -23,6 +23,7 @@ from .globals import (
     kmph2ms,
 )
 from .strings import NMEAVALERROR
+from pickle import NONE
 
 
 class NMEAHandler:
@@ -68,12 +69,16 @@ class NMEAHandler:
         """
         # pylint: disable=no-member
 
+        if data is None:
+            return None
+
         try:
-            parsed_data = NMEAReader.parse(data, False)
-        except NMEAParseError:
+            parsed_data = NMEAReader.parse(data, VALCKSUM, GET)
+        except NMEAParseError as err:
             # Parsing errors at this point are typically due to NMEA and UBX
             # protocols getting garbled in the input stream. It only happens
             # rarely so we ignore them and carry on.
+            # print(f"DEBUG NMEAHandler.process_data - err = {err}")
             return None
 
         if data or parsed_data:
@@ -107,7 +112,7 @@ class NMEAHandler:
         """
 
         if self.__app.frm_settings.raw:
-            self.__app.frm_console.update_console(str(raw_data))
+            self.__app.frm_console.update_console(str(raw_data).strip("\n"))
         else:
             self.__app.frm_console.update_console(str(parsed_data))
 

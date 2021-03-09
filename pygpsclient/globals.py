@@ -14,7 +14,6 @@ Created on 14 Sep 2020
 
 import os
 from math import sin, cos, pi
-from pynmea2 import types
 
 DIRNAME = os.path.dirname(__file__)
 ICON_APP = os.path.join(DIRNAME, "resources/iconmonstr-location-27-32.png")
@@ -187,8 +186,6 @@ TAGS = [
     ("VLW", "deepskyblue"),
     ("VTG", "deepskyblue"),
     ("ZDA", "cyan"),
-    ("xb5b", "lightblue1"),
-    ("2447", "lightblue1"),
 ]
 
 

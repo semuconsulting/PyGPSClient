@@ -263,15 +263,18 @@ class SerialHandler:
         """
 
         try:
-            #         print("doing serial_handler._read_thread")
+            # print(f"DEBUG doing serial_handler._read_thread")
             while self._reading and self._serial_object:
-                #             print("doing serial_handler._read_thread while loop")
+                # print(f"DEBUG doing serial_handler._read_thread while loop")
                 if self._serial_object.in_waiting:
-                    #                 print(f"Bytes in buffer: {self._serial_object.in_waiting}")
-                    #                 print("doing serial_handler._read_thread in_waiting")
+                    # print(f"DEBUG Bytes in buffer: {self._serial_object.in_waiting}")
+                    # print(f"DEBUG doing serial_handler._read_thread in_waiting")
                     self.__master.event_generate("<<ubx_read>>")
         except SerialException as err:
             self.__app.set_status(f"Error in read thread {err}", "red")
+        # spurious errors as thread shuts down after serial disconnection
+        except (TypeError, OSError) as err:
+            pass
 
     def _readfile_thread(self):
         """
@@ -280,9 +283,9 @@ class SerialHandler:
         trigger data parsing and widget updates.
         """
 
-        #         print("doing serial_handler._readfile_thread")
+        # print(f"DEBUG doing serial_handler._readfile_thread")
         while self._reading and self._serial_object:
-            #             print("doing serial_handler._readfile_thread while loop")
+            # print(f"DEBUG doing serial_handler._readfile_thread while loop")
             self.__master.event_generate("<<ubx_readfile>>")
 
     def on_read(self, event):  # pylint: disable=unused-argument
@@ -292,7 +295,7 @@ class SerialHandler:
         :param event event: read event
         """
 
-        #         print("doing serial_handler.on_read")
+        # print(f"DEBUG doing serial_handler.on_read")
         if self._reading and self._serial_object is not None:
             try:
                 self._parse_data(self._serial_buffer)
@@ -306,7 +309,7 @@ class SerialHandler:
         :param event event: eof event
         """
 
-        #         print("doing serial_handler.on_eof")
+        # print(f"DEBUG doing serial_handler.on_eof")
         self.disconnect()
         self.__app.set_status(ENDOFFILE, "blue")
 
@@ -319,10 +322,10 @@ class SerialHandler:
         :param Serial ser: serial port
         """
 
-        #         print("doing serial_handler_parse_data")
+        # print(f"DEBUG doing serial_handler_parse_data")
         parsing = True
         raw_data = None
-        byte1 = ser.read(1)  # read first two bytes to determine protocol
+        byte1 = ser.read(1)  # read first byte to determine protocol
         if len(byte1) < 1:
             self.__master.event_generate("<<ubx_eof>>")
             return
@@ -334,13 +337,10 @@ class SerialHandler:
                 self.__master.event_generate("<<ubx_eof>>")
                 return
             # if it's a UBX message (b'\b5\x62')
-            if (
-                byte1 == b"\xb5"
-                and byte2 == b"\x62"
-                and filt in (UBX_PROTOCOL, MIXED_PROTOCOL)
-            ):
-                #                 print(f"doing serial_handler._parse_data if ubx {ser.peek()}")
+            if byte1 == b"\xb5" and byte2 == b"\x62":
+                # print(f"DEBUG doing ubx serial_handler._parse_data if ubx {ser.peek()}")
                 byten = ser.read(4)
+                # print(f"DEBUG first byten = {byten}, len = {len(byten)}, need 4")
                 if len(byten) < 4:
                     self.__master.event_generate("<<ubx_eof>>")
                     parsing = False
@@ -350,6 +350,7 @@ class SerialHandler:
                 lenb = byten[2:4]
                 leni = int.from_bytes(lenb, "little", signed=False)
                 byten = ser.read(leni + 2)
+                # print(f"DEBUG second byten = {byten}, len = {len(byten)}, need {leni +2 }")
                 if len(byten) < leni + 2:
                     self.__master.event_generate("<<ubx_eof>>")
                     parsing = False
@@ -357,28 +358,19 @@ class SerialHandler:
                 plb = byten[0:leni]
                 cksum = byten[leni : leni + 2]
                 raw_data = ubt.UBX_HDR + clsid + msgid + lenb + plb + cksum
-                self.__app.ubx_handler.process_data(raw_data)
+                if filt in (UBX_PROTOCOL, MIXED_PROTOCOL):
+                    self.__app.ubx_handler.process_data(raw_data)
                 parsing = False
             # if it's an NMEA message ('$G' or '$P')
-            elif (
-                byte1 == b"\x24"
-                and byte2 in (b"\x47", b"\x50")
-                and filt
-                in (
-                    NMEA_PROTOCOL,
-                    MIXED_PROTOCOL,
-                )
-            ):
-                #                 print(f"doing serial_handler._parse_data if nmea {ser.peek()}")
-                try:
-                    raw_data = byte1 + byte2 + ser.readline()
-                    self.__app.nmea_handler.process_data(raw_data.decode("utf-8"))
-                except UnicodeDecodeError:
-                    continue
+            elif byte1 == b"\x24" and byte2 in (b"\x47", b"\x50"):
+                # print(f"DEBUG doing nmea serial_handler._parse_data if nmea {ser.peek()}")
+                raw_data = byte1 + byte2 + ser.readline()
+                if filt in (NMEA_PROTOCOL, MIXED_PROTOCOL):
+                    self.__app.nmea_handler.process_data(raw_data)
                 parsing = False
             # else drop it like it's hot
             else:
-                #                 print(f"dropping {ser.peek()}")
+                # print(f"DEBUG dropping {ser.peek()}")
                 parsing = False
 
         # if datalogging, write to log file
