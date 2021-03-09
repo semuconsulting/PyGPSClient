@@ -73,7 +73,7 @@ class SerialConfigFrame(
         :param kwargs: optional kwargs for value ranges, or to pass to Frame parent class
         """
 
-        self._bpsrate_rng = kwargs.pop("baudrates", BPSRATE_RNG)
+        self._bpsrate_rng = kwargs.pop("bpsrates", BPSRATE_RNG)
         self._databits_rng = kwargs.pop("databits", DATABITS_RNG)
         self._stopbits_rng = kwargs.pop("stopbits", STOPBITS_RNG)
         self._parity_rng = kwargs.pop("parities", PARITY_RNG)
@@ -125,7 +125,7 @@ class SerialConfigFrame(
         self._lbx_port.config(xscrollcommand=self._scr_porth.set)
         self._scr_portv.config(command=self._lbx_port.yview)
         self._scr_porth.config(command=self._lbx_port.xview)
-        self._lbl_bpsrate = Label(self._frm_basic, text="Bps Rate")
+        self._lbl_bpsrate = Label(self._frm_basic, text="Rate bps")
         self._spn_bpsrate = Spinbox(
             self._frm_basic,
             values=self._bpsrate_rng,

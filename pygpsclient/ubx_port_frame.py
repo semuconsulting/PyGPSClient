@@ -33,7 +33,7 @@ from .globals import (
     ICON_PENDING,
     ICON_CONFIRMED,
     PORTIDS,
-    BAUDRATES,
+    BPSRATES,
     READONLY,
     UBX_CFGPRT,
 )
@@ -65,7 +65,7 @@ class UBX_PORT_Frame(Frame):
         self._img_pending = ImageTk.PhotoImage(Image.open(ICON_PENDING))
         self._img_confirmed = ImageTk.PhotoImage(Image.open(ICON_CONFIRMED))
         self._img_warn = ImageTk.PhotoImage(Image.open(ICON_WARNING))
-        self._baudrate = IntVar()
+        self._bpsrate = IntVar()
         self._portid = StringVar()
         self._inprot = b"\x00\x00"
         self._outprot = b"\x00\x00"
@@ -98,15 +98,15 @@ class UBX_PORT_Frame(Frame):
             textvariable=self._portid,
             command=lambda: self._on_select_portid(),  # pylint: disable=unnecessary-lambda
         )
-        self._lbl_ubx_baudrate = Label(self, text="Baud")
-        self._spn_ubx_baudrate = Spinbox(
+        self._lbl_ubx_bpsrate = Label(self, text="Rate bps")
+        self._spn_ubx_bpsrate = Spinbox(
             self,
-            values=(BAUDRATES),
+            values=(BPSRATES),
             width=6,
             state=READONLY,
             readonlybackground=ENTCOL,
             wrap=True,
-            textvariable=self._baudrate,
+            textvariable=self._bpsrate,
         )
         self._lbl_inprot = Label(self, text="Input")
         self._chk_inprot_nmea = Checkbutton(
@@ -148,12 +148,10 @@ class UBX_PORT_Frame(Frame):
             column=0, row=1, columnspan=1, rowspan=2, padx=3, sticky=(W)
         )
         self._spn_ubx_portid.grid(column=1, row=1, columnspan=1, rowspan=2, sticky=(W))
-        self._lbl_ubx_baudrate.grid(
+        self._lbl_ubx_bpsrate.grid(
             column=2, row=1, columnspan=1, rowspan=2, padx=3, sticky=(W)
         )
-        self._spn_ubx_baudrate.grid(
-            column=3, row=1, columnspan=2, rowspan=2, sticky=(W)
-        )
+        self._spn_ubx_bpsrate.grid(column=3, row=1, columnspan=2, rowspan=2, sticky=(W))
         self._lbl_inprot.grid(column=0, row=3, padx=3, sticky=(W))
         self._chk_inprot_nmea.grid(column=1, row=3, sticky=(W))
         self._chk_inprot_ubx.grid(column=2, row=3, sticky=(W))
@@ -201,7 +199,7 @@ class UBX_PORT_Frame(Frame):
         """
 
         if cfgtype == "CFG-PRT":
-            self._baudrate.set(str(kwargs.get("baudrate", 0)))
+            self._bpsrate.set(str(kwargs.get("bpsrate", 0)))
             self._inprot = kwargs.get("inprot", b"\x00\x00")
             self._outprot = kwargs.get("outprot", b"\x00\x00")
             inprot = UBXMessage.bytes2val(self._inprot, "U002")
@@ -245,30 +243,30 @@ class UBX_PORT_Frame(Frame):
             mode = b"\xc0\x08\x00\x00"
         else:
             mode = b"\x00\x00\x00\x00"
-        baudRate = UBXMessage.val2bytes(self._baudrate.get(), "U004")
+        bpsRate = UBXMessage.val2bytes(self._bpsrate.get(), "U004")
         inprot = (
             self._inprot_ubx.get()
-            + (self._inprot_nmea.get() << 1)
-            + (self._inprot_rtcm2.get() << 2)
-            + (self._inprot_rtcm3.get() << 5)
+            +(self._inprot_nmea.get() << 1)
+            +(self._inprot_rtcm2.get() << 2)
+            +(self._inprot_rtcm3.get() << 5)
         )
         inProtoMask = UBXMessage.val2bytes(inprot, "U002")
         outprot = (
             self._outprot_ubx.get()
-            + (self._outprot_nmea.get() << 1)
-            + (self._outprot_rtcm3.get() << 5)
+            +(self._outprot_nmea.get() << 1)
+            +(self._outprot_rtcm3.get() << 5)
         )
         outProtoMask = UBXMessage.val2bytes(outprot, "U002")
         payload = (
             portID
-            + reserved0
-            + txReady
-            + mode
-            + baudRate
-            + inProtoMask
-            + outProtoMask
-            + reserved4
-            + reserved5
+            +reserved0
+            +txReady
+            +mode
+            +bpsRate
+            +inProtoMask
+            +outProtoMask
+            +reserved4
+            +reserved5
         )
         msg = UBXMessage("CFG", "CFG-PRT", SET, payload=payload)
         self.__app.serial_handler.serial_write(msg.serialize())

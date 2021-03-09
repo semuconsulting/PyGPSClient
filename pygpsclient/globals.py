@@ -60,8 +60,8 @@ MQAPIKEY = "mqapikey"
 UBXPRESETS = "ubxpresets"
 # list of recognised serial device descriptors:
 KNOWNGPS = ("GPS", "gps", "GNSS", "gnss", "Garmin", "garmin", "U-Blox", "u-blox")
-# list of available baud rates (first entry in list is the default):
-BAUDRATES = (9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600, 4800)
+# list of available bps rates (first entry in list is the default):
+BPSRATES = (9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600, 4800)
 # displayed protocol flags:
 NMEA_PROTOCOL = 0
 UBX_PROTOCOL = 1

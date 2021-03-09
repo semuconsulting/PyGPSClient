@@ -196,7 +196,7 @@ class UBXHandler:
             self.__app.dlg_ubxconfig.update_pending(
                 "CFG-PRT",
                 portid=data.portID,
-                baudrate=data.baudRate,
+                bpsrate=data.baudRate,
                 inprot=data.inProtoMask,
                 outprot=data.outProtoMask,
             )
@@ -309,7 +309,7 @@ class UBXHandler:
                         data.min,
                         data.second,
                     ).isoformat()
-                    + "Z"
+                    +"Z"
                 )
                 if fix == "3D":
                     fix = "3d"

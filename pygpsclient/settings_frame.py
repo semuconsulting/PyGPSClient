@@ -56,7 +56,7 @@ from .globals import (
     UBX_PROTOCOL,
     MIXED_PROTOCOL,
     KNOWNGPS,
-    BAUDRATES,
+    BPSRATES,
 )
 from .strings import (
     LBLUBXCONFIG,
@@ -136,7 +136,7 @@ class SettingsFrame(Frame):
 
         # serial port configuration panel
         self._frm_serial = SerialConfigFrame(
-            self, preselect=KNOWNGPS, timeouts=TIMEOUTS, baudrates=BAUDRATES
+            self, preselect=KNOWNGPS, timeouts=TIMEOUTS, bpsrates=BPSRATES
         )
 
         # connection buttons
