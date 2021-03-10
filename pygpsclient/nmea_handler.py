@@ -72,7 +72,7 @@ class NMEAHandler:
             return None
 
         try:
-            parsed_data = NMEAReader.parse(data, VALCKSUM, GET)
+            parsed_data = NMEAReader.parse(data, validate=VALCKSUM, msgmode=GET)
         except NMEAParseError as err:
             # Parsing errors at this point are typically due to NMEA and UBX
             # protocols getting garbled in the input stream. It only happens
