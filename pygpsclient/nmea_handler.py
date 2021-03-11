@@ -82,7 +82,6 @@ class NMEAHandler:
 
         if data or parsed_data:
             self._update_console(data, parsed_data)
-
         if parsed_data.msgID == "RMC":  # Recommended minimum data for GPS
             self._process_RMC(parsed_data)
         if parsed_data.msgID == "GGA":  # GPS Fix Data
@@ -96,7 +95,7 @@ class NMEAHandler:
         if parsed_data.msgID == "GSV":  # GPS Satellites in View
             self._process_GSV(parsed_data)
         if (
-            parsed_data.msgID == "PUBX" and parsed_data.msgId == 0
+            parsed_data.msgID == "UBX" and parsed_data.msgId == 0
         ):  # GPS Lat/Lon & Acc Data
             self._process_UBX00(parsed_data)
 
