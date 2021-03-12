@@ -246,12 +246,12 @@ def deg2dms(degrees: float, latlon: str) -> str:
         sfx = "N" if latlon == "lat" else "E"
     return (
         str(int(degrees))
-        +"\u00b0"
-        +str(int(minutes))
-        +"\u2032"
-        +str(round(seconds, 3))
-        +"\u2033"
-        +sfx
+        + "\u00b0"
+        + str(int(minutes))
+        + "\u2032"
+        + str(round(seconds, 3))
+        + "\u2033"
+        + sfx
     )
 
 
@@ -384,7 +384,7 @@ def knots2ms(knots: float) -> float:
     return knots * 0.5144447324
 
 
-def pos2iso6709(lat: float, lon: float, alt: float, crs: str="WGS_84") -> str:
+def pos2iso6709(lat: float, lon: float, alt: float, crs: str = "WGS_84") -> str:
     """
     convert decimal degrees and alt to iso6709 format.
 
@@ -408,14 +408,14 @@ def pos2iso6709(lat: float, lon: float, alt: float, crs: str="WGS_84") -> str:
     alti = "-" if alt < 0 else "+"
     iso6709 = (
         lati
-        +str(abs(lat))
-        +loni
-        +str(abs(lon))
-        +alti
-        +str(alt)
-        +"CRS"
-        +crs
-        +"/"
+        + str(abs(lat))
+        + loni
+        + str(abs(lon))
+        + alti
+        + str(alt)
+        + "CRS"
+        + crs
+        + "/"
     )
     return iso6709
 
@@ -470,6 +470,7 @@ def snr2col(snr: int) -> str:
     """
 
     return hsv2rgb(snr / (MAX_SNR * 2.5), 0.8, 0.8)
+
 
 # this method no longer required with pynmeagps library
 # def nmea2latlon(data: types.talker) -> (float, float):
