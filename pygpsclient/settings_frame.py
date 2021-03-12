@@ -563,7 +563,7 @@ class SettingsFrame(Frame):
         :rtype: str
         """
 
-        return self._logpath.get()
+        return self._logpath
 
     @property
     def datalogging(self) -> int:
