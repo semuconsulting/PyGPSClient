@@ -83,7 +83,7 @@ class SerialHandler:
             self.__app.set_connection(
                 (
                     f"{serial_settings.port}:{serial_settings.port_desc} "
-                    +f"@ {str(serial_settings.bpsrate)}"
+                    + f"@ {str(serial_settings.bpsrate)}"
                 ),
                 "green",
             )
@@ -102,7 +102,7 @@ class SerialHandler:
             self.__app.set_connection(
                 (
                     f"{serial_settings.port}:{serial_settings.port_desc} "
-                    +f"@ {str(serial_settings.baudrate)}"
+                    + f"@ {str(serial_settings.baudrate)}"
                 ),
                 "red",
             )
@@ -356,7 +356,7 @@ class SerialHandler:
                     parsing = False
                     break
                 plb = byten[0:leni]
-                cksum = byten[leni: leni + 2]
+                cksum = byten[leni : leni + 2]
                 raw_data = ubt.UBX_HDR + clsid + msgid + lenb + plb + cksum
                 if filt in (UBX_PROTOCOL, MIXED_PROTOCOL):
                     self.__app.ubx_handler.process_data(raw_data)
