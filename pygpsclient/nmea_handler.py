@@ -95,7 +95,7 @@ class NMEAHandler:
         if parsed_data.msgID == "GSV":  # GPS Satellites in View
             self._process_GSV(parsed_data)
         if (
-            parsed_data.msgID == "UBX" and parsed_data.msgId == 0
+            parsed_data.msgID == "UBX" and parsed_data.msgId == "00"
         ):  # GPS Lat/Lon & Acc Data
             self._process_UBX00(parsed_data)
 

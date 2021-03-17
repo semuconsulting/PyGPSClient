@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE v1.0.2
+
+FIX:
+
+1. Fix failure to update vacc and hacc in banner from NMEA PUBX00 message
+
 ### RELEASE v1.0.1
 
 ENHANCEMENTS:
