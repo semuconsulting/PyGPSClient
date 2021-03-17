@@ -1,4 +1,4 @@
-pynmeagps>=0.1.7
+pynmeagps>=0.1.8
 requests>=2.24.0
 Pillow>=7.2.0
 pyserial>=3.4
