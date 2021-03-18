@@ -86,11 +86,6 @@ class MapviewFrame(Frame):
         w, h = self.width, self.height
         resize_font = font.Font(size=min(int(w / 20), 14))
 
-        if self.__app.frm_settings.webmap:
-            static = False
-        else:
-            static = True
-
         if lat is None or lat == "" or lon is None or lon == "":
             self.reset_map_refresh()
             self.can_mapview.create_text(
@@ -102,7 +97,7 @@ class MapviewFrame(Frame):
             )
             return
 
-        if static:
+        if not self.__app.frm_settings.webmap:
             self._draw_static_map(lat, lon)
         else:
             if hacc is None or hacc == "":
