@@ -92,15 +92,7 @@ class MapviewFrame(Frame):
             static = True
 
         if lat is None or lat == "" or lon is None or lon == "":
-            self.can_mapview.delete("all")
             self.reset_map_refresh()
-            self.can_mapview.create_text(
-                w / 2,
-                h / 2 - (w / 20),
-                text=NOWEBMAPERROR1,
-                fill="red",
-                font=resize_font,
-            )
             self.can_mapview.create_text(
                 w / 2,
                 h / 2 + (w / 20),
