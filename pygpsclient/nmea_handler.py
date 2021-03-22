@@ -73,11 +73,10 @@ class NMEAHandler:
 
         try:
             parsed_data = NMEAReader.parse(data, validate=VALCKSUM, msgmode=GET)
-        except NMEAParseError as err:
+        except NMEAParseError:  # as err:
             # Parsing errors at this point are typically due to NMEA and UBX
             # protocols getting garbled in the input stream. It only happens
             # rarely so we ignore them and carry on.
-            # print(f"DEBUG NMEAHandler.process_data - err = {err}")
             return None
 
         if data or parsed_data:
@@ -99,7 +98,7 @@ class NMEAHandler:
         ):  # GPS Lat/Lon & Acc Data
             self._process_UBX00(parsed_data)
 
-        return self._parsed_data
+        return parsed_data
 
     def _update_console(self, raw_data: bytes, parsed_data):
         """

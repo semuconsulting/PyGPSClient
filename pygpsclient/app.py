@@ -63,7 +63,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         Frame.__init__(self, self.__master, *args, **kwargs)
 
-        self.__master.protocol("WM_DELETE_WINDOW", self.exit)
+        self.__master.protocol("WM_DELETE_WINDOW", self.on_exit)
         self.__master.title(TITLE)
         self.__master.iconphoto(True, PhotoImage(file=ICON_APP))
 
@@ -135,7 +135,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._grid_status()
         self._grid_settings()
 
-        if self.frm_settings.serial_settings().noports:
+        if self.frm_settings.serial_settings().status == 3:  # NOPORTS
             self.set_status(INTROTXTNOPORTS, "red")
 
     def _attach_events(self):
@@ -146,7 +146,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.__master.bind("<<ubx_read>>", self.serial_handler.on_read)
         self.__master.bind("<<ubx_readfile>>", self.serial_handler.on_read)
         self.__master.bind("<<ubx_eof>>", self.serial_handler.on_eof)
-        self.__master.bind_all("<Control-q>", self.exit)
+        self.__master.bind_all("<Control-q>", self.on_exit)
 
     def _set_default_fonts(self):
         """
@@ -307,8 +307,9 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         Start UBX Config dialog thread
         """
 
-        self._config_thread = Thread(target=self._ubxconfig_thread, daemon=False)
-        self._config_thread.start()
+        if self._config_thread is None:
+            self._config_thread = Thread(target=self._ubxconfig_thread, daemon=False)
+            self._config_thread.start()
 
     def _ubxconfig_thread(self):
         """
@@ -323,7 +324,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         if self._config_thread is not None:
-            self._config_thread.join()
+            self._config_thread = None
+            self.dlg_ubxconfig = None
 
     def get_master(self):
         """
@@ -334,7 +336,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         return self.__master
 
-    def exit(self, *args, **kwargs):  # pylint: disable=unused-argument
+    def on_exit(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
         Kill any running processes and quit application
         """

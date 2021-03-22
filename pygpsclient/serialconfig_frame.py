@@ -5,6 +5,8 @@ serial port configuration facility.
 
 Exposes the serial port settings as properties.
 
+Application icons from https://iconmonstr.com/license/.
+
 Created on 24 Dec 2020
 
 :author: semuadmin
@@ -33,9 +35,10 @@ from tkinter import (
     NORMAL,
     DISABLED,
 )
-
+from PIL import ImageTk, Image
 from serial.tools.list_ports import comports
 from serial import PARITY_NONE, PARITY_EVEN, PARITY_ODD, PARITY_MARK, PARITY_SPACE
+from .globals import ICON_REFRESH, ICON_EXPAND, ICON_CONTRACT
 
 ADVOFF = "\u25bc"
 ADVON = "\u25b2"
@@ -55,6 +58,10 @@ STOPBITS_RNG = (1, 1.5, 2)
 PARITY_RNG = list(PARITIES.keys())
 TIMEOUT_RNG = ("None", "0", "1", "2", "5", "10", "20")
 BGCOL = "azure"
+DISCONNECTED = 0
+CONNECTED = 1
+CONNECTED_FILE = 2
+NOPORTS = 3
 
 
 class SerialConfigFrame(
@@ -84,7 +91,7 @@ class SerialConfigFrame(
         Frame.__init__(self, container, *args, **kwargs)
 
         self._show_advanced = False
-        self._noports = True
+        self._status = DISCONNECTED
         self._ports = ()
         self._port = StringVar()
         self._port_desc = StringVar()
@@ -95,6 +102,9 @@ class SerialConfigFrame(
         self._rtscts = IntVar()
         self._xonxoff = IntVar()
         self._timeout = StringVar()
+        self._img_refresh = ImageTk.PhotoImage(Image.open(ICON_REFRESH))
+        self._img_expand = ImageTk.PhotoImage(Image.open(ICON_EXPAND))
+        self._img_contract = ImageTk.PhotoImage(Image.open(ICON_CONTRACT))
 
         self._body()
         self._do_layout()
@@ -114,7 +124,7 @@ class SerialConfigFrame(
             border=2,
             relief="sunken",
             bg=self._readonlybg,
-            width=28,
+            width=32,
             height=5,
             justify=LEFT,
             exportselection=False,
@@ -135,8 +145,19 @@ class SerialConfigFrame(
             wrap=True,
             textvariable=self._bpsrate,
         )
+        self._btn_refresh = Button(
+            self._frm_basic,
+            command=self._on_refresh,
+            image=self._img_refresh,
+            width=28,
+            height=22,
+        )
         self._btn_toggle = Button(
-            self._frm_basic, text=ADVOFF, width=3, command=self._on_toggle_advanced
+            self._frm_basic,
+            command=self._on_toggle_advanced,
+            image=self._img_expand,
+            width=28,
+            height=22,
         )
 
         self._frm_advanced = Frame(self)
@@ -194,12 +215,15 @@ class SerialConfigFrame(
 
         self._frm_basic.grid(column=0, row=0, columnspan=4, sticky=(W, E))
         self._lbl_port.grid(column=0, row=0, sticky=(W))
-        self._lbx_port.grid(column=1, row=0, sticky=(W, E), padx=3, pady=3)
-        self._scr_portv.grid(column=2, row=0, sticky=(N, S))
-        self._scr_porth.grid(column=1, row=1, sticky=(E, W))
+        self._lbx_port.grid(
+            column=1, row=0, columnspan=2, sticky=(W, E), padx=3, pady=3
+        )
+        self._scr_portv.grid(column=3, row=0, sticky=(N, S))
+        self._scr_porth.grid(column=1, row=1, columnspan=2, sticky=(E, W))
         self._lbl_bpsrate.grid(column=0, row=2, sticky=(W))
         self._spn_bpsrate.grid(column=1, row=2, sticky=(W), padx=3, pady=3)
-        self._btn_toggle.grid(column=2, row=2, sticky=(E))
+        self._btn_refresh.grid(column=2, row=2, sticky=(E))
+        self._btn_toggle.grid(column=3, row=2, sticky=(E))
 
         self._frm_advanced.grid_forget()
         self._lbl_databits.grid(column=0, row=0, sticky=(W))
@@ -231,22 +255,29 @@ class SerialConfigFrame(
 
         self._ports = sorted(comports())
         init_idx = 0
+
         port = ""
         desc = ""
         if len(self._ports) > 0:
-            for idx, (port, desc, _) in enumerate(self._ports, 1):
+            # default selection to first port
+            (port, desc, _) = self._ports[0]
+            self._port.set(port)
+            self._port_desc.set(desc)
+            for idx, (port, desc, _) in enumerate(self._ports):
                 self._lbx_port.insert(idx, port + ": " + desc)
                 for dev in self._preselect:
                     if dev in desc:
+                        # update selection to recognised GNSS device
                         init_idx = idx
+                        self._port.set(port)
+                        self._port_desc.set(desc)
+
                         break
-            self._noports = False
+            self.set_status(DISCONNECTED)
         else:
-            self._noports = True
-            self.enable_controls(True)
+            self.set_status(NOPORTS)
         self._lbx_port.activate(init_idx)
-        self._port.set(port)
-        self._port_desc.set(desc)
+        self._lbx_port.selection_set(first=init_idx)
 
     def _on_select_port(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -257,12 +288,23 @@ class SerialConfigFrame(
         if idx == "":
             idx = 0
         port_orig = self._lbx_port.get(idx)
-        port = port_orig[0: port_orig.find(":")]
-        desc = port_orig[port_orig.find(":") + 1:]
+        port = port_orig[0 : port_orig.find(":")]
+        desc = port_orig[port_orig.find(":") + 1 :]
         if desc == "":
             desc = "device"
         self._port.set(port)
         self._port_desc.set(desc)
+
+    def _on_refresh(self):
+        """
+        Refresh list of ports.
+        """
+
+        if self._status in (CONNECTED, CONNECTED_FILE):
+            return
+        self.set_status(DISCONNECTED)
+        self._lbx_port.delete(0, "end")
+        self._get_ports()
 
     def _on_toggle_advanced(self):
         """
@@ -272,19 +314,21 @@ class SerialConfigFrame(
         self._show_advanced = not self._show_advanced
         if self._show_advanced:
             self._frm_advanced.grid(column=0, row=1, columnspan=3, sticky=(W, E))
-            self._btn_toggle.config(text=ADVON)
+            self._btn_toggle.config(image=self._img_contract)
         else:
             self._frm_advanced.grid_forget()
-            self._btn_toggle.config(text=ADVOFF)
+            self._btn_toggle.config(image=self._img_expand)
 
-    def enable_controls(self, disabled: bool=False):
+    def set_status(self, status: int = DISCONNECTED):
         """
-        Enable or disable controls (e.g. to prevent
-        changes when serial device is connected).
+        Set connection status, which determines whether controls
+        are enabled or not: 0=DISCONNECTED, 1=CONNECTED,
+        2=CONNECTED_FILE, 3=NOPORTS.
 
-        :param bool disabled: disable controls flag
+        :param int status: status (0,1,2,3)
         """
 
+        self._status = status
         for widget in (
             self._lbl_port,
             self._lbl_bpsrate,
@@ -296,7 +340,7 @@ class SerialConfigFrame(
             self._chk_xon,
             self._lbx_port,
         ):
-            widget.configure(state=(DISABLED if disabled else NORMAL))
+            widget.configure(state=(NORMAL if status == DISCONNECTED else DISABLED))
         for widget in (
             self._spn_bpsrate,
             self._spn_databits,
@@ -304,7 +348,7 @@ class SerialConfigFrame(
             self._spn_parity,
             self._spn_timeout,
         ):
-            widget.configure(state=(DISABLED if disabled else READONLY))
+            widget.configure(state=(READONLY if status == DISCONNECTED else DISABLED))
 
     def reset(self):
         """
@@ -320,16 +364,16 @@ class SerialConfigFrame(
         self._timeout.set(self._timeout_rng[0])
 
     @property
-    def noports(self) -> bool:
+    def status(self) -> int:
         """
-        Getter for noports flag, which indicates if there are
-        no serial ports available.
+        Getter for status flag: 0=DISCONNECTED, 1=CONNECTED,
+        2=CONNECTED_FILE, 3=NOPORTS.
 
-        :return: noports flag (True/False)
-        :rtype: bool
+        :return: status flag (0,1,2,3)
+        :rtype: int
         """
 
-        return self._noports
+        return self._status
 
     @property
     def port(self) -> str:

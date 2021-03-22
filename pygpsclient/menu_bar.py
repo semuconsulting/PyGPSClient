@@ -11,7 +11,7 @@ Created on 12 Sep 2020
 """
 # pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
 
-from tkinter import Menu
+from tkinter import Menu, DISABLED
 
 from .strings import (
     MENUFILE,
@@ -55,7 +55,10 @@ class MenuBar(Menu):
         #         self.file_menu.add_command(label=MENULOAD, underline=1,
         #                                    command=self.__app.frm_settings._load_settings)
         self.file_menu.add_command(
-            label=MENUEXIT, underline=1, accelerator="Ctrl-Q", command=self.__app.exit
+            label=MENUEXIT,
+            underline=1,
+            accelerator="Ctrl-Q",
+            command=self.__app.on_exit,
         )
         self.add_cascade(menu=self.file_menu, label=MENUFILE)
 
@@ -81,7 +84,10 @@ class MenuBar(Menu):
         # Create a pull-down menu for view operations
         self.options_menu = Menu(self, tearoff=False)
         self.options_menu.add_command(
-            label=MENUUBXCONFIG, underline=1, command=self.__app.ubxconfig
+            label=MENUUBXCONFIG,
+            underline=1,
+            command=self.__app.ubxconfig,
+            state=DISABLED,
         )
         self.add_cascade(menu=self.options_menu, label=MENUOPTION)
 

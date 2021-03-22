@@ -104,7 +104,11 @@ class ConsoleFrame(Frame):
 
         idx = float(con.index("end"))  # Lazy but it works
         if idx > self.__app.frm_settings.maxlines:
-            con.delete("1.0", "2.0")  # Remember these look like floats but they're not!
+            # Remember these tcl indices look like floats but they're not!
+            # ("1.0:, "2.0") signifies "from the first character in
+            # line 1 (inclusive) to the first character in line 2 (exclusive)"
+            # i.e. delete the first line
+            con.delete("1.0", "2.0")
 
         con.update()
         if self.__app.frm_settings.autoscroll:
@@ -127,11 +131,11 @@ class ConsoleFrame(Frame):
 
         for count, tag in enumerate(tags):
             match, color = tag
-            connect = line.find(match)
-            end = connect + len(match)
+            start = line.find(match)
+            end = start + len(match)
 
-            if connect != -1:  # If search string found in line
-                con.tag_add(count, f"{last}.{connect}", f"{last}.{end}")
+            if start != -1:  # If search string found in line
+                con.tag_add(count, f"{last}.{start}", f"{last}.{end}")
                 con.tag_config(count, foreground=color)
 
     def _on_resize(self, event):  # pylint: disable=unused-argument

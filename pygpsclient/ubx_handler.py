@@ -64,6 +64,9 @@ class UBXHandler:
         :rtype: UBXMessage
         """
 
+        if data is None:
+            return None
+
         parsed_data = UBXReader.parse(data, validate=VALCKSUM)
 
         if parsed_data.identity == "ACK-ACK":
@@ -293,7 +296,7 @@ class UBXHandler:
                 track=self.track,
             )
 
-            self.__app.frm_mapview.update_map(self.lat, self.lon, self.hacc)
+            self.__app.frm_mapview.update_map(self.lat, self.lon, self.hacc, fix=fix)
 
             if (
                 self.__app.frm_settings.record_track

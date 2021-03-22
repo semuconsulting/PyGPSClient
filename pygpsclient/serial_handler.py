@@ -24,7 +24,7 @@ from .globals import (
     MIXED_PROTOCOL,
     UBX_PROTOCOL,
 )
-from .strings import STOPDATA, NOTCONN, SEROPENERROR, ENDOFFILE
+from .strings import NOTCONN, SEROPENERROR, ENDOFFILE
 
 
 class SerialHandler:
@@ -66,6 +66,8 @@ class SerialHandler:
         """
 
         serial_settings = self.__app.frm_settings.serial_settings()
+        if serial_settings.status == 3:  # NOPORTS
+            return
 
         try:
             self._serial_object = Serial(
@@ -92,17 +94,18 @@ class SerialHandler:
             self.start_read_thread()
 
             if self.__app.frm_settings.datalogging:
-                self.__app.file_handler.open_logfile_output()
+                self.__app.file_handler.open_logfile()
 
             if self.__app.frm_settings.record_track:
                 self.__app.file_handler.open_trackfile()
+            self.__app.set_status("Connected", "blue")
 
         except (IOError, SerialException, SerialTimeoutException) as err:
             self._connected = False
             self.__app.set_connection(
                 (
                     f"{serial_settings.port}:{serial_settings.port_desc} "
-                    + f"@ {str(serial_settings.baudrate)}"
+                    + f"@ {str(serial_settings.bpsrate)}"
                 ),
                 "red",
             )
@@ -115,23 +118,26 @@ class SerialHandler:
         Open binary data file connection.
         """
 
-        logpath = self.__app.frm_settings.logpath
+        in_filepath = self.__app.frm_settings.infilepath
 
         try:
-            self._serial_object = open(logpath, "rb")
+            self._serial_object = open(in_filepath, "rb")
             self._serial_buffer = BufferedReader(self._serial_object)
             self.__app.frm_banner.update_conn_status(CONNECTED_FILE)
-            self.__app.set_connection(f"{logpath}", "blue")
+            self.__app.set_connection(f"{in_filepath}", "blue")
             self.__app.frm_settings.enable_controls(CONNECTED_FILE)
             self._connected = True
             self.start_readfile_thread()
+
+            if self.__app.frm_settings.datalogging:
+                self.__app.file_handler.open_logfile()
 
             if self.__app.frm_settings.record_track:
                 self.__app.file_handler.open_trackfile()
 
         except (IOError, SerialException, SerialTimeoutException) as err:
             self._connected = False
-            self.__app.set_connection(f"{logpath}", "red")
+            self.__app.set_connection(f"{in_filepath}", "red")
             self.__app.set_status(SEROPENERROR.format(err), "red")
             self.__app.frm_banner.update_conn_status(DISCONNECTED)
             self.__app.frm_settings.enable_controls(DISCONNECTED)
@@ -243,7 +249,7 @@ class SerialHandler:
         if self._serial_thread is not None:
             self._reading = False
             self._serial_thread = None
-            self.__app.set_status(STOPDATA, "red")
+            # self.__app.set_status(STOPDATA, "red")
 
     def stop_readfile_thread(self):
         """
@@ -253,7 +259,7 @@ class SerialHandler:
         if self._file_thread is not None:
             self._reading = False
             self._file_thread = None
-            self.__app.set_status(STOPDATA, "red")
+            # self.__app.set_status(STOPDATA, "red")
 
     def _read_thread(self):
         """
@@ -263,12 +269,8 @@ class SerialHandler:
         """
 
         try:
-            # print(f"DEBUG doing serial_handler._read_thread")
             while self._reading and self._serial_object:
-                # print(f"DEBUG doing serial_handler._read_thread while loop")
                 if self._serial_object.in_waiting:
-                    # print(f"DEBUG Bytes in buffer: {self._serial_object.in_waiting}")
-                    # print(f"DEBUG doing serial_handler._read_thread in_waiting")
                     self.__master.event_generate("<<ubx_read>>")
         except SerialException as err:
             self.__app.set_status(f"Error in read thread {err}", "red")
@@ -283,9 +285,7 @@ class SerialHandler:
         trigger data parsing and widget updates.
         """
 
-        # print(f"DEBUG doing serial_handler._readfile_thread")
         while self._reading and self._serial_object:
-            # print(f"DEBUG doing serial_handler._readfile_thread while loop")
             self.__master.event_generate("<<ubx_readfile>>")
 
     def on_read(self, event):  # pylint: disable=unused-argument
@@ -295,7 +295,6 @@ class SerialHandler:
         :param event event: read event
         """
 
-        # print(f"DEBUG doing serial_handler.on_read")
         if self._reading and self._serial_object is not None:
             try:
                 self._parse_data(self._serial_buffer)
@@ -309,7 +308,6 @@ class SerialHandler:
         :param event event: eof event
         """
 
-        # print(f"DEBUG doing serial_handler.on_eof")
         self.disconnect()
         self.__app.set_status(ENDOFFILE, "blue")
 
@@ -322,9 +320,9 @@ class SerialHandler:
         :param Serial ser: serial port
         """
 
-        # print(f"DEBUG doing serial_handler_parse_data")
         parsing = True
         raw_data = None
+        parsed_data = None
         byte1 = ser.read(1)  # read first byte to determine protocol
         if len(byte1) < 1:
             self.__master.event_generate("<<ubx_eof>>")
@@ -338,9 +336,7 @@ class SerialHandler:
                 return
             # if it's a UBX message (b'\b5\x62')
             if byte1 == b"\xb5" and byte2 == b"\x62":
-                # print(f"DEBUG doing ubx serial_handler._parse_data if ubx {ser.peek()}")
                 byten = ser.read(4)
-                # print(f"DEBUG first byten = {byten}, len = {len(byten)}, need 4")
                 if len(byten) < 4:
                     self.__master.event_generate("<<ubx_eof>>")
                     parsing = False
@@ -350,7 +346,6 @@ class SerialHandler:
                 lenb = byten[2:4]
                 leni = int.from_bytes(lenb, "little", signed=False)
                 byten = ser.read(leni + 2)
-                # print(f"DEBUG second byten = {byten}, len = {len(byten)}, need {leni +2 }")
                 if len(byten) < leni + 2:
                     self.__master.event_generate("<<ubx_eof>>")
                     parsing = False
@@ -359,23 +354,25 @@ class SerialHandler:
                 cksum = byten[leni : leni + 2]
                 raw_data = ubt.UBX_HDR + clsid + msgid + lenb + plb + cksum
                 if filt in (UBX_PROTOCOL, MIXED_PROTOCOL):
-                    self.__app.ubx_handler.process_data(raw_data)
+                    parsed_data = self.__app.ubx_handler.process_data(raw_data)
                 parsing = False
             # if it's an NMEA message ('$G' or '$P')
             elif byte1 == b"\x24" and byte2 in (b"\x47", b"\x50"):
-                # print(f"DEBUG doing nmea serial_handler._parse_data if nmea {ser.peek()}")
                 raw_data = byte1 + byte2 + ser.readline()
                 if filt in (NMEA_PROTOCOL, MIXED_PROTOCOL):
-                    self.__app.nmea_handler.process_data(raw_data)
+                    parsed_data = self.__app.nmea_handler.process_data(raw_data)
                 parsing = False
             # else drop it like it's hot
             else:
-                # print(f"DEBUG dropping {ser.peek()}")
                 parsing = False
 
         # if datalogging, write to log file
-        if self.__app.frm_settings.datalogging and raw_data is not None:
-            self.__app.file_handler.write_logfile(raw_data)
+        if self.__app.frm_settings.datalogging:
+            logformat = self.__app.frm_settings.logformat
+            if logformat in ("Raw", "Both") and raw_data is not None:
+                self.__app.file_handler.write_logfile(raw_data)
+            if logformat in ("Parsed", "Both") and parsed_data is not None:
+                self.__app.file_handler.write_logfile(parsed_data)
 
     def flush(self):
         """

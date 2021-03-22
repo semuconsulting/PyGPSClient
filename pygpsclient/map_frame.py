@@ -23,7 +23,7 @@ from tkinter import Frame, Canvas, font, NW, N, S, E, W
 from PIL import ImageTk, Image
 import requests
 
-from .globals import WIDGETU2, MAPURL, MAP_UPDATE_INTERVAL, IMG_WORLD, ICON_POS
+from .globals import WIDGETU2, MAPURL, MAP_UPDATE_INTERVAL, IMG_WORLD, ICON_POS, BGCOL
 from .strings import (
     NOWEBMAPERROR1,
     NOWEBMAPERROR2,
@@ -69,18 +69,17 @@ class MapviewFrame(Frame):
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
-        self.can_mapview = Canvas(
-            self, width=self.width, height=self.height, bg="white"
-        )
+        self.can_mapview = Canvas(self, width=self.width, height=self.height, bg=BGCOL)
         self.can_mapview.grid(column=0, row=0, sticky=(N, S, E, W))
 
-    def update_map(self, lat: float, lon: float, hacc: float):
+    def update_map(self, lat, lon, hacc, **kwargs):
         """
         Draw map and mark current known position.
 
-        :param float lat: latitude
-        :param float lon: longitude
-        :param float hacc: horizontal accuracy
+        :param float lat: latitude (or null/"" if no fix)
+        :param float lon: longitude (or null/"" if no fix)
+        :param float hacc: horizontal accuracy (where available)
+        :param str fix (kwarg): fix type as string
         """
 
         w, h = self.width, self.height
@@ -91,7 +90,18 @@ class MapviewFrame(Frame):
         else:
             static = True
 
-        if lat is None or lat == "" or lon is None or lon == "":
+        # if no fix, display warning message
+        fix = kwargs.get("fix", "")
+        if (
+            lat in (None, "")
+            or lon in (None, "")
+            or (lat == 0 and lon == 0)
+            or fix
+            in (
+                "NO FIX",
+                "TIME ONLY",
+            )
+        ):
             self.can_mapview.delete("all")
             self.reset_map_refresh()
             self.can_mapview.create_text(

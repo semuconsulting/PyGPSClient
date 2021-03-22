@@ -27,9 +27,10 @@ ICON_CONFIRMED = os.path.join(DIRNAME, "resources/iconmonstr-check-mark-8-24.png
 ICON_WARNING = os.path.join(DIRNAME, "resources/iconmonstr-warning-1-24.png")
 ICON_UBXCONFIG = os.path.join(DIRNAME, "resources/iconmonstr-gear-2-24.png")
 ICON_LOGREAD = os.path.join(DIRNAME, "resources/iconmonstr-note-37-24.png")
+ICON_REFRESH = os.path.join(DIRNAME, "resources/iconmonstr-refresh-6-16.png")
+ICON_CONTRACT = os.path.join(DIRNAME, "resources/iconmonstr-triangle-1-16.png")
+ICON_EXPAND = os.path.join(DIRNAME, "resources/iconmonstr-arrow-80-16.png")
 IMG_WORLD = os.path.join(DIRNAME, "resources/world.png")
-BTN_CONNECT = "\u25b6"  # text on "Connected" button
-BTN_DISCONNECT = "\u2587"  # text on "Disconnected" button
 
 GITHUB_URL = "https://github.com/semuconsulting/PyGPSClient"
 XML_HDR = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
@@ -58,7 +59,27 @@ ANTPOWER = ("OFF", "ON", "DONTKNOW")
 MQAPIKEY = "mqapikey"
 UBXPRESETS = "ubxpresets"
 # list of recognised serial device descriptors:
-KNOWNGPS = ("GPS", "gps", "GNSS", "gnss", "Garmin", "garmin", "U-Blox", "u-blox")
+KNOWNGPS = (
+    "GPS",
+    "gps",
+    "GNSS",
+    "gnss",
+    "Garmin",
+    "garmin",
+    "U-Blox",
+    "u-blox",
+    "ublox",
+    "SiRF",
+    "Sirf",
+    "sirf",
+    "Magellan",
+    "magellan",
+    "CP210",
+    "FT232",
+    "USB UART",
+    "USB to UART",
+    "USB_to_UART",
+)
 # list of available bps rates (first entry in list is the default):
 BPSRATES = (9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600, 4800)
 # displayed protocol flags:
@@ -88,8 +109,6 @@ UMM = "Metric m/s"
 UMK = "Metric kmph"
 UI = "Imperial mph"
 UIK = "Imperial knots"
-ADVOFF = "\u25bc"
-ADVON = "\u25b2"
 
 # UBX config widget signifiers - used to
 # identify which widget should receive the

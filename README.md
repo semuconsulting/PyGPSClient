@@ -24,6 +24,8 @@ Sphinx API Documentation in HTML format is available at [http://www.semuconsulti
 
 Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/semuconsulting/PyGPSClient/blob/master/CONTRIBUTING.md).
 
+[Bug reports](https://github.com/semuconsulting/PyGPSClient/blob/master/.github/ISSUE_TEMPLATE/bug_report.md) and [Feature requests](https://github.com/semuconsulting/PyGPSClient/blob/master/.github/ISSUE_TEMPLATE/feature_request.md) - please use the templates provided.
+
 ## Features
 
 1. Supports both NMEA and UBX protocols. It uses the [pynmeagps library](https://pypi.org/project/pynmeagps/) for NMEA parsing and the [pyubx2 library](https://pypi.org/project/pyubx2/) for UBX parsing.
@@ -43,8 +45,8 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 
 ## How to Use
 
-* To connect to a listed serial device, select the device from the listbox, set the appropriate serial connection parameters (*Rate bps is typically the only setting that might need adjusting, but tweaking the timeout setting may improve performance on certain platforms*) and click 
-![connect icon](/pygpsclient/resources/iconmonstr-link-8-24.png). The application will endeavour to pre-select a recognised GNSS/GPS device but this is platform and device dependent.
+* To connect to a listed serial device, select the device from the listbox, set the appropriate serial connection parameters and click 
+![connect icon](/pygpsclient/resources/iconmonstr-link-8-24.png). The application will endeavour to pre-select a recognised GNSS/GPS device but this is platform and device dependent. Press the ![refresh](/pygpsclient/resources/iconmonstr-refresh-6-16.png) button to refresh the list of connected devices at any point. *Rate bps is typically the only setting that might need adjusting, but tweaking the timeout setting may improve performance on certain platforms*.
 * To stream from a previously-saved binary datalog file (pygpsdata-*.log, or any binary dump of an NMEA or UBX GNSS device output), click 
 ![connect-file icon](/pygpsclient/resources/iconmonstr-note-37-24.png) and select the file.
 * To disconnect from a serial device or datalog file, click
@@ -58,7 +60,7 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 * Zoom - Change the web map scale (any change will take effect at the next map refresh, indicated by a small timer icon at the top left of the panel).
 * Show Legend - Turn the graph legend on or off.
 * Show Zero Signal - Include or exclude satellites with zero signal level in the graph and sky view panels.
-* Enable Data Logging - Turn Data logging (in binary format) on or off. You will be prompted to select the directory into which timestamped log files are saved.
+* Enable Data Logging - Turn Data logging on or off. You will be prompted to select the directory into which timestamped log files are saved. Data logs can be saved in raw, parsed or both formats.
 * Record Track - Turn track recording (in GPX format) on or off. You will be prompted to select the directory into which timestamped track files are saved.
 * Widgets (and their associated fonts) are fully resizeable.
 
@@ -71,7 +73,7 @@ The UBX Configuration Dialog currently supports the following UBX configuration 
 1. CFG-RATE sets navigation solution interval in ms (e.g. 1000 = 1/second) and measurement ratio (ratio between the number of
 measurements and the number of navigation solutions, e.g. 5 = five measurements per navigation solution).
 1. CFG-MSG sets message rates per port for UBX and NMEA messages. Message rate is relative to navigation solution frequency e.g. a message rate of '4' means 'every 4th navigation solution'.
-1. CFG-VALSET, CFG-VALDEL and CFG-VALGET configuration (for Generation 9+ devices).
+1. CFG-VALSET, CFG-VALDEL and CFG-VALGET configuration (for [Generation 9+ devices](https://github.com/semuconsulting/pyubx2#configinterface)).
 1. PRESET commands support a variety of preset and user-defined commands - see [user defined presets](#userdefined)
 
 An icon to the right of each 'SEND' 
@@ -93,13 +95,13 @@ In the following, `python` & `pip` refer to the Python3 executables. You may nee
 
 See [requirements.txt](requirements.txt).
 
-On Windows and MacOS, pip and tkinter are generally packaged with Python3.  On some Linux distributions like Ubuntu 18+ and Raspberry Pi OS, they may need to be installed separately, e.g.:
+On Windows and MacOS, pip, tkinter and the necessary imaging libraries are generally packaged with Python3.  On some Linux distributions like Ubuntu 18+ and Raspberry Pi OS, they may need to be installed separately, e.g.:
 
 ```shell
-sudo apt install python3-pip python3-tk
+sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk
 ```
 
-The following python libraries are required (these will be installed automatically if using pip to install PyGPSClient):
+The following Python libraries are required (these will be installed automatically if using pip to install PyGPSClient):
 
 ```shell
 python -m pip install pyubx2 pynmeagps pyserial Pillow requests
@@ -107,7 +109,7 @@ python -m pip install pyubx2 pynmeagps pyserial Pillow requests
 
 ### User Privileges
 
-To access the serial port on most linux platforms, you will need to be a member of the 
+To access the serial port on most Linux platforms, you will need to be a member of the 
 `tty` and `dialout` groups. Other than this, no special privileges are required.
 
 ### 1. Install using pip

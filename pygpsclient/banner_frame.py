@@ -32,12 +32,12 @@ from .globals import (
     ICON_CONN,
     ICON_DISCONN,
     ICON_LOGREAD,
+    ICON_EXPAND,
+    ICON_CONTRACT,
     CONNECTED,
     CONNECTED_FILE,
     BGCOL,
     FGCOL,
-    ADVOFF,
-    ADVON,
 )
 
 
@@ -82,6 +82,8 @@ class BannerFrame(Frame):
         self._img_conn = ImageTk.PhotoImage(Image.open(ICON_CONN))
         self._img_connfile = ImageTk.PhotoImage(Image.open(ICON_LOGREAD))
         self._img_disconn = ImageTk.PhotoImage(Image.open(ICON_DISCONN))
+        self._img_expand = ImageTk.PhotoImage(Image.open(ICON_EXPAND))
+        self._img_contract = ImageTk.PhotoImage(Image.open(ICON_CONTRACT))
         self.width, self.height = self.get_size()
 
         self._body()
@@ -122,7 +124,11 @@ class BannerFrame(Frame):
             self._frm_basic, text="track:", bg=self._bgcol, fg=self._fgcol, anchor=N
         )
         self._btn_toggle = Button(
-            self._frm_toggle, text=ADVON, width=3, command=self._toggle_advanced
+            self._frm_toggle,
+            width=30,
+            height=25,
+            command=self._toggle_advanced,
+            image=self._img_expand,
         )
         self._lbl_lfix = Label(
             self._frm_basic, text="fix:", bg=self._bgcol, fg=self._fgcol, anchor=N
@@ -264,10 +270,10 @@ class BannerFrame(Frame):
         self._show_advanced = not self._show_advanced
         if self._show_advanced:
             self._frm_advanced.grid(column=1, row=1, pady=3, sticky=(W))
-            self._btn_toggle.config(text=ADVON)
+            self._btn_toggle.config(image=self._img_contract)
         else:
             self._frm_advanced.grid_forget()
-            self._btn_toggle.config(text=ADVOFF)
+            self._btn_toggle.config(image=self._img_expand)
 
     def _attach_events(self):
         """

@@ -36,17 +36,20 @@ class FileHandler:
 
         self.__app = app  # Reference to main application class
         self.__master = self.__app.get_master()  # Reference to root class (Tk)
-        self._datalog_filepath = None
-        self._datalog_filename = None
+        self._in_filepath = None
+        self._in_filename = None
+        self._logpath = None
+        self._logname = None
+        self._infile = None
         self._logfile = None
-        self._track_filepath = None
-        self._track_filename = None
-        self._trkfile = None
+        self._trackpath = None
+        self._trackname = None
+        self._trackfile = None
         self._lines = 0
 
     def __del__(self):
         """
-        Destructor - close any open files
+        Destructor - close any open files.
         """
 
         self.close_logfile()
@@ -91,7 +94,7 @@ class FileHandler:
 
     def _set_filename(self, path: str, mode: str, ext: str) -> str:
         """
-        Return fully qualified and timestamped file name
+        Return fully qualified and timestamped file name.
 
         :param path: the file path as str
         :param mode: the type of file being created ('data', 'track') as str
@@ -107,66 +110,66 @@ class FileHandler:
 
     def set_logfile_path(self) -> str:
         """
-        Set logfile directory and open logfile for output
+        Set file path.
 
         :return: file path
         :rtype: str
         """
 
-        self._datalog_filepath = filedialog.askdirectory(
+        self._logpath = filedialog.askdirectory(
             title=SAVETITLE, initialdir=HOME, mustexist=True
         )
-        if self._datalog_filepath == "":
+        if self._logpath in ((), ""):
             return None  # User cancelled
-        return self._datalog_filepath
+        return self._logpath
 
-    def open_logfile_output(self):
+    def open_logfile(self):
         """
-        Open logfile
+        Open logfile.
         """
 
-        self._datalog_filename = self._set_filename(
-            self._datalog_filepath, "data", "log"
-        )
-        self._logfile = open(self._datalog_filename, "a+b")
+        self._logname = self._set_filename(self._logpath, "data", "log")
+        self._logfile = open(self._logname, "a+b")
 
-    def open_logfile_input(self) -> str:
+    def open_infile(self) -> str:
         """
-        Set logfile name and open logfile for input
+        Open input file for streaming.
 
-        :return: file path
+        :return: input ile path
         :rtype: str
         """
 
-        self._datalog_filepath = filedialog.askopenfilename(
+        self._in_filepath = filedialog.askopenfilename(
             title=READTITLE,
             initialdir=HOME,
             filetypes=(("log files", "*.log"), ("all files", "*.*")),
         )
-        if self._datalog_filepath == "":
+        if self._in_filepath == "":
             return None  # User cancelled
-        return self._datalog_filepath
+        return self._in_filepath
 
-    def write_logfile(self, data: bytes):
+    def write_logfile(self, data):
         """
-        Append binary data to log file.
+        Append data to log file. Data will be converted to bytes.
 
-        :param bytes data: data to be logged as bytes
+        :param data: data to be logged
         """
 
+        if not isinstance(data, bytes):
+            data = (str(data) + "\r").encode("utf-8")
         try:
             self._logfile.write(data)
             self._lines += 1
 
             if self._lines > MAXLOGLINES:
                 self.close_logfile()
-                self.open_logfile_output()
+                self.open_logfile()
         except ValueError:  # residual thread write to closed file
             pass
 
     def close_logfile(self):
         """
-        Close the logfile
+        Close the logfile.
         """
 
         if self._logfile is not None:
@@ -174,26 +177,26 @@ class FileHandler:
 
     def set_trackfile_path(self) -> str:
         """
-        Set track directory
+        Set track directory.
 
         :return: file path
         :rtype: str
         """
 
-        self._track_filepath = filedialog.askdirectory(
+        self._trackpath = filedialog.askdirectory(
             title=SAVETITLE, initialdir=HOME, mustexist=True
         )
-        if self._track_filepath == "":
+        if self._trackpath in ((), ""):
             return None  # User cancelled
-        return self._track_filepath
+        return self._trackpath
 
     def open_trackfile(self):
         """
-        Open track file and create GPX track header tags
+        Open track file and create GPX track header tags.
         """
 
-        self._track_filename = self._set_filename(self._track_filepath, "track", "gpx")
-        self._trkfile = open(self._track_filename, "a")
+        self._trackname = self._set_filename(self._trackpath, "track", "gpx")
+        self._trackfile = open(self._trackname, "a")
 
         date = datetime.now().isoformat() + "Z"
         gpxtrack = (
@@ -207,13 +210,13 @@ class FileHandler:
         )
 
         try:
-            self._trkfile.write(gpxtrack)
+            self._trackfile.write(gpxtrack)
         except ValueError:  # residual thread write to closed file
             pass
 
     def add_trackpoint(self, lat: float, lon: float, **kwargs):
         """
-        Creates GPX track point from provided parameters
+        Creates GPX track point from provided parameters.
 
         :param float lat: latitude
         :param float lon: longitude
@@ -255,18 +258,18 @@ class FileHandler:
         trkpnt += "</trkpt>"
 
         try:
-            self._trkfile.write(trkpnt)
+            self._trackfile.write(trkpnt)
         except ValueError:  # residual thread write to closed file
             pass
 
     def close_trackfile(self):
         """
-        Create GPX track trailer tags and close track file
+        Create GPX track trailer tags and close track file.
         """
 
         gpxtrack = "</trkseg></trk></gpx>"
         try:
-            self._trkfile.write(gpxtrack)
-            self._trkfile.close()
+            self._trackfile.write(gpxtrack)
+            self._trackfile.close()
         except ValueError:  # residual thread write to closed file
             pass

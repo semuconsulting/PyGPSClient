@@ -15,7 +15,7 @@ COPYRIGHTTXT = "\u00A9 SEMU Consulting 2020\nBSD 3 License. All Rights Reserved"
 
 INTROTXT = "Welcome to PyGPSClient!"
 INTROTXTNOPORTS = (
-    "Welcome to PyGPSClient! Please connect a serial GPS device and restart."
+    "Welcome to PyGPSClient! Please connect a serial GNSS device and click refresh."
 )
 
 HELPTXT = "Help..About - display About dialog."

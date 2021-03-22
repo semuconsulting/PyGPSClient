@@ -66,11 +66,16 @@ class UBXConfigDialog:
         self._dialog.transient(self.__app)
         self._dialog.resizable(False, False)
         self._dialog.title = DLGUBXCONFIG
-        #         wd, hd = self.get_size()
-        wd, hd = 750, 470
-        wa = self.__master.winfo_width()
-        ha = self.__master.winfo_height()
-        self._dialog.geometry("+%d+%d" % (int(wa / 2 - wd / 2), int(ha / 2 - hd / 2)))
+        self._dialog.protocol("WM_DELETE_WINDOW", self.on_exit)
+        # roughly center dialog in master window
+        # NB: this works on Windows and MacOS but not on some Linux
+        dw = 780
+        dh = 470
+        mx = self.__master.winfo_x()
+        my = self.__master.winfo_y()
+        mw = self.__master.winfo_width()
+        mh = self.__master.winfo_height()
+        self._dialog.geometry(f"+{int(mx + (mw/2 - dw/2))}+{int(my + (mh/2 - dh/2))}")
         self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
         self._cfg_msg_command = None
         self._pending_confs = {
@@ -112,7 +117,7 @@ class UBXConfigDialog:
             image=self._img_exit,
             width=50,
             fg="red",
-            command=self._on_exit,
+            command=self.on_exit,
             font=self.__app.font_md,
         )
         # add configuration widgets
@@ -268,13 +273,13 @@ class UBXConfigDialog:
         self._lbl_status.config(fg=color)
         self._status.set("  " + message)
 
-    def _on_exit(self, *args, **kwargs):  # pylint: disable=unused-argument
+    def on_exit(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
         Handle Exit button press.
         """
 
         self.__master.update_idletasks()
-        self.__app.dlg_ubxconfig = None
+        self.__app.stop_config_thread()
         self._dialog.destroy()
 
     def get_size(self):

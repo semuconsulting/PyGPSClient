@@ -1,6 +1,6 @@
 <?xml version = "1.0"?>
 <project name="PyGPSClient" default="build">
-	<property name="version" value="1.0.2" />
+	<property name="version" value="1.0.3" />
 	<condition property="python" value="python" else="/Library/Frameworks/Python.framework/Versions/3.9/bin/python3">
 		<os family="windows" />
 	</condition>
@@ -17,7 +17,6 @@
 	<property name="coverage_args" value="-m coverage run --source=${ant.project.name} -m pytest" />
 	<property name="coverage_html_args" value="-m coverage html" />
 	<property name="apidoc_args" value="-f -o docs pygpsclient" />
-	<property name="apidoc_common_args" value="-f -o docs common" />
 	<property name="html_args" value="html" />
 	<target name="clean">
 		<echo>Cleaning...</echo>
@@ -58,9 +57,6 @@
 		<echo>Documenting...</echo>
 		<exec executable="${sphinx}">
 			<arg line="${apidoc_args}"/>
-  		</exec>
-		<exec executable="${sphinx}">
-			<arg line="${apidoc_common_args}"/>
   		</exec>
   		<exec executable="${make}">
 			<arg line="${html_args}"/>

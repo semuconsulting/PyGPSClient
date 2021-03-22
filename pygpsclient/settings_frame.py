@@ -33,7 +33,7 @@ from tkinter import (
 )
 
 from PIL import ImageTk, Image
-from common.serialconfig_frame import SerialConfigFrame
+from .serialconfig_frame import SerialConfigFrame
 from .globals import (
     ENTCOL,
     DDD,
@@ -108,10 +108,12 @@ class SettingsFrame(Frame):
         self._units = StringVar()
         self._format = StringVar()
         self._datalog = IntVar()
+        self._logformat = StringVar()
         self._record_track = IntVar()
         self._show_zerosig = IntVar()
         self._show_legend = IntVar()
         self._validsettings = True
+        self._in_filepath = None
         self._logpath = None
         self._trackpath = None
         self._img_conn = ImageTk.PhotoImage(Image.open(ICON_CONN))
@@ -220,7 +222,7 @@ class SettingsFrame(Frame):
         )
         self._chk_webmap = Checkbutton(
             self._frm_options,
-            text="Web Map  Zoom",
+            text="Web Map    Zoom",
             variable=self._webmap,
             command=lambda: self._on_webmap(),
         )
@@ -244,6 +246,15 @@ class SettingsFrame(Frame):
             text=LBLDATALOG,
             variable=self._datalog,
             command=lambda: self._on_data_log(),
+        )
+        self._spn_datalog = Spinbox(
+            self._frm_options,
+            values=("Raw", "Parsed", "Both"),
+            width=7,
+            readonlybackground=ENTCOL,
+            wrap=True,
+            textvariable=self._logformat,
+            state=READONLY,
         )
         self._chk_recordtrack = Checkbutton(
             self._frm_options,
@@ -306,15 +317,16 @@ class SettingsFrame(Frame):
             column=1, row=6, columnspan=2, padx=3, pady=3, sticky=(W)
         )
         self._chk_datalog.grid(column=0, row=7, padx=3, pady=3, sticky=(W))
+        self._spn_datalog.grid(column=1, row=7, padx=3, pady=3, sticky=(W))
         self._chk_recordtrack.grid(
-            column=1, row=7, columnspan=2, padx=3, pady=3, sticky=(W)
+            column=0, row=8, columnspan=2, padx=3, pady=3, sticky=(W)
         )
 
         ttk.Separator(self._frm_options).grid(
-            column=0, row=8, columnspan=4, padx=3, pady=3, sticky=(W, E)
+            column=0, row=9, columnspan=4, padx=3, pady=3, sticky=(W, E)
         )
-        self._lbl_ubxconfig.grid(column=0, row=9, padx=3, pady=3, sticky=(W))
-        self._btn_ubxconfig.grid(column=1, row=9, padx=3, pady=3, sticky=(W))
+        self._lbl_ubxconfig.grid(column=0, row=10, padx=3, pady=3, sticky=(W))
+        self._btn_ubxconfig.grid(column=1, row=10, padx=3, pady=3, sticky=(W))
 
     def _on_ubx_config(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -371,8 +383,8 @@ class SettingsFrame(Frame):
         Start data file streamer
         """
 
-        self._logpath = self.__app.file_handler.open_logfile_input()
-        if self._logpath is not None:
+        self._in_filepath = self.__app.file_handler.open_infile()
+        if self._in_filepath is not None:
             self.__app.set_status("")
             self.__app.serial_handler.connect_file()
 
@@ -401,11 +413,11 @@ class SettingsFrame(Frame):
 
         :param int status: connection status as integer
                (0=Disconnected, 1=Connected to serial,
-               2=Cnnected to file, 3=No serial ports available)
+               2=Connected to file, 3=No serial ports available)
 
         """
 
-        self._frm_serial.enable_controls(status)
+        self._frm_serial.set_status(status)
 
         self._btn_connect.config(
             state=(
@@ -418,6 +430,11 @@ class SettingsFrame(Frame):
         self._chk_datalog.config(
             state=(
                 DISABLED if status in (CONNECTED, CONNECTED_FILE, NOPORTS) else NORMAL
+            )
+        )
+        self._spn_datalog.config(
+            state=(
+                DISABLED if status in (CONNECTED, CONNECTED_FILE, NOPORTS) else READONLY
             )
         )
         self._chk_recordtrack.config(
@@ -555,11 +572,22 @@ class SettingsFrame(Frame):
         return self._format.get()
 
     @property
-    def logpath(self) -> str:
+    def infilepath(self) -> str:
         """
-        Getter for datalog file path
+        Getter for input file path
 
-        :return: datalog file path
+        :return: input file path
+        :rtype: str
+        """
+
+        return self._in_filepath
+
+    @property
+    def outfilepath(self) -> str:
+        """
+        Getter for output file path
+
+        :return: output file path
         :rtype: str
         """
 
@@ -575,6 +603,17 @@ class SettingsFrame(Frame):
         """
 
         return self._datalog.get()
+
+    @property
+    def logformat(self) -> str:
+        """
+        Getter for datalogging format
+
+        :return: "Raw", "Parsed", "Both"
+        :rtype: str
+        """
+
+        return self._logformat.get()
 
     @property
     def record_track(self) -> int:
