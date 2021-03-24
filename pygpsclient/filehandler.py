@@ -144,7 +144,7 @@ class FileHandler:
             initialdir=HOME,
             filetypes=(("log files", "*.log"), ("all files", "*.*")),
         )
-        if self._in_filepath == "":
+        if self._in_filepath in ((), ""):
             return None  # User cancelled
         return self._in_filepath
 
