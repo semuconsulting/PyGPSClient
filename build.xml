@@ -1,6 +1,6 @@
 <?xml version = "1.0"?>
 <project name="PyGPSClient" default="build">
-	<property name="version" value="1.0.3" />
+	<property name="version" value="1.0.4" />
 	<condition property="python" value="python" else="/Library/Frameworks/Python.framework/Versions/3.9/bin/python3">
 		<os family="windows" />
 	</condition>

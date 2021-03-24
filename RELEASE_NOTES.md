@@ -1,5 +1,12 @@
 # PyGPSClient Release Notes
 
+### RELEASE v1.0.4 WORK IN PROGRESS
+
+FIXES:
+
+1. Fix error on cancelling/quitting input filepath dialog on Linux.
+
+
 ### RELEASE v1.0.3
 
 FIXES:
