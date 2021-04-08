@@ -55,7 +55,7 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 ![gear icon](/pygpsclient/resources/iconmonstr-gear-2-24.png), or go to Menu..Options.
 * To show or hide the various widgets, go to Menu..View and click on the relevant hide/show option.
 * Protocols Displayed - Select which protocols to display (NB: this only changes the displayed protocols - to change the actual protocols output by the receiver, use the CFG-PRT command).
-* Console Display - Change the console display from parsed to raw (hexadecimal) format.
+* Console Display - Change the console display from parsed to raw (byte) format.
 * Degrees Format and Units - Change the displayed degree and unit formats.
 * Zoom - Change the web map scale (any change will take effect at the next map refresh, indicated by a small timer icon at the top left of the panel).
 * Show Legend - Turn the graph legend on or off.
