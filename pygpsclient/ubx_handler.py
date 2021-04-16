@@ -97,6 +97,8 @@ class UBXHandler:
             self._process_NAV_SOL(parsed_data)
         if parsed_data.identity == "NAV-DOP":
             self._process_NAV_DOP(parsed_data)
+        if parsed_data.identity == "HNR-PVT":
+            self._process_HNR_PVT(parsed_data)
         if parsed_data.identity == "MON-VER":
             self._process_MON_VER(parsed_data)
         if parsed_data.identity == "MON-HW":
@@ -450,6 +452,70 @@ class UBXHandler:
             self.__app.frm_banner.update_banner(
                 dop=self.pdop, hdop=self.hdop, vdop=self.vdop
             )
+        except ValueError:
+            # self.__app.set_status(ube.UBXMessageError(err), "red")
+            pass
+
+    def _process_HNR_PVT(self, data: UBXMessage):
+        """
+        Process HNR-PVT sentence -  High Rate Navigation position velocity time solution.
+
+        :param UBXMessage data: HNR-PVT parsed message
+        """
+
+        try:
+            self.utc = itow2utc(data.iTOW)
+            self.lat = data.lat / 10 ** 7
+            self.lon = data.lon / 10 ** 7
+            self.alt = data.hMSL / 1000
+            self.hacc = data.hAcc / 1000
+            self.vacc = data.vAcc / 1000
+            self.speed = data.gSpeed / 1000  # m/s
+            self.track = data.headMot / 10 ** 5
+            fix = gpsfix2str(data.gpsFix)
+            self.__app.frm_banner.update_banner(
+                time=self.utc,
+                lat=self.lat,
+                lon=self.lon,
+                alt=self.alt,
+                hacc=self.hacc,
+                vacc=self.vacc,
+                speed=self.speed,
+                fix=fix,
+                track=self.track,
+            )
+
+            self.__app.frm_mapview.update_map(self.lat, self.lon, self.hacc, fix=fix)
+
+            if (
+                self.__app.frm_settings.record_track
+                and self.lat != ""
+                and self.lon != ""
+            ):
+                time = (
+                    datetime(
+                        data.year,
+                        data.month,
+                        data.day,
+                        data.hour,
+                        data.min,
+                        data.second,
+                    ).isoformat()
+                    + "Z"
+                )
+                if fix == "3D":
+                    fix = "3d"
+                elif fix == "2D":
+                    fix = "2d"
+                else:
+                    fix = "none"
+                self.__app.file_handler.add_trackpoint(
+                    self.lat,
+                    self.lon,
+                    ele=self.alt,
+                    time=time,
+                    fix=fix,
+                )
         except ValueError:
             # self.__app.set_status(ube.UBXMessageError(err), "red")
             pass

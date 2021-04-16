@@ -1,10 +1,11 @@
 # PyGPSClient Release Notes
 
-### RELEASE v1.0.4 WORK IN PROGRESS
+### RELEASE v1.0.4
 
 FIXES:
 
-1. Fix error on cancelling/quitting input filepath dialog on Linux.
+1. Display position fix from HNR-PVT message.
+2. Fix error on cancelling/quitting input filepath dialog on Linux.
 
 
 ### RELEASE v1.0.3
