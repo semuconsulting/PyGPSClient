@@ -19,6 +19,8 @@ from .globals import (
     DEVICE_ACCURACY,
     HDOP_RATIO,
     SAT_EXPIRY,
+)
+from .helpers import (
     knots2ms,
     kmph2ms,
 )

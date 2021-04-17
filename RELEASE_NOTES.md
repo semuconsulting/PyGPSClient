@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE v1.0.5
+
+CHANGES:
+
+1. Helper methods moved from globals.py to new module helpers.py
+
 ### RELEASE v1.0.4
 
 FIXES:

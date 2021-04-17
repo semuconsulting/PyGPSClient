@@ -13,7 +13,8 @@ Created on 13 Sep 2020
 
 from tkinter import Frame, Canvas, font, BOTH, YES
 from operator import itemgetter
-from .globals import snr2col, cel2cart, WIDGETU1, BGCOL, FGCOL, GNSS_LIST
+from .globals import WIDGETU1, BGCOL, FGCOL, GNSS_LIST
+from .helpers import snr2col, cel2cart
 
 OL_WID = 2
 
