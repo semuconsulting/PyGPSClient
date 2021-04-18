@@ -13,7 +13,7 @@ Please help us keep our issue list small by adding fixes: #{$ISSUE_NO} to the co
 ## Coding conventions
 
   * This is open source software. We endeavour to make the code as transparent as possible.
-  * We use [Eclipse PyDev](https://www.pydev.org/) for development and testing, but you are at liberty to use your preferred IDE.
+  * We use Visual Studio Code for development and testing, but you are at liberty to use your preferred IDE.
   * We document the code in accordance with [Sphinx](https://www.sphinx-doc.org/en/master/) docstring conventions.
   * We use [pylint](https://pypi.org/project/pylint/) (>=2.6.0) for code analysis.
   * We use [black](https://pypi.org/project/black/) (>= 20.8) for code formatting and ask that you do the same.
