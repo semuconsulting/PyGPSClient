@@ -1,18 +1,17 @@
-'''
+"""
 Created on 3 Oct 2020
 
-Static method tests for pygpsclient.globals
+Static method tests for pygpsclient.helpers
 
 @author: semuadmin
-'''
+"""
 
 import unittest
 
-from pygpsclient.globals import *
+from pygpsclient.helpers import *
 
 
 class StaticTest(unittest.TestCase):
-
     def setUp(self):
         pass
 
@@ -29,12 +28,12 @@ class StaticTest(unittest.TestCase):
         self.assertAlmostEqual(azim, 0.653290, 5)
 
     def testdeg2dms(self):
-        res = deg2dms(53.346, 'lat')
-        self.assertEqual(res, ('53°20′45.6″N'))
+        res = deg2dms(53.346, "lat")
+        self.assertEqual(res, ("53°20′45.6″N"))
 
     def testdeg2dmm(self):
-        res = deg2dmm(-2.5463, 'lon')
-        self.assertEqual(res, ('2°32.778′W'))
+        res = deg2dmm(-2.5463, "lon")
+        self.assertEqual(res, ("2°32.778′W"))
 
     def testm2ft(self):
         res = m2ft(39.234)
@@ -66,7 +65,7 @@ class StaticTest(unittest.TestCase):
 
     def testpos2iso6709(self):
         res = pos2iso6709(53.12, -2.165, 35)
-        self.assertEqual(res, '+53.12-2.165+35CRSWGS_84/')
+        self.assertEqual(res, "+53.12-2.165+35CRSWGS_84/")
 
     def testhsv2rgb(self):
         res = hsv2rgb(0.5, 0.2, 0.9)

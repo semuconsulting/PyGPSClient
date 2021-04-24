@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-'''
+"""
 Setup script for PyGPSClient Application
 
 python setup.py sdist bdist_wheel
@@ -7,7 +7,7 @@ python setup.py sdist bdist_wheel
 Created on 12 Sep 2020
 
 :author: semuadmin
-'''
+"""
 
 from setuptools import setup, find_packages
 from pygpsclient import version as VERSION
@@ -18,12 +18,21 @@ with open("README.md", "r") as fh:
 setup(
     name="PyGPSClient",
     version=VERSION,
-    packages=find_packages(exclude=['tests', 'references', 'images']),
-    install_requires=["pyubx2>=1.0.8", "pynmeagps>=0.1.8", "requests>=2.24.0",
-                      "Pillow>=7.2.0", "pyserial>=3.4"],
+    packages=find_packages(exclude=["tests", "references", "images"]),
+    install_requires=[
+        "pyubx2>=1.0.9",
+        "pynmeagps>=1.0.0",
+        "requests>=2.24.0",
+        "Pillow>=7.2.0",
+        "pyserial>=3.4",
+    ],
     package_data={
-        "pygpsclient": ["resources/*.gif", "resources/*.png",
-                     "resources/*.ico", "resources/*.icns"],
+        "pygpsclient": [
+            "resources/*.gif",
+            "resources/*.png",
+            "resources/*.ico",
+            "resources/*.icns",
+        ],
     },
     include_package_data=True,
     author="semuadmin",
@@ -43,23 +52,22 @@ setup(
     },
     classifiers=[
         "License :: OSI Approved :: BSD License",
-        'Development Status :: 5 - Production/Stable',
-        'Environment :: MacOS X',
-        'Environment :: X11 Applications',
-        'Environment :: Win32 (MS Windows)',
-        'Intended Audience :: End Users/Desktop',
-        'Intended Audience :: Science/Research',
-        'Operating System :: MacOS :: MacOS X',
-        'Operating System :: Microsoft :: Windows',
-        'Operating System :: POSIX',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
-        'Topic :: Desktop Environment',
-        'Topic :: Terminals :: Serial',
-        'Topic :: Scientific/Engineering :: GIS'
-    ]
-
+        "Development Status :: 5 - Production/Stable",
+        "Environment :: MacOS X",
+        "Environment :: X11 Applications",
+        "Environment :: Win32 (MS Windows)",
+        "Intended Audience :: End Users/Desktop",
+        "Intended Audience :: Science/Research",
+        "Operating System :: MacOS :: MacOS X",
+        "Operating System :: Microsoft :: Windows",
+        "Operating System :: POSIX",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Topic :: Desktop Environment",
+        "Topic :: Terminals :: Serial",
+        "Topic :: Scientific/Engineering :: GIS",
+    ],
 )

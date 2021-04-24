@@ -14,7 +14,8 @@ Created on 30 Sep 2020
 from datetime import datetime
 from pyubx2 import UBXMessage, UBXReader, UBX_MSGIDS, VALCKSUM
 from pyubx2.ubxhelpers import itow2utc, gpsfix2str
-from .globals import svid2gnssid, GLONASS_NMEA
+from .globals import GLONASS_NMEA
+from .helpers import svid2gnssid
 
 BOTH = 3
 UBX = 1

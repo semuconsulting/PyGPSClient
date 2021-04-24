@@ -12,7 +12,8 @@ Created on 14 Sep 2020
 # pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
 
 from tkinter import Frame, Canvas, font, BOTH, YES
-from .globals import snr2col, WIDGETU2, BGCOL, FGCOL, MAX_SNR, GNSS_LIST
+from .globals import WIDGETU2, BGCOL, FGCOL, MAX_SNR, GNSS_LIST
+from .helpers import snr2col
 
 # Relative offsets of graph axes and legend
 AXIS_XL = 19

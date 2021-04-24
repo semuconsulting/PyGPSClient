@@ -1,6 +1,6 @@
 <?xml version = "1.0"?>
 <project name="PyGPSClient" default="build">
-	<property name="version" value="1.0.4" />
+	<property name="version" value="1.0.5" />
 	<condition property="python" value="python" else="/Library/Frameworks/Python.framework/Versions/3.9/bin/python3">
 		<os family="windows" />
 	</condition>
@@ -53,7 +53,16 @@
 			<arg line="${test_args}" />
 		</exec>
 	</target>
-	<target name = "sphinx">
+	<target name = "coverage" depends="test">
+		<echo>Assessing Test Coverage...</echo>
+		<exec executable="${python}">
+			<arg line="${coverage_args}"/>
+  		</exec>
+  		<exec executable="${python}">
+			<arg line="${coverage_html_args}"/>
+  		</exec>
+   	</target>
+	<target name = "document" depends="coverage">
 		<echo>Documenting...</echo>
 		<exec executable="${sphinx}">
 			<arg line="${apidoc_args}"/>
@@ -62,25 +71,16 @@
 			<arg line="${html_args}"/>
   		</exec>
    	</target>
-	<target name = "deploy" depends="build">
-		<echo>Deploying...</echo>
-		<exec executable="${python}">
-			<arg line="${deploy_args}"/>
-  		</exec>
-   	</target>
-	<target name = "install_locally" depends="build">
+	<target name = "install_locally" depends="document">
 		<echo>Installing Locally...</echo>
 		<exec executable="${python}">
 			<arg line="${install_args}"/>
   		</exec>
    	</target>
-	<target name = "coverage" depends="install_locally">
-		<echo>Testing Coverage...</echo>
+	<target name = "deploy" depends="build">
+		<echo>Deploying...</echo>
 		<exec executable="${python}">
-			<arg line="${coverage_args}"/>
-  		</exec>
-  		<exec executable="${python}">
-			<arg line="${coverage_html_args}"/>
+			<arg line="${deploy_args}"/>
   		</exec>
    	</target>
 </project>

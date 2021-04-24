@@ -53,6 +53,7 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 ![disconnect icon](/pygpsclient/resources/iconmonstr-link-10-24.png).
 * To display the UBX Configuration Dialog (*only available when connected to a UBX serial device*), click
 ![gear icon](/pygpsclient/resources/iconmonstr-gear-2-24.png), or go to Menu..Options.
+* To expand or collapse the banner or serial port configuration widgets, click the ![expand icon](/pygpsclient/resources/iconmonstr-arrow-80-16.png)/![expand icon](/pygpsclient/resources/iconmonstr-triangle-1-16.png) buttons.
 * To show or hide the various widgets, go to Menu..View and click on the relevant hide/show option.
 * Protocols Displayed - Select which protocols to display (NB: this only changes the displayed protocols - to change the actual protocols output by the receiver, use the CFG-PRT command).
 * Console Display - Change the console display from parsed to raw (byte) format.

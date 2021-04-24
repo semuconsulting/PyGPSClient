@@ -18,12 +18,6 @@ from PIL import ImageTk, Image
 from pyubx2.ubxhelpers import dop2str
 
 from .globals import (
-    deg2dmm,
-    deg2dms,
-    m2ft,
-    ms2mph,
-    ms2kmph,
-    ms2knots,
     DMM,
     DMS,
     UMK,
@@ -38,6 +32,15 @@ from .globals import (
     CONNECTED_FILE,
     BGCOL,
     FGCOL,
+)
+
+from .helpers import (
+    deg2dmm,
+    deg2dms,
+    m2ft,
+    ms2mph,
+    ms2kmph,
+    ms2knots,
 )
 
 

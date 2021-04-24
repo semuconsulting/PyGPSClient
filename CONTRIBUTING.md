@@ -1,4 +1,4 @@
-# How to contribute
+# PyGPSClient How to contribute
 
 PyGPSClient is a volunteer project and we appreciate any contribution, from fixing a grammar mistake in a comment to extending test coverage or implementing new functionality. Please read this section if you are contributing your work.
 
@@ -13,7 +13,7 @@ Please help us keep our issue list small by adding fixes: #{$ISSUE_NO} to the co
 ## Coding conventions
 
   * This is open source software. We endeavour to make the code as transparent as possible.
-  * We use [Eclipse PyDev](https://www.pydev.org/) for development and testing, but you are at liberty to use your preferred IDE.
+  * We use Visual Studio Code for development and testing, but you are at liberty to use your preferred IDE.
   * We document the code in accordance with [Sphinx](https://www.sphinx-doc.org/en/master/) docstring conventions.
   * We use [pylint](https://pypi.org/project/pylint/) (>=2.6.0) for code analysis.
   * We use [black](https://pypi.org/project/black/) (>= 20.8) for code formatting and ask that you do the same.
@@ -24,7 +24,7 @@ While we endeavour to test on as wide a variety of u-blox devices as possible, a
 
 We use python's native unittest framework for local unit testing, complemented by the GitHub Actions automated build and testing workflow. Code coverage is somewhat limited at present so we welcome improvements.
 
-Please write unittest examples for new code you create and add them to the /tests folder following the naming convention test_*.py.
+Please write unittest examples for new code you create and add them to the `/tests` folder following the naming convention `test_*.py`.
 
 We test on the following platforms using u-blox [NEO-6](https://www.u-blox.com/en/product/neo-6-series), [NEO-7](https://www.u-blox.com/en/product/neo-7-series), [NEO-8](https://www.u-blox.com/en/product/neo-m8-series) and [NEO-9](https://www.u-blox.com/en/product/neo-m9n-module) devices:
 * Windows 10
