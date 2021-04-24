@@ -53,7 +53,16 @@
 			<arg line="${test_args}" />
 		</exec>
 	</target>
-	<target name = "sphinx">
+	<target name = "coverage" depends="test">
+		<echo>Assessing Test Coverage...</echo>
+		<exec executable="${python}">
+			<arg line="${coverage_args}"/>
+  		</exec>
+  		<exec executable="${python}">
+			<arg line="${coverage_html_args}"/>
+  		</exec>
+   	</target>
+	<target name = "document" depends="coverage">
 		<echo>Documenting...</echo>
 		<exec executable="${sphinx}">
 			<arg line="${apidoc_args}"/>
@@ -62,25 +71,16 @@
 			<arg line="${html_args}"/>
   		</exec>
    	</target>
-	<target name = "deploy" depends="build">
-		<echo>Deploying...</echo>
-		<exec executable="${python}">
-			<arg line="${deploy_args}"/>
-  		</exec>
-   	</target>
-	<target name = "install_locally" depends="build">
+	<target name = "install_locally" depends="document">
 		<echo>Installing Locally...</echo>
 		<exec executable="${python}">
 			<arg line="${install_args}"/>
   		</exec>
    	</target>
-	<target name = "coverage" depends="install_locally">
-		<echo>Testing Coverage...</echo>
+	<target name = "deploy" depends="build">
+		<echo>Deploying...</echo>
 		<exec executable="${python}">
-			<arg line="${coverage_args}"/>
-  		</exec>
-  		<exec executable="${python}">
-			<arg line="${coverage_html_args}"/>
+			<arg line="${deploy_args}"/>
   		</exec>
    	</target>
 </project>

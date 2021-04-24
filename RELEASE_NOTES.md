@@ -5,6 +5,7 @@
 CHANGES:
 
 1. Helper methods moved from globals.py to new module helpers.py
+2. Minimum pynmeagps version updated to v1.0.0
 
 ### RELEASE v1.0.4
 
