@@ -47,7 +47,7 @@ setup(
     project_urls={
         "Bug Tracker": "https://github.com/semuconsulting/PyGPSClient",
         "Documentation": "https://github.com/semuconsulting/PyGPSClient",
-        "Sphinx API Documentation": "http://semuconsulting.com/pygpsclient",
+        "Sphinx API Documentation": "https://www.semuconsulting.com/pygpsclient",
         "Source Code": "https://github.com/semuconsulting/PyGPSClient",
     },
     classifiers=[

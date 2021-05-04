@@ -20,7 +20,7 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 ![Contributors](https://img.shields.io/github/contributors/semuconsulting/PyGPSClient.svg)
 ![Open Issues](https://img.shields.io/github/issues-raw/semuconsulting/PyGPSClient)
 
-Sphinx API Documentation in HTML format is available at [http://www.semuconsulting.com/pygpsclient](http://www.semuconsulting.com/pygpsclient).
+Sphinx API Documentation in HTML format is available at [https://www.semuconsulting.com/pygpsclient](https://www.semuconsulting.com/pygpsclient).
 
 Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/semuconsulting/PyGPSClient/blob/master/CONTRIBUTING.md).
 
