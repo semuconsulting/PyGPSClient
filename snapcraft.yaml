@@ -15,4 +15,8 @@ parts:
     plugin: python
     python-version: python3
     source: .
-    stage-packages: [python3-pip, python3-tk, python3-pil, python3-pil.imagetk]
+    build-packages:
+      - python3-pip
+      - python3-tk
+      - python3-pil
+      - python3-pil.imagetk
