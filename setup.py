@@ -34,6 +34,11 @@ setup(
             "resources/*.icns",
         ],
     },
+    entry_points={
+        "console_scripts": [
+            "pygpsclient = pygpsclient.__main__:main",
+        ]
+    },
     include_package_data=True,
     author="semuadmin",
     author_email="semuadmin@semuconsulting.com",
