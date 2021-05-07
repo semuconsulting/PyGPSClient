@@ -14,7 +14,7 @@ from pygpsclient.app import App
 
 
 def main():
-    """The main routine."""
+    """The main tkinter loop."""
 
     ROOT = Tk()
     APP = App(ROOT)
