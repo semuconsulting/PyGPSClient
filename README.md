@@ -89,7 +89,7 @@ warning ![warning icon](/pygpsclient/resources/iconmonstr-warning-1-24.png)).
 
 ## <a name="installation">Installation</a>
 
-In the following, `python` & `pip` refer to the Python3 executables. You may need to type 
+In the following, `python` & `pip` refer to the Python 3 executables. You may need to type 
 `python3` or `pip3`, depending on your particular environment.
 
 ### Dependencies
@@ -137,11 +137,31 @@ source env/bin/activate (or env\Scripts\activate on Windows)
 deactivate
 ```
 
-To run the application, if the python3 site_packages are in your PATH, simply type `python -m pygpsclient`.
+To run the application, if the Python 3 scripts (bin) directory is in your PATH, simply type (all lowercase): 
+```shell
+pygpsclient
+```
 
-If not, type `python -m \full_path_to_site_packages\pygpsclient`.
+If not, type:
+```shell
+\full_path_to_python_scripts_directory\pygpsclient
+```
 
-**Tip**: to find the site_packages location, type `python -m pip show PyGPSClient` and look for the `Location:` entry in the response, e.g.
+Alternatively, if the Python 3 site_packages are in your PATH, you can type (all lowercase): 
+```shell
+python -m pygpsclient
+```
+
+If not, type: 
+```shell
+python -m \full_path_to_python_site_packages\pygpsclient
+```
+
+**Tip**: to find the site_packages location, type:
+```shell
+python -m pip show PyGPSClient
+``` 
+and look for the `Location:` entry in the response, e.g.
 
 - Linux: `Location: /home/username/.local/lib/python3.8/site-packages`
 - MacOS: `Location: /Library/Frameworks/Python.framework/Versions/3.8/lib/python3.8/site-packages`
@@ -155,10 +175,10 @@ To install manually, download and unzip this repository and run:
 python -m /path_to_folder/foldername/pygpsclient
 ```
 
-e.g. if you downloaded and unzipped to a folder named `PyGPSClient-0.2.0`, run: 
+e.g. if you downloaded and unzipped to a folder named `PyGPSClient-1.0.5`, run: 
 
 ```shell
-python -m /path_to_folder/PyGPSClient-0.2.0/pygpsclient
+python -m /path_to_folder/PyGPSClient-1.0.5/pygpsclient
 ```
 
 ### MapQuest API Key
