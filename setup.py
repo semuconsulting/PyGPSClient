@@ -20,7 +20,7 @@ setup(
     version=VERSION,
     packages=find_packages(exclude=["tests", "references", "images"]),
     install_requires=[
-        "pyubx2>=1.0.9",
+        "pyubx2>=1.0.10",
         "pynmeagps>=1.0.0",
         "requests>=2.24.0",
         "Pillow>=7.2.0",
