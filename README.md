@@ -151,7 +151,7 @@ Alternatively, if the Python 3 site_packages are in your PATH, you can type (all
 python -m pygpsclient
 ```
 
-**NB:** If the Python 3 scripts (bin) or site_packages directories are *not* in your PATH, you will need to add the fully qualified path to `pygpsclient` in the commands above.
+**NB:** If the Python 3 scripts (bin) or site_packages directories are *not* in your PATH, you will need to add the fully-qualified path to `pygpsclient` in the commands above.
 
 **Tip**: to find the site_packages location, type:
 ```shell
