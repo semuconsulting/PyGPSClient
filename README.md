@@ -91,23 +91,15 @@ warning ![warning icon](/pygpsclient/resources/iconmonstr-warning-1-24.png)).
 
 In the following, `python` & `pip` refer to the Python 3 executables. You may need to type 
 `python3` or `pip3`, depending on your particular environment. It is also recommended that 
-you ensure the Python 3 scripts (bin) and site_packages directories are in your PATH 
-(*most standard Python 3 installation packages should do this automatically*).
+the Python 3 scripts (bin) and site_packages directories are included in your PATH 
+(*most standard Python 3 installation packages will do this automatically*).
 
 ### Dependencies
 
-See [requirements.txt](requirements.txt).
-
-On Windows and MacOS, pip, tkinter and the necessary imaging libraries are generally packaged with Python3.  On some Linux distributions like Ubuntu 18+ and Raspberry Pi OS, they may need to be installed separately, e.g.:
+On Windows and MacOS, pip, tkinter and the necessary imaging libraries are generally packaged with Python 3.  On some Linux distributions like Ubuntu 18+ and Raspberry Pi OS, they may need to be installed separately, e.g.:
 
 ```shell
 sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk
-```
-
-The following Python libraries are required (these will be installed automatically if using pip to install PyGPSClient):
-
-```shell
-python -m pip install pyubx2 pynmeagps pyserial Pillow requests
 ```
 
 ### User Privileges
@@ -165,7 +157,15 @@ and look for the `Location:` entry in the response, e.g.
 
 ### 2. Manual installation
 
-To install manually, download and unzip this repository and run:
+See [requirements.txt](requirements.txt).
+
+The following Python libraries are required (these will be installed automatically if using pip to install PyGPSClient):
+
+```shell
+python -m pip install --upgrade pyubx2 pynmeagps pyserial Pillow requests
+```
+
+To install PyGPSClient manually, download and unzip this repository and run:
 
 ```shell
 python -m /path_to_folder/foldername/pygpsclient
