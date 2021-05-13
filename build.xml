@@ -7,7 +7,7 @@
 	<condition property="python" value="/Library/Frameworks/Python.framework/Versions/3.9/bin/python3">
 		<os family="mac" />
 	</condition>
-	<condition property="python" value="python" else="/usr/bin/python3">
+	<condition property="python" value="/usr/bin/python3">
 		<os family="unix" />
 	</condition>
 	<condition property="make" value="docs/make.bat">
