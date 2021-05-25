@@ -47,6 +47,7 @@ from .globals import (
 UBX_CONFIG_CATEGORIES = [
     "CFG_ANA",
     "CFG_BATCH",
+    "CFG_BDS",
     "CFG_GEOFENCE",
     "CFG_HW_ANT",
     "CFG_I2C",
