@@ -1,5 +1,15 @@
 # PyGPSClient Release Notes
 
+### RELEASE v1.0.6
+
+CHANGES:
+
+1. Entry point added to setup.py to allow app installed via pip to be invoked via simple command `pygpsclient`.
+2. Minimum pynmeagps version updated to v1.0.1.
+3. SUpport for BDS messages added to UBX CFG-VALSET config dialog.
+4. Minor build script and documentation updates.
+
+
 ### RELEASE v1.0.5
 
 CHANGES:
