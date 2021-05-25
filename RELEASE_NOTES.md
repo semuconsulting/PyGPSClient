@@ -1,5 +1,12 @@
 # PyGPSClient Release Notes
 
+### RELEASE v1.0.67
+
+FIXES:
+
+1. Fixed distribution packaging glitch in 1.0.6 - CFG-BDS category should now appear in UBX CFG-VALSET dialog.
+
+
 ### RELEASE v1.0.6
 
 CHANGES:
