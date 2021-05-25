@@ -346,9 +346,3 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.stop_config_thread()
         self.serial_handler.disconnect()
         self.__master.destroy()
-
-
-if __name__ == "__main__":
-    ROOT = Tk()
-    APP = App(ROOT)
-    ROOT.mainloop()

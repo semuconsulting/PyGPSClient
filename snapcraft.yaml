@@ -1,0 +1,22 @@
+name: pygpsclient
+version: "1.0.5"
+summary: Graphical GNSS/GPS Client Application
+description: |
+  Graphical Python GNSS/GPS test, diagnostic & configuration app supporting NMEA and UBX protocols
+base: core18
+grade: stable
+confinement: strict
+
+apps:
+  pygpsclient:
+    command: bin/pygpsclient
+parts:
+  pygpsclient:
+    plugin: python
+    python-version: python3
+    source: .
+    build-packages:
+      - python3-pip
+      - python3-tk
+      - python3-pil
+      - python3-pil.imagetk

@@ -20,8 +20,8 @@ setup(
     version=VERSION,
     packages=find_packages(exclude=["tests", "references", "images"]),
     install_requires=[
-        "pyubx2>=1.0.9",
-        "pynmeagps>=1.0.0",
+        "pyubx2>=1.0.10",
+        "pynmeagps>=1.0.1",
         "requests>=2.24.0",
         "Pillow>=7.2.0",
         "pyserial>=3.4",
@@ -33,6 +33,11 @@ setup(
             "resources/*.ico",
             "resources/*.icns",
         ],
+    },
+    entry_points={
+        "console_scripts": [
+            "pygpsclient = pygpsclient.__main__:main",
+        ]
     },
     include_package_data=True,
     author="semuadmin",

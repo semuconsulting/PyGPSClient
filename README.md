@@ -89,23 +89,17 @@ warning ![warning icon](/pygpsclient/resources/iconmonstr-warning-1-24.png)).
 
 ## <a name="installation">Installation</a>
 
-In the following, `python` & `pip` refer to the Python3 executables. You may need to type 
-`python3` or `pip3`, depending on your particular environment.
+In the following, `python` & `pip` refer to the Python 3 executables. You may need to type 
+`python3` or `pip3`, depending on your particular environment. It is also recommended that 
+the Python 3 scripts (bin) and site_packages directories are included in your PATH 
+(*most standard Python 3 installation packages will do this automatically*).
 
 ### Dependencies
 
-See [requirements.txt](requirements.txt).
-
-On Windows and MacOS, pip, tkinter and the necessary imaging libraries are generally packaged with Python3.  On some Linux distributions like Ubuntu 18+ and Raspberry Pi OS, they may need to be installed separately, e.g.:
+On Windows and MacOS, pip, tkinter and the necessary imaging libraries are generally packaged with Python 3.  On some Linux distributions like Ubuntu 18+ and Raspberry Pi OS, they may need to be installed separately, e.g.:
 
 ```shell
 sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk
-```
-
-The following Python libraries are required (these will be installed automatically if using pip to install PyGPSClient):
-
-```shell
-python -m pip install pyubx2 pynmeagps pyserial Pillow requests
 ```
 
 ### User Privileges
@@ -126,7 +120,7 @@ The easiest way to install the latest version of `PyGPSClient` is with
 python -m pip install --upgrade PyGPSClient
 ```
 
-If required, `PyGPSClient` can also be installed using virtualenv, e.g.:
+If required, `PyGPSClient` can also be installed into a virtual environment, e.g.:
 
 ```shell
 python -m pip install --user --upgrade virtualenv
@@ -137,11 +131,25 @@ source env/bin/activate (or env\Scripts\activate on Windows)
 deactivate
 ```
 
-To run the application, if the python3 site_packages are in your PATH, simply type `python -m pygpsclient`.
+To run the application, if the Python 3 scripts (bin) directory is in your PATH, simply type (all lowercase): 
+```shell
+pygpsclient
+```
 
-If not, type `python -m \full_path_to_site_packages\pygpsclient`.
+If desired, you can add a shortcut to this command to your desktop or favourites menu.
 
-**Tip**: to find the site_packages location, type `python -m pip show PyGPSClient` and look for the `Location:` entry in the response, e.g.
+Alternatively, if the Python 3 site_packages are in your PATH, you can type (all lowercase): 
+```shell
+python -m pygpsclient
+```
+
+**NB:** If the Python 3 scripts (bin) or site_packages directories are *not* in your PATH, you will need to add the fully-qualified path to `pygpsclient` in the commands above.
+
+**Tip**: to find the site_packages location, type:
+```shell
+python -m pip show PyGPSClient
+``` 
+and look for the `Location:` entry in the response, e.g.
 
 - Linux: `Location: /home/username/.local/lib/python3.8/site-packages`
 - MacOS: `Location: /Library/Frameworks/Python.framework/Versions/3.8/lib/python3.8/site-packages`
@@ -149,16 +157,24 @@ If not, type `python -m \full_path_to_site_packages\pygpsclient`.
 
 ### 2. Manual installation
 
-To install manually, download and unzip this repository and run:
+See [requirements.txt](requirements.txt).
+
+The following Python libraries are required (these will be installed automatically if using pip to install PyGPSClient):
+
+```shell
+python -m pip install --upgrade pyubx2 pynmeagps pyserial Pillow requests
+```
+
+To install PyGPSClient manually, download and unzip this repository and run:
 
 ```shell
 python -m /path_to_folder/foldername/pygpsclient
 ```
 
-e.g. if you downloaded and unzipped to a folder named `PyGPSClient-0.2.0`, run: 
+e.g. if you downloaded and unzipped to a folder named `PyGPSClient-1.0.5`, run: 
 
 ```shell
-python -m /path_to_folder/PyGPSClient-0.2.0/pygpsclient
+python -m /path_to_folder/PyGPSClient-1.0.5/pygpsclient
 ```
 
 ### MapQuest API Key
