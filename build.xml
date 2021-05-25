@@ -14,10 +14,19 @@
 	<condition property="make" value="docs/make.bat">
 		<os family="windows" />
 	</condition>
+	<condition property="makedir" value="${user.dir}">
+		<os family="windows" />
+	</condition>
 	<condition property="make" value="/usr/bin/make">
 		<os family="mac" />
 	</condition>
+	<condition property="makedir" value="${user.dir}/docs">
+		<os family="mac" />
+	</condition>
 	<condition property="make" value="/usr/bin/make">
+		<os family="unix" />
+	</condition>
+	<condition property="makedir" value="${user.dir}/docs">
 		<os family="unix" />
 	</condition>
 	<property name="sphinx" value="sphinx-apidoc" />
@@ -42,19 +51,19 @@
 			<fileset dir="${ant.project.name}/__pycache__" includes="*.nbc, *.nbi, *.pyc" />
 		</delete>
 	</target>
-	<target name="analyse" depends="clean">
-		<echo>Analysing...</echo>
-		<exec executable="${python}">
-			<arg line="${analyse_args}" />
-		</exec>
-	</target>
-	<target name="format" depends="analyse">
+	<target name="format" depends="clean">
 		<echo>Formatting...</echo>
 		<exec executable="${python}">
 			<arg line="${format_args}" />
 		</exec>
 	</target>
-	<target name="build" depends="format">
+	<target name="analyse" depends="format">
+		<echo>Analysing...</echo>
+		<exec executable="${python}">
+			<arg line="${analyse_args}" />
+		</exec>
+	</target>
+	<target name="build" depends="analyse">
 		<echo>Building...</echo>
 		<exec executable="${python}">
 			<arg line="${build_args}" />
@@ -80,7 +89,7 @@
 		<exec executable="${sphinx}">
 			<arg line="${apidoc_args}"/>
   		</exec>
-  		<exec executable="${make}" dir="${user.dir}/docs">
+  		<exec executable="${make}" dir="${makedir}">
 			<arg line="${html_args}"/>
   		</exec>
    	</target>
