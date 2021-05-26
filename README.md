@@ -145,15 +145,26 @@ python -m pygpsclient
 
 **NB:** If the Python 3 scripts (bin) or site_packages directories are *not* in your PATH, you will need to add the fully-qualified path to `pygpsclient` in the commands above.
 
-**Tip**: to find the site_packages location, type:
+**Tip:** to find the site_packages location, type:
 ```shell
 python -m pip show PyGPSClient
 ``` 
 and look for the `Location:` entry in the response, e.g.
 
-- Linux: `Location: /home/username/.local/lib/python3.8/site-packages`
-- MacOS: `Location: /Library/Frameworks/Python.framework/Versions/3.8/lib/python3.8/site-packages`
-- Windows: `Location: c:\users\username\appdata\roaming\python\python38\lib\site-packages`
+- Linux: `Location: /home/username/.local/lib/python3.9/site-packages`
+- MacOS: `Location: /Library/Frameworks/Python.framework/Versions/3.9lib/python3.9/site-packages`
+- Windows: `Location: c:\users\username\appdata\roaming\python\python39\lib\site-packages`
+
+**Tip:** To create an application launcher for linux distributions like Ubuntu, create a text file named `pygpsclient.desktop` with the following content (*edited for your particular environment*) and copy this to the `/home/user/.local/share/applications` folder, e.g.
+
+```
+[Desktop Entry]
+Type=Application
+Terminal=false
+Name=PyGPSClient
+Icon=/home/user/.local/lib/python3.9/site-packages/pygpsclient/resources/pygpsclient.ico
+Exec=/home/user/.local/bin/pygpsclient
+```
 
 ### 2. Manual installation
 
