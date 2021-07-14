@@ -1,0 +1,130 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+
+    // These Python project tasks assume you have installed
+    // and configured: black, coverage, pytest, Sphinx and wheel
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Format",
+            "type": "process",
+            "command": "${config:python.pythonPath}",
+            "args": [
+                "-m",
+                "black",
+                "${config:modulename}"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Analyse",
+            "type": "process",
+            "command": "${config:python.pythonPath}",
+            "args": [
+                "-m",
+                "pylint",
+                "--reports=y",
+                "${config:modulename}"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Build",
+            "type": "process",
+            "command": "${config:python.pythonPath}",
+            "args": [
+                "${workspaceFolder}/setup.py",
+                "sdist",
+                "bdist_wheel"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Test",
+            "type": "process",
+            "command": "${config:python.pythonPath}",
+            "args": [
+                "${workspaceFolder}/tests/testsuite.py"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Coverage",
+            "type": "process",
+            "command": "${config:python.pythonPath}",
+            "args": [
+                "-m",
+                "coverage",
+                "run",
+                "--source=${config:modulename}",
+                "-m",
+                "pytest"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Coverage Report",
+            "type": "process",
+            "command": "${config:python.pythonPath}",
+            "args": [
+                "-m",
+                "coverage",
+                "html"
+            ],
+            "dependsOrder": "sequence",
+            "dependsOn": ["Coverage"],
+            "problemMatcher": []
+        },
+        {
+            "label": "Sphinx",
+            "type": "process",
+            "command": "sphinx-apidoc",
+            "args": [
+                "-f", 
+                "-o",
+                "docs",
+                "${config:modulename}"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Sphinx HTML",
+            "type": "process",
+            "windows": {
+                "command": "${workspaceFolder}/docs/make.bat"
+            },
+            "linux": {
+                "command": "/usr/bin/make"
+            },
+            "osx": {
+                "command": "/usr/bin/make"
+            },
+            "args": [
+                "html"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/docs"
+            },
+            "dependsOrder": "sequence",
+            "dependsOn": ["Sphinx"],
+            "problemMatcher": []
+        },
+        {
+            "label": "Install Locally",
+            "type": "process",
+            "command": "${config:python.pythonPath}",
+            "args": [
+                "-m",
+                "pip",
+                "install",
+                "${workspaceFolder}/dist/${config:modulename}-${config:moduleversion}.tar.gz",
+                "--user",
+                "--force-reinstall"
+            ],
+            "dependsOrder": "sequence",
+            "dependsOn": ["Format", "Analyze", "Build", "Test", "Coverage Report", "Sphinx HTML"],
+            "problemMatcher": []
+        },
+    ]
+}
