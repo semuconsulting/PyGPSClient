@@ -7,6 +7,38 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "Clean",
+            "type": "process",
+            "command": "rm",
+            "args": [
+                "-rfv",
+                "build",
+                "dist",
+                "htmlcov",
+                "docs/html",
+                "${config:modulename}.egg-info/",
+                "${config:modulename}-*/",
+                "${config:modulename}/__pycache__"
+            ],
+            "windows": {
+                "command": "del",
+                "args": [
+                    "/S /Q",
+                    "build",
+                    "dist",
+                    "htmlcov",
+                    "docs/html",
+                    "${config:modulename}.egg-info/",
+                    "${config:modulename}-*/",
+                    "${config:modulename}/__pycache__"
+                ]
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
             "label": "Format",
             "type": "process",
             "command": "${config:python.pythonPath}",
@@ -91,14 +123,9 @@
         {
             "label": "Sphinx HTML",
             "type": "process",
+            "command": "/usr/bin/make",
             "windows": {
                 "command": "${workspaceFolder}/docs/make.bat"
-            },
-            "linux": {
-                "command": "/usr/bin/make"
-            },
-            "osx": {
-                "command": "/usr/bin/make"
             },
             "args": [
                 "html"
@@ -123,7 +150,7 @@
                 "--force-reinstall"
             ],
             "dependsOrder": "sequence",
-            "dependsOn": ["Format", "Analyze", "Build", "Test", "Coverage Report", "Sphinx HTML"],
+            "dependsOn": ["Clean", "Format", "Analyze", "Build", "Test", "Coverage Report", "Sphinx HTML"],
             "problemMatcher": []
         },
     ]
