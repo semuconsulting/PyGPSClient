@@ -1,38 +1,22 @@
 {
     // See https://go.microsoft.com/fwlink/?LinkId=733558
     // for the documentation about the tasks.json format
-
     // These Python project tasks assume you have installed
     // and configured: black, coverage, pytest, Sphinx and wheel
     "version": "2.0.0",
     "tasks": [
         {
             "label": "Clean",
-            "type": "process",
+            "type": "shell",
             "command": "rm",
             "args": [
-                "-rfv",
+                "-rfvd",
                 "build",
                 "dist",
                 "htmlcov",
-                "docs/html",
-                "${config:modulename}.egg-info/",
-                "${config:modulename}-*/",
-                "${config:modulename}/__pycache__"
+                "docs/_build",
+                "${config:modulename}.egg-info",
             ],
-            "windows": {
-                "command": "del",
-                "args": [
-                    "/S /Q",
-                    "build",
-                    "dist",
-                    "htmlcov",
-                    "docs/html",
-                    "${config:modulename}.egg-info/",
-                    "${config:modulename}-*/",
-                    "${config:modulename}/__pycache__"
-                ]
-            },
             "options": {
                 "cwd": "${workspaceFolder}"
             },
@@ -105,7 +89,9 @@
                 "html"
             ],
             "dependsOrder": "sequence",
-            "dependsOn": ["Coverage"],
+            "dependsOn": [
+                "Coverage"
+            ],
             "problemMatcher": []
         },
         {
@@ -113,7 +99,7 @@
             "type": "process",
             "command": "sphinx-apidoc",
             "args": [
-                "-f", 
+                "-f",
                 "-o",
                 "docs",
                 "${config:modulename}"
@@ -134,7 +120,9 @@
                 "cwd": "${workspaceFolder}/docs"
             },
             "dependsOrder": "sequence",
-            "dependsOn": ["Sphinx"],
+            "dependsOn": [
+                "Sphinx"
+            ],
             "problemMatcher": []
         },
         {
@@ -150,7 +138,15 @@
                 "--force-reinstall"
             ],
             "dependsOrder": "sequence",
-            "dependsOn": ["Clean", "Format", "Analyze", "Build", "Test", "Coverage Report", "Sphinx HTML"],
+            "dependsOn": [
+                "Clean",
+                "Format",
+                "Analyze",
+                "Build",
+                "Test",
+                "Coverage Report",
+                "Sphinx HTML"
+            ],
             "problemMatcher": []
         },
     ]

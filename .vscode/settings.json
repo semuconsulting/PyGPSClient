@@ -12,5 +12,5 @@
     "python.formatting.provider": "black",
     "editor.formatOnSave": true,
     "modulename": "pygpsclient",
-    "moduleversion": "1.0.7"
+    "moduleversion": "1.0.8"
 }

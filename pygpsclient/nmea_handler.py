@@ -312,7 +312,7 @@ class NMEAHandler:
         """
 
         try:
-            self.track = data.cogT
+            self.track = data.cogt
             if data.sogk is not None:
                 self.speed = kmph2ms(data.sogk)  # convert to m/s
             self.__app.frm_banner.update_banner(speed=self.speed, track=self.track)

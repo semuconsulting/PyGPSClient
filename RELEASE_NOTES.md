@@ -1,6 +1,12 @@
 # PyGPSClient Release Notes
 
-### RELEASE v1.0.67
+### RELEASE v1.0.8
+
+FIXES:
+
+1. Updated to use pynmeagps v 1.0.3.
+
+### RELEASE v1.0.7
 
 FIXES:
 

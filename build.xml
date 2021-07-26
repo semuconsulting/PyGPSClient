@@ -1,7 +1,7 @@
 <?xml version = "1.0"?>
 <project name="PyGPSClient" default="build">
 	<property name="module.name" value="pygpsclient" />
-	<property name="version" value="1.0.7" />
+	<property name="version" value="1.0.8" />
 	<condition property="python" value="python">
 		<os family="windows" />
 	</condition>
@@ -46,9 +46,8 @@
 			<fileset dir="build" />
 			<fileset dir="dist" />
 			<fileset dir="htmlcov" />
-			<fileset dir="${ant.project.name}.egg-info/" />
-			<fileset dir="${ant.project.name}-*/" />
-			<fileset dir="${ant.project.name}/__pycache__" includes="*.nbc, *.nbi, *.pyc" />
+			<fileset dir="docs/_build" />
+			<fileset dir="${ant.project.name}.egg-info" />
 		</delete>
 	</target>
 	<target name="format" depends="clean">
