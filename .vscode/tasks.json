@@ -133,7 +133,7 @@
                 "-m",
                 "pip",
                 "install",
-                "${workspaceFolder}/dist/${config:modulename}-${config:moduleversion}.tar.gz",
+                "${workspaceFolder}/dist/${config:distname}-${config:moduleversion}.tar.gz",
                 "--user",
                 "--force-reinstall"
             ],
