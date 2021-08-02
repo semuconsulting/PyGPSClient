@@ -1,5 +1,12 @@
 # PyGPSClient Release Notes
 
+### RELEASE v1.0.9
+
+ENHANCEMENTS:
+
+1. Additional CFG-VAL categories added for NEO-D9S, ZED-F9K, ZED-F9P & ZED-F9R Receivers.
+2. Minimum pyubx2 version updated to 1.0.14.
+
 ### RELEASE v1.0.8
 
 FIXES:
