@@ -14,5 +14,5 @@
     "editor.formatOnSave": true,
     "modulename": "pygpsclient",
     "distname": "PyGPSClient",
-    "moduleversion": "1.0.8"
+    "moduleversion": "1.0.9"
 }
