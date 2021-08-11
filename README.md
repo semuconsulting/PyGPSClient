@@ -1,12 +1,11 @@
 # PyGPSClient
 
-PyGPSClient is a graphical GNSS/GPS testing and diagnostic client application written entirely in Python and tkinter.
+PyGPSClient is a graphical GNSS/GPS testing, diagnostic and UBX (u-blox) device configuration application written entirely in Python and tkinter.
 
 ![full app screenshot ubx](/images/all_widgets.png)
 
 The application runs on any platform which supports a Python3 interpreter (>=3.6) and tkinter (>=8.6) GUI framework, 
-including Windows, MacOS, Linux and Raspberry Pi OS. It displays location and diagnostic data from any NMEA or UBX (u-blox) 
-compatible GNSS/GPS device over a standard serial (UART) or USB port, or from a previously-saved datalog file, *in addition to* providing a useful subset of the configuration functionality in u-blox's Windows-only [u-center](https://www.u-blox.com/en/product/u-center) tool.
+including Windows, MacOS, Linux and Raspberry Pi OS. It displays location and diagnostic data from any NMEA or UBX compatible GNSS/GPS device over a standard serial (UART) or USB port, or from a previously-saved datalog file, *in addition to* providing a useful subset of the configuration functionality in u-blox's Windows-only [u-center](https://www.u-blox.com/en/product/u-center) tool.
 
 This is an independent project and we have no affiliation whatsoever with u-blox.
 
