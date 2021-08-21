@@ -32,7 +32,7 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 1. Configurable GUI with selectable and resizeable widgets.
 1. Expandable banner widget showing key navigation information.
 1. Serial console widget showing either raw or parsed data stream.
-1. Skyview widget showing current satellite visibility and position (elevation / azimuth).
+1. Skyview widget showing current satellite visibility and position (elevation / azimuth). Satellite icon borders are colour-coded to distinguish between different GNSS constellations.
 1. Graphview widget showing current satellite reception (signal-to-noise ratio).
 1. Mapview widget with location marker, showing either a static Mercator world map, or an optional dynamic web-based map downloaded via a MapQuest API (requires an Internet connection and free 
 [MapQuest API Key](https://developer.mapquest.com/plan_purchase/steps/business_edition/business_edition_free/register)).
@@ -244,7 +244,7 @@ FORCE COLD RESTART !*** Expect ClearCommError ***!, CFG, CFG-RST, ffff0100, 1
 * ACC - accuracy of location in real units (hacc - horizontal, vacc - vertical). Note that location accuracy is not directly provided via the standard NMEA message set, but is available via some proprietary NMEA messages e.g. UBX00.
 * BEI - [BeiDou Navigation Satellite System](https://en.wikipedia.org/wiki/BeiDou).
 * DOP - [dilution of precision](https://gisgeography.com/gps-accuracy-hdop-pdop-gdop-multipath/) (pdop - overall position, hdop - horizontal, vdop - vertical).
-* GAL - [Galileo](https://en.wikipedia.org/wiki/Galileo_(satellite_navigation%29).
+* GAL - [Galileo Satellite Navigation](https://en.wikipedia.org/wiki/Galileo_(satellite_navigation)).
 * GLO - [GLONASS, Global Navigation Satellite System](https://en.wikipedia.org/wiki/GLONASS).
 * GNSS - [global navigation satellite system](https://en.wikipedia.org/wiki/Satellite_navigation).
 * GPS - [Global Positioning System](https://en.wikipedia.org/wiki/Global_Positioning_System).
