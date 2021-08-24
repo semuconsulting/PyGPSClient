@@ -19,6 +19,8 @@ from .globals import (
     DEVICE_ACCURACY,
     HDOP_RATIO,
     SAT_EXPIRY,
+    BIN,
+    HEX,
 )
 from .helpers import (
     knots2ms,
@@ -110,8 +112,10 @@ class NMEAHandler:
         :param pynmea2.types.talker parsed_data: parsed data
         """
 
-        if self.__app.frm_settings.raw:
+        if self.__app.frm_settings.display_format == BIN:
             self.__app.frm_console.update_console(str(raw_data).strip("\n"))
+        elif self.__app.frm_settings.display_format == HEX:
+            self.__app.frm_console.update_console(str(raw_data.hex()))
         else:
             self.__app.frm_console.update_console(str(parsed_data))
 

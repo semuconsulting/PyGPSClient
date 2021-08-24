@@ -57,6 +57,9 @@ from .globals import (
     MIXED_PROTOCOL,
     KNOWNGPS,
     BPSRATES,
+    PARSED,
+    BIN,
+    HEX,
 )
 from .strings import (
     LBLUBXCONFIG,
@@ -100,7 +103,7 @@ class SettingsFrame(Frame):
         Frame.__init__(self, self.__master, *args, **kwargs)
 
         self._protocol = IntVar()
-        self._raw = IntVar()
+        # self._raw = IntVar()
         self._autoscroll = IntVar()
         self._maxlines = IntVar()
         self._webmap = IntVar()
@@ -116,6 +119,7 @@ class SettingsFrame(Frame):
         self._in_filepath = None
         self._logpath = None
         self._trackpath = None
+        self._display_format = IntVar()
         self._img_conn = ImageTk.PhotoImage(Image.open(ICON_CONN))
         self._img_disconn = ImageTk.PhotoImage(Image.open(ICON_DISCONN))
         self._img_ubxconfig = ImageTk.PhotoImage(Image.open(ICON_UBXCONFIG))
@@ -183,10 +187,16 @@ class SettingsFrame(Frame):
         )
         self._lbl_consoledisplay = Label(self._frm_options, text=LBLDATADISP)
         self._rad_parsed = Radiobutton(
-            self._frm_options, text="Parsed", variable=self._raw, value=0
+            self._frm_options,
+            text="Parsed",
+            variable=self._display_format,
+            value=PARSED,
         )
-        self._rad_raw = Radiobutton(
-            self._frm_options, text="Raw", variable=self._raw, value=1
+        self._rad_bin = Radiobutton(
+            self._frm_options, text="Bin", variable=self._display_format, value=BIN
+        )
+        self._rad_hex = Radiobutton(
+            self._frm_options, text="Hex", variable=self._display_format, value=HEX
         )
         self._lbl_format = Label(self._frm_options, text="Degrees Format")
         self._spn_format = Spinbox(
@@ -249,7 +259,7 @@ class SettingsFrame(Frame):
         )
         self._spn_datalog = Spinbox(
             self._frm_options,
-            values=("Raw", "Parsed", "Both"),
+            values=("Bin", "Hex", "Parsed", "All"),
             width=7,
             readonlybackground=ENTCOL,
             wrap=True,
@@ -301,7 +311,8 @@ class SettingsFrame(Frame):
         self._rad_all.grid(column=3, row=0, padx=0, pady=0, sticky=(W))
         self._lbl_consoledisplay.grid(column=0, row=1, padx=2, pady=3, sticky=(W))
         self._rad_parsed.grid(column=1, row=1, padx=1, pady=3, sticky=(W))
-        self._rad_raw.grid(column=2, row=1, padx=2, pady=3, sticky=(W))
+        self._rad_bin.grid(column=2, row=1, padx=2, pady=3, sticky=(W))
+        self._rad_hex.grid(column=3, row=1, padx=2, pady=3, sticky=(W))
         self._lbl_format.grid(column=0, row=2, padx=3, pady=3, sticky=(W))
         self._spn_format.grid(column=1, row=2, padx=2, pady=3, sticky=(W))
         self._lbl_units.grid(column=0, row=3, padx=3, pady=3, sticky=(W))
@@ -398,7 +409,7 @@ class SettingsFrame(Frame):
         self._units.set(UMM)
         self._autoscroll.set(1)
         self._maxlines.set(300)
-        self._raw.set(False)
+        self._display_format.set(PARSED)
         self._webmap.set(False)
         self._mapzoom.set(10)
         self._show_legend.set(True)
@@ -493,15 +504,15 @@ class SettingsFrame(Frame):
         return self._protocol.get()
 
     @property
-    def raw(self) -> int:
+    def display_format(self) -> int:
         """
         Getter for console display format
 
-        :return: display format (0 - parsed, 1 = raw)
+        :return: display format (0 - parsed, 1 = binary, 2 = hex)
         :rtype: int
         """
 
-        return self._raw.get()
+        return self._display_format.get()
 
     @property
     def autoscroll(self) -> int:
