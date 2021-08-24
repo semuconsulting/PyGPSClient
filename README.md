@@ -55,12 +55,12 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 * To expand or collapse the banner or serial port configuration widgets, click the ![expand icon](/pygpsclient/resources/iconmonstr-arrow-80-16.png)/![expand icon](/pygpsclient/resources/iconmonstr-triangle-1-16.png) buttons.
 * To show or hide the various widgets, go to Menu..View and click on the relevant hide/show option.
 * Protocols Displayed - Select which protocols to display (NB: this only changes the displayed protocols - to change the actual protocols output by the receiver, use the CFG-PRT command).
-* Console Display - Change the console display from parsed to raw (byte) format.
+* Console Display - Select from parsed, binary or hexadecimal formats.
 * Degrees Format and Units - Change the displayed degree and unit formats.
 * Zoom - Change the web map scale (any change will take effect at the next map refresh, indicated by a small timer icon at the top left of the panel).
 * Show Legend - Turn the graph legend on or off.
 * Show Zero Signal - Include or exclude satellites with zero signal level in the graph and sky view panels.
-* Enable Data Logging - Turn Data logging on or off. You will be prompted to select the directory into which timestamped log files are saved. Data logs can be saved in raw, parsed or both formats.
+* Enable Data Logging - Turn Data logging on or off. You will be prompted to select the directory into which timestamped log files are saved. Data logs can be saved in parsed, binary or hexadecimal formats (or all three together).
 * Record Track - Turn track recording (in GPX format) on or off. You will be prompted to select the directory into which timestamped track files are saved.
 * Widgets (and their associated fonts) are fully resizeable.
 
