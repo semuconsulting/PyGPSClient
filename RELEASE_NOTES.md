@@ -1,5 +1,13 @@
 # PyGPSClient Release Notes
 
+### RELEASE v1.0.10
+
+ENHANCEMENTS:
+
+1. Console and datalogging enhanced to display either parsed, binary or hexadecimal formats.
+2. Minimum pyubx2 version updated to 1.0.16.
+3. Minimum pynmeagps version updated to 1.0.5.
+
 ### RELEASE v1.0.9
 
 ENHANCEMENTS:

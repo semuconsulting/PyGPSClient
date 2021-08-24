@@ -371,9 +371,11 @@ class SerialHandler:
         # if datalogging, write to log file
         if self.__app.frm_settings.datalogging:
             logformat = self.__app.frm_settings.logformat
-            if logformat in ("Raw", "Both") and raw_data is not None:
+            if logformat in ("Bin", "All") and raw_data is not None:
                 self.__app.file_handler.write_logfile(raw_data)
-            if logformat in ("Parsed", "Both") and parsed_data is not None:
+            if logformat in ("Hex", "All") and raw_data is not None:
+                self.__app.file_handler.write_logfile(raw_data.hex())
+            if logformat in ("Parsed", "All") and parsed_data is not None:
                 self.__app.file_handler.write_logfile(parsed_data)
 
     def flush(self):

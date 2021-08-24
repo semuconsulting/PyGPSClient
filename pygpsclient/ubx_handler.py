@@ -14,7 +14,7 @@ Created on 30 Sep 2020
 from datetime import datetime
 from pyubx2 import UBXMessage, UBXReader, UBX_MSGIDS, VALCKSUM
 from pyubx2.ubxhelpers import itow2utc, gpsfix2str
-from .globals import GLONASS_NMEA
+from .globals import GLONASS_NMEA, BIN, HEX
 from .helpers import svid2gnssid
 
 BOTH = 3
@@ -117,8 +117,10 @@ class UBXHandler:
         :param UBXMessage parsed_data: UBXMessage
         """
 
-        if self.__app.frm_settings.raw:
+        if self.__app.frm_settings.display_format == BIN:
             self.__app.frm_console.update_console(str(raw_data))
+        elif self.__app.frm_settings.display_format == HEX:
+            self.__app.frm_console.update_console(str(raw_data.hex()))
         else:
             self.__app.frm_console.update_console(str(parsed_data))
 
