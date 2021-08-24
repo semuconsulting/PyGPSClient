@@ -31,12 +31,12 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 1. Capable of reading from serial/USB port or previously-saved binary datalog file. 
 1. Configurable GUI with selectable and resizeable widgets.
 1. Expandable banner widget showing key navigation information.
-1. Serial console widget showing either raw or parsed data stream.
+1. Serial console widget showing data stream in either parsed, binary or hexadecimal format.
 1. Skyview widget showing current satellite visibility and position (elevation / azimuth). Satellite icon borders are colour-coded to distinguish between different GNSS constellations.
 1. Graphview widget showing current satellite reception (signal-to-noise ratio).
 1. Mapview widget with location marker, showing either a static Mercator world map, or an optional dynamic web-based map downloaded via a MapQuest API (requires an Internet connection and free 
 [MapQuest API Key](https://developer.mapquest.com/plan_purchase/steps/business_edition/business_edition_free/register)).
-1. Data logging.
+1. Data logging in parsed, binary and hexadecimal formats.
 1. Track recording in GPX format.
 1. UBX Configuration Dialog, with the ability to send a variety of UBX configuration commands to u-blox GNSS devices. This includes the facility to add **user-defined commands or command sequences** - see instructions under [installation](#installation) below.
 
