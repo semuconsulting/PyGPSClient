@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE v1.0.11
+
+FIXES:
+
+1. Various minor fixes to dialog handling and positioning
+
 ### RELEASE v1.0.10
 
 ENHANCEMENTS:

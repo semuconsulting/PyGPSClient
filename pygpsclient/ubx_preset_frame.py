@@ -459,7 +459,7 @@ class UBX_PRESET_Frame(Frame):
         :rtype: bool
         """
 
-        if ConfirmBox(self, DLGRESET, DLGRESETCONFIRM):
+        if ConfirmBox(self, DLGRESET, DLGRESETCONFIRM).show():
             # if messagebox.askokcancel(DLGRESET, DLGRESETCONFIRM):
             clearMask = b"\x1f\x1f\x00\x00"
             loadMask = b"\x1f\x1f\x00\x00"
@@ -486,7 +486,7 @@ class UBX_PRESET_Frame(Frame):
         :rtype: bool
         """
 
-        if ConfirmBox(self, DLGSAVE, DLGSAVECONFIRM):
+        if ConfirmBox(self, DLGSAVE, DLGSAVECONFIRM).show():
             # if messagebox.askokcancel(DLGSAVE, DLGSAVECONFIRM):
             saveMask = b"\x1f\x1f\x00\x00"
             deviceMask = b"\x07"  # target RAM, Flash and EEPROM
