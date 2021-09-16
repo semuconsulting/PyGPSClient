@@ -214,7 +214,7 @@ class UBXConfigDialog(Toplevel):
     def _centre(self):
         """
         Roughly center dialog in master window
-        NB: this works on Windows and MacOS but not on some Linux
+        NB: behaviour is slightly different across Windows, MacOS and Linux
         """
 
         dw = self.winfo_width()
