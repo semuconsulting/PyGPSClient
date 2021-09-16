@@ -111,7 +111,7 @@ def deg2rad(deg: float) -> float:
     return deg * pi / 180
 
 
-def cel2cart(elevation: float, azimuth: float) -> (float, float):
+def cel2cart(elevation: float, azimuth: float) -> tuple:
     """
     Convert celestial coordinates (degrees) to Cartesian coordinates.
 
