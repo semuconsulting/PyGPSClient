@@ -107,7 +107,7 @@ DLGSAVE = "Confirm Save"
 DLGRESETCONFIRM = (
     "Are you sure you want to reset the\ncurrent configuration to the\nfactory default?"
 )
-DLGSAVECONFIRM = "Are you sure you want to save\nthe current configuration?\nNOTE: This only works on devices with persistent storage\ne.g. battery-backed RAM, Flash or EEPROM"
+DLGSAVECONFIRM = "Are you sure you want to save\nthe current configuration?"
 
 # UBX Preset Command Descriptions
 PSTRESET = "CFG-CFG - RESTORE FACTORY DEFAULTS"

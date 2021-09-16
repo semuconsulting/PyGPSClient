@@ -40,6 +40,7 @@ from .globals import (
     ICON_CONFIRMED,
     UBX_PRESET,
 )
+from .helpers import ConfirmBox
 from .strings import (
     LBLPRESET,
     DLGRESET,
@@ -458,7 +459,8 @@ class UBX_PRESET_Frame(Frame):
         :rtype: bool
         """
 
-        if messagebox.askokcancel(DLGRESET, DLGRESETCONFIRM):
+        if ConfirmBox(self, DLGRESET, DLGRESETCONFIRM):
+            # if messagebox.askokcancel(DLGRESET, DLGRESETCONFIRM):
             clearMask = b"\x1f\x1f\x00\x00"
             loadMask = b"\x1f\x1f\x00\x00"
             deviceMask = b"\x07"  # target RAM, Flash and EEPROM
@@ -484,7 +486,8 @@ class UBX_PRESET_Frame(Frame):
         :rtype: bool
         """
 
-        if messagebox.askokcancel(DLGSAVE, DLGSAVECONFIRM):
+        if ConfirmBox(self, DLGSAVE, DLGSAVECONFIRM):
+            # if messagebox.askokcancel(DLGSAVE, DLGSAVECONFIRM):
             saveMask = b"\x1f\x1f\x00\x00"
             deviceMask = b"\x07"  # target RAM, Flash and EEPROM
             msg = UBXMessage(
