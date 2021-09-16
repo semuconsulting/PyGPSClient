@@ -36,7 +36,7 @@ class ConfirmBox(Toplevel):
 
         self.__master = parent
         Toplevel.__init__(self, parent)
-        self.title = title
+        self.title(title)
         self.resizable(False, False)
         Label(self, text=prompt, anchor=W).grid(
             row=0, column=0, columnspan=2, padx=3, pady=5

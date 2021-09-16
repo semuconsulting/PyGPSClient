@@ -65,7 +65,7 @@ class UBXConfigDialog(Toplevel):
         Toplevel.__init__(self, app)
         self.transient(self.__app)
         self.resizable(False, False)
-        self.title = DLGUBXCONFIG
+        self.title(DLGUBXCONFIG)
         self.protocol("WM_DELETE_WINDOW", self.on_exit)
         self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
         self._cfg_msg_command = None
@@ -92,14 +92,6 @@ class UBXConfigDialog(Toplevel):
         """
 
         self._frm_container = Frame(self, borderwidth=2, relief="groove")
-        self._lbl_title = Label(
-            self._frm_container,
-            text=LBLUBXCONFIG,
-            bg=BGCOL,
-            fg=FGCOL,
-            justify=LEFT,
-            font=self.__app.font_md,
-        )
         self._frm_status = Frame(self._frm_container, borderwidth=2, relief="groove")
         self._lbl_status = Label(
             self._frm_status, textvariable=self._status, anchor="w"
@@ -151,9 +143,8 @@ class UBXConfigDialog(Toplevel):
             ipady=5,
             sticky=(N, S, W, E),
         )
-        self._lbl_title.grid(column=col, row=row, columnspan=12, ipadx=3, sticky=(W, E))
         # left column of grid
-        rowsp = 1
+        rowsp = 0
         for frm in (
             self._frm_device_info,
             self._frm_config_port,
