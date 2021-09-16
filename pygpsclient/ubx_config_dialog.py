@@ -62,20 +62,11 @@ class UBXConfigDialog(Toplevel):
 
         self.__app = app  # Reference to main application class
         self.__master = self.__app.get_master()  # Reference to root class (Tk)
-        Toplevel.__init__(self.__app)
+        Toplevel.__init__(self, app)
         self.transient(self.__app)
         self.resizable(False, False)
         self.title = DLGUBXCONFIG
         self.protocol("WM_DELETE_WINDOW", self.on_exit)
-        # roughly center dialog in master window
-        # NB: this works on Windows and MacOS but not on some Linux
-        dw = 780
-        dh = 470
-        mx = self.__master.winfo_x()
-        my = self.__master.winfo_y()
-        mw = self.__master.winfo_width()
-        mh = self.__master.winfo_height()
-        self._dialog.geometry(f"+{int(mx + (mw/2 - dw/2))}+{int(my + (mh/2 - dh/2))}")
         self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
         self._cfg_msg_command = None
         self._pending_confs = {
@@ -93,13 +84,14 @@ class UBXConfigDialog(Toplevel):
         self._body()
         self._do_layout()
         self._reset()
+        self._centre()
 
     def _body(self):
         """
         Set up frame and widgets.
         """
 
-        self._frm_container = Frame(self._dialog, borderwidth=2, relief="groove")
+        self._frm_container = Frame(self, borderwidth=2, relief="groove")
         self._lbl_title = Label(
             self._frm_container,
             text=LBLUBXCONFIG,
@@ -219,6 +211,20 @@ class UBXConfigDialog(Toplevel):
         self._frm_config_port.reset()
         self._frm_device_info.reset()
 
+    def _centre(self):
+        """
+        Roughly center dialog in master window
+        NB: this works on Windows and MacOS but not on some Linux
+        """
+
+        dw = self.winfo_width()
+        dh = self.winfo_height()
+        mx = self.__master.winfo_x()
+        my = self.__master.winfo_y()
+        mw = self.__master.winfo_width()
+        mh = self.__master.winfo_height()
+        self.geometry(f"+{int(mx + (mw/2 - dw/2))}+{int(my + (mh/2 - dh/2))}")
+
     def set_pending(self, key: int, val: list):
         """
         Set pending confirmation flag for configuration widget to
@@ -280,7 +286,7 @@ class UBXConfigDialog(Toplevel):
 
         self.__master.update_idletasks()
         self.__app.stop_config_thread()
-        self._dialog.destroy()
+        self.destroy()
 
     def get_size(self):
         """
