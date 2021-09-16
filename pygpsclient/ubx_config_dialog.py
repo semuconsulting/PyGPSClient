@@ -46,7 +46,7 @@ from .ubx_cfgval_frame import UBX_CFGVAL_Frame
 from .ubx_solrate_frame import UBX_RATE_Frame
 
 
-class UBXConfigDialog:
+class UBXConfigDialog(Toplevel):
     """,
     UBXConfigDialog class.
     """
@@ -62,11 +62,11 @@ class UBXConfigDialog:
 
         self.__app = app  # Reference to main application class
         self.__master = self.__app.get_master()  # Reference to root class (Tk)
-        self._dialog = Toplevel()
-        self._dialog.transient(self.__app)
-        self._dialog.resizable(False, False)
-        self._dialog.title = DLGUBXCONFIG
-        self._dialog.protocol("WM_DELETE_WINDOW", self.on_exit)
+        Toplevel.__init__(self.__app)
+        self.transient(self.__app)
+        self.resizable(False, False)
+        self.title = DLGUBXCONFIG
+        self.protocol("WM_DELETE_WINDOW", self.on_exit)
         # roughly center dialog in master window
         # NB: this works on Windows and MacOS but not on some Linux
         dw = 780
@@ -291,7 +291,7 @@ class UBXConfigDialog:
         """
 
         self.__master.update_idletasks()  # Make sure we know about any resizing
-        return (self._dialog.winfo_width(), self._dialog.winfo_height())
+        return (self.winfo_width(), self.winfo_height())
 
     @property
     def container(self):
