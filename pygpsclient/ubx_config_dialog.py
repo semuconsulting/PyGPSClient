@@ -65,7 +65,7 @@ class UBXConfigDialog(Toplevel):
         Toplevel.__init__(self, app)
         self.transient(self.__app)
         self.resizable(False, False)
-        self.title(DLGUBXCONFIG)
+        self.title(DLGUBXCONFIG)  # pylint: disable=E1102
         self.protocol("WM_DELETE_WINDOW", self.on_exit)
         self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
         self._cfg_msg_command = None
