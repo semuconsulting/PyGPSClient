@@ -162,7 +162,7 @@ class UBXConfigDialog(Toplevel):
             )
         # right column of grid
         row = 0
-        rowsp = 1
+        rowsp = 0
         col += colsp
         for frm in (self._frm_configdb, self._frm_preset):
             row += rowsp
