@@ -17,6 +17,18 @@
                 "docs/_build",
                 "${config:modulename}.egg-info",
             ],
+            "windows": {
+                "command": "Remove-Item",
+                "args": [
+                    "build,",
+                    "dist,",
+                    "htmlcov,",
+                    "docs/_build,",
+                    "${config:modulename}.egg-info",
+                    "-Recurse",
+                    "-Force",
+                ],
+            },
             "options": {
                 "cwd": "${workspaceFolder}"
             },
