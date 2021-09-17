@@ -4,7 +4,8 @@
 
 FIXES:
 
-1. Various minor fixes to dialog handling and positioning
+1. Fix hidden confirmation box issue on UBX config dialog.
+2. Various other minor fixes to dialog handling and positioning
 
 ### RELEASE v1.0.10
 
