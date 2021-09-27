@@ -205,8 +205,8 @@ class UBXHandler:
                 "CFG-PRT",
                 portid=data.portID,
                 bpsrate=data.baudRate,
-                inprot=data.inProtoMask,
-                outprot=data.outProtoMask,
+                inprot=(data.inUBX, data.inNMEA, data.inRTCM, data.inRTCM3),
+                outprot=(data.outUBX, data.outNMEA, data.outRTCM3),
             )
 
     def _process_CFG_RATE(self, data: UBXMessage):

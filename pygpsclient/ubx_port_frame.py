@@ -67,8 +67,8 @@ class UBX_PORT_Frame(Frame):
         self._img_warn = ImageTk.PhotoImage(Image.open(ICON_WARNING))
         self._bpsrate = IntVar()
         self._portid = StringVar()
-        self._inprot = b"\x00\x00"
-        self._outprot = b"\x00\x00"
+        self._inprot = (1, 1, 0, 1)
+        self._outprot = (1, 1, 0)
         self._inprot_nmea = IntVar()
         self._inprot_ubx = IntVar()
         self._inprot_rtcm2 = IntVar()
@@ -200,17 +200,15 @@ class UBX_PORT_Frame(Frame):
 
         if cfgtype == "CFG-PRT":
             self._bpsrate.set(str(kwargs.get("bpsrate", 0)))
-            self._inprot = kwargs.get("inprot", b"\x00\x00")
-            self._outprot = kwargs.get("outprot", b"\x00\x00")
-            inprot = UBXMessage.bytes2val(self._inprot, "U002")
-            self._inprot_ubx.set(inprot >> 0 & 1)
-            self._inprot_nmea.set(inprot >> 1 & 1)
-            self._inprot_rtcm2.set(inprot >> 2 & 1)
-            self._inprot_rtcm3.set(inprot >> 5 & 1)
-            outprot = UBXMessage.bytes2val(self._outprot, "U002")
-            self._outprot_ubx.set(outprot >> 0 & 1)
-            self._outprot_nmea.set(outprot >> 1 & 1)
-            self._outprot_rtcm3.set(outprot >> 5 & 1)
+            (inUBX, inNMEA, inRTCM, inRTCM3) = kwargs.get("inprot", (1, 1, 0, 1))
+            (outUBX, outNMEA, outRTCM3) = kwargs.get("outprot", (1, 1, 0))
+            self._inprot_ubx.set(inUBX)
+            self._inprot_nmea.set(inNMEA)
+            self._inprot_rtcm2.set(inRTCM)
+            self._inprot_rtcm3.set(inRTCM3)
+            self._outprot_ubx.set(outUBX)
+            self._outprot_nmea.set(outNMEA)
+            self._outprot_rtcm3.set(outRTCM3)
             self._lbl_send_command.config(image=self._img_confirmed)
             self.__container.set_status("CFG-PRT GET message received", "green")
         elif cfgtype == "ACK-NAK":
@@ -229,46 +227,32 @@ class UBX_PORT_Frame(Frame):
         Handle Send port config button press.
         """
 
-        port = int(self._portid.get()[0:1])
-        portID = UBXMessage.val2bytes(port, "U001")
-        reserved0 = b"\x00"
-        reserved4 = b"\x00\00"
-        reserved5 = b"\x00\00"
-        txReady = b"\x00\x00"
-        if port == 0:  # I2C
-            mode = b"\x84\x00\x00\x00"
-        elif port == 1:  # UART1
-            mode = b"\xc0\x08\x00\x00"
-        elif port == 2:  # UART2
-            mode = b"\xc0\x08\x00\x00"
-        else:
-            mode = b"\x00\x00\x00\x00"
-        bpsRate = UBXMessage.val2bytes(self._bpsrate.get(), "U004")
-        inprot = (
-            self._inprot_ubx.get()
-            + (self._inprot_nmea.get() << 1)
-            + (self._inprot_rtcm2.get() << 2)
-            + (self._inprot_rtcm3.get() << 5)
+        portID = int(self._portid.get()[0:1])
+        baudRate = int(self._bpsrate.get())
+        inUBX = self._inprot_ubx.get()
+        inNMEA = self._inprot_nmea.get()
+        inRTCM = self._inprot_rtcm2.get()
+        inRTCM3 = self._inprot_rtcm3.get()
+        outUBX = self._outprot_ubx.get()
+        outNMEA = self._outprot_nmea.get()
+        outRTCM3 = self._outprot_rtcm3.get()
+        msg = UBXMessage(
+            "CFG",
+            "CFG-PRT",
+            SET,
+            portID=portID,
+            charLen=3,  # 8 data bits
+            parity=4,  # none
+            nStopBits=0,  # 1 stop bit
+            baudRate=baudRate,
+            inUBX=inUBX,
+            inNMEA=inNMEA,
+            inRTCM=inRTCM,
+            inRTCM3=inRTCM3,
+            outUBX=outUBX,
+            outNMEA=outNMEA,
+            outRTCM3=outRTCM3,
         )
-        inProtoMask = UBXMessage.val2bytes(inprot, "U002")
-        outprot = (
-            self._outprot_ubx.get()
-            + (self._outprot_nmea.get() << 1)
-            + (self._outprot_rtcm3.get() << 5)
-        )
-        outProtoMask = UBXMessage.val2bytes(outprot, "U002")
-        payload = (
-            portID
-            + reserved0
-            + txReady
-            + mode
-            + bpsRate
-            + inProtoMask
-            + outProtoMask
-            + reserved4
-            + reserved5
-        )
-        msg = UBXMessage("CFG", "CFG-PRT", SET, payload=payload)
         self.__app.serial_handler.serial_write(msg.serialize())
         self._lbl_send_command.config(image=self._img_pending)
         self.__container.set_status("CFG-PRT SET message sent", "blue")

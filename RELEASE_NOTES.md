@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE v1.1.0
+
+ENHANCEMENTS:
+
+1. Updated to handle changes in pyubx2 v1.1.0 - parsing of individvual bits in bitfield (type 'X') message attributes. For example, the NAV-PVT attribute valid (X1) is now parsed as four individual bit flags: validDate (U1), validTime (U1), fullyResolved (U1) and validMag (U1).
+
 ### RELEASE v1.0.11
 
 FIXES:

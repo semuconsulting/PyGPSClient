@@ -300,8 +300,8 @@ class UBX_PRESET_Frame(Frame):
         Poll INF message configuration.
         """
 
-        for payload in (b"\x00", b"\x01"):  # UBX & NMEA
-            msg = UBXMessage("CFG", "CFG-INF", POLL, payload=payload)
+        for protid in (0, 1):  # UBX & NMEA
+            msg = UBXMessage("CFG", "CFG-INF", POLL, protocolID=protid)
             self.__app.serial_handler.serial_write(msg.serialize())
 
     def _do_set_inf(self, onoff: int):
