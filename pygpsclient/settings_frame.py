@@ -259,7 +259,7 @@ class SettingsFrame(Frame):
         )
         self._spn_datalog = Spinbox(
             self._frm_options,
-            values=("Bin", "Hex", "Parsed", "All"),
+            values=("Bin", "Hex", "Parsed", "Hex+Parsed", "All"),
             width=7,
             readonlybackground=ENTCOL,
             wrap=True,
