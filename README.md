@@ -101,6 +101,13 @@ On Windows and MacOS, pip, tkinter and the necessary imaging libraries are gener
 sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk
 ```
 
+*NB:* If you're compiling the latest version of Python3 from source, you may also need to install tk-devel (or a similarly named package) first. Refer to 
+ http://wiki.python.org/moin/TkInter for further details.
+
+```shell
+sudo apt install tk-devel
+```
+
 ### User Privileges
 
 To access the serial port on most Linux platforms, you will need to be a member of the 

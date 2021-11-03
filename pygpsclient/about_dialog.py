@@ -9,6 +9,7 @@ Created on 20 Sep 2020
 """
 
 from tkinter import Toplevel, Label, Button
+from platform import python_version
 from webbrowser import open_new_tab
 from PIL import ImageTk, Image
 from pynmeagps import version as PNVERSION
@@ -59,6 +60,11 @@ class AboutDialog:
         self._lbl_version = Label(
             self._dialog, text="Version: " + VERSION, font=self.__app.font_sm
         )
+        self._lbl_python_version = Label(
+            self._dialog,
+            text="Python Version: " + python_version(),
+            font=self.__app.font_sm,
+        )
         self._lbl_pyubx2_version = Label(
             self._dialog, text="pyubx2 Version: " + PUVERSION, font=self.__app.font_sm
         )
@@ -91,10 +97,11 @@ class AboutDialog:
         self._lbl_icon.grid(column=0, row=1, padx=5, pady=3)
         self._lbl_desc.grid(column=0, row=2, padx=5, pady=3)
         self._lbl_version.grid(column=0, row=3, padx=5, pady=0)
-        self._lbl_pynmea2_version.grid(column=0, row=4, padx=5, pady=0)
-        self._lbl_pyubx2_version.grid(column=0, row=5, padx=5, pady=0)
-        self._lbl_copyright.grid(column=0, row=6, padx=5, pady=3)
-        self._btn_ok.grid(column=0, row=7, ipadx=3, ipady=3, padx=5, pady=3)
+        self._lbl_python_version.grid(column=0, row=4, padx=5, pady=0)
+        self._lbl_pynmea2_version.grid(column=0, row=5, padx=5, pady=0)
+        self._lbl_pyubx2_version.grid(column=0, row=6, padx=5, pady=0)
+        self._lbl_copyright.grid(column=0, row=7, padx=5, pady=3)
+        self._btn_ok.grid(column=0, row=8, ipadx=3, ipady=3, padx=5, pady=3)
 
     def _attach_events(self):
         """
