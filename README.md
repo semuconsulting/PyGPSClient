@@ -108,6 +108,8 @@ sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk
 sudo apt install tk-devel
 ```
 
+**NOTE**: At time of writing there appear to be several issues with tkinter in compiled versions of Python 3.10 running on MacOS (e.g. windows not sizing, file open dialogs failing). For the time being, MacOS users are advised to remain on the packaged Python 3.9 version. Windows and Linux users are unaffected.
+
 ### User Privileges
 
 To access the serial port on most Linux platforms, you will need to be a member of the 
