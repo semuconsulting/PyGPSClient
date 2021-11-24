@@ -10,8 +10,9 @@
     "python.testing.nosetestsEnabled": false,
     "python.testing.unittestEnabled": true,
     "python.formatting.provider": "black",
+    "python.pythonPath": "python3",
     "editor.formatOnSave": true,
     "modulename": "pygpsclient",
     "distname": "PyGPSClient",
-    "moduleversion": "1.1.0"
+    "moduleversion": "1.1.1"
 }

@@ -1,5 +1,12 @@
 # PyGPSClient Release Notes
 
+### RELEASE v1.1.1
+
+ENHANCEMENTS:
+
+1. Minor enhancements to UBX config configuration database dialog to aid category selection.
+2. Minimum pyubx2 and pynmeagps versions updated to 1.1.6 and 1.0.6 respectively.
+
 ### RELEASE v1.1.0
 
 ENHANCEMENTS:
