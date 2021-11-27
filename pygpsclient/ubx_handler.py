@@ -248,11 +248,11 @@ class UBXHandler:
 
         try:
             self.utc = itow2utc(data.iTOW)
-            self.lat = data.lat / 10 ** 7
-            self.lon = data.lon / 10 ** 7
-            self.alt = data.hMSL / 1000
-            self.hacc = data.hAcc / 1000
-            self.vacc = data.vAcc / 1000
+            self.lat = data.lat
+            self.lon = data.lon
+            self.alt = data.hMSL / 1000  # meters
+            self.hacc = data.hAcc / 1000  # meters
+            self.vacc = data.vAcc / 1000  # meters
             self.__app.frm_banner.update_banner(
                 time=self.utc,
                 lat=self.lat,
@@ -277,15 +277,15 @@ class UBXHandler:
 
         try:
             self.utc = itow2utc(data.iTOW)
-            self.lat = data.lat / 10 ** 7
-            self.lon = data.lon / 10 ** 7
-            self.alt = data.hMSL / 1000
-            self.hacc = data.hAcc / 1000
-            self.vacc = data.vAcc / 1000
-            self.pdop = data.pDOP / 100
+            self.lat = data.lat
+            self.lon = data.lon
+            self.alt = data.hMSL / 1000  # meters
+            self.hacc = data.hAcc / 1000  # meters
+            self.vacc = data.vAcc / 1000  # meters
+            self.pdop = data.pDOP
             self.sip = data.numSV
             self.speed = data.gSpeed / 1000  # m/s
-            self.track = data.headMot / 10 ** 5
+            self.track = data.headMot
             fix = gpsfix2str(data.fixType)
             self.__app.frm_banner.update_banner(
                 time=self.utc,
@@ -346,7 +346,7 @@ class UBXHandler:
         """
 
         try:
-            self.track = data.heading / 10 ** 5
+            self.track = data.heading
             self.speed = data.gSpeed / 100  # m/s
             self.__app.frm_banner.update_banner(speed=self.speed, track=self.track)
         except ValueError:
@@ -431,7 +431,7 @@ class UBXHandler:
         """
 
         try:
-            self.pdop = data.pDOP / 100
+            self.pdop = data.pDOP
             self.sip = data.numSV
             fix = gpsfix2str(data.gpsFix)
 
@@ -448,9 +448,9 @@ class UBXHandler:
         """
 
         try:
-            self.pdop = data.pDOP / 100
-            self.hdop = data.hDOP / 100
-            self.vdop = data.vDOP / 100
+            self.pdop = data.pDOP
+            self.hdop = data.hDOP
+            self.vdop = data.vDOP
 
             self.__app.frm_banner.update_banner(
                 dop=self.pdop, hdop=self.hdop, vdop=self.vdop
@@ -468,13 +468,13 @@ class UBXHandler:
 
         try:
             self.utc = itow2utc(data.iTOW)
-            self.lat = data.lat / 10 ** 7
-            self.lon = data.lon / 10 ** 7
-            self.alt = data.hMSL / 1000
-            self.hacc = data.hAcc / 1000
-            self.vacc = data.vAcc / 1000
+            self.lat = data.lat
+            self.lon = data.lon
+            self.alt = data.hMSL / 1000  # meters
+            self.hacc = data.hAcc / 1000  # meters
+            self.vacc = data.vAcc / 1000  # meters
             self.speed = data.gSpeed / 1000  # m/s
-            self.track = data.headMot / 10 ** 5
+            self.track = data.headMot
             fix = gpsfix2str(data.gpsFix)
             self.__app.frm_banner.update_banner(
                 time=self.utc,

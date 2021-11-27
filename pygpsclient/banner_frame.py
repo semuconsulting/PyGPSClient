@@ -447,11 +447,14 @@ class BannerFrame(Frame):
         """
 
         if "dop" in kwargs:
-            dop = kwargs["dop"]
+            dop = round(kwargs["dop"], 2)
             self._dop.set(str(dop) + " " + dop2str(dop))
         if "hdop" in kwargs and "vdop" in kwargs:
             self._hvdop.set(
-                "hdop " + str(kwargs["hdop"]) + "\nvdop " + str(kwargs["vdop"])
+                "hdop "
+                + str(round(kwargs["hdop"], 2))
+                + "\nvdop "
+                + str(round(kwargs["vdop"], 2))
             )
         if "hacc" in kwargs and "vacc" in kwargs:
             if units in (UI, UIK):
