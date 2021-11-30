@@ -65,7 +65,8 @@ from .strings import (
     PSTALLRXMOFF,
     PSTPOLLPORT,
     PSTPOLLINFO,
-    PSTPOLLALL,
+    PSTPOLLALLCFG,
+    PSTPOLLALLNAV,
 )
 
 PRESET_COMMMANDS = [
@@ -87,7 +88,8 @@ PRESET_COMMMANDS = [
     PSTALLRXMOFF,
     PSTPOLLPORT,
     PSTPOLLINFO,
-    PSTPOLLALL,
+    PSTPOLLALLCFG,
+    PSTPOLLALLNAV,
 ]
 
 
@@ -253,8 +255,10 @@ class UBX_PRESET_Frame(Frame):
                 self._do_poll_prt()
             elif self._preset_command == PSTPOLLINFO:
                 self._do_poll_inf()
-            elif self._preset_command == PSTPOLLALL:
-                self._do_poll_all()
+            elif self._preset_command == PSTPOLLALLCFG:
+                self._do_poll_all_CFG()
+            elif self._preset_command == PSTPOLLALLNAV:
+                self._do_poll_all_NAV()
             else:
                 self._do_user_defined(self._preset_command)
 
@@ -271,9 +275,9 @@ class UBX_PRESET_Frame(Frame):
             self.__container.set_status(f"Error {err}", "red")
             self._lbl_send_command.config(image=self._img_warn)
 
-    def _do_poll_all(self):
+    def _do_poll_all_CFG(self):
         """
-        Poll INF message configuration.
+        Poll all CFG message configurations.
         """
 
         for msgtype in UBX_PAYLOADS_POLL:
@@ -284,6 +288,16 @@ class UBX_PRESET_Frame(Frame):
                 "CFG-TP5-TPX",
             ):
                 msg = UBXMessage("CFG", msgtype, POLL)
+                self.__app.serial_handler.serial_write(msg.serialize())
+
+    def _do_poll_all_NAV(self):
+        """
+        Poll all NAV/NAV2 message configurations.
+        """
+
+        for msgtype in UBX_PAYLOADS_POLL:
+            if msgtype[0:3] == "NAV":
+                msg = UBXMessage(msgtype.split("-")[0], msgtype, POLL)
                 self.__app.serial_handler.serial_write(msg.serialize())
 
     def _do_poll_prt(self):
