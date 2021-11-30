@@ -31,7 +31,7 @@ from tkinter import (
 )
 from PIL import ImageTk, Image
 from pyubx2 import UBXMessage, UBX_CONFIG_DATABASE
-from pyubx2.ubxhelpers import atttyp, attsiz
+from pyubx2.ubxhelpers import atttyp, attsiz, cfgname2key
 from .globals import (
     ENTCOL,
     ERRCOL,
@@ -335,7 +335,7 @@ class UBX_CFGVAL_Frame(Frame):
         idx = self._lbx_parm.curselection()
         self._cfgval_keyname = self._lbx_parm.get(idx)
 
-        (keyid, att) = UBXMessage.cfgname2key(self._cfgval_keyname)
+        (keyid, att) = cfgname2key(self._cfgval_keyname)
         self._cfgkeyid.set(hex(keyid))
         self._cfgatt.set(att)
         self._cfgval.set("")

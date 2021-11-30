@@ -13,7 +13,7 @@ Created on 30 Sep 2020
 
 from datetime import datetime
 from pyubx2 import UBXMessage, UBXReader, UBX_MSGIDS, VALCKSUM
-from pyubx2.ubxhelpers import itow2utc, gpsfix2str
+from pyubx2.ubxhelpers import itow2utc, gpsfix2str, msgclass2bytes
 from .globals import GLONASS_NMEA, BIN, HEX
 from .helpers import svid2gnssid
 
@@ -131,7 +131,7 @@ class UBXHandler:
         :param UBXMessage data: ACK_ACK parsed message
         """
 
-        (ubxClass, ubxID) = UBXMessage.msgclass2bytes(data.clsID, data.msgID)
+        (ubxClass, ubxID) = msgclass2bytes(data.clsID, data.msgID)
 
         # update the UBX config panel
         if self.__app.dlg_ubxconfig is not None:
@@ -146,7 +146,7 @@ class UBXHandler:
         :param UBXMessage data: ACK_NAK parsed message
         """
 
-        (ubxClass, ubxID) = UBXMessage.msgclass2bytes(data.clsID, data.msgID)
+        (ubxClass, ubxID) = msgclass2bytes(data.clsID, data.msgID)
 
         # update the UBX config panel
         if self.__app.dlg_ubxconfig is not None:
@@ -161,7 +161,7 @@ class UBXHandler:
         :param UBXMessage data: CFG-MSG parsed message
         """
 
-        (ubxClass, ubxID) = UBXMessage.msgclass2bytes(data.msgClass, data.msgID)
+        (ubxClass, ubxID) = msgclass2bytes(data.msgClass, data.msgID)
 
         ddcrate = data.rateDDC
         uart1rate = data.rateUART1
