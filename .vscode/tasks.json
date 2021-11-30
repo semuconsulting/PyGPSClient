@@ -46,7 +46,19 @@
             "problemMatcher": []
         },
         {
-            "label": "Analyse",
+            "label": "PylintError",
+            "type": "process",
+            "command": "${config:python.pythonPath}",
+            "args": [
+                "-m",
+                "pylint",
+                "-E",
+                "${config:modulename}"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Pylint",
             "type": "process",
             "command": "${config:python.pythonPath}",
             "args": [
@@ -153,7 +165,7 @@
             "dependsOn": [
                 "Clean",
                 "Format",
-                "Analyze",
+                "PylintError",
                 "Build",
                 "Test",
                 "Coverage Report",
