@@ -367,7 +367,7 @@ class UBXHandler:
 
         try:
             self.gsv_data = []
-            num_siv = int(data.numCh)
+            num_siv = int(data.numSvs)
 
             for i in range(num_siv):
                 idx = "_{0:0=2d}".format(i + 1)
