@@ -4,8 +4,8 @@
 
 ENHANCEMENTS:
 
-1. UBX handler scaling factors removed as pyubx2 now applies these internally.
-2. Minimum pyubx2 version updated to 1.1.7.
+1. UBX handler scaling factors removed as pyubx2 >=1.2.0 now applies these internally.
+2. Minimum pyubx2 version updated to >=1.2.0.
 
 
 ### RELEASE v1.1.1
