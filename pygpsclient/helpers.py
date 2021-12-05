@@ -10,10 +10,13 @@ Created on 17 Apr 2021
 :license: BSD 3-Clause
 
 """
+# pylint: disable=invalid-name
 
+from subprocess import run as subrun
+from sys import executable
 from tkinter import Toplevel, Label, Button, W
 from math import sin, cos, pi
-from .globals import MAX_SNR
+from pygpsclient.globals import MAX_SNR
 
 
 class ConfirmBox(Toplevel):
@@ -53,7 +56,7 @@ class ConfirmBox(Toplevel):
 
         self._centre()
 
-    def _on_ok(self, event=None):
+    def _on_ok(self, event=None):  # pylint: disable=unused-argument
         """
         OK button handler
         """
@@ -61,7 +64,7 @@ class ConfirmBox(Toplevel):
         self._rc = True
         self.destroy()
 
-    def _on_cancel(self, event=None):
+    def _on_cancel(self, event=None):  # pylint: disable=unused-argument
         """
         Cancel button handler
         """
@@ -74,7 +77,7 @@ class ConfirmBox(Toplevel):
         Centre dialog in parent
         """
 
-        self.update_idletasks
+        self.update_idletasks()
         dw = self.winfo_width()
         dh = self.winfo_height()
         mx = self.__master.winfo_x()
@@ -361,8 +364,7 @@ def hsv2rgb(h: float, s: float, v: float) -> str:
     if i == 5:
         r, g, b = v, p, q
 
-    rgb = int(r * 255), int(g * 255), int(b * 255)
-    return "#%02x%02x%02x" % rgb
+    return f"#{int(r * 255):02x}{int(g * 255):02x}{int(b * 255):02x}"
 
 
 def snr2col(snr: int) -> str:
@@ -404,3 +406,24 @@ def svid2gnssid(svid) -> int:
     else:
         gnssId = 0  # GPS
     return gnssId
+
+
+def check_for_update(name: str) -> tuple:
+    """
+    Check for latest version of module on PyPi.
+
+    :param: str name: name of module to check
+    :return: (latest true/false, latest version)
+    :rtype: tuple
+    """
+
+    ver = []
+    for proc in (
+        [executable, "-m", "pip", "show", name],
+        [executable, "-m", "pip", "install", f"{name}==random"],
+    ):
+        ver.append(str(subrun(proc, capture_output=True, text=True, check=False)))
+
+    ver[0] = ver[0].split("Version: ")[1].split("\\n")[0]  # current version
+    ver[1] = ver[1].split(")\\nERROR:")[0].split(" ")[-1]  # latest version
+    return (ver[0] == ver[1], ver[1])
