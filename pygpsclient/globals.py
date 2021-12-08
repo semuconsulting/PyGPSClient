@@ -139,6 +139,7 @@ GNSS_LIST = {
 
 # List of tags to highlight in console
 # (NB there is a slight performance hit in having many tags)
+TAG_COLORS = True
 TAGS = [
     ("ACK-ACK", "green2"),
     ("ACK-NAK", "orange red"),
