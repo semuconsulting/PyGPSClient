@@ -337,19 +337,19 @@ def hsv2rgb(h: float, s: float, v: float) -> str:
     :param float h: hue (0-1)
     :param float s: saturation (0-1)
     :param float v: value (0-1)
-    :return: rgb color value
+    :return: rgb color value e.g. "#032a4e"
     :rtype: str
 
     """
 
+    v = int(v * 255)
     if s == 0.0:
-        v = int(v * 255)
-        return v, v, v
+        return f"#{v:02x}{v:02x}{v:02x}"
     i = int(h * 6.0)
     f = (h * 6.0) - i
-    p = v * (1.0 - s)
-    q = v * (1.0 - s * f)
-    t = v * (1.0 - s * (1.0 - f))
+    p = int(v * (1.0 - s))
+    q = int(v * (1.0 - s * f))
+    t = int(v * (1.0 - s * (1.0 - f)))
     i %= 6
     if i == 0:
         r, g, b = v, t, p
@@ -364,7 +364,7 @@ def hsv2rgb(h: float, s: float, v: float) -> str:
     if i == 5:
         r, g, b = v, p, q
 
-    return f"#{int(r * 255):02x}{int(g * 255):02x}{int(b * 255):02x}"
+    return f"#{r:02x}{g:02x}{b:02x}"
 
 
 def snr2col(snr: int) -> str:
