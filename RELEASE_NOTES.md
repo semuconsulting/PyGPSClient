@@ -1,5 +1,13 @@
 # PyGPSClient Release Notes
 
+### RELEASE v1.1.3
+
+ENHANCEMENTS:
+
+1. Additional configdb key categories added to CFG-VALGET/SET/DEL panel (CFG-HW-RF*, CFG-SPARTN*).
+2. Minimum pyubx2 version updated to >=1.2.3.
+3. Version checker added to Help panel.
+
 ### RELEASE v1.1.2
 
 ENHANCEMENTS:
