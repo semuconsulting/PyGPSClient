@@ -13,7 +13,7 @@ Created on 12 Sep 2020
 
 from tkinter import Frame, Text, Scrollbar, S, E, W, END, HORIZONTAL, VERTICAL, N
 
-from .globals import TAGS, BGCOL, FGCOL
+from .globals import TAGS, BGCOL, FGCOL, TAG_COLORS
 
 
 class ConsoleFrame(Frame):
@@ -100,7 +100,8 @@ class ConsoleFrame(Frame):
         con.insert(END, data + "\n")
 
         # format of this array of tuples is (tag, highlight color)
-        self._tag_line(data, TAGS)
+        if TAG_COLORS:  # amend in globals.py if required
+            self._tag_line(data, TAGS)
 
         idx = float(con.index("end"))  # Lazy but it works
         if idx > self.__app.frm_settings.maxlines:

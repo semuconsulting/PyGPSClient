@@ -32,6 +32,7 @@ ICON_EXPAND = os.path.join(DIRNAME, "resources/iconmonstr-arrow-80-16.png")
 IMG_WORLD = os.path.join(DIRNAME, "resources/world.png")
 
 GITHUB_URL = "https://github.com/semuconsulting/PyGPSClient"
+PYPI_URL = "https://pypi.org/project/PyGPSClient/"
 XML_HDR = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
 GPX_NS = " ".join(
     (
@@ -138,6 +139,7 @@ GNSS_LIST = {
 
 # List of tags to highlight in console
 # (NB there is a slight performance hit in having many tags)
+TAG_COLORS = True
 TAGS = [
     ("ACK-ACK", "green2"),
     ("ACK-NAK", "orange red"),

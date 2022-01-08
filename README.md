@@ -281,6 +281,6 @@ Application icons from [iconmonstr](https://iconmonstr.com/license/) &copy;.
 
 semuadmin@semuconsulting.com
 
-`PyGPSClient` is maintained entirely by volunteers. If you find it useful, please consider buying us a coffee!
+`PyGPSClient` is maintained entirely by volunteers. If you find it useful, a small donation would be greatly appreciated!
 
 [![Donations](https://www.paypalobjects.com/en_GB/i/btn/btn_donate_LG.gif)](https://www.paypal.com/donate/?hosted_button_id=4TG5HGBNAM7YJ)
