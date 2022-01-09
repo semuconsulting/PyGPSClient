@@ -11,7 +11,7 @@ Created on 12 Sep 2020
 
 TITLE = "PyGPSClient"
 
-COPYRIGHTTXT = "\u00A9 SEMU Consulting 2020\nBSD 3 License. All Rights Reserved"
+COPYRIGHTTXT = "\u00A9 SEMU Consulting 2020\nBSD-2 License. All Rights Reserved"
 
 INTROTXT = "Welcome to PyGPSClient!"
 INTROTXTNOPORTS = (
@@ -22,7 +22,7 @@ HELPTXT = "Help..About - display About dialog."
 
 ABOUTTXT = (
     "PyGPSClient is a free, open-source NMEA & UBX GNSS/GPS client application written"
-    + " entirely in Python and tkinter.\n\n"
+    + " entirely in Python and tkinter. "
     + "Instructions and source code are available on GitHub at the link below."
 )
 
