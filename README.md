@@ -1,5 +1,16 @@
 # PyGPSClient
 
+[Current Status](#currentstatus) |
+[Features](#features) |
+[How to Use](#howtouse) |
+[UBX Configuration](#ubxconfig) |
+[Installation](#installation) |
+[Mapquest API Key](#mapquestapi) |
+[User-defined Presets](#userdefined) |
+[Glossary of Terms](#glossary) |
+[License](#license) |
+[Author Information](#author)
+
 PyGPSClient is a graphical GNSS/GPS testing, diagnostic and UBX &copy; (u-blox &trade;) device configuration application written entirely in Python and tkinter.
 
 ![full app screenshot ubx](/images/all_widgets.png)
@@ -9,7 +20,7 @@ including Windows, MacOS, Linux and Raspberry Pi OS. It displays location and di
 
 This is an independent project and we have no affiliation whatsoever with u-blox.
 
-### Current Status
+## <a name="currentstatus">Current Status</a>
 
 ![Status](https://img.shields.io/pypi/status/PyGPSClient)
 ![Release](https://img.shields.io/github/v/release/semuconsulting/PyGPSClient)
@@ -25,7 +36,7 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 
 [Bug reports](https://github.com/semuconsulting/PyGPSClient/blob/master/.github/ISSUE_TEMPLATE/bug_report.md) and [Feature requests](https://github.com/semuconsulting/PyGPSClient/blob/master/.github/ISSUE_TEMPLATE/feature_request.md) - please use the templates provided.
 
-## Features
+## <a name="features">Features</a>
 
 1. Supports both NMEA and UBX protocols. It uses the [pynmeagps library](https://pypi.org/project/pynmeagps/) for NMEA parsing and the [pyubx2 library](https://pypi.org/project/pyubx2/) for UBX parsing.
 1. Capable of reading from serial/USB port or previously-saved binary datalog file. 
@@ -42,7 +53,7 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 
 ![compact view screenshot](/images/min_widgets.png)
 
-## How to Use
+## <a name="howtouse">How to Use</a>
 
 * To connect to a listed serial device, select the device from the listbox, set the appropriate serial connection parameters and click 
 ![connect icon](/pygpsclient/resources/iconmonstr-link-8-24.png). The application will endeavour to pre-select a recognised GNSS/GPS device but this is platform and device dependent. Press the ![refresh](/pygpsclient/resources/iconmonstr-refresh-6-16.png) button to refresh the list of connected devices at any point. *Rate bps is typically the only setting that might need adjusting, but tweaking the timeout setting may improve performance on certain platforms*.
@@ -64,7 +75,8 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 * Record Track - Turn track recording (in GPX format) on or off. You will be prompted to select the directory into which timestamped track files are saved.
 * Widgets (and their associated fonts) are fully resizeable.
 
-### UBX Configuration Facilities
+### <a name="ubxconfig">UBX Configuration Facilities</a>
+
 ![ubxconfig widget screenshot](/images/ubxconfig_widget.png)
 
 The UBX Configuration Dialog currently supports the following UBX configuration 'widgets':
@@ -108,7 +120,7 @@ sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk
 sudo apt install tk-devel
 ```
 
-**NOTE**: As of January 2022 there appear to be some cosmetic issues with tkinter and Python 3.10.n on MacOS 12.0.1 (Monterey) e.g. windows not sizing initially. Core functionality is OK but you may find you have to resize the main window on first opening the application. This will hopefully be resolved in a subsequent MacOS update, but in the meantime it is recommended that Python 3.10 users update to the latest available version for MacOS (*3.10.1 at time of writing*). Windows and Linux users are unaffected. 
+**NOTE**: As of January 2022 there appear to be some cosmetic issues with tkinter and Python 3.10.n on MacOS 12.0.1 (Monterey) e.g. windows not sizing initially. Core functionality is OK but you may find you have to resize the main window on first opening the application. It is also reported that tkinter runs significantly slower on newer Apple M1 platforms - see for example [tkinter slower on MacOS](https://bugs.python.org/issue43511). This will hopefully be resolved in a subsequent MacOS Python update, but in the meantime it is recommended that Python 3.10 users update to the latest available version for MacOS (*3.10.1 at time of writing*). Windows and Linux users are unaffected. 
 
 ### User Privileges
 
@@ -196,7 +208,7 @@ e.g. if you downloaded and unzipped to a folder named `PyGPSClient-1.1.3`, run:
 python -m /path_to_folder/PyGPSClient-1.1.3/pygpsclient
 ```
 
-### MapQuest API Key
+### <a name="mapquestapi">MapQuest API Key</a>
 
 To use the optional dynamic web-based mapview facility, you need to request and install a 
 [MapQuest API key](https://developer.mapquest.com/plan_purchase/steps/business_edition/business_edition_free/register).
@@ -248,7 +260,7 @@ Set UBX GNSS to ALL (legacy), CFG, CFG-GNSS, 00202007000810000100010101010300010
 FORCE COLD RESTART !*** Expect ClearCommError ***!, CFG, CFG-RST, ffff0100, 1
 ```
 
-#### Glossary of Terms
+## <a name="glossary">Glossary of Terms</a>
 
 * ACC - accuracy of location in real units (hacc - horizontal, vacc - vertical). Note that location accuracy is not directly provided via the standard NMEA message set, but is available via some proprietary NMEA messages e.g. UBX00.
 * BEI - [BeiDou Navigation Satellite System](https://en.wikipedia.org/wiki/BeiDou).
@@ -266,7 +278,7 @@ FORCE COLD RESTART !*** Expect ClearCommError ***!, CFG, CFG-RST, ffff0100, 1
 * SV(N) - [space vehicle number](https://en.wikipedia.org/wiki/List_of_GPS_satellites) (serial number assigned to each satellite).
 * UTC - coordinated universal time.
 
-## License
+## <a name="license">License</a>
 
 ![License](https://img.shields.io/github/license/semuconsulting/PyGPSClient.svg)
 
@@ -277,7 +289,7 @@ All rights reserved.
 
 Application icons from [iconmonstr](https://iconmonstr.com/license/) &copy;.
 
-## Author Information
+## <a name="author">Author Information</a>
 
 semuadmin@semuconsulting.com
 
