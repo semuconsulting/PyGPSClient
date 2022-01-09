@@ -108,7 +108,7 @@ sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk
 sudo apt install tk-devel
 ```
 
-**NOTE**: At time of writing there appear to be some residual issues with tkinter and Python 3.10 on MacOS 12.0.1 (Monterey) e.g. windows not sizing initially. Core functionality is OK but you may find you have to resize the main window on first opening the application. This will hopefully be resolved in a subsequent MacOS update. Windows and Linux users are unaffected. 
+**NOTE**: As of January 2022 there appear to be some cosmetic issues with tkinter and Python 3.10.n on MacOS 12.0.1 (Monterey) e.g. windows not sizing initially. Core functionality is OK but you may find you have to resize the main window on first opening the application. This will hopefully be resolved in a subsequent MacOS update, but in the meantime it is recommended that Python 3.10 users update to the latest available version for MacOS (*3.10.1 at time of writing*). Windows and Linux users are unaffected. 
 
 ### User Privileges
 
