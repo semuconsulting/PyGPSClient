@@ -9,11 +9,11 @@ Created on 14 Sep 2020
 :copyright: SEMU Consulting © 2020
 :license: BSD 3-Clause
 """
-# pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
+# pylint: disable=invalid-name
 
 from tkinter import Frame, Canvas, font, BOTH, YES
-from .globals import WIDGETU2, BGCOL, FGCOL, MAX_SNR, GNSS_LIST
-from .helpers import snr2col
+from pygpsclient.globals import WIDGETU2, BGCOL, FGCOL, MAX_SNR, GNSS_LIST
+from pygpsclient.helpers import snr2col
 
 # Relative offsets of graph axes and legend
 AXIS_XL = 19

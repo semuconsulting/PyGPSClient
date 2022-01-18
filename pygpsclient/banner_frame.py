@@ -9,7 +9,7 @@ Created on 13 Sep 2020
 :copyright: SEMU Consulting © 2020
 :license: BSD 3-Clause
 """
-# pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
+# pylint: disable=invalid-name
 
 from platform import system
 from tkinter import Frame, Label, Button, StringVar, font, N, S, W, E, SUNKEN
@@ -17,7 +17,7 @@ from tkinter import Frame, Label, Button, StringVar, font, N, S, W, E, SUNKEN
 from PIL import ImageTk, Image
 from pyubx2.ubxhelpers import dop2str
 
-from .globals import (
+from pygpsclient.globals import (
     DMM,
     DMS,
     UMK,
@@ -34,7 +34,7 @@ from .globals import (
     FGCOL,
 )
 
-from .helpers import (
+from pygpsclient.helpers import (
     deg2dmm,
     deg2dms,
     m2ft,

@@ -15,18 +15,16 @@ from time import time
 from datetime import datetime
 from pynmeagps import NMEAReader, NMEAMessage, NMEAParseError, VALCKSUM, GET
 
-from .globals import (
+from pygpsclient.globals import (
     DEVICE_ACCURACY,
     HDOP_RATIO,
     SAT_EXPIRY,
-    BIN,
-    HEX,
 )
-from .helpers import (
+from pygpsclient.helpers import (
     knots2ms,
     kmph2ms,
 )
-from .strings import NMEAVALERROR
+from pygpsclient.strings import NMEAVALERROR
 
 
 class NMEAHandler:
@@ -104,20 +102,15 @@ class NMEAHandler:
 
         return parsed_data
 
-    def _update_console(self, raw_data: bytes, parsed_data):
+    def _update_console(self, raw_data: bytes, parsed_data: object):
         """
         Write the incoming data to the console in raw or parsed format.
 
         :param bytes raw_data: raw data
-        :param pynmea2.types.talker parsed_data: parsed data
+        :param NMEAMessage parsed_data: parsed data
         """
 
-        if self.__app.frm_settings.display_format == BIN:
-            self.__app.frm_console.update_console(str(raw_data).strip("\n"))
-        elif self.__app.frm_settings.display_format == HEX:
-            self.__app.frm_console.update_console(str(raw_data.hex()))
-        else:
-            self.__app.frm_console.update_console(str(parsed_data))
+        self.__app.frm_console.update_console(raw_data, parsed_data)
 
     def _process_RMC(self, data: NMEAMessage):
         """
@@ -232,6 +225,7 @@ class NMEAHandler:
 
         :param pynmeagps.NMEAMessage data: parsed GSV sentence
         """
+        # pylint: disable=consider-using-dict-items
 
         show_zero = self.__app.frm_settings.show_zero
         self.gsv_data = []

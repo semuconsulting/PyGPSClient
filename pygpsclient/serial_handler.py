@@ -16,15 +16,12 @@ from threading import Thread
 from serial import Serial, SerialException, SerialTimeoutException
 import pyubx2.ubxtypes_core as ubt
 
-from .globals import (
+from pygpsclient.globals import (
     CONNECTED,
     CONNECTED_FILE,
     DISCONNECTED,
-    NMEA_PROTOCOL,
-    MIXED_PROTOCOL,
-    UBX_PROTOCOL,
 )
-from .strings import NOTCONN, SEROPENERROR, ENDOFFILE
+from pygpsclient.strings import NOTCONN, SEROPENERROR, ENDOFFILE
 
 
 class SerialHandler:
@@ -81,6 +78,7 @@ class SerialHandler:
                 timeout=serial_settings.timeout,
             )
             self._serial_buffer = BufferedReader(self._serial_object)
+
             self.__app.frm_banner.update_conn_status(CONNECTED)
             self.__app.set_connection(
                 (
@@ -90,8 +88,6 @@ class SerialHandler:
                 "green",
             )
             self.__app.frm_settings.enable_controls(CONNECTED)
-            self._connected = True
-            self.start_read_thread()
 
             if self.__app.frm_settings.datalogging:
                 self.__app.file_handler.open_logfile()
@@ -99,6 +95,9 @@ class SerialHandler:
             if self.__app.frm_settings.record_track:
                 self.__app.file_handler.open_trackfile()
             self.__app.set_status("Connected", "blue")
+
+            self._connected = True
+            self.start_read_thread()
 
         except (IOError, SerialException, SerialTimeoutException) as err:
             self._connected = False
@@ -125,6 +124,7 @@ class SerialHandler:
         try:
             self._serial_object = open(in_filepath, "rb")
             self._serial_buffer = BufferedReader(self._serial_object)
+
             self.__app.frm_banner.update_conn_status(CONNECTED_FILE)
             self.__app.set_connection(f"{in_filepath}", "blue")
             self.__app.frm_settings.enable_controls(CONNECTED_FILE)
@@ -229,7 +229,7 @@ class SerialHandler:
         if self._connected:
             self._reading = True
             self.__app.frm_mapview.reset_map_refresh()
-            self._serial_thread = Thread(target=self._read_thread, daemon=True)
+            self._serial_thread = Thread(target=self._read_thread(), daemon=True)
             self._serial_thread.start()
 
     def start_readfile_thread(self):
@@ -240,7 +240,7 @@ class SerialHandler:
         if self._connected:
             self._reading = True
             self.__app.frm_mapview.reset_map_refresh()
-            self._file_thread = Thread(target=self._readfile_thread, daemon=True)
+            self._file_thread = Thread(target=self._readfile_thread(), daemon=True)
             self._file_thread.start()
 
     def stop_read_thread(self):
@@ -277,7 +277,7 @@ class SerialHandler:
         except SerialException as err:
             self.__app.set_status(f"Error in read thread {err}", "red")
         # spurious errors as thread shuts down after serial disconnection
-        except (TypeError, OSError) as err:
+        except (TypeError, OSError):
             pass
 
     def _readfile_thread(self):
@@ -325,19 +325,22 @@ class SerialHandler:
         parsing = True
         raw_data = None
         parsed_data = None
-        byte1 = ser.read(1)  # read first byte to determine protocol
-        if len(byte1) < 1:
-            self.__master.event_generate("<<ubx_eof>>")
-            return
+        protfilt = self.__app.frm_settings.protocol
 
-        while parsing:
-            filt = self.__app.frm_settings.protocol
+        while parsing:  # loop until end of valid message or EOF
+            byte1 = ser.read(1)  # read first byte
+            if len(byte1) < 1:
+                self.__master.event_generate("<<ubx_eof>>")
+                return
+            if byte1 not in (b"\xb5", b"\x24"):  # if not an NMEA or UBX header
+                # parsing = False
+                continue
             byte2 = ser.read(1)
             if len(byte2) < 1:
                 self.__master.event_generate("<<ubx_eof>>")
                 return
             # if it's a UBX message (b'\b5\x62')
-            if byte1 == b"\xb5" and byte2 == b"\x62":
+            if byte1 + byte2 == ubt.UBX_HDR:
                 byten = ser.read(4)
                 if len(byten) < 4:
                     self.__master.event_generate("<<ubx_eof>>")
@@ -355,13 +358,13 @@ class SerialHandler:
                 plb = byten[0:leni]
                 cksum = byten[leni : leni + 2]
                 raw_data = ubt.UBX_HDR + clsid + msgid + lenb + plb + cksum
-                if filt in (UBX_PROTOCOL, MIXED_PROTOCOL):
+                if protfilt & ubt.UBX_PROTOCOL:
                     parsed_data = self.__app.ubx_handler.process_data(raw_data)
                 parsing = False
             # if it's an NMEA message ('$G' or '$P')
-            elif byte1 == b"\x24" and byte2 in (b"\x47", b"\x50"):
+            elif byte1 + byte2 in ubt.NMEA_HDR:
                 raw_data = byte1 + byte2 + ser.readline()
-                if filt in (NMEA_PROTOCOL, MIXED_PROTOCOL):
+                if protfilt & ubt.NMEA_PROTOCOL:
                     parsed_data = self.__app.nmea_handler.process_data(raw_data)
                 parsing = False
             # else drop it like it's hot
@@ -370,13 +373,7 @@ class SerialHandler:
 
         # if datalogging, write to log file
         if self.__app.frm_settings.datalogging:
-            logformat = self.__app.frm_settings.logformat
-            if logformat in ("Bin", "All") and raw_data is not None:
-                self.__app.file_handler.write_logfile(raw_data)
-            if logformat in ("Hex", "Hex+Parsed", "All") and raw_data is not None:
-                self.__app.file_handler.write_logfile(raw_data.hex())
-            if logformat in ("Parsed", "Hex+Parsed", "All") and parsed_data is not None:
-                self.__app.file_handler.write_logfile(parsed_data)
+            self.__app.file_handler.write_logfile(raw_data, parsed_data)
 
     def flush(self):
         """

@@ -47,7 +47,7 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 1. Graphview widget showing current satellite reception (signal-to-noise ratio).
 1. Mapview widget with location marker, showing either a static Mercator world map, or an optional dynamic web-based map downloaded via a MapQuest API (requires an Internet connection and free 
 [MapQuest API Key](https://developer.mapquest.com/plan_purchase/steps/business_edition/business_edition_free/register)).
-1. Data logging in parsed, binary and hexadecimal formats.
+1. Data logging in parsed, binary, hexadecimal string and tabulated hexadecimal formats (NB. only binary datalogs can be re-read by `pygpsclient`'s parser).
 1. Track recording in GPX format.
 1. UBX Configuration Dialog, with the ability to send a variety of UBX configuration commands to u-blox GNSS devices. This includes the facility to add **user-defined commands or command sequences** - see instructions under [installation](#installation) below.
 
@@ -71,7 +71,7 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 * Zoom - Change the web map scale (any change will take effect at the next map refresh, indicated by a small timer icon at the top left of the panel).
 * Show Legend - Turn the graph legend on or off.
 * Show Zero Signal - Include or exclude satellites with zero signal level in the graph and sky view panels.
-* Enable Data Logging - Turn Data logging on or off. You will be prompted to select the directory into which timestamped log files are saved. Data logs can be saved in parsed, binary or hexadecimal formats (or all three together).
+* Enable Data Logging - Turn Data logging in the selected format on or off. You will be prompted to select the directory into which timestamped log files are saved (NB. only binary datalogs can be re-read by `pygpsclient`'s parser).
 * Record Track - Turn track recording (in GPX format) on or off. You will be prompted to select the directory into which timestamped track files are saved.
 * Widgets (and their associated fonts) are fully resizeable.
 

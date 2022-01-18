@@ -9,7 +9,7 @@ Created on 22 Sep 2020
 :copyright: SEMU Consulting © 2020
 :license: BSD 3-Clause
 """
-# pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
+# pylint: disable=invalid-name
 
 from tkinter import (
     Frame,
@@ -34,7 +34,7 @@ from pyubx2 import (
     UBX_MSGIDS,
 )
 from pyubx2.ubxhelpers import key_from_val
-from .globals import (
+from pygpsclient.globals import (
     ENTCOL,
     ICON_SEND,
     ICON_WARNING,
@@ -43,7 +43,7 @@ from .globals import (
     READONLY,
     UBX_CFGMSG,
 )
-from .strings import LBLCFGMSG
+from pygpsclient.strings import LBLCFGMSG
 
 
 class UBX_MSGRATE_Frame(Frame):

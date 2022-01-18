@@ -14,7 +14,7 @@ Created on 13 Sep 2020
 :copyright: SEMU Consulting © 2020
 :license: BSD 3-Clause
 """
-# pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
+# pylint: disable=invalid-name
 
 from io import BytesIO
 from time import time
@@ -23,8 +23,15 @@ from tkinter import Frame, Canvas, font, NW, N, S, E, W
 from PIL import ImageTk, Image
 import requests
 
-from .globals import WIDGETU2, MAPURL, MAP_UPDATE_INTERVAL, IMG_WORLD, ICON_POS, BGCOL
-from .strings import (
+from pygpsclient.globals import (
+    WIDGETU2,
+    MAPURL,
+    MAP_UPDATE_INTERVAL,
+    IMG_WORLD,
+    ICON_POS,
+    BGCOL,
+)
+from pygpsclient.strings import (
     NOWEBMAPERROR1,
     NOWEBMAPERROR2,
     NOWEBMAPERROR3,

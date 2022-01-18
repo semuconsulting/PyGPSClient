@@ -14,12 +14,12 @@ Created on 30 Sep 2020
 from datetime import datetime
 from pyubx2 import UBXMessage, UBXReader, UBX_MSGIDS, VALCKSUM
 from pyubx2.ubxhelpers import itow2utc, gpsfix2str, msgclass2bytes
-from .globals import GLONASS_NMEA, BIN, HEX
-from .helpers import svid2gnssid
+from pygpsclient.globals import GLONASS_NMEA
+from pygpsclient.helpers import svid2gnssid
 
-BOTH = 3
-UBX = 1
-NMEA = 2
+# BOTH = 3
+# UBX = 1
+# NMEA = 2
 
 
 class UBXHandler:
@@ -109,20 +109,15 @@ class UBXHandler:
 
         return parsed_data
 
-    def _update_console(self, raw_data: bytes, parsed_data: UBXMessage):
+    def _update_console(self, raw_data: bytes, parsed_data: object):
         """
         Write the incoming data to the console in raw or parsed format.
 
         :param bytes raw_data: raw data
-        :param UBXMessage parsed_data: UBXMessage
+        :param UBXMessage parsed_data: parseddata
         """
 
-        if self.__app.frm_settings.display_format == BIN:
-            self.__app.frm_console.update_console(str(raw_data))
-        elif self.__app.frm_settings.display_format == HEX:
-            self.__app.frm_console.update_console(str(raw_data.hex()))
-        else:
-            self.__app.frm_console.update_console(str(parsed_data))
+        self.__app.frm_console.update_console(raw_data, parsed_data)
 
     def _process_ACK_ACK(self, data: UBXMessage):
         """
@@ -370,7 +365,7 @@ class UBXHandler:
             num_siv = int(data.numSvs)
 
             for i in range(num_siv):
-                idx = "_{0:0=2d}".format(i + 1)
+                idx = f"_{i+1:02d}"
                 gnssId = getattr(data, "gnssId" + idx)
                 svid = getattr(data, "svId" + idx)
                 # use NMEA GLONASS numbering (65-96) rather than slotID (1-24)
@@ -405,7 +400,7 @@ class UBXHandler:
             num_siv = int(data.numCh)
 
             for i in range(num_siv):
-                idx = "_{0:0=2d}".format(i + 1)
+                idx = f"_{i+1:02d}"
                 svid = getattr(data, "svid" + idx)
                 gnssId = svid2gnssid(svid)  # derive gnssId from svid
                 elev = getattr(data, "elev" + idx)
@@ -546,7 +541,7 @@ class UBXHandler:
             )
 
             for i in range(9):
-                idx = "_{0:0=2d}".format(i + 1)
+                idx = f"_{i+1:02d}"
                 exts.append(
                     getattr(data, "extension" + idx, b"")
                     .replace(b"\x00", b"")

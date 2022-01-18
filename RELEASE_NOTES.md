@@ -1,5 +1,18 @@
 # PyGPSClient Release Notes
 
+### RELEASE v1.1.4
+
+ENHANCEMENTS:
+
+1. Added tabular hex format to console display and datalogging format options.
+2. Minor refactoring of serial handler to improve resilience and align with algorithms used in latest pyubx2
+3. Min pynmeagps version updated to 1.0.7
+4. Min pyubx2 version updated to 1.2.4
+
+FIXES:
+
+1. Fix issue where first few seconds of datalogging would fail on serial connections
+
 ### RELEASE v1.1.3
 
 ENHANCEMENTS:

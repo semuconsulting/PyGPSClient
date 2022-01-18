@@ -15,9 +15,18 @@ from datetime import datetime
 from pathlib import Path
 from time import strftime
 from tkinter import filedialog
+from pyubx2 import hextable
 
-from .globals import MQAPIKEY, UBXPRESETS, MAXLOGLINES, XML_HDR, GPX_NS, GITHUB_URL
-from .strings import SAVETITLE, READTITLE
+from pygpsclient.globals import (
+    MQAPIKEY,
+    UBXPRESETS,
+    MAXLOGLINES,
+    XML_HDR,
+    GPX_NS,
+    GITHUB_URL,
+    FORMATS,
+)
+from pygpsclient.strings import SAVETITLE, READTITLE
 
 HOME = str(Path.home())
 
@@ -148,12 +157,21 @@ class FileHandler:
             return None  # User cancelled
         return self._in_filepath
 
-    def write_logfile(self, data):
+    def write_logfile(self, raw_data, parsed_data):
         """
         Append data to log file. Data will be converted to bytes.
 
         :param data: data to be logged
         """
+
+        if self.__app.frm_settings.logformat == FORMATS[1]:  # binary
+            data = raw_data
+        elif self.__app.frm_settings.logformat == FORMATS[2]:  # hex string
+            data = raw_data.hex()
+        elif self.__app.frm_settings.logformat == FORMATS[3]:  # hex tabular
+            data = hextable(raw_data)
+        else:
+            data = parsed_data
 
         if not isinstance(data, bytes):
             data = (str(data) + "\r").encode("utf-8")

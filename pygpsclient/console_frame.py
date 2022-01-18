@@ -9,11 +9,19 @@ Created on 12 Sep 2020
 :copyright: SEMU Consulting © 2020
 :license: BSD 3-Clause
 """
-# pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
+# pylint: disable=invalid-name
 
 from tkinter import Frame, Text, Scrollbar, S, E, W, END, HORIZONTAL, VERTICAL, N
-
-from .globals import TAGS, BGCOL, FGCOL, TAG_COLORS
+from pyubx2 import hextable
+from pygpsclient.globals import (
+    TAGS,
+    BGCOL,
+    FGCOL,
+    TAG_COLORS,
+    FORMATS,
+    CONSOLE_FONT_PROP,
+    CONSOLE_FONT_FIXED,
+)
 
 
 class ConsoleFrame(Frame):
@@ -64,8 +72,8 @@ class ConsoleFrame(Frame):
         )
         self.sblogh.config(command=self.txt_console.xview)
         self.sblogv.config(command=self.txt_console.yview)
-        # Making the textbox read only
-        self.txt_console.configure(state="disabled")
+        # Making the textbox read only and fixed width font
+        self.txt_console.configure(font=CONSOLE_FONT_PROP, state="disabled")
 
     def _do_layout(self):
         """
@@ -83,7 +91,7 @@ class ConsoleFrame(Frame):
 
         self.bind("<Configure>", self._on_resize)
 
-    def update_console(self, data):
+    def update_console(self, raw_data, parsed_data):
         """
         Print the latest data stream to the console in raw (NMEA) or
         parsed (key,value pair) format.
@@ -94,6 +102,17 @@ class ConsoleFrame(Frame):
         :param str data: data from input stream
 
         """
+
+        self.txt_console.configure(font=CONSOLE_FONT_FIXED)
+        if self.__app.frm_settings.display_format == FORMATS[1]:  # binary
+            data = str(raw_data).strip("\n")
+        elif self.__app.frm_settings.display_format == FORMATS[2]:  # hex string
+            data = str(raw_data.hex())
+        elif self.__app.frm_settings.display_format == FORMATS[3]:  # hex tabular
+            data = hextable(raw_data)
+        else:
+            self.txt_console.configure(font=CONSOLE_FONT_PROP)
+            data = str(parsed_data)
 
         con = self.txt_console
         con.configure(state="normal")

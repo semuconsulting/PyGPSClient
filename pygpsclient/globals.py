@@ -82,14 +82,12 @@ KNOWNGPS = (
 )
 # list of available bps rates (first entry in list is the default):
 BPSRATES = (9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600, 4800)
-# displayed protocol flags:
-NMEA_PROTOCOL = 0
-UBX_PROTOCOL = 1
-MIXED_PROTOCOL = 2
 # display formats
-PARSED = 0
-BIN = 1
-HEX = 2
+FORMAT_PARSED = 1
+FORMAT_BIN = 2
+FORMAT_HEX = 4
+FORMAT_HEXTABLE = 8
+FORMATS = ("Parsed", "Binary", "Hex String", "Hex Tabular")
 # connection type flags:
 DISCONNECTED = 0
 CONNECTED = 1
@@ -139,6 +137,8 @@ GNSS_LIST = {
 
 # List of tags to highlight in console
 # (NB there is a slight performance hit in having many tags)
+CONSOLE_FONT_PROP = ("sans-serif", 12)
+CONSOLE_FONT_FIXED = ("Courier", 14)
 TAG_COLORS = True
 TAGS = [
     ("ACK-ACK", "green2"),

@@ -7,7 +7,7 @@ Created on 22 Dec 2020
 :copyright: SEMU Consulting © 2020
 :license: BSD 3-Clause
 """
-# pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
+# pylint: disable=invalid-name
 
 from tkinter import (
     Frame,
@@ -32,7 +32,7 @@ from tkinter import (
 from PIL import ImageTk, Image
 from pyubx2 import UBXMessage, UBX_CONFIG_DATABASE
 from pyubx2.ubxhelpers import atttyp, attsiz, cfgname2key
-from .globals import (
+from pygpsclient.globals import (
     ENTCOL,
     ERRCOL,
     INFCOL,
