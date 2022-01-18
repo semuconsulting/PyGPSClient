@@ -56,20 +56,19 @@ class UBXHandler:
         self.sip = 0
         self.fix = "-"
 
-    def process_data(self, data: bytes) -> UBXMessage:
+    def process_data(self, raw_data: bytes, parsed_data: object):
         """
         Process UBX message type
 
-        :param bytes data: raw data
-        :return: UBXMessage
-        :rtype: UBXMessage
+        :param bytes raw_data: raw data
+        :param UBXMessage parsed_data: parsed data
         """
 
-        if data is None:
+        if raw_data is None:
             return None
 
-        parsed_data = UBXReader.parse(data, validate=VALCKSUM)
-
+        if raw_data or parsed_data:
+            self._update_console(raw_data, parsed_data)
         if parsed_data.identity == "ACK-ACK":
             self._process_ACK_ACK(parsed_data)
         if parsed_data.identity == "ACK-NAK":
@@ -104,10 +103,6 @@ class UBXHandler:
             self._process_MON_VER(parsed_data)
         if parsed_data.identity == "MON-HW":
             self._process_MON_HW(parsed_data)
-        if data or parsed_data:
-            self._update_console(data, parsed_data)
-
-        return parsed_data
 
     def _update_console(self, raw_data: bytes, parsed_data: object):
         """
