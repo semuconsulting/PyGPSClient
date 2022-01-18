@@ -330,7 +330,9 @@ class SettingsFrame(Frame):
             column=1, row=6, columnspan=2, padx=3, pady=3, sticky=(W)
         )
         self._chk_datalog.grid(column=0, row=7, padx=3, pady=3, sticky=(W))
-        self._spn_datalog.grid(column=1, row=7, padx=3, pady=3, sticky=(W))
+        self._spn_datalog.grid(
+            column=1, row=7, columnspan=2, padx=3, pady=3, sticky=(W)
+        )
         self._chk_recordtrack.grid(
             column=0, row=8, columnspan=2, padx=3, pady=3, sticky=(W)
         )
