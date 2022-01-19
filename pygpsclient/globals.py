@@ -211,4 +211,5 @@ TAGS = [
     ("VLW", "deepskyblue"),
     ("VTG", "deepskyblue"),
     ("ZDA", "cyan"),
+    ("UNKNOWN PROTOCOL", "red"),
 ]
