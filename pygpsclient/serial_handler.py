@@ -14,12 +14,14 @@ Created on 16 Sep 2020
 from io import BufferedReader
 from threading import Thread
 from serial import Serial, SerialException, SerialTimeoutException
-from pyubx2 import UBXReader, protocol
+from pyubx2 import UBXReader, UBXParseError, protocol
+from pynmeagps import NMEAParseError
 import pyubx2.ubxtypes_core as ubt
 from pygpsclient.globals import (
     CONNECTED,
     CONNECTED_FILE,
     DISCONNECTED,
+    QUITONERRORDEFAULT,
 )
 from pygpsclient.strings import NOTCONN, SEROPENERROR, FILEOPENERROR, ENDOFFILE
 
@@ -131,7 +133,7 @@ class SerialHandler:
         :param str msg: connection descriptor message
         """
 
-        self._reader = UBXReader(stream, quitonerror=ubt.ERR_LOG)
+        self._reader = UBXReader(stream, quitonerror=QUITONERRORDEFAULT)
 
         if self.__app.frm_settings.datalogging:
             self.__app.file_handler.open_logfile()
@@ -336,7 +338,14 @@ class SerialHandler:
         except EOFError:
             self.__master.event_generate("<<ubx_eof>>")
             return
+        except (UBXParseError, NMEAParseError) as err:
+            # log errors to console, then continue
+            self.__app.frm_console.update_console(bytes(str(err), "utf-8"), err)
+            return
 
+        # print(f"DEBUG UBXReader._parse_data r:{raw_data} p:{parsed_data}")
+        if raw_data is None or parsed_data is None:
+            return
         msgprot = protocol(raw_data)
         if msgprot == ubt.UBX_PROTOCOL and msgprot & protfilter:
             self.__app.frm_console.update_console(raw_data, parsed_data)
@@ -345,7 +354,7 @@ class SerialHandler:
             self.__app.frm_console.update_console(raw_data, parsed_data)
             self.__app.nmea_handler.process_data(raw_data, parsed_data)
         elif msgprot == 0 and protfilter == 3:
-            # display unknown protocols on console but don't do anything else
+            # log unknown protocol headers to console, then continue
             self.__app.frm_console.update_console(raw_data, parsed_data)
 
         # if datalogging, write to log file

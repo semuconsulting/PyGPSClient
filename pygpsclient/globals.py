@@ -52,6 +52,9 @@ MAX_SNR = 60  # upper limit of graphview snr axis
 DEVICE_ACCURACY = 2.5  # nominal GPS device accuracy (CEP) in meters
 HDOP_RATIO = 20  # arbitrary calibration of accuracy against HDOP
 MAXLOGLINES = 10000  # maximum number of 'lines' per datalog file
+# default error handling behaviour for UBXReader.read() calls
+# 0 (ERR_IGNORE) = ignore errors, 1 (ERR_LOG) - log errors, 2 (ERR_RAISE) = raise errors
+QUITONERRORDEFAULT = 1
 PORTIDS = ("0 I2C", "1 UART1", "2 UART2", "3 USB", "4 SPI")
 ANTSTATUS = ("INIT", "DONTKNOW", "OK", "SHORT", "OPEN")
 ANTPOWER = ("OFF", "ON", "DONTKNOW")
