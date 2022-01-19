@@ -56,7 +56,7 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 ![compact view screenshot](/images/min_widgets.png)
 
 ---
-## <a name="ubxconfig">UBX Configuration Facilities</a>
+### <a name="ubxconfig">UBX Configuration Facilities</a>
 
 ![ubxconfig widget screenshot](/images/ubxconfig_widget.png)
 
@@ -118,19 +118,19 @@ On Windows and MacOS, pip, tkinter and the necessary imaging libraries are gener
 sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk
 ```
 
-*NB:* If you're compiling the latest version of Python3 from source, you may also need to install tk-devel (or a similarly named package) first. Refer to 
+*NB:* If you're compiling the latest version of Python 3 from source, you may also need to install tk-devel (or a similarly named package) first. Refer to 
  http://wiki.python.org/moin/TkInter for further details.
 
 ```shell
 sudo apt install tk-devel
 ```
 
-**NOTE**: As of January 2022 there appear to be some cosmetic issues with tkinter and Python 3.10.n on MacOS 12.0.1 (Monterey) e.g. windows not sizing initially. Core functionality is OK but you may find you have to resize the main window on first opening the application. It is also reported that tkinter runs significantly slower on newer Apple M1 platforms - see for example [tkinter slower on MacOS](https://bugs.python.org/issue43511). This will hopefully be resolved in a subsequent MacOS Python update, but in the meantime it is recommended that Python 3.10 users update to the latest available version for MacOS (*3.10.1 at time of writing*). Windows and Linux users are unaffected. 
+**NOTE**: As of January 2022 there appear to be some performance issues with the version of tkinter embedded with Python 3.10 on MacOS 12.0.1 (Monterey) e.g. increased latency on window resizing. Core functionality is OK but you may find you have to resize the main window on first opening the application. It is also reported that tkinter runs significantly slower on newer Apple M1 platforms - see for example [tkinter slower on MacOS](https://bugs.python.org/issue43511). This will hopefully be resolved in a subsequent MacOS Python 3.10 update, but in the meantime it is recommended that MacOS users install `PyGPSClient` under Python >=3.6,<3.10, or monitor the latest available version for MacOS (*3.10.1 at time of writing*). Windows and Linux users are unaffected. 
 
 ### User Privileges
 
 To access the serial port on most Linux platforms, you will need to be a member of the 
-`tty` and `dialout` groups. Other than this, no special privileges are required.
+`tty` and/or `dialout` groups. Other than this, no special privileges are required.
 
 ### 1. Install using pip
 
