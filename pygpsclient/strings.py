@@ -97,7 +97,7 @@ LBLDATALOG = "Enable DataLog"
 LBLSTREAM = "Stream\nfrom file"
 LBLTRACKRECORD = "Record GPX Track"
 LBLLEGEND = "Show Legend"
-LBLSHOWNULL = "Show Zero Signal"
+LBLSHOWUNUSED = "Show Unused Satellites"
 
 # Dialog text
 DLGUBXCONFIG = "UBX Configuration"
