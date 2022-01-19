@@ -140,8 +140,9 @@ GNSS_LIST = {
 
 # List of tags to highlight in console
 # (NB there is a slight performance hit in having many tags)
-CONSOLE_FONT_PROP = ("sans-serif", 12)
-CONSOLE_FONT_FIXED = ("Courier", 14)
+FONT_MENU = "TkMenuFont"
+FONT_TEXT = "TkTextFont"
+FONT_FIXED = "TkFixedFont"
 TAG_COLORS = True
 TAGS = [
     ("ACK-ACK", "green2"),

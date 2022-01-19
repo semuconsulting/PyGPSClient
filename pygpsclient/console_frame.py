@@ -19,8 +19,8 @@ from pygpsclient.globals import (
     FGCOL,
     TAG_COLORS,
     FORMATS,
-    CONSOLE_FONT_PROP,
-    CONSOLE_FONT_FIXED,
+    FONT_TEXT,
+    FONT_FIXED,
 )
 
 
@@ -73,7 +73,7 @@ class ConsoleFrame(Frame):
         self.sblogh.config(command=self.txt_console.xview)
         self.sblogv.config(command=self.txt_console.yview)
         # Making the textbox read only and fixed width font
-        self.txt_console.configure(font=CONSOLE_FONT_PROP, state="disabled")
+        self.txt_console.configure(font=FONT_FIXED, state="disabled")
 
     def _do_layout(self):
         """
@@ -103,7 +103,7 @@ class ConsoleFrame(Frame):
 
         """
 
-        self.txt_console.configure(font=CONSOLE_FONT_FIXED)
+        self.txt_console.configure(font=FONT_FIXED)
         if self.__app.frm_settings.display_format == FORMATS[1]:  # binary
             data = str(raw_data).strip("\n")
         elif self.__app.frm_settings.display_format == FORMATS[2]:  # hex string
@@ -111,7 +111,7 @@ class ConsoleFrame(Frame):
         elif self.__app.frm_settings.display_format == FORMATS[3]:  # hex tabular
             data = hextable(raw_data)
         else:
-            self.txt_console.configure(font=CONSOLE_FONT_PROP)
+            self.txt_console.configure(font=FONT_TEXT)
             data = str(parsed_data)
 
         con = self.txt_console
