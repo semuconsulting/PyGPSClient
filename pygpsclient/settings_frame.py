@@ -475,7 +475,7 @@ class SettingsFrame(Frame):
             ),
         )
 
-    def get_size(self) -> (int, int):
+    def get_size(self) -> tuple:
         """
         Get current frame size.
 

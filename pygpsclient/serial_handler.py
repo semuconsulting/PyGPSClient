@@ -124,11 +124,12 @@ class SerialHandler:
             self.__app.frm_banner.update_conn_status(DISCONNECTED)
             self.__app.frm_settings.enable_controls(DISCONNECTED)
 
-    def connect_stream(self, stream, status, msg):
+    def connect_stream(self, stream: object, status: int, msg: str):
         """
-        Connect to serial or file stream
+        Instantiate UBXReader object and start the relevant
+        serial or file reader thread.
 
-        :param Stream stream: serial or file stream
+        :param object stream: serial or file stream
         :param str status: serial or file
         :param str msg: connection descriptor message
         """
@@ -178,41 +179,56 @@ class SerialHandler:
         self.__app.frm_settings.enable_controls(self._connected)
 
     @property
-    def port(self):
+    def port(self) -> str:
         """
         Getter for port
+
+        :return: port descriptor
+        :rtype: str
         """
 
         return self.__app.frm_settings.serial_settings().port
 
     @property
-    def connected(self):
+    def connected(self) -> int:
         """
         Getter for connection status
+
+        :return: connection status flag
+        :rtype: int
         """
 
         return self._connected
 
     @property
-    def serial(self):
+    def serial(self) -> object:
         """
         Getter for serial object
+
+        :return: serial object
+        :rtype: object
         """
 
         return self._serial_object
 
     @property
-    def buffer(self):
+    def buffer(self) -> object:
         """
         Getter for serial buffer
+
+        :return: serial buffer object
+        :rtype: object
         """
 
         return self._serial_buffer
 
     @property
-    def thread(self):
+    def thread(self) -> object:
         """
         Getter for serial thread
+
+        :return: serial reader thread
+        :rtype: object
         """
 
         return self._serial_thread
@@ -319,7 +335,6 @@ class SerialHandler:
         self.disconnect()
         self.__app.set_status(ENDOFFILE, "blue")
 
-    # def _parse_data(self, ser: Serial):
     def _parse_data(self):
         """
         Invoke the UBXReader.read() method to read and parse the data stream
