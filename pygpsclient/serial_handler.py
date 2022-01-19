@@ -14,9 +14,8 @@ Created on 16 Sep 2020
 from io import BufferedReader
 from threading import Thread
 from serial import Serial, SerialException, SerialTimeoutException
-from pyubx2 import UBXMessage, UBXReader, UBX_MSGIDS, protocol
+from pyubx2 import UBXReader, protocol
 import pyubx2.ubxtypes_core as ubt
-from pynmeagps import NMEAMessage, NMEAReader
 from pygpsclient.globals import (
     CONNECTED,
     CONNECTED_FILE,
@@ -81,7 +80,10 @@ class SerialHandler:
                 timeout=serial_settings.timeout,
             )
             self._serial_buffer = BufferedReader(self._serial_object)
-            msg = f"{serial_settings.port}:{serial_settings.port_desc} @ {str(serial_settings.bpsrate)}"
+            msg = (
+                f"{serial_settings.port}:{serial_settings.port_desc}"
+                + f"@ {str(serial_settings.bpsrate)}"
+            )
             self.connect_stream(self._serial_buffer, CONNECTED, msg)
 
         except (IOError, SerialException, SerialTimeoutException) as err:
@@ -129,7 +131,7 @@ class SerialHandler:
         :param str msg: connection descriptor message
         """
 
-        self._reader = UBXReader(stream)
+        self._reader = UBXReader(stream, quitonerror=ubt.ERR_LOG)
 
         if self.__app.frm_settings.datalogging:
             self.__app.file_handler.open_logfile()
@@ -323,7 +325,6 @@ class SerialHandler:
         depending on which protocols are filtered.
         """
 
-        parsing = True
         raw_data = None
         parsed_data = None
         protfilter = self.__app.frm_settings.protocol
@@ -338,9 +339,15 @@ class SerialHandler:
 
         msgprot = protocol(raw_data)
         if msgprot == ubt.UBX_PROTOCOL and msgprot & protfilter:
+            self.__app.frm_console.update_console(raw_data, parsed_data)
             self.__app.ubx_handler.process_data(raw_data, parsed_data)
         elif msgprot == ubt.NMEA_PROTOCOL and msgprot & protfilter:
+            self.__app.frm_console.update_console(raw_data, parsed_data)
             self.__app.nmea_handler.process_data(raw_data, parsed_data)
+        elif msgprot == 0 and protfilter == 3:
+            # display unknown protocols on console but don't do anything else
+            self.__app.frm_console.update_console(raw_data, parsed_data)
+
         # if datalogging, write to log file
         if self.__app.frm_settings.datalogging:
             self.__app.file_handler.write_logfile(raw_data, parsed_data)

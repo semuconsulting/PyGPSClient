@@ -13,7 +13,7 @@ Created on 30 Sep 2020
 
 from time import time
 from datetime import datetime
-from pynmeagps import NMEAReader, NMEAMessage, NMEAParseError, VALCKSUM, GET
+from pynmeagps import NMEAMessage
 
 from pygpsclient.globals import (
     DEVICE_ACCURACY,
@@ -72,10 +72,8 @@ class NMEAHandler:
         # pylint: disable=no-member
 
         if raw_data is None:
-            return None
+            return
 
-        if raw_data or parsed_data:
-            self._update_console(raw_data, parsed_data)
         if parsed_data.msgID == "RMC":  # Recommended minimum data for GPS
             self._process_RMC(parsed_data)
         if parsed_data.msgID == "GGA":  # GPS Fix Data
@@ -92,16 +90,6 @@ class NMEAHandler:
             parsed_data.msgID == "UBX" and parsed_data.msgId == "00"
         ):  # GPS Lat/Lon & Acc Data
             self._process_UBX00(parsed_data)
-
-    def _update_console(self, raw_data: bytes, parsed_data: object):
-        """
-        Write the incoming data to the console in raw or parsed format.
-
-        :param bytes raw_data: raw data
-        :param NMEAMessage parsed_data: parsed data
-        """
-
-        self.__app.frm_console.update_console(raw_data, parsed_data)
 
     def _process_RMC(self, data: NMEAMessage):
         """

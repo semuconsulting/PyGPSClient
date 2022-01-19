@@ -12,7 +12,7 @@ Created on 30 Sep 2020
 # pylint: disable=invalid-name
 
 from datetime import datetime
-from pyubx2 import UBXMessage, UBXReader, UBX_MSGIDS, VALCKSUM
+from pyubx2 import UBXMessage, UBX_MSGIDS
 from pyubx2.ubxhelpers import itow2utc, gpsfix2str, msgclass2bytes
 from pygpsclient.globals import GLONASS_NMEA
 from pygpsclient.helpers import svid2gnssid
@@ -65,10 +65,8 @@ class UBXHandler:
         """
 
         if raw_data is None:
-            return None
+            return
 
-        if raw_data or parsed_data:
-            self._update_console(raw_data, parsed_data)
         if parsed_data.identity == "ACK-ACK":
             self._process_ACK_ACK(parsed_data)
         if parsed_data.identity == "ACK-NAK":
@@ -103,16 +101,6 @@ class UBXHandler:
             self._process_MON_VER(parsed_data)
         if parsed_data.identity == "MON-HW":
             self._process_MON_HW(parsed_data)
-
-    def _update_console(self, raw_data: bytes, parsed_data: object):
-        """
-        Write the incoming data to the console in raw or parsed format.
-
-        :param bytes raw_data: raw data
-        :param UBXMessage parsed_data: parseddata
-        """
-
-        self.__app.frm_console.update_console(raw_data, parsed_data)
 
     def _process_ACK_ACK(self, data: UBXMessage):
         """
