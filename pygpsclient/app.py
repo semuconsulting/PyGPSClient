@@ -9,9 +9,9 @@ Created on 12 Sep 2020
 """
 
 from threading import Thread
-from tkinter import Tk, Frame, N, S, E, W, PhotoImage, font
+from tkinter import Frame, N, S, E, W, PhotoImage, font
 
-from .strings import (
+from pygpsclient.strings import (
     TITLE,
     MENUHIDESE,
     MENUSHOWSE,
@@ -25,22 +25,22 @@ from .strings import (
     MENUSHOWSATS,
     INTROTXTNOPORTS,
 )
-from ._version import __version__
-from .about_dialog import AboutDialog
-from .banner_frame import BannerFrame
-from .console_frame import ConsoleFrame
-from .filehandler import FileHandler
-from .globals import ICON_APP, DISCONNECTED
-from .graphview_frame import GraphviewFrame
-from .map_frame import MapviewFrame
-from .menu_bar import MenuBar
-from .serial_handler import SerialHandler
-from .settings_frame import SettingsFrame
-from .skyview_frame import SkyviewFrame
-from .status_frame import StatusFrame
-from .ubx_config_dialog import UBXConfigDialog
-from .nmea_handler import NMEAHandler
-from .ubx_handler import UBXHandler
+from pygpsclient._version import __version__
+from pygpsclient.about_dialog import AboutDialog
+from pygpsclient.banner_frame import BannerFrame
+from pygpsclient.console_frame import ConsoleFrame
+from pygpsclient.filehandler import FileHandler
+from pygpsclient.globals import ICON_APP, DISCONNECTED
+from pygpsclient.graphview_frame import GraphviewFrame
+from pygpsclient.map_frame import MapviewFrame
+from pygpsclient.menu_bar import MenuBar
+from pygpsclient.serial_handler import SerialHandler
+from pygpsclient.settings_frame import SettingsFrame
+from pygpsclient.skyview_frame import SkyviewFrame
+from pygpsclient.status_frame import StatusFrame
+from pygpsclient.ubx_config_dialog import UBXConfigDialog
+from pygpsclient.nmea_handler import NMEAHandler
+from pygpsclient.ubx_handler import UBXHandler
 
 VERSION = __version__
 

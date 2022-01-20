@@ -1,5 +1,20 @@
 # PyGPSClient Release Notes
 
+### RELEASE v1.1.4
+
+ENHANCEMENTS:
+
+1. Added tabular hex format to console display and datalogging format options.
+2. Internal refactoring of serial handler to use `pyubx2.UBXReader.read()` function. 
+3. Min pynmeagps version updated to 1.0.7
+4. Min pyubx2 version updated to 1.2.4
+5. Python 3.6 dropped from list of supported versions (if should still run fine, but 3.6 is now end of life)
+6. Python 3.10 added to list of supported versions *BUT* note there still appear to be some teething performance issues with the version of tkinter embedded in Python 3.10 on MacOS Monterey. See installation notes for futher details.
+
+FIXES:
+
+1. Fix issue where first few seconds of datalogging or gpx tracking would fail on serial connections
+
 ### RELEASE v1.1.3
 
 ENHANCEMENTS:

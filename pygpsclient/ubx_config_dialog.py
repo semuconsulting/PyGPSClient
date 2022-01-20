@@ -10,7 +10,7 @@ Created on 19 Sep 2020
 :copyright: SEMU Consulting © 2020
 :license: BSD 3-Clause
 """
-# pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
+# pylint: disable=invalid-name
 
 from tkinter import (
     Toplevel,
@@ -22,12 +22,9 @@ from tkinter import (
     S,
     E,
     W,
-    LEFT,
 )
 from PIL import ImageTk, Image
-from .globals import (
-    BGCOL,
-    FGCOL,
+from pygpsclient.globals import (
     ICON_EXIT,
     UBX_MONVER,
     UBX_MONHW,
@@ -37,13 +34,13 @@ from .globals import (
     UBX_CFGVAL,
     UBX_PRESET,
 )
-from .strings import LBLUBXCONFIG, DLGUBXCONFIG
-from .ubx_info_frame import UBX_INFO_Frame
-from .ubx_port_frame import UBX_PORT_Frame
-from .ubx_msgrate_frame import UBX_MSGRATE_Frame
-from .ubx_preset_frame import UBX_PRESET_Frame
-from .ubx_cfgval_frame import UBX_CFGVAL_Frame
-from .ubx_solrate_frame import UBX_RATE_Frame
+from pygpsclient.strings import DLGUBXCONFIG
+from pygpsclient.ubx_info_frame import UBX_INFO_Frame
+from pygpsclient.ubx_port_frame import UBX_PORT_Frame
+from pygpsclient.ubx_msgrate_frame import UBX_MSGRATE_Frame
+from pygpsclient.ubx_preset_frame import UBX_PRESET_Frame
+from pygpsclient.ubx_cfgval_frame import UBX_CFGVAL_Frame
+from pygpsclient.ubx_solrate_frame import UBX_RATE_Frame
 
 
 class UBXConfigDialog(Toplevel):

@@ -2,8 +2,8 @@
 
 [Current Status](#currentstatus) |
 [Features](#features) |
-[How to Use](#howtouse) |
 [UBX Configuration](#ubxconfig) |
+[How to Use](#howtouse) |
 [Installation](#installation) |
 [Mapquest API Key](#mapquestapi) |
 [User-defined Presets](#userdefined) |
@@ -15,11 +15,12 @@ PyGPSClient is a graphical GNSS/GPS testing, diagnostic and UBX &copy; (u-blox &
 
 ![full app screenshot ubx](/images/all_widgets.png)
 
-The application runs on any platform which supports a Python3 interpreter (>=3.6) and tkinter (>=8.6) GUI framework, 
+The application runs on any platform which supports a Python3 interpreter (>=3.7) and tkinter (>=8.6) GUI framework, 
 including Windows, MacOS, Linux and Raspberry Pi OS. It displays location and diagnostic data from any NMEA or UBX compatible GNSS/GPS device over a standard serial (UART) or USB port, or from a previously-saved datalog file, *in addition to* providing a useful subset of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool.
 
 This is an independent project and we have no affiliation whatsoever with u-blox.
 
+---
 ## <a name="currentstatus">Current Status</a>
 
 ![Status](https://img.shields.io/pypi/status/PyGPSClient)
@@ -36,6 +37,7 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 
 [Bug reports](https://github.com/semuconsulting/PyGPSClient/blob/master/.github/ISSUE_TEMPLATE/bug_report.md) and [Feature requests](https://github.com/semuconsulting/PyGPSClient/blob/master/.github/ISSUE_TEMPLATE/feature_request.md) - please use the templates provided.
 
+---
 ## <a name="features">Features</a>
 
 1. Supports both NMEA and UBX protocols. It uses the [pynmeagps library](https://pypi.org/project/pynmeagps/) for NMEA parsing and the [pyubx2 library](https://pypi.org/project/pyubx2/) for UBX parsing.
@@ -47,34 +49,13 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 1. Graphview widget showing current satellite reception (signal-to-noise ratio).
 1. Mapview widget with location marker, showing either a static Mercator world map, or an optional dynamic web-based map downloaded via a MapQuest API (requires an Internet connection and free 
 [MapQuest API Key](https://developer.mapquest.com/plan_purchase/steps/business_edition/business_edition_free/register)).
-1. Data logging in parsed, binary and hexadecimal formats.
+1. Data logging in parsed, binary, hexadecimal string and tabulated hexadecimal formats (NB. only binary datalogs can be re-read by `pygpsclient`'s parser).
 1. Track recording in GPX format.
 1. UBX Configuration Dialog, with the ability to send a variety of UBX configuration commands to u-blox GNSS devices. This includes the facility to add **user-defined commands or command sequences** - see instructions under [installation](#installation) below.
 
 ![compact view screenshot](/images/min_widgets.png)
 
-## <a name="howtouse">How to Use</a>
-
-* To connect to a listed serial device, select the device from the listbox, set the appropriate serial connection parameters and click 
-![connect icon](/pygpsclient/resources/iconmonstr-link-8-24.png). The application will endeavour to pre-select a recognised GNSS/GPS device but this is platform and device dependent. Press the ![refresh](/pygpsclient/resources/iconmonstr-refresh-6-16.png) button to refresh the list of connected devices at any point. *Rate bps is typically the only setting that might need adjusting, but tweaking the timeout setting may improve performance on certain platforms*.
-* To stream from a previously-saved binary datalog file (pygpsdata-*.log, or any binary dump of an NMEA or UBX GNSS device output), click 
-![connect-file icon](/pygpsclient/resources/iconmonstr-note-37-24.png) and select the file.
-* To disconnect from a serial device or datalog file, click
-![disconnect icon](/pygpsclient/resources/iconmonstr-link-10-24.png).
-* To display the UBX Configuration Dialog (*only available when connected to a UBX serial device*), click
-![gear icon](/pygpsclient/resources/iconmonstr-gear-2-24.png), or go to Menu..Options.
-* To expand or collapse the banner or serial port configuration widgets, click the ![expand icon](/pygpsclient/resources/iconmonstr-arrow-80-16.png)/![expand icon](/pygpsclient/resources/iconmonstr-triangle-1-16.png) buttons.
-* To show or hide the various widgets, go to Menu..View and click on the relevant hide/show option.
-* Protocols Displayed - Select which protocols to display (NB: this only changes the displayed protocols - to change the actual protocols output by the receiver, use the CFG-PRT command).
-* Console Display - Select from parsed, binary or hexadecimal formats.
-* Degrees Format and Units - Change the displayed degree and unit formats.
-* Zoom - Change the web map scale (any change will take effect at the next map refresh, indicated by a small timer icon at the top left of the panel).
-* Show Legend - Turn the graph legend on or off.
-* Show Zero Signal - Include or exclude satellites with zero signal level in the graph and sky view panels.
-* Enable Data Logging - Turn Data logging on or off. You will be prompted to select the directory into which timestamped log files are saved. Data logs can be saved in parsed, binary or hexadecimal formats (or all three together).
-* Record Track - Turn track recording (in GPX format) on or off. You will be prompted to select the directory into which timestamped track files are saved.
-* Widgets (and their associated fonts) are fully resizeable.
-
+---
 ### <a name="ubxconfig">UBX Configuration Facilities</a>
 
 ![ubxconfig widget screenshot](/images/ubxconfig_widget.png)
@@ -98,6 +79,30 @@ warning ![warning icon](/pygpsclient/resources/iconmonstr-warning-1-24.png)).
 * Confirmation responses can take several seconds at high message transmission rates, or be discarded altogether if the device's transmit buffer is full (*txbuff-alloc error* - not uncommon with budget receivers at high message rates). To ensure timely confirmation responses, try increasing the baud rate and/or temporarily reducing transmitted message rates using the configuration commands provided.
 * A warning icon (typically accompanied by an ACK-NAK response) is usually an indication that one or more of the commands sent is not supported by your receiver. 
 
+---
+## <a name="howtouse">How to Use</a>
+
+* To connect to a listed serial device, select the device from the listbox, set the appropriate serial connection parameters and click 
+![connect icon](/pygpsclient/resources/iconmonstr-link-8-24.png). The application will endeavour to pre-select a recognised GNSS/GPS device but this is platform and device dependent. Press the ![refresh](/pygpsclient/resources/iconmonstr-refresh-6-16.png) button to refresh the list of connected devices at any point. *Rate bps is typically the only setting that might need adjusting, but tweaking the timeout setting may improve performance on certain platforms*.
+* To stream from a previously-saved binary datalog file (pygpsdata-*.log, or any binary dump of an NMEA or UBX GNSS device output), click 
+![connect-file icon](/pygpsclient/resources/iconmonstr-note-37-24.png) and select the file.
+* To disconnect from a serial device or datalog file, click
+![disconnect icon](/pygpsclient/resources/iconmonstr-link-10-24.png).
+* To display the UBX Configuration Dialog (*only available when connected to a UBX serial device*), click
+![gear icon](/pygpsclient/resources/iconmonstr-gear-2-24.png), or go to Menu..Options.
+* To expand or collapse the banner or serial port configuration widgets, click the ![expand icon](/pygpsclient/resources/iconmonstr-arrow-80-16.png)/![expand icon](/pygpsclient/resources/iconmonstr-triangle-1-16.png) buttons.
+* To show or hide the various widgets, go to Menu..View and click on the relevant hide/show option.
+* Protocols Displayed - Select which protocols to display (NB: this only changes the displayed protocols - to change the actual protocols output by the receiver, use the CFG-PRT command).
+* Console Display - Select from parsed, binary or hexadecimal formats.
+* Degrees Format and Units - Change the displayed degree and unit formats.
+* Zoom - Change the web map scale (any change will take effect at the next map refresh, indicated by a small timer icon at the top left of the panel).
+* Show Legend - Turn the graph legend on or off.
+* Show Zero Signal - Include or exclude satellites with zero signal level in the graph and sky view panels.
+* Enable Data Logging - Turn Data logging in the selected format on or off. You will be prompted to select the directory into which timestamped log files are saved (NB. only binary datalogs can be re-read by `pygpsclient`'s parser).
+* Record Track - Turn track recording (in GPX format) on or off. You will be prompted to select the directory into which timestamped track files are saved.
+* Widgets (and their associated fonts) are fully resizeable.
+
+---
 ## <a name="installation">Installation</a>
 
 In the following, `python` & `pip` refer to the Python 3 executables. You may need to type 
@@ -113,19 +118,20 @@ On Windows and MacOS, pip, tkinter and the necessary imaging libraries are gener
 sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk
 ```
 
-*NB:* If you're compiling the latest version of Python3 from source, you may also need to install tk-devel (or a similarly named package) first. Refer to 
+*NB:* If you're compiling the latest version of Python 3 from source, you may also need to install tk-devel (or a similarly named package) first. Refer to 
  http://wiki.python.org/moin/TkInter for further details.
 
 ```shell
 sudo apt install tk-devel
 ```
 
-**NOTE**: As of January 2022 there appear to be some cosmetic issues with tkinter and Python 3.10.n on MacOS 12.0.1 (Monterey) e.g. windows not sizing initially. Core functionality is OK but you may find you have to resize the main window on first opening the application. It is also reported that tkinter runs significantly slower on newer Apple M1 platforms - see for example [tkinter slower on MacOS](https://bugs.python.org/issue43511). This will hopefully be resolved in a subsequent MacOS Python update, but in the meantime it is recommended that Python 3.10 users update to the latest available version for MacOS (*3.10.1 at time of writing*). Windows and Linux users are unaffected. 
+**NOTE**: As of January 2022 there appear to be some performance issues with the version of tkinter embedded with Python 3.10 on MacOS 12.0.1 (Monterey). Core functionality is OK but you may find the application runs relatively slowly (particularly on newer Apple M1 platforms) and some windows need resizing on startup. See for example [tkinter slower on MacOS](https://bugs.python.org/issue43511). This will hopefully be resolved in a subsequent MacOS Python 3.10 update, but in the meantime it is recommended that MacOS users install `PyGPSClient` under Python >=3.7,<3.10, or monitor the latest available version for MacOS (*3.10.2 at time of writing*). Windows and Linux users are unaffected.
+*FYI* You can get a small performance improvement by settings `TAG_COLORS = False` in `globals.py`. 
 
 ### User Privileges
 
 To access the serial port on most Linux platforms, you will need to be a member of the 
-`tty` and `dialout` groups. Other than this, no special privileges are required.
+`tty` and/or `dialout` groups. Other than this, no special privileges are required.
 
 ### 1. Install using pip
 
@@ -208,6 +214,7 @@ e.g. if you downloaded and unzipped to a folder named `PyGPSClient-1.1.3`, run:
 python -m /path_to_folder/PyGPSClient-1.1.3/pygpsclient
 ```
 
+---
 ### <a name="mapquestapi">MapQuest API Key</a>
 
 To use the optional dynamic web-based mapview facility, you need to request and install a 
@@ -221,6 +228,7 @@ no extension) and place this file in the user's home directory.
 
 *The web map refresh rate can be amended if required by changing the MAP_UPDATE_INTERVAL constant in `globals.py`.
 
+---
 ### <a name="userdefined">User Defined Presets</a>
 
 The UBX Configuration Dialog includes the facility to send user-defined UBX configuration messages or message sequences to the receiver. These can be set up by adding
@@ -260,6 +268,7 @@ Set UBX GNSS to ALL (legacy), CFG, CFG-GNSS, 00202007000810000100010101010300010
 FORCE COLD RESTART !*** Expect ClearCommError ***!, CFG, CFG-RST, ffff0100, 1
 ```
 
+---
 ## <a name="glossary">Glossary of Terms</a>
 
 * ACC - accuracy of location in real units (hacc - horizontal, vacc - vertical). Note that location accuracy is not directly provided via the standard NMEA message set, but is available via some proprietary NMEA messages e.g. UBX00.
@@ -278,6 +287,7 @@ FORCE COLD RESTART !*** Expect ClearCommError ***!, CFG, CFG-RST, ffff0100, 1
 * SV(N) - [space vehicle number](https://en.wikipedia.org/wiki/List_of_GPS_satellites) (serial number assigned to each satellite).
 * UTC - coordinated universal time.
 
+---
 ## <a name="license">License</a>
 
 ![License](https://img.shields.io/github/license/semuconsulting/PyGPSClient.svg)
@@ -289,6 +299,7 @@ All rights reserved.
 
 Application icons from [iconmonstr](https://iconmonstr.com/license/) &copy;.
 
+---
 ## <a name="author">Author Information</a>
 
 semuadmin@semuconsulting.com

@@ -38,7 +38,7 @@ from tkinter import (
 from PIL import ImageTk, Image
 from serial.tools.list_ports import comports
 from serial import PARITY_NONE, PARITY_EVEN, PARITY_ODD, PARITY_MARK, PARITY_SPACE
-from .globals import ICON_REFRESH, ICON_EXPAND, ICON_CONTRACT
+from pygpsclient.globals import ICON_REFRESH, ICON_EXPAND, ICON_CONTRACT
 
 ADVOFF = "\u25bc"
 ADVON = "\u25b2"
@@ -64,9 +64,7 @@ CONNECTED_FILE = 2
 NOPORTS = 3
 
 
-class SerialConfigFrame(
-    Frame
-):  # pylint: disable=too-many-ancestors, too-many-instance-attributes
+class SerialConfigFrame(Frame):
     """
     Serial port configuration frame class.
     """

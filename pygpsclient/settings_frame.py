@@ -12,7 +12,7 @@ Created on 12 Sep 2020
 :copyright: SEMU Consulting © 2020
 :license: BSD 3-Clause
 """
-# pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors, unnecessary-lambda
+# pylint: disable=invalid-name, unnecessary-lambda
 
 from tkinter import (
     ttk,
@@ -33,8 +33,9 @@ from tkinter import (
 )
 
 from PIL import ImageTk, Image
-from .serialconfig_frame import SerialConfigFrame
-from .globals import (
+import pyubx2.ubxtypes_core as ubt
+from pygpsclient.serialconfig_frame import SerialConfigFrame
+from pygpsclient.globals import (
     ENTCOL,
     DDD,
     DMM,
@@ -52,22 +53,17 @@ from .globals import (
     ICON_DISCONN,
     ICON_UBXCONFIG,
     ICON_LOGREAD,
-    NMEA_PROTOCOL,
-    UBX_PROTOCOL,
-    MIXED_PROTOCOL,
     KNOWNGPS,
     BPSRATES,
-    PARSED,
-    BIN,
-    HEX,
+    FORMATS,
 )
-from .strings import (
+from pygpsclient.strings import (
     LBLUBXCONFIG,
     LBLPROTDISP,
     LBLDATADISP,
     LBLDATALOG,
     LBLTRACKRECORD,
-    LBLSHOWNULL,
+    LBLSHOWUNUSED,
     LBLLEGEND,
 )
 
@@ -113,13 +109,13 @@ class SettingsFrame(Frame):
         self._datalog = IntVar()
         self._logformat = StringVar()
         self._record_track = IntVar()
-        self._show_zerosig = IntVar()
+        self._show_unusedsat = IntVar()
         self._show_legend = IntVar()
         self._validsettings = True
         self._in_filepath = None
         self._logpath = None
         self._trackpath = None
-        self._display_format = IntVar()
+        self._display_format = StringVar()
         self._img_conn = ImageTk.PhotoImage(Image.open(ICON_CONN))
         self._img_disconn = ImageTk.PhotoImage(Image.open(ICON_DISCONN))
         self._img_ubxconfig = ImageTk.PhotoImage(Image.open(ICON_UBXCONFIG))
@@ -177,26 +173,32 @@ class SettingsFrame(Frame):
         self._frm_options = Frame(self)
         self._lbl_protocol = Label(self._frm_options, text=LBLPROTDISP)
         self._rad_nmea = Radiobutton(
-            self._frm_options, text="NMEA", variable=self._protocol, value=NMEA_PROTOCOL
+            self._frm_options,
+            text="NMEA",
+            variable=self._protocol,
+            value=ubt.NMEA_PROTOCOL,
         )
         self._rad_ubx = Radiobutton(
-            self._frm_options, text="UBX", variable=self._protocol, value=UBX_PROTOCOL
+            self._frm_options,
+            text="UBX",
+            variable=self._protocol,
+            value=ubt.UBX_PROTOCOL,
         )
         self._rad_all = Radiobutton(
-            self._frm_options, text="ALL", variable=self._protocol, value=MIXED_PROTOCOL
+            self._frm_options,
+            text="ALL",
+            variable=self._protocol,
+            value=(ubt.UBX_PROTOCOL | ubt.NMEA_PROTOCOL),
         )
         self._lbl_consoledisplay = Label(self._frm_options, text=LBLDATADISP)
-        self._rad_parsed = Radiobutton(
+        self._spn_conformat = Spinbox(
             self._frm_options,
-            text="Parsed",
-            variable=self._display_format,
-            value=PARSED,
-        )
-        self._rad_bin = Radiobutton(
-            self._frm_options, text="Bin", variable=self._display_format, value=BIN
-        )
-        self._rad_hex = Radiobutton(
-            self._frm_options, text="Hex", variable=self._display_format, value=HEX
+            values=FORMATS,
+            width=10,
+            state=READONLY,
+            readonlybackground=ENTCOL,
+            wrap=True,
+            textvariable=self._display_format,
         )
         self._lbl_format = Label(self._frm_options, text="Degrees Format")
         self._spn_format = Spinbox(
@@ -245,8 +247,8 @@ class SettingsFrame(Frame):
             bg=ENTCOL,
             variable=self._mapzoom,
         )
-        self._chk_zerosig = Checkbutton(
-            self._frm_options, text=LBLSHOWNULL, variable=self._show_zerosig
+        self._chk_unusedsat = Checkbutton(
+            self._frm_options, text=LBLSHOWUNUSED, variable=self._show_unusedsat
         )
         self._chk_legend = Checkbutton(
             self._frm_options, text=LBLLEGEND, variable=self._show_legend
@@ -259,8 +261,8 @@ class SettingsFrame(Frame):
         )
         self._spn_datalog = Spinbox(
             self._frm_options,
-            values=("Bin", "Hex", "Parsed", "Hex+Parsed", "All"),
-            width=7,
+            values=(FORMATS),
+            width=10,
             readonlybackground=ENTCOL,
             wrap=True,
             textvariable=self._logformat,
@@ -310,9 +312,9 @@ class SettingsFrame(Frame):
         self._rad_ubx.grid(column=2, row=0, padx=0, pady=0, sticky=(W))
         self._rad_all.grid(column=3, row=0, padx=0, pady=0, sticky=(W))
         self._lbl_consoledisplay.grid(column=0, row=1, padx=2, pady=3, sticky=(W))
-        self._rad_parsed.grid(column=1, row=1, padx=1, pady=3, sticky=(W))
-        self._rad_bin.grid(column=2, row=1, padx=2, pady=3, sticky=(W))
-        self._rad_hex.grid(column=3, row=1, padx=2, pady=3, sticky=(W))
+        self._spn_conformat.grid(
+            column=1, row=1, columnspan=2, padx=1, pady=3, sticky=(W)
+        )
         self._lbl_format.grid(column=0, row=2, padx=3, pady=3, sticky=(W))
         self._spn_format.grid(column=1, row=2, padx=2, pady=3, sticky=(W))
         self._lbl_units.grid(column=0, row=3, padx=3, pady=3, sticky=(W))
@@ -324,11 +326,13 @@ class SettingsFrame(Frame):
         self._chk_webmap.grid(column=0, row=5, padx=3, pady=3, sticky=(W))
         self._scl_mapzoom.grid(column=1, row=5, columnspan=3, sticky=(W))
         self._chk_legend.grid(column=0, row=6, padx=3, pady=3, sticky=(W))
-        self._chk_zerosig.grid(
-            column=1, row=6, columnspan=2, padx=3, pady=3, sticky=(W)
+        self._chk_unusedsat.grid(
+            column=1, row=6, columnspan=3, padx=3, pady=3, sticky=(W)
         )
         self._chk_datalog.grid(column=0, row=7, padx=3, pady=3, sticky=(W))
-        self._spn_datalog.grid(column=1, row=7, padx=3, pady=3, sticky=(W))
+        self._spn_datalog.grid(
+            column=1, row=7, columnspan=2, padx=3, pady=3, sticky=(W)
+        )
         self._chk_recordtrack.grid(
             column=0, row=8, columnspan=2, padx=3, pady=3, sticky=(W)
         )
@@ -404,18 +408,19 @@ class SettingsFrame(Frame):
         Reset settings to defaults.
         """
 
-        self._protocol.set(MIXED_PROTOCOL)
+        self._protocol.set(ubt.UBX_PROTOCOL | ubt.NMEA_PROTOCOL)
         self._format.set(DDD)
         self._units.set(UMM)
         self._autoscroll.set(1)
         self._maxlines.set(300)
-        self._display_format.set(PARSED)
+        self._display_format.set(FORMATS[0])  # Parsed
         self._webmap.set(False)
         self._mapzoom.set(10)
         self._show_legend.set(True)
-        self._show_zerosig.set(False)
+        self._show_unusedsat.set(False)
         self._datalog.set(False)
         self._record_track.set(False)
+        self._logformat.set(FORMATS[1])  # Binary
 
     def enable_controls(self, status: int):
         """
@@ -470,7 +475,7 @@ class SettingsFrame(Frame):
             ),
         )
 
-    def get_size(self) -> (int, int):
+    def get_size(self) -> tuple:
         """
         Get current frame size.
 
@@ -497,7 +502,7 @@ class SettingsFrame(Frame):
         """
         Getter for displayed protocols
 
-        :return: protocol displayed (0=NMEA, 1=UBX, 2=BOTH)
+        :return: protocol displayed (1=NMEA, 2=UBX, 3=BOTH)
         :rtype: int
         """
 
@@ -620,7 +625,7 @@ class SettingsFrame(Frame):
         """
         Getter for datalogging format
 
-        :return: "Raw", "Parsed", "Both"
+        :return: "Parsed", "Binary", "Hex", "Hextable"
         :rtype: str
         """
 
@@ -646,7 +651,7 @@ class SettingsFrame(Frame):
         :rtype: int
         """
 
-        return self._show_zerosig.get()
+        return self._show_unusedsat.get()
 
     @property
     def show_legend(self) -> int:

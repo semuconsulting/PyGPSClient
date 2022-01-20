@@ -13,20 +13,18 @@ Created on 30 Sep 2020
 
 from time import time
 from datetime import datetime
-from pynmeagps import NMEAReader, NMEAMessage, NMEAParseError, VALCKSUM, GET
+from pynmeagps import NMEAMessage
 
-from .globals import (
+from pygpsclient.globals import (
     DEVICE_ACCURACY,
     HDOP_RATIO,
     SAT_EXPIRY,
-    BIN,
-    HEX,
 )
-from .helpers import (
+from pygpsclient.helpers import (
     knots2ms,
     kmph2ms,
 )
-from .strings import NMEAVALERROR
+from pygpsclient.strings import NMEAVALERROR
 
 
 class NMEAHandler:
@@ -64,27 +62,18 @@ class NMEAHandler:
         self.sip = 0
         self.fix = "-"
 
-    def process_data(self, data: bytes):
+    def process_data(self, raw_data: bytes, parsed_data: object):
         """
         Process NMEA message type
 
-        :param bytes data: parsed NMEA sentence
+        :param bytes raw_data: raw_data
+        :param NMEAMessage parsed_data: parsed data
         """
         # pylint: disable=no-member
 
-        if data is None:
-            return None
+        if raw_data is None:
+            return
 
-        try:
-            parsed_data = NMEAReader.parse(data, validate=VALCKSUM, msgmode=GET)
-        except NMEAParseError:  # as err:
-            # Parsing errors at this point are typically due to NMEA and UBX
-            # protocols getting garbled in the input stream. It only happens
-            # rarely so we ignore them and carry on.
-            return None
-
-        if data or parsed_data:
-            self._update_console(data, parsed_data)
         if parsed_data.msgID == "RMC":  # Recommended minimum data for GPS
             self._process_RMC(parsed_data)
         if parsed_data.msgID == "GGA":  # GPS Fix Data
@@ -101,23 +90,6 @@ class NMEAHandler:
             parsed_data.msgID == "UBX" and parsed_data.msgId == "00"
         ):  # GPS Lat/Lon & Acc Data
             self._process_UBX00(parsed_data)
-
-        return parsed_data
-
-    def _update_console(self, raw_data: bytes, parsed_data):
-        """
-        Write the incoming data to the console in raw or parsed format.
-
-        :param bytes raw_data: raw data
-        :param pynmea2.types.talker parsed_data: parsed data
-        """
-
-        if self.__app.frm_settings.display_format == BIN:
-            self.__app.frm_console.update_console(str(raw_data).strip("\n"))
-        elif self.__app.frm_settings.display_format == HEX:
-            self.__app.frm_console.update_console(str(raw_data.hex()))
-        else:
-            self.__app.frm_console.update_console(str(parsed_data))
 
     def _process_RMC(self, data: NMEAMessage):
         """
@@ -232,6 +204,7 @@ class NMEAHandler:
 
         :param pynmeagps.NMEAMessage data: parsed GSV sentence
         """
+        # pylint: disable=consider-using-dict-items
 
         show_zero = self.__app.frm_settings.show_zero
         self.gsv_data = []

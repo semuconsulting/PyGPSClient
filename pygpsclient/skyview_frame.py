@@ -9,12 +9,12 @@ Created on 13 Sep 2020
 :copyright: SEMU Consulting © 2020
 :license: BSD 3-Clause
 """
-# pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
+# pylint: disable=invalid-name
 
 from tkinter import Frame, Canvas, font, BOTH, YES
 from operator import itemgetter
-from .globals import WIDGETU1, BGCOL, FGCOL, GNSS_LIST
-from .helpers import snr2col, cel2cart
+from pygpsclient.globals import WIDGETU1, BGCOL, FGCOL, GNSS_LIST
+from pygpsclient.helpers import snr2col, cel2cart
 
 OL_WID = 2
 
