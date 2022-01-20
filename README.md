@@ -125,7 +125,8 @@ sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk
 sudo apt install tk-devel
 ```
 
-**NOTE**: As of January 2022 there appear to be some performance issues with the version of tkinter embedded with Python 3.10 on MacOS 12.0.1 (Monterey). Core functionality is OK but you may find the application runs relatively slowly (particularly on newer Apple M1 platforms) and some windows need resizing on startup. See for example [tkinter slower on MacOS](https://bugs.python.org/issue43511). This will hopefully be resolved in a subsequent MacOS Python 3.10 update, but in the meantime it is recommended that MacOS users install `PyGPSClient` under Python >=3.7,<3.10, or monitor the latest available version for MacOS (*3.10.2 at time of writing*). Windows and Linux users are unaffected. 
+**NOTE**: As of January 2022 there appear to be some performance issues with the version of tkinter embedded with Python 3.10 on MacOS 12.0.1 (Monterey). Core functionality is OK but you may find the application runs relatively slowly (particularly on newer Apple M1 platforms) and some windows need resizing on startup. See for example [tkinter slower on MacOS](https://bugs.python.org/issue43511). This will hopefully be resolved in a subsequent MacOS Python 3.10 update, but in the meantime it is recommended that MacOS users install `PyGPSClient` under Python >=3.7,<3.10, or monitor the latest available version for MacOS (*3.10.2 at time of writing*). Windows and Linux users are unaffected.
+*FYI* You can get a small performance improvement by settings `TAG_COLORS = False` in `globals.py`. 
 
 ### User Privileges
 

@@ -138,7 +138,7 @@ GNSS_LIST = {
     6: ("GLO", "indianred"),
 }
 
-# List of tags to highlight in console
+# List of tags to highlight in console if TAG_COLORS = True
 # (NB there is a slight performance hit in having many tags)
 FONT_MENU = "TkMenuFont"
 FONT_TEXT = "TkTextFont"
