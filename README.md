@@ -15,7 +15,7 @@ PyGPSClient is a graphical GNSS/GPS testing, diagnostic and UBX &copy; (u-blox &
 
 ![full app screenshot ubx](/images/all_widgets.png)
 
-The application runs on any platform which supports a Python3 interpreter (>=3.6) and tkinter (>=8.6) GUI framework, 
+The application runs on any platform which supports a Python3 interpreter (>=3.7) and tkinter (>=8.6) GUI framework, 
 including Windows, MacOS, Linux and Raspberry Pi OS. It displays location and diagnostic data from any NMEA or UBX compatible GNSS/GPS device over a standard serial (UART) or USB port, or from a previously-saved datalog file, *in addition to* providing a useful subset of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool.
 
 This is an independent project and we have no affiliation whatsoever with u-blox.
@@ -125,7 +125,7 @@ sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk
 sudo apt install tk-devel
 ```
 
-**NOTE**: As of January 2022 there appear to be some performance issues with the version of tkinter embedded with Python 3.10 on MacOS 12.0.1 (Monterey) e.g. increased latency on window resizing. Core functionality is OK but you may find you have to resize the main window on first opening the application. It is also reported that tkinter runs significantly slower on newer Apple M1 platforms - see for example [tkinter slower on MacOS](https://bugs.python.org/issue43511). This will hopefully be resolved in a subsequent MacOS Python 3.10 update, but in the meantime it is recommended that MacOS users install `PyGPSClient` under Python >=3.6,<3.10, or monitor the latest available version for MacOS (*3.10.1 at time of writing*). Windows and Linux users are unaffected. 
+**NOTE**: As of January 2022 there appear to be some performance issues with the version of tkinter embedded with Python 3.10 on MacOS 12.0.1 (Monterey). Core functionality is OK but you may find the application runs relatively slowly (particularly on newer Apple M1 platforms) and some windows need resizing on startup. See for example [tkinter slower on MacOS](https://bugs.python.org/issue43511). This will hopefully be resolved in a subsequent MacOS Python 3.10 update, but in the meantime it is recommended that MacOS users install `PyGPSClient` under Python >=3.7,<3.10, or monitor the latest available version for MacOS (*3.10.2 at time of writing*). Windows and Linux users are unaffected. 
 
 ### User Privileges
 

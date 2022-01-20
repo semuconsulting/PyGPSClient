@@ -8,6 +8,7 @@ ENHANCEMENTS:
 2. Minor refactoring of serial handler to improve resilience and align with algorithms used in latest pyubx2
 3. Min pynmeagps version updated to 1.0.7
 4. Min pyubx2 version updated to 1.2.4
+5. Python 3.6 dropped from list of supported versions (if should still run fine, but 3.6 is now end of life)
 
 FIXES:
 

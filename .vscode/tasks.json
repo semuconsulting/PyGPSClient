@@ -1,8 +1,8 @@
 {
     // See https://go.microsoft.com/fwlink/?LinkId=733558
     // for the documentation about the tasks.json format
-    // These Python project tasks assume you have installed
-    // and configured: black, coverage, pytest, Sphinx and wheel
+    // These Python 3 project tasks assume you have installed
+    // and configured: wheel, black, pylint, pytest, coverage, Sphinx, sphinx-rtd-theme
     "version": "2.0.0",
     "tasks": [
         {
