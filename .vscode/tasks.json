@@ -65,6 +65,7 @@
                 "-m",
                 "pylint",
                 "--reports=y",
+                "--exit-zero",
                 "${config:modulename}"
             ],
             "problemMatcher": []
@@ -165,7 +166,7 @@
             "dependsOn": [
                 "Clean",
                 "Format",
-                "PylintError",
+                "Pylint",
                 "Build",
                 "Test",
                 "Coverage Report",
