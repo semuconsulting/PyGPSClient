@@ -26,6 +26,8 @@ from pygpsclient.globals import (
 )
 from pygpsclient.strings import NOTCONN, SEROPENERROR, ENDOFFILE
 
+LOGGING = logging.WARNING
+
 
 class SerialHandler:
     """
@@ -49,6 +51,11 @@ class SerialHandler:
         self._file_thread = None
         self._connected = False
         self._reading = False
+
+        logging.basicConfig(
+            format="%(asctime)-15s [%(levelname)s] %(funcName)s: %(message)s",
+            level=LOGGING,
+        )
 
     def __del__(self):
         """
@@ -371,7 +378,7 @@ class SerialHandler:
             else:
                 parsing = False
 
-        # print(f"DEBUG UBXReader._parse_data r:{raw_data} p:{parsed_data}")
+        logging.debug(f"raw:{raw_data} parsed:{parsed_data}")
         if raw_data is None or parsed_data is None:
             return
         msgprot = protocol(raw_data)
