@@ -71,6 +71,7 @@ class SerialHandler:
         """
         Open serial connection.
         """
+        # pylint: disable=consider-using-with
 
         serial_settings = self.__app.frm_settings.serial_settings()
         if serial_settings.status == 3:  # NOPORTS
@@ -124,6 +125,7 @@ class SerialHandler:
         """
         Open binary data file connection.
         """
+        # pylint: disable=consider-using-with
 
         in_filepath = self.__app.frm_settings.infilepath
         if in_filepath is None:
