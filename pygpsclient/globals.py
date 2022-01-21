@@ -85,6 +85,8 @@ KNOWNGPS = (
 )
 # list of available bps rates (first entry in list is the default):
 BPSRATES = (9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600, 4800)
+# terminator for NMEA protocol
+CRLF = b"\x0d\x0a"
 # display formats
 FORMAT_PARSED = 1
 FORMAT_BIN = 2
