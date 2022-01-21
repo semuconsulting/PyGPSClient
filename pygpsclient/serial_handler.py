@@ -378,7 +378,7 @@ class SerialHandler:
             else:
                 parsing = False
 
-        logging.debug(f"raw:{raw_data} parsed:{parsed_data}")
+        logging.debug("raw: %s parsed: %s", raw_data, parsed_data)
         if raw_data is None or parsed_data is None:
             return
         msgprot = protocol(raw_data)
