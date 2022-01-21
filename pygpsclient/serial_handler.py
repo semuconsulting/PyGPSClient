@@ -15,8 +15,8 @@ import logging
 from io import BufferedReader
 from threading import Thread
 from serial import Serial, SerialException, SerialTimeoutException
-from pynmeagps import NMEAReader
-from pyubx2 import UBXReader, protocol
+from pynmeagps import NMEAReader, NMEAParseError
+from pyubx2 import UBXReader, UBXParseError, protocol
 import pyubx2.ubxtypes_core as ubt
 from pygpsclient.globals import (
     CONNECTED,
@@ -334,49 +334,55 @@ class SerialHandler:
         parsed_data = None
         protfilter = self.__app.frm_settings.protocol
 
-        while parsing:
-            byte1 = stream.read(1)  # read first byte to determine protocol
-            if len(byte1) < 1:
-                self.__master.event_generate("<<ubx_eof>>")
-                return
-            if byte1 not in (b"\xb5", b"\x24"):  # not UBX or NMEA
-                continue
-            byte2 = stream.read(1)
-            if len(byte2) < 1:
-                self.__master.event_generate("<<ubx_eof>>")
-                return
-            # if it's a UBX message (b'\b5\x62')
-            bytehdr = byte1 + byte2
-            if bytehdr == ubt.UBX_HDR:
-                byten = stream.read(4)
-                if len(byten) < 4:
-                    self.__master.event_generate("<<ubx_eof>>")
-                    return
-                clsid = byten[0:1]
-                msgid = byten[1:2]
-                lenb = byten[2:4]
-                leni = int.from_bytes(lenb, "little", signed=False)
-                byten = stream.read(leni + 2)
-                if len(byten) < leni + 2:
-                    self.__master.event_generate("<<ubx_eof>>")
-                    return
-                plb = byten[0:leni]
-                cksum = byten[leni : leni + 2]
-                raw_data = bytehdr + clsid + msgid + lenb + plb + cksum
-                parsed_data = UBXReader.parse(raw_data)
-                parsing = False
-            # if it's an NMEA message ('$G' or '$P')
-            elif bytehdr in ubt.NMEA_HDR:
-                byten = stream.readline()
-                if byten[-2:] != CRLF:
-                    self.__master.event_generate("<<ubx_eof>>")
-                    return
-                raw_data = bytehdr + byten
-                parsed_data = NMEAReader.parse(raw_data)
-                parsing = False
-            # else drop it like it's hot
-            else:
-                parsing = False
+        try:
+            while parsing:
+                byte1 = stream.read(1)  # read first byte to determine protocol
+                if len(byte1) < 1:
+                    raise EOFError
+                if byte1 not in (
+                    b"\xb5",
+                    b"\x24",
+                ):  # not UBX or NMEA, discard and continue
+                    continue
+                byte2 = stream.read(1)
+                if len(byte2) < 1:
+                    raise EOFError
+                # if it's a UBX message (b'\b5\x62')
+                bytehdr = byte1 + byte2
+                if bytehdr == ubt.UBX_HDR:
+                    byten = stream.read(4)
+                    if len(byten) < 4:
+                        raise EOFError
+                    clsid = byten[0:1]
+                    msgid = byten[1:2]
+                    lenb = byten[2:4]
+                    leni = int.from_bytes(lenb, "little", signed=False)
+                    byten = stream.read(leni + 2)
+                    if len(byten) < leni + 2:
+                        raise EOFError
+                    plb = byten[0:leni]
+                    cksum = byten[leni : leni + 2]
+                    raw_data = bytehdr + clsid + msgid + lenb + plb + cksum
+                    parsed_data = UBXReader.parse(raw_data)
+                    parsing = False
+                # if it's an NMEA message ('$G' or '$P')
+                elif bytehdr in ubt.NMEA_HDR:
+                    byten = stream.readline()
+                    if byten[-2:] != CRLF:
+                        raise EOFError
+                    raw_data = bytehdr + byten
+                    parsed_data = NMEAReader.parse(raw_data)
+                    parsing = False
+                # else drop it like it's hot
+                else:
+                    parsing = False
+        except EOFError:
+            self.__master.event_generate("<<ubx_eof>>")
+            return
+        except (UBXParseError, NMEAParseError) as err:
+            # log errors to console, then continue
+            self.__app.frm_console.update_console(bytes(str(err), "utf-8"), err)
+            return
 
         logging.debug("raw: %s parsed: %s", raw_data, parsed_data)
         if raw_data is None or parsed_data is None:
