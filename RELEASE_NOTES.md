@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE v1.1.5
+
+FIXES:
+
+1. Fix issue #9 where app becomes unresponsive with a null data stream. 
+
 ### RELEASE v1.1.4
 
 ENHANCEMENTS:
