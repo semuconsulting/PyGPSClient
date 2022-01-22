@@ -337,7 +337,7 @@ class SerialHandler:
         protfilter = self.__app.frm_settings.protocol
 
         try:
-            while parsing:
+            while parsing:  # loop until end of valid UBX/NMEA message or EOF
                 byte1 = stream.read(1)  # read first byte to determine protocol
                 if len(byte1) < 1:
                     raise EOFError
@@ -367,7 +367,7 @@ class SerialHandler:
                     raw_data = bytehdr + clsid + msgid + lenb + plb + cksum
                     parsed_data = UBXReader.parse(raw_data)
                     parsing = False
-                # if it's an NMEA message ('$G' or '$P')
+                # if it's an NMEA GNSS message ('$G' or '$P')
                 elif bytehdr in ubt.NMEA_HDR:
                     byten = stream.readline()
                     if byten[-2:] != CRLF:
