@@ -21,7 +21,8 @@ from time import time
 from tkinter import Frame, Canvas, font, NW, N, S, E, W
 
 from PIL import ImageTk, Image
-from requests import get, RequestException, ConnectionError
+from http.client import responses
+from requests import get, RequestException, ConnectionError as ConnError, ConnectTimeout
 
 from pygpsclient.globals import (
     WIDGETU2,
@@ -167,16 +168,16 @@ class MapviewFrame(Frame):
 
         try:
             response = get(url)
-            sc = response.status_code
+            sc = responses[response.status_code]  # get descriptive HTTP status
             response.raise_for_status()  # raise Exception on HTTP error
-            if sc == 200:
+            if sc == "OK":
                 img_data = response.content
                 self._img = ImageTk.PhotoImage(Image.open(BytesIO(img_data)))
                 self.can_mapview.delete("all")
                 self.can_mapview.create_image(0, 0, image=self._img, anchor=NW)
                 self.can_mapview.update()
                 return
-        except ConnectionError:
+        except (ConnError, ConnectTimeout):
             msg = NOWEBMAPCONN
         except RequestException:
             msg = NOWEBMAPHTTP.format(sc)
