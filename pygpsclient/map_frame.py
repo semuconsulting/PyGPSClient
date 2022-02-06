@@ -21,7 +21,7 @@ from time import time
 from tkinter import Frame, Canvas, font, NW, N, S, E, W
 
 from PIL import ImageTk, Image
-from requests import get, RequestException
+from requests import get, RequestException, ConnectionError
 
 from pygpsclient.globals import (
     WIDGETU2,
@@ -32,11 +32,10 @@ from pygpsclient.globals import (
     BGCOL,
 )
 from pygpsclient.strings import (
-    NOWEBMAPERROR1,
-    NOWEBMAPERROR2,
-    NOWEBMAPERROR3,
-    NOWEBMAPERROR4,
-    NOWEBMAPERROR5,
+    NOWEBMAPFIX,
+    NOWEBMAPCONN,
+    NOWEBMAPHTTP,
+    NOWEBMAPKEY,
 )
 
 
@@ -89,9 +88,6 @@ class MapviewFrame(Frame):
         :param str fix (kwarg): fix type as string
         """
 
-        w, h = self.width, self.height
-        resize_font = font.Font(size=min(int(w / 20), 14))
-
         if self.__app.frm_settings.webmap:
             static = False
         else:
@@ -109,15 +105,8 @@ class MapviewFrame(Frame):
                 "TIME ONLY",
             )
         ):
-            self.can_mapview.delete("all")
             self.reset_map_refresh()
-            self.can_mapview.create_text(
-                w / 2,
-                h / 2 - (w / 20),
-                text=NOWEBMAPERROR1 + NOWEBMAPERROR5,
-                fill="orange",
-                font=resize_font,
-            )
+            self._disp_error(NOWEBMAPFIX)
             return
 
         if static:
@@ -158,20 +147,12 @@ class MapviewFrame(Frame):
         :param float hacc: horizontal accuracy
         """
 
-        w, h = self.width, self.height
-        resize_font = font.Font(size=min(int(w / 20), 14))
+        sc = "NO CONNECTION"
+        msg = ""
 
         apikey = self.__app.api_key
         if apikey == "":
-            self.can_mapview.delete("all")
-            self.reset_map_refresh()
-            self.can_mapview.create_text(
-                w / 2,
-                h / 2 - (w / 20),
-                text=NOWEBMAPERROR1 + NOWEBMAPERROR2,
-                fill="orange",
-                font=resize_font,
-            )
+            self._disp_error(NOWEBMAPKEY)
             return
 
         now = time()
@@ -186,23 +167,21 @@ class MapviewFrame(Frame):
 
         try:
             response = get(url)
+            sc = response.status_code
             response.raise_for_status()  # raise Exception on HTTP error
-            if response.status_code == 200:
+            if sc == 200:
                 img_data = response.content
                 self._img = ImageTk.PhotoImage(Image.open(BytesIO(img_data)))
                 self.can_mapview.delete("all")
                 self.can_mapview.create_image(0, 0, image=self._img, anchor=NW)
                 self.can_mapview.update()
                 return
+        except ConnectionError:
+            msg = NOWEBMAPCONN
         except RequestException:
-            self.can_mapview.delete("all")
-            self.can_mapview.create_text(
-                w / 2,
-                h / 2 - (w / 20),
-                text=NOWEBMAPERROR3 + NOWEBMAPERROR4.format(response.status_code),
-                fill="orange",
-                font=resize_font,
-            )
+            msg = NOWEBMAPHTTP.format(sc)
+
+        self._disp_error(msg)
 
     def _draw_countdown(self, wait):
         """
@@ -234,6 +213,25 @@ class MapviewFrame(Frame):
 
         return MAPURL.format(
             apikey, lat, lon, self.__app.frm_settings.mapzoom, radius, lat, lon, w, h
+        )
+
+    def _disp_error(self, msg):
+        """
+        Display error message in webmap widget.
+
+        :param str msg: error message
+        """
+
+        w, h = self.width, self.height
+        resize_font = font.Font(size=min(int(w / 20), 14))
+
+        self.can_mapview.delete("all")
+        self.can_mapview.create_text(
+            w / 2,
+            h / 2 - (w / 20),
+            text=msg,
+            fill="orange",
+            font=resize_font,
         )
 
     def reset_map_refresh(self):
