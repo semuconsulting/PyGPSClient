@@ -194,7 +194,7 @@ class MapviewFrame(Frame):
                 self.can_mapview.create_image(0, 0, image=self._img, anchor=NW)
                 self.can_mapview.update()
                 return
-        except RequestException as err:
+        except RequestException:
             self.can_mapview.delete("all")
             self.can_mapview.create_text(
                 w / 2,
