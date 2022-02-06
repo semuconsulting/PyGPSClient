@@ -19,9 +19,8 @@ Created on 13 Sep 2020
 from io import BytesIO
 from time import time
 from tkinter import Frame, Canvas, font, NW, N, S, E, W
-
-from PIL import ImageTk, Image
 from http.client import responses
+from PIL import ImageTk, Image
 from requests import get, RequestException, ConnectionError as ConnError, ConnectTimeout
 
 from pygpsclient.globals import (
