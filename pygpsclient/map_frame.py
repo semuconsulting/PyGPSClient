@@ -21,7 +21,7 @@ from time import time
 from tkinter import Frame, Canvas, font, NW, N, S, E, W
 
 from PIL import ImageTk, Image
-import requests
+from requests import get, RequestException
 
 from pygpsclient.globals import (
     WIDGETU2,
@@ -114,15 +114,8 @@ class MapviewFrame(Frame):
             self.can_mapview.create_text(
                 w / 2,
                 h / 2 - (w / 20),
-                text=NOWEBMAPERROR1,
-                fill="red",
-                font=resize_font,
-            )
-            self.can_mapview.create_text(
-                w / 2,
-                h / 2 + (w / 20),
-                text=NOWEBMAPERROR5,
-                fill="red",
+                text=NOWEBMAPERROR1 + NOWEBMAPERROR5,
+                fill="orange",
                 font=resize_font,
             )
             return
@@ -175,14 +168,7 @@ class MapviewFrame(Frame):
             self.can_mapview.create_text(
                 w / 2,
                 h / 2 - (w / 20),
-                text=NOWEBMAPERROR1,
-                fill="orange",
-                font=resize_font,
-            )
-            self.can_mapview.create_text(
-                w / 2,
-                h / 2 + (w / 20),
-                text=NOWEBMAPERROR2,
+                text=NOWEBMAPERROR1 + NOWEBMAPERROR2,
                 fill="orange",
                 font=resize_font,
             )
@@ -199,27 +185,22 @@ class MapviewFrame(Frame):
         url = self._format_url(apikey, lat, lon, hacc)
 
         try:
-            response = requests.get(url)
+            response = get(url)
+            response.raise_for_status()  # raise Exception on HTTP error
             if response.status_code == 200:
                 img_data = response.content
                 self._img = ImageTk.PhotoImage(Image.open(BytesIO(img_data)))
                 self.can_mapview.delete("all")
                 self.can_mapview.create_image(0, 0, image=self._img, anchor=NW)
                 self.can_mapview.update()
-        except Exception:  # pylint: disable=broad-except
+                return
+        except RequestException as err:
             self.can_mapview.delete("all")
             self.can_mapview.create_text(
                 w / 2,
                 h / 2 - (w / 20),
-                text=NOWEBMAPERROR3,
-                fill="red",
-                font=resize_font,
-            )
-            self.can_mapview.create_text(
-                w / 2,
-                h / 2 + (w / 20),
-                text=NOWEBMAPERROR4,
-                fill="red",
+                text=NOWEBMAPERROR3 + NOWEBMAPERROR4.format(response.status_code),
+                fill="orange",
                 font=resize_font,
             )
 
