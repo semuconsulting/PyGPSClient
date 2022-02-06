@@ -66,12 +66,19 @@ class FileHandler:
 
     def load_apikey(self) -> str:  # pylint: disable=no-self-use
         """
-        Load MapQuest web map api key from user's home directory.
+        Load MapQuest web map api key from environment variable or
+        key file in user's home directory.
 
         :return: apikey
         :rtype: str
         """
 
+        # load from env variable if set
+        apikey = os.getenv("MQAPIKEY")
+        if apikey is not None:
+            return apikey
+
+        # otherwise load from file
         filepath = os.path.join(HOME, MQAPIKEY)
         try:
             with open(filepath, "r") as file:

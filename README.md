@@ -223,8 +223,11 @@ The free edition of this API allows for up to 15,000 transactions/month (roughly
 For this reason, the map refresh rate is intentionally limited to 1/minute* to avoid exceeding the free transaction
 limit under normal use. **NB:** this facility is *not* intended to be used for real time navigational purposes.
 
-Once you have received the API key (a 32-character alphanumeric string), copy it to a file named `mqapikey` (lower case, 
-no extension) and place this file in the user's home directory.
+Once you have received the API key (a 32-character alphanumeric string), you can either:
+
+1. create an environment variable named `MQAPIKEY` (all upper case) and set this to the API key value. It is recommended 
+that this is a User variable rather than a System/Global variable.
+2. copy it to a file named `mqapikey` (lower case, no extension) and place this file in the user's home directory.
 
 *The web map refresh rate can be amended if required by changing the MAP_UPDATE_INTERVAL constant in `globals.py`.
 
