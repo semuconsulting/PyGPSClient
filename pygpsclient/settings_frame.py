@@ -22,7 +22,6 @@ from tkinter import (
     Spinbox,
     Scale,
     Checkbutton,
-    Radiobutton,
     StringVar,
     IntVar,
     E,
