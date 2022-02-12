@@ -16,7 +16,7 @@ from io import BufferedReader
 from threading import Thread
 from serial import Serial, SerialException, SerialTimeoutException
 from pynmeagps import NMEAReader, NMEAParseError
-from pyubx2 import UBXReader, UBXParseError, protocol
+from pyubx2 import UBXReader, UBXParseError, RTCMMessage, protocol
 import pyubx2.ubxtypes_core as ubt
 from pygpsclient.globals import (
     CONNECTED,
@@ -338,30 +338,25 @@ class SerialHandler:
 
         try:
             while parsing:  # loop until end of valid UBX/NMEA message or EOF
-                byte1 = stream.read(1)  # read first byte to determine protocol
-                if len(byte1) < 1:
-                    raise EOFError
+                byte1 = self._read_bytes(
+                    stream, 1
+                )  # read first byte to determine protocol
                 if byte1 not in (
                     b"\xb5",
                     b"\x24",
-                ):  # not UBX or NMEA, discard and continue
+                    b"\xd3",
+                ):  # not UBX, NMEA or RTCM3, discard and continue
                     continue
-                byte2 = stream.read(1)
-                if len(byte2) < 1:
-                    raise EOFError
+                byte2 = self._read_bytes(stream, 1)
                 # if it's a UBX message (b'\b5\x62')
                 bytehdr = byte1 + byte2
                 if bytehdr == ubt.UBX_HDR:
-                    byten = stream.read(4)
-                    if len(byten) < 4:
-                        raise EOFError
+                    byten = self._read_bytes(stream, 4)
                     clsid = byten[0:1]
                     msgid = byten[1:2]
                     lenb = byten[2:4]
                     leni = int.from_bytes(lenb, "little", signed=False)
-                    byten = stream.read(leni + 2)
-                    if len(byten) < leni + 2:
-                        raise EOFError
+                    byten = self._read_bytes(stream, leni + 2)
                     plb = byten[0:leni]
                     cksum = byten[leni : leni + 2]
                     raw_data = bytehdr + clsid + msgid + lenb + plb + cksum
@@ -374,6 +369,16 @@ class SerialHandler:
                         raise EOFError
                     raw_data = bytehdr + byten
                     parsed_data = NMEAReader.parse(raw_data)
+                    parsing = False
+                # if it's a RTCM3 GNSS message
+                # (byte1 = 0xd3; byte2 = 0b000000**)
+                elif byte1 == b"\xd3" and (byte2[0] & ~0x03) == 0:
+                    bytehdr3 = self._read_bytes(stream, 1)
+                    size = bytehdr3[0] | (bytehdr[1] << 8)
+                    payload = self._read_bytes(stream, size)
+                    crc = self._read_bytes(stream, 3)
+                    raw_data = bytehdr + bytehdr3 + payload + crc
+                    parsed_data = RTCMMessage(payload)
                     parsing = False
                 # else drop it like it's hot
                 else:
@@ -396,13 +401,34 @@ class SerialHandler:
         elif msgprot == ubt.NMEA_PROTOCOL and msgprot & protfilter:
             self.__app.frm_console.update_console(raw_data, parsed_data)
             self.__app.nmea_handler.process_data(raw_data, parsed_data)
-        elif msgprot == 0 and protfilter == 3:
+        elif msgprot == ubt.RTCM3_PROTOCOL and msgprot & protfilter:
+            self.__app.frm_console.update_console(raw_data, parsed_data)
+            # currently no handler for RTCM3 messages
+        elif (
+            msgprot == 0
+            and protfilter == ubt.NMEA_PROTOCOL | ubt.UBX_PROTOCOL | ubt.RTCM3_PROTOCOL
+        ):
             # log unknown protocol headers to console, then continue
             self.__app.frm_console.update_console(raw_data, parsed_data)
 
         # if datalogging, write to log file
         if self.__app.frm_settings.datalogging:
             self.__app.file_handler.write_logfile(raw_data, parsed_data)
+
+    def _read_bytes(self, stream: object, size: int) -> bytes:
+        """
+        Read a specified number of bytes from stream.
+
+        :param object stream: input stream
+        :param int size: number of bytes to read
+        :return: bytes
+        :raises: EOFError if stream ends prematurely
+        """
+
+        data = stream.read(size)
+        if len(data) < size:  # EOF
+            raise EOFError()
+        return data
 
     def flush(self):
         """

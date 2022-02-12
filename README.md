@@ -40,7 +40,7 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 ---
 ## <a name="features">Features</a>
 
-1. Supports both NMEA and UBX protocols. It uses the [pynmeagps library](https://pypi.org/project/pynmeagps/) for NMEA parsing and the [pyubx2 library](https://pypi.org/project/pyubx2/) for UBX parsing.
+1. Fully supports both NMEA and UBX protocols, with partial support for RTCM3 protocols. It uses the [pynmeagps library](https://pypi.org/project/pynmeagps/) for NMEA parsing and the [pyubx2 library](https://pypi.org/project/pyubx2/) for UBX parsing. It can read *but not decode* RTCM3 messages.
 1. Capable of reading from serial/USB port or previously-saved binary datalog file. 
 1. Configurable GUI with selectable and resizeable widgets.
 1. Expandable banner widget showing key navigation information.
@@ -125,7 +125,7 @@ sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk
 sudo apt install tk-devel
 ```
 
-**NOTE**: As of January 2022 there appear to be some performance issues with the version of tkinter embedded with Python 3.10 on MacOS 12.0.1 (Monterey). Core functionality is OK but you may find the application runs relatively slowly (particularly on newer Apple M1 platforms) and some windows need resizing on startup. See for example [tkinter slower on MacOS](https://bugs.python.org/issue43511). This will hopefully be resolved in a subsequent MacOS Python 3.10 update, but in the meantime it is recommended that MacOS users install `PyGPSClient` under Python >=3.7,<3.10, or monitor the latest available version for MacOS (*3.10.2 at time of writing*). Windows and Linux users are unaffected.
+**NOTE**: As of February 2022 there appear to be some performance issues with the version of tkinter embedded with Python 3.10 on MacOS 12.n (Monterey). Core functionality is OK but you may find the application runs relatively slowly (particularly on newer Apple M1 platforms) and some windows need resizing on startup. See for example [tkinter slower on MacOS](https://bugs.python.org/issue43511). This will hopefully be resolved in a subsequent MacOS Python 3.10 update, but in the meantime it is recommended that MacOS users install `PyGPSClient` under Python >=3.7,<3.10, or monitor the latest available version for MacOS (*3.10.2 at time of writing*). Windows and Linux users are unaffected.
 *FYI* You can get a small performance improvement by settings `TAG_COLORS = False` in `globals.py`. 
 
 ### User Privileges

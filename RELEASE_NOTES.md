@@ -1,5 +1,14 @@
 # PyGPSClient Release Notes
 
+### RELEASE v1.1.6
+
+ENHANCEMENTS:
+
+1. Added provision for RTCM3 messages following enhancements in `pyubx2` v1.2.5. **NB** `pygpsclient`
+does not currently decode RTCM3 data - it simply indicates the presence of an RTCM3 message (with message
+type) in the input stream.
+2. Min `pyubx2` version updated to v1.2.5.
+
 ### RELEASE v1.1.5
 
 FIXES:

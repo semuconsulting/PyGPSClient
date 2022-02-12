@@ -98,7 +98,10 @@ class SettingsFrame(Frame):
         self.__master = self.__app.get_master()  # Reference to root class (Tk)
         Frame.__init__(self, self.__master, *args, **kwargs)
 
-        self._protocol = IntVar()
+        # self._protocol = IntVar()
+        self._prot_nmea = IntVar()
+        self._prot_ubx = IntVar()
+        self._prot_rtcm3 = IntVar()
         # self._raw = IntVar()
         self._autoscroll = IntVar()
         self._maxlines = IntVar()
@@ -172,23 +175,20 @@ class SettingsFrame(Frame):
         # Other configuration options
         self._frm_options = Frame(self)
         self._lbl_protocol = Label(self._frm_options, text=LBLPROTDISP)
-        self._rad_nmea = Radiobutton(
+        self._chk_nmea = Checkbutton(
             self._frm_options,
             text="NMEA",
-            variable=self._protocol,
-            value=ubt.NMEA_PROTOCOL,
+            variable=self._prot_nmea,
         )
-        self._rad_ubx = Radiobutton(
+        self._chk_ubx = Checkbutton(
             self._frm_options,
             text="UBX",
-            variable=self._protocol,
-            value=ubt.UBX_PROTOCOL,
+            variable=self._prot_ubx,
         )
-        self._rad_all = Radiobutton(
+        self._chk_rtcm = Checkbutton(
             self._frm_options,
-            text="ALL",
-            variable=self._protocol,
-            value=(ubt.UBX_PROTOCOL | ubt.NMEA_PROTOCOL),
+            text="RTCM",
+            variable=self._prot_rtcm3,
         )
         self._lbl_consoledisplay = Label(self._frm_options, text=LBLDATADISP)
         self._spn_conformat = Spinbox(
@@ -308,9 +308,9 @@ class SettingsFrame(Frame):
 
         self._frm_options.grid(column=0, row=8, columnspan=4, sticky=(W, E))
         self._lbl_protocol.grid(column=0, row=0, padx=3, pady=3, sticky=(W))
-        self._rad_nmea.grid(column=1, row=0, padx=0, pady=0, sticky=(W))
-        self._rad_ubx.grid(column=2, row=0, padx=0, pady=0, sticky=(W))
-        self._rad_all.grid(column=3, row=0, padx=0, pady=0, sticky=(W))
+        self._chk_nmea.grid(column=1, row=0, padx=0, pady=0, sticky=(W))
+        self._chk_ubx.grid(column=2, row=0, padx=0, pady=0, sticky=(W))
+        self._chk_rtcm.grid(column=3, row=0, padx=0, pady=0, sticky=(W))
         self._lbl_consoledisplay.grid(column=0, row=1, padx=2, pady=3, sticky=(W))
         self._spn_conformat.grid(
             column=1, row=1, columnspan=2, padx=1, pady=3, sticky=(W)
@@ -408,7 +408,10 @@ class SettingsFrame(Frame):
         Reset settings to defaults.
         """
 
-        self._protocol.set(ubt.UBX_PROTOCOL | ubt.NMEA_PROTOCOL)
+        # self._protocol.set(ubt.UBX_PROTOCOL | ubt.NMEA_PROTOCOL | ubt.RTCM3_PROTOCOL)
+        self._prot_nmea.set(1)
+        self._prot_ubx.set(1)
+        self._prot_rtcm3.set(1)
         self._format.set(DDD)
         self._units.set(UMM)
         self._autoscroll.set(1)
@@ -502,11 +505,15 @@ class SettingsFrame(Frame):
         """
         Getter for displayed protocols
 
-        :return: protocol displayed (1=NMEA, 2=UBX, 3=BOTH)
+        :return: protocol displayed (1=NMEA, 2=UBX, 4=RTMC3, 7=ALL)
         :rtype: int
         """
 
-        return self._protocol.get()
+        return (
+            (ubt.NMEA_PROTOCOL * self._prot_nmea.get())
+            + (ubt.UBX_PROTOCOL * self._prot_ubx.get())
+            + (ubt.RTCM3_PROTOCOL * self._prot_rtcm3.get())
+        )
 
     @property
     def display_format(self) -> int:
