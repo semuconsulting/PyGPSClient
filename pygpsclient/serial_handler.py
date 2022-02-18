@@ -16,7 +16,8 @@ from io import BufferedReader
 from threading import Thread
 from serial import Serial, SerialException, SerialTimeoutException
 from pynmeagps import NMEAReader, NMEAParseError
-from pyubx2 import UBXReader, UBXParseError, RTCMMessage, protocol
+from pyrtcm import RTCMReader, RTCMParseError
+from pyubx2 import UBXReader, UBXParseError, protocol
 import pyubx2.ubxtypes_core as ubt
 from pygpsclient.globals import (
     CONNECTED,
@@ -378,7 +379,7 @@ class SerialHandler:
                     payload = self._read_bytes(stream, size)
                     crc = self._read_bytes(stream, 3)
                     raw_data = bytehdr + bytehdr3 + payload + crc
-                    parsed_data = RTCMMessage(payload)
+                    parsed_data = RTCMReader.parse(raw_data)
                     parsing = False
                 # else drop it like it's hot
                 else:
