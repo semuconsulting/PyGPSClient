@@ -25,6 +25,7 @@ setup(
         "requests>=2.24.0",
         "Pillow>=7.2.0",
         "pyserial>=3.4",
+        "pyrtcm>=0.1.3",
     ],
     package_data={
         "pygpsclient": [
