@@ -41,7 +41,7 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 ---
 ## <a name="features">Features</a>
 
-1. Supports NMEA, UBX protocols RTCM3 protocols. It uses the [pynmeagps library](https://pypi.org/project/pynmeagps/) for NMEA parsing, the [pyubx2 library](https://pypi.org/project/pyubx2/) for UBX parsing and the [pyrtcm library](https://pypi.org/project/pyrtcm/) for RTCM3 parsing.
+1. Supports NMEA, UBX and RTCM3 protocols. It uses the [pynmeagps library](https://pypi.org/project/pynmeagps/) for NMEA parsing, the [pyubx2 library](https://pypi.org/project/pyubx2/) for UBX parsing and the [pyrtcm library](https://pypi.org/project/pyrtcm/) for RTCM3 parsing.
 1. Capable of reading from serial/USB port or previously-saved binary datalog file. 
 1. Configurable GUI with selectable and resizeable widgets.
 1. Expandable banner widget showing key navigation information.
