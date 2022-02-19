@@ -5,6 +5,7 @@
 [UBX Configuration](#ubxconfig) |
 [How to Use](#howtouse) |
 [Installation](#installation) |
+[Known Issues](#knownissues) |
 [Mapquest API Key](#mapquestapi) |
 [User-defined Presets](#userdefined) |
 [Glossary of Terms](#glossary) |
@@ -16,7 +17,7 @@ PyGPSClient is a graphical GNSS/GPS testing, diagnostic and UBX &copy; (u-blox &
 ![full app screenshot ubx](/images/all_widgets.png)
 
 The application runs on any platform which supports a Python3 interpreter (>=3.7) and tkinter (>=8.6) GUI framework, 
-including Windows, MacOS, Linux and Raspberry Pi OS. It displays location and diagnostic data from any NMEA or UBX compatible GNSS/GPS device over a standard serial (UART) or USB port, or from a previously-saved datalog file, *in addition to* providing a useful subset of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool.
+including Windows, MacOS, Linux and Raspberry Pi OS. It displays location and diagnostic data from any NMEA, UBX or RTCM3 compatible GNSS/GPS device over a standard serial (UART) or USB port, or from a previously-saved datalog file, *in addition to* providing a useful subset of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool.
 
 This is an independent project and we have no affiliation whatsoever with u-blox.
 
@@ -40,7 +41,7 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 ---
 ## <a name="features">Features</a>
 
-1. Fully supports both NMEA and UBX protocols, with partial support for RTCM3 protocols. It uses the [pynmeagps library](https://pypi.org/project/pynmeagps/) for NMEA parsing and the [pyubx2 library](https://pypi.org/project/pyubx2/) for UBX parsing. It can read *but not decode* RTCM3 messages.
+1. Supports NMEA, UBX protocols RTCM3 protocols. It uses the [pynmeagps library](https://pypi.org/project/pynmeagps/) for NMEA parsing, the [pyubx2 library](https://pypi.org/project/pyubx2/) for UBX parsing and the [pyrtcm library](https://pypi.org/project/pyrtcm/) for RTCM3 parsing.
 1. Capable of reading from serial/USB port or previously-saved binary datalog file. 
 1. Configurable GUI with selectable and resizeable widgets.
 1. Expandable banner widget showing key navigation information.
@@ -92,7 +93,7 @@ warning ![warning icon](/pygpsclient/resources/iconmonstr-warning-1-24.png)).
 ![gear icon](/pygpsclient/resources/iconmonstr-gear-2-24.png), or go to Menu..Options.
 * To expand or collapse the banner or serial port configuration widgets, click the ![expand icon](/pygpsclient/resources/iconmonstr-arrow-80-16.png)/![expand icon](/pygpsclient/resources/iconmonstr-triangle-1-16.png) buttons.
 * To show or hide the various widgets, go to Menu..View and click on the relevant hide/show option.
-* Protocols Displayed - Select which protocols to display (NB: this only changes the displayed protocols - to change the actual protocols output by the receiver, use the CFG-PRT command).
+* Protocols Displayed - Select which protocols to display; NMEA, UBX and/or RTCM3 (NB: this only changes the displayed protocols - to change the actual protocols output by the receiver, use the CFG-PRT command).
 * Console Display - Select from parsed, binary or hexadecimal formats.
 * Degrees Format and Units - Change the displayed degree and unit formats.
 * Zoom - Change the web map scale (any change will take effect at the next map refresh, indicated by a small timer icon at the top left of the panel).
@@ -124,9 +125,6 @@ sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk
 ```shell
 sudo apt install tk-devel
 ```
-
-**NOTE**: As of February 2022 there appear to be some performance issues with the version of tkinter embedded with Python 3.10 on MacOS 12.n (Monterey). Core functionality is OK but you may find the application runs relatively slowly (particularly on newer Apple M1 platforms) and some windows need resizing on startup. See for example [tkinter slower on MacOS](https://bugs.python.org/issue43511). This will hopefully be resolved in a subsequent MacOS Python 3.10 update, but in the meantime it is recommended that MacOS users install `PyGPSClient` under Python >=3.7,<3.10, or monitor the latest available version for MacOS (*3.10.2 at time of writing*). Windows and Linux users are unaffected.
-*FYI* You can get a small performance improvement by settings `TAG_COLORS = False` in `globals.py`. 
 
 ### User Privileges
 
@@ -199,7 +197,7 @@ See [requirements.txt](requirements.txt).
 The following Python libraries are required (these will be installed automatically if using pip to install PyGPSClient):
 
 ```shell
-python -m pip install --upgrade pyubx2 pynmeagps pyserial Pillow requests
+python -m pip install --upgrade pyubx2 pynmeagps pyrtcm pyserial Pillow requests
 ```
 
 To install PyGPSClient manually, download and unzip this repository and run:
@@ -208,14 +206,27 @@ To install PyGPSClient manually, download and unzip this repository and run:
 python -m /path_to_folder/foldername/pygpsclient
 ```
 
-e.g. if you downloaded and unzipped to a folder named `PyGPSClient-1.1.3`, run: 
+e.g. if you downloaded and unzipped to a folder named `PyGPSClient-1.1.6`, run: 
 
 ```shell
-python -m /path_to_folder/PyGPSClient-1.1.3/pygpsclient
+python -m /path_to_folder/PyGPSClient-1.1.6/pygpsclient
 ```
 
 ---
-### <a name="mapquestapi">MapQuest API Key</a>
+## <a name="knownissues">Known Issues</a>
+
+As of February 2022 there appear to be some performance issues with the version of tkinter embedded with Python 3.10 on MacOS, particularly in respect of tkinter `update()` (screen refresh) operations. See for example [tkinter slower on MacOS](https://bugs.python.org/issue43511).
+
+Windows and Linux users are unaffected.
+
+Core functionality on MacOS is OK but you may find screen refresh/resizing operations are relatively slow, particularly on newer Apple M1 platforms. This will hopefully be resolved in a subsequent MacOS Python 3 update, but in the meantime it is recommended that MacOS users install `PyGPSClient` under Python >=3.7,<3.10, or monitor the latest available version for MacOS (*3.10.2 at time of writing*).
+
+Some performance improvements can be achieved by reducing the number of operations which involve iterative tkinter `update()` operations:
+1. Reduce number of color `TAGS` in `globals.py`, or set  `TAG_COLORS = False`.
+2. Reduce frequency of messages which update the satellite or graph views (e.g. NMEA GSV, UBX NAV-SAT).
+
+---
+## <a name="mapquestapi">MapQuest API Key</a>
 
 To use the optional dynamic web-based mapview facility, you need to request and install a 
 [MapQuest API key](https://developer.mapquest.com/plan_purchase/steps/business_edition/business_edition_free/register).
@@ -232,7 +243,7 @@ that this is a User variable rather than a System/Global variable.
 *The web map refresh rate can be amended if required by changing the MAP_UPDATE_INTERVAL constant in `globals.py`.
 
 ---
-### <a name="userdefined">User Defined Presets</a>
+## <a name="userdefined">User Defined Presets</a>
 
 The UBX Configuration Dialog includes the facility to send user-defined UBX configuration messages or message sequences to the receiver. These can be set up by adding
 appropriate comma-delimited message descriptions and payload definitions to a file named `ubxpresets` (lower case, no extension), and then placing this file in the user's home directory. The message definition comprises a free-format text description (*avoid embedded commas*) 
@@ -284,6 +295,7 @@ FORCE COLD RESTART !*** Expect ClearCommError ***!, CFG, CFG-RST, ffff0100, 1
 * IME - [IMES, Indoor MEssaging System](https://www.gpsworld.com/wirelessindoor-positioningopening-up-indoors-11603/)
 * PRN - [pseudo-random noise number](https://www.gps.gov/technical/prn-codes/) (code that each satellite transmits to differentiate itself from other satellites in the active constellation).
 * QZS - [QZSS, Quasi-Zenith Satellite System](https://en.wikipedia.org/wiki/Quasi-Zenith_Satellite_System).
+* RTCM(3) - [RTCM 10403.n Differential GNSS Services standard](https://rtcm.myshopify.com/collections/differential-global-navigation-satellite-dgnss-standards/products/rtcm-10403-2-differential-gnss-global-navigation-satellite-systems-services-version-3-february-1-2013).
 * SBA - [SBAS, Satellite-based Augmentation System](https://en.wikipedia.org/wiki/GNSS_augmentation#Satellite-based_augmentation_system).
 * SIP - satellites used in position solution.
 * SIV - satellites in view.
