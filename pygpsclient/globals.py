@@ -206,6 +206,7 @@ TAGS = [
     ("NMEA", "lightblue1"),
     ("RLM", "pink"),
     ("RMC", "orange"),
+    ("RTCM", "lightblue1"),
     ("RXM", "skyblue1"),
     ("TXT", "lightgrey"),
     ("UBX", "lightblue1"),
