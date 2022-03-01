@@ -349,7 +349,7 @@ class BannerFrame(Frame):
                 elif disp_format == DMM:
                     self._lat.set(deg2dmm(lat, "lat"))
                 else:
-                    self._lat.set(round(lat, 5))
+                    self._lat.set(lat)
         if "lon" in kwargs:
             lon = kwargs["lon"]
             if lon in (None, ""):
@@ -360,7 +360,7 @@ class BannerFrame(Frame):
                 elif disp_format == DMM:
                     self._lon.set(deg2dmm(lon, "lon"))
                 else:
-                    self._lon.set(round(lon, 5))
+                    self._lon.set(lon)
         if "alt" in kwargs:
             alt = kwargs["alt"]
             if alt in (None, ""):
