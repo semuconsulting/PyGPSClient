@@ -253,6 +253,8 @@ followed by one or more [pyubx2 UBXMessage constructors](https://pypi.org/projec
 3. payload as a hexadecimal string e.g. `f004010100010100` (leave blank for null payloads e.g. most POLL messages)
 4. mode as an integer (`1` = SET, `2` = POLL)
 
+(payload as hex string can be obtained from a `UBXMessage` created using the [pyubx2 library](https://pypi.org/project/pyubx2/) thus: ```msg.payload.hex()```)
+
 Multiple commands can be concatenated on a single line. Illustrative examples are shown below:
 
 ```
@@ -261,6 +263,7 @@ Start GNSS, CFG, CFG-RST, 00000900, 1
 Enable NMEA UBX00 & UBX03 sentences (legacy), CFG, CFG-MSG, f100010100010100, 1, CFG, CFG-MSG, f103010100010100, 1
 Poll UART1/2 baud rates (modern), CFG, CFG-VALGET, 000000000100524001005340, 2
 Poll Message Rates (modern), CFG, CFG-VALGET, 00000000ffff9120, 2, CFG, CFG-VALGET, 00004000ffff9120, 2, CFG, CFG-VALGET, 00008000ffff9120, 2
+Set ZED-F9P to Base Station Survey-In Mode, CFG, CFG-VALSET, 00010000c002912001cf02912001d4029120011b03912001d90291200106039120011100034002000000100003405a0000000100032001, 1
 Use Extended NMEA SV Numbering (modern), CFG, CFG-VALSET, 000000000700932001, 1
 Set NAV Solution Rate to 5 Hz (modern), CFG, CFG-VALSET, 0001000001002130c800, 1
 Set NAV Solution Rate to 10 Hz (legacy), CFG, CFG-RATE, 640001000000, 1

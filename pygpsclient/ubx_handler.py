@@ -81,7 +81,7 @@ class UBXHandler:
             self._process_CFG_INF(parsed_data)
         if parsed_data.identity == "CFG-VALGET":
             self._process_CFG_VALGET(parsed_data)
-        if parsed_data.identity == "NAV-POSLLH":
+        if parsed_data.identity in ("NAV-POSLLH", "NAV-HPPOSLLH"):
             self._process_NAV_POSLLH(parsed_data)
         if parsed_data.identity == "NAV-PVT":
             self._process_NAV_PVT(parsed_data)
@@ -219,9 +219,9 @@ class UBXHandler:
 
     def _process_NAV_POSLLH(self, data: UBXMessage):
         """
-        Process NAV-LLH sentence - Latitude, Longitude, Height.
+        Process NAV-(HP)POSLLH sentence - Latitude, Longitude, Height.
 
-        :param UBXMessage data: NAV-POSLLH parsed message
+        :param UBXMessage data: NAV-(HP)POSLLH parsed message
         """
 
         try:
