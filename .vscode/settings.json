@@ -14,7 +14,7 @@
     "editor.formatOnSave": true,
     "modulename": "pygpsclient",
     "distname": "PyGPSClient",
-    "moduleversion": "1.1.6",
+    "moduleversion": "1.1.7",
     "python.linting.pylintEnabled": true,
     "python.linting.enabled": true
 }

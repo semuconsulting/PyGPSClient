@@ -1,5 +1,15 @@
 # PyGPSClient Release Notes
 
+### RELEASE v1.1.7
+
+ENHANCEMENTS:
+
+1. Added provision for RTCM3 message decoding via `pyrtcm` library. **NB** `pyrtcm` is still in Alpha
+and provides basic decoding of RTCM3 messages to their constituent data fields. To revert to the 
+'stub' RTCM3 decoding as used in v1.1.6, set the `USE_PYRTCM` constant in `globals.py` to `False`.
+2. Min `pyubx2` version updated to v1.2.6.
+3. Banner will now display high precision lat/lon where available.
+
 ### RELEASE v1.1.6
 
 ENHANCEMENTS:
