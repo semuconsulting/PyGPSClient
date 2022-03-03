@@ -55,6 +55,7 @@ MAXLOGLINES = 10000  # maximum number of 'lines' per datalog file
 # default error handling behaviour for UBXReader.read() calls
 # 0 (ERR_IGNORE) = ignore errors, 1 (ERR_LOG) - log errors, 2 (ERR_RAISE) = raise errors
 QUITONERRORDEFAULT = 1
+USE_PYRTCM = True  # whether to use pyrtcm library to decode RTCM3 messages
 PORTIDS = ("0 I2C", "1 UART1", "2 UART2", "3 USB", "4 SPI")
 ANTSTATUS = ("INIT", "DONTKNOW", "OK", "SHORT", "OPEN")
 ANTPOWER = ("OFF", "ON", "DONTKNOW")
@@ -206,6 +207,7 @@ TAGS = [
     ("NMEA", "lightblue1"),
     ("RLM", "pink"),
     ("RMC", "orange"),
+    ("RTCM", "lightblue1"),
     ("RXM", "skyblue1"),
     ("TXT", "lightgrey"),
     ("UBX", "lightblue1"),
