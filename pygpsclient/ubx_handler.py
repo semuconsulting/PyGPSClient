@@ -11,7 +11,7 @@ Created on 30 Sep 2020
 """
 # pylint: disable=invalid-name
 
-from datetime import datetime
+from datetime import datetime, date
 from pyubx2 import UBXMessage, UBX_MSGIDS
 from pyubx2.ubxhelpers import itow2utc, gpsfix2str, msgclass2bytes
 from pygpsclient.globals import GLONASS_NMEA
@@ -241,6 +241,19 @@ class UBXHandler:
             )
 
             self.__app.frm_mapview.update_map(self.lat, self.lon, self.hacc)
+
+            if (
+                self.__app.frm_settings.record_track
+                and self.lat != ""
+                and self.lon != ""
+            ):
+                time = date.today().isoformat() + "T" + self.utc.isoformat() + "Z"
+                self.__app.file_handler.add_trackpoint(
+                    self.lat,
+                    self.lon,
+                    ele=self.alt,
+                    time=time,
+                )
 
         except ValueError:
             # self.__app.set_status(ube.UBXMessageError(err), "red")
