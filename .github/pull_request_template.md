@@ -8,9 +8,7 @@ Fixes # (issue)
 
 ## Testing
 
-Please test all changes, however trivial, against the supplied unittest suite `tests/test_*.py` e.g. by executing the `tests/testsuite.py`
-module or using your IDE's native Python unittest integration facilities.
-Please describe any test cases you have amended or added to this suite to maintain >= 99% code coverage.
+Please test all changes, however trivial, against the supplied unittest suite `tests/test_*.py` e.g. by executing the `tests/testsuite.py` module or using your IDE's native Python unittest integration facilities. Please describe any test cases you have amended or added to this suite to maintain >= 99% code coverage.
 
 - [ ] Test A
 - [ ] Test B
