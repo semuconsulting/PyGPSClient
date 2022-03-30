@@ -219,7 +219,7 @@ As of February 2022 there appear to be some performance issues with the version 
 
 Windows and Linux users are unaffected.
 
-Core functionality on MacOS is OK but you may find screen refresh/resizing operations are relatively slow, particularly on newer Apple M1 platforms. This will hopefully be resolved in a subsequent MacOS Python 3 update, but in the meantime it is recommended that MacOS users install `PyGPSClient` under Python >=3.7,<3.10, or monitor the latest available version for MacOS (*3.10.2 at time of writing*).
+Core functionality on MacOS is OK but you may find screen refresh/resizing operations are relatively slow, particularly on newer Apple M1 platforms. This will hopefully be resolved in a subsequent MacOS Python 3 update, but in the meantime it is recommended that MacOS users install `PyGPSClient` under Python >=3.7,<3.10, or monitor the latest available version for MacOS (*3.10.4 at time of writing*).
 
 Some performance improvements can be achieved by reducing the number of operations which involve iterative tkinter `update()` operations:
 1. Reduce number of color `TAGS` in `globals.py`, or set  `TAG_COLORS = False`.
