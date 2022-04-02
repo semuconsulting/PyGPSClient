@@ -206,10 +206,10 @@ To install PyGPSClient manually, download and unzip this repository and run:
 python -m /path_to_folder/foldername/pygpsclient
 ```
 
-e.g. if you downloaded and unzipped to a folder named `PyGPSClient-1.1.6`, run: 
+e.g. if you downloaded and unzipped to a folder named `PyGPSClient-1.1.8`, run: 
 
 ```shell
-python -m /path_to_folder/PyGPSClient-1.1.6/pygpsclient
+python -m /path_to_folder/PyGPSClient-1.1.8/pygpsclient
 ```
 
 ---

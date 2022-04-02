@@ -1,5 +1,12 @@
 # PyGPSClient Release Notes
 
+### RELEASE v1.1.8
+
+ENHANCEMENTS:
+
+1. Min version of `pyrtcm` updated to 0.2.4 (fixes a few RTCM parsing issues).
+2. `pyrtcm` version added to About dialog.
+
 ### RELEASE v1.1.7
 
 ENHANCEMENTS:
