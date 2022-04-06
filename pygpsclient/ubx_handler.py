@@ -13,7 +13,7 @@ Created on 30 Sep 2020
 
 from datetime import datetime, date
 from pyubx2 import UBXMessage, UBX_MSGIDS
-from pyubx2.ubxhelpers import itow2utc, gpsfix2str, msgclass2bytes
+from pyubx2.ubxhelpers import itow2utc, msgclass2bytes
 from pygpsclient.globals import GLONASS_NMEA
 from pygpsclient.helpers import svid2gnssid
 
@@ -54,7 +54,8 @@ class UBXHandler:
         self.vacc = 0
         self.utc = ""
         self.sip = 0
-        self.fix = "-"
+        # self.fix = "-"
+        self.fix = 0
 
     def process_data(self, raw_data: bytes, parsed_data: object):
         """
@@ -101,6 +102,17 @@ class UBXHandler:
             self._process_MON_VER(parsed_data)
         if parsed_data.identity == "MON-HW":
             self._process_MON_HW(parsed_data)
+
+        # update app GNSS status dict with latest readings
+        self.__app.set_GNSS_status(
+            lat=self.lat,
+            lon=self.lon,
+            alt=self.alt,
+            fix=self.fix,
+            sip=self.sip,
+            pdop=self.pdop,
+            hdop=self.hdop,
+        )
 
     def _process_ACK_ACK(self, data: UBXMessage):
         """
@@ -277,7 +289,8 @@ class UBXHandler:
             self.sip = data.numSV
             self.speed = data.gSpeed / 1000  # m/s
             self.track = data.headMot
-            fix = gpsfix2str(data.fixType)
+            # fix = gpsfix2str(data.fixType)
+            self.fix = data.fixType
             self.__app.frm_banner.update_banner(
                 time=self.utc,
                 lat=self.lat,
@@ -288,11 +301,13 @@ class UBXHandler:
                 dop=self.pdop,
                 sip=self.sip,
                 speed=self.speed,
-                fix=fix,
+                fix=self.fix,
                 track=self.track,
             )
 
-            self.__app.frm_mapview.update_map(self.lat, self.lon, self.hacc, fix=fix)
+            self.__app.frm_mapview.update_map(
+                self.lat, self.lon, self.hacc, fix=self.fix
+            )
 
             if (
                 self.__app.frm_settings.record_track
@@ -310,9 +325,9 @@ class UBXHandler:
                     ).isoformat()
                     + "Z"
                 )
-                if fix == "3D":
+                if self.fix == 3:
                     fix = "3d"
-                elif fix == "2D":
+                elif self.fix == 2:
                     fix = "2d"
                 else:
                     fix = "none"
@@ -424,9 +439,12 @@ class UBXHandler:
         try:
             self.pdop = data.pDOP
             self.sip = data.numSV
-            fix = gpsfix2str(data.gpsFix)
+            # fix = gpsfix2str(data.gpsFix)
+            self.fix = data.gpsFix
 
-            self.__app.frm_banner.update_banner(dop=self.pdop, fix=fix, sip=self.sip)
+            self.__app.frm_banner.update_banner(
+                dop=self.pdop, fix=self.fix, sip=self.sip
+            )
         except ValueError:
             # self.__app.set_status(ube.UBXMessageError(err), "red")
             pass
@@ -466,7 +484,8 @@ class UBXHandler:
             self.vacc = data.vAcc / 1000  # meters
             self.speed = data.gSpeed / 1000  # m/s
             self.track = data.headMot
-            fix = gpsfix2str(data.gpsFix)
+            # fix = gpsfix2str(data.gpsFix)
+            self.fix = data.gpsFix
             self.__app.frm_banner.update_banner(
                 time=self.utc,
                 lat=self.lat,
@@ -475,11 +494,13 @@ class UBXHandler:
                 hacc=self.hacc,
                 vacc=self.vacc,
                 speed=self.speed,
-                fix=fix,
+                fix=self.fix,
                 track=self.track,
             )
 
-            self.__app.frm_mapview.update_map(self.lat, self.lon, self.hacc, fix=fix)
+            self.__app.frm_mapview.update_map(
+                self.lat, self.lon, self.hacc, fix=self.fix
+            )
 
             if (
                 self.__app.frm_settings.record_track
@@ -497,9 +518,9 @@ class UBXHandler:
                     ).isoformat()
                     + "Z"
                 )
-                if fix == "3D":
+                if self.fix == 3:
                     fix = "3d"
-                elif fix == "2D":
+                elif self.fix == 2:
                     fix = "2d"
                 else:
                     fix = "none"

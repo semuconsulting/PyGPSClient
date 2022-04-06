@@ -25,6 +25,8 @@ ICON_PENDING = os.path.join(DIRNAME, "resources/iconmonstr-time-6-24.png")
 ICON_CONFIRMED = os.path.join(DIRNAME, "resources/iconmonstr-check-mark-8-24.png")
 ICON_WARNING = os.path.join(DIRNAME, "resources/iconmonstr-warning-1-24.png")
 ICON_UBXCONFIG = os.path.join(DIRNAME, "resources/iconmonstr-gear-2-24.png")
+ICON_NTRIPCONFIG = os.path.join(DIRNAME, "resources/iconmonstr-antenna-6-24.png")
+ICON_NTRIPSTR = os.path.join(DIRNAME, "resources/iconmonstr-magnifier-12-24.png")
 ICON_LOGREAD = os.path.join(DIRNAME, "resources/iconmonstr-note-37-24.png")
 ICON_REFRESH = os.path.join(DIRNAME, "resources/iconmonstr-refresh-6-16.png")
 ICON_CONTRACT = os.path.join(DIRNAME, "resources/iconmonstr-triangle-1-16.png")
@@ -160,7 +162,6 @@ TAGS = [
     ("GLL", "orange"),
     ("GLQ", "pink"),
     ("GNQ", "pink"),
-    ("GNS", "orange"),
     ("GQQ", "pink"),
     ("GRS", "yellow"),
     ("GSA", "green2"),
@@ -220,4 +221,6 @@ TAGS = [
     ("VTG", "deepskyblue"),
     ("ZDA", "cyan"),
     ("UNKNOWN PROTOCOL", "red"),
+    ("NTRIP>>", "mediumpurple1"),
+    ("NTRIP<<", "mediumpurple1"),
 ]

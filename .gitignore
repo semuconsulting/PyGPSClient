@@ -10,6 +10,7 @@ Pipfile*.*
 /build
 /dist
 /docs
+/examples
 /logs/*.log
 /logs/*.gpx
 /PyGPSClient_*

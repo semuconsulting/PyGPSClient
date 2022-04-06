@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE v1.1.9
+
+ENHANCEMENTS:
+
+1. Add Beta NTRIP Client facility. Connects to specified NTRIP server (caster) and feeds received RTCM3 messages through to connected RTCM3-compatible GNSS receiver. Tested with a variety of public and private NTRIP casters and u-blox GNSS receivers but additional testing and feedback welcome.
+
 ### RELEASE v1.1.8
 
 ENHANCEMENTS:

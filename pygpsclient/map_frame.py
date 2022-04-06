@@ -93,17 +93,13 @@ class MapviewFrame(Frame):
         else:
             static = True
 
-        # if no fix, display warning message
-        fix = kwargs.get("fix", "")
+        # if no valid position, display warning message
+        # fix = kwargs.get("fix", 0)
         if (
             lat in (None, "")
             or lon in (None, "")
             or (lat == 0 and lon == 0)
-            or fix
-            in (
-                "NO FIX",
-                "TIME ONLY",
-            )
+            # or fix in (0, 5)  # no fix or time only
         ):
             self.reset_map_refresh()
             self._disp_error(NOWEBMAPFIX)

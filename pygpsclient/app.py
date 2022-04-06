@@ -29,16 +29,18 @@ from pygpsclient._version import __version__
 from pygpsclient.about_dialog import AboutDialog
 from pygpsclient.banner_frame import BannerFrame
 from pygpsclient.console_frame import ConsoleFrame
-from pygpsclient.filehandler import FileHandler
+from pygpsclient.file_handler import FileHandler
 from pygpsclient.globals import ICON_APP, DISCONNECTED
 from pygpsclient.graphview_frame import GraphviewFrame
 from pygpsclient.map_frame import MapviewFrame
 from pygpsclient.menu_bar import MenuBar
 from pygpsclient.serial_handler import SerialHandler
+from pygpsclient.ntrip_handler import NTRIPHandler
 from pygpsclient.settings_frame import SettingsFrame
 from pygpsclient.skyview_frame import SkyviewFrame
 from pygpsclient.status_frame import StatusFrame
 from pygpsclient.ubx_config_dialog import UBXConfigDialog
+from pygpsclient.ntrip_client_dialog import NTRIPConfigDialog
 from pygpsclient.nmea_handler import NMEAHandler
 from pygpsclient.ubx_handler import UBXHandler
 
@@ -80,8 +82,11 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.serial_handler = SerialHandler(self)
         self.nmea_handler = NMEAHandler(self)
         self.ubx_handler = UBXHandler(self)
+        self.ntrip_handler = NTRIPHandler(self)
         self.dlg_ubxconfig = None
-        self._config_thread = None
+        self.dlg_ntripconfig = None
+        self._ubx_config_thread = None
+        self._ntrip_config_thread = None
 
         # Load web map api key if there is one
         self.api_key = self.file_handler.load_apikey()
@@ -94,6 +99,27 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.frm_satview.init_sats()
         self.frm_graphview.init_graph()
         self.frm_banner.update_conn_status(DISCONNECTED)
+
+        # Dict containing latest GNSS readings from NMEA and/or UBX
+        self._GNSS_status = {
+            "utc": 0,
+            "lat": 0.0,
+            "lon": 0.0,
+            "alt": 0.0,
+            "speed": 0.0,
+            "track": 0.0,
+            "fix": 5,
+            "siv": 0,
+            "sip": 0,
+            "pdop": 0.0,
+            "hdop": 0.0,
+            "vdop": 0.0,
+            "hacc": 0.0,
+            "vacc": 0.0,
+            "sep": 0.0,
+            "diffAge": 0,
+            "diffStation": 0,
+        }
 
     def _body(self):
         """
@@ -144,6 +170,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         self.__master.bind("<<ubx_read>>", self.serial_handler.on_read)
+        self.__master.bind("<<ntrip_read>>", self.ntrip_handler.on_read)
         self.__master.bind("<<ubx_readfile>>", self.serial_handler.on_read)
         self.__master.bind("<<ubx_eof>>", self.serial_handler.on_eof)
         self.__master.bind_all("<Control-q>", self.on_exit)
@@ -307,9 +334,11 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         Start UBX Config dialog thread
         """
 
-        if self._config_thread is None:
-            self._config_thread = Thread(target=self._ubxconfig_thread, daemon=False)
-            self._config_thread.start()
+        if self._ubx_config_thread is None:
+            self._ubx_config_thread = Thread(
+                target=self._ubxconfig_thread, daemon=False
+            )
+            self._ubx_config_thread.start()
 
     def _ubxconfig_thread(self):
         """
@@ -318,14 +347,41 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         self.dlg_ubxconfig = UBXConfigDialog(self)
 
-    def stop_config_thread(self):
+    def stop_ubxconfig_thread(self):
         """
         Stop UBX Configuration dialog thread.
         """
 
-        if self._config_thread is not None:
-            self._config_thread = None
+        if self._ubx_config_thread is not None:
+            self._ubx_config_thread = None
             self.dlg_ubxconfig = None
+
+    def ntripconfig(self):
+        """
+        Start NTRIP Config dialog thread
+        """
+
+        if self._ntrip_config_thread is None:
+            self._ntrip_config_thread = Thread(
+                target=self._ntripconfig_thread, daemon=False
+            )
+            self._ntrip_config_thread.start()
+
+    def _ntripconfig_thread(self):
+        """
+        THREADED PROCESS NTRIP Configuration Dialog
+        """
+
+        self.dlg_ntripconfig = NTRIPConfigDialog(self)
+
+    def stop_ntripconfig_thread(self):
+        """
+        Stop UBX Configuration dialog thread.
+        """
+
+        if self._ntrip_config_thread is not None:
+            self._ntrip_config_thread = None
+            self.dlg_ntripconfig = None
 
     def get_master(self):
         """
@@ -343,6 +399,26 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         self.serial_handler.stop_read_thread()
         self.serial_handler.stop_readfile_thread()
-        self.stop_config_thread()
+        self.stop_ubxconfig_thread()
+        self.stop_ntripconfig_thread()
         self.serial_handler.disconnect()
         self.__master.destroy()
+
+    @property
+    def GNSS_status(self):
+        """
+        Getter for latest GNSS status.
+        """
+
+        return self._GNSS_status
+
+    def set_GNSS_status(self, **kwargs):
+        """
+        Setter for latest GNSS status.
+
+        :param object args: (kwarg) GNSS status parm e.g. lat, lon
+        """
+
+        for parm in kwargs:
+            if parm in self._GNSS_status.keys():
+                self._GNSS_status[parm] = kwargs[parm]
