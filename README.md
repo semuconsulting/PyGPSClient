@@ -3,6 +3,7 @@
 [Current Status](#currentstatus) |
 [Features](#features) |
 [UBX Configuration](#ubxconfig) |
+[NTRIP Client](#ntripconfig) |
 [How to Use](#howtouse) |
 [Installation](#installation) |
 [Known Issues](#knownissues) |
@@ -16,8 +17,7 @@ PyGPSClient is a graphical GNSS/GPS testing, diagnostic and UBX &copy; (u-blox &
 
 ![full app screenshot ubx](/images/all_widgets.png)
 
-The application runs on any platform which supports a Python3 interpreter (>=3.7) and tkinter (>=8.6) GUI framework, 
-including Windows, MacOS, Linux and Raspberry Pi OS. It displays location and diagnostic data from any NMEA, UBX or RTCM3 compatible GNSS/GPS device over a standard serial (UART) or USB port, or from a previously-saved datalog file, *in addition to* providing a useful subset of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool.
+The application runs on any platform which supports a Python3 interpreter (>=3.7) and tkinter (>=8.6) GUI framework, including Windows, MacOS, Linux and Raspberry Pi OS. It displays location and diagnostic data from any NMEA, UBX or RTCM3 compatible GNSS/GPS device over a standard serial (UART) or USB port, or from a previously-saved datalog file, *in addition to* providing a useful subset of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool.
 
 This is an independent project and we have no affiliation whatsoever with u-blox.
 
@@ -48,11 +48,12 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 1. Serial console widget showing data stream in either parsed, binary or hexadecimal format.
 1. Skyview widget showing current satellite visibility and position (elevation / azimuth). Satellite icon borders are colour-coded to distinguish between different GNSS constellations.
 1. Graphview widget showing current satellite reception (signal-to-noise ratio).
-1. Mapview widget with location marker, showing either a static Mercator world map, or an optional dynamic web-based map downloaded via a MapQuest API (requires an Internet connection and free 
-[MapQuest API Key](https://developer.mapquest.com/plan_purchase/steps/business_edition/business_edition_free/register)).
+1. Mapview widget with location marker, showing either a static Mercator world map, or an optional dynamic web-based map downloaded via a MapQuest API (*requires an Internet connection and free 
+[MapQuest API Key](https://developer.mapquest.com/user/login/sign-up)*).
 1. Data logging in parsed, binary, hexadecimal string and tabulated hexadecimal formats (NB. only binary datalogs can be re-read by `pygpsclient`'s parser).
 1. Track recording in GPX format.
 1. UBX Configuration Dialog, with the ability to send a variety of UBX configuration commands to u-blox GNSS devices. This includes the facility to add **user-defined commands or command sequences** - see instructions under [installation](#installation) below.
+1. **BETA FEATURE** NTRIP Client facility with the ability to connect to a specified NTRIP server (caster), parse the incoming RTCM3 data and feed this data to a compatible GNSS device (*requires an Internet connection and access to a suitable NTRIP caster*).
 
 ![compact view screenshot](/images/min_widgets.png)
 
@@ -81,6 +82,40 @@ warning ![warning icon](/pygpsclient/resources/iconmonstr-warning-1-24.png)).
 * A warning icon (typically accompanied by an ACK-NAK response) is usually an indication that one or more of the commands sent is not supported by your receiver. 
 
 ---
+### <a name="ntripconfig">NTRIP Client Facilities</a>
+
+**BETA FEATURE**
+
+![ntrip config widget screenshot](/images/ntripconfig_widget.png)
+
+The NTRIP Client facility supports the following functionality:
+1. Connect to specified NTRIP server (caster), port and mountpoint (*requires Internet connection and appropriate user credentials*).
+1. Retrieve the sourcetable for a specified NTRIP server.
+1. Parse incoming RTCM3 messages and display on console with `NTRIP>>` marker.
+1. Feed raw RTCM3 messages to an RTCM3-compatible connected GNSS device and monitor UBX-RXM-RTCM responses.
+1. Send NMEA GGA (position fix) sentences to the NTRIP server at specified intervals and display on console with `NTRIP<<` marker>.
+
+To use:
+1. Enter the required NTRIP server URL (or IP address) and port (defaults to 2101). For services which require authorisation, enter your login username and password.
+1. To retrieve the sourcetable, leave the mountpoint field blank and click connect (*response may take a few seconds*). The required mountpoint may then be selected from the list, or entered manually.
+1. Select the appropriate NMEA GGA sentence transmission interval in seconds (*only available when a GNSS receiver is connected*). The default is 'None' (no GGA sentences sent). A value of 10 seconds is typical for services that require client position data. **NB:** The GGA sentence will be generated based on the current position fix from the GNSS receiver.
+1. To start the NTRIP data stream using the current server settings, click 
+![connect icon](/pygpsclient/resources/iconmonstr-link-8-24.png).
+1. To stop the NTRIP data stream, click
+![disconnect icon](/pygpsclient/resources/iconmonstr-link-10-24.png).
+1. Some NTRIP services may output a high volume of RTCM3 correction messages, causing the GUI to perform more slowly. To suppress these messages in the console, de-select the 'RTCM' option in 'Protocols Displayed' (the RTCM3 messages will continue to be processed in the background).
+
+Below is a representative NTRIP data log, showing:
+* outgoing NMEA GPGGA (client position) sentence.
+* incoming RTCM3 correction messages - 1005 (Ref Station ARP), 1074 (GPS MSM4), 1084 (GLONASS MSM4), 1094 (Galileo MSM4) and 1124 (Beidou MSM4).
+* corresponding UBX RXM-RTCM acknowledgements generated by the u-blox GNSS receiver. 
+* NMEA GNTXT information message indicating that the selected NTRIP basestation is some distance from the client.
+
+![ntrip console screenshot](/images/ntrip_consolelog.png)
+
+**NB:** Please respect the terms and conditions of any remote NTRIP service used with this facility. For testing or evaluation purposes, consider deploying a local [SNIP LITE](https://www.use-snip.com/download/) server. *Inappropriate use of an NTRIP service may result in your account being blocked*.
+
+---
 ## <a name="howtouse">How to Use</a>
 
 * To connect to a listed serial device, select the device from the listbox, set the appropriate serial connection parameters and click 
@@ -91,6 +126,8 @@ warning ![warning icon](/pygpsclient/resources/iconmonstr-warning-1-24.png)).
 ![disconnect icon](/pygpsclient/resources/iconmonstr-link-10-24.png).
 * To display the UBX Configuration Dialog (*only available when connected to a UBX serial device*), click
 ![gear icon](/pygpsclient/resources/iconmonstr-gear-2-24.png), or go to Menu..Options.
+* To display the NTRIP Client Configuration Dialog (*requires internet connection*), click
+![gear icon](/pygpsclient/resources/iconmonstr-antenna-6-24.png), or go to Menu..Options.
 * To expand or collapse the banner or serial port configuration widgets, click the ![expand icon](/pygpsclient/resources/iconmonstr-arrow-80-16.png)/![expand icon](/pygpsclient/resources/iconmonstr-triangle-1-16.png) buttons.
 * To show or hide the various widgets, go to Menu..View and click on the relevant hide/show option.
 * Protocols Displayed - Select which protocols to display; NMEA, UBX and/or RTCM3 (NB: this only changes the displayed protocols - to change the actual protocols output by the receiver, use the CFG-PRT command).
@@ -206,30 +243,29 @@ To install PyGPSClient manually, download and unzip this repository and run:
 python -m /path_to_folder/foldername/pygpsclient
 ```
 
-e.g. if you downloaded and unzipped to a folder named `PyGPSClient-1.1.8`, run: 
+e.g. if you downloaded and unzipped to a folder named `PyGPSClient-1.1.9`, run: 
 
 ```shell
-python -m /path_to_folder/PyGPSClient-1.1.8/pygpsclient
+python -m /path_to_folder/PyGPSClient-1.1.9/pygpsclient
 ```
 
 ---
 ## <a name="knownissues">Known Issues</a>
 
-As of February 2022 there appear to be some performance issues with the version of tkinter embedded with Python 3.10 on MacOS, particularly in respect of tkinter `update()` (screen refresh) operations. See for example [tkinter slower on MacOS](https://bugs.python.org/issue43511).
+As of April 2022 there appear to be some performance issues with the version of tkinter embedded with Python >=3.9 on MacOS Monterey, particularly in respect of tkinter `update()` (screen refresh) operations. See for example [tkinter slower on MacOS](https://bugs.python.org/issue43511.
 
-Windows and Linux users are unaffected.
+Windows and Linux (including Raspbian) users are unaffected.
 
-Core functionality on MacOS is OK but you may find screen refresh/resizing operations are relatively slow, particularly on newer Apple M1 platforms. This will hopefully be resolved in a subsequent MacOS Python 3 update, but in the meantime it is recommended that MacOS users install `PyGPSClient` under Python >=3.7,<3.10, or monitor the latest available version for MacOS (*3.10.4 at time of writing*).
-
-Some performance improvements can be achieved by reducing the number of operations which involve iterative tkinter `update()` operations:
-1. Reduce number of color `TAGS` in `globals.py`, or set  `TAG_COLORS = False`.
-2. Reduce frequency of messages which update the satellite or graph views (e.g. NMEA GSV, UBX NAV-SAT).
+The application is fully functional on MacOS Monterey but you may find screen refresh/resizing operations are relatively slow, particularly on newer Apple M1 platforms (e.g. some dialogs may require resizing when first opened). This will hopefully be resolved in a subsequent MacOS update, but in the meantime some performance improvements can be achieved by reducing the number of operations which involve iterative tkinter `update()` operations:
+1. Reduce number of color `TAGS` in `globals.py`, or set `TAG_COLORS = False`.
+2. Reduce incoming message rates; particularly the frequency of messages which update the satellite or graph views (e.g. NMEA GSV, UBX NAV-SAT).
+3. Try closing and re-opening pop-up dialogs.
 
 ---
 ## <a name="mapquestapi">MapQuest API Key</a>
 
 To use the optional dynamic web-based mapview facility, you need to request and install a 
-[MapQuest API key](https://developer.mapquest.com/plan_purchase/steps/business_edition/business_edition_free/register).
+[MapQuest API key](https://developer.mapquest.com/user/login/sign-up).
 The free edition of this API allows for up to 15,000 transactions/month (roughly 500/day) on a non-commercial basis.
 For this reason, the map refresh rate is intentionally limited to 1/minute* to avoid exceeding the free transaction
 limit under normal use. **NB:** this facility is *not* intended to be used for real time navigational purposes.
@@ -294,6 +330,7 @@ FORCE COLD RESTART !*** Expect ClearCommError ***!, CFG, CFG-RST, ffff0100, 1
 * GNSS - [global navigation satellite system](https://en.wikipedia.org/wiki/Satellite_navigation).
 * GPS - [Global Positioning System](https://en.wikipedia.org/wiki/Global_Positioning_System).
 * IME - [IMES, Indoor MEssaging System](https://www.gpsworld.com/wirelessindoor-positioningopening-up-indoors-11603/)
+* NTRIP - [Networked Transport of RTCM via Internet Protocol](https://en.wikipedia.org/wiki/Networked_Transport_of_RTCM_via_Internet_Protocol)
 * PRN - [pseudo-random noise number](https://www.gps.gov/technical/prn-codes/) (code that each satellite transmits to differentiate itself from other satellites in the active constellation).
 * QZS - [QZSS, Quasi-Zenith Satellite System](https://en.wikipedia.org/wiki/Quasi-Zenith_Satellite_System).
 * RTCM(3) - [RTCM 10403.n Differential GNSS Services standard](https://rtcm.myshopify.com/collections/differential-global-navigation-satellite-dgnss-standards/products/rtcm-10403-2-differential-gnss-global-navigation-satellite-systems-services-version-3-february-1-2013).

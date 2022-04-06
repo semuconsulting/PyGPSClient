@@ -427,3 +427,30 @@ def check_for_update(name: str) -> tuple:
     ver[0] = ver[0].split("Version: ")[1].split("\\n")[0]  # current version
     ver[1] = ver[1].split(")\\nERROR:")[0].split(" ")[-1]  # latest version
     return (ver[0] == ver[1], ver[1])
+
+
+def fix2int(fix: object, msgid: str) -> int:
+    """
+    Get integer fix value for given message fix status.
+
+    :param object fix: fix value from message
+    :param str msgid: UBX or NMEA message identity
+    :return: consistent fix type as integer e.g. 3 = "3D"
+    :rtype: int
+    """
+
+    fixi = 0
+    if msgid == "GGA":  # quality
+        if fix == 1:
+            fixi = 3
+        elif fix == 2:
+            fixi = 2
+    if msgid == "GSA":  # navMode
+        if fix == 3:
+            fixi = 3
+        elif fix == 2:
+            fixi = 2
+    if msgid in ("GLL", "VTG", "RMC", "GNS"):  # posMode
+        if fix in ("A", "D"):
+            fixi = 3
+    return fixi

@@ -23,6 +23,7 @@ from pygpsclient.globals import (
 from pygpsclient.helpers import (
     knots2ms,
     kmph2ms,
+    fix2int,
 )
 from pygpsclient.strings import NMEAVALERROR
 
@@ -60,7 +61,10 @@ class NMEAHandler:
         self.vacc = 0
         self.utc = ""
         self.sip = 0
-        self.fix = "-"
+        self.fix = 0
+        self.sep = 0
+        self.diffAge = 0
+        self.diffStation = 0
 
     def process_data(self, raw_data: bytes, parsed_data: object):
         """
@@ -91,6 +95,20 @@ class NMEAHandler:
         ):  # GPS Lat/Lon & Acc Data
             self._process_UBX00(parsed_data)
 
+        # update app GNSS status dict with latest readings
+        self.__app.set_GNSS_status(
+            lat=self.lat,
+            lon=self.lon,
+            alt=self.alt,
+            fix=self.fix,
+            sip=self.sip,
+            pdop=self.pdop,
+            hdop=self.hdop,
+            sep=self.sep,
+            diffAge=self.diffAge,
+            diffStation=self.diffStation,
+        )
+
     def _process_RMC(self, data: NMEAMessage):
         """
         Process RMC sentence - Recommended minimum data for GPS.
@@ -102,6 +120,7 @@ class NMEAHandler:
             self.utc = data.time
             self.lat = data.lat
             self.lon = data.lon
+            # self.fix = fix2int(data.posMode, "RMC")
             if data.spd != "":
                 self.speed = knots2ms(data.spd)  # convert to m/s
             if data.cog != "":
@@ -132,8 +151,17 @@ class NMEAHandler:
             self.lat = data.lat
             self.lon = data.lon
             self.alt = data.alt
+            self.sep = data.sep
+            self.fix = fix2int(data.quality, "GGA")
+            self.diffAge = data.diffAge
+            self.diffStation = data.diffStation
             self.__app.frm_banner.update_banner(
-                time=self.utc, lat=self.lat, lon=self.lon, alt=self.alt, sip=self.sip
+                time=self.utc,
+                lat=self.lat,
+                lon=self.lon,
+                alt=self.alt,
+                sip=self.sip,
+                fix=self.fix,
             )
 
             self.__app.frm_mapview.update_map(self.lat, self.lon, self.hacc)
@@ -162,6 +190,7 @@ class NMEAHandler:
             self.utc = data.time
             self.lat = data.lat
             self.lon = data.lon
+            # self.fix = fix2int(data.posMode, "GLL")
             self.__app.frm_banner.update_banner(
                 time=self.utc, lat=self.lat, lon=self.lon
             )
@@ -181,17 +210,12 @@ class NMEAHandler:
         self.pdop = data.PDOP
         self.hdop = data.HDOP
         self.vdop = data.VDOP
-        if data.navMode == 3:
-            fix = "3D"
-        elif data.navMode == 2:
-            fix = "2D"
-        else:
-            fix = "NO FIX"
+        self.fix = fix2int(data.navMode, "GSA")
 
         self.__app.frm_mapview.update_map(self.lat, self.lon, self.hacc)
 
         self.__app.frm_banner.update_banner(
-            dop=self.pdop, hdop=self.hdop, vdop=self.vdop, fix=fix
+            dop=self.pdop, hdop=self.hdop, vdop=self.vdop, fix=self.fix
         )
 
     def _process_GSV(self, data: NMEAMessage):
@@ -290,6 +314,7 @@ class NMEAHandler:
 
         try:
             self.track = data.cogt
+            # self.fix = fix2int(data.posMode, "VTG")
             if data.sogk is not None:
                 self.speed = kmph2ms(data.sogk)  # convert to m/s
             self.__app.frm_banner.update_banner(speed=self.speed, track=self.track)

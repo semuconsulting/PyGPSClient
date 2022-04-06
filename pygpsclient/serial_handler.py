@@ -16,7 +16,7 @@ from io import BufferedReader
 from threading import Thread
 from serial import Serial, SerialException, SerialTimeoutException
 from pynmeagps import NMEAReader, NMEAParseError
-from pyrtcm import RTCMReader, RTCMParseError
+from pyrtcm import RTCMReader
 from pyubx2 import UBXReader, UBXParseError, RTCMMessage as RTCMStub, protocol
 import pyubx2.ubxtypes_core as ubt
 from pygpsclient.globals import (

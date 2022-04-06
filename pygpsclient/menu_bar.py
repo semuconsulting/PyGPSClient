@@ -10,7 +10,7 @@ Created on 12 Sep 2020
 :license: BSD 3-Clause
 """
 
-from tkinter import Menu, DISABLED
+from tkinter import Menu, DISABLED, NORMAL
 
 from pygpsclient.strings import (
     MENUFILE,
@@ -25,6 +25,7 @@ from pygpsclient.strings import (
     MENUABOUT,
     MENUHELP,
     MENUUBXCONFIG,
+    MENUNTRIPCONFIG,
 )
 
 
@@ -87,6 +88,12 @@ class MenuBar(Menu):
             underline=1,
             command=self.__app.ubxconfig,
             state=DISABLED,
+        )
+        self.options_menu.add_command(
+            label=MENUNTRIPCONFIG,
+            underline=1,
+            command=self.__app.ntripconfig,
+            state=NORMAL,
         )
         self.add_cascade(menu=self.options_menu, label=MENUOPTION)
 

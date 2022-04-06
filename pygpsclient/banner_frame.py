@@ -15,7 +15,7 @@ from platform import system
 from tkinter import Frame, Label, Button, StringVar, font, N, S, W, E, SUNKEN
 
 from PIL import ImageTk, Image
-from pyubx2.ubxhelpers import dop2str
+from pyubx2.ubxhelpers import dop2str, gpsfix2str
 
 from pygpsclient.globals import (
     DMM,
@@ -416,6 +416,7 @@ class BannerFrame(Frame):
 
         if "fix" in kwargs:
             fix = kwargs["fix"]
+            fix = gpsfix2str(fix)
             if fix in ("3D", "3D + DR"):
                 self._lbl_fix.config(fg="green2")
             elif fix in ("2D", "DR"):

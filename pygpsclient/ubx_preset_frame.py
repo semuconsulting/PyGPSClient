@@ -10,7 +10,6 @@ Created on 22 Dec 2020
 # pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
 
 from tkinter import (
-    messagebox,
     Frame,
     Listbox,
     Scrollbar,

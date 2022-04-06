@@ -273,7 +273,7 @@ class UBXConfigDialog(Toplevel):
         """
 
         self.__master.update_idletasks()
-        self.__app.stop_config_thread()
+        self.__app.stop_ubxconfig_thread()
         self.destroy()
 
     def get_size(self):

@@ -51,6 +51,7 @@ from pygpsclient.globals import (
     ICON_CONN,
     ICON_DISCONN,
     ICON_UBXCONFIG,
+    ICON_NTRIPCONFIG,
     ICON_LOGREAD,
     KNOWNGPS,
     BPSRATES,
@@ -58,6 +59,7 @@ from pygpsclient.globals import (
 )
 from pygpsclient.strings import (
     LBLUBXCONFIG,
+    LBLNTRIPCONFIG,
     LBLPROTDISP,
     LBLDATADISP,
     LBLDATALOG,
@@ -121,6 +123,7 @@ class SettingsFrame(Frame):
         self._img_conn = ImageTk.PhotoImage(Image.open(ICON_CONN))
         self._img_disconn = ImageTk.PhotoImage(Image.open(ICON_DISCONN))
         self._img_ubxconfig = ImageTk.PhotoImage(Image.open(ICON_UBXCONFIG))
+        self._img_ntripconfig = ImageTk.PhotoImage(Image.open(ICON_NTRIPCONFIG))
         self._img_dataread = ImageTk.PhotoImage(Image.open(ICON_LOGREAD))
 
         self._body()
@@ -283,6 +286,16 @@ class SettingsFrame(Frame):
             command=lambda: self._on_ubx_config(),
             state=DISABLED,
         )
+        self._lbl_ntripconfig = Label(self._frm_options, text=LBLNTRIPCONFIG)
+        self._btn_ntripconfig = Button(
+            self._frm_options,
+            width=45,
+            height=35,
+            text="NTRIP",
+            image=self._img_ntripconfig,
+            command=lambda: self._on_ntrip_config(),
+            state=NORMAL,
+        )
 
     def _do_layout(self):
         """
@@ -341,6 +354,11 @@ class SettingsFrame(Frame):
         )
         self._lbl_ubxconfig.grid(column=0, row=10, padx=3, pady=3, sticky=(W))
         self._btn_ubxconfig.grid(column=1, row=10, padx=3, pady=3, sticky=(W))
+        ttk.Separator(self._frm_options).grid(
+            column=0, row=11, columnspan=4, padx=3, pady=3, sticky=(W, E)
+        )
+        self._lbl_ntripconfig.grid(column=0, row=12, padx=3, pady=3, sticky=(W))
+        self._btn_ntripconfig.grid(column=1, row=12, padx=3, pady=3, sticky=(W))
 
     def _on_ubx_config(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -348,6 +366,13 @@ class SettingsFrame(Frame):
         """
 
         self.__app.ubxconfig()
+
+    def _on_ntrip_config(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Open NTRIP Client configuration dialog panel.
+        """
+
+        self.__app.ntripconfig()
 
     def _on_webmap(self):
         """
