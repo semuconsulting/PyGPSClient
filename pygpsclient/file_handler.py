@@ -171,6 +171,9 @@ class FileHandler:
         :param data: data to be logged
         """
 
+        if self._logfile is None:
+            return
+
         if self.__app.frm_settings.logformat == FORMATS[1]:  # binary
             data = raw_data
         elif self.__app.frm_settings.logformat == FORMATS[2]:  # hex string

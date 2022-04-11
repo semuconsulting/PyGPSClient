@@ -11,15 +11,10 @@ Created on 30 Sep 2020
 """
 # pylint: disable=invalid-name
 
-from datetime import datetime, date
 from pyubx2 import UBXMessage, UBX_MSGIDS
-from pyubx2.ubxhelpers import itow2utc, msgclass2bytes
+from pyubx2.ubxhelpers import msgclass2bytes
 from pygpsclient.globals import GLONASS_NMEA
-from pygpsclient.helpers import svid2gnssid
-
-# BOTH = 3
-# UBX = 1
-# NMEA = 2
+from pygpsclient.helpers import itow2utc, svid2gnssid, fix2desc
 
 
 class UBXHandler:
@@ -42,77 +37,61 @@ class UBXHandler:
         self.gsv_data = (
             []
         )  # Holds array of current satellites in view from NMEA GSV or UBX NAV-SVINFO sentences
-        self.lon = 0
-        self.lat = 0
-        self.alt = 0
-        self.track = 0
-        self.speed = 0
-        self.pdop = 0
-        self.hdop = 0
-        self.vdop = 0
-        self.hacc = 0
-        self.vacc = 0
-        self.utc = ""
-        self.sip = 0
-        # self.fix = "-"
-        self.fix = 0
 
     def process_data(self, raw_data: bytes, parsed_data: object):
         """
-        Process UBX message type
+        Process relevant UBX message types
 
         :param bytes raw_data: raw data
         :param UBXMessage parsed_data: parsed data
         """
 
-        if raw_data is None:
-            return
+        try:
+            if raw_data is None:
+                return
 
-        if parsed_data.identity == "ACK-ACK":
-            self._process_ACK_ACK(parsed_data)
-        if parsed_data.identity == "ACK-NAK":
-            self._process_ACK_NAK(parsed_data)
-        if parsed_data.identity == "CFG-MSG":
-            self._process_CFG_MSG(parsed_data)
-        if parsed_data.identity == "CFG-PRT":
-            self._process_CFG_PRT(parsed_data)
-        if parsed_data.identity == "CFG-RATE":
-            self._process_CFG_RATE(parsed_data)
-        if parsed_data.identity == "CFG-INF":
-            self._process_CFG_INF(parsed_data)
-        if parsed_data.identity == "CFG-VALGET":
-            self._process_CFG_VALGET(parsed_data)
-        if parsed_data.identity in ("NAV-POSLLH", "NAV-HPPOSLLH"):
-            self._process_NAV_POSLLH(parsed_data)
-        if parsed_data.identity == "NAV-PVT":
-            self._process_NAV_PVT(parsed_data)
-        if parsed_data.identity == "NAV-VELNED":
-            self._process_NAV_VELNED(parsed_data)
-        if parsed_data.identity == "NAV-SAT":
-            self._process_NAV_SAT(parsed_data)
-        if parsed_data.identity == "NAV-SVINFO":
-            self._process_NAV_SVINFO(parsed_data)
-        if parsed_data.identity == "NAV-SOL":
-            self._process_NAV_SOL(parsed_data)
-        if parsed_data.identity == "NAV-DOP":
-            self._process_NAV_DOP(parsed_data)
-        if parsed_data.identity == "HNR-PVT":
-            self._process_HNR_PVT(parsed_data)
-        if parsed_data.identity == "MON-VER":
-            self._process_MON_VER(parsed_data)
-        if parsed_data.identity == "MON-HW":
-            self._process_MON_HW(parsed_data)
+            if parsed_data.identity == "ACK-ACK":
+                self._process_ACK_ACK(parsed_data)
+            elif parsed_data.identity == "ACK-NAK":
+                self._process_ACK_NAK(parsed_data)
+            elif parsed_data.identity == "CFG-MSG":
+                self._process_CFG_MSG(parsed_data)
+            elif parsed_data.identity == "CFG-PRT":
+                self._process_CFG_PRT(parsed_data)
+            elif parsed_data.identity == "CFG-RATE":
+                self._process_CFG_RATE(parsed_data)
+            elif parsed_data.identity == "CFG-INF":
+                self._process_CFG_INF(parsed_data)
+            elif parsed_data.identity == "CFG-VALGET":
+                self._process_CFG_VALGET(parsed_data)
+            elif parsed_data.identity in ("NAV-POSLLH", "NAV-HPPOSLLH"):
+                self._process_NAV_POSLLH(parsed_data)
+            elif parsed_data.identity in ("NAV-PVT", "NAV2-PVT"):
+                self._process_NAV_PVT(parsed_data)
+            elif parsed_data.identity == "NAV-VELNED":
+                self._process_NAV_VELNED(parsed_data)
+            elif parsed_data.identity in ("NAV-SAT", "NAV2-SAT"):
+                self._process_NAV_SAT(parsed_data)
+            elif parsed_data.identity in ("NAV-STATUS", "NAV2-STATUS)"):
+                self._process_NAV_STATUS(parsed_data)
+            elif parsed_data.identity == "NAV-SVINFO":
+                self._process_NAV_SVINFO(parsed_data)
+            elif parsed_data.identity == "NAV-SOL":
+                self._process_NAV_SOL(parsed_data)
+            elif parsed_data.identity in ("NAV-DOP", "NAV2-DOP"):
+                self._process_NAV_DOP(parsed_data)
+            elif parsed_data.identity == "HNR-PVT":
+                self._process_HNR_PVT(parsed_data)
+            elif parsed_data.identity == "MON-VER":
+                self._process_MON_VER(parsed_data)
+            elif parsed_data.identity == "MON-HW":
+                self._process_MON_HW(parsed_data)
+            elif parsed_data.identity == "RXM-RTCM":
+                self._process_RXM_RTCM(parsed_data)
 
-        # update app GNSS status dict with latest readings
-        self.__app.set_GNSS_status(
-            lat=self.lat,
-            lon=self.lon,
-            alt=self.alt,
-            fix=self.fix,
-            sip=self.sip,
-            pdop=self.pdop,
-            hdop=self.hdop,
-        )
+        except ValueError:
+            # self.__app.set_status(ube.UBXMessageError(err), "red")
+            pass
 
     def _process_ACK_ACK(self, data: UBXMessage):
         """
@@ -236,40 +215,12 @@ class UBXHandler:
         :param UBXMessage data: NAV-(HP)POSLLH parsed message
         """
 
-        try:
-            self.utc = itow2utc(data.iTOW)
-            self.lat = data.lat
-            self.lon = data.lon
-            self.alt = data.hMSL / 1000  # meters
-            self.hacc = data.hAcc / 1000  # meters
-            self.vacc = data.vAcc / 1000  # meters
-            self.__app.frm_banner.update_banner(
-                time=self.utc,
-                lat=self.lat,
-                lon=self.lon,
-                alt=self.alt,
-                hacc=self.hacc,
-                vacc=self.vacc,
-            )
-
-            self.__app.frm_mapview.update_map(self.lat, self.lon, self.hacc)
-
-            if (
-                self.__app.frm_settings.record_track
-                and self.lat != ""
-                and self.lon != ""
-            ):
-                time = date.today().isoformat() + "T" + self.utc.isoformat() + "Z"
-                self.__app.file_handler.add_trackpoint(
-                    self.lat,
-                    self.lon,
-                    ele=self.alt,
-                    time=time,
-                )
-
-        except ValueError:
-            # self.__app.set_status(ube.UBXMessageError(err), "red")
-            pass
+        self.__app.gnss_status.utc = itow2utc(data.iTOW)  # datetime.time
+        self.__app.gnss_status.lat = data.lat
+        self.__app.gnss_status.lon = data.lon
+        self.__app.gnss_status.alt = data.hMSL / 1000  # meters
+        self.__app.gnss_status.hacc = data.hAcc / 1000  # meters
+        self.__app.gnss_status.vacc = data.vAcc / 1000  # meters
 
     def _process_NAV_PVT(self, data: UBXMessage):
         """
@@ -278,71 +229,19 @@ class UBXHandler:
         :param UBXMessage data: NAV-PVT parsed message
         """
 
-        try:
-            self.utc = itow2utc(data.iTOW)
-            self.lat = data.lat
-            self.lon = data.lon
-            self.alt = data.hMSL / 1000  # meters
-            self.hacc = data.hAcc / 1000  # meters
-            self.vacc = data.vAcc / 1000  # meters
-            self.pdop = data.pDOP
-            self.sip = data.numSV
-            self.speed = data.gSpeed / 1000  # m/s
-            self.track = data.headMot
-            # fix = gpsfix2str(data.fixType)
-            self.fix = data.fixType
-            self.__app.frm_banner.update_banner(
-                time=self.utc,
-                lat=self.lat,
-                lon=self.lon,
-                alt=self.alt,
-                hacc=self.hacc,
-                vacc=self.vacc,
-                dop=self.pdop,
-                sip=self.sip,
-                speed=self.speed,
-                fix=self.fix,
-                track=self.track,
-            )
-
-            self.__app.frm_mapview.update_map(
-                self.lat, self.lon, self.hacc, fix=self.fix
-            )
-
-            if (
-                self.__app.frm_settings.record_track
-                and self.lat != ""
-                and self.lon != ""
-            ):
-                time = (
-                    datetime(
-                        data.year,
-                        data.month,
-                        data.day,
-                        data.hour,
-                        data.min,
-                        data.second,
-                    ).isoformat()
-                    + "Z"
-                )
-                if self.fix == 3:
-                    fix = "3d"
-                elif self.fix == 2:
-                    fix = "2d"
-                else:
-                    fix = "none"
-                self.__app.file_handler.add_trackpoint(
-                    self.lat,
-                    self.lon,
-                    ele=self.alt,
-                    time=time,
-                    fix=fix,
-                    sat=self.sip,
-                    pdop=self.pdop,
-                )
-        except ValueError:
-            # self.__app.set_status(ube.UBXMessageError(err), "red")
-            pass
+        self.__app.gnss_status.utc = itow2utc(data.iTOW)  # datetime.time
+        self.__app.gnss_status.lat = data.lat
+        self.__app.gnss_status.lon = data.lon
+        self.__app.gnss_status.alt = data.hMSL / 1000  # meters
+        self.__app.gnss_status.hacc = data.hAcc / 1000  # meters
+        self.__app.gnss_status.vacc = data.vAcc / 1000  # meters
+        self.__app.gnss_status.pdop = data.pDOP
+        self.__app.gnss_status.sip = data.numSV
+        self.__app.gnss_status.speed = data.gSpeed / 1000  # m/s
+        self.__app.gnss_status.track = data.headMot
+        self.__app.gnss_status.fix = fix2desc("NAV-PVT", data.fixType)
+        self.__app.gnss_status.diff_corr = data.difSoln
+        self.__app.gnss_status.diff_age = data.lastCorrectionAge
 
     def _process_NAV_VELNED(self, data: UBXMessage):
         """
@@ -351,13 +250,8 @@ class UBXHandler:
         :param UBXMessage data: NAV-VELNED parsed message
         """
 
-        try:
-            self.track = data.heading
-            self.speed = data.gSpeed / 100  # m/s
-            self.__app.frm_banner.update_banner(speed=self.speed, track=self.track)
-        except ValueError:
-            # self.__app.set_status(ube.UBXMessageError(err), "red")
-            pass
+        self.__app.gnss_status.track = data.heading
+        self.__app.gnss_status.speed = data.gSpeed / 100  # m/s
 
     def _process_NAV_SAT(self, data: UBXMessage):
         """
@@ -371,31 +265,36 @@ class UBXHandler:
         :param UBXMessage data: NAV-SAT parsed message
         """
 
-        try:
-            self.gsv_data = []
-            num_siv = int(data.numSvs)
+        self.gsv_data = []
+        num_siv = int(data.numSvs)
 
-            for i in range(num_siv):
-                idx = f"_{i+1:02d}"
-                gnssId = getattr(data, "gnssId" + idx)
-                svid = getattr(data, "svId" + idx)
-                # use NMEA GLONASS numbering (65-96) rather than slotID (1-24)
-                if gnssId == 6 and svid < 25 and svid != 255 and GLONASS_NMEA:
-                    svid += 64
-                elev = getattr(data, "elev" + idx)
-                azim = getattr(data, "azim" + idx)
-                cno = getattr(data, "cno" + idx)
-                if (
-                    cno == 0 and not self.__app.frm_settings.show_zero
-                ):  # omit sats with zero signal
-                    continue
-                self.gsv_data.append((gnssId, svid, elev, azim, cno))
-            self.__app.frm_banner.update_banner(siv=len(self.gsv_data))
-            self.__app.frm_satview.update_sats(self.gsv_data)
-            self.__app.frm_graphview.update_graph(self.gsv_data, len(self.gsv_data))
-        except ValueError:
-            # self.__app.set_status(ube.UBXMessageError(err), "red")
-            pass
+        for i in range(num_siv):
+            idx = f"_{i+1:02d}"
+            gnssId = getattr(data, "gnssId" + idx)
+            svid = getattr(data, "svId" + idx)
+            # use NMEA GLONASS numbering (65-96) rather than slotID (1-24)
+            if gnssId == 6 and svid < 25 and svid != 255 and GLONASS_NMEA:
+                svid += 64
+            elev = getattr(data, "elev" + idx)
+            azim = getattr(data, "azim" + idx)
+            cno = getattr(data, "cno" + idx)
+            if cno == 0 and not self.__app.frm_settings.show_unused:  # omit unused sats
+                continue
+            self.gsv_data.append((gnssId, svid, elev, azim, cno))
+
+        self.__app.gnss_status.siv = len(self.gsv_data)
+        self.__app.gnss_status.gsv_data = self.gsv_data
+
+    def _process_NAV_STATUS(self, data: UBXMessage):
+        """
+        Process NAV-STATUS sentences - Status Information.
+
+        :param UBXMessage data: NAV-STATUS parsed message
+        """
+
+        self.__app.gnss_status.diff_corr = data.diffSoln
+        # self.__app.gnss_status.diff_age = "<60"
+        self.__app.gnss_status.fix = fix2desc("NAV-STATUS", data.gpsFix)
 
     def _process_NAV_SVINFO(self, data: UBXMessage):
         """
@@ -406,28 +305,21 @@ class UBXHandler:
         :param UBXMessage data: NAV-SVINFO parsed message
         """
 
-        try:
-            self.gsv_data = []
-            num_siv = int(data.numCh)
+        self.gsv_data = []
+        num_siv = int(data.numCh)
 
-            for i in range(num_siv):
-                idx = f"_{i+1:02d}"
-                svid = getattr(data, "svid" + idx)
-                gnssId = svid2gnssid(svid)  # derive gnssId from svid
-                elev = getattr(data, "elev" + idx)
-                azim = getattr(data, "azim" + idx)
-                cno = getattr(data, "cno" + idx)
-                if (
-                    cno == 0 and not self.__app.frm_settings.show_zero
-                ):  # omit sats with zero signal
-                    continue
-                self.gsv_data.append((gnssId, svid, elev, azim, cno))
-            self.__app.frm_banner.update_banner(siv=len(self.gsv_data))
-            self.__app.frm_satview.update_sats(self.gsv_data)
-            self.__app.frm_graphview.update_graph(self.gsv_data, len(self.gsv_data))
-        except ValueError:
-            # self.__app.set_status(ube.UBXMessageError(err), "red")
-            pass
+        for i in range(num_siv):
+            idx = f"_{i+1:02d}"
+            svid = getattr(data, "svid" + idx)
+            gnssId = svid2gnssid(svid)  # derive gnssId from svid
+            elev = getattr(data, "elev" + idx)
+            azim = getattr(data, "azim" + idx)
+            cno = getattr(data, "cno" + idx)
+            if cno == 0 and not self.__app.frm_settings.show_unused:  # omit unused sats
+                continue
+            self.gsv_data.append((gnssId, svid, elev, azim, cno))
+
+        self.__app.gnss_status.gsv_data = self.gsv_data
 
     def _process_NAV_SOL(self, data: UBXMessage):
         """
@@ -436,18 +328,9 @@ class UBXHandler:
         :param UBXMessage data: NAV-SOL parsed message
         """
 
-        try:
-            self.pdop = data.pDOP
-            self.sip = data.numSV
-            # fix = gpsfix2str(data.gpsFix)
-            self.fix = data.gpsFix
-
-            self.__app.frm_banner.update_banner(
-                dop=self.pdop, fix=self.fix, sip=self.sip
-            )
-        except ValueError:
-            # self.__app.set_status(ube.UBXMessageError(err), "red")
-            pass
+        self.__app.gnss_status.pdop = data.pDOP
+        self.__app.gnss_status.sip = data.numSV
+        self.__app.gnss_status.fix = fix2desc("NAV-SOL", data.gpsFix)
 
     def _process_NAV_DOP(self, data: UBXMessage):
         """
@@ -456,17 +339,9 @@ class UBXHandler:
         :param UBXMessage data: NAV-DOP parsed message
         """
 
-        try:
-            self.pdop = data.pDOP
-            self.hdop = data.hDOP
-            self.vdop = data.vDOP
-
-            self.__app.frm_banner.update_banner(
-                dop=self.pdop, hdop=self.hdop, vdop=self.vdop
-            )
-        except ValueError:
-            # self.__app.set_status(ube.UBXMessageError(err), "red")
-            pass
+        self.__app.gnss_status.pdop = data.pDOP
+        self.__app.gnss_status.hdop = data.hDOP
+        self.__app.gnss_status.vdop = data.vDOP
 
     def _process_HNR_PVT(self, data: UBXMessage):
         """
@@ -475,65 +350,16 @@ class UBXHandler:
         :param UBXMessage data: HNR-PVT parsed message
         """
 
-        try:
-            self.utc = itow2utc(data.iTOW)
-            self.lat = data.lat
-            self.lon = data.lon
-            self.alt = data.hMSL / 1000  # meters
-            self.hacc = data.hAcc / 1000  # meters
-            self.vacc = data.vAcc / 1000  # meters
-            self.speed = data.gSpeed / 1000  # m/s
-            self.track = data.headMot
-            # fix = gpsfix2str(data.gpsFix)
-            self.fix = data.gpsFix
-            self.__app.frm_banner.update_banner(
-                time=self.utc,
-                lat=self.lat,
-                lon=self.lon,
-                alt=self.alt,
-                hacc=self.hacc,
-                vacc=self.vacc,
-                speed=self.speed,
-                fix=self.fix,
-                track=self.track,
-            )
-
-            self.__app.frm_mapview.update_map(
-                self.lat, self.lon, self.hacc, fix=self.fix
-            )
-
-            if (
-                self.__app.frm_settings.record_track
-                and self.lat != ""
-                and self.lon != ""
-            ):
-                time = (
-                    datetime(
-                        data.year,
-                        data.month,
-                        data.day,
-                        data.hour,
-                        data.min,
-                        data.second,
-                    ).isoformat()
-                    + "Z"
-                )
-                if self.fix == 3:
-                    fix = "3d"
-                elif self.fix == 2:
-                    fix = "2d"
-                else:
-                    fix = "none"
-                self.__app.file_handler.add_trackpoint(
-                    self.lat,
-                    self.lon,
-                    ele=self.alt,
-                    time=time,
-                    fix=fix,
-                )
-        except ValueError:
-            # self.__app.set_status(ube.UBXMessageError(err), "red")
-            pass
+        self.__app.gnss_status.utc = itow2utc(data.iTOW)  # datetime.time
+        self.__app.gnss_status.lat = data.lat
+        self.__app.gnss_status.lon = data.lon
+        self.__app.gnss_status.alt = data.hMSL / 1000  # meters
+        self.__app.gnss_status.hacc = data.hAcc / 1000  # meters
+        self.__app.gnss_status.vacc = data.vAcc / 1000  # meters
+        self.__app.gnss_status.speed = data.gSpeed / 1000  # m/s
+        self.__app.gnss_status.track = data.headMot
+        self.__app.gnss_status.fix = fix2desc("HNR-PVT", data.gpsFix)
+        self.__app.gnss_status.diff_corr = data.diffSoln  # TODO check reliability
 
     def _process_MON_VER(self, data: UBXMessage):
         """
@@ -547,47 +373,42 @@ class UBXHandler:
         protocol = "n/a"
         gnss_supported = ""
 
-        try:
-            sw_version = (
-                getattr(data, "swVersion", "n/a").replace(b"\x00", b"").decode("utf-8")
+        sw_version = (
+            getattr(data, "swVersion", "n/a").replace(b"\x00", b"").decode("utf-8")
+        )
+        sw_version = sw_version.replace("ROM CORE", "ROM")
+        sw_version = sw_version.replace("EXT CORE", "Flash")
+        hw_version = (
+            getattr(data, "hwVersion", "n/a").replace(b"\x00", b"").decode("utf-8")
+        )
+
+        for i in range(9):
+            idx = f"_{i+1:02d}"
+            exts.append(
+                getattr(data, "extension" + idx, b"")
+                .replace(b"\x00", b"")
+                .decode("utf-8")
             )
-            sw_version = sw_version.replace("ROM CORE", "ROM")
-            sw_version = sw_version.replace("EXT CORE", "Flash")
-            hw_version = (
-                getattr(data, "hwVersion", "n/a").replace(b"\x00", b"").decode("utf-8")
+            if "FWVER=" in exts[i]:
+                fw_version = exts[i].replace("FWVER=", "")
+            if "PROTVER=" in exts[i]:
+                protocol = exts[i].replace("PROTVER=", "")
+            if "PROTVER " in exts[i]:
+                protocol = exts[i].replace("PROTVER ", "")
+            for gnss in ("GPS", "GLO", "GAL", "BDS", "SBAS", "IMES", "QZSS"):
+                if gnss in exts[i]:
+                    gnss_supported = gnss_supported + gnss + " "
+
+        # update the UBX config panel
+        if self.__app.dlg_ubxconfig is not None:
+            self.__app.dlg_ubxconfig.update_pending(
+                "MON-VER",
+                swversion=sw_version,
+                hwversion=hw_version,
+                fwversion=fw_version,
+                protocol=protocol,
+                gnsssupported=gnss_supported,
             )
-
-            for i in range(9):
-                idx = f"_{i+1:02d}"
-                exts.append(
-                    getattr(data, "extension" + idx, b"")
-                    .replace(b"\x00", b"")
-                    .decode("utf-8")
-                )
-                if "FWVER=" in exts[i]:
-                    fw_version = exts[i].replace("FWVER=", "")
-                if "PROTVER=" in exts[i]:
-                    protocol = exts[i].replace("PROTVER=", "")
-                if "PROTVER " in exts[i]:
-                    protocol = exts[i].replace("PROTVER ", "")
-                for gnss in ("GPS", "GLO", "GAL", "BDS", "SBAS", "IMES", "QZSS"):
-                    if gnss in exts[i]:
-                        gnss_supported = gnss_supported + gnss + " "
-
-            # update the UBX config panel
-            if self.__app.dlg_ubxconfig is not None:
-                self.__app.dlg_ubxconfig.update_pending(
-                    "MON-VER",
-                    swversion=sw_version,
-                    hwversion=hw_version,
-                    fwversion=fw_version,
-                    protocol=protocol,
-                    gnsssupported=gnss_supported,
-                )
-
-        except ValueError:
-            # self.__app.set_status(ube.UBXMessageError(err), "red")
-            pass
 
     def _process_MON_HW(self, data: UBXMessage):
         """
@@ -604,3 +425,13 @@ class UBXHandler:
             self.__app.dlg_ubxconfig.update_pending(
                 "MON-HW", antstatus=ant_status, antpower=ant_power
             )
+
+    def _process_RXM_RTCM(self, data: UBXMessage):
+        """
+        Process RXM-RTCM sentences - Status Information.
+
+        :param UBXMessage data: RXM-RTCM parsed message
+        """
+
+        self.__app.gnss_status.diff_corr = data.msgUsed >= 1
+        self.__app.gnss_status.diff_station = data.refStation

@@ -21,8 +21,8 @@ INTROTXTNOPORTS = (
 HELPTXT = "Help..About - display About dialog."
 
 ABOUTTXT = (
-    "PyGPSClient is a free, open-source NMEA & UBX GNSS/GPS client application written"
-    + " entirely in Python and tkinter. "
+    "PyGPSClient is a free, open-source NMEA, UBX & RTCM3 GNSS/GPS client "
+    + "application written entirely in Python and tkinter. "
     + "Instructions and source code are available on GitHub at the link below."
 )
 

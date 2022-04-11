@@ -169,7 +169,8 @@ class UBX_RATE_Frame(Frame):
         Reset panel to initial settings.
         """
 
-        self._do_poll_rate()
+        if self.__app.serial_handler.connected:
+            self._do_poll_rate()
 
     def update_status(self, cfgtype, **kwargs):
         """

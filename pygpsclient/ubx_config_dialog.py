@@ -2,7 +2,19 @@
 UBX configuration container dialog
 
 This is the pop-up dialog containing the various
-UBX configuration widgets
+UBX configuration command widgets.
+
+NB: Individual UBX configuration commands do not have uniquely
+identifiable synchronous or asynchronous responses (e.g. unique
+txn ID). The way we keep tabs on confirmation status is to
+maintain a list of all commands sent and the responses they're
+expecting. When we receive a response, we check against the list
+of awaited responses of the same type and flag the first one we
+find as 'confirmed'. This is generally reliable but not absolutely
+foolproof - if several commands awaiting the same response type are
+sent in quick succession, it's possible their responses may arrive
+out of order (or not at all) and we may flag the wrong command as
+'confirmed', or leave a confirmed command as 'pending'.
 
 Created on 19 Sep 2020
 
@@ -35,6 +47,7 @@ from pygpsclient.globals import (
     UBX_PRESET,
 )
 from pygpsclient.strings import DLGUBXCONFIG
+from pygpsclient.globals import POPUP_TRANSIENT
 from pygpsclient.ubx_info_frame import UBX_INFO_Frame
 from pygpsclient.ubx_port_frame import UBX_PORT_Frame
 from pygpsclient.ubx_msgrate_frame import UBX_MSGRATE_Frame
@@ -60,8 +73,9 @@ class UBXConfigDialog(Toplevel):
         self.__app = app  # Reference to main application class
         self.__master = self.__app.get_master()  # Reference to root class (Tk)
         Toplevel.__init__(self, app)
-        self.transient(self.__app)
-        self.resizable(False, False)
+        if POPUP_TRANSIENT:
+            self.transient(self.__app)
+        self.resizable(True, True)  # allow for MacOS resize glitches
         self.title(DLGUBXCONFIG)  # pylint: disable=E1102
         self.protocol("WM_DELETE_WINDOW", self.on_exit)
         self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
@@ -81,7 +95,7 @@ class UBXConfigDialog(Toplevel):
         self._body()
         self._do_layout()
         self._reset()
-        self._centre()
+        # self._centre()
 
     def _body(self):
         """
@@ -198,6 +212,8 @@ class UBXConfigDialog(Toplevel):
         self._frm_config_rate.reset()
         self._frm_config_port.reset()
         self._frm_device_info.reset()
+        if not self.__app.serial_handler.connected:
+            self.set_status("Device not connected", "red")
 
     def _centre(self):
         """
@@ -272,7 +288,7 @@ class UBXConfigDialog(Toplevel):
         Handle Exit button press.
         """
 
-        self.__master.update_idletasks()
+        # self.__master.update_idletasks()
         self.__app.stop_ubxconfig_thread()
         self.destroy()
 

@@ -78,15 +78,14 @@ class MapviewFrame(Frame):
         self.can_mapview = Canvas(self, width=self.width, height=self.height, bg=BGCOL)
         self.can_mapview.grid(column=0, row=0, sticky=(N, S, E, W))
 
-    def update_map(self, lat, lon, hacc, **kwargs):
+    def update_map(self):
         """
-        Draw map and mark current known position.
+        Draw map and mark current known position and horizontal accuracy (where available).
+        """
 
-        :param float lat: latitude (or null/"" if no fix)
-        :param float lon: longitude (or null/"" if no fix)
-        :param float hacc: horizontal accuracy (where available)
-        :param str fix (kwarg): fix type as string
-        """
+        lat = self.__app.gnss_status.lat
+        lon = self.__app.gnss_status.lon
+        hacc = self.__app.gnss_status.hacc
 
         if self.__app.frm_settings.webmap:
             static = False
@@ -170,7 +169,7 @@ class MapviewFrame(Frame):
                 self._img = ImageTk.PhotoImage(Image.open(BytesIO(img_data)))
                 self.can_mapview.delete("all")
                 self.can_mapview.create_image(0, 0, image=self._img, anchor=NW)
-                self.can_mapview.update()
+                # self.can_mapview.update_idletasks()
                 return
         except (ConnError, ConnectTimeout):
             msg = NOWEBMAPCONN
@@ -190,7 +189,6 @@ class MapviewFrame(Frame):
         self.can_mapview.create_arc(
             (5, 5, 20, 20), start=90, extent=wait, fill="#ffffff", outline=""
         )
-        self.can_mapview.update()
 
     def _format_url(self, apikey: str, lat: float, lon: float, hacc: float):
         """

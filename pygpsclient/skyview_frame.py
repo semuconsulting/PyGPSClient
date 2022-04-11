@@ -103,14 +103,12 @@ class SkyviewFrame(Frame):
             w / 2, h - axis_r, text="180\u00b0 S", fill=self.fg_col, font=resize_font
         )
 
-    def update_sats(self, data):
+    def update_sats(self):
         """
         Plot satellites' elevation and azimuth position.
-
-        :param list data: array of satellite tuples (gnssId, svid, elev, azim, cno)
-
         """
 
+        data = self.__app.gnss_status.gsv_data
         w, h = self.width, self.height
         axis_r = w / 15
         maxr = min((h / 2), (w / 2)) - (axis_r * 2)
@@ -149,7 +147,7 @@ class SkyviewFrame(Frame):
             except ValueError:
                 pass
 
-        self.can_satview.update()
+        # self.can_satview.update_idletasks()
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """

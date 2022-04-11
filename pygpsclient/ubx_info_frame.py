@@ -127,7 +127,8 @@ class UBX_INFO_Frame(Frame):
         Reset panel to initial settings
         """
 
-        self._do_poll_ver()
+        if self.__app.serial_handler.connected:
+            self._do_poll_ver()
 
     def update_status(self, cfgtype, **kwargs):
         """

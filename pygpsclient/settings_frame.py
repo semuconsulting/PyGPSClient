@@ -284,7 +284,7 @@ class SettingsFrame(Frame):
             text="UBX",
             image=self._img_ubxconfig,
             command=lambda: self._on_ubx_config(),
-            state=DISABLED,
+            state=NORMAL,
         )
         self._lbl_ntripconfig = Label(self._frm_options, text=LBLNTRIPCONFIG)
         self._btn_ntripconfig = Button(
@@ -432,7 +432,6 @@ class SettingsFrame(Frame):
         Reset settings to defaults.
         """
 
-        # self._protocol.set(ubt.UBX_PROTOCOL | ubt.NMEA_PROTOCOL | ubt.RTCM3_PROTOCOL)
         self._prot_nmea.set(1)
         self._prot_ubx.set(1)
         self._prot_rtcm3.set(1)
@@ -485,21 +484,6 @@ class SettingsFrame(Frame):
         )
         self._btn_connect_file.config(
             state=(DISABLED if status in (CONNECTED, CONNECTED_FILE) else NORMAL)
-        )
-        self._btn_ubxconfig.config(
-            state=(
-                DISABLED
-                if status in (DISCONNECTED, CONNECTED_FILE, NOPORTS)
-                else NORMAL
-            )
-        )
-        self.__app.menu.options_menu.entryconfig(
-            0,
-            state=(
-                DISABLED
-                if status in (CONNECTED_FILE, DISCONNECTED, NOPORTS)
-                else NORMAL
-            ),
         )
 
     def get_size(self) -> tuple:
@@ -674,7 +658,7 @@ class SettingsFrame(Frame):
         return self._record_track.get()
 
     @property
-    def show_zero(self) -> int:
+    def show_unused(self) -> int:
         """
         Getter for zero signal flag
 

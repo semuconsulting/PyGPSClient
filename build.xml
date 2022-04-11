@@ -1,7 +1,7 @@
 <?xml version = "1.0"?>
 <project name="PyGPSClient" default="build">
 	<property name="module.name" value="pygpsclient" />
-	<property name="version" value="1.1.9" />
+	<property name="version" value="1.2.0" />
 	<condition property="python" value="python">
 		<os family="windows" />
 	</condition>

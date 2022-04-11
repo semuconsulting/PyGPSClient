@@ -12,20 +12,9 @@ Created on 30 Sep 2020
 # pylint: disable=invalid-name
 
 from time import time
-from datetime import datetime
 from pynmeagps import NMEAMessage
-
-from pygpsclient.globals import (
-    DEVICE_ACCURACY,
-    HDOP_RATIO,
-    SAT_EXPIRY,
-)
-from pygpsclient.helpers import (
-    knots2ms,
-    kmph2ms,
-    fix2int,
-)
-from pygpsclient.strings import NMEAVALERROR
+from pygpsclient.globals import SAT_EXPIRY
+from pygpsclient.helpers import knots2ms, kmph2ms, fix2desc
 
 
 class NMEAHandler:
@@ -49,65 +38,46 @@ class NMEAHandler:
             []
         )  # Holds array of current satellites in view from NMEA GSV sentences
         self.gsv_log = {}  # Holds cumulative log of all satellites seen
-        self.lon = 0
-        self.lat = 0
-        self.alt = 0
-        self.track = 0
-        self.speed = 0
-        self.pdop = 0
-        self.hdop = 0
-        self.vdop = 0
-        self.hacc = 0
-        self.vacc = 0
-        self.utc = ""
-        self.sip = 0
-        self.fix = 0
-        self.sep = 0
-        self.diffAge = 0
-        self.diffStation = 0
 
     def process_data(self, raw_data: bytes, parsed_data: object):
         """
-        Process NMEA message type
+        Process relevant NMEA message types
 
         :param bytes raw_data: raw_data
         :param NMEAMessage parsed_data: parsed data
         """
         # pylint: disable=no-member
 
-        if raw_data is None:
-            return
+        try:
+            if raw_data is None:
+                return
 
-        if parsed_data.msgID == "RMC":  # Recommended minimum data for GPS
-            self._process_RMC(parsed_data)
-        if parsed_data.msgID == "GGA":  # GPS Fix Data
-            self._process_GGA(parsed_data)
-        if parsed_data.msgID == "GLL":  # GPS Lat Lon Data
-            self._process_GLL(parsed_data)
-        if parsed_data.msgID == "GSA":  # GPS DOP (Dilution of Precision)
-            self._process_GSA(parsed_data)
-        if parsed_data.msgID == "VTG":  # GPS Vector track and Speed over the Ground
-            self._process_VTG(parsed_data)
-        if parsed_data.msgID == "GSV":  # GPS Satellites in View
-            self._process_GSV(parsed_data)
-        if (
-            parsed_data.msgID == "UBX" and parsed_data.msgId == "00"
-        ):  # GPS Lat/Lon & Acc Data
-            self._process_UBX00(parsed_data)
+            if parsed_data.msgID == "RMC":  # Recommended minimum data for GPS
+                self._process_RMC(parsed_data)
+            elif parsed_data.msgID == "GGA":  # GPS Fix Data
+                self._process_GGA(parsed_data)
+            elif parsed_data.msgID in ("GLL"):  # GPS Lat Lon Data
+                self._process_GLL(parsed_data)
+            elif parsed_data.msgID in ("GNS"):  # GNSS Fix Data
+                self._process_GNS(parsed_data)
+            elif parsed_data.msgID == "GSA":  # GPS DOP (Dilution of Precision)
+                self._process_GSA(parsed_data)
+            elif (
+                parsed_data.msgID == "VTG"
+            ):  # GPS Vector track and Speed over the Ground
+                self._process_VTG(parsed_data)
+            elif parsed_data.msgID == "GSV":  # GPS Satellites in View
+                self._process_GSV(parsed_data)
+            elif parsed_data.msgID == "ZDA":  # ZDA Time
+                self._process_ZDA(parsed_data)
+            elif (
+                parsed_data.msgID == "UBX" and parsed_data.msgId == "00"
+            ):  # GPS Lat/Lon & Acc Data
+                self._process_UBX00(parsed_data)
 
-        # update app GNSS status dict with latest readings
-        self.__app.set_GNSS_status(
-            lat=self.lat,
-            lon=self.lon,
-            alt=self.alt,
-            fix=self.fix,
-            sip=self.sip,
-            pdop=self.pdop,
-            hdop=self.hdop,
-            sep=self.sep,
-            diffAge=self.diffAge,
-            diffStation=self.diffStation,
-        )
+        except ValueError:
+            # self.__app.set_status(NMEAVALERROR.format(err), "red")
+            pass
 
     def _process_RMC(self, data: NMEAMessage):
         """
@@ -116,27 +86,17 @@ class NMEAHandler:
         :param pynmeagps.NMEAMessage data: parsed RMC sentence
         """
 
-        try:
-            self.utc = data.time
-            self.lat = data.lat
-            self.lon = data.lon
-            # self.fix = fix2int(data.posMode, "RMC")
-            if data.spd != "":
-                self.speed = knots2ms(data.spd)  # convert to m/s
-            if data.cog != "":
-                self.track = data.cog
-            self.__app.frm_banner.update_banner(
-                time=self.utc,
-                lat=self.lat,
-                lon=self.lon,
-                speed=self.speed,
-                track=self.track,
-            )
-
-            self.__app.frm_mapview.update_map(self.lat, self.lon, self.hacc)
-
-        except ValueError as err:
-            self.__app.set_status(NMEAVALERROR.format(err), "red")
+        self.__app.gnss_status.utc = data.time  # datetime.time
+        self.__app.gnss_status.lat = data.lat
+        self.__app.gnss_status.lon = data.lon
+        self.__app.gnss_status.fix = fix2desc("RMC", data.posMode)
+        # only works for NMEA 4.10 and later...
+        # if data.posMode in ["F", "R"]:
+        #     self.__app.gnss_status.diff_corr = 1
+        if data.spd != "":
+            self.__app.gnss_status.speed = knots2ms(data.spd)  # convert to m/s
+        if data.cog != "":
+            self.__app.gnss_status.track = data.cog
 
     def _process_GGA(self, data: NMEAMessage):
         """
@@ -145,39 +105,16 @@ class NMEAHandler:
         :param pynmeagps.NMEAMessage data: parsed GGA sentence
         """
 
-        try:
-            self.utc = data.time
-            self.sip = data.numSV
-            self.lat = data.lat
-            self.lon = data.lon
-            self.alt = data.alt
-            self.sep = data.sep
-            self.fix = fix2int(data.quality, "GGA")
-            self.diffAge = data.diffAge
-            self.diffStation = data.diffStation
-            self.__app.frm_banner.update_banner(
-                time=self.utc,
-                lat=self.lat,
-                lon=self.lon,
-                alt=self.alt,
-                sip=self.sip,
-                fix=self.fix,
-            )
-
-            self.__app.frm_mapview.update_map(self.lat, self.lon, self.hacc)
-
-            if (
-                self.__app.frm_settings.record_track
-                and self.lat != ""
-                and self.lon != ""
-            ):
-                tim = self.ts2utc(data.time)
-                ele = 0 if self.alt == "" else self.alt
-                self.__app.file_handler.add_trackpoint(
-                    self.lat, self.lon, ele=ele, time=tim, sat=self.sip
-                )
-        except ValueError as err:
-            self.__app.set_status(NMEAVALERROR.format(err), "red")
+        self.__app.gnss_status.utc = data.time  # datetime.time
+        self.__app.gnss_status.sip = data.numSV
+        self.__app.gnss_status.lat = data.lat
+        self.__app.gnss_status.lon = data.lon
+        self.__app.gnss_status.alt = data.alt
+        self.__app.gnss_status.sep = data.sep
+        self.__app.gnss_status.fix = fix2desc("GGA", data.quality)
+        self.__app.gnss_status.diff_corr = 0 if data.diffAge == "" else 1
+        self.__app.gnss_status.diff_age = data.diffAge
+        self.__app.gnss_status.diff_station = data.diffStation
 
     def _process_GLL(self, data: NMEAMessage):
         """
@@ -186,19 +123,40 @@ class NMEAHandler:
         :param pynmeagps.NMEAMessage data: parsed GLL sentence
         """
 
-        try:
-            self.utc = data.time
-            self.lat = data.lat
-            self.lon = data.lon
-            # self.fix = fix2int(data.posMode, "GLL")
-            self.__app.frm_banner.update_banner(
-                time=self.utc, lat=self.lat, lon=self.lon
-            )
+        self.__app.gnss_status.utc = data.time  # datetime.time
+        self.__app.gnss_status.lat = data.lat
+        self.__app.gnss_status.lon = data.lon
+        self.__app.gnss_status.fix = fix2desc("GLL", data.posMode)
+        # only works for NMEA 4.10 and later...
+        # self.__app.gnss_status.diff_corr = 1 if data.posMode == "D" else 0
 
-            self.__app.frm_mapview.update_map(self.lat, self.lon, self.hacc)
+    def _process_GNS(self, data: NMEAMessage):
+        """
+        Process GNS sentence - GNSS Fix
 
-        except ValueError as err:
-            self.__app.set_status(NMEAVALERROR.format(err), "red")
+        :param pynmeagps.NMEAMessage data: parsed GNS sentence
+        """
+
+        self.__app.gnss_status.utc = data.time  # datetime.time
+        self.__app.gnss_status.lat = data.lat
+        self.__app.gnss_status.lon = data.lon
+        self.__app.gnss_status.sip = data.numSV
+        self.__app.gnss_status.hdop = data.HDOP
+        self.__app.gnss_status.alt = data.alt
+        # GNS has four posMode values, one for each GNSS
+        # for dgps status, we pick the 'best' one
+        posMode = "N"
+        for val in ["R", "F", "D", "E", "A"]:
+            if data.posMode.find(val) >= 0:
+                posMode = val
+                break
+        # only works for NMEA 4.10 and later...
+        # if posMode in ["R", "F"]:
+        #     self.__app.gnss_status.diff_corr = 1
+        self.__app.gnss_status.diff_age = data.diffAge
+        self.__app.gnss_status.diff_corr = 0 if data.diffAge == "" else 1
+        self.__app.gnss_status.diff_station = data.diffStation
+        self.__app.gnss_status.fix = fix2desc("GNS", posMode)
 
     def _process_GSA(self, data: NMEAMessage):
         """
@@ -207,16 +165,11 @@ class NMEAHandler:
         :param pynmeagps.NMEAMessage data: parsed GSA sentence
         """
 
-        self.pdop = data.PDOP
-        self.hdop = data.HDOP
-        self.vdop = data.VDOP
-        self.fix = fix2int(data.navMode, "GSA")
-
-        self.__app.frm_mapview.update_map(self.lat, self.lon, self.hacc)
-
-        self.__app.frm_banner.update_banner(
-            dop=self.pdop, hdop=self.hdop, vdop=self.vdop, fix=self.fix
-        )
+        self.__app.gnss_status.pdop = data.PDOP
+        self.__app.gnss_status.hdop = data.HDOP
+        self.__app.gnss_status.vvdop = data.VDOP
+        # doesn't support RTK fix modes so ignored...
+        # self.__app.gnss_status.fix = fix2desc("GSA", data.navMode)
 
     def _process_GSV(self, data: NMEAMessage):
         """
@@ -224,13 +177,13 @@ class NMEAHandler:
         These come in batches of 1-4 sentences, each containing the positions
         of up to 4 satellites (16 satellites in total).
         Modern receivers can send multiple batches corresponding to different
-        NMEA assigned 'ID' ranges (GPS 1-32, SBAS 33-64, GLONASS 65-96 etc.)
+        GNSS constellations (GPS 1-32, SBAS 33-64, GLONASS 65-96 etc.).
 
         :param pynmeagps.NMEAMessage data: parsed GSV sentence
         """
         # pylint: disable=consider-using-dict-items
 
-        show_zero = self.__app.frm_settings.show_zero
+        show_unused = self.__app.frm_settings.show_unused
         self.gsv_data = []
         gsv_dict = {}
         now = time()
@@ -296,14 +249,13 @@ class NMEAHandler:
 
         for key in self.gsv_log:
             gnssId, svid, elev, azim, snr, lastupdate = self.gsv_log[key]
-            if snr in ("", "0", 0) and not show_zero:  # omit sats with zero signal
+            if snr in ("", "0", 0) and not show_unused:  # omit unused sats
                 continue
-            if now - lastupdate < SAT_EXPIRY:  # expire passed satellites
+            if now - lastupdate < SAT_EXPIRY:  # expire passed sats
                 self.gsv_data.append((gnssId, svid, elev, azim, snr))
 
-        self.__app.frm_satview.update_sats(self.gsv_data)
-        self.__app.frm_banner.update_banner(siv=len(self.gsv_data))
-        self.__app.frm_graphview.update_graph(self.gsv_data, len(self.gsv_data))
+        self.__app.gnss_status.siv = len(self.gsv_data)
+        self.__app.gnss_status.gsv_data = self.gsv_data
 
     def _process_VTG(self, data: NMEAMessage):
         """
@@ -312,14 +264,21 @@ class NMEAHandler:
         :param pynmeagps.NMEAMessage data: parsed VTG sentence
         """
 
-        try:
-            self.track = data.cogt
-            # self.fix = fix2int(data.posMode, "VTG")
-            if data.sogk is not None:
-                self.speed = kmph2ms(data.sogk)  # convert to m/s
-            self.__app.frm_banner.update_banner(speed=self.speed, track=self.track)
-        except ValueError as err:
-            self.__app.set_status(NMEAVALERROR.format(err), "red")
+        self.__app.gnss_status.track = data.cogt
+        if data.sogk is not None:
+            self.__app.gnss_status.speed = kmph2ms(data.sogk)  # convert to m/s
+        self.__app.gnss_status.fix = fix2desc("VTG", data.posMode)
+        # only works for NMEA 4.10 and later...
+        # self.__app.gnss_status.diff_corr = 1 if data.posMode == "D" else 0
+
+    def _process_ZDA(self, data: NMEAMessage):
+        """
+        Process ZDA sentence - GPS Time.
+
+        :param pynmeagps.NMEAMessage data: parsed ZDA sentence
+        """
+
+        self.__app.gnss_status.utc = data.time
 
     def _process_UBX00(self, data: NMEAMessage):
         """
@@ -328,52 +287,14 @@ class NMEAHandler:
         :param pynmeagps.NMEAMessage data: parsed UBX,00 sentence
         """
 
-        try:
-            self.hacc = data.hAcc
-            self.vacc = data.vAcc
-            self.__app.frm_banner.update_banner(hacc=self.hacc, vacc=self.vacc)
-
-        except ValueError as err:
-            self.__app.set_status(NMEAVALERROR.format(err), "red")
-
-    @staticmethod
-    def _estimate_acc(dop: float) -> float:
-        """
-        Derive a graphic indication of positional accuracy (in m) based on the HDOP
-        (Horizontal Dilution of Precision) value and the nominal native device
-        accuracy (datasheet CEP)
-
-        NB: this is a largely arbitrary estimate - there is no direct correlation
-        between HDOP and accuracy based solely on generic NMEA data.
-        The NMEA PUBX,00 or UBX NAV-POSLLH message types return an explicit estimate
-        of horizontal and vertical accuracy and are the preferred source.
-
-        :param float dop: horizontal dilution of precision
-        :return: horizontal accuracy
-        :rtype: float
-        """
-
-        return float(dop) * DEVICE_ACCURACY * HDOP_RATIO / 1000
-
-    @staticmethod
-    def ts2utc(timestamp) -> str:
-        """
-        Convert NMEA timestamp to utc time
-
-        :param str timestamp: NMEA timestamp from pynmea2
-        :return: utc time
-        :rtype: str
-        """
-
-        t = datetime.now()
-        s = (
-            str(t.year)
-            + "-"
-            + str(t.month)
-            + "-"
-            + str(t.day)
-            + "T"
-            + str(timestamp)
-            + "Z"
-        )
-        return s
+        self.__app.gnss_status.lat = data.lat
+        self.__app.gnss_status.lon = data.lon
+        self.__app.gnss_status.alt = data.altRef
+        self.__app.gnss_status.speed = data.SOG
+        self.__app.gnss_status.track = data.COG
+        self.__app.gnss_status.pdop = data.PDOP
+        self.__app.gnss_status.hdop = data.HDOP
+        self.__app.gnss_status.vdop = data.VDOP
+        self.__app.gnss_status.hacc = data.hAcc
+        self.__app.gnss_status.vacc = data.vAcc
+        self.__app.gnss_status.sip = data.numSVs
