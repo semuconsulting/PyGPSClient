@@ -302,7 +302,7 @@ class SerialHandler:
         """
 
         while self._reading and self._serial_object:
-            self.__app.update_idletasks()  # necessary for file reads or app is unresponsive
+            # self.__app.update_idletasks()  # necessary for file reads or app is unresponsive
             self.__master.event_generate("<<gnss_readfile>>")
 
     def on_read(self, event):  # pylint: disable=unused-argument
@@ -330,7 +330,7 @@ class SerialHandler:
         if self._reading and self._serial_object is not None:
             try:
                 self._parse_data(self._serial_buffer)
-                self.__app.update_idletasks()  # necessary for file reads or app is unresponsive
+                # self.__app.update_idletasks()  # necessary for file reads or app is unresponsive
             except SerialException as err:
                 self.__app.set_status(f"Error {err}", "red")
 

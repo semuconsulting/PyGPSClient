@@ -169,7 +169,7 @@ class MapviewFrame(Frame):
                 self._img = ImageTk.PhotoImage(Image.open(BytesIO(img_data)))
                 self.can_mapview.delete("all")
                 self.can_mapview.create_image(0, 0, image=self._img, anchor=NW)
-                # self.can_mapview.update_idletasks()
+                self.can_mapview.update_idletasks()
                 return
         except (ConnError, ConnectTimeout):
             msg = NOWEBMAPCONN

@@ -165,7 +165,7 @@ class GraphviewFrame(Frame):
             )
             offset += colwidth
 
-        # self.can_graphview.update_idletasks()
+        self.can_graphview.update_idletasks()
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """

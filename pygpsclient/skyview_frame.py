@@ -147,7 +147,7 @@ class SkyviewFrame(Frame):
             except ValueError:
                 pass
 
-        # self.can_satview.update_idletasks()
+        self.can_satview.update_idletasks()
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """
