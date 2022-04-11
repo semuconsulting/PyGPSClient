@@ -49,6 +49,7 @@ class SerialHandler:
         self._serial_thread = None
         self._file_thread = None
         self._connected = False
+        self._connectedfile = False
         self._reading = False
 
     def __del__(self):
@@ -131,7 +132,7 @@ class SerialHandler:
             self.__app.frm_banner.update_conn_status(CONNECTED_FILE)
             self.__app.set_connection(f"{in_filepath}", "blue")
             self.__app.frm_settings.enable_controls(CONNECTED_FILE)
-            self._connected = True
+            self._connectedfile = True
             self.start_readfile_thread()
 
             if self.__app.frm_settings.datalogging:
@@ -152,7 +153,7 @@ class SerialHandler:
         Close serial connection.
         """
 
-        if self._connected:
+        if self._connected or self._connectedfile:
             try:
                 self._reading = False
                 self._serial_object.close()
@@ -170,6 +171,7 @@ class SerialHandler:
                 pass
 
         self._connected = False
+        self._connectedfile = False
         self.__app.frm_settings.enable_controls(self._connected)
 
     @property
@@ -183,10 +185,18 @@ class SerialHandler:
     @property
     def connected(self):
         """
-        Getter for connection status
+        Getter for serial connection status
         """
 
         return self._connected
+
+    @property
+    def connectedfile(self):
+        """
+        Getter for file connection status
+        """
+
+        return self._connectedfile
 
     @property
     def serial(self):
@@ -241,7 +251,7 @@ class SerialHandler:
         Start the file reader thread.
         """
 
-        if self._connected:
+        if self._connectedfile:
             self._reading = True
             self.__app.frm_mapview.reset_map_refresh()
             self._file_thread = Thread(target=self._readfile_thread, daemon=True)
