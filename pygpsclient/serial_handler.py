@@ -13,6 +13,7 @@ Created on 16 Sep 2020
 
 from io import BufferedReader
 from threading import Thread
+from datetime import datetime, timedelta
 from serial import Serial, SerialException, SerialTimeoutException
 from pynmeagps import NMEAReader, NMEAParseError
 from pyrtcm import RTCMReader
@@ -26,6 +27,8 @@ from pygpsclient.globals import (
     USE_PYRTCM,
 )
 from pygpsclient.strings import NOTCONN, SEROPENERROR, ENDOFFILE
+
+FILEREAD_INTERVAL = 0.05  # seconds
 
 
 class SerialHandler:
@@ -51,6 +54,7 @@ class SerialHandler:
         self._connected = False
         self._connectedfile = False
         self._reading = False
+        self._lastfileread = datetime.now()
 
     def __del__(self):
         """
@@ -298,12 +302,17 @@ class SerialHandler:
         """
         THREADED PROCESS
         Reads binary data from datalog file and generates virtual event to
-        trigger data parsing and widget updates.
+        trigger data parsing and widget updates. A delay loop is introduced
+        to ensure the GUI remains responsive during file reads.
         """
 
         while self._reading and self._serial_object:
-            # self.__app.update_idletasks()  # necessary for file reads or app is unresponsive
-            self.__master.event_generate("<<gnss_readfile>>")
+            if datetime.now() > self._lastfileread + timedelta(
+                seconds=FILEREAD_INTERVAL
+            ):
+                # self.__app.update_idletasks()
+                self.__master.event_generate("<<gnss_readfile>>")
+                self._lastfileread = datetime.now()
 
     def on_read(self, event):  # pylint: disable=unused-argument
         """
@@ -330,7 +339,7 @@ class SerialHandler:
         if self._reading and self._serial_object is not None:
             try:
                 self._parse_data(self._serial_buffer)
-                # self.__app.update_idletasks()  # necessary for file reads or app is unresponsive
+                # self.__app.update_idletasks()
             except SerialException as err:
                 self.__app.set_status(f"Error {err}", "red")
 
