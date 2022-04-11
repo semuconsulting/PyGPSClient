@@ -14,7 +14,7 @@ Created on 30 Sep 2020
 from pyubx2 import UBXMessage, UBX_MSGIDS
 from pyubx2.ubxhelpers import msgclass2bytes
 from pygpsclient.globals import GLONASS_NMEA
-from pygpsclient.helpers import itow2utc, svid2gnssid, fix2desc
+from pygpsclient.helpers import itow2utc, svid2gnssid, fix2desc, corrage2int
 
 
 class UBXHandler:
@@ -241,7 +241,7 @@ class UBXHandler:
         self.__app.gnss_status.track = data.headMot
         self.__app.gnss_status.fix = fix2desc("NAV-PVT", data.fixType)
         self.__app.gnss_status.diff_corr = data.difSoln
-        self.__app.gnss_status.diff_age = data.lastCorrectionAge
+        self.__app.gnss_status.diff_age = corrage2int(data.lastCorrectionAge)
 
     def _process_NAV_VELNED(self, data: UBXMessage):
         """

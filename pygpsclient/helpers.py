@@ -481,28 +481,28 @@ def fix2desc(msgid: str, fix: object) -> str:
     return FIXLOOKUP.get(msgid + str(fix), "NO FIX")
 
 
-def diffcode2age(code: int) -> str:
+def corrage2int(code: int) -> int:
     """
-    Convert NAV-PV diff code to age in seconds.
+    Convert NAV-PV lastCorrectionAge value to age in seconds.
 
     :param int code: diff age code from NAV-PVT
     :return: string indicating diff age in seconds
-    :rtype: str
+    :rtype: int
     """
 
     LOOKUP = {
-        0: "N/A",
-        1: "<1",
-        2: "<2",
-        3: "<5",
-        4: "<10",
-        5: "<15",
-        6: "<20",
-        7: "<30",
-        8: "<45",
-        9: "<60",
-        10: "<90",
-        11: "<120",
+        0: 0,
+        1: 1,
+        2: 2,
+        3: 5,
+        4: 10,
+        5: 15,
+        6: 20,
+        7: 30,
+        8: 45,
+        9: 60,
+        10: 90,
+        11: 120,
     }
 
-    return LOOKUP.get(code, ">120")
+    return LOOKUP.get(code, 0)

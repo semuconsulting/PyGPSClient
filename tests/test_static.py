@@ -25,7 +25,7 @@ from pygpsclient.helpers import (
     svid2gnssid,
     cel2cart,
     itow2utc,
-    diffcode2age,
+    corrage2int,
     fix2desc,
     estimate_acc,
 )
@@ -110,11 +110,11 @@ class StaticTest(unittest.TestCase):
             res = fix2desc(fix, msg)
             self.assertEqual(res, EXPECTED_RESULT[i])
 
-    def testdiffcode2age(self):
-        EXPECTED_RESULT = ["N/A", "<5", "<20", "<60", "<120", ">120"]
+    def testcorrage2int(self):
+        EXPECTED_RESULT = [0, 5, 20, 60, 120, 0]
         fixes = (0, 3, 6, 9, 11, 15)
         for i, fix in enumerate(fixes):
-            res = diffcode2age(fix)
+            res = corrage2int(fix)
             self.assertEqual(res, EXPECTED_RESULT[i])
 
 
