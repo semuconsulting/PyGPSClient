@@ -1,7 +1,5 @@
 # PyGPSClient
 
-# WORK IN PROGRESS - PERFORMANCE ENHANCEMENTS
-
 [Current Status](#currentstatus) |
 [Features](#features) |
 [How to Use](#howtouse) |
