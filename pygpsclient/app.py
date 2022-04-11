@@ -409,7 +409,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
     def process_data(self, raw_data: bytes, parsed_data: object, marker: str = ""):
         """
         Update the various GUI widgets, GPX track and log file
-        with the latest data.
+        with the latest data. Parsed data tagged with a 'marker' is
+        written to the console but not processed further.
 
         :param bytes raw_data: raw message data
         :param object parsed data: NMEAMessage, UBXMessage or RTCMMessage
