@@ -51,6 +51,7 @@ MAP_UPDATE_INTERVAL = (
 )
 GUI_UPDATE_INTERVAL = 1  # minimum GUI widget update interval (seconds)
 GPX_TRACK_INTERVAL = 1  # minimum GPS track update interval (seconds)
+FILEREAD_INTERVAL = 0.05  # delay between successive datalog file reads (seconds)
 SAT_EXPIRY = 10  # how long passed satellites are kept in the sky and graph views
 MAX_SNR = 60  # upper limit of graphview snr axis
 DEVICE_ACCURACY = 2.5  # nominal GPS device accuracy (CEP) in meters

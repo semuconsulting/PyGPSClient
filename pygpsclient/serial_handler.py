@@ -25,10 +25,9 @@ from pygpsclient.globals import (
     DISCONNECTED,
     CRLF,
     USE_PYRTCM,
+    FILEREAD_INTERVAL,
 )
 from pygpsclient.strings import NOTCONN, SEROPENERROR, ENDOFFILE
-
-FILEREAD_INTERVAL = 0.05  # seconds
 
 
 class SerialHandler:
