@@ -241,7 +241,8 @@ class UBXHandler:
         self.__app.gnss_status.track = data.headMot
         self.__app.gnss_status.fix = fix2desc("NAV-PVT", data.fixType)
         self.__app.gnss_status.diff_corr = data.difSoln
-        self.__app.gnss_status.diff_age = corrage2int(data.lastCorrectionAge)
+        if data.lastCorrectionAge != 0:
+            self.__app.gnss_status.diff_age = corrage2int(data.lastCorrectionAge)
 
     def _process_NAV_VELNED(self, data: UBXMessage):
         """
