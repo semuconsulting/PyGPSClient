@@ -483,7 +483,7 @@ def fix2desc(msgid: str, fix: object) -> str:
 
 def corrage2int(code: int) -> int:
     """
-    Convert NAV-PV lastCorrectionAge value to age in seconds.
+    Convert NAV-PVT lastCorrectionAge value to age in seconds.
 
     :param int code: diff age code from NAV-PVT
     :return: string indicating diff age in seconds

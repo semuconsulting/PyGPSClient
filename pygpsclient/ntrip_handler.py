@@ -133,10 +133,10 @@ class NTRIPHandler:
         """
 
         if self._ntrip_thread is not None:
-            self._reading = False
-            self._ntrip_thread = None
             if self.__app.ntripconfig is not None:
                 self.__app.dlg_ntripconfig.set_controls(False)
+            self._reading = False
+            self._ntrip_thread = None
 
     def _read_thread(self):
         """
