@@ -1,6 +1,10 @@
 """
 PyGPSClient - Main tkinter application class.
 
+Hosts the various GUI widgets and update routines.
+Holds a GNSSStatus object containing the latest
+GNSS receiver readings.
+
 Created on 12 Sep 2020
 
 :author: semuadmin
@@ -8,9 +12,12 @@ Created on 12 Sep 2020
 :license: BSD 3-Clause
 """
 
+import logging
 from threading import Thread
+from datetime import datetime, timedelta
 from tkinter import Frame, N, S, E, W, PhotoImage, font
 
+from pyubx2 import protocol, NMEA_PROTOCOL, UBX_PROTOCOL, RTCM3_PROTOCOL
 from pygpsclient.strings import (
     TITLE,
     MENUHIDESE,
@@ -25,12 +32,17 @@ from pygpsclient.strings import (
     MENUSHOWSATS,
     INTROTXTNOPORTS,
 )
-from pygpsclient._version import __version__
+from pygpsclient.gnss_status import GNSSStatus
 from pygpsclient.about_dialog import AboutDialog
 from pygpsclient.banner_frame import BannerFrame
 from pygpsclient.console_frame import ConsoleFrame
 from pygpsclient.file_handler import FileHandler
-from pygpsclient.globals import ICON_APP, DISCONNECTED
+from pygpsclient.globals import (
+    ICON_APP,
+    DISCONNECTED,
+    GUI_UPDATE_INTERVAL,
+    GPX_TRACK_INTERVAL,
+)
 from pygpsclient.graphview_frame import GraphviewFrame
 from pygpsclient.map_frame import MapviewFrame
 from pygpsclient.menu_bar import MenuBar
@@ -44,7 +56,9 @@ from pygpsclient.ntrip_client_dialog import NTRIPConfigDialog
 from pygpsclient.nmea_handler import NMEAHandler
 from pygpsclient.ubx_handler import UBXHandler
 
-VERSION = __version__
+# from pygpsclient.rtcm3_handler import RTCM3Handler
+
+LOGGING = logging.INFO
 
 
 class App(Frame):  # pylint: disable=too-many-ancestors
@@ -61,6 +75,11 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         :param kwargs: optional kwargs to pass to Frame parent class
         """
 
+        logging.basicConfig(
+            format="%(asctime)-15s [%(levelname)s] %(funcName)s: %(message)s",
+            level=LOGGING,
+        )
+
         self.__master = master
 
         Frame.__init__(self, self.__master, *args, **kwargs)
@@ -68,6 +87,9 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.__master.protocol("WM_DELETE_WINDOW", self.on_exit)
         self.__master.title(TITLE)
         self.__master.iconphoto(True, PhotoImage(file=ICON_APP))
+        self.gnss_status = GNSSStatus()  # holds latest GNSS readings
+        self._last_gui_update = datetime.now()
+        self._last_track_update = datetime.now()
 
         # Set initial widget visibility
         self._show_settings = True
@@ -82,6 +104,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.serial_handler = SerialHandler(self)
         self.nmea_handler = NMEAHandler(self)
         self.ubx_handler = UBXHandler(self)
+        # self.rtcm3_handler = RTCM3Handler(self)
         self.ntrip_handler = NTRIPHandler(self)
         self.dlg_ubxconfig = None
         self.dlg_ntripconfig = None
@@ -99,27 +122,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.frm_satview.init_sats()
         self.frm_graphview.init_graph()
         self.frm_banner.update_conn_status(DISCONNECTED)
-
-        # Dict containing latest GNSS readings from NMEA and/or UBX
-        self._GNSS_status = {
-            "utc": 0,
-            "lat": 0.0,
-            "lon": 0.0,
-            "alt": 0.0,
-            "speed": 0.0,
-            "track": 0.0,
-            "fix": 5,
-            "siv": 0,
-            "sip": 0,
-            "pdop": 0.0,
-            "hdop": 0.0,
-            "vdop": 0.0,
-            "hacc": 0.0,
-            "vacc": 0.0,
-            "sep": 0.0,
-            "diffAge": 0,
-            "diffStation": 0,
-        }
 
     def _body(self):
         """
@@ -169,10 +171,10 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         Bind events to main application
         """
 
-        self.__master.bind("<<ubx_read>>", self.serial_handler.on_read)
+        self.__master.bind("<<gnss_read>>", self.serial_handler.on_read)
+        self.__master.bind("<<gnss_readfile>>", self.serial_handler.on_readfile)
+        self.__master.bind("<<gnss_eof>>", self.serial_handler.on_eof)
         self.__master.bind("<<ntrip_read>>", self.ntrip_handler.on_read)
-        self.__master.bind("<<ubx_readfile>>", self.serial_handler.on_read)
-        self.__master.bind("<<ubx_eof>>", self.serial_handler.on_eof)
         self.__master.bind_all("<Control-q>", self.on_exit)
 
     def _set_default_fonts(self):
@@ -404,21 +406,115 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.serial_handler.disconnect()
         self.__master.destroy()
 
-    @property
-    def GNSS_status(self):
+    def process_data(self, raw_data: bytes, parsed_data: object, marker: str = ""):
         """
-        Getter for latest GNSS status.
-        """
+        Update the various GUI widgets, GPX track and log file
+        with the latest data. Parsed data tagged with a 'marker' is
+        written to the console but not processed further.
 
-        return self._GNSS_status
-
-    def set_GNSS_status(self, **kwargs):
-        """
-        Setter for latest GNSS status.
-
-        :param object args: (kwarg) GNSS status parm e.g. lat, lon
+        :param bytes raw_data: raw message data
+        :param object parsed data: NMEAMessage, UBXMessage or RTCMMessage
+        :param str marker: string prepended to console entries e.g. "NTRIP>>"
         """
 
-        for parm in kwargs:
-            if parm in self._GNSS_status.keys():
-                self._GNSS_status[parm] = kwargs[parm]
+        protfilter = self.frm_settings.protocol
+        msgprot = protocol(raw_data)
+
+        if msgprot == UBX_PROTOCOL and msgprot & protfilter:
+            if marker == "":
+                self.ubx_handler.process_data(raw_data, parsed_data)
+            else:
+                parsed_data = marker + str(parsed_data)
+        elif msgprot == NMEA_PROTOCOL and msgprot & protfilter:
+            if marker == "":
+                self.nmea_handler.process_data(raw_data, parsed_data)
+            else:
+                parsed_data = marker + str(parsed_data)
+        elif msgprot == RTCM3_PROTOCOL and msgprot & protfilter:
+            if marker != "":
+                parsed_data = marker + str(parsed_data)
+            # currently no rtcm3 processing needed
+            # else:
+            #    self.rtcm3_handler.process_data(raw_data, parsed_data)
+        else:
+            return
+
+        self.frm_console.update_console(raw_data, parsed_data)
+
+        if datetime.now() > self._last_gui_update + timedelta(
+            seconds=GUI_UPDATE_INTERVAL
+        ):
+            self.frm_banner.update_banner()
+            self.frm_mapview.update_map()
+            self.frm_satview.update_sats()
+            self.frm_graphview.update_graph()
+
+            # self.update_idletasks()  # TODO helps with full frame resizing on MacOS?
+            self._last_gui_update = datetime.now()
+
+        # update GPX track file if enabled
+        if (
+            self.frm_settings.record_track
+            and self.gnss_status.lat != ""
+            and self.gnss_status.lon != ""
+        ):
+            self.update_gpx_track()
+
+        # update log file if enabled
+        if self.frm_settings.datalogging:
+            self.file_handler.write_logfile(raw_data, parsed_data)
+
+    def update_gpx_track(self):
+        """
+        Update GPX track with latest position reading.
+        """
+
+        if datetime.now() > self._last_track_update + timedelta(
+            seconds=GPX_TRACK_INTERVAL
+        ):
+            today = datetime.now()
+            gpstime = self.gnss_status.utc
+            trktime = datetime(
+                today.year,
+                today.month,
+                today.day,
+                gpstime.hour,
+                gpstime.minute,
+                gpstime.second,
+                gpstime.microsecond,
+            )
+            time = f"{trktime.isoformat()}Z"
+            if self.gnss_status.diff_corr:
+                fix = "dgps"
+            elif self.gnss_status.fix == "3D":
+                fix = "3d"
+            elif self.gnss_status.fix == "2D":
+                fix = "2d"
+            else:
+                fix = "none"
+            diff_age = self.gnss_status.diff_age
+            diff_station = self.gnss_status.diff_station
+            if diff_age in [None, "", 0] or diff_station in [None, "", 0]:
+                self.file_handler.add_trackpoint(
+                    self.gnss_status.lat,
+                    self.gnss_status.lon,
+                    ele=self.gnss_status.alt,
+                    time=time,
+                    fix=fix,
+                    sat=self.gnss_status.sip,
+                    pdop=self.gnss_status.pdop,
+                )
+            else:
+                self.file_handler.add_trackpoint(
+                    self.gnss_status.lat,
+                    self.gnss_status.lon,
+                    ele=self.gnss_status.alt,
+                    time=time,
+                    fix=fix,
+                    sat=self.gnss_status.sip,
+                    pdop=self.gnss_status.pdop,
+                    ageofdgpsdata=diff_age,
+                    dgpsid=diff_station,
+                )
+
+            self._last_track_update = datetime.now()

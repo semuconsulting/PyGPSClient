@@ -73,6 +73,7 @@ class UBX_MSGRATE_Frame(Frame):
         self._img_warn = ImageTk.PhotoImage(Image.open(ICON_WARNING))
         self._ddc_rate = IntVar()
         self._uart1_rate = IntVar()
+        self._uart2_rate = IntVar()
         self._usb_rate = IntVar()
         self._spi_rate = IntVar()
         self._cfg_msg_command = None
@@ -94,7 +95,7 @@ class UBX_MSGRATE_Frame(Frame):
             border=2,
             relief="sunken",
             bg=ENTCOL,
-            height=7,
+            height=9,
             justify=LEFT,
             exportselection=False,
         )
@@ -118,6 +119,16 @@ class UBX_MSGRATE_Frame(Frame):
             from_=0,
             to=MAX_RATE,
             textvariable=self._uart1_rate,
+            state=READONLY,
+            readonlybackground=ENTCOL,
+        )
+        self._lbl_uart2 = Label(self, text="UART2")
+        self._spn_uart2 = Spinbox(
+            self,
+            width=3,
+            from_=0,
+            to=MAX_RATE,
+            textvariable=self._uart2_rate,
             state=READONLY,
             readonlybackground=ENTCOL,
         )
@@ -158,22 +169,24 @@ class UBX_MSGRATE_Frame(Frame):
 
         self._lbl_cfg_msg.grid(column=0, row=0, columnspan=6, padx=3, sticky=(W, E))
         self._lbx_cfg_msg.grid(
-            column=0, row=1, columnspan=2, rowspan=8, padx=3, pady=3, sticky=(W, E)
+            column=0, row=1, columnspan=2, rowspan=11, padx=3, pady=3, sticky=(W, E)
         )
-        self._scr_cfg_msg.grid(column=1, row=1, rowspan=8, sticky=(N, S, E))
+        self._scr_cfg_msg.grid(column=1, row=1, rowspan=11, sticky=(N, S, E))
         self._lbl_ddc.grid(column=2, row=1, rowspan=2, padx=0, pady=1, sticky=(E))
         self._spn_ddc.grid(column=3, row=1, rowspan=2, padx=0, pady=0, sticky=(W))
         self._lbl_uart1.grid(column=2, row=3, rowspan=2, padx=0, pady=1, sticky=(E))
         self._spn_uart1.grid(column=3, row=3, rowspan=2, padx=0, pady=0, sticky=(W))
-        self._lbl_usb.grid(column=2, row=5, rowspan=2, padx=0, pady=1, sticky=(E))
-        self._spn_usb.grid(column=3, row=5, rowspan=2, padx=0, pady=0, sticky=(W))
-        self._lbl_spi.grid(column=2, row=7, rowspan=2, padx=0, pady=1, sticky=(E))
-        self._spn_spi.grid(column=3, row=7, rowspan=2, padx=0, pady=0, sticky=(W))
+        self._lbl_uart2.grid(column=2, row=5, rowspan=2, padx=0, pady=1, sticky=(E))
+        self._spn_uart2.grid(column=3, row=5, rowspan=2, padx=0, pady=0, sticky=(W))
+        self._lbl_usb.grid(column=2, row=7, rowspan=2, padx=0, pady=1, sticky=(E))
+        self._spn_usb.grid(column=3, row=7, rowspan=2, padx=0, pady=0, sticky=(W))
+        self._lbl_spi.grid(column=2, row=9, rowspan=2, padx=0, pady=1, sticky=(E))
+        self._spn_spi.grid(column=3, row=9, rowspan=2, padx=0, pady=0, sticky=(W))
         self._btn_send_command.grid(
-            column=4, row=1, rowspan=8, ipadx=3, ipady=3, sticky=(E)
+            column=4, row=1, rowspan=11, ipadx=3, ipady=3, sticky=(E)
         )
         self._lbl_send_command.grid(
-            column=5, row=1, rowspan=8, ipadx=3, ipady=3, sticky=(E)
+            column=5, row=1, rowspan=11, ipadx=3, ipady=3, sticky=(E)
         )
 
         (cols, rows) = self.grid_size()
@@ -213,6 +226,7 @@ class UBX_MSGRATE_Frame(Frame):
             self.__container.set_status("CFG-MSG GET message received", "green")
             self._ddc_rate.set(kwargs.get("ddcrate", 0))
             self._uart1_rate.set(kwargs.get("uart1rate", 0))
+            self._uart2_rate.set(kwargs.get("uart2rate", 0))
             self._usb_rate.set(kwargs.get("usbrate", 0))
             self._spi_rate.set(kwargs.get("spirate", 0))
             self._lbl_send_command.config(image=self._img_confirmed)
@@ -242,6 +256,7 @@ class UBX_MSGRATE_Frame(Frame):
         msgID = int.from_bytes(msg[1:2], "little", signed=False)
         rateDDC = int(self._ddc_rate.get())
         rateUART1 = int(self._uart1_rate.get())
+        rateUART2 = int(self._uart2_rate.get())
         rateUSB = int(self._usb_rate.get())
         rateSPI = int(self._spi_rate.get())
         data = UBXMessage(
@@ -252,6 +267,7 @@ class UBX_MSGRATE_Frame(Frame):
             msgID=msgID,
             rateDDC=rateDDC,
             rateUART1=rateUART1,
+            rateUART2=rateUART2,
             rateUSB=rateUSB,
             rateSPI=rateSPI,
         )

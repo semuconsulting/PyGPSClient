@@ -130,7 +130,7 @@ class ConsoleFrame(Frame):
             # i.e. delete the first line
             con.delete("1.0", "2.0")
 
-        con.update()
+        # con.update_idletasks()
         if self.__app.frm_settings.autoscroll:
             con.see("end")
         con.configure(state="disabled")

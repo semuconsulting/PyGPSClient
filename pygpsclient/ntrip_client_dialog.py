@@ -48,6 +48,7 @@ from pygpsclient.globals import (
     UBX_PRESET,
     ENTCOL,
     READONLY,
+    POPUP_TRANSIENT,
 )
 from pygpsclient.strings import (
     DLGNTRIPCONFIG,
@@ -81,8 +82,9 @@ class NTRIPConfigDialog(Toplevel):
         self.__app = app  # Reference to main application class
         self.__master = self.__app.get_master()  # Reference to root class (Tk)
         Toplevel.__init__(self, app)
-        self.transient(self.__app)
-        self.resizable(False, False)
+        if POPUP_TRANSIENT:
+            self.transient(self.__app)
+        self.resizable(True, True)  # allow for MacOS resize glitches
         self.title(DLGNTRIPCONFIG)  # pylint: disable=E1102
         self.protocol("WM_DELETE_WINDOW", self.on_exit)
         self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
@@ -116,7 +118,7 @@ class NTRIPConfigDialog(Toplevel):
         self._do_layout()
         self._attach_events()
         self._reset()
-        self._centre()
+        # self._centre()
 
     def _body(self):
         """
@@ -403,7 +405,7 @@ class NTRIPConfigDialog(Toplevel):
         Handle Exit button press.
         """
 
-        self.__master.update_idletasks()
+        # self.__master.update_idletasks()
         self.__app.stop_ntripconfig_thread()
         self.destroy()
 
@@ -458,7 +460,7 @@ class NTRIPConfigDialog(Toplevel):
         self._lbx_sourcetable.delete(0, END)
         for item in stable:
             self._lbx_sourcetable.insert(END, item)
-        self._lbx_sourcetable.update()
+        # self._lbx_sourcetable.update_idletasks()
         self._lbx_sourcetable.bind("<<ListboxSelect>>", self._on_select_mp)
 
     def _connect(self):

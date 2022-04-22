@@ -11,13 +11,13 @@ Created on 16 Sep 2020
 :license: BSD 3-Clause
 """
 
-import logging
 from io import BufferedReader
 from threading import Thread
+from datetime import datetime, timedelta
 from serial import Serial, SerialException, SerialTimeoutException
 from pynmeagps import NMEAReader, NMEAParseError
 from pyrtcm import RTCMReader
-from pyubx2 import UBXReader, UBXParseError, RTCMMessage as RTCMStub, protocol
+from pyubx2 import UBXReader, UBXParseError, RTCMMessage as RTCMStub
 import pyubx2.ubxtypes_core as ubt
 from pygpsclient.globals import (
     CONNECTED,
@@ -25,10 +25,9 @@ from pygpsclient.globals import (
     DISCONNECTED,
     CRLF,
     USE_PYRTCM,
+    FILEREAD_INTERVAL,
 )
 from pygpsclient.strings import NOTCONN, SEROPENERROR, ENDOFFILE
-
-LOGGING = logging.WARNING
 
 
 class SerialHandler:
@@ -52,12 +51,9 @@ class SerialHandler:
         self._serial_thread = None
         self._file_thread = None
         self._connected = False
+        self._connectedfile = False
         self._reading = False
-
-        logging.basicConfig(
-            format="%(asctime)-15s [%(levelname)s] %(funcName)s: %(message)s",
-            level=LOGGING,
-        )
+        self._lastfileread = datetime.now()
 
     def __del__(self):
         """
@@ -139,7 +135,7 @@ class SerialHandler:
             self.__app.frm_banner.update_conn_status(CONNECTED_FILE)
             self.__app.set_connection(f"{in_filepath}", "blue")
             self.__app.frm_settings.enable_controls(CONNECTED_FILE)
-            self._connected = True
+            self._connectedfile = True
             self.start_readfile_thread()
 
             if self.__app.frm_settings.datalogging:
@@ -160,7 +156,7 @@ class SerialHandler:
         Close serial connection.
         """
 
-        if self._connected:
+        if self._connected or self._connectedfile:
             try:
                 self._reading = False
                 self._serial_object.close()
@@ -178,6 +174,7 @@ class SerialHandler:
                 pass
 
         self._connected = False
+        self._connectedfile = False
         self.__app.frm_settings.enable_controls(self._connected)
 
     @property
@@ -191,10 +188,18 @@ class SerialHandler:
     @property
     def connected(self):
         """
-        Getter for connection status
+        Getter for serial connection status
         """
 
         return self._connected
+
+    @property
+    def connectedfile(self):
+        """
+        Getter for file connection status
+        """
+
+        return self._connectedfile
 
     @property
     def serial(self):
@@ -227,10 +232,11 @@ class SerialHandler:
         :param bytes data: data to write to stream
         """
 
-        try:
-            self._serial_object.write(data)
-        except (SerialException, SerialTimeoutException) as err:
-            print(f"Error writing to serial port {err}")
+        if self._connected and self._serial_object is not None:
+            try:
+                self._serial_object.write(data)
+            except (SerialException, SerialTimeoutException) as err:
+                print(f"Error writing to serial port {err}")
 
     def start_read_thread(self):
         """
@@ -248,7 +254,7 @@ class SerialHandler:
         Start the file reader thread.
         """
 
-        if self._connected:
+        if self._connectedfile:
             self._reading = True
             self.__app.frm_mapview.reset_map_refresh()
             self._file_thread = Thread(target=self._readfile_thread, daemon=True)
@@ -284,7 +290,7 @@ class SerialHandler:
         try:
             while self._reading and self._serial_object:
                 if self._serial_object.in_waiting:
-                    self.__master.event_generate("<<ubx_read>>")
+                    self.__master.event_generate("<<gnss_read>>")
         except SerialException as err:
             self.__app.set_status(f"Error in read thread {err}", "red")
         # spurious errors as thread shuts down after serial disconnection
@@ -295,15 +301,22 @@ class SerialHandler:
         """
         THREADED PROCESS
         Reads binary data from datalog file and generates virtual event to
-        trigger data parsing and widget updates.
+        trigger data parsing and widget updates. A delay loop is introduced
+        to ensure the GUI remains responsive during file reads.
         """
 
         while self._reading and self._serial_object:
-            self.__master.event_generate("<<ubx_readfile>>")
+            if datetime.now() > self._lastfileread + timedelta(
+                seconds=FILEREAD_INTERVAL
+            ):
+                # self.__app.update_idletasks()
+                self.__master.event_generate("<<gnss_readfile>>")
+                self._lastfileread = datetime.now()
 
     def on_read(self, event):  # pylint: disable=unused-argument
         """
-        Action on <<ubx_read>> event - read any data in the buffer.
+        EVENT TRIGGERED
+        Action on <<gnss_read>> event - read any data in the buffer.
 
         :param event event: read event
         """
@@ -314,8 +327,24 @@ class SerialHandler:
             except SerialException as err:
                 self.__app.set_status(f"Error {err}", "red")
 
+    def on_readfile(self, event):  # pylint: disable=unused-argument
+        """
+        EVENT TRIGGERED
+        Action on <<gnss_readfile>> event - read any data from file.
+
+        :param event event: read event
+        """
+
+        if self._reading and self._serial_object is not None:
+            try:
+                self._parse_data(self._serial_buffer)
+                # self.__app.update_idletasks()
+            except SerialException as err:
+                self.__app.set_status(f"Error {err}", "red")
+
     def on_eof(self, event):  # pylint: disable=unused-argument
         """
+        EVENT TRIGGERED
         Action on end of file
 
         :param event event: eof event
@@ -327,7 +356,7 @@ class SerialHandler:
     def _parse_data(self, stream: object):
         """
         Read the binary data and direct to the appropriate
-        UBX and/or NMEA protocol handler, depending on which protocols
+        UBX, NMEA or RTCM protocol handler, depending on which protocols
         are filtered.
 
         :param Serial ser: serial port
@@ -336,7 +365,6 @@ class SerialHandler:
         parsing = True
         raw_data = None
         parsed_data = None
-        protfilter = self.__app.frm_settings.protocol
 
         try:
             while parsing:  # loop until end of valid UBX/NMEA message or EOF
@@ -388,37 +416,20 @@ class SerialHandler:
                 # else drop it like it's hot
                 else:
                     parsing = False
+
         except EOFError:
-            self.__master.event_generate("<<ubx_eof>>")
+            self.__master.event_generate("<<gnss_eof>>")
             return
         except (UBXParseError, NMEAParseError) as err:
             # log errors to console, then continue
             self.__app.frm_console.update_console(bytes(str(err), "utf-8"), err)
             return
 
-        logging.debug("raw: %s parsed: %s", raw_data, parsed_data)
+        # logging.debug("raw: %s parsed: %s", raw_data, parsed_data)
         if raw_data is None or parsed_data is None:
             return
-        msgprot = protocol(raw_data)
-        if msgprot == ubt.UBX_PROTOCOL and msgprot & protfilter:
-            self.__app.frm_console.update_console(raw_data, parsed_data)
-            self.__app.ubx_handler.process_data(raw_data, parsed_data)
-        elif msgprot == ubt.NMEA_PROTOCOL and msgprot & protfilter:
-            self.__app.frm_console.update_console(raw_data, parsed_data)
-            self.__app.nmea_handler.process_data(raw_data, parsed_data)
-        elif msgprot == ubt.RTCM3_PROTOCOL and msgprot & protfilter:
-            self.__app.frm_console.update_console(raw_data, parsed_data)
-            # currently no handler for RTCM3 messages
-        elif (
-            msgprot == 0
-            and protfilter == ubt.NMEA_PROTOCOL | ubt.UBX_PROTOCOL | ubt.RTCM3_PROTOCOL
-        ):
-            # log unknown protocol headers to console, then continue
-            self.__app.frm_console.update_console(raw_data, parsed_data)
-
-        # if datalogging, write to log file
-        if self.__app.frm_settings.datalogging:
-            self.__app.file_handler.write_logfile(raw_data, parsed_data)
+        # update the GUI, datalog file and GPX track file
+        self.__app.process_data(raw_data, parsed_data)
 
     def _read_bytes(self, stream: object, size: int) -> bytes:
         """

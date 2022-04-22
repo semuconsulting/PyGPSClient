@@ -8,7 +8,27 @@ Static method tests for pygpsclient.helpers
 
 import unittest
 
-from pygpsclient.helpers import *
+from pygpsclient.helpers import (
+    deg2rad,
+    deg2dmm,
+    deg2dms,
+    m2ft,
+    ms2kmph,
+    ms2knots,
+    ms2mph,
+    ft2m,
+    kmph2ms,
+    knots2ms,
+    pos2iso6709,
+    hsv2rgb,
+    snr2col,
+    svid2gnssid,
+    cel2cart,
+    itow2utc,
+    corrage2int,
+    fix2desc,
+    estimate_acc,
+)
 
 
 class StaticTest(unittest.TestCase):
@@ -80,6 +100,21 @@ class StaticTest(unittest.TestCase):
         svids = (28, 50, 72, 140, 180, 200, 220)
         for i, svid in enumerate(svids):
             res = svid2gnssid(svid)
+            self.assertEqual(res, EXPECTED_RESULT[i])
+
+    def testfix2desc(self):
+        EXPECTED_RESULT = ["3D", "RTK FIXED", "RTK FLOAT", "3D", "NO FIX"]
+        codes = (("GGA", 1), ("GGA", 4), ("RMC", "F"), ("GLL", "A"), ("GGA", 0))
+        for i, code in enumerate(codes):
+            fix, msg = code
+            res = fix2desc(fix, msg)
+            self.assertEqual(res, EXPECTED_RESULT[i])
+
+    def testcorrage2int(self):
+        EXPECTED_RESULT = [0, 5, 20, 60, 120, 0]
+        fixes = (0, 3, 6, 9, 11, 15)
+        for i, fix in enumerate(fixes):
+            res = corrage2int(fix)
             self.assertEqual(res, EXPECTED_RESULT[i])
 
 

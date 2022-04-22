@@ -16,7 +16,13 @@ from subprocess import run as subrun
 from sys import executable
 from tkinter import Toplevel, Label, Button, W
 from math import sin, cos, pi
-from pygpsclient.globals import MAX_SNR
+from datetime import datetime, timedelta
+from pygpsclient.globals import (
+    MAX_SNR,
+    DEVICE_ACCURACY,
+    HDOP_RATIO,
+    FIXLOOKUP,
+)
 
 
 class ConfirmBox(Toplevel):
@@ -77,7 +83,7 @@ class ConfirmBox(Toplevel):
         Centre dialog in parent
         """
 
-        self.update_idletasks()
+        # self.update_idletasks()
         dw = self.winfo_width()
         dh = self.winfo_height()
         mx = self.__master.winfo_x()
@@ -429,28 +435,74 @@ def check_for_update(name: str) -> tuple:
     return (ver[0] == ver[1], ver[1])
 
 
-def fix2int(fix: object, msgid: str) -> int:
+def itow2utc(itow: int) -> datetime.time:
+    """
+    Convert UBX Time Of Week to UTC datetime
+
+    (UTC = GPS - 18 seconds; correct as from 1/1/2017).
+    :param int itow: UBX Time Of Week
+    :return: UTC time hh.mm.ss
+    :rtype: datetime.time
+    """
+
+    dt = datetime(1980, 1, 6) + timedelta(seconds=(itow / 1000) - 18)
+    return dt.time()
+
+
+def estimate_acc(dop: float) -> float:
+    """
+    Derive a graphic indication of positional accuracy (in m) based on the HDOP
+    (Horizontal Dilution of Precision) value and the nominal native device
+    accuracy (datasheet CEP)
+
+    NB: this is a largely arbitrary estimate - there is no direct correlation
+    between HDOP and accuracy based solely on generic NMEA data.
+    The NMEA PUBX,00 or UBX NAV-POSLLH message types return an explicit estimate
+    of horizontal and vertical accuracy and are the preferred source.
+
+    :param float dop: horizontal dilution of precision
+    :return: horizontal accuracy
+    :rtype: float
+    """
+
+    return float(dop) * DEVICE_ACCURACY * HDOP_RATIO / 1000
+
+
+def fix2desc(msgid: str, fix: object) -> str:
     """
     Get integer fix value for given message fix status.
 
-    :param object fix: fix value from message
     :param str msgid: UBX or NMEA message identity
-    :return: consistent fix type as integer e.g. 3 = "3D"
+    :param object fix: value representing fix type
+    :return: descriptive fix status e.g. "3D"
+    :rtype: str
+    """
+
+    return FIXLOOKUP.get(msgid + str(fix), "NO FIX")
+
+
+def corrage2int(code: int) -> int:
+    """
+    Convert NAV-PVT lastCorrectionAge value to age in seconds.
+
+    :param int code: diff age code from NAV-PVT
+    :return: string indicating diff age in seconds
     :rtype: int
     """
 
-    fixi = 0
-    if msgid == "GGA":  # quality
-        if fix == 1:
-            fixi = 3
-        elif fix == 2:
-            fixi = 2
-    if msgid == "GSA":  # navMode
-        if fix == 3:
-            fixi = 3
-        elif fix == 2:
-            fixi = 2
-    if msgid in ("GLL", "VTG", "RMC", "GNS"):  # posMode
-        if fix in ("A", "D"):
-            fixi = 3
-    return fixi
+    LOOKUP = {
+        0: 0,
+        1: 1,
+        2: 2,
+        3: 5,
+        4: 10,
+        5: 15,
+        6: 20,
+        7: 30,
+        8: 45,
+        9: 60,
+        10: 90,
+        11: 120,
+    }
+
+    return LOOKUP.get(code, 0)

@@ -119,14 +119,14 @@ class GraphviewFrame(Frame):
                 font=resize_font,
             )
 
-    def update_graph(self, data, siv=16):
+    def update_graph(self):
         """
         Plot satellites' signal-to-noise ratio (cno).
         Automatically adjust y axis according to number of satellites in view.
-
-        :param list data: array of satellite tuples (gnssId, svid, elev, azim, cno):
-        :param int siv: number of satellites in view (default = 16)
         """
+
+        data = self.__app.gnss_status.gsv_data
+        siv = len(self.__app.gnss_status.gsv_data)
 
         if siv == 0:
             return
@@ -165,7 +165,7 @@ class GraphviewFrame(Frame):
             )
             offset += colwidth
 
-        self.can_graphview.update()
+        self.can_graphview.update_idletasks()
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """

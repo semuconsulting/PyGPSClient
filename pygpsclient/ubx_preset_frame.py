@@ -134,7 +134,7 @@ class UBX_PRESET_Frame(Frame):
             border=2,
             relief="sunken",
             bg=ENTCOL,
-            height=5,
+            height=7,
             width=30,
             justify=LEFT,
             exportselection=False,
@@ -160,10 +160,10 @@ class UBX_PRESET_Frame(Frame):
 
         self._lbl_presets.grid(column=0, row=0, columnspan=6, padx=3, sticky=(W, E))
         self._lbx_preset.grid(
-            column=0, row=1, columnspan=3, rowspan=6, padx=3, pady=3, sticky=(W, E)
+            column=0, row=1, columnspan=3, rowspan=8, padx=3, pady=3, sticky=(W, E)
         )
-        self._scr_presetv.grid(column=2, row=1, rowspan=6, sticky=(N, S, E))
-        self._scr_preseth.grid(column=0, row=7, columnspan=3, sticky=(W, E))
+        self._scr_presetv.grid(column=2, row=1, rowspan=8, sticky=(N, S, E))
+        self._scr_preseth.grid(column=0, row=9, columnspan=3, sticky=(W, E))
         self._btn_send_command.grid(
             column=3, row=1, rowspan=6, ipadx=3, ipady=3, sticky=(E)
         )

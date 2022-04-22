@@ -56,7 +56,11 @@ class AboutDialog:
         self._lbl_title.config(font=self.__app.font_md2)
         self._lbl_icon = Label(self._dialog, image=self._img_icon)
         self._lbl_desc = Label(
-            self._dialog, text=ABOUTTXT, wraplength=300, font=self.__app.font_sm
+            self._dialog,
+            text=ABOUTTXT,
+            wraplength=350,
+            font=self.__app.font_sm,
+            cursor="hand2",
         )
         self._lbl_version = Label(
             self._dialog, text="Version: " + VERSION, font=self.__app.font_sm
@@ -116,7 +120,7 @@ class AboutDialog:
 
         self._lbl_title.grid(column=0, row=0, padx=5, pady=3)
         self._lbl_icon.grid(column=0, row=1, padx=5, pady=3)
-        self._lbl_desc.grid(column=0, row=2, padx=5, pady=3)
+        self._lbl_desc.grid(column=0, row=2, padx=15, pady=3)
         self._lbl_version.grid(column=0, row=3, padx=5, pady=0)
         self._btn_checkupdate.grid(column=0, row=4, ipadx=3, ipady=3, padx=5, pady=3)
         self._lbl_update.grid(column=0, row=5, padx=5, pady=3)
@@ -124,7 +128,7 @@ class AboutDialog:
         self._lbl_pynmea2_version.grid(column=0, row=7, padx=5, pady=0)
         self._lbl_pyubx2_version.grid(column=0, row=8, padx=5, pady=0)
         self._lbl_pyrtcm_version.grid(column=0, row=9, padx=5, pady=0)
-        self._lbl_copyright.grid(column=0, row=10, padx=5, pady=3)
+        self._lbl_copyright.grid(column=0, row=10, padx=15, pady=3)
         self._btn_ok.grid(column=0, row=11, ipadx=3, ipady=3, padx=5, pady=3)
 
     def _attach_events(self):
@@ -134,6 +138,7 @@ class AboutDialog:
 
         self._btn_checkupdate.bind("<Button>", self._check_for_update)
         self._lbl_update.bind("<Button-1>", lambda e: open_new_tab(PYPI_URL))
+        self._lbl_desc.bind("<Button-1>", lambda e: open_new_tab(GITHUB_URL))
         self._lbl_copyright.bind("<Button-1>", lambda e: open_new_tab(GITHUB_URL))
         self._btn_ok.bind("<Return>", self._ok_press)
         self._btn_ok.focus_set()
@@ -143,7 +148,7 @@ class AboutDialog:
         Handle OK button press.
         """
 
-        self.__master.update_idletasks()
+        # self.__master.update_idletasks()
         self._dialog.destroy()
 
     def _check_for_update(self, *args, **kwargs):  # pylint: disable=unused-argument
@@ -159,4 +164,4 @@ class AboutDialog:
         if latest:
             self._lbl_update.config(text="This is the latest version.", fg="green")
         else:
-            self._lbl_update.config(text=f"Newer version available {ver}.", fg="red")
+            self._lbl_update.config(text=f"Latest official release is {ver}", fg="red")

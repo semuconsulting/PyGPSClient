@@ -43,6 +43,9 @@ from pygpsclient.helpers import (
     ms2knots,
 )
 
+DGPSYES = "YES"
+DGPSNO = "N/A"
+
 
 class BannerFrame(Frame):
     """
@@ -76,6 +79,8 @@ class BannerFrame(Frame):
         self._fix = StringVar()
         self._siv = StringVar()
         self._sip = StringVar()
+        self._diffcorr = StringVar()
+        self._diffstat = StringVar()
         self._status = False
         self._show_advanced = True
 
@@ -148,6 +153,13 @@ class BannerFrame(Frame):
         self._lbl_lacc = Label(
             self._frm_advanced, text="acc:", bg=self._bgcol, fg=self._fgcol, anchor=N
         )
+        self._lbl_ldgps = Label(
+            self._frm_advanced,
+            text="dgps:",
+            bg=self._bgcol,
+            fg=self._fgcol,
+            anchor=N,
+        )
 
         self.option_add("*Font", self.__app.font_lg)
         self._lbl_status_preset = Label(
@@ -186,6 +198,12 @@ class BannerFrame(Frame):
             bg=self._bgcol,
             fg="mediumpurple2",
         )
+        self._lbl_diffcorr = Label(
+            self._frm_advanced,
+            textvariable=self._diffcorr,
+            bg=self._bgcol,
+            fg="mediumpurple2",
+        )
 
         self.option_add("*Font", self.__app.font_sm)
         self._lbl_lalt_u = Label(
@@ -221,6 +239,12 @@ class BannerFrame(Frame):
             fg="aquamarine2",
             anchor=N,
         )
+        self._lbl_diffstat = Label(
+            self._frm_advanced,
+            textvariable=self._diffstat,
+            bg=self._bgcol,
+            fg="mediumpurple2",
+        )
 
     def _do_layout(self):
         """
@@ -255,6 +279,9 @@ class BannerFrame(Frame):
         self._lbl_lacc.grid(column=7, row=0, pady=3, sticky=W)
         self._lbl_hvacc.grid(column=8, row=0, pady=0, sticky=W)
         self._lbl_lacc_u.grid(column=9, row=0, pady=0, sticky=W)
+        self._lbl_ldgps.grid(column=10, row=0, pady=3, sticky=W)
+        self._lbl_diffcorr.grid(column=11, row=0, pady=3, sticky=W)
+        self._lbl_diffstat.grid(column=12, row=0, pady=3, sticky=W)
 
         self._btn_toggle.grid(column=0, row=0, padx=8, pady=3, sticky=(N, E))
 
@@ -299,172 +326,162 @@ class BannerFrame(Frame):
         else:
             self._lbl_status_preset.configure(image=self._img_disconn)
 
-    def update_banner(self, **kwargs):
+    def update_banner(self):
         """
-        Sets text of banner from keyword parms.
-
-        :param kwargs: optional key value pairs for each displayed parameter
+        Sets text of banner from GNSSStatus object.
         """
 
         disp_format = self.__app.frm_settings.format
         units = self.__app.frm_settings.units
 
-        self._update_time(**kwargs)
-        self._update_pos(disp_format, units, **kwargs)
-        self._update_track(units, **kwargs)
-        self._update_fix(**kwargs)
-        self._update_siv(**kwargs)
-        self._update_dop(units, **kwargs)
+        self._update_time()
+        self._update_pos(disp_format, units)
+        self._update_track(units)
+        self._update_fix()
+        self._update_siv()
+        self._update_dop(units)
+        self._update_dgps()
 
-    def _update_time(self, **kwargs):
+    def _update_time(self):
         """
         Update GNSS time of week
-
-        :param kwargs: optional key value pairs
         """
 
-        if "time" in kwargs:
-            tim = kwargs["time"]
-            if tim in (None, ""):
-                self._time.set("N/A")
-            else:
-                self._time.set(tim)
+        tim = self.__app.gnss_status.utc
+        if tim in (None, ""):
+            self._time.set("N/A")
+        else:
+            self._time.set(tim)
 
-    def _update_pos(self, disp_format, units, **kwargs):
+    def _update_pos(self, disp_format, units):
         """
         Update position
 
         :param str disp_format: degrees display format as string (DMS, DMM, DDD)
         :param str units: distance units as string (UMM, UMK, UI, UIK)
-        :param kwargs: optional key value pairs
         """
 
-        if "lat" in kwargs:
-            lat = kwargs["lat"]
-            if lat in (None, ""):
-                self._lat.set("N/A")
-            else:
-                if disp_format == DMS:
-                    self._lat.set(deg2dms(lat, "lat"))
-                elif disp_format == DMM:
-                    self._lat.set(deg2dmm(lat, "lat"))
-                else:
-                    self._lat.set(lat)
-        if "lon" in kwargs:
-            lon = kwargs["lon"]
-            if lon in (None, ""):
-                self._lon.set("N/A")
-            else:
-                if disp_format == DMS:
-                    self._lon.set(deg2dms(lon, "lon"))
-                elif disp_format == DMM:
-                    self._lon.set(deg2dmm(lon, "lon"))
-                else:
-                    self._lon.set(lon)
-        if "alt" in kwargs:
-            alt = kwargs["alt"]
-            if alt in (None, ""):
-                self._alt.set("N/A")
-                self._alt_u.set("")
-            else:
-                if units in (UI, UIK):
-                    self._alt.set(round(m2ft(float(alt)), 1))
-                    self._alt_u.set("ft")
-                else:
-                    self._alt.set(round(alt, 1))
-                    self._alt_u.set("m")
+        lat = self.__app.gnss_status.lat
+        if isinstance(lat, (int, float)):
+            if disp_format == DMS:
+                lat = deg2dms(lat, "lat")
+            elif disp_format == DMM:
+                lat = deg2dmm(lat, "lat")
+            self._lat.set(f"{lat:<15}")
+        else:
+            self._lat.set("N/A            ")
+        lon = self.__app.gnss_status.lon
+        if isinstance(lon, (int, float)):
+            if disp_format == DMS:
+                lon = deg2dms(lon, "lon")
+            elif disp_format == DMM:
+                lon = deg2dmm(lon, "lon")
+            self._lon.set(f"{lon:<15}")
+        else:
+            self._lon.set("N/A            ")
+        alt = self.__app.gnss_status.alt
+        alt_u = "m"
+        if isinstance(alt, (int, float)):
+            if units in (UI, UIK):
+                alt = m2ft(alt)
+                alt_u = "ft"
+            self._alt.set(f"{alt:.3f}")
+            self._alt_u.set(f"{alt_u:<2}")
+        else:
+            self._alt.set("N/A  ")
+            self._alt_u.set("  ")
 
-    def _update_track(self, units, **kwargs):
+    def _update_track(self, units):
         """
         Update track and ground speed
 
         :param str units: distance units as string (UMM, UMK, UI, UIK)
-        :param kwargs: optional speed and/or track key/value pairs
         """
 
-        if "speed" in kwargs:
-            speed = kwargs["speed"]
-            if speed in (None, ""):
-                self._speed.set("N/A")
-                self._speed_u.set("")
-            else:
-                if units == UI:
-                    self._speed.set(round(ms2mph(float(speed)), 1))
-                    self._speed_u.set("mph")
-                elif units == UIK:
-                    self._speed.set(round(ms2knots(float(speed)), 1))
-                    self._speed_u.set("knots")
-                elif units == UMK:
-                    self._speed.set(round(ms2kmph(float(speed)), 1))
-                    self._speed_u.set("kmph")
-                else:
-                    self._speed.set(round(speed, 1))
-                    self._speed_u.set("m/s")
-        if "track" in kwargs:
-            track = kwargs["track"]
-            if track in (None, ""):
-                self._track.set("N/A")
-            else:
-                self._track.set(str(round(track, 1)))
+        speed = self.__app.gnss_status.speed
+        speed_u = "m/s"
+        if isinstance(speed, (int, float)):
+            if units == UI:
+                speed = ms2mph(speed)
+                speed_u = "mph"
+            elif units == UIK:
+                speed = ms2knots(speed)
+                speed_u = "knots"
+            elif units == UMK:
+                speed = ms2kmph(speed)
+                speed_u = "kmph"
+            self._speed.set(f"{speed:.2f}")
+            self._speed_u.set(f"{speed_u:<5}")
+        else:
+            self._speed.set("N/A")
+            self._speed.set("")
+        track = self.__app.gnss_status.track
+        if isinstance(track, (int, float)):
+            self._track.set(f"{track:05.1f}")
+        else:
+            self._track.set("N/A  ")
 
-    def _update_fix(self, **kwargs):
+    def _update_fix(self):
         """
         Update fix type
-
-        :param kwargs: optional fix key/value pair
         """
 
-        if "fix" in kwargs:
-            fix = kwargs["fix"]
-            fix = gpsfix2str(fix)
-            if fix in ("3D", "3D + DR"):
-                self._lbl_fix.config(fg="green2")
-            elif fix in ("2D", "DR"):
-                self._lbl_fix.config(fg="orange")
-            else:
-                self._lbl_fix.config(fg="red")
-            self._fix.set(fix)
+        fix = self.__app.gnss_status.fix
+        if fix in ("3D", "GNSS+DR", "RTK", "RTK FIXED", "RTK FLOAT"):
+            self._lbl_fix.config(fg="green2")
+        elif fix in ("2D", "DR"):
+            self._lbl_fix.config(fg="orange")
+        else:
+            self._lbl_fix.config(fg="red")
+        self._fix.set(fix)
 
     def _update_siv(self, **kwargs):
         """
         Update siv and sip
-
-        :param kwargs: optional key value pairs
         """
 
-        if "siv" in kwargs:
-            siv = kwargs["siv"]
-            self._siv.set(str(siv).zfill(2))
-        if "sip" in kwargs:
-            sip = kwargs["sip"]
-            self._sip.set(str(sip).zfill(2))
+        self._siv.set(f"{self.__app.gnss_status.siv:02d}")
+        self._sip.set(f"{self.__app.gnss_status.sip:02d}")
 
     def _update_dop(self, units, **kwargs):
         """
         Update precision and accuracy
 
         :param str units: distance units as string (UMM, UMK, UI, UIK)
-        :param kwargs: optional key value pairs
         """
 
-        if "dop" in kwargs:
-            dop = round(kwargs["dop"], 2)
-            self._dop.set(str(dop) + " " + dop2str(dop))
-        if "hdop" in kwargs and "vdop" in kwargs:
-            self._hvdop.set(
-                "hdop "
-                + str(round(kwargs["hdop"], 2))
-                + "\nvdop "
-                + str(round(kwargs["vdop"], 2))
+        pdop = self.__app.gnss_status.pdop
+        self._dop.set(f"{pdop:.2f} {dop2str(pdop):<9}")
+        self._hvdop.set(
+            f"hdop {self.__app.gnss_status.hdop:.2f}\nvdop {self.__app.gnss_status.vdop:.2f}"
+        )
+        if units in (UI, UIK):
+            self._hvacc.set(
+                f"hacc {m2ft(self.__app.gnss_status.hacc):.1f}\nvacc {m2ft(self.__app.gnss_status.vacc):.1f}"
             )
-        if "hacc" in kwargs and "vacc" in kwargs:
-            if units in (UI, UIK):
-                hacc = round(m2ft(kwargs["hacc"]), 1)
-                vacc = round(m2ft(kwargs["vacc"]), 1)
+        else:
+            self._hvacc.set(
+                f"hacc {self.__app.gnss_status.hacc:.1f}\nvacc {self.__app.gnss_status.vacc:.1f}"
+            )
+
+    def _update_dgps(self):
+        """
+        Update DGPS status.
+        """
+
+        self._diffcorr.set(DGPSYES if self.__app.gnss_status.diff_corr else DGPSNO)
+        if self.__app.gnss_status.diff_corr:
+            age = self.__app.gnss_status.diff_age
+            station = self.__app.gnss_status.diff_station
+            if age in [None, "", 0]:
+                age = "N/A"
             else:
-                hacc = round(kwargs["hacc"], 1)
-                vacc = round(kwargs["vacc"], 1)
-            self._hvacc.set("hacc " + str(hacc) + "\nvacc " + str(vacc))
+                age = f"{age} s"
+            if station in [None, "", 0]:
+                station = "N/A"
+            self._diffstat.set(f"age {age}\nstation {station}")
+        else:
+            self._diffstat.set("")
 
     def _set_fontsize(self):
         """
@@ -478,41 +495,53 @@ class BannerFrame(Frame):
             lbl = 75
             sup = 85
         else:
-            val = 70
-            lbl = 85
-            sup = 95
+            val = 75  # 70
+            lbl = 90  # 85
+            sup = 100  # 95
 
         sz = min(int(w / val), 18)
-        self._lbl_status_preset.config(font=font.Font(size=sz))
-        self._lbl_time.config(font=font.Font(size=sz))
-        self._lbl_lat.config(font=font.Font(size=sz))
-        self._lbl_lon.config(font=font.Font(size=sz))
-        self._lbl_alt.config(font=font.Font(size=sz))
-        self._lbl_spd.config(font=font.Font(size=sz))
-        self._lbl_trk.config(font=font.Font(size=sz))
-        self._lbl_pdop.config(font=font.Font(size=sz))
-        self._lbl_fix.config(font=font.Font(size=sz))
-        self._lbl_sip.config(font=font.Font(size=sz))
-        self._lbl_siv.config(font=font.Font(size=sz))
+        for ctl in (
+            self._lbl_status_preset,
+            self._lbl_time,
+            self._lbl_lat,
+            self._lbl_lon,
+            self._lbl_alt,
+            self._lbl_spd,
+            self._lbl_trk,
+            self._lbl_pdop,
+            self._lbl_fix,
+            self._lbl_sip,
+            self._lbl_siv,
+            self._lbl_diffcorr,
+        ):
+            ctl.config(font=font.Font(size=sz))
 
         sz = min(int(w / lbl), 14)
-        self._lbl_ltime.config(font=font.Font(size=sz))
-        self._lbl_llat.config(font=font.Font(size=sz))
-        self._lbl_llon.config(font=font.Font(size=sz))
-        self._lbl_lalt.config(font=font.Font(size=sz))
-        self._lbl_lspd.config(font=font.Font(size=sz))
-        self._lbl_ltrk.config(font=font.Font(size=sz))
-        self._lbl_lpdop.config(font=font.Font(size=sz))
-        self._lbl_lfix.config(font=font.Font(size=sz))
-        self._lbl_lsip.config(font=font.Font(size=sz))
-        self._lbl_lsiv.config(font=font.Font(size=sz))
-        self._lbl_lacc.config(font=font.Font(size=sz))
+        for ctl in (
+            self._lbl_ltime,
+            self._lbl_llat,
+            self._lbl_llon,
+            self._lbl_lalt,
+            self._lbl_lspd,
+            self._lbl_ltrk,
+            self._lbl_lpdop,
+            self._lbl_lfix,
+            self._lbl_lsip,
+            self._lbl_lsiv,
+            self._lbl_lacc,
+            self._lbl_ldgps,
+        ):
+            ctl.config(font=font.Font(size=sz))
 
         sz = min(int(w / sup), 12)
-        self._lbl_lalt_u.config(font=font.Font(size=sz))
-        self._lbl_lspd_u.config(font=font.Font(size=sz))
-        self._lbl_hvdop.config(font=font.Font(size=sz))
-        self._lbl_hvacc.config(font=font.Font(size=sz))
+        for ctl in (
+            self._lbl_lalt_u,
+            self._lbl_lspd_u,
+            self._lbl_hvdop,
+            self._lbl_hvacc,
+            self._lbl_diffstat,
+        ):
+            ctl.config(font=font.Font(size=sz))
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """

@@ -1,5 +1,15 @@
 # PyGPSClient Release Notes
 
+### RELEASE CANDIDATE v.1.2.0
+
+ENHANCEMENTS:
+
+1. Various performance enhancements via internal refactoring, including updating the GUI widgets on a minimum interval basis (rather than on receipt of each NMEA or UBX message), streamlining and centralising GNSS status updates, and eliminating redundant tkinter `update()` and `update_idletasks()` operations. Note, however, that some [tkinter performance issues](https://github.com/semuconsulting/PyGPSClient#knownissues) remain on MacOS Monterey.
+2. DGPS status added to information banner. **NB** this indicates the successful reception of DGPS correction data (e.g. RTCM3 or SBAS) based on information from NMEA (GGA, GNS) or UBX (NAV-PVT, NAV-STATUS, RXM-RTCM) messages. It does *not* necessarily indicate that a DGPS correction has been applied. Note that a) NMEA and UBX messages do not always give consistent indications of DGPS receipt status, and b) DGPS status *cannot* be reliably inferred from other NMEA message types (e.g. RMC, VTG) earlier than NMEA 4.10. 
+3. UBX Configuration dialog can now be opened regardless of whether a device is connected (*but commands will only take effect when connected!*). The dialog is also now resizeable. (*These enhancements afford a workaround for current MacOS Monterey performance issues.*)
+4. GPX Track recording now enabled for all NMEA and UBX message types which contain relevant position data, and trackpoints now include dgps data where available.
+
+
 ### RELEASE v1.1.9
 
 ENHANCEMENTS:

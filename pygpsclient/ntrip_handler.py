@@ -16,24 +16,30 @@ Created on 03 Apr 2022
 """
 # pylint: disable=invalid-name
 
-import logging
 from threading import Thread
 import socket
 from datetime import datetime, timedelta
 from base64 import b64encode
-from pygpsclient import version as VERSION
 from pyrtcm import RTCMReader, RTCMParseError, RTCMMessageError, RTCMTypeError
 from pynmeagps import NMEAMessage, GET
-from pyubx2.ubxtypes_core import RTCM3_PROTOCOL, NMEA_PROTOCOL
+from pygpsclient import version as VERSION
 
 HDRBUFLEN = 4096
 DATBUFLEN = 1024
-LOGGING = logging.WARNING
 TIMEOUT = 10
 USERAGENT = f"PyGPSClient NTRIP Client/{VERSION}"
 NTRIP_HEADERS = {
     "Ntrip-Version": "Ntrip/2.0",
     "User-Agent": USERAGENT,
+}
+FIXES = {
+    "3D": 1,
+    "2D": 2,
+    "RTK FIXED": 4,
+    "RTK FLOAT": 5,
+    "RTK": 5,
+    "DR": 6,
+    "NO FIX": 0,
 }
 
 
@@ -50,11 +56,6 @@ class NTRIPHandler:
 
         """
 
-        logging.basicConfig(
-            format="%(asctime)-15s [%(levelname)s] %(funcName)s: %(message)s",
-            level=LOGGING,
-        )
-
         self.__app = app  # Reference to main application class
         self.__master = self.__app.get_master()  # Reference to root class (Tk)
 
@@ -66,7 +67,7 @@ class NTRIPHandler:
         self._last_gga = datetime.now()
         self._buffer = bytearray()
         self._settings = {
-            "server": "NTRIPcasterURL",
+            "server": "",
             "port": "2101",
             "mountpoint": "",
             "version": "2.0",
@@ -132,9 +133,10 @@ class NTRIPHandler:
         """
 
         if self._ntrip_thread is not None:
+            if self.__app.ntripconfig is not None:
+                self.__app.dlg_ntripconfig.set_controls(False)
             self._reading = False
             self._ntrip_thread = None
-            self.__app.dlg_ntripconfig.set_controls(False)
 
     def _read_thread(self):
         """
@@ -212,12 +214,12 @@ class NTRIPHandler:
         :rtype: tuple
         """
         # time will default to now
-        status = self.__app.GNSS_status
-        lat = status["lat"]
-        lon = status["lon"]
-        fix = status["fix"]
-        if fix == 3:
-            fix = 1
+        lat = self.__app.gnss_status.lat
+        lon = self.__app.gnss_status.lon
+        quality = FIXES.get(self.__app.gnss_status.fix, 0)
+
+        if type(lat) not in (int, float) or type(lon) not in (int, float):
+            return None, None
 
         parsed_data = NMEAMessage(
             "GP",
@@ -227,15 +229,15 @@ class NTRIPHandler:
             NS="N" if lat > 0 else "S",
             lon=lon,
             EW="E" if lon > 0 else "W",
-            quality=fix,
-            numSV=status["sip"],
-            HDOP=status["hdop"],
-            alt=status["alt"],
+            quality=quality,
+            numSV=self.__app.gnss_status.sip,
+            HDOP=self.__app.gnss_status.hdop,
+            alt=self.__app.gnss_status.alt,
             altUnit="M",
-            sep=status["sep"],
+            sep=self.__app.gnss_status.sep,
             sepUnit="M",
-            diffAge=status["diffAge"],
-            diffStation=status["diffStation"],
+            diffAge=self.__app.gnss_status.diff_age,
+            diffStation=self.__app.gnss_status.diff_station,
         )
 
         raw_data = parsed_data.serialize()
@@ -249,11 +251,10 @@ class NTRIPHandler:
 
         if datetime.now() > self._last_gga + timedelta(seconds=self._gga_interval):
             raw, parsed = self._formatGGA()
-            self._socket.sendall(raw)
-            self._last_gga = datetime.now()
-            # update console
-            if NMEA_PROTOCOL & self.__app.frm_settings.protocol:
-                self.__app.frm_console.update_console(raw, "NTRIP<<" + str(parsed))
+            if parsed is not None:
+                self._socket.sendall(raw)
+                self._last_gga = datetime.now()
+                self.__app.process_data(raw, parsed, "NTRIP<<")
 
     def _do_header(self, sock) -> str:
         """
@@ -352,17 +353,13 @@ class NTRIPHandler:
         :rtype: bytearray
         """
 
-        protfilter = self.__app.frm_settings.protocol
         while True:
             raw_data, buf = RTCMReader.parse_buffer(buf)
 
             if raw_data is not None:
                 parsed_data = RTCMReader.parse(raw_data)
                 # update console
-                if RTCM3_PROTOCOL & protfilter:
-                    self.__app.frm_console.update_console(
-                        raw_data, "NTRIP>>" + str(parsed_data)
-                    )
+                self.__app.process_data(raw_data, parsed_data, "NTRIP>>")
                 if self.__app.serial_handler.connected:
                     self.__app.serial_handler.serial_write(raw_data)
                 if self._gga_interval:

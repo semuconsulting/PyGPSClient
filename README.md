@@ -2,22 +2,24 @@
 
 [Current Status](#currentstatus) |
 [Features](#features) |
+[How to Use](#howtouse) |
 [UBX Configuration](#ubxconfig) |
 [NTRIP Client](#ntripconfig) |
-[How to Use](#howtouse) |
 [Installation](#installation) |
-[Known Issues](#knownissues) |
 [Mapquest API Key](#mapquestapi) |
 [User-defined Presets](#userdefined) |
+[Known Issues](#knownissues) |
 [Glossary of Terms](#glossary) |
 [License](#license) |
 [Author Information](#author)
 
-PyGPSClient is a graphical GNSS/GPS testing, diagnostic and UBX &copy; (u-blox &trade;) device configuration application written entirely in Python and tkinter.
+PyGPSClient is a multi-platform graphical GNSS/GPS testing, diagnostic and UBX &copy; (u-blox &trade;) device configuration application written entirely in Python and tkinter.
 
 ![full app screenshot ubx](/images/all_widgets.png)
 
-The application runs on any platform which supports a Python3 interpreter (>=3.7) and tkinter (>=8.6) GUI framework, including Windows, MacOS, Linux and Raspberry Pi OS. It displays location and diagnostic data from any NMEA, UBX or RTCM3 compatible GNSS/GPS device over a standard serial (UART) or USB port, or from a previously-saved datalog file, *in addition to* providing a useful subset of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool.
+The application runs on any platform which supports a Python interpreter (>=3.7) and tkinter (>=8.6) GUI framework, including Windows, MacOS, Linux and Raspberry Pi OS. It displays location and diagnostic data from any NMEA, UBX or RTCM3 compatible GNSS/GPS device over a standard serial (UART) or USB port, or from a previously-saved datalog file, *in addition to* providing a useful subset of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool. Version 1.1.9 also introduces a simple NTRIP client.
+
+The application can be installed using the standard `pip` Python package manager - see [installation instructions](#installation) below.
 
 This is an independent project and we have no affiliation whatsoever with u-blox.
 
@@ -58,63 +60,6 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 ![compact view screenshot](/images/min_widgets.png)
 
 ---
-### <a name="ubxconfig">UBX Configuration Facilities</a>
-
-![ubxconfig widget screenshot](/images/ubxconfig_widget.png)
-
-The UBX Configuration Dialog currently supports the following UBX configuration 'widgets':
-1. Shows current device hardware/firmware versions via MON-VER and MON-HW polls. Clicking anywhere in the widget background will refresh the displayed information with the current configuration.
-1. CFG-PRT sets baud rate and inbound/outbound protocols across all available ports.
-1. CFG-RATE sets navigation solution interval in ms (e.g. 1000 = 1/second) and measurement ratio (ratio between the number of
-measurements and the number of navigation solutions, e.g. 5 = five measurements per navigation solution).
-1. CFG-MSG sets message rates per port for UBX and NMEA messages. Message rate is relative to navigation solution frequency e.g. a message rate of '4' means 'every 4th navigation solution'.
-1. CFG-VALSET, CFG-VALDEL and CFG-VALGET configuration (for [Generation 9+ devices](https://github.com/semuconsulting/pyubx2#configinterface)).
-1. PRESET commands support a variety of preset and user-defined commands - see [user defined presets](#userdefined)
-
-An icon to the right of each 'SEND' 
-![send icon](/pygpsclient/resources/iconmonstr-arrow-12-24.png) button indicates the confirmation status of the configuration command; 
-(pending i.e. awaiting confirmation ![pending icon](/pygpsclient/resources/iconmonstr-time-6-24.png), 
-confirmed ![confirmed icon](/pygpsclient/resources/iconmonstr-check-mark-8-24.png) or 
-warning ![warning icon](/pygpsclient/resources/iconmonstr-warning-1-24.png)). 
-
-**Note:**
-* Confirmation responses can take several seconds at high message transmission rates, or be discarded altogether if the device's transmit buffer is full (*txbuff-alloc error* - not uncommon with budget receivers at high message rates). To ensure timely confirmation responses, try increasing the baud rate and/or temporarily reducing transmitted message rates using the configuration commands provided.
-* A warning icon (typically accompanied by an ACK-NAK response) is usually an indication that one or more of the commands sent is not supported by your receiver. 
-
----
-### <a name="ntripconfig">NTRIP Client Facilities</a>
-
-**BETA FEATURE**
-
-![ntrip config widget screenshot](/images/ntripconfig_widget.png)
-
-The NTRIP Client facility supports the following functionality:
-1. Connect to specified NTRIP server (caster), port and mountpoint (*requires Internet connection and appropriate user credentials*).
-1. Retrieve the sourcetable for a specified NTRIP server.
-1. Parse incoming RTCM3 messages and display on console with `NTRIP>>` marker.
-1. Feed raw RTCM3 messages to an RTCM3-compatible connected GNSS device and monitor UBX-RXM-RTCM responses.
-1. Send NMEA GGA (position fix) sentences to the NTRIP server at specified intervals and display on console with `NTRIP<<` marker>.
-
-To use:
-1. Enter the required NTRIP server URL (or IP address) and port (defaults to 2101). For services which require authorisation, enter your login username and password.
-1. To retrieve the sourcetable, leave the mountpoint field blank and click connect (*response may take a few seconds*). The required mountpoint may then be selected from the list, or entered manually.
-1. Select the appropriate NMEA GGA sentence transmission interval in seconds (*only available when a GNSS receiver is connected*). The default is 'None' (no GGA sentences sent). A value of 10 seconds is typical for services that require client position data. **NB:** The GGA sentence will be generated based on the current position fix from the GNSS receiver.
-1. To start the NTRIP data stream using the current server settings, click 
-![connect icon](/pygpsclient/resources/iconmonstr-link-8-24.png).
-1. To stop the NTRIP data stream, click
-![disconnect icon](/pygpsclient/resources/iconmonstr-link-10-24.png).
-1. Some NTRIP services may output RTCM3 correction messages at a high rate, causing the GUI console display to flicker. To suppress these messages in the console, de-select the 'RTCM' option in 'Protocols Displayed' (the RTCM3 messages will continue to be processed in the background).
-
-Below is a illustrative NTRIP DGPS data log, showing:
-* outgoing NMEA GPGGA (client position) sentence.
-* incoming RTCM3 correction messages; in this case - 1006 (Ref station ARP (*DF003=2690*) with antenna height), 1008 (Antenna descriptor), 1033 (Receiver descriptor), 1075 (GPS MSM5), 1085 (GLONASS MSM5), 1095 (Galileo MSM5), 1125 (BeiDou MSM5) and 1230 (GLONASS Code-Phase Biases)
-* corresponding UBX RXM-RTCM acknowledgements generated by the u-blox ZED-F9P receiver, confirming message type, successful use (*msgUsed=2*) and reference station ARP (*refStation=2690*). The incoming DGPS correction status can also be verified by reference to an NMEA GGA message (*diffAge=1.0, diffStation=2690*) or a UBX NAV-STATUS message (*diffSoln=1, diffCorr=1*).
-
-![ntrip console screenshot](/images/ntrip_consolelog.png)
-
-**NB:** Please respect the terms and conditions of any remote NTRIP service used with this facility. For testing or evaluation purposes, consider deploying a local [SNIP LITE](https://www.use-snip.com/download/) server. *Inappropriate use of an NTRIP service may result in your account being blocked*.
-
----
 ## <a name="howtouse">How to Use</a>
 
 * To connect to a listed serial device, select the device from the listbox, set the appropriate serial connection parameters and click 
@@ -140,6 +85,55 @@ Below is a illustrative NTRIP DGPS data log, showing:
 * Widgets (and their associated fonts) are fully resizeable.
 
 ---
+### <a name="ubxconfig">UBX Configuration Facilities</a>
+
+![ubxconfig widget screenshot](/images/ubxconfig_widget.png)
+
+The UBX Configuration Dialog currently supports the following UBX configuration 'widgets':
+1. Version widget shows current device hardware/firmware versions (*via MON-VER and MON-HW polls*).
+1. Protocol Configuration widget (CFG-PRT) sets baud rate and inbound/outbound protocols across all available ports.
+1. Solution Rate widget (CFG-RATE) sets navigation solution interval in ms (e.g. 1000 = 1/second) and measurement ratio (ratio between the number of measurements and the number of navigation solutions, e.g. 5 = five measurements per navigation solution).
+1. For each of the widgets above, clicking anywhere in the widget background will refresh the displayed information with the current configuration.
+1. Message Rate widget (CFG-MSG) sets message rates per port for UBX and NMEA messages. Message rate is relative to navigation solution frequency e.g. a message rate of '4' means 'every 4th navigation solution'.
+1. Configuration Interface widget (CFG-VALSET, CFG-VALDEL and CFG-VALGET) queries and sets configuration for [Generation 9+ devices](https://github.com/semuconsulting/pyubx2#configinterface) e.g. NEO-M9, ZED-F9P, etc.
+1. Preset Commands widget supports a variety of preset and user-defined commands - see [user defined presets](#userdefined)
+
+An icon to the right of each 'SEND' 
+![send icon](/pygpsclient/resources/iconmonstr-arrow-12-24.png) button indicates the confirmation status of the configuration command; 
+(pending i.e. awaiting confirmation ![pending icon](/pygpsclient/resources/iconmonstr-time-6-24.png), 
+confirmed ![confirmed icon](/pygpsclient/resources/iconmonstr-check-mark-8-24.png) or 
+warning ![warning icon](/pygpsclient/resources/iconmonstr-warning-1-24.png)). 
+
+**Note:**
+* Confirmation responses can take several seconds at high message transmission rates, or be discarded altogether if the device's transmit buffer is full (*txbuff-alloc error*). To ensure timely confirmation responses, try increasing the baud rate and/or temporarily reducing transmitted message rates using the configuration commands provided.
+* A warning icon (typically accompanied by an ACK-NAK response) is usually an indication that one or more of the commands sent is not supported by your receiver. 
+
+---
+### <a name="ntripconfig">NTRIP Client Facilities</a>
+
+**BETA FEATURE**
+
+![ntrip config widget screenshot](/images/ntripconfig_widget.png)
+
+To use:
+1. Enter the required NTRIP server URL (or IP address) and port (defaults to 2101). For services which require authorisation, enter your login username and password.
+1. To retrieve the sourcetable, leave the mountpoint field blank and click connect (*response may take a few seconds*). The required mountpoint may then be selected from the list, or entered manually.
+1. For NTRIP services which require client position data via NMEA GGA sentences, select the appropriate sentence transmission interval in seconds (*only available when a GNSS receiver is connected*). The default is 'None' (no GGA sentences sent). A value of 10 seconds is typical. **NB:** The GGA sentence will be generated based on the current position fix from the GNSS receiver.
+1. To connect to the NTRIP server, click ![connect icon](/pygpsclient/resources/iconmonstr-link-8-24.png). To disconnect, click ![disconnect icon](/pygpsclient/resources/iconmonstr-link-10-24.png).
+1. If NTRIP data is being successfully received, the banner '**dgps:**' status indicator should change to 'YES' and indicate the age and reference station of the correction data (where available) ![dgps status](/images/dgps_status.png). Note that DGPS status is typically maintained for up to 60 seconds after loss of correction signal.
+1. Some NTRIP services may output RTCM3 correction messages at a high rate, flooding the GUI console display. To suppress these messages in the console, de-select the 'RTCM' option in 'Protocols Displayed' - the RTCM3 messages will continue to be processed in the background.
+
+Below is a illustrative NTRIP DGPS data log, showing:
+* Outgoing NMEA GPGGA (client position) sentence.
+* Incoming RTCM3 correction messages; in this case - 1006 (Ref station ARP (*DF003=2690*) with antenna height), 1008 (Antenna descriptor), 1033 (Receiver descriptor), 1075 (GPS MSM5), 1085 (GLONASS MSM5), 1095 (Galileo MSM5), 1125 (BeiDou MSM5) and 1230 (GLONASS Code-Phase Biases)
+* Corresponding UBX RXM-RTCM acknowledgements generated by the u-blox ZED-F9P receiver, confirming message type, valid checksum (*crcFailed=0*), successful use (*msgUsed=2*) and reference station ARP (*refStation=2690*). 
+* The incoming DGPS correction status can also be verified by reference to e.g. NMEA GGA (*diffAge=1.0, diffStation=2690*), UBX NAV-PVT (*difSoln=1*) or UBX NAV-STATUS (*diffSoln=1, diffCorr=1*) messages. Note that different NMEA and UBX messages use slightly different DGPS status notation.
+
+![ntrip console screenshot](/images/ntrip_consolelog.png)
+
+**NB:** Please respect the terms and conditions of any remote NTRIP service used with this facility. For testing or evaluation purposes, consider deploying a local [SNIP LITE](https://www.use-snip.com/download/) server. *Inappropriate use of an NTRIP service may result in your account being blocked*.
+
+---
 ## <a name="installation">Installation</a>
 
 In the following, `python` & `pip` refer to the Python 3 executables. You may need to type 
@@ -147,7 +141,7 @@ In the following, `python` & `pip` refer to the Python 3 executables. You may ne
 the Python 3 scripts (bin) and site_packages directories are included in your PATH 
 (*most standard Python 3 installation packages will do this automatically*).
 
-### Dependencies
+### Platform Dependencies
 
 On Windows and MacOS, pip, tkinter and the necessary imaging libraries are generally packaged with Python 3.  On some Linux distributions like Ubuntu 18+ and Raspberry Pi OS, they may need to be installed separately, e.g.:
 
@@ -155,8 +149,7 @@ On Windows and MacOS, pip, tkinter and the necessary imaging libraries are gener
 sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk
 ```
 
-*NB:* If you're compiling the latest version of Python 3 from source, you may also need to install tk-devel (or a similarly named package) first. Refer to 
- http://wiki.python.org/moin/TkInter for further details.
+*NB:* If you're compiling the latest version of Python 3 from source, you may also need to install tk-devel (or a similarly named package) first. Refer to http://wiki.python.org/moin/TkInter for further details.
 
 ```shell
 sudo apt install tk-devel
@@ -249,18 +242,6 @@ python -m /path_to_folder/PyGPSClient-1.1.9/pygpsclient
 ```
 
 ---
-## <a name="knownissues">Known Issues</a>
-
-As of April 2022 there appear to be some performance issues with the version of tkinter embedded with Python >=3.9 on MacOS Monterey, particularly in respect of tkinter `update()` (screen refresh) operations. See for example [tkinter slower on MacOS](https://bugs.python.org/issue43511.
-
-Windows and Linux (including Raspbian) users are unaffected.
-
-The application is fully functional on MacOS Monterey but you may find screen refresh/resizing operations are relatively slow, particularly on newer Apple M1 platforms (e.g. some dialogs may require resizing when first opened). This will hopefully be resolved in a subsequent MacOS update, but in the meantime some performance improvements can be achieved by reducing the number of operations which involve iterative tkinter `update()` operations:
-1. Reduce number of color `TAGS` in `globals.py`, or set `TAG_COLORS = False`.
-2. Reduce incoming message rates; particularly the frequency of messages which update the satellite or graph views (e.g. NMEA GSV, UBX NAV-SAT).
-3. Try closing and re-opening pop-up dialogs.
-
----
 ## <a name="mapquestapi">MapQuest API Key</a>
 
 To use the optional dynamic web-based mapview facility, you need to request and install a 
@@ -317,6 +298,18 @@ Limit UBX GNSS to GLONASS only, CFG, CFG-GNSS, 002020070008100000000101010103000
 Set UBX GNSS to ALL, CFG, CFG-GNSS, 0020200700081000010001010101030001000101020408000000010103081000000001010400080000000103050003000100010506080E0001000101, 1
 FORCE COLD RESTART !*** Expect ClearCommError ***!, CFG, CFG-RST, ffff0100, 1
 ```
+
+---
+## <a name="knownissues">Known Issues</a>
+
+As of April 2022 there appear to be some performance issues with the version of tkinter embedded with Python >=3.9 on MacOS Monterey.
+
+Windows and Linux (including Raspberry Pi OS) users are unaffected.
+
+The application is fully functional on MacOS Monterey but you may find dialog frame load/resizing operations are relatively slow, particularly on newer Apple M1 platforms e.g. some dialogs may take a while to load and may require manual resizing when first opened. This will hopefully be resolved in a subsequent MacOS update, but in the meantime the impact can be minimised by:
+1. Opening and closing the UBX or NTRIP configuration dialogs while the serial connection is closed.
+1. Minimising incoming message rates while using the configuration facilities. The [UBX Configuration](#ubxconfig) facility offers presets for 'minimum NMEA messages' or 'minimum UBX messages'.
+1. Temporarily disabling the console display of certain message protocols using the 'Protocols Displayed' checkboxes.
 
 ---
 ## <a name="glossary">Glossary of Terms</a>

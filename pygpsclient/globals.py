@@ -47,8 +47,11 @@ GPX_NS = " ".join(
 )
 MAPURL = "https://www.mapquestapi.com/staticmap/v5/map?key={}&locations={},{}&zoom={}&defaultMarker=marker-sm-616161-ff4444&shape=radius:{}|weight:1|fill:ccffff50|border:88888850|{},{}&size={},{}"
 MAP_UPDATE_INTERVAL = (
-    60  # how frequently the mapquest api is called to update the web map
+    20  # how frequently the mapquest api is called to update the web map (seconds)
 )
+GUI_UPDATE_INTERVAL = 1  # minimum GUI widget update interval (seconds)
+GPX_TRACK_INTERVAL = 1  # minimum GPS track update interval (seconds)
+FILEREAD_INTERVAL = 0.05  # delay between successive datalog file reads (seconds)
 SAT_EXPIRY = 10  # how long passed satellites are kept in the sky and graph views
 MAX_SNR = 60  # upper limit of graphview snr axis
 DEVICE_ACCURACY = 2.5  # nominal GPS device accuracy (CEP) in meters
@@ -57,6 +60,7 @@ MAXLOGLINES = 10000  # maximum number of 'lines' per datalog file
 # default error handling behaviour for UBXReader.read() calls
 # 0 (ERR_IGNORE) = ignore errors, 1 (ERR_LOG) - log errors, 2 (ERR_RAISE) = raise errors
 QUITONERRORDEFAULT = 1
+POPUP_TRANSIENT = True  # whether pop-up config dialogs are always on top
 USE_PYRTCM = True  # whether to use pyrtcm library to decode RTCM3 messages
 PORTIDS = ("0 I2C", "1 UART1", "2 UART2", "3 USB", "4 SPI")
 ANTSTATUS = ("INIT", "DONTKNOW", "OK", "SHORT", "OPEN")
@@ -143,6 +147,62 @@ GNSS_LIST = {
     6: ("GLO", "indianred"),
 }
 
+# map of fix values to descriptions
+# (for NMEA 4 and above)
+FIXLOOKUP = {
+    "GGA1": "3D",  # quality
+    "GGA2": "3D",
+    "GGA4": "RTK FIXED",
+    "GGA5": "RTK FLOAT",
+    "GGA6": "DR",
+    "GLLA": "3D",  # posMode
+    "GLLD": "RTK",
+    "GLLE": "DR",
+    "GNSA": "3D",  # posMode
+    "GNSD": "3D",
+    "GNSF": "RTK FLOAT",
+    "GNSR": "RTK FIXED",
+    "GNSE": "DR",
+    "RMCA": "3D",  # posMode
+    "RMCD": "3D",
+    "RMCF": "RTK FLOAT",
+    "RMCR": "RTK FIXED",
+    "RMCE": "DR",
+    "VTGA": "3D",  # posMode
+    "VTGD": "RTK",
+    "VTGE": "DR",
+    "NAV-PVT1": "DR",  # fixType
+    "NAV-PVT2": "2D",
+    "NAV-PVT3": "3D",
+    "NAV-PVT4": "GNSS+DR",
+    "NAV-PVT5": "TIME ONLY",
+    "NAV-STATUS1": "DR",  # gpsFix
+    "NAV-STATUS2": "3D",
+    "NAV-STATUS3": "3D",
+    "NAV-STATUS4": "GNSS+DR",
+    "NAV-STATUS5": "TIME ONLY",
+    "NAV-SOL1": "DR",  # gpsFix
+    "NAV-SOL2": "3D",
+    "NAV-SOL3": "3D",
+    "NAV-SOL4": "GNSS+DR",
+    "NAV-SOL5": "TIME ONLY",
+    "HNR-PVT1": "DR",  # gpsFix
+    "HNR-PVT2": "2D",
+    "HNR-PVT3": "3D",
+    "HNR-PVT4": "GNSS+DR",
+    "HNR-PVT5": "TIME ONLY",
+    "NAV2-PVT1": "DR",  # fixType
+    "NAV2-PVT2": "2D",
+    "NAV2-PVT3": "3D",
+    "NAV2-PVT4": "GNSS+DR",
+    "NAV2-PVT5": "TIME ONLY",
+    "NAV2-STATUS1": "DR",  # gpsFix
+    "NAV2-STATUS2": "3D",
+    "NAV2-STATUS3": "3D",
+    "NAV2-STATUS4": "GNSS+DR",
+    "NAV2-STATUS5": "TIME ONLY",
+}
+
 # List of tags to highlight in console if TAG_COLORS = True
 # (NB there is a slight performance hit in having many tags)
 FONT_MENU = "TkMenuFont"
@@ -162,6 +222,7 @@ TAGS = [
     ("GLL", "orange"),
     ("GLQ", "pink"),
     ("GNQ", "pink"),
+    ("GNS", "orange"),
     ("GQQ", "pink"),
     ("GRS", "yellow"),
     ("GSA", "green2"),
