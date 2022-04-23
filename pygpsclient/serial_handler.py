@@ -17,14 +17,13 @@ from datetime import datetime, timedelta
 from serial import Serial, SerialException, SerialTimeoutException
 from pynmeagps import NMEAReader, NMEAParseError
 from pyrtcm import RTCMReader
-from pyubx2 import UBXReader, UBXParseError, RTCMMessage as RTCMStub
+from pyubx2 import UBXReader, UBXParseError
 import pyubx2.ubxtypes_core as ubt
 from pygpsclient.globals import (
     CONNECTED,
     CONNECTED_FILE,
     DISCONNECTED,
     CRLF,
-    USE_PYRTCM,
     FILEREAD_INTERVAL,
 )
 from pygpsclient.strings import NOTCONN, SEROPENERROR, ENDOFFILE
@@ -408,10 +407,7 @@ class SerialHandler:
                     payload = self._read_bytes(stream, size)
                     crc = self._read_bytes(stream, 3)
                     raw_data = bytehdr + bytehdr3 + payload + crc
-                    if USE_PYRTCM:
-                        parsed_data = RTCMReader.parse(raw_data)
-                    else:
-                        parsed_data = RTCMStub(payload)
+                    parsed_data = RTCMReader.parse(raw_data)
                     parsing = False
                 # else drop it like it's hot
                 else:

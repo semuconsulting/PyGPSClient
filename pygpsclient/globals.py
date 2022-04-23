@@ -61,7 +61,6 @@ MAXLOGLINES = 10000  # maximum number of 'lines' per datalog file
 # 0 (ERR_IGNORE) = ignore errors, 1 (ERR_LOG) - log errors, 2 (ERR_RAISE) = raise errors
 QUITONERRORDEFAULT = 1
 POPUP_TRANSIENT = True  # whether pop-up config dialogs are always on top
-USE_PYRTCM = True  # whether to use pyrtcm library to decode RTCM3 messages
 PORTIDS = ("0 I2C", "1 UART1", "2 UART2", "3 USB", "4 SPI")
 ANTSTATUS = ("INIT", "DONTKNOW", "OK", "SHORT", "OPEN")
 ANTPOWER = ("OFF", "ON", "DONTKNOW")
