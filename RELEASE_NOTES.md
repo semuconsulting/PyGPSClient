@@ -1,6 +1,12 @@
 # PyGPSClient Release Notes
 
-### RELEASE CANDIDATE v.1.2.0
+### RELEASE v.1.2.1
+
+CHANGES:
+
+1. Minimum versions of `pyubx2` and `pyrtcm` updated to 1.2.7 and 0.2.5 respectively.
+
+### RELEASE v.1.2.0
 
 ENHANCEMENTS:
 
