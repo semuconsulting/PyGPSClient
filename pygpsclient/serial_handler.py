@@ -97,12 +97,6 @@ class SerialHandler:
             self.__app.frm_settings.enable_controls(CONNECTED)
             self._connected = True
             self.start_read_thread()
-
-            # if self.__app.frm_settings.datalogging:
-            #     self.__app.file_handler.open_logfile()
-
-            if self.__app.frm_settings.record_track:
-                self.__app.file_handler.open_trackfile()
             self.__app.set_status("Connected", "blue")
 
         except (IOError, SerialException, SerialTimeoutException) as err:
@@ -136,13 +130,6 @@ class SerialHandler:
             self.__app.frm_settings.enable_controls(CONNECTED_FILE)
             self._connectedfile = True
             self.start_readfile_thread()
-
-            # if self.__app.frm_settings.datalogging:
-            #     self.__app.file_handler.open_logfile()
-
-            if self.__app.frm_settings.record_track:
-                self.__app.file_handler.open_trackfile()
-
         except (IOError, SerialException, SerialTimeoutException) as err:
             self._connected = False
             self.__app.set_connection(f"{in_filepath}", "red")
@@ -162,13 +149,6 @@ class SerialHandler:
                 self.__app.frm_banner.update_conn_status(DISCONNECTED)
                 self.__app.set_connection(NOTCONN, "red")
                 self.__app.set_status("", "blue")
-
-                # if self.__app.frm_settings.datalogging:
-                #     self.__app.file_handler.close_logfile()
-
-                if self.__app.frm_settings.record_track:
-                    self.__app.file_handler.close_trackfile()
-
             except (SerialException, SerialTimeoutException):
                 pass
 

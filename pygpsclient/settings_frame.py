@@ -410,13 +410,13 @@ class SettingsFrame(Frame):
                 self.__app.set_status(
                     "Track recording enabled: " + self._trackpath, "green"
                 )
-                # self.__app.file_handler.open_trackfile()
+                self.__app.file_handler.open_trackfile()
             else:
                 self._record_track.set(False)
         else:
             self._trackpath = None
             self._record_track.set(False)
-            # self.__app.file_handler.close_trackfile()
+            self.__app.file_handler.close_trackfile()
             self.__app.set_status("Track recording disabled", "blue")
 
     def _on_data_stream(self):
