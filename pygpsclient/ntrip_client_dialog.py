@@ -110,6 +110,10 @@ class NTRIPConfigDialog(Toplevel):
         self._ntrip_user = StringVar()
         self._ntrip_password = StringVar()
         self._ntrip_gga_interval = StringVar()
+        self._ntrip_lat = StringVar()
+        self._ntrip_lon = StringVar()
+        self._ntrip_alt = StringVar()
+        self._ntrip_sep = StringVar()
         self._settings = {}
         self._connected = False
         self._sourcetable = None
@@ -218,6 +222,43 @@ class NTRIPConfigDialog(Toplevel):
             state=READONLY,
         )
 
+        self._lbl_lat = Label(self._frm_container, text="Latitude")
+        self._ent_lat = Entry(
+            self._frm_container,
+            textvariable=self._ntrip_lat,
+            bg=ENTCOL,
+            state=NORMAL,
+            relief="sunken",
+            width=15,
+        )
+        self._lbl_lon = Label(self._frm_container, text="Longitude")
+        self._ent_lon = Entry(
+            self._frm_container,
+            textvariable=self._ntrip_lon,
+            bg=ENTCOL,
+            state=NORMAL,
+            relief="sunken",
+            width=15,
+        )
+        self._lbl_alt = Label(self._frm_container, text="Elevation")
+        self._ent_alt = Entry(
+            self._frm_container,
+            textvariable=self._ntrip_alt,
+            bg=ENTCOL,
+            state=NORMAL,
+            relief="sunken",
+            width=15,
+        )
+        self._lbl_sep = Label(self._frm_container, text="Separation")
+        self._ent_sep = Entry(
+            self._frm_container,
+            textvariable=self._ntrip_sep,
+            bg=ENTCOL,
+            state=NORMAL,
+            relief="sunken",
+            width=15,
+        )
+
         self._btn_connect = Button(
             self._frm_container,
             width=45,
@@ -273,18 +314,29 @@ class NTRIPConfigDialog(Toplevel):
         self._ent_user.grid(column=1, row=10, columnspan=2, padx=3, pady=3, sticky=W)
         self._lbl_password.grid(column=0, row=11, padx=3, pady=3, sticky=W)
         self._ent_password.grid(column=1, row=11, padx=3, pady=3, sticky=W)
-        self._lbl_ntripggaint.grid(column=0, row=12, padx=3, pady=3, sticky=W)
-        self._spn_ntripggaint.grid(
-            column=1, row=12, padx=3, pady=3, rowspan=2, sticky=W
-        )
         ttk.Separator(self._frm_container).grid(
-            column=0, row=13, columnspan=2, padx=3, pady=3, sticky=(W, E)
+            column=0, row=12, columnspan=2, padx=3, pady=3, sticky=(W, E)
         )
-        self._btn_connect.grid(column=0, row=14, padx=3, pady=3, sticky=W)
-        self._btn_disconnect.grid(column=1, row=14, padx=3, pady=3, sticky=W)
+        self._lbl_ntripggaint.grid(column=0, row=13, padx=3, pady=3, sticky=W)
+        self._spn_ntripggaint.grid(
+            column=1, row=13, padx=3, pady=3, rowspan=2, sticky=W
+        )
+        self._lbl_lat.grid(column=0, row=15, padx=3, pady=3, sticky=W)
+        self._ent_lat.grid(column=1, row=15, padx=3, pady=3, sticky=W)
+        self._lbl_lon.grid(column=0, row=16, padx=3, pady=3, sticky=W)
+        self._ent_lon.grid(column=1, row=16, padx=3, pady=3, sticky=W)
+        self._lbl_alt.grid(column=0, row=17, padx=3, pady=3, sticky=W)
+        self._ent_alt.grid(column=1, row=17, padx=3, pady=3, sticky=W)
+        self._lbl_sep.grid(column=0, row=18, padx=3, pady=3, sticky=W)
+        self._ent_sep.grid(column=1, row=18, padx=3, pady=3, sticky=W)
+        ttk.Separator(self._frm_container).grid(
+            column=0, row=19, columnspan=2, padx=3, pady=3, sticky=(W, E)
+        )
+        self._btn_connect.grid(column=0, row=20, padx=3, pady=3, sticky=W)
+        self._btn_disconnect.grid(column=1, row=20, padx=3, pady=3, sticky=W)
 
         # bottom of grid
-        row = 15
+        row = 21
         col = 0
         (colsp, rowsp) = self._frm_container.grid_size()
         self._frm_status.grid(column=col, row=row, columnspan=colsp, sticky=(W, E))
@@ -345,6 +397,10 @@ class NTRIPConfigDialog(Toplevel):
         for ctl in (
             self._spn_ntripversion,
             self._spn_ntripggaint,
+            self._ent_lat,
+            self._ent_lon,
+            self._ent_alt,
+            self._ent_sep,
         ):
             ctl.config(state=(DISABLED if status else READONLY))
         if not self.__app.serial_handler.connected:
