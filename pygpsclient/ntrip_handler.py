@@ -357,6 +357,7 @@ class NTRIPHandler:
             raw_data, buf = RTCMReader.parse_buffer(buf)
 
             if raw_data is not None:
+                raw_data = bytes(raw_data)
                 parsed_data = RTCMReader.parse(raw_data)
                 # update console
                 self.__app.process_data(raw_data, parsed_data, "NTRIP>>")

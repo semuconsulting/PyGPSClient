@@ -98,8 +98,8 @@ class SerialHandler:
             self._connected = True
             self.start_read_thread()
 
-            if self.__app.frm_settings.datalogging:
-                self.__app.file_handler.open_logfile()
+            # if self.__app.frm_settings.datalogging:
+            #     self.__app.file_handler.open_logfile()
 
             if self.__app.frm_settings.record_track:
                 self.__app.file_handler.open_trackfile()
@@ -137,8 +137,8 @@ class SerialHandler:
             self._connectedfile = True
             self.start_readfile_thread()
 
-            if self.__app.frm_settings.datalogging:
-                self.__app.file_handler.open_logfile()
+            # if self.__app.frm_settings.datalogging:
+            #     self.__app.file_handler.open_logfile()
 
             if self.__app.frm_settings.record_track:
                 self.__app.file_handler.open_trackfile()
@@ -163,8 +163,8 @@ class SerialHandler:
                 self.__app.set_connection(NOTCONN, "red")
                 self.__app.set_status("", "blue")
 
-                if self.__app.frm_settings.datalogging:
-                    self.__app.file_handler.close_logfile()
+                # if self.__app.frm_settings.datalogging:
+                #     self.__app.file_handler.close_logfile()
 
                 if self.__app.frm_settings.record_track:
                     self.__app.file_handler.close_trackfile()

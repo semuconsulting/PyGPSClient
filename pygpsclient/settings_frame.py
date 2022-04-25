@@ -390,12 +390,13 @@ class SettingsFrame(Frame):
             self._logpath = self.__app.file_handler.set_logfile_path()
             if self._logpath is not None:
                 self.__app.set_status("Data logging enabled: " + self._logpath, "green")
+                self.__app.file_handler.open_logfile()
             else:
                 self._datalog.set(False)
         else:
             self._logpath = None
             self._datalog.set(False)
-            #             self.__app.file_handler.close_logfile()
+            self.__app.file_handler.close_logfile()
             self.__app.set_status("Data logging disabled", "blue")
 
     def _on_record_track(self):
@@ -409,12 +410,13 @@ class SettingsFrame(Frame):
                 self.__app.set_status(
                     "Track recording enabled: " + self._trackpath, "green"
                 )
+                # self.__app.file_handler.open_trackfile()
             else:
                 self._record_track.set(False)
         else:
             self._trackpath = None
             self._record_track.set(False)
-            #             self.__app.file_handler.close_trackfile()
+            # self.__app.file_handler.close_trackfile()
             self.__app.set_status("Track recording disabled", "blue")
 
     def _on_data_stream(self):
