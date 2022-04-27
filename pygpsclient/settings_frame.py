@@ -255,10 +255,11 @@ class SettingsFrame(Frame):
         )
         self._chk_webmap = Checkbutton(
             self._frm_options,
-            text="Web Map    Zoom",
+            text="Web Map",
             variable=self._webmap,
             command=lambda: self._on_webmap(),
         )
+        self._lbl_mapzoom = Label(self._frm_options, text="Zoom")
         self._scl_mapzoom = Scale(
             self._frm_options,
             from_=1,
@@ -367,7 +368,8 @@ class SettingsFrame(Frame):
             column=1, row=4, columnspan=3, padx=2, pady=2, sticky=(W)
         )
         self._chk_webmap.grid(column=0, row=5, padx=2, pady=2, sticky=(W))
-        self._scl_mapzoom.grid(column=1, row=5, columnspan=3, sticky=(W))
+        self._lbl_mapzoom.grid(column=1, row=5, sticky=(W))
+        self._scl_mapzoom.grid(column=2, row=5, columnspan=2, sticky=(W))
         self._chk_legend.grid(column=0, row=6, padx=2, pady=2, sticky=(W))
         self._chk_unusedsat.grid(
             column=1, row=6, columnspan=3, padx=2, pady=2, sticky=(W)
@@ -383,13 +385,10 @@ class SettingsFrame(Frame):
         ttk.Separator(self._frm_options).grid(
             column=0, row=9, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
-        self._lbl_ubxconfig.grid(column=0, row=10, padx=2, pady=2, sticky=(W))
+        self._lbl_ubxconfig.grid(column=0, row=10, padx=2, pady=2, sticky=(E))
         self._btn_ubxconfig.grid(column=1, row=10, padx=2, pady=2, sticky=(W))
-        ttk.Separator(self._frm_options).grid(
-            column=0, row=11, columnspan=4, padx=2, pady=2, sticky=(W, E)
-        )
-        self._lbl_ntripconfig.grid(column=0, row=12, padx=2, pady=2, sticky=(W))
-        self._btn_ntripconfig.grid(column=1, row=12, padx=2, pady=2, sticky=(W))
+        self._lbl_ntripconfig.grid(column=2, row=10, padx=2, pady=2, sticky=(E))
+        self._btn_ntripconfig.grid(column=3, row=10, padx=2, pady=2, sticky=(W))
 
     def _on_ubx_config(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
