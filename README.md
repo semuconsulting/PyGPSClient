@@ -52,7 +52,7 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 1. Graphview widget showing current satellite reception (signal-to-noise ratio).
 1. Mapview widget with location marker, showing either a static Mercator world map, or an optional dynamic web-based map downloaded via a MapQuest API (*requires an Internet connection and free 
 [MapQuest API Key](https://developer.mapquest.com/user/login/sign-up)*).
-1. Data logging in parsed, binary, hexadecimal string and tabulated hexadecimal formats (NB. only binary datalogs can be re-read by `pygpsclient`'s parser).
+1. Data logging in parsed, binary, hexadecimal string and tabulated hexadecimal formats (NB. only binary datalogs can be re-read by `PyGPSClient`'s parser).
 1. Track recording in GPX format.
 1. UBX Configuration Dialog, with the ability to send a variety of UBX configuration commands to u-blox GNSS devices. This includes the facility to add **user-defined commands or command sequences** - see instructions under [installation](#installation) below.
 1. [NTRIP](https://en.wikipedia.org/wiki/Networked_Transport_of_RTCM_via_Internet_Protocol) Client ([differential GPS enhancement](https://en.wikipedia.org/wiki/Differential_GPS)) facility with the ability to connect to a specified NTRIP server (caster), parse the incoming RTCM3 data and feed this data to a compatible GNSS device (*requires an Internet connection and access to a suitable NTRIP caster*).
@@ -69,22 +69,21 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 * To stream from a previously-saved binary datalog file, click 
 ![connect-file icon](/pygpsclient/resources/binary-1-24.png) and select the file. PyGPSClient datalog files will be named e.g. `pygpsdata-20220427114802.log`, but any binary dump of an GNSS receiver output is acceptable.
 * To disconnect from the data stream, click
-![disconnect icon](/pygpsclient/resources/iconmonstr-media_control-50-24.png).
+![disconnect icon](/pygpsclient/resources/iconmonstr-media-control-50-24.png).
 * To display the UBX Configuration Dialog (*only available when connected to a UBX serial device*), click
 ![gear icon](/pygpsclient/resources/iconmonstr-gear-2-24.png), or go to Menu..Options.
 * To display the NTRIP Client Configuration Dialog (*requires internet connection*), click
 ![gear icon](/pygpsclient/resources/iconmonstr-antenna-6-24.png), or go to Menu..Options.
 * To expand or collapse the banner or serial port configuration widgets, click the ![expand icon](/pygpsclient/resources/iconmonstr-arrow-80-16.png)/![expand icon](/pygpsclient/resources/iconmonstr-triangle-1-16.png) buttons.
 * To show or hide the various widgets, go to Menu..View and click on the relevant hide/show option.
-* Protocols Displayed - Select which protocols to display; NMEA, UBX and/or RTCM3 (NB: this only changes the displayed protocols - to change the actual protocols output by the receiver, use the CFG-PRT command).
+* Protocols Snown - Select which protocols to display; NMEA, UBX and/or RTCM3 (NB: this only changes the displayed protocols - to change the actual protocols output by the receiver, use the CFG-PRT command).
 * Console Display - Select from parsed, binary or hexadecimal formats.
 * Degrees Format and Units - Change the displayed degree and unit formats.
 * Zoom - Change the web map scale (any change will take effect at the next map refresh, indicated by a small timer icon at the top left of the panel).
 * Show Legend - Turn the graph legend on or off.
 * Show Unused Satellites - Include or exclude satellites that are not used in the navigation solution (e.g. because their signal level is too low) in the graph and sky view panels.
-* Enable Data Logging - Turn Data logging in the selected format on or off. You will be prompted to select the directory into which timestamped log files are saved (NB. only binary datalogs can be re-read by `pygpsclient`'s parser).
-* Record Track - Turn track recording (in GPX format) on or off. You will be prompted to select the directory into which timestamped track files are saved.
-* Widgets (and their associated fonts) are fully resizeable.
+* DataLogging - Turn Data logging in the selected format on or off. You will be prompted to select the directory into which timestamped log files are saved (NB. only binary datalogs can be re-read by `pygpsclient`'s parser).
+* GPX Track - Turn track recording (in GPX format) on or off. You will be prompted to select the directory into which timestamped track files are saved.
 
 ---
 ### <a name="ubxconfig">UBX Configuration Facilities</a>

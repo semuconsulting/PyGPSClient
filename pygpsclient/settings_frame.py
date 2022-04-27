@@ -369,7 +369,7 @@ class SettingsFrame(Frame):
             column=1, row=4, columnspan=3, padx=2, pady=2, sticky=(W)
         )
         self._chk_webmap.grid(column=0, row=5, padx=2, pady=2, sticky=(W))
-        self._lbl_mapzoom.grid(column=1, row=5, sticky=(W))
+        self._lbl_mapzoom.grid(column=1, row=5, sticky=(E))
         self._scl_mapzoom.grid(column=2, row=5, columnspan=2, sticky=(W))
         self._chk_legend.grid(column=0, row=6, padx=2, pady=2, sticky=(W))
         self._chk_unusedsat.grid(
