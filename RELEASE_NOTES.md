@@ -1,5 +1,12 @@
 # PyGPSClient Release Notes
 
+### RELEASE CANDIDATE v1.3.0
+
+ENHANCEMENTS:
+
+1. New BETA feature supports reading from TCP or UDP socket in addition to USB/UART and Binary File stream. At present, only open (i.e. unauthenticated, unencrypted) sockets are supported, but this may be enhanced in future versions.
+2. Datalogging enhanced to record incoming NTRIP data stream.
+
 ### RELEASE v.1.2.1
 
 CHANGES:

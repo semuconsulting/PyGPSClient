@@ -17,7 +17,7 @@ PyGPSClient is a multi-platform graphical GNSS/GPS testing, diagnostic and UBX &
 
 ![full app screenshot ubx](/images/all_widgets.png)
 
-The application runs on any platform which supports a Python interpreter (>=3.7) and tkinter (>=8.6) GUI framework, including Windows, MacOS, Linux and Raspberry Pi OS. It displays location and diagnostic data from any NMEA, UBX or RTCM3 compatible GNSS/GPS device over a standard serial (UART) or USB port, or from a previously-saved datalog file, *in addition to* providing a useful subset of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool. Version 1.1.9 also introduces a simple NTRIP client.
+The application runs on any platform which supports a Python interpreter (>=3.7) and tkinter (>=8.6) GUI framework, including Windows, MacOS, Linux and Raspberry Pi OS. It displays location and diagnostic data from any NMEA, UBX or RTCM3 compatible GNSS/GPS device over a standard serial (UART) or USB port, or from a previously-saved datalog file, *in addition to* providing a useful subset of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool.
 
 The application can be installed using the standard `pip` Python package manager - see [installation instructions](#installation) below.
 
@@ -43,8 +43,8 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 ---
 ## <a name="features">Features</a>
 
-1. Supports NMEA, UBX and RTCM3 protocols. It uses the [pynmeagps library](https://pypi.org/project/pynmeagps/) for NMEA parsing, the [pyubx2 library](https://pypi.org/project/pyubx2/) for UBX parsing and the [pyrtcm library](https://pypi.org/project/pyrtcm/) for RTCM3 parsing.
-1. Capable of reading from serial/USB port or previously-saved binary datalog file. 
+1. Supports NMEA, UBX and RTCM3 protocols.
+1. Capable of reading from a variety of data streams: Serial (USB / UART), Socket (TCP / UDP) and binary datalog file. 
 1. Configurable GUI with selectable and resizeable widgets.
 1. Expandable banner widget showing key navigation information.
 1. Serial console widget showing data stream in either parsed, binary or hexadecimal format.
@@ -55,7 +55,7 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 1. Data logging in parsed, binary, hexadecimal string and tabulated hexadecimal formats (NB. only binary datalogs can be re-read by `pygpsclient`'s parser).
 1. Track recording in GPX format.
 1. UBX Configuration Dialog, with the ability to send a variety of UBX configuration commands to u-blox GNSS devices. This includes the facility to add **user-defined commands or command sequences** - see instructions under [installation](#installation) below.
-1. **BETA FEATURE** [NTRIP](https://en.wikipedia.org/wiki/Networked_Transport_of_RTCM_via_Internet_Protocol) Client ([differential GPS enhancement](https://en.wikipedia.org/wiki/Differential_GPS)) facility with the ability to connect to a specified NTRIP server (caster), parse the incoming RTCM3 data and feed this data to a compatible GNSS device (*requires an Internet connection and access to a suitable NTRIP caster*).
+1. [NTRIP](https://en.wikipedia.org/wiki/Networked_Transport_of_RTCM_via_Internet_Protocol) Client ([differential GPS enhancement](https://en.wikipedia.org/wiki/Differential_GPS)) facility with the ability to connect to a specified NTRIP server (caster), parse the incoming RTCM3 data and feed this data to a compatible GNSS device (*requires an Internet connection and access to a suitable NTRIP caster*).
 
 ![compact view screenshot](/images/min_widgets.png)
 
@@ -63,11 +63,13 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 ## <a name="howtouse">How to Use</a>
 
 * To connect to a listed serial device, select the device from the listbox, set the appropriate serial connection parameters and click 
-![connect icon](/pygpsclient/resources/iconmonstr-link-8-24.png). The application will endeavour to pre-select a recognised GNSS/GPS device but this is platform and device dependent. Press the ![refresh](/pygpsclient/resources/iconmonstr-refresh-6-16.png) button to refresh the list of connected devices at any point. *Rate bps is typically the only setting that might need adjusting, but tweaking the timeout setting may improve performance on certain platforms*.
-* To stream from a previously-saved binary datalog file (pygpsdata-*.log, or any binary dump of an NMEA or UBX GNSS device output), click 
-![connect-file icon](/pygpsclient/resources/iconmonstr-note-37-24.png) and select the file.
-* To disconnect from a serial device or datalog file, click
-![disconnect icon](/pygpsclient/resources/iconmonstr-link-10-24.png).
+![connect icon](/pygpsclient/resources/usbport-1-24.png). The application will endeavour to pre-select a recognised GNSS/GPS device but this is platform and device dependent. Press the ![refresh](/pygpsclient/resources/iconmonstr-refresh-6-16.png) button to refresh the list of connected devices at any point. *Rate bps is typically the only setting that might need adjusting, but tweaking the timeout setting may improve performance on certain platforms*.
+* **BETA FEATURE** To connect to a TCP or UDP socket, enter the server URL and port, select the protocol (defaults to TCP) and click 
+![connect socket icon](/pygpsclient/resources/ethernet-1-24.png).
+* To stream from a previously-saved binary datalog file, click 
+![connect-file icon](/pygpsclient/resources/binary-1-24.png) and select the file. PyGPSClient datalog files will be named e.g. `pygpsdata-20220427114802.log`, but any binary dump of an GNSS receiver output is acceptable.
+* To disconnect from the data stream, click
+![disconnect icon](/pygpsclient/resources/iconmonstr-media_control-50-24.png).
 * To display the UBX Configuration Dialog (*only available when connected to a UBX serial device*), click
 ![gear icon](/pygpsclient/resources/iconmonstr-gear-2-24.png), or go to Menu..Options.
 * To display the NTRIP Client Configuration Dialog (*requires internet connection*), click
@@ -119,7 +121,7 @@ To use:
 1. Enter the required NTRIP server URL (or IP address) and port (defaults to 2101). For services which require authorisation, enter your login username and password.
 1. To retrieve the sourcetable, leave the mountpoint field blank and click connect (*response may take a few seconds*). The required mountpoint may then be selected from the list, or entered manually.
 1. For NTRIP services which require client position data via NMEA GGA sentences, select the appropriate sentence transmission interval in seconds (*only available when a GNSS receiver is connected*). The default is 'None' (no GGA sentences sent). A value of 10 seconds is typical. **NB:** The GGA sentence will be generated based on the current position fix from the GNSS receiver.
-1. To connect to the NTRIP server, click ![connect icon](/pygpsclient/resources/iconmonstr-link-8-24.png). To disconnect, click ![disconnect icon](/pygpsclient/resources/iconmonstr-link-10-24.png).
+1. To connect to the NTRIP server, click ![connect icon](/pygpsclient/resources/iconmonstr-media-control-48-24.png). To disconnect, click ![disconnect icon](/pygpsclient/resources/iconmonstr-media-control-50-24.png).
 1. If NTRIP data is being successfully received, the banner '**dgps:**' status indicator should change to 'YES' and indicate the age and reference station of the correction data (where available) ![dgps status](/images/dgps_status.png). Note that DGPS status is typically maintained for up to 60 seconds after loss of correction signal.
 1. Some NTRIP services may output RTCM3 correction messages at a high rate, flooding the GUI console display. To suppress these messages in the console, de-select the 'RTCM' option in 'Protocols Displayed' - the RTCM3 messages will continue to be processed in the background.
 
