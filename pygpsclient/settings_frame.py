@@ -34,6 +34,7 @@ from tkinter import (
 from PIL import ImageTk, Image
 import pyubx2.ubxtypes_core as ubt
 from pygpsclient.serialconfig_frame import SerialConfigFrame
+from pygpsclient.socketconfig_frame import SocketConfigFrame
 from pygpsclient.globals import (
     ENTCOL,
     DDD,
@@ -49,6 +50,8 @@ from pygpsclient.globals import (
     DISCONNECTED,
     NOPORTS,
     ICON_CONN,
+    ICON_SERIAL,
+    ICON_SOCKET,
     ICON_DISCONN,
     ICON_UBXCONFIG,
     ICON_NTRIPCONFIG,
@@ -121,6 +124,8 @@ class SettingsFrame(Frame):
         self._trackpath = None
         self._display_format = StringVar()
         self._img_conn = ImageTk.PhotoImage(Image.open(ICON_CONN))
+        self._img_serial = ImageTk.PhotoImage(Image.open(ICON_SERIAL))
+        self._img_socket = ImageTk.PhotoImage(Image.open(ICON_SOCKET))
         self._img_disconn = ImageTk.PhotoImage(Image.open(ICON_DISCONN))
         self._img_ubxconfig = ImageTk.PhotoImage(Image.open(ICON_UBXCONFIG))
         self._img_ntripconfig = ImageTk.PhotoImage(Image.open(ICON_NTRIPCONFIG))
@@ -146,15 +151,35 @@ class SettingsFrame(Frame):
             self, preselect=KNOWNGPS, timeouts=TIMEOUTS, bpsrates=BPSRATES
         )
 
+        # socket configuration panel
+        self._frm_socket = SocketConfigFrame(self)
+
         # connection buttons
         self._frm_buttons = Frame(self)
         self._btn_connect = Button(
             self._frm_buttons,
             width=45,
             height=35,
-            image=self._img_conn,
+            image=self._img_serial,
             command=lambda: self.__app.serial_handler.connect(),
         )
+        self._lbl_connect = Label(self._frm_buttons, text="USB/UART")
+        self._btn_connect_socket = Button(
+            self._frm_buttons,
+            width=45,
+            height=35,
+            image=self._img_socket,
+            # command=lambda: self.__app.socket_handler.connect(),
+        )
+        self._lbl_connect_socket = Label(self._frm_buttons, text="TCP/UDP")
+        self._btn_connect_file = Button(
+            self._frm_buttons,
+            width=45,
+            height=35,
+            image=self._img_dataread,
+            command=lambda: self._on_data_stream(),
+        )
+        self._lbl_connect_file = Label(self._frm_buttons, text="FILE")
         self._btn_disconnect = Button(
             self._frm_buttons,
             width=45,
@@ -163,13 +188,7 @@ class SettingsFrame(Frame):
             command=lambda: self.__app.serial_handler.disconnect(),
             state=DISABLED,
         )
-        self._btn_connect_file = Button(
-            self._frm_buttons,
-            width=45,
-            height=35,
-            image=self._img_dataread,
-            command=lambda: self._on_data_stream(),
-        )
+        self._lbl_disconnect = Label(self._frm_buttons, text="STOP")
         self._lbl_status_preset = Label(
             self._frm_buttons, font=self.__app.font_md2, text=""
         )
@@ -303,62 +322,74 @@ class SettingsFrame(Frame):
         """
 
         self._frm_serial.grid(
-            column=0, row=1, columnspan=4, padx=3, pady=3, sticky=(W, E)
+            column=0, row=1, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
         ttk.Separator(self).grid(
-            column=0, row=2, columnspan=4, padx=3, pady=3, sticky=(W, E)
+            column=0, row=2, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
 
-        self._frm_buttons.grid(column=0, row=3, columnspan=4, sticky=(W, E))
-        self._btn_connect.grid(column=0, row=0, padx=3, pady=3)
-        self._btn_connect_file.grid(column=1, row=0, padx=3, pady=3)
-        self._btn_disconnect.grid(column=3, row=0, padx=3, pady=3)
+        self._frm_socket.grid(
+            column=0, row=3, columnspan=4, padx=2, pady=2, sticky=(W, E)
+        )
+        ttk.Separator(self).grid(
+            column=0, row=4, columnspan=4, padx=2, pady=2, sticky=(W, E)
+        )
+
+        self._frm_buttons.grid(column=0, row=5, columnspan=4, sticky=(W, E))
+        self._btn_connect.grid(column=0, row=0, padx=2, pady=1)
+        self._btn_connect_socket.grid(column=1, row=0, padx=2, pady=1)
+        self._btn_connect_file.grid(column=2, row=0, padx=2, pady=1)
+        self._btn_disconnect.grid(column=3, row=0, padx=2, pady=1)
+        self._lbl_connect.grid(column=0, row=1, padx=1, pady=1, sticky=(W, E))
+        self._lbl_connect_socket.grid(column=1, row=1, padx=1, pady=1, sticky=(W, E))
+        self._lbl_connect_file.grid(column=2, row=1, padx=1, pady=1, sticky=(W, E))
+        self._lbl_disconnect.grid(column=3, row=1, padx=1, pady=1, sticky=(W, E))
 
         ttk.Separator(self).grid(
-            column=0, row=7, columnspan=4, padx=3, pady=3, sticky=(W, E)
+            column=0, row=7, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
 
         self._frm_options.grid(column=0, row=8, columnspan=4, sticky=(W, E))
-        self._lbl_protocol.grid(column=0, row=0, padx=3, pady=3, sticky=(W))
+        self._lbl_protocol.grid(column=0, row=0, padx=2, pady=2, sticky=(W))
         self._chk_nmea.grid(column=1, row=0, padx=0, pady=0, sticky=(W))
         self._chk_ubx.grid(column=2, row=0, padx=0, pady=0, sticky=(W))
         self._chk_rtcm.grid(column=3, row=0, padx=0, pady=0, sticky=(W))
-        self._lbl_consoledisplay.grid(column=0, row=1, padx=2, pady=3, sticky=(W))
+        self._lbl_consoledisplay.grid(column=0, row=1, padx=2, pady=2, sticky=(W))
         self._spn_conformat.grid(
-            column=1, row=1, columnspan=2, padx=1, pady=3, sticky=(W)
+            column=1, row=1, columnspan=2, padx=1, pady=2, sticky=(W)
         )
-        self._lbl_format.grid(column=0, row=2, padx=3, pady=3, sticky=(W))
-        self._spn_format.grid(column=1, row=2, padx=2, pady=3, sticky=(W))
-        self._lbl_units.grid(column=0, row=3, padx=3, pady=3, sticky=(W))
-        self._spn_units.grid(column=1, row=3, columnspan=3, padx=2, pady=3, sticky=(W))
-        self._chk_scroll.grid(column=0, row=4, padx=3, pady=3, sticky=(W))
+        self._lbl_format.grid(column=0, row=2, padx=2, pady=2, sticky=(W))
+        self._spn_format.grid(column=1, row=2, padx=2, pady=2, sticky=(W))
+        self._lbl_units.grid(column=0, row=3, padx=2, pady=2, sticky=(W))
+        self._spn_units.grid(column=1, row=3, columnspan=3, padx=2, pady=2, sticky=(W))
+        self._chk_scroll.grid(column=0, row=4, padx=2, pady=2, sticky=(W))
         self._spn_maxlines.grid(
-            column=1, row=4, columnspan=3, padx=3, pady=3, sticky=(W)
+            column=1, row=4, columnspan=3, padx=2, pady=2, sticky=(W)
         )
-        self._chk_webmap.grid(column=0, row=5, padx=3, pady=3, sticky=(W))
+        self._chk_webmap.grid(column=0, row=5, padx=2, pady=2, sticky=(W))
         self._scl_mapzoom.grid(column=1, row=5, columnspan=3, sticky=(W))
-        self._chk_legend.grid(column=0, row=6, padx=3, pady=3, sticky=(W))
+        self._chk_legend.grid(column=0, row=6, padx=2, pady=2, sticky=(W))
         self._chk_unusedsat.grid(
-            column=1, row=6, columnspan=3, padx=3, pady=3, sticky=(W)
+            column=1, row=6, columnspan=3, padx=2, pady=2, sticky=(W)
         )
-        self._chk_datalog.grid(column=0, row=7, padx=3, pady=3, sticky=(W))
+        self._chk_datalog.grid(column=0, row=7, padx=2, pady=2, sticky=(W))
         self._spn_datalog.grid(
-            column=1, row=7, columnspan=2, padx=3, pady=3, sticky=(W)
+            column=1, row=7, columnspan=2, padx=2, pady=2, sticky=(W)
         )
         self._chk_recordtrack.grid(
-            column=0, row=8, columnspan=2, padx=3, pady=3, sticky=(W)
+            column=0, row=8, columnspan=2, padx=2, pady=2, sticky=(W)
         )
 
         ttk.Separator(self._frm_options).grid(
-            column=0, row=9, columnspan=4, padx=3, pady=3, sticky=(W, E)
+            column=0, row=9, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
-        self._lbl_ubxconfig.grid(column=0, row=10, padx=3, pady=3, sticky=(W))
-        self._btn_ubxconfig.grid(column=1, row=10, padx=3, pady=3, sticky=(W))
+        self._lbl_ubxconfig.grid(column=0, row=10, padx=2, pady=2, sticky=(W))
+        self._btn_ubxconfig.grid(column=1, row=10, padx=2, pady=2, sticky=(W))
         ttk.Separator(self._frm_options).grid(
-            column=0, row=11, columnspan=4, padx=3, pady=3, sticky=(W, E)
+            column=0, row=11, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
-        self._lbl_ntripconfig.grid(column=0, row=12, padx=3, pady=3, sticky=(W))
-        self._btn_ntripconfig.grid(column=1, row=12, padx=3, pady=3, sticky=(W))
+        self._lbl_ntripconfig.grid(column=0, row=12, padx=2, pady=2, sticky=(W))
+        self._btn_ntripconfig.grid(column=1, row=12, padx=2, pady=2, sticky=(W))
 
     def _on_ubx_config(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -460,6 +491,7 @@ class SettingsFrame(Frame):
         """
 
         self._frm_serial.set_status(status)
+        self._frm_socket.set_status(status)
 
         self._btn_connect.config(
             state=(
