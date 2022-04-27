@@ -24,11 +24,14 @@ from pygpsclient.globals import (
     UI,
     UIK,
     ICON_CONN,
+    ICON_SERIAL,
+    ICON_SOCKET,
     ICON_DISCONN,
     ICON_LOGREAD,
     ICON_EXPAND,
     ICON_CONTRACT,
     CONNECTED,
+    CONNECTED_SOCKET,
     CONNECTED_FILE,
     BGCOL,
     FGCOL,
@@ -88,10 +91,13 @@ class BannerFrame(Frame):
         self._fgcol = FGCOL
         self.config(bg=self._bgcol)
         self._img_conn = ImageTk.PhotoImage(Image.open(ICON_CONN))
-        self._img_connfile = ImageTk.PhotoImage(Image.open(ICON_LOGREAD))
+        self._img_serial = ImageTk.PhotoImage(Image.open(ICON_SERIAL))
+        self._img_socket = ImageTk.PhotoImage(Image.open(ICON_SOCKET))
+        self._img_file = ImageTk.PhotoImage(Image.open(ICON_LOGREAD))
         self._img_disconn = ImageTk.PhotoImage(Image.open(ICON_DISCONN))
         self._img_expand = ImageTk.PhotoImage(Image.open(ICON_EXPAND))
         self._img_contract = ImageTk.PhotoImage(Image.open(ICON_CONTRACT))
+
         self.width, self.height = self.get_size()
 
         self._body()
@@ -320,9 +326,11 @@ class BannerFrame(Frame):
         """
 
         if status == CONNECTED:
-            self._lbl_status_preset.configure(image=self._img_conn)
+            self._lbl_status_preset.configure(image=self._img_serial)
+        elif status == CONNECTED_SOCKET:
+            self._lbl_status_preset.configure(image=self._img_socket)
         elif status == CONNECTED_FILE:
-            self._lbl_status_preset.configure(image=self._img_connfile)
+            self._lbl_status_preset.configure(image=self._img_file)
         else:
             self._lbl_status_preset.configure(image=self._img_disconn)
 

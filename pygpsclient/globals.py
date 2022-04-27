@@ -107,7 +107,8 @@ FORMATS = ("Parsed", "Binary", "Hex String", "Hex Tabular")
 # connection type flags:
 DISCONNECTED = 0
 CONNECTED = 1
-CONNECTED_FILE = 2
+CONNECTED_SOCKET = 2
+CONNECTED_FILE = 4
 NOPORTS = 3
 # default widget frame sizes:
 WIDGETU1 = (250, 250)

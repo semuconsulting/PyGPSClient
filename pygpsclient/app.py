@@ -31,6 +31,7 @@ from pygpsclient.strings import (
     MENUHIDESATS,
     MENUSHOWSATS,
     INTROTXTNOPORTS,
+    NOTCONN,
 )
 from pygpsclient.gnss_status import GNSSStatus
 from pygpsclient.about_dialog import AboutDialog
@@ -47,6 +48,7 @@ from pygpsclient.graphview_frame import GraphviewFrame
 from pygpsclient.map_frame import MapviewFrame
 from pygpsclient.menu_bar import MenuBar
 from pygpsclient.serial_handler import SerialHandler
+from pygpsclient.socket_handler import SocketHandler
 from pygpsclient.ntrip_handler import NTRIPHandler
 from pygpsclient.settings_frame import SettingsFrame
 from pygpsclient.skyview_frame import SkyviewFrame
@@ -102,8 +104,10 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         # Instantiate protocol handler classes
         self.file_handler = FileHandler(self)
         self.serial_handler = SerialHandler(self)
+        self.socket_handler = SocketHandler(self)
         self.nmea_handler = NMEAHandler(self)
         self.ubx_handler = UBXHandler(self)
+        self._conn_status = DISCONNECTED
         # self.rtcm3_handler = RTCM3Handler(self)
         self.ntrip_handler = NTRIPHandler(self)
         self.dlg_ubxconfig = None
@@ -172,6 +176,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         self.__master.bind("<<gnss_read>>", self.serial_handler.on_read)
+        self.__master.bind("<<socket_read>>", self.socket_handler.on_read)
         self.__master.bind("<<gnss_readfile>>", self.serial_handler.on_readfile)
         self.__master.bind("<<gnss_eof>>", self.serial_handler.on_eof)
         self.__master.bind("<<ntrip_read>>", self.ntrip_handler.on_read)
@@ -301,6 +306,31 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         else:
             self.frm_mapview.grid_forget()
             self.menu.view_menu.entryconfig(3, label=MENUSHOWMAP)
+
+    @property
+    def conn_status(self) -> int:
+        """
+        Getter for connection status.
+
+        :param int status: connection status e.g. 1 = CONNECTED
+        """
+
+        return self._conn_status
+
+    @conn_status.setter
+    def conn_status(self, status: int):
+        """
+        Setter for connection status.
+
+        :param int status: connection status e.g. 1 = CONNECTED
+        """
+
+        self._conn_status = status
+        self.frm_banner.update_conn_status(status)
+        self.frm_settings.enable_controls(status)
+        if status == DISCONNECTED:
+            self.set_connection(NOTCONN, "red")
+            self.set_status("", "blue")
 
     def set_connection(self, message, color="blue"):
         """

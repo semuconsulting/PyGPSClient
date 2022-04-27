@@ -46,6 +46,7 @@ from pygpsclient.globals import (
     UIK,
     READONLY,
     CONNECTED,
+    CONNECTED_SOCKET,
     CONNECTED_FILE,
     DISCONNECTED,
     NOPORTS,
@@ -169,7 +170,7 @@ class SettingsFrame(Frame):
             width=45,
             height=35,
             image=self._img_socket,
-            # command=lambda: self.__app.socket_handler.connect(),
+            command=lambda: self.__app.socket_handler.connect(),
         )
         self._lbl_connect_socket = Label(self._frm_buttons, text="TCP/UDP")
         self._btn_connect_file = Button(
@@ -185,7 +186,7 @@ class SettingsFrame(Frame):
             width=45,
             height=35,
             image=self._img_disconn,
-            command=lambda: self.__app.serial_handler.disconnect(),
+            command=lambda: self._disconnect(),  # self.__app.serial_handler.disconnect(),
             state=DISABLED,
         )
         self._lbl_disconnect = Label(self._frm_buttons, text="STOP")
@@ -390,6 +391,14 @@ class SettingsFrame(Frame):
         self._lbl_ntripconfig.grid(column=2, row=10, padx=2, pady=2, sticky=(E))
         self._btn_ntripconfig.grid(column=3, row=10, padx=2, pady=2, sticky=(W))
 
+    def _disconnect(self):
+
+        status = self.__app.conn_status
+        if status == CONNECTED_SOCKET:
+            self.__app.socket_handler.disconnect()
+        elif status == CONNECTED:
+            self.__app.serial_handler.disconnect()
+
     def _on_ubx_config(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
         Open UBX configuration dialog panel.
@@ -494,7 +503,9 @@ class SettingsFrame(Frame):
 
         self._btn_connect.config(
             state=(
-                DISABLED if status in (CONNECTED, CONNECTED_FILE, NOPORTS) else NORMAL
+                DISABLED
+                if status in (CONNECTED, CONNECTED_SOCKET, CONNECTED_FILE, NOPORTS)
+                else NORMAL
             )
         )
         self._btn_disconnect.config(
@@ -502,19 +513,31 @@ class SettingsFrame(Frame):
         )
         self._chk_datalog.config(
             state=(
-                DISABLED if status in (CONNECTED, CONNECTED_FILE, NOPORTS) else NORMAL
+                DISABLED
+                if status in (CONNECTED, CONNECTED_SOCKET, CONNECTED_FILE, NOPORTS)
+                else NORMAL
             )
         )
         self._spn_datalog.config(
             state=(
-                DISABLED if status in (CONNECTED, CONNECTED_FILE, NOPORTS) else READONLY
+                DISABLED
+                if status in (CONNECTED, CONNECTED_SOCKET, CONNECTED_FILE, NOPORTS)
+                else READONLY
             )
         )
         self._chk_recordtrack.config(
-            state=(DISABLED if status in (CONNECTED, CONNECTED_FILE) else NORMAL)
+            state=(
+                DISABLED
+                if status in (CONNECTED, CONNECTED_SOCKET, CONNECTED_FILE)
+                else NORMAL
+            )
         )
         self._btn_connect_file.config(
-            state=(DISABLED if status in (CONNECTED, CONNECTED_FILE) else NORMAL)
+            state=(
+                DISABLED
+                if status in (CONNECTED, CONNECTED_SOCKET, CONNECTED_FILE)
+                else NORMAL
+            )
         )
 
     def get_size(self) -> tuple:
@@ -538,6 +561,16 @@ class SettingsFrame(Frame):
         """
 
         return self._frm_serial
+
+    def socket_settings(self) -> Frame:
+        """
+        Return reference to common socket configuration panel
+
+        :return: reference to socket form
+        :rtype: Frame
+        """
+
+        return self._frm_socket
 
     @property
     def protocol(self) -> int:
