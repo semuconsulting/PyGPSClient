@@ -17,7 +17,7 @@ PyGPSClient is a multi-platform graphical GNSS/GPS testing, diagnostic and UBX &
 
 ![full app screenshot ubx](/images/all_widgets.png)
 
-The application runs on any platform which supports a Python interpreter (>=3.7) and tkinter (>=8.6) GUI framework, including Windows, MacOS, Linux and Raspberry Pi OS. It displays location and diagnostic data from any NMEA, UBX or RTCM3 compatible GNSS/GPS device over a standard serial (UART) or USB port, or from a previously-saved datalog file, *in addition to* providing a useful subset of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool.
+The application runs on any platform which supports a Python interpreter (>=3.7) and tkinter (>=8.6) GUI framework, including Windows, MacOS, Linux and Raspberry Pi OS. It displays navigation and diagnostic data from any NMEA, UBX or RTCM3 compatible GNSS/GPS device *in addition to* providing a useful subset of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool.
 
 The application can be installed using the standard `pip` Python package manager - see [installation instructions](#installation) below.
 
@@ -57,8 +57,6 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 1. UBX Configuration Dialog, with the ability to send a variety of UBX configuration commands to u-blox GNSS devices. This includes the facility to add **user-defined commands or command sequences** - see instructions under [installation](#installation) below.
 1. [NTRIP](https://en.wikipedia.org/wiki/Networked_Transport_of_RTCM_via_Internet_Protocol) Client ([differential GPS enhancement](https://en.wikipedia.org/wiki/Differential_GPS)) facility with the ability to connect to a specified NTRIP server (caster), parse the incoming RTCM3 data and feed this data to a compatible GNSS device (*requires an Internet connection and access to a suitable NTRIP caster*).
 
-![compact view screenshot](/images/min_widgets.png)
-
 ---
 ## <a name="howtouse">How to Use</a>
 
@@ -76,12 +74,12 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 ![gear icon](/pygpsclient/resources/iconmonstr-antenna-6-24.png), or go to Menu..Options.
 * To expand or collapse the banner or serial port configuration widgets, click the ![expand icon](/pygpsclient/resources/iconmonstr-arrow-80-16.png)/![expand icon](/pygpsclient/resources/iconmonstr-triangle-1-16.png) buttons.
 * To show or hide the various widgets, go to Menu..View and click on the relevant hide/show option.
-* Protocols Snown - Select which protocols to display; NMEA, UBX and/or RTCM3 (NB: this only changes the displayed protocols - to change the actual protocols output by the receiver, use the CFG-PRT command).
+* Protocols Shown - Select which protocols to display; NMEA, UBX and/or RTCM3 (NB: this only changes the displayed protocols - to change the actual protocols output by the receiver, use the CFG-PRT command).
 * Console Display - Select from parsed, binary or hexadecimal formats.
 * Degrees Format and Units - Change the displayed degree and unit formats.
 * Zoom - Change the web map scale (any change will take effect at the next map refresh, indicated by a small timer icon at the top left of the panel).
 * Show Legend - Turn the graph legend on or off.
-* Show Unused Satellites - Include or exclude satellites that are not used in the navigation solution (e.g. because their signal level is too low) in the graph and sky view panels.
+* Show Unused Satellites - Include or exclude satellites that are not used in the navigation solution (e.g. because their signal level is too low) from the graph and sky view panels.
 * DataLogging - Turn Data logging in the selected format on or off. You will be prompted to select the directory into which timestamped log files are saved (NB. only binary datalogs can be re-read by `pygpsclient`'s parser).
 * GPX Track - Turn track recording (in GPX format) on or off. You will be prompted to select the directory into which timestamped track files are saved.
 
@@ -122,7 +120,7 @@ To use:
 1. For NTRIP services which require client position data via NMEA GGA sentences, select the appropriate sentence transmission interval in seconds (*only available when a GNSS receiver is connected*). The default is 'None' (no GGA sentences sent). A value of 10 seconds is typical. **NB:** The GGA sentence will be generated based on the current position fix from the GNSS receiver.
 1. To connect to the NTRIP server, click ![connect icon](/pygpsclient/resources/iconmonstr-media-control-48-24.png). To disconnect, click ![disconnect icon](/pygpsclient/resources/iconmonstr-media-control-50-24.png).
 1. If NTRIP data is being successfully received, the banner '**dgps:**' status indicator should change to 'YES' and indicate the age and reference station of the correction data (where available) ![dgps status](/images/dgps_status.png). Note that DGPS status is typically maintained for up to 60 seconds after loss of correction signal.
-1. Some NTRIP services may output RTCM3 correction messages at a high rate, flooding the GUI console display. To suppress these messages in the console, de-select the 'RTCM' option in 'Protocols Displayed' - the RTCM3 messages will continue to be processed in the background.
+1. Some NTRIP services may output RTCM3 correction messages at a high rate, flooding the GUI console display. To suppress these messages in the console, de-select the 'RTCM' option in 'Protocols Shown' - the RTCM3 messages will continue to be processed in the background.
 
 Below is a illustrative NTRIP DGPS data log, showing:
 * Outgoing NMEA GPGGA (client position) sentence.

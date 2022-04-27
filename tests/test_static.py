@@ -28,7 +28,7 @@ from pygpsclient.helpers import (
     corrage2int,
     fix2desc,
     estimate_acc,
-    validURLIP,
+    validURL,
 )
 
 
@@ -118,14 +118,16 @@ class StaticTest(unittest.TestCase):
             res = corrage2int(fix)
             self.assertEqual(res, EXPECTED_RESULT[i])
 
-    def testvalidURLIP(self):
-        res = validURLIP("http://tcpserver.com")
+    def testvalidURL(self):
+        res = validURL("localhost")
         self.assertEqual(res, True)
-        res = validURLIP("192.168.0.72")
+        res = validURL("tcpserver.com")
         self.assertEqual(res, True)
-        res = validURLIP("192.168.0-72")
+        res = validURL("192.168.0.72")
+        self.assertEqual(res, True)
+        res = validURL("192.168,0.72")
         self.assertEqual(res, False)
-        res = validURLIP("asdfasdff")
+        res = validURL("sdfffasdff")
         self.assertEqual(res, False)
 
 

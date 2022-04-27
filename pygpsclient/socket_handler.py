@@ -23,7 +23,7 @@ from pygpsclient.globals import (
     DISCONNECTED,
 )
 from pygpsclient.strings import ENDOFFILE, SEROPENERROR
-from pygpsclient.helpers import validURLIP
+from pygpsclient.helpers import validURL
 
 BUFLEN = 4096
 
@@ -72,7 +72,7 @@ class SocketHandler:
         self._server = socket_settings.server
         self._port = socket_settings.port
         self._protocol = socket_settings.protocol
-        if not validURLIP(self._server) or self._port == 0:
+        if not validURL(self._server) or self._port == 0:
             self.__app.set_status("ERROR - please enter valid server and port", "red")
             return
 
