@@ -12,6 +12,7 @@ Created on 17 Apr 2021
 """
 # pylint: disable=invalid-name
 
+import re
 from subprocess import run as subrun
 from sys import executable
 from tkinter import Toplevel, Label, Button, W
@@ -22,6 +23,19 @@ from pygpsclient.globals import (
     DEVICE_ACCURACY,
     HDOP_RATIO,
     FIXLOOKUP,
+)
+
+URLREGEX = re.compile(
+    r"^(?:http|ftp)s?://"  # http:// or https://
+    r"(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|"  # domain...
+    r"localhost|"  # localhost...
+    r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})"  # ...or ip
+    r"(?::\d+)?"  # optional port
+    r"(?:/?|[/?]\S+)$",
+    re.IGNORECASE,
+)
+IPREGEX = re.compile(
+    r"^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
 )
 
 
@@ -506,3 +520,16 @@ def corrage2int(code: int) -> int:
     }
 
     return LOOKUP.get(code, 0)
+
+
+def validURLIP(url: str) -> bool:
+    """
+    Validate URL or IP.
+    :param str url: URL / IP to check
+    :return: valid True/False
+    :rtype: bool
+    """
+
+    if re.match(URLREGEX, url) is not None or re.match(IPREGEX, url) is not None:
+        return True
+    return False
