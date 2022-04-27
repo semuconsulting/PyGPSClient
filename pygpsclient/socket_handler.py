@@ -13,6 +13,7 @@ Created on 27 Apr 2022
 
 from io import BufferedReader
 from threading import Thread
+from queue import Queue
 from datetime import datetime, timedelta
 import socket
 from pynmeagps import NMEAReader, NMEAParseError
@@ -51,6 +52,7 @@ class SocketHandler:
         self._port = None
         self._connected = False
         self._reading = False
+        self._msgqueue = Queue()
 
     def __del__(self):
         """
@@ -70,8 +72,9 @@ class SocketHandler:
         socket_settings = self.__app.frm_settings.socket_settings()
         self._server = socket_settings.server
         self._port = socket_settings.port
-        if self._server == "" or self._port in ("", 0):
-            self.__app.set_status("ERROR - please enter server and port", "red")
+        self._protocol = socket_settings.protocol
+        if self._server == "" or self._port == 0:
+            self.__app.set_status("ERROR - please enter valid server and port", "red")
             return
 
         try:
@@ -79,20 +82,13 @@ class SocketHandler:
             self.__app.set_connection(f"{self._server}:{self._port}", "green")
             self._connected = True
             self.start_read_thread()
-
-            if self.__app.frm_settings.datalogging:
-                self.__app.file_handler.open_logfile()
-
-            if self.__app.frm_settings.record_track:
-                self.__app.file_handler.open_trackfile()
             self.__app.set_status("Connected", "blue")
 
         except Exception as err:
             self._connected = False
+            self.__app.conn_status = DISCONNECTED
             self.__app.set_connection(f"{self._server}:{self._port} ", "red")
             self.__app.set_status(SEROPENERROR.format(err), "red")
-            self.__app.frm_banner.update_conn_status(DISCONNECTED)
-            self.__app.frm_settings.enable_controls(DISCONNECTED)
 
     def disconnect(self):
         """
@@ -101,16 +97,15 @@ class SocketHandler:
 
         if self._connected:
             try:
+                self.stop_read_thread()
                 self._socket.close()
                 self._socket = None
                 self._reading = False
-                self.__app.conn_status = DISCONNECTED
-
             except Exception:
                 pass
 
         self._connected = False
-        self.__app.frm_settings.enable_controls(self._connected)
+        self.__app.conn_status = DISCONNECTED
 
     @property
     def server(self):
@@ -185,48 +180,30 @@ class SocketHandler:
             self._reading = False
             self._socket_thread = None
 
-    # def _read_thread(self):
-    #     """
-    #     THREADED PROCESS
-    #     Reads binary data from socket and generates virtual event to
-    #     trigger data parsing and widget updates.
-    #     """
-
-    #     try:
-    #         while self._reading and self._serial_object:
-    #             if self._socket_object.in_waiting:
-    #                 self.__master.event_generate("<<socket_read>>")
-    #     except SerialException as err:
-    #         self.__app.set_status(f"Error in read thread {err}", "red")
-    #     # spurious errors as thread shuts down after serial disconnection
-    #     except (TypeError, OSError):
-    #         pass
-
     def on_read(self, event):  # pylint: disable=unused-argument
         """
         EVENT TRIGGERED
-        Action on <<socket_read>> event - read any data in the buffer.
+        Action on <<socket_read>> event - read any data on the message queue.
 
         :param event event: read event
         """
 
         if self._reading and self._socket is not None:
-            pass
-            # try:
-            #     self._parse_data(self._serial_buffer)
-            # except SerialException as err:
-            #     self.__app.set_status(f"Error {err}", "red")
+            raw_data, parsed_data = self._msgqueue.get()
+            if raw_data is not None:
+                self.__app.process_data(raw_data, parsed_data)
 
-    # def on_eof(self, event):  # pylint: disable=unused-argument
-    #     """
-    #     EVENT TRIGGERED
-    #     Action on end of file
+    def on_eof(self, event):  # pylint: disable=unused-argument
+        """
+        EVENT TRIGGERED
+        Action on <<socket_eof>> event - end of socket stream
 
-    #     :param event event: eof event
-    #     """
+        :param event event: eof event
+        """
 
-    #     self.disconnect()
-    #     self.__app.set_status(ENDOFFILE, "blue")
+        self.disconnect()
+        self.__app.conn_status = DISCONNECTED
+        self.__app.set_status(ENDOFFILE, "blue")
 
     def _read_thread(self):
         """
@@ -234,21 +211,29 @@ class SocketHandler:
         Start socket client connection.
         """
 
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as self._socket:
+        if self._protocol == "UDP":
+            socktype = socket.SOCK_DGRAM
+        else:  # TCP
+            socktype = socket.SOCK_STREAM
+
+        with socket.socket(socket.AF_INET, socktype) as self._socket:
             self._socket.connect((self._server, self._port))
             buf = bytearray()
             data = "init"
             try:
-                while data:
+                while data and self._reading:
                     data = self._socket.recv(BUFLEN)
-                    print(f"Bytes received {len(data)}")
+                    # print(f"Bytes received {len(data)}")
                     buf += data
-                    while True:
+                    while True and self._reading:
                         raw, buf = self.parse_buffer(buf)
                         if raw is None:
                             break
-            except (OSError,) as err:
-                self.__app.set_status(f"Error in socket {err}", "red")
+            except TimeoutError:
+                self.__master.event_generate("<<socket_eof>>")
+            except (OSError, AttributeError) as err:
+                if self._reading:
+                    self.__app.set_status(f"Error in socket {err}", "red")
 
     def parse_buffer(self, buf: bytearray) -> tuple:
         """
@@ -285,8 +270,10 @@ class SocketHandler:
                     start += 2
                     continue
 
-                print(parsed_data)
-                self.__app.process_data(raw_data, parsed_data)
+                # print(parsed_data)
+                # put data on message queue
+                self._msgqueue.put((raw_data, parsed_data))
+                self.__master.event_generate("<<socket_read>>")
                 lnr = len(raw_data)
                 buf_remain = buf[start + lnr :]
                 break

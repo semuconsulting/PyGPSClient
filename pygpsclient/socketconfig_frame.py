@@ -36,6 +36,7 @@ from tkinter import (
     NORMAL,
     DISABLED,
 )
+from pygpsclient.globals import DEFAULT_SERVER, DEFAULT_PORT
 
 ADVOFF = "\u25bc"
 ADVON = "\u25b2"
@@ -68,7 +69,7 @@ class SocketConfigFrame(Frame):
         self._show_advanced = False
         self._status = DISCONNECTED
         self._server = StringVar()
-        self._port = IntVar()
+        self._port = StringVar()
         self._protocol = StringVar()
 
         self._body()
@@ -135,6 +136,8 @@ class SocketConfigFrame(Frame):
         Reset settings to defaults (first value in range).
         """
 
+        self._server.set(DEFAULT_SERVER)
+        self._port.set(DEFAULT_PORT)
         self._protocol.set(PROTOCOLS[0])
 
     def set_status(self, status: int = DISCONNECTED):
@@ -188,7 +191,10 @@ class SocketConfigFrame(Frame):
         :rtype: int
         """
 
-        return self._port.get()
+        try:
+            return int(self._port.get())
+        except ValueError:
+            return 0
 
     @property
     def protocol(self) -> str:

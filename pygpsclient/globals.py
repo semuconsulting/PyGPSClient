@@ -98,6 +98,9 @@ KNOWNGPS = (
 BPSRATES = (9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600, 4800)
 # terminator for NMEA protocol
 CRLF = b"\x0d\x0a"
+# socket client defaults
+DEFAULT_SERVER = "localhost"
+DEFAULT_PORT = "50007"
 # display formats
 FORMAT_PARSED = 1
 FORMAT_BIN = 2

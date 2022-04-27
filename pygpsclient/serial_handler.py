@@ -100,6 +100,7 @@ class SerialHandler:
 
         except (IOError, SerialException, SerialTimeoutException) as err:
             self._connected = False
+            self.__app.conn_status = DISCONNECTED
             self.__app.set_connection(
                 (
                     f"{serial_settings.port}:{serial_settings.port_desc} "
@@ -108,8 +109,6 @@ class SerialHandler:
                 "red",
             )
             self.__app.set_status(SEROPENERROR.format(err), "red")
-            self.__app.frm_banner.update_conn_status(DISCONNECTED)
-            self.__app.frm_settings.enable_controls(DISCONNECTED)
 
     def connect_file(self):
         """
@@ -130,10 +129,9 @@ class SerialHandler:
             self.start_readfile_thread()
         except (IOError, SerialException, SerialTimeoutException) as err:
             self._connected = False
+            self.__app.conn_status = DISCONNECTED
             self.__app.set_connection(f"{in_filepath}", "red")
             self.__app.set_status(SEROPENERROR.format(err), "red")
-            self.__app.frm_banner.update_conn_status(DISCONNECTED)
-            self.__app.frm_settings.enable_controls(DISCONNECTED)
 
     def disconnect(self):
         """

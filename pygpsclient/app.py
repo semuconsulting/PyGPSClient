@@ -176,9 +176,10 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         self.__master.bind("<<gnss_read>>", self.serial_handler.on_read)
-        self.__master.bind("<<socket_read>>", self.socket_handler.on_read)
         self.__master.bind("<<gnss_readfile>>", self.serial_handler.on_readfile)
         self.__master.bind("<<gnss_eof>>", self.serial_handler.on_eof)
+        self.__master.bind("<<socket_read>>", self.socket_handler.on_read)
+        self.__master.bind("<<socket_eof>>", self.socket_handler.on_eof)
         self.__master.bind("<<ntrip_read>>", self.ntrip_handler.on_read)
         self.__master.bind_all("<Control-q>", self.on_exit)
 

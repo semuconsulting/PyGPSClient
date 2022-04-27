@@ -396,6 +396,8 @@ class SettingsFrame(Frame):
         status = self.__app.conn_status
         if status == CONNECTED_SOCKET:
             self.__app.socket_handler.disconnect()
+        elif status == CONNECTED_FILE:
+            self.__app.serial_handler.disconnect()
         elif status == CONNECTED:
             self.__app.serial_handler.disconnect()
 
