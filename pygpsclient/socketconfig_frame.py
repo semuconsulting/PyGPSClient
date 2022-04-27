@@ -17,22 +17,11 @@ Created on 27 Apr 2022
 from tkinter import (
     Frame,
     Entry,
-    Listbox,
-    Scrollbar,
     Spinbox,
-    Checkbutton,
-    Button,
     Label,
-    IntVar,
-    DoubleVar,
     StringVar,
-    N,
-    S,
     E,
     W,
-    LEFT,
-    VERTICAL,
-    HORIZONTAL,
     NORMAL,
     DISABLED,
 )
@@ -117,12 +106,14 @@ class SocketConfigFrame(Frame):
         """
 
         self._frm_basic.grid(column=0, row=0, columnspan=4, sticky=(W, E))
-        self._lbl_server.grid(column=0, row=0, sticky=(W))
-        self._ent_server.grid(column=1, row=0, columnspan=4, sticky=(W, E))
-        self._lbl_port.grid(column=0, row=1, sticky=(W))
-        self._ent_port.grid(column=1, row=1, sticky=(W))
-        self._lbl_protocol.grid(column=3, row=1, sticky=(W))
-        self._spn_protocol.grid(column=4, row=1, sticky=(W))
+        self._lbl_server.grid(column=0, row=0, padx=2, pady=2, sticky=(W))
+        self._ent_server.grid(
+            column=1, row=0, padx=2, pady=2, columnspan=4, sticky=(W, E)
+        )
+        self._lbl_port.grid(column=0, row=1, padx=2, pady=2, sticky=(W))
+        self._ent_port.grid(column=1, row=1, padx=2, pady=2, sticky=(W))
+        self._lbl_protocol.grid(column=3, row=1, padx=2, pady=2, sticky=(W))
+        self._spn_protocol.grid(column=4, row=1, padx=2, pady=2, sticky=(W))
 
     def _attach_events(self):
         """

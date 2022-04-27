@@ -512,20 +512,27 @@ class SettingsFrame(Frame):
                 else NORMAL
             )
         )
+        self._btn_connect_socket.config(
+            state=(
+                DISABLED
+                if status in (CONNECTED, CONNECTED_SOCKET, CONNECTED_FILE)
+                else NORMAL
+            )
+        )
         self._btn_disconnect.config(
-            state=(DISABLED if status in (DISCONNECTED, NOPORTS) else NORMAL)
+            state=(DISABLED if status in (DISCONNECTED,) else NORMAL)
         )
         self._chk_datalog.config(
             state=(
                 DISABLED
-                if status in (CONNECTED, CONNECTED_SOCKET, CONNECTED_FILE, NOPORTS)
+                if status in (CONNECTED, CONNECTED_SOCKET, CONNECTED_FILE)
                 else NORMAL
             )
         )
         self._spn_datalog.config(
             state=(
                 DISABLED
-                if status in (CONNECTED, CONNECTED_SOCKET, CONNECTED_FILE, NOPORTS)
+                if status in (CONNECTED, CONNECTED_SOCKET, CONNECTED_FILE)
                 else READONLY
             )
         )

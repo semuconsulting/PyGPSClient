@@ -158,46 +158,6 @@ class SerialHandler:
 
         return self.__app.frm_settings.serial_settings().port
 
-    @property
-    def connected(self):
-        """
-        Getter for serial connection status
-        """
-
-        return self._connected
-
-    @property
-    def connectedfile(self):
-        """
-        Getter for file connection status
-        """
-
-        return self._connectedfile
-
-    @property
-    def serial(self):
-        """
-        Getter for serial object
-        """
-
-        return self._serial_object
-
-    @property
-    def buffer(self):
-        """
-        Getter for serial buffer
-        """
-
-        return self._serial_buffer
-
-    @property
-    def thread(self):
-        """
-        Getter for serial thread
-        """
-
-        return self._serial_thread
-
     def serial_write(self, data: bytes):
         """
         Write binary data to serial port.

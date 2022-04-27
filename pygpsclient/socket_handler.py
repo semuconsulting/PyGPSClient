@@ -11,21 +11,19 @@ Created on 27 Apr 2022
 :license: BSD 3-Clause
 """
 
-from io import BufferedReader
 from threading import Thread
 from queue import Queue
-from datetime import datetime, timedelta
 import socket
-from pynmeagps import NMEAReader, NMEAParseError
+from pynmeagps import NMEAReader
 from pyrtcm import RTCMReader
-from pyubx2 import UBXReader, UBXParseError
+from pyubx2 import UBXReader
 import pyubx2.ubxtypes_core as ubt
 from pygpsclient.globals import (
     CONNECTED_SOCKET,
     DISCONNECTED,
-    CRLF,
 )
-from pygpsclient.strings import NOTCONN, ENDOFFILE, SEROPENERROR
+from pygpsclient.strings import ENDOFFILE, SEROPENERROR
+from pygpsclient.helpers import validURLIP
 
 BUFLEN = 4096
 
@@ -50,6 +48,7 @@ class SocketHandler:
         self._socket_thread = None
         self._server = None
         self._port = None
+        self._protocol = None
         self._connected = False
         self._reading = False
         self._msgqueue = Queue()
@@ -73,7 +72,7 @@ class SocketHandler:
         self._server = socket_settings.server
         self._port = socket_settings.port
         self._protocol = socket_settings.protocol
-        if self._server == "" or self._port == 0:
+        if not validURLIP(self._server) or self._port == 0:
             self.__app.set_status("ERROR - please enter valid server and port", "red")
             return
 
@@ -122,30 +121,6 @@ class SocketHandler:
         """
 
         return self.__app.frm_settings.socket_settings().port
-
-    @property
-    def connected(self):
-        """
-        Getter for serial connection status
-        """
-
-        return self._connected
-
-    @property
-    def socket(self):
-        """
-        Getter for serial object
-        """
-
-        return self._socket
-
-    @property
-    def thread(self):
-        """
-        Getter for serial thread
-        """
-
-        return self._socket_thread
 
     def socket_write(self, data: bytes):
         """
@@ -216,24 +191,26 @@ class SocketHandler:
         else:  # TCP
             socktype = socket.SOCK_STREAM
 
-        with socket.socket(socket.AF_INET, socktype) as self._socket:
-            self._socket.connect((self._server, self._port))
-            buf = bytearray()
-            data = "init"
-            try:
+        try:
+            with socket.socket(socket.AF_INET, socktype) as self._socket:
+                self._socket.connect((self._server, self._port))
+                buf = bytearray()
+                data = "init"
+
                 while data and self._reading:
                     data = self._socket.recv(BUFLEN)
-                    # print(f"Bytes received {len(data)}")
                     buf += data
-                    while True and self._reading:
+                    while self._reading:
                         raw, buf = self.parse_buffer(buf)
                         if raw is None:
                             break
-            except TimeoutError:
-                self.__master.event_generate("<<socket_eof>>")
-            except (OSError, AttributeError) as err:
-                if self._reading:
-                    self.__app.set_status(f"Error in socket {err}", "red")
+        except TimeoutError:
+            self.__master.event_generate("<<socket_eof>>")
+        except (OSError, AttributeError, socket.gaierror) as err:
+            if self._reading:
+                self._reading = False
+                self.__app.conn_status = DISCONNECTED
+                self.__app.set_status(f"Error in socket {err}", "red")
 
     def parse_buffer(self, buf: bytearray) -> tuple:
         """
@@ -270,7 +247,6 @@ class SocketHandler:
                     start += 2
                     continue
 
-                # print(parsed_data)
                 # put data on message queue
                 self._msgqueue.put((raw_data, parsed_data))
                 self.__master.event_generate("<<socket_read>>")
