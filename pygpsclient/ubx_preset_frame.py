@@ -473,17 +473,16 @@ class UBX_PRESET_Frame(Frame):
         """
 
         if ConfirmBox(self, DLGRESET, DLGRESETCONFIRM).show():
-            # if messagebox.askokcancel(DLGRESET, DLGRESETCONFIRM):
-            clearMask = b"\x1f\x1f\x00\x00"
-            loadMask = b"\x1f\x1f\x00\x00"
-            deviceMask = b"\x07"  # target RAM, Flash and EEPROM
             msg = UBXMessage(
                 "CFG",
                 "CFG-CFG",
                 SET,
-                clearMask=clearMask,
-                loadMask=loadMask,
-                deviceMask=deviceMask,
+                clearMask=b"\x1f\x1f\x00\x00",
+                # saveMask=b"\x1f\x1f\x00\x00",
+                loadMask=b"\x1f\x1f\x00\x00",
+                devBBR=1,
+                devFlash=1,
+                devEEPROM=1,
             )
             self.__app.serial_handler.serial_write(msg.serialize())
             return True
@@ -500,11 +499,16 @@ class UBX_PRESET_Frame(Frame):
         """
 
         if ConfirmBox(self, DLGSAVE, DLGSAVECONFIRM).show():
-            # if messagebox.askokcancel(DLGSAVE, DLGSAVECONFIRM):
-            saveMask = b"\x1f\x1f\x00\x00"
-            deviceMask = b"\x07"  # target RAM, Flash and EEPROM
             msg = UBXMessage(
-                "CFG", "CFG-CFG", SET, saveMask=saveMask, deviceMask=deviceMask
+                "CFG",
+                "CFG-CFG",
+                SET,
+                # clearMask=b"\x01\x00\x00\x00",
+                saveMask=b"\x1f\x1f\x00\x00",
+                # loadMask=b"\x01\x00\x00\x00",
+                devBBR=1,
+                devFlash=1,
+                devEEPROM=1,
             )
             self.__app.serial_handler.serial_write(msg.serialize())
             return True

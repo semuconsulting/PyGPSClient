@@ -429,6 +429,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         Kill any running processes and quit application
         """
 
+        self.file_handler.close_logfile()
+        self.file_handler.close_trackfile()
         self.serial_handler.stop_read_thread()
         self.serial_handler.stop_readfile_thread()
         self.stop_ubxconfig_thread()

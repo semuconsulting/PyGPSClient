@@ -192,7 +192,7 @@ class FileHandler:
             if self._lines > MAXLOGLINES:
                 self.close_logfile()
                 self.open_logfile()
-        except ValueError:  # residual thread write to closed file
+        except ValueError:
             pass
 
     def close_logfile(self):
@@ -200,8 +200,11 @@ class FileHandler:
         Close the logfile.
         """
 
-        if self._logfile is not None:
-            self._logfile.close()
+        try:
+            if self._logfile is not None:
+                self._logfile.close()
+        except IOError:
+            pass
 
     def set_trackfile_path(self) -> str:
         """
@@ -239,7 +242,7 @@ class FileHandler:
 
         try:
             self._trackfile.write(gpxtrack)
-        except ValueError:  # residual thread write to closed file
+        except ValueError:
             pass
 
     def add_trackpoint(self, lat: float, lon: float, **kwargs):
@@ -287,7 +290,7 @@ class FileHandler:
 
         try:
             self._trackfile.write(trkpnt)
-        except ValueError:  # residual thread write to closed file
+        except (IOError, ValueError):
             pass
 
     def close_trackfile(self):
@@ -297,7 +300,8 @@ class FileHandler:
 
         gpxtrack = "</trkseg></trk></gpx>"
         try:
-            self._trackfile.write(gpxtrack)
-            self._trackfile.close()
-        except ValueError:  # residual thread write to closed file
+            if self._trackfile is not None:
+                self._trackfile.write(gpxtrack)
+                self._trackfile.close()
+        except (IOError, ValueError):
             pass
