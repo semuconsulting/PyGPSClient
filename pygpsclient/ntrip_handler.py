@@ -133,8 +133,7 @@ class NTRIPHandler:
         """
 
         if self._ntrip_thread is not None:
-            if self.__app.ntripconfig is not None:
-                self.__app.dlg_ntripconfig.set_controls(False)
+            self._set_controls(False)
             self._reading = False
             self._ntrip_thread = None
 
@@ -152,7 +151,7 @@ class NTRIPHandler:
                 self._socket.connect((server, port))
                 self._socket.settimeout(TIMEOUT)
                 self._socket.sendall(self._formatGET())
-                self.__app.dlg_ntripconfig.set_controls(True)
+                self._set_controls(True)
                 # send GGA sentence with request
                 if self._gga_interval and mountpoint != "":
                     self._send_GGA()
@@ -163,20 +162,22 @@ class NTRIPHandler:
                     elif rc == "1":
                         self._reading = False
                         self._connected = False
-                        self.__app.dlg_ntripconfig.set_controls(False)
+                        self._set_controls(False)
                     else:  # error message
                         self._reading = False
                         self._connected = False
-                        self.__app.dlg_ntripconfig.set_controls(
-                            False, (f"Error!: {rc}", "red")
-                        )
-        except socket.gaierror as err:
+                        self._set_controls(False, (f"Error!: {rc}", "red"))
+        except (socket.gaierror, TimeoutError) as err:
             self._reading = False
             self._connected = False
-            print(f"Connection error {server}:{port} {err}")
-            self.__app.dlg_ntripconfig.set_controls(
-                False, (f"Connection error {err}", "red")
-            )
+            # print(f"Connection error {server}:{port} {err}")
+            self._set_controls(False, (f"Connection error {err}", "red"))
+
+    def _set_controls(self, status: bool, msg: tuple = None):
+        """Set controls on config panel if it is displayed."""
+
+        if self.__app.dlg_ntripconfig is not None:
+            self.__app.dlg_ntripconfig.set_controls(status, msg)
 
     def _formatGET(self) -> str:
         """
