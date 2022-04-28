@@ -12,6 +12,7 @@ Created on 17 Apr 2021
 """
 # pylint: disable=invalid-name
 
+import re
 from subprocess import run as subrun
 from sys import executable
 from tkinter import Toplevel, Label, Button, W
@@ -22,6 +23,16 @@ from pygpsclient.globals import (
     DEVICE_ACCURACY,
     HDOP_RATIO,
     FIXLOOKUP,
+)
+
+URLREGEX = re.compile(
+    # r"^(?:http|https)?://"  # http:// or https://
+    r"^(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|"  # domain...
+    r"localhost|"  # localhost...
+    r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})"  # ...or ip
+    r"(?::\d+)?"  # optional port
+    r"(?:/?|[/?]\S+)$",
+    re.IGNORECASE,
 )
 
 
@@ -506,3 +517,15 @@ def corrage2int(code: int) -> int:
     }
 
     return LOOKUP.get(code, 0)
+
+
+def validURL(url: str) -> bool:
+    """
+    Validate URL.
+
+    :param str url: URL to check
+    :return: valid True/False
+    :rtype: bool
+    """
+
+    return re.match(URLREGEX, url) is not None

@@ -16,8 +16,12 @@ import os
 
 DIRNAME = os.path.dirname(__file__)
 ICON_APP = os.path.join(DIRNAME, "resources/iconmonstr-location-27-32.png")
-ICON_CONN = os.path.join(DIRNAME, "resources/iconmonstr-link-8-24.png")
-ICON_DISCONN = os.path.join(DIRNAME, "resources/iconmonstr-link-10-24.png")
+# ICON_CONN = os.path.join(DIRNAME, "resources/iconmonstr-link-8-24.png")
+ICON_CONN = os.path.join(DIRNAME, "resources/iconmonstr-media-control-48-24.png")
+ICON_SERIAL = os.path.join(DIRNAME, "resources/usbport-1-24.png")
+ICON_SOCKET = os.path.join(DIRNAME, "resources/ethernet-1-24.png")
+# ICON_DISCONN = os.path.join(DIRNAME, "resources/iconmonstr-link-10-24.png")
+ICON_DISCONN = os.path.join(DIRNAME, "resources/iconmonstr-media-control-50-24.png")
 ICON_POS = os.path.join(DIRNAME, "resources/iconmonstr-location-1-24.png")
 ICON_SEND = os.path.join(DIRNAME, "resources/iconmonstr-arrow-12-24.png")
 ICON_EXIT = os.path.join(DIRNAME, "resources/iconmonstr-door-6-24.png")
@@ -27,7 +31,8 @@ ICON_WARNING = os.path.join(DIRNAME, "resources/iconmonstr-warning-1-24.png")
 ICON_UBXCONFIG = os.path.join(DIRNAME, "resources/iconmonstr-gear-2-24.png")
 ICON_NTRIPCONFIG = os.path.join(DIRNAME, "resources/iconmonstr-antenna-6-24.png")
 ICON_NTRIPSTR = os.path.join(DIRNAME, "resources/iconmonstr-magnifier-12-24.png")
-ICON_LOGREAD = os.path.join(DIRNAME, "resources/iconmonstr-note-37-24.png")
+# ICON_LOGREAD = os.path.join(DIRNAME, "resources/iconmonstr-note-37-24.png")
+ICON_LOGREAD = os.path.join(DIRNAME, "resources/binary-1-24.png")
 ICON_REFRESH = os.path.join(DIRNAME, "resources/iconmonstr-refresh-6-16.png")
 ICON_CONTRACT = os.path.join(DIRNAME, "resources/iconmonstr-triangle-1-16.png")
 ICON_EXPAND = os.path.join(DIRNAME, "resources/iconmonstr-arrow-80-16.png")
@@ -93,6 +98,9 @@ KNOWNGPS = (
 BPSRATES = (9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600, 4800)
 # terminator for NMEA protocol
 CRLF = b"\x0d\x0a"
+# socket client defaults
+DEFAULT_SERVER = "localhost"
+DEFAULT_PORT = "50007"
 # display formats
 FORMAT_PARSED = 1
 FORMAT_BIN = 2
@@ -102,7 +110,8 @@ FORMATS = ("Parsed", "Binary", "Hex String", "Hex Tabular")
 # connection type flags:
 DISCONNECTED = 0
 CONNECTED = 1
-CONNECTED_FILE = 2
+CONNECTED_SOCKET = 2
+CONNECTED_FILE = 4
 NOPORTS = 3
 # default widget frame sizes:
 WIDGETU1 = (250, 250)
