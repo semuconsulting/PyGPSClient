@@ -16,11 +16,9 @@ import os
 
 DIRNAME = os.path.dirname(__file__)
 ICON_APP = os.path.join(DIRNAME, "resources/iconmonstr-location-27-32.png")
-# ICON_CONN = os.path.join(DIRNAME, "resources/iconmonstr-link-8-24.png")
 ICON_CONN = os.path.join(DIRNAME, "resources/iconmonstr-media-control-48-24.png")
 ICON_SERIAL = os.path.join(DIRNAME, "resources/usbport-1-24.png")
 ICON_SOCKET = os.path.join(DIRNAME, "resources/ethernet-1-24.png")
-# ICON_DISCONN = os.path.join(DIRNAME, "resources/iconmonstr-link-10-24.png")
 ICON_DISCONN = os.path.join(DIRNAME, "resources/iconmonstr-media-control-50-24.png")
 ICON_POS = os.path.join(DIRNAME, "resources/iconmonstr-location-1-24.png")
 ICON_SEND = os.path.join(DIRNAME, "resources/iconmonstr-arrow-12-24.png")
@@ -31,7 +29,6 @@ ICON_WARNING = os.path.join(DIRNAME, "resources/iconmonstr-warning-1-24.png")
 ICON_UBXCONFIG = os.path.join(DIRNAME, "resources/iconmonstr-gear-2-24.png")
 ICON_NTRIPCONFIG = os.path.join(DIRNAME, "resources/iconmonstr-antenna-6-24.png")
 ICON_NTRIPSTR = os.path.join(DIRNAME, "resources/iconmonstr-magnifier-12-24.png")
-# ICON_LOGREAD = os.path.join(DIRNAME, "resources/iconmonstr-note-37-24.png")
 ICON_LOGREAD = os.path.join(DIRNAME, "resources/binary-1-24.png")
 ICON_REFRESH = os.path.join(DIRNAME, "resources/iconmonstr-refresh-6-16.png")
 ICON_CONTRACT = os.path.join(DIRNAME, "resources/iconmonstr-triangle-1-16.png")
@@ -56,7 +53,7 @@ MAP_UPDATE_INTERVAL = (
 )
 GUI_UPDATE_INTERVAL = 1  # minimum GUI widget update interval (seconds)
 GPX_TRACK_INTERVAL = 1  # minimum GPS track update interval (seconds)
-FILEREAD_INTERVAL = 0.05  # delay between successive datalog file reads (seconds)
+FILEREAD_INTERVAL = 0.02  # delay between successive datalog file reads (seconds)
 SAT_EXPIRY = 10  # how long passed satellites are kept in the sky and graph views
 MAX_SNR = 60  # upper limit of graphview snr axis
 DEVICE_ACCURACY = 2.5  # nominal GPS device accuracy (CEP) in meters

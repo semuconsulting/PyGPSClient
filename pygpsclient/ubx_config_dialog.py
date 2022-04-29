@@ -45,6 +45,7 @@ from pygpsclient.globals import (
     UBX_CFGMSG,
     UBX_CFGVAL,
     UBX_PRESET,
+    CONNECTED,
 )
 from pygpsclient.strings import DLGUBXCONFIG
 from pygpsclient.globals import POPUP_TRANSIENT
@@ -212,7 +213,7 @@ class UBXConfigDialog(Toplevel):
         self._frm_config_rate.reset()
         self._frm_config_port.reset()
         self._frm_device_info.reset()
-        if not self.__app.serial_handler.connected:
+        if self.__app.conn_status != CONNECTED:
             self.set_status("Device not connected", "red")
 
     def _centre(self):

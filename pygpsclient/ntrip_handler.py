@@ -23,6 +23,7 @@ from base64 import b64encode
 from pyrtcm import RTCMReader, RTCMParseError, RTCMMessageError, RTCMTypeError
 from pynmeagps import NMEAMessage, GET
 from pygpsclient import version as VERSION
+from pygpsclient.globals import CONNECTED
 
 HDRBUFLEN = 4096
 DATBUFLEN = 1024
@@ -170,7 +171,6 @@ class NTRIPHandler:
         except (socket.gaierror, TimeoutError) as err:
             self._reading = False
             self._connected = False
-            # print(f"Connection error {server}:{port} {err}")
             self._set_controls(False, (f"Connection error {err}", "red"))
 
     def _set_controls(self, status: bool, msg: tuple = None):
@@ -362,7 +362,7 @@ class NTRIPHandler:
                 parsed_data = RTCMReader.parse(raw_data)
                 # update console
                 self.__app.process_data(raw_data, parsed_data, "NTRIP>>")
-                if self.__app.serial_handler.connected:
+                if self.__app.conn_status == CONNECTED:
                     self.__app.serial_handler.serial_write(raw_data)
                 if self._gga_interval:
                     self._send_GGA()

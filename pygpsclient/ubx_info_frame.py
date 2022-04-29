@@ -27,6 +27,7 @@ from pygpsclient.globals import (
     ANTSTATUS,
     UBX_MONVER,
     UBX_MONHW,
+    CONNECTED,
 )
 
 
@@ -127,7 +128,7 @@ class UBX_INFO_Frame(Frame):
         Reset panel to initial settings
         """
 
-        if self.__app.serial_handler.connected:
+        if self.__app.conn_status == CONNECTED:
             self._do_poll_ver()
 
     def update_status(self, cfgtype, **kwargs):

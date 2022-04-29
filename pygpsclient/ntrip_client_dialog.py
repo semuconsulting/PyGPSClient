@@ -32,6 +32,7 @@ from tkinter import (
     END,
     VERTICAL,
     HORIZONTAL,
+    TclError,
 )
 from PIL import ImageTk, Image
 from pygpsclient.globals import (
@@ -49,6 +50,7 @@ from pygpsclient.globals import (
     ENTCOL,
     READONLY,
     POPUP_TRANSIENT,
+    CONNECTED,
 )
 from pygpsclient.strings import (
     DLGNTRIPCONFIG,
@@ -325,44 +327,47 @@ class NTRIPConfigDialog(Toplevel):
         :param tuple msg: optional status message tuple (text, color)
         """
 
-        self._connected = status
-        if msg is None:
-            server = self._settings["server"]
-            port = self._settings["port"]
-            mountpoint = "/" + self._settings["mountpoint"]
-            if mountpoint == "/":
-                mountpoint = " - retrieving sourcetable..."
-            msg = (
-                (f"Connected to {server}:{port}{mountpoint}", "green")
-                if self._connected
-                else ("Disconnected", "blue")
-            )
-        txt, col = msg
-        self.set_status(txt, col)
+        try:
+            self._connected = status
+            if msg is None:
+                server = self._settings["server"]
+                port = self._settings["port"]
+                mountpoint = "/" + self._settings["mountpoint"]
+                if mountpoint == "/":
+                    mountpoint = " - retrieving sourcetable..."
+                msg = (
+                    (f"Connected to {server}:{port}{mountpoint}", "green")
+                    if self._connected
+                    else ("Disconnected", "blue")
+                )
+            txt, col = msg
+            self.set_status(txt, col)
 
-        self._btn_disconnect.config(state=(NORMAL if status else DISABLED))
+            self._btn_disconnect.config(state=(NORMAL if status else DISABLED))
 
-        for ctl in (
-            self._spn_ntripversion,
-            self._spn_ntripggaint,
-        ):
-            ctl.config(state=(DISABLED if status else READONLY))
-        if not self.__app.serial_handler.connected:
-            self._ntrip_gga_interval.set("None")
-            self._spn_ntripggaint.config(state=DISABLED)
+            for ctl in (
+                self._spn_ntripversion,
+                self._spn_ntripggaint,
+            ):
+                ctl.config(state=(DISABLED if status else READONLY))
+            if self.__app.conn_status != CONNECTED:
+                self._ntrip_gga_interval.set("None")
+                self._spn_ntripggaint.config(state=DISABLED)
 
-        for ctl in (
-            self._btn_connect,
-            self._ent_server,
-            self._ent_port,
-            self._ent_mountpoint,
-            self._ent_user,
-            self._ent_password,
-            self._lbx_sourcetable,
-        ):
-            ctl.config(state=(DISABLED if status else NORMAL))
-        # refresh sourcetable listbox NB placement of call is important
-        self.update_sourcetable(self.__app.ntrip_handler.settings["sourcetable"])
+            for ctl in (
+                self._btn_connect,
+                self._ent_server,
+                self._ent_port,
+                self._ent_mountpoint,
+                self._ent_user,
+                self._ent_password,
+                self._lbx_sourcetable,
+            ):
+                ctl.config(state=(DISABLED if status else NORMAL))
+            # refresh sourcetable listbox NB placement of call is important
+            self.update_sourcetable(self.__app.ntrip_handler.settings["sourcetable"])
+        except TclError:  # fudge during thread termination
+            pass
 
     def _centre(self):
         """
@@ -395,10 +400,13 @@ class NTRIPConfigDialog(Toplevel):
         Mountpoint has been selected from listbox.
         """
 
-        w = event.widget
-        index = int(w.curselection()[0])
-        srt = w.get(index)  # mountpoint, city, RTCM version
-        self._ntrip_mountpoint.set(srt[0])
+        try:
+            w = event.widget
+            index = int(w.curselection()[0])
+            srt = w.get(index)  # mountpoint, city, RTCM version
+            self._ntrip_mountpoint.set(srt[0])
+        except IndexError:  # not yet populated
+            pass
 
     def on_exit(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
