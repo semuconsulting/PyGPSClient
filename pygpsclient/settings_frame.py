@@ -60,6 +60,7 @@ from pygpsclient.globals import (
     KNOWNGPS,
     BPSRATES,
     FORMATS,
+    TAG_COLORS,
 )
 from pygpsclient.strings import (
     LBLUBXCONFIG,
@@ -119,6 +120,7 @@ class SettingsFrame(Frame):
         self._record_track = IntVar()
         self._show_unusedsat = IntVar()
         self._show_legend = IntVar()
+        self._colortags = IntVar()
         self._validsettings = True
         self._in_filepath = None
         self._logpath = None
@@ -221,6 +223,11 @@ class SettingsFrame(Frame):
             readonlybackground=ENTCOL,
             wrap=True,
             textvariable=self._display_format,
+        )
+        self._chk_tags = Checkbutton(
+            self._frm_options,
+            text="Tags",
+            variable=self._colortags,
         )
         self._lbl_format = Label(self._frm_options, text="Degrees Format")
         self._spn_format = Spinbox(
@@ -360,6 +367,7 @@ class SettingsFrame(Frame):
         self._spn_conformat.grid(
             column=1, row=1, columnspan=2, padx=1, pady=2, sticky=(W)
         )
+        self._chk_tags.grid(column=3, row=1, padx=1, pady=2, sticky=(W))
         self._lbl_format.grid(column=0, row=2, padx=2, pady=2, sticky=(W))
         self._spn_format.grid(column=1, row=2, padx=2, pady=2, sticky=(W))
         self._lbl_units.grid(column=0, row=3, padx=2, pady=2, sticky=(W))
@@ -490,6 +498,7 @@ class SettingsFrame(Frame):
         self._datalog.set(False)
         self._record_track.set(False)
         self._logformat.set(FORMATS[1])  # Binary
+        self._colortags.set(TAG_COLORS)
 
     def enable_controls(self, status: int):
         """
@@ -676,6 +685,17 @@ class SettingsFrame(Frame):
         """
 
         return self._format.get()
+
+    @property
+    def colortagging(self) -> bool:
+        """
+        Getter for colortags boolean
+
+        :return: colortag on/off
+        :rtype: bool
+        """
+
+        return self._colortags.get()
 
     @property
     def infilepath(self) -> str:

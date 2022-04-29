@@ -48,6 +48,7 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 1. Configurable GUI with selectable and resizeable widgets.
 1. Expandable banner widget showing key navigation information.
 1. Serial console widget showing data stream in either parsed, binary or hexadecimal format.
+1. User-configurable color tagging of selected console entries.
 1. Skyview widget showing current satellite visibility and position (elevation / azimuth). Satellite icon borders are colour-coded to distinguish between different GNSS constellations.
 1. Graphview widget showing current satellite reception (signal-to-noise ratio).
 1. Mapview widget with location marker, showing either a static Mercator world map, or an optional dynamic web-based map downloaded via a MapQuest API (*requires an Internet connection and free 
@@ -76,6 +77,7 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 * To show or hide the various widgets, go to Menu..View and click on the relevant hide/show option.
 * Protocols Shown - Select which protocols to display; NMEA, UBX and/or RTCM3 (NB: this only changes the displayed protocols - to change the actual protocols output by the receiver, use the CFG-PRT command).
 * Console Display - Select from parsed, binary or hexadecimal formats.
+* Tags - Turn console color tagging on or off. User-configurable color tags are loaded from a file "colortags" (lower case, no extension) in the user's home directory - see example provided. NB: color tagging does impose a small performance overhead - turning it off will improve console response times at very high transaction rates.
 * Degrees Format and Units - Change the displayed degree and unit formats.
 * Zoom - Change the web map scale (any change will take effect at the next map refresh, indicated by a small timer icon at the top left of the panel).
 * Show Legend - Turn the graph legend on or off.

@@ -14,7 +14,6 @@ Created on 12 Sep 2020
 from tkinter import Frame, Text, Scrollbar, S, E, W, END, HORIZONTAL, VERTICAL, N
 from pyubx2 import hextable
 from pygpsclient.globals import (
-    TAGS,
     BGCOL,
     FGCOL,
     TAG_COLORS,
@@ -47,6 +46,7 @@ class ConsoleFrame(Frame):
         self._body()
         self._do_layout()
         self._attach_events()
+        self._halt = ""
 
     def _body(self):
         """
@@ -103,6 +103,7 @@ class ConsoleFrame(Frame):
 
         """
 
+        self._halt = ""
         self.txt_console.configure(font=FONT_FIXED)
         if self.__app.frm_settings.display_format == FORMATS[1]:  # binary
             data = str(raw_data).strip("\n")
@@ -118,9 +119,12 @@ class ConsoleFrame(Frame):
         con.configure(state="normal")
         con.insert(END, data + "\n")
 
-        # format of this array of tuples is (tag, highlight color)
-        if TAG_COLORS:  # amend in globals.py if required
-            self._tag_line(data, TAGS)
+        # format of this list of tuples is (tag, highlight color)
+        if self.__app.frm_settings.colortagging:
+            self._tag_line(data, self.__app.colortags)
+            if self._halt != "":
+                self.__app.frm_settings._disconnect()
+                self.__app.set_status(f"Halted on user tag match: {self._halt}", "red")
 
         idx = float(con.index("end"))  # Lazy but it works
         if idx > self.__app.frm_settings.maxlines:
@@ -155,6 +159,10 @@ class ConsoleFrame(Frame):
             end = start + len(match)
 
             if start != -1:  # If search string found in line
+                # "HALT" tag terminates stream
+                if color == "HALT":
+                    self._halt = match
+                    color = "red"
                 con.tag_add(count, f"{last}.{start}", f"{last}.{end}")
                 con.tag_config(count, foreground=color)
 

@@ -69,6 +69,7 @@ ANTPOWER = ("OFF", "ON", "DONTKNOW")
 # names of user preset files:
 MQAPIKEY = "mqapikey"
 UBXPRESETS = "ubxpresets"
+COLORTAGS = "colortags"
 # list of recognised serial device descriptors:
 KNOWNGPS = (
     "GPS",
@@ -208,85 +209,9 @@ FIXLOOKUP = {
     "NAV2-STATUS5": "TIME ONLY",
 }
 
-# List of tags to highlight in console if TAG_COLORS = True
-# (NB there is a slight performance hit in having many tags)
 FONT_MENU = "TkMenuFont"
 FONT_TEXT = "TkTextFont"
 FONT_FIXED = "TkFixedFont"
-TAG_COLORS = True
-TAGS = [
-    ("ACK-ACK", "green2"),
-    ("ACK-NAK", "orange red"),
-    ("CFG-MSG", "cyan"),
-    ("CFG-VALGET", "deepskyblue"),
-    ("DTM", "deepskyblue"),
-    ("GAQ", "pink"),
-    ("GBQ", "pink"),
-    ("GBS", "pink"),
-    ("GGA", "orange"),
-    ("GLL", "orange"),
-    ("GLQ", "pink"),
-    ("GNQ", "pink"),
-    ("GNS", "orange"),
-    ("GQQ", "pink"),
-    ("GRS", "yellow"),
-    ("GSA", "green2"),
-    ("GST", "mediumpurple2"),
-    ("GSV", "yellow"),
-    ("HNR-PVT", "orange"),
-    ("INF-ERROR", "red2"),
-    ("INF-NOTICE", "deepskyblue"),
-    ("INF-WARNING", "orange"),
-    ("LOG", "skyblue1"),
-    ("MON", "skyblue1"),
-    ("NAV-ATT", "yellow"),
-    ("NAV-AOPSTATUS", "yellow"),
-    ("NAV-CLOCK", "cyan"),
-    ("NAV-COV", "yellow"),
-    ("NAV-DGPS", "yellow"),
-    ("NAV-DOP", "mediumpurple2"),
-    ("NAV-EELL", "yellow"),
-    ("NAV-EOE", "yellow"),
-    ("NAV-GEOFENCE", "yellow"),
-    ("NAV-HPPOSECEF", "orange"),
-    ("NAV-HPPOSLLH", "orange"),
-    ("NAV-ODO", "deepskyblue"),
-    ("NAV-ORB", "yellow"),
-    ("NAV-POSECEF", "orange"),
-    ("NAV-POSLLH", "orange"),
-    ("NAV-PVT", "orange"),
-    ("NAV-SAT", "yellow"),
-    ("NAV-SBAS", "yellow"),
-    ("NAV-SIG", "yellow"),
-    ("NAV-SLAS", "yellow"),
-    ("NAV-SOL", "green2"),
-    ("NAV-STATUS", "green2"),
-    ("NAV-SVINFO", "yellow"),
-    ("NAV-TIMEBDS", "cyan"),
-    ("NAV-TIMEGAL", "cyan"),
-    ("NAV-TIMEGLO", "cyan"),
-    ("NAV-TIMEGPS", "cyan"),
-    ("NAV-TIMELS", "cyan"),
-    ("NAV-TIMEQZSS", "cyan"),
-    ("NAV-TIMEUTC", "cyan"),
-    ("NAV-VELECEF", "deepskyblue"),
-    ("NAV-VELNED", "deepskyblue"),
-    ("NMEA", "lightblue1"),
-    ("RLM", "pink"),
-    ("RMC", "orange"),
-    ("RTCM", "lightblue1"),
-    ("RXM", "skyblue1"),
-    ("TXT", "lightgrey"),
-    ("UBX", "lightblue1"),
-    ("UBX, msgId=00", "aquamarine2"),
-    ("UBX, msgId=03", "yellow"),
-    ("UBX, msgId=04", "cyan"),
-    ("UBX, msgId=05", "orange"),
-    ("UBX, msgId=06", "orange"),
-    ("VLW", "deepskyblue"),
-    ("VTG", "deepskyblue"),
-    ("ZDA", "cyan"),
-    ("UNKNOWN PROTOCOL", "red"),
-    ("NTRIP>>", "mediumpurple1"),
-    ("NTRIP<<", "mediumpurple1"),
-]
+TAG_COLORS = False  # default colortag setting
+
+# TAGS are now in 'colortags' file in user's home directory

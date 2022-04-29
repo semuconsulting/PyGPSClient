@@ -121,6 +121,9 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         # Load web map api key if there is one
         self.api_key = self.file_handler.load_apikey()
 
+        # Load console color tags from file
+        self.colortags = self.file_handler.load_colortags()
+
         self._body()
         self._do_layout()
         self._attach_events()

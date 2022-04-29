@@ -19,6 +19,7 @@ from pyubx2 import hextable
 
 from pygpsclient.globals import (
     MQAPIKEY,
+    COLORTAGS,
     UBXPRESETS,
     MAXLOGLINES,
     XML_HDR,
@@ -88,6 +89,35 @@ class FileHandler:
             apikey = ""
 
         return apikey
+
+    def load_colortags(self) -> list:
+        """
+        Load user defined colortags from file.
+
+        Expects file in format:
+        string1;color1
+        string2;color2
+        etc.
+
+        :return: list of colortags
+        :rtype: list
+        """
+
+        ctags = []
+        filepath = os.path.join(HOME, COLORTAGS)
+        try:
+            with open(filepath, "r") as file:
+                for line in file:
+                    ctag = line.split(";")
+                    if len(ctag) == 2:
+                        if ctag[0][0:1] != "#":  # ignore comments
+                            tag = ctag[0].strip(" \n")
+                            col = ctag[1].strip(" \n")
+                            ctags.append((tag, col))
+        except OSError:
+            pass
+
+        return ctags
 
     def load_user_presets(self) -> str:  # pylint: disable=no-self-use
         """
