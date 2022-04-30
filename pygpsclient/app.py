@@ -508,8 +508,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             self.frm_mapview.update_map()
             self.frm_satview.update_sats()
             self.frm_graphview.update_graph()
-
-            # self.update_idletasks()  # TODO helps with full frame resizing on MacOS?
             self._last_gui_update = datetime.now()
 
         # update GPX track file if enabled

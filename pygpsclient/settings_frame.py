@@ -104,11 +104,9 @@ class SettingsFrame(Frame):
         self.__master = self.__app.get_master()  # Reference to root class (Tk)
         Frame.__init__(self, self.__master, *args, **kwargs)
 
-        # self._protocol = IntVar()
         self._prot_nmea = IntVar()
         self._prot_ubx = IntVar()
         self._prot_rtcm3 = IntVar()
-        # self._raw = IntVar()
         self._autoscroll = IntVar()
         self._maxlines = IntVar()
         self._webmap = IntVar()

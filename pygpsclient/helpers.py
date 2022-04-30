@@ -25,16 +25,6 @@ from pygpsclient.globals import (
     FIXLOOKUP,
 )
 
-URLREGEX = re.compile(
-    # r"^(?:http|https)?://"  # http:// or https://
-    r"^(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|"  # domain...
-    r"localhost|"  # localhost...
-    r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})"  # ...or ip
-    r"(?::\d+)?"  # optional port
-    r"(?:/?|[/?]\S+)$",
-    re.IGNORECASE,
-)
-
 
 class ConfirmBox(Toplevel):
     """
@@ -501,7 +491,7 @@ def corrage2int(code: int) -> int:
     :rtype: int
     """
 
-    LOOKUP = {
+    lookup = {
         0: 0,
         1: 1,
         2: 2,
@@ -516,7 +506,7 @@ def corrage2int(code: int) -> int:
         11: 120,
     }
 
-    return LOOKUP.get(code, 0)
+    return lookup.get(code, 0)
 
 
 def validURL(url: str) -> bool:
@@ -527,5 +517,16 @@ def validURL(url: str) -> bool:
     :return: valid True/False
     :rtype: bool
     """
+    # pylint: disable=line-too-long
 
-    return re.match(URLREGEX, url) is not None
+    regex = re.compile(
+        # r"^(?:http|https)?://"  # http:// or https://
+        r"^(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|"  # domain...
+        r"localhost|"  # localhost...
+        r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})"  # ...or ip
+        r"(?::\d+)?"  # optional port
+        r"(?:/?|[/?]\S+)$",
+        re.IGNORECASE,
+    )
+
+    return re.match(regex, url) is not None
