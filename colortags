@@ -1,6 +1,7 @@
-# COLORTAGS
-# List of strings to highlight in console.
-# Format is:
+# PyGPSClient colortags file
+#
+# List of strings to highlight in console. Format is:
+#
 # string;color
 #
 # Place this file in your home directory.
