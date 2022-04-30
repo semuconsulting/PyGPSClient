@@ -43,7 +43,7 @@ class SerialHandler:
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.get_master  # Reference to root class (Tk)
+        self.__master = self.__app.get_master()  # Reference to root class (Tk)
 
         self._serial_object = None
         self._serial_buffer = None

@@ -1,11 +1,11 @@
 # PyGPSClient Release Notes
 
-### RELEASE CANDIDATE v1.3.1
+### RELEASE v1.3.1
 
 ENHANCEMENTS:
 
-1. Internal refactoring to use consistent message queueing technique for all incoming data streams (eliminates code duplication & offers moderate performance improvement). 
-2. Console color tagging is now user-configurable. The fixed color tags that were in `globals.py` are instead loaded from a file named 'colortags' in the user's home directory (see example in project root directory). A special color tag of 'HALT' allows the user to terminate streaming when a specified string match is found - this could for example be a particular message identity or a particular attribute value.
+1. Console color tagging is now user-configurable. The fixed color tags that were in `globals.py` are instead loaded from a file named 'colortags' in the user's home directory (see example in project root directory). A special color tag of 'HALT' allows the user to terminate streaming when a specified string match is found - this could for example be a particular message identity or a particular attribute value.
+2. Internal refactoring to use consistent message queueing technique for all incoming data streams (eliminates code duplication & offers moderate performance improvement). 
 
 ### RELEASE v1.3.0
 
