@@ -21,7 +21,7 @@ setup(
     packages=find_packages(exclude=["tests", "references", "images"]),
     install_requires=[
         "pyubx2>=1.2.7",
-        "pynmeagps>=1.0.9",
+        "pynmeagps>=1.0.10",
         "requests>=2.24.0",
         "Pillow>=7.2.0",
         "pyserial>=3.4",
