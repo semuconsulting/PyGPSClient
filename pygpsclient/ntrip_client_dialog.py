@@ -48,6 +48,7 @@ from pygpsclient.globals import (
     UBX_CFGVAL,
     UBX_PRESET,
     ENTCOL,
+    ERRCOL,
     READONLY,
     POPUP_TRANSIENT,
     CONNECTED,
@@ -62,6 +63,16 @@ from pygpsclient.strings import (
     LBLNTRIPPWD,
     LBLNTRIPGGAINT,
     LBLNTRIPSTR,
+)
+from pygpsclient.helpers import (
+    valid_entry,
+    VALBLANK,
+    VALNONBLANK,
+    VALINT,
+    VALFLOAT,
+    VALURL,
+    MAXPORT,
+    MAXALT,
 )
 
 NTRIP_VERSIONS = ("2.0", "1.0")
@@ -112,6 +123,10 @@ class NTRIPConfigDialog(Toplevel):
         self._ntrip_user = StringVar()
         self._ntrip_password = StringVar()
         self._ntrip_gga_interval = StringVar()
+        self._ntrip_gga_lat = StringVar()
+        self._ntrip_gga_lon = StringVar()
+        self._ntrip_gga_alt = StringVar()
+        self._ntrip_gga_sep = StringVar()
         self._settings = {}
         self._connected = False
         self._sourcetable = None
@@ -220,6 +235,43 @@ class NTRIPConfigDialog(Toplevel):
             state=READONLY,
         )
 
+        self._lbl_lat = Label(self._frm_container, text="GGA Latitude")
+        self._ent_lat = Entry(
+            self._frm_container,
+            textvariable=self._ntrip_gga_lat,
+            bg=ENTCOL,
+            state=NORMAL,
+            relief="sunken",
+            width=15,
+        )
+        self._lbl_lon = Label(self._frm_container, text="GGA Longitude")
+        self._ent_lon = Entry(
+            self._frm_container,
+            textvariable=self._ntrip_gga_lon,
+            bg=ENTCOL,
+            state=NORMAL,
+            relief="sunken",
+            width=15,
+        )
+        self._lbl_alt = Label(self._frm_container, text="GGA Elevation")
+        self._ent_alt = Entry(
+            self._frm_container,
+            textvariable=self._ntrip_gga_alt,
+            bg=ENTCOL,
+            state=NORMAL,
+            relief="sunken",
+            width=15,
+        )
+        self._lbl_sep = Label(self._frm_container, text="GGA Separation")
+        self._ent_sep = Entry(
+            self._frm_container,
+            textvariable=self._ntrip_gga_sep,
+            bg=ENTCOL,
+            state=NORMAL,
+            relief="sunken",
+            width=15,
+        )
+
         self._btn_connect = Button(
             self._frm_container,
             width=45,
@@ -275,18 +327,29 @@ class NTRIPConfigDialog(Toplevel):
         self._ent_user.grid(column=1, row=10, columnspan=2, padx=3, pady=3, sticky=W)
         self._lbl_password.grid(column=0, row=11, padx=3, pady=3, sticky=W)
         self._ent_password.grid(column=1, row=11, padx=3, pady=3, sticky=W)
-        self._lbl_ntripggaint.grid(column=0, row=12, padx=3, pady=3, sticky=W)
-        self._spn_ntripggaint.grid(
-            column=1, row=12, padx=3, pady=3, rowspan=2, sticky=W
-        )
         ttk.Separator(self._frm_container).grid(
-            column=0, row=13, columnspan=2, padx=3, pady=3, sticky=(W, E)
+            column=0, row=12, columnspan=2, padx=3, pady=3, sticky=(W, E)
         )
-        self._btn_connect.grid(column=0, row=14, padx=3, pady=3, sticky=W)
-        self._btn_disconnect.grid(column=1, row=14, padx=3, pady=3, sticky=W)
+        self._lbl_ntripggaint.grid(column=0, row=13, padx=2, pady=3, sticky=W)
+        self._spn_ntripggaint.grid(
+            column=1, row=13, padx=3, pady=2, rowspan=2, sticky=W
+        )
+        self._lbl_lat.grid(column=0, row=15, padx=3, pady=2, sticky=W)
+        self._ent_lat.grid(column=1, row=15, padx=3, pady=2, sticky=W)
+        self._lbl_lon.grid(column=0, row=16, padx=3, pady=2, sticky=W)
+        self._ent_lon.grid(column=1, row=16, padx=3, pady=2, sticky=W)
+        self._lbl_alt.grid(column=0, row=17, padx=3, pady=2, sticky=W)
+        self._ent_alt.grid(column=1, row=17, padx=3, pady=2, sticky=W)
+        self._lbl_sep.grid(column=0, row=18, padx=3, pady=2, sticky=W)
+        self._ent_sep.grid(column=1, row=18, padx=3, pady=2, sticky=W)
+        ttk.Separator(self._frm_container).grid(
+            column=0, row=19, columnspan=2, padx=3, pady=3, sticky=(W, E)
+        )
+        self._btn_connect.grid(column=0, row=20, padx=3, pady=3, sticky=W)
+        self._btn_disconnect.grid(column=1, row=20, padx=3, pady=3, sticky=W)
 
         # bottom of grid
-        row = 15
+        row = 21
         col = 0
         (colsp, rowsp) = self._frm_container.grid_size()
         self._frm_status.grid(column=col, row=row, columnspan=colsp, sticky=(W, E))
@@ -350,9 +413,9 @@ class NTRIPConfigDialog(Toplevel):
                 self._spn_ntripggaint,
             ):
                 ctl.config(state=(DISABLED if status else READONLY))
-            if self.__app.conn_status != CONNECTED:
-                self._ntrip_gga_interval.set("None")
-                self._spn_ntripggaint.config(state=DISABLED)
+            # if self.__app.conn_status != CONNECTED:
+            #     self._ntrip_gga_interval.set("None")
+            #     self._spn_ntripggaint.config(state=DISABLED)
 
             for ctl in (
                 self._btn_connect,
@@ -442,6 +505,10 @@ class NTRIPConfigDialog(Toplevel):
         self._ntrip_user.set(self._settings["user"])
         self._ntrip_password.set(self._settings["password"])
         self._ntrip_gga_interval.set(self._settings["ggainterval"])
+        self._ntrip_gga_lat.set(self._settings["ggalat"])
+        self._ntrip_gga_lon.set(self._settings["ggalon"])
+        self._ntrip_gga_alt.set(self._settings["ggaalt"])
+        self._ntrip_gga_sep.set(self._settings["ggasep"])
 
     def _set_settings(self):
         """
@@ -455,6 +522,11 @@ class NTRIPConfigDialog(Toplevel):
         self._settings["user"] = self._ntrip_user.get()
         self._settings["password"] = self._ntrip_password.get()
         self._settings["ggainterval"] = self._ntrip_gga_interval.get()
+        self._settings["ggalat"] = self._ntrip_gga_lat.get()
+        self._settings["ggalon"] = self._ntrip_gga_lon.get()
+        self._settings["ggaalt"] = self._ntrip_gga_alt.get()
+        self._settings["ggasep"] = self._ntrip_gga_sep.get()
+
         self.__app.ntrip_handler.settings = self._settings
 
     def update_sourcetable(self, stable: list):
@@ -477,8 +549,9 @@ class NTRIPConfigDialog(Toplevel):
         with connection status in due course.
         """
 
-        self._set_settings()
-        self.__app.ntrip_handler.connect()
+        if self._valid_settings():
+            self._set_settings()
+            self.__app.ntrip_handler.connect()
 
     def _disconnect(self):
         """
@@ -487,3 +560,37 @@ class NTRIPConfigDialog(Toplevel):
         """
 
         self.__app.ntrip_handler.disconnect()
+
+    def _valid_settings(self) -> bool:
+        """
+        Validate settings.
+
+        :return: valid True/False
+        :rtype: bool
+        """
+
+        valid = True
+        valid = valid & valid_entry(self._ent_server, VALNONBLANK)
+        valid = valid & valid_entry(self._ent_port, VALINT, 1, MAXPORT)
+
+        if self._ntrip_gga_interval.get() != "None":  # sending GGA
+            # either use all 4 fixed settings to construct GGA sentence,
+            # or use live readings from connected receiver
+            if not self.__app.serial_handler.connected or (
+                self.__app.serial_handler.connected
+                and (
+                    self._ent_lat != ""
+                    or self._ent_lon != ""
+                    or self._ent_alt != ""
+                    or self._ent_sep != ""
+                )
+            ):
+                valid = valid & valid_entry(self._ent_lat, VALFLOAT, -90.0, 90.0)
+                valid = valid & valid_entry(self._ent_lon, VALFLOAT, -180.0, 180.0)
+                valid = valid & valid_entry(self._ent_alt, VALFLOAT, -MAXALT, MAXALT)
+                valid = valid & valid_entry(self._ent_sep, VALFLOAT, -MAXALT, MAXALT)
+
+        if not valid:
+            self.set_status("ERROR - invalid settings", "red")
+
+        return valid
