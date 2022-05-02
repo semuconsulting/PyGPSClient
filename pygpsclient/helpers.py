@@ -566,6 +566,8 @@ def valid_entry(entry: Entry, valmode: int, low=None, high=None) -> bool:
                 valid = low < int(entry.get()) < high
             if valmode & VALFLOAT:  # float in range
                 valid = low < float(entry.get()) < high
+            if valmode & VALURL:  # valid URL
+                valid = validURL(entry.get())
     except ValueError:
         valid = False
 

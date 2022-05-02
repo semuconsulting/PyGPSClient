@@ -52,6 +52,7 @@ from pygpsclient.globals import (
     READONLY,
     POPUP_TRANSIENT,
     CONNECTED,
+    DISCONNECTED,
 )
 from pygpsclient.strings import (
     DLGNTRIPCONFIG,
@@ -382,7 +383,7 @@ class NTRIPConfigDialog(Toplevel):
         self._get_settings()
         self.set_controls(self._connected)
 
-    def set_controls(self, status: bool, msg: tuple = None):
+    def set_controls(self, connected: bool, msg: tuple = None):
         """
         Enable or disable controls depending on connection status.
 
@@ -391,7 +392,7 @@ class NTRIPConfigDialog(Toplevel):
         """
 
         try:
-            self._connected = status
+            self._connected = connected
             if msg is None:
                 server = self._settings["server"]
                 port = self._settings["port"]
@@ -406,16 +407,13 @@ class NTRIPConfigDialog(Toplevel):
             txt, col = msg
             self.set_status(txt, col)
 
-            self._btn_disconnect.config(state=(NORMAL if status else DISABLED))
+            self._btn_disconnect.config(state=(NORMAL if connected else DISABLED))
 
             for ctl in (
                 self._spn_ntripversion,
                 self._spn_ntripggaint,
             ):
-                ctl.config(state=(DISABLED if status else READONLY))
-            # if self.__app.conn_status != CONNECTED:
-            #     self._ntrip_gga_interval.set("None")
-            #     self._spn_ntripggaint.config(state=DISABLED)
+                ctl.config(state=(DISABLED if connected else READONLY))
 
             for ctl in (
                 self._btn_connect,
@@ -424,9 +422,13 @@ class NTRIPConfigDialog(Toplevel):
                 self._ent_mountpoint,
                 self._ent_user,
                 self._ent_password,
+                self._ent_lat,
+                self._ent_lon,
+                self._ent_alt,
+                self._ent_sep,
                 self._lbx_sourcetable,
             ):
-                ctl.config(state=(DISABLED if status else NORMAL))
+                ctl.config(state=(DISABLED if connected else NORMAL))
             # refresh sourcetable listbox NB placement of call is important
             self.update_sourcetable(self.__app.ntrip_handler.settings["sourcetable"])
         except TclError:  # fudge during thread termination
@@ -570,14 +572,14 @@ class NTRIPConfigDialog(Toplevel):
         """
 
         valid = True
-        valid = valid & valid_entry(self._ent_server, VALNONBLANK)
+        valid = valid & valid_entry(self._ent_server, VALURL)
         valid = valid & valid_entry(self._ent_port, VALINT, 1, MAXPORT)
 
         if self._ntrip_gga_interval.get() != "None":  # sending GGA
             # either use all 4 fixed settings to construct GGA sentence,
             # or use live readings from connected receiver
-            if not self.__app.serial_handler.connected or (
-                self.__app.serial_handler.connected
+            if self.__app.conn_status != CONNECTED or (
+                self.__app.conn_status == CONNECTED
                 and (
                     self._ent_lat != ""
                     or self._ent_lon != ""
