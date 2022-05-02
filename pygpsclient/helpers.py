@@ -14,7 +14,7 @@ Created on 17 Apr 2021
 
 from subprocess import run as subrun
 from sys import executable
-from tkinter import Toplevel, Label, Button, W
+from tkinter import Toplevel, Entry, Label, Button, W
 from math import sin, cos, pi
 from datetime import datetime, timedelta
 from pygpsclient.globals import (
@@ -22,7 +22,18 @@ from pygpsclient.globals import (
     DEVICE_ACCURACY,
     HDOP_RATIO,
     FIXLOOKUP,
+    ENTCOL,
+    ERRCOL,
 )
+
+# validation type flags
+MAXPORT = 65535
+MAXALT = 10000.0  # meters arbitrary
+VALBLANK = 1
+VALNONBLANK = 2
+VALINT = 4
+VALFLOAT = 8
+VALURL = 16
 
 
 class ConfirmBox(Toplevel):
@@ -506,3 +517,33 @@ def corrage2int(code: int) -> int:
     }
 
     return LOOKUP.get(code, 0)
+
+
+def valid_entry(entry: Entry, valmode: int, low=None, high=None) -> bool:
+    """
+    Validates tkinter entry field and highlights it if in error.
+
+    :param Entry entry: tkinter entry widget
+    :param int valmode: int representing validation type - can be OR'd
+    :param object low: optional min value
+    :param object high: optional max value
+    :return: True/False
+    :rtype: bool
+    """
+
+    valid = True
+    try:
+        if valmode & VALBLANK and entry.get() == "":  # blank ok
+            valid = True
+        else:
+            if valmode & VALNONBLANK:  # non-blank
+                valid = entry.get() != ""
+            if valmode & VALINT:  # int in range
+                valid = low < int(entry.get()) < high
+            if valmode & VALFLOAT:  # float in range
+                valid = low < float(entry.get()) < high
+    except ValueError:
+        valid = False
+
+    entry.config(bg=ENTCOL if valid else ERRCOL)
+    return valid
