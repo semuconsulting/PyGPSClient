@@ -8,6 +8,10 @@ ENHANCEMENTS:
 2. Add optional manual GGA settings (lat, lon, alt. sep) to NTRIP configuration dialog. If GGA sentence transmission is enabled, GGA sentence can either be constructed from live GNSS readings (if a receiver is connected) or from the four manual settings. If a GNSS receiver is not connected, the manual GGA settings must be used to send a GGA sentence.
 3. Internal refactoring to use consistent message queuing technique for all incoming data streams (eliminates code duplication & offers moderate performance improvement). 
 
+FIXES:
+
+1. Enhanced error handling in serial and socket handlers - Fixes #22
+
 ### RELEASE v1.3.0
 
 ENHANCEMENTS:
