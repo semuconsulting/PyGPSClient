@@ -13,9 +13,9 @@ Created on 27 Apr 2022
 
 from threading import Thread
 import socket
-from pynmeagps import NMEAReader
-from pyrtcm import RTCMReader
-from pyubx2 import UBXReader
+from pynmeagps import NMEAReader, NMEAMessageError, NMEAParseError
+from pyrtcm import RTCMReader, RTCMMessageError, RTCMParseError
+from pyubx2 import UBXReader, UBXMessageError, UBXParseError
 import pyubx2.ubxtypes_core as ubt
 from pygpsclient.globals import (
     CONNECTED_SOCKET,
@@ -244,11 +244,16 @@ class SocketHandler:
         Parse UBX Message.
         """
 
-        byten = self._read_bytes(buf, start + 2, 4)
-        lenb = int.from_bytes(byten[2:4], "little", signed=False)
-        byten += self._read_bytes(buf, start + 6, lenb + 2)
-        raw_data = bytes(hdr + byten)
-        parsed_data = UBXReader.parse(raw_data)
+        try:
+            byten = self._read_bytes(buf, start + 2, 4)
+            lenb = int.from_bytes(byten[2:4], "little", signed=False)
+            byten += self._read_bytes(buf, start + 6, lenb + 2)
+            raw_data = bytes(hdr + byten)
+            parsed_data = UBXReader.parse(raw_data)
+        except (UBXMessageError, UBXParseError) as err:
+            # log error to console, then continue
+            self.__app.frm_console.update_console(bytes(str(err), "utf-8"), err)
+            return raw_data, None
 
         return raw_data, parsed_data
 
@@ -258,14 +263,19 @@ class SocketHandler:
         """
 
         i = 1
-        # read buffer until CRLF - equivalent to readline()
-        while True:
-            byten = self._read_bytes(buf, start + 2, i)
-            if byten[-2:] == b"\x0d\x0a":  # CRLF
-                raw_data = bytes(hdr + byten)
-                parsed_data = NMEAReader.parse(raw_data)
-                break
-            i += 1
+        try:
+            # read buffer until CRLF - equivalent to readline()
+            while True:
+                byten = self._read_bytes(buf, start + 2, i)
+                if byten[-2:] == b"\x0d\x0a":  # CRLF
+                    raw_data = bytes(hdr + byten)
+                    parsed_data = NMEAReader.parse(raw_data)
+                    break
+                i += 1
+        except (NMEAMessageError, NMEAParseError) as err:
+            # log error to console, then continue
+            self.__app.frm_console.update_console(bytes(str(err), "utf-8"), err)
+            return raw_data, None
 
         return raw_data, parsed_data
 
@@ -274,11 +284,16 @@ class SocketHandler:
         Parse RTCM3 Message.
         """
 
-        hdr3 = self._read_bytes(buf, start + 2, 1)
-        lenb = hdr3[0] | (hdr[1] << 8)
-        byten = self._read_bytes(buf, start + 3, lenb + 3)
-        raw_data = bytes(hdr + hdr3 + byten)
-        parsed_data = RTCMReader.parse(raw_data)
+        try:
+            hdr3 = self._read_bytes(buf, start + 2, 1)
+            lenb = hdr3[0] | (hdr[1] << 8)
+            byten = self._read_bytes(buf, start + 3, lenb + 3)
+            raw_data = bytes(hdr + hdr3 + byten)
+            parsed_data = RTCMReader.parse(raw_data)
+        except (RTCMMessageError, RTCMParseError) as err:
+            # log error to console, then continue
+            self.__app.frm_console.update_console(bytes(str(err), "utf-8"), err)
+            return raw_data, None
 
         return raw_data, parsed_data
 

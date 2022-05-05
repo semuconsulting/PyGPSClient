@@ -15,9 +15,9 @@ from io import BufferedReader
 from threading import Thread
 from datetime import datetime, timedelta
 from serial import Serial, SerialException, SerialTimeoutException
-from pynmeagps import NMEAReader, NMEAParseError
-from pyrtcm import RTCMReader
-from pyubx2 import UBXReader, UBXParseError
+from pynmeagps import NMEAReader, NMEAMessageError, NMEAParseError
+from pyrtcm import RTCMReader, RTCMMessageError, RTCMParseError
+from pyubx2 import UBXReader, UBXMessageError, UBXParseError
 import pyubx2.ubxtypes_core as ubt
 from pygpsclient.globals import (
     CONNECTED,
@@ -336,10 +336,17 @@ class SerialHandler:
         except EOFError:
             self.__master.event_generate("<<gnss_eof>>")
             return
-        except (UBXParseError, NMEAParseError) as err:
+        except (
+            UBXMessageError,
+            UBXParseError,
+            NMEAParseError,
+            NMEAMessageError,
+            RTCMParseError,
+            RTCMMessageError,
+        ) as err:
             # log errors to console, then continue
             self.__app.frm_console.update_console(bytes(str(err), "utf-8"), err)
-            return
+            return (None, None)
 
         # put data on message queue
         self.__app.enqueue(raw_data, parsed_data)
