@@ -39,7 +39,7 @@ NAV-ATT;yellow
 NAV-AOPSTATUS;yellow
 NAV-CLOCK;cyan
 NAV-COV;yellow
-NAV-DGPS;yellow
+NAV-DGPS;mediumpurple2
 NAV-DOP;mediumpurple2
 NAV-EELL;yellow
 NAV-EOE;yellow
@@ -48,15 +48,18 @@ NAV-HPPOSECEF;orange
 NAV-HPPOSLLH;orange
 NAV-ODO;deepskyblue
 NAV-ORB;yellow
+NAV-PL;yellow
 NAV-POSECEF;orange
 NAV-POSLLH;orange
 NAV-PVT;orange
+NAV-RELPOSNED;deepskyblue
 NAV-SAT;yellow
 NAV-SBAS;yellow
 NAV-SIG;yellow
 NAV-SLAS;yellow
 NAV-SOL;green2
 NAV-STATUS;green2
+NAV-SVIN;mediumpurple2
 NAV-SVINFO;yellow
 NAV-TIMEBDS;cyan
 NAV-TIMEGAL;cyan
