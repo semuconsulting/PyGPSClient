@@ -578,13 +578,14 @@ class NTRIPConfigDialog(Toplevel):
         if self._ntrip_gga_interval.get() != "None":  # sending GGA
             # either use all 4 fixed settings to construct GGA sentence,
             # or use live readings from connected receiver
+            print(f"DEBUG conn stat {self.__app.conn_status} lat {self._ent_lat.get()}")
             if self.__app.conn_status != CONNECTED or (
                 self.__app.conn_status == CONNECTED
                 and (
-                    self._ent_lat != ""
-                    or self._ent_lon != ""
-                    or self._ent_alt != ""
-                    or self._ent_sep != ""
+                    self._ent_lat.get() != ""
+                    or self._ent_lon.get() != ""
+                    or self._ent_alt.get() != ""
+                    or self._ent_sep.get() != ""
                 )
             ):
                 valid = valid & valid_entry(self._ent_lat, VALFLOAT, -90.0, 90.0)
