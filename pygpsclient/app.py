@@ -463,7 +463,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         raw_data, parsed_data = self._msgqueue.get()
-        if raw_data is not None:
+        if raw_data is not None and parsed_data is not None:
             self.process_data(raw_data, parsed_data)
 
     def process_data(self, raw_data: bytes, parsed_data: object, marker: str = ""):
