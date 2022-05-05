@@ -244,6 +244,8 @@ class SocketHandler:
         Parse UBX Message.
         """
 
+        raw_data = None
+        parsed_data = None
         try:
             byten = self._read_bytes(buf, start + 2, 4)
             lenb = int.from_bytes(byten[2:4], "little", signed=False)
@@ -253,7 +255,6 @@ class SocketHandler:
         except (UBXMessageError, UBXParseError) as err:
             # log error to console, then continue
             self.__app.frm_console.update_console(bytes(str(err), "utf-8"), err)
-            return raw_data, None
 
         return raw_data, parsed_data
 
@@ -262,6 +263,8 @@ class SocketHandler:
         Parse NMEA Message.
         """
 
+        raw_data = None
+        parsed_data = None
         i = 1
         try:
             # read buffer until CRLF - equivalent to readline()
@@ -275,7 +278,6 @@ class SocketHandler:
         except (NMEAMessageError, NMEAParseError) as err:
             # log error to console, then continue
             self.__app.frm_console.update_console(bytes(str(err), "utf-8"), err)
-            return raw_data, None
 
         return raw_data, parsed_data
 
@@ -284,6 +286,8 @@ class SocketHandler:
         Parse RTCM3 Message.
         """
 
+        raw_data = None
+        parsed_data = None
         try:
             hdr3 = self._read_bytes(buf, start + 2, 1)
             lenb = hdr3[0] | (hdr[1] << 8)
@@ -293,7 +297,6 @@ class SocketHandler:
         except (RTCMMessageError, RTCMParseError) as err:
             # log error to console, then continue
             self.__app.frm_console.update_console(bytes(str(err), "utf-8"), err)
-            return raw_data, None
 
         return raw_data, parsed_data
 

@@ -346,7 +346,8 @@ class SerialHandler:
         ) as err:
             # log errors to console, then continue
             self.__app.frm_console.update_console(bytes(str(err), "utf-8"), err)
-            return (None, None)
+            # return (None, None)
+            print(raw_data)
 
         # put data on message queue
         self.__app.enqueue(raw_data, parsed_data)

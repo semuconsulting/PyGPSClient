@@ -172,7 +172,7 @@ class NTRIPHandler:
                         self._reading = False
                         self._connected = False
                         self._set_controls(False, (f"Error!: {rc}", "red"))
-        except (socket.gaierror, TimeoutError) as err:
+        except (socket.gaierror, ConnectionResetError, TimeoutError) as err:
             self._reading = False
             self._connected = False
             self._set_controls(False, (f"Connection error {err}", "red"))
