@@ -50,7 +50,8 @@ from pygpsclient.graphview_frame import GraphviewFrame
 from pygpsclient.map_frame import MapviewFrame
 from pygpsclient.menu_bar import MenuBar
 from pygpsclient.serial_handler import SerialHandler
-from pygpsclient.socket_handler import SocketHandler
+
+# from pygpsclient.socket_handler import SocketHandler
 from pygpsclient.ntrip_handler import NTRIPHandler
 from pygpsclient.settings_frame import SettingsFrame
 from pygpsclient.skyview_frame import SkyviewFrame
@@ -107,7 +108,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._msgqueue = Queue()
         self.file_handler = FileHandler(self)
         self.serial_handler = SerialHandler(self)
-        self.socket_handler = SocketHandler(self)
+        # self.socket_handler = SocketHandler(self)
         self.nmea_handler = NMEAHandler(self)
         self.ubx_handler = UBXHandler(self)
         self._conn_status = DISCONNECTED
@@ -183,7 +184,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         self.__master.bind("<<stream_read>>", self.on_read)
         self.__master.bind("<<gnss_eof>>", self.serial_handler.on_eof)
-        self.__master.bind("<<socket_eof>>", self.socket_handler.on_eof)
         self.__master.bind("<<ntrip_read>>", self.ntrip_handler.on_read)
         self.__master.bind_all("<Control-q>", self.on_exit)
 

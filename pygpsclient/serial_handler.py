@@ -11,6 +11,7 @@ Created on 16 Sep 2020
 :license: BSD 3-Clause
 """
 
+import socket
 from io import BufferedReader
 from threading import Thread
 from datetime import datetime, timedelta
@@ -32,6 +33,7 @@ from pyrtcm import RTCMMessageError, RTCMParseError
 from pygpsclient.globals import (
     CONNECTED,
     CONNECTED_FILE,
+    CONNECTED_SOCKET,
     DISCONNECTED,
     FILEREAD_INTERVAL,
 )
@@ -129,11 +131,30 @@ class SerialHandler:
             self._serial_buffer = BufferedReader(self._serial_object)
             self.__app.conn_status = CONNECTED_FILE
             self.__app.set_connection(f"{in_filepath}", "blue")
-            # self.start_readfile_thread()
             self.start_read_thread()
         except (IOError, SerialException, SerialTimeoutException) as err:
             self.__app.conn_status = DISCONNECTED
             self.__app.set_connection(f"{in_filepath}", "red")
+            self.__app.set_status(SEROPENERROR.format(err), "red")
+
+    def connect_socket(self):
+        """
+        Open socket connection.
+        """
+
+        socket_settings = self.__app.frm_settings.socket_settings()
+        server = socket_settings.server
+        port = socket_settings.port
+
+        try:
+            self.__app.conn_status = CONNECTED_SOCKET
+            self.__app.set_connection(f"{server}:{port}", "green")
+            self.start_read_thread()
+            self.__app.set_status("Connected", "blue")
+
+        except OSError as err:
+            self.__app.conn_status = DISCONNECTED
+            self.__app.set_connection(f"{server}:{port} ", "red")
             self.__app.set_status(SEROPENERROR.format(err), "red")
 
     def disconnect(self):
@@ -141,14 +162,13 @@ class SerialHandler:
         Close serial connection.
         """
 
+        self._reading = False
         if self.__app.conn_status in (CONNECTED, CONNECTED_FILE):
             try:
-                self._reading = False
                 self._serial_object.close()
-                self.__app.conn_status = DISCONNECTED
             except (SerialException, SerialTimeoutException):
                 pass
-
+        self.__app.conn_status = DISCONNECTED
         self.__app.frm_settings.enable_controls(DISCONNECTED)
 
     @property
@@ -205,6 +225,11 @@ class SerialHandler:
             self._reading = True
             self.__app.frm_mapview.reset_map_refresh()
             self._serial_thread = Thread(target=self._read_thread, daemon=True)
+            self._serial_thread.start()
+        if self.__app.conn_status == CONNECTED_SOCKET:
+            self._reading = True
+            self.__app.frm_mapview.reset_map_refresh()
+            self._serial_thread = Thread(target=self._readsocket_thread, daemon=True)
             self._serial_thread.start()
 
     def stop_read_thread(self):
@@ -271,6 +296,61 @@ class SerialHandler:
             # spurious errors as thread shuts down after serial disconnection
             except (TypeError, OSError):
                 return
+
+    def _readsocket_thread(self):
+        """
+        THREADED PROCESS
+        Start socket client connection.
+        """
+
+        socket_settings = self.__app.frm_settings.socket_settings()
+        server = socket_settings.server
+        port = socket_settings.port
+
+        if socket_settings.protocol == "UDP":
+            socktype = socket.SOCK_DGRAM
+        else:  # TCP
+            socktype = socket.SOCK_STREAM
+
+        try:
+            with socket.socket(socket.AF_INET, socktype) as sock:
+                sock.connect((server, port))
+
+                raw_data = None
+                parsed_data = None
+                while self._reading:
+
+                    try:
+
+                        ubr = UBXReader(
+                            sock,
+                            protfilter=NMEA_PROTOCOL | UBX_PROTOCOL | RTCM3_PROTOCOL,
+                            quitonerror=ERR_IGNORE,
+                        )
+                        raw_data, parsed_data = ubr.read()
+                        # put data on message queue
+                        if raw_data is not None:
+                            self.__app.enqueue(raw_data, parsed_data)
+
+                    except (
+                        UBXMessageError,
+                        UBXParseError,
+                        NMEAMessageError,
+                        NMEAParseError,
+                        RTCMMessageError,
+                        RTCMParseError,
+                    ) as err:
+                        parsed_data = f"Error parsing data stream {err}"
+                        self.__app.enqueue(raw_data, parsed_data)
+                        continue
+
+        except (EOFError, TimeoutError):
+            self.__master.event_generate("<<gnss_eof>>")
+        except (OSError, AttributeError, socket.gaierror) as err:
+            if self._reading:
+                self._reading = False
+                self.__app.conn_status = DISCONNECTED
+                self.__app.set_status(f"Error in socket {err}", "red")
 
     def on_eof(self, event):  # pylint: disable=unused-argument
         """

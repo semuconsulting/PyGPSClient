@@ -62,6 +62,7 @@ from pygpsclient.globals import (
     FORMATS,
     TAG_COLORS,
 )
+from pygpsclient.helpers import valid_entry, VALINT, VALURL, MAXPORT
 from pygpsclient.strings import (
     LBLUBXCONFIG,
     LBLNTRIPCONFIG,
@@ -170,7 +171,8 @@ class SettingsFrame(Frame):
             width=45,
             height=35,
             image=self._img_socket,
-            command=lambda: self.__app.socket_handler.connect(),
+            # command=lambda: self.__app.socket_handler.connect(),
+            command=lambda: self._on_socket_stream(),
         )
         self._lbl_connect_socket = Label(self._frm_buttons, text="TCP/UDP")
         self._btn_connect_file = Button(
@@ -399,12 +401,7 @@ class SettingsFrame(Frame):
 
     def _disconnect(self):
 
-        status = self.__app.conn_status
-        if status == CONNECTED_SOCKET:
-            self.__app.socket_handler.disconnect()
-        elif status == CONNECTED_FILE:
-            self.__app.serial_handler.disconnect()
-        elif status == CONNECTED:
+        if self.__app.conn_status in (CONNECTED, CONNECTED_FILE, CONNECTED_SOCKET):
             self.__app.serial_handler.disconnect()
 
     def _on_ubx_config(self, *args, **kwargs):  # pylint: disable=unused-argument
@@ -466,9 +463,22 @@ class SettingsFrame(Frame):
             self.__app.file_handler.close_trackfile()
             self.__app.set_status("Track recording disabled", "blue")
 
+    def _on_socket_stream(self):
+        """
+        Start socket streamer if settings are valid
+        """
+
+        valid = True
+        valid = valid & valid_entry(self._frm_socket._ent_server, VALURL)
+        valid = valid & valid_entry(self._frm_socket._ent_port, VALINT, 1, MAXPORT)
+        if valid:
+            self.__app.serial_handler.connect_socket()
+        else:
+            self.__app.set_status("ERROR - invalid settings", "red")
+
     def _on_data_stream(self):
         """
-        Start data file streamer
+        Start data file streamer if file selected
         """
 
         self._in_filepath = self.__app.file_handler.open_infile()

@@ -28,7 +28,7 @@ BAUD = 9600
 TIMEOUT = 3
 HOST = "localhost"
 PORT = 50007  # Arbitrary non-privileged port
-DELAY = 0.25
+DELAY = 0.1
 
 
 class GNSSServer(StreamRequestHandler):
@@ -120,7 +120,7 @@ class GNSSServer(StreamRequestHandler):
         while True:
             try:
                 # put multiple random msgs on buffer, mixed in with junk
-                # to exercise the clients' parse_buffer() routine
+                # to exercise the clients' parsing routine
                 data = bytearray()
                 n = random.randint(1, 5)
                 for _ in range(n):
@@ -129,7 +129,7 @@ class GNSSServer(StreamRequestHandler):
                         data += self.create_NMEA_msg() + b"\x04\x05\x06"
                     elif r == 4:
                         data += self.create_RTCM3_msg() + b"\x07\x08\x09"
-                    elif r == 8:
+                    elif r == 5:
                         data += self.create_unknownUBX_msg() + b"\x03\x04\x05"
                     else:
                         data += self.create_UBX_msg() + b"\x01\x02\x03"
