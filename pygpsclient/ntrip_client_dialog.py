@@ -578,7 +578,6 @@ class NTRIPConfigDialog(Toplevel):
         if self._ntrip_gga_interval.get() != "None":  # sending GGA
             # either use all 4 fixed settings to construct GGA sentence,
             # or use live readings from connected receiver
-            print(f"DEBUG conn stat {self.__app.conn_status} lat {self._ent_lat.get()}")
             if self.__app.conn_status != CONNECTED or (
                 self.__app.conn_status == CONNECTED
                 and (
