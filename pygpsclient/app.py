@@ -437,7 +437,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.file_handler.close_logfile()
         self.file_handler.close_trackfile()
         self.serial_handler.stop_read_thread()
-        self.serial_handler.stop_readfile_thread()
         self.stop_ubxconfig_thread()
         self.stop_ntripconfig_thread()
         self.serial_handler.disconnect()
@@ -479,6 +478,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         protfilter = self.frm_settings.protocol
         msgprot = protocol(raw_data)
+        if isinstance(parsed_data, str):
+            marker = "WARNING  "
 
         if msgprot == UBX_PROTOCOL and msgprot & protfilter:
             if marker == "":
