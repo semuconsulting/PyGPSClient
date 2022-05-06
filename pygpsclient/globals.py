@@ -99,6 +99,7 @@ CRLF = b"\x0d\x0a"
 # socket client defaults
 DEFAULT_SERVER = "localhost"
 DEFAULT_PORT = "50007"
+DEFAULT_BUFSIZE = 4096
 # display formats
 FORMAT_PARSED = 1
 FORMAT_BIN = 2

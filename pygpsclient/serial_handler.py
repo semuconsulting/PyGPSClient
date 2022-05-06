@@ -36,6 +36,7 @@ from pygpsclient.globals import (
     CONNECTED_SOCKET,
     DISCONNECTED,
     FILEREAD_INTERVAL,
+    DEFAULT_BUFSIZE,
 )
 from pygpsclient.strings import SEROPENERROR, ENDOFFILE
 
@@ -315,6 +316,12 @@ class SerialHandler:
         try:
             with socket.socket(socket.AF_INET, socktype) as sock:
                 sock.connect((server, port))
+                ubr = UBXReader(
+                    sock,
+                    protfilter=NMEA_PROTOCOL | UBX_PROTOCOL | RTCM3_PROTOCOL,
+                    quitonerror=ERR_IGNORE,
+                    bufsize=DEFAULT_BUFSIZE,
+                )
 
                 raw_data = None
                 parsed_data = None
@@ -322,11 +329,6 @@ class SerialHandler:
 
                     try:
 
-                        ubr = UBXReader(
-                            sock,
-                            protfilter=NMEA_PROTOCOL | UBX_PROTOCOL | RTCM3_PROTOCOL,
-                            quitonerror=ERR_IGNORE,
-                        )
                         raw_data, parsed_data = ubr.read()
                         # put data on message queue
                         if raw_data is not None:
