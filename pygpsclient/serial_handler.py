@@ -15,9 +15,9 @@ from io import BufferedReader
 from threading import Thread
 from datetime import datetime, timedelta
 from serial import Serial, SerialException, SerialTimeoutException
-from pynmeagps import NMEAReader, NMEAParseError
-from pyrtcm import RTCMReader
-from pyubx2 import UBXReader, UBXParseError
+from pynmeagps import NMEAReader, NMEAMessageError, NMEAParseError
+from pyrtcm import RTCMReader, RTCMMessageError, RTCMParseError
+from pyubx2 import UBXReader, UBXMessageError, UBXParseError
 import pyubx2.ubxtypes_core as ubt
 from pygpsclient.globals import (
     CONNECTED,
@@ -49,8 +49,6 @@ class SerialHandler:
         self._serial_buffer = None
         self._serial_thread = None
         self._file_thread = None
-        self._connected = False
-        self._connectedfile = False
         self._reading = False
         self._lastfileread = datetime.now()
 
@@ -94,12 +92,10 @@ class SerialHandler:
                 ),
                 "green",
             )
-            self._connected = True
             self.start_read_thread()
             self.__app.set_status("Connected", "blue")
 
         except (IOError, SerialException, SerialTimeoutException) as err:
-            self._connected = False
             self.__app.conn_status = DISCONNECTED
             self.__app.set_connection(
                 (
@@ -125,10 +121,8 @@ class SerialHandler:
             self._serial_buffer = BufferedReader(self._serial_object)
             self.__app.conn_status = CONNECTED_FILE
             self.__app.set_connection(f"{in_filepath}", "blue")
-            self._connectedfile = True
             self.start_readfile_thread()
         except (IOError, SerialException, SerialTimeoutException) as err:
-            self._connected = False
             self.__app.conn_status = DISCONNECTED
             self.__app.set_connection(f"{in_filepath}", "red")
             self.__app.set_status(SEROPENERROR.format(err), "red")
@@ -138,7 +132,7 @@ class SerialHandler:
         Close serial connection.
         """
 
-        if self._connected or self._connectedfile:
+        if self.__app.conn_status in (CONNECTED, CONNECTED_FILE):
             try:
                 self._reading = False
                 self._serial_object.close()
@@ -146,9 +140,7 @@ class SerialHandler:
             except (SerialException, SerialTimeoutException):
                 pass
 
-        self._connected = False
-        self._connectedfile = False
-        self.__app.frm_settings.enable_controls(self._connected)
+        self.__app.frm_settings.enable_controls(DISCONNECTED)
 
     @property
     def port(self):
@@ -157,22 +149,6 @@ class SerialHandler:
         """
 
         return self.__app.frm_settings.serial_settings().port
-
-    @property
-    def connected(self):
-        """
-        Getter for serial connection status
-        """
-
-        return self._connected
-
-    @property
-    def connectedfile(self):
-        """
-        Getter for file connection status
-        """
-
-        return self._connectedfile
 
     @property
     def serial(self):
@@ -205,7 +181,7 @@ class SerialHandler:
         :param bytes data: data to write to stream
         """
 
-        if self._connected and self._serial_object is not None:
+        if self.__app.conn_status == CONNECTED and self._serial_object is not None:
             try:
                 self._serial_object.write(data)
             except (SerialException, SerialTimeoutException) as err:
@@ -216,7 +192,7 @@ class SerialHandler:
         Start the serial reader thread.
         """
 
-        if self._connected:
+        if self.__app.conn_status == CONNECTED:
             self._reading = True
             self.__app.frm_mapview.reset_map_refresh()
             self._serial_thread = Thread(target=self._read_thread, daemon=True)
@@ -227,7 +203,7 @@ class SerialHandler:
         Start the file reader thread.
         """
 
-        if self._connectedfile:
+        if self.__app.conn_status == CONNECTED_FILE:
             self._reading = True
             self.__app.frm_mapview.reset_map_refresh()
             self._file_thread = Thread(target=self._readfile_thread, daemon=True)
@@ -263,7 +239,7 @@ class SerialHandler:
         try:
             while self._reading and self._serial_object:
                 if self._serial_object.in_waiting:
-                    self.__master.event_generate("<<gnss_read>>")
+                    self._parse_data(self._serial_buffer)
         except SerialException as err:
             self.__app.set_status(f"Error in read thread {err}", "red")
         # spurious errors as thread shuts down after serial disconnection
@@ -282,38 +258,8 @@ class SerialHandler:
             if datetime.now() > self._lastfileread + timedelta(
                 seconds=FILEREAD_INTERVAL
             ):
-                # self.__app.update_idletasks()
-                self.__master.event_generate("<<gnss_readfile>>")
+                self._parse_data(self._serial_buffer)
                 self._lastfileread = datetime.now()
-
-    def on_read(self, event):  # pylint: disable=unused-argument
-        """
-        EVENT TRIGGERED
-        Action on <<gnss_read>> event - read any data in the buffer.
-
-        :param event event: read event
-        """
-
-        if self._reading and self._serial_object is not None:
-            try:
-                self._parse_data(self._serial_buffer)
-            except SerialException as err:
-                self.__app.set_status(f"Error {err}", "red")
-
-    def on_readfile(self, event):  # pylint: disable=unused-argument
-        """
-        EVENT TRIGGERED
-        Action on <<gnss_readfile>> event - read any data from file.
-
-        :param event event: read event
-        """
-
-        if self._reading and self._serial_object is not None:
-            try:
-                self._parse_data(self._serial_buffer)
-                # self.__app.update_idletasks()
-            except SerialException as err:
-                self.__app.set_status(f"Error {err}", "red")
 
     def on_eof(self, event):  # pylint: disable=unused-argument
         """
@@ -390,16 +336,21 @@ class SerialHandler:
         except EOFError:
             self.__master.event_generate("<<gnss_eof>>")
             return
-        except (UBXParseError, NMEAParseError) as err:
+        except (
+            UBXMessageError,
+            UBXParseError,
+            NMEAParseError,
+            NMEAMessageError,
+            RTCMParseError,
+            RTCMMessageError,
+        ) as err:
             # log errors to console, then continue
             self.__app.frm_console.update_console(bytes(str(err), "utf-8"), err)
-            return
+            # return (None, None)
+            print(raw_data)
 
-        # logging.debug("raw: %s parsed: %s", raw_data, parsed_data)
-        if raw_data is None or parsed_data is None:
-            return
-        # update the GUI, datalog file and GPX track file
-        self.__app.process_data(raw_data, parsed_data)
+        # put data on message queue
+        self.__app.enqueue(raw_data, parsed_data)
 
     def _read_bytes(self, stream: object, size: int) -> bytes:
         """
@@ -415,13 +366,3 @@ class SerialHandler:
         if len(data) < size:  # EOF
             raise EOFError()
         return data
-
-    def flush(self):
-        """
-        Flush input buffer
-        """
-
-        if self._serial_buffer is not None:
-            self._serial_buffer.flush()
-        if self._serial_object is not None:
-            self._serial_object.flushInput()

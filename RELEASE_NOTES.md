@@ -1,5 +1,17 @@
 # PyGPSClient Release Notes
 
+### RELEASE v1.3.1
+
+ENHANCEMENTS:
+
+1. Console color tagging is now user-configurable. The fixed color tags that were in `globals.py` are instead loaded from a file named 'colortags' in the user's home directory (see example in project root directory). A special color tag of 'HALT' allows the user to terminate streaming when a specified string match is found - this could for example be a particular message identity or a particular attribute value.
+2. Add optional manual GGA settings (lat, lon, alt. sep) to NTRIP configuration dialog. If GGA sentence transmission is enabled, GGA sentence can either be constructed from live GNSS readings (if a receiver is connected) or from the four manual settings. If a GNSS receiver is not connected, the manual GGA settings must be used to send a GGA sentence.
+3. Internal refactoring to use consistent message queuing technique for all incoming data streams (eliminates code duplication & offers moderate performance improvement). 
+
+FIXES:
+
+1. Enhanced error handling in serial and socket handlers - Fixes #22
+
 ### RELEASE v1.3.0
 
 ENHANCEMENTS:

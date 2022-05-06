@@ -85,7 +85,7 @@ class BannerFrame(Frame):
         self._diffcorr = StringVar()
         self._diffstat = StringVar()
         self._status = False
-        self._show_advanced = True
+        self._show_advanced = False
 
         self._bgcol = BGCOL
         self._fgcol = FGCOL

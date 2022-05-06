@@ -63,7 +63,6 @@ class SocketConfigFrame(Frame):
 
         self._body()
         self._do_layout()
-        self._attach_events()
         self.reset()
 
     def _body(self):
@@ -114,13 +113,6 @@ class SocketConfigFrame(Frame):
         self._ent_port.grid(column=1, row=1, padx=2, pady=2, sticky=(W))
         self._lbl_protocol.grid(column=3, row=1, padx=2, pady=2, sticky=(W))
         self._spn_protocol.grid(column=4, row=1, padx=2, pady=2, sticky=(W))
-
-    def _attach_events(self):
-        """
-        Bind events to widgets.
-        """
-
-        # self._lbx_protocol.bind("<<ListboxSelect>>", self._on_select_port)
 
     def reset(self):
         """

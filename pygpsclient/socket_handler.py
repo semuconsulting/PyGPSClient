@@ -12,11 +12,10 @@ Created on 27 Apr 2022
 """
 
 from threading import Thread
-from queue import Queue
 import socket
-from pynmeagps import NMEAReader
-from pyrtcm import RTCMReader
-from pyubx2 import UBXReader
+from pynmeagps import NMEAReader, NMEAMessageError, NMEAParseError
+from pyrtcm import RTCMReader, RTCMMessageError, RTCMParseError
+from pyubx2 import UBXReader, UBXMessageError, UBXParseError
 import pyubx2.ubxtypes_core as ubt
 from pygpsclient.globals import (
     CONNECTED_SOCKET,
@@ -42,16 +41,14 @@ class SocketHandler:
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.get_master()  # Reference to root class (Tk)
+        self.__master = self.__app.get_master  # Reference to root class (Tk)
 
         self._socket = None
         self._socket_thread = None
         self._server = None
         self._port = None
         self._protocol = None
-        self._connected = False
         self._reading = False
-        self._msgqueue = Queue()
 
     def __del__(self):
         """
@@ -79,12 +76,10 @@ class SocketHandler:
         try:
             self.__app.conn_status = CONNECTED_SOCKET
             self.__app.set_connection(f"{self._server}:{self._port}", "green")
-            self._connected = True
             self.start_read_thread()
             self.__app.set_status("Connected", "blue")
 
         except Exception as err:
-            self._connected = False
             self.__app.conn_status = DISCONNECTED
             self.__app.set_connection(f"{self._server}:{self._port} ", "red")
             self.__app.set_status(SEROPENERROR.format(err), "red")
@@ -94,7 +89,7 @@ class SocketHandler:
         Close socket connection.
         """
 
-        if self._connected:
+        if self.__app.conn_status == CONNECTED_SOCKET:
             try:
                 self.stop_read_thread()
                 self._socket.close()
@@ -103,7 +98,6 @@ class SocketHandler:
             except Exception:
                 pass
 
-        self._connected = False
         self.__app.conn_status = DISCONNECTED
 
     @property
@@ -129,7 +123,7 @@ class SocketHandler:
         :param bytes data: data to write to socket
         """
 
-        if self._connected and self._socket is not None:
+        if self.__app.conn_status == CONNECTED_SOCKET and self._socket is not None:
             try:
                 self._socket.sendall(data)
             except Exception as err:
@@ -140,7 +134,7 @@ class SocketHandler:
         Start the socket reader thread.
         """
 
-        if self._connected:
+        if self.__app.conn_status == CONNECTED_SOCKET:
             self._reading = True
             self.__app.frm_mapview.reset_map_refresh()
             self._socket_thread = Thread(target=self._read_thread, daemon=True)
@@ -154,19 +148,6 @@ class SocketHandler:
         if self._socket_thread is not None:
             self._reading = False
             self._socket_thread = None
-
-    def on_read(self, event):  # pylint: disable=unused-argument
-        """
-        EVENT TRIGGERED
-        Action on <<socket_read>> event - read any data on the message queue.
-
-        :param event event: read event
-        """
-
-        if self._reading and self._socket is not None:
-            raw_data, parsed_data = self._msgqueue.get()
-            if raw_data is not None:
-                self.__app.process_data(raw_data, parsed_data)
 
     def on_eof(self, event):  # pylint: disable=unused-argument
         """
@@ -248,8 +229,7 @@ class SocketHandler:
                     continue
 
                 # put data on message queue
-                self._msgqueue.put((raw_data, parsed_data))
-                self.__master.event_generate("<<socket_read>>")
+                self.__app.enqueue(raw_data, parsed_data)
                 lnr = len(raw_data)
                 buf_remain = buf[start + lnr :]
                 break
@@ -264,11 +244,17 @@ class SocketHandler:
         Parse UBX Message.
         """
 
-        byten = self._read_bytes(buf, start + 2, 4)
-        lenb = int.from_bytes(byten[2:4], "little", signed=False)
-        byten += self._read_bytes(buf, start + 6, lenb + 2)
-        raw_data = bytes(hdr + byten)
-        parsed_data = UBXReader.parse(raw_data)
+        raw_data = None
+        parsed_data = None
+        try:
+            byten = self._read_bytes(buf, start + 2, 4)
+            lenb = int.from_bytes(byten[2:4], "little", signed=False)
+            byten += self._read_bytes(buf, start + 6, lenb + 2)
+            raw_data = bytes(hdr + byten)
+            parsed_data = UBXReader.parse(raw_data)
+        except (UBXMessageError, UBXParseError) as err:
+            # log error to console, then continue
+            self.__app.frm_console.update_console(bytes(str(err), "utf-8"), err)
 
         return raw_data, parsed_data
 
@@ -277,15 +263,21 @@ class SocketHandler:
         Parse NMEA Message.
         """
 
+        raw_data = None
+        parsed_data = None
         i = 1
-        # read buffer until CRLF - equivalent to readline()
-        while True:
-            byten = self._read_bytes(buf, start + 2, i)
-            if byten[-2:] == b"\x0d\x0a":  # CRLF
-                raw_data = bytes(hdr + byten)
-                parsed_data = NMEAReader.parse(raw_data)
-                break
-            i += 1
+        try:
+            # read buffer until CRLF - equivalent to readline()
+            while True:
+                byten = self._read_bytes(buf, start + 2, i)
+                if byten[-2:] == b"\x0d\x0a":  # CRLF
+                    raw_data = bytes(hdr + byten)
+                    parsed_data = NMEAReader.parse(raw_data)
+                    break
+                i += 1
+        except (NMEAMessageError, NMEAParseError) as err:
+            # log error to console, then continue
+            self.__app.frm_console.update_console(bytes(str(err), "utf-8"), err)
 
         return raw_data, parsed_data
 
@@ -294,11 +286,17 @@ class SocketHandler:
         Parse RTCM3 Message.
         """
 
-        hdr3 = self._read_bytes(buf, start + 2, 1)
-        lenb = hdr3[0] | (hdr[1] << 8)
-        byten = self._read_bytes(buf, start + 3, lenb + 3)
-        raw_data = bytes(hdr + hdr3 + byten)
-        parsed_data = RTCMReader.parse(raw_data)
+        raw_data = None
+        parsed_data = None
+        try:
+            hdr3 = self._read_bytes(buf, start + 2, 1)
+            lenb = hdr3[0] | (hdr[1] << 8)
+            byten = self._read_bytes(buf, start + 3, lenb + 3)
+            raw_data = bytes(hdr + hdr3 + byten)
+            parsed_data = RTCMReader.parse(raw_data)
+        except (RTCMMessageError, RTCMParseError) as err:
+            # log error to console, then continue
+            self.__app.frm_console.update_console(bytes(str(err), "utf-8"), err)
 
         return raw_data, parsed_data
 

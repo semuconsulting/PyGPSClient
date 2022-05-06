@@ -14,6 +14,7 @@ Created on 12 Sep 2020
 
 import logging
 from threading import Thread
+from queue import Queue
 from datetime import datetime, timedelta
 from tkinter import Frame, N, S, E, W, PhotoImage, font
 
@@ -41,6 +42,7 @@ from pygpsclient.file_handler import FileHandler
 from pygpsclient.globals import (
     ICON_APP,
     DISCONNECTED,
+    NOPORTS,
     GUI_UPDATE_INTERVAL,
     GPX_TRACK_INTERVAL,
 )
@@ -102,6 +104,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._show_sats = True
 
         # Instantiate protocol handler classes
+        self._msgqueue = Queue()
         self.file_handler = FileHandler(self)
         self.serial_handler = SerialHandler(self)
         self.socket_handler = SocketHandler(self)
@@ -117,6 +120,9 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         # Load web map api key if there is one
         self.api_key = self.file_handler.load_apikey()
+
+        # Load console color tags from file
+        self.colortags = self.file_handler.load_colortags()
 
         self._body()
         self._do_layout()
@@ -167,7 +173,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._grid_status()
         self._grid_settings()
 
-        if self.frm_settings.serial_settings().status == 3:  # NOPORTS
+        if self.frm_settings.serial_settings().status == NOPORTS:
             self.set_status(INTROTXTNOPORTS, "red")
 
     def _attach_events(self):
@@ -175,10 +181,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         Bind events to main application
         """
 
-        self.__master.bind("<<gnss_read>>", self.serial_handler.on_read)
-        self.__master.bind("<<gnss_readfile>>", self.serial_handler.on_readfile)
+        self.__master.bind("<<stream_read>>", self.on_read)
         self.__master.bind("<<gnss_eof>>", self.serial_handler.on_eof)
-        self.__master.bind("<<socket_read>>", self.socket_handler.on_read)
         self.__master.bind("<<socket_eof>>", self.socket_handler.on_eof)
         self.__master.bind("<<ntrip_read>>", self.ntrip_handler.on_read)
         self.__master.bind_all("<Control-q>", self.on_exit)
@@ -418,7 +422,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
     def get_master(self):
         """
-        Returns application master (Tk)
+        Getter for application master (Tk)
 
         :return: reference to application master (Tk)
         """
@@ -438,6 +442,29 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.stop_ntripconfig_thread()
         self.serial_handler.disconnect()
         self.__master.destroy()
+
+    def enqueue(self, raw_data, parsed_data):
+        """
+        Place data on message queue.
+
+        :param bytes raw: raw data
+        :param object parsed: parsed data e.g. UBXMessage
+        """
+
+        self._msgqueue.put((raw_data, parsed_data))
+        self.__master.event_generate("<<stream_read>>")
+
+    def on_read(self, event):  # pylint: disable=unused-argument
+        """
+        EVENT TRIGGERED
+        Action on <<stream_read>> event - read any data on the message queue.
+
+        :param event event: read event
+        """
+
+        raw_data, parsed_data = self._msgqueue.get()
+        if raw_data is not None and parsed_data is not None:
+            self.process_data(raw_data, parsed_data)
 
     def process_data(self, raw_data: bytes, parsed_data: object, marker: str = ""):
         """
@@ -481,8 +508,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             self.frm_mapview.update_map()
             self.frm_satview.update_sats()
             self.frm_graphview.update_graph()
-
-            # self.update_idletasks()  # TODO helps with full frame resizing on MacOS?
             self._last_gui_update = datetime.now()
 
         # update GPX track file if enabled

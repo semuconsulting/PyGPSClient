@@ -36,6 +36,14 @@ class GNSSServer(StreamRequestHandler):
     """
 
     @staticmethod
+    def create_unknownUBX_msg() -> UBXMessage:
+        """
+        Create unknown UBX message to test error handling.
+        """
+
+        return b"\xb5b\x06\x99\x08\x00\xf0\x01\x00\x01\x00\x01\x00\x00\x9a\xba"
+
+    @staticmethod
     def create_UBX_msg() -> UBXMessage:
         """
         Create arbitrary UBX message.
@@ -115,11 +123,13 @@ class GNSSServer(StreamRequestHandler):
                 data = bytearray()
                 n = random.randint(1, 5)
                 for _ in range(n):
-                    r = random.randint(1, 3)
-                    if r == 1:
+                    r = random.randint(1, 7)
+                    if r in (1, 2, 3):
                         data += self.create_NMEA_msg() + b"\x04\x05\x06"
-                    elif r == 2:
+                    elif r == 4:
                         data += self.create_RTCM3_msg() + b"\x07\x08\x09"
+                    elif r == 5:
+                        data += self.create_unknownUBX_msg() + b"\x03\x04\x05"
                     else:
                         data += self.create_UBX_msg() + b"\x01\x02\x03"
                 # data = self.create_UBX_msg()

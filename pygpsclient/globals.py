@@ -16,11 +16,9 @@ import os
 
 DIRNAME = os.path.dirname(__file__)
 ICON_APP = os.path.join(DIRNAME, "resources/iconmonstr-location-27-32.png")
-# ICON_CONN = os.path.join(DIRNAME, "resources/iconmonstr-link-8-24.png")
 ICON_CONN = os.path.join(DIRNAME, "resources/iconmonstr-media-control-48-24.png")
 ICON_SERIAL = os.path.join(DIRNAME, "resources/usbport-1-24.png")
 ICON_SOCKET = os.path.join(DIRNAME, "resources/ethernet-1-24.png")
-# ICON_DISCONN = os.path.join(DIRNAME, "resources/iconmonstr-link-10-24.png")
 ICON_DISCONN = os.path.join(DIRNAME, "resources/iconmonstr-media-control-50-24.png")
 ICON_POS = os.path.join(DIRNAME, "resources/iconmonstr-location-1-24.png")
 ICON_SEND = os.path.join(DIRNAME, "resources/iconmonstr-arrow-12-24.png")
@@ -31,7 +29,6 @@ ICON_WARNING = os.path.join(DIRNAME, "resources/iconmonstr-warning-1-24.png")
 ICON_UBXCONFIG = os.path.join(DIRNAME, "resources/iconmonstr-gear-2-24.png")
 ICON_NTRIPCONFIG = os.path.join(DIRNAME, "resources/iconmonstr-antenna-6-24.png")
 ICON_NTRIPSTR = os.path.join(DIRNAME, "resources/iconmonstr-magnifier-12-24.png")
-# ICON_LOGREAD = os.path.join(DIRNAME, "resources/iconmonstr-note-37-24.png")
 ICON_LOGREAD = os.path.join(DIRNAME, "resources/binary-1-24.png")
 ICON_REFRESH = os.path.join(DIRNAME, "resources/iconmonstr-refresh-6-16.png")
 ICON_CONTRACT = os.path.join(DIRNAME, "resources/iconmonstr-triangle-1-16.png")
@@ -56,7 +53,7 @@ MAP_UPDATE_INTERVAL = (
 )
 GUI_UPDATE_INTERVAL = 1  # minimum GUI widget update interval (seconds)
 GPX_TRACK_INTERVAL = 1  # minimum GPS track update interval (seconds)
-FILEREAD_INTERVAL = 0.05  # delay between successive datalog file reads (seconds)
+FILEREAD_INTERVAL = 0.02  # delay between successive datalog file reads (seconds)
 SAT_EXPIRY = 10  # how long passed satellites are kept in the sky and graph views
 MAX_SNR = 60  # upper limit of graphview snr axis
 DEVICE_ACCURACY = 2.5  # nominal GPS device accuracy (CEP) in meters
@@ -72,6 +69,7 @@ ANTPOWER = ("OFF", "ON", "DONTKNOW")
 # names of user preset files:
 MQAPIKEY = "mqapikey"
 UBXPRESETS = "ubxpresets"
+COLORTAGS = "colortags"
 # list of recognised serial device descriptors:
 KNOWNGPS = (
     "GPS",
@@ -211,85 +209,9 @@ FIXLOOKUP = {
     "NAV2-STATUS5": "TIME ONLY",
 }
 
-# List of tags to highlight in console if TAG_COLORS = True
-# (NB there is a slight performance hit in having many tags)
 FONT_MENU = "TkMenuFont"
 FONT_TEXT = "TkTextFont"
 FONT_FIXED = "TkFixedFont"
-TAG_COLORS = True
-TAGS = [
-    ("ACK-ACK", "green2"),
-    ("ACK-NAK", "orange red"),
-    ("CFG-MSG", "cyan"),
-    ("CFG-VALGET", "deepskyblue"),
-    ("DTM", "deepskyblue"),
-    ("GAQ", "pink"),
-    ("GBQ", "pink"),
-    ("GBS", "pink"),
-    ("GGA", "orange"),
-    ("GLL", "orange"),
-    ("GLQ", "pink"),
-    ("GNQ", "pink"),
-    ("GNS", "orange"),
-    ("GQQ", "pink"),
-    ("GRS", "yellow"),
-    ("GSA", "green2"),
-    ("GST", "mediumpurple2"),
-    ("GSV", "yellow"),
-    ("HNR-PVT", "orange"),
-    ("INF-ERROR", "red2"),
-    ("INF-NOTICE", "deepskyblue"),
-    ("INF-WARNING", "orange"),
-    ("LOG", "skyblue1"),
-    ("MON", "skyblue1"),
-    ("NAV-ATT", "yellow"),
-    ("NAV-AOPSTATUS", "yellow"),
-    ("NAV-CLOCK", "cyan"),
-    ("NAV-COV", "yellow"),
-    ("NAV-DGPS", "yellow"),
-    ("NAV-DOP", "mediumpurple2"),
-    ("NAV-EELL", "yellow"),
-    ("NAV-EOE", "yellow"),
-    ("NAV-GEOFENCE", "yellow"),
-    ("NAV-HPPOSECEF", "orange"),
-    ("NAV-HPPOSLLH", "orange"),
-    ("NAV-ODO", "deepskyblue"),
-    ("NAV-ORB", "yellow"),
-    ("NAV-POSECEF", "orange"),
-    ("NAV-POSLLH", "orange"),
-    ("NAV-PVT", "orange"),
-    ("NAV-SAT", "yellow"),
-    ("NAV-SBAS", "yellow"),
-    ("NAV-SIG", "yellow"),
-    ("NAV-SLAS", "yellow"),
-    ("NAV-SOL", "green2"),
-    ("NAV-STATUS", "green2"),
-    ("NAV-SVINFO", "yellow"),
-    ("NAV-TIMEBDS", "cyan"),
-    ("NAV-TIMEGAL", "cyan"),
-    ("NAV-TIMEGLO", "cyan"),
-    ("NAV-TIMEGPS", "cyan"),
-    ("NAV-TIMELS", "cyan"),
-    ("NAV-TIMEQZSS", "cyan"),
-    ("NAV-TIMEUTC", "cyan"),
-    ("NAV-VELECEF", "deepskyblue"),
-    ("NAV-VELNED", "deepskyblue"),
-    ("NMEA", "lightblue1"),
-    ("RLM", "pink"),
-    ("RMC", "orange"),
-    ("RTCM", "lightblue1"),
-    ("RXM", "skyblue1"),
-    ("TXT", "lightgrey"),
-    ("UBX", "lightblue1"),
-    ("UBX, msgId=00", "aquamarine2"),
-    ("UBX, msgId=03", "yellow"),
-    ("UBX, msgId=04", "cyan"),
-    ("UBX, msgId=05", "orange"),
-    ("UBX, msgId=06", "orange"),
-    ("VLW", "deepskyblue"),
-    ("VTG", "deepskyblue"),
-    ("ZDA", "cyan"),
-    ("UNKNOWN PROTOCOL", "red"),
-    ("NTRIP>>", "mediumpurple1"),
-    ("NTRIP<<", "mediumpurple1"),
-]
+TAG_COLORS = False  # default colortag setting
+
+# TAGS are now in 'colortags' file in user's home directory

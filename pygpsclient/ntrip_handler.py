@@ -23,6 +23,7 @@ from base64 import b64encode
 from pyrtcm import RTCMReader, RTCMParseError, RTCMMessageError, RTCMTypeError
 from pynmeagps import NMEAMessage, GET
 from pygpsclient import version as VERSION
+from pygpsclient.globals import CONNECTED
 
 HDRBUFLEN = 4096
 DATBUFLEN = 1024
@@ -75,6 +76,10 @@ class NTRIPHandler:
             "password": "password",
             "ggainterval": "None",
             "sourcetable": [],
+            "ggalat": "",
+            "ggalon": "",
+            "ggaalt": "",
+            "ggasep": "",
         }
 
     def __del__(self):
@@ -167,10 +172,9 @@ class NTRIPHandler:
                         self._reading = False
                         self._connected = False
                         self._set_controls(False, (f"Error!: {rc}", "red"))
-        except (socket.gaierror, TimeoutError) as err:
+        except (socket.gaierror, ConnectionResetError, TimeoutError) as err:
             self._reading = False
             self._connected = False
-            # print(f"Connection error {server}:{port} {err}")
             self._set_controls(False, (f"Connection error {err}", "red"))
 
     def _set_controls(self, status: bool, msg: tuple = None):
@@ -215,9 +219,29 @@ class NTRIPHandler:
         :rtype: tuple
         """
         # time will default to now
-        lat = self.__app.gnss_status.lat
-        lon = self.__app.gnss_status.lon
-        quality = FIXES.get(self.__app.gnss_status.fix, 0)
+
+        # use live GNSS coordinates if available, else use
+        # user-provided fixed GGA settings
+        if self._settings["ggalat"] == "":  # live
+            lat = self.__app.gnss_status.lat
+            lon = self.__app.gnss_status.lon
+            alt = self.__app.gnss_status.alt
+            sep = self.__app.gnss_status.sep
+            numSV = self.__app.gnss_status.sip
+            hdop = self.__app.gnss_status.hdop
+            diffstation = self.__app.gnss_status.diff_station
+            diffage = self.__app.gnss_status.diff_age
+            quality = FIXES.get(self.__app.gnss_status.fix, 0)
+        else:  # user fixed
+            lat = float(self._settings["ggalat"])
+            lon = float(self._settings["ggalon"])
+            alt = float(self._settings["ggaalt"])
+            sep = float(self._settings["ggasep"])
+            numSV = 15
+            hdop = 0
+            diffstation = 0
+            diffage = ""
+            quality = 1
 
         if type(lat) not in (int, float) or type(lon) not in (int, float):
             return None, None
@@ -231,14 +255,14 @@ class NTRIPHandler:
             lon=lon,
             EW="E" if lon > 0 else "W",
             quality=quality,
-            numSV=self.__app.gnss_status.sip,
-            HDOP=self.__app.gnss_status.hdop,
-            alt=self.__app.gnss_status.alt,
+            numSV=numSV,
+            HDOP=hdop,
+            alt=alt,
             altUnit="M",
-            sep=self.__app.gnss_status.sep,
+            sep=sep,
             sepUnit="M",
-            diffAge=self.__app.gnss_status.diff_age,
-            diffStation=self.__app.gnss_status.diff_station,
+            diffAge=diffage,
+            diffStation=diffstation,
         )
 
         raw_data = parsed_data.serialize()
@@ -362,7 +386,7 @@ class NTRIPHandler:
                 parsed_data = RTCMReader.parse(raw_data)
                 # update console
                 self.__app.process_data(raw_data, parsed_data, "NTRIP>>")
-                if self.__app.serial_handler.connected:
+                if self.__app.conn_status == CONNECTED:
                     self.__app.serial_handler.serial_write(raw_data)
                 if self._gga_interval:
                     self._send_GGA()
