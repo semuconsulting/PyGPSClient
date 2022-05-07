@@ -301,7 +301,7 @@ class SerialHandler:
     def _readsocket_thread(self):
         """
         THREADED PROCESS
-        Start socket client connection.
+        Reads binary data from socket and places output on message queue.
         """
 
         socket_settings = self.__app.frm_settings.socket_settings()
