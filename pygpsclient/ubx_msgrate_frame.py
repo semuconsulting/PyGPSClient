@@ -271,7 +271,7 @@ class UBX_MSGRATE_Frame(Frame):
             rateUSB=rateUSB,
             rateSPI=rateSPI,
         )
-        self.__app.serial_handler.serial_write(data.serialize())
+        self.__app.stream_handler.serial_write(data.serialize())
         self._lbl_send_command.config(image=self._img_pending)
         self.__container.set_status("CFG-MSG SET message sent", "green")
         self.__container.set_pending(UBX_CFGMSG, ("ACK-ACK", "ACK-NAK"))
@@ -284,7 +284,7 @@ class UBX_MSGRATE_Frame(Frame):
         """
 
         data = UBXMessage("CFG", "CFG-MSG", POLL, payload=msg)  # poll for a response
-        self.__app.serial_handler.serial_write(data.serialize())
+        self.__app.stream_handler.serial_write(data.serialize())
         self._lbl_send_command.config(image=self._img_pending)
         self.__container.set_status("CFG-MSG POLL message sent", "blue")
         self.__container.set_pending(UBX_CFGMSG, ("CFG-MSG", "ACK-NAK"))

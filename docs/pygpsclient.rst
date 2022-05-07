@@ -124,14 +124,6 @@ pygpsclient.rtcm3\_handler module
    :undoc-members:
    :show-inheritance:
 
-pygpsclient.serial\_handler module
-----------------------------------
-
-.. automodule:: pygpsclient.serial_handler
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 pygpsclient.serialconfig\_frame module
 --------------------------------------
 
@@ -168,6 +160,14 @@ pygpsclient.status\_frame module
 --------------------------------
 
 .. automodule:: pygpsclient.status_frame
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pygpsclient.stream\_handler module
+----------------------------------
+
+.. automodule:: pygpsclient.stream_handler
    :members:
    :undoc-members:
    :show-inheritance:

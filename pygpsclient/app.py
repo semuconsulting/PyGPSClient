@@ -49,7 +49,7 @@ from pygpsclient.globals import (
 from pygpsclient.graphview_frame import GraphviewFrame
 from pygpsclient.map_frame import MapviewFrame
 from pygpsclient.menu_bar import MenuBar
-from pygpsclient.serial_handler import SerialHandler
+from pygpsclient.stream_handler import StreamHandler
 
 # from pygpsclient.socket_handler import SocketHandler
 from pygpsclient.ntrip_handler import NTRIPHandler
@@ -107,12 +107,10 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         # Instantiate protocol handler classes
         self._msgqueue = Queue()
         self.file_handler = FileHandler(self)
-        self.serial_handler = SerialHandler(self)
-        # self.socket_handler = SocketHandler(self)
+        self.stream_handler = StreamHandler(self)
         self.nmea_handler = NMEAHandler(self)
         self.ubx_handler = UBXHandler(self)
         self._conn_status = DISCONNECTED
-        # self.rtcm3_handler = RTCM3Handler(self)
         self.ntrip_handler = NTRIPHandler(self)
         self.dlg_ubxconfig = None
         self.dlg_ntripconfig = None
@@ -183,7 +181,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         self.__master.bind("<<stream_read>>", self.on_read)
-        self.__master.bind("<<gnss_eof>>", self.serial_handler.on_eof)
+        self.__master.bind("<<gnss_eof>>", self.stream_handler.on_eof)
         self.__master.bind("<<ntrip_read>>", self.ntrip_handler.on_read)
         self.__master.bind_all("<Control-q>", self.on_exit)
 
@@ -436,10 +434,10 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         self.file_handler.close_logfile()
         self.file_handler.close_trackfile()
-        self.serial_handler.stop_read_thread()
+        self.stream_handler.stop_read_thread()
         self.stop_ubxconfig_thread()
         self.stop_ntripconfig_thread()
-        self.serial_handler.disconnect()
+        self.stream_handler.disconnect()
         self.__master.destroy()
 
     def enqueue(self, raw_data, parsed_data):

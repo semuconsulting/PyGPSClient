@@ -1,7 +1,7 @@
 """
-SerialHandler class for PyGPSClient application
+StreamHandler class for PyGPSClient application
 
-This handles all the serial i/o , threaded read process and direction to
+This handles all the stream i/o, threaded read process and direction to
 the appropriate protocol handler
 
 Created on 16 Sep 2020
@@ -37,13 +37,14 @@ from pygpsclient.globals import (
     DISCONNECTED,
     FILEREAD_INTERVAL,
     DEFAULT_BUFSIZE,
+    NOPORTS,
 )
-from pygpsclient.strings import SEROPENERROR, ENDOFFILE
+from pygpsclient.strings import ENDOFFILE
 
 
-class SerialHandler:
+class StreamHandler:
     """
-    Serial handler class.
+    Stream handler class.
     """
 
     def __init__(self, app):
@@ -59,7 +60,7 @@ class SerialHandler:
 
         self._serial_object = None
         self._serial_buffer = None
-        self._serial_thread = None
+        self._stream_thread = None
         self._reading = False
         self._lastfileread = datetime.now()
 
@@ -68,9 +69,9 @@ class SerialHandler:
         Destructor.
         """
 
-        if self._serial_thread is not None:
+        if self._stream_thread is not None:
             self._reading = False
-            self._serial_thread = None
+            self._stream_thread = None
             self.disconnect()
 
     def connect(self):
@@ -80,42 +81,18 @@ class SerialHandler:
         # pylint: disable=consider-using-with
 
         serial_settings = self.__app.frm_settings.serial_settings()
-        if serial_settings.status == 3:  # NOPORTS
+        if serial_settings.status == NOPORTS:
             return
 
-        try:
-            self._serial_object = Serial(
-                serial_settings.port,
-                serial_settings.bpsrate,
-                bytesize=serial_settings.databits,
-                stopbits=serial_settings.stopbits,
-                parity=serial_settings.parity,
-                xonxoff=serial_settings.xonxoff,
-                rtscts=serial_settings.rtscts,
-                timeout=serial_settings.timeout,
-            )
-            self._serial_buffer = BufferedReader(self._serial_object)
-            self.__app.conn_status = CONNECTED
-            self.__app.set_connection(
-                (
-                    f"{serial_settings.port}:{serial_settings.port_desc} "
-                    + f"@ {str(serial_settings.bpsrate)}"
-                ),
-                "green",
-            )
-            self.start_read_thread()
-            self.__app.set_status("Connected", "blue")
-
-        except (IOError, SerialException, SerialTimeoutException) as err:
-            self.__app.conn_status = DISCONNECTED
-            self.__app.set_connection(
-                (
-                    f"{serial_settings.port}:{serial_settings.port_desc} "
-                    + f"@ {str(serial_settings.bpsrate)}"
-                ),
-                "red",
-            )
-            self.__app.set_status(SEROPENERROR.format(err), "red")
+        self.__app.conn_status = CONNECTED
+        self.__app.set_connection(
+            (
+                f"{serial_settings.port}:{serial_settings.port_desc} "
+                + f"@ {str(serial_settings.bpsrate)}"
+            ),
+            "green",
+        )
+        self.start_read_thread()
 
     def connect_file(self):
         """
@@ -127,16 +104,9 @@ class SerialHandler:
         if in_filepath is None:
             return
 
-        try:
-            self._serial_object = open(in_filepath, "rb")
-            self._serial_buffer = BufferedReader(self._serial_object)
-            self.__app.conn_status = CONNECTED_FILE
-            self.__app.set_connection(f"{in_filepath}", "blue")
-            self.start_read_thread()
-        except (IOError, SerialException, SerialTimeoutException) as err:
-            self.__app.conn_status = DISCONNECTED
-            self.__app.set_connection(f"{in_filepath}", "red")
-            self.__app.set_status(SEROPENERROR.format(err), "red")
+        self.__app.conn_status = CONNECTED_FILE
+        self.__app.set_connection(f"{in_filepath}", "blue")
+        self.start_read_thread()
 
     def connect_socket(self):
         """
@@ -144,31 +114,19 @@ class SerialHandler:
         """
 
         socket_settings = self.__app.frm_settings.socket_settings()
-        server = socket_settings.server
-        port = socket_settings.port
 
-        try:
-            self.__app.conn_status = CONNECTED_SOCKET
-            self.__app.set_connection(f"{server}:{port}", "green")
-            self.start_read_thread()
-            self.__app.set_status("Connected", "blue")
-
-        except OSError as err:
-            self.__app.conn_status = DISCONNECTED
-            self.__app.set_connection(f"{server}:{port} ", "red")
-            self.__app.set_status(SEROPENERROR.format(err), "red")
+        self.__app.conn_status = CONNECTED_SOCKET
+        self.__app.set_connection(
+            f"{socket_settings.server}:{socket_settings.port}", "green"
+        )
+        self.start_read_thread()
 
     def disconnect(self):
         """
-        Close serial connection.
+        Terminate stream connection.
         """
 
         self._reading = False
-        if self.__app.conn_status in (CONNECTED, CONNECTED_FILE):
-            try:
-                self._serial_object.close()
-            except (SerialException, SerialTimeoutException):
-                pass
         self.__app.conn_status = DISCONNECTED
         self.__app.frm_settings.enable_controls(DISCONNECTED)
 
@@ -202,7 +160,7 @@ class SerialHandler:
         Getter for serial thread
         """
 
-        return self._serial_thread
+        return self._stream_thread
 
     def serial_write(self, data: bytes):
         """
@@ -219,84 +177,150 @@ class SerialHandler:
 
     def start_read_thread(self):
         """
-        Start the serial reader thread.
+        Start the appropriate serial reader thread.
         """
 
-        if self.__app.conn_status in (CONNECTED, CONNECTED_FILE):
-            self._reading = True
-            self.__app.frm_mapview.reset_map_refresh()
-            self._serial_thread = Thread(target=self._read_thread, daemon=True)
-            self._serial_thread.start()
+        self._reading = True
+        self.__app.frm_mapview.reset_map_refresh()
+        if self.__app.conn_status == CONNECTED:
+            target = self._readserial_thread
+        if self.__app.conn_status == CONNECTED_FILE:
+            target = self._readfile_thread
         if self.__app.conn_status == CONNECTED_SOCKET:
-            self._reading = True
-            self.__app.frm_mapview.reset_map_refresh()
-            self._serial_thread = Thread(target=self._readsocket_thread, daemon=True)
-            self._serial_thread.start()
+            target = self._readsocket_thread
+        self._stream_thread = Thread(target=target, daemon=True)
+        self._stream_thread.start()
+        self.__app.set_status("Connected", "blue")
 
     def stop_read_thread(self):
         """
         Stop serial reader thread.
         """
 
-        if self._serial_thread is not None:
+        if self._stream_thread is not None:
             self._reading = False
-            self._serial_thread = None
+            self._stream_thread = None
             # self.__app.set_status(STOPDATA, "red")
 
-    def _read_thread(self):
+    def _readserial_thread(self):
         """
         THREADED PROCESS
-        Reads binary data from stream and places output on message queue.
+        Reads binary data from serial port and places output on message queue.
         """
 
         raw_data = None
         parsed_data = None
-        while self._reading and self._serial_object:
-            try:
+        serial_settings = self.__app.frm_settings.serial_settings()
 
+        try:
+
+            with Serial(
+                serial_settings.port,
+                serial_settings.bpsrate,
+                bytesize=serial_settings.databits,
+                stopbits=serial_settings.stopbits,
+                parity=serial_settings.parity,
+                xonxoff=serial_settings.xonxoff,
+                rtscts=serial_settings.rtscts,
+                timeout=serial_settings.timeout,
+            ) as serial_object:
+                serial_buffer = BufferedReader(serial_object)
                 ubr = UBXReader(
-                    self._serial_buffer,
+                    serial_buffer,
                     protfilter=NMEA_PROTOCOL | UBX_PROTOCOL | RTCM3_PROTOCOL,
                     quitonerror=ERR_IGNORE,
                 )
-                # if reading from file, introduce delay between successive reads
-                # to prevent GUI locking
-                if self.__app.conn_status == CONNECTED_FILE:
-                    if datetime.now() > self._lastfileread + timedelta(
-                        seconds=FILEREAD_INTERVAL
-                    ):
-                        raw_data, parsed_data = ubr.read()
-                        if raw_data is None:
-                            raise EOFError
-                        # put data on message queue
-                        self.__app.enqueue(raw_data, parsed_data)
-                        self._lastfileread = datetime.now()
-                else:
-                    raw_data, parsed_data = ubr.read()
-                    # put data on message queue
-                    if raw_data is not None:
-                        self.__app.enqueue(raw_data, parsed_data)
 
-            except EOFError:
-                self.__master.event_generate("<<gnss_eof>>")
-                return
-            except (
-                UBXMessageError,
-                UBXParseError,
-                NMEAMessageError,
-                NMEAParseError,
-                RTCMMessageError,
-                RTCMParseError,
-            ) as err:
-                parsed_data = f"Error parsing data stream {err}"
-                self.__app.enqueue(raw_data, parsed_data)
-                continue
-            except SerialException as err:
-                self.__app.set_status(f"Error in read thread {err}", "red")
-                return
-            # spurious errors as thread shuts down after serial disconnection
-            except (TypeError, OSError):
-                return
+                while self._reading:
+                    try:
+
+                        raw_data, parsed_data = ubr.read()
+                        if raw_data is not None:
+                            self.__app.enqueue(raw_data, parsed_data)
+
+                    except (
+                        UBXMessageError,
+                        UBXParseError,
+                        NMEAMessageError,
+                        NMEAParseError,
+                        RTCMMessageError,
+                        RTCMParseError,
+                    ) as err:
+                        parsed_data = f"Error parsing data stream {err}"
+                        self.__app.enqueue(raw_data, parsed_data)
+                        continue
+
+        except EOFError:
+            self.__master.event_generate("<<gnss_eof>>")
+        except (IOError, SerialException, SerialTimeoutException) as err:
+            self.__app.conn_status = DISCONNECTED
+            self.__app.set_connection(
+                (
+                    f"{serial_settings.port}:{serial_settings.port_desc} "
+                    + f"@ {str(serial_settings.bpsrate)}"
+                ),
+                "red",
+            )
+            self.__app.set_status(f"Error in serial read {err}", "red")
+        # spurious errors as thread shuts down after serial disconnection
+        # except (TypeError, OSError):
+        #     pass
+
+    def _readfile_thread(self):
+        """
+        THREADED PROCESS
+        Reads binary data from file and places output on message queue.
+        """
+
+        raw_data = None
+        parsed_data = None
+        in_filepath = self.__app.frm_settings.infilepath
+
+        try:
+
+            with open(in_filepath, "rb") as serial_object:
+                serial_buffer = BufferedReader(serial_object)
+                ubr = UBXReader(
+                    serial_buffer,
+                    protfilter=NMEA_PROTOCOL | UBX_PROTOCOL | RTCM3_PROTOCOL,
+                    quitonerror=ERR_IGNORE,
+                )
+
+                while self._reading:
+                    try:
+
+                        # introduce time delay to prevent GUI locking
+                        # during file reads
+                        if datetime.now() > self._lastfileread + timedelta(
+                            seconds=FILEREAD_INTERVAL
+                        ):
+                            raw_data, parsed_data = ubr.read()
+                            if raw_data is None:
+                                raise EOFError
+                            self.__app.enqueue(raw_data, parsed_data)
+                            self._lastfileread = datetime.now()
+
+                    except (
+                        UBXMessageError,
+                        UBXParseError,
+                        NMEAMessageError,
+                        NMEAParseError,
+                        RTCMMessageError,
+                        RTCMParseError,
+                    ) as err:
+                        parsed_data = f"Error parsing data stream {err}"
+                        self.__app.enqueue(raw_data, parsed_data)
+                        continue
+
+        except EOFError:
+            self.__master.event_generate("<<gnss_eof>>")
+        except (IOError, SerialException, SerialTimeoutException) as err:
+            self.__app.conn_status = DISCONNECTED
+            self.__app.set_connection(f"{in_filepath}", "red")
+            self.__app.set_status(f"Error in file read {err}", "red")
+        # spurious errors as thread shuts down after serial disconnection
+        # except (TypeError, OSError):
+        #     pass
 
     def _readsocket_thread(self):
         """
@@ -304,6 +328,8 @@ class SerialHandler:
         Reads binary data from socket and places output on message queue.
         """
 
+        raw_data = None
+        parsed_data = None
         socket_settings = self.__app.frm_settings.socket_settings()
         server = socket_settings.server
         port = socket_settings.port
@@ -323,14 +349,10 @@ class SerialHandler:
                     bufsize=DEFAULT_BUFSIZE,
                 )
 
-                raw_data = None
-                parsed_data = None
                 while self._reading:
-
                     try:
 
                         raw_data, parsed_data = ubr.read()
-                        # put data on message queue
                         if raw_data is not None:
                             self.__app.enqueue(raw_data, parsed_data)
 
@@ -352,7 +374,7 @@ class SerialHandler:
             if self._reading:
                 self._reading = False
                 self.__app.conn_status = DISCONNECTED
-                self.__app.set_status(f"Error in socket {err}", "red")
+                self.__app.set_status(f"Error in socket read {err}", "red")
 
     def on_eof(self, event):  # pylint: disable=unused-argument
         """

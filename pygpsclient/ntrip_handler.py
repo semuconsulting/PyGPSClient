@@ -387,7 +387,7 @@ class NTRIPHandler:
                 # update console
                 self.__app.process_data(raw_data, parsed_data, "NTRIP>>")
                 if self.__app.conn_status == CONNECTED:
-                    self.__app.serial_handler.serial_write(raw_data)
+                    self.__app.stream_handler.serial_write(raw_data)
                 if self._gga_interval:
                     self._send_GGA()
             else:

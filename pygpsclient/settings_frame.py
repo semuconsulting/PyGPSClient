@@ -163,7 +163,7 @@ class SettingsFrame(Frame):
             width=45,
             height=35,
             image=self._img_serial,
-            command=lambda: self.__app.serial_handler.connect(),
+            command=lambda: self.__app.stream_handler.connect(),
         )
         self._lbl_connect = Label(self._frm_buttons, text="USB/UART")
         self._btn_connect_socket = Button(
@@ -180,7 +180,7 @@ class SettingsFrame(Frame):
             width=45,
             height=35,
             image=self._img_dataread,
-            command=lambda: self._on_data_stream(),
+            command=lambda: self._on_file_stream(),
         )
         self._lbl_connect_file = Label(self._frm_buttons, text="FILE")
         self._btn_disconnect = Button(
@@ -188,7 +188,7 @@ class SettingsFrame(Frame):
             width=45,
             height=35,
             image=self._img_disconn,
-            command=lambda: self._disconnect(),  # self.__app.serial_handler.disconnect(),
+            command=lambda: self._disconnect(),  # self.__app.stream_handler.disconnect(),
             state=DISABLED,
         )
         self._lbl_disconnect = Label(self._frm_buttons, text="STOP")
@@ -402,7 +402,7 @@ class SettingsFrame(Frame):
     def _disconnect(self):
 
         if self.__app.conn_status in (CONNECTED, CONNECTED_FILE, CONNECTED_SOCKET):
-            self.__app.serial_handler.disconnect()
+            self.__app.stream_handler.disconnect()
 
     def _on_ubx_config(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -472,11 +472,11 @@ class SettingsFrame(Frame):
         valid = valid & valid_entry(self._frm_socket._ent_server, VALURL)
         valid = valid & valid_entry(self._frm_socket._ent_port, VALINT, 1, MAXPORT)
         if valid:
-            self.__app.serial_handler.connect_socket()
+            self.__app.stream_handler.connect_socket()
         else:
             self.__app.set_status("ERROR - invalid settings", "red")
 
-    def _on_data_stream(self):
+    def _on_file_stream(self):
         """
         Start data file streamer if file selected
         """
@@ -484,7 +484,7 @@ class SettingsFrame(Frame):
         self._in_filepath = self.__app.file_handler.open_infile()
         if self._in_filepath is not None:
             self.__app.set_status("")
-            self.__app.serial_handler.connect_file()
+            self.__app.stream_handler.connect_file()
 
     def _reset(self):
         """

@@ -255,7 +255,7 @@ class UBX_PORT_Frame(Frame):
             outNMEA=outNMEA,
             outRTCM3=outRTCM3,
         )
-        self.__app.serial_handler.serial_write(msg.serialize())
+        self.__app.stream_handler.serial_write(msg.serialize())
         self._lbl_send_command.config(image=self._img_pending)
         self.__container.set_status("CFG-PRT SET message sent", "blue")
         self.__container.set_pending(UBX_CFGPRT, ("ACK-ACK", "ACK-NAK"))
@@ -269,7 +269,7 @@ class UBX_PORT_Frame(Frame):
 
         portID = int(self._portid.get()[0:1])
         msg = UBXMessage("CFG", "CFG-PRT", POLL, portID=portID)
-        self.__app.serial_handler.serial_write(msg.serialize())
+        self.__app.stream_handler.serial_write(msg.serialize())
         self._lbl_send_command.config(image=self._img_pending)
         self.__container.set_status("CFG-PRT POLL message sent", "blue")
         self.__container.set_pending(UBX_CFGPRT, ("CFG-PRT", "ACK-NAK"))
