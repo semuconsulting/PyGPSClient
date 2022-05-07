@@ -62,6 +62,8 @@ class StatusFrame(Frame):
 
         """
 
+        if len(connection) > 100:
+            connection = "..." + connection[-100:]
         self._lbl_connection.config(fg=color)
         self._connection.set("  " + connection)
 
@@ -74,7 +76,8 @@ class StatusFrame(Frame):
 
         """
 
-        message = (message[:80] + "..") if len(message) > 80 else message
+        if len(message) > 80:
+            message = "..." + message[-80:]
         self._lbl_status_preset.config(fg=color)
         self._status.set("  " + message)
 

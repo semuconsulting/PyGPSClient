@@ -14,6 +14,7 @@ Created on 16 Sep 2020
 import socket
 from io import BufferedReader
 from threading import Thread, Event
+from queue import Queue
 from datetime import datetime, timedelta
 from serial import Serial, SerialException, SerialTimeoutException
 
@@ -60,15 +61,6 @@ class StreamHandler:
         self._stream_thread = None
         self._stopevent = Event()
 
-    def disconnect(self):
-        """
-        Terminate stream connection.
-        """
-
-        self._stopevent.set()
-        self.__app.conn_status = DISCONNECTED
-        self.__app.frm_settings.enable_controls(DISCONNECTED)
-
     @property
     def serial(self):
         """
@@ -101,7 +93,7 @@ class StreamHandler:
         self.__app.frm_mapview.reset_map_refresh()
         self._stream_thread = Thread(
             target=self._read_thread,
-            args=(self._stopevent, mode),
+            args=(self._stopevent, self.__app.msgqueue, mode),
             daemon=True,
         )
         self._stream_thread.start()
@@ -112,17 +104,18 @@ class StreamHandler:
         Stop serial reader thread.
         """
 
-        if self._stream_thread is not None:
-            self._stopevent.set()
-            self._stream_thread = None
+        self._stopevent.set()
+        self._stream_thread = None
+        self.__app.conn_status = DISCONNECTED
 
-    def _read_thread(self, stopevent: Event, mode: int):
+    def _read_thread(self, stopevent: Event, msgqueue: Queue, mode: int):
         """
         THREADED PROCESS
 
         Connects to selected data stream and starts read loop.
 
         :param Event stopevent: thread stop event
+        :param Queue msgqueue: message queue
         :param int mode: connection mode
         """
 
@@ -144,7 +137,7 @@ class StreamHandler:
                     timeout=ser.timeout,
                 ) as self._serial_object:
                     stream = BufferedReader(self._serial_object)
-                    self._readloop(stopevent, stream, mode)
+                    self._readloop(stopevent, msgqueue, stream, mode)
 
             elif mode == CONNECTED_FILE:
 
@@ -152,7 +145,7 @@ class StreamHandler:
                 connstr = f"{in_filepath}"
                 with open(in_filepath, "rb") as self._serial_object:
                     stream = BufferedReader(self._serial_object)
-                    self._readloop(stopevent, stream, mode)
+                    self._readloop(stopevent, msgqueue, stream, mode)
 
             elif mode == CONNECTED_SOCKET:
 
@@ -166,7 +159,7 @@ class StreamHandler:
                     socktype = socket.SOCK_STREAM
                 with socket.socket(socket.AF_INET, socktype) as stream:
                     stream.connect((server, port))
-                    self._readloop(stopevent, stream, mode)
+                    self._readloop(stopevent, msgqueue, stream, mode)
 
         except (EOFError, TimeoutError):
             self.__master.event_generate("<<gnss_eof>>")
@@ -184,7 +177,7 @@ class StreamHandler:
                 self.__app.set_connection(connstr, "red")
                 self.__app.set_status(f"Error in stream read {err}", "red")
 
-    def _readloop(self, stopevent: Event, stream: object, mode: int):
+    def _readloop(self, stopevent: Event, msgqueue: Queue, stream: object, mode: int):
         """
         Read stream continously until stop event or stream error.
 
@@ -192,6 +185,7 @@ class StreamHandler:
         prevent thrashing.
 
         :param Event stopevent: thread stop event
+        :param Queue msgqueue: message queue
         :param object stream: data stream
         :param int mode: connection mode
         """
@@ -215,7 +209,8 @@ class StreamHandler:
                 ):
                     raw_data, parsed_data = ubr.read()
                     if raw_data is not None:
-                        self.__app.enqueue(raw_data, parsed_data)
+                        msgqueue.put((raw_data, parsed_data))
+                        self.__master.event_generate("<<stream_read>>")
                     else:
                         if mode == CONNECTED_FILE:
                             raise EOFError
@@ -242,5 +237,5 @@ class StreamHandler:
         :param event event: <<gnss_eof>> event
         """
 
-        self.disconnect()
+        self.stop_read_thread()
         self.__app.set_status(ENDOFFILE, "blue")

@@ -105,7 +105,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._show_sats = True
 
         # Instantiate protocol handler classes
-        self._msgqueue = Queue()
+        self.msgqueue = Queue()
         self.file_handler = FileHandler(self)
         self.stream_handler = StreamHandler(self)
         self.nmea_handler = NMEAHandler(self)
@@ -437,19 +437,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.stream_handler.stop_read_thread()
         self.stop_ubxconfig_thread()
         self.stop_ntripconfig_thread()
-        self.stream_handler.disconnect()
         self.__master.destroy()
-
-    def enqueue(self, raw_data, parsed_data):
-        """
-        Place data on message queue.
-
-        :param bytes raw: raw data
-        :param object parsed: parsed data e.g. UBXMessage
-        """
-
-        self._msgqueue.put((raw_data, parsed_data))
-        self.__master.event_generate("<<stream_read>>")
 
     def on_read(self, event):  # pylint: disable=unused-argument
         """
@@ -459,7 +447,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         :param event event: read event
         """
 
-        raw_data, parsed_data = self._msgqueue.get()
+        raw_data, parsed_data = self.msgqueue.get()
         if raw_data is not None and parsed_data is not None:
             self.process_data(raw_data, parsed_data)
 

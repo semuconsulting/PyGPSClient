@@ -48,11 +48,9 @@ from pygpsclient.globals import (
     UBX_CFGVAL,
     UBX_PRESET,
     ENTCOL,
-    ERRCOL,
     READONLY,
     POPUP_TRANSIENT,
     CONNECTED,
-    DISCONNECTED,
 )
 from pygpsclient.strings import (
     DLGNTRIPCONFIG,
@@ -67,8 +65,6 @@ from pygpsclient.strings import (
 )
 from pygpsclient.helpers import (
     valid_entry,
-    VALBLANK,
-    VALNONBLANK,
     VALINT,
     VALFLOAT,
     VALURL,

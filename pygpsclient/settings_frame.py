@@ -471,7 +471,7 @@ class SettingsFrame(Frame):
         )
         self.__app.set_status("")
         self.__app.conn_status = CONNECTED
-        self.__app.stream_handler.start_read_thread(self.__app.conn_status)
+        self.__app.stream_handler.start_read_thread(CONNECTED)
 
     def _on_socket_stream(self):
         """
@@ -488,7 +488,7 @@ class SettingsFrame(Frame):
             )
             self.__app.set_status("")
             self.__app.conn_status = CONNECTED_SOCKET
-            self.__app.stream_handler.start_read_thread(self.__app.conn_status)
+            self.__app.stream_handler.start_read_thread(CONNECTED_SOCKET)
         else:
             self.__app.set_status("ERROR - invalid settings", "red")
 
@@ -502,12 +502,12 @@ class SettingsFrame(Frame):
             self.__app.set_connection(f"{self._in_filepath}", "blue")
             self.__app.set_status("")
             self.__app.conn_status = CONNECTED_FILE
-            self.__app.stream_handler.start_read_thread(self.__app.conn_status)
+            self.__app.stream_handler.start_read_thread(CONNECTED_FILE)
 
     def _on_disconnect(self):
 
         if self.__app.conn_status in (CONNECTED, CONNECTED_FILE, CONNECTED_SOCKET):
-            self.__app.stream_handler.disconnect()
+            self.__app.stream_handler.stop_read_thread()
 
     def _reset(self):
         """
