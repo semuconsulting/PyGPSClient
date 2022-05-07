@@ -9,7 +9,7 @@ Pipfile*.*
 /htmlcov
 /build
 /dist
-/docs
+/docs/_build
 /examples/temp*
 /logs/*.log
 /logs/*.gpx
