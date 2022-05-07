@@ -458,6 +458,7 @@ class UBX_PRESET_Frame(Frame):
             msgID=msgID,
             rateDDC=msgrate,
             rateUART1=msgrate,
+            rateUART2=msgrate,
             rateUSB=msgrate,
             rateSPI=msgrate,
         )

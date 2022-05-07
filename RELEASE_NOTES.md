@@ -5,6 +5,7 @@
 CHANGES:
 
 1. serial_handler now uses pyubx2's UBXReader for internal parsing of all protocols (UBX, NMEA and RTCM3), eliminating code duplication between PyGPSClient and pyubx2
+2. Preset message rate commands now set rates on ALL ports including UART2.
 
 ### RELEASE v1.3.1
 
