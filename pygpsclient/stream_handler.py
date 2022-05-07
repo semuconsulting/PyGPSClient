@@ -13,7 +13,7 @@ Created on 16 Sep 2020
 
 import socket
 from io import BufferedReader
-from threading import Thread
+from threading import Thread, Event
 from datetime import datetime, timedelta
 from serial import Serial, SerialException, SerialTimeoutException
 
@@ -58,14 +58,14 @@ class StreamHandler:
         self._serial_object = None
         self._serial_buffer = None
         self._stream_thread = None
-        self._reading = False
+        self._stopevent = Event()
 
     def disconnect(self):
         """
         Terminate stream connection.
         """
 
-        self._reading = False
+        self._stopevent.set()
         self.__app.conn_status = DISCONNECTED
         self.__app.frm_settings.enable_controls(DISCONNECTED)
 
@@ -90,14 +90,20 @@ class StreamHandler:
             except (SerialException, SerialTimeoutException) as err:
                 self.__app.set_status(f"Error writing to serial port {err}", "red")
 
-    def start_read_thread(self):
+    def start_read_thread(self, mode: int):
         """
         Start the stream read thread.
+
+        :param int mode: connection mode
         """
 
-        self._reading = True
+        self._stopevent.clear()
         self.__app.frm_mapview.reset_map_refresh()
-        self._stream_thread = Thread(target=self._read_thread, daemon=True)
+        self._stream_thread = Thread(
+            target=self._read_thread,
+            args=(self._stopevent, mode),
+            daemon=True,
+        )
         self._stream_thread.start()
         self.__app.set_status("Connected", "blue")
 
@@ -107,59 +113,60 @@ class StreamHandler:
         """
 
         if self._stream_thread is not None:
-            self._reading = False
+            self._stopevent.set()
             self._stream_thread = None
 
-    def _read_thread(self):
+    def _read_thread(self, stopevent: Event, mode: int):
         """
         THREADED PROCESS
 
         Connects to selected data stream and starts read loop.
+
+        :param Event stopevent: thread stop event
+        :param int mode: connection mode
         """
 
         try:
 
-            if self.__app.conn_status == CONNECTED:
+            if mode == CONNECTED:
 
-                serial_settings = self.__app.frm_settings.serial_settings()
-                connstr = (
-                    f"{serial_settings.port}:{serial_settings.port_desc} ",
-                    f"@ {str(serial_settings.bpsrate)}",
-                )
+                ser = self.__app.frm_settings.serial_settings()
+                connstr = f"{ser.port}:{ser.port_desc} @ {str(ser.bpsrate)}"
+
                 with Serial(
-                    serial_settings.port,
-                    serial_settings.bpsrate,
-                    bytesize=serial_settings.databits,
-                    stopbits=serial_settings.stopbits,
-                    parity=serial_settings.parity,
-                    xonxoff=serial_settings.xonxoff,
-                    rtscts=serial_settings.rtscts,
-                    timeout=serial_settings.timeout,
+                    ser.port,
+                    ser.bpsrate,
+                    bytesize=ser.databits,
+                    stopbits=ser.stopbits,
+                    parity=ser.parity,
+                    xonxoff=ser.xonxoff,
+                    rtscts=ser.rtscts,
+                    timeout=ser.timeout,
                 ) as self._serial_object:
                     stream = BufferedReader(self._serial_object)
-                    self._readloop(stream, self.__app.conn_status)
+                    self._readloop(stopevent, stream, mode)
 
-            elif self.__app.conn_status == CONNECTED_FILE:
+            elif mode == CONNECTED_FILE:
 
                 in_filepath = self.__app.frm_settings.infilepath
                 connstr = f"{in_filepath}"
                 with open(in_filepath, "rb") as self._serial_object:
                     stream = BufferedReader(self._serial_object)
-                    self._readloop(stream, self.__app.conn_status)
+                    self._readloop(stopevent, stream, mode)
 
-            elif self.__app.conn_status == CONNECTED_SOCKET:
+            elif mode == CONNECTED_SOCKET:
 
-                socket_settings = self.__app.frm_settings.socket_settings()
-                server = socket_settings.server
-                port = socket_settings.port
+                soc = self.__app.frm_settings.socket_settings()
+                server = soc.server
+                port = soc.port
                 connstr = f"{server}:{port}"
-                if socket_settings.protocol == "UDP":
+                if soc.protocol == "UDP":
                     socktype = socket.SOCK_DGRAM
                 else:  # TCP
                     socktype = socket.SOCK_STREAM
                 with socket.socket(socket.AF_INET, socktype) as stream:
                     stream.connect((server, port))
-                    self._readloop(stream, self.__app.conn_status)
+                    self._readloop(stopevent, stream, mode)
 
         except (EOFError, TimeoutError):
             self.__master.event_generate("<<gnss_eof>>")
@@ -171,19 +178,20 @@ class StreamHandler:
             AttributeError,
             socket.gaierror,
         ) as err:
-            if self._reading:
-                self._reading = False
+            if not stopevent.is_set():
+                stopevent.set()
                 self.__app.conn_status = DISCONNECTED
                 self.__app.set_connection(connstr, "red")
                 self.__app.set_status(f"Error in stream read {err}", "red")
 
-    def _readloop(self, stream: object, mode: int):
+    def _readloop(self, stopevent: Event, stream: object, mode: int):
         """
-        Read stream in loop until disconnect or stream error.
+        Read stream continously until stop event or stream error.
 
         File streams use a small delay between reads to
         prevent thrashing.
 
+        :param Event stopevent: thread stop event
         :param object stream: data stream
         :param int mode: connection mode
         """
@@ -198,7 +206,7 @@ class StreamHandler:
         raw_data = None
         parsed_data = None
         lastread = datetime.now()
-        while self._reading:
+        while not stopevent.is_set():
             try:
 
                 if mode in (CONNECTED, CONNECTED_SOCKET) or (
