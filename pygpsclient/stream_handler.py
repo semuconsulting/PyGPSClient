@@ -119,6 +119,7 @@ class StreamHandler:
         :param int mode: connection mode
         """
 
+        connstr = ""
         try:
 
             if mode == CONNECTED:
