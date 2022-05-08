@@ -41,6 +41,7 @@ from pygpsclient.console_frame import ConsoleFrame
 from pygpsclient.file_handler import FileHandler
 from pygpsclient.globals import (
     ICON_APP,
+    CONNECTED,
     DISCONNECTED,
     NOPORTS,
     GUI_UPDATE_INTERVAL,
@@ -50,8 +51,6 @@ from pygpsclient.graphview_frame import GraphviewFrame
 from pygpsclient.map_frame import MapviewFrame
 from pygpsclient.menu_bar import MenuBar
 from pygpsclient.stream_handler import StreamHandler
-
-# from pygpsclient.socket_handler import SocketHandler
 from pygpsclient.ntrip_handler import NTRIPHandler
 from pygpsclient.settings_frame import SettingsFrame
 from pygpsclient.skyview_frame import SkyviewFrame
@@ -60,8 +59,6 @@ from pygpsclient.ubx_config_dialog import UBXConfigDialog
 from pygpsclient.ntrip_client_dialog import NTRIPConfigDialog
 from pygpsclient.nmea_handler import NMEAHandler
 from pygpsclient.ubx_handler import UBXHandler
-
-# from pygpsclient.rtcm3_handler import RTCM3Handler
 
 LOGGING = logging.INFO
 
@@ -182,7 +179,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         self.__master.bind("<<stream_read>>", self.on_read)
         self.__master.bind("<<gnss_eof>>", self.stream_handler.on_eof)
-        self.__master.bind("<<ntrip_read>>", self.ntrip_handler.on_read)
+        self.__master.bind("<<ntrip_read>>", self.on_ntrip_read)
         self.__master.bind_all("<Control-q>", self.on_exit)
 
     def _set_default_fonts(self):
@@ -450,6 +447,21 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         raw_data, parsed_data = self.msgqueue.get()
         if raw_data is not None and parsed_data is not None:
             self.process_data(raw_data, parsed_data)
+
+    def on_ntrip_read(self, event):  # pylint: disable=unused-argument
+        """
+        EVENT TRIGGERED
+        Action on <<ntrip_read>> event - read data from NTRIP caster
+        and send to connected receiver.
+
+        :param event event: read event
+        """
+
+        raw_data, parsed_data = self.msgqueue.get()
+        if raw_data is not None and parsed_data is not None:
+            if self.conn_status == CONNECTED:
+                self.stream_handler.serial_write(raw_data)
+            self.process_data(raw_data, parsed_data, marker="NTRIP>>")
 
     def process_data(self, raw_data: bytes, parsed_data: object, marker: str = ""):
         """
