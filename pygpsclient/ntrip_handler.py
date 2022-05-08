@@ -17,7 +17,7 @@ from queue import Queue
 import socket
 from datetime import datetime, timedelta
 from base64 import b64encode
-from pyubx2 import UBXReader, SocketStream, RTCM3_PROTOCOL, ERR_IGNORE
+from pyubx2 import UBXReader, RTCM3_PROTOCOL, ERR_IGNORE
 from pyrtcm import (
     RTCMParseError,
     RTCMMessageError,
@@ -66,7 +66,6 @@ class NTRIPHandler:
         self._ntrip_thread = None
         self._gga_interval = 0
         self._last_gga = datetime.now()
-        # self._buffer = bytearray()
         self._settings = {
             "server": "",
             "port": "2101",
@@ -282,9 +281,9 @@ class NTRIPHandler:
         :param Queue msgqueue: message queue
         """
 
-        stream = SocketStream(sock)
+        # UBXreader will wrap socket as SocketStream
         rtr = UBXReader(
-            stream,
+            sock,
             protfilter=RTCM3_PROTOCOL,
             quitonerror=ERR_IGNORE,
             bufsize=DEFAULT_BUFSIZE,
