@@ -99,18 +99,26 @@ CRLF = b"\x0d\x0a"
 # socket client defaults
 DEFAULT_SERVER = "localhost"
 DEFAULT_PORT = "50007"
+DEFAULT_BUFSIZE = 4096
 # display formats
 FORMAT_PARSED = 1
 FORMAT_BIN = 2
 FORMAT_HEX = 4
 FORMAT_HEXTABLE = 8
 FORMATS = ("Parsed", "Binary", "Hex String", "Hex Tabular")
-# connection type flags:
+# connection mode flags:
 DISCONNECTED = 0
 CONNECTED = 1
 CONNECTED_SOCKET = 2
 CONNECTED_FILE = 4
 NOPORTS = 3
+CONNMODES = {
+    0: "not connected",
+    1: "serial",
+    2: "file",
+    3: "no serial devices",
+    4: "socket",
+}
 # default widget frame sizes:
 WIDGETU1 = (250, 250)
 WIDGETU2 = (350, 250)

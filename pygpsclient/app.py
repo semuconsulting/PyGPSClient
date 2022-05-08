@@ -41,6 +41,7 @@ from pygpsclient.console_frame import ConsoleFrame
 from pygpsclient.file_handler import FileHandler
 from pygpsclient.globals import (
     ICON_APP,
+    CONNECTED,
     DISCONNECTED,
     NOPORTS,
     GUI_UPDATE_INTERVAL,
@@ -49,8 +50,7 @@ from pygpsclient.globals import (
 from pygpsclient.graphview_frame import GraphviewFrame
 from pygpsclient.map_frame import MapviewFrame
 from pygpsclient.menu_bar import MenuBar
-from pygpsclient.serial_handler import SerialHandler
-from pygpsclient.socket_handler import SocketHandler
+from pygpsclient.stream_handler import StreamHandler
 from pygpsclient.ntrip_handler import NTRIPHandler
 from pygpsclient.settings_frame import SettingsFrame
 from pygpsclient.skyview_frame import SkyviewFrame
@@ -59,8 +59,6 @@ from pygpsclient.ubx_config_dialog import UBXConfigDialog
 from pygpsclient.ntrip_client_dialog import NTRIPConfigDialog
 from pygpsclient.nmea_handler import NMEAHandler
 from pygpsclient.ubx_handler import UBXHandler
-
-# from pygpsclient.rtcm3_handler import RTCM3Handler
 
 LOGGING = logging.INFO
 
@@ -104,14 +102,12 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._show_sats = True
 
         # Instantiate protocol handler classes
-        self._msgqueue = Queue()
+        self.msgqueue = Queue()
         self.file_handler = FileHandler(self)
-        self.serial_handler = SerialHandler(self)
-        self.socket_handler = SocketHandler(self)
+        self.stream_handler = StreamHandler(self)
         self.nmea_handler = NMEAHandler(self)
         self.ubx_handler = UBXHandler(self)
         self._conn_status = DISCONNECTED
-        # self.rtcm3_handler = RTCM3Handler(self)
         self.ntrip_handler = NTRIPHandler(self)
         self.dlg_ubxconfig = None
         self.dlg_ntripconfig = None
@@ -182,9 +178,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         self.__master.bind("<<stream_read>>", self.on_read)
-        self.__master.bind("<<gnss_eof>>", self.serial_handler.on_eof)
-        self.__master.bind("<<socket_eof>>", self.socket_handler.on_eof)
-        self.__master.bind("<<ntrip_read>>", self.ntrip_handler.on_read)
+        self.__master.bind("<<gnss_eof>>", self.stream_handler.on_eof)
+        self.__master.bind("<<ntrip_read>>", self.on_ntrip_read)
         self.__master.bind_all("<Control-q>", self.on_exit)
 
     def _set_default_fonts(self):
@@ -436,23 +431,10 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         self.file_handler.close_logfile()
         self.file_handler.close_trackfile()
-        self.serial_handler.stop_read_thread()
-        self.serial_handler.stop_readfile_thread()
+        self.stream_handler.stop_read_thread()
         self.stop_ubxconfig_thread()
         self.stop_ntripconfig_thread()
-        self.serial_handler.disconnect()
         self.__master.destroy()
-
-    def enqueue(self, raw_data, parsed_data):
-        """
-        Place data on message queue.
-
-        :param bytes raw: raw data
-        :param object parsed: parsed data e.g. UBXMessage
-        """
-
-        self._msgqueue.put((raw_data, parsed_data))
-        self.__master.event_generate("<<stream_read>>")
 
     def on_read(self, event):  # pylint: disable=unused-argument
         """
@@ -462,15 +444,30 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         :param event event: read event
         """
 
-        raw_data, parsed_data = self._msgqueue.get()
+        raw_data, parsed_data = self.msgqueue.get()
         if raw_data is not None and parsed_data is not None:
             self.process_data(raw_data, parsed_data)
+
+    def on_ntrip_read(self, event):  # pylint: disable=unused-argument
+        """
+        EVENT TRIGGERED
+        Action on <<ntrip_read>> event - read data from NTRIP caster
+        and send to connected receiver.
+
+        :param event event: read event
+        """
+
+        raw_data, parsed_data = self.msgqueue.get()
+        if raw_data is not None and parsed_data is not None:
+            if self.conn_status == CONNECTED:
+                self.stream_handler.serial_write(raw_data)
+            self.process_data(raw_data, parsed_data, "NTRIP>>")
 
     def process_data(self, raw_data: bytes, parsed_data: object, marker: str = ""):
         """
         Update the various GUI widgets, GPX track and log file
         with the latest data. Parsed data tagged with a 'marker' is
-        written to the console but not processed further.
+        written to the console for information but not processed further.
 
         :param bytes raw_data: raw message data
         :param object parsed data: NMEAMessage, UBXMessage or RTCMMessage
@@ -479,6 +476,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         protfilter = self.frm_settings.protocol
         msgprot = protocol(raw_data)
+        if isinstance(parsed_data, str):
+            marker = "WARNING  "
 
         if msgprot == UBX_PROTOCOL and msgprot & protfilter:
             if marker == "":
@@ -493,9 +492,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         elif msgprot == RTCM3_PROTOCOL and msgprot & protfilter:
             if marker != "":
                 parsed_data = marker + str(parsed_data)
-            # currently no rtcm3 processing needed
-            # else:
-            #    self.rtcm3_handler.process_data(raw_data, parsed_data)
         else:
             return
 

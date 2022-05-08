@@ -28,6 +28,7 @@ BAUD = 9600
 TIMEOUT = 3
 HOST = "localhost"
 PORT = 50007  # Arbitrary non-privileged port
+DELAY = 0.1
 
 
 class GNSSServer(StreamRequestHandler):
@@ -119,7 +120,7 @@ class GNSSServer(StreamRequestHandler):
         while True:
             try:
                 # put multiple random msgs on buffer, mixed in with junk
-                # to exercise the clients' parse_buffer() routine
+                # to exercise the clients' parsing routine
                 data = bytearray()
                 n = random.randint(1, 5)
                 for _ in range(n):
@@ -136,7 +137,7 @@ class GNSSServer(StreamRequestHandler):
                 if data is not None:
                     self.wfile.write(data)
                     self.wfile.flush()
-                sleep(1)
+                sleep(DELAY)
             except (ConnectionAbortedError, BrokenPipeError):
                 print(
                     f"Client disconnected: {self.client_address[0]}:{self.client_address[1]}"

@@ -4,10 +4,6 @@ NTRIP Handler class for PyGPSClient application
 This handles all the NTRIP Server HTTP I/O and configuration and holds
 the current state of the connection.
 
-Originally inspired by these projects:
-https://github.com/liukai-tech/NtripClient-Tools
-https://github.com/jakepoz/deweeder/blob/main/src/ntrip.py
-
 Created on 03 Apr 2022
 
 :author: semuadmin
@@ -16,17 +12,21 @@ Created on 03 Apr 2022
 """
 # pylint: disable=invalid-name
 
-from threading import Thread
+from threading import Thread, Event
+from queue import Queue
 import socket
 from datetime import datetime, timedelta
 from base64 import b64encode
-from pyrtcm import RTCMReader, RTCMParseError, RTCMMessageError, RTCMTypeError
+from pyubx2 import UBXReader, RTCM3_PROTOCOL, ERR_IGNORE
+from pyrtcm import (
+    RTCMParseError,
+    RTCMMessageError,
+    RTCMTypeError,
+)
 from pynmeagps import NMEAMessage, GET
 from pygpsclient import version as VERSION
-from pygpsclient.globals import CONNECTED
+from pygpsclient.globals import DEFAULT_BUFSIZE
 
-HDRBUFLEN = 4096
-DATBUFLEN = 1024
 TIMEOUT = 10
 USERAGENT = f"PyGPSClient NTRIP Client/{VERSION}"
 NTRIP_HEADERS = {
@@ -62,11 +62,10 @@ class NTRIPHandler:
 
         self._socket = None  # in THREAD
         self._connected = False
-        self._reading = False
+        self._stopevent = Event()
         self._ntrip_thread = None
         self._gga_interval = 0
         self._last_gga = datetime.now()
-        self._buffer = bytearray()
         self._settings = {
             "server": "",
             "port": "2101",
@@ -132,6 +131,23 @@ class NTRIPHandler:
         else:
             self._gga_interval = int(settings["ggainterval"])
 
+    def start_read_thread(self):
+        """
+        Start the NTRIP reader thread.
+        """
+
+        if self._connected:
+            self._stopevent.clear()
+            self._ntrip_thread = Thread(
+                target=self._read_thread,
+                args=(
+                    self._stopevent,
+                    self.__app.msgqueue,
+                ),
+                daemon=True,
+            )
+            self._ntrip_thread.start()
+
     def stop_read_thread(self):
         """
         Stop NTRIP reader thread.
@@ -139,13 +155,16 @@ class NTRIPHandler:
 
         if self._ntrip_thread is not None:
             self._set_controls(False)
-            self._reading = False
+            self._stopevent.set()
             self._ntrip_thread = None
 
-    def _read_thread(self):
+    def _read_thread(self, stopevent: Event, msgqueue: Queue):
         """
         THREADED
         Opens socket to NTRIP server and reads incoming data.
+
+        :param Event stopevent: stop event
+        :param Queue msgqueue: message queue
         """
 
         server = self._settings["server"]
@@ -160,20 +179,20 @@ class NTRIPHandler:
                 # send GGA sentence with request
                 if self._gga_interval and mountpoint != "":
                     self._send_GGA()
-                while self._reading:
-                    rc = self._do_header(self._socket)
+                while not stopevent.is_set():
+                    rc = self._do_header(self._socket, stopevent)
                     if rc == "0":
-                        self._do_data(self._socket)
+                        self._do_data(self._socket, stopevent, msgqueue)
                     elif rc == "1":
-                        self._reading = False
+                        stopevent.set()
                         self._connected = False
                         self._set_controls(False)
                     else:  # error message
-                        self._reading = False
+                        stopevent.set()
                         self._connected = False
                         self._set_controls(False, (f"Error!: {rc}", "red"))
         except (socket.gaierror, ConnectionResetError, TimeoutError) as err:
-            self._reading = False
+            stopevent.set()
             self._connected = False
             self._set_controls(False, (f"Connection error {err}", "red"))
 
@@ -208,6 +227,89 @@ class NTRIPHandler:
         )
         req += "\r\n"  # NECESSARY!!!
         return req.encode(encoding="utf-8")
+
+    def _do_header(self, sock: socket, stopevent: Event) -> str:
+        """
+        THREADED
+        Parse response header lines.
+
+        :param socket sock: socket
+        :param Event stopevent: stop event
+        :return: return status or error message
+        :rtype: str
+        """
+
+        stable = []
+        data = "Initial Header"
+        while data and not stopevent.is_set():
+            try:
+
+                data = sock.recv(DEFAULT_BUFSIZE)
+                header_lines = data.decode(encoding="utf-8").split("\r\n")
+                for line in header_lines:
+                    # if sourcetable request, populate list
+                    if line.find("STR;") >= 0:  # sourcetable entry
+                        strbits = line.split(";")
+                        if strbits[0] == "STR":
+                            strbits.pop(0)
+                            stable.append(strbits)
+                    elif line.find("ENDSOURCETABLE") >= 0:  # end of sourcetable
+                        self._settings["sourcetable"] = stable
+                        return "1"
+                    elif (
+                        line.find("401 Unauthorized") >= 0
+                        or line.find("403 Forbidden") >= 0
+                        or line.find("404 Not Found") >= 0
+                    ):
+                        return line
+                    elif line == "":
+                        break
+
+            except UnicodeDecodeError:
+                data = False
+
+        return "0"
+
+    def _do_data(self, sock: socket, stopevent: Event, msgqueue: Queue):
+        """
+        THREADED
+        Read NTRIP server socket and generate virtual <<ntrip_read>> event
+        whenever data is received.
+
+        :param socket sock: socket
+        :param Event stopevent: stop event
+        :param Queue msgqueue: message queue
+        """
+
+        # UBXreader will wrap socket as SocketStream
+        rtr = UBXReader(
+            sock,
+            protfilter=RTCM3_PROTOCOL,
+            quitonerror=ERR_IGNORE,
+            bufsize=DEFAULT_BUFSIZE,
+        )
+
+        raw_data = None
+        parsed_data = None
+        while not stopevent.is_set():
+            try:
+
+                raw_data, parsed_data = rtr.read()
+                if raw_data is not None:
+                    msgqueue.put((raw_data, parsed_data))
+                    self.__master.event_generate("<<ntrip_read>>")
+                if self._gga_interval:
+                    self._send_GGA()
+
+            except (
+                RTCMMessageError,
+                RTCMParseError,
+                RTCMTypeError,
+            ) as err:
+                parsed_data = f"Error parsing data stream {err}"
+                msgqueue.put((raw_data, parsed_data))
+                self.__master.event_generate("<<ntrip_read>>")
+                continue
 
     def _formatGGA(self) -> tuple:
         """
@@ -280,117 +382,3 @@ class NTRIPHandler:
                 self._socket.sendall(raw)
                 self._last_gga = datetime.now()
                 self.__app.process_data(raw, parsed, "NTRIP<<")
-
-    def _do_header(self, sock) -> str:
-        """
-        THREADED
-        Parse response header lines.
-
-        :param socket sock: socket
-        :return: return status or error message
-        :rtype: str
-        """
-
-        stable = []
-        data = "Initial Header"
-        while data:
-            try:
-
-                data = sock.recv(HDRBUFLEN)
-                header_lines = data.decode(encoding="utf-8").split("\r\n")
-                for line in header_lines:
-                    # if sourcetable request, populate list
-                    if line.find("STR;") >= 0:  # sourcetable entry
-                        strbits = line.split(";")
-                        if strbits[0] == "STR":
-                            strbits.pop(0)
-                            stable.append(strbits)
-                    elif line.find("ENDSOURCETABLE") >= 0:  # end of sourcetable
-                        self._settings["sourcetable"] = stable
-                        return "1"
-                    elif (
-                        line.find("401 Unauthorized") >= 0
-                        or line.find("403 Forbidden") >= 0
-                        or line.find("404 Not Found") >= 0
-                    ):
-                        return line
-                    elif line == "":
-                        break
-
-            except UnicodeDecodeError:
-                data = False
-
-        return "0"
-
-    def _do_data(self, sock):
-        """
-        THREADED
-        Read NTRIP server socket and generate virtual <<ntrip_read>> event
-        whenever data is received.
-
-        :param socket sock: socket
-        """
-
-        data = "Initial data"
-        while data and self._reading:
-            data = sock.recv(DATBUFLEN)
-            if len(data) > 0:
-                self._buffer += data
-                self.__master.event_generate("<<ntrip_read>>")
-
-    def start_read_thread(self):
-        """
-        Start the NTRIP reader thread.
-        """
-
-        if self._connected:
-            self._reading = True
-            self._ntrip_thread = Thread(target=self._read_thread, daemon=True)
-            self._ntrip_thread.start()
-
-    def on_read(self, event):  # pylint: disable=unused-argument
-        """
-        Action on <<ntrip_read>> event - read any data in the buffer.
-
-        :param event event: read event
-        """
-
-        try:
-
-            self._buffer = self._read_buffer(self._buffer)
-
-        except (RTCMParseError, RTCMMessageError, RTCMTypeError) as err:
-            print(err)  # TODO refine exception reporting or simply ignore
-
-    def _read_buffer(self, buf: bytearray) -> bytearray:
-        """
-        THREADED
-        Parse the NTRIP buffer and yield any complete RTCM3
-        messages. If we're connected to a GNSS device, the
-        messages will be sent to this device.
-
-        If the UBX RXM-RTCM message type has been enabled, you
-        should see a UBX-RXM-RTCM response for each RTCM3
-        message received:
-
-        :param bytearray buf: input buffer
-        :return: remaining buffer
-        :rtype: bytearray
-        """
-
-        while True:
-            raw_data, buf = RTCMReader.parse_buffer(buf)
-
-            if raw_data is not None:
-                raw_data = bytes(raw_data)
-                parsed_data = RTCMReader.parse(raw_data)
-                # update console
-                self.__app.process_data(raw_data, parsed_data, "NTRIP>>")
-                if self.__app.conn_status == CONNECTED:
-                    self.__app.serial_handler.serial_write(raw_data)
-                if self._gga_interval:
-                    self._send_GGA()
-            else:
-                break
-
-        return buf

@@ -16,7 +16,6 @@ from pyubx2 import hextable
 from pygpsclient.globals import (
     BGCOL,
     FGCOL,
-    TAG_COLORS,
     FORMATS,
     FONT_TEXT,
     FONT_FIXED,
@@ -123,7 +122,7 @@ class ConsoleFrame(Frame):
         if self.__app.frm_settings.colortagging:
             self._tag_line(data, self.__app.colortags)
             if self._halt != "":
-                self.__app.frm_settings._disconnect()
+                self.__app.stream_handler.stop_read_thread()
                 self.__app.set_status(f"Halted on user tag match: {self._halt}", "red")
 
         idx = float(con.index("end"))  # Lazy but it works

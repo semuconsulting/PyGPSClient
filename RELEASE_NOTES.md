@@ -1,5 +1,16 @@
 # PyGPSClient Release Notes
 
+### RELEASE v1.3.2
+
+CHANGES:
+
+1. Internal refactoring of `serial_handler.py` and `socket_handler.py` into single `stream_handler.py`.
+2. Minimum versions of `pyubx2` and `pynmeagps` updated to 1.2.9 and 1.0.10 respectively.
+
+FIXES:
+
+1. Preset message rate commands now set rates on ALL ports including UART2 (UART2 was previously omitted).
+
 ### RELEASE v1.3.1
 
 ENHANCEMENTS:

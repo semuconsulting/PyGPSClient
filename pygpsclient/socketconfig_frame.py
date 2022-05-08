@@ -72,7 +72,7 @@ class SocketConfigFrame(Frame):
 
         self._frm_basic = Frame(self)
         self._lbl_server = Label(self._frm_basic, text="Server")
-        self._ent_server = Entry(
+        self.ent_server = Entry(
             self._frm_basic,
             textvariable=self._server,
             bg=ENTCOL,
@@ -81,7 +81,7 @@ class SocketConfigFrame(Frame):
         )
 
         self._lbl_port = Label(self._frm_basic, text="Port")
-        self._ent_port = Entry(
+        self.ent_port = Entry(
             self._frm_basic,
             textvariable=self._port,
             bg=ENTCOL,
@@ -106,11 +106,11 @@ class SocketConfigFrame(Frame):
 
         self._frm_basic.grid(column=0, row=0, columnspan=4, sticky=(W, E))
         self._lbl_server.grid(column=0, row=0, padx=2, pady=2, sticky=(W))
-        self._ent_server.grid(
+        self.ent_server.grid(
             column=1, row=0, padx=2, pady=2, columnspan=4, sticky=(W, E)
         )
         self._lbl_port.grid(column=0, row=1, padx=2, pady=2, sticky=(W))
-        self._ent_port.grid(column=1, row=1, padx=2, pady=2, sticky=(W))
+        self.ent_port.grid(column=1, row=1, padx=2, pady=2, sticky=(W))
         self._lbl_protocol.grid(column=3, row=1, padx=2, pady=2, sticky=(W))
         self._spn_protocol.grid(column=4, row=1, padx=2, pady=2, sticky=(W))
 
@@ -136,8 +136,8 @@ class SocketConfigFrame(Frame):
             self._lbl_server,
             self._lbl_port,
             self._lbl_protocol,
-            self._ent_server,
-            self._ent_port,
+            self.ent_server,
+            self.ent_port,
         ):
             widget.configure(state=(NORMAL if status == DISCONNECTED else DISABLED))
         for widget in (self._spn_protocol,):

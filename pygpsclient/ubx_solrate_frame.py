@@ -210,7 +210,7 @@ class UBX_RATE_Frame(Frame):
             navRate=self._navrate.get(),
             timeRef=tref,
         )
-        self.__app.serial_handler.serial_write(msg.serialize())
+        self.__app.stream_handler.serial_write(msg.serialize())
         self._lbl_send_command.config(image=self._img_pending)
         self.__container.set_status("CFG-RATE SET message sent", "blue")
         self.__container.set_pending(UBX_CFGRATE, ("ACK-ACK", "ACK-NAK"))
@@ -223,7 +223,7 @@ class UBX_RATE_Frame(Frame):
         """
 
         msg = UBXMessage("CFG", "CFG-RATE", POLL)
-        self.__app.serial_handler.serial_write(msg.serialize())
+        self.__app.stream_handler.serial_write(msg.serialize())
         self._lbl_send_command.config(image=self._img_pending)
         self.__container.set_status("CFG-RATE POLL message sent", "blue")
         self.__container.set_pending(UBX_CFGRATE, ("CFG-RATE", "ACK-NAK"))

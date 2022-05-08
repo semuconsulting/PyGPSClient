@@ -12,7 +12,7 @@ Created on 12 Sep 2020
 :copyright: SEMU Consulting © 2020
 :license: BSD 3-Clause
 """
-# pylint: disable=invalid-name, unnecessary-lambda
+# pylint: disable=invalid-name, unnecessary-lambda, too-many-instance-attributes
 
 from tkinter import (
     ttk,
@@ -62,6 +62,7 @@ from pygpsclient.globals import (
     FORMATS,
     TAG_COLORS,
 )
+from pygpsclient.helpers import valid_entry, VALINT, VALURL, MAXPORT
 from pygpsclient.strings import (
     LBLUBXCONFIG,
     LBLNTRIPCONFIG,
@@ -162,7 +163,7 @@ class SettingsFrame(Frame):
             width=45,
             height=35,
             image=self._img_serial,
-            command=lambda: self.__app.serial_handler.connect(),
+            command=lambda: self._on_serial_stream(),
         )
         self._lbl_connect = Label(self._frm_buttons, text="USB/UART")
         self._btn_connect_socket = Button(
@@ -170,7 +171,7 @@ class SettingsFrame(Frame):
             width=45,
             height=35,
             image=self._img_socket,
-            command=lambda: self.__app.socket_handler.connect(),
+            command=lambda: self._on_socket_stream(),
         )
         self._lbl_connect_socket = Label(self._frm_buttons, text="TCP/UDP")
         self._btn_connect_file = Button(
@@ -178,7 +179,7 @@ class SettingsFrame(Frame):
             width=45,
             height=35,
             image=self._img_dataread,
-            command=lambda: self._on_data_stream(),
+            command=lambda: self._on_file_stream(),
         )
         self._lbl_connect_file = Label(self._frm_buttons, text="FILE")
         self._btn_disconnect = Button(
@@ -186,7 +187,7 @@ class SettingsFrame(Frame):
             width=45,
             height=35,
             image=self._img_disconn,
-            command=lambda: self._disconnect(),  # self.__app.serial_handler.disconnect(),
+            command=lambda: self._on_disconnect(),
             state=DISABLED,
         )
         self._lbl_disconnect = Label(self._frm_buttons, text="STOP")
@@ -397,16 +398,6 @@ class SettingsFrame(Frame):
         self._lbl_ntripconfig.grid(column=2, row=10, padx=2, pady=2, sticky=(E))
         self._btn_ntripconfig.grid(column=3, row=10, padx=2, pady=2, sticky=(W))
 
-    def _disconnect(self):
-
-        status = self.__app.conn_status
-        if status == CONNECTED_SOCKET:
-            self.__app.socket_handler.disconnect()
-        elif status == CONNECTED_FILE:
-            self.__app.serial_handler.disconnect()
-        elif status == CONNECTED:
-            self.__app.serial_handler.disconnect()
-
     def _on_ubx_config(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
         Open UBX configuration dialog panel.
@@ -466,15 +457,57 @@ class SettingsFrame(Frame):
             self.__app.file_handler.close_trackfile()
             self.__app.set_status("Track recording disabled", "blue")
 
-    def _on_data_stream(self):
+    def _on_serial_stream(self):
+
+        if self.serial_settings().status == NOPORTS:
+            return
+
+        self.__app.set_connection(
+            (
+                f"{self.serial_settings().port}:{self.serial_settings().port_desc} "
+                + f"@ {self.serial_settings().bpsrate}"
+            ),
+            "green",
+        )
+        self.__app.set_status("")
+        self.__app.conn_status = CONNECTED
+        self.__app.stream_handler.start_read_thread(CONNECTED)
+
+    def _on_socket_stream(self):
         """
-        Start data file streamer
+        Start socket streamer if settings are valid
+        """
+
+        valid = True
+        valid = valid & valid_entry(self._frm_socket.ent_server, VALURL)
+        valid = valid & valid_entry(self._frm_socket.ent_port, VALINT, 1, MAXPORT)
+        if valid:
+            self.__app.set_connection(
+                f"{self.socket_settings().server}:{self.socket_settings().port}",
+                "green",
+            )
+            self.__app.set_status("")
+            self.__app.conn_status = CONNECTED_SOCKET
+            self.__app.stream_handler.start_read_thread(CONNECTED_SOCKET)
+        else:
+            self.__app.set_status("ERROR - invalid settings", "red")
+
+    def _on_file_stream(self):
+        """
+        Start data file streamer if file selected
         """
 
         self._in_filepath = self.__app.file_handler.open_infile()
         if self._in_filepath is not None:
+            self.__app.set_connection(f"{self._in_filepath}", "blue")
             self.__app.set_status("")
-            self.__app.serial_handler.connect_file()
+            self.__app.conn_status = CONNECTED_FILE
+            self.__app.stream_handler.start_read_thread(CONNECTED_FILE)
+
+    def _on_disconnect(self):
+
+        if self.__app.conn_status in (CONNECTED, CONNECTED_FILE, CONNECTED_SOCKET):
+            self.__app.stream_handler.stop_read_thread()
 
     def _reset(self):
         """

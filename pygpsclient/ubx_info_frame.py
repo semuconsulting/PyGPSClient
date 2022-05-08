@@ -159,7 +159,7 @@ class UBX_INFO_Frame(Frame):
 
         for msgtype in ("MON-VER", "MON-HW"):
             msg = UBXMessage(msgtype[0:3], msgtype, POLL)
-            self.__app.serial_handler.serial.write(msg.serialize())
+            self.__app.stream_handler.serial.write(msg.serialize())
             self.__container.set_status(f"{msgtype} POLL message sent", "blue")
         self.__container.set_pending(UBX_MONVER, ("MON-VER",))
         self.__container.set_pending(UBX_MONHW, ("MON-HW",))

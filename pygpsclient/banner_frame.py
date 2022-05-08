@@ -15,7 +15,7 @@ from platform import system
 from tkinter import Frame, Label, Button, StringVar, font, N, S, W, E, SUNKEN
 
 from PIL import ImageTk, Image
-from pyubx2.ubxhelpers import dop2str, gpsfix2str
+from pyubx2.ubxhelpers import dop2str
 
 from pygpsclient.globals import (
     DMM,
