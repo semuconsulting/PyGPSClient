@@ -461,13 +461,13 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         if raw_data is not None and parsed_data is not None:
             if self.conn_status == CONNECTED:
                 self.stream_handler.serial_write(raw_data)
-            self.process_data(raw_data, parsed_data, marker="NTRIP>>")
+            self.process_data(raw_data, parsed_data, "NTRIP>>")
 
     def process_data(self, raw_data: bytes, parsed_data: object, marker: str = ""):
         """
         Update the various GUI widgets, GPX track and log file
         with the latest data. Parsed data tagged with a 'marker' is
-        written to the console but not processed further.
+        written to the console for information but not processed further.
 
         :param bytes raw_data: raw message data
         :param object parsed data: NMEAMessage, UBXMessage or RTCMMessage
@@ -492,9 +492,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         elif msgprot == RTCM3_PROTOCOL and msgprot & protfilter:
             if marker != "":
                 parsed_data = marker + str(parsed_data)
-            # currently no rtcm3 processing needed
-            # else:
-            #    self.rtcm3_handler.process_data(raw_data, parsed_data)
         else:
             return
 
