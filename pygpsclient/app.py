@@ -14,9 +14,10 @@ Created on 12 Sep 2020
 
 import logging
 from threading import Thread
-from queue import Queue
+from queue import Queue, Empty
 from datetime import datetime, timedelta
 from tkinter import Frame, N, S, E, W, PhotoImage, font
+from serial import SerialException, SerialTimeoutException
 
 from pyubx2 import protocol, NMEA_PROTOCOL, UBX_PROTOCOL, RTCM3_PROTOCOL
 from pygpsclient.strings import (
@@ -103,6 +104,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         # Instantiate protocol handler classes
         self.msgqueue = Queue()
+        self.ntripqueue = Queue()
         self.file_handler = FileHandler(self)
         self.stream_handler = StreamHandler(self)
         self.nmea_handler = NMEAHandler(self)
@@ -444,9 +446,12 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         :param event event: read event
         """
 
-        raw_data, parsed_data = self.msgqueue.get()
-        if raw_data is not None and parsed_data is not None:
-            self.process_data(raw_data, parsed_data)
+        try:
+            raw_data, parsed_data = self.msgqueue.get(False)
+            if raw_data is not None and parsed_data is not None:
+                self.process_data(raw_data, parsed_data)
+        except Empty:
+            pass
 
     def on_ntrip_read(self, event):  # pylint: disable=unused-argument
         """
@@ -457,11 +462,16 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         :param event event: read event
         """
 
-        raw_data, parsed_data = self.msgqueue.get()
-        if raw_data is not None and parsed_data is not None:
-            if self.conn_status == CONNECTED:
-                self.stream_handler.serial_write(raw_data)
-            self.process_data(raw_data, parsed_data, "NTRIP>>")
+        try:
+            raw_data, parsed_data = self.ntripqueue.get(False)
+            if raw_data is not None and parsed_data is not None:
+                if self.conn_status == CONNECTED:
+                    self.stream_handler.serial_write(raw_data)
+                self.process_data(raw_data, parsed_data, "NTRIP>>")
+        except Empty:
+            pass
+        except (SerialException, SerialTimeoutException) as err:
+            self.set_status(f"Error sending to device {err}", "red")
 
     def process_data(self, raw_data: bytes, parsed_data: object, marker: str = ""):
         """
