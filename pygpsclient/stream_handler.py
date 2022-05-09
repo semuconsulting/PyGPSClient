@@ -227,7 +227,8 @@ class StreamHandler:
                 RTCMParseError,
             ) as err:
                 parsed_data = f"Error parsing data stream {err}"
-                self.__app.enqueue(raw_data, parsed_data)
+                msgqueue.put((raw_data, parsed_data))
+                self.__master.event_generate("<<stream_read>>")
                 continue
 
     def on_eof(self, event):  # pylint: disable=unused-argument
