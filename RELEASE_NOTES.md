@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE v1.3.3
+
+FIXES:
+
+1. Fix old reference to `enqueue()` method in serial handler.
+
 ### RELEASE v1.3.2
 
 CHANGES:
