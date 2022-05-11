@@ -465,11 +465,11 @@ class BannerFrame(Frame):
         )
         if units in (UI, UIK):
             self._hvacc.set(
-                f"hacc {m2ft(self.__app.gnss_status.hacc):.1f}\nvacc {m2ft(self.__app.gnss_status.vacc):.1f}"
+                f"hacc {m2ft(self.__app.gnss_status.hacc):.2f}\nvacc {m2ft(self.__app.gnss_status.vacc):.2f}"
             )
         else:
             self._hvacc.set(
-                f"hacc {self.__app.gnss_status.hacc:.1f}\nvacc {self.__app.gnss_status.vacc:.1f}"
+                f"hacc {self.__app.gnss_status.hacc:.2f}\nvacc {self.__app.gnss_status.vacc:.2f}"
             )
 
     def _update_dgps(self):
