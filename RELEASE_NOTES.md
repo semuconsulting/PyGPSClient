@@ -1,5 +1,12 @@
 # PyGPSClient Release Notes
 
+### RELEASE CANDIDATE v1.3.4
+
+CHANGES:
+
+1. hacc/vacc display on banner increased to 2dp (limit of reliability). **NB:** in order to see hacc/vacc readings, you will need to be receiving messages which provide this data e.g. NMEA PUBX-00 or UBX NAV-PVT, NAV-POSLLH. It *cannot* be reliably inferred from hdop/vdop.
+2. Minor internal refactoring to improve performance and resilience of NTRIP client.
+
 ### RELEASE v1.3.3
 
 FIXES:
@@ -11,7 +18,7 @@ FIXES:
 CHANGES:
 
 1. Internal refactoring of `serial_handler.py` and `socket_handler.py` into single `stream_handler.py`.
-2. Minimum versions of `pyubx2` and `pynmeagps` updated to 1.2.9 and 1.0.10 respectively.
+2. Minimum versions of `pyubx2` and `pynmeagps` updated to 1.2.9 and 1.0.11 respectively.
 
 FIXES:
 
