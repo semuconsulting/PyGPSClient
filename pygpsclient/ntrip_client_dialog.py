@@ -51,6 +51,8 @@ from pygpsclient.globals import (
     READONLY,
     POPUP_TRANSIENT,
     CONNECTED,
+    UI,
+    UIK,
 )
 from pygpsclient.strings import (
     DLGNTRIPCONFIG,
@@ -74,6 +76,7 @@ from pygpsclient.helpers import (
 )
 
 NTRIP_VERSIONS = ("2.0", "1.0")
+KM2MILES = 0.6213712
 
 
 class NTRIPConfigDialog(Toplevel):
@@ -495,7 +498,12 @@ class NTRIPConfigDialog(Toplevel):
         if dist is None:
             self._ntrip_mpdist.set("")
         else:
-            self._ntrip_mpdist.set(f"Distance: {dist:,.1f} km")
+            units = self.__app.frm_settings.units
+            dist_u = "km"
+            if units in (UI, UIK):
+                dist *= KM2MILES
+                dist_u = "miles"
+            self._ntrip_mpdist.set(f"Distance: {dist:,.1f} {dist_u}")
 
     def on_exit(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
