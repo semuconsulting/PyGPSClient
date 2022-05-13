@@ -166,7 +166,7 @@ class NTRIPConfigDialog(Toplevel):
             bg=ENTCOL,
             state=NORMAL,
             relief="sunken",
-            width=55,
+            width=50,
         )
         self._lbl_port = Label(self._frm_container, text=LBLNTRIPPORT)
         self._ent_port = Entry(
@@ -184,14 +184,22 @@ class NTRIPConfigDialog(Toplevel):
             bg=ENTCOL,
             state=NORMAL,
             relief="sunken",
-            width=25,
+            width=20,
         )
         self._lbl_mpdist = Label(
-            self._frm_container, textvariable=self._ntrip_mpdist, anchor="w", fg="grey"
+            self._frm_container,
+            textvariable=self._ntrip_mpdist,
+            width=30,
+            fg="grey",
+            anchor="w",
         )
         self._lbl_sourcetable = Label(self._frm_container, text=LBLNTRIPSTR)
         self._lbx_sourcetable = Listbox(
-            self._frm_container, bg=ENTCOL, height=4, relief="sunken", width=55
+            self._frm_container,
+            bg=ENTCOL,
+            height=4,
+            relief="sunken",
+            width=55,
         )
         self._scr_sourcetablev = Scrollbar(self._frm_container, orient=VERTICAL)
         self._scr_sourcetableh = Scrollbar(self._frm_container, orient=HORIZONTAL)
@@ -217,7 +225,7 @@ class NTRIPConfigDialog(Toplevel):
             bg=ENTCOL,
             state=NORMAL,
             relief="sunken",
-            width=55,
+            width=50,
         )
         self._lbl_password = Label(self._frm_container, text=LBLNTRIPPWD)
         self._ent_password = Entry(
@@ -226,7 +234,7 @@ class NTRIPConfigDialog(Toplevel):
             bg=ENTCOL,
             state=NORMAL,
             relief="sunken",
-            width=40,
+            width=20,
             show="*",
         )
         self._lbl_ntripggaint = Label(self._frm_container, text=LBLNTRIPGGAINT)
@@ -315,7 +323,7 @@ class NTRIPConfigDialog(Toplevel):
 
         # body of grid
         self._lbl_server.grid(column=0, row=0, padx=3, pady=3, sticky=W)
-        self._ent_server.grid(column=1, row=0, columnspan=3, padx=3, pady=3, sticky=W)
+        self._ent_server.grid(column=1, row=0, columnspan=2, padx=3, pady=3, sticky=W)
         self._lbl_port.grid(column=0, row=1, padx=3, pady=3, sticky=W)
         self._ent_port.grid(column=1, row=1, padx=3, pady=3, sticky=W)
         self._lbl_mountpoint.grid(column=0, row=2, padx=3, pady=3, sticky=W)
@@ -323,22 +331,20 @@ class NTRIPConfigDialog(Toplevel):
         self._lbl_mpdist.grid(column=2, row=2, padx=3, pady=3, sticky=W)
         self._lbl_sourcetable.grid(column=0, row=3, padx=3, pady=3, sticky=W)
         self._lbx_sourcetable.grid(
-            column=1, row=3, columnspan=3, rowspan=4, padx=3, pady=3, sticky=W
+            column=1, row=3, columnspan=2, rowspan=4, padx=3, pady=3, sticky=W
         )
-        self._scr_sourcetablev.grid(column=4, row=3, rowspan=4, sticky=(N, S))
-        self._scr_sourcetableh.grid(column=1, columnspan=3, row=7, sticky=(E, W))
+        self._scr_sourcetablev.grid(column=3, row=3, rowspan=4, sticky=(N, S))
+        self._scr_sourcetableh.grid(column=1, columnspan=2, row=7, sticky=(E, W))
         self._lbl_ntripversion.grid(column=0, row=8, padx=3, pady=3, sticky=W)
         self._spn_ntripversion.grid(
             column=1, row=8, padx=3, pady=3, rowspan=2, sticky=W
         )
         self._lbl_user.grid(column=0, row=10, padx=3, pady=3, sticky=W)
-        self._ent_user.grid(column=1, row=10, columnspan=3, padx=3, pady=3, sticky=W)
+        self._ent_user.grid(column=1, row=10, columnspan=2, padx=3, pady=3, sticky=W)
         self._lbl_password.grid(column=0, row=11, padx=3, pady=3, sticky=W)
-        self._ent_password.grid(
-            column=1, row=11, columnspan=3, padx=3, pady=3, sticky=W
-        )
+        self._ent_password.grid(column=1, row=11, padx=3, pady=3, sticky=W)
         ttk.Separator(self._frm_container).grid(
-            column=0, row=12, columnspan=2, padx=3, pady=3, sticky=(W, E)
+            column=0, row=12, columnspan=3, padx=3, pady=3, sticky=(W, E)
         )
         self._lbl_ntripggaint.grid(column=0, row=13, padx=2, pady=3, sticky=W)
         self._spn_ntripggaint.grid(
@@ -353,7 +359,7 @@ class NTRIPConfigDialog(Toplevel):
         self._lbl_sep.grid(column=0, row=18, padx=3, pady=2, sticky=W)
         self._ent_sep.grid(column=1, row=18, padx=3, pady=2, sticky=W)
         ttk.Separator(self._frm_container).grid(
-            column=0, row=19, columnspan=2, padx=3, pady=3, sticky=(W, E)
+            column=0, row=19, columnspan=3, padx=3, pady=3, sticky=(W, E)
         )
         self._btn_connect.grid(column=0, row=20, padx=3, pady=3, sticky=W)
         self._btn_disconnect.grid(column=1, row=20, padx=3, pady=3, sticky=W)
@@ -480,9 +486,8 @@ class NTRIPConfigDialog(Toplevel):
             srt = w.get(index)  # mountpoint, city, RTCM version
             self._ntrip_mountpoint.set(srt[0])
             # show distance to selected mountpoint (where available)
-            lat = self.__app.gnss_status.lat
-            lon = self.__app.gnss_status.lon
-            if lat not in ("", 0) and lon not in ("", 0):
+            lat, lon = self.__app.ntrip_handler.get_position()
+            if lat != "" and lon != "":
                 dist = get_mp_distance(lat, lon, srt)
                 self.set_mp_dist(dist)
         except IndexError:  # not yet populated
@@ -496,7 +501,7 @@ class NTRIPConfigDialog(Toplevel):
         """
 
         if dist is None:
-            self._ntrip_mpdist.set("")
+            self._ntrip_mpdist.set("Distance n/a")
         else:
             units = self.__app.frm_settings.units
             dist_u = "km"

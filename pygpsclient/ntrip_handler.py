@@ -25,7 +25,7 @@ from pyrtcm import (
 )
 from pynmeagps import NMEAMessage, GET
 from pygpsclient import version as VERSION
-from pygpsclient.globals import DEFAULT_BUFSIZE
+from pygpsclient.globals import DEFAULT_BUFSIZE, CONNECTED
 from pygpsclient.helpers import get_mp_distance
 
 TIMEOUT = 10
@@ -386,18 +386,39 @@ class NTRIPHandler:
                 self._last_gga = datetime.now()
                 self.__app.process_data(raw, parsed, "NTRIP<<")
 
-    def _find_closest_mp(self) -> str:
+    def get_position(self) -> tuple:
+        """
+        Get current position from receiver or manual entries.
+
+        :return: tuple (lat, lon)
+        :rtype: tuple
+        """
+
+        try:
+            lat = (
+                self.__app.gnss_status.lat
+                if self.__app.conn_status == CONNECTED
+                and self._settings["ggalat"] == ""
+                else float(self._settings["ggalat"])
+            )
+            lon = (
+                self.__app.gnss_status.lon
+                if self.__app.conn_status == CONNECTED
+                and self._settings["ggalon"] == ""
+                else float(self._settings["ggalon"])
+            )
+        except ValueError:
+            return "", ""
+        return lat, lon
+
+    def _find_closest_mp(self):
         """
         Find closest mountpoint in sourcetable
-        (for those mounpoints which provide a coordinate).
-
-        :return: name of nearest mountpoint
-        :rtype: str
+        (among those mountpoints which provide coordinates).
         """
 
-        lat = self.__app.gnss_status.lat
-        lon = self.__app.gnss_status.lon
-        if lat in ("", 0) or lon in ("", 0):
+        lat, lon = self.get_position()
+        if lat == "" or lon == "":
             return
 
         name = None
@@ -408,6 +429,8 @@ class NTRIPHandler:
                 if dist < mindist:
                     name = mp[0]
                     mindist = dist
-        if name is not None:
+        if name is None:
+            self.__app.dlg_ntripconfig.set_mp_dist(None)
+        else:
             self.__app.dlg_ntripconfig._ntrip_mountpoint.set(name)
             self.__app.dlg_ntripconfig.set_mp_dist(mindist)
