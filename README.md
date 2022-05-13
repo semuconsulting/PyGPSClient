@@ -116,7 +116,7 @@ warning ![warning icon](/pygpsclient/resources/iconmonstr-warning-1-24.png)).
 
 To use:
 1. Enter the required NTRIP server URL (or IP address) and port (defaults to 2101). For services which require authorisation, enter your login username and password.
-1. To retrieve the sourcetable, leave the mountpoint field blank and click connect (*response may take a few seconds*). The required mountpoint may then be selected from the list, or entered manually.
+1. To retrieve the sourcetable, leave the mountpoint field blank and click connect (*response may take a few seconds*). The required mountpoint may then be selected from the list, or entered manually. Where possible with the information provided by the caster, `PyGPSClient` will automatically identify the closest mountpoint to the current location.
 1. For NTRIP services which require client position data via NMEA GGA sentences, select the appropriate sentence transmission interval in seconds. The default is 'None' (no GGA sentences sent). A value of 10 or 60 seconds is typical.
 1. If GGA sentence transmission is enabled, GGA sentences can either be populated from live navigation data (*assuming a receiver is connected and outputting valid position data*) or from manual settings entered in the NTRIP configuration panel (latitude, longitude, elevation and separation - all four manual settings must be provided).
 1. To connect to the NTRIP server, click ![connect icon](/pygpsclient/resources/iconmonstr-media-control-48-24.png). To disconnect, click ![disconnect icon](/pygpsclient/resources/iconmonstr-media-control-50-24.png).
