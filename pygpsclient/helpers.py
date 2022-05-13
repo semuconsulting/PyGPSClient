@@ -16,7 +16,7 @@ import re
 from subprocess import run as subrun
 from sys import executable
 from tkinter import Toplevel, Entry, Label, Button, W
-from math import sin, cos, pi
+from math import sin, cos, acos, radians
 from datetime import datetime, timedelta
 from pygpsclient.globals import (
     MAX_SNR,
@@ -129,7 +129,7 @@ def deg2rad(deg: float) -> float:
 
     if not isinstance(deg, (float, int)):
         return 0
-    return deg * pi / 180
+    return radians(deg)
 
 
 def cel2cart(elevation: float, azimuth: float) -> tuple:
@@ -145,8 +145,8 @@ def cel2cart(elevation: float, azimuth: float) -> tuple:
 
     if not (isinstance(elevation, (float, int)) and isinstance(azimuth, (float, int))):
         return (0, 0)
-    elevation = deg2rad(elevation)
-    azimuth = deg2rad(azimuth)
+    elevation = radians(elevation)
+    azimuth = radians(azimuth)
     x = cos(azimuth) * cos(elevation)
     y = sin(azimuth) * cos(elevation)
     return (x, y)
@@ -573,3 +573,50 @@ def valid_entry(entry: Entry, valmode: int, low=None, high=None) -> bool:
 
     entry.config(bg=ENTCOL if valid else ERRCOL)
     return valid
+
+
+def haversine(
+    lat1: float, lon1: float, lat2: float, lon2: float, rds: int = 6371
+) -> float:
+    """
+    Calculate spherical distance between two coordinates using haversine formula.
+
+    :param float lat1: lat1
+    :param float lon1: lat1
+    :param float lat2: lat1
+    :param float lon2: lat1
+    :param float rds: earth radius km (6371)
+    :return: distance in km
+    :rtype: float
+    """
+
+    coordinates = lat1, lon1, lat2, lon2
+    phi1, lambda1, phi2, lambda2 = [radians(c) for c in coordinates]
+    dist = rds * acos(
+        cos(phi2 - phi1) - cos(phi1) * cos(phi2) * (1 - cos(lambda2 - lambda1))
+    )
+
+    return dist
+
+
+def get_mp_distance(lat: float, lon: float, mp: list) -> float:
+    """
+    Get distance to mountpoint from current location (if known).
+
+    :param float lat: current latitude
+    :param float lon: current longitude
+    :param list mp: sourcetable mountpoint entry
+    :return: distance to mountpoint in km
+    :rtype: float
+    """
+
+    dist = None
+    try:
+        if len(mp) >= 10:
+            lat2 = float(mp[8])
+            lon2 = float(mp[9])
+            dist = haversine(lat, lon, lat2, lon2)
+    except ValueError:
+        pass
+
+    return dist

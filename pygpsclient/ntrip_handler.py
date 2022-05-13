@@ -26,6 +26,7 @@ from pyrtcm import (
 from pynmeagps import NMEAMessage, GET
 from pygpsclient import version as VERSION
 from pygpsclient.globals import DEFAULT_BUFSIZE
+from pygpsclient.helpers import get_mp_distance
 
 TIMEOUT = 10
 USERAGENT = f"PyGPSClient NTRIP Client/{VERSION}"
@@ -70,6 +71,7 @@ class NTRIPHandler:
             "server": "",
             "port": "2101",
             "mountpoint": "",
+            "mpdist": "",
             "version": "2.0",
             "user": "anon",
             "password": "password",
@@ -255,6 +257,7 @@ class NTRIPHandler:
                             stable.append(strbits)
                     elif line.find("ENDSOURCETABLE") >= 0:  # end of sourcetable
                         self._settings["sourcetable"] = stable
+                        self._find_closest_mp()
                         return "1"
                     elif (
                         line.find("401 Unauthorized") >= 0
@@ -382,3 +385,29 @@ class NTRIPHandler:
                 self._socket.sendall(raw)
                 self._last_gga = datetime.now()
                 self.__app.process_data(raw, parsed, "NTRIP<<")
+
+    def _find_closest_mp(self) -> str:
+        """
+        Find closest mountpoint in sourcetable
+        (for those mounpoints which provide a coordinate).
+
+        :return: name of nearest mountpoint
+        :rtype: str
+        """
+
+        lat = self.__app.gnss_status.lat
+        lon = self.__app.gnss_status.lon
+        if lat in ("", 0) or lon in ("", 0):
+            return
+
+        name = None
+        mindist = 9999999
+        for mp in self._settings["sourcetable"]:
+            dist = get_mp_distance(lat, lon, mp)
+            if dist is not None:
+                if dist < mindist:
+                    name = mp[0]
+                    mindist = dist
+        if name is not None:
+            self.__app.dlg_ntripconfig._ntrip_mountpoint.set(name)
+            self.__app.dlg_ntripconfig.set_mp_dist(mindist)

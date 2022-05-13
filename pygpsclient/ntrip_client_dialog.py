@@ -70,6 +70,7 @@ from pygpsclient.helpers import (
     VALURL,
     MAXPORT,
     MAXALT,
+    get_mp_distance,
 )
 
 NTRIP_VERSIONS = ("2.0", "1.0")
@@ -117,6 +118,7 @@ class NTRIPConfigDialog(Toplevel):
         self._ntrip_server = StringVar()
         self._ntrip_port = StringVar()
         self._ntrip_mountpoint = StringVar()
+        self._ntrip_mpdist = StringVar()
         self._ntrip_user = StringVar()
         self._ntrip_password = StringVar()
         self._ntrip_gga_interval = StringVar()
@@ -180,6 +182,9 @@ class NTRIPConfigDialog(Toplevel):
             state=NORMAL,
             relief="sunken",
             width=25,
+        )
+        self._lbl_mpdist = Label(
+            self._frm_container, textvariable=self._ntrip_mpdist, anchor="w", fg="grey"
         )
         self._lbl_sourcetable = Label(self._frm_container, text=LBLNTRIPSTR)
         self._lbx_sourcetable = Listbox(
@@ -307,23 +312,28 @@ class NTRIPConfigDialog(Toplevel):
 
         # body of grid
         self._lbl_server.grid(column=0, row=0, padx=3, pady=3, sticky=W)
-        self._ent_server.grid(column=1, row=0, columnspan=2, padx=3, pady=3, sticky=W)
+        self._ent_server.grid(column=1, row=0, columnspan=3, padx=3, pady=3, sticky=W)
         self._lbl_port.grid(column=0, row=1, padx=3, pady=3, sticky=W)
         self._ent_port.grid(column=1, row=1, padx=3, pady=3, sticky=W)
         self._lbl_mountpoint.grid(column=0, row=2, padx=3, pady=3, sticky=W)
         self._ent_mountpoint.grid(column=1, row=2, padx=3, pady=3, sticky=W)
+        self._lbl_mpdist.grid(column=2, row=2, padx=3, pady=3, sticky=W)
         self._lbl_sourcetable.grid(column=0, row=3, padx=3, pady=3, sticky=W)
-        self._lbx_sourcetable.grid(column=1, row=3, rowspan=4, padx=3, pady=3, sticky=W)
-        self._scr_sourcetablev.grid(column=2, row=3, rowspan=4, sticky=(N, S))
-        self._scr_sourcetableh.grid(column=1, row=7, sticky=(E, W))
+        self._lbx_sourcetable.grid(
+            column=1, row=3, columnspan=3, rowspan=4, padx=3, pady=3, sticky=W
+        )
+        self._scr_sourcetablev.grid(column=4, row=3, rowspan=4, sticky=(N, S))
+        self._scr_sourcetableh.grid(column=1, columnspan=3, row=7, sticky=(E, W))
         self._lbl_ntripversion.grid(column=0, row=8, padx=3, pady=3, sticky=W)
         self._spn_ntripversion.grid(
             column=1, row=8, padx=3, pady=3, rowspan=2, sticky=W
         )
         self._lbl_user.grid(column=0, row=10, padx=3, pady=3, sticky=W)
-        self._ent_user.grid(column=1, row=10, columnspan=2, padx=3, pady=3, sticky=W)
+        self._ent_user.grid(column=1, row=10, columnspan=3, padx=3, pady=3, sticky=W)
         self._lbl_password.grid(column=0, row=11, padx=3, pady=3, sticky=W)
-        self._ent_password.grid(column=1, row=11, padx=3, pady=3, sticky=W)
+        self._ent_password.grid(
+            column=1, row=11, columnspan=3, padx=3, pady=3, sticky=W
+        )
         ttk.Separator(self._frm_container).grid(
             column=0, row=12, columnspan=2, padx=3, pady=3, sticky=(W, E)
         )
@@ -466,8 +476,26 @@ class NTRIPConfigDialog(Toplevel):
             index = int(w.curselection()[0])
             srt = w.get(index)  # mountpoint, city, RTCM version
             self._ntrip_mountpoint.set(srt[0])
+            # show distance to selected mountpoint (where available)
+            lat = self.__app.gnss_status.lat
+            lon = self.__app.gnss_status.lon
+            if lat not in ("", 0) and lon not in ("", 0):
+                dist = get_mp_distance(lat, lon, srt)
+                self.set_mp_dist(dist)
         except IndexError:  # not yet populated
             pass
+
+    def set_mp_dist(self, dist: float):
+        """
+        Set mountpoint distance label.
+
+        :param float dist: distance to mountpoint km
+        """
+
+        if dist is None:
+            self._ntrip_mpdist.set("")
+        else:
+            self._ntrip_mpdist.set(f"Distance: {dist:,.1f} km")
 
     def on_exit(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -499,6 +527,8 @@ class NTRIPConfigDialog(Toplevel):
         self._ntrip_server.set(self._settings["server"])
         self._ntrip_port.set(self._settings["port"])
         self._ntrip_mountpoint.set(self._settings["mountpoint"])
+        if self._settings["mountpoint"] != "":
+            self._ntrip_mpdist.set(self._settings["mpdist"])
         self._ntrip_version.set(self._settings["version"])
         self._ntrip_user.set(self._settings["user"])
         self._ntrip_password.set(self._settings["password"])
@@ -516,6 +546,8 @@ class NTRIPConfigDialog(Toplevel):
         self._settings["server"] = self._ntrip_server.get()
         self._settings["port"] = self._ntrip_port.get()
         self._settings["mountpoint"] = self._ntrip_mountpoint.get()
+        if self._settings["mountpoint"] != "":
+            self._settings["mpdist"] = self._ntrip_mpdist.get()
         self._settings["version"] = self._ntrip_version.get()
         self._settings["user"] = self._ntrip_user.get()
         self._settings["password"] = self._ntrip_password.get()
