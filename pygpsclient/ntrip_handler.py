@@ -26,7 +26,6 @@ from pyrtcm import (
 from pynmeagps import NMEAMessage, GET
 from pygpsclient import version as VERSION
 from pygpsclient.globals import DEFAULT_BUFSIZE, CONNECTED
-from pygpsclient.helpers import get_mp_distance
 
 TIMEOUT = 10
 USERAGENT = f"PyGPSClient NTRIP Client/{VERSION}"
@@ -71,7 +70,6 @@ class NTRIPHandler:
             "server": "",
             "port": "2101",
             "mountpoint": "",
-            "mpdist": "",
             "version": "2.0",
             "user": "anon",
             "password": "password",
@@ -257,7 +255,8 @@ class NTRIPHandler:
                             stable.append(strbits)
                     elif line.find("ENDSOURCETABLE") >= 0:  # end of sourcetable
                         self._settings["sourcetable"] = stable
-                        self._find_closest_mp()
+                        if self.__app.dlg_ntripconfig is not None:
+                            self.__app.dlg_ntripconfig.find_mountpoint_distance()
                         return "1"
                     elif (
                         line.find("401 Unauthorized") >= 0
@@ -385,53 +384,3 @@ class NTRIPHandler:
                 self._socket.sendall(raw)
                 self._last_gga = datetime.now()
                 self.__app.process_data(raw, parsed, "NTRIP<<")
-
-    def get_position(self) -> tuple:
-        """
-        Get current position from receiver or manual entries.
-
-        :return: tuple (lat, lon)
-        :rtype: tuple
-        """
-
-        try:
-            lat = (
-                self.__app.gnss_status.lat
-                if self.__app.conn_status == CONNECTED
-                and self._settings["ggalat"] == ""
-                else float(self._settings["ggalat"])
-            )
-            lon = (
-                self.__app.gnss_status.lon
-                if self.__app.conn_status == CONNECTED
-                and self._settings["ggalon"] == ""
-                else float(self._settings["ggalon"])
-            )
-        except ValueError:
-            return "", ""
-        return lat, lon
-
-    def _find_closest_mp(self):
-        """
-        Find closest mountpoint in sourcetable
-        (among those mountpoints which provide coordinates).
-        """
-
-        lat, lon = self.get_position()
-        if lat == "" or lon == "":
-            return
-
-        name = None
-        mindist = 9999999
-        for mp in self._settings["sourcetable"]:
-            dist = get_mp_distance(lat, lon, mp)
-            if dist is not None:
-                if dist < mindist:
-                    name = mp[0]
-                    mindist = dist
-
-        if self.__app.dlg_ntripconfig is not None:
-            if name is None:
-                self.__app.dlg_ntripconfig.set_mp_dist(None)
-            else:
-                self.__app.dlg_ntripconfig.set_mp_dist(mindist, name)

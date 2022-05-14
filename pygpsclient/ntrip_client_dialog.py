@@ -483,35 +483,12 @@ class NTRIPConfigDialog(Toplevel):
         try:
             w = event.widget
             index = int(w.curselection()[0])
-            srt = w.get(index)  # mountpoint, city, RTCM version
-            self._ntrip_mountpoint.set(srt[0])
-            # show distance to selected mountpoint (where available)
-            lat, lon = self.__app.ntrip_handler.get_position()
-            if lat != "" and lon != "":
-                dist = get_mp_distance(lat, lon, srt)
-                self.set_mp_dist(dist)
+            srt = w.get(index)  # sourcetable entry
+            name = srt[0]
+            self._ntrip_mountpoint.set(name)
+            self.find_mountpoint_distance(name)
         except IndexError:  # not yet populated
             pass
-
-    def set_mp_dist(self, dist: float, name: str = ""):
-        """
-        Set mountpoint distance label.
-
-        :param float dist: distance to mountpoint km
-        """
-
-        if dist is None:
-            self._ntrip_mpdist.set("Distance n/a")
-        else:
-            units = self.__app.frm_settings.units
-            dist_u = "km"
-            if units in (UI, UIK):
-                dist *= KM2MILES
-                dist_u = "miles"
-            self._ntrip_mpdist.set(f"Distance {dist:,.1f} {dist_u}")
-
-        if name != "":
-            self._ntrip_mountpoint.set(name)
 
     def on_exit(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -543,8 +520,6 @@ class NTRIPConfigDialog(Toplevel):
         self._ntrip_server.set(self._settings["server"])
         self._ntrip_port.set(self._settings["port"])
         self._ntrip_mountpoint.set(self._settings["mountpoint"])
-        if self._settings["mountpoint"] != "":
-            self._ntrip_mpdist.set(self._settings["mpdist"])
         self._ntrip_version.set(self._settings["version"])
         self._ntrip_user.set(self._settings["user"])
         self._ntrip_password.set(self._settings["password"])
@@ -554,6 +529,8 @@ class NTRIPConfigDialog(Toplevel):
         self._ntrip_gga_alt.set(self._settings["ggaalt"])
         self._ntrip_gga_sep.set(self._settings["ggasep"])
 
+        self.find_mountpoint_distance(self._settings["mountpoint"])
+
     def _set_settings(self):
         """
         Set settings in NTRIP handler.
@@ -562,8 +539,6 @@ class NTRIPConfigDialog(Toplevel):
         self._settings["server"] = self._ntrip_server.get()
         self._settings["port"] = self._ntrip_port.get()
         self._settings["mountpoint"] = self._ntrip_mountpoint.get()
-        if self._settings["mountpoint"] != "":
-            self._settings["mpdist"] = self._ntrip_mpdist.get()
         self._settings["version"] = self._ntrip_version.get()
         self._settings["user"] = self._ntrip_user.get()
         self._settings["password"] = self._ntrip_password.get()
@@ -640,3 +615,81 @@ class NTRIPConfigDialog(Toplevel):
             self.set_status("ERROR - invalid settings", "red")
 
         return valid
+
+    def get_coordinates(self) -> tuple:
+        """
+        Get coordinates for mountpoint distance calculation.
+        Return either actual lat/lon from receiver, or
+        manually-entered lat/lon from NTRIP config panel.
+
+        :return: tuple (lat, lon)
+        :rtype: tuple
+        """
+
+        try:
+            lat = (
+                self.__app.gnss_status.lat
+                if self.__app.conn_status == CONNECTED
+                and self._settings["ggalat"] == ""
+                else float(self._settings["ggalat"])
+            )
+            lon = (
+                self.__app.gnss_status.lon
+                if self.__app.conn_status == CONNECTED
+                and self._settings["ggalon"] == ""
+                else float(self._settings["ggalon"])
+            )
+        except ValueError:
+            return "", ""
+        return lat, lon
+
+    def set_mp_dist(self, dist: float, name: str = ""):
+        """
+        Set mountpoint distance label.
+
+        :param float dist: distance to mountpoint km
+        """
+
+        if name is None:
+            return
+        if dist is None or dist == 9999999:
+            self._ntrip_mpdist.set("Distance n/a")
+        else:
+            units = self.__app.frm_settings.units
+            dist_u = "km"
+            if units in (UI, UIK):
+                dist *= KM2MILES
+                dist_u = "miles"
+            self._ntrip_mpdist.set(f"Distance {dist:,.1f} {dist_u}")
+
+        if name != "":
+            self._ntrip_mountpoint.set(name)
+
+    def find_mountpoint_distance(self, name: str = ""):
+        """
+        Find distance to named mountpoint. If mountpoint name
+        is not provided, find closest mountpoint (among those
+        mountpoints which provide coordinates).
+
+        :param str name: mountpoint name
+        """
+
+        lat, lon = self.get_coordinates()
+        if lat == "" or lon == "":
+            return
+
+        mindist = 9999999
+        mpname = None
+        for mp in self._settings["sourcetable"]:
+            dist = get_mp_distance(lat, lon, mp)
+            if name == "":
+                if dist is not None:
+                    if dist < mindist:
+                        mpname = mp[0]
+                        mindist = dist
+            else:
+                if mp[0] == name:
+                    mpname = mp[0]
+                    mindist = dist
+
+        self.set_mp_dist(mindist, mpname)

@@ -617,7 +617,7 @@ def get_mp_distance(lat: float, lon: float, mp: list) -> float:
 
     dist = None
     try:
-        if len(mp) >= 10:  # if location provided for this mountpoint
+        if len(mp) > 9:  # if location provided for this mountpoint
             lat2 = float(mp[8])
             lon2 = float(mp[9])
             dist = haversine(lat, lon, lat2, lon2)
