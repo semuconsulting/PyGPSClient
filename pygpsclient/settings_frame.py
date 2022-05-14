@@ -694,13 +694,13 @@ class SettingsFrame(Frame):
         return self._mapzoom.get()
 
     @property
-    def units(self) -> int:
+    def units(self) -> str:
         """
         Getter for display units
 
         :return: "UMM" = metric m/s, "UMK" = metric kmph,
                  "UI" = imperial mph, "UIK" = imperial knots
-        :rtype: int
+        :rtype: str
         """
 
         return self._units.get()

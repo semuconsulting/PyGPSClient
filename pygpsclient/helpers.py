@@ -35,6 +35,7 @@ VALNONBLANK = 2
 VALINT = 4
 VALFLOAT = 8
 VALURL = 16
+EARTH_RADIUS = 6371  # km
 
 
 class ConfirmBox(Toplevel):
@@ -576,17 +577,17 @@ def valid_entry(entry: Entry, valmode: int, low=None, high=None) -> bool:
 
 
 def haversine(
-    lat1: float, lon1: float, lat2: float, lon2: float, rds: int = 6371
+    lat1: float, lon1: float, lat2: float, lon2: float, rds: int = EARTH_RADIUS
 ) -> float:
     """
     Calculate spherical distance between two coordinates using haversine formula.
 
     :param float lat1: lat1
-    :param float lon1: lat1
-    :param float lat2: lat1
-    :param float lon2: lat1
-    :param float rds: earth radius km (6371)
-    :return: distance in km
+    :param float lon1: lon1
+    :param float lat2: lat2
+    :param float lon2: lon2
+    :param float rds: earth radius (6371 km)
+    :return: spherical distance in km
     :rtype: float
     """
 
@@ -603,6 +604,10 @@ def get_mp_distance(lat: float, lon: float, mp: list) -> float:
     """
     Get distance to mountpoint from current location (if known).
 
+    The sourcetable mountpoint entry is a list where index [0]
+    is the name and indices [8] & [9] are the lat/lon. Not all
+    sourcetable entries provide this information.
+
     :param float lat: current latitude
     :param float lon: current longitude
     :param list mp: sourcetable mountpoint entry
@@ -612,7 +617,7 @@ def get_mp_distance(lat: float, lon: float, mp: list) -> float:
 
     dist = None
     try:
-        if len(mp) >= 10:
+        if len(mp) >= 10:  # if location provided for this mountpoint
             lat2 = float(mp[8])
             lon2 = float(mp[9])
             dist = haversine(lat, lon, lat2, lon2)
