@@ -16,7 +16,7 @@
 PyGPSClient is a multi-platform graphical GNSS/GPS testing, diagnostic and UBX &copy; (u-blox &trade;) device configuration application written entirely in Python and tkinter.
 
 ![full app screenshot ubx](/images/app.png)
-*Screenshot showing mixed-protocol stream from u-blox ZED-F9P receiver, using `PyGPSClient`'s [NTRIP Client](#ntripconfig) to achieve >= 1cm accuracy*
+*Screenshot showing mixed-protocol stream from u-blox ZED-F9P receiver, using PyGPSClient's [NTRIP Client](#ntripconfig) to achieve >= 1cm accuracy*
 
 The application runs on any platform which supports a Python interpreter (>=3.7) and tkinter (>=8.6) GUI framework, including Windows, MacOS, Linux and Raspberry Pi OS. It displays navigation and diagnostic data from any NMEA, UBX or RTCM3 compatible GNSS/GPS device *in addition to* providing a useful subset of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool.
 
@@ -140,7 +140,7 @@ Below is a illustrative NTRIP DGPS data log, showing:
 In the following, `python` & `pip` refer to the Python 3 executables. You may need to type 
 `python3` or `pip3`, depending on your particular environment. It is also recommended that 
 the Python 3 scripts (bin) and site_packages directories are included in your PATH 
-(*most standard Python 3 installation packages will do this automatically*).
+(*many standard Python 3 installation packages will do this automatically*).
 
 ### Platform Dependencies
 
@@ -160,6 +160,10 @@ sudo apt install tk-dev
 
 To access the serial port on most Linux platforms, you will need to be a member of the 
 `tty` and/or `dialout` groups. Other than this, no special privileges are required.
+
+```shell
+usermod -a -G tty myuser
+```
 
 ### 1. Install using pip
 
@@ -236,10 +240,10 @@ To install PyGPSClient manually, download and unzip this repository and run:
 python -m /path_to_folder/foldername/pygpsclient
 ```
 
-e.g. if you downloaded and unzipped to a folder named `PyGPSClient-1.1.9`, run: 
+e.g. if you downloaded and unzipped to a folder named `PyGPSClient-1.3.4`, run: 
 
 ```shell
-python -m /path_to_folder/PyGPSClient-1.1.9/pygpsclient
+python -m /path_to_folder/PyGPSClient-1.3.4/pygpsclient
 ```
 
 ---
