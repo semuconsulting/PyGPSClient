@@ -1,7 +1,6 @@
-# PyGPSClient colortags file
-#
-# List of strings to highlight in console. Format is:
-#
+# COLORTAGS
+# List of strings to highlight in console.
+# Format is:
 # string;color
 #
 # Place this file in your home directory.
@@ -15,6 +14,7 @@ ACK-ACK;green2
 ACK-NAK;orange red
 CFG-MSG;cyan
 CFG-VALGET;deepskyblue
+NMEA;lightblue1
 DTM;deepskyblue
 GAQ;pink
 GBQ;pink
@@ -29,6 +29,14 @@ GRS;yellow
 GSA;green2
 GST;mediumpurple2
 GSV;yellow
+RLM;pink
+RMC;orange
+RXM;skyblue1
+THS;deepskyblue
+TXT;lightgrey
+VLW;deepskyblue
+VTG;deepskyblue
+ZDA;cyan
 HNR-PVT;orange
 INF-ERROR;red2
 INF-NOTICE;deepskyblue
@@ -70,21 +78,15 @@ NAV-TIMEQZSS;cyan
 NAV-TIMEUTC;cyan
 NAV-VELECEF;deepskyblue
 NAV-VELNED;deepskyblue
-NMEA;lightblue1
-RLM;pink
-RMC;orange
 RTCM;lightblue1
-RXM;skyblue1
-TXT;lightgrey
 UBX;lightblue1
 UBX, msgId=00;aquamarine2
 UBX, msgId=03;yellow
 UBX, msgId=04;cyan
 UBX, msgId=05;orange
 UBX, msgId=06;orange
-VLW;deepskyblue
-VTG,deepskyblue
-ZDA;cyan
 UNKNOWN PROTOCOL;red
+ERROR;red
+WARNING;red
 NTRIP>>;mediumpurple1
 NTRIP<<;mediumpurple1

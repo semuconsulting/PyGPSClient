@@ -29,6 +29,8 @@ from pygpsclient.helpers import (
     fix2desc,
     estimate_acc,
     validURL,
+    haversine,
+    get_mp_distance,
 )
 
 
@@ -129,6 +131,58 @@ class StaticTest(unittest.TestCase):
         self.assertEqual(res, False)
         res = validURL("sdfffasdff")
         self.assertEqual(res, False)
+
+    def testhaversine(self):
+        res = haversine(51.23, -2.41, 34.205, 56.34)
+        self.assertAlmostEqual(res, 5005.114961720793, 4)
+        res = haversine(-12.645, 34.867, 145.1745, -56.27846)
+        self.assertAlmostEqual(res, 10703.380604004034, 4)
+
+    def testgetmpdistance(self):
+        mp = [
+            "TKC-EGA",
+            "Wrens, GA",
+            "RTCM 3.2",
+            "1005(1),1074(1),1084(1),1094(1),1124(1),1230(1)",
+            "",
+            "GPS+GLO+GAL+BDS",
+            "SNIP",
+            "USA",
+            "33.31",
+            "-82.44",
+            "1",
+            "0",
+            "sNTRIP",
+            "none",
+            "N",
+            "N",
+            "4200",
+            "",
+        ]
+        res = get_mp_distance(34.123, 14.6743, mp)
+        self.assertAlmostEqual(res, 8578.78150461319, 4)
+        mp = [
+            "tobetsu-tsujino",
+            "Tobetsu",
+            "RTCM 3.2",
+            "1005(1),1077(1),1087(1),1127(1),1230(10)",
+            "",
+            "GPS+GLO+BDS",
+            "SNIP",
+            "JPN",
+            "43.22",
+            "141.52",
+            "1",
+            "0",
+            "sNTRIP",
+            "none",
+            "N",
+            "N",
+            "8300",
+            "",
+        ]
+        res = get_mp_distance(-34.123, -8.6743, mp)
+        self.assertAlmostEqual(res, 17255.05227009936, 4)
 
 
 if __name__ == "__main__":

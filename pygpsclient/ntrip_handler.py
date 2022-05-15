@@ -142,7 +142,7 @@ class NTRIPHandler:
                 target=self._read_thread,
                 args=(
                     self._stopevent,
-                    self.__app.msgqueue,
+                    self.__app.ntripqueue,
                 ),
                 daemon=True,
             )
@@ -158,13 +158,13 @@ class NTRIPHandler:
             self._stopevent.set()
             self._ntrip_thread = None
 
-    def _read_thread(self, stopevent: Event, msgqueue: Queue):
+    def _read_thread(self, stopevent: Event, ntripqueue: Queue):
         """
         THREADED
         Opens socket to NTRIP server and reads incoming data.
 
         :param Event stopevent: stop event
-        :param Queue msgqueue: message queue
+        :param Queue ntripqueue: NTRIP message queue
         """
 
         server = self._settings["server"]
@@ -182,7 +182,7 @@ class NTRIPHandler:
                 while not stopevent.is_set():
                     rc = self._do_header(self._socket, stopevent)
                     if rc == "0":
-                        self._do_data(self._socket, stopevent, msgqueue)
+                        self._do_data(self._socket, stopevent, ntripqueue)
                     elif rc == "1":
                         stopevent.set()
                         self._connected = False
@@ -255,6 +255,8 @@ class NTRIPHandler:
                             stable.append(strbits)
                     elif line.find("ENDSOURCETABLE") >= 0:  # end of sourcetable
                         self._settings["sourcetable"] = stable
+                        if self.__app.dlg_ntripconfig is not None:
+                            self.__app.dlg_ntripconfig.find_mp_distance()
                         return "1"
                     elif (
                         line.find("401 Unauthorized") >= 0
@@ -270,7 +272,7 @@ class NTRIPHandler:
 
         return "0"
 
-    def _do_data(self, sock: socket, stopevent: Event, msgqueue: Queue):
+    def _do_data(self, sock: socket, stopevent: Event, ntripqueue: Queue):
         """
         THREADED
         Read NTRIP server socket and generate virtual <<ntrip_read>> event
@@ -278,7 +280,7 @@ class NTRIPHandler:
 
         :param socket sock: socket
         :param Event stopevent: stop event
-        :param Queue msgqueue: message queue
+        :param Queue ntripqueue: NTRIP message queue
         """
 
         # UBXreader will wrap socket as SocketStream
@@ -296,7 +298,7 @@ class NTRIPHandler:
 
                 raw_data, parsed_data = rtr.read()
                 if raw_data is not None:
-                    msgqueue.put((raw_data, parsed_data))
+                    ntripqueue.put((raw_data, parsed_data))
                     self.__master.event_generate("<<ntrip_read>>")
                 if self._gga_interval:
                     self._send_GGA()
@@ -307,7 +309,7 @@ class NTRIPHandler:
                 RTCMTypeError,
             ) as err:
                 parsed_data = f"Error parsing data stream {err}"
-                msgqueue.put((raw_data, parsed_data))
+                ntripqueue.put((raw_data, parsed_data))
                 self.__master.event_generate("<<ntrip_read>>")
                 continue
 

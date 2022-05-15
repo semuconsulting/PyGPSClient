@@ -15,7 +15,8 @@
 
 PyGPSClient is a multi-platform graphical GNSS/GPS testing, diagnostic and UBX &copy; (u-blox &trade;) device configuration application written entirely in Python and tkinter.
 
-![full app screenshot ubx](/images/all_widgets.png)
+![full app screenshot ubx](/images/app.png)
+*Screenshot showing mixed-protocol stream from u-blox ZED-F9P receiver, using `PyGPSClient`'s [NTRIP Client](#ntripconfig) to achieve >= 1cm accuracy*
 
 The application runs on any platform which supports a Python interpreter (>=3.7) and tkinter (>=8.6) GUI framework, including Windows, MacOS, Linux and Raspberry Pi OS. It displays navigation and diagnostic data from any NMEA, UBX or RTCM3 compatible GNSS/GPS device *in addition to* providing a useful subset of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool.
 
@@ -63,7 +64,7 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 
 * To connect to a listed serial device, select the device from the listbox, set the appropriate serial connection parameters and click 
 ![connect icon](/pygpsclient/resources/usbport-1-24.png). The application will endeavour to pre-select a recognised GNSS/GPS device but this is platform and device dependent. Press the ![refresh](/pygpsclient/resources/iconmonstr-refresh-6-16.png) button to refresh the list of connected devices at any point. *Rate bps is typically the only setting that might need adjusting, but tweaking the timeout setting may improve performance on certain platforms*.
-* **BETA FEATURE** To connect to a TCP or UDP socket, enter the server URL and port, select the protocol (defaults to TCP) and click 
+* To connect to a TCP or UDP socket, enter the server URL and port, select the protocol (defaults to TCP) and click 
 ![connect socket icon](/pygpsclient/resources/ethernet-1-24.png).
 * To stream from a previously-saved binary datalog file, click 
 ![connect-file icon](/pygpsclient/resources/binary-1-24.png) and select the file. PyGPSClient datalog files will be named e.g. `pygpsdata-20220427114802.log`, but any binary dump of an GNSS receiver output is acceptable.
@@ -112,14 +113,12 @@ warning ![warning icon](/pygpsclient/resources/iconmonstr-warning-1-24.png)).
 ---
 ### <a name="ntripconfig">NTRIP Client Facilities</a>
 
-**BETA FEATURE**
-
 ![ntrip config widget screenshot](/images/ntripconfig_widget.png)
 
 To use:
 1. Enter the required NTRIP server URL (or IP address) and port (defaults to 2101). For services which require authorisation, enter your login username and password.
-1. To retrieve the sourcetable, leave the mountpoint field blank and click connect (*response may take a few seconds*). The required mountpoint may then be selected from the list, or entered manually.
-1. For NTRIP services which require client position data via NMEA GGA sentences, select the appropriate sentence transmission interval in seconds (*only available when a GNSS receiver is connected*). The default is 'None' (no GGA sentences sent). A value of 10 or 60 seconds is typical.
+1. To retrieve the sourcetable, leave the mountpoint field blank and click connect (*response may take a few seconds*). The required mountpoint may then be selected from the list, or entered manually. Where possible with the information provided by the caster, `PyGPSClient` will automatically identify the closest mountpoint to the current location.
+1. For NTRIP services which require client position data via NMEA GGA sentences, select the appropriate sentence transmission interval in seconds. The default is 'None' (no GGA sentences sent). A value of 10 or 60 seconds is typical.
 1. If GGA sentence transmission is enabled, GGA sentences can either be populated from live navigation data (*assuming a receiver is connected and outputting valid position data*) or from manual settings entered in the NTRIP configuration panel (latitude, longitude, elevation and separation - all four manual settings must be provided).
 1. To connect to the NTRIP server, click ![connect icon](/pygpsclient/resources/iconmonstr-media-control-48-24.png). To disconnect, click ![disconnect icon](/pygpsclient/resources/iconmonstr-media-control-50-24.png).
 1. If NTRIP data is being successfully received, the banner '**dgps:**' status indicator should change to 'YES' and indicate the age and reference station of the correction data (where available) ![dgps status](/images/dgps_status.png). Note that DGPS status is typically maintained for up to 60 seconds after loss of correction signal.
@@ -304,14 +303,11 @@ FORCE COLD RESTART !*** Expect ClearCommError ***!, CFG, CFG-RST, ffff0100, 1
 ---
 ## <a name="knownissues">Known Issues</a>
 
-As of April 2022 there appear to be some performance issues with the version of tkinter embedded with Python >=3.9 on MacOS Monterey.
-
-Windows and Linux (including Raspberry Pi OS) users are unaffected.
-
-The application is fully functional on MacOS Monterey but you may find dialog frame load/resizing operations are relatively slow, particularly on newer Apple M1 platforms e.g. some dialogs may take a while to load and may require manual resizing when first opened. This will hopefully be resolved in a subsequent MacOS update, but in the meantime the impact can be minimised by:
+As at May 2022, tkinter performance is noticeably slower on MacOS Monterey platforms (particularly M1/M2) than on Windows or Linux, though internal streamlining in PyGPSClient v1.3.2 went some way to mitigating the impact. The application is fully functional on MacOS but you may find some dialog load operations are relatively slow, particularly at high message rates. This may be resolved in a subsequent MacOS update, but in the meantime the impact can be minimised by:
 1. Opening and closing the UBX or NTRIP configuration dialogs while the serial connection is closed.
 1. Minimising incoming message rates while using the configuration facilities. The [UBX Configuration](#ubxconfig) facility offers presets for 'minimum NMEA messages' or 'minimum UBX messages'.
-1. Temporarily disabling the console display of certain message protocols using the 'Protocols Displayed' checkboxes.
+1. Temporarily disabling the console display of certain message protocols using the 'Protocols Shown' checkboxes.
+1. Turning off color tagging.
 
 ---
 ## <a name="glossary">Glossary of Terms</a>

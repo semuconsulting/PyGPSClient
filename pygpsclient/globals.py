@@ -49,7 +49,7 @@ GPX_NS = " ".join(
 )
 MAPURL = "https://www.mapquestapi.com/staticmap/v5/map?key={}&locations={},{}&zoom={}&defaultMarker=marker-sm-616161-ff4444&shape=radius:{}|weight:1|fill:ccffff50|border:88888850|{},{}&size={},{}"
 MAP_UPDATE_INTERVAL = (
-    20  # how frequently the mapquest api is called to update the web map (seconds)
+    60  # how frequently the mapquest api is called to update the web map (seconds)
 )
 GUI_UPDATE_INTERVAL = 1  # minimum GUI widget update interval (seconds)
 GPX_TRACK_INTERVAL = 1  # minimum GPS track update interval (seconds)

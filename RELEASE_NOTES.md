@@ -1,5 +1,13 @@
 # PyGPSClient Release Notes
 
+### RELEASE CANDIDATE v1.3.4
+
+ENHANCEMENTS:
+
+1. Enhancement to NTRIP client - will now automatically identity and select the closest mountpoint in the sourcetable (among those mountpoints which provide location information, and assuming current location is known approximately). Selection can be overridden.
+2. hacc/vacc display on banner increased to 3dp (limit of reliability). **NB:** in order to see hacc/vacc readings, you will need to be receiving messages which provide this data e.g. NMEA PUBX-00 or UBX NAV-PVT, NAV-POSLLH. It *cannot* be reliably inferred from hdop/vdop.
+3. Minor internal refactoring to improve performance and resilience of NTRIP client.
+
 ### RELEASE v1.3.3
 
 FIXES:
@@ -11,7 +19,7 @@ FIXES:
 CHANGES:
 
 1. Internal refactoring of `serial_handler.py` and `socket_handler.py` into single `stream_handler.py`.
-2. Minimum versions of `pyubx2` and `pynmeagps` updated to 1.2.9 and 1.0.10 respectively.
+2. Minimum versions of `pyubx2` and `pynmeagps` updated to 1.2.9 and 1.0.11 respectively.
 
 FIXES:
 
