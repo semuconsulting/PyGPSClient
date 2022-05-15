@@ -289,7 +289,7 @@ class NMEAHandler:
 
         self.__app.gnss_status.lat = data.lat
         self.__app.gnss_status.lon = data.lon
-        self.__app.gnss_status.alt = data.altRef
+        # self.__app.gnss_status.alt = data.altRef height above datum, not SL
         self.__app.gnss_status.speed = data.SOG
         self.__app.gnss_status.track = data.COG
         self.__app.gnss_status.pdop = data.PDOP
