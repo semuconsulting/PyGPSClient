@@ -486,7 +486,7 @@ class NTRIPConfigDialog(Toplevel):
             srt = w.get(index)  # sourcetable entry
             name = srt[0]
             self._ntrip_mountpoint.set(name)
-            self.find_mountpoint_distance(name)
+            self.find_mp_distance(name)
         except IndexError:  # not yet populated
             pass
 
@@ -529,7 +529,7 @@ class NTRIPConfigDialog(Toplevel):
         self._ntrip_gga_alt.set(self._settings["ggaalt"])
         self._ntrip_gga_sep.set(self._settings["ggasep"])
 
-        self.find_mountpoint_distance(self._settings["mountpoint"])
+        self.find_mp_distance(self._settings["mountpoint"])
 
     def _set_settings(self):
         """
@@ -597,14 +597,15 @@ class NTRIPConfigDialog(Toplevel):
         if self._ntrip_gga_interval.get() != "None":  # sending GGA
             # either use all 4 fixed settings to construct GGA sentence,
             # or use live readings from connected receiver
+            # valid = valid & valid_entry(self._ent_mountpoint, VALNONBLANK)
+            fxd = (
+                self._ent_lat.get()
+                + self._ent_lon.get()
+                + self._ent_alt.get()
+                + self._ent_sep.get()
+            )
             if self.__app.conn_status != CONNECTED or (
-                self.__app.conn_status == CONNECTED
-                and (
-                    self._ent_lat.get() != ""
-                    or self._ent_lon.get() != ""
-                    or self._ent_alt.get() != ""
-                    or self._ent_sep.get() != ""
-                )
+                self.__app.conn_status == CONNECTED and fxd != ""
             ):
                 valid = valid & valid_entry(self._ent_lat, VALFLOAT, -90.0, 90.0)
                 valid = valid & valid_entry(self._ent_lon, VALFLOAT, -180.0, 180.0)
@@ -612,7 +613,7 @@ class NTRIPConfigDialog(Toplevel):
                 valid = valid & valid_entry(self._ent_sep, VALFLOAT, -MAXALT, MAXALT)
 
         if not valid:
-            self.set_status("ERROR - invalid settings", "red")
+            self.set_status(f"ERROR - invalid settings", "red")
 
         return valid
 
@@ -650,39 +651,39 @@ class NTRIPConfigDialog(Toplevel):
         :param float dist: distance to mountpoint km
         """
 
-        if name is None:
+        if name in (None, ""):
             return
-        if dist is None or dist == 9999999:
-            self._ntrip_mpdist.set("Distance n/a")
-        else:
+        dist_l = "Distance n/a"
+        dist_u = "km"
+        if dist not in (None, 9999999):
             units = self.__app.frm_settings.units
-            dist_u = "km"
             if units in (UI, UIK):
                 dist *= KM2MILES
                 dist_u = "miles"
-            self._ntrip_mpdist.set(f"Distance {dist:,.1f} {dist_u}")
+            dist_l = f"Distance {dist:,.1f} {dist_u}"
 
-        if name != "":
-            self._ntrip_mountpoint.set(name)
+        self._ntrip_mountpoint.set(name)
+        self._ntrip_mpdist.set(dist_l)
 
-    def find_mountpoint_distance(self, name: str = ""):
+    def find_mp_distance(self, name: str = ""):
         """
-        Find distance to named mountpoint. If mountpoint name
-        is not provided, find closest mountpoint (among those
-        mountpoints which provide coordinates).
+        Find distance to named mountpoint and populate NTRP config dialog.
+        If mountpoint name is not provided, find closest mountpoint (among
+        those mountpoints which provide coordinates).
 
         :param str name: mountpoint name
         """
 
         lat, lon = self.get_coordinates()
         if lat == "" or lon == "":
+            self.set_mp_dist(None, name)
             return
 
         mindist = 9999999
         mpname = None
         for mp in self._settings["sourcetable"]:
             dist = get_mp_distance(lat, lon, mp)
-            if name == "":
+            if name == "":  # find closest
                 if dist is not None:
                     if dist < mindist:
                         mpname = mp[0]
@@ -691,5 +692,6 @@ class NTRIPConfigDialog(Toplevel):
                 if mp[0] == name:
                     mpname = mp[0]
                     mindist = dist
+                    break
 
         self.set_mp_dist(mindist, mpname)

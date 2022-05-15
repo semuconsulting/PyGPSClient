@@ -611,8 +611,8 @@ def get_mp_distance(lat: float, lon: float, mp: list) -> float:
     :param float lat: current latitude
     :param float lon: current longitude
     :param list mp: sourcetable mountpoint entry
-    :return: distance to mountpoint in km
-    :rtype: float
+    :return: distance to mountpoint in km, or None if n/a
+    :rtype: float or None
     """
 
     dist = None

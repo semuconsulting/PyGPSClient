@@ -25,7 +25,7 @@ from pyrtcm import (
 )
 from pynmeagps import NMEAMessage, GET
 from pygpsclient import version as VERSION
-from pygpsclient.globals import DEFAULT_BUFSIZE, CONNECTED
+from pygpsclient.globals import DEFAULT_BUFSIZE
 
 TIMEOUT = 10
 USERAGENT = f"PyGPSClient NTRIP Client/{VERSION}"
@@ -256,7 +256,7 @@ class NTRIPHandler:
                     elif line.find("ENDSOURCETABLE") >= 0:  # end of sourcetable
                         self._settings["sourcetable"] = stable
                         if self.__app.dlg_ntripconfig is not None:
-                            self.__app.dlg_ntripconfig.find_mountpoint_distance()
+                            self.__app.dlg_ntripconfig.find_mp_distance()
                         return "1"
                     elif (
                         line.find("401 Unauthorized") >= 0
