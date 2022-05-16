@@ -191,7 +191,13 @@ class NTRIPHandler:
                         stopevent.set()
                         self._connected = False
                         self._set_controls(False, (f"Error!: {rc}", "red"))
-        except (socket.gaierror, ConnectionResetError, TimeoutError) as err:
+        except (
+            socket.gaierror,
+            ConnectionAbortedError,
+            ConnectionResetError,
+            BrokenPipeError,
+            TimeoutError,
+        ) as err:
             stopevent.set()
             self._connected = False
             self._set_controls(False, (f"Connection error {err}", "red"))
