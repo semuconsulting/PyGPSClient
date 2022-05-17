@@ -1,6 +1,13 @@
 # PyGPSClient Release Notes
 
-### RELEASE CANDIDATE v1.3.4
+### RELEASE CANDIDATE v1.3.5
+
+ENHANCEMENTS:
+
+1. **New BETA socket server feature**. Outputs the currently connected raw (binary) input stream to a designated TCP socket. The socket host address is `0.0.0.0` (i.e. binds to all available IP addresses on the host machine). The socket port defaults to `50010` but is configurable via the settings panel. Once enabled, the output socket stream can be accessed by any socket client capable of parsing raw GNSS data, including another instance of PyGPSClient or `gnssdump` (the CLI utility installed with `pyubx2`) running on another machine (*assuming the traffic is permitted through any firewalls*). The maximum number of clients is arbitrarily limited to 5. A label on the settings panel indicates the number of connected clients - this turns red when the maximum has been reached.
+2. The default configuration for the socket server is set in `globals.py` as `SOCKSERVER_HOST`, `SOCKSERVER_PORT` and `SOCKSERVER_MAX_CLIENTS`.
+
+### RELEASE v1.3.4
 
 ENHANCEMENTS:
 
