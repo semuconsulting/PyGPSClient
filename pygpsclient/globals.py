@@ -51,6 +51,9 @@ MAPURL = "https://www.mapquestapi.com/staticmap/v5/map?key={}&locations={},{}&zo
 MAP_UPDATE_INTERVAL = (
     60  # how frequently the mapquest api is called to update the web map (seconds)
 )
+SOCKSERVER_HOST = "0.0.0.0"  # default socket server hostname
+SOCKSERVER_PORT = 50010  # default socket server port
+SOCKSERVER_MAX_CLIENTS = 5  # max number of socket server clients
 GUI_UPDATE_INTERVAL = 1  # minimum GUI widget update interval (seconds)
 GPX_TRACK_INTERVAL = 1  # minimum GPS track update interval (seconds)
 FILEREAD_INTERVAL = 0.02  # delay between successive datalog file reads (seconds)

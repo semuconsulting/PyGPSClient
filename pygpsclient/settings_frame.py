@@ -19,6 +19,7 @@ from tkinter import (
     Frame,
     Button,
     Label,
+    Entry,
     Spinbox,
     Scale,
     Checkbutton,
@@ -61,6 +62,8 @@ from pygpsclient.globals import (
     BPSRATES,
     FORMATS,
     TAG_COLORS,
+    SOCKSERVER_PORT,
+    SOCKSERVER_MAX_CLIENTS,
 )
 from pygpsclient.helpers import valid_entry, VALINT, VALURL, MAXPORT
 from pygpsclient.strings import (
@@ -72,6 +75,9 @@ from pygpsclient.strings import (
     LBLTRACKRECORD,
     LBLSHOWUNUSED,
     LBLLEGEND,
+    LBLSOCKSERVE,
+    LBLSERVERPORT,
+    LBLDEGFORMAT,
 )
 
 TIMEOUTS = (
@@ -120,6 +126,9 @@ class SettingsFrame(Frame):
         self._show_unusedsat = IntVar()
         self._show_legend = IntVar()
         self._colortags = IntVar()
+        self._socket_serve = IntVar()
+        self._sock_port = StringVar()
+        self.sock_clients = StringVar()
         self._validsettings = True
         self._in_filepath = None
         self._logpath = None
@@ -228,7 +237,7 @@ class SettingsFrame(Frame):
             text="Tags",
             variable=self._colortags,
         )
-        self._lbl_format = Label(self._frm_options, text="Degrees Format")
+        self._lbl_format = Label(self._frm_options, text=LBLDEGFORMAT)
         self._spn_format = Spinbox(
             self._frm_options,
             values=(DDD, DMS, DMM),
@@ -303,6 +312,33 @@ class SettingsFrame(Frame):
             variable=self._record_track,
             command=lambda: self._on_record_track(),
         )
+        # socket server configuration
+        self._chk_socketserve = Checkbutton(
+            self._frm_options,
+            text=LBLSOCKSERVE,
+            variable=self._socket_serve,
+            command=lambda: self._on_socket_serve(),
+            state=DISABLED,
+        )
+        self._lbl_sockport = Label(
+            self._frm_options,
+            text=LBLSERVERPORT,
+            state=DISABLED,
+        )
+        self.ent_sockport = Entry(
+            self._frm_options,
+            textvariable=self._sock_port,
+            bg=ENTCOL,
+            relief="sunken",
+            width=6,
+            state=DISABLED,
+        )
+        self._lbl_sockclients = Label(
+            self._frm_options,
+            textvariable=self.sock_clients,
+            state=DISABLED,
+        )
+        # configuration panel buttons
         self._lbl_ubxconfig = Label(self._frm_options, text=LBLUBXCONFIG)
         self._btn_ubxconfig = Button(
             self._frm_options,
@@ -389,14 +425,17 @@ class SettingsFrame(Frame):
         self._chk_recordtrack.grid(
             column=0, row=8, columnspan=2, padx=2, pady=2, sticky=(W)
         )
-
+        self._chk_socketserve.grid(column=0, row=9, padx=2, pady=2, sticky=(W))
+        self._lbl_sockport.grid(column=1, row=9, padx=2, pady=2, sticky=(E))
+        self.ent_sockport.grid(column=2, row=9, padx=2, pady=2, sticky=(W))
+        self._lbl_sockclients.grid(column=3, row=9, padx=2, pady=2, sticky=(W))
         ttk.Separator(self._frm_options).grid(
-            column=0, row=9, columnspan=4, padx=2, pady=2, sticky=(W, E)
+            column=0, row=10, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
-        self._lbl_ubxconfig.grid(column=0, row=10, padx=2, pady=2, sticky=(E))
-        self._btn_ubxconfig.grid(column=1, row=10, padx=2, pady=2, sticky=(W))
-        self._lbl_ntripconfig.grid(column=2, row=10, padx=2, pady=2, sticky=(E))
-        self._btn_ntripconfig.grid(column=3, row=10, padx=2, pady=2, sticky=(W))
+        self._lbl_ubxconfig.grid(column=0, row=11, padx=2, pady=2, sticky=(E))
+        self._btn_ubxconfig.grid(column=1, row=11, padx=2, pady=2, sticky=(W))
+        self._lbl_ntripconfig.grid(column=2, row=11, padx=2, pady=2, sticky=(E))
+        self._btn_ntripconfig.grid(column=3, row=11, padx=2, pady=2, sticky=(W))
 
     def _on_ubx_config(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -504,10 +543,30 @@ class SettingsFrame(Frame):
             self.__app.conn_status = CONNECTED_FILE
             self.__app.stream_handler.start_read_thread(CONNECTED_FILE)
 
+    def _on_socket_serve(self):
+        """
+        Start or stop socket server.
+        """
+
+        if not valid_entry(self.ent_sockport, VALINT, 1, MAXPORT):
+            self.__app.set_status("ERROR - invalid port", "red")
+            self._socket_serve.set(0)
+            return
+
+        if self._socket_serve.get() == 1:
+            self.__app.start_sockserver_thread()
+        else:
+            self.__app.stop_sockserver_thread()
+
     def _on_disconnect(self):
+        """
+        Disconnect from stream.
+        """
 
         if self.__app.conn_status in (CONNECTED, CONNECTED_FILE, CONNECTED_SOCKET):
             self.__app.stream_handler.stop_read_thread()
+            self.__app.stop_sockserver_thread()
+            self._socket_serve.set(0)
 
     def _reset(self):
         """
@@ -530,6 +589,9 @@ class SettingsFrame(Frame):
         self._record_track.set(False)
         self._logformat.set(FORMATS[1])  # Binary
         self._colortags.set(TAG_COLORS)
+        self._socket_serve.set(0)
+        self._sock_port.set(SOCKSERVER_PORT)
+        self.clients = 0
 
     def enable_controls(self, status: int):
         """
@@ -552,22 +614,21 @@ class SettingsFrame(Frame):
                 else NORMAL
             )
         )
-        self._btn_connect_socket.config(
-            state=(
-                DISABLED
-                if status in (CONNECTED, CONNECTED_SOCKET, CONNECTED_FILE)
-                else NORMAL
+        for ctl in (
+            self._btn_connect_socket,
+            self._btn_connect_file,
+            self._chk_datalog,
+            self._chk_recordtrack,
+        ):
+            ctl.config(
+                state=(
+                    DISABLED
+                    if status in (CONNECTED, CONNECTED_SOCKET, CONNECTED_FILE)
+                    else NORMAL
+                )
             )
-        )
         self._btn_disconnect.config(
             state=(DISABLED if status in (DISCONNECTED,) else NORMAL)
-        )
-        self._chk_datalog.config(
-            state=(
-                DISABLED
-                if status in (CONNECTED, CONNECTED_SOCKET, CONNECTED_FILE)
-                else NORMAL
-            )
         )
         self._spn_datalog.config(
             state=(
@@ -576,20 +637,19 @@ class SettingsFrame(Frame):
                 else READONLY
             )
         )
-        self._chk_recordtrack.config(
-            state=(
-                DISABLED
-                if status in (CONNECTED, CONNECTED_SOCKET, CONNECTED_FILE)
-                else NORMAL
+        for ctl in (
+            self._chk_socketserve,
+            self.ent_sockport,
+            self._lbl_sockport,
+            self._lbl_sockclients,
+        ):
+            ctl.config(
+                state=(
+                    NORMAL
+                    if status in (CONNECTED, CONNECTED_SOCKET, CONNECTED_FILE)
+                    else DISABLED
+                )
             )
-        )
-        self._btn_connect_file.config(
-            state=(
-                DISABLED
-                if status in (CONNECTED, CONNECTED_SOCKET, CONNECTED_FILE)
-                else NORMAL
-            )
-        )
 
     def get_size(self) -> tuple:
         """
@@ -804,3 +864,38 @@ class SettingsFrame(Frame):
         """
 
         return self._show_legend.get()
+
+    @property
+    def server_port(self) -> int:
+        """
+        Getter for socket server port
+
+        :return: port
+        :rtype: int
+        """
+
+        return int(self._sock_port.get())
+
+    @property
+    def clients(self) -> int:
+        """
+        Getter for number of socket clients.
+        """
+
+        return self.sock_clients.get()
+
+    @clients.setter
+    def clients(self, clients: int):
+        """
+        Setter for number of socket clients.
+
+        :param int clients: no of clients connected
+        """
+
+        self.sock_clients.set(f"Clients {clients}")
+        if clients >= SOCKSERVER_MAX_CLIENTS:
+            self._lbl_sockclients.config(fg="red")
+        elif clients == 0:
+            self._lbl_sockclients.config(fg="black")
+        else:
+            self._lbl_sockclients.config(fg="green")

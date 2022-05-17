@@ -13,7 +13,7 @@ Created on 12 Sep 2020
 """
 
 import logging
-from threading import Thread
+from threading import Thread, Event
 from queue import Queue, Empty
 from datetime import datetime, timedelta
 from tkinter import Frame, N, S, E, W, PhotoImage, font
@@ -47,6 +47,9 @@ from pygpsclient.globals import (
     NOPORTS,
     GUI_UPDATE_INTERVAL,
     GPX_TRACK_INTERVAL,
+    SOCKSERVER_MAX_CLIENTS,
+    SOCKSERVER_HOST,
+    SOCKSERVER_PORT,
 )
 from pygpsclient.graphview_frame import GraphviewFrame
 from pygpsclient.map_frame import MapviewFrame
@@ -60,6 +63,7 @@ from pygpsclient.ubx_config_dialog import UBXConfigDialog
 from pygpsclient.ntrip_client_dialog import NTRIPConfigDialog
 from pygpsclient.nmea_handler import NMEAHandler
 from pygpsclient.ubx_handler import UBXHandler
+from pygpsclient.socket_server import SocketServer, ClientHandler
 
 LOGGING = logging.INFO
 
@@ -105,6 +109,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         # Instantiate protocol handler classes
         self.msgqueue = Queue()
         self.ntripqueue = Queue()
+        self.socketqueue = Queue()
         self.file_handler = FileHandler(self)
         self.stream_handler = StreamHandler(self)
         self.nmea_handler = NMEAHandler(self)
@@ -115,6 +120,9 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.dlg_ntripconfig = None
         self._ubx_config_thread = None
         self._ntrip_config_thread = None
+        self._socket_stopevent = Event()
+        self._socket_stopevent.set()
+        self._socket_thread = None
 
         # Load web map api key if there is one
         self.api_key = self.file_handler.load_apikey()
@@ -416,6 +424,56 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         if self._ntrip_config_thread is not None:
             self._ntrip_config_thread = None
             self.dlg_ntripconfig = None
+
+    def start_sockserver_thread(self):
+        """
+        Start socket server thread.
+        """
+
+        port = self.frm_settings.server_port
+        self._socket_stopevent.clear()
+        self._socket_thread = Thread(
+            target=self._sockserver_thread,
+            args=(
+                SOCKSERVER_HOST,
+                port,
+                SOCKSERVER_MAX_CLIENTS,
+                self._socket_stopevent,
+                self.socketqueue,
+            ),
+            daemon=True,
+        )
+        self._socket_thread.start()
+
+    def stop_sockserver_thread(self):
+        """
+        Stop socket server thread.
+        """
+
+        self._socket_stopevent.set()
+
+    def _sockserver_thread(
+        self, host: str, port: int, clients: int, stopevent: Event, socketqueue: Queue
+    ):
+        """
+        THREADED
+        Socket Server thread.
+
+        :param str host: socket host name (localhost)
+        :param int port: socket port (50010)
+        :param int clients: max num of clients (5)
+        :param Event stopevent: socket server thread stop event
+        :param Queue socketqueue: socket server read queue
+        """
+
+        try:
+            server = SocketServer(
+                self, clients, socketqueue, (host, port), ClientHandler
+            )
+            while not stopevent.is_set():
+                server.serve_forever()
+        except OSError as err:
+            self.set_status(f"Error starting socket server {err}", "red")
 
     def get_master(self):
         """

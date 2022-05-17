@@ -93,7 +93,7 @@ class StreamHandler:
         self.__app.frm_mapview.reset_map_refresh()
         self._stream_thread = Thread(
             target=self._read_thread,
-            args=(self._stopevent, self.__app.msgqueue, mode),
+            args=(self._stopevent, self.__app.msgqueue, mode, self.__app.socketqueue),
             daemon=True,
         )
         self._stream_thread.start()
@@ -108,7 +108,9 @@ class StreamHandler:
         self._stream_thread = None
         self.__app.conn_status = DISCONNECTED
 
-    def _read_thread(self, stopevent: Event, msgqueue: Queue, mode: int):
+    def _read_thread(
+        self, stopevent: Event, msgqueue: Queue, mode: int, socketqueue: Queue
+    ):
         """
         THREADED PROCESS
 
@@ -138,7 +140,7 @@ class StreamHandler:
                     timeout=ser.timeout,
                 ) as self._serial_object:
                     stream = BufferedReader(self._serial_object)
-                    self._readloop(stopevent, msgqueue, stream, mode)
+                    self._readloop(stopevent, msgqueue, stream, mode, socketqueue)
 
             elif mode == CONNECTED_FILE:
 
@@ -146,7 +148,7 @@ class StreamHandler:
                 connstr = f"{in_filepath}"
                 with open(in_filepath, "rb") as self._serial_object:
                     stream = BufferedReader(self._serial_object)
-                    self._readloop(stopevent, msgqueue, stream, mode)
+                    self._readloop(stopevent, msgqueue, stream, mode, socketqueue)
 
             elif mode == CONNECTED_SOCKET:
 
@@ -160,7 +162,7 @@ class StreamHandler:
                     socktype = socket.SOCK_STREAM
                 with socket.socket(socket.AF_INET, socktype) as stream:
                     stream.connect((server, port))
-                    self._readloop(stopevent, msgqueue, stream, mode)
+                    self._readloop(stopevent, msgqueue, stream, mode, socketqueue)
 
         except (EOFError, TimeoutError):
             self.__master.event_generate("<<gnss_eof>>")
@@ -178,7 +180,14 @@ class StreamHandler:
                 self.__app.set_connection(connstr, "red")
                 self.__app.set_status(f"Error in stream read {err}", "red")
 
-    def _readloop(self, stopevent: Event, msgqueue: Queue, stream: object, mode: int):
+    def _readloop(
+        self,
+        stopevent: Event,
+        msgqueue: Queue,
+        stream: object,
+        mode: int,
+        socketqueue: Queue,
+    ):
         """
         Read stream continously until stop event or stream error.
 
@@ -212,6 +221,8 @@ class StreamHandler:
                     if raw_data is not None:
                         msgqueue.put((raw_data, parsed_data))
                         self.__master.event_generate("<<stream_read>>")
+                        if not self.__app._socket_stopevent.is_set():
+                            socketqueue.put(raw_data)
                     else:
                         if mode == CONNECTED_FILE:
                             raise EOFError

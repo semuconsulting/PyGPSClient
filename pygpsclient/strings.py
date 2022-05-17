@@ -106,6 +106,9 @@ LBLNTRIPMOUNT = "Mountpoint"
 LBLNTRIPUSER = "User"
 LBLNTRIPPWD = "Password"
 LBLNTRIPSTR = "Sourcetable"
+LBLSOCKSERVE = "Socket Server"
+LBLSERVERPORT = "Port"
+LBLDEGFORMAT = "Degrees Format"
 
 # Dialog text
 DLGUBXCONFIG = "UBX Configuration"
