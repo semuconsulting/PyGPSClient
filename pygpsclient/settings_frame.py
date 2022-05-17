@@ -128,7 +128,7 @@ class SettingsFrame(Frame):
         self._colortags = IntVar()
         self._socket_serve = IntVar()
         self._sock_port = StringVar()
-        self.sock_clients = StringVar()
+        self._sock_clients = StringVar()
         self._validsettings = True
         self._in_filepath = None
         self._logpath = None
@@ -325,7 +325,7 @@ class SettingsFrame(Frame):
             text=LBLSERVERPORT,
             state=DISABLED,
         )
-        self.ent_sockport = Entry(
+        self._ent_sockport = Entry(
             self._frm_options,
             textvariable=self._sock_port,
             bg=ENTCOL,
@@ -335,7 +335,7 @@ class SettingsFrame(Frame):
         )
         self._lbl_sockclients = Label(
             self._frm_options,
-            textvariable=self.sock_clients,
+            textvariable=self._sock_clients,
             state=DISABLED,
         )
         # configuration panel buttons
@@ -427,7 +427,7 @@ class SettingsFrame(Frame):
         )
         self._chk_socketserve.grid(column=0, row=9, padx=2, pady=2, sticky=(W))
         self._lbl_sockport.grid(column=1, row=9, padx=2, pady=2, sticky=(E))
-        self.ent_sockport.grid(column=2, row=9, padx=2, pady=2, sticky=(W))
+        self._ent_sockport.grid(column=2, row=9, padx=2, pady=2, sticky=(W))
         self._lbl_sockclients.grid(column=3, row=9, padx=2, pady=2, sticky=(W))
         ttk.Separator(self._frm_options).grid(
             column=0, row=10, columnspan=4, padx=2, pady=2, sticky=(W, E)
@@ -548,15 +548,20 @@ class SettingsFrame(Frame):
         Start or stop socket server.
         """
 
-        if not valid_entry(self.ent_sockport, VALINT, 1, MAXPORT):
+        if not valid_entry(self._ent_sockport, VALINT, 1, MAXPORT):
             self.__app.set_status("ERROR - invalid port", "red")
             self._socket_serve.set(0)
             return
 
         if self._socket_serve.get() == 1:
             self.__app.start_sockserver_thread()
+            self._ent_sockport.config(state=DISABLED)
+            self.__app.stream_handler.sock_serve = True
         else:
             self.__app.stop_sockserver_thread()
+            self._ent_sockport.config(state=NORMAL)
+            self.__app.stream_handler.sock_serve = False
+            self.clients = 0
 
     def _on_disconnect(self):
         """
@@ -567,6 +572,7 @@ class SettingsFrame(Frame):
             self.__app.stream_handler.stop_read_thread()
             self.__app.stop_sockserver_thread()
             self._socket_serve.set(0)
+            self.clients = 0
 
     def _reset(self):
         """
@@ -639,7 +645,7 @@ class SettingsFrame(Frame):
         )
         for ctl in (
             self._chk_socketserve,
-            self.ent_sockport,
+            self._ent_sockport,
             self._lbl_sockport,
             self._lbl_sockclients,
         ):
@@ -882,7 +888,7 @@ class SettingsFrame(Frame):
         Getter for number of socket clients.
         """
 
-        return self.sock_clients.get()
+        return self._sock_clients.get()
 
     @clients.setter
     def clients(self, clients: int):
@@ -892,10 +898,23 @@ class SettingsFrame(Frame):
         :param int clients: no of clients connected
         """
 
-        self.sock_clients.set(f"Clients {clients}")
+        self._sock_clients.set(f"Clients {clients}")
         if clients >= SOCKSERVER_MAX_CLIENTS:
             self._lbl_sockclients.config(fg="red")
         elif clients == 0:
             self._lbl_sockclients.config(fg="black")
         else:
             self._lbl_sockclients.config(fg="green")
+        if self._socket_serve.get() == 1:
+            self.__app.frm_banner.update_transmit_status(clients)
+
+    @property
+    def socket_serve(self) -> int:
+        """
+        Getter for socket serve flag.
+
+        :return: socket serve flag (on/off)
+        :rtype: int
+        """
+
+        return self._socket_serve.get()

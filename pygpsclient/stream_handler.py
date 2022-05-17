@@ -60,6 +60,7 @@ class StreamHandler:
         self._serial_buffer = None
         self._stream_thread = None
         self._stopevent = Event()
+        self._sockserve_event = Event()
 
     @property
     def serial(self):
@@ -68,6 +69,30 @@ class StreamHandler:
         """
 
         return self._serial_object
+
+    @property
+    def sock_serve(self) -> bool:
+        """
+        Getter for socket serve event status.
+
+        :return: socket server status (True/False)
+        :rtype: bool
+        """
+
+        return self._sockserve_event.is_set()
+
+    @sock_serve.setter
+    def sock_serve(self, status: bool):
+        """
+        Setter for socket serve event status.
+
+        :param bool status: sock serve status
+        """
+
+        if status:
+            self._sockserve_event.set()
+        else:
+            self._sockserve_event.clear()
 
     def serial_write(self, data: bytes):
         """
@@ -93,7 +118,13 @@ class StreamHandler:
         self.__app.frm_mapview.reset_map_refresh()
         self._stream_thread = Thread(
             target=self._read_thread,
-            args=(self._stopevent, self.__app.msgqueue, mode, self.__app.socketqueue),
+            args=(
+                self._stopevent,
+                self._sockserve_event,
+                self.__app.msgqueue,
+                mode,
+                self.__app.socketqueue,
+            ),
             daemon=True,
         )
         self._stream_thread.start()
@@ -109,7 +140,12 @@ class StreamHandler:
         self.__app.conn_status = DISCONNECTED
 
     def _read_thread(
-        self, stopevent: Event, msgqueue: Queue, mode: int, socketqueue: Queue
+        self,
+        stopevent: Event,
+        sockserve_event: Event,
+        msgqueue: Queue,
+        mode: int,
+        socketqueue: Queue,
     ):
         """
         THREADED PROCESS
@@ -117,6 +153,7 @@ class StreamHandler:
         Connects to selected data stream and starts read loop.
 
         :param Event stopevent: thread stop event
+        :param Event sockserve_event: socket serving event
         :param Queue msgqueue: message queue
         :param int mode: connection mode
         """
@@ -140,7 +177,9 @@ class StreamHandler:
                     timeout=ser.timeout,
                 ) as self._serial_object:
                     stream = BufferedReader(self._serial_object)
-                    self._readloop(stopevent, msgqueue, stream, mode, socketqueue)
+                    self._readloop(
+                        stopevent, sockserve_event, msgqueue, stream, mode, socketqueue
+                    )
 
             elif mode == CONNECTED_FILE:
 
@@ -148,7 +187,9 @@ class StreamHandler:
                 connstr = f"{in_filepath}"
                 with open(in_filepath, "rb") as self._serial_object:
                     stream = BufferedReader(self._serial_object)
-                    self._readloop(stopevent, msgqueue, stream, mode, socketqueue)
+                    self._readloop(
+                        stopevent, sockserve_event, msgqueue, stream, mode, socketqueue
+                    )
 
             elif mode == CONNECTED_SOCKET:
 
@@ -162,7 +203,9 @@ class StreamHandler:
                     socktype = socket.SOCK_STREAM
                 with socket.socket(socket.AF_INET, socktype) as stream:
                     stream.connect((server, port))
-                    self._readloop(stopevent, msgqueue, stream, mode, socketqueue)
+                    self._readloop(
+                        stopevent, sockserve_event, msgqueue, stream, mode, socketqueue
+                    )
 
         except (EOFError, TimeoutError):
             self.__master.event_generate("<<gnss_eof>>")
@@ -183,6 +226,7 @@ class StreamHandler:
     def _readloop(
         self,
         stopevent: Event,
+        sockserve_event: Event,
         msgqueue: Queue,
         stream: object,
         mode: int,
@@ -195,6 +239,7 @@ class StreamHandler:
         prevent thrashing.
 
         :param Event stopevent: thread stop event
+        :param Event sockserve_event: socket serving event
         :param Queue msgqueue: message queue
         :param object stream: data stream
         :param int mode: connection mode
@@ -221,7 +266,7 @@ class StreamHandler:
                     if raw_data is not None:
                         msgqueue.put((raw_data, parsed_data))
                         self.__master.event_generate("<<stream_read>>")
-                        if not self.__app._socket_stopevent.is_set():
+                        if sockserve_event.is_set():
                             socketqueue.put(raw_data)
                     else:
                         if mode == CONNECTED_FILE:

@@ -13,7 +13,7 @@ Created on 12 Sep 2020
 """
 
 import logging
-from threading import Thread, Event
+from threading import Thread
 from queue import Queue, Empty
 from datetime import datetime, timedelta
 from tkinter import Frame, N, S, E, W, PhotoImage, font
@@ -49,7 +49,6 @@ from pygpsclient.globals import (
     GPX_TRACK_INTERVAL,
     SOCKSERVER_MAX_CLIENTS,
     SOCKSERVER_HOST,
-    SOCKSERVER_PORT,
 )
 from pygpsclient.graphview_frame import GraphviewFrame
 from pygpsclient.map_frame import MapviewFrame
@@ -120,9 +119,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.dlg_ntripconfig = None
         self._ubx_config_thread = None
         self._ntrip_config_thread = None
-        self._socket_stopevent = Event()
-        self._socket_stopevent.set()
         self._socket_thread = None
+        self._socket_server = None
 
         # Load web map api key if there is one
         self.api_key = self.file_handler.load_apikey()
@@ -431,29 +429,30 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         port = self.frm_settings.server_port
-        self._socket_stopevent.clear()
         self._socket_thread = Thread(
             target=self._sockserver_thread,
             args=(
                 SOCKSERVER_HOST,
                 port,
                 SOCKSERVER_MAX_CLIENTS,
-                self._socket_stopevent,
                 self.socketqueue,
             ),
             daemon=True,
         )
         self._socket_thread.start()
+        self.frm_banner.update_transmit_status(0)
 
     def stop_sockserver_thread(self):
         """
         Stop socket server thread.
         """
 
-        self._socket_stopevent.set()
+        if self._socket_server is not None:
+            self._socket_server.shutdown()
+        self.frm_banner.update_transmit_status(-1)
 
     def _sockserver_thread(
-        self, host: str, port: int, clients: int, stopevent: Event, socketqueue: Queue
+        self, host: str, port: int, clients: int, socketqueue: Queue
     ):
         """
         THREADED
@@ -462,16 +461,14 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         :param str host: socket host name (localhost)
         :param int port: socket port (50010)
         :param int clients: max num of clients (5)
-        :param Event stopevent: socket server thread stop event
         :param Queue socketqueue: socket server read queue
         """
 
         try:
-            server = SocketServer(
+            with SocketServer(
                 self, clients, socketqueue, (host, port), ClientHandler
-            )
-            while not stopevent.is_set():
-                server.serve_forever()
+            ) as self._socket_server:
+                self._socket_server.serve_forever()
         except OSError as err:
             self.set_status(f"Error starting socket server {err}", "red")
 
@@ -575,21 +572,21 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             self._last_gui_update = datetime.now()
 
         # update GPX track file if enabled
-        if (
-            self.frm_settings.record_track
-            and self.gnss_status.lat != ""
-            and self.gnss_status.lon != ""
-        ):
-            self.update_gpx_track()
+        if self.frm_settings.record_track:
+            self._update_gpx_track()
 
         # update log file if enabled
         if self.frm_settings.datalogging:
             self.file_handler.write_logfile(raw_data, parsed_data)
 
-    def update_gpx_track(self):
+    def _update_gpx_track(self):
         """
-        Update GPX track with latest position reading.
+        Update GPX track with latest valid position readings.
         """
+
+        # must have valid coords
+        if self.gnss_status.lat == "" or self.gnss_status.lon == "":
+            return
 
         if datetime.now() > self._last_track_update + timedelta(
             seconds=GPX_TRACK_INTERVAL
