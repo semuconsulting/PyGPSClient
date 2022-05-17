@@ -907,14 +907,3 @@ class SettingsFrame(Frame):
             self._lbl_sockclients.config(fg="green")
         if self._socket_serve.get() == 1:
             self.__app.frm_banner.update_transmit_status(clients)
-
-    @property
-    def socket_serve(self) -> int:
-        """
-        Getter for socket serve flag.
-
-        :return: socket serve flag (on/off)
-        :rtype: int
-        """
-
-        return self._socket_serve.get()

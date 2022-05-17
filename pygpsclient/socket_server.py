@@ -20,13 +20,13 @@ class SocketServer(ThreadingTCPServer):
     """
     Socket server class.
 
-    This instantiates a ClientHandler object for each
+    This instantiates a daemon ClientHandler thread for each
     connected client.
     """
 
     def __init__(self, app, maxclients: int, msgqueue: Queue, *args, **kwargs):
         """
-        Constructor.
+        Overridden constructor.
 
         :param Frame app: reference to main application class
         :param int maxclients: max no of clients allowed
@@ -45,6 +45,7 @@ class SocketServer(ThreadingTCPServer):
         for _ in range(self._maxclients):
             self.clientqueues.append({"client": None, "queue": Queue()})
         self._start_read_thread()
+        self.daemon_threads = True  # stops deadlock on abrupt termination
 
         super().__init__(*args, **kwargs)
 
@@ -128,7 +129,7 @@ class ClientHandler(StreamRequestHandler):
 
     def setup(self, *args, **kwargs):
         """
-        Overidden client handler setup routine.
+        Overridden client handler setup routine.
         Allocates available message queue to client.
         """
 
@@ -143,22 +144,15 @@ class ClientHandler(StreamRequestHandler):
                 self._allowed = True
                 break
         if self._qidx is None:  # no available client queues in pool
-            # print(
-            #     f"Connection rejected - maximum {self.server._maxclients} clients allowed"
-            # )
             return
 
         if self._allowed:
             self.server.connections = self.server.connections + 1
-            # print(
-            #     f"Client connected {self.client_address[0]}:{self.client_address[1]}",
-            #     f"; number of clients: {self.server.clients}",
-            # )
             super().setup(*args, **kwargs)
 
     def finish(self, *args, **kwargs):
         """
-        Overidden client handler finish routine.
+        Overridden client handler finish routine.
         De-allocates message queue from client.
         """
 
@@ -167,10 +161,6 @@ class ClientHandler(StreamRequestHandler):
 
         if self._allowed:
             self.server.connections = self.server.connections - 1
-            # print(
-            #     f"Client disconnected {self.client_address[0]}:{self.client_address[1]}",
-            #     f"; number of clients: {self.server.clients}",
-            # )
             super().finish(*args, **kwargs)
 
     def handle(self):
@@ -178,11 +168,12 @@ class ClientHandler(StreamRequestHandler):
         Overridden main client handler.
         """
 
-        while self._allowed:
-            try:
-                raw = self._msgqueue.get()
-                if raw is not None:
-                    self.wfile.write(raw)
-                    self.wfile.flush()
-            except (ConnectionAbortedError, ConnectionResetError, BrokenPipeError):
-                break
+        if self._allowed:
+            while True:
+                try:
+                    raw = self._msgqueue.get()
+                    if raw is not None:
+                        self.wfile.write(raw)
+                        self.wfile.flush()
+                except (ConnectionAbortedError, ConnectionResetError, BrokenPipeError):
+                    break

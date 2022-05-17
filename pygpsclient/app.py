@@ -447,12 +447,12 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         Stop socket server thread.
         """
 
+        self.frm_banner.update_transmit_status(-1)
         if self._socket_server is not None:
             self._socket_server.shutdown()
-        self.frm_banner.update_transmit_status(-1)
 
     def _sockserver_thread(
-        self, host: str, port: int, clients: int, socketqueue: Queue
+        self, host: str, port: int, maxclients: int, socketqueue: Queue
     ):
         """
         THREADED
@@ -460,13 +460,13 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         :param str host: socket host name (localhost)
         :param int port: socket port (50010)
-        :param int clients: max num of clients (5)
+        :param int maxclients: max num of clients (5)
         :param Queue socketqueue: socket server read queue
         """
 
         try:
             with SocketServer(
-                self, clients, socketqueue, (host, port), ClientHandler
+                self, maxclients, socketqueue, (host, port), ClientHandler
             ) as self._socket_server:
                 self._socket_server.serve_forever()
         except OSError as err:
@@ -488,6 +488,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         self.file_handler.close_logfile()
         self.file_handler.close_trackfile()
+        self.stop_sockserver_thread()
         self.stream_handler.stop_read_thread()
         self.stop_ubxconfig_thread()
         self.stop_ntripconfig_thread()

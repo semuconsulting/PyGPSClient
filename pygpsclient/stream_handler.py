@@ -122,8 +122,8 @@ class StreamHandler:
                 self._stopevent,
                 self._sockserve_event,
                 self.__app.msgqueue,
-                mode,
                 self.__app.socketqueue,
+                mode,
             ),
             daemon=True,
         )
@@ -144,8 +144,8 @@ class StreamHandler:
         stopevent: Event,
         sockserve_event: Event,
         msgqueue: Queue,
-        mode: int,
         socketqueue: Queue,
+        mode: int,
     ):
         """
         THREADED PROCESS
@@ -155,6 +155,7 @@ class StreamHandler:
         :param Event stopevent: thread stop event
         :param Event sockserve_event: socket serving event
         :param Queue msgqueue: message queue
+        :param Queue socketqueue: socket server message queue
         :param int mode: connection mode
         """
 
@@ -178,7 +179,12 @@ class StreamHandler:
                 ) as self._serial_object:
                     stream = BufferedReader(self._serial_object)
                     self._readloop(
-                        stopevent, sockserve_event, msgqueue, stream, mode, socketqueue
+                        stopevent,
+                        sockserve_event,
+                        msgqueue,
+                        socketqueue,
+                        stream,
+                        mode,
                     )
 
             elif mode == CONNECTED_FILE:
@@ -188,7 +194,12 @@ class StreamHandler:
                 with open(in_filepath, "rb") as self._serial_object:
                     stream = BufferedReader(self._serial_object)
                     self._readloop(
-                        stopevent, sockserve_event, msgqueue, stream, mode, socketqueue
+                        stopevent,
+                        sockserve_event,
+                        msgqueue,
+                        socketqueue,
+                        stream,
+                        mode,
                     )
 
             elif mode == CONNECTED_SOCKET:
@@ -204,7 +215,7 @@ class StreamHandler:
                 with socket.socket(socket.AF_INET, socktype) as stream:
                     stream.connect((server, port))
                     self._readloop(
-                        stopevent, sockserve_event, msgqueue, stream, mode, socketqueue
+                        stopevent, sockserve_event, msgqueue, socketqueue, stream, mode
                     )
 
         except (EOFError, TimeoutError):
@@ -228,9 +239,9 @@ class StreamHandler:
         stopevent: Event,
         sockserve_event: Event,
         msgqueue: Queue,
+        socketqueue: Queue,
         stream: object,
         mode: int,
-        socketqueue: Queue,
     ):
         """
         Read stream continously until stop event or stream error.
@@ -241,6 +252,7 @@ class StreamHandler:
         :param Event stopevent: thread stop event
         :param Event sockserve_event: socket serving event
         :param Queue msgqueue: message queue
+        :param Queue socketqueue: socket server message queue
         :param object stream: data stream
         :param int mode: connection mode
         """
