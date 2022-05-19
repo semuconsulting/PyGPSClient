@@ -458,7 +458,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         THREADED
         Socket Server thread.
 
-        :param str host: socket host name (localhost)
+        :param str host: socket host name (0.0.0.0)
         :param int port: socket port (50010)
         :param int maxclients: max num of clients (5)
         :param Queue socketqueue: socket server read queue

@@ -24,3 +24,4 @@ mqapikey
 /.pytest_cache/
 pylint_report.txt
 snapcraft.yaml
+/wiki
