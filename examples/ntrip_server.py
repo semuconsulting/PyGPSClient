@@ -1,10 +1,19 @@
 """
 !!! FOR TESTING ONLY !!!
 
-NTRIP server test harness.
-Authenticates NTRIP client request, returns
-nominal sourcetable and produces simulated
-RTCM3 message stream
+NTRIP server test harness. Simulates the
+functions of an NTRIP server:
+1) authenticates NTRIP client credentials.
+2) returns nominal sourcetable.
+3) returns simulated RTCM3 message stream.
+4) DOESN'T currently do anything with client GGA messages.
+
+May at some point form the basis of a functional
+NTRIP server in PyGPSClient.
+
+Set authorization credentials via env variables:
+export PYGPSCLIENT_USER="user"
+export PYGPSCLIENT_PASSWORD="password"
 
 Created on 4 Feb 2022
 
@@ -14,25 +23,32 @@ Created on 4 Feb 2022
 """
 # pylint: disable=line-too-long
 
+from os import getenv
 from socketserver import ThreadingTCPServer, StreamRequestHandler
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from queue import Queue
-from threading import Event  # , Thread
+
+# from threading import Event, Thread
 from base64 import b64encode
 from pyrtcm import RTCMMessage
 
-HOST = "localhost"
-PORT = 2101  # default NTRIP server port
+MAXCLIENTS = 5
+BUFSIZE = 1024
+HOST = "0.0.0.0"  # binds to all host IP addresses
+PORT = 2101
 SEND_INTERVAL = 1
-
 RTCM = b"rtcm"
-# Nominal sourcetable HTTP response
-SRT = (
-    b"HTTP/1.1 \r\n"
-    + b"STR;thismp;thismp;RTCM 3.2;1005(5),1077(1),1087(1),1097(1),1230(1);0;GPS+GLO+GAL;SNIP;SRB;51.45;-2.10;1;0;sNTRIP;none;N;N;0;\r\n"
-    + b"STR;thatmp;thatmp;RTCM 3.2;1005(5),1075(1),1085(1),1095(1),1195(1),1230(1);0;GPS+GLO+GAL;SNIP;SRB;44.12;20.23;1;0;sNTRIP;none;N;N;0;\r\n"
-    + b"NET;SNIP;PyGPSClient;N;N;PyGPSClient;0.0.0.0:2101;semuadmin@semuconsulting.com;;\r\n"
-    + b"ENDSOURCETABLE\r\n\r\n"
+
+# actual RTK2GO response for reference...
+# HTTP/1.1 200 OK\r\nNtrip-Version: Ntrip/2.0\r\nNtrip-Flags: \r\nServer: SubCarrier Systems Corp SNIP simpleNTRIP_Caster_[wPRO]R3.04.66/of:Feb 4 2022\r\nDate: Fri, 4 Feb 2022 15:42:10 UTC\r\nConnection: close\r\nContent-Type: gnss/sourcetable\r\nContent-Length: 83203\r\n\r\nSTR;A_CMS_01;Exeter;RTCM 3.2;1005(1),1074(1),1084(1),1094(1),1124(1),1230(5);0;GPS+GLO+GAL+BDS;SNIP;GBR;50.72;-3.44;1;0;sNTRIP;none;N;N;0;\r\nSTR;aamakinen;Evijarvi;RTCM 3.2;1005(1),1077(1),1084(1),1097(1),1127(1),1230(1);;GPS+GLO+GAL+BDS;SNIP;FIN;63.36;23.36;1;0;sNTRIP;none;N;N;7400;\r\n
+
+STRLIST = [
+    "STR;thismp;thismp;RTCM 3.2;1005(5),1077(1),1087(1),1097(1),1230(1);0;GPS+GLO+GAL;SNIP;SRB;51.45;-2.10;1;0;sNTRIP;none;N;N;0;",
+    "STR;thatmp;thatmp;RTCM 3.2;1005(5),1075(1),1085(1),1095(1),1195(1),1230(1);0;GPS+GLO+GAL;SNIP;SRB;44.12;20.23;1;0;sNTRIP;none;N;N;0;",
+]
+STRTERM = (
+    "NET;SNIP;PyGPSClient;N;N;PyGPSClient;0.0.0.0:2101;semuadmin@semuconsulting.com;;\r\n"
+    + "ENDSOURCETABLE\r\n"
 )
 
 
@@ -57,10 +73,15 @@ class NTRIPServer(ThreadingTCPServer):
 
         self._maxclients = maxclients
         self._msgqueue = msgqueue
-        self._connections = 0
-        self._stream_thread = None
-        self._stopevent = Event()
-        self.clientqueues = []
+
+        # OTHER SOCKET STREAMER FUNCTIONALITY COMMENTED OUT FOR NOW
+        # This would ultimately stream RTCM3 messages from a connected
+        # u-blox receiver running in base station mode
+
+        # self._connections = 0
+        # self._stream_thread = None
+        # self._stopevent = Event()
+        # self.clientqueues = []
 
         # set up pool of client queues
         # for _ in range(self._maxclients):
@@ -135,11 +156,17 @@ class NTRIPServer(ThreadingTCPServer):
     def credentials(self) -> bytes:
         """
         Getter for basic authorization credentials.
+
+        Assumes credentials have been defined in
+        environment variables:
+        PYGPSCLIENT_USER="user"
+        PYGPSCLIENT_PASSWORD="password"
         """
 
-        # TODO in practice, get from private file or environment variable
-        user = "anon"
-        password = "password"
+        user = getenv("PYGPSCLIENT_USER")
+        password = getenv("PYGPSCLIENT_PASSWORD")
+        if user is None or password is None:
+            return None
         user = user + ":" + password
         return b64encode(user.encode(encoding="utf-8"))
 
@@ -170,7 +197,7 @@ class ClientHandler(StreamRequestHandler):
         print(f"Client connected: {self.client_address[0]}:{self.client_address[1]}")
         while True:
             try:
-                self.data = self.request.recv(1024)
+                self.data = self.request.recv(BUFSIZE)
                 resp = self._process_request(self.data)
                 if resp is None:
                     break
@@ -203,9 +230,9 @@ class ClientHandler(StreamRequestHandler):
         Process client request.
         """
 
-        srtreq = False
+        strreq = False
         authorized = False
-        mpreq = False
+        validmp = False
 
         request = data.strip().split(b"\r\n")
         print(f"Client {self.client_address[0]} sent {request}")
@@ -215,40 +242,57 @@ class ClientHandler(StreamRequestHandler):
             if part[0:3] == b"GET":
                 get = part.split(b" ")
                 if get[1] == b"":  # no mountpoint, hence sourcetable request
-                    srtreq = True
+                    strreq = True
                 elif get[1] in (b"/thismp", b"/thatmp"):  # valid mountpoint
-                    mpreq = True
+                    validmp = True
 
         if not authorized:  # respond with 403
-            return b"HTTP/1.1 403 Forbidden\r\n" + self.get_date()
-        if not srtreq and not mpreq:  # respond with 404
-            return b"HTTP/1.1 404 Not Found\r\n" + self.get_date()
-        if srtreq:  # respond with sourcetable
-            return SRT
-        if mpreq:  # respond with RTCM3 stream
+            http = (
+                "HTTP/1.1 403 Forbidden\r\n"
+                + f"Date: {self.http_date()}\r\n"
+                + "Connection: close\r\n"
+            )
+            return bytes(http, "UTF-8")
+        if strreq or (not strreq and not validmp):  # respond with sourcetable
+            server_version = "1.3.5"
+            server_date = datetime.now(timezone.utc).strftime("%d %b %Y")
+            sourcetable = ""
+            for line in STRLIST:
+                sourcetable += line + "\r\n"
+            http = (
+                "HTTP/1.1 200 OK\r\n"
+                + "Ntrip-Version: Ntrip/2.0\r\n"
+                + "Ntrip-Flags: \r\n"
+                + f"Server: PyGPSClient_NTRIP_Caster_{server_version}/of:{server_date}\r\n"
+                + f"Date: {self.http_date()}\r\n"
+                + "Connection: close\r\n"
+                + "Content-Type: gnss/sourcetable\r\n"
+                + f"Content-Length: {len(sourcetable)}\r\n"
+                + sourcetable
+                + STRTERM
+            )
+            return bytes(http, "UTF-8")
+        if validmp:  # respond with RTCM3 stream
             return RTCM
         return None
 
     @staticmethod
-    def get_date() -> bytes:
+    def http_date() -> bytes:
         """
-        Get datestamp in HTTP format.
+        Get datestamp in HTTP header format.
         """
 
-        return bytes(
-            datetime.now().strftime("Date: %a, %d %b %Y %H:%M:%S %Z\r\n"), "UTF-8"
-        )
+        return datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S %Z")
 
 
 if __name__ == "__main__":
 
-    MAXCLIENTS = 5
     mq = Queue()
-    print(f"Creating TCP server on {HOST}:{PORT}")
+    print(f"Creating NTRIP server on {HOST}:{PORT}")
     server = NTRIPServer(None, MAXCLIENTS, mq, (HOST, PORT), ClientHandler)
 
-    print("Starting TCP server, waiting for client connections...")
+    print("Starting NTRIP server, waiting for client connections...")
     try:
         server.serve_forever()
     except KeyboardInterrupt:
-        print("TCP server terminated by user")
+        print("NTRIP server terminated by user")
