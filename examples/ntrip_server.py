@@ -111,6 +111,26 @@ class NTRIPServer(ThreadingTCPServer):
     #             if clientqueues[i]["client"] is not None:
     #                 clientqueues[i]["queue"].put(raw)
 
+    # @property
+    # def connections(self) -> int:
+    #     """
+    #     Getter for client connections.
+    #     """
+
+    #     return self._connections
+
+    # @connections.setter
+    # def connections(self, clients: int):
+    #     """
+    #     Setter for client connections.
+    #     Also updates no. of clients on settings panel.
+
+    #     :param int clients: no of client connections
+    #     """
+
+    #     self._connections = clients
+    #     self.__app.frm_settings.clients = self._connections
+
     @property
     def credentials(self) -> bytes:
         """
@@ -122,26 +142,6 @@ class NTRIPServer(ThreadingTCPServer):
         password = "password"
         user = user + ":" + password
         return b64encode(user.encode(encoding="utf-8"))
-
-    @property
-    def connections(self) -> int:
-        """
-        Getter for client connections.
-        """
-
-        return self._connections
-
-    @connections.setter
-    def connections(self, clients: int):
-        """
-        Setter for client connections.
-        Also updates no. of clients on settings panel.
-
-        :param int clients: no of client connections
-        """
-
-        self._connections = clients
-        self.__app.frm_settings.clients = self._connections
 
     @staticmethod
     def create_RTCM3_msg() -> RTCMMessage:
@@ -216,7 +216,7 @@ class ClientHandler(StreamRequestHandler):
                 get = part.split(b" ")
                 if get[1] == b"":  # no mountpoint, hence sourcetable request
                     srtreq = True
-                elif get[1] in (b"/home", b"/work"):  # valid mountpoint
+                elif get[1] in (b"/thismp", b"/thatmp"):  # valid mountpoint
                     mpreq = True
 
         if not authorized:  # respond with 403
