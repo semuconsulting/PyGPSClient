@@ -85,7 +85,7 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 * Show Unused Satellites - Include or exclude satellites that are not used in the navigation solution (e.g. because their signal level is too low) from the graph and sky view panels.
 * DataLogging - Turn Data logging in the selected format on or off. You will be prompted to select the directory into which timestamped log files are saved (NB. only binary datalogs can be re-read by `pygpsclient`'s parser).
 * GPX Track - Turn track recording (in GPX format) on or off. You will be prompted to select the directory into which timestamped track files are saved.
-* Socket Server (*only available when connected to a local GNSS data stream*) - Turn socket server on or off. The socket server port defaults to 50010 but is configurable via the port setting. A label to the right indicates the number of connected clients.
+* Socket Server (*only available when connected to a GNSS data stream*) - Turn socket server on or off. The socket server port defaults to 50010 but is configurable via the port setting. A label to the right indicates the number of connected clients, and the server status is indicated in the topmost banner: closed: ![transmit icon](/pygpsclient/resources/iconmonstr-notransmit-10-24.png), open with no clients: ![transmit icon](/pygpsclient/resources/iconmonstr-noclient-10-24.png), open with clients: ![transmit icon](/pygpsclient/resources/iconmonstr-transmit-10-24.png).
 
 ---
 ### <a name="ubxconfig">UBX Configuration Facilities</a>
