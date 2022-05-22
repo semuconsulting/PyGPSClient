@@ -429,9 +429,11 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         port = self.frm_settings.server_port
+        ntripmode = self.frm_settings.server_mode
         self._socket_thread = Thread(
             target=self._sockserver_thread,
             args=(
+                ntripmode,
                 SOCKSERVER_HOST,
                 port,
                 SOCKSERVER_MAX_CLIENTS,
@@ -452,12 +454,13 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             self._socket_server.shutdown()
 
     def _sockserver_thread(
-        self, host: str, port: int, maxclients: int, socketqueue: Queue
+        self, ntripmode: int, host: str, port: int, maxclients: int, socketqueue: Queue
     ):
         """
         THREADED
         Socket Server thread.
 
+        :param int ntripmode: 0 = open socket server, 1 = NTRIP server
         :param str host: socket host name (0.0.0.0)
         :param int port: socket port (50010)
         :param int maxclients: max num of clients (5)
@@ -466,7 +469,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         try:
             with SocketServer(
-                self, maxclients, socketqueue, (host, port), ClientHandler
+                self, ntripmode, maxclients, socketqueue, (host, port), ClientHandler
             ) as self._socket_server:
                 self._socket_server.serve_forever()
         except OSError as err:

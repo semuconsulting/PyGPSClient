@@ -193,6 +193,7 @@ class NTRIPHandler:
                         self._set_controls(False, (f"Error!: {rc}", "red"))
         except (
             socket.gaierror,
+            ConnectionRefusedError,
             ConnectionAbortedError,
             ConnectionResetError,
             BrokenPipeError,

@@ -25,6 +25,8 @@ from tkinter import (
     Checkbutton,
     StringVar,
     IntVar,
+    N,
+    S,
     E,
     W,
     NORMAL,
@@ -61,6 +63,7 @@ from pygpsclient.globals import (
     KNOWNGPS,
     BPSRATES,
     FORMATS,
+    SOCKMODES,
     TAG_COLORS,
     SOCKSERVER_PORT,
     SOCKSERVER_MAX_CLIENTS,
@@ -78,6 +81,7 @@ from pygpsclient.strings import (
     LBLSOCKSERVE,
     LBLSERVERPORT,
     LBLDEGFORMAT,
+    LBLSERVERMODE,
 )
 
 TIMEOUTS = (
@@ -128,6 +132,7 @@ class SettingsFrame(Frame):
         self._colortags = IntVar()
         self._socket_serve = IntVar()
         self._sock_port = StringVar()
+        self._sock_mode = StringVar()
         self._sock_clients = StringVar()
         self._validsettings = True
         self._in_filepath = None
@@ -333,6 +338,20 @@ class SettingsFrame(Frame):
             width=6,
             state=DISABLED,
         )
+        self._lbl_sockmode = Label(
+            self._frm_options,
+            text=LBLSERVERMODE,
+            state=DISABLED,
+        )
+        self._spn_sockmode = Spinbox(
+            self._frm_options,
+            values=SOCKMODES,
+            width=12,
+            state=DISABLED,
+            readonlybackground=ENTCOL,
+            wrap=True,
+            textvariable=self._sock_mode,
+        )
         self._lbl_sockclients = Label(
             self._frm_options,
             textvariable=self._sock_clients,
@@ -425,17 +444,23 @@ class SettingsFrame(Frame):
         self._chk_recordtrack.grid(
             column=0, row=8, columnspan=2, padx=2, pady=2, sticky=(W)
         )
-        self._chk_socketserve.grid(column=0, row=9, padx=2, pady=2, sticky=(W))
+        self._chk_socketserve.grid(
+            column=0, row=9, rowspan=2, padx=2, pady=2, sticky=(N, S, W)
+        )
         self._lbl_sockport.grid(column=1, row=9, padx=2, pady=2, sticky=(E))
         self._ent_sockport.grid(column=2, row=9, padx=2, pady=2, sticky=(W))
         self._lbl_sockclients.grid(column=3, row=9, padx=2, pady=2, sticky=(W))
-        ttk.Separator(self._frm_options).grid(
-            column=0, row=10, columnspan=4, padx=2, pady=2, sticky=(W, E)
+        self._lbl_sockmode.grid(column=1, row=10, padx=2, pady=2, sticky=(E))
+        self._spn_sockmode.grid(
+            column=2, row=10, columnspan=2, padx=2, pady=2, sticky=(W)
         )
-        self._lbl_ubxconfig.grid(column=0, row=11, padx=2, pady=2, sticky=(E))
-        self._btn_ubxconfig.grid(column=1, row=11, padx=2, pady=2, sticky=(W))
-        self._lbl_ntripconfig.grid(column=2, row=11, padx=2, pady=2, sticky=(E))
-        self._btn_ntripconfig.grid(column=3, row=11, padx=2, pady=2, sticky=(W))
+        ttk.Separator(self._frm_options).grid(
+            column=0, row=11, columnspan=4, padx=2, pady=2, sticky=(W, E)
+        )
+        self._lbl_ubxconfig.grid(column=0, row=12, padx=2, pady=2, sticky=(E))
+        self._btn_ubxconfig.grid(column=1, row=12, padx=2, pady=2, sticky=(W))
+        self._lbl_ntripconfig.grid(column=2, row=12, padx=2, pady=2, sticky=(E))
+        self._btn_ntripconfig.grid(column=3, row=12, padx=2, pady=2, sticky=(W))
 
     def _on_ubx_config(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -556,10 +581,12 @@ class SettingsFrame(Frame):
         if self._socket_serve.get() == 1:
             self.__app.start_sockserver_thread()
             self._ent_sockport.config(state=DISABLED)
+            self._spn_sockmode.config(state=DISABLED)
             self.__app.stream_handler.sock_serve = True
         else:
             self.__app.stop_sockserver_thread()
             self._ent_sockport.config(state=NORMAL)
+            self._spn_sockmode.config(state=READONLY)
             self.__app.stream_handler.sock_serve = False
             self.clients = 0
 
@@ -597,6 +624,7 @@ class SettingsFrame(Frame):
         self._colortags.set(TAG_COLORS)
         self._socket_serve.set(0)
         self._sock_port.set(SOCKSERVER_PORT)
+        self._sock_mode.set(SOCKMODES[0])  # open
         self.clients = 0
 
     def enable_controls(self, status: int):
@@ -647,6 +675,7 @@ class SettingsFrame(Frame):
             self._chk_socketserve,
             self._ent_sockport,
             self._lbl_sockport,
+            self._lbl_sockmode,
             self._lbl_sockclients,
         ):
             ctl.config(
@@ -656,6 +685,13 @@ class SettingsFrame(Frame):
                     else DISABLED
                 )
             )
+        self._spn_sockmode.config(
+            state=(
+                READONLY
+                if status in (CONNECTED, CONNECTED_SOCKET, CONNECTED_FILE)
+                else DISABLED
+            )
+        )
 
     def get_size(self) -> tuple:
         """
@@ -881,6 +917,19 @@ class SettingsFrame(Frame):
         """
 
         return int(self._sock_port.get())
+
+    @property
+    def server_mode(self) -> int:
+        """
+        Getter for socket server mode
+
+        :return: 0 = open socket server, 1 = NTRIP server
+        :rtype: int
+        """
+
+        if self._sock_mode.get() == SOCKMODES[1]:  # "NTRIP SERVER"
+            return 1
+        return 0
 
     @property
     def clients(self) -> int:
