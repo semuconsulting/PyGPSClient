@@ -17,7 +17,6 @@ Operates in two modes according to ntripmode setting:
 For NTRIP mode, set authorization credentials via env variables:
 export PYGPSCLIENT_USER="user"
 export PYGPSCLIENT_PASSWORD="password"
-
 Created on 16 May 2022
 
 :author: semuadmin
@@ -35,15 +34,6 @@ from pygpsclient import version as PYGPSVERSION
 
 RTCM = b"rtcm"
 BUFSIZE = 1024
-
-STRLIST = [
-    "STR;thismp;thismp;RTCM 3.2;1005(5),1077(1),1087(1),1097(1),1127(1),1230(1);0;GPS+GLO+GAL;SNIP;SRB;51.45;-2.10;1;0;sNTRIP;none;N;N;0;",
-    "STR;thatmp;thatmp;RTCM 3.2;1005(5),1075(1),1085(1),1095(1),1195(1),1230(1);0;GPS+GLO+GAL;SNIP;SRB;44.12;20.23;1;0;sNTRIP;none;N;N;0;",
-]
-STRTERM = (
-    "NET;SNIP;PyGPSClient;N;N;PyGPSClient;0.0.0.0:2101;semuadmin@semuconsulting.com;;\r\n"
-    + "ENDSOURCETABLE\r\n"
-)
 
 
 class SocketServer(ThreadingTCPServer):
@@ -75,6 +65,8 @@ class SocketServer(ThreadingTCPServer):
         self._stream_thread = None
         self._stopevent = Event()
         self.clientqueues = []
+        # get host port
+        self.hosturl = f"0.0.0.0:{self.__app.frm_settings.server_port}"
         # set up pool of client queues
         for _ in range(self._maxclients):
             self.clientqueues.append({"client": None, "queue": Queue()})
@@ -172,6 +164,17 @@ class SocketServer(ThreadingTCPServer):
         """
 
         return self._ntripmode
+
+    @property
+    def latlon(self) -> tuple:
+        """
+        Get current lat / lon from receiver.
+
+        :return=: tuple of (lat, lon)
+        :rtype: tuple
+        """
+
+        return (self.__app.gnss_status.lat, self.__app.gnss_status.lon)
 
 
 class ClientHandler(StreamRequestHandler):
@@ -289,7 +292,7 @@ class ClientHandler(StreamRequestHandler):
                 get = part.split(b" ")
                 if get[1] == b"":  # no mountpoint, hence sourcetable request
                     strreq = True
-                elif get[1] in (b"/thismp", b"/thatmp"):  # valid mountpoint
+                elif get[1] == b"/pygpsclient":  # valid mountpoint
                     validmp = True
 
         if not authorized:  # respond with 403
@@ -299,28 +302,40 @@ class ClientHandler(StreamRequestHandler):
                 + "Connection: close\r\n"
             )
             return bytes(http, "UTF-8")
-        if strreq or (not strreq and not validmp):  # respond with sourcetable
-            server_version = PYGPSVERSION
-            server_date = datetime.now(timezone.utc).strftime("%d %b %Y")
-            sourcetable = ""
-            for line in STRLIST:
-                sourcetable += line + "\r\n"
-            http = (
-                "HTTP/1.1 200 OK\r\n"
-                + "Ntrip-Version: Ntrip/2.0\r\n"
-                + "Ntrip-Flags: \r\n"
-                + f"Server: PyGPSClient_NTRIP_Caster_{server_version}/of:{server_date}\r\n"
-                + f"Date: {self.http_date()}\r\n"
-                + "Connection: close\r\n"
-                + "Content-Type: gnss/sourcetable\r\n"
-                + f"Content-Length: {len(sourcetable)}\r\n"
-                + sourcetable
-                + STRTERM
-            )
+        if strreq or (not strreq and not validmp):  # respond with nominal sourcetable
+            http = self._format_str_http()
             return bytes(http, "UTF-8")
         if validmp:  # respond by opening RTCM3 stream
             return RTCM
         return None
+
+    def _format_str_http(self) -> str:
+        """
+        Format nominal HTTP sourcetable response.
+
+        :return: HTTP sourcetable response string
+        :rtype: str
+        """
+        # pylint: disable=line-too-long
+
+        server_version = PYGPSVERSION
+        server_date = datetime.now(timezone.utc).strftime("%d %b %Y")
+        lat, lon = self.server.latlon
+        sourcetable = f"STR;pygpsclient;PyGPSClient;RTCM 3.3;1005(5),1077(1),1087(1),1097(1),1127(1),1230(1);0;GPS+GLO+GAL;SNIP;SRB;{lat};{lon};1;0;sNTRIP;none;N;N;0;\r\n"
+        http = (
+            "HTTP/1.1 200 OK\r\n"
+            + "Ntrip-Version: Ntrip/2.0\r\n"
+            + "Ntrip-Flags: \r\n"
+            + f"Server: PyGPSClient_NTRIP_Caster_{server_version}/of:{server_date}\r\n"
+            + f"Date: {self.http_date()}\r\n"
+            + "Connection: close\r\n"
+            + "Content-Type: gnss/sourcetable\r\n"
+            + f"Content-Length: {len(sourcetable)}\r\n"
+            + sourcetable
+            + f"NET;SNIP;PyGPSClient;N;N;PyGPSClient;{self.server.hosturl};info@semuconsulting.com;;\r\n"
+            + "ENDSOURCETABLE\r\n"
+        )
+        return http
 
     def _write_from_mq(self):
         """

@@ -57,7 +57,7 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 1. Track recording in GPX format.
 1. UBX Configuration Dialog, with the ability to send a variety of UBX configuration commands to u-blox GNSS devices. This includes the facility to add **user-defined commands or command sequences** - see instructions under [installation](#installation) below. While not intended to be a direct replacement, the application supports much of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool.
 1. [NTRIP](https://en.wikipedia.org/wiki/Networked_Transport_of_RTCM_via_Internet_Protocol) Client ([differential GPS enhancement](https://en.wikipedia.org/wiki/Differential_GPS)) facility with the ability to connect to a specified NTRIP server (caster), parse the incoming RTCM3 data and feed this data to a compatible GNSS device (*requires an Internet connection and access to a suitable NTRIP caster*).
-1. **New BETA feature in v1.3.5** - socket server feature which outputs any connected raw (binary) GNSS data stream to a TCP socket, which can be accessed by any client capable of parsing raw GNSS data.
+1. **New BETA feature in v1.3.5** - Socket / NTRIP Server with two modes of operation: (a) open, unauthenticated Socket Server or (b) NTRIP Server.
 
 ---
 ## <a name="howtouse">How to Use</a>
@@ -85,7 +85,7 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 * Show Unused Satellites - Include or exclude satellites that are not used in the navigation solution (e.g. because their signal level is too low) from the graph and sky view panels.
 * DataLogging - Turn Data logging in the selected format on or off. You will be prompted to select the directory into which timestamped log files are saved (NB. only binary datalogs can be re-read by `pygpsclient`'s parser).
 * GPX Track - Turn track recording (in GPX format) on or off. You will be prompted to select the directory into which timestamped track files are saved.
-* Socket Server (*only available when connected to a GNSS data stream*) - Turn socket server on or off. The socket server port defaults to 50010 but is configurable via the port setting. A label to the right indicates the number of connected clients, and the server status is indicated in the topmost banner: closed: ![transmit icon](/pygpsclient/resources/iconmonstr-notransmit-10-24.png), open with no clients: ![transmit icon](/pygpsclient/resources/iconmonstr-noclient-10-24.png), open with clients: ![transmit icon](/pygpsclient/resources/iconmonstr-transmit-10-24.png).
+* Socket / NTRIP Server (*only available when connected to a GNSS data stream*) - Turn Socket / NTRIP Server on or off. The socket server port defaults to 50010 but is configurable via the port setting. The operating mode can be selected from OPEN SERVER or NTRIP SERVER. A label to the right indicates the number of connected clients, and the server status is indicated in the topmost banner: closed: ![transmit icon](/pygpsclient/resources/iconmonstr-notransmit-10-24.png), open with no clients: ![transmit icon](/pygpsclient/resources/iconmonstr-noclient-10-24.png), open with clients: ![transmit icon](/pygpsclient/resources/iconmonstr-transmit-10-24.png).
 
 ---
 ### <a name="ubxconfig">UBX Configuration Facilities</a>
