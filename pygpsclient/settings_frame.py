@@ -66,6 +66,7 @@ from pygpsclient.globals import (
     SOCKMODES,
     TAG_COLORS,
     SOCKSERVER_PORT,
+    SOCKSERVER_NTRIP_PORT,
     SOCKSERVER_MAX_CLIENTS,
 )
 from pygpsclient.helpers import valid_entry, VALINT, VALURL, MAXPORT
@@ -325,19 +326,6 @@ class SettingsFrame(Frame):
             command=lambda: self._on_socket_serve(),
             state=DISABLED,
         )
-        self._lbl_sockport = Label(
-            self._frm_options,
-            text=LBLSERVERPORT,
-            state=DISABLED,
-        )
-        self._ent_sockport = Entry(
-            self._frm_options,
-            textvariable=self._sock_port,
-            bg=ENTCOL,
-            relief="sunken",
-            width=6,
-            state=DISABLED,
-        )
         self._lbl_sockmode = Label(
             self._frm_options,
             text=LBLSERVERMODE,
@@ -351,6 +339,20 @@ class SettingsFrame(Frame):
             readonlybackground=ENTCOL,
             wrap=True,
             textvariable=self._sock_mode,
+            command=lambda: self._on_sockmode(),
+        )
+        self._lbl_sockport = Label(
+            self._frm_options,
+            text=LBLSERVERPORT,
+            state=DISABLED,
+        )
+        self._ent_sockport = Entry(
+            self._frm_options,
+            textvariable=self._sock_port,
+            bg=ENTCOL,
+            relief="sunken",
+            width=6,
+            state=DISABLED,
         )
         self._lbl_sockclients = Label(
             self._frm_options,
@@ -447,13 +449,13 @@ class SettingsFrame(Frame):
         self._chk_socketserve.grid(
             column=0, row=9, rowspan=2, padx=2, pady=2, sticky=(N, S, W)
         )
-        self._lbl_sockport.grid(column=1, row=9, padx=2, pady=2, sticky=(E))
-        self._ent_sockport.grid(column=2, row=9, padx=2, pady=2, sticky=(W))
-        self._lbl_sockclients.grid(column=3, row=9, padx=2, pady=2, sticky=(W))
-        self._lbl_sockmode.grid(column=1, row=10, padx=2, pady=2, sticky=(E))
+        self._lbl_sockmode.grid(column=1, row=9, padx=2, pady=2, sticky=(E))
         self._spn_sockmode.grid(
-            column=2, row=10, columnspan=2, padx=2, pady=2, sticky=(W)
+            column=2, row=9, columnspan=2, padx=2, pady=2, sticky=(W)
         )
+        self._lbl_sockport.grid(column=1, row=10, padx=2, pady=2, sticky=(E))
+        self._ent_sockport.grid(column=2, row=10, padx=2, pady=2, sticky=(W))
+        self._lbl_sockclients.grid(column=3, row=10, padx=2, pady=2, sticky=(W))
         ttk.Separator(self._frm_options).grid(
             column=0, row=11, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
@@ -589,6 +591,16 @@ class SettingsFrame(Frame):
             self._spn_sockmode.config(state=READONLY)
             self.__app.stream_handler.sock_serve = False
             self.clients = 0
+
+    def _on_sockmode(self):
+        """
+        Set default port depending on socket server mode.
+        """
+
+        if self._sock_mode.get() == SOCKMODES[1]:  # NTRIP Server
+            self._sock_port.set(SOCKSERVER_NTRIP_PORT)
+        else:
+            self._sock_port.set(SOCKSERVER_PORT)
 
     def _on_disconnect(self):
         """

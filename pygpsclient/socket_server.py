@@ -17,6 +17,7 @@ Operates in two modes according to ntripmode setting:
 For NTRIP mode, set authorization credentials via env variables:
 export PYGPSCLIENT_USER="user"
 export PYGPSCLIENT_PASSWORD="password"
+
 Created on 16 May 2022
 
 :author: semuadmin

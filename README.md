@@ -53,11 +53,11 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 1. Graphview widget showing current satellite reception (signal-to-noise ratio).
 1. Mapview widget with location marker, showing either a static Mercator world map, or an optional dynamic web-based map downloaded via a MapQuest API (*requires an Internet connection and free 
 [MapQuest API Key](https://developer.mapquest.com/user/login/sign-up)*).
-1. Data logging in parsed, binary, hexadecimal string and tabulated hexadecimal formats (NB. only binary datalogs can be re-read by `PyGPSClient`'s parser).
+1. Data logging in parsed, binary, hexadecimal string and tabulated hexadecimal formats (NB. only binary datalogs can be re-read by PyGPSClient's parser).
 1. Track recording in GPX format.
 1. UBX Configuration Dialog, with the ability to send a variety of UBX configuration commands to u-blox GNSS devices. This includes the facility to add **user-defined commands or command sequences** - see instructions under [installation](#installation) below. While not intended to be a direct replacement, the application supports much of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool.
 1. [NTRIP](https://en.wikipedia.org/wiki/Networked_Transport_of_RTCM_via_Internet_Protocol) Client ([differential GPS enhancement](https://en.wikipedia.org/wiki/Differential_GPS)) facility with the ability to connect to a specified NTRIP server (caster), parse the incoming RTCM3 data and feed this data to a compatible GNSS device (*requires an Internet connection and access to a suitable NTRIP caster*).
-1. **New BETA feature in v1.3.5** - Socket / NTRIP Server with two modes of operation: (a) open, unauthenticated Socket Server or (b) NTRIP Server.
+1. **New EXPERIMENTAL feature in v1.3.5** - [Socket / NTRIP Server](#sockserver)  with two modes of operation: (a) open, unauthenticated Socket Server or (b) NTRIP Server.
 
 ---
 ## <a name="howtouse">How to Use</a>
@@ -83,9 +83,14 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 * Zoom - Change the web map scale (any change will take effect at the next map refresh, indicated by a small timer icon at the top left of the panel).
 * Show Legend - Turn the graph legend on or off.
 * Show Unused Satellites - Include or exclude satellites that are not used in the navigation solution (e.g. because their signal level is too low) from the graph and sky view panels.
-* DataLogging - Turn Data logging in the selected format on or off. You will be prompted to select the directory into which timestamped log files are saved (NB. only binary datalogs can be re-read by `pygpsclient`'s parser).
+* DataLogging - Turn Data logging in the selected format on or off. You will be prompted to select the directory into which timestamped log files are saved (NB. only binary datalogs can be re-read by PyGPSClient's parser).
 * GPX Track - Turn track recording (in GPX format) on or off. You will be prompted to select the directory into which timestamped track files are saved.
-* Socket / NTRIP Server (*only available when connected to a GNSS data stream*) - Turn Socket / NTRIP Server on or off. The socket server port defaults to 50010 but is configurable via the port setting. The operating mode can be selected from OPEN SERVER or NTRIP SERVER. A label to the right indicates the number of connected clients, and the server status is indicated in the topmost banner: closed: ![transmit icon](/pygpsclient/resources/iconmonstr-notransmit-10-24.png), open with no clients: ![transmit icon](/pygpsclient/resources/iconmonstr-noclient-10-24.png), open with clients: ![transmit icon](/pygpsclient/resources/iconmonstr-transmit-10-24.png).
+
+### <a name="socketserver">Socket Server Configuration</a> (EXPERIMENTAL)
+
+* Socket / NTRIP Server (*only available when connected to a suitable GNSS data stream*) - Turn Socket / NTRIP Server on or off. The operating mode can be selected from SOCKET SERVER or NTRIP SERVER. The port defaults to `50010` or `2101` respectively but is configurable via the port setting. A label to the right indicates the number of connected clients, and the server status is indicated in the topmost banner: closed: ![transmit icon](/pygpsclient/resources/iconmonstr-notransmit-10-24.png), open with no clients: ![transmit icon](/pygpsclient/resources/iconmonstr-noclient-10-24.png), open with clients: ![transmit icon](/pygpsclient/resources/iconmonstr-transmit-10-24.png). 
+* **NB:** NTRIP Server mode is predicated on the connected GNSS receiver being RTK-compatible and operating in Base Station mode (either `SURVEY_IN` or `FIXED`). In the case of the u-blox ZED-F9P receiver, for example, this is set using the `CFG-TMODE*` configuration interface parameters available via the [UBX Configuration](#ubxconfig) panel - refer to the Interface Specification for further details. PyGPSClient does *not* set these parameters automatically.
+* Login credentials for the NTRIP server are set via environment variables `PYGPSCLIENT_USER` and `PYGPSCLIENT_PASSWORD`.
 
 ---
 ### <a name="ubxconfig">UBX Configuration Facilities</a>
