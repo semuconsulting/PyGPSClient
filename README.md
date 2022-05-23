@@ -142,7 +142,7 @@ Below is a illustrative NTRIP DGPS data log, showing:
 
 The Socket / NTRIP Server facility is capable of operating in either of two modes;
 1. SOCKET SERVER - an open, unauthenticated TCP socket server available to any socket client including, for example, another instance of PyGPSClient or gnssdump (the CLI utility installed with pyubx2) running on another machine. In this mode it will broadcast the host's currently connected GNSS data stream (NMEA, UBX, RTCM3). The default port is 50010.
-2. NTRIP SERVER - a simple implementation of an authenticated NTRIP server available to any NTRIP client including, for example, the PyGPSClient NTRIP Client facility. Login credentials for the NTRIP server are set via host environment variables `PYGPSCLIENT_USER` and `PYGPSCLIENT_PASSWORD`. The default port is 2101. **See prereqisites below.**
+2. NTRIP SERVER - a simple implementation of an authenticated NTRIP server available to any NTRIP client including, for example, the PyGPSClient NTRIP Client facility. Login credentials for the NTRIP server are set via host environment variables `PYGPSCLIENT_USER` and `PYGPSCLIENT_PASSWORD`. The default port is 2101. **See prerequisites below.**
 
 The server binds to the host address '0.0.0.0' i.e. all available IP addresses on the host machine. It may be necessary to add a firewall rule on the host and/or client machine to allow remote traffic on the specified port.
 
