@@ -148,6 +148,14 @@ pygpsclient.skyview\_frame module
    :undoc-members:
    :show-inheritance:
 
+pygpsclient.socket\_server module
+---------------------------------
+
+.. automodule:: pygpsclient.socket_server
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pygpsclient.socketconfig\_frame module
 --------------------------------------
 

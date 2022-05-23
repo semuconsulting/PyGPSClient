@@ -47,6 +47,8 @@ from pygpsclient.globals import (
     NOPORTS,
     GUI_UPDATE_INTERVAL,
     GPX_TRACK_INTERVAL,
+    SOCKSERVER_MAX_CLIENTS,
+    SOCKSERVER_HOST,
 )
 from pygpsclient.graphview_frame import GraphviewFrame
 from pygpsclient.map_frame import MapviewFrame
@@ -60,6 +62,7 @@ from pygpsclient.ubx_config_dialog import UBXConfigDialog
 from pygpsclient.ntrip_client_dialog import NTRIPConfigDialog
 from pygpsclient.nmea_handler import NMEAHandler
 from pygpsclient.ubx_handler import UBXHandler
+from pygpsclient.socket_server import SocketServer, ClientHandler
 
 LOGGING = logging.INFO
 
@@ -105,6 +108,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         # Instantiate protocol handler classes
         self.msgqueue = Queue()
         self.ntripqueue = Queue()
+        self.socketqueue = Queue()
         self.file_handler = FileHandler(self)
         self.stream_handler = StreamHandler(self)
         self.nmea_handler = NMEAHandler(self)
@@ -115,6 +119,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.dlg_ntripconfig = None
         self._ubx_config_thread = None
         self._ntrip_config_thread = None
+        self._socket_thread = None
+        self._socket_server = None
 
         # Load web map api key if there is one
         self.api_key = self.file_handler.load_apikey()
@@ -417,6 +423,58 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             self._ntrip_config_thread = None
             self.dlg_ntripconfig = None
 
+    def start_sockserver_thread(self):
+        """
+        Start socket server thread.
+        """
+
+        port = self.frm_settings.server_port
+        ntripmode = self.frm_settings.server_mode
+        self._socket_thread = Thread(
+            target=self._sockserver_thread,
+            args=(
+                ntripmode,
+                SOCKSERVER_HOST,
+                port,
+                SOCKSERVER_MAX_CLIENTS,
+                self.socketqueue,
+            ),
+            daemon=True,
+        )
+        self._socket_thread.start()
+        self.frm_banner.update_transmit_status(0)
+
+    def stop_sockserver_thread(self):
+        """
+        Stop socket server thread.
+        """
+
+        self.frm_banner.update_transmit_status(-1)
+        if self._socket_server is not None:
+            self._socket_server.shutdown()
+
+    def _sockserver_thread(
+        self, ntripmode: int, host: str, port: int, maxclients: int, socketqueue: Queue
+    ):
+        """
+        THREADED
+        Socket Server thread.
+
+        :param int ntripmode: 0 = open socket server, 1 = NTRIP server
+        :param str host: socket host name (0.0.0.0)
+        :param int port: socket port (50010)
+        :param int maxclients: max num of clients (5)
+        :param Queue socketqueue: socket server read queue
+        """
+
+        try:
+            with SocketServer(
+                self, ntripmode, maxclients, socketqueue, (host, port), ClientHandler
+            ) as self._socket_server:
+                self._socket_server.serve_forever()
+        except OSError as err:
+            self.set_status(f"Error starting socket server {err}", "red")
+
     def get_master(self):
         """
         Getter for application master (Tk)
@@ -433,6 +491,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         self.file_handler.close_logfile()
         self.file_handler.close_trackfile()
+        self.stop_sockserver_thread()
         self.stream_handler.stop_read_thread()
         self.stop_ubxconfig_thread()
         self.stop_ntripconfig_thread()
@@ -517,21 +576,21 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             self._last_gui_update = datetime.now()
 
         # update GPX track file if enabled
-        if (
-            self.frm_settings.record_track
-            and self.gnss_status.lat != ""
-            and self.gnss_status.lon != ""
-        ):
-            self.update_gpx_track()
+        if self.frm_settings.record_track:
+            self._update_gpx_track()
 
         # update log file if enabled
         if self.frm_settings.datalogging:
             self.file_handler.write_logfile(raw_data, parsed_data)
 
-    def update_gpx_track(self):
+    def _update_gpx_track(self):
         """
-        Update GPX track with latest position reading.
+        Update GPX track with latest valid position readings.
         """
+
+        # must have valid coords
+        if self.gnss_status.lat == "" or self.gnss_status.lon == "":
+            return
 
         if datetime.now() > self._last_track_update + timedelta(
             seconds=GPX_TRACK_INTERVAL

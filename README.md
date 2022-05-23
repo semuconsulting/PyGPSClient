@@ -5,6 +5,7 @@
 [How to Use](#howtouse) |
 [UBX Configuration](#ubxconfig) |
 [NTRIP Client](#ntripconfig) |
+[Socket / NTRIP Server](#socketserver) |
 [Installation](#installation) |
 [Mapquest API Key](#mapquestapi) |
 [User-defined Presets](#userdefined) |
@@ -18,11 +19,7 @@ PyGPSClient is a multi-platform graphical GNSS/GPS testing, diagnostic and UBX &
 ![full app screenshot ubx](/images/app.png)
 *Screenshot showing mixed-protocol stream from u-blox ZED-F9P receiver, using PyGPSClient's [NTRIP Client](#ntripconfig) to achieve >= 1cm accuracy*
 
-The application runs on any platform which supports a Python interpreter (>=3.7) and tkinter (>=8.6) GUI framework, including Windows, MacOS, Linux and Raspberry Pi OS. It displays navigation and diagnostic data from any NMEA, UBX or RTCM3 compatible GNSS/GPS device *in addition to* providing a useful subset of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool.
-
 The application can be installed using the standard `pip` Python package manager - see [installation instructions](#installation) below.
-
-This is an independent project and we have no affiliation whatsoever with u-blox.
 
 ---
 ## <a name="currentstatus">Current Status</a>
@@ -41,11 +38,14 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 
 [Bug reports](https://github.com/semuconsulting/PyGPSClient/blob/master/.github/ISSUE_TEMPLATE/bug_report.md) and [Feature requests](https://github.com/semuconsulting/PyGPSClient/blob/master/.github/ISSUE_TEMPLATE/feature_request.md) - please use the templates provided.
 
+This is an independent project and we have no affiliation whatsoever with u-blox.
+
 ---
 ## <a name="features">Features</a>
 
+1. Runs on any platform which supports a Python 3 interpreter (>=3.7) and tkinter (>=8.6) GUI framework, including Windows, MacOS, Linux and Raspberry Pi OS.
 1. Supports NMEA, UBX and RTCM3 protocols.
-1. Capable of reading from a variety of data streams: Serial (USB / UART), Socket (TCP / UDP) and binary datalog file. 
+1. Capable of reading from a variety of GNSS data streams: Serial (USB / UART), Socket (TCP / UDP) and binary datalog file.
 1. Configurable GUI with selectable and resizeable widgets.
 1. Expandable banner widget showing key navigation information.
 1. Serial console widget showing data stream in either parsed, binary or hexadecimal format.
@@ -54,10 +54,11 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 1. Graphview widget showing current satellite reception (signal-to-noise ratio).
 1. Mapview widget with location marker, showing either a static Mercator world map, or an optional dynamic web-based map downloaded via a MapQuest API (*requires an Internet connection and free 
 [MapQuest API Key](https://developer.mapquest.com/user/login/sign-up)*).
-1. Data logging in parsed, binary, hexadecimal string and tabulated hexadecimal formats (NB. only binary datalogs can be re-read by `PyGPSClient`'s parser).
+1. Data logging in parsed, binary, hexadecimal string and tabulated hexadecimal formats (NB. only binary datalogs can be re-read by PyGPSClient's parser).
 1. Track recording in GPX format.
-1. UBX Configuration Dialog, with the ability to send a variety of UBX configuration commands to u-blox GNSS devices. This includes the facility to add **user-defined commands or command sequences** - see instructions under [installation](#installation) below.
+1. UBX Configuration Dialog, with the ability to send a variety of UBX configuration commands to u-blox GNSS devices. This includes the facility to add **user-defined commands or command sequences** - see instructions under [user-defined presets](#userdefined) below. While not intended to be a direct replacement, the application supports much of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool.
 1. [NTRIP](https://en.wikipedia.org/wiki/Networked_Transport_of_RTCM_via_Internet_Protocol) Client ([differential GPS enhancement](https://en.wikipedia.org/wiki/Differential_GPS)) facility with the ability to connect to a specified NTRIP server (caster), parse the incoming RTCM3 data and feed this data to a compatible GNSS device (*requires an Internet connection and access to a suitable NTRIP caster*).
+1. **New BETA feature in v1.3.5** - [Socket / NTRIP Server](#socketserver)  with two modes of operation: (a) open, unauthenticated Socket Server or (b) NTRIP Server.
 
 ---
 ## <a name="howtouse">How to Use</a>
@@ -70,7 +71,7 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 ![connect-file icon](/pygpsclient/resources/binary-1-24.png) and select the file. PyGPSClient datalog files will be named e.g. `pygpsdata-20220427114802.log`, but any binary dump of an GNSS receiver output is acceptable.
 * To disconnect from the data stream, click
 ![disconnect icon](/pygpsclient/resources/iconmonstr-media-control-50-24.png).
-* To display the UBX Configuration Dialog (*only available when connected to a UBX serial device*), click
+* To display the UBX Configuration Dialog (*only functional when connected to a UBX GNSS device via serial port*), click
 ![gear icon](/pygpsclient/resources/iconmonstr-gear-2-24.png), or go to Menu..Options.
 * To display the NTRIP Client Configuration Dialog (*requires internet connection*), click
 ![gear icon](/pygpsclient/resources/iconmonstr-antenna-6-24.png), or go to Menu..Options.
@@ -83,8 +84,11 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 * Zoom - Change the web map scale (any change will take effect at the next map refresh, indicated by a small timer icon at the top left of the panel).
 * Show Legend - Turn the graph legend on or off.
 * Show Unused Satellites - Include or exclude satellites that are not used in the navigation solution (e.g. because their signal level is too low) from the graph and sky view panels.
-* DataLogging - Turn Data logging in the selected format on or off. You will be prompted to select the directory into which timestamped log files are saved (NB. only binary datalogs can be re-read by `pygpsclient`'s parser).
+* DataLogging - Turn Data logging in the selected format on or off. You will be prompted to select the directory into which timestamped log files are saved (NB. only binary datalogs can be re-read by PyGPSClient's parser).
 * GPX Track - Turn track recording (in GPX format) on or off. You will be prompted to select the directory into which timestamped track files are saved.
+* Socket / NTRIP Server - Turn Socket / NTRIP Server on or off.
+* UBX Configuration - Opens UBX configuration panel (only functional with u-blox devices).
+* NTRIP Client Configuration - Opens NTRIP Client configuration panel.
 
 ---
 ### <a name="ubxconfig">UBX Configuration Facilities</a>
@@ -117,7 +121,7 @@ warning ![warning icon](/pygpsclient/resources/iconmonstr-warning-1-24.png)).
 
 To use:
 1. Enter the required NTRIP server URL (or IP address) and port (defaults to 2101). For services which require authorisation, enter your login username and password.
-1. To retrieve the sourcetable, leave the mountpoint field blank and click connect (*response may take a few seconds*). The required mountpoint may then be selected from the list, or entered manually. Where possible with the information provided by the caster, `PyGPSClient` will automatically identify the closest mountpoint to the current location.
+1. To retrieve the sourcetable, leave the mountpoint field blank and click connect (*response may take a few seconds*). The required mountpoint may then be selected from the list, or entered manually. Where possible, `PyGPSClient` will automatically identify the closest mountpoint to the current location.
 1. For NTRIP services which require client position data via NMEA GGA sentences, select the appropriate sentence transmission interval in seconds. The default is 'None' (no GGA sentences sent). A value of 10 or 60 seconds is typical.
 1. If GGA sentence transmission is enabled, GGA sentences can either be populated from live navigation data (*assuming a receiver is connected and outputting valid position data*) or from manual settings entered in the NTRIP configuration panel (latitude, longitude, elevation and separation - all four manual settings must be provided).
 1. To connect to the NTRIP server, click ![connect icon](/pygpsclient/resources/iconmonstr-media-control-48-24.png). To disconnect, click ![disconnect icon](/pygpsclient/resources/iconmonstr-media-control-50-24.png).
@@ -128,17 +132,24 @@ Below is a illustrative NTRIP DGPS data log, showing:
 * Outgoing NMEA GPGGA (client position) sentence.
 * Incoming RTCM3 correction messages; in this case - 1006 (Ref station ARP (*DF003=2690*) with antenna height), 1008 (Antenna descriptor), 1033 (Receiver descriptor), 1075 (GPS MSM5), 1085 (GLONASS MSM5), 1095 (Galileo MSM5), 1125 (BeiDou MSM5) and 1230 (GLONASS Code-Phase Biases)
 * Corresponding UBX RXM-RTCM acknowledgements generated by the u-blox ZED-F9P receiver, confirming message type, valid checksum (*crcFailed=0*), successful use (*msgUsed=2*) and reference station ARP (*refStation=2690*). 
-* The incoming DGPS correction status can also be verified by reference to e.g. NMEA GGA (*diffAge=1.0, diffStation=2690*), UBX NAV-PVT (*difSoln=1, lastCorrectionAge=2*) or UBX NAV-STATUS (*diffSoln=1, diffCorr=1*) messages. NB. Some of the DGPS status attributes are only available in the latest UBX firmware versions e.g. HPG 1.30.
 
 ![ntrip console screenshot](/images/ntrip_consolelog.png)
 
 **NB:** Please respect the terms and conditions of any remote NTRIP service used with this facility. For testing or evaluation purposes, consider deploying a local [SNIP LITE](https://www.use-snip.com/download/) server. *Inappropriate use of an NTRIP service may result in your account being blocked*.
 
 ---
+### <a name="socketserver">Socket / NTRIP Server Facilities</a> (BETA)
+
+The Socket / NTRIP Server is only available when connected to a GNSS data stream. To use:
+* Turn Socket / NTRIP Server on or off. The operating mode can be selected from SOCKET SERVER or NTRIP SERVER. The port defaults to `50010` or `2101` respectively but is configurable via the port setting. A label to the right indicates the number of connected clients, and the server status is indicated in the topmost banner: closed: ![transmit icon](/pygpsclient/resources/iconmonstr-notransmit-10-24.png), open with no clients: ![transmit icon](/pygpsclient/resources/iconmonstr-noclient-10-24.png), open with clients: ![transmit icon](/pygpsclient/resources/iconmonstr-transmit-10-24.png). 
+* **NB:** NTRIP Server mode is predicated on connection to an RTK-compatible GNSS receiver operating in Base Station mode (either `SURVEY_IN` or `FIXED`). In the case of the u-blox ZED-F9P receiver, for example, this is set using the `CFG-TMODE*` configuration interface parameters available via the [UBX Configuration](#ubxconfig) panel - refer to the Integration Manual and Interface Specification for further details. PyGPSClient does *not* set these parameters automatically, though a [user-defined preset](#userdefined) command can be configured to facilitate the procedure.
+* Login credentials for the NTRIP server are set via environment variables `PYGPSCLIENT_USER` and `PYGPSCLIENT_PASSWORD`.
+
+---
 ## <a name="installation">Installation</a>
 
-In the following, `python` & `pip` refer to the Python 3 executables. You may need to type 
-`python3` or `pip3`, depending on your particular environment. It is also recommended that 
+In the following, `python3` & `pip` refer to the Python 3 executables. You may need to type 
+`python` or `pip3`, depending on your particular environment. It is also recommended that 
 the Python 3 scripts (bin) and site_packages directories are included in your PATH 
 (*many standard Python 3 installation packages will do this automatically*).
 
@@ -175,16 +186,16 @@ The easiest way to install the latest version of `PyGPSClient` is with
 [pip](http://pypi.python.org/pypi/pip/):
 
 ```shell
-python -m pip install --upgrade PyGPSClient
+python3 -m pip install --upgrade PyGPSClient
 ```
 
 If required, `PyGPSClient` can also be installed into a virtual environment, e.g.:
 
 ```shell
-python -m pip install --user --upgrade virtualenv
-python -m virtualenv env
+python3 -m pip install --user --upgrade virtualenv
+python3 -m virtualenv env
 source env/bin/activate (or env\Scripts\activate on Windows)
-(env) python -m pip install --upgrade PyGPSClient
+(env) python3 -m pip install --upgrade PyGPSClient
 ...
 deactivate
 ```
@@ -198,14 +209,14 @@ If desired, you can add a shortcut to this command to your desktop or favourites
 
 Alternatively, if the Python 3 site_packages are in your PATH, you can type (all lowercase): 
 ```shell
-python -m pygpsclient
+python3 -m pygpsclient
 ```
 
 **NB:** If the Python 3 scripts (bin) or site_packages directories are *not* in your PATH, you will need to add the fully-qualified path to `pygpsclient` in the commands above.
 
 **Tip:** to find the site_packages location, type:
 ```shell
-python -m pip show PyGPSClient
+python3 -m pip show PyGPSClient
 ``` 
 and look for the `Location:` entry in the response, e.g.
 
@@ -231,19 +242,19 @@ See [requirements.txt](requirements.txt).
 The following Python libraries are required (these will be installed automatically if using pip to install PyGPSClient):
 
 ```shell
-python -m pip install --upgrade pyubx2 pynmeagps pyrtcm pyserial Pillow requests
+python3 -m pip install --upgrade pyubx2 pynmeagps pyrtcm pyserial Pillow requests
 ```
 
 To install PyGPSClient manually, download and unzip this repository and run:
 
 ```shell
-python -m /path_to_folder/foldername/pygpsclient
+python3 -m /path_to_folder/foldername/pygpsclient
 ```
 
 e.g. if you downloaded and unzipped to a folder named `PyGPSClient-1.3.4`, run: 
 
 ```shell
-python -m /path_to_folder/PyGPSClient-1.3.4/pygpsclient
+python3 -m /path_to_folder/PyGPSClient-1.3.4/pygpsclient
 ```
 
 ---
@@ -316,7 +327,9 @@ As at May 2022, tkinter performance is noticeably slower on MacOS Monterey platf
 ---
 ## <a name="glossary">Glossary of Terms</a>
 
-* ACC - accuracy of location in real units (hacc - horizontal, vacc - vertical). Note that location accuracy is not directly provided via the standard NMEA message set, but is available via some proprietary NMEA messages e.g. UBX00.
+See also [GNSS Positioning - A Reviser](https://www.semuconsulting.com/gnsswiki/)
+
+* ACC - accuracy of location in real units (hacc - horizontal, vacc - vertical). Note that location accuracy is not directly provided via the standard NMEA message set, but is available from UBX messages e.g. NAV-POSLLH, NAV-PVT and some proprietary NMEA messages e.g. UBX00.
 * BEI - [BeiDou Navigation Satellite System](https://en.wikipedia.org/wiki/BeiDou).
 * DOP - [dilution of precision](https://gisgeography.com/gps-accuracy-hdop-pdop-gdop-multipath/) (pdop - overall position, hdop - horizontal, vdop - vertical).
 * GAL - [Galileo Satellite Navigation](https://en.wikipedia.org/wiki/Galileo_(satellite_navigation)).
@@ -351,6 +364,6 @@ Application icons from [iconmonstr](https://iconmonstr.com/license/) &copy;.
 
 semuadmin@semuconsulting.com
 
-`PyGPSClient` is maintained entirely by volunteers. If you find it useful, a small donation would be greatly appreciated!
+`PyGPSClient` is maintained entirely by unpaid volunteers. If you find it useful, a small donation would be greatly appreciated!
 
 [![Donations](https://www.paypalobjects.com/en_GB/i/btn/btn_donate_LG.gif)](https://www.paypal.com/donate/?hosted_button_id=4TG5HGBNAM7YJ)

@@ -30,6 +30,9 @@ from pygpsclient.globals import (
     ICON_LOGREAD,
     ICON_EXPAND,
     ICON_CONTRACT,
+    ICON_TRANSMIT,
+    ICON_NOTRANSMIT,
+    ICON_NOCLIENT,
     CONNECTED,
     CONNECTED_SOCKET,
     CONNECTED_FILE,
@@ -97,6 +100,9 @@ class BannerFrame(Frame):
         self._img_disconn = ImageTk.PhotoImage(Image.open(ICON_DISCONN))
         self._img_expand = ImageTk.PhotoImage(Image.open(ICON_EXPAND))
         self._img_contract = ImageTk.PhotoImage(Image.open(ICON_CONTRACT))
+        self._img_transmit = ImageTk.PhotoImage(Image.open(ICON_TRANSMIT))
+        self._img_notransmit = ImageTk.PhotoImage(Image.open(ICON_NOTRANSMIT))
+        self._img_noclient = ImageTk.PhotoImage(Image.open(ICON_NOCLIENT))
 
         self.width, self.height = self.get_size()
 
@@ -170,6 +176,13 @@ class BannerFrame(Frame):
         self.option_add("*Font", self.__app.font_lg)
         self._lbl_status_preset = Label(
             self._frm_connect, bg=self._bgcol, image=self._img_conn, fg="blue"
+        )
+        self._lbl_transmit_preset = Label(
+            self._frm_connect,
+            bg=self._bgcol,
+            image=self._img_notransmit,
+            text="0",
+            fg="grey",
         )
         self._lbl_time = Label(
             self._frm_basic, textvariable=self._time, bg=self._bgcol, fg="cyan"
@@ -258,6 +271,7 @@ class BannerFrame(Frame):
         """
 
         self._lbl_status_preset.grid(column=0, row=0, padx=8, pady=3, sticky=W)
+        self._lbl_transmit_preset.grid(column=1, row=0, padx=8, pady=3, sticky=W)
         self._lbl_ltime.grid(column=1, row=0, pady=3, sticky=W)
         self._lbl_time.grid(column=2, row=0, pady=3, sticky=W)
         self._lbl_llat.grid(column=3, row=0, pady=3, sticky=W)
@@ -333,6 +347,20 @@ class BannerFrame(Frame):
             self._lbl_status_preset.configure(image=self._img_file)
         else:
             self._lbl_status_preset.configure(image=self._img_disconn)
+
+    def update_transmit_status(self, transmit: int = 1):
+        """
+        Update socket server status icon
+
+        :param int transmit: socket server transmit status (-1, 0, 1)
+        """
+
+        if transmit > 0:
+            self._lbl_transmit_preset.configure(image=self._img_transmit)
+        elif transmit == 0:
+            self._lbl_transmit_preset.configure(image=self._img_noclient)
+        else:
+            self._lbl_transmit_preset.configure(image=self._img_notransmit)
 
     def update_banner(self):
         """

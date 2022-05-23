@@ -613,7 +613,7 @@ class NTRIPConfigDialog(Toplevel):
                 valid = valid & valid_entry(self._ent_sep, VALFLOAT, -MAXALT, MAXALT)
 
         if not valid:
-            self.set_status(f"ERROR - invalid settings", "red")
+            self.set_status("ERROR - invalid settings", "red")
 
         return valid
 

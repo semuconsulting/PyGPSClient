@@ -33,6 +33,9 @@ ICON_LOGREAD = os.path.join(DIRNAME, "resources/binary-1-24.png")
 ICON_REFRESH = os.path.join(DIRNAME, "resources/iconmonstr-refresh-6-16.png")
 ICON_CONTRACT = os.path.join(DIRNAME, "resources/iconmonstr-triangle-1-16.png")
 ICON_EXPAND = os.path.join(DIRNAME, "resources/iconmonstr-arrow-80-16.png")
+ICON_TRANSMIT = os.path.join(DIRNAME, "resources/iconmonstr-transmit-10-24.png")
+ICON_NOTRANSMIT = os.path.join(DIRNAME, "resources/iconmonstr-notransmit-10-24.png")
+ICON_NOCLIENT = os.path.join(DIRNAME, "resources/iconmonstr-noclient-10-24.png")
 IMG_WORLD = os.path.join(DIRNAME, "resources/world.png")
 
 GITHUB_URL = "https://github.com/semuconsulting/PyGPSClient"
@@ -98,14 +101,21 @@ BPSRATES = (9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600, 4800)
 CRLF = b"\x0d\x0a"
 # socket client defaults
 DEFAULT_SERVER = "localhost"
-DEFAULT_PORT = "50007"
+DEFAULT_PORT = 50010
 DEFAULT_BUFSIZE = 4096
+# socket server defaults
+SOCKSERVER_HOST = "0.0.0.0"  # i.e. bind to all host IP addresses
+SOCKSERVER_PORT = 50010
+SOCKSERVER_NTRIP_PORT = 2101
+SOCKSERVER_MAX_CLIENTS = 5
 # display formats
 FORMAT_PARSED = 1
 FORMAT_BIN = 2
 FORMAT_HEX = 4
 FORMAT_HEXTABLE = 8
 FORMATS = ("Parsed", "Binary", "Hex String", "Hex Tabular")
+# socket server modes
+SOCKMODES = ("SOCKET SERVER", "NTRIP SERVER")
 # connection mode flags:
 DISCONNECTED = 0
 CONNECTED = 1
