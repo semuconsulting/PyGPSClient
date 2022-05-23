@@ -25,8 +25,6 @@ Created on 16 May 2022
 :license: BSD 3-Clause
 """
 
-# b'HTTP/1.1 401 Unauthorized\r\nNtrip-Version: Ntrip/2.0\r\nServer: NTRIP BKG Caster/2.0.39\r\nDate: Mon, 23 May 2022 08:04:53 GMT\r\nWWW-Authenticate: Basic realm="/ALBA00ESP0"\r\nConnection: close\r\n\r\n'
-
 from os import getenv
 from socketserver import ThreadingTCPServer, StreamRequestHandler
 from threading import Thread, Event
@@ -352,12 +350,13 @@ class ClientHandler(StreamRequestHandler):
 
     def _format_http_header(self, code: int = 200) -> str:
         """
-        Format HTTP header.
+        Format HTTP NTRIP header.
 
         :param int code: HTTP response code (200)
         :return: HTTP NTRIP header
         :rtype: str
         """
+        # pylint: disable=no-self-use
 
         codes = {200: "OK", 401: "Unauthorized", 403: "Forbidden", 404: "Not Found"}
 

@@ -58,7 +58,7 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 1. Track recording in GPX format.
 1. UBX Configuration Dialog, with the ability to send a variety of UBX configuration commands to u-blox GNSS devices. This includes the facility to add **user-defined commands or command sequences** - see instructions under [user-defined presets](#userdefined) below. While not intended to be a direct replacement, the application supports much of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool.
 1. [NTRIP](https://en.wikipedia.org/wiki/Networked_Transport_of_RTCM_via_Internet_Protocol) Client ([differential GPS enhancement](https://en.wikipedia.org/wiki/Differential_GPS)) facility with the ability to connect to a specified NTRIP server (caster), parse the incoming RTCM3 data and feed this data to a compatible GNSS device (*requires an Internet connection and access to a suitable NTRIP caster*).
-1. **New EXPERIMENTAL feature in v1.3.5** - [Socket / NTRIP Server](#socketserver)  with two modes of operation: (a) open, unauthenticated Socket Server or (b) NTRIP Server.
+1. **New BETA feature in v1.3.5** - [Socket / NTRIP Server](#socketserver)  with two modes of operation: (a) open, unauthenticated Socket Server or (b) NTRIP Server.
 
 ---
 ## <a name="howtouse">How to Use</a>
@@ -138,7 +138,7 @@ Below is a illustrative NTRIP DGPS data log, showing:
 **NB:** Please respect the terms and conditions of any remote NTRIP service used with this facility. For testing or evaluation purposes, consider deploying a local [SNIP LITE](https://www.use-snip.com/download/) server. *Inappropriate use of an NTRIP service may result in your account being blocked*.
 
 ---
-### <a name="socketserver">Socket / NTRIP Server Facilities</a> (EXPERIMENTAL)
+### <a name="socketserver">Socket / NTRIP Server Facilities</a> (BETA)
 
 The Socket / NTRIP Server is only available when connected to a GNSS data stream. To use:
 * Turn Socket / NTRIP Server on or off. The operating mode can be selected from SOCKET SERVER or NTRIP SERVER. The port defaults to `50010` or `2101` respectively but is configurable via the port setting. A label to the right indicates the number of connected clients, and the server status is indicated in the topmost banner: closed: ![transmit icon](/pygpsclient/resources/iconmonstr-notransmit-10-24.png), open with no clients: ![transmit icon](/pygpsclient/resources/iconmonstr-noclient-10-24.png), open with clients: ![transmit icon](/pygpsclient/resources/iconmonstr-transmit-10-24.png). 
