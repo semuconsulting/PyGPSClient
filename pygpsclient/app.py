@@ -475,6 +475,15 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         except OSError as err:
             self.set_status(f"Error starting socket server {err}", "red")
 
+    def update_clients(self, clients: int):
+        """
+        Update number of connected clients in settings panel.
+
+        :param int clients: no of connected clients
+        """
+
+        self.frm_settings.clients = clients
+
     def get_master(self):
         """
         Getter for application master (Tk)

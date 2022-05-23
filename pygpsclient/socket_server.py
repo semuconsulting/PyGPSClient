@@ -1,6 +1,8 @@
 """
 TCP socket server for PyGPSClient application.
 
+(could also be used independently of a tkinter app framework)
+
 Reads raw data from GNSS receiver message queue and
 outputs this to multiple TCP socket clients.
 
@@ -52,7 +54,7 @@ class SocketServer(ThreadingTCPServer):
         """
         Overridden constructor.
 
-        :param Frame app: reference to main application class
+        :param Frame app: reference to main application class (if any)
         :param int ntripmode: 0 = open socket server, 1 = NTRIP server
         :param int maxclients: max no of clients allowed
         :param Queue msgqueue: queue containing raw GNSS messages
@@ -159,7 +161,8 @@ class SocketServer(ThreadingTCPServer):
         """
 
         self._connections = clients
-        self.__app.frm_settings.clients = self._connections
+        if self.__app is not None:
+            self.__app.update_clients(self._connections)
 
     @property
     def ntripmode(self) -> int:
@@ -181,7 +184,10 @@ class SocketServer(ThreadingTCPServer):
         :rtype: tuple
         """
 
-        return (self.__app.gnss_status.lat, self.__app.gnss_status.lon)
+        if self.__app is None:
+            return ("", "")
+        else:
+            return (self.__app.gnss_status.lat, self.__app.gnss_status.lon)
 
 
 class ClientHandler(StreamRequestHandler):
