@@ -327,7 +327,7 @@ As at May 2022, tkinter performance is noticeably slower on MacOS Monterey platf
 ---
 ## <a name="glossary">Glossary of Terms</a>
 
-See also [GNSS 101 - The Basic Principles of GNSS Positioning](https://www.semuconsulting.com/gnsswiki/)
+See also [GNSS Positioning - A Reviser](https://www.semuconsulting.com/gnsswiki/)
 
 * ACC - accuracy of location in real units (hacc - horizontal, vacc - vertical). Note that location accuracy is not directly provided via the standard NMEA message set, but is available from UBX messages e.g. NAV-POSLLH, NAV-PVT and some proprietary NMEA messages e.g. UBX00.
 * BEI - [BeiDou Navigation Satellite System](https://en.wikipedia.org/wiki/BeiDou).
