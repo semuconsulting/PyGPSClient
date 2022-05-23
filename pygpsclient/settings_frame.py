@@ -334,7 +334,7 @@ class SettingsFrame(Frame):
         self._spn_sockmode = Spinbox(
             self._frm_options,
             values=SOCKMODES,
-            width=12,
+            width=18,
             state=DISABLED,
             readonlybackground=ENTCOL,
             wrap=True,
@@ -918,6 +918,27 @@ class SettingsFrame(Frame):
         """
 
         return self._show_legend.get()
+
+    @property
+    def server_state(self) -> int:
+        """
+        Getter for socket server run status.
+
+        :return: status 0 = off, 1 = on
+        :rtype: int
+        """
+
+        return self._socket_serve.get()
+
+    @server_state.setter
+    def server_state(self, status: int):
+        """
+        Setter for server run status.
+
+        :param int status: 0 = off, 1 = on
+        """
+
+        self._socket_serve.set(status)
 
     @property
     def server_port(self) -> int:

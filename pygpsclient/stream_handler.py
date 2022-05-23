@@ -308,4 +308,5 @@ class StreamHandler:
         """
 
         self.stop_read_thread()
+        self.__app.frm_settings.server_state = 0  # turn off socket server
         self.__app.set_status(ENDOFFILE, "blue")

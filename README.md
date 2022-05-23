@@ -5,6 +5,7 @@
 [How to Use](#howtouse) |
 [UBX Configuration](#ubxconfig) |
 [NTRIP Client](#ntripconfig) |
+[Socket / NTRIP Server](#socketserver) |
 [Installation](#installation) |
 [Mapquest API Key](#mapquestapi) |
 [User-defined Presets](#userdefined) |
@@ -55,9 +56,9 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 [MapQuest API Key](https://developer.mapquest.com/user/login/sign-up)*).
 1. Data logging in parsed, binary, hexadecimal string and tabulated hexadecimal formats (NB. only binary datalogs can be re-read by PyGPSClient's parser).
 1. Track recording in GPX format.
-1. UBX Configuration Dialog, with the ability to send a variety of UBX configuration commands to u-blox GNSS devices. This includes the facility to add **user-defined commands or command sequences** - see instructions under [installation](#installation) below. While not intended to be a direct replacement, the application supports much of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool.
+1. UBX Configuration Dialog, with the ability to send a variety of UBX configuration commands to u-blox GNSS devices. This includes the facility to add **user-defined commands or command sequences** - see instructions under [user-defined presets](#userdefined) below. While not intended to be a direct replacement, the application supports much of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool.
 1. [NTRIP](https://en.wikipedia.org/wiki/Networked_Transport_of_RTCM_via_Internet_Protocol) Client ([differential GPS enhancement](https://en.wikipedia.org/wiki/Differential_GPS)) facility with the ability to connect to a specified NTRIP server (caster), parse the incoming RTCM3 data and feed this data to a compatible GNSS device (*requires an Internet connection and access to a suitable NTRIP caster*).
-1. **New EXPERIMENTAL feature in v1.3.5** - [Socket / NTRIP Server](#sockserver)  with two modes of operation: (a) open, unauthenticated Socket Server or (b) NTRIP Server.
+1. **New EXPERIMENTAL feature in v1.3.5** - [Socket / NTRIP Server](#socketserver)  with two modes of operation: (a) open, unauthenticated Socket Server or (b) NTRIP Server.
 
 ---
 ## <a name="howtouse">How to Use</a>
@@ -85,12 +86,9 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 * Show Unused Satellites - Include or exclude satellites that are not used in the navigation solution (e.g. because their signal level is too low) from the graph and sky view panels.
 * DataLogging - Turn Data logging in the selected format on or off. You will be prompted to select the directory into which timestamped log files are saved (NB. only binary datalogs can be re-read by PyGPSClient's parser).
 * GPX Track - Turn track recording (in GPX format) on or off. You will be prompted to select the directory into which timestamped track files are saved.
-
-### <a name="socketserver">Socket Server Configuration</a> (EXPERIMENTAL)
-
-* Socket / NTRIP Server (*only available when connected to a suitable GNSS data stream*) - Turn Socket / NTRIP Server on or off. The operating mode can be selected from SOCKET SERVER or NTRIP SERVER. The port defaults to `50010` or `2101` respectively but is configurable via the port setting. A label to the right indicates the number of connected clients, and the server status is indicated in the topmost banner: closed: ![transmit icon](/pygpsclient/resources/iconmonstr-notransmit-10-24.png), open with no clients: ![transmit icon](/pygpsclient/resources/iconmonstr-noclient-10-24.png), open with clients: ![transmit icon](/pygpsclient/resources/iconmonstr-transmit-10-24.png). 
-* **NB:** NTRIP Server mode is predicated on the connected GNSS receiver being RTK-compatible and operating in Base Station mode (either `SURVEY_IN` or `FIXED`). In the case of the u-blox ZED-F9P receiver, for example, this is set using the `CFG-TMODE*` configuration interface parameters available via the [UBX Configuration](#ubxconfig) panel - refer to the Interface Specification for further details. PyGPSClient does *not* set these parameters automatically.
-* Login credentials for the NTRIP server are set via environment variables `PYGPSCLIENT_USER` and `PYGPSCLIENT_PASSWORD`.
+* Socket / NTRIP Server - Turn Socket / NTRIP Server on or off.
+* UBX Configuration - Opens UBX configuration panel (only functional with u-blox devices).
+* NTRIP Client Configuration - Opens NTRIP Client configuration panel.
 
 ---
 ### <a name="ubxconfig">UBX Configuration Facilities</a>
@@ -138,6 +136,14 @@ Below is a illustrative NTRIP DGPS data log, showing:
 ![ntrip console screenshot](/images/ntrip_consolelog.png)
 
 **NB:** Please respect the terms and conditions of any remote NTRIP service used with this facility. For testing or evaluation purposes, consider deploying a local [SNIP LITE](https://www.use-snip.com/download/) server. *Inappropriate use of an NTRIP service may result in your account being blocked*.
+
+---
+### <a name="socketserver">Socket / NTRIP Server Facilities</a> (EXPERIMENTAL)
+
+The Socket / NTRIP Server is only available when connected to a GNSS data stream. To use:
+* Turn Socket / NTRIP Server on or off. The operating mode can be selected from SOCKET SERVER or NTRIP SERVER. The port defaults to `50010` or `2101` respectively but is configurable via the port setting. A label to the right indicates the number of connected clients, and the server status is indicated in the topmost banner: closed: ![transmit icon](/pygpsclient/resources/iconmonstr-notransmit-10-24.png), open with no clients: ![transmit icon](/pygpsclient/resources/iconmonstr-noclient-10-24.png), open with clients: ![transmit icon](/pygpsclient/resources/iconmonstr-transmit-10-24.png). 
+* **NB:** NTRIP Server mode is predicated on connection to an RTK-compatible GNSS receiver operating in Base Station mode (either `SURVEY_IN` or `FIXED`). In the case of the u-blox ZED-F9P receiver, for example, this is set using the `CFG-TMODE*` configuration interface parameters available via the [UBX Configuration](#ubxconfig) panel - refer to the Integration Manual and Interface Specification for further details. PyGPSClient does *not* set these parameters automatically, though a [user-defined preset](#userdefined) command can be configured to facilitate the procedure.
+* Login credentials for the NTRIP server are set via environment variables `PYGPSCLIENT_USER` and `PYGPSCLIENT_PASSWORD`.
 
 ---
 ## <a name="installation">Installation</a>

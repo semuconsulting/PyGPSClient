@@ -12,7 +12,7 @@ Operates in two modes according to ntripmode setting:
     respond to NTRIP client authentication, sourcetable and RTCM3 data
     stream requests.
     NB: THIS ASSUMES THE CONNECTED GNSS RECEIVER IS OPERATING IN BASE
-    STATION (SURVEY-IN) MODE AND OUTPUTTING THE RELEVANT RTCM3 MESSAGES.
+    STATION (SURVEY-IN OR FIXED) MODE AND OUTPUTTING THE RELEVANT RTCM3 MESSAGES.
 
 For NTRIP mode, set authorization credentials via env variables:
 export PYGPSCLIENT_USER="user"
@@ -25,6 +25,8 @@ Created on 16 May 2022
 :license: BSD 3-Clause
 """
 
+# b'HTTP/1.1 401 Unauthorized\r\nNtrip-Version: Ntrip/2.0\r\nServer: NTRIP BKG Caster/2.0.39\r\nDate: Mon, 23 May 2022 08:04:53 GMT\r\nWWW-Authenticate: Basic realm="/ALBA00ESP0"\r\nConnection: close\r\n\r\n'
+
 from os import getenv
 from socketserver import ThreadingTCPServer, StreamRequestHandler
 from threading import Thread, Event
@@ -35,6 +37,7 @@ from pygpsclient import version as PYGPSVERSION
 
 RTCM = b"rtcm"
 BUFSIZE = 1024
+PYGPSMP = "pygpsclient"
 
 
 class SocketServer(ThreadingTCPServer):
@@ -64,11 +67,9 @@ class SocketServer(ThreadingTCPServer):
         self._msgqueue = msgqueue
         self._connections = 0
         self._stream_thread = None
-        self._stopevent = Event()
-        self.clientqueues = []
-        # get host port
-        self.hosturl = f"0.0.0.0:{self.__app.frm_settings.server_port}"
+        self._stopmqread = Event()
         # set up pool of client queues
+        self.clientqueues = []
         for _ in range(self._maxclients):
             self.clientqueues.append({"client": None, "queue": Queue()})
         self._start_read_thread()
@@ -76,41 +77,49 @@ class SocketServer(ThreadingTCPServer):
 
         super().__init__(*args, **kwargs)
 
+    def server_close(self):
+        """
+        Overridden server close routine.
+        """
+
+        self.stop_read_thread()
+        super().server_close()
+
     def _start_read_thread(self):
         """
-        Start message reader thread.
+        Start GNSS message reader thread.
         """
 
         while not self._msgqueue.empty():  # flush queue
             self._msgqueue.get()
 
-        self._stopevent.clear()
+        self._stopmqread.clear()
         self._stream_thread = Thread(
             target=self._read_thread,
-            args=(self._stopevent, self._msgqueue, self.clientqueues),
+            args=(self._stopmqread, self._msgqueue, self.clientqueues),
             daemon=True,
         )
         self._stream_thread.start()
 
     def stop_read_thread(self):
         """
-        Stop message reader thread.
+        Stop GNSS message reader thread.
         """
 
-        self._stopevent.set()
+        self._stopmqread.set()
 
-    def _read_thread(self, stopevent: Event, msgqueue: Queue, clientqueues: dict):
+    def _read_thread(self, stopmqread: Event, msgqueue: Queue, clientqueues: dict):
         """
         THREADED
         Read from main GNSS message queue and place
-        raw data on array of socket client queues.
+        raw data on an output queue for each connected client.
 
-        :param Event stopevent: stop event
-        :param Queue msgqueue: message queue
-        :param Dict clientqueues: pool of queues for used by clients
+        :param Event stopmqread: stop event for mq read thread
+        :param Queue msgqueue: input message queue
+        :param Dict clientqueues: pool of output queues for use by clients
         """
 
-        while not stopevent.is_set():
+        while not stopmqread.is_set():
             raw = msgqueue.get()
             for i in range(self._maxclients):
                 # if client connected to this queue
@@ -123,9 +132,8 @@ class SocketServer(ThreadingTCPServer):
         Getter for basic authorization credentials.
 
         Assumes credentials have been defined in
-        environment variables:
-        PYGPSCLIENT_USER="user"
-        PYGPSCLIENT_PASSWORD="password"
+        environment variables PYGPSCLIENT_USER and
+        PYGPSCLIENT_PASSWORD
         """
 
         user = getenv("PYGPSCLIENT_USER")
@@ -185,7 +193,7 @@ class ClientHandler(StreamRequestHandler):
 
     def __init__(self, *args, **kwargs):
         """
-        Constructor.
+        Overridden constructor.
         """
 
         self._qidx = None
@@ -236,10 +244,10 @@ class ClientHandler(StreamRequestHandler):
 
         If in NTRIP server mode, will respond to NTRIP client authentication
         and sourcetable requests and, if valid, stream relevant RTCM3 data
-        from the message queue to the socket.
+        from the input message queue to the socket.
 
         If in open socket server mode, will simply stream content of
-        message queue to the socket.
+        input message queue to the socket.
         """
 
         while self._allowed:  # if connection allowed, loop until terminated
@@ -284,6 +292,7 @@ class ClientHandler(StreamRequestHandler):
         strreq = False
         authorized = False
         validmp = False
+        mountpoint = ""
 
         request = data.strip().split(b"\r\n")
         for part in request:
@@ -291,52 +300,78 @@ class ClientHandler(StreamRequestHandler):
                 authorized = part[21:] == self.server.credentials
             if part[0:3] == b"GET":
                 get = part.split(b" ")
-                if get[1] == b"":  # no mountpoint, hence sourcetable request
+                mountpoint = get[1].decode("utf-8")
+                if mountpoint == "":  # no mountpoint, hence sourcetable request
                     strreq = True
-                elif get[1] == b"/pygpsclient":  # valid mountpoint
+                elif mountpoint == f"/{PYGPSMP}":  # valid mountpoint
                     validmp = True
 
-        if not authorized:  # respond with 403
+        if not authorized:  # respond with 401
             http = (
-                "HTTP/1.1 403 Forbidden\r\n"
-                + f"Date: {self.http_date()}\r\n"
+                self._format_http_header(401)
+                + f'WWW-Authenticate: Basic realm="{mountpoint}"\r\n'
                 + "Connection: close\r\n"
             )
             return bytes(http, "UTF-8")
         if strreq or (not strreq and not validmp):  # respond with nominal sourcetable
-            http = self._format_str_http()
+            http = self._format_sourcetable()
             return bytes(http, "UTF-8")
         if validmp:  # respond by opening RTCM3 stream
             return RTCM
         return None
 
-    def _format_str_http(self) -> str:
+    def _format_sourcetable(self) -> str:
         """
         Format nominal HTTP sourcetable response.
 
-        :return: HTTP sourcetable response string
+        :return: HTTP response string
         :rtype: str
         """
-        # pylint: disable=line-too-long
 
-        server_version = PYGPSVERSION
-        server_date = datetime.now(timezone.utc).strftime("%d %b %Y")
         lat, lon = self.server.latlon
-        sourcetable = f"STR;pygpsclient;PyGPSClient;RTCM 3.3;1005(5),1077(1),1087(1),1097(1),1127(1),1230(1);0;GPS+GLO+GAL;SNIP;SRB;{lat};{lon};1;0;sNTRIP;none;N;N;0;\r\n"
-        http = (
-            "HTTP/1.1 200 OK\r\n"
-            + "Ntrip-Version: Ntrip/2.0\r\n"
-            + "Ntrip-Flags: \r\n"
-            + f"Server: PyGPSClient_NTRIP_Caster_{server_version}/of:{server_date}\r\n"
-            + f"Date: {self.http_date()}\r\n"
-            + "Connection: close\r\n"
-            + "Content-Type: gnss/sourcetable\r\n"
-            + f"Content-Length: {len(sourcetable)}\r\n"
-            + sourcetable
-            + f"NET;SNIP;PyGPSClient;N;N;PyGPSClient;{self.server.hosturl};info@semuconsulting.com;;\r\n"
+        ipaddr, port = self.server.server_address
+        # sourcetable based on ZED-F9P capabilities
+        sourcetable = (
+            f"STR;{PYGPSMP};PyGPSClient;RTCM 3.3;"
+            + "1005(5),1077(1),1087(1),1097(1),1127(1),1230(1);"
+            + f"0;GPS+GLO+GAL+BEI;SNIP;SRB;{lat};{lon};1;0;sNTRIP;none;N;N;0;\r\n"
+        )
+        sourcefooter = (
+            f"NET;SNIP;PyGPSClient;N;N;PyGPSClient;{ipaddr}:{port};info@semuconsulting.com;;\r\n"
             + "ENDSOURCETABLE\r\n"
         )
+        http = (
+            self._format_http_header(200)
+            + "Connection: close\r\n"
+            + "Content-Type: gnss/sourcetable\r\n"
+            + f"Content-Length: {len(sourcetable) + len(sourcefooter)}\r\n"
+            + sourcetable
+            + sourcefooter
+        )
         return http
+
+    def _format_http_header(self, code: int = 200) -> str:
+        """
+        Format HTTP header.
+
+        :param int code: HTTP response code (200)
+        :return: HTTP NTRIP header
+        :rtype: str
+        """
+
+        codes = {200: "OK", 401: "Unauthorized", 403: "Forbidden", 404: "Not Found"}
+
+        dat = datetime.now(timezone.utc)
+        server_date = dat.strftime("%d %b %Y")
+        http_date = dat.strftime("%a, %d %b %Y %H:%M:%S %Z")
+        header = (
+            f"HTTP/1.1 {code} {codes[code]}\r\n"
+            + "Ntrip-Version: Ntrip/2.0\r\n"
+            + "Ntrip-Flags: \r\n"
+            + f"Server: PyGPSClient_NTRIP_Caster_{PYGPSVERSION}/of:{server_date}\r\n"
+            + f"Date: {http_date}\r\n"
+        )
+        return header
 
     def _write_from_mq(self):
         """
@@ -347,11 +382,3 @@ class ClientHandler(StreamRequestHandler):
         if raw is not None:
             self.wfile.write(raw)
             self.wfile.flush()
-
-    @staticmethod
-    def http_date() -> bytes:
-        """
-        Get datestamp in HTTP header format.
-        """
-
-        return datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S %Z")
