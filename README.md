@@ -148,7 +148,7 @@ The server binds to the host address '0.0.0.0' i.e. all available IP addresses o
 
 A label on the settings panel indicates the number of connected clients, and the server status is indicated in the topmost banner: closed: ![transmit icon](/pygpsclient/resources/iconmonstr-notransmit-10-24.png), open with no clients: ![transmit icon](/pygpsclient/resources/iconmonstr-noclient-10-24.png), open with clients: ![transmit icon](/pygpsclient/resources/iconmonstr-transmit-10-24.png).
 
-**NB:** Running is NTRIP mode is predicated on the host being connected to an RTK-compatible GNSS receiver **operating in Base Station mode** (either `SURVEY_IN` or `FIXED`) and outputting the requisite RTCM3 message types (1005, 1077, 1087, 1097, 1127 and 1230). In the case of the u-blox ZED-F9P receiver, for example, this is set using the `CFG-TMODE*` and `CFG-MSGOUT-RTCM*` configuration interface parameters available via the [UBX Configuration](#ubxconfig) panel - refer to the Integration Manual and Interface Specification for further details. PyGPSClient does *not* configure the receiver automatically, though a [user-defined preset](#userdefined) command can be set up to facilitate the procedure.
+**NB:** Running in NTRIP mode is predicated on the host being connected to an RTK-compatible GNSS receiver **operating in Base Station mode** (either `SURVEY_IN` or `FIXED`) and outputting the requisite RTCM3 message types (1005, 1077, 1087, 1097, 1127 and 1230). In the case of the u-blox ZED-F9P receiver, for example, this is set using the `CFG-TMODE*`, `CFG-MSGOUT-UBX-NAV-SVIN*` and `CFG-MSGOUT-RTCM*` configuration interface parameters available via the [UBX Configuration](#ubxconfig) panel - refer to the Integration Manual and Interface Specification for further details. PyGPSClient does *not* configure the receiver automatically, though a [user-defined preset](#userdefined) command can be set up to facilitate the procedure.
 
 ---
 ## <a name="installation">Installation</a>
@@ -171,6 +171,8 @@ sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk
 ```shell
 sudo apt install tk-dev
 ```
+
+Ideally the platform screen resolution will be at least 1400 x 900, though the main application window is resizeable.
 
 ### User Privileges
 

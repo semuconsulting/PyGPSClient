@@ -161,7 +161,7 @@ class SocketServer(ThreadingTCPServer):
         """
 
         self._connections = clients
-        if self.__app is not None:
+        if hasattr(self.__app, "update_clients"):
             self.__app.update_clients(self._connections)
 
     @property
@@ -184,10 +184,10 @@ class SocketServer(ThreadingTCPServer):
         :rtype: tuple
         """
 
-        if self.__app is None:
-            return ("", "")
-        else:
+        if hasattr(self.__app, "gnss_status"):
             return (self.__app.gnss_status.lat, self.__app.gnss_status.lon)
+        else:
+            return ("", "")
 
 
 class ClientHandler(StreamRequestHandler):
