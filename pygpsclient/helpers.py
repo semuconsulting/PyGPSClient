@@ -153,58 +153,58 @@ def cel2cart(elevation: float, azimuth: float) -> tuple:
     return (x, y)
 
 
-def deg2dms(degrees: float, latlon: str) -> str:
-    """
-    Convert decimal degrees to degrees minutes seconds string.
+# def deg2dms(degrees: float, latlon: str) -> str:
+#     """
+#     Convert decimal degrees to degrees minutes seconds string.
 
-    :param float degrees: degrees
-    :return: degrees as d.m.s formatted string
-    :rtype: str
+#     :param float degrees: degrees
+#     :return: degrees as d.m.s formatted string
+#     :rtype: str
 
-    """
+#     """
 
-    if not isinstance(degrees, (float, int)):
-        return ""
-    negative = degrees < 0
-    degrees = abs(degrees)
-    minutes, seconds = divmod(degrees * 3600, 60)
-    degrees, minutes = divmod(minutes, 60)
-    if negative:
-        sfx = "S" if latlon == "lat" else "W"
-    else:
-        sfx = "N" if latlon == "lat" else "E"
-    return (
-        str(int(degrees))
-        + "\u00b0"
-        + str(int(minutes))
-        + "\u2032"
-        + str(round(seconds, 3))
-        + "\u2033"
-        + sfx
-    )
+#     if not isinstance(degrees, (float, int)):
+#         return ""
+#     negative = degrees < 0
+#     degrees = abs(degrees)
+#     minutes, seconds = divmod(degrees * 3600, 60)
+#     degrees, minutes = divmod(minutes, 60)
+#     if negative:
+#         sfx = "S" if latlon == "lat" else "W"
+#     else:
+#         sfx = "N" if latlon == "lat" else "E"
+#     return (
+#         str(int(degrees))
+#         + "\u00b0"
+#         + str(int(minutes))
+#         + "\u2032"
+#         + str(round(seconds, 3))
+#         + "\u2033"
+#         + sfx
+#     )
 
 
-def deg2dmm(degrees: float, latlon: str) -> str:
-    """
-    Convert decimal degrees to degrees decimal minutes string.
+# def deg2dmm(degrees: float, latlon: str) -> str:
+#     """
+#     Convert decimal degrees to degrees decimal minutes string.
 
-    :param float degrees: degrees
-    :param str latlon: "lat" or "lon"
-    :return: degrees as dm.m formatted string
-    :rtype: str
+#     :param float degrees: degrees
+#     :param str latlon: "lat" or "lon"
+#     :return: degrees as dm.m formatted string
+#     :rtype: str
 
-    """
+#     """
 
-    if not isinstance(degrees, (float, int)):
-        return ""
-    negative = degrees < 0
-    degrees = abs(degrees)
-    degrees, minutes = divmod(degrees * 60, 60)
-    if negative:
-        sfx = "S" if latlon == "lat" else "W"
-    else:
-        sfx = "N" if latlon == "lat" else "E"
-    return str(int(degrees)) + "\u00b0" + str(round(minutes, 5)) + "\u2032" + sfx
+#     if not isinstance(degrees, (float, int)):
+#         return ""
+#     negative = degrees < 0
+#     degrees = abs(degrees)
+#     degrees, minutes = divmod(degrees * 60, 60)
+#     if negative:
+#         sfx = "S" if latlon == "lat" else "W"
+#     else:
+#         sfx = "N" if latlon == "lat" else "E"
+#     return str(int(degrees)) + "\u00b0" + str(round(minutes, 5)) + "\u2032" + sfx
 
 
 def m2ft(meters: float) -> float:

@@ -17,13 +17,14 @@ from threading import Thread, Event
 from queue import Queue
 from datetime import datetime, timedelta
 from serial import Serial, SerialException, SerialTimeoutException
-
-from pyubx2 import (
-    UBXReader,
+from pygnssutils import (
+    GNSSReader,
     ERR_IGNORE,
     UBX_PROTOCOL,
     NMEA_PROTOCOL,
     RTCM3_PROTOCOL,
+)
+from pyubx2 import (
     UBXMessageError,
     UBXParseError,
 )
@@ -257,7 +258,7 @@ class StreamHandler:
         :param int mode: connection mode
         """
 
-        ubr = UBXReader(
+        ubr = GNSSReader(
             stream,
             protfilter=NMEA_PROTOCOL | UBX_PROTOCOL | RTCM3_PROTOCOL,
             quitonerror=ERR_IGNORE,

@@ -19,7 +19,7 @@ from datetime import datetime, timedelta
 from tkinter import Frame, N, S, E, W, PhotoImage, font
 from serial import SerialException, SerialTimeoutException
 
-from pyubx2 import protocol, NMEA_PROTOCOL, UBX_PROTOCOL, RTCM3_PROTOCOL
+from pygnssutils import protocol, NMEA_PROTOCOL, UBX_PROTOCOL, RTCM3_PROTOCOL
 from pygpsclient.strings import (
     TITLE,
     MENUHIDESE,

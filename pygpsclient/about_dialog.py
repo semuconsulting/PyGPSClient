@@ -12,9 +12,7 @@ from tkinter import Toplevel, Label, Button
 from platform import python_version
 from webbrowser import open_new_tab
 from PIL import ImageTk, Image
-from pynmeagps import version as PNVERSION
-from pyubx2 import version as PUVERSION
-from pyrtcm import version as RTVERSION
+from pygnssutils import version as PGVERSION
 from pygpsclient.helpers import check_for_update
 from pygpsclient.globals import ICON_APP, GITHUB_URL, PYPI_URL
 from pygpsclient.strings import ABOUTTXT, COPYRIGHTTXT, DLGABOUT
@@ -84,17 +82,9 @@ class AboutDialog:
             font=self.__app.font_sm,
             cursor="hand2",
         )
-        self._lbl_pyubx2_version = Label(
-            self._dialog, text="pyubx2 Version: " + PUVERSION, font=self.__app.font_sm
-        )
-        self._lbl_pynmea2_version = Label(
+        self._lbl_pygnssutils_version = Label(
             self._dialog,
-            text="pynmeagps Version: " + PNVERSION,
-            font=self.__app.font_sm,
-        )
-        self._lbl_pyrtcm_version = Label(
-            self._dialog,
-            text="pyrtcm Version: " + RTVERSION,
+            text="pygnssutils Version: " + PGVERSION,
             font=self.__app.font_sm,
         )
         self._lbl_copyright = Label(
@@ -125,9 +115,7 @@ class AboutDialog:
         self._btn_checkupdate.grid(column=0, row=4, ipadx=3, ipady=3, padx=5, pady=3)
         self._lbl_update.grid(column=0, row=5, padx=5, pady=3)
         self._lbl_python_version.grid(column=0, row=6, padx=5, pady=0)
-        self._lbl_pynmea2_version.grid(column=0, row=7, padx=5, pady=0)
-        self._lbl_pyubx2_version.grid(column=0, row=8, padx=5, pady=0)
-        self._lbl_pyrtcm_version.grid(column=0, row=9, padx=5, pady=0)
+        self._lbl_pygnssutils_version.grid(column=0, row=7, padx=5, pady=0)
         self._lbl_copyright.grid(column=0, row=10, padx=15, pady=3)
         self._btn_ok.grid(column=0, row=11, ipadx=3, ipady=3, padx=5, pady=3)
 

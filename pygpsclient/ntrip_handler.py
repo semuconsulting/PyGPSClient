@@ -17,7 +17,7 @@ from queue import Queue
 import socket
 from datetime import datetime, timedelta
 from base64 import b64encode
-from pyubx2 import UBXReader, RTCM3_PROTOCOL, ERR_IGNORE
+from pygnssutils import GNSSReader, RTCM3_PROTOCOL, ERR_IGNORE
 from pyrtcm import (
     RTCMParseError,
     RTCMMessageError,
@@ -291,7 +291,7 @@ class NTRIPHandler:
         """
 
         # UBXreader will wrap socket as SocketStream
-        rtr = UBXReader(
+        rtr = GNSSReader(
             sock,
             protfilter=RTCM3_PROTOCOL,
             quitonerror=ERR_IGNORE,

@@ -12,7 +12,7 @@ Created on 12 Sep 2020
 # pylint: disable=invalid-name
 
 from tkinter import Frame, Text, Scrollbar, S, E, W, END, HORIZONTAL, VERTICAL, N
-from pyubx2 import hextable
+from pygnssutils import hextable
 from pygpsclient.globals import (
     BGCOL,
     FGCOL,

@@ -16,7 +16,7 @@ from datetime import datetime
 from pathlib import Path
 from time import strftime
 from tkinter import filedialog
-from pyubx2 import hextable
+from pygnssutils import hextable
 
 from pygpsclient.globals import (
     MQAPIKEY,
