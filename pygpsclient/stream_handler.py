@@ -24,10 +24,7 @@ from pygnssutils import (
     NMEA_PROTOCOL,
     RTCM3_PROTOCOL,
 )
-from pyubx2 import (
-    UBXMessageError,
-    UBXParseError,
-)
+from pyubx2 import UBXMessageError, UBXParseError
 from pynmeagps import NMEAMessageError, NMEAParseError
 from pyrtcm import RTCMMessageError, RTCMParseError
 from pygpsclient.globals import (

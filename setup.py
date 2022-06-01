@@ -20,7 +20,7 @@ setup(
     version=VERSION,
     packages=find_packages(exclude=["tests", "references", "images"]),
     install_requires=[
-        "pygnssutils>=0.1.1",
+        "pygnssutils>=0.2.0",
         "requests>=2.24.0",
         "Pillow>=7.2.0",
         "pyserial>=3.4",
