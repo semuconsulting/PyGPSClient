@@ -108,14 +108,6 @@ pygpsclient.ntrip\_client\_dialog module
    :undoc-members:
    :show-inheritance:
 
-pygpsclient.ntrip\_handler module
----------------------------------
-
-.. automodule:: pygpsclient.ntrip_handler
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 pygpsclient.rtcm3\_handler module
 ---------------------------------
 
@@ -144,14 +136,6 @@ pygpsclient.skyview\_frame module
 ---------------------------------
 
 .. automodule:: pygpsclient.skyview_frame
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-pygpsclient.socket\_server module
----------------------------------
-
-.. automodule:: pygpsclient.socket_server
    :members:
    :undoc-members:
    :show-inheritance:
