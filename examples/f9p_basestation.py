@@ -21,6 +21,9 @@ from math import trunc
 from serial import Serial
 from pyubx2 import UBXMessage
 
+TMODE_SVIN = 1
+TMODE_FIXED = 2
+
 
 def send_msg(serial_out: Serial, ubx: UBXMessage):
     """
@@ -65,13 +68,13 @@ def config_rtcm(port_type: str) -> UBXMessage:
     return ubx
 
 
-def config_svin(acc_limit: int, svin_min_dur: int) -> UBXMessage:
+def config_svin(port_type: str, acc_limit: int, svin_min_dur: int) -> UBXMessage:
     """
     Configure Survey-In mode with specied accuracy limit.
     """
 
     print("\nFormatting SVIN TMODE CFG-VALSET message...")
-    tmode = 1  # 1 = Survey-In
+    tmode = TMODE_SVIN
     layers = 1
     transaction = 0
     acc_limit = int(round(acc_limit / 0.1, 0))
@@ -79,6 +82,7 @@ def config_svin(acc_limit: int, svin_min_dur: int) -> UBXMessage:
         ("CFG_TMODE_MODE", tmode),
         ("CFG_TMODE_SVIN_ACC_LIMIT", acc_limit),
         ("CFG_TMODE_SVIN_MIN_DUR", svin_min_dur),
+        (f"CFG_MSGOUT_UBX_NAV_SVIN_{port_type}", 1),
     ]
 
     ubx = UBXMessage.config_set(layers, transaction, cfg_data)
@@ -98,7 +102,7 @@ def config_fixed(acc_limit: int, lat: float, lon: float, height: float) -> UBXMe
     """
 
     print("\nFormatting FIXED TMODE CFG-VALSET message...")
-    tmode = 1  # 2 = Fixed
+    tmode = TMODE_FIXED
     pos_type = 1  # LLH (as opposed to ECEF)
     layers = 1
     transaction = 0
@@ -148,8 +152,8 @@ if __name__ == "__main__":
     TIMEOUT = 5
     SHOW_PRESET = True  # hide or show PyGPSClient preset string
 
-    TMODE = 2  # 1 = Survey-In, 2 = Fixed
-    ACC_LIMIT = 100  # accuracy in mm
+    TMODE = TMODE_SVIN  # "TMODE_SVIN" or 1 = Survey-In, "TMODE_FIXED" or 2 = Fixed
+    ACC_LIMIT = 200  # accuracy in mm
 
     # only used if TMODE = 1 ...
     SVIN_MIN_DUR = 90  # seconds
@@ -168,7 +172,7 @@ if __name__ == "__main__":
 
         # configure either Survey-In or Fixed Timing Mode
         if TMODE == 1:
-            msg = config_svin(ACC_LIMIT, SVIN_MIN_DUR)
+            msg = config_svin(PORT_TYPE, ACC_LIMIT, SVIN_MIN_DUR)
         else:
             msg = config_fixed(ACC_LIMIT, ARP_LAT, ARP_LON, ARP_HEIGHT)
         send_msg(stream, msg)
