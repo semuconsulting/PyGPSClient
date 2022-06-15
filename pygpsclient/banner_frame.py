@@ -13,9 +13,12 @@ Created on 13 Sep 2020
 
 from platform import system
 from tkinter import Frame, Label, Button, StringVar, font, N, S, W, E, SUNKEN
-
 from PIL import ImageTk, Image
-
+from pygnssutils.helpers import (
+    latlon2dms,
+    latlon2dmm,
+    dop2str,
+)
 from pygpsclient.globals import (
     DMM,
     DMS,
@@ -37,11 +40,6 @@ from pygpsclient.globals import (
     CONNECTED_FILE,
     BGCOL,
     FGCOL,
-)
-from pygnssutils.helpers import (
-    latlon2dms,
-    latlon2dmm,
-    dop2str,
 )
 from pygpsclient.helpers import (
     m2ft,
