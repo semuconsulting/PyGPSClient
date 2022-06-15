@@ -1,10 +1,10 @@
 """
-f9p_basetation.py
+f9p_basestation.py
 
 Example showing how to configure a u-blox ZED-F9P
 receiver to operate in RTK Base Station mode (either
 Survey-In or Fixed Timing Mode). This can be used to
-complement PyGPSClient's NTRIP Server functionality.
+complement PyGPSClient's NTRIP Caster functionality.
 
 It also optionally formats a user-defined preset
 configuration message string suitable for copying
