@@ -171,7 +171,7 @@ if __name__ == "__main__":
         send_msg(stream, msg)
 
         # configure either Survey-In or Fixed Timing Mode
-        if TMODE == 1:
+        if TMODE == TMODE_SVIN:
             msg = config_svin(PORT_TYPE, ACC_LIMIT, SVIN_MIN_DUR)
         else:
             msg = config_fixed(ACC_LIMIT, ARP_LAT, ARP_LON, ARP_HEIGHT)
