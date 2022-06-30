@@ -370,35 +370,34 @@ class UBXHandler:
         """
 
         exts = []
-        fw_version = "n/a"
-        protocol = "n/a"
-        gnss_supported = ""
-
-        sw_version = (
-            getattr(data, "swVersion", "n/a").replace(b"\x00", b"").decode("utf-8")
-        )
-        sw_version = sw_version.replace("ROM CORE", "ROM")
-        sw_version = sw_version.replace("EXT CORE", "Flash")
-        hw_version = (
-            getattr(data, "hwVersion", "n/a").replace(b"\x00", b"").decode("utf-8")
-        )
+        fw_version = b"n/a"
+        protocol = b"n/a"
+        gnss_supported = b""
+        model = b""
+        sw_version = getattr(data, "swVersion", b"n/a")
+        sw_version = sw_version.replace(b"\x00", b"")
+        sw_version = sw_version.replace(b"ROM CORE", b"ROM")
+        sw_version = sw_version.replace(b"EXT CORE", b"Flash")
+        hw_version = getattr(data, "hwVersion", b"n/a")
+        hw_version = hw_version.replace(b"\x00", b"")
 
         for i in range(9):
             idx = f"_{i+1:02d}"
-            exts.append(
-                getattr(data, "extension" + idx, b"")
-                .replace(b"\x00", b"")
-                .decode("utf-8")
-            )
-            if "FWVER=" in exts[i]:
-                fw_version = exts[i].replace("FWVER=", "")
-            if "PROTVER=" in exts[i]:
-                protocol = exts[i].replace("PROTVER=", "")
-            if "PROTVER " in exts[i]:
-                protocol = exts[i].replace("PROTVER ", "")
-            for gnss in ("GPS", "GLO", "GAL", "BDS", "SBAS", "IMES", "QZSS"):
+            ext = getattr(data, "extension" + idx, b"")
+            ext = ext.replace(b"\x00", b"")
+            exts.append(ext)
+            if b"FWVER=" in exts[i]:
+                fw_version = exts[i].replace(b"FWVER=", b"")
+            if b"PROTVER=" in exts[i]:
+                protocol = exts[i].replace(b"PROTVER=", b"")
+            if b"PROTVER " in exts[i]:
+                protocol = exts[i].replace(b"PROTVER ", b"")
+            if b"MOD=" in exts[i]:
+                model = exts[i].replace(b"MOD=", b"")
+                hw_version = model + b" " + hw_version
+            for gnss in (b"GPS", b"GLO", b"GAL", b"BDS", b"SBAS", b"IMES", b"QZSS"):
                 if gnss in exts[i]:
-                    gnss_supported = gnss_supported + gnss + " "
+                    gnss_supported = gnss_supported + gnss + b" "
 
         # update the UBX config panel
         if self.__app.dlg_ubxconfig is not None:

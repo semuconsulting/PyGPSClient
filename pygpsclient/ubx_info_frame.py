@@ -83,9 +83,9 @@ class UBX_INFO_Frame(Frame):
         self._lbl_romver = Label(self, textvariable=self._protocol, fg=INFCOL)
         self._lbl_gnssl = Label(self, text="GNSS/AS")
         self._lbl_gnss = Label(self, textvariable=self._gnss_supported, fg=INFCOL)
-        self._lbl_ant_statusl = Label(self, text="Antenna Status")
+        self._lbl_ant_statusl = Label(self, text="Ant. Status")
         self._lbl_ant_status = Label(self, textvariable=self._ant_status, fg=INFCOL)
-        self._lbl_ant_powerl = Label(self, text="Antenna Power")
+        self._lbl_ant_powerl = Label(self, text="Ant. Power")
         self._lbl_ant_power = Label(self, textvariable=self._ant_power, fg=INFCOL)
 
     def _do_layout(self):
