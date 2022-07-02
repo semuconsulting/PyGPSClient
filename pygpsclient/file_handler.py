@@ -189,7 +189,11 @@ class FileHandler:
         self._in_filepath = filedialog.askopenfilename(
             title=READTITLE,
             initialdir=HOME,
-            filetypes=(("log files", "*.log"), ("all files", "*.*")),
+            filetypes=(
+                ("datalog files", "*.log"),
+                ("u-center logs", "*.ubx"),
+                ("all files", "*.*"),
+            ),
         )
         if self._in_filepath in ((), ""):
             return None  # User cancelled
