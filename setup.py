@@ -20,10 +20,10 @@ setup(
     version=VERSION,
     packages=find_packages(exclude=["tests", "references", "images"]),
     install_requires=[
-        "pygnssutils>=0.2.2",
+        "pygnssutils>=0.3.0",
         "requests>=2.24.0",
         "Pillow>=7.2.0",
-        "pyserial>=3.4",
+        "pyserial>=3.5",
     ],
     package_data={
         "pygpsclient": [

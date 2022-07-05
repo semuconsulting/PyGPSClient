@@ -18,14 +18,13 @@ from queue import Queue, Empty
 from datetime import datetime, timedelta
 from tkinter import Frame, N, S, E, W, PhotoImage, font
 from serial import SerialException, SerialTimeoutException
-
-from pygnssutils import (
-    GNSSNTRIPClient,
+from pyubx2 import (
     protocol,
     NMEA_PROTOCOL,
     UBX_PROTOCOL,
     RTCM3_PROTOCOL,
 )
+from pygnssutils import GNSSNTRIPClient
 from pygnssutils.socket_server import SocketServer, ClientHandler
 from pygpsclient.strings import (
     TITLE,
