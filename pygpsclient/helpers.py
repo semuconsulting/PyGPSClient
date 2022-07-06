@@ -394,18 +394,18 @@ def check_for_update(name: str) -> tuple:
     return (ver[0] == ver[1], ver[1])
 
 
-def itow2utc(itow: int) -> datetime.time:
-    """
-    Convert UBX Time Of Week to UTC datetime
+# def itow2utc(itow: int) -> datetime.time:
+#     """
+#     Convert UBX Time Of Week to UTC datetime
 
-    (UTC = GPS - 18 seconds; correct as from 1/1/2017).
-    :param int itow: UBX Time Of Week
-    :return: UTC time hh.mm.ss
-    :rtype: datetime.time
-    """
+#     (UTC = GPS - 18 seconds; correct as from 1/1/2017).
+#     :param int itow: UBX Time Of Week
+#     :return: UTC time hh.mm.ss
+#     :rtype: datetime.time
+#     """
 
-    dt = datetime(1980, 1, 6) + timedelta(seconds=(itow / 1000) - 18)
-    return dt.time()
+#     dt = datetime(1980, 1, 6) + timedelta(seconds=(itow / 1000) - 18)
+#     return dt.time()
 
 
 def estimate_acc(dop: float) -> float:

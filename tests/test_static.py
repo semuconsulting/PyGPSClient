@@ -22,7 +22,6 @@ from pygpsclient.helpers import (
     snr2col,
     svid2gnssid,
     cel2cart,
-    itow2utc,
     corrage2int,
     fix2desc,
     estimate_acc,
