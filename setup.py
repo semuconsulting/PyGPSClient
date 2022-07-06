@@ -24,7 +24,7 @@ setup(
         "pynmeagps>=1.0.15",
         "requests>=2.24.0",
         "Pillow>=7.2.0",
-        "pyserial>=3.4",
+        "pyserial>=3.5",
         "pyrtcm>=0.2.6",
     ],
     package_data={
