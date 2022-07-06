@@ -62,17 +62,13 @@ class NMEAHandler:
                 self._process_GNS(parsed_data)
             elif parsed_data.msgID == "GSA":  # GPS DOP (Dilution of Precision)
                 self._process_GSA(parsed_data)
-            elif (
-                parsed_data.msgID == "VTG"
-            ):  # GPS Vector track and Speed over the Ground
+            elif parsed_data.msgID == "VTG":  # GPS Vector track and Speed over the Ground
                 self._process_VTG(parsed_data)
             elif parsed_data.msgID == "GSV":  # GPS Satellites in View
                 self._process_GSV(parsed_data)
             elif parsed_data.msgID == "ZDA":  # ZDA Time
                 self._process_ZDA(parsed_data)
-            elif (
-                parsed_data.msgID == "UBX" and parsed_data.msgId == "00"
-            ):  # GPS Lat/Lon & Acc Data
+            elif parsed_data.msgID == "UBX" and parsed_data.msgId == "00":  # GPS Lat/Lon & Acc Data
                 self._process_UBX00(parsed_data)
 
         except ValueError:
