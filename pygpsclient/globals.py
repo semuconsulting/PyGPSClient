@@ -69,6 +69,7 @@ POPUP_TRANSIENT = True  # whether pop-up config dialogs are always on top
 PORTIDS = ("0 I2C", "1 UART1", "2 UART2", "3 USB", "4 SPI")
 ANTSTATUS = ("INIT", "DONTKNOW", "OK", "SHORT", "OPEN")
 ANTPOWER = ("OFF", "ON", "DONTKNOW")
+GGA_INTERVALS = ("None", "2", "5", "10", "60", "120")
 # names of user preset files:
 MQAPIKEY = "mqapikey"
 UBXPRESETS = "ubxpresets"
@@ -115,7 +116,7 @@ FORMAT_HEX = 4
 FORMAT_HEXTABLE = 8
 FORMATS = ("Parsed", "Binary", "Hex String", "Hex Tabular")
 # socket server modes
-SOCKMODES = ("SOCKET SERVER", "NTRIP SERVER")
+SOCKMODES = ("SOCKET SERVER", "NTRIP CASTER")
 # connection mode flags:
 DISCONNECTED = 0
 CONNECTED = 1

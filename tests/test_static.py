@@ -10,8 +10,6 @@ import unittest
 
 from pygpsclient.helpers import (
     deg2rad,
-    deg2dmm,
-    deg2dms,
     m2ft,
     ms2kmph,
     ms2knots,
@@ -49,14 +47,6 @@ class StaticTest(unittest.TestCase):
         (elev, azim) = cel2cart(34, 128)
         self.assertAlmostEqual(elev, -0.510406, 5)
         self.assertAlmostEqual(azim, 0.653290, 5)
-
-    def testdeg2dms(self):
-        res = deg2dms(53.346, "lat")
-        self.assertEqual(res, ("53°20′45.6″N"))
-
-    def testdeg2dmm(self):
-        res = deg2dmm(-2.5463, "lon")
-        self.assertEqual(res, ("2°32.778′W"))
 
     def testm2ft(self):
         res = m2ft(39.234)

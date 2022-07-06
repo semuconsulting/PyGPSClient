@@ -14,9 +14,7 @@ TITLE = "PyGPSClient"
 COPYRIGHTTXT = "\u00A9 SEMU Consulting 2020\nBSD-2 License. All Rights Reserved"
 
 INTROTXT = "Welcome to PyGPSClient!"
-INTROTXTNOPORTS = (
-    "Welcome to PyGPSClient! Please connect a serial GNSS device and click refresh."
-)
+INTROTXTNOPORTS = "Welcome to PyGPSClient!"
 
 HELPTXT = "Help..About - display About dialog."
 
@@ -85,8 +83,8 @@ BTNRST = "Reset"
 # Label text
 LBLPROTDISP = "Protocols Shown"
 LBLDATADISP = "Console Display"
-LBLUBXCONFIG = "UBX\nConfiguration"
-LBLNTRIPCONFIG = "NTRIP Client\nConfiguration"
+LBLUBXCONFIG = "UBX\nConfig"
+LBLNTRIPCONFIG = "NTRIP\nClient"
 LBLNTRIPGGAINT = "GGA Interval"
 LBLCTL = "Controls"
 LBLSET = "Settings"
@@ -106,7 +104,7 @@ LBLNTRIPMOUNT = "Mountpoint"
 LBLNTRIPUSER = "User"
 LBLNTRIPPWD = "Password"
 LBLNTRIPSTR = "Sourcetable"
-LBLSOCKSERVE = "Socket / NTRIP\nServer              "  # padded to align
+LBLSOCKSERVE = "Socket Server /\nNTRIP Caster   "  # padded to align
 LBLSERVERPORT = "Port"
 LBLDEGFORMAT = "Degrees Format"
 LBLSERVERMODE = "Mode"

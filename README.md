@@ -5,7 +5,7 @@
 [How to Use](#howtouse) |
 [UBX Configuration](#ubxconfig) |
 [NTRIP Client](#ntripconfig) |
-[Socket / NTRIP Server](#socketserver) |
+[Socket Server / NTRIP Caster](#socketserver) |
 [Installation](#installation) |
 [Mapquest API Key](#mapquestapi) |
 [User-defined Presets](#userdefined) |
@@ -58,7 +58,7 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 1. Track recording in GPX format.
 1. UBX Configuration Dialog, with the ability to send a variety of UBX configuration commands to u-blox GNSS devices. This includes the facility to add **user-defined commands or command sequences** - see instructions under [user-defined presets](#userdefined) below. While not intended to be a direct replacement, the application supports much of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool.
 1. [NTRIP](https://en.wikipedia.org/wiki/Networked_Transport_of_RTCM_via_Internet_Protocol) Client ([differential GPS enhancement](https://en.wikipedia.org/wiki/Differential_GPS)) facility with the ability to connect to a specified NTRIP server (caster), parse the incoming RTCM3 data and feed this data to a compatible GNSS device (*requires an Internet connection and access to a suitable NTRIP caster*).
-1. **New BETA feature in v1.3.5** - [Socket / NTRIP Server](#socketserver)  with two modes of operation: (a) open, unauthenticated Socket Server or (b) NTRIP Server.
+1. **New BETA feature in v1.3.5** - [Socket Server / NTRIP Caster](#socketserver)  with two modes of operation: (a) open, unauthenticated Socket Server or (b) NTRIP Caster.
 
 ---
 ## <a name="howtouse">How to Use</a>
@@ -138,17 +138,17 @@ Below is a illustrative NTRIP DGPS data log, showing:
 **NB:** Please respect the terms and conditions of any remote NTRIP service used with this facility. For testing or evaluation purposes, consider deploying a local [SNIP LITE](https://www.use-snip.com/download/) server. *Inappropriate use of an NTRIP service may result in your account being blocked*.
 
 ---
-### <a name="socketserver">Socket / NTRIP Server Facilities</a> (BETA)
+### <a name="socketserver">Socket Server / NTRIP Caster Facilities</a> (BETA)
 
-The Socket / NTRIP Server facility is capable of operating in either of two modes;
+The Socket Server / NTRIP Caster facility is capable of operating in either of two modes;
 1. SOCKET SERVER - an open, unauthenticated TCP socket server available to any socket client including, for example, another instance of PyGPSClient or gnssdump (the CLI utility installed with pyubx2) running on another machine. In this mode it will broadcast the host's currently connected GNSS data stream (NMEA, UBX, RTCM3). The default port is 50010.
-2. NTRIP SERVER - a simple implementation of an authenticated NTRIP server/caster available to any NTRIP client including, for example, the PyGPSClient NTRIP Client facility. Login credentials for the NTRIP server/caster are set via host environment variables `PYGPSCLIENT_USER` and `PYGPSCLIENT_PASSWORD`. The default port is 2101. **See prerequisites below.**
+2. NTRIP CASTER - a simple implementation of an authenticated NTRIP caster available to any NTRIP client including, for example, the PyGPSClient NTRIP Client facility. Login credentials for the NTRIP caster are set via host environment variables `PYGPSCLIENT_USER` and `PYGPSCLIENT_PASSWORD`. The default port is 2101. **See prerequisites below.**
 
 The server/caster binds to the host address '0.0.0.0' i.e. all available IP addresses on the host machine. It may be necessary to add a firewall rule on the host and/or client machine to allow remote traffic on the specified port.
 
 A label on the settings panel indicates the number of connected clients, and the server/caster status is indicated in the topmost banner: closed: ![transmit icon](/pygpsclient/resources/iconmonstr-notransmit-10-24.png), open with no clients: ![transmit icon](/pygpsclient/resources/iconmonstr-noclient-10-24.png), open with clients: ![transmit icon](/pygpsclient/resources/iconmonstr-transmit-10-24.png).
 
-**NB:** Running in NTRIP server/caster mode is predicated on the host being connected to an RTK-compatible GNSS receiver **operating in Base Station mode** (either `SURVEY_IN` or `FIXED`) and outputting the requisite RTCM3 message types (1005, 1077, 1087, 1097, 1127 and 1230). In the case of the u-blox ZED-F9P receiver, for example, this is set using the `CFG-TMODE*` and `CFG-MSGOUT-RTCM*` configuration interface parameters available via the [UBX Configuration](#ubxconfig) panel - refer to the Integration Manual and Interface Specification for further details. PyGPSClient does *not* configure the receiver automatically, though an example configuration script for the u-blox ZED-F9P receiver may be found at [/examples/f9p-basestation.py](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/f9p_basestation.py). This script can also be used to generate user-defined preset command strings suitable for copying and pasting into a `ubxpresets` file (see [User Defined Presets](#userdefined) below).
+**NB:** Running in NTRIP caster mode is predicated on the host being connected to an RTK-compatible GNSS receiver **operating in Base Station mode** (either `SURVEY_IN` or `FIXED`) and outputting the requisite RTCM3 message types (1005, 1077, 1087, 1097, 1127 and 1230). In the case of the u-blox ZED-F9P receiver, for example, this is set using the `CFG-TMODE*` and `CFG-MSGOUT-RTCM*` configuration interface parameters available via the [UBX Configuration panel](#ubxconfig) - refer to the Integration Manual and Interface Specification for further details. PyGPSClient does *not* configure the receiver automatically, though an example configuration script for the u-blox ZED-F9P receiver may be found at [/examples/f9p-basestation.py](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/f9p_basestation.py). This script can also be used to generate user-defined preset command strings suitable for copying and pasting into a `ubxpresets` file (see [User Defined Presets](#userdefined) below).
 
 ---
 ## <a name="installation">Installation</a>
@@ -171,6 +171,8 @@ sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk
 ```shell
 sudo apt install tk-dev
 ```
+
+Ideally the platform screen resolution will be at least 1400 x 900, though the main application window is resizeable.
 
 ### User Privileges
 
@@ -247,7 +249,7 @@ See [requirements.txt](requirements.txt).
 The following Python libraries are required (these will be installed automatically if using pip to install PyGPSClient):
 
 ```shell
-python3 -m pip install --upgrade pyubx2 pynmeagps pyrtcm pyserial Pillow requests
+python3 -m pip install --upgrade pygnssutils pyserial Pillow requests
 ```
 
 To install PyGPSClient manually, download and unzip this repository and run:

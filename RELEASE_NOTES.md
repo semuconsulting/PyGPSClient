@@ -1,5 +1,12 @@
 # PyGPSClient Release Notes
 
+### RELEASE CANDIDATE v1.3.6
+
+CHANGES:
+
+1. Minor changes to socket_server.py to make SocketServer class more usable independently of PyGPSClient
+2. Minimum pyubx2 version updated to 1.2.11.
+
 ### RELEASE CANDIDATE v1.3.5
 
 ENHANCEMENTS:

@@ -20,12 +20,10 @@ setup(
     version=VERSION,
     packages=find_packages(exclude=["tests", "references", "images"]),
     install_requires=[
-        "pyubx2>=1.2.16",
-        "pynmeagps>=1.0.15",
+        "pygnssutils>=0.3.0",
         "requests>=2.24.0",
         "Pillow>=7.2.0",
         "pyserial>=3.5",
-        "pyrtcm>=0.2.6",
     ],
     package_data={
         "pygpsclient": [
