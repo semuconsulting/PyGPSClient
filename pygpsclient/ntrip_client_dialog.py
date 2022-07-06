@@ -41,7 +41,6 @@ from pygpsclient.globals import (
     ICON_EXIT,
     ICON_CONN,
     ICON_DISCONN,
-    ICON_NTRIPSTR,
     UBX_MONVER,
     UBX_MONHW,
     UBX_CFGPRT,
@@ -107,7 +106,6 @@ class NTRIPConfigDialog(Toplevel):
         self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
         self._img_conn = ImageTk.PhotoImage(Image.open(ICON_CONN))
         self._img_disconn = ImageTk.PhotoImage(Image.open(ICON_DISCONN))
-        self._img_str = ImageTk.PhotoImage(Image.open(ICON_NTRIPSTR))
         self._cfg_msg_command = None
         self._pending_confs = {
             UBX_MONVER: (),
