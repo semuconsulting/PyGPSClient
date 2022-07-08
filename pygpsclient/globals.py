@@ -38,7 +38,7 @@ ICON_NOCLIENT = os.path.join(DIRNAME, "resources/iconmonstr-noclient-10-24.png")
 IMG_WORLD = os.path.join(DIRNAME, "resources/world.png")
 
 GITHUB_URL = "https://github.com/semuconsulting/PyGPSClient"
-PYPI_URL = "https://pypi.org/project/PyGPSClient/"
+PYPI_URL = "https://pypi.org/pypi/PyGPSClient"
 XML_HDR = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
 GPX_NS = " ".join(
     (
@@ -58,8 +58,6 @@ GPX_TRACK_INTERVAL = 1  # minimum GPS track update interval (seconds)
 FILEREAD_INTERVAL = 0.02  # delay between successive datalog file reads (seconds)
 SAT_EXPIRY = 10  # how long passed satellites are kept in the sky and graph views
 MAX_SNR = 60  # upper limit of graphview snr axis
-DEVICE_ACCURACY = 2.5  # nominal GPS device accuracy (CEP) in meters
-HDOP_RATIO = 20  # arbitrary calibration of accuracy against HDOP
 MAXLOGLINES = 10000  # maximum number of 'lines' per datalog file
 # default error handling behaviour for UBXReader.read() calls
 # 0 (ERR_IGNORE) = ignore errors, 1 (ERR_LOG) - log errors, 2 (ERR_RAISE) = raise errors

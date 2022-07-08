@@ -360,7 +360,7 @@ class UBXHandler:
         self.__app.gnss_status.speed = data.gSpeed / 1000  # m/s
         self.__app.gnss_status.track = data.headMot
         self.__app.gnss_status.fix = fix2desc("HNR-PVT", data.gpsFix)
-        self.__app.gnss_status.diff_corr = data.diffSoln  # TODO check reliability
+        self.__app.gnss_status.diff_corr = data.diffSoln
 
     def _process_MON_VER(self, data: UBXMessage):
         """

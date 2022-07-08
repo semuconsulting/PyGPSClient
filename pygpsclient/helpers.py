@@ -13,15 +13,12 @@ Created on 17 Apr 2021
 # pylint: disable=invalid-name
 
 import re
-from subprocess import run as subrun
-from sys import executable
+
 from tkinter import Toplevel, Entry, Label, Button, W
 from math import sin, cos, acos, radians
-from datetime import datetime, timedelta
+from requests import get
 from pygpsclient.globals import (
     MAX_SNR,
-    DEVICE_ACCURACY,
-    HDOP_RATIO,
     FIXLOOKUP,
     ENTCOL,
     ERRCOL,
@@ -373,58 +370,21 @@ def svid2gnssid(svid) -> int:
     return gnssId
 
 
-def check_for_update(name: str) -> tuple:
+def check_latest(name: str) -> str:
     """
     Check for latest version of module on PyPi.
 
     :param: str name: name of module to check
-    :return: (latest true/false, latest version)
-    :rtype: tuple
+    :return: latest version e.g. "1.3.5"
+    :rtype: str
     """
 
-    ver = []
-    for proc in (
-        [executable, "-m", "pip", "show", name],
-        [executable, "-m", "pip", "install", f"{name}==random"],
-    ):
-        ver.append(str(subrun(proc, capture_output=True, text=True, check=False)))
-
-    ver[0] = ver[0].split("Version: ")[1].split("\\n")[0]  # current version
-    ver[1] = ver[1].split(")\\nERROR:")[0].split(" ")[-1]  # latest version
-    return (ver[0] == ver[1], ver[1])
-
-
-# def itow2utc(itow: int) -> datetime.time:
-#     """
-#     Convert UBX Time Of Week to UTC datetime
-
-#     (UTC = GPS - 18 seconds; correct as from 1/1/2017).
-#     :param int itow: UBX Time Of Week
-#     :return: UTC time hh.mm.ss
-#     :rtype: datetime.time
-#     """
-
-#     dt = datetime(1980, 1, 6) + timedelta(seconds=(itow / 1000) - 18)
-#     return dt.time()
-
-
-def estimate_acc(dop: float) -> float:
-    """
-    Derive a graphic indication of positional accuracy (in m) based on the HDOP
-    (Horizontal Dilution of Precision) value and the nominal native device
-    accuracy (datasheet CEP)
-
-    NB: this is a largely arbitrary estimate - there is no direct correlation
-    between HDOP and accuracy based solely on generic NMEA data.
-    The NMEA PUBX,00 or UBX NAV-POSLLH message types return an explicit estimate
-    of horizontal and vertical accuracy and are the preferred source.
-
-    :param float dop: horizontal dilution of precision
-    :return: horizontal accuracy
-    :rtype: float
-    """
-
-    return float(dop) * DEVICE_ACCURACY * HDOP_RATIO / 1000
+    try:
+        return get(f"https://pypi.org/pypi/{name}/json", timeout=5).json()["info"][
+            "version"
+        ]
+    except Exception:  # pylint: disable=broad-except
+        return "N/A"
 
 
 def fix2desc(msgid: str, fix: object) -> str:

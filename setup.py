@@ -9,7 +9,7 @@ Created on 12 Sep 2020
 :author: semuadmin
 """
 
-from setuptools import setup, find_packages
+from setuptools import setup, find_namespace_packages
 from pygpsclient import version as VERSION
 
 with open("README.md", "r") as fh:
@@ -18,7 +18,9 @@ with open("README.md", "r") as fh:
 setup(
     name="PyGPSClient",
     version=VERSION,
-    packages=find_packages(exclude=["tests", "references", "images"]),
+    packages=find_namespace_packages(
+        exclude=["tests", "references", "images", "docs", "examples"],
+    ),
     install_requires=[
         "pygnssutils>=0.3.0",
         "requests>=2.24.0",

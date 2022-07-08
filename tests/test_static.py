@@ -24,7 +24,6 @@ from pygpsclient.helpers import (
     cel2cart,
     corrage2int,
     fix2desc,
-    estimate_acc,
     validURL,
     haversine,
     get_mp_distance,

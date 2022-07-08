@@ -66,7 +66,7 @@ class FileHandler:
         self.close_logfile()
         self.close_trackfile()
 
-    def load_apikey(self) -> str:  # pylint: disable=no-self-use
+    def load_apikey(self) -> str:
         """
         Load MapQuest web map api key from environment variable or
         key file in user's home directory.
@@ -120,7 +120,7 @@ class FileHandler:
 
         return ctags
 
-    def load_user_presets(self) -> str:  # pylint: disable=no-self-use
+    def load_user_presets(self) -> str:
         """
         Load user configuration message presets from user's home directory.
 

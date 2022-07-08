@@ -267,7 +267,7 @@ class NTRIPConfigDialog(Toplevel):
             relief="sunken",
             width=15,
         )
-        self._lbl_alt = Label(self._frm_container, text="GGA Elevation")
+        self._lbl_alt = Label(self._frm_container, text="GGA Elevation m")
         self._ent_alt = Entry(
             self._frm_container,
             textvariable=self._ntrip_gga_alt,
@@ -276,7 +276,7 @@ class NTRIPConfigDialog(Toplevel):
             relief="sunken",
             width=15,
         )
-        self._lbl_sep = Label(self._frm_container, text="GGA Separation")
+        self._lbl_sep = Label(self._frm_container, text="GGA Separation m")
         self._ent_sep = Entry(
             self._frm_container,
             textvariable=self._ntrip_gga_sep,
