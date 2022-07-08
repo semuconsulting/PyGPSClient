@@ -73,4 +73,5 @@ setup(
         "Topic :: Terminals :: Serial",
         "Topic :: Scientific/Engineering :: GIS",
     ],
+    python_requires=">=3.7",
 )
