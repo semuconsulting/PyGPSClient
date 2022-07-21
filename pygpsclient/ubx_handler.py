@@ -11,10 +11,10 @@ Created on 30 Sep 2020
 """
 # pylint: disable=invalid-name
 
-from pyubx2 import UBXMessage, UBX_MSGIDS
+from pyubx2 import UBXMessage, UBX_MSGIDS, itow2utc
 from pyubx2.ubxhelpers import msgclass2bytes
 from pygpsclient.globals import GLONASS_NMEA
-from pygpsclient.helpers import itow2utc, svid2gnssid, fix2desc, corrage2int
+from pygpsclient.helpers import svid2gnssid, fix2desc, corrage2int
 
 
 class UBXHandler:
@@ -360,7 +360,7 @@ class UBXHandler:
         self.__app.gnss_status.speed = data.gSpeed / 1000  # m/s
         self.__app.gnss_status.track = data.headMot
         self.__app.gnss_status.fix = fix2desc("HNR-PVT", data.gpsFix)
-        self.__app.gnss_status.diff_corr = data.diffSoln  # TODO check reliability
+        self.__app.gnss_status.diff_corr = data.diffSoln
 
     def _process_MON_VER(self, data: UBXMessage):
         """

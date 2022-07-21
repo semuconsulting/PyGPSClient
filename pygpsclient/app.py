@@ -18,8 +18,14 @@ from queue import Queue, Empty
 from datetime import datetime, timedelta
 from tkinter import Frame, N, S, E, W, PhotoImage, font
 from serial import SerialException, SerialTimeoutException
-
-from pyubx2 import protocol, NMEA_PROTOCOL, UBX_PROTOCOL, RTCM3_PROTOCOL
+from pyubx2 import (
+    protocol,
+    NMEA_PROTOCOL,
+    UBX_PROTOCOL,
+    RTCM3_PROTOCOL,
+)
+from pygnssutils import GNSSNTRIPClient
+from pygnssutils.socket_server import SocketServer, ClientHandler
 from pygpsclient.strings import (
     TITLE,
     MENUHIDESE,
@@ -54,7 +60,6 @@ from pygpsclient.graphview_frame import GraphviewFrame
 from pygpsclient.map_frame import MapviewFrame
 from pygpsclient.menu_bar import MenuBar
 from pygpsclient.stream_handler import StreamHandler
-from pygpsclient.ntrip_handler import NTRIPHandler
 from pygpsclient.settings_frame import SettingsFrame
 from pygpsclient.skyview_frame import SkyviewFrame
 from pygpsclient.status_frame import StatusFrame
@@ -62,7 +67,7 @@ from pygpsclient.ubx_config_dialog import UBXConfigDialog
 from pygpsclient.ntrip_client_dialog import NTRIPConfigDialog
 from pygpsclient.nmea_handler import NMEAHandler
 from pygpsclient.ubx_handler import UBXHandler
-from pygpsclient.socket_server import SocketServer, ClientHandler
+
 
 LOGGING = logging.INFO
 
@@ -114,7 +119,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.nmea_handler = NMEAHandler(self)
         self.ubx_handler = UBXHandler(self)
         self._conn_status = DISCONNECTED
-        self.ntrip_handler = NTRIPHandler(self)
+        self.ntrip_handler = GNSSNTRIPClient(self, verbosity=0)
         self.dlg_ubxconfig = None
         self.dlg_ntripconfig = None
         self._ubx_config_thread = None
@@ -475,6 +480,23 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         except OSError as err:
             self.set_status(f"Error starting socket server {err}", "red")
 
+    def update_clients(self, clients: int):
+        """
+        Update number of connected clients in settings panel.
+
+        :param int clients: no of connected clients
+        """
+
+        self.frm_settings.clients = clients
+
+    @property
+    def appmaster(self) -> object:
+        """
+        Getter for application master (Tk).
+        """
+
+        return self.__master
+
     def get_master(self):
         """
         Getter for application master (Tk)
@@ -515,8 +537,9 @@ class App(Frame):  # pylint: disable=too-many-ancestors
     def on_ntrip_read(self, event):  # pylint: disable=unused-argument
         """
         EVENT TRIGGERED
-        Action on <<ntrip_read>> event - read data from NTRIP caster
-        and send to connected receiver.
+        Action on <<ntrip_read>> event - read data from NTRIP queue.
+        If it's RTCM3 data, send to connected receiver and display on console.
+        If it's NMEA, just display on console.
 
         :param event event: read event
         """
@@ -524,13 +547,43 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         try:
             raw_data, parsed_data = self.ntripqueue.get(False)
             if raw_data is not None and parsed_data is not None:
-                if self.conn_status == CONNECTED:
-                    self.stream_handler.serial_write(raw_data)
-                self.process_data(raw_data, parsed_data, "NTRIP>>")
+                if protocol(raw_data) == RTCM3_PROTOCOL:
+                    if self.conn_status == CONNECTED:
+                        self.stream_handler.serial_write(raw_data)
+                    self.process_data(raw_data, parsed_data, "NTRIP>>")
+                else:  # e.g. NMEA GGA sentence sent to NTRIP server
+                    self.process_data(raw_data, parsed_data, "NTRIP<<")
         except Empty:
             pass
         except (SerialException, SerialTimeoutException) as err:
             self.set_status(f"Error sending to device {err}", "red")
+
+    def update_ntrip_status(self, status: bool, msg: tuple = None):
+        """
+        Update NTRIP configuration dialog connection status.
+
+        :param bool status: connected to NTRIP server yes/no
+        :param tuple msg: tuple of (message, color)
+        """
+
+        if self.dlg_ntripconfig is not None:
+            self.dlg_ntripconfig.set_controls(status, msg)
+
+    def get_coordinates(self) -> tuple:
+        """
+        Get current coordinates.
+
+        :return: tuple (conn_status, lat, lon, alt, sep)
+        :rtype: tuple
+        """
+
+        return (
+            self._conn_status,
+            self.gnss_status.lat,
+            self.gnss_status.lon,
+            self.gnss_status.alt,
+            self.gnss_status.sep,
+        )
 
     def process_data(self, raw_data: bytes, parsed_data: object, marker: str = ""):
         """

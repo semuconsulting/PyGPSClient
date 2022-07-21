@@ -28,7 +28,6 @@ ICON_CONFIRMED = os.path.join(DIRNAME, "resources/iconmonstr-check-mark-8-24.png
 ICON_WARNING = os.path.join(DIRNAME, "resources/iconmonstr-warning-1-24.png")
 ICON_UBXCONFIG = os.path.join(DIRNAME, "resources/iconmonstr-gear-2-24.png")
 ICON_NTRIPCONFIG = os.path.join(DIRNAME, "resources/iconmonstr-antenna-6-24.png")
-ICON_NTRIPSTR = os.path.join(DIRNAME, "resources/iconmonstr-magnifier-12-24.png")
 ICON_LOGREAD = os.path.join(DIRNAME, "resources/binary-1-24.png")
 ICON_REFRESH = os.path.join(DIRNAME, "resources/iconmonstr-refresh-6-16.png")
 ICON_CONTRACT = os.path.join(DIRNAME, "resources/iconmonstr-triangle-1-16.png")
@@ -39,7 +38,7 @@ ICON_NOCLIENT = os.path.join(DIRNAME, "resources/iconmonstr-noclient-10-24.png")
 IMG_WORLD = os.path.join(DIRNAME, "resources/world.png")
 
 GITHUB_URL = "https://github.com/semuconsulting/PyGPSClient"
-PYPI_URL = "https://pypi.org/project/PyGPSClient/"
+PYPI_URL = "https://pypi.org/pypi/PyGPSClient"
 XML_HDR = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
 GPX_NS = " ".join(
     (
@@ -59,8 +58,6 @@ GPX_TRACK_INTERVAL = 1  # minimum GPS track update interval (seconds)
 FILEREAD_INTERVAL = 0.02  # delay between successive datalog file reads (seconds)
 SAT_EXPIRY = 10  # how long passed satellites are kept in the sky and graph views
 MAX_SNR = 60  # upper limit of graphview snr axis
-DEVICE_ACCURACY = 2.5  # nominal GPS device accuracy (CEP) in meters
-HDOP_RATIO = 20  # arbitrary calibration of accuracy against HDOP
 MAXLOGLINES = 10000  # maximum number of 'lines' per datalog file
 # default error handling behaviour for UBXReader.read() calls
 # 0 (ERR_IGNORE) = ignore errors, 1 (ERR_LOG) - log errors, 2 (ERR_RAISE) = raise errors
@@ -69,6 +66,7 @@ POPUP_TRANSIENT = True  # whether pop-up config dialogs are always on top
 PORTIDS = ("0 I2C", "1 UART1", "2 UART2", "3 USB", "4 SPI")
 ANTSTATUS = ("INIT", "DONTKNOW", "OK", "SHORT", "OPEN")
 ANTPOWER = ("OFF", "ON", "DONTKNOW")
+GGA_INTERVALS = ("None", "2", "5", "10", "60", "120")
 # names of user preset files:
 MQAPIKEY = "mqapikey"
 UBXPRESETS = "ubxpresets"
@@ -115,7 +113,7 @@ FORMAT_HEX = 4
 FORMAT_HEXTABLE = 8
 FORMATS = ("Parsed", "Binary", "Hex String", "Hex Tabular")
 # socket server modes
-SOCKMODES = ("SOCKET SERVER", "NTRIP SERVER")
+SOCKMODES = ("SOCKET SERVER", "NTRIP CASTER")
 # connection mode flags:
 DISCONNECTED = 0
 CONNECTED = 1

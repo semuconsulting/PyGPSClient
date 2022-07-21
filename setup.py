@@ -9,7 +9,7 @@ Created on 12 Sep 2020
 :author: semuadmin
 """
 
-from setuptools import setup, find_packages
+from setuptools import setup, find_namespace_packages
 from pygpsclient import version as VERSION
 
 with open("README.md", "r") as fh:
@@ -18,14 +18,14 @@ with open("README.md", "r") as fh:
 setup(
     name="PyGPSClient",
     version=VERSION,
-    packages=find_packages(exclude=["tests", "references", "images"]),
+    packages=find_namespace_packages(
+        exclude=["tests", "references", "images", "docs", "examples"],
+    ),
     install_requires=[
-        "pyubx2>=1.2.16",
-        "pynmeagps>=1.0.15",
+        "pygnssutils>=0.3.0",
         "requests>=2.24.0",
         "Pillow>=7.2.0",
-        "pyserial>=3.4",
-        "pyrtcm>=0.2.6",
+        "pyserial>=3.5",
     ],
     package_data={
         "pygpsclient": [
@@ -75,4 +75,5 @@ setup(
         "Topic :: Terminals :: Serial",
         "Topic :: Scientific/Engineering :: GIS",
     ],
+    python_requires=">=3.7",
 )

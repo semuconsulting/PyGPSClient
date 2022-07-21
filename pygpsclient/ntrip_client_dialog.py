@@ -35,11 +35,12 @@ from tkinter import (
     TclError,
 )
 from PIL import ImageTk, Image
+from pygnssutils import NOGGA
+from pygnssutils.helpers import find_mp_distance
 from pygpsclient.globals import (
     ICON_EXIT,
     ICON_CONN,
     ICON_DISCONN,
-    ICON_NTRIPSTR,
     UBX_MONVER,
     UBX_MONHW,
     UBX_CFGPRT,
@@ -50,9 +51,11 @@ from pygpsclient.globals import (
     ENTCOL,
     READONLY,
     POPUP_TRANSIENT,
+    DISCONNECTED,
     CONNECTED,
     UI,
     UIK,
+    GGA_INTERVALS,
 )
 from pygpsclient.strings import (
     DLGNTRIPCONFIG,
@@ -72,7 +75,6 @@ from pygpsclient.helpers import (
     VALURL,
     MAXPORT,
     MAXALT,
-    get_mp_distance,
 )
 
 NTRIP_VERSIONS = ("2.0", "1.0")
@@ -104,7 +106,6 @@ class NTRIPConfigDialog(Toplevel):
         self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
         self._img_conn = ImageTk.PhotoImage(Image.open(ICON_CONN))
         self._img_disconn = ImageTk.PhotoImage(Image.open(ICON_DISCONN))
-        self._img_str = ImageTk.PhotoImage(Image.open(ICON_NTRIPSTR))
         self._cfg_msg_command = None
         self._pending_confs = {
             UBX_MONVER: (),
@@ -240,7 +241,7 @@ class NTRIPConfigDialog(Toplevel):
         self._lbl_ntripggaint = Label(self._frm_container, text=LBLNTRIPGGAINT)
         self._spn_ntripggaint = Spinbox(
             self._frm_container,
-            values=("None", "2", "5", "10", "60", "120"),
+            values=(GGA_INTERVALS),
             width=5,
             readonlybackground=ENTCOL,
             wrap=True,
@@ -266,7 +267,7 @@ class NTRIPConfigDialog(Toplevel):
             relief="sunken",
             width=15,
         )
-        self._lbl_alt = Label(self._frm_container, text="GGA Elevation")
+        self._lbl_alt = Label(self._frm_container, text="GGA Elevation m")
         self._ent_alt = Entry(
             self._frm_container,
             textvariable=self._ntrip_gga_alt,
@@ -275,7 +276,7 @@ class NTRIPConfigDialog(Toplevel):
             relief="sunken",
             width=15,
         )
-        self._lbl_sep = Label(self._frm_container, text="GGA Separation")
+        self._lbl_sep = Label(self._frm_container, text="GGA Separation m")
         self._ent_sep = Entry(
             self._frm_container,
             textvariable=self._ntrip_gga_sep,
@@ -407,6 +408,8 @@ class NTRIPConfigDialog(Toplevel):
         """
 
         try:
+
+            self._settings = self.__app.ntrip_handler.settings
             self._connected = connected
             if msg is None:
                 server = self._settings["server"]
@@ -444,8 +447,18 @@ class NTRIPConfigDialog(Toplevel):
                 self._lbx_sourcetable,
             ):
                 ctl.config(state=(DISABLED if connected else NORMAL))
-            # refresh sourcetable listbox NB placement of call is important
-            self.update_sourcetable(self.__app.ntrip_handler.settings["sourcetable"])
+            # refresh sourcetable listbox ! NB PLACEMENT OF THIS CALL IS IMPORTANT !
+            self.update_sourcetable(self._settings["sourcetable"])
+            # update closest mountpoint name and distance (if available)
+            lat, lon = self._get_coordinates()
+            if isinstance(lat, float) and isinstance(lon, float):
+                mpname, mindist = find_mp_distance(
+                    lat,
+                    lon,
+                    self._settings["sourcetable"],
+                    self._settings["mountpoint"],
+                )
+                self.set_mp_dist(mindist, mpname)
         except TclError:  # fudge during thread termination
             pass
 
@@ -477,7 +490,9 @@ class NTRIPConfigDialog(Toplevel):
 
     def _on_select_mp(self, event):
         """
-        Mountpoint has been selected from listbox.
+        Mountpoint has been selected from listbox; set
+        mountpoint and distance from live or reference
+        coordinates (if available).
         """
 
         try:
@@ -486,7 +501,15 @@ class NTRIPConfigDialog(Toplevel):
             srt = w.get(index)  # sourcetable entry
             name = srt[0]
             self._ntrip_mountpoint.set(name)
-            self.find_mp_distance(name)
+            lat, lon = self._get_coordinates()
+            if isinstance(lat, float) and isinstance(lon, float):
+                mpname, mindist = find_mp_distance(
+                    lat, lon, self._settings["sourcetable"], name
+                )
+                if mpname is None:
+                    self.set_mp_dist(None, name)
+                else:
+                    self.set_mp_dist(mindist, mpname)
         except IndexError:  # not yet populated
             pass
 
@@ -523,17 +546,26 @@ class NTRIPConfigDialog(Toplevel):
         self._ntrip_version.set(self._settings["version"])
         self._ntrip_user.set(self._settings["user"])
         self._ntrip_password.set(self._settings["password"])
-        self._ntrip_gga_interval.set(self._settings["ggainterval"])
-        self._ntrip_gga_lat.set(self._settings["ggalat"])
-        self._ntrip_gga_lon.set(self._settings["ggalon"])
-        self._ntrip_gga_alt.set(self._settings["ggaalt"])
-        self._ntrip_gga_sep.set(self._settings["ggasep"])
+        self._ntrip_gga_interval.set(
+            "None"
+            if self._settings["ggainterval"] == NOGGA
+            else self._settings["ggainterval"]
+        )
+        self._ntrip_gga_lat.set(self._settings["reflat"])
+        self._ntrip_gga_lon.set(self._settings["reflon"])
+        self._ntrip_gga_alt.set(self._settings["refalt"])
+        self._ntrip_gga_sep.set(self._settings["refsep"])
 
-        self.find_mp_distance(self._settings["mountpoint"])
+        # mindist, mpname = self.find_mp_distance(self._settings["mountpoint"])
+        lat, lon = self._get_coordinates()
+        mpname, mindist = find_mp_distance(
+            lat, lon, self._settings["sourcetable"], self._settings["mountpoint"]
+        )
+        self.set_mp_dist(mindist, mpname)
 
     def _set_settings(self):
         """
-        Set settings in NTRIP handler.
+        Set settings for NTRIP handler.
         """
 
         self._settings["server"] = self._ntrip_server.get()
@@ -542,13 +574,17 @@ class NTRIPConfigDialog(Toplevel):
         self._settings["version"] = self._ntrip_version.get()
         self._settings["user"] = self._ntrip_user.get()
         self._settings["password"] = self._ntrip_password.get()
-        self._settings["ggainterval"] = self._ntrip_gga_interval.get()
-        self._settings["ggalat"] = self._ntrip_gga_lat.get()
-        self._settings["ggalon"] = self._ntrip_gga_lon.get()
-        self._settings["ggaalt"] = self._ntrip_gga_alt.get()
-        self._settings["ggasep"] = self._ntrip_gga_sep.get()
+        self._settings["ggainterval"] = (
+            NOGGA
+            if self._ntrip_gga_interval.get() == "None"
+            else self._ntrip_gga_interval.get()
+        )
+        self._settings["reflat"] = self._ntrip_gga_lat.get()
+        self._settings["reflon"] = self._ntrip_gga_lon.get()
+        self._settings["refalt"] = self._ntrip_gga_alt.get()
+        self._settings["refsep"] = self._ntrip_gga_sep.get()
 
-        self.__app.ntrip_handler.settings = self._settings
+        # self.__app.ntrip_handler.settings = self._settings
 
     def update_sourcetable(self, stable: list):
         """
@@ -572,7 +608,22 @@ class NTRIPConfigDialog(Toplevel):
 
         if self._valid_settings():
             self._set_settings()
-            self.__app.ntrip_handler.connect()
+            # self.__app.ntrip_handler.settings = self._settings
+            self.__app.ntrip_handler.run(
+                server=self._settings["server"],
+                port=self._settings["port"],
+                mountpoint=self._settings["mountpoint"],
+                version=self._settings["version"],
+                user=self._settings["user"],
+                password=self._settings["password"],
+                ggainterval=self._settings["ggainterval"],
+                reflat=self._settings["reflat"],
+                reflon=self._settings["reflon"],
+                refalt=self._settings["refalt"],
+                refsep=self._settings["refsep"],
+                output=self.__app.ntripqueue,
+            )
+            self.set_controls(True)
 
     def _disconnect(self):
         """
@@ -580,7 +631,8 @@ class NTRIPConfigDialog(Toplevel):
         with connection status in due course.
         """
 
-        self.__app.ntrip_handler.disconnect()
+        self.__app.ntrip_handler.stop()
+        self.set_controls(False)
 
     def _valid_settings(self) -> bool:
         """
@@ -617,33 +669,6 @@ class NTRIPConfigDialog(Toplevel):
 
         return valid
 
-    def get_coordinates(self) -> tuple:
-        """
-        Get coordinates for mountpoint distance calculation.
-        Return either actual lat/lon from receiver, or
-        manually-entered lat/lon from NTRIP config panel.
-
-        :return: tuple (lat, lon)
-        :rtype: tuple
-        """
-
-        try:
-            lat = (
-                self.__app.gnss_status.lat
-                if self.__app.conn_status == CONNECTED
-                and self._settings["ggalat"] == ""
-                else float(self._settings["ggalat"])
-            )
-            lon = (
-                self.__app.gnss_status.lon
-                if self.__app.conn_status == CONNECTED
-                and self._settings["ggalon"] == ""
-                else float(self._settings["ggalon"])
-            )
-        except ValueError:
-            return "", ""
-        return lat, lon
-
     def set_mp_dist(self, dist: float, name: str = ""):
         """
         Set mountpoint distance label.
@@ -655,7 +680,7 @@ class NTRIPConfigDialog(Toplevel):
             return
         dist_l = "Distance n/a"
         dist_u = "km"
-        if dist not in (None, 9999999):
+        if isinstance(dist, float):
             units = self.__app.frm_settings.units
             if units in (UI, UIK):
                 dist *= KM2MILES
@@ -665,33 +690,21 @@ class NTRIPConfigDialog(Toplevel):
         self._ntrip_mountpoint.set(name)
         self._ntrip_mpdist.set(dist_l)
 
-    def find_mp_distance(self, name: str = ""):
+    def _get_coordinates(self) -> tuple:
         """
-        Find distance to named mountpoint and populate NTRP config dialog.
-        If mountpoint name is not provided, find closest mountpoint (among
-        those mountpoints which provide coordinates).
+        Get current coordinates. If not available,
+        return fixed reference coordinates, or ""
+        if not available.
 
-        :param str name: mountpoint name
+        :returns: tuple (lat,lon)
+        :rtype: tuple
         """
 
-        lat, lon = self.get_coordinates()
-        if lat == "" or lon == "":
-            self.set_mp_dist(None, name)
-            return
-
-        mindist = 9999999
-        mpname = None
-        for mp in self._settings["sourcetable"]:
-            dist = get_mp_distance(lat, lon, mp)
-            if name == "":  # find closest
-                if dist is not None:
-                    if dist < mindist:
-                        mpname = mp[0]
-                        mindist = dist
-            else:
-                if mp[0] == name:
-                    mpname = mp[0]
-                    mindist = dist
-                    break
-
-        self.set_mp_dist(mindist, mpname)
+        try:
+            conn_status, lat, lon, _, _ = self.__app.get_coordinates()
+            if conn_status == DISCONNECTED:
+                lat = float(self._settings["reflat"])
+                lon = float(self._settings["reflon"])
+            return lat, lon
+        except (ValueError, TypeError):
+            return "", ""

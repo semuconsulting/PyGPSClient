@@ -13,10 +13,9 @@ Created on 13 Sep 2020
 
 from platform import system
 from tkinter import Frame, Label, Button, StringVar, font, N, S, W, E, SUNKEN
-
 from PIL import ImageTk, Image
-from pyubx2.ubxhelpers import dop2str
-
+from pyubx2 import dop2str
+from pygnssutils.helpers import latlon2dms, latlon2dmm
 from pygpsclient.globals import (
     DMM,
     DMS,
@@ -39,10 +38,7 @@ from pygpsclient.globals import (
     BGCOL,
     FGCOL,
 )
-
 from pygpsclient.helpers import (
-    deg2dmm,
-    deg2dms,
     m2ft,
     ms2mph,
     ms2kmph,
@@ -398,23 +394,18 @@ class BannerFrame(Frame):
         """
 
         lat = self.__app.gnss_status.lat
-        if isinstance(lat, (int, float)):
-            if disp_format == DMS:
-                lat = deg2dms(lat, "lat")
-            elif disp_format == DMM:
-                lat = deg2dmm(lat, "lat")
-            self._lat.set(f"{lat:<15}")
-        else:
-            self._lat.set("N/A            ")
         lon = self.__app.gnss_status.lon
-        if isinstance(lon, (int, float)):
+        if isinstance(lat, (int, float)) and isinstance(lon, (int, float)):
             if disp_format == DMS:
-                lon = deg2dms(lon, "lon")
+                lat, lon = latlon2dms((lat, lon))
             elif disp_format == DMM:
-                lon = deg2dmm(lon, "lon")
+                lat, lon = latlon2dmm((lat, lon))
+            self._lat.set(f"{lat:<15}")
             self._lon.set(f"{lon:<15}")
         else:
+            self._lat.set("N/A            ")
             self._lon.set("N/A            ")
+
         alt = self.__app.gnss_status.alt
         alt_u = "m"
         if isinstance(alt, (int, float)):
