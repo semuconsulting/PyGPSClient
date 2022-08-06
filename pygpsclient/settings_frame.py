@@ -306,7 +306,7 @@ class SettingsFrame(Frame):
         self._spn_datalog = Spinbox(
             self._frm_options,
             values=(FORMATS),
-            width=10,
+            width=16,
             readonlybackground=ENTCOL,
             wrap=True,
             textvariable=self._logformat,
@@ -441,7 +441,7 @@ class SettingsFrame(Frame):
         )
         self._chk_datalog.grid(column=0, row=7, padx=2, pady=2, sticky=(W))
         self._spn_datalog.grid(
-            column=1, row=7, columnspan=2, padx=2, pady=2, sticky=(W)
+            column=1, row=7, columnspan=3, padx=2, pady=2, sticky=(W)
         )
         self._chk_recordtrack.grid(
             column=0, row=8, columnspan=2, padx=2, pady=2, sticky=(W)

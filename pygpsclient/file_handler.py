@@ -209,26 +209,34 @@ class FileHandler:
         if self._logfile is None:
             return
 
+        data = []
+        if self.__app.frm_settings.logformat in (
+            FORMATS[0],
+            FORMATS[4],
+        ):  # parsed, parsed + hex tabular
+            data.append(parsed_data)
         if self.__app.frm_settings.logformat == FORMATS[1]:  # binary
-            data = raw_data
-        elif self.__app.frm_settings.logformat == FORMATS[2]:  # hex string
-            data = raw_data.hex()
-        elif self.__app.frm_settings.logformat == FORMATS[3]:  # hex tabular
-            data = hextable(raw_data)
-        else:
-            data = parsed_data
+            data.append(raw_data)
+        if self.__app.frm_settings.logformat == FORMATS[2]:  # hex string
+            data.append(raw_data.hex())
+        if self.__app.frm_settings.logformat in (
+            FORMATS[3],
+            FORMATS[4],
+        ):  # hex tabular, parsed + hex tabular
+            data.append(hextable(raw_data))
 
-        if not isinstance(data, bytes):
-            data = (str(data) + "\r").encode("utf-8")
-        try:
-            self._logfile.write(data)
-            self._lines += 1
+        for datum in data:
+            if not isinstance(datum, bytes):
+                datum = (str(datum) + "\r").encode("utf-8")
+            try:
+                self._logfile.write(datum)
+                self._lines += 1
+            except ValueError:
+                pass
 
-            if self._lines > MAXLOGLINES:
-                self.close_logfile()
-                self.open_logfile()
-        except ValueError:
-            pass
+        if self._lines > MAXLOGLINES:
+            self.close_logfile()
+            self.open_logfile()
 
     def close_logfile(self):
         """

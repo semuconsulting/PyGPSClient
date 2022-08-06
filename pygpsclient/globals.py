@@ -111,7 +111,7 @@ FORMAT_PARSED = 1
 FORMAT_BIN = 2
 FORMAT_HEX = 4
 FORMAT_HEXTABLE = 8
-FORMATS = ("Parsed", "Binary", "Hex String", "Hex Tabular")
+FORMATS = ("Parsed", "Binary", "Hex String", "Hex Tabular", "Parsed + Hex Tabular")
 # socket server modes
 SOCKMODES = ("SOCKET SERVER", "NTRIP CASTER")
 # connection mode flags:
