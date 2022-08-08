@@ -306,7 +306,7 @@ class SettingsFrame(Frame):
         self._spn_datalog = Spinbox(
             self._frm_options,
             values=(FORMATS),
-            width=16,
+            width=20,
             readonlybackground=ENTCOL,
             wrap=True,
             textvariable=self._logformat,
@@ -435,10 +435,10 @@ class SettingsFrame(Frame):
         self._chk_webmap.grid(column=0, row=5, padx=2, pady=2, sticky=(W))
         self._lbl_mapzoom.grid(column=1, row=5, sticky=(E))
         self._scl_mapzoom.grid(column=2, row=5, columnspan=2, sticky=(W))
-        self._chk_legend.grid(column=0, row=6, padx=2, pady=2, sticky=(W))
         self._chk_unusedsat.grid(
-            column=1, row=6, columnspan=3, padx=2, pady=2, sticky=(W)
+            column=0, row=6, columnspan=2, padx=2, pady=2, sticky=(W)
         )
+        self._chk_legend.grid(column=2, row=6, columnspan=2, padx=2, pady=2, sticky=(W))
         self._chk_datalog.grid(column=0, row=7, padx=2, pady=2, sticky=(W))
         self._spn_datalog.grid(
             column=1, row=7, columnspan=3, padx=2, pady=2, sticky=(W)
