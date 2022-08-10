@@ -44,7 +44,7 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 ## <a name="features">Features</a>
 
 1. Runs on any platform which supports a Python 3 interpreter (>=3.7) and tkinter (>=8.6) GUI framework, including Windows, MacOS, Linux and Raspberry Pi OS.
-1. Supports NMEA, UBX and RTCM3 protocols.
+1. Supports NMEA, UBX, RTCM3, and NTRIP protocols.
 1. Capable of reading from a variety of GNSS data streams: Serial (USB / UART), Socket (TCP / UDP) and binary datalog file.
 1. Configurable GUI with selectable and resizeable widgets.
 1. Expandable banner widget showing key navigation information.
