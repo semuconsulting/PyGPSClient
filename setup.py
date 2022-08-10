@@ -22,7 +22,7 @@ setup(
         exclude=["tests", "references", "images", "docs", "examples"],
     ),
     install_requires=[
-        "pygnssutils>=0.3.0",
+        "pygnssutils>=0.3.1",
         "requests>=2.24.0",
         "Pillow>=7.2.0",
         "pyserial>=3.5",
