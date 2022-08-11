@@ -1,5 +1,13 @@
 # PyGPSClient Release Notes
 
+### RELEASE v1.3.7
+
+ENHANCEMENTS:
+
+1. "Parsed + Tabular Hex" option added to data logger.
+2. "Check for Updates" function enhanced in About dialog box - works better on Linux.
+3. Min 'pygnssutils' version updated to 0.3.1 - fixes issues with some NTRIP 2 caster handling.
+
 ### RELEASE v1.3.6
 
 CHANGES:

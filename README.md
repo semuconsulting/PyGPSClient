@@ -44,7 +44,7 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 ## <a name="features">Features</a>
 
 1. Runs on any platform which supports a Python 3 interpreter (>=3.7) and tkinter (>=8.6) GUI framework, including Windows, MacOS, Linux and Raspberry Pi OS.
-1. Supports NMEA, UBX, RTCM3, and NTRIP protocols.
+1. Supports NMEA, UBX, RTCM3 and NTRIP protocols.
 1. Capable of reading from a variety of GNSS data streams: Serial (USB / UART), Socket (TCP / UDP) and binary datalog file.
 1. Configurable GUI with selectable and resizeable widgets.
 1. Expandable banner widget showing key navigation information.
@@ -58,7 +58,7 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 1. Track recording in GPX format.
 1. UBX Configuration Dialog, with the ability to send a variety of UBX configuration commands to u-blox GNSS devices. This includes the facility to add **user-defined commands or command sequences** - see instructions under [user-defined presets](#userdefined) below. While not intended to be a direct replacement, the application supports much of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool.
 1. [NTRIP](https://en.wikipedia.org/wiki/Networked_Transport_of_RTCM_via_Internet_Protocol) Client ([differential GPS enhancement](https://en.wikipedia.org/wiki/Differential_GPS)) facility with the ability to connect to a specified NTRIP server (caster), parse the incoming RTCM3 data and feed this data to a compatible GNSS device (*requires an Internet connection and access to a suitable NTRIP caster*).
-1. **New BETA feature in v1.3.5** - [Socket Server / NTRIP Caster](#socketserver)  with two modes of operation: (a) open, unauthenticated Socket Server or (b) NTRIP Caster.
+1. [Socket Server / NTRIP Caster](#socketserver)  with two modes of operation: (a) open, unauthenticated Socket Server or (b) NTRIP Caster.
 
 ---
 ## <a name="howtouse">How to Use</a>
@@ -138,7 +138,7 @@ Below is a illustrative NTRIP DGPS data log, showing:
 **NB:** Please respect the terms and conditions of any remote NTRIP service used with this facility. For testing or evaluation purposes, consider deploying a local [SNIP LITE](https://www.use-snip.com/download/) server. *Inappropriate use of an NTRIP service may result in your account being blocked*.
 
 ---
-### <a name="socketserver">Socket Server / NTRIP Caster Facilities</a> (BETA)
+### <a name="socketserver">Socket Server / NTRIP Caster Facilities</a>
 
 The Socket Server / NTRIP Caster facility is capable of operating in either of two modes;
 1. SOCKET SERVER - an open, unauthenticated TCP socket server available to any socket client including, for example, another instance of PyGPSClient or `gnssdump` (CLI utility installed with `pygnssutils`) running on another machine. In this mode it will broadcast the host's currently connected GNSS data stream (NMEA, UBX, RTCM3). The default port is 50010.
