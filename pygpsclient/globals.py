@@ -67,6 +67,7 @@ PORTIDS = ("0 I2C", "1 UART1", "2 UART2", "3 USB", "4 SPI")
 ANTSTATUS = ("INIT", "DONTKNOW", "OK", "SHORT", "OPEN")
 ANTPOWER = ("OFF", "ON", "DONTKNOW")
 GGA_INTERVALS = ("None", "2", "5", "10", "60", "120")
+ENABLE_CFG_OTHER = True  # enable CFG=* Other Configuration command panel
 # names of user preset files:
 MQAPIKEY = "mqapikey"
 UBXPRESETS = "ubxpresets"
@@ -156,6 +157,7 @@ UBX_CFGMSG = 3
 UBX_CFGVAL = 4
 UBX_PRESET = 5
 UBX_CFGRATE = 6
+UBX_CFGOTHER = 7
 
 GLONASS_NMEA = True  # use GLONASS NMEA SVID (65-96) rather than slot (1-24)
 # GNSS color codings:

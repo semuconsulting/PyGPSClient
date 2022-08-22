@@ -101,6 +101,7 @@ The UBX Configuration Dialog currently supports the following UBX configuration 
 1. Solution Rate widget (CFG-RATE) sets navigation solution interval in ms (e.g. 1000 = 1/second) and measurement ratio (ratio between the number of measurements and the number of navigation solutions, e.g. 5 = five measurements per navigation solution).
 1. For each of the widgets above, clicking anywhere in the widget background will refresh the displayed information with the current configuration.
 1. Message Rate widget (CFG-MSG) sets message rates per port for UBX and NMEA messages. Message rate is relative to navigation solution frequency e.g. a message rate of '4' means 'every 4th navigation solution'.
+1. **WORK-IN-PROGRESS** User-selectable configuration widget (CFG-*) allows user to select from a range of CFG- configuration commands. When a CFG command is selected, a POLL is sent to the device to retrieve the current settings. Integer values can be entered in integer, binary (`0b..`) or hex (`0x..`) formats.
 1. Configuration Interface widget (CFG-VALSET, CFG-VALDEL and CFG-VALGET) queries and sets configuration for [Generation 9+ devices](https://github.com/semuconsulting/pyubx2#configinterface) e.g. NEO-M9, ZED-F9P, etc.
 1. Preset Commands widget supports a variety of preset and user-defined commands - see [user defined presets](#userdefined)
 
@@ -111,8 +112,8 @@ confirmed ![confirmed icon](/pygpsclient/resources/iconmonstr-check-mark-8-24.pn
 warning ![warning icon](/pygpsclient/resources/iconmonstr-warning-1-24.png)). 
 
 **Note:**
-* Confirmation responses can take several seconds at high message transmission rates, or be discarded altogether if the device's transmit buffer is full (*txbuff-alloc error*). To ensure timely confirmation responses, try increasing the baud rate and/or temporarily reducing transmitted message rates using the configuration commands provided.
-* A warning icon (typically accompanied by an ACK-NAK response) is usually an indication that one or more of the commands sent is not supported by your receiver. 
+* Poll and Acknowledgement responses can take several seconds at high message transmission rates, or be discarded altogether if the device's transmit buffer is full (*txbuff-alloc error*). To ensure timely responses, try increasing the baud rate and/or temporarily reducing transmitted message rates using the configuration commands provided.
+* A warning icon (typically accompanied by an ACK-NAK response) is usually an indication that one or more of the commands sent is not supported by your receiver.
 
 ---
 ### <a name="ntripconfig">NTRIP Client Facilities</a>

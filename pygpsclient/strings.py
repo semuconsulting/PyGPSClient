@@ -108,6 +108,7 @@ LBLSOCKSERVE = "Socket Server /\nNTRIP Caster   "  # padded to align
 LBLSERVERPORT = "Port"
 LBLDEGFORMAT = "Degrees Format"
 LBLSERVERMODE = "Mode"
+LBLCFGDYN = "CFG-* Other Configuration"
 
 # Dialog text
 DLGUBXCONFIG = "UBX Configuration"
