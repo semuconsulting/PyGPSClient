@@ -71,12 +71,14 @@ SCROLLY = 300
 # following CFG types exluded from selection, mainly because they're deprecated
 # or catered for in other UBX config widgets.
 CFG_EXCLUDED = (
+    "CFG-CFG",
     "CFG-DAT-NUM",
     "CFG-MSG",
     "CFG-NMEAv0",
     "CFG-NMEAvX",
     "CFG-PRT",
     "CFG-RATE",
+    "CFG-RINV",
     "CFG-VALDEL",
     "CFG-VALSET",
 )
@@ -364,20 +366,6 @@ class UBX_Dynamic_Frame(Frame):
                 Label(self._frm_attrs, text=numr).grid(column=1, row=row, sticky=(W))
                 row += 1
 
-            # # add spinbox to allow user to select which item
-            # # within group is being updated
-            # Label(self._frm_attrs, text="Group Index:").grid(
-            #     column=0, row=row, sticky=(E)
-            # )
-            # Spinbox(
-            #     self._frm_attrs,
-            #     from_=0,
-            #     to=numa,
-            #     width=10,
-            #     state=READONLY,
-            #     readonlybackground=ENTCOL,
-            # ).grid(column=1, row=row, sticky=(W))
-            # row += 1
         row = self._add_widgets(msg, attd, row, index)
 
         return row
@@ -419,7 +407,11 @@ class UBX_Dynamic_Frame(Frame):
         if msg is None:  # no poll response available
             self._cfg_atts[nam][0].set(val)
         else:  # set initial value from POLL response
-            self._cfg_atts[nam][0].set(getattr(msg, nam, val))
+            mval = getattr(msg, nam, val)
+            if nam == "bdsTalkerId":  # fudge for default CFG-NMEA bdsTalkerId
+                if mval == b"\x00\x00":
+                    mval = ""
+            self._cfg_atts[nam][0].set(mval)
         Label(self._frm_attrs, text=nam).grid(column=0, row=row, sticky=(E))
         Entry(
             self._frm_attrs,
@@ -482,14 +474,14 @@ class UBX_Dynamic_Frame(Frame):
 
     def _get_val(self, ent: StringVar, att: str):
         """
-        Convert Entry field to appropriate value.
+        Convert Entry field to appropriate value type.
 
         :param StringVar ent: entry string variable
         :param str att: attribute type e.g. 'U004'
         """
 
         val = ent.get()
-        if atttyp(att) in ("E", "I", "L", "U", "X"):  # integer
+        if atttyp(att) in ("E", "I", "L", "U"):  # integer
             if val.find(".") != -1:  # ignore scaling decimals
                 val = val[0 : val.find(".")]
             if val[0:2] == "0b":
@@ -499,6 +491,8 @@ class UBX_Dynamic_Frame(Frame):
             else:
                 mod = 10
             val = int(val, mod)
+        elif atttyp(att) in ("C", "X"):  # bytes
+            val = bytes(val, "utf-8")
         elif atttyp(att) == "R":  # float
             val = float(val)
 
