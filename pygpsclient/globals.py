@@ -26,6 +26,7 @@ ICON_EXIT = os.path.join(DIRNAME, "resources/iconmonstr-door-6-24.png")
 ICON_PENDING = os.path.join(DIRNAME, "resources/iconmonstr-time-6-24.png")
 ICON_CONFIRMED = os.path.join(DIRNAME, "resources/iconmonstr-check-mark-8-24.png")
 ICON_WARNING = os.path.join(DIRNAME, "resources/iconmonstr-warning-1-24.png")
+ICON_UNKNOWN = os.path.join(DIRNAME, "resources/clear-1-24.png")
 ICON_UBXCONFIG = os.path.join(DIRNAME, "resources/iconmonstr-gear-2-24.png")
 ICON_NTRIPCONFIG = os.path.join(DIRNAME, "resources/iconmonstr-antenna-6-24.png")
 ICON_LOGREAD = os.path.join(DIRNAME, "resources/binary-1-24.png")
@@ -67,6 +68,7 @@ PORTIDS = ("0 I2C", "1 UART1", "2 UART2", "3 USB", "4 SPI")
 ANTSTATUS = ("INIT", "DONTKNOW", "OK", "SHORT", "OPEN")
 ANTPOWER = ("OFF", "ON", "DONTKNOW")
 GGA_INTERVALS = ("None", "2", "5", "10", "60", "120")
+ENABLE_CFG_OTHER = True  # enable CFG=* Other Configuration command panel
 # names of user preset files:
 MQAPIKEY = "mqapikey"
 UBXPRESETS = "ubxpresets"
@@ -156,6 +158,7 @@ UBX_CFGMSG = 3
 UBX_CFGVAL = 4
 UBX_PRESET = 5
 UBX_CFGRATE = 6
+UBX_CFGOTHER = 7
 
 GLONASS_NMEA = True  # use GLONASS NMEA SVID (65-96) rather than slot (1-24)
 # GNSS color codings:

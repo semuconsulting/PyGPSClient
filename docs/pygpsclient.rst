@@ -188,6 +188,14 @@ pygpsclient.ubx\_config\_dialog module
    :undoc-members:
    :show-inheritance:
 
+pygpsclient.ubx\_dynamic\_frame module
+--------------------------------------
+
+.. automodule:: pygpsclient.ubx_dynamic_frame
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pygpsclient.ubx\_handler module
 -------------------------------
 

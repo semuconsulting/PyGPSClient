@@ -44,8 +44,10 @@ from pygpsclient.globals import (
     UBX_CFGRATE,
     UBX_CFGMSG,
     UBX_CFGVAL,
+    UBX_CFGOTHER,
     UBX_PRESET,
     CONNECTED,
+    ENABLE_CFG_OTHER,
 )
 from pygpsclient.strings import DLGUBXCONFIG
 from pygpsclient.globals import POPUP_TRANSIENT
@@ -55,6 +57,7 @@ from pygpsclient.ubx_msgrate_frame import UBX_MSGRATE_Frame
 from pygpsclient.ubx_preset_frame import UBX_PRESET_Frame
 from pygpsclient.ubx_cfgval_frame import UBX_CFGVAL_Frame
 from pygpsclient.ubx_solrate_frame import UBX_RATE_Frame
+from pygpsclient.ubx_dynamic_frame import UBX_Dynamic_Frame
 
 
 class UBXConfigDialog(Toplevel):
@@ -129,6 +132,10 @@ class UBXConfigDialog(Toplevel):
         self._frm_config_msg = UBX_MSGRATE_Frame(
             self.__app, self, borderwidth=2, relief="groove"
         )
+        if ENABLE_CFG_OTHER:
+            self._frm_config_dynamic = UBX_Dynamic_Frame(
+                self.__app, self, borderwidth=2, relief="groove"
+            )
         self._frm_configdb = UBX_CFGVAL_Frame(
             self.__app, self, borderwidth=2, relief="groove"
         )
@@ -156,14 +163,12 @@ class UBXConfigDialog(Toplevel):
             sticky=(N, S, W, E),
         )
         # left column of grid
-        rowsp = 0
         for frm in (
             self._frm_device_info,
             self._frm_config_port,
             self._frm_config_rate,
             self._frm_config_msg,
         ):
-            row += rowsp
             (colsp, rowsp) = frm.grid_size()
             frm.grid(
                 column=col,
@@ -172,12 +177,27 @@ class UBXConfigDialog(Toplevel):
                 rowspan=rowsp,
                 sticky=(N, S, W, E),
             )
+            row += rowsp
+        maxrow = row
+        # middle column of grid
+        if ENABLE_CFG_OTHER:
+            row = 0
+            col += colsp
+            for frm in (self._frm_config_dynamic,):
+                (colsp, rowsp) = frm.grid_size()
+                frm.grid(
+                    column=col,
+                    row=row,
+                    columnspan=colsp,
+                    rowspan=rowsp,
+                    sticky=(N, S, W, E),
+                )
+                row += rowsp
+            maxrow = max(maxrow, row)
         # right column of grid
         row = 0
-        rowsp = 0
         col += colsp
         for frm in (self._frm_configdb, self._frm_preset):
-            row += rowsp
             (colsp, rowsp) = frm.grid_size()
             frm.grid(
                 column=col,
@@ -186,9 +206,11 @@ class UBXConfigDialog(Toplevel):
                 rowspan=rowsp,
                 sticky=(N, S, W, E),
             )
+            row += rowsp
+        maxrow = max(maxrow, row)
         # bottom of grid
         col = 0
-        row += rowsp
+        row = maxrow
         (colsp, rowsp) = self._frm_container.grid_size()
         self._frm_status.grid(column=col, row=row, columnspan=colsp, sticky=(W, E))
         self._lbl_status.grid(
@@ -212,6 +234,7 @@ class UBXConfigDialog(Toplevel):
 
         self._frm_config_rate.reset()
         self._frm_config_port.reset()
+        self._frm_config_dynamic.reset()
         self._frm_device_info.reset()
         if self.__app.conn_status != CONNECTED:
             self.set_status("Device not connected", "red")
@@ -271,6 +294,8 @@ class UBXConfigDialog(Toplevel):
                     self._frm_configdb.update_status(cfgtype, **kwargs)
                 elif key == UBX_PRESET:
                     self._frm_preset.update_status(cfgtype, **kwargs)
+                elif key == UBX_CFGOTHER:
+                    self._frm_config_dynamic.update_status(cfgtype, **kwargs)
 
     def set_status(self, message: str, color: str = "blue"):
         """

@@ -1,5 +1,14 @@
 # PyGPSClient Release Notes
 
+### RELEASE CANDIDATE v1.3.8
+
+ENHANCEMENTS:
+
+1. New CFG-* Other Configuration command panel added to UBX Configuration panel. Provides structured inputs for a range of legacy CFG commands. **NB:** For Generation 9+ devices, legacy CFG commands are deprecated in favour of the CFG-VALGET/SET/DEL Configuration Interface commands in the adjacent panel.
+2. When a legacy CFG command is selected from the CFG-* listbox, a POLL request is sent to the device to retrieve the current settings; these are then used to populate a series of dynamically generated Entry widgets. The user can amend the values as required and send the updated set of values as a SET message to the device. After sending, the current values will be polled again to confirm the update has taken place. **NB:** this mechanism is dependent on receiving timely POLL responses. Note caveats in README re. optimising POLL response performance.
+3. For the time being, there are a few constraints with regard to updating certain CFG types, but these will hopefully be addressed in a future update as and when time permits. The `pyubx2` library which underpins`PyGPSClient` fully supports *ALL* CFG-* commands.
+4. The new panel can be enabled or disabled using the `ENABLE_CFG_OTHER` boolean in `globals.py`.
+
 ### RELEASE v1.3.7
 
 ENHANCEMENTS:

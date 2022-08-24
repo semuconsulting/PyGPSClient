@@ -88,6 +88,8 @@ class UBXHandler:
                 self._process_MON_HW(parsed_data)
             elif parsed_data.identity == "RXM-RTCM":
                 self._process_RXM_RTCM(parsed_data)
+            elif parsed_data.identity[0:3] == "CFG":
+                self._process_CFG_OTHER(parsed_data)
 
         except ValueError:
             # self.__app.set_status(ube.UBXMessageError(err), "red")
@@ -206,6 +208,20 @@ class UBXHandler:
             self.__app.dlg_ubxconfig.update_pending(
                 "CFG-VALGET",
                 data=data,
+            )
+
+    def _process_CFG_OTHER(self, data: UBXMessage):
+        """
+        Process other CFG-* sentence - Dynamic CFG configuration.
+
+        :param UBXMessage data: CFG-* parsed message
+        """
+
+        # update the UBX config panel
+        if self.__app.dlg_ubxconfig is not None:
+            self.__app.dlg_ubxconfig.update_pending(
+                data.identity,
+                msg=data,
             )
 
     def _process_NAV_POSLLH(self, data: UBXMessage):

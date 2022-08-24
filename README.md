@@ -56,7 +56,7 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 [MapQuest API Key](https://developer.mapquest.com/user/login/sign-up)*).
 1. Data logging in parsed, binary, hexadecimal string and tabulated hexadecimal formats (NB. only binary datalogs can be re-read by PyGPSClient's parser).
 1. Track recording in GPX format.
-1. UBX Configuration Dialog, with the ability to send a variety of UBX configuration commands to u-blox GNSS devices. This includes the facility to add **user-defined commands or command sequences** - see instructions under [user-defined presets](#userdefined) below. While not intended to be a direct replacement, the application supports much of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool.
+1. UBX Configuration Dialog, with the ability to send a variety of UBX CFG configuration commands to u-blox GNSS devices. This includes the facility to add **user-defined commands or command sequences** - see instructions under [user-defined presets](#userdefined) below. While not intended to be a direct replacement, the application supports much of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool.
 1. [NTRIP](https://en.wikipedia.org/wiki/Networked_Transport_of_RTCM_via_Internet_Protocol) Client ([differential GPS enhancement](https://en.wikipedia.org/wiki/Differential_GPS)) facility with the ability to connect to a specified NTRIP server (caster), parse the incoming RTCM3 data and feed this data to a compatible GNSS device (*requires an Internet connection and access to a suitable NTRIP caster*).
 1. [Socket Server / NTRIP Caster](#socketserver)  with two modes of operation: (a) open, unauthenticated Socket Server or (b) NTRIP Caster.
 
@@ -95,24 +95,26 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 
 ![ubxconfig widget screenshot](/images/ubxconfig_widget.png)
 
-The UBX Configuration Dialog currently supports the following UBX configuration 'widgets':
-1. Version widget shows current device hardware/firmware versions (*via MON-VER and MON-HW polls*).
-1. Protocol Configuration widget (CFG-PRT) sets baud rate and inbound/outbound protocols across all available ports.
-1. Solution Rate widget (CFG-RATE) sets navigation solution interval in ms (e.g. 1000 = 1/second) and measurement ratio (ratio between the number of measurements and the number of navigation solutions, e.g. 5 = five measurements per navigation solution).
-1. For each of the widgets above, clicking anywhere in the widget background will refresh the displayed information with the current configuration.
-1. Message Rate widget (CFG-MSG) sets message rates per port for UBX and NMEA messages. Message rate is relative to navigation solution frequency e.g. a message rate of '4' means 'every 4th navigation solution'.
+The UBX Configuration Dialog currently supports the following UBX configuration panels:
+1. Version panel shows current device hardware/firmware versions (*via MON-VER and MON-HW polls*).
+1. Protocol Configuration panel (CFG-PRT) sets baud rate and inbound/outbound protocols across all available ports.
+1. Solution Rate panel (CFG-RATE) sets navigation solution interval in ms (e.g. 1000 = 1/second) and measurement ratio (ratio between the number of measurements and the number of navigation solutions, e.g. 5 = five measurements per navigation solution).
+1. For each of the panels above, clicking anywhere in the widget background will refresh the displayed information with the current configuration.
+1. Message Rate panel (CFG-MSG) sets message rates per port for UBX and NMEA messages. Message rate is relative to navigation solution frequency e.g. a message rate of '4' means 'every 4th navigation solution'.
+1. Other configuration panel (CFG-*) providing structured updates for a range of legacy CFG- configuration commands for pre-Generation 9+ devices. Note: 'X' (byte) type attributes can be entered as integers or hexadecimal strings e.g. 522125312 or 0x1f1f0000.
 1. Configuration Interface widget (CFG-VALSET, CFG-VALDEL and CFG-VALGET) queries and sets configuration for [Generation 9+ devices](https://github.com/semuconsulting/pyubx2#configinterface) e.g. NEO-M9, ZED-F9P, etc.
 1. Preset Commands widget supports a variety of preset and user-defined commands - see [user defined presets](#userdefined)
 
 An icon to the right of each 'SEND' 
 ![send icon](/pygpsclient/resources/iconmonstr-arrow-12-24.png) button indicates the confirmation status of the configuration command; 
 (pending i.e. awaiting confirmation ![pending icon](/pygpsclient/resources/iconmonstr-time-6-24.png), 
-confirmed ![confirmed icon](/pygpsclient/resources/iconmonstr-check-mark-8-24.png) or 
-warning ![warning icon](/pygpsclient/resources/iconmonstr-warning-1-24.png)). 
+confirmed ![confirmed icon](/pygpsclient/resources/iconmonstr-check-mark-8-24.png), 
+warning ![warning icon](/pygpsclient/resources/iconmonstr-warning-1-24.png) or 
+unknown i.e. no confirmation available ![unknown icon](/pygpsclient/resources/iconmonstr-help-3-24.png)). 
 
 **Note:**
-* Confirmation responses can take several seconds at high message transmission rates, or be discarded altogether if the device's transmit buffer is full (*txbuff-alloc error*). To ensure timely confirmation responses, try increasing the baud rate and/or temporarily reducing transmitted message rates using the configuration commands provided.
-* A warning icon (typically accompanied by an ACK-NAK response) is usually an indication that one or more of the commands sent is not supported by your receiver. 
+* Poll and Acknowledgement responses can take several seconds at high message transmission rates, or be discarded altogether if the device's transmit buffer is full (*txbuff-alloc error*). To ensure timely responses, try increasing the baud rate and/or temporarily reducing transmitted message rates using the configuration commands provided.
+* A warning icon (typically accompanied by an ACK-NAK response) is usually an indication that one or more of the commands sent is not supported by your receiver.
 
 ---
 ### <a name="ntripconfig">NTRIP Client Facilities</a>
