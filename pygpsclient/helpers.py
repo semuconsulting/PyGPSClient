@@ -14,9 +14,10 @@ Created on 17 Apr 2021
 
 import re
 
-from tkinter import Toplevel, Entry, Label, Button, W
+from tkinter import Toplevel, Entry, Label, StringVar, Button, W
 from math import sin, cos, acos, radians
 from requests import get
+from pyubx2 import atttyp, attsiz
 from pygpsclient.globals import (
     MAX_SNR,
     FIXLOOKUP,
@@ -531,3 +532,29 @@ def get_mp_distance(lat: float, lon: float, mp: list) -> float:
         pass
 
     return dist
+
+
+def stringvar2val(val: str, att: str):
+    """
+    Convert Entry field string variable to appropriate attribute value type.
+
+    :param str val: entry string variable value
+    :param str att: attribute type e.g. 'U004'
+    """
+
+    if atttyp(att) in ("E", "I", "L", "U"):  # integer
+        if val.find(".") != -1:  # ignore scaling decimals
+            val = val[0 : val.find(".")]
+        val = int(val)
+    elif atttyp(att) == "X":  # bytes
+        if val[0:2] in ("0x", "0X"):  # allow for hex representation
+            mod = 16
+        else:
+            mod = 10
+        val = int(val, mod).to_bytes(attsiz(att), "big")
+    elif atttyp(att) == "C":  # char
+        val = bytes(val, "utf-8")
+    elif atttyp(att) == "R":  # float
+        val = float(val)
+
+    return val

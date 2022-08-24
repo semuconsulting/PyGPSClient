@@ -7,7 +7,6 @@ Static method tests for pygpsclient.helpers
 """
 
 import unittest
-
 from pygpsclient.helpers import (
     deg2rad,
     m2ft,
@@ -27,6 +26,7 @@ from pygpsclient.helpers import (
     validURL,
     haversine,
     get_mp_distance,
+    stringvar2val,
 )
 
 
@@ -171,6 +171,20 @@ class StaticTest(unittest.TestCase):
         ]
         res = get_mp_distance(-34.123, -8.6743, mp)
         self.assertAlmostEqual(res, 17255.05227009936, 4)
+
+    def teststringvar2val(self):
+
+        vals = [
+            ("53", "U001"),
+            ("-513", "I002"),
+            ("53.123", "R004"),
+            ("GB", "C002"),
+            ("0x1f1f0000", "X004"),
+        ]
+        ress = [53, -513, 53.123, b"GB", b"\x1f\x1f\x00\x00"]
+        for i, (val, att) in enumerate(vals):
+            res = stringvar2val(val, att)
+            self.assertEqual(ress[i], res)
 
 
 if __name__ == "__main__":

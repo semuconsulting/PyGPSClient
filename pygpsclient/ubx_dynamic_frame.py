@@ -46,7 +46,6 @@ from pyubx2 import (
     UBX_PAYLOADS_SET,
     UBX_PAYLOADS_POLL,
     atttyp,
-    attsiz,
     X1,
     X2,
     X4,
@@ -64,6 +63,7 @@ from .globals import (
     UBX_CFGOTHER,
 )
 from .strings import LBLCFGDYN
+from .helpers import stringvar2val
 
 # dimensions of scrollable attribute window
 SCROLLX = 300
@@ -286,7 +286,7 @@ class UBX_Dynamic_Frame(Frame):
 
         :param UBXMessage msg: response to CFG POLL (if available)
         :param dict pdict: dict representing CFG SET payload definition
-        :param int row: current row of listbox
+        :param int row: current row in frame
         :returns: last row used
         :param int index: grouped item index
         :rtype: int
@@ -328,7 +328,7 @@ class UBX_Dynamic_Frame(Frame):
         :param UBXMessage msg: response to CFG POLL (if available)
         :param str nam: attribute name
         :param object att: attribute type
-        :param int row: current row in listbox
+        :param int row: current row in frame
         :param int index: grouped item index
         :returns: last row used
         :rtype: int
@@ -379,14 +379,12 @@ class UBX_Dynamic_Frame(Frame):
         Add Entry widget for single attribute.
 
         If a CFG POLL response is available, the Entry widget is
-        prepopulated with the current value. If not, it's
-        prepopulated with the nominal value for that attribute
-        type e.g. 0, 0.0 or " ".
+        prepopulated with the current value.
 
         :param UBXMessage msg: response to CFG POLL (if available)
         :param str nam: attribute name e.g. "lat"
         :param object att: attribute type e.g. "U004"
-        :param int row: current row in listbox
+        :param int row: current row in frame
         :param int index: grouped item index
         :returns: last row used
         :rtype: int
@@ -395,10 +393,12 @@ class UBX_Dynamic_Frame(Frame):
         if nam[0:8] == "reserved":  # ignore reserved attributes
             return row
 
-        if index > 0:
+        if index > 0:  # if part of group, add index suffix e.g. '_02'
             nam += f"_{index:02d}"
         if isinstance(att, list):  # (type, scale factor)
             att = att[0]
+
+        # create and populate StringVar for this attribute
         self._cfg_atts[nam] = (StringVar(), att)
         if msg is not None:  # set initial value from POLL response
             mval = getattr(msg, nam)
@@ -408,6 +408,8 @@ class UBX_Dynamic_Frame(Frame):
             if atttyp(att) == "X":  # convert bytes to hex string for display
                 mval = hex(int.from_bytes(mval, "big"))
             self._cfg_atts[nam][0].set(mval)
+
+        # add Entry widget with labels
         Label(self._frm_attrs, text=nam).grid(column=0, row=row, sticky=(E))
         Entry(
             self._frm_attrs,
@@ -423,7 +425,7 @@ class UBX_Dynamic_Frame(Frame):
 
     def _on_send_cfg(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
-        Populate CFG SET message from entry fields on panel, send to device,
+        Populate CFG SET message from Entry fields on panel, send to device,
         then send CFG POLL to confirm update.
         """
 
@@ -432,10 +434,11 @@ class UBX_Dynamic_Frame(Frame):
         try:
 
             # create dict of attribute keyword arguments from
-            # Entry fields
+            # Entry field string variables
             vals = {}
             for (nam, (ent, att)) in self._cfg_atts.items():
-                vals[nam] = self._get_val(ent, att)
+                val = ent.get()
+                vals[nam] = stringvar2val(val, att)
 
             # create UBXMessage using these keyword arguments
             msg = UBXMessage("CFG", self._cfg_id, SET, **vals)
@@ -460,7 +463,7 @@ class UBX_Dynamic_Frame(Frame):
         Send CFG POLL request (if supported).
         """
 
-        if self._cfg_id not in UBX_PAYLOADS_POLL:
+        if self._cfg_id not in UBX_PAYLOADS_POLL:  # not all CFG are POLLable
             return
 
         msg = UBXMessage("CFG", self._cfg_id, POLL)
@@ -468,29 +471,3 @@ class UBX_Dynamic_Frame(Frame):
         self._lbl_send_command.config(image=self._img_pending)
         self.__container.set_status(f"{self._cfg_id} POLL message sent", "blue")
         self.__container.set_pending(UBX_CFGOTHER, (self._cfg_id, "ACK-NAK"))
-
-    def _get_val(self, ent: StringVar, att: str):
-        """
-        Convert Entry field to appropriate value type.
-
-        :param StringVar ent: entry string variable
-        :param str att: attribute type e.g. 'U004'
-        """
-
-        val = ent.get()
-        if atttyp(att) in ("E", "I", "L", "U"):  # integer
-            if val.find(".") != -1:  # ignore scaling decimals
-                val = val[0 : val.find(".")]
-            val = int(val)
-        elif atttyp(att) == "X":  # bytes
-            if val[0:2] in ("0x", "0X"):  # allow for hex representation
-                mod = 16
-            else:
-                mod = 10
-            val = int(val, mod).to_bytes(attsiz(att), "big")
-        elif atttyp(att) == "C":  # char
-            val = bytes(val, "utf-8")
-        elif atttyp(att) == "R":  # float
-            val = float(val)
-
-        return val
