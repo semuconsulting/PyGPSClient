@@ -101,7 +101,7 @@ The UBX Configuration Dialog currently supports the following UBX configuration 
 1. Solution Rate panel (CFG-RATE) sets navigation solution interval in ms (e.g. 1000 = 1/second) and measurement ratio (ratio between the number of measurements and the number of navigation solutions, e.g. 5 = five measurements per navigation solution).
 1. For each of the panels above, clicking anywhere in the widget background will refresh the displayed information with the current configuration.
 1. Message Rate panel (CFG-MSG) sets message rates per port for UBX and NMEA messages. Message rate is relative to navigation solution frequency e.g. a message rate of '4' means 'every 4th navigation solution'.
-1. Other configuration panel (CFG-*) providing structured updates for a range of legacy CFG- configuration commands for pre-Generation 9+ devices.
+1. Other configuration panel (CFG-*) providing structured updates for a range of legacy CFG- configuration commands for pre-Generation 9+ devices. Note: 'X' (byte) type attributes can be entered as integers or hexadecimal strings e.g. 522125312 or 0x1f1f0000.
 1. Configuration Interface widget (CFG-VALSET, CFG-VALDEL and CFG-VALGET) queries and sets configuration for [Generation 9+ devices](https://github.com/semuconsulting/pyubx2#configinterface) e.g. NEO-M9, ZED-F9P, etc.
 1. Preset Commands widget supports a variety of preset and user-defined commands - see [user defined presets](#userdefined)
 

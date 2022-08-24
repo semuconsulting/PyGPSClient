@@ -46,7 +46,7 @@ from pyubx2 import (
     UBX_PAYLOADS_SET,
     UBX_PAYLOADS_POLL,
     atttyp,
-    nomval,
+    attsiz,
     X1,
     X2,
     X4,
@@ -68,19 +68,19 @@ from .strings import LBLCFGDYN
 # dimensions of scrollable attribute window
 SCROLLX = 300
 SCROLLY = 300
-# following CFG types exluded from selection, mainly because they're deprecated
-# or catered for in other UBX config widgets.
+# following CFG types exluded from selection...
 CFG_EXCLUDED = (
-    "CFG-CFG",
-    "CFG-DAT-NUM",
-    "CFG-MSG",
-    "CFG-NMEAv0",
-    "CFG-NMEAvX",
-    "CFG-PRT",
-    "CFG-RATE",
-    "CFG-RINV",
-    "CFG-VALDEL",
-    "CFG-VALSET",
+    # "CFG-CFG",  # handled via Preset panel
+    "CFG-DAT-NUM",  # deprecated
+    "CFG-GEOFENCE",  # 'variable by size' groups not yet implemented - use pyubx2
+    "CFG-MSG",  # handled via existing CFG-MSG panel
+    "CFG-NMEAv0",  # deprecated
+    "CFG-NMEAvX",  # deprecated
+    "CFG-PRT",  # handled via existing CFG-PRT panel
+    "CFG-RATE",  # handled via existing CFG-RATE panel
+    "CFG-RINV",  # 'variable by size' groups not yet implemented - use pyubx2
+    "CFG-VALDEL",  # handled via existing CFG-VALGET/SET/DEL panel
+    "CFG-VALSET",  # handled via existing CFG-VALGET/SET/DEL panel
 )
 
 
@@ -229,8 +229,8 @@ class UBX_Dynamic_Frame(Frame):
 
     def _on_select_cfg(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
-        Handle CFG command selection - populate listbox with entry widgets
-        corresponding to each attribute in CFG payload definition.
+        Handle CFG command selection - populate panel with Entry widgets
+        corresponding to CFG payload attributes.
         """
 
         idx = self._lbx_cfg_cmd.curselection()
@@ -244,9 +244,7 @@ class UBX_Dynamic_Frame(Frame):
 
     def update_status(self, cfgtype, **kwargs):
         """
-        Update dynamic entry fields from response to CFG POLL.
-
-        TODO needs more work for repeating groups
+        Update dynamic Entry fields from response to CFG POLL.
 
         :param str cfgtype: identity of UBX CFG message
         :param kwargs: status keywords and values from UBX config message
@@ -265,7 +263,7 @@ class UBX_Dynamic_Frame(Frame):
 
     def _clear_widgets(self):
         """
-        Clear dynamically generated widgets from listbox.
+        Clear dynamically generated Entry widgets from panel.
         """
 
         self._cfg_atts = {}
@@ -284,7 +282,7 @@ class UBX_Dynamic_Frame(Frame):
 
     def _add_widgets(self, msg: UBXMessage, pdict: dict, row: int, index: int) -> int:
         """
-        Recursive routine to add entry widgets to listbox.
+        Recursive routine to add Entry widgets to panel.
 
         :param UBXMessage msg: response to CFG POLL (if available)
         :param dict pdict: dict representing CFG SET payload definition
@@ -325,9 +323,7 @@ class UBX_Dynamic_Frame(Frame):
         self, msg: UBXMessage, nam: str, att: object, row: int, index: int
     ) -> int:
         """
-        Add widgets for group header.
-
-        TODO needs more work for variable length repeating groups
+        Add widgets for group header label.
 
         :param UBXMessage msg: response to CFG POLL (if available)
         :param str nam: attribute name
@@ -343,6 +339,7 @@ class UBX_Dynamic_Frame(Frame):
         if index == 1:
             # if 'variable by size' group, add entry field to
             # allow user to specify size of group
+            # TODO not currently fully implemented
             if numr == "None":
                 self._cfg_atts[nam] = (StringVar(), U1)
                 Label(self._frm_attrs, text="Group Size:").grid(
@@ -387,8 +384,8 @@ class UBX_Dynamic_Frame(Frame):
         type e.g. 0, 0.0 or " ".
 
         :param UBXMessage msg: response to CFG POLL (if available)
-        :param str nam: attribute name
-        :param object att: attribute type
+        :param str nam: attribute name e.g. "lat"
+        :param object att: attribute type e.g. "U004"
         :param int row: current row in listbox
         :param int index: grouped item index
         :returns: last row used
@@ -403,14 +400,13 @@ class UBX_Dynamic_Frame(Frame):
         if isinstance(att, list):  # (type, scale factor)
             att = att[0]
         self._cfg_atts[nam] = (StringVar(), att)
-        val = nomval(att)
-        if msg is None:  # no poll response available
-            self._cfg_atts[nam][0].set(val)
-        else:  # set initial value from POLL response
-            mval = getattr(msg, nam, val)
+        if msg is not None:  # set initial value from POLL response
+            mval = getattr(msg, nam)
             if nam == "bdsTalkerId":  # fudge for default CFG-NMEA bdsTalkerId
                 if mval == b"\x00\x00":
                     mval = ""
+            if atttyp(att) == "X":  # convert bytes to hex string for display
+                mval = hex(int.from_bytes(mval, "big"))
             self._cfg_atts[nam][0].set(mval)
         Label(self._frm_attrs, text=nam).grid(column=0, row=row, sticky=(E))
         Entry(
@@ -453,9 +449,10 @@ class UBX_Dynamic_Frame(Frame):
             # POLL to confirm update
             self._do_poll_cfg()
 
-        except ValueError:
+        except ValueError as err:
             self.__container.set_status(
-                f"ERROR! Invalid entry {nam}: {ent.get()}, {att}", "red"
+                f"INVALID! {nam}, {att}: {err}",
+                "red",
             )
 
     def _do_poll_cfg(self, *args, **kwargs):  # pylint: disable=unused-argument
@@ -484,14 +481,14 @@ class UBX_Dynamic_Frame(Frame):
         if atttyp(att) in ("E", "I", "L", "U"):  # integer
             if val.find(".") != -1:  # ignore scaling decimals
                 val = val[0 : val.find(".")]
-            if val[0:2] == "0b":
-                mod = 2
-            elif val[0:2] == "0x":
+            val = int(val)
+        elif atttyp(att) == "X":  # bytes
+            if val[0:2] in ("0x", "0X"):  # allow for hex representation
                 mod = 16
             else:
                 mod = 10
-            val = int(val, mod)
-        elif atttyp(att) in ("C", "X"):  # bytes
+            val = int(val, mod).to_bytes(attsiz(att), "big")
+        elif atttyp(att) == "C":  # char
             val = bytes(val, "utf-8")
         elif atttyp(att) == "R":  # float
             val = float(val)
