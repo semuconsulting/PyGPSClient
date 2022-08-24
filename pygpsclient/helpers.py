@@ -534,12 +534,14 @@ def get_mp_distance(lat: float, lon: float, mp: list) -> float:
     return dist
 
 
-def stringvar2val(val: str, att: str):
+def stringvar2val(val: str, att: str) -> object:
     """
-    Convert Entry field string variable to appropriate attribute value type.
+    Convert StringVar entry to appropriate attribute value type.
 
-    :param str val: entry string variable value
+    :param str val: StringVar value
     :param str att: attribute type e.g. 'U004'
+    :return: converted value
+    :rtype: object (int, float or bytes)
     """
 
     if atttyp(att) in ("E", "I", "L", "U"):  # integer

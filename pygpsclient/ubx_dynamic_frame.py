@@ -60,6 +60,7 @@ from .globals import (
     ICON_WARNING,
     ICON_PENDING,
     ICON_CONFIRMED,
+    ICON_UNKNOWN,
     UBX_CFGOTHER,
 )
 from .strings import LBLCFGDYN
@@ -109,6 +110,7 @@ class UBX_Dynamic_Frame(Frame):
         self._img_pending = ImageTk.PhotoImage(Image.open(ICON_PENDING))
         self._img_confirmed = ImageTk.PhotoImage(Image.open(ICON_CONFIRMED))
         self._img_warn = ImageTk.PhotoImage(Image.open(ICON_WARNING))
+        self._img_unknown = ImageTk.PhotoImage(Image.open(ICON_UNKNOWN))
         self._cfg_id = ""  # identity of selected CFG command
         self._cfg_atts = {}  # this holds the attributes of the selected CFG command
 
@@ -215,6 +217,7 @@ class UBX_Dynamic_Frame(Frame):
                 self._lbx_cfg_cmd.insert(i, cmd)
 
         self._clear_widgets()
+        self._lbl_send_command.config(image=self._img_unknown)
 
     def _setscroll(self, event):  # pylint: disable=unused-argument
         """
@@ -244,7 +247,8 @@ class UBX_Dynamic_Frame(Frame):
 
     def update_status(self, cfgtype, **kwargs):
         """
-        Update dynamic Entry fields from response to CFG POLL.
+        UBXHandler module receives CFG SET/POLL response and forwards it
+        on to this module; confirmation status updated accordingly.
 
         :param str cfgtype: identity of UBX CFG message
         :param kwargs: status keywords and values from UBX config message
@@ -260,6 +264,9 @@ class UBX_Dynamic_Frame(Frame):
         elif cfgtype == "ACK-NAK":
             self.__container.set_status(f"{cfgtype} POLL message rejected", "red")
             self._lbl_send_command.config(image=self._img_warn)
+        elif cfgtype == "ACK-ACK":
+            self.__container.set_status(f"{cfgtype} SET message accepted", "green")
+            self._lbl_send_command.config(image=self._img_confirmed)
 
     def _clear_widgets(self):
         """
@@ -287,8 +294,8 @@ class UBX_Dynamic_Frame(Frame):
         :param UBXMessage msg: response to CFG POLL (if available)
         :param dict pdict: dict representing CFG SET payload definition
         :param int row: current row in frame
-        :returns: last row used
         :param int index: grouped item index
+        :return: last row used
         :rtype: int
         """
 
@@ -330,7 +337,7 @@ class UBX_Dynamic_Frame(Frame):
         :param object att: attribute type
         :param int row: current row in frame
         :param int index: grouped item index
-        :returns: last row used
+        :return: last row used
         :rtype: int
         """
 
@@ -386,7 +393,7 @@ class UBX_Dynamic_Frame(Frame):
         :param object att: attribute type e.g. "U004"
         :param int row: current row in frame
         :param int index: grouped item index
-        :returns: last row used
+        :return: last row used
         :rtype: int
         """
 
@@ -463,11 +470,12 @@ class UBX_Dynamic_Frame(Frame):
         Send CFG POLL request (if supported).
         """
 
-        if self._cfg_id not in UBX_PAYLOADS_POLL:  # not all CFG are POLLable
-            return
-
-        msg = UBXMessage("CFG", self._cfg_id, POLL)
-        self.__app.stream_handler.serial_write(msg.serialize())
-        self._lbl_send_command.config(image=self._img_pending)
-        self.__container.set_status(f"{self._cfg_id} POLL message sent", "blue")
-        self.__container.set_pending(UBX_CFGOTHER, (self._cfg_id, "ACK-NAK"))
+        if self._cfg_id in UBX_PAYLOADS_POLL:  # CFG is POLLable
+            msg = UBXMessage("CFG", self._cfg_id, POLL)
+            self.__app.stream_handler.serial_write(msg.serialize())
+            self.__container.set_status(f"{self._cfg_id} POLL message sent", "blue")
+            self._lbl_send_command.config(image=self._img_pending)
+            self.__container.set_pending(UBX_CFGOTHER, (self._cfg_id, "ACK-NAK"))
+        else:  # CFG cannot be POLLed
+            self.__container.set_status(f"{self._cfg_id} No POLL available", "blue")
+            self._lbl_send_command.config(image=self._img_unknown)
