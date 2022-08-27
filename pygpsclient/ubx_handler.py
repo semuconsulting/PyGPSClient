@@ -11,8 +11,7 @@ Created on 30 Sep 2020
 """
 # pylint: disable=invalid-name
 
-from pyubx2 import UBXMessage, UBX_MSGIDS, itow2utc
-from pyubx2.ubxhelpers import msgclass2bytes
+from pyubx2 import UBXMessage, itow2utc
 from pygpsclient.globals import GLONASS_NMEA
 from pygpsclient.helpers import svid2gnssid, fix2desc, corrage2int
 
@@ -46,38 +45,33 @@ class UBXHandler:
         :param UBXMessage parsed_data: parsed data
         """
 
-        try:
-            if raw_data is None:
-                return
+        if raw_data is None:
+            return
 
-            if parsed_data.identity[0:3] in ("ACK", "CFG"):
-                self._update_ubxconfig(parsed_data)
-            elif parsed_data.identity in ("MON-VER", "MON-HW"):
-                self._update_ubxconfig(parsed_data)
-            elif parsed_data.identity in ("NAV-POSLLH", "NAV-HPPOSLLH"):
-                self._process_NAV_POSLLH(parsed_data)
-            elif parsed_data.identity in ("NAV-PVT", "NAV2-PVT"):
-                self._process_NAV_PVT(parsed_data)
-            elif parsed_data.identity == "NAV-VELNED":
-                self._process_NAV_VELNED(parsed_data)
-            elif parsed_data.identity in ("NAV-SAT", "NAV2-SAT"):
-                self._process_NAV_SAT(parsed_data)
-            elif parsed_data.identity in ("NAV-STATUS", "NAV2-STATUS)"):
-                self._process_NAV_STATUS(parsed_data)
-            elif parsed_data.identity == "NAV-SVINFO":
-                self._process_NAV_SVINFO(parsed_data)
-            elif parsed_data.identity == "NAV-SOL":
-                self._process_NAV_SOL(parsed_data)
-            elif parsed_data.identity in ("NAV-DOP", "NAV2-DOP"):
-                self._process_NAV_DOP(parsed_data)
-            elif parsed_data.identity == "HNR-PVT":
-                self._process_HNR_PVT(parsed_data)
-            elif parsed_data.identity == "RXM-RTCM":
-                self._process_RXM_RTCM(parsed_data)
-
-        except ValueError:
-            # self.__app.set_status(ube.UBXMessageError(err), "red")
-            pass
+        if parsed_data.identity[0:3] in ("ACK", "CFG"):
+            self._update_ubxconfig(parsed_data)
+        elif parsed_data.identity in ("MON-VER", "MON-HW"):
+            self._update_ubxconfig(parsed_data)
+        elif parsed_data.identity in ("NAV-POSLLH", "NAV-HPPOSLLH"):
+            self._process_NAV_POSLLH(parsed_data)
+        elif parsed_data.identity in ("NAV-PVT", "NAV2-PVT"):
+            self._process_NAV_PVT(parsed_data)
+        elif parsed_data.identity == "NAV-VELNED":
+            self._process_NAV_VELNED(parsed_data)
+        elif parsed_data.identity in ("NAV-SAT", "NAV2-SAT"):
+            self._process_NAV_SAT(parsed_data)
+        elif parsed_data.identity in ("NAV-STATUS", "NAV2-STATUS)"):
+            self._process_NAV_STATUS(parsed_data)
+        elif parsed_data.identity == "NAV-SVINFO":
+            self._process_NAV_SVINFO(parsed_data)
+        elif parsed_data.identity == "NAV-SOL":
+            self._process_NAV_SOL(parsed_data)
+        elif parsed_data.identity in ("NAV-DOP", "NAV2-DOP"):
+            self._process_NAV_DOP(parsed_data)
+        elif parsed_data.identity == "HNR-PVT":
+            self._process_HNR_PVT(parsed_data)
+        elif parsed_data.identity == "RXM-RTCM":
+            self._process_RXM_RTCM(parsed_data)
 
     def _update_ubxconfig(self, msg: UBXMessage):
         """

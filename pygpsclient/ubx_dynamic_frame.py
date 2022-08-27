@@ -52,7 +52,6 @@ from pyubx2 import (
     X6,
     X8,
     X24,
-    U1,
 )
 from .globals import (
     ENTCOL,
@@ -71,7 +70,6 @@ SCROLLX = 300
 SCROLLY = 300
 # following CFG types exluded from selection...
 CFG_EXCLUDED = (
-    # "CFG-CFG",  # handled via Preset panel
     "CFG-DAT-NUM",  # deprecated
     "CFG-GEOFENCE",  # 'variable by size' groups not yet implemented - use pyubx2
     "CFG-MSG",  # handled via existing CFG-MSG panel
@@ -210,7 +208,6 @@ class UBX_Dynamic_Frame(Frame):
         Reset panel to initial settings
         """
 
-        # populate CFG listbox with range of CFG message types
         self._lbx_cfg_cmd.delete(0, END)
         for i, cmd in enumerate(UBX_PAYLOADS_SET):
             if cmd[0:3] == "CFG" and cmd not in CFG_EXCLUDED:
@@ -260,10 +257,12 @@ class UBX_Dynamic_Frame(Frame):
             self._add_widgets(msg, UBX_PAYLOADS_SET[self._cfg_id], 1, 0)
             self.update()
         elif msg.identity == "ACK-NAK":
-            self.__container.set_status(f"{msg.identity} POLL message rejected", "red")
+            self.__container.set_status(f"{self._cfg_id} SET message rejected", "red")
             self._lbl_send_command.config(image=self._img_warn)
         elif msg.identity == "ACK-ACK":
-            self.__container.set_status(f"{msg.identity} SET message accepted", "green")
+            self.__container.set_status(
+                f"{self._cfg_id} SET message acknowledged", "green"
+            )
             self._lbl_send_command.config(image=self._img_confirmed)
 
     def _clear_widgets(self):
@@ -342,31 +341,30 @@ class UBX_Dynamic_Frame(Frame):
         numr, attd = att
 
         if index == 1:
-            # if 'variable by size' group, add entry field to
+            # TODO if 'variable by size' group, add entry field to
             # allow user to specify size of group
-            # TODO not currently fully implemented
-            if numr == "None":
-                self._cfg_atts[nam] = (StringVar(), U1)
-                Label(self._frm_attrs, text="Group Size:").grid(
-                    column=0, row=row, sticky=(E)
-                )
-                Entry(
-                    self._frm_attrs,
-                    readonlybackground=ENTCOL,
-                    textvariable=self._cfg_atts[nam],
-                    relief="sunken",
-                    bg=ENTCOL,
-                ).grid(column=1, row=row, sticky=(W))
-                Label(self._frm_attrs, text=U1).grid(column=2, row=row, sticky=(W))
-                row += 1
-            # otherwise add label indicating the integer or existing attribute
-            # which represents the group size
-            else:
-                Label(self._frm_attrs, text="Group Size:").grid(
-                    column=0, row=row, sticky=(E)
-                )
-                Label(self._frm_attrs, text=numr).grid(column=1, row=row, sticky=(W))
-                row += 1
+            # if numr == "None":
+            #     self._cfg_atts[nam] = (StringVar(), U1)
+            #     Label(self._frm_attrs, text="Group Size:").grid(
+            #         column=0, row=row, sticky=(E)
+            #     )
+            #     Entry(
+            #         self._frm_attrs,
+            #         readonlybackground=ENTCOL,
+            #         textvariable=self._cfg_atts[nam],
+            #         relief="sunken",
+            #         bg=ENTCOL,
+            #     ).grid(column=1, row=row, sticky=(W))
+            #     Label(self._frm_attrs, text=U1).grid(column=2, row=row, sticky=(W))
+            #     row += 1
+            #     otherwise add label indicating the integer or existing attribute
+            #     which represents the group size
+            # else:
+            Label(self._frm_attrs, text="Group Size:").grid(
+                column=0, row=row, sticky=(E)
+            )
+            Label(self._frm_attrs, text=numr).grid(column=1, row=row, sticky=(W))
+            row += 1
 
         row = self._add_widgets(msg, attd, row, index)
 
@@ -403,18 +401,16 @@ class UBX_Dynamic_Frame(Frame):
         if isinstance(att, list):  # (type, scale factor)
             att = att[0]
 
-        # create and populate StringVar for this attribute
         self._cfg_atts[nam] = (StringVar(), att)
         if msg is not None:  # set initial value from POLL response
             mval = getattr(msg, nam)
             if nam == "bdsTalkerId":  # fudge for default CFG-NMEA bdsTalkerId
                 if mval == b"\x00\x00":
                     mval = ""
-            if atttyp(att) == "X":  # convert bytes to hex string for display
+            if atttyp(att) == "X":
                 mval = hex(int.from_bytes(mval, "big"))
             self._cfg_atts[nam][0].set(mval)
 
-        # add Entry widget with labels
         Label(self._frm_attrs, text=nam).grid(column=0, row=row, sticky=(E))
         Entry(
             self._frm_attrs,
@@ -430,8 +426,7 @@ class UBX_Dynamic_Frame(Frame):
 
     def _on_send_cfg(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
-        Populate CFG SET message from Entry fields on panel, send to device,
-        then send CFG POLL to confirm update.
+        Populate CFG SET message from Entry fields on panel and send to device.
         """
 
         nam = ""
@@ -452,10 +447,8 @@ class UBX_Dynamic_Frame(Frame):
             self.__app.stream_handler.serial_write(msg.serialize())
             self._lbl_send_command.config(image=self._img_pending)
             self.__container.set_status(f"{self._cfg_id} SET message sent", "blue")
-            self.__container.set_pending(UBX_CFGOTHER, ("ACK-ACK", "ACK-NAK"))
-
-            # POLL to confirm update
-            self._do_poll_cfg()
+            for msgid in ("ACK-ACK", "ACK-NAK"):
+                self.__container.set_pending(msgid, UBX_CFGOTHER)
 
         except ValueError as err:
             self.__container.set_status(
@@ -473,7 +466,8 @@ class UBX_Dynamic_Frame(Frame):
             self.__app.stream_handler.serial_write(msg.serialize())
             self.__container.set_status(f"{self._cfg_id} POLL message sent", "blue")
             self._lbl_send_command.config(image=self._img_pending)
-            self.__container.set_pending(UBX_CFGOTHER, (self._cfg_id, "ACK-NAK"))
+            for msgid in (self._cfg_id, "ACK-NAK"):
+                self.__container.set_pending(msgid, UBX_CFGOTHER)
         else:  # CFG cannot be POLLed
             self.__container.set_status(f"{self._cfg_id} No POLL available", "blue")
             self._lbl_send_command.config(image=self._img_unknown)

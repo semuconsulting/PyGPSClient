@@ -12,7 +12,7 @@ Created on 12 Sep 2020
 :license: BSD 3-Clause
 """
 
-import logging
+# import logging
 from threading import Thread
 from queue import Queue, Empty
 from datetime import datetime, timedelta
@@ -69,7 +69,7 @@ from pygpsclient.nmea_handler import NMEAHandler
 from pygpsclient.ubx_handler import UBXHandler
 
 
-LOGGING = logging.INFO
+# LOGGING = logging.INFO
 
 
 class App(Frame):  # pylint: disable=too-many-ancestors
@@ -86,10 +86,10 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         :param kwargs: optional kwargs to pass to Frame parent class
         """
 
-        logging.basicConfig(
-            format="%(asctime)-15s [%(levelname)s] %(funcName)s: %(message)s",
-            level=LOGGING,
-        )
+        # logging.basicConfig(
+        #     format="%(asctime)-15s [%(levelname)s] %(funcName)s: %(message)s",
+        #     level=LOGGING,
+        # )
 
         self.__master = master
 

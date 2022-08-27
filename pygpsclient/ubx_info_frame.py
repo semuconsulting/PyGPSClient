@@ -1,5 +1,5 @@
 """
-UBX Configuration widget for MON-VER and MON-HW messages
+UBX Configuration frame for MON-VER and MON-HW messages
 
 Created on 22 Dec 2020
 
@@ -185,6 +185,8 @@ class UBX_INFO_Frame(Frame):
             self._ant_status.set(ANTSTATUS[ant_status])
             self._ant_power.set(ANTPOWER[ant_power])
 
+        self.__container.set_status(f"{msg.identity} GET message received", "green")
+
     def _do_poll_ver(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
         Poll MON-VER & MON-HW
@@ -194,5 +196,5 @@ class UBX_INFO_Frame(Frame):
             msg = UBXMessage(msgtype[0:3], msgtype, POLL)
             self.__app.stream_handler.serial.write(msg.serialize())
             self.__container.set_status(f"{msgtype} POLL message sent", "blue")
-        self.__container.set_pending(UBX_MONVER, ("MON-VER",))
-        self.__container.set_pending(UBX_MONHW, ("MON-HW",))
+        self.__container.set_pending("MON-VER", UBX_MONVER)
+        self.__container.set_pending("MON-HW", UBX_MONHW)

@@ -1,5 +1,5 @@
 """
-UBX Configuration widget for CFG-VAL commands
+UBX Configuration frame for CFG-VAL commands
 
 Created on 22 Dec 2020
 
@@ -466,7 +466,8 @@ class UBX_CFGVAL_Frame(Frame):
         self._ent_val.configure(bg=ENTCOL)
         self._lbl_send_command.config(image=self._img_pending)
         self.__container.set_status("CFG-VALGET POLL message sent", "blue")
-        self.__container.set_pending(UBX_CFGVAL, ("CFG-VALGET", "ACK-ACK", "ACK-NAK"))
+        for msgid in ("CFG-VALGET", "ACK-ACK", "ACK-NAK"):
+            self.__container.set_pending(msgid, UBX_CFGVAL)
 
     def update_status(self, msg: UBXMessage):  # pylint: disable=unused-argument
         """
@@ -486,8 +487,8 @@ class UBX_CFGVAL_Frame(Frame):
 
         elif msg.identity == "ACK-ACK":
             self._lbl_send_command.config(image=self._img_confirmed)
-            self.__container.set_status("ACK-ACK GET message received", "green")
+            self.__container.set_status("CFG-VAL command acknowledged", "green")
 
         elif msg.identity == "ACK-NAK":
             self._lbl_send_command.config(image=self._img_warn)
-            self.__container.set_status("CFG-VAL message rejected", "red")
+            self.__container.set_status("CFG-VAL command rejected", "red")

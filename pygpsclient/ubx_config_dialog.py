@@ -2,7 +2,7 @@
 UBX configuration container dialog
 
 This is the pop-up dialog containing the various
-UBX configuration command widgets.
+UBX configuration command frames.
 
 NB: Individual UBX configuration commands do not have uniquely
 identifiable synchronous or asynchronous responses (e.g. unique
@@ -10,11 +10,7 @@ txn ID). The way we keep tabs on confirmation status is to
 maintain a list of all commands sent and the responses they're
 expecting. When we receive a response, we check against the list
 of awaited responses of the same type and flag the first one we
-find as 'confirmed'. This is generally reliable but not absolutely
-foolproof - if several commands awaiting the same response type are
-sent in quick succession, it's possible their responses may arrive
-out of order (or not at all) and we may flag the wrong command as
-'confirmed', or leave a confirmed command as 'pending'.
+find as 'confirmed'.
 
 Created on 19 Sep 2020
 
@@ -85,22 +81,13 @@ class UBXConfigDialog(Toplevel):
         self.protocol("WM_DELETE_WINDOW", self.on_exit)
         self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
         self._cfg_msg_command = None
-        self._pending_confs = {
-            UBX_MONVER: (),
-            UBX_MONHW: (),
-            UBX_CFGPRT: (),
-            UBX_CFGMSG: (),
-            UBX_CFGVAL: (),
-            UBX_PRESET: (),
-            UBX_CFGRATE: (),
-        }
+        self._pending_confs = {}
         self._status = StringVar()
         self._status_cfgmsg = StringVar()
 
         self._body()
         self._do_layout()
         self._reset()
-        # self._centre()
 
     def _body(self):
         """
@@ -240,60 +227,47 @@ class UBXConfigDialog(Toplevel):
         if self.__app.conn_status != CONNECTED:
             self.set_status("Device not connected", "red")
 
-    def _centre(self):
+    def set_pending(self, msgid: int, ubxfrm: int):
         """
-        Roughly center dialog in master window
-        NB: behaviour is slightly different across Windows, MacOS and Linux
-        """
-
-        dw = self.winfo_width()
-        dh = self.winfo_height()
-        mx = self.__master.winfo_x()
-        my = self.__master.winfo_y()
-        mw = self.__master.winfo_width()
-        mh = self.__master.winfo_height()
-        self.geometry(f"+{int(mx + (mw/2 - dw/2))}+{int(my + (mh/2 - dh/2))}")
-
-    def set_pending(self, key: int, val: list):
-        """
-        Set pending confirmation flag for configuration widget to
+        Set pending confirmation flag for UBX configuration frame to
         signify that it's waiting for a confirmation message.
 
-        :param int key: integer representing UBX configuration widget (0-6)
-        :param list val: list of confirmation messages that widget is awaiting
+        :param int msgid: UBX message identity
+        :param int ubxfrm: integer representing UBX configuration frame (0-6)
         """
 
-        self._pending_confs[key] = val
+        self._pending_confs[msgid] = ubxfrm
 
     def update_pending(self, msg: UBXMessage):
         """
         Receives polled confirmation message from the ubx_handler and
-        updates the widget that is waiting for this confirmation.
+        updates whichever UBX config frame is waiting for this confirmation.
 
         :param UBXMessage msg: UBX config message
         """
 
-        for (key, val) in self._pending_confs.items():
-            if msg.identity in val:
-                self.set_status(
-                    f"{msg.identity} GET message received",
-                    "red" if msg.identity == "ACK-NAK" else "green",
-                )
-                self._pending_confs[key] = ()  # reset awaiting conf flag
-                if key in (UBX_MONVER, UBX_MONHW):
-                    self._frm_device_info.update_status(msg)
-                elif key == UBX_CFGPRT:
-                    self._frm_config_port.update_status(msg)
-                elif key == UBX_CFGRATE:
-                    self._frm_config_rate.update_status(msg)
-                elif key == UBX_CFGMSG:
-                    self._frm_config_msg.update_status(msg)
-                elif key == UBX_CFGVAL:
-                    self._frm_configdb.update_status(msg)
-                elif key == UBX_PRESET:
-                    self._frm_preset.update_status(msg)
-                elif key == UBX_CFGOTHER:
-                    self._frm_config_dynamic.update_status(msg)
+        ubxfrm = self._pending_confs.get(msg.identity, None)
+
+        if ubxfrm is not None:
+            if ubxfrm in (UBX_MONVER, UBX_MONHW):
+                self._frm_device_info.update_status(msg)
+            elif ubxfrm == UBX_CFGPRT:
+                self._frm_config_port.update_status(msg)
+            elif ubxfrm == UBX_CFGRATE:
+                self._frm_config_rate.update_status(msg)
+            elif ubxfrm == UBX_CFGMSG:
+                self._frm_config_msg.update_status(msg)
+            elif ubxfrm == UBX_CFGVAL:
+                self._frm_configdb.update_status(msg)
+            elif ubxfrm == UBX_PRESET:
+                self._frm_preset.update_status(msg)
+            elif ubxfrm == UBX_CFGOTHER:
+                self._frm_config_dynamic.update_status(msg)
+
+            # reset all confirmation flags for this frame
+            for msgid in (msg.identity, "ACK-ACK", "ACK-NAK"):
+                if self._pending_confs.get(msgid, None) == ubxfrm:
+                    self._pending_confs.pop(msgid)
 
     def set_status(self, message: str, color: str = "blue"):
         """

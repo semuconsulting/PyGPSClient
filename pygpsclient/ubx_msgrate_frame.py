@@ -1,5 +1,5 @@
 """
-UBX Configuration widget for CFG-MSG commands
+UBX Configuration frame for CFG-MSG commands
 
 Created on 22 Dec 2020
 
@@ -223,7 +223,6 @@ class UBX_MSGRATE_Frame(Frame):
 
         if msg.identity == "CFG-MSG":
 
-            (ubxClass, ubxID) = msgclass2bytes(msg.msgClass, msg.msgID)
             self.__container.set_status("CFG-MSG GET message received", "green")
             self._ddc_rate.set(msg.rateDDC)
             self._uart1_rate.set(msg.rateUART1)
@@ -276,7 +275,8 @@ class UBX_MSGRATE_Frame(Frame):
         self.__app.stream_handler.serial_write(data.serialize())
         self._lbl_send_command.config(image=self._img_pending)
         self.__container.set_status("CFG-MSG SET message sent", "green")
-        self.__container.set_pending(UBX_CFGMSG, ("ACK-ACK", "ACK-NAK"))
+        for msgid in ("ACK-ACK", "ACK-NAK"):
+            self.__container.set_pending(msgid, UBX_CFGMSG)
 
         self._do_poll_msg(msg)
 
@@ -289,4 +289,5 @@ class UBX_MSGRATE_Frame(Frame):
         self.__app.stream_handler.serial_write(data.serialize())
         self._lbl_send_command.config(image=self._img_pending)
         self.__container.set_status("CFG-MSG POLL message sent", "blue")
-        self.__container.set_pending(UBX_CFGMSG, ("CFG-MSG", "ACK-NAK"))
+        for msgid in ("CFG-MSG", "ACK-NAK"):
+            self.__container.set_pending(msgid, UBX_CFGMSG)

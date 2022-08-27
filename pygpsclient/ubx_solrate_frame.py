@@ -1,5 +1,5 @@
 """
-UBX Configuration widget for CFG-RATE commands
+UBX Configuration frame for CFG-RATE commands
 
 Created on 19 Feb 2020
 
@@ -226,4 +226,5 @@ class UBX_RATE_Frame(Frame):
         self.__app.stream_handler.serial_write(msg.serialize())
         self._lbl_send_command.config(image=self._img_pending)
         self.__container.set_status("CFG-RATE POLL message sent", "blue")
-        self.__container.set_pending(UBX_CFGRATE, ("CFG-RATE", "ACK-NAK"))
+        for msgid in ("CFG-RATE", "ACK-NAK"):
+            self.__container.set_pending(msgid, UBX_CFGRATE)

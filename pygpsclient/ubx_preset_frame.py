@@ -1,5 +1,5 @@
 """
-UBX Configuration widget for preset and user-defined commands
+UBX Configuration frame for preset and user-defined commands
 
 Created on 22 Dec 2020
 
@@ -216,6 +216,7 @@ class UBX_PRESET_Frame(Frame):
         """
 
         confirmed = True
+        confids = ("MON-VER", "ACK-ACK")
         try:
 
             if self._preset_command == PSTRESET:
@@ -259,14 +260,14 @@ class UBX_PRESET_Frame(Frame):
             elif self._preset_command == PSTPOLLALLNAV:
                 self._do_poll_all_NAV()
             else:
+                confids = ("MON-VER", "ACK-ACK", "ACK-NAK")
                 self._do_user_defined(self._preset_command)
 
             if confirmed:
                 self._lbl_send_command.config(image=self._img_pending)
                 self.__container.set_status("Command(s) sent", "blue")
-                self.__container.set_pending(
-                    UBX_PRESET, ("ACK-ACK", "ACK-NAK", "MON-VER")
-                )
+                for msgid in confids:
+                    self.__container.set_pending(msgid, UBX_PRESET)
             else:
                 self.__container.set_status("Command(s) cancelled", "blue")
 
@@ -544,17 +545,16 @@ class UBX_PRESET_Frame(Frame):
             self.__app.set_status(f"Error {err}", "red")
             self._lbl_send_command.config(image=self._img_warn)
 
-    def update_status(self, cfgtype, **kwargs):
+    def update_status(self, msg: UBXMessage):
         """
         Update pending confirmation status.
 
-        :param str cfgtype: identity of UBX message containing config info
-        :param kwargs: status keywords and values from UBX config message
+        :param UBXMessage msg: UBX config message
         """
 
-        if cfgtype in ("ACK-ACK", "MON-VER"):
+        if msg.identity in ("ACK-ACK", "MON-VER"):
             self._lbl_send_command.config(image=self._img_confirmed)
-            self.__container.set_status(f"{cfgtype} GET message received", "green")
-        elif cfgtype == "ACK-NAK":
+            self.__container.set_status("Preset command(s) acknowledged", "green")
+        elif msg.identity == "ACK-NAK":
             self._lbl_send_command.config(image=self._img_warn)
-            self.__container.set_status("PRESET command rejected", "red")
+            self.__container.set_status("Preset command(s) rejected", "red")
