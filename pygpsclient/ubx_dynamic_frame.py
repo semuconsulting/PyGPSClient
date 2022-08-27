@@ -245,27 +245,25 @@ class UBX_Dynamic_Frame(Frame):
         self._add_widgets(None, UBX_PAYLOADS_SET[self._cfg_id], 1, 0)
         self.update()
 
-    def update_status(self, cfgtype, **kwargs):
+    def update_status(self, msg: UBXMessage):
         """
         UBXHandler module receives CFG SET/POLL response and forwards it
         on to this module; confirmation status updated accordingly.
 
-        :param str cfgtype: identity of UBX CFG message
-        :param kwargs: status keywords and values from UBX config message
+        :param UBXMessage msg: UBX config message
         """
 
-        if cfgtype == self._cfg_id:
+        if msg.identity == self._cfg_id:
             self._lbl_send_command.config(image=self._img_confirmed)
-            self.__container.set_status(f"{cfgtype} GET message received", "green")
-            msg = kwargs.get("msg", None)  # CFG POLL response message
+            self.__container.set_status(f"{msg.identity} GET message received", "green")
             self._clear_widgets()
             self._add_widgets(msg, UBX_PAYLOADS_SET[self._cfg_id], 1, 0)
             self.update()
-        elif cfgtype == "ACK-NAK":
-            self.__container.set_status(f"{cfgtype} POLL message rejected", "red")
+        elif msg.identity == "ACK-NAK":
+            self.__container.set_status(f"{msg.identity} POLL message rejected", "red")
             self._lbl_send_command.config(image=self._img_warn)
-        elif cfgtype == "ACK-ACK":
-            self.__container.set_status(f"{cfgtype} SET message accepted", "green")
+        elif msg.identity == "ACK-ACK":
+            self.__container.set_status(f"{msg.identity} SET message accepted", "green")
             self._lbl_send_command.config(image=self._img_confirmed)
 
     def _clear_widgets(self):

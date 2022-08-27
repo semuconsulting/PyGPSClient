@@ -33,7 +33,7 @@ from pyubx2 import (
     SET,
     UBX_MSGIDS,
 )
-from pyubx2.ubxhelpers import key_from_val
+from pyubx2.ubxhelpers import key_from_val, msgclass2bytes
 from pygpsclient.globals import (
     ENTCOL,
     ICON_SEND,
@@ -214,23 +214,25 @@ class UBX_MSGRATE_Frame(Frame):
                 self._lbx_cfg_msg.insert(idx, val)
                 idx += 1
 
-    def update_status(self, cfgtype, **kwargs):
+    def update_status(self, msg: UBXMessage):
         """
         Update pending confirmation status.
 
-        :param str cfgtype: identity of UBX message containing config info
-        :param kwargs: status keywords and values from UBX config message
+        :param UBXMessage msg: UBX config message
         """
 
-        if cfgtype == "CFG-MSG":
+        if msg.identity == "CFG-MSG":
+
+            (ubxClass, ubxID) = msgclass2bytes(msg.msgClass, msg.msgID)
             self.__container.set_status("CFG-MSG GET message received", "green")
-            self._ddc_rate.set(kwargs.get("ddcrate", 0))
-            self._uart1_rate.set(kwargs.get("uart1rate", 0))
-            self._uart2_rate.set(kwargs.get("uart2rate", 0))
-            self._usb_rate.set(kwargs.get("usbrate", 0))
-            self._spi_rate.set(kwargs.get("spirate", 0))
+            self._ddc_rate.set(msg.rateDDC)
+            self._uart1_rate.set(msg.rateUART1)
+            self._uart2_rate.set(msg.rateUART2)
+            self._usb_rate.set(msg.rateUSB)
+            self._spi_rate.set(msg.rateSPI)
             self._lbl_send_command.config(image=self._img_confirmed)
-        elif cfgtype == "ACK-NAK":
+
+        elif msg.identity == "ACK-NAK":
             self.__container.set_status("CFG-MSG POLL message rejected", "red")
             self._lbl_send_command.config(image=self._img_warn)
 

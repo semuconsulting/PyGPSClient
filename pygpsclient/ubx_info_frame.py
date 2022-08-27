@@ -131,26 +131,59 @@ class UBX_INFO_Frame(Frame):
         if self.__app.conn_status == CONNECTED:
             self._do_poll_ver()
 
-    def update_status(self, cfgtype, **kwargs):
+    def update_status(self, msg: UBXMessage):
         """
         Update pending confirmation status.
 
-        :param str cfgtype: identity of UBX message containing config info
-        :param kwargs: status keywords and values from UBX config message
+        :param UBXMessage msg: UBX config message
         """
 
         # MON-VER information (for firmware version)
-        if cfgtype == "MON-VER":
-            self._sw_version.set(kwargs.get("swversion", ""))
-            self._hw_version.set(kwargs.get("hwversion", ""))
-            self._fw_version.set(kwargs.get("fwversion", ""))
-            self._protocol.set(kwargs.get("protocol", ""))
-            self._gnss_supported.set(kwargs.get("gnsssupported", ""))
+        if msg.identity == "MON-VER":
+
+            exts = []
+            fw_version = b"n/a"
+            protocol = b"n/a"
+            gnss_supported = b""
+            model = b""
+            sw_version = getattr(msg, "swVersion", b"n/a")
+            sw_version = sw_version.replace(b"\x00", b"")
+            sw_version = sw_version.replace(b"ROM CORE", b"ROM")
+            sw_version = sw_version.replace(b"EXT CORE", b"Flash")
+            hw_version = getattr(msg, "hwVersion", b"n/a")
+            hw_version = hw_version.replace(b"\x00", b"")
+
+            for i in range(9):
+                idx = f"_{i+1:02d}"
+                ext = getattr(msg, "extension" + idx, b"")
+                ext = ext.replace(b"\x00", b"")
+                exts.append(ext)
+                if b"FWVER=" in exts[i]:
+                    fw_version = exts[i].replace(b"FWVER=", b"")
+                if b"PROTVER=" in exts[i]:
+                    protocol = exts[i].replace(b"PROTVER=", b"")
+                if b"PROTVER " in exts[i]:
+                    protocol = exts[i].replace(b"PROTVER ", b"")
+                if b"MOD=" in exts[i]:
+                    model = exts[i].replace(b"MOD=", b"")
+                    hw_version = model + b" " + hw_version
+                for gnss in (b"GPS", b"GLO", b"GAL", b"BDS", b"SBAS", b"IMES", b"QZSS"):
+                    if gnss in exts[i]:
+                        gnss_supported = gnss_supported + gnss + b" "
+
+            self._sw_version.set(sw_version)
+            self._hw_version.set(hw_version)
+            self._fw_version.set(fw_version)
+            self._protocol.set(protocol)
+            self._gnss_supported.set(gnss_supported)
 
         # MON-HW information (for antenna status)
-        if cfgtype == "MON-HW":
-            self._ant_status.set(ANTSTATUS[kwargs.get("antstatus", 1)])
-            self._ant_power.set(ANTPOWER[kwargs.get("antpower", 2)])
+        if msg.identity == "MON-HW":
+
+            ant_status = getattr(msg, "aStatus", 1)
+            ant_power = getattr(msg, "aPower", 2)
+            self._ant_status.set(ANTSTATUS[ant_status])
+            self._ant_power.set(ANTPOWER[ant_power])
 
     def _do_poll_ver(self, *args, **kwargs):  # pylint: disable=unused-argument
         """

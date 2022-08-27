@@ -468,27 +468,26 @@ class UBX_CFGVAL_Frame(Frame):
         self.__container.set_status("CFG-VALGET POLL message sent", "blue")
         self.__container.set_pending(UBX_CFGVAL, ("CFG-VALGET", "ACK-ACK", "ACK-NAK"))
 
-    def update_status(self, cfgtype, **kwargs):  # pylint: disable=unused-argument
+    def update_status(self, msg: UBXMessage):  # pylint: disable=unused-argument
         """
         Update pending confirmation status.
 
-        :param str cfgtype: identity of UBX message containing config info
-        :param kwargs: status keywords and values from UBX config message
+        :param UBXMessage msg: UBX config message
         """
 
-        if cfgtype == "CFG-VALGET":
+        if msg.identity == "CFG-VALGET":
             self._lbl_send_command.config(image=self._img_confirmed)
-            data = kwargs.get("data", None)
-            if data is not None:
-                val = getattr(data, self._cfgval_keyname, None)
-                if val is not None:
-                    if isinstance(val, bytes):
-                        val = val.hex()
-                    self._cfgval.set(val)
-            self.__container.set_status(f"{cfgtype} GET message received", "green")
-        elif cfgtype == "ACK-ACK":
+            val = getattr(msg, self._cfgval_keyname, None)
+            if val is not None:
+                if isinstance(val, bytes):
+                    val = val.hex()
+                self._cfgval.set(val)
+            self.__container.set_status("CFG-VALGET GET message received", "green")
+
+        elif msg.identity == "ACK-ACK":
             self._lbl_send_command.config(image=self._img_confirmed)
-            self.__container.set_status(f"{cfgtype} GET message received", "green")
-        elif cfgtype == "ACK-NAK":
+            self.__container.set_status("ACK-ACK GET message received", "green")
+
+        elif msg.identity == "ACK-NAK":
             self._lbl_send_command.config(image=self._img_warn)
             self.__container.set_status("CFG-VAL message rejected", "red")

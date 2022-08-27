@@ -173,21 +173,21 @@ class UBX_RATE_Frame(Frame):
         if self.__app.conn_status == CONNECTED:
             self._do_poll_rate()
 
-    def update_status(self, cfgtype, **kwargs):
+    def update_status(self, msg: UBXMessage):
         """
         Update pending confirmation status.
 
-        :param str cfgtype: identity of UBX message containing config info
-        :param kwargs: status keywords and values from UBX config message
+        :param UBXMessage msg: UBX config message
         """
 
-        if cfgtype == "CFG-RATE":
-            self._measint.set(kwargs.get("measrate", 1000))
-            self._navrate.set(kwargs.get("navrate", 1))
-            self._timeref.set(TIMEREFS[kwargs.get("timeref", 0)])
+        if msg.identity == "CFG-RATE":
+            self._measint.set(msg.measRate)
+            self._navrate.set(msg.navRate)
+            self._timeref.set(TIMEREFS[msg.timeRef])
             self._lbl_send_command.config(image=self._img_confirmed)
             self.__container.set_status("CFG-RATE GET message received", "green")
-        elif cfgtype == "ACK-NAK":
+
+        elif msg.identity == "ACK-NAK":
             self.__container.set_status("CFG-RATE POLL message rejected", "red")
             self._lbl_send_command.config(image=self._img_warn)
 

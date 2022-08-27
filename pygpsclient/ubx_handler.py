@@ -50,20 +50,10 @@ class UBXHandler:
             if raw_data is None:
                 return
 
-            if parsed_data.identity == "ACK-ACK":
-                self._process_ACK_ACK(parsed_data)
-            elif parsed_data.identity == "ACK-NAK":
-                self._process_ACK_NAK(parsed_data)
-            elif parsed_data.identity == "CFG-MSG":
-                self._process_CFG_MSG(parsed_data)
-            elif parsed_data.identity == "CFG-PRT":
-                self._process_CFG_PRT(parsed_data)
-            elif parsed_data.identity == "CFG-RATE":
-                self._process_CFG_RATE(parsed_data)
-            elif parsed_data.identity == "CFG-INF":
-                self._process_CFG_INF(parsed_data)
-            elif parsed_data.identity == "CFG-VALGET":
-                self._process_CFG_VALGET(parsed_data)
+            if parsed_data.identity[0:3] in ("ACK", "CFG"):
+                self._update_ubxconfig(parsed_data)
+            elif parsed_data.identity in ("MON-VER", "MON-HW"):
+                self._update_ubxconfig(parsed_data)
             elif parsed_data.identity in ("NAV-POSLLH", "NAV-HPPOSLLH"):
                 self._process_NAV_POSLLH(parsed_data)
             elif parsed_data.identity in ("NAV-PVT", "NAV2-PVT"):
@@ -82,147 +72,22 @@ class UBXHandler:
                 self._process_NAV_DOP(parsed_data)
             elif parsed_data.identity == "HNR-PVT":
                 self._process_HNR_PVT(parsed_data)
-            elif parsed_data.identity == "MON-VER":
-                self._process_MON_VER(parsed_data)
-            elif parsed_data.identity == "MON-HW":
-                self._process_MON_HW(parsed_data)
             elif parsed_data.identity == "RXM-RTCM":
                 self._process_RXM_RTCM(parsed_data)
-            elif parsed_data.identity[0:3] == "CFG":
-                self._process_CFG_OTHER(parsed_data)
 
         except ValueError:
             # self.__app.set_status(ube.UBXMessageError(err), "red")
             pass
 
-    def _process_ACK_ACK(self, data: UBXMessage):
+    def _update_ubxconfig(self, msg: UBXMessage):
         """
-        Process CFG-MSG sentence - UBX message configuration.
+        Update UBX Config dialog status.
 
-        :param UBXMessage data: ACK_ACK parsed message
+        :param UBXMessage msg: UBX config message
         """
 
-        (ubxClass, ubxID) = msgclass2bytes(data.clsID, data.msgID)
-
-        # update the UBX config panel
         if self.__app.dlg_ubxconfig is not None:
-            self.__app.dlg_ubxconfig.update_pending(
-                "ACK-ACK", msgtype=UBX_MSGIDS[ubxClass + ubxID]
-            )
-
-    def _process_ACK_NAK(self, data: UBXMessage):
-        """
-        Process CFG-MSG sentence - UBX message configuration.
-
-        :param UBXMessage data: ACK_NAK parsed message
-        """
-
-        (ubxClass, ubxID) = msgclass2bytes(data.clsID, data.msgID)
-
-        # update the UBX config panel
-        if self.__app.dlg_ubxconfig is not None:
-            self.__app.dlg_ubxconfig.update_pending(
-                "ACK-NAK", msgtype=UBX_MSGIDS[ubxClass + ubxID]
-            )
-
-    def _process_CFG_MSG(self, data: UBXMessage):
-        """
-        Process CFG-MSG sentence - UBX message configuration.
-
-        :param UBXMessage data: CFG-MSG parsed message
-        """
-
-        (ubxClass, ubxID) = msgclass2bytes(data.msgClass, data.msgID)
-
-        ddcrate = data.rateDDC
-        uart1rate = data.rateUART1
-        uart2rate = data.rateUART2
-        usbrate = data.rateUSB
-        spirate = data.rateSPI
-
-        # update the UBX config panel
-        if self.__app.dlg_ubxconfig is not None:
-            self.__app.dlg_ubxconfig.update_pending(
-                "CFG-MSG",
-                msgtype=UBX_MSGIDS[ubxClass + ubxID],
-                ddcrate=ddcrate,
-                uart1rate=uart1rate,
-                uart2rate=uart2rate,
-                usbrate=usbrate,
-                spirate=spirate,
-            )
-
-    def _process_CFG_INF(self, data: UBXMessage):  # pylint: disable=unused-argument
-        """
-        Process CFG-INF sentence - UBX info message configuration.
-
-        :param UBXMessage data: CFG-INF parsed message
-        """
-
-        # update the UBX config panel
-        if self.__app.dlg_ubxconfig is not None:
-            self.__app.dlg_ubxconfig.update_pending("CFG-INF")
-
-    def _process_CFG_PRT(self, data: UBXMessage):
-        """
-        Process CFG-PRT sentence - UBX port configuration.
-
-        :param UBXMessage data: CFG-PRT parsed message
-        """
-
-        # update the UBX config panel
-        if self.__app.dlg_ubxconfig is not None:
-            self.__app.dlg_ubxconfig.update_pending(
-                "CFG-PRT",
-                portid=data.portID,
-                bpsrate=data.baudRate,
-                inprot=(data.inUBX, data.inNMEA, data.inRTCM, data.inRTCM3),
-                outprot=(data.outUBX, data.outNMEA, data.outRTCM3),
-            )
-
-    def _process_CFG_RATE(self, data: UBXMessage):
-        """
-        Process CFG-RATE sentence - UBX solution rate configuration.
-
-        :param UBXMessage data: CFG-RATE parsed message
-        """
-
-        # update the UBX config panel
-        if self.__app.dlg_ubxconfig is not None:
-            self.__app.dlg_ubxconfig.update_pending(
-                "CFG-RATE",
-                measrate=data.measRate,
-                navrate=data.navRate,
-                timeref=data.timeRef,
-            )
-
-    def _process_CFG_VALGET(self, data: UBXMessage):  # pylint: disable=unused-argument
-        """
-        Process CFG-VALGET sentence.
-
-        :param UBXMessage data: CFG-VALGET parsed message
-        """
-
-        # update the UBX config panel
-        if self.__app.dlg_ubxconfig is not None:
-            self.__app.dlg_ubxconfig.update_pending(
-                "CFG-VALGET",
-                data=data,
-            )
-
-    def _process_CFG_OTHER(self, data: UBXMessage):
-        """
-        Process other CFG-* sentence - Dynamic CFG configuration.
-
-        :param UBXMessage data: CFG-* parsed message
-        """
-
-        # update the UBX config panel
-        if self.__app.dlg_ubxconfig is not None:
-            self.__app.dlg_ubxconfig.update_pending(
-                data.identity,
-                msg=data,
-            )
+            self.__app.dlg_ubxconfig.update_pending(msg)
 
     def _process_NAV_POSLLH(self, data: UBXMessage):
         """
@@ -377,70 +242,6 @@ class UBXHandler:
         self.__app.gnss_status.track = data.headMot
         self.__app.gnss_status.fix = fix2desc("HNR-PVT", data.gpsFix)
         self.__app.gnss_status.diff_corr = data.diffSoln
-
-    def _process_MON_VER(self, data: UBXMessage):
-        """
-        Process MON-VER sentence - Receiver Software / Hardware version information.
-
-        :param UBXMessage data: MON-VER parsed message
-        """
-
-        exts = []
-        fw_version = b"n/a"
-        protocol = b"n/a"
-        gnss_supported = b""
-        model = b""
-        sw_version = getattr(data, "swVersion", b"n/a")
-        sw_version = sw_version.replace(b"\x00", b"")
-        sw_version = sw_version.replace(b"ROM CORE", b"ROM")
-        sw_version = sw_version.replace(b"EXT CORE", b"Flash")
-        hw_version = getattr(data, "hwVersion", b"n/a")
-        hw_version = hw_version.replace(b"\x00", b"")
-
-        for i in range(9):
-            idx = f"_{i+1:02d}"
-            ext = getattr(data, "extension" + idx, b"")
-            ext = ext.replace(b"\x00", b"")
-            exts.append(ext)
-            if b"FWVER=" in exts[i]:
-                fw_version = exts[i].replace(b"FWVER=", b"")
-            if b"PROTVER=" in exts[i]:
-                protocol = exts[i].replace(b"PROTVER=", b"")
-            if b"PROTVER " in exts[i]:
-                protocol = exts[i].replace(b"PROTVER ", b"")
-            if b"MOD=" in exts[i]:
-                model = exts[i].replace(b"MOD=", b"")
-                hw_version = model + b" " + hw_version
-            for gnss in (b"GPS", b"GLO", b"GAL", b"BDS", b"SBAS", b"IMES", b"QZSS"):
-                if gnss in exts[i]:
-                    gnss_supported = gnss_supported + gnss + b" "
-
-        # update the UBX config panel
-        if self.__app.dlg_ubxconfig is not None:
-            self.__app.dlg_ubxconfig.update_pending(
-                "MON-VER",
-                swversion=sw_version,
-                hwversion=hw_version,
-                fwversion=fw_version,
-                protocol=protocol,
-                gnsssupported=gnss_supported,
-            )
-
-    def _process_MON_HW(self, data: UBXMessage):
-        """
-        Process MON-HW sentence - Receiver Hardware status.
-
-        :param UBXMessage data: MON-HW parsed message
-        """
-
-        ant_status = getattr(data, "aStatus", 1)
-        ant_power = getattr(data, "aPower", 2)
-
-        # update the UBX config panel
-        if self.__app.dlg_ubxconfig is not None:
-            self.__app.dlg_ubxconfig.update_pending(
-                "MON-HW", antstatus=ant_status, antpower=ant_power
-            )
 
     def _process_RXM_RTCM(self, data: UBXMessage):
         """

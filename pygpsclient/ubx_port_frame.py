@@ -192,28 +192,26 @@ class UBX_PORT_Frame(Frame):
         if self.__app.conn_status == CONNECTED:
             self._do_poll_prt()
 
-    def update_status(self, cfgtype, **kwargs):
+    def update_status(self, msg: UBXMessage):
         """
         Update pending confirmation status.
 
-        :param str cfgtype: identity of UBX message containing config info
-        :param kwargs: status keywords and values from UBX config message
+        :param UBXMessage msg: UBX config message
         """
 
-        if cfgtype == "CFG-PRT":
-            self._bpsrate.set(str(kwargs.get("bpsrate", 0)))
-            (inUBX, inNMEA, inRTCM, inRTCM3) = kwargs.get("inprot", (1, 1, 0, 1))
-            (outUBX, outNMEA, outRTCM3) = kwargs.get("outprot", (1, 1, 0))
-            self._inprot_ubx.set(inUBX)
-            self._inprot_nmea.set(inNMEA)
-            self._inprot_rtcm2.set(inRTCM)
-            self._inprot_rtcm3.set(inRTCM3)
-            self._outprot_ubx.set(outUBX)
-            self._outprot_nmea.set(outNMEA)
-            self._outprot_rtcm3.set(outRTCM3)
+        if msg.identity == "CFG-PRT":
+            self._bpsrate.set(msg.baudRate)
+            self._inprot_ubx.set(msg.inUBX)
+            self._inprot_nmea.set(msg.inNMEA)
+            self._inprot_rtcm2.set(msg.inRTCM)
+            self._inprot_rtcm3.set(msg.inRTCM3)
+            self._outprot_ubx.set(msg.outUBX)
+            self._outprot_nmea.set(msg.outNMEA)
+            self._outprot_rtcm3.set(msg.outRTCM3)
             self._lbl_send_command.config(image=self._img_confirmed)
             self.__container.set_status("CFG-PRT GET message received", "green")
-        elif cfgtype == "ACK-NAK":
+
+        elif msg.identity == "ACK-NAK":
             self.__container.set_status("CFG-PRT POLL message rejected", "red")
             self._lbl_send_command.config(image=self._img_warn)
 

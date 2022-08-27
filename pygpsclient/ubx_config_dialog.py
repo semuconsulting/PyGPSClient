@@ -36,6 +36,7 @@ from tkinter import (
     W,
 )
 from PIL import ImageTk, Image
+from pyubx2 import UBXMessage
 from pygpsclient.globals import (
     ICON_EXIT,
     UBX_MONVER,
@@ -264,38 +265,35 @@ class UBXConfigDialog(Toplevel):
 
         self._pending_confs[key] = val
 
-    def update_pending(self, cfgtype, **kwargs):
+    def update_pending(self, msg: UBXMessage):
         """
         Receives polled confirmation message from the ubx_handler and
         updates the widget that is waiting for this confirmation.
 
-        :param str cfgtype: identity of UBX message containing config info
-        :param kwargs: status keywords and values from UBX config message
+        :param UBXMessage msg: UBX config message
         """
 
         for (key, val) in self._pending_confs.items():
-            if cfgtype in val:
+            if msg.identity in val:
                 self.set_status(
-                    f"{cfgtype} GET message received",
-                    "red" if cfgtype == "ACK-NAK" else "green",
+                    f"{msg.identity} GET message received",
+                    "red" if msg.identity == "ACK-NAK" else "green",
                 )
                 self._pending_confs[key] = ()  # reset awaiting conf flag
-                if key == UBX_MONVER:
-                    self._frm_device_info.update_status(cfgtype, **kwargs)
-                elif key == UBX_MONHW:
-                    self._frm_device_info.update_status(cfgtype, **kwargs)
+                if key in (UBX_MONVER, UBX_MONHW):
+                    self._frm_device_info.update_status(msg)
                 elif key == UBX_CFGPRT:
-                    self._frm_config_port.update_status(cfgtype, **kwargs)
+                    self._frm_config_port.update_status(msg)
                 elif key == UBX_CFGRATE:
-                    self._frm_config_rate.update_status(cfgtype, **kwargs)
+                    self._frm_config_rate.update_status(msg)
                 elif key == UBX_CFGMSG:
-                    self._frm_config_msg.update_status(cfgtype, **kwargs)
+                    self._frm_config_msg.update_status(msg)
                 elif key == UBX_CFGVAL:
-                    self._frm_configdb.update_status(cfgtype, **kwargs)
+                    self._frm_configdb.update_status(msg)
                 elif key == UBX_PRESET:
-                    self._frm_preset.update_status(cfgtype, **kwargs)
+                    self._frm_preset.update_status(msg)
                 elif key == UBX_CFGOTHER:
-                    self._frm_config_dynamic.update_status(cfgtype, **kwargs)
+                    self._frm_config_dynamic.update_status(msg)
 
     def set_status(self, message: str, color: str = "blue"):
         """
