@@ -249,7 +249,7 @@ class NTRIPConfigDialog(Toplevel):
             state=READONLY,
         )
 
-        self._lbl_lat = Label(self._frm_container, text="GGA Latitude")
+        self._lbl_lat = Label(self._frm_container, text="Ref Latitude")
         self._ent_lat = Entry(
             self._frm_container,
             textvariable=self._ntrip_gga_lat,
@@ -258,7 +258,7 @@ class NTRIPConfigDialog(Toplevel):
             relief="sunken",
             width=15,
         )
-        self._lbl_lon = Label(self._frm_container, text="GGA Longitude")
+        self._lbl_lon = Label(self._frm_container, text="Ref Longitude")
         self._ent_lon = Entry(
             self._frm_container,
             textvariable=self._ntrip_gga_lon,
@@ -267,7 +267,7 @@ class NTRIPConfigDialog(Toplevel):
             relief="sunken",
             width=15,
         )
-        self._lbl_alt = Label(self._frm_container, text="GGA Elevation m")
+        self._lbl_alt = Label(self._frm_container, text="Ref Elevation m")
         self._ent_alt = Entry(
             self._frm_container,
             textvariable=self._ntrip_gga_alt,
@@ -276,7 +276,7 @@ class NTRIPConfigDialog(Toplevel):
             relief="sunken",
             width=15,
         )
-        self._lbl_sep = Label(self._frm_container, text="GGA Separation m")
+        self._lbl_sep = Label(self._frm_container, text="Ref Separation m")
         self._ent_sep = Entry(
             self._frm_container,
             textvariable=self._ntrip_gga_sep,

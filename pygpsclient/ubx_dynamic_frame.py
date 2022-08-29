@@ -257,12 +257,10 @@ class UBX_Dynamic_Frame(Frame):
             self._add_widgets(msg, UBX_PAYLOADS_SET[self._cfg_id], 1, 0)
             self.update()
         elif msg.identity == "ACK-NAK":
-            self.__container.set_status(f"{self._cfg_id} SET message rejected", "red")
+            self.__container.set_status(f"{self._cfg_id} message rejected", "red")
             self._lbl_send_command.config(image=self._img_warn)
         elif msg.identity == "ACK-ACK":
-            self.__container.set_status(
-                f"{self._cfg_id} SET message acknowledged", "green"
-            )
+            self.__container.set_status(f"{self._cfg_id} message acknowledged", "green")
             self._lbl_send_command.config(image=self._img_confirmed)
 
     def _clear_widgets(self):

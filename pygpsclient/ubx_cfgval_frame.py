@@ -405,7 +405,8 @@ class UBX_CFGVAL_Frame(Frame):
             self._ent_val.configure(bg=ENTCOL)
             self._lbl_send_command.config(image=self._img_pending)
             self.__container.set_status("CFG-VALSET SET message sent", "blue")
-            self.__container.set_pending(UBX_CFGVAL, ("ACK-ACK", "ACK-NAK"))
+            for msgid in ("ACK-ACK", "ACK-NAK"):
+                self.__container.set_pending(msgid, UBX_CFGVAL)
         else:
             self._ent_val.configure(bg=ERRCOL)
             self._lbl_send_command.config(image=self._img_warn)
@@ -441,7 +442,8 @@ class UBX_CFGVAL_Frame(Frame):
         self._ent_val.configure(bg=ENTCOL)
         self._lbl_send_command.config(image=self._img_pending)
         self.__container.set_status("CFG-VALDEL SET message sent", "blue")
-        self.__container.set_pending(UBX_CFGVAL, ("ACK-ACK", "ACK-NAK"))
+        for msgid in ("ACK-ACK", "ACK-NAK"):
+            self.__container.set_pending(msgid, UBX_CFGVAL)
 
     def _do_valget(self):
         """

@@ -68,7 +68,7 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 * To connect to a TCP or UDP socket, enter the server URL and port, select the protocol (defaults to TCP) and click 
 ![connect socket icon](/pygpsclient/resources/ethernet-1-24.png).
 * To stream from a previously-saved binary datalog file, click 
-![connect-file icon](/pygpsclient/resources/binary-1-24.png) and select the file. PyGPSClient datalog files will be named e.g. `pygpsdata-20220427114802.log`, but any binary dump of an GNSS receiver output is acceptable.
+![connect-file icon](/pygpsclient/resources/binary-1-24.png) and select the file type (`*.log, *.ubx, *.*`) and path. PyGPSClient datalog files will be named e.g. `pygpsdata-20220427114802.log`, but any binary dump of an GNSS receiver output is acceptable, including `*.ubx` files produced by u-center.
 * To disconnect from the data stream, click
 ![disconnect icon](/pygpsclient/resources/iconmonstr-media-control-50-24.png).
 * To display the UBX Configuration Dialog (*only functional when connected to a UBX GNSS device via serial port*), click
@@ -99,7 +99,7 @@ The UBX Configuration Dialog currently supports the following UBX configuration 
 1. Version panel shows current device hardware/firmware versions (*via MON-VER and MON-HW polls*).
 1. Protocol Configuration panel (CFG-PRT) sets baud rate and inbound/outbound protocols across all available ports.
 1. Solution Rate panel (CFG-RATE) sets navigation solution interval in ms (e.g. 1000 = 1/second) and measurement ratio (ratio between the number of measurements and the number of navigation solutions, e.g. 5 = five measurements per navigation solution).
-1. For each of the panels above, clicking anywhere in the widget background will refresh the displayed information with the current configuration.
+1. For each of the panels above, clicking anywhere in the panel background will refresh the displayed information with the current configuration.
 1. Message Rate panel (CFG-MSG) sets message rates per port for UBX and NMEA messages. Message rate is relative to navigation solution frequency e.g. a message rate of '4' means 'every 4th navigation solution'.
 1. Other configuration panel (CFG-*) providing structured updates for a range of legacy CFG- configuration commands for pre-Generation 9+ devices. Note: 'X' (byte) type attributes can be entered as integers or hexadecimal strings e.g. 522125312 or 0x1f1f0000.
 1. Configuration Interface widget (CFG-VALSET, CFG-VALDEL and CFG-VALGET) queries and sets configuration for [Generation 9+ devices](https://github.com/semuconsulting/pyubx2#configinterface) e.g. NEO-M9, ZED-F9P, etc.
@@ -125,7 +125,7 @@ To use:
 1. Enter the required NTRIP server URL (or IP address) and port (defaults to 2101). For services which require authorisation, enter your login username and password.
 1. To retrieve the sourcetable, leave the mountpoint field blank and click connect (*response may take a few seconds*). The required mountpoint may then be selected from the list, or entered manually. Where possible, `PyGPSClient` will automatically identify the closest mountpoint to the current location.
 1. For NTRIP services which require client position data via NMEA GGA sentences, select the appropriate sentence transmission interval in seconds. The default is 'None' (no GGA sentences sent). A value of 10 or 60 seconds is typical.
-1. If GGA sentence transmission is enabled, GGA sentences can either be populated from live navigation data (*assuming a receiver is connected and outputting valid position data*) or from manual settings entered in the NTRIP configuration panel (latitude, longitude, elevation and separation - all four manual settings must be provided).
+1. If GGA sentence transmission is enabled, GGA sentences can either be populated from live navigation data (*assuming a receiver is connected and outputting valid position data*) or from fixed reference settings entered in the NTRIP configuration panel (latitude, longitude, elevation and geoid separation - all four reference settings must be provided).
 1. To connect to the NTRIP server, click ![connect icon](/pygpsclient/resources/iconmonstr-media-control-48-24.png). To disconnect, click ![disconnect icon](/pygpsclient/resources/iconmonstr-media-control-50-24.png).
 1. If NTRIP data is being successfully received, the banner '**dgps:**' status indicator should change to 'YES' and indicate the age and reference station of the correction data (where available) ![dgps status](/images/dgps_status.png). Note that DGPS status is typically maintained for up to 60 seconds after loss of correction signal.
 1. Some NTRIP services may output RTCM3 correction messages at a high rate, flooding the GUI console display. To suppress these messages in the console, de-select the 'RTCM' option in 'Protocols Shown' - the RTCM3 messages will continue to be processed in the background.
