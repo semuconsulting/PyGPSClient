@@ -4,6 +4,9 @@ NTRIP client container dialog
 This is the pop-up dialog containing the various
 NTRIP client configuration functions.
 
+NB: the NTRIP handler gnssntripclient is part of the separate
+pygnssutils  package.
+
 Created on 2 Apr 2022
 
 :author: semuadmin
@@ -22,7 +25,9 @@ from tkinter import (
     Spinbox,
     Listbox,
     Scrollbar,
+    Radiobutton,
     StringVar,
+    IntVar,
     N,
     S,
     E,
@@ -51,8 +56,6 @@ from pygpsclient.globals import (
     ENTCOL,
     READONLY,
     POPUP_TRANSIENT,
-    DISCONNECTED,
-    CONNECTED,
     UI,
     UIK,
     GGA_INTERVALS,
@@ -67,6 +70,8 @@ from pygpsclient.strings import (
     LBLNTRIPPWD,
     LBLNTRIPGGAINT,
     LBLNTRIPSTR,
+    LBLGGALIVE,
+    LBLGGAFIXED,
 )
 from pygpsclient.helpers import (
     valid_entry,
@@ -126,6 +131,7 @@ class NTRIPConfigDialog(Toplevel):
         self._ntrip_user = StringVar()
         self._ntrip_password = StringVar()
         self._ntrip_gga_interval = StringVar()
+        self._ntrip_gga_mode = IntVar()
         self._ntrip_gga_lat = StringVar()
         self._ntrip_gga_lon = StringVar()
         self._ntrip_gga_alt = StringVar()
@@ -138,7 +144,6 @@ class NTRIPConfigDialog(Toplevel):
         self._do_layout()
         self._attach_events()
         self._reset()
-        # self._centre()
 
     def _body(self):
         """
@@ -248,7 +253,15 @@ class NTRIPConfigDialog(Toplevel):
             textvariable=self._ntrip_gga_interval,
             state=READONLY,
         )
-
+        self._rad_ggalive = Radiobutton(
+            self._frm_container, text=LBLGGALIVE, variable=self._ntrip_gga_mode, value=0
+        )
+        self._rad_ggafixed = Radiobutton(
+            self._frm_container,
+            text=LBLGGAFIXED,
+            variable=self._ntrip_gga_mode,
+            value=1,
+        )
         self._lbl_lat = Label(self._frm_container, text="Ref Latitude")
         self._ent_lat = Entry(
             self._frm_container,
@@ -351,22 +364,24 @@ class NTRIPConfigDialog(Toplevel):
         self._spn_ntripggaint.grid(
             column=1, row=13, padx=3, pady=2, rowspan=2, sticky=W
         )
-        self._lbl_lat.grid(column=0, row=15, padx=3, pady=2, sticky=W)
-        self._ent_lat.grid(column=1, row=15, padx=3, pady=2, sticky=W)
-        self._lbl_lon.grid(column=0, row=16, padx=3, pady=2, sticky=W)
-        self._ent_lon.grid(column=1, row=16, padx=3, pady=2, sticky=W)
-        self._lbl_alt.grid(column=0, row=17, padx=3, pady=2, sticky=W)
-        self._ent_alt.grid(column=1, row=17, padx=3, pady=2, sticky=W)
-        self._lbl_sep.grid(column=0, row=18, padx=3, pady=2, sticky=W)
-        self._ent_sep.grid(column=1, row=18, padx=3, pady=2, sticky=W)
+        self._rad_ggalive.grid(column=0, row=15, padx=3, pady=2, sticky=W)
+        self._rad_ggafixed.grid(column=1, row=15, padx=3, pady=2, sticky=W)
+        self._lbl_lat.grid(column=0, row=16, padx=3, pady=2, sticky=W)
+        self._ent_lat.grid(column=1, row=16, padx=3, pady=2, sticky=W)
+        self._lbl_lon.grid(column=0, row=17, padx=3, pady=2, sticky=W)
+        self._ent_lon.grid(column=1, row=17, padx=3, pady=2, sticky=W)
+        self._lbl_alt.grid(column=0, row=18, padx=3, pady=2, sticky=W)
+        self._ent_alt.grid(column=1, row=18, padx=3, pady=2, sticky=W)
+        self._lbl_sep.grid(column=0, row=19, padx=3, pady=2, sticky=W)
+        self._ent_sep.grid(column=1, row=19, padx=3, pady=2, sticky=W)
         ttk.Separator(self._frm_container).grid(
-            column=0, row=19, columnspan=3, padx=3, pady=3, sticky=(W, E)
+            column=0, row=20, columnspan=3, padx=3, pady=3, sticky=(W, E)
         )
-        self._btn_connect.grid(column=0, row=20, padx=3, pady=3, sticky=W)
-        self._btn_disconnect.grid(column=1, row=20, padx=3, pady=3, sticky=W)
+        self._btn_connect.grid(column=0, row=21, padx=3, pady=3, sticky=W)
+        self._btn_disconnect.grid(column=1, row=21, padx=3, pady=3, sticky=W)
 
         # bottom of grid
-        row = 21
+        row = 22
         col = 0
         (colsp, rowsp) = self._frm_container.grid_size()
         self._frm_status.grid(column=col, row=row, columnspan=colsp, sticky=(W, E))
@@ -444,6 +459,8 @@ class NTRIPConfigDialog(Toplevel):
                 self._ent_lon,
                 self._ent_alt,
                 self._ent_sep,
+                self._rad_ggalive,
+                self._rad_ggafixed,
                 self._lbx_sourcetable,
             ):
                 ctl.config(state=(DISABLED if connected else NORMAL))
@@ -461,20 +478,6 @@ class NTRIPConfigDialog(Toplevel):
                 self.set_mp_dist(mindist, mpname)
         except TclError:  # fudge during thread termination
             pass
-
-    def _centre(self):
-        """
-        Roughly center dialog in master window
-        NB: behaviour is slightly different across Windows, MacOS and Linux
-        """
-
-        dw = self.winfo_width()
-        dh = self.winfo_height()
-        mx = self.__master.winfo_x()
-        my = self.__master.winfo_y()
-        mw = self.__master.winfo_width()
-        mh = self.__master.winfo_height()
-        self.geometry(f"+{int(mx + (mw/2 - dw/2))}+{int(my + (mh/2 - dh/2))}")
 
     def set_status(self, message: str, color: str = "blue"):
         """
@@ -546,17 +549,14 @@ class NTRIPConfigDialog(Toplevel):
         self._ntrip_version.set(self._settings["version"])
         self._ntrip_user.set(self._settings["user"])
         self._ntrip_password.set(self._settings["password"])
-        self._ntrip_gga_interval.set(
-            "None"
-            if self._settings["ggainterval"] == NOGGA
-            else self._settings["ggainterval"]
-        )
+        ggaint = self._settings["ggainterval"]
+        self._ntrip_gga_interval.set("None" if ggaint == NOGGA else ggaint)
+        self._ntrip_gga_mode.set(self._settings["ggamode"])
         self._ntrip_gga_lat.set(self._settings["reflat"])
         self._ntrip_gga_lon.set(self._settings["reflon"])
         self._ntrip_gga_alt.set(self._settings["refalt"])
         self._ntrip_gga_sep.set(self._settings["refsep"])
 
-        # mindist, mpname = self.find_mp_distance(self._settings["mountpoint"])
         lat, lon = self._get_coordinates()
         mpname, mindist = find_mp_distance(
             lat, lon, self._settings["sourcetable"], self._settings["mountpoint"]
@@ -579,12 +579,11 @@ class NTRIPConfigDialog(Toplevel):
             if self._ntrip_gga_interval.get() == "None"
             else self._ntrip_gga_interval.get()
         )
+        self._settings["ggamode"] = self._ntrip_gga_mode.get()
         self._settings["reflat"] = self._ntrip_gga_lat.get()
         self._settings["reflon"] = self._ntrip_gga_lon.get()
         self._settings["refalt"] = self._ntrip_gga_alt.get()
         self._settings["refsep"] = self._ntrip_gga_sep.get()
-
-        # self.__app.ntrip_handler.settings = self._settings
 
     def update_sourcetable(self, stable: list):
         """
@@ -597,7 +596,6 @@ class NTRIPConfigDialog(Toplevel):
         self._lbx_sourcetable.delete(0, END)
         for item in stable:
             self._lbx_sourcetable.insert(END, item)
-        # self._lbx_sourcetable.update_idletasks()
         self._lbx_sourcetable.bind("<<ListboxSelect>>", self._on_select_mp)
 
     def _connect(self):
@@ -608,7 +606,6 @@ class NTRIPConfigDialog(Toplevel):
 
         if self._valid_settings():
             self._set_settings()
-            # self.__app.ntrip_handler.settings = self._settings
             self.__app.ntrip_handler.run(
                 server=self._settings["server"],
                 port=self._settings["port"],
@@ -617,6 +614,7 @@ class NTRIPConfigDialog(Toplevel):
                 user=self._settings["user"],
                 password=self._settings["password"],
                 ggainterval=self._settings["ggainterval"],
+                ggamode=self._settings["ggamode"],
                 reflat=self._settings["reflat"],
                 reflon=self._settings["reflon"],
                 refalt=self._settings["refalt"],
@@ -645,24 +643,11 @@ class NTRIPConfigDialog(Toplevel):
         valid = True
         valid = valid & valid_entry(self._ent_server, VALURL)
         valid = valid & valid_entry(self._ent_port, VALINT, 1, MAXPORT)
-
-        if self._ntrip_gga_interval.get() != "None":  # sending GGA
-            # either use all 4 fixed settings to construct GGA sentence,
-            # or use live readings from connected receiver
-            # valid = valid & valid_entry(self._ent_mountpoint, VALNONBLANK)
-            fxd = (
-                self._ent_lat.get()
-                + self._ent_lon.get()
-                + self._ent_alt.get()
-                + self._ent_sep.get()
-            )
-            if self.__app.conn_status != CONNECTED or (
-                self.__app.conn_status == CONNECTED and fxd != ""
-            ):
-                valid = valid & valid_entry(self._ent_lat, VALFLOAT, -90.0, 90.0)
-                valid = valid & valid_entry(self._ent_lon, VALFLOAT, -180.0, 180.0)
-                valid = valid & valid_entry(self._ent_alt, VALFLOAT, -MAXALT, MAXALT)
-                valid = valid & valid_entry(self._ent_sep, VALFLOAT, -MAXALT, MAXALT)
+        if self._settings["ggamode"] == 1:  # fixed reference
+            valid = valid & valid_entry(self._ent_lat, VALFLOAT, -90.0, 90.0)
+            valid = valid & valid_entry(self._ent_lon, VALFLOAT, -180.0, 180.0)
+            valid = valid & valid_entry(self._ent_alt, VALFLOAT, -MAXALT, MAXALT)
+            valid = valid & valid_entry(self._ent_sep, VALFLOAT, -MAXALT, MAXALT)
 
         if not valid:
             self.set_status("ERROR - invalid settings", "red")
@@ -692,17 +677,16 @@ class NTRIPConfigDialog(Toplevel):
 
     def _get_coordinates(self) -> tuple:
         """
-        Get current coordinates. If not available,
-        return fixed reference coordinates, or ""
-        if not available.
+        Get coordinates from receiver or fixed reference settings.
 
         :returns: tuple (lat,lon)
         :rtype: tuple
         """
 
         try:
-            conn_status, lat, lon, _, _ = self.__app.get_coordinates()
-            if conn_status == DISCONNECTED:
+            if self._settings.get("ggamode", 0) == 0:  # live position
+                _, lat, lon, _, _ = self.__app.get_coordinates()
+            else:  # fixed reference
                 lat = float(self._settings["reflat"])
                 lon = float(self._settings["reflon"])
             return lat, lon

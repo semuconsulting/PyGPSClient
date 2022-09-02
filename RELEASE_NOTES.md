@@ -1,6 +1,12 @@
 # PyGPSClient Release Notes
 
-### RELEASE CANDIDATE v1.3.8
+### RELEASE v1.3.9
+
+ENHANCEMENTS:
+
+1. GGA position source radio button added to NTRIP Client dialog - allows user to select from live receiver or fixed reference (previously PyGPSClient would automatically use receiver position if connected or fixed reference if not).
+
+### RELEASE v1.3.8
 
 ENHANCEMENTS:
 
