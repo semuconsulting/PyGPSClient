@@ -165,7 +165,11 @@ class SettingsFrame(Frame):
 
         # serial port configuration panel
         self._frm_serial = SerialConfigFrame(
-            self, preselect=KNOWNGPS, timeouts=TIMEOUTS, bpsrates=BPSRATES
+            self,
+            preselect=KNOWNGPS,
+            timeouts=TIMEOUTS,
+            bpsrates=BPSRATES,
+            port=self.__app.user_port,  # user-defined serial port
         )
 
         # socket configuration panel
