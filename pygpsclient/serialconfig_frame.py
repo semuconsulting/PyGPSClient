@@ -39,6 +39,7 @@ from PIL import ImageTk, Image
 from serial.tools.list_ports import comports
 from serial import PARITY_NONE, PARITY_EVEN, PARITY_ODD, PARITY_MARK, PARITY_SPACE
 from pygpsclient.globals import ICON_REFRESH, ICON_EXPAND, ICON_CONTRACT
+from pygpsclient.strings import LBLUDPORT
 
 ADVOFF = "\u25bc"
 ADVON = "\u25b2"
@@ -78,6 +79,7 @@ class SerialConfigFrame(Frame):
         :param kwargs: optional kwargs for value ranges, or to pass to Frame parent class
         """
 
+        self._kwport = kwargs.pop("port", "")  # port passed from command line
         self._bpsrate_rng = kwargs.pop("bpsrates", BPSRATE_RNG)
         self._databits_rng = kwargs.pop("databits", DATABITS_RNG)
         self._stopbits_rng = kwargs.pop("stopbits", STOPBITS_RNG)
@@ -93,6 +95,8 @@ class SerialConfigFrame(Frame):
         self._ports = ()
         self._port = StringVar()
         self._port_desc = StringVar()
+        self._port.set(self._kwport)
+        self._port_desc.set(self._kwport)
         self._bpsrate = IntVar()
         self._databits = IntVar()
         self._stopbits = DoubleVar()
@@ -246,6 +250,9 @@ class SerialConfigFrame(Frame):
         """
         Populate list of available serial ports using pyserial comports tool.
 
+        User-defined serial port can be passed as command line keyword argument,
+        in which case this takes precedence.
+
         Attempt to automatically select a serial device matching
         a list of 'preselect' devices (only works on platforms
         which parse UART device desc or HWID e.g. Posix).
@@ -253,24 +260,30 @@ class SerialConfigFrame(Frame):
 
         self._ports = sorted(comports())
         init_idx = 0
-
+        pidx = 0
         port = ""
         desc = ""
-        if len(self._ports) > 0:
-            # default selection to first port
-            (port, desc, _) = self._ports[0]
-            self._port.set(port)
-            self._port_desc.set(desc)
-            for idx, (port, desc, _) in enumerate(self._ports):
-                self._lbx_port.insert(idx, port + ": " + desc)
-                for dev in self._preselect:
-                    if dev in desc:
-                        # update selection to recognised GNSS device
-                        init_idx = idx
-                        self._port.set(port)
-                        self._port_desc.set(desc)
 
-                        break
+        if len(self._ports) > 0:
+            # default selection to first port or port keyword argument
+            if self._port.get() == "":
+                (port, desc, _) = self._ports[0]
+                self._port.set(port)
+                self._port_desc.set(desc)
+            else:  # user-defined serial port
+                self._lbx_port.insert(0, self._port.get() + ": " + LBLUDPORT)
+                pidx = 1
+            for idx, (port, desc, _) in enumerate(self._ports):
+                self._lbx_port.insert(idx + pidx, port + ": " + desc)
+                if self._port.get() == "":
+                    for dev in self._preselect:
+                        if dev in desc:
+                            # update selection to recognised GNSS device
+                            init_idx = idx
+                            self._port.set(port)
+                            self._port_desc.set(desc)
+
+                            break
             self.set_status(DISCONNECTED)
         else:
             self.set_status(NOPORTS)

@@ -65,6 +65,7 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 
 * To connect to a listed serial device, select the device from the listbox, set the appropriate serial connection parameters and click 
 ![connect icon](/pygpsclient/resources/usbport-1-24.png). The application will endeavour to pre-select a recognised GNSS/GPS device but this is platform and device dependent. Press the ![refresh](/pygpsclient/resources/iconmonstr-refresh-6-16.png) button to refresh the list of connected devices at any point. *Rate bps is typically the only setting that might need adjusting, but tweaking the timeout setting may improve performance on certain platforms*.
+* A default user-defined serial port can also be passed via the environment variable `PYGPSCLIENT_USERPORT` or as a command line keyword argument `port=/dev/tty12345`.
 * To connect to a TCP or UDP socket, enter the server URL and port, select the protocol (defaults to TCP) and click 
 ![connect socket icon](/pygpsclient/resources/ethernet-1-24.png).
 * To stream from a previously-saved binary datalog file, click 
@@ -212,6 +213,11 @@ deactivate
 To run the application, if the Python 3 scripts (bin) directory is in your PATH, simply type (all lowercase): 
 ```shell
 pygpsclient
+```
+
+Optionally, a user-defined serial port can be passed as a keyword argument, e.g.
+```shell
+pygpsclient port=/dev/tty12345
 ```
 
 If desired, you can add a shortcut to this command to your desktop or favourites menu.

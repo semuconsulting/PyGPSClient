@@ -111,6 +111,7 @@ LBLSERVERMODE = "Mode"
 LBLCFGDYN = "CFG-* Other Configuration"
 LBLGGALIVE = "Receiver"
 LBLGGAFIXED = "Fixed Reference"
+LBLUDPORT = "USER-DEFINED PORT"
 
 # Dialog text
 DLGUBXCONFIG = "UBX Configuration"

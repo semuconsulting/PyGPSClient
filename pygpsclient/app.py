@@ -12,7 +12,7 @@ Created on 12 Sep 2020
 :license: BSD 3-Clause
 """
 
-# import logging
+from os import getenv
 from threading import Thread
 from queue import Queue, Empty
 from datetime import datetime, timedelta
@@ -69,9 +69,6 @@ from pygpsclient.nmea_handler import NMEAHandler
 from pygpsclient.ubx_handler import UBXHandler
 
 
-# LOGGING = logging.INFO
-
-
 class App(Frame):  # pylint: disable=too-many-ancestors
     """
     Main PyGPSClient GUI Application Class
@@ -82,16 +79,15 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         Set up main application and add frames
 
         :param tkinter.Tk master: reference to Tk root
-        :param args: optional args to pass to Frame parent class
-        :param kwargs: optional kwargs to pass to Frame parent class
+        :param args: optional args
+        :param kwargs: optional kwargs
         """
 
-        # logging.basicConfig(
-        #     format="%(asctime)-15s [%(levelname)s] %(funcName)s: %(message)s",
-        #     level=LOGGING,
-        # )
-
         self.__master = master
+
+        # user-defined serial port can be passed as environment variable
+        # or command line keyword argument
+        self._user_port = kwargs.pop("port", getenv("PYGPSCLIENT_USERPORT", ""))
 
         Frame.__init__(self, self.__master, *args, **kwargs)
 
@@ -319,6 +315,15 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         else:
             self.frm_mapview.grid_forget()
             self.menu.view_menu.entryconfig(3, label=MENUSHOWMAP)
+
+    @property
+    def user_port(self) -> str:
+        """
+        Getter for user-defined port passed as optional
+        command line keyword argument.
+        """
+
+        return self._user_port
 
     @property
     def conn_status(self) -> int:
