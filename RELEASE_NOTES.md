@@ -1,5 +1,24 @@
 # PyGPSClient Release Notes
 
+### RELEASE v1.3.10
+
+ENHANCEMENTS:
+
+1. Add provision to pass user-defined serial port designator via command line keyword argument port or environment variable PYGPSCLIENT_USERPORT.
+
+e.g.
+
+```shell
+pygpsclient port=/dev/tty12345
+```
+or
+```shell
+export PYGPSCLIENT_USERPORT="/dev/tty12345"
+pygpsclient
+```
+
+Any user-defined port will appear in the serial port listbox as the first preselected item.
+
 ### RELEASE v1.3.9
 
 ENHANCEMENTS:

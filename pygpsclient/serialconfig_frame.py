@@ -79,7 +79,7 @@ class SerialConfigFrame(Frame):
         :param kwargs: optional kwargs for value ranges, or to pass to Frame parent class
         """
 
-        self._kwport = kwargs.pop("port", "")  # port passed from command line
+        self._userport = kwargs.pop("userport", "")  # user-defined port
         self._bpsrate_rng = kwargs.pop("bpsrates", BPSRATE_RNG)
         self._databits_rng = kwargs.pop("databits", DATABITS_RNG)
         self._stopbits_rng = kwargs.pop("stopbits", STOPBITS_RNG)
@@ -95,8 +95,6 @@ class SerialConfigFrame(Frame):
         self._ports = ()
         self._port = StringVar()
         self._port_desc = StringVar()
-        self._port.set(self._kwport)
-        self._port_desc.set(self._kwport)
         self._bpsrate = IntVar()
         self._databits = IntVar()
         self._stopbits = DoubleVar()
@@ -260,35 +258,27 @@ class SerialConfigFrame(Frame):
 
         self._ports = sorted(comports())
         init_idx = 0
-        pidx = 0
-        port = ""
-        desc = ""
+        recognised = False
+        if self._userport != "":
+            self._ports.insert(0, (self._userport, LBLUDPORT, None))
 
         if len(self._ports) > 0:
-            # default selection to first port or port keyword argument
-            if self._port.get() == "":
-                (port, desc, _) = self._ports[0]
-                self._port.set(port)
-                self._port_desc.set(desc)
-            else:  # user-defined serial port
-                self._lbx_port.insert(0, self._port.get() + ": " + LBLUDPORT)
-                pidx = 1
             for idx, (port, desc, _) in enumerate(self._ports):
-                self._lbx_port.insert(idx + pidx, port + ": " + desc)
-                if self._port.get() == "":
+                self._lbx_port.insert(idx, port + ": " + desc)
+                # default selection to recognised GNSS device if possible
+                if not recognised:
                     for dev in self._preselect:
                         if dev in desc:
-                            # update selection to recognised GNSS device
                             init_idx = idx
                             self._port.set(port)
                             self._port_desc.set(desc)
-
+                            recognised = True
                             break
             self.set_status(DISCONNECTED)
+            self._lbx_port.activate(init_idx)
+            self._lbx_port.selection_set(first=init_idx)
         else:
             self.set_status(NOPORTS)
-        self._lbx_port.activate(init_idx)
-        self._lbx_port.selection_set(first=init_idx)
 
     def _on_select_port(self, *args, **kwargs):  # pylint: disable=unused-argument
         """

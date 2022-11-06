@@ -169,7 +169,7 @@ class SettingsFrame(Frame):
             preselect=KNOWNGPS,
             timeouts=TIMEOUTS,
             bpsrates=BPSRATES,
-            port=self.__app.user_port,  # user-defined serial port
+            userport=self.__app.user_port,  # user-defined serial port
         )
 
         # socket configuration panel

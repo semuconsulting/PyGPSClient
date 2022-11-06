@@ -75,6 +75,7 @@ UBXPRESETS = "ubxpresets"
 COLORTAGS = "colortags"
 # list of recognised serial device descriptors:
 KNOWNGPS = (
+    "USER-DEFINED",
     "GPS",
     "gps",
     "GNSS",
