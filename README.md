@@ -9,7 +9,6 @@
 [Installation](#installation) |
 [Mapquest API Key](#mapquestapi) |
 [User-defined Presets](#userdefined) |
-[Known Issues](#knownissues) |
 [Glossary of Terms](#glossary) |
 [License](#license) |
 [Author Information](#author)
@@ -332,15 +331,6 @@ Limit UBX GNSS to GLONASS only, CFG, CFG-GNSS, 002020070008100000000101010103000
 Set UBX GNSS to ALL, CFG, CFG-GNSS, 0020200700081000010001010101030001000101020408000000010103081000000001010400080000000103050003000100010506080E0001000101, 1
 FORCE COLD RESTART !*** Expect ClearCommError ***!, CFG, CFG-RST, ffff0100, 1
 ```
-
----
-## <a name="knownissues">Known Issues</a>
-
-As at May 2022, tkinter performance is noticeably slower on MacOS Monterey platforms (particularly M1/M2) than on Windows or Linux, though internal streamlining in PyGPSClient v1.3.2 went some way to mitigating the impact. The application is fully functional on MacOS but you may find some dialog load operations are relatively slow, particularly at high message rates. This may be resolved in a subsequent MacOS update, but in the meantime the impact can be minimised by:
-1. Opening and closing the UBX or NTRIP configuration dialogs while the serial connection is closed.
-1. Minimising incoming message rates while using the configuration facilities. The [UBX Configuration](#ubxconfig) facility offers presets for 'minimum NMEA messages' or 'minimum UBX messages'.
-1. Temporarily disabling the console display of certain message protocols using the 'Protocols Shown' checkboxes.
-1. Turning off color tagging.
 
 ---
 ## <a name="glossary">Glossary of Terms</a>
