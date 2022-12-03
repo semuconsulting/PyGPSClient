@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE v1.3.11
+
+ENHANCEMENTS:
+
+1. Python 3.11 support added to setup.py. No other functional changes.
+
 ### RELEASE v1.3.10
 
 ENHANCEMENTS:
