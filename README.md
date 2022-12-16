@@ -26,7 +26,7 @@ The application can be installed using the standard `pip` Python package manager
 
 ![Status](https://img.shields.io/pypi/status/PyGPSClient)
 ![Release](https://img.shields.io/github/v/release/semuconsulting/PyGPSClient)
-![Build](https://img.shields.io/github/workflow/status/semuconsulting/pygpsclient/pygpsclient)
+![Build](https://img.shields.io/github/actions/workflow/status/semuconsulting/PyGPSClient/main.yml?branch=master)
 ![Release Date](https://img.shields.io/github/release-date/semuconsulting/PyGPSClient)
 ![Last Commit](https://img.shields.io/github/last-commit/semuconsulting/PyGPSClient)
 ![Contributors](https://img.shields.io/github/contributors/semuconsulting/PyGPSClient.svg)
