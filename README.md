@@ -337,7 +337,7 @@ FORCE COLD RESTART !*** Expect ClearCommError ***!, CFG, CFG-RST, ffff0100, 1
 ---
 ## <a name="cli">Command Line Utilities</a>
 
-The `pygnssutils` library which underpins many of the functions in `PyGPSClient` also incorporates command line versions these functions:
+The `pygnssutils` library which underpins many of the functions in `PyGPSClient` also incorporates command line versions of these functions:
 
 1. `gnssdump` CLI utility. This is essentially a configurable input/output wrapper around the [`pyubx2.UBXReader`](https://github.com/semuconsulting/pyubx2#reading) class with flexible message formatting and filtering options for NMEA, UBX and RTCM3 protocols.
 1. `gnssserver` CLI utility. This implements a TCP Socket Server for GNSS data streams which is also capable of being run as a simple NTRIP Server.
