@@ -9,6 +9,7 @@
 [Installation](#installation) |
 [Mapquest API Key](#mapquestapi) |
 [User-defined Presets](#userdefined) |
+[CLI Utilities](#cli) |
 [Glossary of Terms](#glossary) |
 [License](#license) |
 [Author Information](#author)
@@ -235,9 +236,9 @@ python3 -m pip show PyGPSClient
 ``` 
 and look for the `Location:` entry in the response, e.g.
 
-- Linux: `Location: /home/username/.local/lib/python3.9/site-packages`
-- MacOS: `Location: /Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages`
-- Windows: `Location: c:\users\username\appdata\roaming\python\python39\lib\site-packages`
+- Linux: `Location: /home/username/.local/lib/python3.11/site-packages`
+- MacOS: `Location: /Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages`
+- Windows: `Location: c:\users\username\appdata\roaming\python\python311\lib\site-packages`
 
 **Tip:** To create an application launcher for linux distributions like Ubuntu, create a text file named `pygpsclient.desktop` with the following content (*edited for your particular environment*) and copy this to the `/home/user/.local/share/applications` folder, e.g.
 
@@ -246,7 +247,7 @@ and look for the `Location:` entry in the response, e.g.
 Type=Application
 Terminal=false
 Name=PyGPSClient
-Icon=/home/user/.local/lib/python3.9/site-packages/pygpsclient/resources/pygpsclient.ico
+Icon=/home/user/.local/lib/python3.11/site-packages/pygpsclient/resources/pygpsclient.ico
 Exec=/home/user/.local/bin/pygpsclient
 ```
 
@@ -266,10 +267,10 @@ To install PyGPSClient manually, download and unzip this repository and run:
 python3 -m /path_to_folder/foldername/pygpsclient
 ```
 
-e.g. if you downloaded and unzipped to a folder named `PyGPSClient-1.3.4`, run: 
+e.g. if you downloaded and unzipped to a folder named `PyGPSClient-1.3.12`, run: 
 
 ```shell
-python3 -m /path_to_folder/PyGPSClient-1.3.4/pygpsclient
+python3 -m /path_to_folder/PyGPSClient-1.3.12/pygpsclient
 ```
 
 ---
@@ -332,6 +333,20 @@ Limit UBX GNSS to GLONASS only, CFG, CFG-GNSS, 002020070008100000000101010103000
 Set UBX GNSS to ALL, CFG, CFG-GNSS, 0020200700081000010001010101030001000101020408000000010103081000000001010400080000000103050003000100010506080E0001000101, 1
 FORCE COLD RESTART !*** Expect ClearCommError ***!, CFG, CFG-RST, ffff0100, 1
 ```
+
+---
+## <a name="cli">Command Line Utilities</a>
+
+The `pygnssutils` library which underpins many of the functions in `PyGPSClient` also incorporates command line versions these functions:
+
+1. `gnssdump` CLI utility. This is essentially a configurable input/output wrapper around the [`pyubx2.UBXReader`](https://github.com/semuconsulting/pyubx2#reading) class with flexible message formatting and filtering options for NMEA, UBX and RTCM3 protocols.
+1. `gnssserver` CLI utility. This implements a TCP Socket Server for GNSS data streams which is also capable of being run as a simple NTRIP Server.
+1. `gnssntripclient` CLI utility. This implements
+a simple NTRIP Client which receives RTCM3 correction data from an NTRIP Server and (optionally) sends this to a
+designated output stream.
+1. `ubxsetrate` CLI utility. A simple utility which sets NMEA or UBX message rates on u-blox GNSS receivers.
+
+For further details, refer to the `pygnssutils` homepage at [https://github.com/semuconsulting/pygnssutils](https://github.com/semuconsulting/pygnssutils).
 
 ---
 ## <a name="glossary">Glossary of Terms</a>

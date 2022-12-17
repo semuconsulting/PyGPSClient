@@ -1,5 +1,15 @@
 # PyGPSClient Release Notes
 
+### RELEASE v1.3.12
+
+CHANGES:
+
+1. Minimum pygnssutils version updated to v1.0.0.
+2. shields.io build status badge URL updated.
+3. Image links in README.md updated to absolute links (so images show on PyPi).
+
+No other functional changes.
+
 ### RELEASE v1.3.11
 
 ENHANCEMENTS:
