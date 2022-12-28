@@ -55,7 +55,7 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 1. Graphview widget showing current satellite reception (signal-to-noise ratio).
 1. Mapview widget with location marker, showing either a static Mercator world map, or an optional dynamic web-based map downloaded via a MapQuest API (*requires an Internet connection and free 
 [MapQuest API Key](https://developer.mapquest.com/user/login/sign-up)*).
-1. Spectrum widget showing spectrum analysis chart from MON-SPAN messages.
+1. Spectrum widget showing spectrum analysis chart from MON-SPAN message (*UBX MON-SPAN messages must be enabled or polled*).
 1. Data logging in parsed, binary, hexadecimal string and tabulated hexadecimal formats (NB. only binary datalogs can be re-read by PyGPSClient's parser).
 1. Track recording in GPX format.
 1. UBX Configuration Dialog, with the ability to send a variety of UBX CFG configuration commands to u-blox GNSS devices. This includes the facility to add **user-defined commands or command sequences** - see instructions under [user-defined presets](#userdefined) below. While not intended to be a direct replacement, the application supports much of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool.
