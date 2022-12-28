@@ -156,6 +156,14 @@ pygpsclient.socketconfig\_frame module
    :undoc-members:
    :show-inheritance:
 
+pygpsclient.spectrum\_frame module
+----------------------------------
+
+.. automodule:: pygpsclient.spectrum_frame
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pygpsclient.status\_frame module
 --------------------------------
 

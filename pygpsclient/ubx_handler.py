@@ -72,6 +72,8 @@ class UBXHandler:
             self._process_HNR_PVT(parsed_data)
         elif parsed_data.identity == "RXM-RTCM":
             self._process_RXM_RTCM(parsed_data)
+        elif parsed_data.identity == "MON-SPAN":
+            self._process_MON_SPAN(parsed_data)
 
     def _update_ubxconfig(self, msg: UBXMessage):
         """
@@ -235,7 +237,7 @@ class UBXHandler:
         self.__app.gnss_status.speed = data.gSpeed / 1000  # m/s
         self.__app.gnss_status.track = data.headMot
         self.__app.gnss_status.fix = fix2desc("HNR-PVT", data.gpsFix)
-        self.__app.gnss_status.diff_corr = data.diffSoln
+        self.__app.gnss_status.diff_corr = data.DiffSoln
 
     def _process_RXM_RTCM(self, data: UBXMessage):
         """
@@ -246,3 +248,23 @@ class UBXHandler:
 
         self.__app.gnss_status.diff_corr = data.msgUsed >= 1
         self.__app.gnss_status.diff_station = data.refStation
+
+    def _process_MON_SPAN(self, data: UBXMessage):
+        """
+        Process MON-SPAN sentences - Spectrum Information.
+
+        :param UBXMessage data: MON-SPAN parsed message
+        """
+
+        numrf = data.numRfBlocks
+        rfbs = []
+        for i in range(1, numrf + 1):
+            idx = f"_{i:02}"
+            spec = getattr(data, "spectrum" + idx)
+            spn = getattr(data, "span" + idx)
+            res = getattr(data, "res" + idx)
+            ctr = getattr(data, "center" + idx)
+            pga = getattr(data, "pga" + idx)
+            rfbs.append((spec, spn, res, ctr, pga))
+
+        self.__app.gnss_status.spectrum_data = rfbs
