@@ -102,48 +102,45 @@ class SpectrumviewFrame(Frame):
         self.can_spectrumview.delete("all")
         self.can_spectrumview.create_line(AXIS_XL, 5, AXIS_XL, h - AXIS_Y, fill=FGCOL)
 
-        # plot y axis ticks
-        ticks = int((h - AXIS_Y) * TICK_DB / (self._maxdb - self._mindb))
+        # plot y axis grid
         i = 0
-        y = h - AXIS_Y
-        while y > LEG_YOFF:
-            lbl = "dB" if i == 3 else ""
+        tdb = TICK_DB * ceil((self._maxdb - self._mindb) / (10 * TICK_DB))
+        for db in range(self._mindb, self._maxdb, tdb):
+            x1, y1 = self._get_point(w, h, self._minhz, db)
+            x2, y2 = self._get_point(w, h, self._maxhz, db)
             self.can_spectrumview.create_line(
-                AXIS_XL, y, w - AXIS_XR + 2, y, fill=TICK_COL if i else FGCOL
+                x1, y1, x2 + 1, y2, fill=TICK_COL if i else FGCOL
             )
+            lbl = "dB" if i == 3 else ""
             self.can_spectrumview.create_text(
-                10,
-                y,
-                text=f"{self._mindb + (i * TICK_DB)} {lbl}",
+                x1 - 10,
+                y1,
+                text=f"{db} {lbl}",
                 angle=90,
                 fill=FGCOL,
                 font=resize_font,
             )
-            y -= ticks
             i += 1
 
-        # plot x axis ticks
-        tghz = TICK_GHZ * ceil((self._maxhz - self._minhz) / (TICK_GHZ * 10))
-        ticks = int((w - AXIS_XL - AXIS_XR) * tghz / (self._maxhz - self._minhz))
+        # plot x axis grid
         i = 0
-        x = AXIS_XL
-        while x < w - AXIS_XR:
-            lbl = "GHz" if i == 3 else ""
+        tghz = TICK_GHZ * ceil((self._maxhz - self._minhz) / (10 * TICK_GHZ))
+        for hz in range(
+            int(self._minhz * 100), int(self._maxhz * 100) + 10, int(tghz * 100)
+        ):
+            x1, y1 = self._get_point(w, h, hz / 100, self._mindb)
+            x2, y2 = self._get_point(w, h, hz / 100, self._maxdb)
             self.can_spectrumview.create_line(
-                x,
-                h - AXIS_Y,
-                x,
-                LEG_YOFF,
-                fill=TICK_COL if i else FGCOL,
+                x1, y1 - 1, x2, y2, fill=TICK_COL if i else FGCOL
             )
+            lbl = "GHz" if i == 3 else ""
             self.can_spectrumview.create_text(
-                x,
-                h - AXIS_Y + 10,
-                text=f"{self._minhz + (i * tghz):.2f} {lbl}",
+                x1,
+                y1 + 10,
+                text=f"{hz / 100:.2f} {lbl}",
                 fill=FGCOL,
                 font=resize_font,
             )
-            x += ticks
             i += 1
 
         # display 'enable MON-SPAN' warning
