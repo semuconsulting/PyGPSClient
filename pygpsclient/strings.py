@@ -46,6 +46,7 @@ ENDOFFILE = "End of file reached"
 STOPDATA = "Serial reader process stopped"
 NOTCONN = "Not connected"
 UBXPOLL = "Polling current UBX configuration..."
+MONSPANERROR = "Enable or poll MON-SPAN message"
 
 # Menu text
 MENUFILE = "File"
