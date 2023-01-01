@@ -1,5 +1,15 @@
 # PyGPSClient Release Notes
 
+### RELEASE v1.3.13
+
+ENANCEMENTS:
+
+1. New spectrum analysis widget added. Displays spectrum data from MON-SPAN messages. To turn widget on or off, select Menu...View..Show/Hide Spectrum.
+
+FIXES:
+
+1. Fix attribute typo which affected processing of HNR-PVT message types.
+
 ### RELEASE v1.3.12
 
 CHANGES:
