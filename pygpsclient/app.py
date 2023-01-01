@@ -38,6 +38,8 @@ from pygpsclient.strings import (
     MENUSHOWMAP,
     MENUHIDESATS,
     MENUSHOWSATS,
+    MENUHIDESPECTRUM,
+    MENUSHOWSPECTRUM,
     INTROTXTNOPORTS,
     NOTCONN,
 )
@@ -62,6 +64,7 @@ from pygpsclient.menu_bar import MenuBar
 from pygpsclient.stream_handler import StreamHandler
 from pygpsclient.settings_frame import SettingsFrame
 from pygpsclient.skyview_frame import SkyviewFrame
+from pygpsclient.spectrum_frame import SpectrumviewFrame
 from pygpsclient.status_frame import StatusFrame
 from pygpsclient.ubx_config_dialog import UBXConfigDialog
 from pygpsclient.ntrip_client_dialog import NTRIPConfigDialog
@@ -105,6 +108,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._show_console = True
         self._show_map = True
         self._show_sats = True
+        self._show_spectrum = False
 
         # Instantiate protocol handler classes
         self.msgqueue = Queue()
@@ -136,6 +140,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         # Initialise widgets
         self.frm_satview.init_sats()
         self.frm_graphview.init_graph()
+        self.frm_spectrumview.init_graph()
         self.frm_banner.update_conn_status(DISCONNECTED)
 
     def _body(self):
@@ -148,6 +153,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.__master.grid_columnconfigure(0, weight=1)
         self.__master.grid_columnconfigure(1, weight=2)
         self.__master.grid_columnconfigure(2, weight=2)
+        self.__master.grid_columnconfigure(3, weight=2)
         self.__master.grid_rowconfigure(0, weight=0)
         self.__master.grid_rowconfigure(1, weight=2)
         self.__master.grid_rowconfigure(2, weight=1)
@@ -161,6 +167,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.frm_mapview = MapviewFrame(self, borderwidth=2, relief="groove")
         self.frm_satview = SkyviewFrame(self, borderwidth=2, relief="groove")
         self.frm_graphview = GraphviewFrame(self, borderwidth=2, relief="groove")
+        self.frm_spectrumview = SpectrumviewFrame(self, borderwidth=2, relief="groove")
 
         self.__master.config(menu=self.menu)
 
@@ -175,6 +182,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._grid_console()
         self._grid_sats()
         self._grid_map()
+        self._grid_spectrum()
         self._grid_status()
         self._grid_settings()
 
@@ -315,6 +323,28 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         else:
             self.frm_mapview.grid_forget()
             self.menu.view_menu.entryconfig(3, label=MENUSHOWMAP)
+
+    def toggle_spectrum(self):
+        """
+        Toggle Spectrum Frame on or off
+        """
+
+        self._show_spectrum = not self._show_spectrum
+        self._grid_spectrum()
+
+    def _grid_spectrum(self):
+        """
+        Position Satview and Graphview Frames in grid
+        """
+
+        if self._show_spectrum:
+            self.frm_spectrumview.grid(
+                column=3, row=2, padx=2, pady=2, sticky=(N, S, E, W)
+            )
+            self.menu.view_menu.entryconfig(5, label=MENUHIDESPECTRUM)
+        else:
+            self.frm_spectrumview.grid_forget()
+            self.menu.view_menu.entryconfig(5, label=MENUSHOWSPECTRUM)
 
     @property
     def user_port(self) -> str:
@@ -631,6 +661,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             self.frm_mapview.update_map()
             self.frm_satview.update_sats()
             self.frm_graphview.update_graph()
+            self.frm_spectrumview.update_graph()
             self._last_gui_update = datetime.now()
 
         # update GPX track file if enabled

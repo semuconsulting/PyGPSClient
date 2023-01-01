@@ -43,3 +43,4 @@ class GNSSStatus:
         self.diff_age = 0  # DGPS correction age seconds
         self.diff_station = "N/A"  # DGPS station id
         self.gsv_data = []  # list of satellite tuples (gnssId, svid, elev, azim, cno)
+        self.spectrum_data = []  # list of spectrum data (spec, spn, res, ctr, pga)

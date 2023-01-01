@@ -22,6 +22,7 @@ from pygpsclient.strings import (
     MENUHIDECON,
     MENUHIDEMAP,
     MENUHIDESATS,
+    MENUSHOWSPECTRUM,
     MENUABOUT,
     MENUHELP,
     MENUUBXCONFIG,
@@ -78,6 +79,9 @@ class MenuBar(Menu):
         )
         self.view_menu.add_command(
             label=MENUHIDESATS, underline=1, command=self.__app.toggle_sats
+        )
+        self.view_menu.add_command(
+            label=MENUSHOWSPECTRUM, underline=1, command=self.__app.toggle_spectrum
         )
         self.add_cascade(menu=self.view_menu, label=MENUVIEW)
 
