@@ -12,7 +12,7 @@ Created on 23 Dec 2022
 """
 # pylint: disable=invalid-name
 
-from math import ceil, floor
+from math import ceil
 from tkinter import Frame, Canvas, font, BOTH, YES
 from pygpsclient.globals import WIDGETU2, BGCOL, FGCOL, ERRCOL
 from pygpsclient.strings import MONSPANERROR
@@ -22,21 +22,21 @@ AXIS_XL = 19
 AXIS_XR = 10
 AXIS_Y = 22
 OL_WID = 2
-LEG_XOFF = AXIS_XL + 10
+LEG_XOFF = AXIS_XL + 15
 LEG_YOFF = 5
-LEG_GAP = 5
+LEG_GAP = 8
 MIN_DB = 0
 MAX_DB = 160
-MIN_HZ = 1.50
-MAX_HZ = 1.66
+MIN_HZ = 1130000000
+MAX_HZ = 1650000000
 TICK_DB = 20  # 20 dB divisions
-TICK_GHZ = 0.02  # 0.02 GHz divisions
+TICK_GHZ = 40000000  # 40 MHz divisions
 TICK_COL = "grey"
 RF_SIGS_COL = "palegreen4"
 RF_SIGS = {
-    "L1": 1.57542,
-    "L2": 1.22760,
-    "L5": 1.17645,
+    "L1": 1575420000,
+    "L2": 1227600000,
+    "L5": 1176450000,
 }
 RF_LIST = {
     0: "aquamarine2",
@@ -100,48 +100,59 @@ class SpectrumviewFrame(Frame):
         resize_font = font.Font(size=min(int(h / 25), 10))
 
         self.can_spectrumview.delete("all")
-        self.can_spectrumview.create_line(AXIS_XL, 5, AXIS_XL, h - AXIS_Y, fill=FGCOL)
 
-        # plot y axis grid
+        # plot y (dB) axis grid
         i = 0
-        tdb = TICK_DB * ceil((self._maxdb - self._mindb) / (10 * TICK_DB))
-        for db in range(self._mindb, self._maxdb, tdb):
+        for db in range(self._mindb, self._maxdb, TICK_DB):
             x1, y1 = self._get_point(w, h, self._minhz, db)
             x2, y2 = self._get_point(w, h, self._maxhz, db)
             self.can_spectrumview.create_line(
-                x1, y1, x2 + 1, y2, fill=TICK_COL if i else FGCOL
+                x1, y1, x2 + 1, y1, fill=TICK_COL if i else FGCOL
             )
-            lbl = "dB" if i == 3 else ""
             self.can_spectrumview.create_text(
                 x1 - 10,
                 y1,
-                text=f"{db} {lbl}",
+                text=f"{db}",
                 angle=90,
                 fill=FGCOL,
                 font=resize_font,
             )
             i += 1
 
-        # plot x axis grid
+        # plot x (Hz) axis grid
         i = 0
-        tghz = TICK_GHZ * ceil((self._maxhz - self._minhz) / (10 * TICK_GHZ))
-        for hz in range(
-            int(self._minhz * 100), int(self._maxhz * 100) + 10, int(tghz * 100)
-        ):
-            x1, y1 = self._get_point(w, h, hz / 100, self._mindb)
-            x2, y2 = self._get_point(w, h, hz / 100, self._maxdb)
+        for hz in range(self._minhz, self._maxhz, TICK_GHZ):
+            x1, y1 = self._get_point(w, h, hz, self._mindb)
+            x2, y2 = self._get_point(w, h, hz, self._maxdb)
             self.can_spectrumview.create_line(
-                x1, y1 - 1, x2, y2, fill=TICK_COL if i else FGCOL
+                x1, y1 - 1, x1, y2, fill=TICK_COL if i else FGCOL
             )
-            lbl = "GHz" if i == 3 else ""
             self.can_spectrumview.create_text(
                 x1,
                 y1 + 10,
-                text=f"{hz / 100:.2f} {lbl}",
+                text=f"{hz / 1e9:.2f}",  # GHz
                 fill=FGCOL,
                 font=resize_font,
             )
             i += 1
+
+        self.can_spectrumview.create_text(
+            w - AXIS_XR,
+            h - AXIS_Y,
+            text="GHz",
+            fill=FGCOL,
+            font=resize_font,
+            anchor="se",
+        )
+        self.can_spectrumview.create_text(
+            AXIS_XL,
+            LEG_YOFF,
+            text="dB",
+            fill=FGCOL,
+            angle=90,
+            font=resize_font,
+            anchor="ne",
+        )
 
         # display 'enable MON-SPAN' warning
         if not self._monspan_enabled:
@@ -232,7 +243,7 @@ class SpectrumviewFrame(Frame):
         :param h int: height of canvas
         :param hz float: hz (x) value
         :param db float: db (y) value
-        :return: (x,y) coordinates
+        :return: (x,y) coordinates as integers
         :rtype: tuple
         """
 
@@ -240,7 +251,7 @@ class SpectrumviewFrame(Frame):
             (w - AXIS_XL - AXIS_XR) * (hz - self._minhz) / (self._maxhz - self._minhz)
         )
         y = h - AXIS_Y - ((h - AXIS_Y) * (db / (self._maxdb - self._mindb)))
-        return (x, y)
+        return (int(x), int(y))
 
     def _get_limits(self, rfblocks: list) -> tuple:
         """
@@ -262,21 +273,22 @@ class SpectrumviewFrame(Frame):
         # for each RF block in MON-SPAN message
         for i, rfblock in enumerate(rfblocks):
             (spec, spn, res, ctr, pga) = rfblock
-            minhz = min(minhz, ctr - res * (spn / res) / 2)
-            maxhz = max(maxhz, ctr + res * (spn / res) / 2)
+            minhz = int(min(minhz, ctr - res * (spn / res) / 2))
+            maxhz = int(max(maxhz, ctr + res * (spn / res) / 2))
             spanhz = []
             for i, db in enumerate(spec):
-                # mindb = min(mindb, db - pga)
-                maxdb = max(maxdb, db - pga)
-                hz = minhz + (res * i)
-                spanhz.append((round(hz / 1e9, 3), db - pga))
+                # db -= pga  # compensate for programmable gain
+                mindb = min(mindb, db)
+                maxdb = max(maxdb, db)
+                hz = int(minhz + (res * i))
+                spanhz.append((hz, db))
             specxy.append(spanhz)
 
         return (
             specxy,
-            floor(minhz * 100 / 1e9) / 100,
-            ceil(maxhz * 100 / 1e9) / 100,
-            floor(mindb / 10) * 10,
+            int(minhz - TICK_GHZ / 2),
+            maxhz,
+            MIN_DB,
             ceil((maxdb + 10) / 10) * 10,
         )
 
