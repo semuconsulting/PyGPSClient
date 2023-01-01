@@ -62,8 +62,8 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 1. [NTRIP](https://en.wikipedia.org/wiki/Networked_Transport_of_RTCM_via_Internet_Protocol) Client ([differential GPS enhancement](https://en.wikipedia.org/wiki/Differential_GPS)) facility with the ability to connect to a specified NTRIP server (caster), parse the incoming RTCM3 data and feed this data to a compatible GNSS device (*requires an Internet connection and access to a suitable NTRIP caster*).
 1. [Socket Server / NTRIP Caster](#socketserver)  with two modes of operation: (a) open, unauthenticated Socket Server or (b) NTRIP Caster.
 
-![spectrum screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/spectrumL1.png?raw=true)
-![spectrum screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/spectrumL1L2.png?raw=true)
+![spectrum screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/spectrumM9N.png?raw=true)
+![spectrum screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/spectrumF9P.png?raw=true)
 
 *Spectrum analysis charts from MON-SPAN message from NEO-M9N and ZED-F9P receivers*
 
