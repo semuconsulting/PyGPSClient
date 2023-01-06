@@ -64,6 +64,7 @@ from pygpsclient.globals import (
     KNOWNGPS,
     BPSRATES,
     FORMATS,
+    MSGMODES,
     SOCKMODES,
     TAG_COLORS,
     SOCKSERVER_PORT,
@@ -171,6 +172,7 @@ class SettingsFrame(Frame):
             preselect=KNOWNGPS,
             timeouts=TIMEOUTS,
             bpsrates=BPSRATES,
+            msgmodes=list(MSGMODES.keys()),
             userport=self.__app.user_port,  # user-defined serial port
         )
 
@@ -552,13 +554,15 @@ class SettingsFrame(Frame):
         )
         self.__app.set_status("")
         self.__app.conn_status = CONNECTED
-        self.__app.stream_handler.start_read_thread(CONNECTED)
+        msgmode = self.__app.frm_settings.serial_settings().msgmode
+        self.__app.stream_handler.start_read_thread(CONNECTED, msgmode)
 
     def _on_socket_stream(self):
         """
         Start socket streamer if settings are valid
         """
 
+        msgmode = self.__app.frm_settings.serial_settings().msgmode
         valid = True
         valid = valid & valid_entry(self._frm_socket.ent_server, VALURL)
         valid = valid & valid_entry(self._frm_socket.ent_port, VALINT, 1, MAXPORT)
@@ -569,7 +573,7 @@ class SettingsFrame(Frame):
             )
             self.__app.set_status("")
             self.__app.conn_status = CONNECTED_SOCKET
-            self.__app.stream_handler.start_read_thread(CONNECTED_SOCKET)
+            self.__app.stream_handler.start_read_thread(CONNECTED_SOCKET, msgmode)
         else:
             self.__app.set_status("ERROR - invalid settings", "red")
 
@@ -578,12 +582,13 @@ class SettingsFrame(Frame):
         Start data file streamer if file selected
         """
 
+        msgmode = self.__app.frm_settings.serial_settings().msgmode
         self._in_filepath = self.__app.file_handler.open_infile()
         if self._in_filepath is not None:
             self.__app.set_connection(f"{self._in_filepath}", "blue")
             self.__app.set_status("")
             self.__app.conn_status = CONNECTED_FILE
-            self.__app.stream_handler.start_read_thread(CONNECTED_FILE)
+            self.__app.stream_handler.start_read_thread(CONNECTED_FILE, msgmode)
 
     def _on_socket_serve(self):
         """

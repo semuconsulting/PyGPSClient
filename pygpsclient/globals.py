@@ -13,6 +13,7 @@ Created on 14 Sep 2020
 # pylint: disable=invalid-name, line-too-long
 
 import os
+from pyubx2 import GET, SET, POLL
 
 DIRNAME = os.path.dirname(__file__)
 ICON_APP = os.path.join(DIRNAME, "resources/iconmonstr-location-27-32.png")
@@ -129,6 +130,11 @@ CONNMODES = {
     2: "file",
     3: "no serial devices",
     4: "socket",
+}
+MSGMODES = {
+    "GET": GET,
+    "SET": SET,
+    "POLL": POLL,
 }
 # default widget frame sizes:
 WIDGETU1 = (250, 250)

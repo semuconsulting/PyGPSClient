@@ -35,6 +35,7 @@ from pygpsclient.globals import (
     DISCONNECTED,
     FILEREAD_INTERVAL,
     DEFAULT_BUFSIZE,
+    MSGMODES,
 )
 from pygpsclient.strings import ENDOFFILE
 
@@ -106,11 +107,12 @@ class StreamHandler:
             except (SerialException, SerialTimeoutException) as err:
                 self.__app.set_status(f"Error writing to serial port {err}", "red")
 
-    def start_read_thread(self, mode: int):
+    def start_read_thread(self, mode: int, msgmode: int = 0):
         """
         Start the stream read thread.
 
         :param int mode: connection mode
+        :param int msgmode: pyubx2 message mode 0 = POLL, 1 = SET, 2 = POLL (0)
         """
 
         self._stopevent.clear()
@@ -123,6 +125,7 @@ class StreamHandler:
                 self.__app.msgqueue,
                 self.__app.socketqueue,
                 mode,
+                msgmode,
             ),
             daemon=True,
         )
@@ -145,6 +148,7 @@ class StreamHandler:
         msgqueue: Queue,
         socketqueue: Queue,
         mode: int,
+        msgmode: int,
     ):
         """
         THREADED PROCESS
@@ -156,6 +160,7 @@ class StreamHandler:
         :param Queue msgqueue: message queue
         :param Queue socketqueue: socket server message queue
         :param int mode: connection mode
+        :param int msgmode: pyubx2 message mode 0 = POLL, 1 = SET, 2 = POLL (0)
         """
 
         connstr = ""
@@ -165,7 +170,6 @@ class StreamHandler:
 
                 ser = self.__app.frm_settings.serial_settings()
                 connstr = f"{ser.port}:{ser.port_desc} @ {str(ser.bpsrate)}"
-
                 with Serial(
                     ser.port,
                     ser.bpsrate,
@@ -184,6 +188,7 @@ class StreamHandler:
                         socketqueue,
                         stream,
                         mode,
+                        msgmode,
                     )
 
             elif mode == CONNECTED_FILE:
@@ -199,6 +204,7 @@ class StreamHandler:
                         socketqueue,
                         stream,
                         mode,
+                        msgmode,
                     )
 
             elif mode == CONNECTED_SOCKET:
@@ -214,7 +220,13 @@ class StreamHandler:
                 with socket.socket(socket.AF_INET, socktype) as stream:
                     stream.connect((server, port))
                     self._readloop(
-                        stopevent, sockserve_event, msgqueue, socketqueue, stream, mode
+                        stopevent,
+                        sockserve_event,
+                        msgqueue,
+                        socketqueue,
+                        stream,
+                        mode,
+                        msgmode,
                     )
 
         except (EOFError, TimeoutError):
@@ -241,6 +253,7 @@ class StreamHandler:
         socketqueue: Queue,
         stream: object,
         mode: int,
+        msgmode: int,
     ):
         """
         Read stream continously until stop event or stream error.
@@ -254,6 +267,7 @@ class StreamHandler:
         :param Queue socketqueue: socket server message queue
         :param object stream: data stream
         :param int mode: connection mode
+        :param int msgmode: pyubx2 message mode 0 = POLL, 1 = SET, 2 = POLL
         """
 
         ubr = UBXReader(
@@ -261,6 +275,7 @@ class StreamHandler:
             protfilter=NMEA_PROTOCOL | UBX_PROTOCOL | RTCM3_PROTOCOL,
             quitonerror=ERR_IGNORE,
             bufsize=DEFAULT_BUFSIZE,
+            msgmode=msgmode,
         )
 
         raw_data = None

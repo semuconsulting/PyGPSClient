@@ -2,13 +2,14 @@
 
 ### RELEASE CANDIDATE v1.3.14
 
-CHANGES:
+ENHANCEMENTS:
 
-1. Internal code streamlining for widget selection and arrangement. New reset layout option added.
+1. Msg Mode listbox added to serial configuration dialog. Defaults to 'GET' (periodic or poll response message types) but can be set to 'SET' or 'POLL' to read serial or file streams containing command or poll message types. 
+2. Internal code streamlining for widget selection and arrangement. New reset layout option added.
 
 ### RELEASE v1.3.13
 
-ENANCEMENTS:
+ENHANCEMENTS:
 
 1. New spectrum analysis widget added. Displays spectrum data from MON-SPAN messages. To turn widget on or off, select Menu...View..Show/Hide Spectrum.
 
