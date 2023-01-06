@@ -54,7 +54,7 @@ MAPURL = "https://www.mapquestapi.com/staticmap/v5/map?key={}&locations={},{}&zo
 MAP_UPDATE_INTERVAL = (
     60  # how frequently the mapquest api is called to update the web map (seconds)
 )
-GUI_UPDATE_INTERVAL = 1  # minimum GUI widget update interval (seconds)
+GUI_UPDATE_INTERVAL = 0.5  # minimum GUI widget update interval (seconds)
 GPX_TRACK_INTERVAL = 1  # minimum GPS track update interval (seconds)
 FILEREAD_INTERVAL = 0.02  # delay between successive datalog file reads (seconds)
 SAT_EXPIRY = 10  # how long passed satellites are kept in the sky and graph views
@@ -134,6 +134,9 @@ CONNMODES = {
 WIDGETU1 = (250, 250)
 WIDGETU2 = (350, 250)
 WIDGETU3 = (950, 350)
+MAXCOLSPAN = 4  # max colspan of widgets
+MAXROWSPAN = 3  # max no of widget rows
+
 BGCOL = "gray24"  # default widget background color
 FGCOL = "white"  # default widget foreground color
 ENTCOL = "azure"  # default valid data entry field background color

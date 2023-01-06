@@ -26,13 +26,13 @@ LEG_XOFF = AXIS_XL + 15
 LEG_YOFF = 5
 LEG_GAP = 8
 MIN_DB = 0
-MAX_DB = 160
+MAX_DB = 180
 MIN_HZ = 1130000000
 MAX_HZ = 1650000000
 TICK_DB = 20  # 20 dB divisions
 TICK_GHZ = 40000000  # 40 MHz divisions
 TICK_COL = "grey"
-RF_SIGS_COL = "palegreen4"
+RF_SIGS_COL = "palegreen3"
 RF_SIGS = {
     "L1": 1575420000,
     "L2": 1227600000,
@@ -97,7 +97,7 @@ class SpectrumviewFrame(Frame):
         """
 
         w, h = self.width, self.height
-        resize_font = font.Font(size=min(int(h / 25), 10))
+        resize_font = font.Font(size=min(int(w / 25), 6))
 
         self.can_spectrumview.delete("all")
 
@@ -163,7 +163,7 @@ class SpectrumviewFrame(Frame):
                 fill=ERRCOL,
             )
 
-    def update_graph(self):
+    def update_frame(self):
         """
         Plot MON-SPAN spectrum analysis.
 
@@ -289,7 +289,7 @@ class SpectrumviewFrame(Frame):
             int(minhz - TICK_GHZ / 2),
             maxhz,
             MIN_DB,
-            ceil((maxdb + 10) / 10) * 10,
+            (ceil((maxdb + 10) / 10) * 10) + TICK_DB,
         )
 
     def _on_resize(self, event):  # pylint: disable=unused-argument

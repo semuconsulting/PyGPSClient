@@ -68,6 +68,7 @@ class ConsoleFrame(Frame):
             yscrollcommand=self.sblogv.set,
             xscrollcommand=self.sblogh.set,
             wrap="none",
+            height=20,
         )
         self.sblogh.config(command=self.txt_console.xview)
         self.sblogv.config(command=self.txt_console.yview)

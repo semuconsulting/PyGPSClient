@@ -24,6 +24,18 @@ ABOUTTXT = (
     + "Instructions and source code are available on GitHub at the link below."
 )
 
+# Widget titles
+WDGBANNER = "Banner"
+WDGSETTINGS = "Settings"
+WDGSTATUS = "Status"
+WDGCONSOLE = "Console"
+WDGSATS = "Satellites"
+WDGLEVELS = "Levels"
+WDGMAP = "Map"
+WDGSPECTRUM = "Spectrum"
+HIDE = "Hide"
+SHOW = "Show"
+
 # Message text
 SETINITTXT = "Settings initialised"
 VALERROR = "ERROR! Please correct highlighted entries"
@@ -48,6 +60,7 @@ NOTCONN = "Not connected"
 UBXPOLL = "Polling current UBX configuration..."
 MONSPANERROR = "Enable or poll MON-SPAN message"
 
+
 # Menu text
 MENUFILE = "File"
 MENUVIEW = "View"
@@ -57,25 +70,14 @@ MENULOAD = "Load Settings"
 MENUEXIT = "Exit"
 MENUCAN = "Cancel"
 MENURST = "Reset"
-MENUHIDESE = "Hide Settings"
-MENUSHOWSE = "Show Settings"
 MENUHIDEUBX = "Hide UBX Config"
 MENUSHOWUBX = "Show UBX Config"
-MENUHIDESB = "Hide Status Bar"
-MENUSHOWSB = "Show Status Bar"
-MENUHIDECON = "Hide Console"
-MENUSHOWCON = "Show Console"
-MENUHIDEMAP = "Hide Map"
-MENUSHOWMAP = "Show Map"
-MENUHIDESATS = "Hide Satellites"
-MENUSHOWSATS = "Show Satellites"
-MENUHIDESPECTRUM = "Hide Spectrum"
-MENUSHOWSPECTRUM = "Show Spectrum"
 MENUUBXCONFIG = "UBX Configuration Dialog"
 MENUNTRIPCONFIG = "NTRIP Configuration Dialog"
 MENUHOWTO = "How To"
 MENUABOUT = "About"
 MENUHELP = "Help"
+MENURESET = "Reset Layout"
 
 # Button text
 BTNPLOT = "PLOT"

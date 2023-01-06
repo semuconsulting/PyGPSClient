@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE CANDIDATE v1.3.14
+
+CHANGES:
+
+1. Internal code streamlining for widget selection and arrangement. New reset layout option added.
+
 ### RELEASE v1.3.13
 
 ENANCEMENTS:

@@ -57,6 +57,7 @@ from pygpsclient.globals import (
     ICON_SERIAL,
     ICON_SOCKET,
     ICON_DISCONN,
+    ICON_EXIT,
     ICON_UBXCONFIG,
     ICON_NTRIPCONFIG,
     ICON_LOGREAD,
@@ -144,6 +145,7 @@ class SettingsFrame(Frame):
         self._img_serial = ImageTk.PhotoImage(Image.open(ICON_SERIAL))
         self._img_socket = ImageTk.PhotoImage(Image.open(ICON_SOCKET))
         self._img_disconn = ImageTk.PhotoImage(Image.open(ICON_DISCONN))
+        self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
         self._img_ubxconfig = ImageTk.PhotoImage(Image.open(ICON_UBXCONFIG))
         self._img_ntripconfig = ImageTk.PhotoImage(Image.open(ICON_NTRIPCONFIG))
         self._img_dataread = ImageTk.PhotoImage(Image.open(ICON_LOGREAD))
@@ -210,6 +212,14 @@ class SettingsFrame(Frame):
             state=DISABLED,
         )
         self._lbl_disconnect = Label(self._frm_buttons, text="STOP")
+        self._btn_exit = Button(
+            self._frm_buttons,
+            width=45,
+            height=35,
+            image=self._img_exit,
+            command=lambda: self.__app.quit(),
+        )
+
         self._lbl_status_preset = Label(
             self._frm_buttons, font=self.__app.font_md2, text=""
         )
@@ -409,6 +419,7 @@ class SettingsFrame(Frame):
         self._btn_connect_socket.grid(column=1, row=0, padx=2, pady=1)
         self._btn_connect_file.grid(column=2, row=0, padx=2, pady=1)
         self._btn_disconnect.grid(column=3, row=0, padx=2, pady=1)
+        self._btn_exit.grid(column=4, row=0, padx=2, pady=1)
         self._lbl_connect.grid(column=0, row=1, padx=1, pady=1, sticky=(W, E))
         self._lbl_connect_socket.grid(column=1, row=1, padx=1, pady=1, sticky=(W, E))
         self._lbl_connect_file.grid(column=2, row=1, padx=1, pady=1, sticky=(W, E))
