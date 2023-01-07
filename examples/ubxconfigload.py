@@ -12,7 +12,7 @@ It can be used to copy configuration from one device to another.
 
 Usage (all kwargs are optional):
 
-> python3 ubxconfigload.py infile=ubxconfig-latest.ubx port=/dev/ttyACM1 baud=9600 timeout=0.05 verbose=1
+> python3 ubxconfigload.py infile=ubxconfig.ubx port=/dev/ttyACM1 baud=9600 timeout=0.05 verbose=1
 
 Created on 06 Jan 2023
 
@@ -24,7 +24,7 @@ Created on 06 Jan 2023
 from os import getenv
 import sys
 from threading import Thread, Event, Lock
-from multiprocessing import Queue
+from queue import Queue
 from time import sleep
 from serial import Serial
 from pyubx2 import UBXReader, UBX_PROTOCOL, SET, UBXMessageError, UBXParseError
@@ -42,7 +42,7 @@ class UBXLoader:
 
         self.file = file
         self.stream = stream
-        self.verbose = kwargs.get("verbose", False)
+        self.verbose = int(kwargs.get("verbose", 0))
         ubxreader = UBXReader(self.stream, protfilter=UBX_PROTOCOL)
         ubxloader = UBXReader(self.file, protfilter=UBX_PROTOCOL, msgmode=SET)
 
@@ -52,6 +52,7 @@ class UBXLoader:
 
         self.read_thread = Thread(
             target=self.read_data,
+            daemon=True,
             args=(
                 stream,
                 ubxreader,
@@ -61,6 +62,7 @@ class UBXLoader:
         )
         self.write_thread = Thread(
             target=self.write_data,
+            daemon=True,
             args=(
                 stream,
                 self.send_queue,
@@ -70,6 +72,7 @@ class UBXLoader:
         )
         self.load_thread = Thread(
             target=self.load_data,
+            daemon=True,
             args=(
                 ubxloader,
                 self.send_queue,
@@ -119,7 +122,8 @@ class UBXLoader:
                 except (UBXMessageError, UBXParseError):
                     continue
                 except Exception as err:
-                    print(f"\n\nSomething went wrong {err}\n\n")
+                    if not stop.is_set():
+                        print(f"\n\nSomething went wrong {err}\n\n")
                     continue
 
     def write_data(self, stream: object, queue: Queue, lock: Lock, stop: Event):
@@ -138,6 +142,7 @@ class UBXLoader:
                     self.msg_write += 1
                     if self.verbose:
                         print(f"WRITE {self.msg_write} - {parsed_data}")
+                queue.task_done()
 
     def load_data(self, ubr: UBXReader, queue: Queue, stop: Event):
         """
@@ -154,9 +159,6 @@ class UBXLoader:
                     print(f"LOAD {self.msg_load} - {parsed_data}")
                 sleep(DELAY)
             else:
-                print(
-                    "\nLast message loaded from file. Waiting for final acknowledgements...\n"
-                )
                 sleep(WRAPUP)  # allow time for responses to arrive
                 stop.set()
 
@@ -165,7 +167,7 @@ class UBXLoader:
         Main save routine.
         """
 
-        print("\nStarting processes. Press Ctrl-C to terminate early...")
+        print("\nStarting configuration load. Press Ctrl-C to terminate early...")
 
         self.read_thread.start()
         self.write_thread.start()
@@ -181,35 +183,27 @@ class UBXLoader:
                 )
                 self.stop_event.set()
 
-        print("\nStop signal set. Waiting for threads to complete...")
-
-        self.read_thread.join()
-        self.write_thread.join()
-        self.load_thread.join()
-
-        print("\nProcessing complete.")
-        print(f"{self.msg_load} CFG-VALSET messages loaded from {self.file}")
-        print(f"{self.msg_write} CFG-VALSET messages sent to device {self.stream}")
+        print("Processing complete.")
+        print(f"{self.msg_load} CFG-VALSET messages loaded from {self.file.name}")
+        print(f"{self.msg_write} CFG-VALSET messages sent to device {self.stream.port}")
         print(
             f"{self.msg_ack} CFG-VALSET messages acknowledged",
-            f" - {self.msg_ack*100/self.msg_load:.1f}%",
-        )
-        print(
-            f"{self.msg_nak} CFG-VALSET messages rejected",
-            f" - {self.msg_nak*100/self.msg_load:.1f}%",
+            f"({self.msg_ack*100/self.msg_load:.1f}%),",
+            f"{self.msg_nak} rejected",
+            f"({self.msg_nak*100/self.msg_load:.1f}%)",
         )
 
 
 if __name__ == "__main__":
 
     home = f"{getenv('HOME')}/Downloads/"
-    kwargs = dict(arg.split("=") for arg in sys.argv[1:])
+    kwgs = dict(arg.split("=") for arg in sys.argv[1:])
 
-    infile = kwargs.get("infile", f"{home}ubxconfig.ubx")
-    port = kwargs.get("port", "/dev/tty.usbmodem101")
-    baud = kwargs.get("baud", 9600)
-    timeout = kwargs.get("timeout", 0.05)
-    verbose = kwargs.get("verbose", False)
+    infile = kwgs.get("infile", f"{home}ubxconfig.ubx")
+    port = kwgs.get("port", "/dev/tty.usbmodem101")
+    baud = kwgs.get("baud", 9600)
+    timeout = kwgs.get("timeout", 0.05)
+    verbose = int(kwgs.get("verbose", 0))
 
     with open(infile, "rb") as infile:
         with Serial(port, baud, timeout=timeout) as serial_stream:

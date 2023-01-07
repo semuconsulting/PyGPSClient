@@ -13,7 +13,7 @@ It can be used to copy configuration from one device to another.
 
 Usage (all kwargs are optional):
 
-> python3 ubxconfigsave.py outfile=ubxconfig-latest.ubx port=/dev/ttyACM1 baud=9600 timeout=0.02 verbose=1
+> python3 ubxconfigsave.py outfile=ubxconfig.ubx port=/dev/ttyACM1 baud=9600 timeout=0.02 verbose=1
 
 Created on 06 Jan 2023
 
@@ -25,7 +25,7 @@ Created on 06 Jan 2023
 from os import getenv
 import sys
 from threading import Thread, Event, Lock
-from multiprocessing import Queue
+from queue import Queue
 from time import sleep, strftime
 from serial import Serial
 from pyubx2 import (
@@ -42,6 +42,17 @@ DELAY = 0.02  # delay between polls
 WRAPUP = 5  # delay for final responses
 
 
+def progbar(i: int, lim: int, inc: int = 20):
+    """
+    Display progress bar on console.
+    """
+
+    i = min(i, lim)
+    pct = int(i * inc / lim)
+    if not i % int(lim / inc):
+        print("\u2593" * pct + "\u2591" * (inc - pct), end="\r")
+
+
 class UBXSaver:
     """UBX Configuration Saver Class."""
 
@@ -50,7 +61,7 @@ class UBXSaver:
 
         self.file = file
         self.stream = stream
-        self.verbose = kwargs.get("verbose", False)
+        self.verbose = int(kwargs.get("verbose", 0))
 
         ubxreader = UBXReader(stream, protfilter=UBX_PROTOCOL)
 
@@ -61,6 +72,7 @@ class UBXSaver:
 
         self.read_thread = Thread(
             target=self.read_data,
+            daemon=True,
             args=(
                 self.stream,
                 ubxreader,
@@ -71,25 +83,26 @@ class UBXSaver:
         )
         self.write_thread = Thread(
             target=self.write_data,
+            daemon=True,
             args=(
                 stream,
                 self.send_queue,
                 self.serial_lock,
-                self.stop_event,
             ),
         )
         self.save_thread = Thread(
             target=self.save_data,
+            daemon=True,
             args=(
                 self.file,
                 self.read_queue,
-                self.stop_event,
             ),
         )
 
         self.msg_sent = 0
         self.msg_rcvd = 0
         self.msg_save = 0
+        self.cfgkeys = 0
 
     def read_data(
         self,
@@ -119,15 +132,16 @@ class UBXSaver:
                             if self.verbose:
                                 print(f"RESPONSE {self.msg_rcvd} - {parsed_data}")
                 except Exception as err:
-                    print(f"\n\nSomething went wrong {err}\n\n")
+                    if not stop.is_set():
+                        print(f"\n\nSomething went wrong {err}\n\n")
                     continue
 
-    def write_data(self, stream: object, queue: Queue, lock: Lock, stop: Event):
+    def write_data(self, stream: object, queue: Queue, lock: Lock):
         """
         Read send queue and send UBX message to device
         """
 
-        while not stop.is_set():
+        while True:
 
             if queue.empty() is False:
                 message = queue.get()
@@ -135,92 +149,105 @@ class UBXSaver:
                 stream.write(message.serialize())
                 lock.release()
 
-    def save_data(self, file: object, queue: Queue, stop: Event):
+    def save_data(self, file: object, queue: Queue):
         """
         Get CFG-VALGET data from read queue, convert to CFG-VALSET commands
         and save to binary file.
         """
 
-        while not stop.is_set():
+        while True:
 
-            if queue.empty() is False:
+            cfgdata = []
+            while queue.qsize() > 0:
                 (_, parsed) = queue.get()
                 if parsed.identity == "CFG-VALGET":
-                    self.msg_save += 1
-                    cfgdata = []
-                    # convert to CFG-VALSET
-                    for keyname, val in parsed.__dict__.items():
+                    for keyname in dir(parsed):
                         if keyname[0:3] == "CFG":
-                            cfgdata.append((keyname, val))
-                    data = UBXMessage.config_set(
-                        layers=SET_LAYER_RAM, transaction=0, cfgData=cfgdata
-                    )
-                    if self.verbose:
-                        print(f"SAVE {self.msg_save} - {data}")
-                    file.write(data.serialize())
+                            cfgdata.append((keyname, getattr(parsed, keyname)))
+                queue.task_done()
+                if len(cfgdata) >= 64:  # up to 64 keys in each CFG-VALSET
+                    self.file_write(file, cfgdata)
+                    cfgdata = []
+            if len(cfgdata) > 0:
+                self.file_write(file, cfgdata)
+
+    def file_write(self, file: object, cfgdata: list):
+        """
+        Write binary CFG-VALSET message data to output file.
+        """
+
+        if len(cfgdata) == 0:
+            return
+        self.msg_save += 1
+        self.cfgkeys += len(cfgdata)
+        data = UBXMessage.config_set(
+            layers=SET_LAYER_RAM, transaction=0, cfgData=cfgdata
+        )
+        if self.verbose:
+            print(f"SAVE {self.msg_save} - {data}")
+        file.write(data.serialize())
 
     def run(self):
         """
         Main save routine.
         """
 
-        print("\nStarting processes. Press Ctrl-C to terminate early...")
+        print("\nStarting configuration poll. Press Ctrl-C to terminate early...")
 
         self.read_thread.start()
         self.write_thread.start()
-        self.save_thread.start()
 
         # loop until all commands sent or user presses Ctrl-C
-        while not self.stop_event.is_set():
-            try:
-                layer = POLL_LAYER_RAM
-                position = 0
+        try:
+            layer = POLL_LAYER_RAM
+            position = 0
+            keys = []
+            for i, key in enumerate(UBX_CONFIG_DATABASE):
+                if not self.verbose:
+                    progbar(i, len(UBX_CONFIG_DATABASE), 50)
+                keys.append(key)
+                msg = UBXMessage.config_poll(layer, position, keys)
+                self.send_queue.put(msg)
+                self.msg_sent += 1
+                if self.verbose:
+                    print(f"POLL {i} - {msg}")
                 keys = []
-                for i, key in enumerate(UBX_CONFIG_DATABASE):
-                    keys.append(key)
-                    msg = UBXMessage.config_poll(layer, position, keys)
-                    self.send_queue.put(msg)
-                    self.msg_sent += 1
-                    if self.verbose:
-                        print(f"POLL {i} - {msg}")
-                    keys = []
-                    sleep(DELAY)
+                sleep(DELAY)
 
-                print(
-                    "\nAll keys in configuration database polled. Waiting for final responses..."
-                )
-                sleep(WRAPUP)
-                self.stop_event.set()
+            print(
+                "\n\nAll keys in configuration database polled. Waiting for final responses..."
+            )
+            sleep(WRAPUP)
+            self.stop_event.set()
+            self.save_thread.start()
 
-            except KeyboardInterrupt:  # capture Ctrl-C
-                print(
-                    "\n\nTerminated by user. WARNING! Configuration may be incomplete."
-                )
-                self.stop_event.set()
+        except KeyboardInterrupt:  # capture Ctrl-C
+            print("\n\nTerminated by user. WARNING! Configuration may be incomplete.")
 
-        print("\nStop signal set. Waiting for threads to complete...")
+        print("Responses processed. Waiting for data to be written to file...")
 
-        self.read_thread.join()
-        self.write_thread.join()
-        self.save_thread.join()
+        self.read_queue.join()
 
-        print("\nProcessing complete.")
-        print(f"{self.msg_sent} CFG-VALGET polls sent to {self.stream}")
+        print("Processing complete.")
+        print(f"{self.msg_sent} CFG-VALGET polls sent to {self.stream.port}")
         print(f"{self.msg_rcvd} CFG-VALGET responses received")
-        print(f"{self.msg_save} CFG-VALSET messages saved to {self.file}")
+        print(
+            f"{self.msg_save} CFG-VALSET messages containing {self.cfgkeys} keys",
+            f"({self.cfgkeys*100/self.msg_rcvd:.1f}%) written to {self.file.name}",
+        )
 
 
 if __name__ == "__main__":
 
     home = f"{getenv('HOME')}/Downloads/"
 
-    kwargs = dict(arg.split("=") for arg in sys.argv[1:])
+    kwgs = dict(arg.split("=") for arg in sys.argv[1:])
 
-    outfile = kwargs.get("outfile", f"{home}ubxconfig-{strftime('%Y%m%d%H%M%S')}.ubx")
-    port = kwargs.get("port", "/dev/tty.usbmodem101")
-    baud = kwargs.get("baud", 9600)
-    timeout = kwargs.get("timeout", 0.02)
-    verbose = kwargs.get("verbose", False)
+    outfile = kwgs.get("outfile", f"{home}ubxconfig-{strftime('%Y%m%d%H%M%S')}.ubx")
+    port = kwgs.get("port", "/dev/tty.usbmodem101")
+    baud = kwgs.get("baud", 9600)
+    timeout = kwgs.get("timeout", 0.02)
+    verbose = int(kwgs.get("verbose", 0))
 
     with open(outfile, "wb") as outfile:
         with Serial(port, baud, timeout=timeout) as serial_stream:
