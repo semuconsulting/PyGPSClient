@@ -35,6 +35,9 @@ from pyubx2 import (
     UBX_CONFIG_DATABASE,
     POLL_LAYER_RAM,
     SET_LAYER_RAM,
+    TXN_START,
+    TXN_ONGOING,
+    TXN_COMMIT,
 )
 
 # try increasing these values if device response is too slow:
@@ -155,6 +158,7 @@ class UBXSaver:
         and save to binary file.
         """
 
+        i = 0
         while True:
 
             cfgdata = []
@@ -166,12 +170,14 @@ class UBXSaver:
                             cfgdata.append((keyname, getattr(parsed, keyname)))
                 queue.task_done()
                 if len(cfgdata) >= 64:  # up to 64 keys in each CFG-VALSET
-                    self.file_write(file, cfgdata)
+                    txn = TXN_ONGOING if i else TXN_START
+                    self.file_write(file, txn, cfgdata)
                     cfgdata = []
+                    i += 1
             if len(cfgdata) > 0:
-                self.file_write(file, cfgdata)
+                self.file_write(file, TXN_COMMIT, cfgdata)
 
-    def file_write(self, file: object, cfgdata: list):
+    def file_write(self, file: object, txn: int, cfgdata: list):
         """
         Write binary CFG-VALSET message data to output file.
         """
@@ -181,7 +187,7 @@ class UBXSaver:
         self.msg_save += 1
         self.cfgkeys += len(cfgdata)
         data = UBXMessage.config_set(
-            layers=SET_LAYER_RAM, transaction=0, cfgData=cfgdata
+            layers=SET_LAYER_RAM, transaction=txn, cfgData=cfgdata
         )
         if self.verbose:
             print(f"SAVE {self.msg_save} - {data}")
