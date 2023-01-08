@@ -14,7 +14,7 @@ Created on 23 Dec 2022
 
 from math import ceil
 from tkinter import Frame, Canvas, font, BOTH, YES
-from pygpsclient.globals import WIDGETU2, BGCOL, FGCOL, ERRCOL
+from pygpsclient.globals import WIDGETU2, BGCOL, FGCOL
 from pygpsclient.strings import MONSPANERROR
 
 # Relative offsets of graph axes and legends
@@ -160,7 +160,7 @@ class SpectrumviewFrame(Frame):
                 w / 2,
                 h / 2,
                 text=MONSPANERROR,
-                fill=ERRCOL,
+                fill="orange",
             )
 
     def update_frame(self):
