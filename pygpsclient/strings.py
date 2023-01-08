@@ -129,10 +129,16 @@ DLGRESETCONFIRM = (
     "Are you sure you want to reset the\ncurrent configuration to the\nfactory default?"
 )
 DLGSAVECONFIRM = "Are you sure you want to save\nthe current configuration?"
+DLGSAVINGCONFIG = "Saving configuration to"
+DLGLOADINGCONFIG = "Loading configuration from"
+DLGSAVEDCONFIG = "Configuration saved to"
+DLGLOADEDCONFIG = "Configuration loaded from"
 
 # UBX Preset Command Descriptions
 PSTRESET = "CFG-CFG - RESTORE FACTORY DEFAULTS"
-PSTSAVE = "CFG-CFG - SAVE CURRENT CONFIGURATION TO DEVICE MEMORY"
+PSTSAVE = "CFG-CFG - SAVE CURRENT CONFIGURATION TO NON-VOLATILE MEMORY"
+PSTSAVEFILE = "SAVE CONFIGURATION TO FILE (G9+ ONLY)"
+PSTLOADFILE = "LOAD CONFIGURATION FROM FILE (G9+ ONLY)"
 PSTMINNMEAON = "CFG-MSG - Turn ON minimum NMEA msgs"
 PSTALLNMEAON = "CFG-MSG - Turn ON all NMEA msgs"
 PSTALLNMEAOFF = "CFG-MSG - Turn OFF all NMEA msgs"

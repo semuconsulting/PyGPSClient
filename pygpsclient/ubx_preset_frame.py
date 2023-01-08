@@ -31,7 +31,8 @@ from pyubx2 import (
     UBX_MSGIDS,
     UBX_PAYLOADS_POLL,
 )
-from .globals import (
+from pygnssutils import UBXLoader, UBXSaver
+from pygpsclient.globals import (
     ENTCOL,
     ICON_SEND,
     ICON_WARNING,
@@ -39,8 +40,8 @@ from .globals import (
     ICON_CONFIRMED,
     UBX_PRESET,
 )
-from .helpers import ConfirmBox
-from .strings import (
+from pygpsclient.helpers import ConfirmBox
+from pygpsclient.strings import (
     LBLPRESET,
     DLGRESET,
     DLGSAVE,
@@ -48,6 +49,8 @@ from .strings import (
     DLGSAVECONFIRM,
     PSTRESET,
     PSTSAVE,
+    PSTSAVEFILE,
+    PSTLOADFILE,
     PSTMINNMEAON,
     PSTALLNMEAON,
     PSTALLNMEAOFF,
@@ -66,11 +69,18 @@ from .strings import (
     PSTPOLLINFO,
     PSTPOLLALLCFG,
     PSTPOLLALLNAV,
+    DLGSAVINGCONFIG,
+    DLGLOADINGCONFIG,
+    DLGSAVEDCONFIG,
+    DLGLOADEDCONFIG,
 )
 
 PRESET_COMMMANDS = [
     PSTRESET,
     PSTSAVE,
+    # TODO reinstate these once implemented
+    # PSTSAVEFILE,
+    # PSTLOADFILE,
     PSTMINNMEAON,
     PSTALLNMEAON,
     PSTALLNMEAOFF,
@@ -118,6 +128,7 @@ class UBX_PRESET_Frame(Frame):
         self._img_confirmed = ImageTk.PhotoImage(Image.open(ICON_CONFIRMED))
         self._img_warn = ImageTk.PhotoImage(Image.open(ICON_WARNING))
         self._preset_command = None
+        self._configfile = None
         self._body()
         self._do_layout()
         self._attach_events()
@@ -223,6 +234,10 @@ class UBX_PRESET_Frame(Frame):
                 confirmed = self._do_factory_reset()
             elif self._preset_command == PSTSAVE:
                 confirmed = self._do_save_config()
+            elif self._preset_command == PSTSAVEFILE:
+                self._do_save_configfile()
+            elif self._preset_command == PSTLOADFILE:
+                self._do_load_configfile()
             elif self._preset_command == PSTMINNMEAON:
                 self._do_set_minnmea()
             elif self._preset_command == PSTALLNMEAON:
@@ -516,6 +531,52 @@ class UBX_PRESET_Frame(Frame):
             return True
 
         return False
+
+    def _do_save_configfile(self):
+        """
+        Save configuration to file.
+        TODO NOT YET FULLY IMPLEMENTED
+        """
+
+        self._configfile = self.__app.file_handler.set_configfile_path()
+        if self._configfile is None:
+            return
+
+        self.__app.set_status(f"{DLGSAVINGCONFIG}: {self._configfile}", "green")
+        stream = self.__app.stream_handler.serial
+        if stream is not None:
+            with open(self._configfile, "wb") as file:
+                ubs = UBXSaver(file, stream, verbosity=1, waittime=5)
+                rc = ubs.run()
+        self.__app.set_status(f"{DLGSAVEDCONFIG}: {self._configfile}", "blue")
+
+        # self._saveconfig_thread = Thread(
+        #         target=self._saveconfig, daemon=False
+        #     )
+        #     self._saveconfig_thread.start()
+
+    def _do_load_configfile(self):
+        """
+        Load configuration from file.
+        TODO NOT YET FULLY IMPLEMENTED
+        """
+
+        self._configfile = self.__app.file_handler.open_configfile()
+        if self._configfile is None:
+            return
+
+        self.__app.set_status(f"{DLGLOADINGCONFIG}: {self._configfile}", "green")
+        stream = self.__app.stream_handler.serial
+        if stream is not None:
+            with open(self._configfile, "rb") as file:
+                ubl = UBXLoader(file, stream, verbosity=1, waittime=5)
+                rc = ubl.run()
+        self.__app.set_status(f"{DLGLOADEDCONFIG}: {self._configfile}", "blue")
+
+        # self._loadconfig_thread = Thread(
+        #         target=self._loadconfig, daemon=False
+        #     )
+        #     self._loadconfig_thread.start()
 
     def _do_user_defined(self, command: str):
         """

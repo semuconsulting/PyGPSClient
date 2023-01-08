@@ -56,6 +56,8 @@ class FileHandler:
         self._trackpath = None
         self._trackname = None
         self._trackfile = None
+        self._configpath = None
+        self._configfile = None
         self._lines = 0
 
     def __del__(self):
@@ -348,3 +350,36 @@ class FileHandler:
                 self._trackfile.close()
         except (IOError, ValueError):
             pass
+
+    def set_configfile_path(self) -> str:
+        """
+        Set configuration file path.
+
+        :return: file path
+        :rtype: str
+        """
+
+        self._configpath = filedialog.askdirectory(
+            title=SAVETITLE, initialdir=HOME, mustexist=True
+        )
+        if self._configpath in ((), ""):
+            return None  # User cancelled
+        self._configfile = self._set_filename(self._configpath, "config", "ubx")
+        return self._configfile
+
+    def open_configfile(self):
+        """
+        Open configuration file.
+        """
+
+        self._configfile = filedialog.askopenfilename(
+            title=READTITLE,
+            initialdir=HOME,
+            filetypes=(
+                ("config files", "*.ubx"),
+                ("all files", "*.*"),
+            ),
+        )
+        if self._configfile in ((), ""):
+            return None  # User cancelled
+        return self._configfile
