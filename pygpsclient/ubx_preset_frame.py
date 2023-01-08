@@ -31,7 +31,9 @@ from pyubx2 import (
     UBX_MSGIDS,
     UBX_PAYLOADS_POLL,
 )
-from pygnssutils import UBXLoader, UBXSaver
+
+# TODO reinstate once implemented:
+# from pygnssutils import UBXLoader, UBXSaver
 from pygpsclient.globals import (
     ENTCOL,
     ICON_SEND,
@@ -78,7 +80,7 @@ from pygpsclient.strings import (
 PRESET_COMMMANDS = [
     PSTRESET,
     PSTSAVE,
-    # TODO reinstate these once implemented
+    # TODO reinstate once implemented:
     # PSTSAVEFILE,
     # PSTLOADFILE,
     PSTMINNMEAON,
@@ -100,6 +102,9 @@ PRESET_COMMMANDS = [
     PSTPOLLALLCFG,
     PSTPOLLALLNAV,
 ]
+CANCELLED = 0
+CONFIRMED = 1
+NOMINAL = 2
 
 
 class UBX_PRESET_Frame(Frame):
@@ -226,18 +231,18 @@ class UBX_PRESET_Frame(Frame):
         Preset command send button has been clicked.
         """
 
-        confirmed = True
+        status = CONFIRMED
         confids = ("MON-VER", "ACK-ACK")
         try:
 
             if self._preset_command == PSTRESET:
-                confirmed = self._do_factory_reset()
+                status = self._do_factory_reset()
             elif self._preset_command == PSTSAVE:
-                confirmed = self._do_save_config()
+                status = self._do_save_config()
             elif self._preset_command == PSTSAVEFILE:
-                self._do_save_configfile()
+                status = self._do_save_configfile()
             elif self._preset_command == PSTLOADFILE:
-                self._do_load_configfile()
+                status = self._do_load_configfile()
             elif self._preset_command == PSTMINNMEAON:
                 self._do_set_minnmea()
             elif self._preset_command == PSTALLNMEAON:
@@ -278,13 +283,15 @@ class UBX_PRESET_Frame(Frame):
                 confids = ("MON-VER", "ACK-ACK", "ACK-NAK")
                 self._do_user_defined(self._preset_command)
 
-            if confirmed:
+            if status == CONFIRMED:
                 self._lbl_send_command.config(image=self._img_pending)
                 self.__container.set_status("Command(s) sent", "blue")
                 for msgid in confids:
                     self.__container.set_pending(msgid, UBX_PRESET)
-            else:
+            elif status == CANCELLED:
                 self.__container.set_status("Command(s) cancelled", "blue")
+            elif status == NOMINAL:
+                pass
 
         except Exception as err:  # pylint: disable=broad-except
             self.__container.set_status(f"Error {err}", "red")
@@ -502,9 +509,9 @@ class UBX_PRESET_Frame(Frame):
                 devEEPROM=1,
             )
             self.__app.stream_handler.serial_write(msg.serialize())
-            return True
+            return CONFIRMED
 
-        return False
+        return CANCELLED
 
     def _do_save_config(self) -> bool:
         """
@@ -528,9 +535,9 @@ class UBX_PRESET_Frame(Frame):
                 devEEPROM=1,
             )
             self.__app.stream_handler.serial_write(msg.serialize())
-            return True
+            return CONFIRMED
 
-        return False
+        return CANCELLED
 
     def _do_save_configfile(self):
         """
@@ -542,18 +549,20 @@ class UBX_PRESET_Frame(Frame):
         if self._configfile is None:
             return
 
-        self.__app.set_status(f"{DLGSAVINGCONFIG}: {self._configfile}", "green")
-        stream = self.__app.stream_handler.serial
-        if stream is not None:
-            with open(self._configfile, "wb") as file:
-                ubs = UBXSaver(file, stream, verbosity=1, waittime=5)
-                rc = ubs.run()
-        self.__app.set_status(f"{DLGSAVEDCONFIG}: {self._configfile}", "blue")
+        self.__container.set_status(f"{DLGSAVINGCONFIG}: {self._configfile}", "green")
+        # stream = self.__app.stream_handler.serial
+        # if stream is not None:
+        #     with open(self._configfile, "wb") as file:
+        #         ubs = UBXSaver(file, stream, verbosity=1, waittime=5)
+        #         rc = ubs.run()
+        # self.update_status(f"{DLGSAVEDCONFIG}: {self._configfile}", "blue")
 
         # self._saveconfig_thread = Thread(
         #         target=self._saveconfig, daemon=False
         #     )
         #     self._saveconfig_thread.start()
+
+        return NOMINAL
 
     def _do_load_configfile(self):
         """
@@ -565,18 +574,20 @@ class UBX_PRESET_Frame(Frame):
         if self._configfile is None:
             return
 
-        self.__app.set_status(f"{DLGLOADINGCONFIG}: {self._configfile}", "green")
-        stream = self.__app.stream_handler.serial
-        if stream is not None:
-            with open(self._configfile, "rb") as file:
-                ubl = UBXLoader(file, stream, verbosity=1, waittime=5)
-                rc = ubl.run()
-        self.__app.set_status(f"{DLGLOADEDCONFIG}: {self._configfile}", "blue")
+        self.__container.set_status(f"{DLGLOADINGCONFIG}: {self._configfile}", "green")
+        # stream = self.__app.stream_handler.serial
+        # if stream is not None:
+        #     with open(self._configfile, "rb") as file:
+        #         ubl = UBXLoader(file, stream, verbosity=1, waittime=5)
+        #         rc = ubl.run()
+        # self.update_status(f"{DLGLOADEDCONFIG}: {self._configfile}", "blue")
 
         # self._loadconfig_thread = Thread(
         #         target=self._loadconfig, daemon=False
         #     )
         #     self._loadconfig_thread.start()
+
+        return NOMINAL
 
     def _do_user_defined(self, command: str):
         """
