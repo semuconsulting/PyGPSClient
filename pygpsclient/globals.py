@@ -43,6 +43,7 @@ ICON_PLAY = os.path.join(DIRNAME, "resources/iconmonstr-media-control-48-24.png"
 ICON_RECORD = os.path.join(DIRNAME, "resources/iconmonstr-record-1-24.png")
 ICON_STOP = os.path.join(DIRNAME, "resources/iconmonstr-stop-1-24.png")
 ICON_UNDO = os.path.join(DIRNAME, "resources/iconmonstr-undo-6-24.png")
+ICON_DELETE = os.path.join(DIRNAME, "resources/iconmonstr-trash-can-filled-24.png")
 IMG_WORLD = os.path.join(DIRNAME, "resources/world.png")
 
 GITHUB_URL = "https://github.com/semuconsulting/PyGPSClient"

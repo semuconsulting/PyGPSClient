@@ -10,9 +10,10 @@ Created on 9 Jan 2023
 :copyright: SEMU Consulting © 2023
 :license: BSD 3-Clause
 """
-# pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
+# pylint: disable=invalid-name, too-many-instance-attributes
 
 from time import sleep
+from threading import Event, Thread
 from tkinter import (
     Frame,
     Button,
@@ -22,6 +23,7 @@ from tkinter import (
 )
 from PIL import ImageTk, Image
 from pyubx2 import (
+    UBXMessage,
     UBXReader,
     SET,
     UBX_PROTOCOL,
@@ -33,6 +35,7 @@ from pygpsclient.globals import (
     ICON_UNDO,
     ICON_LOAD,
     ICON_SAVE,
+    ICON_DELETE,
 )
 from .strings import LBLCFGRECORD
 
@@ -68,13 +71,15 @@ class UBX_Recorder_Frame(Frame):
         self._img_stop = ImageTk.PhotoImage(Image.open(ICON_STOP))
         self._img_record = ImageTk.PhotoImage(Image.open(ICON_RECORD))
         self._img_undo = ImageTk.PhotoImage(Image.open(ICON_UNDO))
+        self._img_delete = ImageTk.PhotoImage(Image.open(ICON_DELETE))
         self._cmds_stored = []
         self._rec_status = STOP
         self._configfile = None
+        self._stop_event = Event()
+        self._bg = self.cget("bg")  # default background color
 
         self._body()
         self._do_layout()
-        self._attach_events()
         self.reset()
 
     def _body(self):
@@ -119,8 +124,15 @@ class UBX_Recorder_Frame(Frame):
             command=self._on_undo,
             font=self.__app.font_md,
         )
-        self._lbl_status = Label(self, text="", fg="blue", anchor="w")
-        self._lbl_activity = Label(self, text="", fg="red", anchor="w")
+        self._btn_delete = Button(
+            self,
+            image=self._img_delete,
+            width=40,
+            command=self._on_delete,
+            font=self.__app.font_md,
+        )
+        self._lbl_status = Label(self, text="", fg="blue", anchor="center")
+        self._lbl_activity = Label(self, text="", fg="red", anchor="center")
 
     def _do_layout(self):
         """
@@ -133,6 +145,7 @@ class UBX_Recorder_Frame(Frame):
         self._btn_play.grid(column=2, row=1, ipadx=3, ipady=3, sticky=(W))
         self._btn_record.grid(column=3, row=1, ipadx=3, ipady=3, sticky=(W))
         self._btn_undo.grid(column=4, row=1, ipadx=3, ipady=3, sticky=(W))
+        self._btn_delete.grid(column=5, row=1, ipadx=3, ipady=3, sticky=(W))
         self._lbl_status.grid(column=0, row=2, columnspan=6, padx=3, sticky=(W, E))
         self._lbl_activity.grid(column=0, row=3, columnspan=6, padx=3, sticky=(W, E))
 
@@ -142,11 +155,6 @@ class UBX_Recorder_Frame(Frame):
         for i in range(rows):
             self.grid_rowconfigure(i, weight=1)
         self.option_add("*Font", self.__app.font_sm)
-
-    def _attach_events(self):
-        """
-        Bind events to widget.
-        """
 
     def reset(self):
         """
@@ -159,7 +167,7 @@ class UBX_Recorder_Frame(Frame):
 
     def _on_load(self):
         """
-        Load commands from file into memory array.
+        Load commands from file into in-memory recording.
         """
 
         self._configfile = self.__app.file_handler.open_configfile()
@@ -181,13 +189,16 @@ class UBX_Recorder_Frame(Frame):
                 else:
                     eof = True
         if i > 0:
-            self._lbl_activity.config(text=f"{i} Commands loaded", fg="blue")
+            self._lbl_activity.config(
+                text=f"{i} Commands loaded from {self._configfile.split('/')[-1]}",
+                fg="blue",
+            )
 
         self._update_status()
 
     def _on_save(self):
         """
-        Save commands from memory array to file.
+        Save commands from in-memory recording to file.
         """
 
         if len(self._cmds_stored) == 0:
@@ -204,13 +215,19 @@ class UBX_Recorder_Frame(Frame):
             for i, msg in enumerate(self._cmds_stored):
                 file.write(msg.serialize())
         self._cmds_stored = []
-        self._lbl_activity.config(text=f"{i + 1} Commands saved", fg="blue")
+        self._lbl_activity.config(
+            text=f"{i + 1} Commands saved to {self._configfile.split('/')[-1]}",
+            fg="blue",
+        )
         self._update_status()
 
     def _on_play(self):
         """
-        Send commands to device from memory array.
+        Send commands to device from in-memory recording.
         """
+
+        if self._rec_status == RECORD:
+            return
 
         if len(self._cmds_stored) == 0:
             self._lbl_activity.config(text="Nothing to send", fg="red")
@@ -232,20 +249,21 @@ class UBX_Recorder_Frame(Frame):
 
     def _on_record(self):
         """
-        Record commands to memory array.
-        TODO NOT YET FULLY IMPLEMENTED
+        Add commands to in-memory recording.
         """
 
         if self._rec_status == STOP:
             self._rec_status = RECORD
+            self.__container.recordmode = True
         elif self._rec_status == RECORD:
             self._rec_status = STOP
+            self.__container.recordmode = False
         self._update_activity()
         self._update_status()
 
     def _on_undo(self):
         """
-        Remove last command from memory array.
+        Remove last record from in-memory recording.
         """
 
         if len(self._cmds_stored) == 0:
@@ -258,38 +276,85 @@ class UBX_Recorder_Frame(Frame):
                 self._update_status()
                 self._lbl_activity.config(text="Last command undone", fg="purple")
 
+    def _on_delete(self):
+        """
+        Delete all records in in-memory recording.
+        """
+
+        if self._rec_status == RECORD:
+            return
+
+        if len(self._cmds_stored) == 0:
+            self._lbl_activity.config(text="Nothing to delete", fg="red")
+            return
+
+        self._lbl_activity.config(
+            text=f"{len(self._cmds_stored)} records deleted", fg="red"
+        )
+        self._cmds_stored = []
+        self._update_status()
+
     def _update_status(self):
         """
         Update status label.
         """
 
         lcs = len(self._cmds_stored)
-        lst = f" , Last Command: {self._cmds_stored[-1].identity}" if lcs > 0 else ""
+        lst = f" , last command: {self._cmds_stored[-1].identity}" if lcs > 0 else ""
         self._lbl_status.config(
-            text=f"Commands Stored: {lcs}{lst}",
+            text=f"Commands in memory: {lcs}{lst}",
             fg="blue",
         )
 
     def _update_activity(self):
         """
-        Update activity label.
+        Update activity label and button icons.
         """
 
-        if self._rec_status == RECORD:
-            pimg = self._img_play
-            rimg = self._img_stop
-            atxt = "RECORDING"
-            acol = "red"
-        elif self._rec_status == STOP:
+        if self._rec_status == STOP:
+            self._stop_event.set()
             pimg = self._img_play
             rimg = self._img_record
-            atxt = "STOPPED"
-            acol = "black"
+            self._lbl_activity.config(text="STOPPED", fg="black", bg=self._bg)
         elif self._rec_status == PLAY:
             pimg = self._img_stop
             rimg = self._img_record
-            atxt = "PLAYING"
-            acol = "green"
+            self._lbl_activity.config(text="PLAYING", fg="green", bg=self._bg)
+        elif self._rec_status == RECORD:
+            self._stop_event.clear()
+            pimg = self._img_play
+            rimg = self._img_stop
+            # start flashing record label...
+            Thread(
+                target=self._flash_record,
+                daemon=True,
+                args=(self._stop_event,),
+            ).start()
+
         self._btn_play.config(image=pimg)
         self._btn_record.config(image=rimg)
-        self._lbl_activity.config(text=atxt, fg=acol)
+
+    def update_record(self, msg: UBXMessage):
+        """
+        Add UBX CFG SET command to in-memory recording.
+
+        :param UBXMessage msg: message to record
+        """
+
+        if msg.msgmode == SET:
+            self._cmds_stored.append(msg)
+            self._update_status()
+
+    def _flash_record(self, stop: Event):
+        """
+        THREADED
+        Flash record indicator for conspicuity.
+        """
+
+        cols = [("white", "red"), ("red", self._bg)]
+        i = 0
+        while not stop.is_set():
+
+            i = not i
+            self._lbl_activity.config(text="RECORDING", fg=cols[i][0], bg=cols[i][1])
+            sleep(1)

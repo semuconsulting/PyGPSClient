@@ -7,10 +7,8 @@ Created on 22 Dec 2020
 :copyright: SEMU Consulting © 2020
 :license: BSD 3-Clause
 """
-# pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
+# pylint: disable=invalid-name, too-many-instance-attributes
 
-from threading import Thread
-from time import sleep
 from tkinter import (
     Frame,
     Listbox,
@@ -34,8 +32,6 @@ from pyubx2 import (
     UBX_PAYLOADS_POLL,
 )
 
-# TODO reinstate once implemented:
-# from pygnssutils import UBXLoader, UBXSaver
 from pygpsclient.globals import (
     ENTCOL,
     ICON_SEND,
@@ -299,7 +295,7 @@ class UBX_PRESET_Frame(Frame):
                 "CFG-TP5-TPX",
             ):
                 msg = UBXMessage("CFG", msgtype, POLL)
-                self.__app.stream_handler.serial_write(msg.serialize())
+                self.__container.send_command(msg)
 
     def _do_poll_all_NAV(self):
         """
@@ -309,7 +305,7 @@ class UBX_PRESET_Frame(Frame):
         for msgtype in UBX_PAYLOADS_POLL:
             if msgtype[0:3] == "NAV":
                 msg = UBXMessage(msgtype.split("-")[0], msgtype, POLL)
-                self.__app.stream_handler.serial_write(msg.serialize())
+                self.__container.send_command(msg)
 
     def _do_poll_prt(self):
         """
@@ -318,7 +314,7 @@ class UBX_PRESET_Frame(Frame):
 
         for portID in range(5):
             msg = UBXMessage("CFG", "CFG-PRT", POLL, portID=portID)
-            self.__app.stream_handler.serial_write(msg.serialize())
+            self.__container.send_command(msg)
 
     def _do_poll_inf(self):
         """
@@ -327,7 +323,7 @@ class UBX_PRESET_Frame(Frame):
 
         for protid in (0, 1):  # UBX & NMEA
             msg = UBXMessage("CFG", "CFG-INF", POLL, protocolID=protid)
-            self.__app.stream_handler.serial_write(msg.serialize())
+            self.__container.send_command(msg)
 
     def _do_set_inf(self, onoff: int):
         """
@@ -359,7 +355,7 @@ class UBX_PRESET_Frame(Frame):
                 + reserved2
             )
             msg = UBXMessage("CFG", "CFG-INF", SET, payload=payload)
-            self.__app.stream_handler.serial_write(msg.serialize())
+            self.__container.send_command(msg)
             self._do_poll_inf()  # poll results
 
     def _do_set_log(self, msgrate: int):
@@ -474,7 +470,7 @@ class UBX_PRESET_Frame(Frame):
             rateUSB=msgrate,
             rateSPI=msgrate,
         )
-        self.__app.stream_handler.serial_write(msg.serialize())
+        self.__container.send_command(msg)
 
     def _do_factory_reset(self) -> bool:
         """
@@ -497,7 +493,7 @@ class UBX_PRESET_Frame(Frame):
                 devFlash=1,
                 devEEPROM=1,
             )
-            self.__app.stream_handler.serial_write(msg.serialize())
+            self.__container.send_command(msg)
             return CONFIRMED
 
         return CANCELLED
@@ -523,7 +519,7 @@ class UBX_PRESET_Frame(Frame):
                 devFlash=1,
                 devEEPROM=1,
             )
-            self.__app.stream_handler.serial_write(msg.serialize())
+            self.__container.send_command(msg)
             return CONFIRMED
 
         return CANCELLED
@@ -551,7 +547,7 @@ class UBX_PRESET_Frame(Frame):
                     msg = UBXMessage(ubx_class, ubx_id, mode, payload=payload)
                 else:
                     msg = UBXMessage(ubx_class, ubx_id, mode)
-                self.__app.stream_handler.serial_write(msg.serialize())
+                self.__container.send_command(msg)
         except Exception as err:  # pylint: disable=broad-except
             self.__app.set_status(f"Error {err}", "red")
             self._lbl_send_command.config(image=self._img_warn)

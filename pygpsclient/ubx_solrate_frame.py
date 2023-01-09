@@ -7,7 +7,7 @@ Created on 19 Feb 2020
 :copyright: SEMU Consulting © 2020
 :license: BSD 3-Clause
 """
-# pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
+# pylint: disable=invalid-name, too-many-instance-attributes
 
 from tkinter import (
     Frame,
@@ -210,7 +210,7 @@ class UBX_RATE_Frame(Frame):
             navRate=self._navrate.get(),
             timeRef=tref,
         )
-        self.__app.stream_handler.serial_write(msg.serialize())
+        self.__container.send_command(msg)
         self._lbl_send_command.config(image=self._img_pending)
         self.__container.set_status("CFG-RATE SET message sent", "blue")
         self.__container.set_pending(UBX_CFGRATE, ("ACK-ACK", "ACK-NAK"))
@@ -223,7 +223,7 @@ class UBX_RATE_Frame(Frame):
         """
 
         msg = UBXMessage("CFG", "CFG-RATE", POLL)
-        self.__app.stream_handler.serial_write(msg.serialize())
+        self.__container.send_command(msg)
         self._lbl_send_command.config(image=self._img_pending)
         self.__container.set_status("CFG-RATE POLL message sent", "blue")
         for msgid in ("CFG-RATE", "ACK-NAK"):

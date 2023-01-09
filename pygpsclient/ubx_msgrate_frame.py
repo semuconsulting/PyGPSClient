@@ -9,7 +9,7 @@ Created on 22 Sep 2020
 :copyright: SEMU Consulting © 2020
 :license: BSD 3-Clause
 """
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name, too-many-instance-attributes
 
 from tkinter import (
     Frame,
@@ -33,7 +33,7 @@ from pyubx2 import (
     SET,
     UBX_MSGIDS,
 )
-from pyubx2.ubxhelpers import key_from_val, msgclass2bytes
+from pyubx2.ubxhelpers import key_from_val
 from pygpsclient.globals import (
     ENTCOL,
     ICON_SEND,
@@ -260,7 +260,7 @@ class UBX_MSGRATE_Frame(Frame):
         rateUART2 = int(self._uart2_rate.get())
         rateUSB = int(self._usb_rate.get())
         rateSPI = int(self._spi_rate.get())
-        data = UBXMessage(
+        msg = UBXMessage(
             "CFG",
             "CFG-MSG",
             SET,
@@ -272,7 +272,7 @@ class UBX_MSGRATE_Frame(Frame):
             rateUSB=rateUSB,
             rateSPI=rateSPI,
         )
-        self.__app.stream_handler.serial_write(data.serialize())
+        self.__container.send_command(msg)
         self._lbl_send_command.config(image=self._img_pending)
         self.__container.set_status("CFG-MSG SET message sent", "green")
         for msgid in ("ACK-ACK", "ACK-NAK"):
@@ -285,8 +285,8 @@ class UBX_MSGRATE_Frame(Frame):
         Poll message rate.
         """
 
-        data = UBXMessage("CFG", "CFG-MSG", POLL, payload=msg)  # poll for a response
-        self.__app.stream_handler.serial_write(data.serialize())
+        msg = UBXMessage("CFG", "CFG-MSG", POLL, payload=msg)  # poll for a response
+        self.__container.send_command(msg)
         self._lbl_send_command.config(image=self._img_pending)
         self.__container.set_status("CFG-MSG POLL message sent", "blue")
         for msgid in ("CFG-MSG", "ACK-NAK"):
