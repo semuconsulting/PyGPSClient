@@ -75,7 +75,7 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 * A default user-defined serial port can also be passed via the environment variable `PYGPSCLIENT_USERPORT` or as a command line keyword argument `port=/dev/tty12345`.
 * To connect to a TCP or UDP socket, enter the server URL and port, select the protocol (defaults to TCP) and click 
 ![connect socket icon](/pygpsclient/resources/ethernet-1-24.png).
-* To stream from a previously-saved binary datalog file, click 
+* To stream from a previously-saved <a name="filestream">binary datalog file</a>, click 
 ![connect-file icon](/pygpsclient/resources/binary-1-24.png) and select the file type (`*.log, *.ubx, *.*`) and path. PyGPSClient datalog files will be named e.g. `pygpsdata-20220427114802.log`, but any binary dump of an GNSS receiver output is acceptable, including `*.ubx` files produced by u-center.
 * To disconnect from the data stream, click
 ![disconnect icon](/pygpsclient/resources/iconmonstr-media-control-50-24.png).
@@ -101,10 +101,11 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 ---
 ### <a name="ubxconfig">UBX Configuration Facilities</a>
 
-![ubxconfig widget screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/ubxconfig_widget.png?raw=true)
+![ubxconfig widget screenshot](/images/ubxconfig_widget.png?raw=true)
 
 The UBX Configuration Dialog currently supports the following UBX configuration panels:
 1. Version panel shows current device hardware/firmware versions (*via MON-VER and MON-HW polls*).
+1. CFG Confirmation Command Player/Recorder facility. This allows users to record a sequence of UBX CFG configuration commands sent to a device in a memory array, and to save this memory array to a binary file. Saved files can be reloaded and the configuration commands replayed. This provides a means to easily reproduce a given sequence of configuration commands, or copy a saved configuration between compatible devices. Files saved using the [ubxsave](#ubxsave) CLI utility can also be reloaded and replayed. **Tip:** The contents of a binary config file can be reviewed using PyGPSClient's [file streaming facility](#filestream), *BUT* remember to set the `Msg Mode` in the Settings panel to `SET` (output command mode) rather than the default `GET` (input message mode).
 1. Protocol Configuration panel (CFG-PRT) sets baud rate and inbound/outbound protocols across all available ports.
 1. Solution Rate panel (CFG-RATE) sets navigation solution interval in ms (e.g. 1000 = 1/second) and measurement ratio (ratio between the number of measurements and the number of navigation solutions, e.g. 5 = five measurements per navigation solution).
 1. For each of the panels above, clicking anywhere in the panel background will refresh the displayed information with the current configuration.
@@ -350,6 +351,8 @@ The `pygnssutils` library which underpins many of the functions in `PyGPSClient`
 1. `gnssntripclient` CLI utility. This implements
 a simple NTRIP Client which receives RTCM3 correction data from an NTRIP Server and (optionally) sends this to a
 designated output stream.
+1. <a name="ubxsave">`ubxsave` CLI utility</a>. This saves a complete set of configuration data from any Generation 9+ u-blox device (e.g. NEO-M9N or ZED-F9P) to a file. The file can then be reloaded to any compatible device using the `ubxload` utility.
+1. `ubxload` CLI utility. This reads a file containing binary configuration data and loads it into any compatible Generation 9+ u-blox device (e.g. NEO-M9N or ZED-F9P).
 1. `ubxsetrate` CLI utility. A simple utility which sets NMEA or UBX message rates on u-blox GNSS receivers.
 
 For further details, refer to the `pygnssutils` homepage at [https://github.com/semuconsulting/pygnssutils](https://github.com/semuconsulting/pygnssutils).

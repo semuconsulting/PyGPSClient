@@ -35,7 +35,6 @@ from pygpsclient.globals import (
     DISCONNECTED,
     FILEREAD_INTERVAL,
     DEFAULT_BUFSIZE,
-    MSGMODES,
 )
 from pygpsclient.strings import ENDOFFILE
 

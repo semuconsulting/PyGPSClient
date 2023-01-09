@@ -9,6 +9,8 @@ Created on 22 Dec 2020
 """
 # pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
 
+from threading import Thread
+from time import sleep
 from tkinter import (
     Frame,
     Listbox,
@@ -51,8 +53,6 @@ from pygpsclient.strings import (
     DLGSAVECONFIRM,
     PSTRESET,
     PSTSAVE,
-    PSTSAVEFILE,
-    PSTLOADFILE,
     PSTMINNMEAON,
     PSTALLNMEAON,
     PSTALLNMEAOFF,
@@ -71,18 +71,11 @@ from pygpsclient.strings import (
     PSTPOLLINFO,
     PSTPOLLALLCFG,
     PSTPOLLALLNAV,
-    DLGSAVINGCONFIG,
-    DLGLOADINGCONFIG,
-    DLGSAVEDCONFIG,
-    DLGLOADEDCONFIG,
 )
 
 PRESET_COMMMANDS = [
     PSTRESET,
     PSTSAVE,
-    # TODO reinstate once implemented:
-    # PSTSAVEFILE,
-    # PSTLOADFILE,
     PSTMINNMEAON,
     PSTALLNMEAON,
     PSTALLNMEAOFF,
@@ -150,8 +143,8 @@ class UBX_PRESET_Frame(Frame):
             border=2,
             relief="sunken",
             bg=ENTCOL,
-            height=7,
-            width=30,
+            height=11,
+            width=34,
             justify=LEFT,
             exportselection=False,
         )
@@ -176,10 +169,10 @@ class UBX_PRESET_Frame(Frame):
 
         self._lbl_presets.grid(column=0, row=0, columnspan=6, padx=3, sticky=(W, E))
         self._lbx_preset.grid(
-            column=0, row=1, columnspan=3, rowspan=8, padx=3, pady=3, sticky=(W, E)
+            column=0, row=1, columnspan=3, rowspan=12, padx=3, pady=3, sticky=(W, E)
         )
-        self._scr_presetv.grid(column=2, row=1, rowspan=8, sticky=(N, S, E))
-        self._scr_preseth.grid(column=0, row=9, columnspan=3, sticky=(W, E))
+        self._scr_presetv.grid(column=2, row=1, rowspan=12, sticky=(N, S, E))
+        self._scr_preseth.grid(column=0, row=13, columnspan=3, sticky=(W, E))
         self._btn_send_command.grid(
             column=3, row=1, rowspan=6, ipadx=3, ipady=3, sticky=(E)
         )
@@ -239,10 +232,6 @@ class UBX_PRESET_Frame(Frame):
                 status = self._do_factory_reset()
             elif self._preset_command == PSTSAVE:
                 status = self._do_save_config()
-            elif self._preset_command == PSTSAVEFILE:
-                status = self._do_save_configfile()
-            elif self._preset_command == PSTLOADFILE:
-                status = self._do_load_configfile()
             elif self._preset_command == PSTMINNMEAON:
                 self._do_set_minnmea()
             elif self._preset_command == PSTALLNMEAON:
@@ -291,7 +280,7 @@ class UBX_PRESET_Frame(Frame):
             elif status == CANCELLED:
                 self.__container.set_status("Command(s) cancelled", "blue")
             elif status == NOMINAL:
-                pass
+                self.__container.set_status("Command(s) sent, no results", "blue")
 
         except Exception as err:  # pylint: disable=broad-except
             self.__container.set_status(f"Error {err}", "red")
@@ -538,56 +527,6 @@ class UBX_PRESET_Frame(Frame):
             return CONFIRMED
 
         return CANCELLED
-
-    def _do_save_configfile(self):
-        """
-        Save configuration to file.
-        TODO NOT YET FULLY IMPLEMENTED
-        """
-
-        self._configfile = self.__app.file_handler.set_configfile_path()
-        if self._configfile is None:
-            return
-
-        self.__container.set_status(f"{DLGSAVINGCONFIG}: {self._configfile}", "green")
-        # stream = self.__app.stream_handler.serial
-        # if stream is not None:
-        #     with open(self._configfile, "wb") as file:
-        #         ubs = UBXSaver(file, stream, verbosity=1, waittime=5)
-        #         rc = ubs.run()
-        # self.update_status(f"{DLGSAVEDCONFIG}: {self._configfile}", "blue")
-
-        # self._saveconfig_thread = Thread(
-        #         target=self._saveconfig, daemon=False
-        #     )
-        #     self._saveconfig_thread.start()
-
-        return NOMINAL
-
-    def _do_load_configfile(self):
-        """
-        Load configuration from file.
-        TODO NOT YET FULLY IMPLEMENTED
-        """
-
-        self._configfile = self.__app.file_handler.open_configfile()
-        if self._configfile is None:
-            return
-
-        self.__container.set_status(f"{DLGLOADINGCONFIG}: {self._configfile}", "green")
-        # stream = self.__app.stream_handler.serial
-        # if stream is not None:
-        #     with open(self._configfile, "rb") as file:
-        #         ubl = UBXLoader(file, stream, verbosity=1, waittime=5)
-        #         rc = ubl.run()
-        # self.update_status(f"{DLGLOADEDCONFIG}: {self._configfile}", "blue")
-
-        # self._loadconfig_thread = Thread(
-        #         target=self._loadconfig, daemon=False
-        #     )
-        #     self._loadconfig_thread.start()
-
-        return NOMINAL
 
     def _do_user_defined(self, command: str):
         """

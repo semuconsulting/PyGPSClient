@@ -55,6 +55,7 @@ from pygpsclient.ubx_preset_frame import UBX_PRESET_Frame
 from pygpsclient.ubx_cfgval_frame import UBX_CFGVAL_Frame
 from pygpsclient.ubx_solrate_frame import UBX_RATE_Frame
 from pygpsclient.ubx_dynamic_frame import UBX_Dynamic_Frame
+from pygpsclient.ubx_recorder_frame import UBX_Recorder_Frame
 
 
 class UBXConfigDialog(Toplevel):
@@ -111,6 +112,9 @@ class UBXConfigDialog(Toplevel):
         self._frm_device_info = UBX_INFO_Frame(
             self.__app, self, borderwidth=2, relief="groove"
         )
+        self._frm_recorder = UBX_Recorder_Frame(
+            self.__app, self, borderwidth=2, relief="groove"
+        )
         self._frm_config_port = UBX_PORT_Frame(
             self.__app, self, borderwidth=2, relief="groove"
         )
@@ -153,6 +157,7 @@ class UBXConfigDialog(Toplevel):
         # left column of grid
         for frm in (
             self._frm_device_info,
+            self._frm_recorder,
             self._frm_config_port,
             self._frm_config_rate,
             self._frm_config_msg,

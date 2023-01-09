@@ -37,6 +37,12 @@ ICON_EXPAND = os.path.join(DIRNAME, "resources/iconmonstr-arrow-80-16.png")
 ICON_TRANSMIT = os.path.join(DIRNAME, "resources/iconmonstr-transmit-10-24.png")
 ICON_NOTRANSMIT = os.path.join(DIRNAME, "resources/iconmonstr-notransmit-10-24.png")
 ICON_NOCLIENT = os.path.join(DIRNAME, "resources/iconmonstr-noclient-10-24.png")
+ICON_LOAD = os.path.join(DIRNAME, "resources/iconmonstr-folder-18-24.png")
+ICON_SAVE = os.path.join(DIRNAME, "resources/iconmonstr-save-14-24.png")
+ICON_PLAY = os.path.join(DIRNAME, "resources/iconmonstr-media-control-48-24.png")
+ICON_RECORD = os.path.join(DIRNAME, "resources/iconmonstr-record-1-24.png")
+ICON_STOP = os.path.join(DIRNAME, "resources/iconmonstr-stop-1-24.png")
+ICON_UNDO = os.path.join(DIRNAME, "resources/iconmonstr-undo-6-24.png")
 IMG_WORLD = os.path.join(DIRNAME, "resources/world.png")
 
 GITHUB_URL = "https://github.com/semuconsulting/PyGPSClient"

@@ -128,7 +128,7 @@ class UBX_Dynamic_Frame(Frame):
             border=2,
             relief="sunken",
             bg=ENTCOL,
-            height=6,
+            height=11,
             justify=LEFT,
             exportselection=False,
         )
