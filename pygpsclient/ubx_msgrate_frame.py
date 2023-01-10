@@ -244,17 +244,17 @@ class UBX_MSGRATE_Frame(Frame):
         self._cfg_msg_command = self._lbx_cfg_msg.get(idx)
 
         # poll selected message configuration to get current message rates
-        msg = key_from_val(UBX_MSGIDS, self._cfg_msg_command)
-        self._do_poll_msg(msg)
+        msgtyp = key_from_val(UBX_MSGIDS, self._cfg_msg_command)
+        self._do_poll_msg(msgtyp)
 
     def _on_send_cfg_msg(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
         CFG-MSG command send button has been clicked.
         """
 
-        msg = key_from_val(UBX_MSGIDS, self._cfg_msg_command)
-        msgClass = int.from_bytes(msg[0:1], "little", signed=False)
-        msgID = int.from_bytes(msg[1:2], "little", signed=False)
+        msgtyp = key_from_val(UBX_MSGIDS, self._cfg_msg_command)
+        msgClass = int.from_bytes(msgtyp[0:1], "little", signed=False)
+        msgID = int.from_bytes(msgtyp[1:2], "little", signed=False)
         rateDDC = int(self._ddc_rate.get())
         rateUART1 = int(self._uart1_rate.get())
         rateUART2 = int(self._uart2_rate.get())
@@ -278,14 +278,16 @@ class UBX_MSGRATE_Frame(Frame):
         for msgid in ("ACK-ACK", "ACK-NAK"):
             self.__container.set_pending(msgid, UBX_CFGMSG)
 
-        self._do_poll_msg(msg)
+        self._do_poll_msg(msgtyp)
 
-    def _do_poll_msg(self, msg):
+    def _do_poll_msg(self, msgtyp: bytes):
         """
         Poll message rate.
+
+        :param bytes msgtyp: payload of msgClass, msgID
         """
 
-        msg = UBXMessage("CFG", "CFG-MSG", POLL, payload=msg)  # poll for a response
+        msg = UBXMessage("CFG", "CFG-MSG", POLL, payload=msgtyp)
         self.__container.send_command(msg)
         self._lbl_send_command.config(image=self._img_pending)
         self.__container.set_status("CFG-MSG POLL message sent", "blue")

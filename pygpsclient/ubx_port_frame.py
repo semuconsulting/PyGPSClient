@@ -256,7 +256,8 @@ class UBX_PORT_Frame(Frame):
         self.__container.send_command(msg)
         self._lbl_send_command.config(image=self._img_pending)
         self.__container.set_status("CFG-PRT SET message sent", "blue")
-        self.__container.set_pending(UBX_CFGPRT, ("ACK-ACK", "ACK-NAK"))
+        for msgid in ("ACK-NAK", "ACK-NAK"):
+            self.__container.set_pending(msgid, UBX_CFGPRT)
 
         self._do_poll_prt()
 
