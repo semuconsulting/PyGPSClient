@@ -117,7 +117,7 @@ LBLCFGDYN = "CFG-* Other Configuration"
 LBLGGALIVE = "Receiver"
 LBLGGAFIXED = "Fixed Reference"
 LBLUDPORT = "USER-DEFINED PORT"
-LBLCFGRECORD = "CFG Configuration Command Player/Recorder"
+LBLCFGRECORD = "CFG Configuration Load/Save/Record"
 
 # Dialog text
 DLGUBXCONFIG = "UBX Configuration"
