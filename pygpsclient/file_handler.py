@@ -14,7 +14,6 @@ Created on 16 Sep 2020
 import os
 from datetime import datetime
 from pathlib import Path
-from time import strftime
 from tkinter import filedialog
 from pyubx2 import hextable
 
@@ -29,6 +28,7 @@ from pygpsclient.globals import (
     FORMATS,
 )
 from pygpsclient.strings import SAVETITLE, READTITLE
+from pygpsclient.helpers import set_filename
 
 HOME = str(Path.home())
 
@@ -141,22 +141,6 @@ class FileHandler:
 
         return presets
 
-    def _set_filename(self, path: str, mode: str, ext: str) -> str:
-        """
-        Return fully qualified and timestamped file name.
-
-        :param path: the file path as str
-        :param mode: the type of file being created ('data', 'track') as str
-        :param ext: the file extension ('log', 'gpx') as str
-        :return: fully qualified filename
-        :rtype: str
-        """
-
-        self._lines = 0
-        timestr = strftime("%Y%m%d%H%M%S")
-        filename = os.path.join(path, f"pygps{mode}-" + timestr + f".{ext}")
-        return filename
-
     def set_logfile_path(self) -> str:
         """
         Set file path.
@@ -177,7 +161,8 @@ class FileHandler:
         Open logfile.
         """
 
-        self._logname = self._set_filename(self._logpath, "data", "log")
+        self._lines = 0
+        self._logname = set_filename(self._logpath, "data", "log")
         self._logfile = open(self._logname, "a+b")
 
     def open_infile(self) -> str:
@@ -271,7 +256,7 @@ class FileHandler:
         Open track file and create GPX track header tags.
         """
 
-        self._trackname = self._set_filename(self._trackpath, "track", "gpx")
+        self._trackname = set_filename(self._trackpath, "track", "gpx")
         self._trackfile = open(self._trackname, "a")
 
         date = datetime.now().isoformat() + "Z"
@@ -350,36 +335,3 @@ class FileHandler:
                 self._trackfile.close()
         except (IOError, ValueError):
             pass
-
-    def set_configfile_path(self) -> str:
-        """
-        Set configuration file path.
-
-        :return: file path
-        :rtype: str
-        """
-
-        self._configpath = filedialog.askdirectory(
-            title=SAVETITLE, initialdir=HOME, mustexist=True
-        )
-        if self._configpath in ((), ""):
-            return None  # User cancelled
-        self._configfile = self._set_filename(self._configpath, "config", "ubx")
-        return self._configfile
-
-    def open_configfile(self):
-        """
-        Open configuration file.
-        """
-
-        self._configfile = filedialog.askopenfilename(
-            title=READTITLE,
-            initialdir=HOME,
-            filetypes=(
-                ("config files", "*.ubx"),
-                ("all files", "*.*"),
-            ),
-        )
-        if self._configfile in ((), ""):
-            return None  # User cancelled
-        return self._configfile

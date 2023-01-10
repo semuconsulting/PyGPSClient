@@ -17,10 +17,12 @@ Created on 9 Jan 2023
 
 from time import sleep
 from threading import Event, Thread
+from pathlib import Path
 from tkinter import (
     Frame,
     Button,
     Label,
+    filedialog,
     E,
     W,
 )
@@ -40,8 +42,10 @@ from pygpsclient.globals import (
     ICON_SAVE,
     ICON_DELETE,
 )
-from pygpsclient.strings import LBLCFGRECORD
+from pygpsclient.strings import LBLCFGRECORD, READTITLE, SAVETITLE
+from pygpsclient.helpers import set_filename
 
+HOME = str(Path.home())
 STOP = 0
 PLAY = 1
 RECORD = 2
@@ -70,7 +74,7 @@ class UBX_Recorder_Frame(Frame):
 
         self.__app = app  # Reference to main application class
         self.__master = self.__app.get_master()  # Reference to root class (Tk)
-        self.__container = container
+        self.__container = container  # Reference to UBX Configuration dialog
 
         Frame.__init__(self, self.__container.container, *args, **kwargs)
 
@@ -86,6 +90,8 @@ class UBX_Recorder_Frame(Frame):
         self._configfile = None
         self._stop_event = Event()
         self._bg = self.cget("bg")  # default background color
+        self._configfile = None
+        self._configpath = None
 
         self._body()
         self._do_layout()
@@ -173,12 +179,46 @@ class UBX_Recorder_Frame(Frame):
         self._rec_status = STOP
         self._update_status()
 
+    def _set_configfile_path(self) -> str:
+        """
+        Set configuration file path.
+
+        :return: file path
+        :rtype: str
+        """
+
+        self._configpath = filedialog.askdirectory(
+            parent=self.__container, title=SAVETITLE, initialdir=HOME, mustexist=True
+        )
+        if self._configpath in ((), ""):
+            return None  # User cancelled
+        self._configfile = set_filename(self._configpath, "config", "ubx")
+        return self._configfile
+
+    def _open_configfile(self):
+        """
+        Open configuration file.
+        """
+
+        self._configfile = filedialog.askopenfilename(
+            parent=self.__container,
+            title=READTITLE,
+            initialdir=HOME,
+            filetypes=(
+                ("config files", "*.ubx"),
+                ("all files", "*.*"),
+            ),
+        )
+        if self._configfile in ((), ""):
+            return None  # User cancelled
+        return self._configfile
+
     def _on_load(self):
         """
         Load commands from file into in-memory recording.
         """
 
-        self._configfile = self.__app.file_handler.open_configfile()
+        self._configfile = self._open_configfile()
         if self._configfile is None:  # user cancelled
             return
 
@@ -214,7 +254,7 @@ class UBX_Recorder_Frame(Frame):
             self._lbl_activity.config(text="Nothing to save", fg=COLBAD)
             return
 
-        self._configfile = self.__app.file_handler.set_configfile_path()
+        self._configfile = self._set_configfile_path()
         if self._configfile is None:
             return
 

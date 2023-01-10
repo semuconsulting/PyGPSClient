@@ -14,7 +14,9 @@ Created on 17 Apr 2021
 
 import re
 
-from tkinter import Toplevel, Entry, Label, StringVar, Button, W
+from tkinter import Toplevel, Entry, Label, Button, W
+import os
+from time import strftime
 from math import sin, cos, acos, radians
 from requests import get
 from pyubx2 import atttyp, attsiz
@@ -560,3 +562,19 @@ def stringvar2val(val: str, att: str) -> object:
         val = float(val)
 
     return val
+
+
+def set_filename(path: str, mode: str, ext: str) -> str:
+    """
+    Return fully qualified and timestamped file name.
+
+    :param path: the file path as str
+    :param mode: the type of file being created ('data', 'track') as str
+    :param ext: the file extension ('log', 'gpx') as str
+    :return: fully qualified filename
+    :rtype: str
+    """
+
+    timestr = strftime("%Y%m%d%H%M%S")
+    filename = os.path.join(path, f"pygps{mode}-" + timestr + f".{ext}")
+    return filename
