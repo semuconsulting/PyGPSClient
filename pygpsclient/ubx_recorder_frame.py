@@ -1,8 +1,11 @@
 """
-UBX Recorder frame for CFG commands entered by user.
+UBX Player/Recorder widget for CFG commands entered by user via UBX
+Configuration panel.
 
 Records commands to memory array and allows user to load or save
 this array to or from a file.
+
+Facilitates copying configuration from one device to another.
 
 Created on 9 Jan 2023
 
@@ -37,7 +40,7 @@ from pygpsclient.globals import (
     ICON_SAVE,
     ICON_DELETE,
 )
-from .strings import LBLCFGRECORD
+from pygpsclient.strings import LBLCFGRECORD
 
 STOP = 0
 PLAY = 1
@@ -168,7 +171,6 @@ class UBX_Recorder_Frame(Frame):
         """
 
         self._rec_status = STOP
-        self._update_activity()
         self._update_status()
 
     def _on_load(self):
@@ -195,8 +197,9 @@ class UBX_Recorder_Frame(Frame):
                 else:
                     eof = True
         if i > 0:
+            fname = self._configfile.split("/")[-1]
             self._lbl_activity.config(
-                text=f"{i} Commands loaded from {self._configfile.split('/')[-1]}",
+                text=f"{i} Command{'s' if i > 1 else ''} loaded from {fname}",
                 fg=COLINFO,
             )
 
@@ -221,8 +224,9 @@ class UBX_Recorder_Frame(Frame):
             for i, msg in enumerate(self._cmds_stored):
                 file.write(msg.serialize())
         self._cmds_stored = []
+        fname = self._configfile.split("/")[-1]
         self._lbl_activity.config(
-            text=f"{i + 1} Commands saved to {self._configfile.split('/')[-1]}",
+            text=f"{i + 1} command{'s' if i > 0 else ''} saved to {fname}",
             fg=COLINFO,
         )
         self._update_status()
@@ -248,10 +252,11 @@ class UBX_Recorder_Frame(Frame):
                 )
                 self.__app.stream_handler.serial_write(msg.serialize())
                 sleep(0.01)
-            self._lbl_activity.config(text=f"{i + 1} Commands sent", fg=COLGOOD)
+            self._lbl_activity.config(
+                text=f"{i + 1} command{'s' if i > 0 else ''} sent to device", fg=COLGOOD
+            )
             self._rec_status = STOP
         self._update_status()
-        self._update_activity()
 
     def _on_record(self):
         """
@@ -261,10 +266,18 @@ class UBX_Recorder_Frame(Frame):
         if self._rec_status == STOP:
             self._rec_status = RECORD
             self.__container.recordmode = True
+            # start flashing record label...
+            self._stop_event.clear()
+            Thread(
+                target=self._flash_record,
+                daemon=True,
+                args=(self._stop_event,),
+            ).start()
         elif self._rec_status == RECORD:
+            self._stop_event.set()
             self._rec_status = STOP
             self.__container.recordmode = False
-        self._update_activity()
+            self._lbl_activity.config(text="Recording stopped", fg=COLNORM, bg=self._bg)
         self._update_status()
 
     def _on_undo(self):
@@ -279,8 +292,8 @@ class UBX_Recorder_Frame(Frame):
         if self._rec_status == STOP:
             if len(self._cmds_stored) > 0:
                 self._cmds_stored.pop()
-                self._update_status()
                 self._lbl_activity.config(text="Last command undone", fg=COLINFO)
+                self._update_status()
 
     def _on_delete(self):
         """
@@ -294,8 +307,10 @@ class UBX_Recorder_Frame(Frame):
             self._lbl_activity.config(text="Nothing to delete", fg=COLBAD)
             return
 
+        i = len(self._cmds_stored)
         self._lbl_activity.config(
-            text=f"{len(self._cmds_stored)} records deleted", fg=COLBAD
+            text=f"{i} command{'s' if i > 1 else ''} deleted",
+            fg=COLBAD,
         )
         self._cmds_stored = []
         self._update_status()
@@ -306,36 +321,21 @@ class UBX_Recorder_Frame(Frame):
         """
 
         lcs = len(self._cmds_stored)
-        lst = f" , last command: {self._cmds_stored[-1].identity}" if lcs > 0 else ""
+        lst = f". Last command: {self._cmds_stored[-1].identity}" if lcs > 0 else ""
         self._lbl_status.config(
             text=f"Commands in memory: {lcs}{lst}",
             fg=COLINFO,
         )
 
-    def _update_activity(self):
-        """
-        Update activity label and button icons.
-        """
-
         if self._rec_status == STOP:
-            self._stop_event.set()
             pimg = self._img_play
             rimg = self._img_record
-            self._lbl_activity.config(text="STOPPED", fg=COLNORM, bg=self._bg)
         elif self._rec_status == PLAY:
             pimg = self._img_stop
             rimg = self._img_record
-            self._lbl_activity.config(text="PLAYING", fg=COLGOOD, bg=self._bg)
         elif self._rec_status == RECORD:
-            self._stop_event.clear()
             pimg = self._img_play
             rimg = self._img_stop
-            # start flashing record label...
-            Thread(
-                target=self._flash_record,
-                daemon=True,
-                args=(self._stop_event,),
-            ).start()
 
         self._btn_play.config(image=pimg)
         self._btn_record.config(image=rimg)
