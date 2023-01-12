@@ -23,6 +23,7 @@ from tkinter import (
     Button,
     Label,
     filedialog,
+    TclError,
     E,
     W,
 )
@@ -399,10 +400,15 @@ class UBX_Recorder_Frame(Frame):
         Flash record indicator for conspicuity.
         """
 
-        cols = [(COLWHIT, COLBAD), (COLBAD, self._bg)]
-        i = 0
-        while not stop.is_set():
+        try:
+            cols = [(COLWHIT, COLBAD), (COLBAD, self._bg)]
+            i = 0
+            while not stop.is_set():
 
-            i = not i
-            self._lbl_activity.config(text="RECORDING", fg=cols[i][0], bg=cols[i][1])
-            sleep(FLASH)
+                i = not i
+                self._lbl_activity.config(
+                    text="RECORDING", fg=cols[i][0], bg=cols[i][1]
+                )
+                sleep(FLASH)
+        except TclError:  # if dialog closed without stopping recording
+            pass
