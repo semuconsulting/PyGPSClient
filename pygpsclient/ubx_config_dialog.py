@@ -18,7 +18,7 @@ Created on 19 Sep 2020
 :copyright: SEMU Consulting © 2020
 :license: BSD 3-Clause
 """
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name, too-many-instance-attributes
 
 from tkinter import (
     Toplevel,
@@ -55,6 +55,7 @@ from pygpsclient.ubx_preset_frame import UBX_PRESET_Frame
 from pygpsclient.ubx_cfgval_frame import UBX_CFGVAL_Frame
 from pygpsclient.ubx_solrate_frame import UBX_RATE_Frame
 from pygpsclient.ubx_dynamic_frame import UBX_Dynamic_Frame
+from pygpsclient.ubx_recorder_frame import UBX_Recorder_Frame
 
 
 class UBXConfigDialog(Toplevel):
@@ -84,6 +85,7 @@ class UBXConfigDialog(Toplevel):
         self._pending_confs = {}
         self._status = StringVar()
         self._status_cfgmsg = StringVar()
+        self._recordmode = False
 
         self._body()
         self._do_layout()
@@ -109,6 +111,9 @@ class UBXConfigDialog(Toplevel):
         )
         # add configuration widgets
         self._frm_device_info = UBX_INFO_Frame(
+            self.__app, self, borderwidth=2, relief="groove"
+        )
+        self._frm_recorder = UBX_Recorder_Frame(
             self.__app, self, borderwidth=2, relief="groove"
         )
         self._frm_config_port = UBX_PORT_Frame(
@@ -153,6 +158,7 @@ class UBXConfigDialog(Toplevel):
         # left column of grid
         for frm in (
             self._frm_device_info,
+            self._frm_recorder,
             self._frm_config_port,
             self._frm_config_rate,
             self._frm_config_msg,
@@ -311,3 +317,34 @@ class UBXConfigDialog(Toplevel):
         """
 
         return self._frm_container
+
+    @property
+    def recordmode(self) -> bool:
+        """
+        Getter for recording status.
+
+        :return: recording yes/no
+        :rtype: bool
+        """
+
+        return self._recordmode
+
+    @recordmode.setter
+    def recordmode(self, recordmode: bool):
+        """
+        Setter for record mode.
+
+        :param bool recordmode: recording yes/no
+        """
+
+        self._recordmode = recordmode
+
+    def send_command(self, msg: UBXMessage):
+        """
+        Send command to receiver and record to memory
+        if in 'record' mode.
+        """
+
+        self.__app.stream_handler.serial_write(msg.serialize())
+        if self.recordmode:
+            self._frm_recorder.update_record(msg)

@@ -7,7 +7,7 @@ Created on 22 Dec 2020
 :copyright: SEMU Consulting © 2020
 :license: BSD 3-Clause
 """
-# pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
+# pylint: disable=invalid-name, too-many-instance-attributes
 
 from tkinter import (
     Frame,
@@ -253,10 +253,11 @@ class UBX_PORT_Frame(Frame):
             outNMEA=outNMEA,
             outRTCM3=outRTCM3,
         )
-        self.__app.stream_handler.serial_write(msg.serialize())
+        self.__container.send_command(msg)
         self._lbl_send_command.config(image=self._img_pending)
         self.__container.set_status("CFG-PRT SET message sent", "blue")
-        self.__container.set_pending(UBX_CFGPRT, ("ACK-ACK", "ACK-NAK"))
+        for msgid in ("ACK-NAK", "ACK-NAK"):
+            self.__container.set_pending(msgid, UBX_CFGPRT)
 
         self._do_poll_prt()
 
@@ -267,7 +268,7 @@ class UBX_PORT_Frame(Frame):
 
         portID = int(self._portid.get()[0:1])
         msg = UBXMessage("CFG", "CFG-PRT", POLL, portID=portID)
-        self.__app.stream_handler.serial_write(msg.serialize())
+        self.__container.send_command(msg)
         self._lbl_send_command.config(image=self._img_pending)
         self.__container.set_status("CFG-PRT POLL message sent", "blue")
         for msgid in ("CFG-PRT", "ACK-NAK"):

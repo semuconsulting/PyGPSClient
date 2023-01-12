@@ -38,7 +38,7 @@ from tkinter import (
 from PIL import ImageTk, Image
 from serial.tools.list_ports import comports
 from serial import PARITY_NONE, PARITY_EVEN, PARITY_ODD, PARITY_MARK, PARITY_SPACE
-from pygpsclient.globals import ICON_REFRESH, ICON_EXPAND, ICON_CONTRACT
+from pygpsclient.globals import ICON_REFRESH, ICON_EXPAND, ICON_CONTRACT, MSGMODES
 from pygpsclient.strings import LBLUDPORT
 
 ADVOFF = "\u25bc"
@@ -85,6 +85,7 @@ class SerialConfigFrame(Frame):
         self._stopbits_rng = kwargs.pop("stopbits", STOPBITS_RNG)
         self._parity_rng = kwargs.pop("parities", PARITY_RNG)
         self._timeout_rng = kwargs.pop("timeouts", TIMEOUT_RNG)
+        self._msgmode_rng = kwargs.pop("msgmodes", ())
         self._preselect = kwargs.pop("preselect", ())
         self._readonlybg = kwargs.pop("readonlybackground", BGCOL)
 
@@ -102,6 +103,7 @@ class SerialConfigFrame(Frame):
         self._rtscts = IntVar()
         self._xonxoff = IntVar()
         self._timeout = StringVar()
+        self._msgmode = StringVar()
         self._img_refresh = ImageTk.PhotoImage(Image.open(ICON_REFRESH))
         self._img_expand = ImageTk.PhotoImage(Image.open(ICON_EXPAND))
         self._img_contract = ImageTk.PhotoImage(Image.open(ICON_CONTRACT))
@@ -207,6 +209,16 @@ class SerialConfigFrame(Frame):
             wrap=True,
             textvariable=self._timeout,
         )
+        self._lbl_msgmode = Label(self._frm_advanced, text="Msg Mode")
+        self._spn_msgmode = Spinbox(
+            self._frm_advanced,
+            values=self._msgmode_rng,
+            width=4,
+            state=READONLY,
+            readonlybackground=self._readonlybg,
+            wrap=True,
+            textvariable=self._msgmode,
+        )
 
     def _do_layout(self):
         """
@@ -236,6 +248,9 @@ class SerialConfigFrame(Frame):
         self._chk_xon.grid(column=3, row=1, sticky=(W), padx=3, pady=2)
         self._lbl_timeout.grid(column=0, row=2, sticky=(W))
         self._spn_timeout.grid(column=1, row=2, sticky=(W), padx=3, pady=2)
+        if len(self._msgmode_rng) > 0:
+            self._lbl_msgmode.grid(column=2, row=2, sticky=(W))
+            self._spn_msgmode.grid(column=3, row=2, sticky=(W), padx=3, pady=2)
 
     def _attach_events(self):
         """
@@ -263,6 +278,12 @@ class SerialConfigFrame(Frame):
             self._ports.insert(0, (self._userport, LBLUDPORT, None))
 
         if len(self._ports) > 0:
+            # default to first item in list
+            port, desc, _ = self._ports[0]
+            if desc == "":
+                desc = "device"
+            self._port.set(port)
+            self._port_desc.set(desc)
             for idx, (port, desc, _) in enumerate(self._ports):
                 self._lbx_port.insert(idx, port + ": " + desc)
                 # default selection to recognised GNSS device if possible
@@ -340,6 +361,7 @@ class SerialConfigFrame(Frame):
             self._chk_rts,
             self._chk_xon,
             self._lbx_port,
+            self._lbl_msgmode,
         ):
             widget.configure(state=(NORMAL if status == DISCONNECTED else DISABLED))
         for widget in (
@@ -348,6 +370,7 @@ class SerialConfigFrame(Frame):
             self._spn_stopbits,
             self._spn_parity,
             self._spn_timeout,
+            self._spn_msgmode,
         ):
             widget.configure(state=(READONLY if status == DISCONNECTED else DISABLED))
 
@@ -363,6 +386,7 @@ class SerialConfigFrame(Frame):
         self._rtscts.set(False)
         self._xonxoff.set(False)
         self._timeout.set(self._timeout_rng[0])
+        self._msgmode.set("GET")
 
     @property
     def status(self) -> int:
@@ -476,3 +500,15 @@ class SerialConfigFrame(Frame):
         if self._timeout.get() == "None":
             return None
         return float(self._timeout.get())
+
+    @property
+    def msgmode(self) -> int:
+        """
+        Return message parsing mode
+        Default is GET i.e. input from receiver.
+
+        :return: message mode 0 = POLL 1 = SET, 2 = POLL
+        :rtype: int
+        """
+
+        return MSGMODES[self._msgmode.get()]

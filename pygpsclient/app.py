@@ -26,28 +26,6 @@ from pyubx2 import (
 )
 from pygnssutils import GNSSNTRIPClient
 from pygnssutils.socket_server import SocketServer, ClientHandler
-from pygpsclient.strings import (
-    TITLE,
-    MENUHIDESE,
-    MENUSHOWSE,
-    MENUHIDESB,
-    MENUSHOWSB,
-    MENUHIDECON,
-    MENUSHOWCON,
-    MENUHIDEMAP,
-    MENUSHOWMAP,
-    MENUHIDESATS,
-    MENUSHOWSATS,
-    MENUHIDESPECTRUM,
-    MENUSHOWSPECTRUM,
-    INTROTXTNOPORTS,
-    NOTCONN,
-)
-from pygpsclient.gnss_status import GNSSStatus
-from pygpsclient.about_dialog import AboutDialog
-from pygpsclient.banner_frame import BannerFrame
-from pygpsclient.console_frame import ConsoleFrame
-from pygpsclient.file_handler import FileHandler
 from pygpsclient.globals import (
     ICON_APP,
     CONNECTED,
@@ -57,7 +35,29 @@ from pygpsclient.globals import (
     GPX_TRACK_INTERVAL,
     SOCKSERVER_MAX_CLIENTS,
     SOCKSERVER_HOST,
+    MAXCOLSPAN,
+    MAXROWSPAN,
 )
+from pygpsclient.strings import (
+    TITLE,
+    INTROTXTNOPORTS,
+    NOTCONN,
+    HIDE,
+    SHOW,
+    WDGBANNER,
+    WDGSETTINGS,
+    WDGSTATUS,
+    WDGCONSOLE,
+    WDGSATS,
+    WDGLEVELS,
+    WDGMAP,
+    WDGSPECTRUM,
+)
+from pygpsclient.gnss_status import GNSSStatus
+from pygpsclient.about_dialog import AboutDialog
+from pygpsclient.banner_frame import BannerFrame
+from pygpsclient.console_frame import ConsoleFrame
+from pygpsclient.file_handler import FileHandler
 from pygpsclient.graphview_frame import GraphviewFrame
 from pygpsclient.map_frame import MapviewFrame
 from pygpsclient.menu_bar import MenuBar
@@ -74,7 +74,7 @@ from pygpsclient.ubx_handler import UBXHandler
 
 class App(Frame):  # pylint: disable=too-many-ancestors
     """
-    Main PyGPSClient GUI Application Class
+    Main PyGPSClient GUI Application Class.
     """
 
     def __init__(self, master, *args, **kwargs):
@@ -101,14 +101,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._last_gui_update = datetime.now()
         self._last_track_update = datetime.now()
 
-        # Set initial widget visibility
-        self._show_settings = True
-        self._show_ubxconfig = False
-        self._show_status = True
-        self._show_console = True
-        self._show_map = True
-        self._show_sats = True
-        self._show_spectrum = False
+        # dict containing widget grid positions
+        self._widget_grid = {}
 
         # Instantiate protocol handler classes
         self.msgqueue = Queue()
@@ -145,18 +139,9 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
     def _body(self):
         """
-        Set up frame and widgets
+        Set up frame and widgets.
         """
 
-        # these grid weights are what gives the grid its
-        # 'pack to window size' behaviour
-        self.__master.grid_columnconfigure(0, weight=1)
-        self.__master.grid_columnconfigure(1, weight=2)
-        self.__master.grid_columnconfigure(2, weight=2)
-        self.__master.grid_columnconfigure(3, weight=2)
-        self.__master.grid_rowconfigure(0, weight=0)
-        self.__master.grid_rowconfigure(1, weight=2)
-        self.__master.grid_rowconfigure(2, weight=1)
         self._set_default_fonts()
 
         self.menu = MenuBar(self)
@@ -173,25 +158,127 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
     def _do_layout(self):
         """
-        Arrange widgets in main application frame
+        Arrange widgets in main application frame.
         """
 
-        self.frm_banner.grid(
-            column=0, row=0, columnspan=5, padx=2, pady=2, sticky=(N, S, E, W)
-        )
-        self._grid_console()
-        self._grid_sats()
-        self._grid_map()
-        self._grid_spectrum()
-        self._grid_status()
-        self._grid_settings()
+        # Set initial widget visibility and menu index
+        self._widget_grid = {
+            WDGBANNER: {
+                "menu": None,
+                "frm": "frm_banner",
+                "visible": True,
+                "colspan": MAXCOLSPAN + 1,
+            },
+            WDGCONSOLE: {
+                "menu": 2,
+                "frm": "frm_console",
+                "colspan": MAXCOLSPAN,
+                "visible": True,
+            },
+            WDGSATS: {
+                "menu": 3,
+                "frm": "frm_satview",
+                "visible": True,
+            },
+            WDGLEVELS: {
+                "menu": 4,
+                "frm": "frm_graphview",
+                "visible": True,
+            },
+            WDGMAP: {
+                "menu": 5,
+                "frm": "frm_mapview",
+                "visible": True,
+            },
+            WDGSPECTRUM: {
+                "menu": 6,
+                "frm": "frm_spectrumview",
+                "visible": False,
+            },
+            WDGSTATUS: {
+                "menu": 1,
+                "frm": "frm_status",
+                "visible": True,
+                "sticky": (W, E),
+                "colspan": MAXCOLSPAN + 1,
+            },
+            WDGSETTINGS: {
+                "menu": 0,
+                "frm": "frm_settings",
+                "visible": True,
+                "rowspan": 2,
+                "sticky": (N, W, E),
+            },
+        }
+
+        self._grid_widgets()
+
+        # NB: these column and row weights define the grid's
+        # 'pack by size' behaviour
+        for col in range(MAXCOLSPAN):
+            self.__master.grid_columnconfigure(col, weight=1)
+        for row in range(1, MAXROWSPAN):
+            self.__master.grid_rowconfigure(row, weight=1)
 
         if self.frm_settings.serial_settings().status == NOPORTS:
             self.set_status(INTROTXTNOPORTS, "red")
 
+    def _grid_widgets(self):
+        """
+        Arrange widgets in grid.
+        """
+
+        col = row = 0
+        for nam in self._widget_grid:
+            if nam == WDGSETTINGS:  # always on top right
+                col = MAXCOLSPAN
+                row = 1
+            if nam == WDGSTATUS:  # always on bottom left
+                col = 0
+                row = MAXROWSPAN
+            col, row = self._grid_widget(nam, col, row)
+
+    def _grid_widget(self, nam: str, col: int, row: int) -> tuple:
+        """
+        Arrange individual widget and update show/hide menu label.
+
+        :param str nam: name of widget
+        :param int col: column
+        :param int row: row
+        :return: next (col, row)
+        :rtype: tuple
+        """
+
+        wdg = self._widget_grid[nam]
+        if wdg["visible"]:
+            colspan = wdg.get("colspan", 1)
+            rowspan = wdg.get("rowspan", 1)
+            if col >= MAXCOLSPAN and nam != WDGSETTINGS:
+                col = 0
+                row += rowspan
+            getattr(self, wdg["frm"]).grid(
+                column=col,
+                row=row,
+                columnspan=colspan,
+                rowspan=rowspan,
+                padx=2,
+                pady=2,
+                sticky=wdg.get("sticky", (N, S, W, E)),
+            )
+            col += colspan
+            lbl = HIDE
+        else:
+            getattr(self, wdg["frm"]).grid_forget()
+            lbl = SHOW
+
+        if wdg["menu"] is not None:
+            self.menu.view_menu.entryconfig(wdg["menu"], label=f"{lbl} {nam}")
+
+        return col, row
+
     def _attach_events(self):
         """
-        Bind events to main application
+        Bind events to main application.
         """
 
         self.__master.bind("<<stream_read>>", self.on_read)
@@ -201,7 +288,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
     def _set_default_fonts(self):
         """
-        Set default fonts for entire application
+        Set default fonts for entire application.
         """
         # pylint: disable=attribute-defined-outside-init
 
@@ -211,140 +298,24 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.font_md2 = font.Font(size=14)
         self.font_lg = font.Font(size=18)
 
-    def toggle_settings(self):
+    def toggle_widget(self, widget: str):
         """
-        Toggle Settings Frame on or off
+        Toggle widget visibility.
+
+        :param str widget: widget name
         """
 
-        self._show_settings = not self._show_settings
-        self._grid_settings()
+        self._widget_grid[widget]["visible"] = not self._widget_grid[widget]["visible"]
+        self._grid_widgets()
 
-    def _grid_settings(self):
+    def reset_widgets(self):
         """
-        Set grid position of Settings Frame
-        """
-
-        if self._show_settings:
-            self.frm_settings.grid(
-                column=4, row=1, rowspan=2, padx=2, pady=2, sticky=(N, W, E)
-            )
-            self.menu.view_menu.entryconfig(0, label=MENUHIDESE)
-        else:
-            self.frm_settings.grid_forget()
-            self.menu.view_menu.entryconfig(0, label=MENUSHOWSE)
-
-    def toggle_status(self):
-        """
-        Toggle Status Bar on or off
+        Reset widgets to default layout.
         """
 
-        self._show_status = not self._show_status
-        self._grid_status()
-
-    def _grid_status(self):
-        """
-        Position Status Bar in grid
-        """
-
-        if self._show_status:
-            self.frm_status.grid(
-                column=0, row=3, columnspan=5, padx=2, pady=2, sticky=(W, E)
-            )
-            self.menu.view_menu.entryconfig(1, label=MENUHIDESB)
-        else:
-            self.frm_status.grid_forget()
-            self.menu.view_menu.entryconfig(1, label=MENUSHOWSB)
-
-    def toggle_console(self):
-        """
-        Toggle Console frame on or off
-        """
-
-        self._show_console = not self._show_console
-        self._grid_console()
-        self._grid_sats()
-        self._grid_map()
-
-    def _grid_console(self):
-        """
-        Position Console Frame in grid
-        """
-
-        if self._show_console:
-            self.frm_console.grid(
-                column=0, row=1, columnspan=4, padx=2, pady=2, sticky=(N, S, E, W)
-            )
-            self.menu.view_menu.entryconfig(2, label=MENUHIDECON)
-        else:
-            self.frm_console.grid_forget()
-            self.menu.view_menu.entryconfig(2, label=MENUSHOWCON)
-
-    def toggle_sats(self):
-        """
-        Toggle Satview and Graphview frames on or off
-        """
-
-        self._show_sats = not self._show_sats
-        self._grid_sats()
-        self._grid_map()
-
-    def _grid_sats(self):
-        """
-        Position Satview and Graphview Frames in grid
-        """
-
-        if self._show_sats:
-            self.frm_satview.grid(column=0, row=2, padx=2, pady=2, sticky=(N, S, E, W))
-            self.frm_graphview.grid(
-                column=1, row=2, padx=2, pady=2, sticky=(N, S, E, W)
-            )
-            self.menu.view_menu.entryconfig(4, label=MENUHIDESATS)
-        else:
-            self.frm_satview.grid_forget()
-            self.frm_graphview.grid_forget()
-            self.menu.view_menu.entryconfig(4, label=MENUSHOWSATS)
-
-    def toggle_map(self):
-        """
-        Toggle Map Frame on or off
-        """
-
-        self._show_map = not self._show_map
-        self._grid_map()
-
-    def _grid_map(self):
-        """
-        Position Map Frame in grid
-        """
-
-        if self._show_map:
-            self.frm_mapview.grid(column=2, row=2, padx=2, pady=2, sticky=(N, S, E, W))
-            self.menu.view_menu.entryconfig(3, label=MENUHIDEMAP)
-        else:
-            self.frm_mapview.grid_forget()
-            self.menu.view_menu.entryconfig(3, label=MENUSHOWMAP)
-
-    def toggle_spectrum(self):
-        """
-        Toggle Spectrum Frame on or off
-        """
-
-        self._show_spectrum = not self._show_spectrum
-        self._grid_spectrum()
-
-    def _grid_spectrum(self):
-        """
-        Position Satview and Graphview Frames in grid
-        """
-
-        if self._show_spectrum:
-            self.frm_spectrumview.grid(
-                column=3, row=2, padx=2, pady=2, sticky=(N, S, E, W)
-            )
-            self.menu.view_menu.entryconfig(5, label=MENUHIDESPECTRUM)
-        else:
-            self.frm_spectrumview.grid_forget()
-            self.menu.view_menu.entryconfig(5, label=MENUSHOWSPECTRUM)
+        for nam, wdg in self._widget_grid.items():
+            wdg["visible"] = nam != WDGSPECTRUM
+        self._grid_widgets()
 
     @property
     def user_port(self) -> str:
@@ -393,7 +364,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
     def set_status(self, message, color="black"):
         """
-        Sets text of status bar
+        Sets text of status bar.
 
         :param str message: message to be displayed in status label
         :param str color: rgb color string
@@ -404,14 +375,14 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
     def about(self):
         """
-        Open About dialog
+        Open About dialog.
         """
 
         AboutDialog(self)
 
     def ubxconfig(self):
         """
-        Start UBX Config dialog thread
+        Start UBX Config dialog thread.
         """
 
         if self._ubx_config_thread is None:
@@ -422,7 +393,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
     def _ubxconfig_thread(self):
         """
-        THREADED PROCESS UBX Configuration Dialog
+        THREADED PROCESS UBX Configuration Dialog.
         """
 
         self.dlg_ubxconfig = UBXConfigDialog(self)
@@ -438,7 +409,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
     def ntripconfig(self):
         """
-        Start NTRIP Config dialog thread
+        Start NTRIP Config dialog thread.
         """
 
         if self._ntrip_config_thread is None:
@@ -449,7 +420,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
     def _ntripconfig_thread(self):
         """
-        THREADED PROCESS NTRIP Configuration Dialog
+        THREADED PROCESS NTRIP Configuration Dialog.
         """
 
         self.dlg_ntripconfig = NTRIPConfigDialog(self)
@@ -534,7 +505,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
     def get_master(self):
         """
-        Getter for application master (Tk)
+        Getter for application master (Tk).
 
         :return: reference to application master (Tk)
         """
@@ -543,7 +514,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
     def on_exit(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
-        Kill any running processes and quit application
+        Kill any running processes and quit application.
         """
 
         self.file_handler.close_logfile()
@@ -652,16 +623,18 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         else:
             return
 
-        self.frm_console.update_console(raw_data, parsed_data)
+        if self._widget_grid["Console"]["visible"]:
+            self.frm_console.update_console(raw_data, parsed_data)
 
+        # update visible widgets
         if datetime.now() > self._last_gui_update + timedelta(
             seconds=GUI_UPDATE_INTERVAL
         ):
-            self.frm_banner.update_banner()
-            self.frm_mapview.update_map()
-            self.frm_satview.update_sats()
-            self.frm_graphview.update_graph()
-            self.frm_spectrumview.update_graph()
+            self.frm_banner.update_frame()
+            for _, widget in self._widget_grid.items():
+                frm = getattr(self, widget["frm"])
+                if hasattr(frm, "update_frame") and widget["visible"]:
+                    frm.update_frame()
             self._last_gui_update = datetime.now()
 
         # update GPX track file if enabled

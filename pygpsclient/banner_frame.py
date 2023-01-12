@@ -358,7 +358,7 @@ class BannerFrame(Frame):
         else:
             self._lbl_transmit_preset.configure(image=self._img_notransmit)
 
-    def update_banner(self):
+    def update_frame(self):
         """
         Sets text of banner from GNSSStatus object.
         """

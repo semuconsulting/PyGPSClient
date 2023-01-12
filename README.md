@@ -71,11 +71,11 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 ## <a name="howtouse">How to Use</a>
 
 * To connect to a listed serial device, select the device from the listbox, set the appropriate serial connection parameters and click 
-![connect icon](/pygpsclient/resources/usbport-1-24.png). The application will endeavour to pre-select a recognised GNSS/GPS device but this is platform and device dependent. Press the ![refresh](/pygpsclient/resources/iconmonstr-refresh-6-16.png) button to refresh the list of connected devices at any point. *Rate bps is typically the only setting that might need adjusting, but tweaking the timeout setting may improve performance on certain platforms*.
+![connect icon](/pygpsclient/resources/usbport-1-24.png). The application will endeavour to pre-select a recognised GNSS/GPS device but this is platform and device dependent. Press the ![refresh](/pygpsclient/resources/iconmonstr-refresh-6-16.png) button to refresh the list of connected devices at any point. `Rate bps` (baud rate) is typically the only setting that might need adjusting, but tweaking the `timeout` setting may improve performance on certain platforms. The `Msg Mode` parameter defaults to `GET` i.e., periodic or poll response messages *from* a receiver. If you wish to parse streams of command or poll messages being sent *to* a receiver, set the `Msg Mode` to `SET` or `POLL`.
 * A default user-defined serial port can also be passed via the environment variable `PYGPSCLIENT_USERPORT` or as a command line keyword argument `port=/dev/tty12345`.
 * To connect to a TCP or UDP socket, enter the server URL and port, select the protocol (defaults to TCP) and click 
 ![connect socket icon](/pygpsclient/resources/ethernet-1-24.png).
-* To stream from a previously-saved binary datalog file, click 
+* To stream from a previously-saved <a name="filestream">binary datalog file</a>, click 
 ![connect-file icon](/pygpsclient/resources/binary-1-24.png) and select the file type (`*.log, *.ubx, *.*`) and path. PyGPSClient datalog files will be named e.g. `pygpsdata-20220427114802.log`, but any binary dump of an GNSS receiver output is acceptable, including `*.ubx` files produced by u-center.
 * To disconnect from the data stream, click
 ![disconnect icon](/pygpsclient/resources/iconmonstr-media-control-50-24.png).
@@ -101,10 +101,11 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 ---
 ### <a name="ubxconfig">UBX Configuration Facilities</a>
 
-![ubxconfig widget screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/ubxconfig_widget.png?raw=true)
+![ubxconfig widget screenshot](/images/ubxconfig_widget.png?raw=true)
 
 The UBX Configuration Dialog currently supports the following UBX configuration panels:
 1. Version panel shows current device hardware/firmware versions (*via MON-VER and MON-HW polls*).
+1. CFG Confirmation Load/Save/Record facility. This allows users to record ![record icon](/pygpsclient/resources/iconmonstr-record-24.png) a sequence of UBX CFG configuration commands, and to save ![save icon](/pygpsclient/resources/iconmonstr-save-14-24.png) this recording to a file (as binary CFG-* messages). Saved files can be reloaded ![load icon](/pygpsclient/resources/iconmonstr-folder-18-24.png) and the configuration commands replayed ![play icon](/pygpsclient/resources/iconmonstr-arrow-12-24.png). This provides a means to easily reproduce a given sequence of configuration commands, or copy a saved configuration between compatible devices. Files saved using the [ubxsave](#ubxsave) CLI utility can also be reloaded and replayed. **Tip:** The contents of a binary config file can be reviewed using PyGPSClient's [file streaming facility](#filestream), *BUT* remember to set the `Msg Mode` in the Settings panel to `SET` rather than the default `GET` ![msgmode capture](/images/msgmode.png).
 1. Protocol Configuration panel (CFG-PRT) sets baud rate and inbound/outbound protocols across all available ports.
 1. Solution Rate panel (CFG-RATE) sets navigation solution interval in ms (e.g. 1000 = 1/second) and measurement ratio (ratio between the number of measurements and the number of navigation solutions, e.g. 5 = five measurements per navigation solution).
 1. For each of the panels above, clicking anywhere in the panel background will refresh the displayed information with the current configuration.
@@ -350,6 +351,8 @@ The `pygnssutils` library which underpins many of the functions in `PyGPSClient`
 1. `gnssntripclient` CLI utility. This implements
 a simple NTRIP Client which receives RTCM3 correction data from an NTRIP Server and (optionally) sends this to a
 designated output stream.
+1. <a name="ubxsave">`ubxsave` CLI utility</a>. This saves a complete set of configuration data from any Generation 9+ u-blox device (e.g. NEO-M9N or ZED-F9P) to a file. The file can then be reloaded to any compatible device using the `ubxload` utility.
+1. `ubxload` CLI utility. This reads a file containing binary configuration data and loads it into any compatible Generation 9+ u-blox device (e.g. NEO-M9N or ZED-F9P).
 1. `ubxsetrate` CLI utility. A simple utility which sets NMEA or UBX message rates on u-blox GNSS receivers.
 
 For further details, refer to the `pygnssutils` homepage at [https://github.com/semuconsulting/pygnssutils](https://github.com/semuconsulting/pygnssutils).
@@ -357,7 +360,7 @@ For further details, refer to the `pygnssutils` homepage at [https://github.com/
 ---
 ## <a name="glossary">Glossary of Terms</a>
 
-See also [GNSS Positioning - A Reviser](https://www.semuconsulting.com/gnsswiki/)
+For a general overview of GNSS, DGPS and NTRIP technologies, refer to [GNSS Positioning - A Reviser](https://www.semuconsulting.com/gnsswiki/).
 
 * ACC - accuracy of location in real units (hacc - horizontal, vacc - vertical). Note that location accuracy is not directly provided via the standard NMEA message set, but is available from UBX messages e.g. NAV-POSLLH, NAV-PVT and some proprietary NMEA messages e.g. UBX00.
 * BEI - [BeiDou Navigation Satellite System](https://en.wikipedia.org/wiki/BeiDou).

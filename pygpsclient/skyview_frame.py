@@ -103,7 +103,7 @@ class SkyviewFrame(Frame):
             w / 2, h - axis_r, text="180\u00b0 S", fill=self.fg_col, font=resize_font
         )
 
-    def update_sats(self):
+    def update_frame(self):
         """
         Plot satellites' elevation and azimuth position.
         """

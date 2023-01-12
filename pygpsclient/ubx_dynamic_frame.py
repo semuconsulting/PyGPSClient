@@ -19,7 +19,7 @@ Created on 17 Aug 2022
 :copyright: SEMU Consulting © 2022
 :license: BSD 3-Clause
 """
-# pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
+# pylint: disable=invalid-name, too-many-instance-attributes
 
 from tkinter import (
     Frame,
@@ -128,7 +128,7 @@ class UBX_Dynamic_Frame(Frame):
             border=2,
             relief="sunken",
             bg=ENTCOL,
-            height=6,
+            height=11,
             justify=LEFT,
             exportselection=False,
         )
@@ -442,7 +442,7 @@ class UBX_Dynamic_Frame(Frame):
             msg = UBXMessage("CFG", self._cfg_id, SET, **vals)
 
             # send message, update status and await response
-            self.__app.stream_handler.serial_write(msg.serialize())
+            self.__container.send_command(msg)
             self._lbl_send_command.config(image=self._img_pending)
             self.__container.set_status(f"{self._cfg_id} SET message sent", "blue")
             for msgid in ("ACK-ACK", "ACK-NAK"):
@@ -461,7 +461,7 @@ class UBX_Dynamic_Frame(Frame):
 
         if self._cfg_id in UBX_PAYLOADS_POLL:  # CFG is POLLable
             msg = UBXMessage("CFG", self._cfg_id, POLL)
-            self.__app.stream_handler.serial_write(msg.serialize())
+            self.__container.send_command(msg)
             self.__container.set_status(f"{self._cfg_id} POLL message sent", "blue")
             self._lbl_send_command.config(image=self._img_pending)
             for msgid in (self._cfg_id, "ACK-NAK"):

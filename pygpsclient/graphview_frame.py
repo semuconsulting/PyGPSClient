@@ -119,7 +119,7 @@ class GraphviewFrame(Frame):
                 font=resize_font,
             )
 
-    def update_graph(self):
+    def update_frame(self):
         """
         Plot satellites' signal-to-noise ratio (cno).
         Automatically adjust y axis according to number of satellites in view.

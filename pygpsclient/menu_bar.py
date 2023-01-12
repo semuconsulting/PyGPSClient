@@ -17,16 +17,18 @@ from pygpsclient.strings import (
     MENUVIEW,
     MENUOPTION,
     MENUEXIT,
-    MENUHIDESE,
-    MENUHIDESB,
-    MENUHIDECON,
-    MENUHIDEMAP,
-    MENUHIDESATS,
-    MENUSHOWSPECTRUM,
     MENUABOUT,
     MENUHELP,
     MENUUBXCONFIG,
     MENUNTRIPCONFIG,
+    WDGSETTINGS,
+    WDGSTATUS,
+    WDGCONSOLE,
+    WDGSATS,
+    WDGLEVELS,
+    WDGMAP,
+    WDGSPECTRUM,
+    MENURESET,
 )
 
 
@@ -64,25 +66,42 @@ class MenuBar(Menu):
         self.add_cascade(menu=self.file_menu, label=MENUFILE)
 
         # Create a pull-down menu for view operations
+        # Menu labels are set in app._grid_widgets() function
         self.view_menu = Menu(self, tearoff=False)
         self.view_menu.add_command(
-            label=MENUHIDESE, underline=1, command=self.__app.toggle_settings
+            underline=1,
+            command=lambda: self._toggle_widget(WDGSETTINGS),
         )
         self.view_menu.add_command(
-            label=MENUHIDESB, underline=1, command=self.__app.toggle_status
+            underline=1,
+            command=lambda: self._toggle_widget(WDGSTATUS),
         )
         self.view_menu.add_command(
-            label=MENUHIDECON, underline=1, command=self.__app.toggle_console
+            underline=1,
+            command=lambda: self._toggle_widget(WDGCONSOLE),
         )
         self.view_menu.add_command(
-            label=MENUHIDEMAP, underline=1, command=self.__app.toggle_map
+            underline=1,
+            command=lambda: self._toggle_widget(WDGSATS),
         )
         self.view_menu.add_command(
-            label=MENUHIDESATS, underline=1, command=self.__app.toggle_sats
+            underline=1,
+            command=lambda: self._toggle_widget(WDGLEVELS),
         )
         self.view_menu.add_command(
-            label=MENUSHOWSPECTRUM, underline=1, command=self.__app.toggle_spectrum
+            underline=1,
+            command=lambda: self._toggle_widget(WDGMAP),
         )
+        self.view_menu.add_command(
+            underline=1,
+            command=lambda: self._toggle_widget(WDGSPECTRUM),
+        )
+        self.view_menu.add_command(
+            underline=1,
+            label=MENURESET,
+            command=lambda: self._reset_widgets(),  # pylint: disable=unnecessary-lambda
+        )
+
         self.add_cascade(menu=self.view_menu, label=MENUVIEW)
 
         # Create a pull-down menu for view operations
@@ -107,3 +126,19 @@ class MenuBar(Menu):
             label=MENUABOUT, underline=1, command=self.__app.about
         )
         self.add_cascade(menu=self.help_menu, label=MENUHELP)
+
+    def _toggle_widget(self, widget: str):
+        """
+        Set widget visibility.
+
+        :param str widget: name of widget
+        """
+
+        self.__app.toggle_widget(widget)
+
+    def _reset_widgets(self):
+        """
+        Reset widgets to default layout
+        """
+
+        self.__app.reset_widgets()

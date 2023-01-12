@@ -57,12 +57,14 @@ from pygpsclient.globals import (
     ICON_SERIAL,
     ICON_SOCKET,
     ICON_DISCONN,
+    ICON_EXIT,
     ICON_UBXCONFIG,
     ICON_NTRIPCONFIG,
     ICON_LOGREAD,
     KNOWNGPS,
     BPSRATES,
     FORMATS,
+    MSGMODES,
     SOCKMODES,
     TAG_COLORS,
     SOCKSERVER_PORT,
@@ -144,6 +146,7 @@ class SettingsFrame(Frame):
         self._img_serial = ImageTk.PhotoImage(Image.open(ICON_SERIAL))
         self._img_socket = ImageTk.PhotoImage(Image.open(ICON_SOCKET))
         self._img_disconn = ImageTk.PhotoImage(Image.open(ICON_DISCONN))
+        self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
         self._img_ubxconfig = ImageTk.PhotoImage(Image.open(ICON_UBXCONFIG))
         self._img_ntripconfig = ImageTk.PhotoImage(Image.open(ICON_NTRIPCONFIG))
         self._img_dataread = ImageTk.PhotoImage(Image.open(ICON_LOGREAD))
@@ -169,6 +172,7 @@ class SettingsFrame(Frame):
             preselect=KNOWNGPS,
             timeouts=TIMEOUTS,
             bpsrates=BPSRATES,
+            msgmodes=list(MSGMODES.keys()),
             userport=self.__app.user_port,  # user-defined serial port
         )
 
@@ -210,6 +214,14 @@ class SettingsFrame(Frame):
             state=DISABLED,
         )
         self._lbl_disconnect = Label(self._frm_buttons, text="STOP")
+        self._btn_exit = Button(
+            self._frm_buttons,
+            width=45,
+            height=35,
+            image=self._img_exit,
+            command=lambda: self.__app.quit(),
+        )
+
         self._lbl_status_preset = Label(
             self._frm_buttons, font=self.__app.font_md2, text=""
         )
@@ -409,6 +421,7 @@ class SettingsFrame(Frame):
         self._btn_connect_socket.grid(column=1, row=0, padx=2, pady=1)
         self._btn_connect_file.grid(column=2, row=0, padx=2, pady=1)
         self._btn_disconnect.grid(column=3, row=0, padx=2, pady=1)
+        self._btn_exit.grid(column=4, row=0, padx=2, pady=1)
         self._lbl_connect.grid(column=0, row=1, padx=1, pady=1, sticky=(W, E))
         self._lbl_connect_socket.grid(column=1, row=1, padx=1, pady=1, sticky=(W, E))
         self._lbl_connect_file.grid(column=2, row=1, padx=1, pady=1, sticky=(W, E))
@@ -541,13 +554,15 @@ class SettingsFrame(Frame):
         )
         self.__app.set_status("")
         self.__app.conn_status = CONNECTED
-        self.__app.stream_handler.start_read_thread(CONNECTED)
+        msgmode = self.__app.frm_settings.serial_settings().msgmode
+        self.__app.stream_handler.start_read_thread(CONNECTED, msgmode)
 
     def _on_socket_stream(self):
         """
         Start socket streamer if settings are valid
         """
 
+        msgmode = self.__app.frm_settings.serial_settings().msgmode
         valid = True
         valid = valid & valid_entry(self._frm_socket.ent_server, VALURL)
         valid = valid & valid_entry(self._frm_socket.ent_port, VALINT, 1, MAXPORT)
@@ -558,7 +573,7 @@ class SettingsFrame(Frame):
             )
             self.__app.set_status("")
             self.__app.conn_status = CONNECTED_SOCKET
-            self.__app.stream_handler.start_read_thread(CONNECTED_SOCKET)
+            self.__app.stream_handler.start_read_thread(CONNECTED_SOCKET, msgmode)
         else:
             self.__app.set_status("ERROR - invalid settings", "red")
 
@@ -567,12 +582,13 @@ class SettingsFrame(Frame):
         Start data file streamer if file selected
         """
 
+        msgmode = self.__app.frm_settings.serial_settings().msgmode
         self._in_filepath = self.__app.file_handler.open_infile()
         if self._in_filepath is not None:
             self.__app.set_connection(f"{self._in_filepath}", "blue")
             self.__app.set_status("")
             self.__app.conn_status = CONNECTED_FILE
-            self.__app.stream_handler.start_read_thread(CONNECTED_FILE)
+            self.__app.stream_handler.start_read_thread(CONNECTED_FILE, msgmode)
 
     def _on_socket_serve(self):
         """

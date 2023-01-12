@@ -7,7 +7,7 @@ Created on 22 Dec 2020
 :copyright: SEMU Consulting © 2020
 :license: BSD 3-Clause
 """
-# pylint: disable=invalid-name, too-many-instance-attributes, too-many-ancestors
+# pylint: disable=invalid-name, too-many-instance-attributes
 
 from tkinter import (
     Frame,
@@ -31,7 +31,8 @@ from pyubx2 import (
     UBX_MSGIDS,
     UBX_PAYLOADS_POLL,
 )
-from .globals import (
+
+from pygpsclient.globals import (
     ENTCOL,
     ICON_SEND,
     ICON_WARNING,
@@ -39,8 +40,8 @@ from .globals import (
     ICON_CONFIRMED,
     UBX_PRESET,
 )
-from .helpers import ConfirmBox
-from .strings import (
+from pygpsclient.helpers import ConfirmBox
+from pygpsclient.strings import (
     LBLPRESET,
     DLGRESET,
     DLGSAVE,
@@ -90,6 +91,9 @@ PRESET_COMMMANDS = [
     PSTPOLLALLCFG,
     PSTPOLLALLNAV,
 ]
+CANCELLED = 0
+CONFIRMED = 1
+NOMINAL = 2
 
 
 class UBX_PRESET_Frame(Frame):
@@ -118,6 +122,7 @@ class UBX_PRESET_Frame(Frame):
         self._img_confirmed = ImageTk.PhotoImage(Image.open(ICON_CONFIRMED))
         self._img_warn = ImageTk.PhotoImage(Image.open(ICON_WARNING))
         self._preset_command = None
+        self._configfile = None
         self._body()
         self._do_layout()
         self._attach_events()
@@ -134,8 +139,8 @@ class UBX_PRESET_Frame(Frame):
             border=2,
             relief="sunken",
             bg=ENTCOL,
-            height=7,
-            width=30,
+            height=11,
+            width=34,
             justify=LEFT,
             exportselection=False,
         )
@@ -160,10 +165,10 @@ class UBX_PRESET_Frame(Frame):
 
         self._lbl_presets.grid(column=0, row=0, columnspan=6, padx=3, sticky=(W, E))
         self._lbx_preset.grid(
-            column=0, row=1, columnspan=3, rowspan=8, padx=3, pady=3, sticky=(W, E)
+            column=0, row=1, columnspan=3, rowspan=12, padx=3, pady=3, sticky=(W, E)
         )
-        self._scr_presetv.grid(column=2, row=1, rowspan=8, sticky=(N, S, E))
-        self._scr_preseth.grid(column=0, row=9, columnspan=3, sticky=(W, E))
+        self._scr_presetv.grid(column=2, row=1, rowspan=12, sticky=(N, S, E))
+        self._scr_preseth.grid(column=0, row=13, columnspan=3, sticky=(W, E))
         self._btn_send_command.grid(
             column=3, row=1, rowspan=6, ipadx=3, ipady=3, sticky=(E)
         )
@@ -215,14 +220,14 @@ class UBX_PRESET_Frame(Frame):
         Preset command send button has been clicked.
         """
 
-        confirmed = True
+        status = CONFIRMED
         confids = ("MON-VER", "ACK-ACK")
         try:
 
             if self._preset_command == PSTRESET:
-                confirmed = self._do_factory_reset()
+                status = self._do_factory_reset()
             elif self._preset_command == PSTSAVE:
-                confirmed = self._do_save_config()
+                status = self._do_save_config()
             elif self._preset_command == PSTMINNMEAON:
                 self._do_set_minnmea()
             elif self._preset_command == PSTALLNMEAON:
@@ -263,13 +268,15 @@ class UBX_PRESET_Frame(Frame):
                 confids = ("MON-VER", "ACK-ACK", "ACK-NAK")
                 self._do_user_defined(self._preset_command)
 
-            if confirmed:
+            if status == CONFIRMED:
                 self._lbl_send_command.config(image=self._img_pending)
                 self.__container.set_status("Command(s) sent", "blue")
                 for msgid in confids:
                     self.__container.set_pending(msgid, UBX_PRESET)
-            else:
+            elif status == CANCELLED:
                 self.__container.set_status("Command(s) cancelled", "blue")
+            elif status == NOMINAL:
+                self.__container.set_status("Command(s) sent, no results", "blue")
 
         except Exception as err:  # pylint: disable=broad-except
             self.__container.set_status(f"Error {err}", "red")
@@ -288,7 +295,7 @@ class UBX_PRESET_Frame(Frame):
                 "CFG-TP5-TPX",
             ):
                 msg = UBXMessage("CFG", msgtype, POLL)
-                self.__app.stream_handler.serial_write(msg.serialize())
+                self.__container.send_command(msg)
 
     def _do_poll_all_NAV(self):
         """
@@ -298,7 +305,7 @@ class UBX_PRESET_Frame(Frame):
         for msgtype in UBX_PAYLOADS_POLL:
             if msgtype[0:3] == "NAV":
                 msg = UBXMessage(msgtype.split("-")[0], msgtype, POLL)
-                self.__app.stream_handler.serial_write(msg.serialize())
+                self.__container.send_command(msg)
 
     def _do_poll_prt(self):
         """
@@ -307,7 +314,7 @@ class UBX_PRESET_Frame(Frame):
 
         for portID in range(5):
             msg = UBXMessage("CFG", "CFG-PRT", POLL, portID=portID)
-            self.__app.stream_handler.serial_write(msg.serialize())
+            self.__container.send_command(msg)
 
     def _do_poll_inf(self):
         """
@@ -316,7 +323,7 @@ class UBX_PRESET_Frame(Frame):
 
         for protid in (0, 1):  # UBX & NMEA
             msg = UBXMessage("CFG", "CFG-INF", POLL, protocolID=protid)
-            self.__app.stream_handler.serial_write(msg.serialize())
+            self.__container.send_command(msg)
 
     def _do_set_inf(self, onoff: int):
         """
@@ -348,7 +355,7 @@ class UBX_PRESET_Frame(Frame):
                 + reserved2
             )
             msg = UBXMessage("CFG", "CFG-INF", SET, payload=payload)
-            self.__app.stream_handler.serial_write(msg.serialize())
+            self.__container.send_command(msg)
             self._do_poll_inf()  # poll results
 
     def _do_set_log(self, msgrate: int):
@@ -463,7 +470,7 @@ class UBX_PRESET_Frame(Frame):
             rateUSB=msgrate,
             rateSPI=msgrate,
         )
-        self.__app.stream_handler.serial_write(msg.serialize())
+        self.__container.send_command(msg)
 
     def _do_factory_reset(self) -> bool:
         """
@@ -486,10 +493,10 @@ class UBX_PRESET_Frame(Frame):
                 devFlash=1,
                 devEEPROM=1,
             )
-            self.__app.stream_handler.serial_write(msg.serialize())
-            return True
+            self.__container.send_command(msg)
+            return CONFIRMED
 
-        return False
+        return CANCELLED
 
     def _do_save_config(self) -> bool:
         """
@@ -512,10 +519,10 @@ class UBX_PRESET_Frame(Frame):
                 devFlash=1,
                 devEEPROM=1,
             )
-            self.__app.stream_handler.serial_write(msg.serialize())
-            return True
+            self.__container.send_command(msg)
+            return CONFIRMED
 
-        return False
+        return CANCELLED
 
     def _do_user_defined(self, command: str):
         """
@@ -540,7 +547,7 @@ class UBX_PRESET_Frame(Frame):
                     msg = UBXMessage(ubx_class, ubx_id, mode, payload=payload)
                 else:
                     msg = UBXMessage(ubx_class, ubx_id, mode)
-                self.__app.stream_handler.serial_write(msg.serialize())
+                self.__container.send_command(msg)
         except Exception as err:  # pylint: disable=broad-except
             self.__app.set_status(f"Error {err}", "red")
             self._lbl_send_command.config(image=self._img_warn)

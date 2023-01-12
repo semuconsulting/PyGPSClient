@@ -78,7 +78,7 @@ class MapviewFrame(Frame):
         self.can_mapview = Canvas(self, width=self.width, height=self.height, bg=BGCOL)
         self.can_mapview.grid(column=0, row=0, sticky=(N, S, E, W))
 
-    def update_map(self):
+    def update_frame(self):
         """
         Draw map and mark current known position and horizontal accuracy (where available).
         """

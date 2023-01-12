@@ -13,6 +13,7 @@ Created on 14 Sep 2020
 # pylint: disable=invalid-name, line-too-long
 
 import os
+from pyubx2 import GET, SET, POLL
 
 DIRNAME = os.path.dirname(__file__)
 ICON_APP = os.path.join(DIRNAME, "resources/iconmonstr-location-27-32.png")
@@ -36,6 +37,13 @@ ICON_EXPAND = os.path.join(DIRNAME, "resources/iconmonstr-arrow-80-16.png")
 ICON_TRANSMIT = os.path.join(DIRNAME, "resources/iconmonstr-transmit-10-24.png")
 ICON_NOTRANSMIT = os.path.join(DIRNAME, "resources/iconmonstr-notransmit-10-24.png")
 ICON_NOCLIENT = os.path.join(DIRNAME, "resources/iconmonstr-noclient-10-24.png")
+ICON_LOAD = os.path.join(DIRNAME, "resources/iconmonstr-folder-18-24.png")
+ICON_SAVE = os.path.join(DIRNAME, "resources/iconmonstr-save-14-24.png")
+ICON_PLAY = os.path.join(DIRNAME, "resources/iconmonstr-media-control-48-24.png")
+ICON_RECORD = os.path.join(DIRNAME, "resources/iconmonstr-record-24.png")
+ICON_STOP = os.path.join(DIRNAME, "resources/iconmonstr-stop-1-24.png")
+ICON_UNDO = os.path.join(DIRNAME, "resources/iconmonstr-undo-24.png")
+ICON_DELETE = os.path.join(DIRNAME, "resources/iconmonstr-trash-can-filled-24.png")
 IMG_WORLD = os.path.join(DIRNAME, "resources/world.png")
 
 GITHUB_URL = "https://github.com/semuconsulting/PyGPSClient"
@@ -54,7 +62,7 @@ MAPURL = "https://www.mapquestapi.com/staticmap/v5/map?key={}&locations={},{}&zo
 MAP_UPDATE_INTERVAL = (
     60  # how frequently the mapquest api is called to update the web map (seconds)
 )
-GUI_UPDATE_INTERVAL = 1  # minimum GUI widget update interval (seconds)
+GUI_UPDATE_INTERVAL = 0.5  # minimum GUI widget update interval (seconds)
 GPX_TRACK_INTERVAL = 1  # minimum GPS track update interval (seconds)
 FILEREAD_INTERVAL = 0.02  # delay between successive datalog file reads (seconds)
 SAT_EXPIRY = 10  # how long passed satellites are kept in the sky and graph views
@@ -130,10 +138,18 @@ CONNMODES = {
     3: "no serial devices",
     4: "socket",
 }
+MSGMODES = {
+    "GET": GET,
+    "SET": SET,
+    "POLL": POLL,
+}
 # default widget frame sizes:
 WIDGETU1 = (250, 250)
 WIDGETU2 = (350, 250)
 WIDGETU3 = (950, 350)
+MAXCOLSPAN = 4  # max colspan of widgets
+MAXROWSPAN = 3  # max no of widget rows
+
 BGCOL = "gray24"  # default widget background color
 FGCOL = "white"  # default widget foreground color
 ENTCOL = "azure"  # default valid data entry field background color

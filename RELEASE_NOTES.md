@@ -1,8 +1,16 @@
 # PyGPSClient Release Notes
 
+### RELEASE v1.3.14
+
+ENHANCEMENTS:
+
+1. New `CFG Configuration Load/Save/Record` facility added to UBX Configuration panel. This allows users to 'record' any configuration commands (UBX CFG messages) sent to a device to an internal memory array, and subsequently save this array in a binary file. Saved files can be reloaded and the messages replayed to any compatible device. This provides a means to easily reproduce a given sequence of configuration commands, or copy a saved configuration between compatible devices.
+2. Msg Mode listbox added to serial configuration dialog. Defaults to 'GET' (periodic or poll response message types) but can be set to 'SET' or 'POLL' to read serial or file streams containing command or poll message types. 
+3. Internal code streamlining for widget selection and arrangement. New reset layout option added.
+
 ### RELEASE v1.3.13
 
-ENANCEMENTS:
+ENHANCEMENTS:
 
 1. New spectrum analysis widget added. Displays spectrum data from MON-SPAN messages. To turn widget on or off, select Menu...View..Show/Hide Spectrum.
 

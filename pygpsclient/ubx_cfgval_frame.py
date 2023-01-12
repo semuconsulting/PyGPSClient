@@ -7,7 +7,7 @@ Created on 22 Dec 2020
 :copyright: SEMU Consulting © 2020
 :license: BSD 3-Clause
 """
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name, too-many-instance-attributes
 
 from tkinter import (
     Frame,
@@ -401,7 +401,7 @@ class UBX_CFGVAL_Frame(Frame):
 
         if valid_entry:
             msg = UBXMessage.config_set(layers, transaction, cfgData)
-            self.__app.stream_handler.serial_write(msg.serialize())
+            self.__container.send_command(msg)
             self._ent_val.configure(bg=ENTCOL)
             self._lbl_send_command.config(image=self._img_pending)
             self.__container.set_status("CFG-VALSET SET message sent", "blue")
@@ -438,7 +438,7 @@ class UBX_CFGVAL_Frame(Frame):
             self._cfgval_keyname,
         ]
         msg = UBXMessage.config_del(layers, transaction, key)
-        self.__app.stream_handler.serial_write(msg.serialize())
+        self.__container.send_command(msg)
         self._ent_val.configure(bg=ENTCOL)
         self._lbl_send_command.config(image=self._img_pending)
         self.__container.set_status("CFG-VALDEL SET message sent", "blue")
@@ -464,7 +464,7 @@ class UBX_CFGVAL_Frame(Frame):
             self._cfgval_keyname,
         ]
         msg = UBXMessage.config_poll(layers, transaction, keys)
-        self.__app.stream_handler.serial_write(msg.serialize())
+        self.__container.send_command(msg)
         self._ent_val.configure(bg=ENTCOL)
         self._lbl_send_command.config(image=self._img_pending)
         self.__container.set_status("CFG-VALGET POLL message sent", "blue")

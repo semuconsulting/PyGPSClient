@@ -9,7 +9,7 @@ Created on 22 Sep 2020
 :copyright: SEMU Consulting © 2020
 :license: BSD 3-Clause
 """
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name, too-many-instance-attributes
 
 from tkinter import (
     Frame,
@@ -33,7 +33,7 @@ from pyubx2 import (
     SET,
     UBX_MSGIDS,
 )
-from pyubx2.ubxhelpers import key_from_val, msgclass2bytes
+from pyubx2.ubxhelpers import key_from_val
 from pygpsclient.globals import (
     ENTCOL,
     ICON_SEND,
@@ -244,23 +244,23 @@ class UBX_MSGRATE_Frame(Frame):
         self._cfg_msg_command = self._lbx_cfg_msg.get(idx)
 
         # poll selected message configuration to get current message rates
-        msg = key_from_val(UBX_MSGIDS, self._cfg_msg_command)
-        self._do_poll_msg(msg)
+        msgtyp = key_from_val(UBX_MSGIDS, self._cfg_msg_command)
+        self._do_poll_msg(msgtyp)
 
     def _on_send_cfg_msg(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
         CFG-MSG command send button has been clicked.
         """
 
-        msg = key_from_val(UBX_MSGIDS, self._cfg_msg_command)
-        msgClass = int.from_bytes(msg[0:1], "little", signed=False)
-        msgID = int.from_bytes(msg[1:2], "little", signed=False)
+        msgtyp = key_from_val(UBX_MSGIDS, self._cfg_msg_command)
+        msgClass = int.from_bytes(msgtyp[0:1], "little", signed=False)
+        msgID = int.from_bytes(msgtyp[1:2], "little", signed=False)
         rateDDC = int(self._ddc_rate.get())
         rateUART1 = int(self._uart1_rate.get())
         rateUART2 = int(self._uart2_rate.get())
         rateUSB = int(self._usb_rate.get())
         rateSPI = int(self._spi_rate.get())
-        data = UBXMessage(
+        msg = UBXMessage(
             "CFG",
             "CFG-MSG",
             SET,
@@ -272,21 +272,23 @@ class UBX_MSGRATE_Frame(Frame):
             rateUSB=rateUSB,
             rateSPI=rateSPI,
         )
-        self.__app.stream_handler.serial_write(data.serialize())
+        self.__container.send_command(msg)
         self._lbl_send_command.config(image=self._img_pending)
         self.__container.set_status("CFG-MSG SET message sent", "green")
         for msgid in ("ACK-ACK", "ACK-NAK"):
             self.__container.set_pending(msgid, UBX_CFGMSG)
 
-        self._do_poll_msg(msg)
+        self._do_poll_msg(msgtyp)
 
-    def _do_poll_msg(self, msg):
+    def _do_poll_msg(self, msgtyp: bytes):
         """
         Poll message rate.
+
+        :param bytes msgtyp: payload of msgClass, msgID
         """
 
-        data = UBXMessage("CFG", "CFG-MSG", POLL, payload=msg)  # poll for a response
-        self.__app.stream_handler.serial_write(data.serialize())
+        msg = UBXMessage("CFG", "CFG-MSG", POLL, payload=msgtyp)
+        self.__container.send_command(msg)
         self._lbl_send_command.config(image=self._img_pending)
         self.__container.set_status("CFG-MSG POLL message sent", "blue")
         for msgid in ("CFG-MSG", "ACK-NAK"):
