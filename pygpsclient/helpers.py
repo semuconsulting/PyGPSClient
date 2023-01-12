@@ -564,17 +564,17 @@ def stringvar2val(val: str, att: str) -> object:
     return val
 
 
-def set_filename(path: str, mode: str, ext: str) -> str:
+def set_filename(path: str, mode: str, ext: str) -> tuple:
     """
-    Return fully qualified and timestamped file name.
+    Return timestamped file name and fully qualified file path.
 
     :param path: the file path as str
     :param mode: the type of file being created ('data', 'track') as str
     :param ext: the file extension ('log', 'gpx') as str
-    :return: fully qualified filename
-    :rtype: str
+    :return: fully qualified filename and path
+    :rtype: tuple of (filename, filepath)
     """
 
-    timestr = strftime("%Y%m%d%H%M%S")
-    filename = os.path.join(path, f"pygps{mode}-" + timestr + f".{ext}")
-    return filename
+    filename = f"pygps{mode}-{strftime('%Y%m%d%H%M%S')}.{ext}"
+    filepath = os.path.join(path, filename)
+    return filename, filepath

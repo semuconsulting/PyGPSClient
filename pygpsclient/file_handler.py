@@ -162,7 +162,7 @@ class FileHandler:
         """
 
         self._lines = 0
-        self._logname = set_filename(self._logpath, "data", "log")
+        _, self._logname = set_filename(self._logpath, "data", "log")
         self._logfile = open(self._logname, "a+b")
 
     def open_infile(self) -> str:
@@ -256,7 +256,7 @@ class FileHandler:
         Open track file and create GPX track header tags.
         """
 
-        self._trackname = set_filename(self._trackpath, "track", "gpx")
+        _, self._trackname = set_filename(self._trackpath, "track", "gpx")
         self._trackfile = open(self._trackname, "a")
 
         date = datetime.now().isoformat() + "Z"

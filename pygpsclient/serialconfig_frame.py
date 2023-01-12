@@ -278,6 +278,12 @@ class SerialConfigFrame(Frame):
             self._ports.insert(0, (self._userport, LBLUDPORT, None))
 
         if len(self._ports) > 0:
+            # default to first item in list
+            port, desc, _ = self._ports[0]
+            if desc == "":
+                desc = "device"
+            self._port.set(port)
+            self._port_desc.set(desc)
             for idx, (port, desc, _) in enumerate(self._ports):
                 self._lbx_port.insert(idx, port + ": " + desc)
                 # default selection to recognised GNSS device if possible

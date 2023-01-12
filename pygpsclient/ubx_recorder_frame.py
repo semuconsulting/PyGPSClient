@@ -179,21 +179,21 @@ class UBX_Recorder_Frame(Frame):
         self._rec_status = STOP
         self._update_status()
 
-    def _set_configfile_path(self) -> str:
+    def _set_configfile_path(self) -> tuple:
         """
         Set configuration file path.
 
         :return: file path
-        :rtype: str
+        :rtype: tuple
         """
 
-        self._configpath = filedialog.askdirectory(
+        configpath = filedialog.askdirectory(
             parent=self.__container, title=SAVETITLE, initialdir=HOME, mustexist=True
         )
-        if self._configpath in ((), ""):
-            return None  # User cancelled
-        self._configfile = set_filename(self._configpath, "config", "ubx")
-        return self._configfile
+        if configpath in ((), ""):
+            return None, None  # User cancelled
+
+        return set_filename(configpath, "config", "ubx")
 
     def _open_configfile(self):
         """
@@ -250,11 +250,14 @@ class UBX_Recorder_Frame(Frame):
         Save commands from in-memory recording to file.
         """
 
+        if self._rec_status == RECORD:
+            return
+
         if len(self._cmds_stored) == 0:
             self._lbl_activity.config(text="Nothing to save", fg=COLBAD)
             return
 
-        self._configfile = self._set_configfile_path()
+        fname, self._configfile = self._set_configfile_path()
         if self._configfile is None:
             return
 
@@ -264,7 +267,6 @@ class UBX_Recorder_Frame(Frame):
             for i, msg in enumerate(self._cmds_stored):
                 file.write(msg.serialize())
         self._cmds_stored = []
-        fname = self._configfile.split("/")[-1]
         self._lbl_activity.config(
             text=f"{i + 1} command{'s' if i > 0 else ''} saved to {fname}",
             fg=COLINFO,
