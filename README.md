@@ -117,9 +117,8 @@ The UBX Configuration Dialog currently supports the following UBX configuration 
 An icon to the right of each 'SEND' 
 ![send icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-arrow-12-24.png?raw=true) button indicates the confirmation status of the configuration command; 
 (pending i.e. awaiting confirmation ![pending icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-time-6-24.png?raw=true), 
-confirmed ![confirmed icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-check-mark-8-24.png?raw=true), 
-warning ![warning icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-warning-1-24.png) or 
-unknown i.e. no confirmation available ![unknown icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-help-3-24.png?raw=true). 
+confirmed ![confirmed icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-check-mark-8-24.png?raw=true) or 
+warning ![warning icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-warning-1-24.png?raw=true)). 
 
 **Note:**
 * Poll and Acknowledgement responses can take several seconds at high message transmission rates, or be discarded altogether if the device's transmit buffer is full (*txbuff-alloc error*). To ensure timely responses, try increasing the baud rate and/or temporarily reducing transmitted message rates using the configuration commands provided.
