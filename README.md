@@ -360,7 +360,7 @@ For further details, refer to the `pygnssutils` homepage at [https://github.com/
 ---
 ## <a name="glossary">Glossary of Terms</a>
 
-See also [GNSS Positioning - A Reviser](https://www.semuconsulting.com/gnsswiki/)
+For a general overview of GNSS, DGPS and NTRIP technologies, refer to [GNSS Positioning - A Reviser](https://www.semuconsulting.com/gnsswiki/).
 
 * ACC - accuracy of location in real units (hacc - horizontal, vacc - vertical). Note that location accuracy is not directly provided via the standard NMEA message set, but is available from UBX messages e.g. NAV-POSLLH, NAV-PVT and some proprietary NMEA messages e.g. UBX00.
 * BEI - [BeiDou Navigation Satellite System](https://en.wikipedia.org/wiki/BeiDou).
