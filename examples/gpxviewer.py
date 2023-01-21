@@ -28,6 +28,7 @@ Created on 20 Sep 2020
 
 import sys
 from os import getenv
+from math import ceil
 from xml.dom import minidom
 from io import BytesIO
 from tkinter import Tk, font, Canvas, NW, N, S, W, E
@@ -42,16 +43,16 @@ from requests import (
 
 MAPURL = (
     "https://www.mapquestapi.com/staticmap/v5/map?key={}&size={},{}"
-    + "&zoom={}&locations={}||{}&defaultMarker=marker-num"
+    + "&zoom={}&locations={},{}||{},{}&defaultMarker=marker-num"
     + "&shape=weight:2|border:{}|{}&scalebar=true|bottom"
 )
-AXIS_XL = 25  # x axis left offset
+AXIS_XL = 35  # x axis left offset
 AXIS_XR = 10  # x axis right offset
-AXIS_Y = 20  # y axis bottom offset
+AXIS_Y = 25  # y axis bottom offset
 PROFILE_Y = 0.25  # % height occupied by elevation profile
 
 
-def get_track(filename: str) -> tuple:
+def get_track(filename: str) -> list:
     """
     Get track and elevation profile from GPX file.
     """
@@ -59,33 +60,35 @@ def get_track(filename: str) -> tuple:
     with open(filename, "r", encoding="utf-8") as gpx:
 
         parser = minidom.parse(gpx)
-
         pts = parser.getElementsByTagName("trkpt")
-        track = ""
-        profile = []
-        for i, pt in enumerate(pts):
-            lat = pt.attributes["lat"].value
-            lon = pt.attributes["lon"].value
-            ele = pt.getElementsByTagName("ele")[0].firstChild.data
-            end = f"{lat},{lon}"
-            if i == 0:
-                start = end
-            track += f"{end}|"
-            profile.append(float(ele))
-        return start, end, track, profile
+        track = []
+        for pt in pts:
+            lat = float(pt.attributes["lat"].value)
+            lon = float(pt.attributes["lon"].value)
+            ele = float(pt.getElementsByTagName("ele")[0].firstChild.data)
+            track.append((lat, lon, ele))
+        return track
 
 
 def get_map(
-    width: int, height: int, start: str, end: str, track: str, zoom: int, col: str
+    width: int, height: int, track: list, zoom: int, col: str
 ) -> ImageTk.PhotoImage:
     """
     Get static map image via MapQuest API.
     """
 
     img = None
+    lat1, lon1, _ = track[0]  # start point, labelled 1
+    lat2, lon2, _ = track[-1]  # end point, labelled 2
+    tstr = ""
+    for (lat, lon, _) in track:
+        tstr += f"{lat},{lon}|"
+
     try:
         apikey = getenv("MQAPIKEY")
-        url = MAPURL.format(apikey, width, height, zoom, start, end, col, track)
+        url = MAPURL.format(
+            apikey, width, height, zoom, lat1, lon1, lat2, lon2, col, tstr
+        )
         response = get(url, timeout=5)
         response.raise_for_status()  # raise Exception on HTTP error
         img = ImageTk.PhotoImage(Image.open(BytesIO(response.content)))
@@ -104,20 +107,23 @@ def get_point(
 
     x = AXIS_XL + ((width - AXIS_XL - AXIS_XR) * pnt / maxx)
     y = height - AXIS_Y - ((height - AXIS_Y) * ele / maxy)
-    return (int(x), int(y))
+    return int(x), int(y)
 
 
-def get_profile(canvas: Canvas, width: int, height: int, profile: list):
+def get_profile(canvas: Canvas, width: int, height: int, track: list):
     """
     Plot elevation profile with auto-ranged axes.
     """
 
     # find maximum extents for x and y axes
+    maxx = len(track)
     maxy = 0
-    maxx = len(profile)
-    for ele in profile:
+    for (_, _, ele) in track:
         maxy = max(maxy, ele)
-    maxy = int(maxy + 10)
+    for i in (50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000):
+        if maxy < i:
+            maxy = i
+            break
 
     # plot y (elevation) axis grid
     fnt = font.Font(size=10)
@@ -132,11 +138,14 @@ def get_profile(canvas: Canvas, width: int, height: int, profile: list):
         x1, y1 = get_point(width, height, maxy, maxx, 0, n)
         x2, y2 = get_point(width, height, maxy, maxx, maxy, n)
         canvas.create_line(x1, y1 - 1, x1, y2, fill="grey")
+        canvas.create_text(
+            x1, y1 + 8, text=f"{ceil(n*100/maxx)}%", fill="grey", font=fnt
+        )
 
     # plot elevation
     x2 = AXIS_XL
     y2 = height - AXIS_Y
-    for i, ele in enumerate(profile):
+    for i, (_, _, ele) in enumerate(track):
         x1, y1 = x2, y2
         x2, y2 = get_point(width, height, maxy, maxx, ele, i)
         if i:
@@ -155,8 +164,8 @@ def main(**kwargs):
     zoom = int(kwargs.get("zoom", 12))
     col = kwargs.get("col", "ff00ff")
 
-    # get track and elevation profile from file
-    start, end, track, profile = get_track(gpxfile)
+    # get track from GPX file
+    track = get_track(gpxfile)
 
     # create an instance of tkinter frame
     win = Tk()
@@ -167,14 +176,14 @@ def main(**kwargs):
     # on canvas
     profy = int(PROFILE_Y * height)
     canvas_map = Canvas(win, width=width, height=height - profy)
-    img = get_map(width, height, start, end, track, zoom, col)
+    img = get_map(width, height - profy, track, zoom, col)
     if map is not None:
         canvas_map.delete("all")
         canvas_map.create_image(0, 0, image=img, anchor=NW)
 
     # plot elevation profile on canvas
     canvas_profile = Canvas(win, width=width, height=profy, bg="#f0f0e8")
-    get_profile(canvas_profile, width, profy, profile)
+    get_profile(canvas_profile, width, profy, track)
 
     # arrange the canvases in the window
     canvas_map.grid(column=0, row=0, sticky=(N, S, E, W))
