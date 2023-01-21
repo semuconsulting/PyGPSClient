@@ -46,8 +46,10 @@ from requests import (
 MAPURL = (
     "https://www.mapquestapi.com/staticmap/v5/map?key={}&size={},{}"
     + "&zoom={}&locations={},{}||{},{}&defaultMarker=marker-num"
+    + "&zoom={}&locations={},{}||{},{}&defaultMarker=marker-num"
     + "&shape=weight:2|border:{}|{}&scalebar=true|bottom"
 )
+AXIS_XL = 35  # x axis left offset
 AXIS_XL = 35  # x axis left offset
 AXIS_XR = 10  # x axis right offset
 AXIS_Y = 25  # y axis bottom offset
