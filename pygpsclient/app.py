@@ -68,6 +68,7 @@ from pygpsclient.spectrum_frame import SpectrumviewFrame
 from pygpsclient.status_frame import StatusFrame
 from pygpsclient.ubx_config_dialog import UBXConfigDialog
 from pygpsclient.ntrip_client_dialog import NTRIPConfigDialog
+from pygpsclient.gpx_dialog import GPXViewerDialog
 from pygpsclient.nmea_handler import NMEAHandler
 from pygpsclient.ubx_handler import UBXHandler
 
@@ -116,7 +117,9 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.ntrip_handler = GNSSNTRIPClient(self, verbosity=0)
         self.dlg_ubxconfig = None
         self.dlg_ntripconfig = None
+        self.dlg_gpxviewer = None
         self._ubx_config_thread = None
+        self._gpxviewer_thread = None
         self._ntrip_config_thread = None
         self._socket_thread = None
         self._socket_server = None
@@ -433,6 +436,31 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         if self._ntrip_config_thread is not None:
             self._ntrip_config_thread = None
             self.dlg_ntripconfig = None
+
+    def gpxviewer(self):
+        """
+        Start GPX Viewer dialog thread.
+        """
+
+        if self._gpxviewer_thread is None:
+            self._gpxviewer_thread = Thread(target=self._gpx_thread, daemon=False)
+            self._gpxviewer_thread.start()
+
+    def _gpx_thread(self):
+        """
+        THREADED PROCESS GPX Viewer Dialog.
+        """
+
+        self.dlg_gpxviewer = GPXViewerDialog(self)
+
+    def stop_gpxviewer_thread(self):
+        """
+        Stop GPX Viewer dialog thread.
+        """
+
+        if self._gpxviewer_thread is not None:
+            self._gpxviewer_thread = None
+            self.dlg_gpxviewer = None
 
     def start_sockserver_thread(self):
         """

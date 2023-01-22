@@ -27,6 +27,8 @@ from pygpsclient.helpers import (
     haversine,
     get_mp_distance,
     stringvar2val,
+    mapq_compress,
+    mapq_decompress,
 )
 
 
@@ -185,6 +187,28 @@ class StaticTest(unittest.TestCase):
         for i, (val, att) in enumerate(vals):
             res = stringvar2val(val, att)
             self.assertEqual(ress[i], res)
+
+    def testmapqcompress(self):
+
+        PREC = 6
+        points = [
+            53.4245,
+            -2.18663,
+            52.1274,
+            -2.2284,
+            51.6603,
+            -2.5285,
+            50.9377,
+            -2.0006,
+            53.2004,
+            -2.1511,
+        ]
+        encoded = mapq_compress(points, PREC)
+        self.assertEqual(encoded, "gvw{dBjwmdCvkdnArqpAvho[fciQnibk@w`f_@wibiCf}dH")
+        pnts = mapq_decompress(encoded, PREC)
+        print(pnts)
+        for i, pnt in enumerate(pnts):
+            self.assertAlmostEqual(pnt, points[i], PREC)
 
 
 if __name__ == "__main__":

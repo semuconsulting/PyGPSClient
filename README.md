@@ -58,6 +58,7 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 1. Spectrum widget showing spectrum analysis chart from MON-SPAN message (*UBX MON-SPAN messages must be enabled or polled*).
 1. Data logging in parsed, binary, hexadecimal string and tabulated hexadecimal formats (NB. only binary datalogs can be re-read by PyGPSClient's parser).
 1. Track recording in GPX format.
+1. GPX Track Viewer utility with elevation and speed profiles and track metadata.
 1. UBX Configuration Dialog, with the ability to send a variety of UBX CFG configuration commands to u-blox GNSS devices. This includes the facility to add **user-defined commands or command sequences** - see instructions under [user-defined presets](#userdefined) below. While not intended to be a direct replacement, the application supports much of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool.
 1. [NTRIP](https://en.wikipedia.org/wiki/Networked_Transport_of_RTCM_via_Internet_Protocol) Client ([differential GPS enhancement](https://en.wikipedia.org/wiki/Differential_GPS)) facility with the ability to connect to a specified NTRIP server (caster), parse the incoming RTCM3 data and feed this data to a compatible GNSS device (*requires an Internet connection and access to a suitable NTRIP caster*).
 1. [Socket Server / NTRIP Caster](#socketserver)  with two modes of operation: (a) open, unauthenticated Socket Server or (b) NTRIP Caster.
@@ -66,6 +67,10 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 ![spectrum screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/spectrumF9P.png?raw=true)
 
 *Spectrum analysis charts from MON-SPAN message from NEO-M9N and ZED-F9P receivers*
+
+![gpxviewer screenshot](https://github.com/semuconsulting/PyGPSClient/blob/add-gpxviewer/images/gpxviewer.png?raw=true)
+
+*GPX Track Viewer screenshot*
 
 ---
 ## <a name="howtouse">How to Use</a>
@@ -94,6 +99,7 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 * Show Unused Satellites - Include or exclude satellites that are not used in the navigation solution (e.g. because their signal level is too low) from the graph and sky view panels.
 * DataLogging - Turn Data logging in the selected format on or off. You will be prompted to select the directory into which timestamped log files are saved (NB. only binary datalogs can be re-read by PyGPSClient's parser).
 * GPX Track - Turn track recording (in GPX format) on or off. You will be prompted to select the directory into which timestamped track files are saved.
+* GPX Track Viewer - Display the GPX Track Viewer dialog via Menu..Options..GPX Track Viewer. Click the load button to load a GPX file and display the map and profile. Click the redraw button to redraw the map.
 * Socket / NTRIP Server - Turn Socket / NTRIP Server on or off.
 * UBX Configuration - Opens UBX configuration panel (only functional with u-blox devices).
 * NTRIP Client Configuration - Opens NTRIP Client configuration panel.

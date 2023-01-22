@@ -21,6 +21,7 @@ from pygpsclient.strings import (
     MENUHELP,
     MENUUBXCONFIG,
     MENUNTRIPCONFIG,
+    MENUGPXVIEWER,
     WDGSETTINGS,
     WDGSTATUS,
     WDGCONSOLE,
@@ -116,6 +117,12 @@ class MenuBar(Menu):
             label=MENUNTRIPCONFIG,
             underline=1,
             command=self.__app.ntripconfig,
+            state=NORMAL,
+        )
+        self.options_menu.add_command(
+            label=MENUGPXVIEWER,
+            underline=1,
+            command=self.__app.gpxviewer,
             state=NORMAL,
         )
         self.add_cascade(menu=self.options_menu, label=MENUOPTION)

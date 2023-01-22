@@ -78,6 +78,7 @@ MENUHOWTO = "How To"
 MENUABOUT = "About"
 MENUHELP = "Help"
 MENURESET = "Reset Layout"
+MENUGPXVIEWER = "GPX Track Viewer Dialog"
 
 # Button text
 BTNPLOT = "PLOT"
@@ -122,6 +123,7 @@ LBLCFGRECORD = "CFG Configuration Load/Save/Record"
 # Dialog text
 DLGUBXCONFIG = "UBX Configuration"
 DLGNTRIPCONFIG = "NTRIP Client Configuration"
+DLGGPXVIEWER = "GPX Track Viewer"
 DLGABOUT = "PyGPSClient"
 DLGHOWTO = "How To Use PyGPSCLient"
 DLGRESET = "Confirm Reset"
