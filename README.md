@@ -58,7 +58,8 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 1. Spectrum widget showing spectrum analysis chart from MON-SPAN message (*UBX MON-SPAN messages must be enabled or polled*).
 1. Data logging in parsed, binary, hexadecimal string and tabulated hexadecimal formats (NB. only binary datalogs can be re-read by PyGPSClient's parser).
 1. Track recording in GPX format.
-1. GPX Track Viewer utility with elevation and speed profiles and track metadata.
+1. GPX Track Viewer utility with elevation and speed profiles and track metadata (*requires an Internet connection and free 
+[MapQuest API Key](https://developer.mapquest.com/user/login/sign-up)*).
 1. UBX Configuration Dialog, with the ability to send a variety of UBX CFG configuration commands to u-blox GNSS devices. This includes the facility to add **user-defined commands or command sequences** - see instructions under [user-defined presets](#userdefined) below. While not intended to be a direct replacement, the application supports much of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool.
 1. [NTRIP](https://en.wikipedia.org/wiki/Networked_Transport_of_RTCM_via_Internet_Protocol) Client ([differential GPS enhancement](https://en.wikipedia.org/wiki/Differential_GPS)) facility with the ability to connect to a specified NTRIP server (caster), parse the incoming RTCM3 data and feed this data to a compatible GNSS device (*requires an Internet connection and access to a suitable NTRIP caster*).
 1. [Socket Server / NTRIP Caster](#socketserver)  with two modes of operation: (a) open, unauthenticated Socket Server or (b) NTRIP Caster.
@@ -288,8 +289,8 @@ python3 -m /path_to_folder/PyGPSClient-1.3.12/pygpsclient
 ---
 ## <a name="mapquestapi">MapQuest API Key</a>
 
-To use the optional dynamic web-based mapview facility, you need to request and install a 
-[MapQuest API key](https://developer.mapquest.com/user/login/sign-up).
+To use the optional dynamic web-based mapview or GPX Track Viewer facilities, you need to request and install a 
+free [MapQuest API key](https://developer.mapquest.com/user/login/sign-up) (*no payment details required*).
 The free edition of this API allows for up to 15,000 transactions/month (roughly 500/day) on a non-commercial basis.
 For this reason, the map refresh rate is intentionally limited to 1/minute* to avoid exceeding the free transaction
 limit under normal use. **NB:** this facility is *not* intended to be used for real time navigational purposes.

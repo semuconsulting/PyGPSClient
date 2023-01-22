@@ -32,6 +32,8 @@ from tkinter import (
     S,
     W,
     E,
+    BOTH,
+    YES,
 )
 from http.client import responses
 from requests import (
@@ -51,7 +53,14 @@ from pygpsclient.globals import (
     ENTCOL,
     READONLY,
 )
-from pygpsclient.strings import DLGGPXVIEWER, READTITLE
+from pygpsclient.strings import (
+    DLGGPXVIEWER,
+    READTITLE,
+    DLGGPXPROMPT,
+    DLGGPXLOAD,
+    DLGGPXERROR,
+    DLGGPXNULL,
+)
 from pygpsclient.helpers import mapq_compress, haversine
 
 HOME = str(Path.home())
@@ -63,7 +72,7 @@ MAPURL = (
 TRKLIMIT = 500  # max number of polygon points supported by MapQuest API
 # profile chart parameters:
 AXIS_XL = 30  # x axis left offset
-AXIS_XR = 20  # x axis right offset
+AXIS_XR = 30  # x axis right offset
 AXIS_Y = 15  # y axis bottom offset
 ELEAX_COL = "green4"  # color of elevation plot axis
 ELE_COL = "palegreen3"  # color of elevation plot
@@ -81,7 +90,7 @@ class GPXViewerDialog(Toplevel):
         Toplevel.__init__(self, app)
         if POPUP_TRANSIENT:
             self.transient(self.__app)
-        self.resizable(False, False)
+        self.resizable(True, True)
         self.title(DLGGPXVIEWER)
         self.protocol("WM_DELETE_WINDOW", self.on_exit)
         self._img_load = ImageTk.PhotoImage(Image.open(ICON_LOAD))
@@ -101,7 +110,10 @@ class GPXViewerDialog(Toplevel):
 
         self._body()
         self._do_layout()
+        self._attach_events()
         self._reset()
+
+        self._do_mapalert(DLGGPXPROMPT)
 
     def _body(self):
         """
@@ -158,14 +170,8 @@ class GPXViewerDialog(Toplevel):
         self._frm_profile.grid(column=0, row=1, sticky=(W, E))
         self._frm_info.grid(column=0, row=2, sticky=(W, E))
         self._frm_controls.grid(column=0, row=3, columnspan=7, sticky=(W, E))
-        self._canvas_map.grid(
-            column=0,
-            row=0,
-        )
-        self._canvas_profile.grid(
-            column=0,
-            row=0,
-        )
+        self._canvas_map.pack(fill=BOTH, expand=YES)
+        self._canvas_profile.pack(fill=BOTH, expand=YES)
         self._lbl_info.grid(column=0, row=0, padx=3, pady=3, sticky=(W, E))
         self._btn_load.grid(column=0, row=1, padx=3, pady=3)
         self._lbl_zoom.grid(
@@ -188,6 +194,17 @@ class GPXViewerDialog(Toplevel):
         )
         self._btn_exit.grid(column=4, row=1, padx=3, pady=3, sticky=(E))
 
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=3)
+        self.grid_rowconfigure(1, weight=1)
+
+    def _attach_events(self):
+        """
+        Bind events to window.
+        """
+
+        self.bind("<Configure>", self._on_resize)
+
     def _reset(self):
         """
         Reset application.
@@ -204,13 +221,6 @@ class GPXViewerDialog(Toplevel):
 
         self.__app.stop_gpxviewer_thread()
         self.destroy()
-
-    def _on_select_profile(self, event):
-        """
-        Handle select profile event.
-        """
-
-        # print(f"profile = {self._profile.get()}")
 
     def _on_redraw(self, *args, **kwargs):
         """
@@ -230,8 +240,19 @@ class GPXViewerDialog(Toplevel):
         :rtype: tuple
         """
 
-        self.__master.update_idletasks()  # Make sure we know about any resizing
+        # self.update_idletasks()  # Make sure we know about any resizing
         return (self.winfo_width(), self.winfo_height())
+
+    def _on_resize(self, event):
+        """
+        Resize frame
+
+        :param event event: resize event
+        """
+
+        self.width, self.height = self.get_size()
+        self.mheight = self._frm_map.winfo_height()
+        self.pheight = self._frm_profile.winfo_height() - 5
 
     def _open_gpxfile(self) -> str:
         """
@@ -260,7 +281,7 @@ class GPXViewerDialog(Toplevel):
         if self._gpxfile is None:  # user cancelled
             return
 
-        self._do_mapalert("LOADING GPX TRACK ...")
+        self._do_mapalert(DLGGPXLOAD)
 
         with open(self._gpxfile, "r", encoding="utf-8") as gpx:
 
@@ -269,7 +290,7 @@ class GPXViewerDialog(Toplevel):
                 trk = parser.getElementsByTagName("trkpt")
                 self._process_track(trk)
             except (TypeError, AttributeError) as err:
-                self._do_mapalert("GPX PARSING ERROR!")
+                self._do_mapalert(DLGGPXERROR)
                 print(err)
 
     def _process_track(self, trk: list):
@@ -281,7 +302,7 @@ class GPXViewerDialog(Toplevel):
 
         rng = len(trk)
         if rng == 0:
-            self._do_mapalert("NO TRACKPOINTS IN GPX FILE!")
+            self._do_mapalert(DLGGPXNULL)
             return
 
         stp = 1
@@ -455,7 +476,7 @@ class GPXViewerDialog(Toplevel):
                 x1 - 2, y1, text=f"{ele}", fill=ELEAX_COL, font=fnt, anchor="e"
             )
         self._canvas_profile.create_text(
-            5, -8 + self.pheight / 2, text="m", fill=ELEAX_COL, anchor="w"
+            5, self.pheight / 2 - 8, text="m", fill=ELEAX_COL, anchor="w"
         )
 
         # plot speed (yR) axis grid
@@ -474,8 +495,8 @@ class GPXViewerDialog(Toplevel):
                 anchor="w",
             )
         self._canvas_profile.create_text(
-            self.width - 5,
-            -8 + self.pheight / 2,
+            self.width - AXIS_XR + 10,
+            self.pheight / 2 - 8,
             text="km/h",
             fill=SPD_COL,
             angle=90,

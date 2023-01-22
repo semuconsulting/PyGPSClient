@@ -24,6 +24,8 @@ ABOUTTXT = (
     + "Instructions and source code are available on GitHub at the link below."
 )
 
+MAPAPIURL = "https://developer.mapquest.com/user/login/sign-up"
+
 # Widget titles
 WDGBANNER = "Banner"
 WDGSETTINGS = "Settings"
@@ -46,8 +48,8 @@ NMEAVALERROR = "Value error in NMEA message: {}"
 SEROPENERROR = "Error opening serial port {}"
 FILEOPENERROR = "Error opening file {}"
 NOWEBMAP = "Unable to display map."
-NOWEBMAPKEY = NOWEBMAP + "\n\nMQAPIKEY not found or invalid."
-NOWEBMAPHTTP = NOWEBMAP + "\n\nBad HTTP response: {}.\nCheck MQAPIKEY."
+NOWEBMAPKEY = NOWEBMAP + f"\n\nMQAPIKEY not found or invalid.\n\n{MAPAPIURL}"
+NOWEBMAPHTTP = NOWEBMAP + "\n\nBad HTTP response: {}.\nCheck MQAPIKEY.\n"
 NOWEBMAPFIX = NOWEBMAP + "\n\nNo satellite fix."
 NOWEBMAPCONN = NOWEBMAP + "\n\nCheck internet connection."
 SAVETITLE = "Select Directory"
@@ -132,6 +134,10 @@ DLGRESETCONFIRM = (
     "Are you sure you want to reset the\ncurrent configuration to the\nfactory default?"
 )
 DLGSAVECONFIRM = "Are you sure you want to save\nthe current configuration?"
+DLGGPXPROMPT = "CLICK FOLDER ICON TO LOAD GPX FILE"
+DLGGPXLOAD = "LOADING GPX TRACK ..."
+DLGGPXERROR = "GPX PARSING ERROR!"
+DLGGPXNULL = "NO TRACKPOINTS IN GPX FILE!"
 
 # UBX Preset Command Descriptions
 PSTRESET = "CFG-CFG - RESTORE FACTORY DEFAULTS"
