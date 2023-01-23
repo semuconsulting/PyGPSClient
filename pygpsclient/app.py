@@ -451,7 +451,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         THREADED PROCESS GPX Viewer Dialog.
         """
 
-        self.dlg_gpxviewer = GPXViewerDialog(self)
+        self.dlg_gpxviewer = GPXViewerDialog(self, width=600, height=600)
 
     def stop_gpxviewer_thread(self):
         """

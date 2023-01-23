@@ -165,6 +165,13 @@ UMM = "Metric m/s"
 UMK = "Metric kmph"
 UI = "Imperial mph"
 UIK = "Imperial knots"
+KPH2MPH = 0.621371
+KPH2KNT = 0.5399568
+KPH2MPS = 0.2777776918389111005
+M2FT = 3.28084
+KM2M = 1000
+KM2MIL = 0.621371
+KM2NMIL = 0.5399568
 
 # UBX config widget signifiers - used to
 # identify which widget should receive the

@@ -9,9 +9,8 @@ Created on 10 Jan 2023
 :copyright: SEMU Consulting © 2023
 :license: BSD 3-Clause
 """
-# pylint: disable=invalid-name, unused-argument
+# pylint: disable=invalid-name, unused-argument, too-many-instance-attributes, too-many-locals
 
-from math import ceil
 from xml.dom import minidom
 from io import BytesIO
 from pathlib import Path
@@ -52,6 +51,16 @@ from pygpsclient.globals import (
     BGCOL,
     ENTCOL,
     READONLY,
+    UMK,
+    UI,
+    UIK,
+    KPH2MPH,
+    KPH2KNT,
+    KPH2MPS,
+    M2FT,
+    KM2M,
+    KM2MIL,
+    KM2NMIL,
 )
 from pygpsclient.strings import (
     DLGGPXVIEWER,
@@ -63,6 +72,7 @@ from pygpsclient.strings import (
 )
 from pygpsclient.helpers import mapq_compress, haversine
 
+
 HOME = str(Path.home())
 MAPURL = (
     "https://www.mapquestapi.com/staticmap/v5/map?key={}&size={},{}"
@@ -71,12 +81,13 @@ MAPURL = (
 )
 TRKLIMIT = 500  # max number of polygon points supported by MapQuest API
 # profile chart parameters:
-AXIS_XL = 30  # x axis left offset
-AXIS_XR = 30  # x axis right offset
+AXIS_XL = 35  # x axis left offset
+AXIS_XR = 35  # x axis right offset
 AXIS_Y = 15  # y axis bottom offset
 ELEAX_COL = "green4"  # color of elevation plot axis
 ELE_COL = "palegreen3"  # color of elevation plot
 SPD_COL = "blue"  # color of speed plot
+MD_LINES = 2  # number of lines of metadata
 
 
 class GPXViewerDialog(Toplevel):
@@ -86,7 +97,7 @@ class GPXViewerDialog(Toplevel):
         """Constructor."""
 
         self.__app = app
-        self.__master = self.__app.get_master()  # link to root Tk window
+        # self.__master = self.__app.get_master()  # link to root Tk window
         Toplevel.__init__(self, app)
         if POPUP_TRANSIENT:
             self.transient(self.__app)
@@ -96,13 +107,16 @@ class GPXViewerDialog(Toplevel):
         self._img_load = ImageTk.PhotoImage(Image.open(ICON_LOAD))
         self._img_redraw = ImageTk.PhotoImage(Image.open(ICON_REDRAW))
         self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
-        self.width = int(kwargs.get("width", 800))
-        self.height = int(kwargs.get("height", 800))
+        self.width = int(kwargs.get("width", 600))
+        self.height = int(kwargs.get("height", 600))
         self.mheight = int(self.height * 0.75)
         self.pheight = int(self.height * 0.25)
         self._zoom = IntVar()
-        self._info = StringVar()
-        self._zoom.set(12)
+        zoom = int(kwargs.get("zoom", 12))
+        self._zoom.set(zoom)
+        self._info = []
+        for _ in range(MD_LINES):
+            self._info.append(StringVar())
         self._mapimg = None
         self._track = None
         self._gpxfile = None
@@ -130,7 +144,11 @@ class GPXViewerDialog(Toplevel):
         self._canvas_profile = Canvas(
             self._frm_profile, width=self.width, height=self.pheight, bg="#f0f0e8"
         )
-        self._lbl_info = Label(self._frm_info, textvariable=self._info, anchor="w")
+        self._lbl_info = []
+        for i in range(MD_LINES):
+            self._lbl_info.append(
+                Label(self._frm_info, textvariable=self._info[i], anchor="w")
+            )
         self._btn_load = Button(
             self._frm_controls,
             image=self._img_load,
@@ -172,7 +190,8 @@ class GPXViewerDialog(Toplevel):
         self._frm_controls.grid(column=0, row=3, columnspan=7, sticky=(W, E))
         self._canvas_map.pack(fill=BOTH, expand=YES)
         self._canvas_profile.pack(fill=BOTH, expand=YES)
-        self._lbl_info.grid(column=0, row=0, padx=3, pady=3, sticky=(W, E))
+        for i in range(MD_LINES):
+            self._lbl_info[i].grid(column=0, row=i, padx=3, pady=1, sticky=(W, E))
         self._btn_load.grid(column=0, row=1, padx=3, pady=3)
         self._lbl_zoom.grid(
             column=1,
@@ -212,7 +231,8 @@ class GPXViewerDialog(Toplevel):
 
         self._canvas_map.delete("all")
         self._canvas_profile.delete("all")
-        self._info.set("")
+        for i in range(MD_LINES):
+            self._info[i].set("")
 
     def on_exit(self, *args, **kwargs):
         """
@@ -287,65 +307,53 @@ class GPXViewerDialog(Toplevel):
 
             try:
                 parser = minidom.parse(gpx)
-                trk = parser.getElementsByTagName("trkpt")
-                self._process_track(trk)
+                trkpts = parser.getElementsByTagName("trkpt")
+                self._process_track(trkpts)
             except (TypeError, AttributeError) as err:
                 self._do_mapalert(DLGGPXERROR)
-                print(err)
+                raise (err) from err
 
-    def _process_track(self, trk: list):
+    def _process_track(self, trkpts: list):
         """
         Process trackpoint data.
 
-        :param list trk: list of track elements
+        :param list trk: list of trackpoints
         """
 
-        rng = len(trk)
+        rng = len(trkpts)
         if rng == 0:
             self._do_mapalert(DLGGPXNULL)
             return
 
-        stp = 1
-        # if the number of trackpoints exceeds the MapQuest API limit,
-        # increase step count until the number is within limits
-        while rng / stp > TRKLIMIT:
-            stp += 1
-
-        points = []
         track = []
-        start = end = dist = lat1 = lon1 = tim1 = maxele = spd = maxspd = 0
+        start = end = dist = lat1 = lon1 = tim1 = maxele = spd = spd1 = maxspd = 0
         minele = minspd = 1e10
-        for i in range(0, rng, stp):
-            lat = float(trk[i].attributes["lat"].value)
-            lon = float(trk[i].attributes["lon"].value)
-            tim = trk[i].getElementsByTagName("time")[0].firstChild.data
-            if tim[-1] == "Z":  # strip timezone label
-                tim = tim[0:-1]
-            if tim[-4] == ".":  # has microseconds
-                tfm = "%Y-%m-%dT%H:%M:%S.%f"
-            else:
-                tfm = "%Y-%m-%dT%H:%M:%S"
-            tim = datetime.strptime(tim, tfm).timestamp()
+        for i, trkpt in enumerate(trkpts):
+            lat = float(trkpt.attributes["lat"].value)
+            lon = float(trkpt.attributes["lon"].value)
+            tim = self._get_time(trkpt.getElementsByTagName("time")[0].firstChild.data)
             if i == 0:
                 lat1, lon1, tim1 = lat, lon, tim
                 start = tim
             else:
                 leg = haversine(lat1, lon1, lat, lon)  # km
                 dist += leg
-                spd = leg * 3600 / (tim - tim1)  # km/h
+                if tim > tim1:
+                    spd = leg * 3600 / (tim - tim1)  # km/h
+                else:
+                    spd = spd1
+                spd1 = spd
                 maxspd = max(spd, maxspd)
                 minspd = min(spd, minspd)
                 lat1, lon1, tim1 = lat, lon, tim
                 end = tim
             try:
-                ele = float(trk[i].getElementsByTagName("ele")[0].firstChild.data)
+                ele = float(trkpt.getElementsByTagName("ele")[0].firstChild.data)
                 maxele = max(ele, maxele)
                 minele = min(ele, minele)
             except IndexError:  # 'ele' element does not exist
                 ele = 0.0
             track.append((lat, lon, tim, ele, spd))
-            points.append(lat)
-            points.append(lon)
 
         elapsed = end - start
         self._track = track
@@ -360,6 +368,23 @@ class GPXViewerDialog(Toplevel):
         self._draw_profile(self._track)
         self._format_metadata(self._metadata)
 
+    def _get_time(self, tim: str) -> datetime:
+        """
+        Format datetime from ISO time element.
+
+        :param str tim: iso time from trackpoint
+        :return: datetime
+        :rtype: datetime
+        """
+
+        if tim[-1] == "Z":  # strip timezone label
+            tim = tim[0:-1]
+        if tim[-4] == ".":  # has microseconds
+            tfm = "%Y-%m-%dT%H:%M:%S.%f"
+        else:
+            tfm = "%Y-%m-%dT%H:%M:%S"
+        return datetime.strptime(tim, tfm).timestamp()
+
     def _draw_map(self, track: list) -> ImageTk.PhotoImage:
         """
         Draw static map image via MapQuest API.
@@ -371,14 +396,20 @@ class GPXViewerDialog(Toplevel):
         # pylint: disable=unused-variable
 
         apikey = self.__app.api_key
-        lat1, lon1, tim, ele, spd = self._track[0]  # start point, labelled 1
-        lat2, lon2, tim, ele, spd = self._track[-1]  # end point, labelled 2
-        # tstr = ""
+        lat1, lon1, _, _, _ = self._track[0]  # start point, labelled 1
+        lat2, lon2, _, _, _ = self._track[-1]  # end point, labelled 2
         points = []
-        for (lat, lon, tim, ele, spd) in track:
-            # tstr += f"{lat},{lon}|"
-            points.append(lat)
-            points.append(lon)
+
+        # if the number of trackpoints exceeds the MapQuest API limit,
+        # increase step count until the number is within limits
+        stp = 1
+        rng = len(track)
+        while rng / stp > TRKLIMIT:
+            stp += 1
+        for i, (lat, lon, _, _, _) in enumerate(track):
+            if i % stp == 0:
+                points.append(lat)
+                points.append(lon)
 
         # compress polygon for MapQuest API
         comp = mapq_compress(points, 6)
@@ -429,13 +460,18 @@ class GPXViewerDialog(Toplevel):
         Plot elevation profile with auto-ranged axes.
         :param list track: list of lat/lon points
         """
-        # pylint: disable=unused-variable
 
+        _, _, ele_u, ele_c, spd_u, spd_c = self._get_units()
+
+        mid = int(len(track) / 2)
         self._canvas_profile.delete("all")
         # find maximum extents for x and y axes
+        _, _, tim1, _, _ = self._track[0]  # start point, labelled 1
+        _, _, timm, _, _ = self._track[mid]  # mid point
+        _, _, tim2, _, _ = self._track[-1]  # end point, labelled 2
         maxx = len(track)
-        maxe = self._metadata["max_elevation"]
-        maxs = self._metadata["max_speed"]
+        maxe = self._metadata["max_elevation"] * ele_c
+        maxs = self._metadata["max_speed"] * spd_c
         for i in (50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000):
             if maxe < i:
                 maxe = i
@@ -445,24 +481,29 @@ class GPXViewerDialog(Toplevel):
                 maxs = i
                 break
 
-        # plot elevation and speed
-        x2 = x4 = AXIS_XL
-        y2 = y4 = self.pheight - AXIS_Y
-        for i, (lat, lon, tim, ele, spd) in enumerate(track):
+        # plot elevation
+        x2 = AXIS_XL
+        y2 = self.pheight - AXIS_Y
+        for i, (_, _, _, ele, _) in enumerate(track):
 
             if ele is None:
                 continue
             x1, y1 = self._get_point(maxe, maxx, 0, i)
-            x2, y2 = self._get_point(maxe, maxx, ele, i)
+            x2, y2 = self._get_point(maxe, maxx, ele * ele_c, i)
             if i:
                 self._canvas_profile.create_line(x1, y1, x2, y2, fill=ELE_COL, width=2)
 
+        # plot speed
+        x2 = AXIS_XL
+        y2 = self.pheight - AXIS_Y
+        for i, (_, _, _, _, spd) in enumerate(track):
+
             if spd is None:
                 continue
-            x3, y3 = x4, y4
-            x4, y4 = self._get_point(maxs, maxx, spd, i)
+            x1, y1 = x2, y2
+            x2, y2 = self._get_point(maxs, maxx, spd * spd_c, i)
             if i:
-                self._canvas_profile.create_line(x3, y3, x4, y4, fill=SPD_COL, width=1)
+                self._canvas_profile.create_line(x1, y1, x2, y2, fill=SPD_COL, width=1)
 
         # plot elevation (yL) axis grid
         fnt = font.Font(size=10)
@@ -476,11 +517,15 @@ class GPXViewerDialog(Toplevel):
                 x1 - 2, y1, text=f"{ele}", fill=ELEAX_COL, font=fnt, anchor="e"
             )
         self._canvas_profile.create_text(
-            5, self.pheight / 2 - 8, text="m", fill=ELEAX_COL, anchor="w"
+            AXIS_XL - 2,
+            self.pheight / 2 - 8,
+            text=ele_u,
+            fill=ELEAX_COL,
+            font=fnt,
+            anchor="e",
         )
 
         # plot speed (yR) axis grid
-        fnt = font.Font(size=10)
         for spd in range(0, maxs, int(maxs / 5)):
             if spd is None:
                 continue
@@ -495,11 +540,12 @@ class GPXViewerDialog(Toplevel):
                 anchor="w",
             )
         self._canvas_profile.create_text(
-            self.width - AXIS_XR + 10,
+            self.width - AXIS_XR + 1,
             self.pheight / 2 - 8,
-            text="km/h",
+            text=spd_u,
             fill=SPD_COL,
-            angle=90,
+            font=fnt,
+            anchor="w",
         )
 
         # plot trackpoint (X) axis grid
@@ -507,14 +553,27 @@ class GPXViewerDialog(Toplevel):
             x1, y1 = self._get_point(maxe, maxx, 0, n)
             x2, y2 = self._get_point(maxe, maxx, maxe, n)
             self._canvas_profile.create_line(x1, y1 - 1, x1, y2, fill="grey")
-            self._canvas_profile.create_text(
-                x1, y1 + 8, text=f"{ceil(n*100/maxx)}%", fill="grey", font=fnt
-            )
+            for xtick in (
+                (tim1, 0, "w"),
+                (timm, maxx / 2, "center"),
+                (tim2, maxx, "e"),
+            ):
+                x, y = self._get_point(maxe, maxx, 0, xtick[1])
+                self._canvas_profile.create_text(
+                    x,
+                    y + 8,
+                    text=f"{datetime.fromtimestamp(xtick[0])}",
+                    fill="grey",
+                    font=fnt,
+                    anchor=xtick[2],
+                )
 
     def _format_metadata(self, metadata: dict) -> str:
         """
         Format metadata as string.
         """
+
+        dst_u, dst_c, ele_u, ele_c, spd_u, spd_c = self._get_units()
 
         elapsed = self._metadata["elapsed"] / 3600  # h
         dist = self._metadata["distance"]  # km
@@ -526,17 +585,61 @@ class GPXViewerDialog(Toplevel):
             ele = "N/A"
         else:
             ele = (
-                f"(m) min: {minele:,.3f} max: {maxele:,.3f} "
-                + f"ascent {maxele-minele:,.3f}; "
+                f"({ele_u}) min: {minele*ele_c:,.3f} max: {maxele*ele_c:,.3f} "
+                + f"diff: {(maxele-minele)*ele_c:,.3f}; "
             )
-        metadata = (
-            f"Points: {self._metadata['points']:,}; Dist (km): {dist:,.3f}; "
+        metadata = []
+        metadata.append(
+            f"Points: {self._metadata['points']:,}; Dist ({dst_u}): {dist*dst_c:,.3f}; "
             + f"Elapsed (hours): {elapsed:,.3f}; "
-            + f"Speed (km/h) avg: {(dist/elapsed):,.3f} "
-            + f"max: {maxspd:,.3f}; Elevation "
-            + ele
+            + f"Speed ({spd_u}) avg: {(dist/elapsed)*spd_c:,.3f} "
+            + f"max: {maxspd*spd_c:,.3f};"
         )
-        self._info.set(metadata)
+        metadata.append(f"Elevation {ele}")
+        for i in range(MD_LINES):
+            self._info[i].set(metadata[i])
+
+    def _get_units(self) -> tuple:
+        """
+        Get speed and elevation units and conversions.
+        Default is metric.
+
+        :return: tuple of (dst_u, dst_c, ele_u, ele_C, spd_u, spd_c)
+        :rtype: tuple
+        """
+
+        units = self.__app.frm_settings.units
+
+        if units == UI:
+            dst_u = "miles"
+            dst_c = KM2MIL
+            ele_u = "ft"
+            ele_c = M2FT
+            spd_u = "mph"
+            spd_c = KPH2MPH
+        elif units == UIK:
+            dst_u = "nautical miles"
+            dst_c = KM2NMIL
+            ele_u = "ft"
+            ele_c = M2FT
+            spd_u = "knt"
+            spd_c = KPH2KNT
+        elif units == UMK:
+            dst_u = "km"
+            dst_c = 1
+            ele_u = "m"
+            ele_c = 1
+            spd_u = "kph"
+            spd_c = 1
+        else:  # UMM
+            dst_u = "m"
+            dst_c = KM2M
+            ele_u = "m"
+            ele_c = 1
+            spd_u = "m/s"
+            spd_c = KPH2MPS
+
+        return (dst_u, dst_c, ele_u, ele_c, spd_u, spd_c)
 
     def _do_mapalert(self, msg: str):
         """
