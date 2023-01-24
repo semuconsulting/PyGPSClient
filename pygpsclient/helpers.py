@@ -383,7 +383,7 @@ def check_latest(name: str) -> str:
     """
 
     try:
-        return get(f"https://pypi.org/pypi/{name}/json", timeout=5).json()["info"][
+        return get(f"https://pypi.org/pypi/{name}/json", timeout=3).json()["info"][
             "version"
         ]
     except Exception:  # pylint: disable=broad-except

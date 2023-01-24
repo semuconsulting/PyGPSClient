@@ -37,7 +37,11 @@ from pygpsclient.globals import (
     SOCKSERVER_HOST,
     MAXCOLSPAN,
     MAXROWSPAN,
+    CHECK_FOR_UPDATES,
+    WIDGETU4,
 )
+from pygpsclient._version import __version__ as VERSION
+from pygpsclient.helpers import check_latest
 from pygpsclient.strings import (
     TITLE,
     INTROTXTNOPORTS,
@@ -52,6 +56,7 @@ from pygpsclient.strings import (
     WDGLEVELS,
     WDGMAP,
     WDGSPECTRUM,
+    VERCHECK,
 )
 from pygpsclient.gnss_status import GNSSStatus
 from pygpsclient.about_dialog import AboutDialog
@@ -139,6 +144,10 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.frm_graphview.init_graph()
         self.frm_spectrumview.init_graph()
         self.frm_banner.update_conn_status(DISCONNECTED)
+
+        # Check for more recent version
+        if CHECK_FOR_UPDATES:
+            self._check_update()
 
     def _body(self):
         """
@@ -451,7 +460,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         THREADED PROCESS GPX Viewer Dialog.
         """
 
-        self.dlg_gpxviewer = GPXViewerDialog(self, width=600, height=600)
+        width, height = WIDGETU4
+        self.dlg_gpxviewer = GPXViewerDialog(self, width=width, height=height)
 
     def stop_gpxviewer_thread(self):
         """
@@ -731,3 +741,12 @@ class App(Frame):  # pylint: disable=too-many-ancestors
                 )
 
             self._last_track_update = datetime.now()
+
+    def _check_update(self):
+        """
+        Check for updated version.
+        """
+
+        latest = check_latest("PyGPSClient")
+        if latest not in (VERSION, "N/A"):
+            self.set_status(VERCHECK.format(latest), "red")

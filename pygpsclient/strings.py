@@ -61,6 +61,7 @@ STOPDATA = "Serial reader process stopped"
 NOTCONN = "Not connected"
 UBXPOLL = "Polling current UBX configuration..."
 MONSPANERROR = "Enable or poll MON-SPAN message"
+VERCHECK = "Newer version of PyGPSClient available: {}"
 
 
 # Menu text
