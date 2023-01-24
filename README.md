@@ -69,7 +69,7 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 
 *Spectrum analysis charts from MON-SPAN message from NEO-M9N and ZED-F9P receivers*
 
-![gpxviewer screenshot](https://github.com/semuconsulting/PyGPSClient/blob/add-gpxviewer/images/gpxviewer.png?raw=true)
+![gpxviewer screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/gpxviewer.png?raw=true)
 
 *GPX Track Viewer screenshot*
 

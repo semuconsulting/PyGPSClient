@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE v1.3.15
+
+ENHANCEMENTS:
+
+1. New GPX Track Viewer facility added, accessed via Menu..Options..GPX Track Viewer. Displays track on dynamic web page alongside elevation and speed profiles (where available) and key metadata. Dialog is fully resizeable. Click folder icon to load a GPX file. Click redraw icon to redraw track and profile at any time.
+
 ### RELEASE v1.3.14
 
 ENHANCEMENTS:
