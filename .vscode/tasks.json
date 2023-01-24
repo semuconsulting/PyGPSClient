@@ -21,7 +21,12 @@
                 "command": "Get-ChildItem",
                 "args": [
                     "-Path",
-                    "build\\",
+                    "build\\,",
+                    "dist\\,",
+                    "htmlcov\\,",
+                    "docs\\_build,",
+                    "${config:modulename}.egg-info",
+                    "-Recurse",
                     "|",
                     "Remove-Item",
                     "-Recurse",
@@ -37,7 +42,7 @@
         {
             "label": "Format",
             "type": "process",
-            "command": "${config:python.pythonPath}",
+            "command": "${config:python.defaultInterpreterPath}",
             "args": [
                 "-m",
                 "black",
@@ -48,7 +53,7 @@
         {
             "label": "PylintError",
             "type": "process",
-            "command": "${config:python.pythonPath}",
+            "command": "${config:python.defaultInterpreterPath}",
             "args": [
                 "-m",
                 "pylint",
@@ -60,7 +65,7 @@
         {
             "label": "Pylint",
             "type": "process",
-            "command": "${config:python.pythonPath}",
+            "command": "${config:python.defaultInterpreterPath}",
             "args": [
                 "-m",
                 "pylint",
@@ -73,7 +78,7 @@
         {
             "label": "Build",
             "type": "process",
-            "command": "${config:python.pythonPath}",
+            "command": "${config:python.defaultInterpreterPath}",
             "args": [
                 "${workspaceFolder}/setup.py",
                 "sdist",
@@ -84,7 +89,7 @@
         {
             "label": "Test",
             "type": "process",
-            "command": "${config:python.pythonPath}",
+            "command": "${config:python.defaultInterpreterPath}",
             "args": [
                 "${workspaceFolder}/tests/testsuite.py"
             ],
@@ -93,7 +98,7 @@
         {
             "label": "Coverage",
             "type": "process",
-            "command": "${config:python.pythonPath}",
+            "command": "${config:python.defaultInterpreterPath}",
             "args": [
                 "-m",
                 "coverage",
@@ -107,7 +112,7 @@
         {
             "label": "Coverage Report",
             "type": "process",
-            "command": "${config:python.pythonPath}",
+            "command": "${config:python.defaultInterpreterPath}",
             "args": [
                 "-m",
                 "coverage",
@@ -153,7 +158,7 @@
         {
             "label": "Install Locally",
             "type": "process",
-            "command": "${config:python.pythonPath}",
+            "command": "${config:python.defaultInterpreterPath}",
             "args": [
                 "-m",
                 "pip",

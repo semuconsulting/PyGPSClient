@@ -10,8 +10,9 @@
     "python.testing.nosetestsEnabled": false,
     "python.testing.unittestEnabled": true,
     "python.formatting.provider": "black",
-    "python.pythonPath": "python3",
     "editor.formatOnSave": true,
+    // NB: for Windows, assumes symlink has been set python3<==>python
+    "python.defaultInterpreterPath": "python3",
     "modulename": "pygpsclient",
     "distname": "PyGPSClient",
     "moduleversion": "1.3.15",
