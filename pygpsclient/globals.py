@@ -44,6 +44,7 @@ ICON_RECORD = os.path.join(DIRNAME, "resources/iconmonstr-record-24.png")
 ICON_STOP = os.path.join(DIRNAME, "resources/iconmonstr-stop-1-24.png")
 ICON_UNDO = os.path.join(DIRNAME, "resources/iconmonstr-undo-24.png")
 ICON_DELETE = os.path.join(DIRNAME, "resources/iconmonstr-trash-can-filled-24.png")
+ICON_REDRAW = os.path.join(DIRNAME, "resources/iconmonstr-refresh-lined-24.png")
 IMG_WORLD = os.path.join(DIRNAME, "resources/world.png")
 
 GITHUB_URL = "https://github.com/semuconsulting/PyGPSClient"
@@ -164,6 +165,13 @@ UMM = "Metric m/s"
 UMK = "Metric kmph"
 UI = "Imperial mph"
 UIK = "Imperial knots"
+KPH2MPH = 0.621371
+KPH2KNT = 0.5399568
+KPH2MPS = 0.2777776918389111005
+M2FT = 3.28084
+KM2M = 1000
+KM2MIL = 0.621371
+KM2NMIL = 0.5399568
 
 # UBX config widget signifiers - used to
 # identify which widget should receive the

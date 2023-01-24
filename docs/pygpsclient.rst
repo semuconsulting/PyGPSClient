@@ -60,6 +60,14 @@ pygpsclient.gnss\_status module
    :undoc-members:
    :show-inheritance:
 
+pygpsclient.gpx\_dialog module
+------------------------------
+
+.. automodule:: pygpsclient.gpx_dialog
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pygpsclient.graphview\_frame module
 -----------------------------------
 
