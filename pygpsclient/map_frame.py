@@ -27,6 +27,7 @@ from pygpsclient.globals import (
     WIDGETU2,
     MAPURL,
     MAP_UPDATE_INTERVAL,
+    MAPQTIMEOUT,
     IMG_WORLD,
     ICON_POS,
     BGCOL,
@@ -161,8 +162,9 @@ class MapviewFrame(Frame):
         url = self._format_url(apikey, lat, lon, hacc)
 
         try:
-            response = get(url)
+            response = get(url, timeout=MAPQTIMEOUT)
             sc = responses[response.status_code]  # get descriptive HTTP status
+            # print(f"DEBUG url = {url}, \nsc = {sc}, \nresp = {response.content}")
             response.raise_for_status()  # raise Exception on HTTP error
             if sc == "OK":
                 img_data = response.content
@@ -204,9 +206,22 @@ class MapviewFrame(Frame):
 
         w, h = self.width, self.height
         radius = str(hacc / 1000)  # km
+        zoom = self.__app.frm_settings.mapzoom
+        # seems to be bug in MapQuest API which causes error
+        # if scalebar displayed at maximum zoom
+        scalebar = "true" if zoom < 20 else "false"
 
         return MAPURL.format(
-            apikey, lat, lon, self.__app.frm_settings.mapzoom, radius, lat, lon, w, h
+            apikey,
+            lat,
+            lon,
+            zoom,
+            w,
+            h,
+            radius,
+            lat,
+            lon,
+            scalebar,
         )
 
     def _disp_error(self, msg):

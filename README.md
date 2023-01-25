@@ -366,23 +366,26 @@ For further details, refer to the `pygnssutils` homepage at [https://github.com/
 ---
 ## <a name="glossary">Glossary of Terms</a>
 
-For a general overview of GNSS, DGPS and NTRIP technologies, refer to [GNSS Positioning - A Reviser](https://www.semuconsulting.com/gnsswiki/).
+For a general overview of GNSS, DGPS and NTRIP technologies and terminology, refer to [GNSS Positioning - A Reviser](https://www.semuconsulting.com/gnsswiki/).
 
 * ACC - accuracy of location in real units (hacc - horizontal, vacc - vertical). Note that location accuracy is not directly provided via the standard NMEA message set, but is available from UBX messages e.g. NAV-POSLLH, NAV-PVT and some proprietary NMEA messages e.g. UBX00.
 * BEI - [BeiDou Navigation Satellite System](https://en.wikipedia.org/wiki/BeiDou).
+* DGPS - [Differential GPS](https://en.wikipedia.org/wiki/Differential_GPS).
 * DOP - [dilution of precision](https://gisgeography.com/gps-accuracy-hdop-pdop-gdop-multipath/) (pdop - overall position, hdop - horizontal, vdop - vertical).
 * GAL - [Galileo Satellite Navigation](https://en.wikipedia.org/wiki/Galileo_(satellite_navigation)).
 * GLO - [GLONASS, Global Navigation Satellite System](https://en.wikipedia.org/wiki/GLONASS).
-* GNSS - [global navigation satellite system](https://en.wikipedia.org/wiki/Satellite_navigation).
+* GNSS - [Global Navigation Satellite System](https://en.wikipedia.org/wiki/Satellite_navigation).
 * GPS - [Global Positioning System](https://en.wikipedia.org/wiki/Global_Positioning_System).
-* IME - [IMES, Indoor MEssaging System](https://www.gpsworld.com/wirelessindoor-positioningopening-up-indoors-11603/)
-* NTRIP - [Networked Transport of RTCM via Internet Protocol](https://en.wikipedia.org/wiki/Networked_Transport_of_RTCM_via_Internet_Protocol)
+* IME - [IMES, Indoor MEssaging System](https://www.gpsworld.com/wirelessindoor-positioningopening-up-indoors-11603/).
+* NTRIP - [Networked Transport of RTCM via Internet Protocol](https://en.wikipedia.org/wiki/Networked_Transport_of_RTCM_via_Internet_Protocol).
 * PRN - [pseudo-random noise number](https://www.gps.gov/technical/prn-codes/) (code that each satellite transmits to differentiate itself from other satellites in the active constellation).
-* QZS - [QZSS, Quasi-Zenith Satellite System](https://en.wikipedia.org/wiki/Quasi-Zenith_Satellite_System).
+* QZSS - [Quasi-Zenith Satellite System](https://en.wikipedia.org/wiki/Quasi-Zenith_Satellite_System).
 * RTCM(3) - [RTCM 10403.n Differential GNSS Services standard](https://rtcm.myshopify.com/collections/differential-global-navigation-satellite-dgnss-standards/products/rtcm-10403-2-differential-gnss-global-navigation-satellite-systems-services-version-3-february-1-2013).
+* RTK - [Real-time Kinematics](https://en.wikipedia.org/wiki/Real-time_kinematic_positioning).
 * SBA - [SBAS, Satellite-based Augmentation System](https://en.wikipedia.org/wiki/GNSS_augmentation#Satellite-based_augmentation_system).
 * SIP - satellites used in position solution.
 * SIV - satellites in view.
+* SPARTN - [Secure Position Augmentation for Real Time Navigation](https://www.spartnformat.org/).
 * SV(N) - [space vehicle number](https://en.wikipedia.org/wiki/List_of_GPS_satellites) (serial number assigned to each satellite).
 * UTC - coordinated universal time.
 

@@ -46,9 +46,23 @@ ICON_UNDO = os.path.join(DIRNAME, "resources/iconmonstr-undo-24.png")
 ICON_DELETE = os.path.join(DIRNAME, "resources/iconmonstr-trash-can-filled-24.png")
 ICON_REDRAW = os.path.join(DIRNAME, "resources/iconmonstr-refresh-lined-24.png")
 IMG_WORLD = os.path.join(DIRNAME, "resources/world.png")
-
-GITHUB_URL = "https://github.com/semuconsulting/PyGPSClient"
 PYPI_URL = "https://pypi.org/pypi/PyGPSClient"
+GITHUB_URL = "https://github.com/semuconsulting/PyGPSClient"
+MAPQURL = "https://www.mapquestapi.com/staticmap/v5/map?key={}"
+MAPQTIMEOUT = 5
+MAPURL = (
+    MAPQURL
+    + "&locations={},{}&zoom={}&size={},{}&defaultMarker=marker-sm-616161-ff4444"
+    + "&shape=radius:{}|weight:1|fill:ccffff50|border:88888850|{},{}&scalebar={}"
+)
+GPXMAPURL = (
+    MAPQURL
+    + "&locations={},{}||{},{}&zoom={}&size={},{}&defaultMarker=marker-num"
+    + "&shape=weight:2|border:{}|{}&scalebar={}|bottom"
+)
+MAP_UPDATE_INTERVAL = (
+    60  # how frequently the mapquest api is called to update the web map (seconds)
+)
 XML_HDR = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
 GPX_NS = " ".join(
     (
@@ -59,10 +73,8 @@ GPX_NS = " ".join(
         'http://www.topografix.com/GPX/1/1/gpx.xsd"',
     )
 )
-MAPURL = "https://www.mapquestapi.com/staticmap/v5/map?key={}&locations={},{}&zoom={}&defaultMarker=marker-sm-616161-ff4444&shape=radius:{}|weight:1|fill:ccffff50|border:88888850|{},{}&size={},{}"
-MAP_UPDATE_INTERVAL = (
-    60  # how frequently the mapquest api is called to update the web map (seconds)
-)
+
+GPXLIMIT = 500  # max number of track points supported by MapQuest API
 CHECK_FOR_UPDATES = (
     False  # check for newer PyPi version on startup (requires internet connection)
 )

@@ -47,6 +47,9 @@ from pygpsclient.globals import (
     ICON_LOAD,
     ICON_EXIT,
     ICON_REDRAW,
+    GPXMAPURL,
+    GPXLIMIT,
+    MAPQTIMEOUT,
     POPUP_TRANSIENT,
     BGCOL,
     ENTCOL,
@@ -74,12 +77,6 @@ from pygpsclient.helpers import mapq_compress, haversine
 
 
 HOME = str(Path.home())
-MAPURL = (
-    "https://www.mapquestapi.com/staticmap/v5/map?key={}&size={},{}"
-    + "&zoom={}&locations={},{}||{},{}&defaultMarker=marker-num"
-    + "&shape=weight:2|border:{}|{}&scalebar=true|bottom"
-)
-TRKLIMIT = 500  # max number of polygon points supported by MapQuest API
 # profile chart parameters:
 AXIS_XL = 35  # x axis left offset
 AXIS_XR = 35  # x axis right offset
@@ -404,7 +401,7 @@ class GPXViewerDialog(Toplevel):
         # increase step count until the number is within limits
         stp = 1
         rng = len(track)
-        while rng / stp > TRKLIMIT:
+        while rng / stp > GPXLIMIT:
             stp += 1
         for i, (lat, lon, _, _, _) in enumerate(track):
             if i % stp == 0:
@@ -414,21 +411,25 @@ class GPXViewerDialog(Toplevel):
         # compress polygon for MapQuest API
         comp = mapq_compress(points, 6)
         tstr = f"cmp6|enc:{comp}"
+        # seems to be bug in MapQuest API which causes error
+        # if scalebar displayed at maximum zoom
+        scalebar = "true" if self._zoom.get() < 20 else "false"
 
         try:
-            url = MAPURL.format(
+            url = GPXMAPURL.format(
                 apikey,
-                self.width,
-                self.mheight,
-                self._zoom.get(),
                 lat1,
                 lon1,
                 lat2,
                 lon2,
+                self._zoom.get(),
+                self.width,
+                self.mheight,
                 "ff00ff",
                 tstr,
+                scalebar,
             )
-            response = get(url, timeout=5)
+            response = get(url, timeout=MAPQTIMEOUT)
             response.raise_for_status()  # raise Exception on HTTP error
             self._mapimg = ImageTk.PhotoImage(Image.open(BytesIO(response.content)))
         except (ConnError, ConnectTimeout, RequestException, HTTPError):
@@ -585,15 +586,15 @@ class GPXViewerDialog(Toplevel):
             ele = "N/A"
         else:
             ele = (
-                f"({ele_u}) min: {minele*ele_c:,.3f} max: {maxele*ele_c:,.3f} "
-                + f"diff: {(maxele-minele)*ele_c:,.3f}; "
+                f"({ele_u}) min: {minele*ele_c:,.2f} max: {maxele*ele_c:,.2f} "
+                + f"diff: {(maxele-minele)*ele_c:,.2f}; "
             )
         metadata = []
         metadata.append(
-            f"Points: {self._metadata['points']:,}; Dist ({dst_u}): {dist*dst_c:,.3f}; "
-            + f"Elapsed (hours): {elapsed:,.3f}; "
-            + f"Speed ({spd_u}) avg: {(dist/elapsed)*spd_c:,.3f} "
-            + f"max: {maxspd*spd_c:,.3f};"
+            f"Points: {self._metadata['points']:,}; Dist ({dst_u}): {dist*dst_c:,.2f}; "
+            + f"Elapsed (hours): {elapsed:,.2f}; "
+            + f"Speed ({spd_u}) avg: {(dist/elapsed)*spd_c:,.2f} "
+            + f"max: {maxspd*spd_c:,.2f};"
         )
         metadata.append(f"Elevation {ele}")
         for i in range(MD_LINES):
@@ -618,7 +619,7 @@ class GPXViewerDialog(Toplevel):
             spd_u = "mph"
             spd_c = KPH2MPH
         elif units == UIK:
-            dst_u = "nautical miles"
+            dst_u = "naut miles"
             dst_c = KM2NMIL
             ele_u = "ft"
             ele_c = M2FT
