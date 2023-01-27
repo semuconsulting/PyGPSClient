@@ -160,7 +160,7 @@ Below is a illustrative NTRIP DGPS data log, showing:
 
 ![spartn config widget screenshot](https://github.com/semuconsulting/PyGPSClient/blob/add-SPARTN-config-dialog/images/spartnconfig_widget.png?raw=true)
 
-The SPARTN Configuration uility allows users to configure both GNSS and Correction receivers in a dual-receiver SPARTN RTK configuration (e.g. u-blox ZED-F9P and NEO-D9S). The utility uploads the necessary SPARTN decryption keys to the GNSS receiver and sets the required configurations on GNSS and/or Correction receivers.
+The SPARTN Configuration utility allows users to configure both GNSS and Correction receivers in a dual-receiver SPARTN RTK configuration (e.g. u-blox ZED-F9P and NEO-D9S). The utility uploads the necessary SPARTN decryption keys to the GNSS receiver and sets the required configurations on GNSS and/or Correction receivers.
 
 To use:
 
@@ -170,17 +170,18 @@ To use:
 #### Correction Receiver (D9S)
 
 1. At time of writing, the only supported SPARTN-compatible u-blox L-Band Correction receiver is the NEO-D9S.
-1. Commercial SPARTN location services like PointPerfect require different configurations for US and European regions. The utility provides default values for each region but these may need to be amended in accordance with the parameters provided by the location service. **NB:** parameters available in the public domain *may not* be appropriate.
-1. **NOT YET FULLY IMPLEMENTED** If both GNSS and Correction receivers are connected to the same PyGPSClient workstation (e.g. via separate USB ports), it is possible to run the utility in Passthough mode, whereby the output data (UBX `RXM-PMP` messages) from the Correction receiver will be automatically passed through to the GNSS receiver by PyGPSClient, without the need to connect the two externally. The 'Receiver Port' is the serial port used by the Correction receiver.
-1. Click send to upload the required configuration. The utility will send the relevant configuration commands to the receiver and poll for an acknowledgement.
+1. Commercial SPARTN location services like PointPerfect require different configurations for US and European regions. The utility provides default values for each region but these may need to be amended in accordance with the parameters provided by the location service. **NB:** parameters available in the public domain *may not* be appropriate and the authors of PyGPSClient **cannot** provide advice on appropriate settings.
+1. **NOT YET FULLY IMPLEMENTED** If both GNSS and Correction receivers are connected to the same PyGPSClient workstation (e.g. via separate USB ports), it is possible to run the utility in Passthough mode, whereby the output data (UBX `RXM-PMP` messages) from the Correction receiver will be automatically passed through to the GNSS receiver by PyGPSClient, without the need to connect the two externally. The 'Receiver Port' is the serial port used to connect the Correction receiver to the workstation.
+1. Click the Send button to upload the configuration. The utility will send the relevant configuration command(s) to the receiver and poll for an acknowledgement.
+
 #### GNSS Receiver (F9*)
 
 1. At time of writing, the only supported SPARTN-compatible u-blox GNSS receivers are those in the ZED-F9* family (e.g. ZED-F9P or ZED-F9R).
 1. To configure the GNSS receiver for use with a commercial (encrypted) SPARTN location service (e.g. u-blox / Thingstream PointPerfect), you will need to obtain current and next decryption keys and upload these to the GNSS receiver after every power cycle or reset. These keys are normally valid for 4 weeks. **NB:** Please ensure you understand the Terms and Conditions of any commercial SPARTN service before subscribing.
 1. Enter the current and next keys in hexadecimal format e.g. `0102030405060708090a0b0c0d0e0f10`. The keys are normally 16 bytes long, or 32 hexadecimal characters.
-1. Enter the supplied Valid From dates in `YYYYMMDD` format. **NB:** These are *Valid From* dates rather than *Expiry* dates. If the location service provides Expiry dates, substract 4 weeks from these to get the Valid From dates.
-1. Select 'Upload keys', 'Configure receiver' and 'Disable NMEA' options as required and click Send.
-1. The utility will send the the relevant configuration commands to the receiver and poll for an acknowledgement.
+1. Enter the supplied Valid From dates in `YYYYMMDD` format. **NB:** These are *Valid From* dates rather than *Expiry* dates. If the location service provides Expiry dates, subtract 4 weeks from these to get the Valid From dates.
+1. Select 'Upload keys', 'Configure receiver' and 'Disable NMEA' options as required.
+1. Click the Send button to upload the configuration. The utility will send the relevant configuration command(s) to the receiver and poll for an acknowledgement.
 
 ---
 ### <a name="socketserver">Socket Server / NTRIP Caster Facilities</a>
