@@ -13,7 +13,7 @@ Created on 17 Apr 2021
 # pylint: disable=invalid-name
 
 import re
-
+from datetime import datetime
 from tkinter import Toplevel, Entry, Label, Button, W
 import os
 from time import strftime
@@ -25,6 +25,7 @@ from pygpsclient.globals import (
     FIXLOOKUP,
     ENTCOL,
     ERRCOL,
+    GPSEPOCH0,
 )
 
 # validation type flags
@@ -35,6 +36,9 @@ VALNONBLANK = 2
 VALINT = 4
 VALFLOAT = 8
 VALURL = 16
+VALHEX = 32
+VALDMY = 64
+VALLEN = 128
 EARTH_RADIUS = 6371  # km
 
 
@@ -478,6 +482,13 @@ def valid_entry(entry: Entry, valmode: int, low=None, high=None) -> bool:
                 valid = low < float(entry.get()) < high
             if valmode & VALURL:  # valid URL
                 valid = validURL(entry.get())
+            if valmode & VALHEX:  # valid hexadecimal
+                bytes.fromhex(entry.get())
+            if valmode & VALDMY:  # valid date YYYYMMDD
+                dat = entry.get()
+                datetime(int(dat[0:4]), int(dat[4:6]), int(dat[6:8]))
+            if valmode & VALLEN:  # valid length
+                valid = low <= len(entry.get()) <= high
     except ValueError:
         valid = False
 
@@ -685,3 +696,20 @@ def mapq_compress(points: list, precision: int = 6) -> str:
         oldLng = lng
 
     return encoded
+
+
+def get_gpswnotow(dat: datetime) -> tuple:
+    """
+    Get GPS Week number (Wno) and Time of Week (Tow)
+    for midnight on given date.
+
+    GPS Epoch 0 = 6th Jan 1980
+
+    :param datetime dat: calendar date
+    :return: tuple of (Wno, Tow)
+    :rtype: tuple
+    """
+
+    wno = int((dat - GPSEPOCH0).days / 7)
+    tow = ((dat.weekday() + 1) % 7) * 86400
+    return wno, tow

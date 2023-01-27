@@ -30,6 +30,7 @@ from pygpsclient.strings import (
     WDGMAP,
     WDGSPECTRUM,
     MENURESET,
+    MENUSPARTNCONFIG,
 )
 
 
@@ -117,6 +118,12 @@ class MenuBar(Menu):
             label=MENUNTRIPCONFIG,
             underline=1,
             command=self.__app.ntripconfig,
+            state=NORMAL,
+        )
+        self.options_menu.add_command(
+            label=MENUSPARTNCONFIG,
+            underline=1,
+            command=self.__app.spartnconfig,
             state=NORMAL,
         )
         self.options_menu.add_command(

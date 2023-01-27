@@ -5,6 +5,7 @@
 [How to Use](#howtouse) |
 [UBX Configuration](#ubxconfig) |
 [NTRIP Client](#ntripconfig) |
+[SPARTN Client](#spartnconfig) |
 [Socket Server / NTRIP Caster](#socketserver) |
 [Installation](#installation) |
 [Mapquest API Key](#mapquestapi) |
@@ -153,6 +154,23 @@ Below is a illustrative NTRIP DGPS data log, showing:
 ![ntrip console screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/ntrip_consolelog.png?raw=true)
 
 **NB:** Please respect the terms and conditions of any remote NTRIP service used with this facility. For testing or evaluation purposes, consider deploying a local [SNIP LITE](https://www.use-snip.com/download/) server. *Inappropriate use of an NTRIP service may result in your account being blocked*.
+
+---
+### <a name="spartnconfig">SPARTN Client Facilities</a>
+
+**EXPERIMENTAL FEATURE**
+
+![spartn config widget screenshot](https://github.com/semuconsulting/PyGPSClient/blob/add-SPARTN-config-dialog/images/spartnconfig_widget.png?raw=true)
+
+The SPARTN Configuration uility allows users to configure a SPARTN-compatible GNSS receiver (e.g. the u-blox ZED-F9P) to receive SPARTN correction data from an L-Band or IP source (e.g. u-blox D9S correction receiver or MQTT client). The utility uploads the necessary SPARTN decryption keys and sets an appropriate input protocol/port configuration on the GNSS receiver.
+
+To use:
+
+1. You will need to obtain current and next decryption keys from a SPARTN location service (e.g. u-blox / Thingstream PointPerfect). These keys are normally valid for a 4 week period. **NB:** PointPerfect is a paid subscription service for B2B users only - please ensure you comply with the Terms and Conditions before subscribing.
+1. Enter the current and next keys in hexadecimal format e.g. `0102030405060708090a0b0c0d0e0f10`. The keys are normally 16 bytes long, or 32 hexadecimal characters.
+1. Enter the relevant Valid From dates in `YYYYMMDD` format. **NB:** These are *Valid From* dates rather than *Expiry* dates. If the Location service provides Expiry dates, substract 4 weeks from these to get the Valid From dates.
+1. Select 'Upload keys', 'Configure receiver' and 'Disable NMEA' options as required and click Send.
+1. The utility will send the the relevant configuration commands to the receiver and poll for an acknowledgement.
 
 ---
 ### <a name="socketserver">Socket Server / NTRIP Caster Facilities</a>

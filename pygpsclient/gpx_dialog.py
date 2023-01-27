@@ -99,7 +99,7 @@ class GPXViewerDialog(Toplevel):
         if POPUP_TRANSIENT:
             self.transient(self.__app)
         self.resizable(True, True)
-        self.title(DLGGPXVIEWER)
+        self.title(DLGGPXVIEWER)  # pylint: disable=E1102
         self.protocol("WM_DELETE_WINDOW", self.on_exit)
         self._img_load = ImageTk.PhotoImage(Image.open(ICON_LOAD))
         self._img_redraw = ImageTk.PhotoImage(Image.open(ICON_REDRAW))

@@ -164,6 +164,14 @@ pygpsclient.socketconfig\_frame module
    :undoc-members:
    :show-inheritance:
 
+pygpsclient.spartn\_dialog module
+---------------------------------
+
+.. automodule:: pygpsclient.spartn_dialog
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pygpsclient.spectrum\_frame module
 ----------------------------------
 

@@ -73,6 +73,7 @@ from pygpsclient.spectrum_frame import SpectrumviewFrame
 from pygpsclient.status_frame import StatusFrame
 from pygpsclient.ubx_config_dialog import UBXConfigDialog
 from pygpsclient.ntrip_client_dialog import NTRIPConfigDialog
+from pygpsclient.spartn_dialog import SPARTNConfigDialog
 from pygpsclient.gpx_dialog import GPXViewerDialog
 from pygpsclient.nmea_handler import NMEAHandler
 from pygpsclient.ubx_handler import UBXHandler
@@ -122,10 +123,12 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.ntrip_handler = GNSSNTRIPClient(self, verbosity=0)
         self.dlg_ubxconfig = None
         self.dlg_ntripconfig = None
+        self.dlg_spartnconfig = None
         self.dlg_gpxviewer = None
         self._ubx_config_thread = None
         self._gpxviewer_thread = None
         self._ntrip_config_thread = None
+        self._spartn_config_thread = None
         self._socket_thread = None
         self._socket_server = None
 
@@ -439,12 +442,39 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
     def stop_ntripconfig_thread(self):
         """
-        Stop UBX Configuration dialog thread.
+        Stop NTRIP Configuration dialog thread.
         """
 
         if self._ntrip_config_thread is not None:
             self._ntrip_config_thread = None
             self.dlg_ntripconfig = None
+
+    def spartnconfig(self):
+        """
+        Start SPARTN Config dialog thread.
+        """
+
+        if self._spartn_config_thread is None:
+            self._spartn_config_thread = Thread(
+                target=self._spartnconfig_thread, daemon=False
+            )
+            self._spartn_config_thread.start()
+
+    def _spartnconfig_thread(self):
+        """
+        THREADED PROCESS SPARTN Configuration Dialog.
+        """
+
+        self.dlg_spartnconfig = SPARTNConfigDialog(self)
+
+    def stop_spartnconfig_thread(self):
+        """
+        Stop SPARTN Configuration dialog thread.
+        """
+
+        if self._spartn_config_thread is not None:
+            self._spartn_config_thread = None
+            self.dlg_spartnconfig = None
 
     def gpxviewer(self):
         """

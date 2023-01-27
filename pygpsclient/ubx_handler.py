@@ -75,6 +75,8 @@ class UBXHandler:
             self._process_RXM_RTCM(parsed_data)
         elif parsed_data.identity == "MON-SPAN":
             self._process_MON_SPAN(parsed_data)
+        elif parsed_data.identity == "RXM-SPARTN-KEY":
+            self._process_RXM_SPARTN_KEY(parsed_data)
 
     def _update_ubxconfig(self, msg: UBXMessage):
         """
@@ -85,6 +87,9 @@ class UBXHandler:
 
         if self.__app.dlg_ubxconfig is not None:
             self.__app.dlg_ubxconfig.update_pending(msg)
+        # if SPARTN config dialog is open, send ACKs there as well
+        if msg.identity[0:3] == "ACK" and self.__app.dlg_spartnconfig is not None:
+            self.__app.dlg_spartnconfig.update_status(msg)
 
     def _process_NAV_POSLLH(self, data: UBXMessage):
         """
@@ -118,6 +123,9 @@ class UBXHandler:
         self.__app.gnss_status.speed = data.gSpeed / 1000  # m/s
         self.__app.gnss_status.track = data.headMot
         self.__app.gnss_status.fix = fix2desc("NAV-PVT", data.fixType)
+        if data.carrSoln > 0:
+            self.__app.gnss_status.fix = fix2desc("NAV-PVT", data.carrSoln + 5)
+
         self.__app.gnss_status.diff_corr = data.difSoln
         if data.lastCorrectionAge != 0:
             self.__app.gnss_status.diff_age = corrage2int(data.lastCorrectionAge)
@@ -174,6 +182,8 @@ class UBXHandler:
         self.__app.gnss_status.diff_corr = data.diffSoln
         # self.__app.gnss_status.diff_age = "<60"
         self.__app.gnss_status.fix = fix2desc("NAV-STATUS", data.gpsFix)
+        if data.carrSoln > 0:
+            self.__app.gnss_status.fix = fix2desc("NAV-STATUS", data.carrSoln + 5)
 
     def _process_NAV_SVINFO(self, data: UBXMessage):
         """
@@ -239,6 +249,8 @@ class UBXHandler:
         self.__app.gnss_status.track = data.headMot
         self.__app.gnss_status.fix = fix2desc("HNR-PVT", data.gpsFix)
         self.__app.gnss_status.diff_corr = data.DiffSoln
+        if data.DiffSoln > 0:
+            self.__app.gnss_status.fix = fix2desc("HNR-PVT", 6)
 
     def _process_RXM_RTCM(self, data: UBXMessage):
         """
@@ -269,3 +281,13 @@ class UBXHandler:
             rfbs.append((spec, spn, res, ctr, pga))
 
         self.__app.gnss_status.spectrum_data = rfbs
+
+    def _process_RXM_SPARTN_KEY(self, data: UBXMessage):
+        """
+        Process RXM-SPARTN_KEY sentences - poll response.
+
+        :param UBXMessage data: RXM-SPARTN_KEY poll response message
+        """
+
+        if self.__app.dlg_spartnconfig is not None:
+            self.__app.dlg_spartnconfig.update_status(data)

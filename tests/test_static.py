@@ -7,6 +7,7 @@ Static method tests for pygpsclient.helpers
 """
 
 import unittest
+from datetime import datetime
 from pygpsclient.helpers import (
     deg2rad,
     m2ft,
@@ -29,6 +30,7 @@ from pygpsclient.helpers import (
     stringvar2val,
     mapq_compress,
     mapq_decompress,
+    get_gpswnotow,
 )
 
 
@@ -209,6 +211,27 @@ class StaticTest(unittest.TestCase):
         print(pnts)
         for i, pnt in enumerate(pnts):
             self.assertAlmostEqual(pnt, points[i], PREC)
+
+    def testgpsweek(self):
+        dats = [
+            (2023, 1, 1),
+            (2005, 11, 5),
+            (2020, 8, 20),
+            (2014, 3, 16),
+            (2023, 5, 21),
+            (2023, 5, 27),
+        ]
+        vals = [
+            (2243, 0),
+            (1347, 518400),
+            (2119, 345600),
+            (1784, 0),
+            (2263, 0),
+            (2263, 518400),
+        ]
+        for i, dat in enumerate(dats):
+            y, m, d = dat
+            self.assertEqual(get_gpswnotow(datetime(y, m, d)), vals[i])
 
 
 if __name__ == "__main__":

@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE CANDIDATE v1.3.16
+
+ENHANCEMENTS:
+
+1. Add SPARTN Configuration utility, accessed via Menu..Options..SPARTN Configuration Dialog. The utility allows users to upload the necessary SPARTN decryption keys amd validity dates, along with any necessary UBX configuration, to a compatible UBX GNSS receiver (e.g. the u-blox ZED-F9P). When connected to a SPARTN correction data source (e.g. u-blox NEO-D9S L-band correction receiver or MQTT IP client), the GNSS receiver is then able to process and apply SPARTN correction data. **NB:** PyGPSClient does not currently parse SPARTN messages.
+
 ### RELEASE v1.3.15
 
 ENHANCEMENTS:

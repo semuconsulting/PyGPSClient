@@ -13,6 +13,7 @@ Created on 14 Sep 2020
 # pylint: disable=invalid-name, line-too-long
 
 import os
+from datetime import datetime
 from pyubx2 import GET, SET, POLL
 
 DIRNAME = os.path.dirname(__file__)
@@ -73,7 +74,7 @@ GPX_NS = " ".join(
         'http://www.topografix.com/GPX/1/1/gpx.xsd"',
     )
 )
-
+GPSEPOCH0 = datetime(1980, 1, 6)  # for Wno and Tow calculations
 GPXLIMIT = 500  # max number of track points supported by MapQuest API
 CHECK_FOR_UPDATES = (
     False  # check for newer PyPi version on startup (requires internet connection)
@@ -200,6 +201,7 @@ UBX_CFGVAL = 4
 UBX_PRESET = 5
 UBX_CFGRATE = 6
 UBX_CFGOTHER = 7
+UBX_SPARTN = 8
 
 GLONASS_NMEA = True  # use GLONASS NMEA SVID (65-96) rather than slot (1-24)
 # GNSS color codings:
@@ -237,16 +239,20 @@ FIXLOOKUP = {
     "VTGA": "3D",  # posMode
     "VTGD": "RTK",
     "VTGE": "DR",
-    "NAV-PVT1": "DR",  # fixType
+    "NAV-PVT1": "DR",  # fixType or carrSoln
     "NAV-PVT2": "2D",
     "NAV-PVT3": "3D",
     "NAV-PVT4": "GNSS+DR",
     "NAV-PVT5": "TIME ONLY",
-    "NAV-STATUS1": "DR",  # gpsFix
+    "NAV-PVT6": "RTK FLOAT",
+    "NAV-PVT7": "RTK FIXED",
+    "NAV-STATUS1": "DR",  # gpsFix or carrSoln
     "NAV-STATUS2": "3D",
     "NAV-STATUS3": "3D",
     "NAV-STATUS4": "GNSS+DR",
     "NAV-STATUS5": "TIME ONLY",
+    "NAV-STATUS6": "RTK FLOAT",
+    "NAV-STATUS7": "RTK FIXED",
     "NAV-SOL1": "DR",  # gpsFix
     "NAV-SOL2": "3D",
     "NAV-SOL3": "3D",
@@ -257,16 +263,21 @@ FIXLOOKUP = {
     "HNR-PVT3": "3D",
     "HNR-PVT4": "GNSS+DR",
     "HNR-PVT5": "TIME ONLY",
-    "NAV2-PVT1": "DR",  # fixType
+    "HNR-PVT6": "RTK",
+    "NAV2-PVT1": "DR",  # fixType or carrSoln
     "NAV2-PVT2": "2D",
     "NAV2-PVT3": "3D",
     "NAV2-PVT4": "GNSS+DR",
     "NAV2-PVT5": "TIME ONLY",
-    "NAV2-STATUS1": "DR",  # gpsFix
+    "NAV2-PVT6": "RTK FLOAT",
+    "NAV2-PVT7": "RTK FIXED",
+    "NAV2-STATUS1": "DR",  # gpsFix or carrSoln
     "NAV2-STATUS2": "3D",
     "NAV2-STATUS3": "3D",
     "NAV2-STATUS4": "GNSS+DR",
     "NAV2-STATUS5": "TIME ONLY",
+    "NAV2-STATUS6": "RTK FLOAT",
+    "NAV2-STATUS7": "RTK FIXED",
 }
 
 FONT_MENU = "TkMenuFont"
