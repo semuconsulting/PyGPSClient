@@ -98,6 +98,13 @@ ENABLE_CFG_OTHER = True  # enable CFG=* Other Configuration command panel
 MQAPIKEY = "mqapikey"
 UBXPRESETS = "ubxpresets"
 COLORTAGS = "colortags"
+# SPARTN client defaults
+SPARTN_US = 0
+SPARTN_EU = 1
+SPARTN_LBAND = 0
+SPARTN_IP = 1
+SPARTN_DEFREG = SPARTN_US
+SPARTN_DEFSRC = SPARTN_LBAND
 # list of recognised serial device descriptors:
 KNOWNGPS = (
     "USER-DEFINED",

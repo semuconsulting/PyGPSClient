@@ -7,6 +7,7 @@
 [NTRIP Client](#ntripconfig) |
 [SPARTN Client](#spartnconfig) |
 [Socket Server / NTRIP Caster](#socketserver) |
+[GPX Track Viewer](#gpxviewer) |
 [Installation](#installation) |
 [Mapquest API Key](#mapquestapi) |
 [User-defined Presets](#userdefined) |
@@ -59,20 +60,17 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 1. Spectrum widget showing spectrum analysis chart from MON-SPAN message (*UBX MON-SPAN messages must be enabled or polled*).
 1. Data logging in parsed, binary, hexadecimal string and tabulated hexadecimal formats (NB. only binary datalogs can be re-read by PyGPSClient's parser).
 1. Track recording in GPX format.
-1. GPX Track Viewer utility with elevation and speed profiles and track metadata (*requires an Internet connection and free 
-[MapQuest API Key](https://developer.mapquest.com/user/login/sign-up)*).
-1. UBX Configuration Dialog, with the ability to send a variety of UBX CFG configuration commands to u-blox GNSS devices. This includes the facility to add **user-defined commands or command sequences** - see instructions under [user-defined presets](#userdefined) below. While not intended to be a direct replacement, the application supports much of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool.
+1. [UBX Configuration Dialog](#ubxconfig), with the ability to send a variety of UBX CFG configuration commands to u-blox GNSS devices. This includes the facility to add **user-defined commands or command sequences** - see instructions under [user-defined presets](#userdefined) below. While not intended to be a direct replacement, the application supports much of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool.
 1. [NTRIP](https://en.wikipedia.org/wiki/Networked_Transport_of_RTCM_via_Internet_Protocol) Client ([differential GPS enhancement](https://en.wikipedia.org/wiki/Differential_GPS)) facility with the ability to connect to a specified NTRIP server (caster), parse the incoming RTCM3 data and feed this data to a compatible GNSS device (*requires an Internet connection and access to a suitable NTRIP caster*).
+1. [SPARTN Client dialog](#spartnconfig) with the ability to configure GNSS (e.g. F9P) and correction (e.g. D9S) receivers to process SPARTN correction data sources.
 1. [Socket Server / NTRIP Caster](#socketserver)  with two modes of operation: (a) open, unauthenticated Socket Server or (b) NTRIP Caster.
+1. [GPX Track Viewer](#gpxviewer) utility with elevation and speed profiles and track metadata (*requires an Internet connection and free 
+[MapQuest API Key](https://developer.mapquest.com/user/login/sign-up)*).
 
 ![spectrum screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/spectrumM9N.png?raw=true)
 ![spectrum screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/spectrumF9P.png?raw=true)
 
 *Spectrum analysis charts from MON-SPAN message from NEO-M9N and ZED-F9P receivers*
-
-![gpxviewer screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/gpxviewer.png?raw=true)
-
-*GPX Track Viewer screenshot*
 
 ---
 ## <a name="howtouse">How to Use</a>
@@ -162,13 +160,25 @@ Below is a illustrative NTRIP DGPS data log, showing:
 
 ![spartn config widget screenshot](https://github.com/semuconsulting/PyGPSClient/blob/add-SPARTN-config-dialog/images/spartnconfig_widget.png?raw=true)
 
-The SPARTN Configuration uility allows users to configure a SPARTN-compatible GNSS receiver (e.g. the u-blox ZED-F9P) to receive SPARTN correction data from an L-Band or IP source (e.g. u-blox D9S correction receiver or MQTT client). The utility uploads the necessary SPARTN decryption keys and sets an appropriate input protocol/port configuration on the GNSS receiver.
+The SPARTN Configuration uility allows users to configure both GNSS and Correction receivers in a dual-receiver SPARTN RTK configuration (e.g. u-blox ZED-F9P and NEO-D9S). The utility uploads the necessary SPARTN decryption keys to the GNSS receiver and sets the required configurations on GNSS and/or Correction receivers.
 
 To use:
 
-1. You will need to obtain current and next decryption keys from a SPARTN location service (e.g. u-blox / Thingstream PointPerfect). These keys are normally valid for a 4 week period. **NB:** PointPerfect is a paid subscription service for B2B users only - please ensure you comply with the Terms and Conditions before subscribing.
+1. The facility can be accessed via Menu..Options..SPARTN Configuration Dialog.
+1. It provides two independent configuration sections, one for the GNSS receiver (e.g. F9P) and another for the correction receiver (e.g. D9S):
+
+#### Correction Receiver (D9S)
+
+1. At time of writing, the only supported SPARTN-compatible u-blox L-Band Correction receiver is the NEO-D9S.
+1. Commercial SPARTN location services like PointPerfect require different configurations for US and European regions. The utility provides default values for each region but these may need to be amended in accordance with the parameters provided by the location service. **NB:** parameters available in the public domain *may not* be appropriate.
+1. **NOT YET FULLY IMPLEMENTED** If both GNSS and Correction receivers are connected to the same PyGPSClient workstation (e.g. via separate USB ports), it is possible to run the utility in Passthough mode, whereby the output data (UBX `RXM-PMP` messages) from the Correction receiver will be automatically passed through to the GNSS receiver by PyGPSClient, without the need to connect the two externally. The 'Receiver Port' is the serial port used by the Correction receiver.
+1. Click send to upload the required configuration. The utility will send the relevant configuration commands to the receiver and poll for an acknowledgement.
+#### GNSS Receiver (F9*)
+
+1. At time of writing, the only supported SPARTN-compatible u-blox GNSS receivers are those in the ZED-F9* family (e.g. ZED-F9P or ZED-F9R).
+1. To configure the GNSS receiver for use with a commercial (encrypted) SPARTN location service (e.g. u-blox / Thingstream PointPerfect), you will need to obtain current and next decryption keys and upload these to the GNSS receiver after every power cycle or reset. These keys are normally valid for 4 weeks. **NB:** Please ensure you understand the Terms and Conditions of any commercial SPARTN service before subscribing.
 1. Enter the current and next keys in hexadecimal format e.g. `0102030405060708090a0b0c0d0e0f10`. The keys are normally 16 bytes long, or 32 hexadecimal characters.
-1. Enter the relevant Valid From dates in `YYYYMMDD` format. **NB:** These are *Valid From* dates rather than *Expiry* dates. If the Location service provides Expiry dates, substract 4 weeks from these to get the Valid From dates.
+1. Enter the supplied Valid From dates in `YYYYMMDD` format. **NB:** These are *Valid From* dates rather than *Expiry* dates. If the location service provides Expiry dates, substract 4 weeks from these to get the Valid From dates.
 1. Select 'Upload keys', 'Configure receiver' and 'Disable NMEA' options as required and click Send.
 1. The utility will send the the relevant configuration commands to the receiver and poll for an acknowledgement.
 
@@ -184,6 +194,13 @@ The server/caster binds to the host address '0.0.0.0' i.e. all available IP addr
 A label on the settings panel indicates the number of connected clients, and the server/caster status is indicated in the topmost banner: closed: ![transmit icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-notransmit-10-24.png?raw=true), open with no clients: ![transmit icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-noclient-10-24.png?raw=true), open with clients: ![transmit icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-transmit-10-24.png?raw=true).
 
 **NB:** Running in NTRIP caster mode is predicated on the host being connected to an RTK-compatible GNSS receiver **operating in Base Station mode** (either `SURVEY_IN` or `FIXED`) and outputting the requisite RTCM3 message types (1005, 1077, 1087, 1097, 1127 and 1230). In the case of the u-blox ZED-F9P receiver, for example, this is set using the `CFG-TMODE*` and `CFG-MSGOUT-RTCM*` configuration interface parameters available via the [UBX Configuration panel](#ubxconfig) - refer to the Integration Manual and Interface Specification for further details. PyGPSClient does *not* configure the receiver automatically, though an example configuration script for the u-blox ZED-F9P receiver may be found at [/examples/f9p_basestation.py](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/f9p_basestation.py). This script can also be used to generate user-defined preset command strings suitable for copying and pasting into a `ubxpresets` file (see [User Defined Presets](#userdefined) below).
+
+---
+### <a name="gpxviewer">GPX Track Viewer</a>
+
+![gpxviewer screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/gpxviewer.png?raw=true)
+
+*GPX Track Viewer screenshot*
 
 ---
 ## <a name="installation">Installation</a>
