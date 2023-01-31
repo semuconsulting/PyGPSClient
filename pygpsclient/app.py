@@ -613,6 +613,14 @@ class App(Frame):  # pylint: disable=too-many-ancestors
                     if parsed_data.identity == "RXM-PMP":
                         self._gnss_outqueue.put(raw_data)
                 self.process_data(raw_data, parsed_data, "SPARTN>>")
+
+                # update SPARTN config dialog status
+                if (
+                    self._spartn_conn_status == CONNECTED
+                    and self.dlg_spartnconfig is not None
+                ):
+                    self.dlg_spartnconfig.update_status(parsed_data)
+
             self._spartn_inqueue.task_done()
 
         except Empty:

@@ -98,16 +98,20 @@ from pygpsclient.helpers import (
     VALHEX,
     VALDMY,
     VALLEN,
+    VALINT,
 )
 from pygpsclient.serialconfig_frame import SerialConfigFrame
 from pygpsclient.stream_handler import StreamHandler
 
+U2MAX = 2e16 - 1
+U8MAX = 2e64 - 1
 BAUDRATE = 38400
 SPARTN_KEYLEN = 16
 RESERVED0 = b"\x00\x00"
 RESERVED1 = b"\x00"
 RXMMSG = "RXM-SPARTN-KEY"
-CFGMSG = "CFG-VALSET"
+CFGSET = "CFG-VALSET"
+CFGPOLL = "CFG-VALGET"
 INPORTS = ("I2C", "UART1", "UART2", "USB", "SPI")
 PASSTHRU = "Passthrough"
 PMP_DATARATES = {
@@ -596,7 +600,7 @@ class SPARTNConfigDialog(Toplevel):
         self._upload_keys.set(1)
         self._send_f9p_config.set(1)
         self._disable_nmea.set(0)
-        reg = SPARTN_DEFREG
+        reg = SPARTN_FACTORY
         self._spartn_region.set(reg)
         self._spartn_freq.set(SPARTN_PARMS[reg]["freq"])
         self._spartn_schwin.set(SPARTN_PARMS[reg]["schwin"])
@@ -634,17 +638,29 @@ class SPARTNConfigDialog(Toplevel):
 
     def _valid_corr_settings(self) -> bool:
         """
-        Validate settings.
+        Validate Correction receiver settings.
 
         :return: valid True/False
         :rtype: bool
         """
 
-        return True  # TODO
+        valid = True
+        valid = valid & valid_entry(
+            self._ent_freq, VALINT, 1e9, 2e9
+        )  # L-band 1GHz - 2GHz
+        valid = valid & valid_entry(self._ent_schwin, VALINT, 0, U2MAX)  # U2
+        valid = valid & valid_entry(self._ent_sid, VALINT, 0, U2MAX)  # U2
+        valid = valid & valid_entry(self._ent_descraminit, VALINT, 0, U2MAX)  # U2
+        valid = valid & valid_entry(self._ent_unqword, VALINT, 0, U8MAX)  # U8
+
+        if not valid:
+            self.set_status("ERROR - invalid settings", "red")
+
+        return valid
 
     def _valid_gnss_settings(self) -> bool:
         """
-        Validate settings.
+        Validate GNSS receiver settings.
 
         :return: valid True/False
         :rtype: bool
@@ -813,8 +829,12 @@ class SPARTNConfigDialog(Toplevel):
 
         msg = self._format_cfgcorr()
         self._send_corr_command(msg)
-        self.set_status(f"{CFGMSG} command sent", "green")
+        self.set_status(f"{CFGSET} command sent", "green")
         self._lbl_d9ssend.config(image=self._img_pending)
+
+        # poll for acknowledgement
+        msg = self._format_cfgpoll()
+        self._send_corr_command(msg)
 
     def _send_corr_command(self, msg: UBXMessage):
         """
@@ -904,6 +924,7 @@ class SPARTNConfigDialog(Toplevel):
         :param UBXMessage msg: UBX config message
         """
 
+        # print(f"DEBUG spartn update_status msg received {msg}")
         if msg.identity == RXMMSG:
             if msg.numKeys == 2:  # check both keys have been uploaded
                 self._lbl_send_command.config(image=self._img_confirmed)
@@ -913,10 +934,32 @@ class SPARTNConfigDialog(Toplevel):
                 self.set_status(CONFIGBAD.format(RXMMSG), "red")
         elif msg.identity == "ACK-ACK":
             self._lbl_send_command.config(image=self._img_confirmed)
-            self.set_status(CONFIGOK.format(CFGMSG), "green")
+            self.set_status(CONFIGOK.format(CFGSET), "green")
         elif msg.identity == "ACK-NAK":
             self._lbl_send_command.config(image=self._img_warn)
-            self.set_status(CONFIGBAD.format(CFGMSG), "red")
+            self.set_status(CONFIGBAD.format(CFGSET), "red")
+        elif msg.identity == CFGPOLL:
+            if hasattr(msg, "CFG_PMP_CENTER_FREQUENCY"):
+                self._spartn_freq.set(msg.CFG_PMP_CENTER_FREQUENCY)
+            if hasattr(msg, "CFG_PMP_SEARCH_WINDOW"):
+                self._spartn_schwin.set(msg.CFG_PMP_SEARCH_WINDOW)
+            if hasattr(msg, "CFG_PMP_USE_SERVICE_ID"):
+                self._spartn_usesid.set(msg.CFG_PMP_USE_SERVICE_ID)
+            if hasattr(msg, "CFG_PMP_SERVICE_ID"):
+                self._spartn_sid.set(msg.CFG_PMP_SERVICE_ID)
+            if hasattr(msg, "CFG_PMP_DATA_RATE"):
+                self._spartn_drat.set(msg.CFG_PMP_DATA_RATE)
+            if hasattr(msg, "CFG_PMP_USE_DESCRAMBLER"):
+                self._spartn_descrm.set(msg.CFG_PMP_USE_DESCRAMBLER)
+            if hasattr(msg, "CFG_PMP_DESCRAMBLER_INIT"):
+                self._spartn_descrminit.set(msg.CFG_PMP_DESCRAMBLER_INIT)
+            if hasattr(msg, "CFG_PMP_USE_PRESCRAMBLING"):
+                self._spartn_prescrm.set(msg.CFG_PMP_USE_PRESCRAMBLING)
+            if hasattr(msg, "CFG_PMP_UNIQUE_WORD"):
+                self._spartn_unqword.set(msg.CFG_PMP_UNIQUE_WORD)
+            self.set_status(f"{CFGPOLL} received", "green")
+            self._lbl_d9ssend.config(image=self._img_confirmed)
+            self.update_idletasks()
 
     def _set_date(self, val: StringVar, dat: datetime):
         """
