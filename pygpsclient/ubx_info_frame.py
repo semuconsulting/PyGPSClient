@@ -47,7 +47,7 @@ class UBX_INFO_Frame(Frame):
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.get_master()  # Reference to root class (Tk)
+        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.__container = container
 
         Frame.__init__(self, self.__container.container, *args, **kwargs)
@@ -194,7 +194,7 @@ class UBX_INFO_Frame(Frame):
 
         for msgtype in ("MON-VER", "MON-HW"):
             msg = UBXMessage(msgtype[0:3], msgtype, POLL)
-            self.__app.stream_handler.serial.write(msg.serialize())
+            self.__app.gnss_outqueue.put(msg.serialize())
             self.__container.set_status(f"{msgtype} POLL message sent", "blue")
         self.__container.set_pending("MON-VER", UBX_MONVER)
         self.__container.set_pending("MON-HW", UBX_MONHW)

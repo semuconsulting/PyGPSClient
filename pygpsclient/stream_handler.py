@@ -2,7 +2,17 @@
 StreamHandler class for PyGPSClient application
 
 This handles all the stream i/o, threaded read process and direction to
-the appropriate protocol handler
+the appropriate protocol handler.
+
+NB: requires the calling app to implement the following attributes:
+
+- mode
+- infile_path
+- socket_settings
+- read_event
+- inqueue
+- outqueue
+- serial_settings
 
 Created on 16 Sep 2020
 
@@ -12,9 +22,8 @@ Created on 16 Sep 2020
 """
 
 import socket
-from io import BufferedReader
 from threading import Thread, Event
-from queue import Queue
+from queue import Empty
 from datetime import datetime, timedelta
 from serial import Serial, SerialException, SerialTimeoutException
 from pyubx2 import (
@@ -35,6 +44,7 @@ from pygpsclient.globals import (
     DISCONNECTED,
     FILEREAD_INTERVAL,
     DEFAULT_BUFSIZE,
+    GNSS_EOF_EVENT,
 )
 from pygpsclient.strings import ENDOFFILE
 
@@ -53,21 +63,12 @@ class StreamHandler:
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.get_master()  # Reference to root class (Tk)
+        self.__master = self.__app.appmaster  # Reference to root class (Tk)
 
-        self._serial_object = None
-        self._serial_buffer = None
         self._stream_thread = None
         self._stopevent = Event()
         self._sockserve_event = Event()
-
-    @property
-    def serial(self):
-        """
-        Getter for serial object
-        """
-
-        return self._serial_object
+        self._mode = DISCONNECTED
 
     @property
     def sock_serve(self) -> bool:
@@ -93,38 +94,21 @@ class StreamHandler:
         else:
             self._sockserve_event.clear()
 
-    def serial_write(self, data: bytes):
-        """
-        Write binary data to serial port.
-
-        :param bytes data: data to write to stream
-        """
-
-        if self.__app.conn_status == CONNECTED and self._serial_object is not None:
-            try:
-                self._serial_object.write(data)
-            except (SerialException, SerialTimeoutException) as err:
-                self.__app.set_status(f"Error writing to serial port {err}", "red")
-
-    def start_read_thread(self, mode: int, msgmode: int = 0):
+    def start_read_thread(self, settings: object):
         """
         Start the stream read thread.
 
-        :param int mode: connection mode
-        :param int msgmode: pyubx2 message mode 0 = POLL, 1 = SET, 2 = POLL (0)
+        :param object settings: reference to object holding settings attributes
         """
 
         self._stopevent.clear()
-        self.__app.frm_mapview.reset_map_refresh()
+        self._mode = settings.mode
         self._stream_thread = Thread(
             target=self._read_thread,
             args=(
                 self._stopevent,
                 self._sockserve_event,
-                self.__app.msgqueue,
-                self.__app.socketqueue,
-                mode,
-                msgmode,
+                settings,
             ),
             daemon=True,
         )
@@ -144,10 +128,7 @@ class StreamHandler:
         self,
         stopevent: Event,
         sockserve_event: Event,
-        msgqueue: Queue,
-        socketqueue: Queue,
-        mode: int,
-        msgmode: int,
+        settings: object,
     ):
         """
         THREADED PROCESS
@@ -156,18 +137,14 @@ class StreamHandler:
 
         :param Event stopevent: thread stop event
         :param Event sockserve_event: socket serving event
-        :param Queue msgqueue: message queue
-        :param Queue socketqueue: socket server message queue
-        :param int mode: connection mode
-        :param int msgmode: pyubx2 message mode 0 = POLL, 1 = SET, 2 = POLL (0)
+        :param object settings: reference to object holding settings attributes
         """
 
         connstr = ""
         try:
 
-            if mode == CONNECTED:
-
-                ser = self.__app.frm_settings.serial_settings()
+            if settings.mode == CONNECTED:
+                ser = settings.serial_settings
                 connstr = f"{ser.port}:{ser.port_desc} @ {str(ser.bpsrate)}"
                 with Serial(
                     ser.port,
@@ -178,37 +155,27 @@ class StreamHandler:
                     xonxoff=ser.xonxoff,
                     rtscts=ser.rtscts,
                     timeout=ser.timeout,
-                ) as self._serial_object:
-                    stream = BufferedReader(self._serial_object)
+                ) as serial_object:
                     self._readloop(
                         stopevent,
                         sockserve_event,
-                        msgqueue,
-                        socketqueue,
-                        stream,
-                        mode,
-                        msgmode,
+                        serial_object,
+                        settings,
                     )
 
-            elif mode == CONNECTED_FILE:
-
-                in_filepath = self.__app.frm_settings.infilepath
+            elif settings.mode == CONNECTED_FILE:
+                in_filepath = settings.infilepath
                 connstr = f"{in_filepath}"
-                with open(in_filepath, "rb") as self._serial_object:
-                    stream = BufferedReader(self._serial_object)
+                with open(in_filepath, "rb") as serial_object:
                     self._readloop(
                         stopevent,
                         sockserve_event,
-                        msgqueue,
-                        socketqueue,
-                        stream,
-                        mode,
-                        msgmode,
+                        serial_object,
+                        settings,
                     )
 
-            elif mode == CONNECTED_SOCKET:
-
-                soc = self.__app.frm_settings.socket_settings()
+            elif settings.mode == CONNECTED_SOCKET:
+                soc = settings.socket_settings
                 server = soc.server
                 port = soc.port
                 connstr = f"{server}:{port}"
@@ -216,20 +183,17 @@ class StreamHandler:
                     socktype = socket.SOCK_DGRAM
                 else:  # TCP
                     socktype = socket.SOCK_STREAM
-                with socket.socket(socket.AF_INET, socktype) as stream:
-                    stream.connect((server, port))
+                with socket.socket(socket.AF_INET, socktype) as serial_object:
+                    serial_object.connect((server, port))
                     self._readloop(
                         stopevent,
                         sockserve_event,
-                        msgqueue,
-                        socketqueue,
-                        stream,
-                        mode,
-                        msgmode,
+                        serial_object,
+                        settings,
                     )
 
         except (EOFError, TimeoutError):
-            self.__master.event_generate("<<gnss_eof>>")
+            self.__master.event_generate(GNSS_EOF_EVENT)
         except (
             IOError,
             SerialException,
@@ -248,11 +212,8 @@ class StreamHandler:
         self,
         stopevent: Event,
         sockserve_event: Event,
-        msgqueue: Queue,
-        socketqueue: Queue,
-        stream: object,
-        mode: int,
-        msgmode: int,
+        serial_object: object,
+        settings: object,
     ):
         """
         Read stream continously until stop event or stream error.
@@ -262,42 +223,54 @@ class StreamHandler:
 
         :param Event stopevent: thread stop event
         :param Event sockserve_event: socket serving event
-        :param Queue msgqueue: message queue
-        :param Queue socketqueue: socket server message queue
-        :param object stream: data stream
-        :param int mode: connection mode
-        :param int msgmode: pyubx2 message mode 0 = POLL, 1 = SET, 2 = POLL
+        :param object serial_object: serial data stream
+        :param object settings: reference to object holding settings attributes
         """
 
+        # stream = BufferedReader(serial_object)
+        stream = serial_object
         ubr = UBXReader(
             stream,
             protfilter=NMEA_PROTOCOL | UBX_PROTOCOL | RTCM3_PROTOCOL,
             quitonerror=ERR_IGNORE,
             bufsize=DEFAULT_BUFSIZE,
-            msgmode=msgmode,
+            msgmode=settings.serial_settings.msgmode,
         )
 
         raw_data = None
         parsed_data = None
         lastread = datetime.now()
+        readevent = settings.read_event
         while not stopevent.is_set():
             try:
 
-                if mode in (CONNECTED, CONNECTED_SOCKET) or (
-                    mode == CONNECTED_FILE
+                if settings.mode in (CONNECTED, CONNECTED_SOCKET) or (
+                    settings.mode == CONNECTED_FILE
                     and datetime.now() > lastread + timedelta(seconds=FILEREAD_INTERVAL)
                 ):
                     raw_data, parsed_data = ubr.read()
                     if raw_data is not None:
-                        msgqueue.put((raw_data, parsed_data))
-                        self.__master.event_generate("<<stream_read>>")
+                        settings.inqueue.put((raw_data, parsed_data))
+                        self.__master.event_generate(readevent)
                         if sockserve_event.is_set():
-                            socketqueue.put(raw_data)
+                            settings.socketqueue.put(raw_data)
                     else:
-                        if mode == CONNECTED_FILE:
+                        if settings.mode == CONNECTED_FILE:
                             raise EOFError
-                    if mode == CONNECTED_FILE:
+                    if settings.mode == CONNECTED_FILE:
                         lastread = datetime.now()
+
+                    # write any queued output data to serial stream
+                    if settings.mode == CONNECTED:
+                        try:
+                            while not settings.outqueue.empty():
+                                # print("DEBUG readloop writing to rcvr")
+                                data = settings.outqueue.get(False)
+                                if data is not None:
+                                    serial_object.write(data)
+                                settings.outqueue.task_done()
+                        except Empty:
+                            pass
 
             except (
                 UBXMessageError,
@@ -308,8 +281,8 @@ class StreamHandler:
                 RTCMParseError,
             ) as err:
                 parsed_data = f"Error parsing data stream {err}"
-                msgqueue.put((raw_data, parsed_data))
-                self.__master.event_generate("<<stream_read>>")
+                settings.inqueue.put((raw_data, parsed_data))
+                self.__master.event_generate(readevent)
                 continue
 
     def on_eof(self, event):  # pylint: disable=unused-argument

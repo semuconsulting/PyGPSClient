@@ -28,7 +28,7 @@ class RTCM3Handler:
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.get_master()  # Reference to root class (Tk)
+        self.__master = self.__app.appmaster  # Reference to root class (Tk)
 
         self._raw_data = None
         self._parsed_data = None

@@ -33,7 +33,7 @@ from tkinter import (
     DISABLED,
     HORIZONTAL,
 )
-
+from queue import Queue
 from PIL import ImageTk, Image
 import pyubx2.ubxtypes_core as ubt
 from pygpsclient.serialconfig_frame import SerialConfigFrame
@@ -65,11 +65,13 @@ from pygpsclient.globals import (
     BPSRATES,
     FORMATS,
     MSGMODES,
+    TIMEOUTS,
     SOCKMODES,
     TAG_COLORS,
     SOCKSERVER_PORT,
     SOCKSERVER_NTRIP_PORT,
     SOCKSERVER_MAX_CLIENTS,
+    GNSS_EVENT,
 )
 from pygpsclient.helpers import valid_entry, VALINT, VALURL, MAXPORT
 from pygpsclient.strings import (
@@ -85,18 +87,6 @@ from pygpsclient.strings import (
     LBLSERVERPORT,
     LBLDEGFORMAT,
     LBLSERVERMODE,
-)
-
-TIMEOUTS = (
-    "0.1",
-    "0.2",
-    "1",
-    "2",
-    "5",
-    "10",
-    "20",
-    "None",
-    "0",
 )
 
 
@@ -115,7 +105,7 @@ class SettingsFrame(Frame):
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.get_master()  # Reference to root class (Tk)
+        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         Frame.__init__(self, self.__master, *args, **kwargs)
 
         self._prot_nmea = IntVar()
@@ -542,38 +532,38 @@ class SettingsFrame(Frame):
 
     def _on_serial_stream(self):
 
-        if self.serial_settings().status == NOPORTS:
+        if self.serial_settings.status == NOPORTS:
             return
 
         self.__app.set_connection(
             (
-                f"{self.serial_settings().port}:{self.serial_settings().port_desc} "
-                + f"@ {self.serial_settings().bpsrate}"
+                f"{self.serial_settings.port}:{self.serial_settings.port_desc} "
+                + f"@ {self.serial_settings.bpsrate}"
             ),
             "green",
         )
         self.__app.set_status("")
         self.__app.conn_status = CONNECTED
-        msgmode = self.__app.frm_settings.serial_settings().msgmode
-        self.__app.stream_handler.start_read_thread(CONNECTED, msgmode)
+        self.__app.frm_mapview.reset_map_refresh()
+        self.__app.stream_handler.start_read_thread(self)
 
     def _on_socket_stream(self):
         """
         Start socket streamer if settings are valid
         """
 
-        msgmode = self.__app.frm_settings.serial_settings().msgmode
         valid = True
         valid = valid & valid_entry(self._frm_socket.ent_server, VALURL)
         valid = valid & valid_entry(self._frm_socket.ent_port, VALINT, 1, MAXPORT)
         if valid:
             self.__app.set_connection(
-                f"{self.socket_settings().server}:{self.socket_settings().port}",
+                f"{self.socket_settings.server}:{self.socket_settings.port}",
                 "green",
             )
             self.__app.set_status("")
             self.__app.conn_status = CONNECTED_SOCKET
-            self.__app.stream_handler.start_read_thread(CONNECTED_SOCKET, msgmode)
+            self.__app.frm_mapview.reset_map_refresh()
+            self.__app.stream_handler.start_read_thread(self)
         else:
             self.__app.set_status("ERROR - invalid settings", "red")
 
@@ -582,13 +572,13 @@ class SettingsFrame(Frame):
         Start data file streamer if file selected
         """
 
-        msgmode = self.__app.frm_settings.serial_settings().msgmode
         self._in_filepath = self.__app.file_handler.open_infile()
         if self._in_filepath is not None:
             self.__app.set_connection(f"{self._in_filepath}", "blue")
             self.__app.set_status("")
             self.__app.conn_status = CONNECTED_FILE
-            self.__app.stream_handler.start_read_thread(CONNECTED_FILE, msgmode)
+            self.__app.frm_mapview.reset_map_refresh()
+            self.__app.stream_handler.start_read_thread(self)
 
     def _on_socket_serve(self):
         """
@@ -737,9 +727,19 @@ class SettingsFrame(Frame):
         self.update_idletasks()  # Make sure we know about any resizing
         return (self.winfo_width(), self.winfo_height())
 
+    @property
+    def mode(self) -> int:
+        """
+        Getter for connection mode
+        (0 = disconnected, 1 = serial, 2 = socket, 4 = file).
+        """
+
+        return self.__app.conn_status
+
+    @property
     def serial_settings(self) -> Frame:
         """
-        Return reference to common serial configuration panel
+        Getter for common serial configuration panel
 
         :return: reference to serial form
         :rtype: Frame
@@ -747,9 +747,19 @@ class SettingsFrame(Frame):
 
         return self._frm_serial
 
+    @property
+    def read_event(self) -> str:
+        """
+        Getter for type of event to be raised when data
+        is added to gnss_inqueue.
+        """
+
+        return GNSS_EVENT
+
+    @property
     def socket_settings(self) -> Frame:
         """
-        Return reference to common socket configuration panel
+        Getter for common socket configuration panel
 
         :return: reference to socket form
         :rtype: Frame
@@ -1009,3 +1019,27 @@ class SettingsFrame(Frame):
             self._lbl_sockclients.config(fg="green")
         if self._socket_serve.get() == 1:
             self.__app.frm_banner.update_transmit_status(clients)
+
+    @property
+    def inqueue(self) -> Queue:
+        """
+        Getter for GNSS input queue.
+        """
+
+        return self.__app.gnss_inqueue
+
+    @property
+    def outqueue(self) -> Queue:
+        """
+        Getter for GNSS output queue.
+        """
+
+        return self.__app.gnss_outqueue
+
+    @property
+    def socketqueue(self) -> Queue:
+        """
+        Getter for input queue.
+        """
+
+        return self.__app.socket_inqueue

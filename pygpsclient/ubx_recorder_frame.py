@@ -74,7 +74,7 @@ class UBX_Recorder_Frame(Frame):
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.get_master()  # Reference to root class (Tk)
+        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.__container = container  # Reference to UBX Configuration dialog
 
         Frame.__init__(self, self.__container.container, *args, **kwargs)
@@ -293,7 +293,7 @@ class UBX_Recorder_Frame(Frame):
                 self._lbl_activity.config(
                     text=f"{i} Sending {msg.identity}", fg=COLGOOD
                 )
-                self.__app.stream_handler.serial_write(msg.serialize())
+                self.__app.gnss_outqueue.put(msg.serialize())
                 sleep(0.01)
             self._lbl_activity.config(
                 text=f"{i + 1} command{'s' if i > 0 else ''} sent to device", fg=COLGOOD

@@ -46,7 +46,7 @@ class FileHandler:
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.get_master()  # Reference to root class (Tk)
+        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self._in_filepath = None
         self._in_filename = None
         self._logpath = None

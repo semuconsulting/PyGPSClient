@@ -73,7 +73,7 @@ class UBXConfigDialog(Toplevel):
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.get_master()  # Reference to root class (Tk)
+        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         Toplevel.__init__(self, app)
         if POPUP_TRANSIENT:
             self.transient(self.__app)
@@ -345,6 +345,6 @@ class UBXConfigDialog(Toplevel):
         if in 'record' mode.
         """
 
-        self.__app.stream_handler.serial_write(msg.serialize())
+        self.__app.gnss_outqueue.put(msg.serialize())
         if self.recordmode:
             self._frm_recorder.update_record(msg)

@@ -49,7 +49,7 @@ class SockServer(ThreadingTCPServer):
         """
 
         self.maxclients = maxclients
-        self._msgqueue = msgqueue
+        self._gnss_inqueue = msgqueue
         self.connections = 0
         self._stopevent = Event()
         self.clientqueues = []
@@ -59,12 +59,12 @@ class SockServer(ThreadingTCPServer):
         super().__init__(*args, **kwargs)
 
         # start GNSS message reader
-        while not self._msgqueue.empty():  # flush queue
-            self._msgqueue.get()
+        while not self._gnss_inqueue.empty():  # flush queue
+            self._gnss_inqueue.get()
         self._stopevent.clear()
         self._stream_thread = Thread(
             target=self._read_thread,
-            args=(self._stopevent, self._msgqueue, self.clientqueues),
+            args=(self._stopevent, self._gnss_inqueue, self.clientqueues),
             daemon=True,
         )
         self._stream_thread.start()
@@ -96,7 +96,7 @@ class ClientHandler(StreamRequestHandler):
         """
 
         self._qidx = None
-        self._msgqueue = None
+        self._gnss_inqueue = None
         self._allowed = False
         super().__init__(*args, **kwargs)
 
@@ -109,9 +109,9 @@ class ClientHandler(StreamRequestHandler):
         for i, clq in enumerate(self.server.clientqueues):
             if clq["client"] is None:
                 self.server.clientqueues[i]["client"] = self.client_address[1]
-                self._msgqueue = clq["queue"]
-                while not self._msgqueue.empty():  # flush queue
-                    self._msgqueue.get()
+                self._gnss_inqueue = clq["queue"]
+                while not self._gnss_inqueue.empty():  # flush queue
+                    self._gnss_inqueue.get()
                 self._qidx = i
                 self._allowed = True
                 break
@@ -152,7 +152,7 @@ class ClientHandler(StreamRequestHandler):
 
         while self._allowed:
             try:
-                raw = self._msgqueue.get()
+                raw = self._gnss_inqueue.get()
                 if raw is not None:
                     self.wfile.write(raw)
                     self.wfile.flush()
@@ -177,7 +177,7 @@ class StreamHandler:
         self._serial_buffer = None
         self._stream_thread = None
         self._socket = None
-        self._msgqueue = Queue()
+        self._gnss_inqueue = Queue()
         self._stopevent = Event()
         self._maxclients = 10
 
@@ -190,7 +190,7 @@ class StreamHandler:
         :rtype: Queue
         """
 
-        return self._msgqueue
+        return self._gnss_inqueue
 
     def start_read_thread(self):
         """

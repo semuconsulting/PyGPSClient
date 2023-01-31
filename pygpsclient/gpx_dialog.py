@@ -94,7 +94,7 @@ class GPXViewerDialog(Toplevel):
         """Constructor."""
 
         self.__app = app
-        # self.__master = self.__app.get_master()  # link to root Tk window
+        # self.__master = self.__app.appmaster  # link to root Tk window
         Toplevel.__init__(self, app)
         if POPUP_TRANSIENT:
             self.transient(self.__app)

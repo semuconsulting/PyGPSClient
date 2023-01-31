@@ -90,6 +90,17 @@ MAXLOGLINES = 10000  # maximum number of 'lines' per datalog file
 QUITONERRORDEFAULT = 1
 POPUP_TRANSIENT = True  # whether pop-up config dialogs are always on top
 PORTIDS = ("0 I2C", "1 UART1", "2 UART2", "3 USB", "4 SPI")
+TIMEOUTS = (
+    "0.1",
+    "0.2",
+    "1",
+    "2",
+    "5",
+    "10",
+    "20",
+    "None",
+    "0",
+)
 ANTSTATUS = ("INIT", "DONTKNOW", "OK", "SHORT", "OPEN")
 ANTPOWER = ("OFF", "ON", "DONTKNOW")
 GGA_INTERVALS = ("None", "2", "5", "10", "60", "120")
@@ -167,6 +178,11 @@ MSGMODES = {
     "SET": SET,
     "POLL": POLL,
 }
+# read event types
+GNSS_EVENT = "<<gnss_read>>"
+GNSS_EOF_EVENT = "<<gnss_eof>>"
+NTRIP_EVENT = "<<ntrip_read>>"
+SPARTN_EVENT = "<<spartn_read>>"
 # default widget frame sizes:
 WIDGETU1 = (250, 250)  # small widget size
 WIDGETU2 = (350, 250)  # medium widget size

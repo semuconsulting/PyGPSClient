@@ -39,6 +39,10 @@ from pygpsclient.globals import (
     MAXROWSPAN,
     CHECK_FOR_UPDATES,
     WIDGETU4,
+    GNSS_EVENT,
+    GNSS_EOF_EVENT,
+    NTRIP_EVENT,
+    SPARTN_EVENT,
 )
 from pygpsclient._version import __version__ as VERSION
 from pygpsclient.helpers import check_latest
@@ -98,6 +102,9 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         # user-defined serial port can be passed as environment variable
         # or command line keyword argument
         self._user_port = kwargs.pop("port", getenv("PYGPSCLIENT_USERPORT", ""))
+        self._spartn_user_port = kwargs.pop(
+            "spartnport", getenv("PYGPSCLIENT_SPARTNPORT", "")
+        )
 
         Frame.__init__(self, self.__master, *args, **kwargs)
 
@@ -112,14 +119,18 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._widget_grid = {}
 
         # Instantiate protocol handler classes
-        self.msgqueue = Queue()
-        self.ntripqueue = Queue()
-        self.socketqueue = Queue()
+        self._gnss_inqueue = Queue()  # messages from GNSS receiver
+        self._gnss_outqueue = Queue()  # messages to GNSS receiver
+        self._ntrip_inqueue = Queue()  # messages from NTRIP source
+        self._spartn_inqueue = Queue()  # messages from SPARTN correction rcvr
+        self._spartn_outqueue = Queue()  # messages to SPARTN correction rcvr
+        self._socket_inqueue = Queue()  # message from socket
         self.file_handler = FileHandler(self)
         self.stream_handler = StreamHandler(self)
         self.nmea_handler = NMEAHandler(self)
         self.ubx_handler = UBXHandler(self)
         self._conn_status = DISCONNECTED
+        self._spartn_conn_status = DISCONNECTED
         self.ntrip_handler = GNSSNTRIPClient(self, verbosity=0)
         self.dlg_ubxconfig = None
         self.dlg_ntripconfig = None
@@ -235,7 +246,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         for row in range(1, MAXROWSPAN):
             self.__master.grid_rowconfigure(row, weight=1)
 
-        if self.frm_settings.serial_settings().status == NOPORTS:
+        if self.frm_settings.serial_settings.status == NOPORTS:
             self.set_status(INTROTXTNOPORTS, "red")
 
     def _grid_widgets(self):
@@ -296,9 +307,10 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         Bind events to main application.
         """
 
-        self.__master.bind("<<stream_read>>", self.on_read)
-        self.__master.bind("<<gnss_eof>>", self.stream_handler.on_eof)
-        self.__master.bind("<<ntrip_read>>", self.on_ntrip_read)
+        self.__master.bind(GNSS_EVENT, self.on_gnss_read)
+        self.__master.bind(GNSS_EOF_EVENT, self.stream_handler.on_eof)
+        self.__master.bind(NTRIP_EVENT, self.on_ntrip_read)
+        self.__master.bind(SPARTN_EVENT, self.on_spartn_read)
         self.__master.bind_all("<Control-q>", self.on_exit)
 
     def _set_default_fonts(self):
@@ -332,40 +344,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             wdg["visible"] = nam != WDGSPECTRUM
         self._grid_widgets()
 
-    @property
-    def user_port(self) -> str:
-        """
-        Getter for user-defined port passed as optional
-        command line keyword argument.
-        """
-
-        return self._user_port
-
-    @property
-    def conn_status(self) -> int:
-        """
-        Getter for connection status.
-
-        :param int status: connection status e.g. 1 = CONNECTED
-        """
-
-        return self._conn_status
-
-    @conn_status.setter
-    def conn_status(self, status: int):
-        """
-        Setter for connection status.
-
-        :param int status: connection status e.g. 1 = CONNECTED
-        """
-
-        self._conn_status = status
-        self.frm_banner.update_conn_status(status)
-        self.frm_settings.enable_controls(status)
-        if status == DISCONNECTED:
-            self.set_connection(NOTCONN, "red")
-            self.set_status("", "blue")
-
     def set_connection(self, message, color="blue"):
         """
         Sets connection description in status bar.
@@ -388,7 +366,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         self.frm_status.set_status(message, color)
 
-    def about(self):
+    def on_about(self):
         """
         Open About dialog.
         """
@@ -516,7 +494,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
                 SOCKSERVER_HOST,
                 port,
                 SOCKSERVER_MAX_CLIENTS,
-                self.socketqueue,
+                self._socket_inqueue,
             ),
             daemon=True,
         )
@@ -563,23 +541,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         self.frm_settings.clients = clients
 
-    @property
-    def appmaster(self) -> object:
-        """
-        Getter for application master (Tk).
-        """
-
-        return self.__master
-
-    def get_master(self):
-        """
-        Getter for application master (Tk).
-
-        :return: reference to application master (Tk)
-        """
-
-        return self.__master
-
     def on_exit(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
         Kill any running processes and quit application.
@@ -593,18 +554,19 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.stop_ntripconfig_thread()
         self.__master.destroy()
 
-    def on_read(self, event):  # pylint: disable=unused-argument
+    def on_gnss_read(self, event):  # pylint: disable=unused-argument
         """
         EVENT TRIGGERED
-        Action on <<stream_read>> event - read any data on the message queue.
+        Action on <<gnss_read>> event - read any data on the message queue.
 
         :param event event: read event
         """
 
         try:
-            raw_data, parsed_data = self.msgqueue.get(False)
+            raw_data, parsed_data = self._gnss_inqueue.get(False)
             if raw_data is not None and parsed_data is not None:
                 self.process_data(raw_data, parsed_data)
+            self._gnss_inqueue.task_done()
         except Empty:
             pass
 
@@ -619,14 +581,40 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         try:
-            raw_data, parsed_data = self.ntripqueue.get(False)
+            # print("DEBUG on_ntrip_read even triggered")
+            raw_data, parsed_data = self._ntrip_inqueue.get(False)
             if raw_data is not None and parsed_data is not None:
                 if protocol(raw_data) == RTCM3_PROTOCOL:
                     if self.conn_status == CONNECTED:
-                        self.stream_handler.serial_write(raw_data)
+                        self._gnss_outqueue.put(raw_data)
                     self.process_data(raw_data, parsed_data, "NTRIP>>")
                 else:  # e.g. NMEA GGA sentence sent to NTRIP server
                     self.process_data(raw_data, parsed_data, "NTRIP<<")
+            self._ntrip_inqueue.task_done()
+        except Empty:
+            pass
+        except (SerialException, SerialTimeoutException) as err:
+            self.set_status(f"Error sending to device {err}", "red")
+
+    def on_spartn_read(self, event):  # pylint: disable=unused-argument
+        """
+        EVENT TRIGGERED
+        Action on <<spartn_read>> event - read data from SPARTN queue.
+        If it's RXM-PMP data, send to connected receiver and display on console.
+        Anything else, just display on console.
+
+        :param event event: read event
+        """
+
+        try:
+            raw_data, parsed_data = self._spartn_inqueue.get(False)
+            if raw_data is not None and parsed_data is not None:
+                if self.conn_status == CONNECTED:
+                    if parsed_data.identity == "RXM-PMP":
+                        self._gnss_outqueue.put(raw_data)
+                self.process_data(raw_data, parsed_data, "SPARTN>>")
+            self._spartn_inqueue.task_done()
+
         except Empty:
             pass
         except (SerialException, SerialTimeoutException) as err:
@@ -780,3 +768,130 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         latest = check_latest("PyGPSClient")
         if latest not in (VERSION, "N/A"):
             self.set_status(VERCHECK.format(latest), "red")
+
+    @property
+    def appmaster(self) -> object:
+        """
+        Getter for application master (Tk).
+        """
+
+        return self.__master
+
+    @property
+    def user_port(self) -> str:
+        """
+        Getter for user-defined port passed as optional
+        command line keyword argument.
+        """
+
+        return self._user_port
+
+    @property
+    def spartn_user_port(self) -> str:
+        """
+        Getter for user-defined spartn port passed as optional
+        command line keyword argument.
+        """
+
+        return self._spartn_user_port
+
+    @property
+    def gnss_inqueue(self) -> Queue:
+        """
+        Getter for GNSS message input queue.
+        """
+
+        return self._gnss_inqueue
+
+    @property
+    def gnss_outqueue(self) -> Queue:
+        """
+        Getter for GNSS message output queue.
+        """
+
+        return self._gnss_outqueue
+
+    @property
+    def socket_inqueue(self) -> Queue:
+        """
+        Getter for socket input queue.
+        """
+
+        return self._socket_inqueue
+
+    @property
+    def ntrip_inqueue(self) -> Queue:
+        """
+        Getter for NTRIP input queue.
+        """
+
+        return self._ntrip_inqueue
+
+    @property
+    def spartn_inqueue(self) -> Queue:
+        """
+        Getter for SPARTN input queue.
+        """
+
+        return self._spartn_inqueue
+
+    @property
+    def spartn_outqueue(self) -> Queue:
+        """
+        Getter for SPARTN output queue.
+        """
+
+        return self._spartn_outqueue
+
+    @property
+    def socketqueue(self) -> Queue:
+        """
+        Getter for socket queue.
+        """
+
+        return self._socket_inqueue
+
+    @property
+    def conn_status(self) -> int:
+        """
+        Getter for connection status.
+
+        :param int status: connection status e.g. 1 = CONNECTED
+        """
+
+        return self._conn_status
+
+    @conn_status.setter
+    def conn_status(self, status: int):
+        """
+        Setter for connection status.
+
+        :param int status: connection status e.g. 1 = CONNECTED
+        """
+
+        self._conn_status = status
+        self.frm_banner.update_conn_status(status)
+        self.frm_settings.enable_controls(status)
+        if status == DISCONNECTED:
+            self.set_connection(NOTCONN, "red")
+            self.set_status("", "blue")
+
+    @property
+    def spartn_conn_status(self) -> int:
+        """
+        Getter for SPARTN connection status.
+
+        :param int status: connection status e.g. 1 = CONNECTED
+        """
+
+        return self._spartn_conn_status
+
+    @spartn_conn_status.setter
+    def spartn_conn_status(self, status: int):
+        """
+        Setter for SPARTN connection status.
+
+        :param int status: connection status e.g. 1 = CONNECTED
+        """
+
+        self._spartn_conn_status = status

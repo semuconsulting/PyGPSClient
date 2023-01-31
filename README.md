@@ -18,9 +18,9 @@
 
 PyGPSClient is a multi-platform graphical GNSS/GPS testing, diagnostic and UBX &copy; (u-blox &trade;) device configuration application written entirely in Python and tkinter.
 
-![full app screenshot ubx](https://github.com/semuconsulting/PyGPSClient/blob/master/images/app.png?raw=true)
+![full app screenshot ubx](https://github.com/semuconsulting/PyGPSClient/blob/add-SPARTN-config-dialog/images/app.png?raw=true)
 
-*Screenshot showing mixed-protocol stream from u-blox ZED-F9P receiver, using PyGPSClient's [NTRIP Client](#ntripconfig) to achieve >= 1cm accuracy*
+*Screenshot showing mixed-protocol stream from u-blox ZED-F9P receiver, using PyGPSClient's [NTRIP Client](#ntripconfig) to achieve >= 3cm accuracy*
 
 The application can be installed using the standard `pip` Python package manager - see [installation instructions](#installation) below.
 
@@ -61,16 +61,11 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 1. Data logging in parsed, binary, hexadecimal string and tabulated hexadecimal formats (NB. only binary datalogs can be re-read by PyGPSClient's parser).
 1. Track recording in GPX format.
 1. [UBX Configuration Dialog](#ubxconfig), with the ability to send a variety of UBX CFG configuration commands to u-blox GNSS devices. This includes the facility to add **user-defined commands or command sequences** - see instructions under [user-defined presets](#userdefined) below. While not intended to be a direct replacement, the application supports much of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool.
-1. [NTRIP](https://en.wikipedia.org/wiki/Networked_Transport_of_RTCM_via_Internet_Protocol) Client ([differential GPS enhancement](https://en.wikipedia.org/wiki/Differential_GPS)) facility with the ability to connect to a specified NTRIP server (caster), parse the incoming RTCM3 data and feed this data to a compatible GNSS device (*requires an Internet connection and access to a suitable NTRIP caster*).
-1. [SPARTN Client dialog](#spartnconfig) with the ability to configure GNSS (e.g. F9P) and correction (e.g. D9S) receivers to process SPARTN correction data sources.
+1. [NTRIP Client](#ntripconfig) ([differential GPS enhancement](https://en.wikipedia.org/wiki/Differential_GPS)) facility with the ability to connect to a specified NTRIP server (caster), parse the incoming RTCM3 data and feed this data to a compatible GNSS device (*requires an Internet connection and access to a suitable NTRIP caster*).
+1. [SPARTN Client dialog](#spartnconfig) with the ability to configure GNSS (e.g. F9P) and Correction (e.g. D9S) receivers to process SPARTN correction data sources.
 1. [Socket Server / NTRIP Caster](#socketserver)  with two modes of operation: (a) open, unauthenticated Socket Server or (b) NTRIP Caster.
 1. [GPX Track Viewer](#gpxviewer) utility with elevation and speed profiles and track metadata (*requires an Internet connection and free 
 [MapQuest API Key](https://developer.mapquest.com/user/login/sign-up)*).
-
-![spectrum screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/spectrumM9N.png?raw=true)
-![spectrum screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/spectrumF9P.png?raw=true)
-
-*Spectrum analysis charts from MON-SPAN message from NEO-M9N and ZED-F9P receivers*
 
 ---
 ## <a name="howtouse">How to Use</a>
@@ -171,8 +166,9 @@ To use:
 
 1. At time of writing, the only supported SPARTN-compatible u-blox L-Band Correction receiver is the NEO-D9S.
 1. Commercial SPARTN location services like PointPerfect require different configurations for US and European regions. The utility provides default values for each region but these may need to be amended in accordance with the parameters provided by the location service. **NB:** parameters available in the public domain *may not* be appropriate and the authors of PyGPSClient **cannot** provide advice on appropriate settings.
-1. **NOT YET FULLY IMPLEMENTED** If both GNSS and Correction receivers are connected to the same PyGPSClient workstation (e.g. via separate USB ports), it is possible to run the utility in Passthough mode, whereby the output data (UBX `RXM-PMP` messages) from the Correction receiver will be automatically passed through to the GNSS receiver by PyGPSClient, without the need to connect the two externally. The 'Receiver Port' is the serial port used to connect the Correction receiver to the workstation.
-1. Click the Send button to upload the configuration. The utility will send the relevant configuration command(s) to the receiver and poll for an acknowledgement.
+1. If both GNSS and Correction receivers are connected to the same PyGPSClient workstation (e.g. via separate USB ports), it is possible to run the utility in Passthough mode, whereby the output data (UBX `RXM-PMP` messages) from the Correction receiver will be automatically passed through to the GNSS receiver by PyGPSClient, without the need to connect the two externally. The 'Receiver Port' is the serial port used to connect the Correction receiver to the workstation.
+1. To connect to the Correction receiver, click ![connect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-media-control-48-24.png?raw=true). To disconnect, click ![disconnect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-media-control-50-24.png?raw=true).
+1. Click ![send button](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-arrow-12-24.png?raw=true) to upload the configuration. The utility will send the relevant configuration command(s) to the Correction receiver and poll for an acknowledgement.
 
 #### GNSS Receiver (F9*)
 

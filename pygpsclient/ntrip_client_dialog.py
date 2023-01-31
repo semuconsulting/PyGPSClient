@@ -101,7 +101,7 @@ class NTRIPConfigDialog(Toplevel):
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.get_master()  # Reference to root class (Tk)
+        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         Toplevel.__init__(self, app)
         if POPUP_TRANSIENT:
             self.transient(self.__app)
@@ -619,7 +619,7 @@ class NTRIPConfigDialog(Toplevel):
                 reflon=self._settings["reflon"],
                 refalt=self._settings["refalt"],
                 refsep=self._settings["refsep"],
-                output=self.__app.ntripqueue,
+                output=self.__app.ntrip_inqueue,
             )
             self.set_controls(True)
 
