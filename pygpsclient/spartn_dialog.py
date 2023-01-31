@@ -49,6 +49,7 @@ from pyubx2 import (
     U4,
     TXN_NONE,
     SET_LAYER_RAM,
+    POLL_LAYER_RAM,
 )
 from pygpsclient.globals import (
     ICON_EXIT,
@@ -65,6 +66,7 @@ from pygpsclient.globals import (
     NOPORTS,
     SPARTN_EU,
     SPARTN_US,
+    SPARTN_FACTORY,
     SPARTN_DEFREG,
     SPARTN_LBAND,
     SPARTN_IP,
@@ -115,8 +117,8 @@ PMP_DATARATES = {
     "B4800": 4800,
 }
 SPARTN_PARMS = {
-    SPARTN_US: {
-        "freq": 1556290000,
+    SPARTN_FACTORY: {
+        "freq": 1539812500,
         "schwin": 2200,
         "usesid": 1,
         "sid": 50821,
@@ -126,12 +128,23 @@ SPARTN_PARMS = {
         "descrminit": 23560,
         "unqword": 16238547128276412563,
     },
+    SPARTN_US: {
+        "freq": 1556290000,
+        "schwin": 2200,
+        "usesid": 1,
+        "sid": 50821,
+        "drat": PMP_DATARATES["B2400"],
+        "descrm": 1,
+        "prescrm": 1,
+        "descrminit": 26969,
+        "unqword": 16238547128276412563,
+    },
     # TODO  CHECK THESE DEFAULT VALUES
     SPARTN_EU: {
         "freq": 1545260000,
         "schwin": 2200,
         "usesid": 1,
-        "sid": 21845,
+        "sid": 50821,
         "drat": PMP_DATARATES["B2400"],
         "descrm": 1,
         "prescrm": 1,
@@ -234,12 +247,18 @@ class SPARTNConfigDialog(Toplevel):
             msgmodes=list(MSGMODES.keys()),
             userport=self.__app.spartn_user_port,  # user-defined serial port
         )
+        self._rad_default = Radiobutton(
+            self._frm_corr,
+            text="Default",
+            variable=self._spartn_region,
+            value=SPARTN_FACTORY,
+        )
         self._rad_us = Radiobutton(
             self._frm_corr, text="USA", variable=self._spartn_region, value=SPARTN_US
         )
         self._rad_eu = Radiobutton(
             self._frm_corr,
-            text="Rest of World",
+            text="Europe",
             variable=self._spartn_region,
             value=SPARTN_EU,
         )
@@ -472,15 +491,16 @@ class SPARTNConfigDialog(Toplevel):
         ttk.Separator(self._frm_corr).grid(
             column=0, row=2, columnspan=4, padx=2, pady=3, sticky=(W, E)
         )
-        self._rad_us.grid(column=0, row=3, sticky=W)
-        self._rad_eu.grid(column=1, row=3, sticky=W)
+        self._rad_default.grid(column=0, row=3, sticky=W)
+        self._rad_us.grid(column=1, row=3, sticky=W)
+        self._rad_eu.grid(column=2, row=3, sticky=W)
         self._lbl_freq.grid(column=0, row=4, sticky=W)
         self._ent_freq.grid(column=1, row=4, columnspan=2, sticky=W)
         self._lbl_schwin.grid(column=0, row=5, sticky=W)
         self._ent_schwin.grid(column=1, row=5, columnspan=2, sticky=W)
         self._chk_usesid.grid(column=0, row=6, sticky=W)
         self._chk_descrm.grid(column=1, row=6, sticky=W)
-        self._chk_prescram.grid(column=2, row=7, sticky=W)
+        self._chk_prescram.grid(column=2, row=6, sticky=W)
         self._lbl_sid.grid(column=0, row=7, sticky=W)
         self._ent_sid.grid(column=1, row=7, columnspan=3, sticky=W)
         self._lbl_drat.grid(column=0, row=8, sticky=W)
@@ -706,6 +726,10 @@ class SPARTNConfigDialog(Toplevel):
         self._btn_d9sconnect.config(state=DISABLED)
         self._btn_d9sdisconnect.config(state=NORMAL)
 
+        # poll current configuration
+        msg = self._format_cfgpoll()
+        self._send_corr_command(msg)
+
     def _on_corr_disconnect(self):
         """
         Disconnect from Correction receiver.
@@ -720,6 +744,35 @@ class SPARTNConfigDialog(Toplevel):
             )
             self._btn_d9sconnect.config(state=NORMAL)
             self._btn_d9sdisconnect.config(state=DISABLED)
+
+    def _format_cfgpoll(self) -> UBXMessage:
+        """
+        Format UBX CFG-VALGET message to poll Correction receiver
+        configuration.
+        """
+
+        outport = self._spartn_outport.get()
+        if outport == PASSTHRU:
+            outport = "USB"
+
+        cfgdata = [
+            "CFG_PMP_CENTER_FREQUENCY",
+            "CFG_PMP_SEARCH_WINDOW",
+            "CFG_PMP_USE_SERVICE_ID",
+            "CFG_PMP_SERVICE_ID",
+            "CFG_PMP_DATA_RATE",
+            "CFG_PMP_USE_DESCRAMBLER",
+            "CFG_PMP_DESCRAMBLER_INIT",
+            "CFG_PMP_USE_PRESCRAMBLING",
+            "CFG_PMP_UNIQUE_WORD",
+            f"CFG_MSGOUT_UBX_RXM_PMP_{outport}",
+            f"CFG_{outport}OUTPROT_UBX",
+        ]
+        if outport in ("UART1", "UART2"):
+            cfgdata.append(f"CFG_{outport}_BAUDRATE")
+
+        msg = UBXMessage.config_poll(POLL_LAYER_RAM, 0, cfgdata)
+        return msg
 
     def _format_cfgcorr(self) -> UBXMessage:
         """
