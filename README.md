@@ -72,7 +72,7 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 
 * To connect to a listed serial device, select the device from the listbox, set the appropriate serial connection parameters and click 
 ![connect icon](/pygpsclient/resources/usbport-1-24.png). The application will endeavour to pre-select a recognised GNSS/GPS device but this is platform and device dependent. Press the ![refresh](/pygpsclient/resources/iconmonstr-refresh-6-16.png) button to refresh the list of connected devices at any point. `Rate bps` (baud rate) is typically the only setting that might need adjusting, but tweaking the `timeout` setting may improve performance on certain platforms. The `Msg Mode` parameter defaults to `GET` i.e., periodic or poll response messages *from* a receiver. If you wish to parse streams of command or poll messages being sent *to* a receiver, set the `Msg Mode` to `SET` or `POLL`.
-* A default user-defined serial port can also be passed via the environment variable `PYGPSCLIENT_USERPORT` or as a command line keyword argument `port=/dev/tty12345`.
+* A default user-defined serial port can also be passed via the environment variable `PYGPSCLIENT_USERPORT` or as a command line argument `--userport /dev/tty12345`.
 * To connect to a TCP or UDP socket, enter the server URL and port, select the protocol (defaults to TCP) and click 
 ![connect socket icon](/pygpsclient/resources/ethernet-1-24.png).
 * To stream from a previously-saved <a name="filestream">binary datalog file</a>, click 
@@ -155,28 +155,30 @@ Below is a illustrative NTRIP DGPS data log, showing:
 
 ![spartn config widget screenshot](https://github.com/semuconsulting/PyGPSClient/blob/add-SPARTN-config-dialog/images/spartnconfig_widget.png?raw=true)
 
-The SPARTN Configuration utility allows users to configure both GNSS and Correction receivers in a dual-receiver SPARTN RTK configuration (e.g. u-blox NEO-D9S and ZED-F9P). The utility uploads the necessary SPARTN decryption keys to the GNSS receiver and sets the required configurations on GNSS and/or Correction receivers.
+The SPARTN Configuration utility allows users to configure both Correction and GNSS receivers in a dual-receiver L-Band SPARTN RTK configuration (e.g. u-blox NEO-D9S and ZED-F9P).
 
 **NB:** PyGPSClient cannot currently parse or decode binary SPARTN correction data - it simply passes the data through to the receiver.
 
 To use:
 
-1. The facility can be accessed via Menu..Options..SPARTN Configuration Dialog.
-1. It provides two independent configuration sections, one for the Correction receiver (e.g. D9S) and another for the GNSS receiver (e.g. F9P):
+1. The facility can be accessed via Menu..Options..SPARTN Configuration Dialog. The dialog must remain open while the facility is in use.
+1. It provides two independent configuration sections, one for the L-Band Correction receiver (e.g. D9S) and another for the GNSS receiver (e.g. F9P).
+1. Commercial SPARTN location services like u-blox PointPerfect require different Correction receiver L-Band configurations for different regions. The utility provides nominal default values but these may need to be amended in accordance with the parameters provided by the location service, typically under NDA. **NB:** parameters available in the public domain *may not* be appropriate and the authors of PyGPSClient **cannot** provide advice on appropriate settings.
+1. To configure the GNSS receiver for use with a commercial SPARTN location service, you will need to obtain current and next decryption keys and upload these to the GNSS receiver after every power cycle or reset. The keys are normally valid for 4 weeks.
+1. **NB:** Please ensure you understand and comply with the Terms and Conditions of any commercial SPARTN location service before subscribing.
 
 #### Correction Receiver (D9S)
 
 1. At time of writing, the only supported SPARTN-compatible u-blox L-Band Correction receiver is the NEO-D9S.
-1. Commercial SPARTN location services like PointPerfect require different configurations for US and European regions. The utility provides default values for each region but these may need to be amended in accordance with the parameters provided by the location service. **NB:** parameters available in the public domain *may not* be appropriate and the authors of PyGPSClient **cannot** provide advice on appropriate settings.
-1. To connect to the Correction receiver, select the receivers's port from the Serial Port listbox and click ![connect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-media-control-48-24.png?raw=true). To disconnect, click ![disconnect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-media-control-50-24.png?raw=true).
-1. Select the required Output Port - the port used to connect the Correction receiver to the GNSS receiver e.g. UART2 or I2C.
-1. If both GNSS and Correction receivers are connected to the same PyGPSClient workstation (e.g. via separate USB ports), it is possible to run the utility in Output Port = 'Passthough' mode, whereby the output data from the Correction receiver (UBX `RXM-PMP` messages) will be automatically passed through to the GNSS receiver by PyGPSClient, without the need to connect the two externally. The 'Receiver Port' is the serial port used to connect the Correction receiver to the workstation.
-1. Click ![send button](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-arrow-12-24.png?raw=true) to upload the configuration. The utility will send the relevant configuration command(s) to the Correction receiver and poll for an acknowledgement.
+1. To connect to the Correction receiver, select the receivers's port from the SPARTN dialog's Serial Port listbox and click ![connect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/usbport-1-24.png?raw=true). To disconnect, click ![disconnect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-media-control-50-24.png?raw=true).
+1. Select the required Output Port - this is the port used to connect the Correction receiver to the GNSS receiver e.g. UART2 or I2C.
+1. If both Correction and GNSS receivers are connected to the same PyGPSClient workstation (e.g. via separate USB ports), it is possible to run the utility in Output Port = 'Passthough' mode, whereby the output data from the Correction receiver (UBX `RXM-PMP` messages) will be automatically passed through to the GNSS receiver by PyGPSClient, without the need to connect the two externally.
+1. Once connected, click ![send button](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-arrow-12-24.png?raw=true) to upload the configuration. The utility will send the relevant configuration command(s) to the Correction receiver and poll for an acknowledgement.
 
 #### GNSS Receiver (F9*)
 
 1. At time of writing, the only supported SPARTN-compatible u-blox GNSS receivers are those in the ZED-F9* family (e.g. ZED-F9P or ZED-F9R).
-1. To configure the GNSS receiver for use with a commercial (encrypted) SPARTN location service (e.g. u-blox / Thingstream PointPerfect), you will need to obtain current and next decryption keys and upload these to the GNSS receiver after every power cycle or reset. These keys are normally valid for 4 weeks. **NB:** Please ensure you understand the Terms and Conditions of any commercial SPARTN service before subscribing.
+1. Connect to the GNSS receiver first by clicking ![connect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/usbport-1-24.png?raw=true) on the main PyGPSClient settings panel.
 1. Enter the current and next keys in hexadecimal format e.g. `0102030405060708090a0b0c0d0e0f10`. The keys are normally 16 bytes long, or 32 hexadecimal characters.
 1. Enter the supplied Valid From dates in `YYYYMMDD` format. **NB:** These are *Valid From* dates rather than *Expiry* dates. If the location service provides Expiry dates, subtract 4 weeks from these to get the Valid From dates.
 1. Select 'Upload keys', 'Configure receiver' and 'Disable NMEA' options as required.
@@ -266,7 +268,7 @@ pygpsclient
 
 Optionally, a user-defined serial port can be passed as a keyword argument, e.g.
 ```shell
-pygpsclient port=/dev/tty12345
+pygpsclient --userport /dev/tty12345
 ```
 
 If desired, you can add a shortcut to this command to your desktop or favourites menu.

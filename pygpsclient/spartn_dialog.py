@@ -57,17 +57,13 @@ from pygpsclient.globals import (
     ICON_CONFIRMED,
     ICON_PENDING,
     ICON_WARNING,
-    ICON_CONN,
+    ICON_SERIAL,
     ICON_DISCONN,
     ENTCOL,
     POPUP_TRANSIENT,
     CONNECTED,
     DISCONNECTED,
     NOPORTS,
-    SPARTN_EU,
-    SPARTN_US,
-    SPARTN_FACTORY,
-    SPARTN_DEFREG,
     SPARTN_LBAND,
     SPARTN_IP,
     SPARTN_DEFSRC,
@@ -110,7 +106,7 @@ SPARTN_KEYLEN = 16
 RESERVED0 = b"\x00\x00"
 RESERVED1 = b"\x00"
 RXMMSG = "RXM-SPARTN-KEY"
-CFGSET = "CFG-VALSET"
+CFGSET = "CFG-VALGET/SET"
 CFGPOLL = "CFG-VALGET"
 INPORTS = ("I2C", "UART1", "UART2", "USB", "SPI")
 PASSTHRU = "Passthrough"
@@ -120,41 +116,16 @@ PMP_DATARATES = {
     "B2400": 2400,
     "B4800": 4800,
 }
-SPARTN_PARMS = {
-    SPARTN_FACTORY: {
-        "freq": 1539812500,
-        "schwin": 2200,
-        "usesid": 1,
-        "sid": 50821,
-        "drat": PMP_DATARATES["B2400"],
-        "descrm": 1,
-        "prescrm": 1,
-        "descrminit": 23560,
-        "unqword": 16238547128276412563,
-    },
-    SPARTN_US: {
-        "freq": 1556290000,
-        "schwin": 2200,
-        "usesid": 1,
-        "sid": 50821,
-        "drat": PMP_DATARATES["B2400"],
-        "descrm": 1,
-        "prescrm": 1,
-        "descrminit": 26969,
-        "unqword": 16238547128276412563,
-    },
-    # TODO  CHECK THESE DEFAULT VALUES
-    SPARTN_EU: {
-        "freq": 1545260000,
-        "schwin": 2200,
-        "usesid": 1,
-        "sid": 50821,
-        "drat": PMP_DATARATES["B2400"],
-        "descrm": 1,
-        "prescrm": 1,
-        "descrminit": 26969,
-        "unqword": 16238547128276412563,
-    },
+SPARTN_DEFAULT = {
+    "freq": 1539812500,
+    "schwin": 2200,
+    "usesid": 1,
+    "sid": 50821,
+    "drat": PMP_DATARATES["B2400"],
+    "descrm": 1,
+    "prescrm": 1,
+    "descrminit": 23560,
+    "unqword": 16238547128276412563,
 }
 
 
@@ -185,12 +156,11 @@ class SPARTNConfigDialog(Toplevel):
         self._img_warn = ImageTk.PhotoImage(Image.open(ICON_WARNING))
         self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
         self._img_send = ImageTk.PhotoImage(Image.open(ICON_SEND))
-        self._img_conn = ImageTk.PhotoImage(Image.open(ICON_CONN))
+        self._img_serial = ImageTk.PhotoImage(Image.open(ICON_SERIAL))
         self._img_disconn = ImageTk.PhotoImage(Image.open(ICON_DISCONN))
         self.spartn_stream_handler = StreamHandler(self)
         self._status = StringVar()
         self._spartn_source = IntVar()
-        self._spartn_region = IntVar()
         self._status_cfgmsg = StringVar()
         self._spartn_key1 = StringVar()
         self._spartn_valdate1 = StringVar()
@@ -213,7 +183,6 @@ class SPARTNConfigDialog(Toplevel):
 
         self._body()
         self._do_layout()
-        self._attach_events()
         self._reset()
 
     def _body(self):
@@ -250,21 +219,6 @@ class SPARTNConfigDialog(Toplevel):
             bpsrates=BPSRATES,
             msgmodes=list(MSGMODES.keys()),
             userport=self.__app.spartn_user_port,  # user-defined serial port
-        )
-        self._rad_default = Radiobutton(
-            self._frm_corr,
-            text="Default",
-            variable=self._spartn_region,
-            value=SPARTN_FACTORY,
-        )
-        self._rad_us = Radiobutton(
-            self._frm_corr, text="USA", variable=self._spartn_region, value=SPARTN_US
-        )
-        self._rad_eu = Radiobutton(
-            self._frm_corr,
-            text="Europe",
-            variable=self._spartn_region,
-            value=SPARTN_EU,
         )
         self._lbl_freq = Label(self._frm_corr, text="L-Band Frequency (Hz)")
         self._ent_freq = Entry(
@@ -349,7 +303,7 @@ class SPARTNConfigDialog(Toplevel):
         self._btn_d9sconnect = Button(
             self._frm_corr,
             width=45,
-            image=self._img_conn,
+            image=self._img_serial,
             command=lambda: self._on_corr_connect(),
         )
         self._btn_d9sdisconnect = Button(
@@ -495,33 +449,30 @@ class SPARTNConfigDialog(Toplevel):
         ttk.Separator(self._frm_corr).grid(
             column=0, row=2, columnspan=4, padx=2, pady=3, sticky=(W, E)
         )
-        self._rad_default.grid(column=0, row=3, sticky=W)
-        self._rad_us.grid(column=1, row=3, sticky=W)
-        self._rad_eu.grid(column=2, row=3, sticky=W)
-        self._lbl_freq.grid(column=0, row=4, sticky=W)
-        self._ent_freq.grid(column=1, row=4, columnspan=2, sticky=W)
-        self._lbl_schwin.grid(column=0, row=5, sticky=W)
-        self._ent_schwin.grid(column=1, row=5, columnspan=2, sticky=W)
-        self._chk_usesid.grid(column=0, row=6, sticky=W)
-        self._chk_descrm.grid(column=1, row=6, sticky=W)
-        self._chk_prescram.grid(column=2, row=6, sticky=W)
-        self._lbl_sid.grid(column=0, row=7, sticky=W)
-        self._ent_sid.grid(column=1, row=7, columnspan=3, sticky=W)
-        self._lbl_drat.grid(column=0, row=8, sticky=W)
-        self._spn_drat.grid(column=1, row=8, sticky=W)
-        self._lbl_descraminit.grid(column=0, row=9, sticky=W)
-        self._ent_descraminit.grid(column=1, row=9, columnspan=3, sticky=W)
-        self._lbl_unqword.grid(column=0, row=10, sticky=W)
-        self._ent_unqword.grid(column=1, row=10, columnspan=3, sticky=W)
-        self._lbl_outport.grid(column=0, row=11, sticky=W)
-        self._spn_outport.grid(column=1, row=11, columnspan=3, sticky=W)
+        self._lbl_freq.grid(column=0, row=3, sticky=W)
+        self._ent_freq.grid(column=1, row=3, columnspan=2, sticky=W)
+        self._lbl_schwin.grid(column=0, row=4, sticky=W)
+        self._ent_schwin.grid(column=1, row=4, columnspan=2, sticky=W)
+        self._chk_usesid.grid(column=0, row=5, sticky=W)
+        self._chk_descrm.grid(column=1, row=5, sticky=W)
+        self._chk_prescram.grid(column=2, row=5, sticky=W)
+        self._lbl_sid.grid(column=0, row=6, sticky=W)
+        self._ent_sid.grid(column=1, row=6, columnspan=3, sticky=W)
+        self._lbl_drat.grid(column=0, row=7, sticky=W)
+        self._spn_drat.grid(column=1, row=7, sticky=W)
+        self._lbl_descraminit.grid(column=0, row=8, sticky=W)
+        self._ent_descraminit.grid(column=1, row=8, columnspan=3, sticky=W)
+        self._lbl_unqword.grid(column=0, row=9, sticky=W)
+        self._ent_unqword.grid(column=1, row=9, columnspan=3, sticky=W)
+        self._lbl_outport.grid(column=0, row=10, sticky=W)
+        self._spn_outport.grid(column=1, row=10, columnspan=3, sticky=W)
         ttk.Separator(self._frm_corr).grid(
-            column=0, row=12, columnspan=4, padx=2, pady=3, sticky=(W, E)
+            column=0, row=11, columnspan=4, padx=2, pady=3, sticky=(W, E)
         )
-        self._btn_d9sconnect.grid(column=0, row=13, padx=3, pady=2, sticky=W)
-        self._btn_d9sdisconnect.grid(column=1, row=13, padx=3, pady=2, sticky=W)
-        self._btn_d9ssend.grid(column=2, row=13, padx=3, pady=2, sticky=W)
-        self._lbl_d9ssend.grid(column=3, row=13, padx=3, pady=2, sticky=W)
+        self._btn_d9sconnect.grid(column=0, row=12, padx=3, pady=2, sticky=W)
+        self._btn_d9sdisconnect.grid(column=1, row=12, padx=3, pady=2, sticky=W)
+        self._btn_d9ssend.grid(column=2, row=12, padx=3, pady=2, sticky=W)
+        self._lbl_d9ssend.grid(column=3, row=12, padx=3, pady=2, sticky=W)
 
     def _do_gnss_layout(self):
         """
@@ -563,31 +514,6 @@ class SPARTNConfigDialog(Toplevel):
         self._btn_send_command.grid(column=2, row=12, padx=3, pady=2, sticky=W)
         self._lbl_send_command.grid(column=3, row=12, padx=3, pady=2, sticky=W)
 
-    def _attach_events(self):
-        """
-        Bind events to widgets.
-        """
-
-        self._spartn_region.trace_add("write", self._on_select_region)
-
-    def _on_select_region(self, var, index, mode):  # pylint: disable=unused-argument
-        """
-        Handle SPARTN region selection event.
-        """
-
-        # set parms to regional defaults
-        reg = self._spartn_region.get()
-        self._spartn_freq.set(SPARTN_PARMS[reg]["freq"])
-        self._spartn_freq.set(SPARTN_PARMS[reg]["freq"])
-        self._spartn_schwin.set(SPARTN_PARMS[reg]["schwin"])
-        self._spartn_usesid.set(SPARTN_PARMS[reg]["usesid"])
-        self._spartn_sid.set(SPARTN_PARMS[reg]["sid"])
-        self._spartn_drat.set(SPARTN_PARMS[reg]["drat"])
-        self._spartn_descrm.set(SPARTN_PARMS[reg]["descrm"])
-        self._spartn_prescrm.set(SPARTN_PARMS[reg]["prescrm"])
-        self._spartn_descrminit.set(SPARTN_PARMS[reg]["descrminit"])
-        self._spartn_unqword.set(SPARTN_PARMS[reg]["unqword"])
-
     def _reset(self):
         """
         Reset configuration widgets.
@@ -600,19 +526,19 @@ class SPARTNConfigDialog(Toplevel):
         self._upload_keys.set(1)
         self._send_f9p_config.set(1)
         self._disable_nmea.set(0)
-        reg = SPARTN_FACTORY
-        self._spartn_region.set(reg)
-        self._spartn_freq.set(SPARTN_PARMS[reg]["freq"])
-        self._spartn_schwin.set(SPARTN_PARMS[reg]["schwin"])
-        self._spartn_usesid.set(SPARTN_PARMS[reg]["usesid"])
-        self._spartn_sid.set(SPARTN_PARMS[reg]["sid"])
         self._spartn_drat.set(PMP_DATARATES["B2400"])
-        self._spartn_descrm.set(SPARTN_PARMS[reg]["descrm"])
-        self._spartn_prescrm.set(SPARTN_PARMS[reg]["prescrm"])
-        self._spartn_descrminit.set(SPARTN_PARMS[reg]["descrminit"])
-        self._spartn_unqword.set(SPARTN_PARMS[reg]["unqword"])
+        self._spartn_freq.set(SPARTN_DEFAULT["freq"])
+        self._spartn_freq.set(SPARTN_DEFAULT["freq"])
+        self._spartn_schwin.set(SPARTN_DEFAULT["schwin"])
+        self._spartn_usesid.set(SPARTN_DEFAULT["usesid"])
+        self._spartn_sid.set(SPARTN_DEFAULT["sid"])
+        self._spartn_descrm.set(SPARTN_DEFAULT["descrm"])
+        self._spartn_prescrm.set(SPARTN_DEFAULT["prescrm"])
+        self._spartn_descrminit.set(SPARTN_DEFAULT["descrminit"])
+        self._spartn_unqword.set(SPARTN_DEFAULT["unqword"])
         self._spartn_outport.set(INPORTS[0])
         self.set_status("", "blue")
+        self.set_controls(DISCONNECTED)
 
     def set_status(self, message: str, color: str = "blue"):
         """
@@ -658,6 +584,33 @@ class SPARTNConfigDialog(Toplevel):
 
         return valid
 
+    def set_controls(self, status: int):
+        """
+        Enable or disable Correction receiver widgets depending on
+        connection status.
+
+        :param int status: connection status (0 = DISCONNECTED, 1 = CONNECTED)
+        """
+
+        stat = DISABLED if status == CONNECTED else NORMAL
+        for wdg in (
+            self._ent_freq,
+            self._ent_schwin,
+            self._ent_sid,
+            self._ent_unqword,
+            self._ent_descraminit,
+            self._chk_descrm,
+            self._chk_prescram,
+            self._chk_usesid,
+        ):
+            wdg.config(state=stat)
+        stat = DISABLED if status == CONNECTED else READONLY
+        for wdg in (
+            self._spn_drat,
+            self._spn_outport,
+        ):
+            wdg.config(state=stat)
+
     def _valid_gnss_settings(self) -> bool:
         """
         Validate GNSS receiver settings.
@@ -687,42 +640,6 @@ class SPARTNConfigDialog(Toplevel):
 
         return valid
 
-    def _format_rxmspartn(self) -> UBXMessage:
-        """
-        Format UBX RXM-SPARTN-KEY message.
-        """
-
-        version = val2bytes(1, U1)
-        numKeys = val2bytes(2, U1)
-        key1 = bytes.fromhex(self._spartn_key1.get())
-        keylen1 = val2bytes(len(key1), U1)
-        wno1, tow1 = get_gpswnotow(self._get_date(self._spartn_valdate1))
-        wno1b = val2bytes(wno1, U2)
-        tow1b = val2bytes(tow1, U4)
-        key2 = bytes.fromhex(self._spartn_key1.get())
-        keylen2 = val2bytes(len(key2), U1)
-        wno2, tow2 = get_gpswnotow(self._get_date(self._spartn_valdate2))
-        wno2b = val2bytes(wno2, U2)
-        tow2b = val2bytes(tow2, U4)
-
-        payload = (
-            version
-            + numKeys
-            + RESERVED0
-            + RESERVED1
-            + keylen1
-            + wno1b
-            + tow1b
-            + RESERVED1
-            + keylen2
-            + wno2b
-            + tow2b
-            + key1
-            + key2
-        )
-        msg = UBXMessage("RXM", RXMMSG, SET, payload=payload)
-        return msg
-
     def _on_corr_connect(self):
         """
         Connect to Correction receiver.
@@ -741,6 +658,7 @@ class SPARTNConfigDialog(Toplevel):
         )
         self._btn_d9sconnect.config(state=DISABLED)
         self._btn_d9sdisconnect.config(state=NORMAL)
+        self.set_controls(CONNECTED)
 
         # poll current configuration
         msg = self._format_cfgpoll()
@@ -760,6 +678,7 @@ class SPARTNConfigDialog(Toplevel):
             )
             self._btn_d9sconnect.config(state=NORMAL)
             self._btn_d9sdisconnect.config(state=DISABLED)
+            self.set_controls(DISCONNECTED)
 
     def _format_cfgpoll(self) -> UBXMessage:
         """
@@ -873,6 +792,42 @@ class SPARTNConfigDialog(Toplevel):
         msg = UBXMessage.config_set(SET_LAYER_RAM, TXN_NONE, cfgdata)
         return msg
 
+    def _format_rxmspartn(self) -> UBXMessage:
+        """
+        Format UBX RXM-SPARTN-KEY message.
+        """
+
+        version = val2bytes(1, U1)
+        numKeys = val2bytes(2, U1)
+        key1 = bytes.fromhex(self._spartn_key1.get())
+        keylen1 = val2bytes(len(key1), U1)
+        wno1, tow1 = get_gpswnotow(self._get_date(self._spartn_valdate1))
+        wno1b = val2bytes(wno1, U2)
+        tow1b = val2bytes(tow1, U4)
+        key2 = bytes.fromhex(self._spartn_key1.get())
+        keylen2 = val2bytes(len(key2), U1)
+        wno2, tow2 = get_gpswnotow(self._get_date(self._spartn_valdate2))
+        wno2b = val2bytes(wno2, U2)
+        tow2b = val2bytes(tow2, U4)
+
+        payload = (
+            version
+            + numKeys
+            + RESERVED0
+            + RESERVED1
+            + keylen1
+            + wno1b
+            + tow1b
+            + RESERVED1
+            + keylen2
+            + wno2b
+            + tow2b
+            + key1
+            + key2
+        )
+        msg = UBXMessage("RXM", RXMMSG, SET, payload=payload)
+        return msg
+
     def _on_send_gnss_config(self):
         """
         Send config to GNSS receiver (e.g. F9P).
@@ -924,7 +879,6 @@ class SPARTNConfigDialog(Toplevel):
         :param UBXMessage msg: UBX config message
         """
 
-        # print(f"DEBUG spartn update_status msg received {msg}")
         if msg.identity == RXMMSG:
             if msg.numKeys == 2:  # check both keys have been uploaded
                 self._lbl_send_command.config(image=self._img_confirmed)
@@ -981,7 +935,7 @@ class SPARTNConfigDialog(Toplevel):
     # ============================================
 
     @property
-    def appmaster(self):
+    def appmaster(self) -> object:
         """
         Getter for application master (Tk)
 

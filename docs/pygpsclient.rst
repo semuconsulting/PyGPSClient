@@ -84,14 +84,6 @@ pygpsclient.helpers module
    :undoc-members:
    :show-inheritance:
 
-pygpsclient.helpstrings module
-------------------------------
-
-.. automodule:: pygpsclient.helpstrings
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 pygpsclient.map\_frame module
 -----------------------------
 

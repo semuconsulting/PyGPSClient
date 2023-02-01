@@ -101,10 +101,12 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         # user-defined serial port can be passed as environment variable
         # or command line keyword argument
-        self._user_port = kwargs.pop("port", getenv("PYGPSCLIENT_USERPORT", ""))
-        self._spartn_user_port = kwargs.pop(
-            "spartnport", getenv("PYGPSCLIENT_SPARTNPORT", "")
-        )
+        self._user_port = kwargs.pop("userport", None)
+        if self._user_port is None:
+            self._user_port = getenv("PYGPSCLIENT_USERPORT", "")
+        self._spartn_user_port = kwargs.pop("spartnport", None)
+        if self._spartn_user_port is None:
+            self._spartn_user_port = getenv("PYGPSCLIENT_SPARTNPORT", "")
 
         Frame.__init__(self, self.__master, *args, **kwargs)
 
@@ -581,7 +583,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         try:
-            # print("DEBUG on_ntrip_read even triggered")
             raw_data, parsed_data = self._ntrip_inqueue.get(False)
             if raw_data is not None and parsed_data is not None:
                 if protocol(raw_data) == RTCM3_PROTOCOL:

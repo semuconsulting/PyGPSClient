@@ -264,7 +264,6 @@ class StreamHandler:
                     if settings.mode == CONNECTED:
                         try:
                             while not settings.outqueue.empty():
-                                # print("DEBUG readloop writing to rcvr")
                                 data = settings.outqueue.get(False)
                                 if data is not None:
                                     serial_object.write(data)

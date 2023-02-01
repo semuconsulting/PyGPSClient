@@ -74,6 +74,7 @@ GPX_NS = " ".join(
         'http://www.topografix.com/GPX/1/1/gpx.xsd"',
     )
 )
+EPILOG = "© 2022 SEMU Consulting BSD 3-Clause license - https://github.com/semuconsulting/pygpsclient/"
 GPSEPOCH0 = datetime(1980, 1, 6)  # for Wno and Tow calculations
 GPXLIMIT = 500  # max number of track points supported by MapQuest API
 CHECK_FOR_UPDATES = (
@@ -110,12 +111,8 @@ MQAPIKEY = "mqapikey"
 UBXPRESETS = "ubxpresets"
 COLORTAGS = "colortags"
 # SPARTN client defaults
-SPARTN_US = 0
-SPARTN_EU = 1
-SPARTN_FACTORY = 2
 SPARTN_LBAND = 0
 SPARTN_IP = 1
-SPARTN_DEFREG = SPARTN_US
 SPARTN_DEFSRC = SPARTN_LBAND
 # list of recognised serial device descriptors:
 KNOWNGPS = (

@@ -164,7 +164,6 @@ class MapviewFrame(Frame):
         try:
             response = get(url, timeout=MAPQTIMEOUT)
             sc = responses[response.status_code]  # get descriptive HTTP status
-            # print(f"DEBUG url = {url}, \nsc = {sc}, \nresp = {response.content}")
             response.raise_for_status()  # raise Exception on HTTP error
             if sc == "OK":
                 img_data = response.content
