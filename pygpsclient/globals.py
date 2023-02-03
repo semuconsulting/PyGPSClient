@@ -17,6 +17,7 @@ from datetime import datetime
 from pyubx2 import GET, SET, POLL
 
 DIRNAME = os.path.dirname(__file__)
+ICON_BLANK = os.path.join(DIRNAME, "resources/blank-1-24.png")
 ICON_APP = os.path.join(DIRNAME, "resources/iconmonstr-location-27-32.png")
 ICON_CONN = os.path.join(DIRNAME, "resources/iconmonstr-media-control-48-24.png")
 ICON_SERIAL = os.path.join(DIRNAME, "resources/usbport-1-24.png")

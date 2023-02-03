@@ -101,12 +101,10 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         # user-defined serial port can be passed as environment variable
         # or command line keyword argument
-        self._user_port = kwargs.pop("userport", None)
-        if self._user_port is None:
-            self._user_port = getenv("PYGPSCLIENT_USERPORT", "")
-        self._spartn_user_port = kwargs.pop("spartnport", None)
-        if self._spartn_user_port is None:
-            self._spartn_user_port = getenv("PYGPSCLIENT_SPARTNPORT", "")
+        self._user_port = kwargs.pop("userport", getenv("PYGPSCLIENT_USERPORT", ""))
+        self._spartn_user_port = kwargs.pop(
+            "spartnport", getenv("PYGPSCLIENT_SPARTNPORT", "")
+        )
 
         Frame.__init__(self, self.__master, *args, **kwargs)
 

@@ -59,6 +59,7 @@ from pygpsclient.globals import (
     ICON_WARNING,
     ICON_SERIAL,
     ICON_DISCONN,
+    ICON_BLANK,
     ENTCOL,
     POPUP_TRANSIENT,
     CONNECTED,
@@ -151,6 +152,7 @@ class SPARTNConfigDialog(Toplevel):
         self.resizable(False, False)
         self.title(DLGSPARTNCONFIG)  # pylint: disable=E1102
         self.protocol("WM_DELETE_WINDOW", self.on_exit)
+        self._img_blank = ImageTk.PhotoImage(Image.open(ICON_BLANK))
         self._img_pending = ImageTk.PhotoImage(Image.open(ICON_PENDING))
         self._img_confirmed = ImageTk.PhotoImage(Image.open(ICON_CONFIRMED))
         self._img_warn = ImageTk.PhotoImage(Image.open(ICON_WARNING))
@@ -313,7 +315,7 @@ class SPARTNConfigDialog(Toplevel):
             command=lambda: self._on_corr_disconnect(),
             state=DISABLED,
         )
-        self._lbl_d9ssend = Label(self._frm_corr, image=None)
+        self._lbl_d9ssend = Label(self._frm_corr, image=self._img_blank)
         self._btn_d9ssend = Button(
             self._frm_corr,
             image=self._img_send,
@@ -384,7 +386,7 @@ class SPARTNConfigDialog(Toplevel):
         self._chk_disable_nmea = Checkbutton(
             self._frm_gnss, text=LBLSPTNNMEA, variable=self._disable_nmea
         )
-        self._lbl_send_command = Label(self._frm_gnss, image=None)
+        self._lbl_send_command = Label(self._frm_gnss, image=self._img_blank)
         self._btn_send_command = Button(
             self._frm_gnss,
             image=self._img_send,
@@ -450,16 +452,16 @@ class SPARTNConfigDialog(Toplevel):
             column=0, row=2, columnspan=4, padx=2, pady=3, sticky=(W, E)
         )
         self._lbl_freq.grid(column=0, row=3, sticky=W)
-        self._ent_freq.grid(column=1, row=3, columnspan=2, sticky=W)
+        self._ent_freq.grid(column=1, row=3, columnspan=3, sticky=W)
         self._lbl_schwin.grid(column=0, row=4, sticky=W)
-        self._ent_schwin.grid(column=1, row=4, columnspan=2, sticky=W)
+        self._ent_schwin.grid(column=1, row=4, columnspan=3, sticky=W)
         self._chk_usesid.grid(column=0, row=5, sticky=W)
         self._chk_descrm.grid(column=1, row=5, sticky=W)
-        self._chk_prescram.grid(column=2, row=5, sticky=W)
+        self._chk_prescram.grid(column=2, row=5, columnspan=2, sticky=W)
         self._lbl_sid.grid(column=0, row=6, sticky=W)
         self._ent_sid.grid(column=1, row=6, columnspan=3, sticky=W)
         self._lbl_drat.grid(column=0, row=7, sticky=W)
-        self._spn_drat.grid(column=1, row=7, sticky=W)
+        self._spn_drat.grid(column=1, row=7, columnspan=3, sticky=W)
         self._lbl_descraminit.grid(column=0, row=8, sticky=W)
         self._ent_descraminit.grid(column=1, row=8, columnspan=3, sticky=W)
         self._lbl_unqword.grid(column=0, row=9, sticky=W)
@@ -504,10 +506,12 @@ class SPARTNConfigDialog(Toplevel):
             column=0, row=8, columnspan=4, padx=2, pady=3, sticky=(W, E)
         )
         self._rad_source1.grid(column=0, row=9, padx=3, pady=2, sticky=W)
-        self._rad_source0.grid(column=1, row=9, padx=3, pady=2, sticky=W)
+        self._rad_source0.grid(column=1, row=9, columnspan=3, padx=3, pady=2, sticky=W)
         self._chk_upload_keys.grid(column=0, row=10, padx=3, pady=2, sticky=W)
         self._chk_send_config.grid(column=1, row=10, padx=3, pady=2, sticky=W)
-        self._chk_disable_nmea.grid(column=2, row=10, padx=3, pady=2, sticky=W)
+        self._chk_disable_nmea.grid(
+            column=2, row=10, columnspan=2, padx=3, pady=2, sticky=W
+        )
         ttk.Separator(self._frm_gnss).grid(
             column=0, row=11, columnspan=4, padx=2, pady=3, sticky=(W, E)
         )
@@ -539,6 +543,40 @@ class SPARTNConfigDialog(Toplevel):
         self._spartn_outport.set(INPORTS[0])
         self.set_status("", "blue")
         self.set_controls(DISCONNECTED)
+
+    def set_controls(self, status: int):
+        """
+        Enable or disable Correction receiver widgets depending on
+        connection status.
+
+        :param int status: connection status (0 = disconnected, 1 = connected)
+        """
+
+        stat = DISABLED if status == CONNECTED else NORMAL
+        for wdg in (
+            self._ent_freq,
+            self._ent_schwin,
+            self._ent_sid,
+            self._ent_unqword,
+            self._ent_descraminit,
+            self._chk_descrm,
+            self._chk_prescram,
+            self._chk_usesid,
+            self._btn_d9sconnect,
+        ):
+            wdg.config(state=stat)
+        stat = NORMAL if status == CONNECTED else DISABLED
+        for wdg in (
+            self._btn_d9sdisconnect,
+            self._btn_d9ssend,
+        ):
+            wdg.config(state=stat)
+        stat = DISABLED if status == CONNECTED else READONLY
+        for wdg in (
+            self._spn_drat,
+            self._spn_outport,
+        ):
+            wdg.config(state=stat)
 
     def set_status(self, message: str, color: str = "blue"):
         """
@@ -583,33 +621,6 @@ class SPARTNConfigDialog(Toplevel):
             self.set_status("ERROR - invalid settings", "red")
 
         return valid
-
-    def set_controls(self, status: int):
-        """
-        Enable or disable Correction receiver widgets depending on
-        connection status.
-
-        :param int status: connection status (0 = DISCONNECTED, 1 = CONNECTED)
-        """
-
-        stat = DISABLED if status == CONNECTED else NORMAL
-        for wdg in (
-            self._ent_freq,
-            self._ent_schwin,
-            self._ent_sid,
-            self._ent_unqword,
-            self._ent_descraminit,
-            self._chk_descrm,
-            self._chk_prescram,
-            self._chk_usesid,
-        ):
-            wdg.config(state=stat)
-        stat = DISABLED if status == CONNECTED else READONLY
-        for wdg in (
-            self._spn_drat,
-            self._spn_outport,
-        ):
-            wdg.config(state=stat)
 
     def _valid_gnss_settings(self) -> bool:
         """

@@ -429,7 +429,10 @@ class NTRIPConfigDialog(Toplevel):
             if msg is None:
                 server = self._settings["server"]
                 port = self._settings["port"]
-                mountpoint = "/" + self._settings["mountpoint"]
+                mp = self._settings["mountpoint"]
+                if mp is None:
+                    mp = ""
+                mountpoint = "/" + mp
                 if mountpoint == "/":
                     mountpoint = " - retrieving sourcetable..."
                 msg = (

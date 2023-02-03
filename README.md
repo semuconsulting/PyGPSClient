@@ -62,7 +62,7 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 1. Track recording in GPX format.
 1. [UBX Configuration Dialog](#ubxconfig), with the ability to send a variety of UBX CFG configuration commands to u-blox GNSS devices. This includes the facility to add **user-defined commands or command sequences** - see instructions under [user-defined presets](#userdefined) below. While not intended to be a direct replacement, the application supports much of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool.
 1. [NTRIP Client](#ntripconfig) facility with the ability to connect to a specified NTRIP caster, parse the incoming RTCM3 data and feed this data to a compatible GNSS receiver (*requires an Internet connection and access to a suitable NTRIP caster*).
-1. [SPARTN Client](#spartnconfig) facility with the connect to and configure a SPARTN Correction receiver (e.g. D9S) and pass the incoming correction data to a compatible GNSS receiver.
+1. [SPARTN Client](#spartnconfig) facility with the ability to configure an L-Band SPARTN Correction receiver (e.g. NEO-D9S) and SPARTN-compatible GNSS receiver (e.g. ZED-F9P) and pass the incoming correction data to the GNSS receiver.
 1. [Socket Server / NTRIP Caster](#socketserver) facility with two modes of operation: (a) open, unauthenticated Socket Server or (b) NTRIP Caster.
 1. [GPX Track Viewer](#gpxviewer) utility with elevation and speed profiles and track metadata (*requires an Internet connection and free 
 [MapQuest API Key](https://developer.mapquest.com/user/login/sign-up)*).

@@ -9,18 +9,20 @@ Created on 12 Sep 2020
 """
 
 import sys
-from argparse import ArgumentParser
+from argparse import ArgumentParser, SUPPRESS
 from tkinter import Tk
 
 # from pygpsclient.helpstrings import PYGPSCLIENT_HELP
 from pygpsclient.globals import EPILOG
 from pygpsclient.app import App
+from pygpsclient._version import __version__ as VERSION
 
 
 def main():
     """The main tkinter loop."""
 
-    ap = ArgumentParser(epilog=EPILOG)
+    ap = ArgumentParser(epilog=EPILOG, argument_default=SUPPRESS)
+    ap.add_argument("-V", "--version", action="version", version="%(prog)s " + VERSION)
     ap.add_argument(
         "-U", "--userport", required=False, help="User-defined GNSS receiver port"
     )
