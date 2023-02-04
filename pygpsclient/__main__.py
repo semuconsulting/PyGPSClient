@@ -12,7 +12,6 @@ import sys
 from argparse import ArgumentParser, SUPPRESS
 from tkinter import Tk
 
-# from pygpsclient.helpstrings import PYGPSCLIENT_HELP
 from pygpsclient.globals import EPILOG
 from pygpsclient.app import App
 from pygpsclient._version import __version__ as VERSION

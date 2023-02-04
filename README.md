@@ -169,7 +169,7 @@ To use:
 
 #### Correction Receiver (D9S)
 
-1. At time of writing, the only supported SPARTN-compatible u-blox L-Band Correction receiver is the NEO-D9S.
+1. At time of writing, the only supported SPARTN-compatible u-blox L-Band Correction receivers are those in the NEO-D9* famility (e.g. NEO-D9S, NEO-D9C).
 1. To connect to the Correction receiver, select the receivers's port from the SPARTN dialog's Serial Port listbox and click ![connect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/usbport-1-24.png?raw=true). To disconnect, click ![disconnect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-media-control-50-24.png?raw=true).
 1. Select the required Output Port - this is the port used to connect the Correction receiver to the GNSS receiver e.g. UART2 or I2C.
 1. If both Correction and GNSS receivers are connected to the same PyGPSClient workstation (e.g. via separate USB ports), it is possible to run the utility in Output Port = 'Passthough' mode, whereby the output data from the Correction receiver (UBX `RXM-PMP` messages) will be automatically passed through to the GNSS receiver by PyGPSClient, without the need to connect the two externally.

@@ -183,6 +183,7 @@ class SPARTNConfigDialog(Toplevel):
         self._spartn_descrminit = StringVar()
         self._spartn_unqword = StringVar()
         self._spartn_outport = StringVar()
+        self._spartn_enabledbg = IntVar()
         self._ports = INPORTS
 
         self._body()
@@ -230,6 +231,11 @@ class SPARTNConfigDialog(Toplevel):
             state=NORMAL,
             relief="sunken",
             width=10,
+        )
+        self._chk_enabledbg = Checkbutton(
+            self._frm_corr,
+            text="Enable Debug?",
+            variable=self._spartn_enabledbg,
         )
         self._lbl_schwin = Label(self._frm_corr, text="Search window")
         self._ent_schwin = Entry(
@@ -452,7 +458,8 @@ class SPARTNConfigDialog(Toplevel):
             column=0, row=2, columnspan=4, padx=2, pady=3, sticky=(W, E)
         )
         self._lbl_freq.grid(column=0, row=3, sticky=W)
-        self._ent_freq.grid(column=1, row=3, columnspan=3, sticky=W)
+        self._ent_freq.grid(column=1, row=3, sticky=W)
+        self._chk_enabledbg.grid(column=2, row=3, columnspan=2, sticky=W)
         self._lbl_schwin.grid(column=0, row=4, sticky=W)
         self._ent_schwin.grid(column=1, row=4, columnspan=3, sticky=W)
         self._chk_usesid.grid(column=0, row=5, sticky=W)
@@ -530,6 +537,7 @@ class SPARTNConfigDialog(Toplevel):
         self._upload_keys.set(1)
         self._send_f9p_config.set(1)
         self._disable_nmea.set(0)
+        self._spartn_enabledbg.set(0)
         self._spartn_drat.set(PMP_DATARATES["B2400"])
         self._spartn_freq.set(SPARTN_DEFAULT["freq"])
         self._spartn_freq.set(SPARTN_DEFAULT["freq"])
@@ -562,6 +570,7 @@ class SPARTNConfigDialog(Toplevel):
             self._ent_sid,
             self._ent_unqword,
             self._ent_descraminit,
+            self._chk_enabledbg,
             self._chk_descrm,
             self._chk_prescram,
             self._chk_usesid,
@@ -695,6 +704,13 @@ class SPARTNConfigDialog(Toplevel):
         configuration.
         """
 
+        # We figured it out. Turns out the issue was with the parameter CFG-NAVSPG-CONSTR_DGNSSTO,
+        # which seems to specify how long to wait between correction messages before dropping RTK.
+        # It was set to 10 seconds: much too short to accomodate the infrequent messages from the D9S.
+        # The default factory value is 60 seconds, but I still find occasional RTK dropouts, so
+        # I've settled on 90 seconds for now. The reason it was set to 10 seconds was because of
+        # our previous testing of RTCM streaming.
+
         outport = self._spartn_outport.get()
         if outport == PASSTHRU:
             outport = "USB"
@@ -741,6 +757,10 @@ class SPARTNConfigDialog(Toplevel):
             (f"CFG_MSGOUT_UBX_RXM_PMP_{outport}", 1),
             (f"CFG_{outport}OUTPROT_UBX", 1),
         ]
+        if self._spartn_enabledbg.get():
+            cfgdata.append((f"CFG_INFMSG_UBX_{outport}", b"\x1f"))
+        else:
+            cfgdata.append((f"CFG_INFMSG_UBX_{outport}", b"\x07"))
         if outport in ("UART1", "UART2"):
             cfgdata.append(f"CFG_{outport}_BAUDRATE", int(self.serial_settings.bpsrate))
 
