@@ -88,6 +88,8 @@ from pygpsclient.strings import (
     NULLSEND,
     CONFIGOK,
     CONFIGBAD,
+    LBLSPARTNLB,
+    LBLSPARTNGN,
 )
 from pygpsclient.helpers import (
     valid_entry,
@@ -210,9 +212,7 @@ class SPARTNConfigDialog(Toplevel):
         )
 
         # Correction receiver (D9S) configuration widgets
-        self._lbl_corr = Label(
-            self._frm_corr, text="CORRECTION RECEIVER CONFIGURATION (D9S)"
-        )
+        self._lbl_corr = Label(self._frm_corr, text=LBLSPARTNLB)
         # Correction receiver serial port configuration panel
         self._frm_spartn_serial = SerialConfigFrame(
             self._frm_corr,
@@ -325,7 +325,7 @@ class SPARTNConfigDialog(Toplevel):
         )
 
         # GNSS Receiver (F9P) configuration widgets
-        self._lbl_gnss = Label(self._frm_gnss, text="GNSS RECEIVER CONFIGURATION (F9*)")
+        self._lbl_gnss = Label(self._frm_gnss, text=LBLSPARTNGN)
         self._lbl_curr = Label(self._frm_gnss, text=LBLSPTNCURR)
         self._lbl_key1 = Label(self._frm_gnss, text=LBLSPTNKEY)
         self._ent_key1 = Entry(
@@ -553,6 +553,9 @@ class SPARTNConfigDialog(Toplevel):
         """
 
         stat = DISABLED if status == CONNECTED else NORMAL
+        for wdg in (self._btn_d9sconnect,):
+            wdg.config(state=stat)
+        stat = NORMAL if status == CONNECTED else DISABLED
         for wdg in (
             self._ent_freq,
             self._ent_schwin,
@@ -562,16 +565,11 @@ class SPARTNConfigDialog(Toplevel):
             self._chk_descrm,
             self._chk_prescram,
             self._chk_usesid,
-            self._btn_d9sconnect,
-        ):
-            wdg.config(state=stat)
-        stat = NORMAL if status == CONNECTED else DISABLED
-        for wdg in (
             self._btn_d9sdisconnect,
             self._btn_d9ssend,
         ):
             wdg.config(state=stat)
-        stat = DISABLED if status == CONNECTED else READONLY
+        stat = READONLY if status == CONNECTED else DISABLED
         for wdg in (
             self._spn_drat,
             self._spn_outport,
