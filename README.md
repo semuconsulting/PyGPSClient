@@ -173,7 +173,7 @@ To use:
 1. The MQTT client requires certificate (`*.crt`) and key (`*.pem`) files which must be placed in the user's home directory.
 1. The Client ID can also be stored as an environment variable `MQTTCLIENTID`.
 
-#### L-Band Correction Configuration (D9S)
+#### L-Band Correction Configuration (D9*)
 
 1. At time of writing, the only supported SPARTN-compatible u-blox L-Band Correction receivers are those in the NEO-D9* family (e.g. NEO-D9S, NEO-D9C).
 1. To connect to the Correction receiver, select the receivers's port from the SPARTN dialog's Serial Port listbox and click ![connect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/usbport-1-24.png?raw=true). To disconnect, click ![disconnect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-media-control-50-24.png?raw=true).
