@@ -531,7 +531,6 @@ class SettingsFrame(Frame):
             self.__app.set_status("Track recording disabled", "blue")
 
     def _on_serial_stream(self):
-
         if self.serial_settings.status == NOPORTS:
             return
 

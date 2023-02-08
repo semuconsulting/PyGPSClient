@@ -301,7 +301,6 @@ class GPXViewerDialog(Toplevel):
         self._do_mapalert(DLGGPXLOAD)
 
         with open(self._gpxfile, "r", encoding="utf-8") as gpx:
-
             try:
                 parser = minidom.parse(gpx)
                 trkpts = parser.getElementsByTagName("trkpt")
@@ -486,7 +485,6 @@ class GPXViewerDialog(Toplevel):
         x2 = AXIS_XL
         y2 = self.pheight - AXIS_Y
         for i, (_, _, _, ele, _) in enumerate(track):
-
             if ele is None:
                 continue
             x1, y1 = self._get_point(maxe, maxx, 0, i)
@@ -498,7 +496,6 @@ class GPXViewerDialog(Toplevel):
         x2 = AXIS_XL
         y2 = self.pheight - AXIS_Y
         for i, (_, _, _, _, spd) in enumerate(track):
-
             if spd is None:
                 continue
             x1, y1 = x2, y2

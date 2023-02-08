@@ -609,8 +609,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             raw_data, parsed_data = self._spartn_inqueue.get(False)
             if raw_data is not None and parsed_data is not None:
                 if self.conn_status == CONNECTED:
-                    if parsed_data.identity == "RXM-PMP":
-                        self._gnss_outqueue.put(raw_data)
+                    # if parsed_data.identity == "RXM-PMP":
+                    self._gnss_outqueue.put(raw_data)
                 self.process_data(raw_data, parsed_data, "SPARTN>>")
 
                 # update SPARTN config dialog status
@@ -667,7 +667,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         protfilter = self.frm_settings.protocol
         msgprot = protocol(raw_data)
-        if isinstance(parsed_data, str):
+        if isinstance(parsed_data, str) and marker != "SPARTN>>":
             marker = "WARNING  "
 
         if msgprot == UBX_PROTOCOL and msgprot & protfilter:
@@ -684,7 +684,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             if marker != "":
                 parsed_data = marker + str(parsed_data)
         else:
-            return
+            if marker != "":
+                parsed_data = marker + str(parsed_data)
 
         if self._widget_grid["Console"]["visible"]:
             self.frm_console.update_console(raw_data, parsed_data)

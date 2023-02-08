@@ -222,7 +222,6 @@ class UBX_MSGRATE_Frame(Frame):
         """
 
         if msg.identity == "CFG-MSG":
-
             self.__container.set_status("CFG-MSG GET message received", "green")
             self._ddc_rate.set(msg.rateDDC)
             self._uart1_rate.set(msg.rateUART1)

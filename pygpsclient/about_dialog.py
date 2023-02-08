@@ -78,7 +78,7 @@ class AboutDialog:
             font=self.__app.font_sm,
         )
         self._lbl_lib_versions = []
-        for (nam, ver) in LIBVERSIONS.items():
+        for nam, ver in LIBVERSIONS.items():
             self._lbl_lib_versions.append(
                 Label(
                     self._dialog,

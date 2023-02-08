@@ -223,7 +223,6 @@ class UBX_PRESET_Frame(Frame):
         status = CONFIRMED
         confids = ("MON-VER", "ACK-ACK")
         try:
-
             if self._preset_command == PSTRESET:
                 status = self._do_factory_reset()
             elif self._preset_command == PSTSAVE:

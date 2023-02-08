@@ -295,7 +295,6 @@ class UBX_Dynamic_Frame(Frame):
         """
 
         for nam, att in pdict.items():  # process each attribute in dict
-
             if isinstance(att, tuple):  # repeating group or bitfield
                 numr, attd = att
                 if numr in (
@@ -430,11 +429,10 @@ class UBX_Dynamic_Frame(Frame):
         nam = ""
         ent = StringVar().set("")
         try:
-
             # create dict of attribute keyword arguments from
             # Entry field string variables
             vals = {}
-            for (nam, (ent, att)) in self._cfg_atts.items():
+            for nam, (ent, att) in self._cfg_atts.items():
                 val = ent.get()
                 vals[nam] = stringvar2val(val, att)
 

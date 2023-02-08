@@ -142,7 +142,6 @@ class StreamHandler:
 
         connstr = ""
         try:
-
             if settings.mode == CONNECTED:
                 ser = settings.serial_settings
                 connstr = f"{ser.port}:{ser.port_desc} @ {str(ser.bpsrate)}"
@@ -243,7 +242,6 @@ class StreamHandler:
         readevent = settings.read_event
         while not stopevent.is_set():
             try:
-
                 if settings.mode in (CONNECTED, CONNECTED_SOCKET) or (
                     settings.mode == CONNECTED_FILE
                     and datetime.now() > lastread + timedelta(seconds=FILEREAD_INTERVAL)

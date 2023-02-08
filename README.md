@@ -155,27 +155,33 @@ Below is a illustrative NTRIP DGPS data log, showing:
 
 ![spartn config widget screenshot](https://github.com/semuconsulting/PyGPSClient/blob/add-SPARTN-config-dialog/images/spartnconfig_widget.png?raw=true)
 
-The SPARTN Configuration utility allows users to configure both Correction and GNSS receivers in a dual-receiver L-Band SPARTN RTK configuration (e.g. u-blox NEO-D9S and ZED-F9P).
+The SPARTN Configuration utility allows users to configure MQTT client, L-Band correction receiver (e.g. NEO-D9S) and GNSS receiver (e.g. ZED-F9P).
 
 **NB:** PyGPSClient cannot currently parse or decode binary SPARTN correction data - it simply passes the data through to the receiver.
 
 To use:
 
 1. The facility can be accessed via Menu..Options..SPARTN Configuration Dialog. The dialog must remain open while the facility is in use.
-1. It provides two independent configuration sections, one for the L-Band Correction receiver (e.g. D9S) and another for the GNSS receiver (e.g. F9P).
+1. It provides three independent configuration sections, one for IP Correction (MQTT), one for L-Band Correction (e.g. D9S) and a third for the GNSS receiver (e.g. F9P).
 1. Commercial SPARTN location services like u-blox PointPerfect require different Correction receiver L-Band configurations for different regions. The utility provides nominal default values but these may need to be amended in accordance with the parameters provided by the location service, typically under NDA. **NB:** parameters available in the public domain *may not* be appropriate and the authors of PyGPSClient **cannot** provide advice on appropriate settings.
 1. To configure the GNSS receiver for use with a commercial SPARTN location service, you will need to obtain current and next decryption keys and upload these to the GNSS receiver after every power cycle or reset. The keys are normally valid for 4 weeks.
 1. **NB:** Please ensure you understand and comply with the Terms and Conditions of any commercial SPARTN location service before subscribing.
 
-#### Correction Receiver (D9S)
+#### IP Correction Configuration (MQTT)
 
-1. At time of writing, the only supported SPARTN-compatible u-blox L-Band Correction receivers are those in the NEO-D9* famility (e.g. NEO-D9S, NEO-D9C).
+1. To connect to the MQTT server, select the Server URL, Client ID, Region and Topics and click ![connect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/ethernet-1-24.png?raw=true). To disconnect, click ![disconnect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-media-control-50-24.png?raw=true).
+1. The MQTT client requires certificate (`*.crt`) and key (`*.pem`) files which must be placed in the user's home directory.
+1. The Client ID can also be stored as an environment variable `MQTTCLIENTID`.
+
+#### L-Band Correction Configuration (D9S)
+
+1. At time of writing, the only supported SPARTN-compatible u-blox L-Band Correction receivers are those in the NEO-D9* family (e.g. NEO-D9S, NEO-D9C).
 1. To connect to the Correction receiver, select the receivers's port from the SPARTN dialog's Serial Port listbox and click ![connect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/usbport-1-24.png?raw=true). To disconnect, click ![disconnect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-media-control-50-24.png?raw=true).
 1. Select the required Output Port - this is the port used to connect the Correction receiver to the GNSS receiver e.g. UART2 or I2C.
 1. If both Correction and GNSS receivers are connected to the same PyGPSClient workstation (e.g. via separate USB ports), it is possible to run the utility in Output Port = 'Passthough' mode, whereby the output data from the Correction receiver (UBX `RXM-PMP` messages) will be automatically passed through to the GNSS receiver by PyGPSClient, without the need to connect the two externally.
 1. Once connected, click ![send button](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-arrow-12-24.png?raw=true) to upload the configuration. The utility will send the relevant configuration command(s) to the Correction receiver and poll for an acknowledgement.
 
-#### GNSS Receiver (F9*)
+#### GNSS Receiver Configuration (F9*)
 
 1. At time of writing, the only supported SPARTN-compatible u-blox GNSS receivers are those in the ZED-F9* family (e.g. ZED-F9P or ZED-F9R).
 1. Connect to the GNSS receiver first by clicking ![connect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/usbport-1-24.png?raw=true) on the main PyGPSClient settings panel.

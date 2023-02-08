@@ -197,7 +197,7 @@ class UBX_RATE_Frame(Frame):
         """
 
         tref = 0
-        for (key, val) in TIMEREFS.items():
+        for key, val in TIMEREFS.items():
             if val == self._timeref.get():
                 tref = key
                 break

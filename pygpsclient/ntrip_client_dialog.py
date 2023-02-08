@@ -423,7 +423,6 @@ class NTRIPConfigDialog(Toplevel):
         """
 
         try:
-
             self._settings = self.__app.ntrip_handler.settings
             self._connected = connected
             if msg is None:

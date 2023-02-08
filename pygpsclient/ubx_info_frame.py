@@ -140,7 +140,6 @@ class UBX_INFO_Frame(Frame):
 
         # MON-VER information (for firmware version)
         if msg.identity == "MON-VER":
-
             exts = []
             fw_version = b"n/a"
             protocol = b"n/a"
@@ -179,7 +178,6 @@ class UBX_INFO_Frame(Frame):
 
         # MON-HW information (for antenna status)
         if msg.identity == "MON-HW":
-
             ant_status = getattr(msg, "aStatus", 1)
             ant_power = getattr(msg, "aPower", 2)
             self._ant_status.set(ANTSTATUS[ant_status])

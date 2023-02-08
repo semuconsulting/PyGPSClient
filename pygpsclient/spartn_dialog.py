@@ -18,6 +18,7 @@ Created on 26 Jan 2023
 # pylint: disable=invalid-name, too-many-locals, too-many-instance-attributes
 
 from datetime import datetime, timedelta
+from os import getenv
 from tkinter import (
     ttk,
     Toplevel,
@@ -51,6 +52,7 @@ from pyubx2 import (
     SET_LAYER_RAM,
     POLL_LAYER_RAM,
 )
+from pygpsclient.mqtt_handler import MQTTHandler
 from pygpsclient.globals import (
     ICON_EXIT,
     ICON_SEND,
@@ -60,6 +62,7 @@ from pygpsclient.globals import (
     ICON_SERIAL,
     ICON_DISCONN,
     ICON_BLANK,
+    ICON_SOCKET,
     ENTCOL,
     POPUP_TRANSIENT,
     CONNECTED,
@@ -88,6 +91,7 @@ from pygpsclient.strings import (
     NULLSEND,
     CONFIGOK,
     CONFIGBAD,
+    LBLSPARTNIP,
     LBLSPARTNLB,
     LBLSPARTNGN,
 )
@@ -130,6 +134,8 @@ SPARTN_DEFAULT = {
     "descrminit": 23560,
     "unqword": 16238547128276412563,
 }
+PPSERVER = "pp.services.u-blox.com"
+PPREGIONS = ("eu", "us", "au")
 
 
 class SPARTNConfigDialog(Toplevel):
@@ -149,8 +155,8 @@ class SPARTNConfigDialog(Toplevel):
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
         Toplevel.__init__(self, app)
-        if POPUP_TRANSIENT:
-            self.transient(self.__app)
+        # if POPUP_TRANSIENT:
+        #     self.transient(self.__app)
         self.resizable(False, False)
         self.title(DLGSPARTNCONFIG)  # pylint: disable=E1102
         self.protocol("WM_DELETE_WINDOW", self.on_exit)
@@ -161,8 +167,10 @@ class SPARTNConfigDialog(Toplevel):
         self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
         self._img_send = ImageTk.PhotoImage(Image.open(ICON_SEND))
         self._img_serial = ImageTk.PhotoImage(Image.open(ICON_SERIAL))
+        self._img_socket = ImageTk.PhotoImage(Image.open(ICON_SOCKET))
         self._img_disconn = ImageTk.PhotoImage(Image.open(ICON_DISCONN))
-        self.spartn_stream_handler = StreamHandler(self)
+        self.lband_stream_handler = StreamHandler(self)
+        self.mqtt_stream_handler = None
         self._status = StringVar()
         self._spartn_source = IntVar()
         self._status_cfgmsg = StringVar()
@@ -184,6 +192,12 @@ class SPARTNConfigDialog(Toplevel):
         self._spartn_unqword = StringVar()
         self._spartn_outport = StringVar()
         self._spartn_enabledbg = IntVar()
+        self._mqtt_server = StringVar()
+        self._mqtt_region = StringVar()
+        self._mqtt_clientid = StringVar()
+        self._mqtt_iptopic = IntVar()
+        self._mqtt_mgatopic = IntVar()
+        self._mqtt_keytopic = IntVar()
         self._ports = INPORTS
 
         self._body()
@@ -197,8 +211,9 @@ class SPARTNConfigDialog(Toplevel):
         # pylint: disable=unnecessary-lambda
 
         self._frm_container = Frame(self)
+        self._frm_corrip = Frame(self._frm_container, borderwidth=2, relief="groove")
+        self._frm_corrlband = Frame(self._frm_container, borderwidth=2, relief="groove")
         self._frm_gnss = Frame(self._frm_container, borderwidth=2, relief="groove")
-        self._frm_corr = Frame(self._frm_container, borderwidth=2, relief="groove")
         self._frm_status = Frame(self._frm_container, borderwidth=2, relief="groove")
         self._lbl_status = Label(
             self._frm_status, textvariable=self._status, anchor="w"
@@ -212,20 +227,80 @@ class SPARTNConfigDialog(Toplevel):
             font=self.__app.font_md,
         )
 
-        # Correction receiver (D9S) configuration widgets
-        self._lbl_corr = Label(self._frm_corr, text=LBLSPARTNLB)
+        # IP Correction receiver (MQTT) configuration widgets
+        self._lbl_corrip = Label(self._frm_corrip, text=LBLSPARTNIP)
+        self._lbl_mqttserver = Label(self._frm_corrip, text="Server")
+        self._ent_mqttserver = Entry(
+            self._frm_corrip,
+            textvariable=self._mqtt_server,
+            bg=ENTCOL,
+            state=NORMAL,
+            relief="sunken",
+            width=20,
+        )
+        self._lbl_mqttregion = Label(self._frm_corrip, text="Region")
+        self._spn_mqttregion = Spinbox(
+            self._frm_corrip,
+            values=PPREGIONS,
+            textvariable=self._mqtt_region,
+            readonlybackground=ENTCOL,
+            state=READONLY,
+            width=4,
+            wrap=True,
+        )
+        self._lbl_mqttclientid = Label(self._frm_corrip, text="Client ID")
+        self._ent_mqttclientid = Entry(
+            self._frm_corrip,
+            textvariable=self._mqtt_clientid,
+            bg=ENTCOL,
+            state=NORMAL,
+            relief="sunken",
+            width=32,
+        )
+        self._lbl_topics = Label(self._frm_corrip, text="Topics:")
+        self._chk_mqtt_iptopic = Checkbutton(
+            self._frm_corrip,
+            text="IP",
+            variable=self._mqtt_iptopic,
+        )
+        self._chk_mqtt_mgatopic = Checkbutton(
+            self._frm_corrip,
+            text="MGA",
+            variable=self._mqtt_mgatopic,
+        )
+        self._chk_mqtt_keytopic = Checkbutton(
+            self._frm_corrip,
+            text="SPARTNKEY",
+            variable=self._mqtt_keytopic,
+        )
+        self._btn_mqttconnect = Button(
+            self._frm_corrip,
+            width=45,
+            image=self._img_socket,
+            command=lambda: self._on_mqtt_connect(),
+        )
+        self._btn_mqttdisconnect = Button(
+            self._frm_corrip,
+            width=45,
+            image=self._img_disconn,
+            command=lambda: self._on_mqtt_disconnect(),
+            state=DISABLED,
+        )
+
+        # L-Band Correction receiver (D9S) configuration widgets
+        self._lbl_corrlband = Label(self._frm_corrlband, text=LBLSPARTNLB)
         # Correction receiver serial port configuration panel
         self._frm_spartn_serial = SerialConfigFrame(
-            self._frm_corr,
+            self._frm_corrlband,
             preselect=KNOWNGPS,
             timeouts=TIMEOUTS,
             bpsrates=BPSRATES,
             msgmodes=list(MSGMODES.keys()),
             userport=self.__app.spartn_user_port,  # user-defined serial port
         )
-        self._lbl_freq = Label(self._frm_corr, text="L-Band Frequency (Hz)")
+        self._lbl_freq = Label(self._frm_corrlband, text="L-Band Frequency (Hz)")
         self._ent_freq = Entry(
-            self._frm_corr,
+            self._frm_corrlband,
             textvariable=self._spartn_freq,
             bg=ENTCOL,
             state=NORMAL,
@@ -233,13 +308,13 @@ class SPARTNConfigDialog(Toplevel):
             width=10,
         )
         self._chk_enabledbg = Checkbutton(
-            self._frm_corr,
+            self._frm_corrlband,
             text="Enable Debug?",
             variable=self._spartn_enabledbg,
         )
-        self._lbl_schwin = Label(self._frm_corr, text="Search window")
+        self._lbl_schwin = Label(self._frm_corrlband, text="Search window")
         self._ent_schwin = Entry(
-            self._frm_corr,
+            self._frm_corrlband,
             textvariable=self._spartn_schwin,
             bg=ENTCOL,
             state=NORMAL,
@@ -247,22 +322,22 @@ class SPARTNConfigDialog(Toplevel):
             width=10,
         )
         self._chk_usesid = Checkbutton(
-            self._frm_corr,
+            self._frm_corrlband,
             text="Use Service ID?",
             variable=self._spartn_usesid,
         )
-        self._lbl_sid = Label(self._frm_corr, text="Service ID")
+        self._lbl_sid = Label(self._frm_corrlband, text="Service ID")
         self._ent_sid = Entry(
-            self._frm_corr,
+            self._frm_corrlband,
             textvariable=self._spartn_sid,
             bg=ENTCOL,
             state=NORMAL,
             relief="sunken",
             width=10,
         )
-        self._lbl_drat = Label(self._frm_corr, text="Data Rate")
+        self._lbl_drat = Label(self._frm_corrlband, text="Data Rate")
         self._spn_drat = Spinbox(
-            self._frm_corr,
+            self._frm_corrlband,
             values=list(PMP_DATARATES.values()),
             textvariable=self._spartn_drat,
             readonlybackground=ENTCOL,
@@ -271,36 +346,36 @@ class SPARTNConfigDialog(Toplevel):
             wrap=True,
         )
         self._chk_descrm = Checkbutton(
-            self._frm_corr,
+            self._frm_corrlband,
             text="Use Descrambler?",
             variable=self._spartn_descrm,
         )
         self._chk_prescram = Checkbutton(
-            self._frm_corr,
+            self._frm_corrlband,
             text="Use Prescrambling?",
             variable=self._spartn_prescrm,
         )
-        self._lbl_descraminit = Label(self._frm_corr, text="Descrambler Init")
+        self._lbl_descraminit = Label(self._frm_corrlband, text="Descrambler Init")
         self._ent_descraminit = Entry(
-            self._frm_corr,
+            self._frm_corrlband,
             textvariable=self._spartn_descrminit,
             bg=ENTCOL,
             state=NORMAL,
             relief="sunken",
             width=10,
         )
-        self._lbl_unqword = Label(self._frm_corr, text="Unique Word")
+        self._lbl_unqword = Label(self._frm_corrlband, text="Unique Word")
         self._ent_unqword = Entry(
-            self._frm_corr,
+            self._frm_corrlband,
             textvariable=self._spartn_unqword,
             bg=ENTCOL,
             state=NORMAL,
             relief="sunken",
             width=20,
         )
-        self._lbl_outport = Label(self._frm_corr, text="Output Port")
+        self._lbl_outport = Label(self._frm_corrlband, text="Output Port")
         self._spn_outport = Spinbox(
-            self._frm_corr,
+            self._frm_corrlband,
             values=INPORTS + (PASSTHRU,),
             textvariable=self._spartn_outport,
             readonlybackground=ENTCOL,
@@ -308,26 +383,25 @@ class SPARTNConfigDialog(Toplevel):
             width=10,
             wrap=True,
         )
-        self._btn_d9sconnect = Button(
-            self._frm_corr,
+        self._btn_lbandconnect = Button(
+            self._frm_corrlband,
             width=45,
             image=self._img_serial,
-            command=lambda: self._on_corr_connect(),
+            command=lambda: self._on_lband_connect(),
         )
-        self._btn_d9sdisconnect = Button(
-            self._frm_corr,
+        self._btn_lbanddisconnect = Button(
+            self._frm_corrlband,
             width=45,
             image=self._img_disconn,
-            command=lambda: self._on_corr_disconnect(),
+            command=lambda: self._on_lband_disconnect(),
             state=DISABLED,
         )
-        self._lbl_d9ssend = Label(self._frm_corr, image=self._img_blank)
-        self._btn_d9ssend = Button(
-            self._frm_corr,
+        self._lbl_lbandsend = Label(self._frm_corrlband, image=self._img_blank)
+        self._btn_lbandsend = Button(
+            self._frm_corrlband,
             image=self._img_send,
             width=45,
-            command=self._on_send_corr_config,
-            font=self.__app.font_md,
+            command=self._on_send_lband_config,
         )
 
         # GNSS Receiver (F9P) configuration widgets
@@ -412,20 +486,21 @@ class SPARTNConfigDialog(Toplevel):
             column=0, row=0, columnspan=3, padx=3, pady=3, sticky=(N, S, E, W)
         )
 
-        self._do_spartn_layout()
+        self._do_mqtt_layout()
+        self._do_lband_layout()
         self._do_gnss_layout()
 
         # bottom of grid
         self._frm_status.grid(
             column=0,
             row=1,
-            columnspan=2,
+            columnspan=3,
             ipadx=5,
             ipady=5,
             sticky=(W, E),
         )
-        self._lbl_status.grid(column=0, row=0, sticky=W)
-        self._btn_exit.grid(column=1, row=0, sticky=E)
+        self._lbl_status.grid(column=0, row=0, columnspan=2, sticky=W)
+        self._btn_exit.grid(column=2, row=0, sticky=E)
 
         for frm in (self._frm_status,):
             colsp, rowsp = frm.grid_size()
@@ -435,26 +510,63 @@ class SPARTNConfigDialog(Toplevel):
                 frm.grid_rowconfigure(i, weight=1)
 
         self._frm_gnss.option_add("*Font", self.__app.font_sm)
-        self._frm_corr.option_add("*Font", self.__app.font_sm)
+        self._frm_corrlband.option_add("*Font", self.__app.font_sm)
         self._frm_status.option_add("*Font", self.__app.font_sm)
 
-    def _do_spartn_layout(self):
+    def _do_mqtt_layout(self):
         """
-        Arrange spartn (D9S) configuration widgets in frame.
+        Arrange IP spartn (MQTT) configuration widgets in frame.
         """
 
-        self._frm_corr.grid(
+        self._frm_corrip.grid(
             column=0,
             row=0,
             ipadx=5,
             ipady=5,
             sticky=(N, S, W, E),
         )
-        self._lbl_corr.grid(column=0, row=0, columnspan=4, padx=3, pady=2, sticky=W)
+        self._lbl_corrip.grid(column=0, row=0, columnspan=4, padx=3, pady=2, sticky=W)
+        self._lbl_mqttserver.grid(column=0, row=1, padx=3, pady=2, sticky=W)
+        self._ent_mqttserver.grid(
+            column=1, row=1, columnspan=3, padx=3, pady=2, sticky=W
+        )
+        self._lbl_mqttregion.grid(column=0, row=2, padx=3, pady=2, sticky=W)
+        self._spn_mqttregion.grid(
+            column=1, row=2, columnspan=3, padx=3, pady=2, sticky=W
+        )
+        self._lbl_mqttclientid.grid(column=0, row=3, padx=3, pady=2, sticky=W)
+        self._ent_mqttclientid.grid(
+            column=1, row=3, columnspan=3, padx=3, pady=2, sticky=W
+        )
+        self._lbl_topics.grid(column=0, row=4, padx=3, pady=2, sticky=W)
+        self._chk_mqtt_iptopic.grid(column=1, row=4, padx=3, pady=2, sticky=W)
+        self._chk_mqtt_mgatopic.grid(column=2, row=4, padx=3, pady=2, sticky=W)
+        self._chk_mqtt_keytopic.grid(column=3, row=4, padx=3, pady=2, sticky=W)
+        ttk.Separator(self._frm_corrip).grid(
+            column=0, row=5, columnspan=4, padx=2, pady=3, sticky=(W, E)
+        )
+        self._btn_mqttconnect.grid(column=0, row=6, padx=3, pady=2, sticky=W)
+        self._btn_mqttdisconnect.grid(column=1, row=6, padx=3, pady=2, sticky=W)
+
+    def _do_lband_layout(self):
+        """
+        Arrange L-Band spartn (D9S) configuration widgets in frame.
+        """
+
+        self._frm_corrlband.grid(
+            column=1,
+            row=0,
+            ipadx=5,
+            ipady=5,
+            sticky=(N, S, W, E),
+        )
+        self._lbl_corrlband.grid(
+            column=0, row=0, columnspan=4, padx=3, pady=2, sticky=W
+        )
         self._frm_spartn_serial.grid(
             column=0, row=1, columnspan=4, padx=3, pady=2, sticky=(N, S, W, E)
         )
-        ttk.Separator(self._frm_corr).grid(
+        ttk.Separator(self._frm_corrlband).grid(
             column=0, row=2, columnspan=4, padx=2, pady=3, sticky=(W, E)
         )
         self._lbl_freq.grid(column=0, row=3, sticky=W)
@@ -475,13 +587,13 @@ class SPARTNConfigDialog(Toplevel):
         self._ent_unqword.grid(column=1, row=9, columnspan=3, sticky=W)
         self._lbl_outport.grid(column=0, row=10, sticky=W)
         self._spn_outport.grid(column=1, row=10, columnspan=3, sticky=W)
-        ttk.Separator(self._frm_corr).grid(
+        ttk.Separator(self._frm_corrlband).grid(
             column=0, row=11, columnspan=4, padx=2, pady=3, sticky=(W, E)
         )
-        self._btn_d9sconnect.grid(column=0, row=12, padx=3, pady=2, sticky=W)
-        self._btn_d9sdisconnect.grid(column=1, row=12, padx=3, pady=2, sticky=W)
-        self._btn_d9ssend.grid(column=2, row=12, padx=3, pady=2, sticky=W)
-        self._lbl_d9ssend.grid(column=3, row=12, padx=3, pady=2, sticky=W)
+        self._btn_lbandconnect.grid(column=0, row=12, padx=3, pady=2, sticky=W)
+        self._btn_lbanddisconnect.grid(column=1, row=12, padx=3, pady=2, sticky=W)
+        self._btn_lbandsend.grid(column=2, row=12, padx=3, pady=2, sticky=W)
+        self._lbl_lbandsend.grid(column=3, row=12, padx=3, pady=2, sticky=W)
 
     def _do_gnss_layout(self):
         """
@@ -489,7 +601,7 @@ class SPARTNConfigDialog(Toplevel):
         """
 
         self._frm_gnss.grid(
-            column=1,
+            column=2,
             row=0,
             ipadx=5,
             ipady=5,
@@ -548,20 +660,52 @@ class SPARTNConfigDialog(Toplevel):
         self._spartn_prescrm.set(SPARTN_DEFAULT["prescrm"])
         self._spartn_descrminit.set(SPARTN_DEFAULT["descrminit"])
         self._spartn_unqword.set(SPARTN_DEFAULT["unqword"])
-        self._spartn_outport.set(INPORTS[0])
+        self._spartn_outport.set(PASSTHRU)
+        self._mqtt_server.set(PPSERVER)
+        self._mqtt_region.set(PPREGIONS[0])
+        self._mqtt_iptopic.set(1)
+        self._mqtt_mgatopic.set(0)
+        self._mqtt_keytopic.set(1)
+        self._mqtt_clientid.set(getenv("MQTTCLIENTID", default=""))
         self.set_status("", "blue")
-        self.set_controls(DISCONNECTED)
+        self.set_mqtt_controls(DISCONNECTED)
+        self.set_lband_controls(DISCONNECTED)
 
-    def set_controls(self, status: int):
+    def set_mqtt_controls(self, status: int):
         """
-        Enable or disable Correction receiver widgets depending on
+        Enable or disable MQTT Correction widgets depending on
+        connection status.
+
+        :param int status: connection status (0 = disconnected, 1 = connected)
+        """
+
+        stat = NORMAL if status == CONNECTED else DISABLED
+        for wdg in (self._btn_mqttdisconnect,):
+            wdg.config(state=stat)
+        stat = DISABLED if status == CONNECTED else NORMAL
+        for wdg in (
+            self._ent_mqttserver,
+            self._btn_mqttconnect,
+            self._ent_mqttclientid,
+            self._chk_mqtt_iptopic,
+            self._chk_mqtt_mgatopic,
+            self._chk_mqtt_keytopic,
+        ):
+            wdg.config(state=stat)
+        stat = DISABLED if status == CONNECTED else READONLY
+        for wdg in (self._spn_mqttregion,):
+            wdg.config(state=stat)
+
+    def set_lband_controls(self, status: int):
+        """
+        Enable or disable L-Band Correction widgets depending on
         connection status.
 
         :param int status: connection status (0 = disconnected, 1 = connected)
         """
 
         stat = DISABLED if status == CONNECTED else NORMAL
-        for wdg in (self._btn_d9sconnect,):
+        for wdg in (self._btn_lbandconnect,):
             wdg.config(state=stat)
         stat = NORMAL if status == CONNECTED else DISABLED
         for wdg in (
@@ -574,8 +718,8 @@ class SPARTNConfigDialog(Toplevel):
             self._chk_descrm,
             self._chk_prescram,
             self._chk_usesid,
-            self._btn_d9sdisconnect,
-            self._btn_d9ssend,
+            self._btn_lbanddisconnect,
+            self._btn_lbandsend,
         ):
             wdg.config(state=stat)
         stat = READONLY if status == CONNECTED else DISABLED
@@ -603,7 +747,8 @@ class SPARTNConfigDialog(Toplevel):
         """
 
         # self.__master.update_idletasks()
-        self._on_corr_disconnect()
+        self._on_mqtt_disconnect()
+        self._on_lband_disconnect()
         self.__app.stop_spartnconfig_thread()
         self.destroy()
 
@@ -658,7 +803,53 @@ class SPARTNConfigDialog(Toplevel):
 
         return valid
 
-    def _on_corr_connect(self):
+    def _on_mqtt_connect(self):
+        """
+        Connect to MQTT client.
+        """
+
+        self.__app.spartn_conn_status = CONNECTED
+        server = PPSERVER
+        region = self._mqtt_region.get()
+        topics = []
+        if self._mqtt_iptopic.get():
+            topics.append((f"/pp/ip/{region}", 0))
+        if self._mqtt_mgatopic.get():
+            topics.append(("/pp/ubx/mga", 0))
+        if self._mqtt_keytopic.get():
+            topics.append(("/pp/ubx/0236/ip", 0))
+
+        self.mqtt_stream_handler = MQTTHandler(
+            self.__app,
+            "eu",
+            self.__app.spartn_inqueue,
+            clientid=self._mqtt_clientid.get(),
+            mqtt_topics=topics,
+            server=server,
+        )
+        self.mqtt_stream_handler.start()
+        self.set_status(
+            f"Connected to MQTT server {server}",
+            "green",
+        )
+        self.set_mqtt_controls(CONNECTED)
+
+    def _on_mqtt_disconnect(self):
+        """
+        Disconnect from MQTT client.
+        """
+
+        if self.mqtt_stream_handler is not None:
+            self.__app.spartn_conn_status = DISCONNECTED
+            self.mqtt_stream_handler.stop()
+            self.mqtt_stream_handler = None
+            self.set_status(
+                "Disconnected",
+                "red",
+            )
+        self.set_mqtt_controls(DISCONNECTED)
+
+    def _on_lband_connect(self):
         """
         Connect to Correction receiver.
         """
@@ -668,35 +859,31 @@ class SPARTNConfigDialog(Toplevel):
 
         # start serial stream thread
         self.__app.spartn_conn_status = CONNECTED
-        self.spartn_stream_handler.start_read_thread(self)
+        self.lband_stream_handler.start_read_thread(self)
         self.set_status(
             f"Connected to {self.serial_settings.port}:{self.serial_settings.port_desc} "
             + f"@ {self.serial_settings.bpsrate}",
             "green",
         )
-        self._btn_d9sconnect.config(state=DISABLED)
-        self._btn_d9sdisconnect.config(state=NORMAL)
-        self.set_controls(CONNECTED)
+        self.set_lband_controls(CONNECTED)
 
         # poll current configuration
         msg = self._format_cfgpoll()
-        self._send_corr_command(msg)
+        self._send_lband_command(msg)
 
-    def _on_corr_disconnect(self):
+    def _on_lband_disconnect(self):
         """
         Disconnect from Correction receiver.
         """
 
         if self.__app.spartn_conn_status == CONNECTED:
-            self.spartn_stream_handler.stop_read_thread()
+            self.lband_stream_handler.stop_read_thread()
             self.__app.spartn_conn_status = DISCONNECTED
             self.set_status(
                 "Disconnected",
                 "red",
             )
-            self._btn_d9sconnect.config(state=NORMAL)
-            self._btn_d9sdisconnect.config(state=DISABLED)
-            self.set_controls(DISCONNECTED)
+            self.set_lband_controls(DISCONNECTED)
 
     def _format_cfgpoll(self) -> UBXMessage:
         """
@@ -725,11 +912,12 @@ class SPARTNConfigDialog(Toplevel):
             "CFG_PMP_DESCRAMBLER_INIT",
             "CFG_PMP_USE_PRESCRAMBLING",
             "CFG_PMP_UNIQUE_WORD",
-            f"CFG_MSGOUT_UBX_RXM_PMP_{outport}",
-            f"CFG_{outport}OUTPROT_UBX",
         ]
-        if outport in ("UART1", "UART2"):
-            cfgdata.append(f"CFG_{outport}_BAUDRATE")
+        for port in INPORTS:
+            cfgdata.append(f"CFG_MSGOUT_UBX_RXM_PMP_{port}")
+            cfgdata.append(f"CFG_{port}OUTPROT_UBX")
+            if port in ("UART1", "UART2"):
+                cfgdata.append(f"CFG_{port}_BAUDRATE")
 
         msg = UBXMessage.config_poll(POLL_LAYER_RAM, 0, cfgdata)
         return msg
@@ -754,39 +942,40 @@ class SPARTNConfigDialog(Toplevel):
             ("CFG_PMP_DESCRAMBLER_INIT", int(self._spartn_descrminit.get())),
             ("CFG_PMP_USE_PRESCRAMBLING", int(self._spartn_prescrm.get())),
             ("CFG_PMP_UNIQUE_WORD", int(self._spartn_unqword.get())),
-            (f"CFG_MSGOUT_UBX_RXM_PMP_{outport}", 1),
-            (f"CFG_{outport}OUTPROT_UBX", 1),
         ]
-        if self._spartn_enabledbg.get():
-            cfgdata.append((f"CFG_INFMSG_UBX_{outport}", b"\x1f"))
-        else:
-            cfgdata.append((f"CFG_INFMSG_UBX_{outport}", b"\x07"))
+        for port in INPORTS:
+            cfgdata.append((f"CFG_MSGOUT_UBX_RXM_PMP_{port}", 1))
+            cfgdata.append((f"CFG_{port}OUTPROT_UBX", 1))
+            if self._spartn_enabledbg.get():
+                cfgdata.append((f"CFG_INFMSG_UBX_{port}", b"\x1f"))
+            else:
+                cfgdata.append((f"CFG_INFMSG_UBX_{port}", b"\x07"))
         if outport in ("UART1", "UART2"):
             cfgdata.append(f"CFG_{outport}_BAUDRATE", int(self.serial_settings.bpsrate))
 
         msg = UBXMessage.config_set(SET_LAYER_RAM, TXN_NONE, cfgdata)
         return msg
 
-    def _on_send_corr_config(self):
+    def _on_send_lband_config(self):
         """
-        Send config to Correction receiver (e.g. D9S).
+        Send config to L-Band Correction receiver (e.g. D9S).
         """
 
         if not self._valid_corr_settings():
             return
 
         msg = self._format_cfgcorr()
-        self._send_corr_command(msg)
+        self._send_lband_command(msg)
         self.set_status(f"{CFGSET} command sent", "green")
-        self._lbl_d9ssend.config(image=self._img_pending)
+        self._lbl_lbandsend.config(image=self._img_pending)
 
         # poll for acknowledgement
         msg = self._format_cfgpoll()
-        self._send_corr_command(msg)
+        self._send_lband_command(msg)
 
-    def _send_corr_command(self, msg: UBXMessage):
+    def _send_lband_command(self, msg: UBXMessage):
         """
-        Send command to Correction receiver.
+        Send command to L-Band Correction receiver.
         """
 
         self.__app.spartn_outqueue.put(msg.serialize())
@@ -908,6 +1097,9 @@ class SPARTNConfigDialog(Toplevel):
         :param UBXMessage msg: UBX config message
         """
 
+        if not hasattr(msg, "identity"):
+            return
+
         if msg.identity == RXMMSG:
             if msg.numKeys == 2:  # check both keys have been uploaded
                 self._lbl_send_command.config(image=self._img_confirmed)
@@ -941,7 +1133,7 @@ class SPARTNConfigDialog(Toplevel):
             if hasattr(msg, "CFG_PMP_UNIQUE_WORD"):
                 self._spartn_unqword.set(msg.CFG_PMP_UNIQUE_WORD)
             self.set_status(f"{CFGPOLL} received", "green")
-            self._lbl_d9ssend.config(image=self._img_confirmed)
+            self._lbl_lbandsend.config(image=self._img_confirmed)
             self.update_idletasks()
 
     def _set_date(self, val: StringVar, dat: datetime):
@@ -958,6 +1150,11 @@ class SPARTNConfigDialog(Toplevel):
 
         dat = val.get()
         return datetime(int(dat[0:4]), int(dat[4:6]), int(dat[6:8]))
+
+    def _parse_spartn(self, msg) -> str:
+        """
+        Parse SPARTN message.
+        """
 
     # ============================================
     # FOLLOWING METHODS REQUIRED BY STREAM_HANDLER

@@ -404,7 +404,6 @@ class UBX_Recorder_Frame(Frame):
             cols = [(COLWHIT, COLBAD), (COLBAD, self._bg)]
             i = 0
             while not stop.is_set():
-
                 i = not i
                 self._lbl_activity.config(
                     text="RECORDING", fg=cols[i][0], bg=cols[i][1]
