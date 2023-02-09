@@ -59,9 +59,12 @@ from pygpsclient.globals import (
     MSGMODES,
     TIMEOUTS,
     SPARTN_EVENT,
+    SPARTN_LBAND,
 )
 from pygpsclient.strings import (
     LBLSPARTNLB,
+    CONFIGOK,
+    CONFIGBAD,
 )
 from pygpsclient.helpers import (
     valid_entry,
@@ -132,7 +135,7 @@ class SPARTNLBANDDialog(Frame):
         self._img_serial = ImageTk.PhotoImage(Image.open(ICON_SERIAL))
         self._img_socket = ImageTk.PhotoImage(Image.open(ICON_SOCKET))
         self._img_disconn = ImageTk.PhotoImage(Image.open(ICON_DISCONN))
-        self.lband_stream_handler = StreamHandler(self)
+        self._stream_handler = StreamHandler(self)
         self._status = StringVar()
         self._spartn_freq = StringVar()
         self._spartn_schwin = StringVar()
@@ -251,21 +254,21 @@ class SPARTNLBANDDialog(Frame):
             width=10,
             wrap=True,
         )
-        self._btn_lbandconnect = Button(
+        self._btn_connect = Button(
             self,
             width=45,
             image=self._img_serial,
             command=lambda: self._on_connect(),
         )
-        self._btn_lbanddisconnect = Button(
+        self._btn_disconnect = Button(
             self,
             width=45,
             image=self._img_disconn,
             command=lambda: self._on_disconnect(),
             state=DISABLED,
         )
-        self._lbl_lbandsend = Label(self, image=self._img_blank)
-        self._btn_lbandsend = Button(
+        self._lbl_send = Label(self, image=self._img_blank)
+        self._btn_send = Button(
             self,
             image=self._img_send,
             width=45,
@@ -307,10 +310,10 @@ class SPARTNLBANDDialog(Frame):
         ttk.Separator(self).grid(
             column=0, row=11, columnspan=4, padx=2, pady=3, sticky=(W, E)
         )
-        self._btn_lbandconnect.grid(column=0, row=12, padx=3, pady=2, sticky=W)
-        self._btn_lbanddisconnect.grid(column=1, row=12, padx=3, pady=2, sticky=W)
-        self._btn_lbandsend.grid(column=2, row=12, padx=3, pady=2, sticky=W)
-        self._lbl_lbandsend.grid(column=3, row=12, padx=3, pady=2, sticky=W)
+        self._btn_connect.grid(column=0, row=12, padx=3, pady=2, sticky=W)
+        self._btn_disconnect.grid(column=1, row=12, padx=3, pady=2, sticky=W)
+        self._btn_send.grid(column=2, row=12, padx=3, pady=2, sticky=W)
+        self._lbl_send.grid(column=3, row=12, padx=3, pady=2, sticky=W)
 
     def _reset(self):
         """
@@ -340,7 +343,7 @@ class SPARTNLBANDDialog(Frame):
         """
 
         stat = DISABLED if status == CONNECTED else NORMAL
-        for wdg in (self._btn_lbandconnect,):
+        for wdg in (self._btn_connect,):
             wdg.config(state=stat)
         stat = NORMAL if status == CONNECTED else DISABLED
         for wdg in (
@@ -353,8 +356,8 @@ class SPARTNLBANDDialog(Frame):
             self._chk_descrm,
             self._chk_prescram,
             self._chk_usesid,
-            self._btn_lbanddisconnect,
-            self._btn_lbandsend,
+            self._btn_disconnect,
+            self._btn_send,
         ):
             wdg.config(state=stat)
         stat = READONLY if status == CONNECTED else DISABLED
@@ -396,7 +399,7 @@ class SPARTNLBANDDialog(Frame):
 
         # start serial stream thread
         self.__app.spartn_conn_status = CONNECTED
-        self.lband_stream_handler.start_read_thread(self)
+        self._stream_handler.start_read_thread(self)
         self.__container.set_status(
             f"Connected to {self.serial_settings.port}:{self.serial_settings.port_desc} "
             + f"@ {self.serial_settings.bpsrate}",
@@ -404,9 +407,8 @@ class SPARTNLBANDDialog(Frame):
         )
         self.set_controls(CONNECTED)
 
-        # poll current configuration
-        msg = self._format_cfgpoll()
-        self._send_lband_command(msg)
+        # poll for config
+        self._poll_config()
 
     def _on_disconnect(self):
         """
@@ -414,7 +416,7 @@ class SPARTNLBANDDialog(Frame):
         """
 
         if self.__app.spartn_conn_status == CONNECTED:
-            self.lband_stream_handler.stop_read_thread()
+            self._stream_handler.stop_read_thread()
             self.__app.spartn_conn_status = DISCONNECTED
             self.__container.set_status(
                 "Disconnected",
@@ -428,6 +430,7 @@ class SPARTNLBANDDialog(Frame):
         configuration.
         """
 
+        # TODO note on possible issue with LBAND RTK:
         # We figured it out. Turns out the issue was with the parameter CFG-NAVSPG-CONSTR_DGNSSTO,
         # which seems to specify how long to wait between correction messages before dropping RTK.
         # It was set to 10 seconds: much too short to accomodate the infrequent messages from the D9S.
@@ -502,22 +505,32 @@ class SPARTNLBANDDialog(Frame):
             return
 
         msg = self._format_cfgcorr()
-        self._send_lband_command(msg)
+        self._send_command(msg)
         self.__container.set_status(f"{CFGSET} command sent", "green")
-        self._lbl_lbandsend.config(image=self._img_pending)
+        self._lbl_send.config(image=self._img_pending)
 
-        # poll for acknowledgement
+        # poll for config
+        self._poll_config()
+
+    def _poll_config(self):
+        """
+        Poll receiver for current configuration.
+        """
+
         msg = self._format_cfgpoll()
-        self._send_lband_command(msg)
+        self._send_command(msg)
 
-    def _send_lband_command(self, msg: UBXMessage):
+        for msgid in (CFGPOLL, "ACK-ACK", "ACK-NAK"):
+            self.__container.set_pending(msgid, SPARTN_LBAND)
+
+    def _send_command(self, msg: UBXMessage):
         """
         Send command to L-Band Correction receiver.
         """
 
         self.__app.spartn_outqueue.put(msg.serialize())
 
-    def update_pending(self, msg: UBXMessage):
+    def update_status(self, msg: UBXMessage):
         """
         Update pending confirmation status.
         :param UBXMessage msg: UBX config message
@@ -543,8 +556,14 @@ class SPARTNLBANDDialog(Frame):
             if hasattr(msg, "CFG_PMP_UNIQUE_WORD"):
                 self._spartn_unqword.set(msg.CFG_PMP_UNIQUE_WORD)
             self.__container.set_status(f"{CFGPOLL} received", "green")
-            self._lbl_lbandsend.config(image=self._img_confirmed)
-            self.update_idletasks()
+            self._lbl_send.config(image=self._img_confirmed)
+        elif msg.identity == "ACK-ACK":
+            self._lbl_send.config(image=self._img_confirmed)
+            self.__container.set_status(CONFIGOK.format(CFGSET), "green")
+        elif msg.identity == "ACK-NAK":
+            self._lbl_send.config(image=self._img_warn)
+            self.__container.set_status(CONFIGBAD.format(CFGSET), "red")
+        self.update_idletasks()
 
     # ============================================
     # FOLLOWING METHODS REQUIRED BY STREAM_HANDLER

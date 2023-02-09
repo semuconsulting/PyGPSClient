@@ -208,7 +208,7 @@ class GPXViewerDialog(Toplevel):
             padx=3,
             pady=3,
         )
-        self._btn_exit.grid(column=4, row=1, padx=3, pady=3, sticky=(E))
+        self._btn_exit.grid(column=4, row=1, padx=3, pady=3, sticky=E)
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=3)

@@ -311,11 +311,11 @@ class BannerFrame(Frame):
         self._frm_connect.grid(
             column=0, row=0, rowspan=2, pady=3, ipadx=3, ipady=3, sticky=(N, W)
         )
-        self._frm_basic.grid(column=1, row=0, pady=3, sticky=(W))
+        self._frm_basic.grid(column=1, row=0, pady=3, sticky=W)
         self._frm_toggle.grid(column=5, row=0, rowspan=2, pady=3, sticky=(N, E))
         self._show_advanced = not self._show_advanced
         if self._show_advanced:
-            self._frm_advanced.grid(column=1, row=1, pady=3, sticky=(W))
+            self._frm_advanced.grid(column=1, row=1, pady=3, sticky=W)
             self._btn_toggle.config(image=self._img_contract)
         else:
             self._frm_advanced.grid_forget()

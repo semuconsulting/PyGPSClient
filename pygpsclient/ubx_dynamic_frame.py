@@ -171,10 +171,10 @@ class UBX_Dynamic_Frame(Frame):
         )
         self._scr_cfg_cmd.grid(column=1, row=1, rowspan=6, sticky=(N, S, E))
         self._btn_send_command.grid(
-            column=3, row=1, rowspan=3, ipadx=3, ipady=3, sticky=(W)
+            column=3, row=1, rowspan=3, ipadx=3, ipady=3, sticky=W
         )
         self._lbl_send_command.grid(
-            column=3, row=4, rowspan=3, ipadx=3, ipady=3, sticky=(W)
+            column=3, row=4, rowspan=3, ipadx=3, ipady=3, sticky=W
         )
         self._lbl_command.grid(column=0, row=7, columnspan=4, padx=3, sticky=(W, E))
         self._frm_container.grid(
@@ -408,15 +408,15 @@ class UBX_Dynamic_Frame(Frame):
                 mval = hex(int.from_bytes(mval, "big"))
             self._cfg_atts[nam][0].set(mval)
 
-        Label(self._frm_attrs, text=nam).grid(column=0, row=row, sticky=(E))
+        Label(self._frm_attrs, text=nam).grid(column=0, row=row, sticky=E)
         Entry(
             self._frm_attrs,
             readonlybackground=ENTCOL,
             textvariable=self._cfg_atts[nam][0],
             relief="sunken",
             bg=ENTCOL,
-        ).grid(column=1, row=row, sticky=(W))
-        Label(self._frm_attrs, text=att).grid(column=2, row=row, sticky=(W))
+        ).grid(column=1, row=row, sticky=W)
+        Label(self._frm_attrs, text=att).grid(column=2, row=row, sticky=W)
         row += 1
 
         return row

@@ -34,6 +34,7 @@ from tkinter import (
     DISABLED,
 )
 from PIL import ImageTk, Image
+from pyubx2 import UBXMessage
 from pygpsclient.mqtt_handler import MQTTHandler
 from pygpsclient.globals import (
     ICON_EXIT,
@@ -202,7 +203,7 @@ class SPARTNMQTTDialog(Frame):
             column=0, row=5, columnspan=4, padx=2, pady=3, sticky=(W, E)
         )
         self._btn_mqttconnect.grid(column=0, row=6, padx=3, pady=2, sticky=W)
-        self._btn_mqttdisconnect.grid(column=1, row=6, padx=3, pady=2, sticky=W)
+        self._btn_mqttdisconnect.grid(column=2, row=6, padx=3, pady=2, sticky=W)
 
     def _reset(self):
         """
@@ -299,3 +300,11 @@ class SPARTNMQTTDialog(Frame):
                 "red",
             )
         self.set_controls(DISCONNECTED)
+
+    def update_status(self, msg: UBXMessage):
+        """
+        Update pending confirmation status.
+        :param UBXMessage msg: UBX config message
+        """
+
+        pass

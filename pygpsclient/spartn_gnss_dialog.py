@@ -45,9 +45,9 @@ from pygpsclient.globals import (
     ICON_BLANK,
     ENTCOL,
     CONNECTED,
-    SPARTN_LBAND,
-    SPARTN_IP,
-    SPARTN_DEFSRC,
+    SPARTN_SOURCE_LB,
+    SPARTN_SOURCE_IP,
+    SPARTN_GNSS,
 )
 from pygpsclient.strings import (
     LBLSPTNCURR,
@@ -174,14 +174,14 @@ class SPARTNGNSSDialog(Frame):
             relief="sunken",
             width=8,
         )
+        self._rad_source0 = Radiobutton(
+            self, text="IP", variable=self._spartn_source, value=SPARTN_SOURCE_IP
+        )
         self._rad_source1 = Radiobutton(
             self,
             text="L-Band",
             variable=self._spartn_source,
-            value=SPARTN_LBAND,
-        )
-        self._rad_source0 = Radiobutton(
-            self, text="IP", variable=self._spartn_source, value=SPARTN_IP
+            value=SPARTN_SOURCE_LB,
         )
         self._chk_upload_keys = Checkbutton(
             self,
@@ -228,8 +228,8 @@ class SPARTNGNSSDialog(Frame):
         ttk.Separator(self).grid(
             column=0, row=8, columnspan=4, padx=2, pady=3, sticky=(W, E)
         )
-        self._rad_source1.grid(column=0, row=9, padx=3, pady=2, sticky=W)
-        self._rad_source0.grid(column=1, row=9, columnspan=3, padx=3, pady=2, sticky=W)
+        self._rad_source0.grid(column=0, row=9, padx=3, pady=2, sticky=W)
+        self._rad_source1.grid(column=1, row=9, columnspan=3, padx=3, pady=2, sticky=W)
         self._chk_upload_keys.grid(column=0, row=10, padx=3, pady=2, sticky=W)
         self._chk_send_config.grid(column=1, row=10, padx=3, pady=2, sticky=W)
         self._chk_disable_nmea.grid(
@@ -249,7 +249,7 @@ class SPARTNGNSSDialog(Frame):
         curr = datetime.now()
         self._set_date(self._spartn_valdate1, curr)
         self._set_date(self._spartn_valdate2, curr + timedelta(weeks=4))
-        self._spartn_source.set(SPARTN_DEFSRC)
+        self._spartn_source.set(SPARTN_SOURCE_IP)
         self._upload_keys.set(1)
         self._send_f9p_config.set(1)
         self._disable_nmea.set(0)
@@ -288,10 +288,9 @@ class SPARTNGNSSDialog(Frame):
         Format UBX CFG-VALSET message to configure GNSS receiver.
         """
 
+        cfgdata = []
         # select SPARTN source (L-band or IP)
-        cfgdata = [
-            ("CFG_SPARTN_USE_SOURCE", self._spartn_source.get()),
-        ]
+        cfgdata.append(("CFG_SPARTN_USE_SOURCE", self._spartn_source.get()))
         # enable SPARTN and UBX on selected ports
         for port in self._ports:
             cfgdata.append((f"CFG_{port}INPROT_UBX", 1))
@@ -307,8 +306,8 @@ class SPARTNGNSSDialog(Frame):
                 cfgdata.append((f"CFG_MSGOUT_UBX_NAV_SAT_{port}", 4))
             else:
                 cfgdata.append((f"CFG_{port}OUTPROT_NMEA", 1))
-                cfgdata.append((f"CFG_MSGOUT_UBX_NAV_PVT_{port}", 0))
-                cfgdata.append((f"CFG_MSGOUT_UBX_NAV_SAT_{port}", 0))
+                # cfgdata.append((f"CFG_MSGOUT_UBX_NAV_PVT_{port}", 0))
+                # cfgdata.append((f"CFG_MSGOUT_UBX_NAV_SAT_{port}", 0))
 
         msg = UBXMessage.config_set(SET_LAYER_RAM, TXN_NONE, cfgdata)
         return msg
@@ -387,6 +386,8 @@ class SPARTNGNSSDialog(Frame):
             f"{(msgk + msga + msgc).capitalize()} sent", "green"
         )
         self._lbl_send_command.config(image=self._img_pending)
+        for msgid in ("RXM-SPARTNKEY", "CFG-VALGET", "ACK-ACK", "ACK-NAK"):
+            self.__container.set_pending(msgid, SPARTN_GNSS)
 
     def _send_gnss_command(self, msg: UBXMessage):
         """
@@ -410,7 +411,7 @@ class SPARTNGNSSDialog(Frame):
         dat = val.get()
         return datetime(int(dat[0:4]), int(dat[4:6]), int(dat[6:8]))
 
-    def update_pending(self, msg: UBXMessage):
+    def update_status(self, msg: UBXMessage):
         """
         Update pending confirmation status.
         :param UBXMessage msg: UBX config message

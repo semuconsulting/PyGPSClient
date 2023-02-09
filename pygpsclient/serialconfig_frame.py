@@ -226,31 +226,31 @@ class SerialConfigFrame(Frame):
         """
 
         self._frm_basic.grid(column=0, row=0, columnspan=4, sticky=(W, E))
-        self._lbl_port.grid(column=0, row=0, sticky=(W))
+        self._lbl_port.grid(column=0, row=0, sticky=W)
         self._lbx_port.grid(
             column=1, row=0, columnspan=2, sticky=(W, E), padx=3, pady=2
         )
         self._scr_portv.grid(column=3, row=0, sticky=(N, S))
         self._scr_porth.grid(column=1, row=1, columnspan=2, sticky=(E, W))
-        self._lbl_bpsrate.grid(column=0, row=2, sticky=(W))
-        self._spn_bpsrate.grid(column=1, row=2, sticky=(W), padx=3, pady=2)
-        self._btn_refresh.grid(column=2, row=2, sticky=(E))
-        self._btn_toggle.grid(column=3, row=2, sticky=(E))
+        self._lbl_bpsrate.grid(column=0, row=2, sticky=W)
+        self._spn_bpsrate.grid(column=1, row=2, sticky=W, padx=3, pady=2)
+        self._btn_refresh.grid(column=2, row=2, sticky=E)
+        self._btn_toggle.grid(column=3, row=2, sticky=E)
 
         self._frm_advanced.grid_forget()
-        self._lbl_databits.grid(column=0, row=0, sticky=(W))
-        self._spn_databits.grid(column=1, row=0, sticky=(W), padx=3, pady=2)
-        self._lbl_stopbits.grid(column=2, row=0, sticky=(W))
-        self._spn_stopbits.grid(column=3, row=0, sticky=(W), padx=3, pady=2)
-        self._lbl_parity.grid(column=0, row=1, sticky=(W))
-        self._spn_parity.grid(column=1, row=1, sticky=(W), padx=3, pady=2)
-        self._chk_rts.grid(column=2, row=1, sticky=(W))
-        self._chk_xon.grid(column=3, row=1, sticky=(W), padx=3, pady=2)
-        self._lbl_timeout.grid(column=0, row=2, sticky=(W))
-        self._spn_timeout.grid(column=1, row=2, sticky=(W), padx=3, pady=2)
+        self._lbl_databits.grid(column=0, row=0, sticky=W)
+        self._spn_databits.grid(column=1, row=0, sticky=W, padx=3, pady=2)
+        self._lbl_stopbits.grid(column=2, row=0, sticky=W)
+        self._spn_stopbits.grid(column=3, row=0, sticky=W, padx=3, pady=2)
+        self._lbl_parity.grid(column=0, row=1, sticky=W)
+        self._spn_parity.grid(column=1, row=1, sticky=W, padx=3, pady=2)
+        self._chk_rts.grid(column=2, row=1, sticky=W)
+        self._chk_xon.grid(column=3, row=1, sticky=W, padx=3, pady=2)
+        self._lbl_timeout.grid(column=0, row=2, sticky=W)
+        self._spn_timeout.grid(column=1, row=2, sticky=W, padx=3, pady=2)
         if len(self._msgmode_rng) > 0:
-            self._lbl_msgmode.grid(column=2, row=2, sticky=(W))
-            self._spn_msgmode.grid(column=3, row=2, sticky=(W), padx=3, pady=2)
+            self._lbl_msgmode.grid(column=2, row=2, sticky=W)
+            self._spn_msgmode.grid(column=3, row=2, sticky=W, padx=3, pady=2)
 
     def _attach_events(self):
         """

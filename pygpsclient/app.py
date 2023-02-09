@@ -599,27 +599,23 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
         EVENT TRIGGERED
         Action on <<spartn_read>> event - read data from SPARTN queue.
-        If it's RXM-PMP data, send to connected receiver and display on console.
-        Anything else, just display on console.
+        If it's RXM-PMP data, send to connected receiver and display on console
+        with a "SPARTN>>" marker. Anything else, just display on console with a
+        "SPARTN>>" marker.
 
         :param event event: read event
         """
 
+        mkr = "SPARTN>>"
         try:
             raw_data, parsed_data = self._spartn_inqueue.get(False)
             if raw_data is not None and parsed_data is not None:
                 if self.conn_status == CONNECTED:
-                    # if parsed_data.identity == "RXM-PMP":
                     self._gnss_outqueue.put(raw_data)
-                self.process_data(raw_data, parsed_data, "SPARTN>>")
-
-                # update SPARTN config dialog status
-                if (
-                    self._spartn_conn_status == CONNECTED
-                    and self.dlg_spartnconfig is not None
-                ):
-                    self.dlg_spartnconfig.update_status(parsed_data)
-
+                if protocol(raw_data) == UBX_PROTOCOL:
+                    if parsed_data.identity[0:3] in ("CFG", "ACK", "INF", "MON"):
+                        mkr = ""
+                self.process_data(raw_data, parsed_data, mkr)
             self._spartn_inqueue.task_done()
 
         except Empty:

@@ -87,8 +87,8 @@ class UBXHandler:
 
         if self.__app.dlg_ubxconfig is not None:
             self.__app.dlg_ubxconfig.update_pending(msg)
-        # if SPARTN config dialog is open, send ACKs there as well
-        if msg.identity[0:3] == "ACK" and self.__app.dlg_spartnconfig is not None:
+        # if SPARTN config dialog is open, send CFG & ACKs there as well
+        if self.__app.dlg_spartnconfig is not None:
             self.__app.dlg_spartnconfig.update_pending(msg)
 
     def _process_NAV_POSLLH(self, data: UBXMessage):
@@ -289,5 +289,6 @@ class UBXHandler:
         :param UBXMessage data: RXM-SPARTN_KEY poll response message
         """
 
+        print(f"DERUG process RXM-SPARTN_KEY {data}")
         if self.__app.dlg_spartnconfig is not None:
             self.__app.dlg_spartnconfig.update_pending(data)

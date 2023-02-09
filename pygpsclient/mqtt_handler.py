@@ -145,7 +145,7 @@ class MQTTHandler:
             # run the client loop in the same thread, as callback access gnss
             # client.loop(timeout=0.1)
             try:
-                if not inqueue.empty():
+                while not inqueue.empty():
                     data = inqueue.get()
                     outqueue.put(data)
                     self.__master.event_generate(SPARTN_EVENT)

@@ -156,12 +156,12 @@ class UBX_Recorder_Frame(Frame):
         """
 
         self._lbl_recorder.grid(column=0, row=0, columnspan=6, padx=3, sticky=(W, E))
-        self._btn_load.grid(column=0, row=1, ipadx=3, ipady=3, sticky=(W))
-        self._btn_save.grid(column=1, row=1, ipadx=3, ipady=3, sticky=(W))
-        self._btn_play.grid(column=2, row=1, ipadx=3, ipady=3, sticky=(W))
-        self._btn_record.grid(column=3, row=1, ipadx=3, ipady=3, sticky=(W))
-        self._btn_undo.grid(column=4, row=1, ipadx=3, ipady=3, sticky=(W))
-        self._btn_delete.grid(column=5, row=1, ipadx=3, ipady=3, sticky=(W))
+        self._btn_load.grid(column=0, row=1, ipadx=3, ipady=3, sticky=W)
+        self._btn_save.grid(column=1, row=1, ipadx=3, ipady=3, sticky=W)
+        self._btn_play.grid(column=2, row=1, ipadx=3, ipady=3, sticky=W)
+        self._btn_record.grid(column=3, row=1, ipadx=3, ipady=3, sticky=W)
+        self._btn_undo.grid(column=4, row=1, ipadx=3, ipady=3, sticky=W)
+        self._btn_delete.grid(column=5, row=1, ipadx=3, ipady=3, sticky=W)
         self._lbl_status.grid(column=0, row=2, columnspan=6, padx=3, sticky=(W, E))
         self._lbl_activity.grid(column=0, row=3, columnspan=6, padx=3, sticky=(W, E))
 

@@ -132,22 +132,22 @@ class UBX_RATE_Frame(Frame):
 
         self._lbl_cfg_rate.grid(column=0, row=0, columnspan=6, padx=3, sticky=(W, E))
         self._lbl_ubx_measint.grid(
-            column=0, row=1, columnspan=2, rowspan=1, padx=3, pady=3, sticky=(W)
+            column=0, row=1, columnspan=2, rowspan=1, padx=3, pady=3, sticky=W
         )
-        self._spn_ubx_measint.grid(column=2, row=1, columnspan=1, rowspan=1, sticky=(W))
+        self._spn_ubx_measint.grid(column=2, row=1, columnspan=1, rowspan=1, sticky=W)
         self._lbl_ubx_navrate.grid(
-            column=0, row=2, columnspan=2, rowspan=1, padx=3, pady=3, sticky=(W)
+            column=0, row=2, columnspan=2, rowspan=1, padx=3, pady=3, sticky=W
         )
-        self._spn_ubx_navrate.grid(column=2, row=2, columnspan=2, rowspan=1, sticky=(W))
+        self._spn_ubx_navrate.grid(column=2, row=2, columnspan=2, rowspan=1, sticky=W)
         self._lbl_ubx_timeref.grid(
-            column=0, row=3, columnspan=2, rowspan=1, padx=3, pady=3, sticky=(W)
+            column=0, row=3, columnspan=2, rowspan=1, padx=3, pady=3, sticky=W
         )
-        self._spn_ubx_timeref.grid(column=2, row=3, columnspan=2, rowspan=1, sticky=(W))
+        self._spn_ubx_timeref.grid(column=2, row=3, columnspan=2, rowspan=1, sticky=W)
         self._btn_send_command.grid(
-            column=4, row=1, rowspan=3, ipadx=3, ipady=3, sticky=(E)
+            column=4, row=1, rowspan=3, ipadx=3, ipady=3, sticky=E
         )
         self._lbl_send_command.grid(
-            column=5, row=1, rowspan=3, ipadx=3, ipady=3, sticky=(E)
+            column=5, row=1, rowspan=3, ipadx=3, ipady=3, sticky=E
         )
 
         (cols, rows) = self.grid_size()

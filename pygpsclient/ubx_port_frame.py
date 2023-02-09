@@ -146,27 +146,27 @@ class UBX_PORT_Frame(Frame):
 
         self._lbl_cfg_port.grid(column=0, row=0, columnspan=6, padx=3, sticky=(W, E))
         self._lbl_ubx_portid.grid(
-            column=0, row=1, columnspan=1, rowspan=2, padx=3, sticky=(W)
+            column=0, row=1, columnspan=1, rowspan=2, padx=3, sticky=W
         )
-        self._spn_ubx_portid.grid(column=1, row=1, columnspan=1, rowspan=2, sticky=(W))
+        self._spn_ubx_portid.grid(column=1, row=1, columnspan=1, rowspan=2, sticky=W)
         self._lbl_ubx_bpsrate.grid(
-            column=2, row=1, columnspan=1, rowspan=2, padx=3, sticky=(W)
+            column=2, row=1, columnspan=1, rowspan=2, padx=3, sticky=W
         )
-        self._spn_ubx_bpsrate.grid(column=3, row=1, columnspan=2, rowspan=2, sticky=(W))
-        self._lbl_inprot.grid(column=0, row=3, padx=3, sticky=(W))
-        self._chk_inprot_nmea.grid(column=1, row=3, sticky=(W))
-        self._chk_inprot_ubx.grid(column=2, row=3, sticky=(W))
-        self._chk_inprot_rtcm2.grid(column=3, row=3, sticky=(W))
-        self._chk_inprot_rtcm3.grid(column=4, row=3, sticky=(W))
-        self._lbl_outprot.grid(column=0, row=4, padx=3, sticky=(W))
-        self._chk_outprot_nmea.grid(column=1, row=4, sticky=(W))
-        self._chk_outprot_ubx.grid(column=2, row=4, sticky=(W))
-        self._chk_outprot_rtcm3.grid(column=3, row=4, sticky=(W))
+        self._spn_ubx_bpsrate.grid(column=3, row=1, columnspan=2, rowspan=2, sticky=W)
+        self._lbl_inprot.grid(column=0, row=3, padx=3, sticky=W)
+        self._chk_inprot_nmea.grid(column=1, row=3, sticky=W)
+        self._chk_inprot_ubx.grid(column=2, row=3, sticky=W)
+        self._chk_inprot_rtcm2.grid(column=3, row=3, sticky=W)
+        self._chk_inprot_rtcm3.grid(column=4, row=3, sticky=W)
+        self._lbl_outprot.grid(column=0, row=4, padx=3, sticky=W)
+        self._chk_outprot_nmea.grid(column=1, row=4, sticky=W)
+        self._chk_outprot_ubx.grid(column=2, row=4, sticky=W)
+        self._chk_outprot_rtcm3.grid(column=3, row=4, sticky=W)
         self._btn_send_command.grid(
-            column=4, row=1, rowspan=2, ipadx=3, ipady=3, sticky=(E)
+            column=4, row=1, rowspan=2, ipadx=3, ipady=3, sticky=E
         )
         self._lbl_send_command.grid(
-            column=5, row=1, rowspan=2, ipadx=3, ipady=3, sticky=(E)
+            column=5, row=1, rowspan=2, ipadx=3, ipady=3, sticky=E
         )
 
         (cols, rows) = self.grid_size()

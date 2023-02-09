@@ -210,7 +210,7 @@ class UBXConfigDialog(Toplevel):
         self._lbl_status.grid(
             column=0, row=0, columnspan=colsp - 1, ipadx=3, ipady=3, sticky=(W, E)
         )
-        self._btn_exit.grid(column=colsp - 1, row=0, ipadx=3, ipady=3, sticky=(E))
+        self._btn_exit.grid(column=colsp - 1, row=0, ipadx=3, ipady=3, sticky=E)
 
         for frm in (self._frm_container, self._frm_status):
             for i in range(colsp):

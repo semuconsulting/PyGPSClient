@@ -36,6 +36,9 @@ from pygpsclient.globals import (
     ICON_PENDING,
     ICON_WARNING,
     ICON_BLANK,
+    SPARTN_GNSS,
+    SPARTN_LBAND,
+    SPARTN_MQTT,
 )
 from pygpsclient.strings import DLGSPARTNCONFIG
 from pygpsclient.spartn_gnss_dialog import SPARTNGNSSDialog
@@ -75,6 +78,7 @@ class SPARTNConfigDialog(Toplevel):
         self._img_warn = ImageTk.PhotoImage(Image.open(ICON_WARNING))
         self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
         self._status = StringVar()
+        self._pending_confs = {}
 
         self._body()
         self._do_layout()
@@ -196,6 +200,17 @@ class SPARTNConfigDialog(Toplevel):
         self.__app.stop_spartnconfig_thread()
         self.destroy()
 
+    def set_pending(self, msgid: int, spartnfrm: int):
+        """
+        Set pending confirmation flag for UBX configuration frame to
+        signify that it's waiting for a confirmation message.
+
+        :param int msgid: UBX message identity
+        :param int spartnfrm: integer representing SPARTN configuration frame
+        """
+
+        self._pending_confs[msgid] = spartnfrm
+
     def update_pending(self, msg: UBXMessage):
         """
         Update pending confirmation status.
@@ -205,10 +220,20 @@ class SPARTNConfigDialog(Toplevel):
         if not hasattr(msg, "identity"):
             return
 
-        if msg.identity in (RXMMSG, "ACK-ACK", "ACK-NAK"):
-            self._frm_gnss.update_pending(msg)
-        elif msg.identity == CFGPOLL:
-            self._frm_corrlband.update_pending(msg)
+        spartnfrm = self._pending_confs.get(msg.identity, None)
+
+        if spartnfrm is not None:
+            if spartnfrm == SPARTN_GNSS:
+                self._frm_gnss.update_status(msg)
+            elif spartnfrm == SPARTN_LBAND:
+                self._frm_corrlband.update_status(msg)
+            elif spartnfrm == SPARTN_MQTT:
+                self._frm_corrip.update_status(msg)
+
+            # reset all confirmation flags for this frame
+            for msgid in (msg.identity, "ACK-ACK", "ACK-NAK"):
+                if self._pending_confs.get(msgid, None) == spartnfrm:
+                    self._pending_confs.pop(msgid)
 
     @property
     def container(self):

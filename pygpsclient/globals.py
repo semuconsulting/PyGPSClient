@@ -111,10 +111,6 @@ ENABLE_CFG_OTHER = True  # enable CFG=* Other Configuration command panel
 MQAPIKEY = "mqapikey"
 UBXPRESETS = "ubxpresets"
 COLORTAGS = "colortags"
-# SPARTN client defaults
-SPARTN_LBAND = 0
-SPARTN_IP = 1
-SPARTN_DEFSRC = SPARTN_LBAND
 # list of recognised serial device descriptors:
 KNOWNGPS = (
     "USER-DEFINED",
@@ -223,7 +219,13 @@ UBX_CFGVAL = 4
 UBX_PRESET = 5
 UBX_CFGRATE = 6
 UBX_CFGOTHER = 7
-UBX_SPARTN = 8
+SPARTN_GNSS = 8
+SPARTN_LBAND = 9
+SPARTN_MQTT = 10
+
+# SPARTN source enumeration
+SPARTN_SOURCE_LB = 1
+SPARTN_SOURCE_IP = 0
 
 GLONASS_NMEA = True  # use GLONASS NMEA SVID (65-96) rather than slot (1-24)
 # GNSS color codings:
