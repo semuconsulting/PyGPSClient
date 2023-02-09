@@ -28,14 +28,11 @@ from tkinter import (
     Entry,
     StringVar,
     IntVar,
-    N,
-    S,
     E,
     W,
     NORMAL,
     DISABLED,
 )
-from queue import Queue
 from PIL import ImageTk, Image
 from pygpsclient.mqtt_handler import MQTTHandler
 from pygpsclient.globals import (

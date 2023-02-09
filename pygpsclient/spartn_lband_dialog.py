@@ -416,7 +416,7 @@ class SPARTNLBANDDialog(Frame):
         if self.__app.spartn_conn_status == CONNECTED:
             self.lband_stream_handler.stop_read_thread()
             self.__app.spartn_conn_status = DISCONNECTED
-            self.__container.et_status(
+            self.__container.set_status(
                 "Disconnected",
                 "red",
             )
@@ -517,9 +517,48 @@ class SPARTNLBANDDialog(Frame):
 
         self.__app.spartn_outqueue.put(msg.serialize())
 
+    def update_pending(self, msg: UBXMessage):
+        """
+        Update pending confirmation status.
+        :param UBXMessage msg: UBX config message
+        """
+
+        if msg.identity == CFGPOLL:
+            if hasattr(msg, "CFG_PMP_CENTER_FREQUENCY"):
+                self._spartn_freq.set(msg.CFG_PMP_CENTER_FREQUENCY)
+            if hasattr(msg, "CFG_PMP_SEARCH_WINDOW"):
+                self._spartn_schwin.set(msg.CFG_PMP_SEARCH_WINDOW)
+            if hasattr(msg, "CFG_PMP_USE_SERVICE_ID"):
+                self._spartn_usesid.set(msg.CFG_PMP_USE_SERVICE_ID)
+            if hasattr(msg, "CFG_PMP_SERVICE_ID"):
+                self._spartn_sid.set(msg.CFG_PMP_SERVICE_ID)
+            if hasattr(msg, "CFG_PMP_DATA_RATE"):
+                self._spartn_drat.set(msg.CFG_PMP_DATA_RATE)
+            if hasattr(msg, "CFG_PMP_USE_DESCRAMBLER"):
+                self._spartn_descrm.set(msg.CFG_PMP_USE_DESCRAMBLER)
+            if hasattr(msg, "CFG_PMP_DESCRAMBLER_INIT"):
+                self._spartn_descrminit.set(msg.CFG_PMP_DESCRAMBLER_INIT)
+            if hasattr(msg, "CFG_PMP_USE_PRESCRAMBLING"):
+                self._spartn_prescrm.set(msg.CFG_PMP_USE_PRESCRAMBLING)
+            if hasattr(msg, "CFG_PMP_UNIQUE_WORD"):
+                self._spartn_unqword.set(msg.CFG_PMP_UNIQUE_WORD)
+            self.__container.set_status(f"{CFGPOLL} received", "green")
+            self._lbl_lbandsend.config(image=self._img_confirmed)
+            self.update_idletasks()
+
     # ============================================
     # FOLLOWING METHODS REQUIRED BY STREAM_HANDLER
     # ============================================
+
+    def set_status(self, msg: str, color: str = "blue"):
+        """
+        Set status message.
+
+        :param str message: message to be displayed
+        :param str color: rgb color of text (blue)
+        """
+
+        self.__container.set_status(msg, color)
 
     @property
     def appmaster(self) -> object:

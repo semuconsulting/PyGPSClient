@@ -89,7 +89,7 @@ class UBXHandler:
             self.__app.dlg_ubxconfig.update_pending(msg)
         # if SPARTN config dialog is open, send ACKs there as well
         if msg.identity[0:3] == "ACK" and self.__app.dlg_spartnconfig is not None:
-            self.__app.dlg_spartnconfig.update_status(msg)
+            self.__app.dlg_spartnconfig.update_pending(msg)
 
     def _process_NAV_POSLLH(self, data: UBXMessage):
         """
@@ -290,4 +290,4 @@ class UBXHandler:
         """
 
         if self.__app.dlg_spartnconfig is not None:
-            self.__app.dlg_spartnconfig.update_status(data)
+            self.__app.dlg_spartnconfig.update_pending(data)

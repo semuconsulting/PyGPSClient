@@ -20,8 +20,6 @@ from tkinter import (
     Entry,
     StringVar,
     IntVar,
-    N,
-    S,
     E,
     W,
     NORMAL,
@@ -62,6 +60,8 @@ from pygpsclient.strings import (
     NOTCONN,
     NULLSEND,
     LBLSPARTNGN,
+    CONFIGOK,
+    CONFIGBAD,
 )
 from pygpsclient.helpers import (
     valid_entry,
@@ -409,3 +409,24 @@ class SPARTNGNSSDialog(Frame):
 
         dat = val.get()
         return datetime(int(dat[0:4]), int(dat[4:6]), int(dat[6:8]))
+
+    def update_pending(self, msg: UBXMessage):
+        """
+        Update pending confirmation status.
+        :param UBXMessage msg: UBX config message
+        """
+
+        if msg.identity == RXMMSG:
+            if msg.numKeys == 2:  # check both keys have been uploaded
+                self._lbl_send_command.config(image=self._img_confirmed)
+                self.__container.set_status(CONFIGOK.format(RXMMSG), "green")
+            else:
+                self._lbl_send_command.config(image=self._img_warn)
+                self.__container.set_status(CONFIGBAD.format(RXMMSG), "red")
+        elif msg.identity == "ACK-ACK":
+            self._lbl_send_command.config(image=self._img_confirmed)
+            self.__container.set_status(CONFIGOK.format(CFGSET), "green")
+        elif msg.identity == "ACK-NAK":
+            self._lbl_send_command.config(image=self._img_warn)
+            self.__container.set_status(CONFIGBAD.format(CFGSET), "red")
+        self.update_idletasks()

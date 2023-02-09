@@ -29,6 +29,7 @@ from tkinter import (
     W,
 )
 from PIL import ImageTk, Image
+from pyubx2 import UBXMessage
 from pygpsclient.globals import (
     ICON_EXIT,
     ICON_CONFIRMED,
@@ -40,6 +41,10 @@ from pygpsclient.strings import DLGSPARTNCONFIG
 from pygpsclient.spartn_gnss_dialog import SPARTNGNSSDialog
 from pygpsclient.spartn_lband_dialog import SPARTNLBANDDialog
 from pygpsclient.spartn_mqtt_dialog import SPARTNMQTTDialog
+
+RXMMSG = "RXM-SPARTN-KEY"
+CFGSET = "CFG-VALGET/SET"
+CFGPOLL = "CFG-VALGET"
 
 
 class SPARTNConfigDialog(Toplevel):
@@ -95,44 +100,55 @@ class SPARTNConfigDialog(Toplevel):
             font=self.__app.font_md,
         )
 
-        # self._frm_corrip = SPARTNMQTTDialog(
-        #     self.__app, self, borderwidth=2, relief="groove"
-        # )
-        # self._frm_corrlband = SPARTNLBANDDialog(
-        #     self.__app, self, borderwidth=2, relief="groove"
-        # )
-        # self._frm_gnss = SPARTNGNSSDialog(
-        #     self.__app, self, borderwidth=2, relief="groove"
-        # )
+        self._frm_corrip = SPARTNMQTTDialog(
+            self.__app, self, borderwidth=2, relief="groove"
+        )
+        self._frm_corrlband = SPARTNLBANDDialog(
+            self.__app, self, borderwidth=2, relief="groove"
+        )
+        self._frm_gnss = SPARTNGNSSDialog(
+            self.__app, self, borderwidth=2, relief="groove"
+        )
 
     def _do_layout(self):
         """
         Position widgets in frame.
         """
 
-        # self._frm_corrip.grid(
-        #     column=0,
-        #     row=0,
-        #     ipadx=5,
-        #     ipady=5,
-        #     sticky=(N, S, W, E),
-        # )
-        # self._frm_corrlband.grid(
-        #     column=0,
-        #     row=1,
-        #     ipadx=5,
-        #     ipady=5,
-        #     sticky=(N, S, W, E),
-        # )
-        # self._frm_gnss.grid(
-        #     column=0,
-        #     row=2,
-        #     ipadx=5,
-        #     ipady=5,
-        #     sticky=(N, S, W, E),
-        # )
+        self._frm_corrip.grid(
+            column=0,
+            row=0,
+            ipadx=5,
+            ipady=5,
+            sticky=(N, S, W, E),
+        )
+        self._frm_corrlband.grid(
+            column=1,
+            row=0,
+            ipadx=5,
+            ipady=5,
+            sticky=(N, S, W, E),
+        )
+        self._frm_gnss.grid(
+            column=2,
+            row=0,
+            ipadx=5,
+            ipady=5,
+            sticky=(N, S, W, E),
+        )
 
         # bottom of grid
+        self._frm_container.grid(
+            column=0,
+            row=0,
+            columnspan=3,
+            rowspan=2,
+            padx=3,
+            pady=3,
+            ipadx=5,
+            ipady=5,
+            sticky=(N, S, W, E),
+        )
         self._frm_status.grid(
             column=0,
             row=1,
@@ -169,7 +185,7 @@ class SPARTNConfigDialog(Toplevel):
         """
 
         message = (message[:80] + "..") if len(message) > 80 else message
-        # self._lbl_status.config(fg=color)
+        self._lbl_status.config(fg=color)
         self._status.set(" " + message)
 
     def on_exit(self, *args, **kwargs):  # pylint: disable=unused-argument
@@ -180,50 +196,19 @@ class SPARTNConfigDialog(Toplevel):
         self.__app.stop_spartnconfig_thread()
         self.destroy()
 
-    # def update_status(self, msg: UBXMessage):
-    #     """
-    #     Update pending confirmation status.
-    #     :param UBXMessage msg: UBX config message
-    #     """
+    def update_pending(self, msg: UBXMessage):
+        """
+        Update pending confirmation status.
+        :param UBXMessage msg: UBX config message
+        """
 
-    #     if not hasattr(msg, "identity"):
-    #         return
+        if not hasattr(msg, "identity"):
+            return
 
-    #     if msg.identity == RXMMSG:
-    #         if msg.numKeys == 2:  # check both keys have been uploaded
-    #             self._lbl_send_command.config(image=self._img_confirmed)
-    #             self.set_status(CONFIGOK.format(RXMMSG), "green")
-    #         else:
-    #             self._lbl_send_command.config(image=self._img_warn)
-    #             self.set_status(CONFIGBAD.format(RXMMSG), "red")
-    #     elif msg.identity == "ACK-ACK":
-    #         self._lbl_send_command.config(image=self._img_confirmed)
-    #         self.set_status(CONFIGOK.format(CFGSET), "green")
-    #     elif msg.identity == "ACK-NAK":
-    #         self._lbl_send_command.config(image=self._img_warn)
-    #         self.set_status(CONFIGBAD.format(CFGSET), "red")
-    #     elif msg.identity == CFGPOLL:
-    #         if hasattr(msg, "CFG_PMP_CENTER_FREQUENCY"):
-    #             self._spartn_freq.set(msg.CFG_PMP_CENTER_FREQUENCY)
-    #         if hasattr(msg, "CFG_PMP_SEARCH_WINDOW"):
-    #             self._spartn_schwin.set(msg.CFG_PMP_SEARCH_WINDOW)
-    #         if hasattr(msg, "CFG_PMP_USE_SERVICE_ID"):
-    #             self._spartn_usesid.set(msg.CFG_PMP_USE_SERVICE_ID)
-    #         if hasattr(msg, "CFG_PMP_SERVICE_ID"):
-    #             self._spartn_sid.set(msg.CFG_PMP_SERVICE_ID)
-    #         if hasattr(msg, "CFG_PMP_DATA_RATE"):
-    #             self._spartn_drat.set(msg.CFG_PMP_DATA_RATE)
-    #         if hasattr(msg, "CFG_PMP_USE_DESCRAMBLER"):
-    #             self._spartn_descrm.set(msg.CFG_PMP_USE_DESCRAMBLER)
-    #         if hasattr(msg, "CFG_PMP_DESCRAMBLER_INIT"):
-    #             self._spartn_descrminit.set(msg.CFG_PMP_DESCRAMBLER_INIT)
-    #         if hasattr(msg, "CFG_PMP_USE_PRESCRAMBLING"):
-    #             self._spartn_prescrm.set(msg.CFG_PMP_USE_PRESCRAMBLING)
-    #         if hasattr(msg, "CFG_PMP_UNIQUE_WORD"):
-    #             self._spartn_unqword.set(msg.CFG_PMP_UNIQUE_WORD)
-    #         self.set_status(f"{CFGPOLL} received", "green")
-    #         self._lbl_lbandsend.config(image=self._img_confirmed)
-    #         self.update_idletasks()
+        if msg.identity in (RXMMSG, "ACK-ACK", "ACK-NAK"):
+            self._frm_gnss.update_pending(msg)
+        elif msg.identity == CFGPOLL:
+            self._frm_corrlband.update_pending(msg)
 
     @property
     def container(self):
