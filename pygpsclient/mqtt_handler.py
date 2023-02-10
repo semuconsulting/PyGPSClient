@@ -1,22 +1,25 @@
 """
 u-blox PointPerfect MQTT client with AssistNow v0.6
 
+Based on pointperfect.assistnow-client-06.py
+
 NB: MQTT certificate (*.crt) and key (*.pem) files must be placed in
 the user's home directory.
 
 The Client ID can be set as environment variable MQTTCLIENTID.
 
-Based on pointperfect.assistnow-client-06.py
-
 Created on 8 Feb 2023
+
+:author: semuadmin
+:copyright: SEMU Consulting © 2023
+:license: BSD 3-Clause
 """
 
-from os import path, getenv
+from os import getenv
 
 from time import sleep
-from queue import Queue, Empty
+from queue import Queue
 from threading import Thread, Event
-from pathlib import Path
 import paho.mqtt.client as mqtt
 from pyubx2 import (
     UBXReader,
@@ -25,10 +28,7 @@ from pyubx2 import (
     UBX_PROTOCOL,
     GET,
 )
-from pygpsclient.globals import SPARTN_EVENT
-
-HOME = str(Path.home())
-SERVER = "pp.services.u-blox.com"
+from pygpsclient.globals import SPARTN_EVENT, SPARTN_PPSERVER
 
 
 class MQTTHandler:
@@ -53,7 +53,7 @@ class MQTTHandler:
         self.__app = app
         self.__master = self.__app.appmaster
         self._clientid = kwargs.get("clientid", getenv("MQTTCLIENTID", default=""))
-        self._server = kwargs.get("server", SERVER)
+        self._server = kwargs.get("server", SPARTN_PPSERVER)
         self._topics = kwargs.get(
             "mqtt_topics",
             [
@@ -63,16 +63,10 @@ class MQTTHandler:
             ],
         )
         # mqtt_topics = [(f"/pp/ip/{self._region}", 0), ("/pp/ubx/mga", 0), ("/pp/ubx/0236/Lp", 0)]
-
-        # Thingstream > Location Services > PointPerfect Thing > Credentials
-        certpath = kwargs.get("certpath", HOME)
-        certfile = path.join(certpath, f"device-{self._clientid}-pp-cert.crt")
-        keyfile = path.join(certpath, f"device-{self._clientid}-pp-key.pem")
-        self._tls = (certfile, keyfile)
+        self._tls = kwargs.get("tls")
         self._outqueue = outqueue
         self._stopevent = Event()
         self._mqtt_thread = None
-        self._inqueue = Queue()
 
     def start(self):
         """
@@ -88,7 +82,6 @@ class MQTTHandler:
                 self._server,
                 self._tls,
                 self._stopevent,
-                self._inqueue,
                 self._outqueue,
             ),
             daemon=True,
@@ -110,7 +103,6 @@ class MQTTHandler:
         server: str,
         tls: tuple,
         stopevent: Event,
-        inqueue: Queue,
         outqueue: Queue,
     ):
         """
@@ -124,7 +116,12 @@ class MQTTHandler:
         :param Queue outqueue: output queue to GNSS receiver
         """
 
-        userdata = {"gnss": inqueue, "topics": topics}
+        userdata = {
+            "gnss": outqueue,
+            "topics": topics,
+            "master": self.__master,
+            "readevent": SPARTN_EVENT,
+        }
         client = mqtt.Client(client_id=clientid, userdata=userdata)
         client.on_connect = self.on_connect
         client.on_message = self.on_message
@@ -144,14 +141,7 @@ class MQTTHandler:
         while not stopevent.is_set():
             # run the client loop in the same thread, as callback access gnss
             # client.loop(timeout=0.1)
-            try:
-                while not inqueue.empty():
-                    data = inqueue.get()
-                    outqueue.put(data)
-                    self.__master.event_generate(SPARTN_EVENT)
-                    inqueue.task_done()
-            except Empty:
-                pass
+            sleep(0.1)
         client.loop_stop()
 
     @staticmethod
@@ -177,3 +167,4 @@ class MQTTHandler:
             except UBXParseError:
                 pass
         userdata["gnss"].put((msg.payload, parsed))
+        userdata["master"].event_generate(userdata["readevent"])

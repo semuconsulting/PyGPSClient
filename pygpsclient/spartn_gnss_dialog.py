@@ -48,6 +48,8 @@ from pygpsclient.globals import (
     SPARTN_SOURCE_LB,
     SPARTN_SOURCE_IP,
     SPARTN_GNSS,
+    SPARTN_KEYLEN,
+    RXMMSG,
 )
 from pygpsclient.strings import (
     LBLSPTNCURR,
@@ -65,7 +67,8 @@ from pygpsclient.strings import (
 )
 from pygpsclient.helpers import (
     valid_entry,
-    get_gpswnotow,
+    date2wnotow,
+    parse_rxmspartnkey,
     VALHEX,
     VALDMY,
     VALLEN,
@@ -74,10 +77,8 @@ from pygpsclient.helpers import (
 U2MAX = 2e16 - 1
 U8MAX = 2e64 - 1
 BAUDRATE = 38400
-SPARTN_KEYLEN = 16
 RESERVED0 = b"\x00\x00"
 RESERVED1 = b"\x00"
-RXMMSG = "RXM-SPARTN-KEY"
 CFGSET = "CFG-VALGET/SET"
 CFGPOLL = "CFG-VALGET"
 INPORTS = ("I2C", "UART1", "UART2", "USB", "SPI")
@@ -321,12 +322,12 @@ class SPARTNGNSSDialog(Frame):
         numKeys = val2bytes(2, U1)
         key1 = bytes.fromhex(self._spartn_key1.get())
         keylen1 = val2bytes(len(key1), U1)
-        wno1, tow1 = get_gpswnotow(self._get_date(self._spartn_valdate1))
+        wno1, tow1 = date2wnotow(self._get_date(self._spartn_valdate1))
         wno1b = val2bytes(wno1, U2)
         tow1b = val2bytes(tow1, U4)
         key2 = bytes.fromhex(self._spartn_key1.get())
         keylen2 = val2bytes(len(key2), U1)
-        wno2, tow2 = get_gpswnotow(self._get_date(self._spartn_valdate2))
+        wno2, tow2 = date2wnotow(self._get_date(self._spartn_valdate2))
         wno2b = val2bytes(wno2, U2)
         tow2b = val2bytes(tow2, U4)
 
@@ -420,6 +421,11 @@ class SPARTNGNSSDialog(Frame):
         if msg.identity == RXMMSG:
             if msg.numKeys == 2:  # check both keys have been uploaded
                 self._lbl_send_command.config(image=self._img_confirmed)
+                keydata = parse_rxmspartnkey(msg)  # key1, date1, key2, date2
+                self._spartn_key1.set(keydata[0][0])
+                self._spartn_valdate1.set(keydata[0][1].strftime("%Y%m%d"))
+                self._spartn_key2.set(keydata[1][0])
+                self._spartn_valdate2.set(keydata[1][1].strftime("%Y%m%d"))
                 self.__container.set_status(CONFIGOK.format(RXMMSG), "green")
             else:
                 self._lbl_send_command.config(image=self._img_warn)

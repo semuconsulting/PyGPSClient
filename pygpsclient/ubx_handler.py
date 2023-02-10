@@ -289,6 +289,5 @@ class UBXHandler:
         :param UBXMessage data: RXM-SPARTN_KEY poll response message
         """
 
-        print(f"DERUG process RXM-SPARTN_KEY {data}")
         if self.__app.dlg_spartnconfig is not None:
             self.__app.dlg_spartnconfig.update_pending(data)

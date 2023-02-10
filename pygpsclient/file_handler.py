@@ -236,6 +236,27 @@ class FileHandler:
         except IOError:
             pass
 
+    def open_spartnfile(self, ext: str) -> str:
+        """
+        Open spartn key / cert files.
+
+        :param str ext: file extension "crt" or "pem"
+        :return: spartn file path
+        :rtype: str
+        """
+
+        filepath = filedialog.askopenfilename(
+            title=READTITLE,
+            initialdir=HOME,
+            filetypes=(
+                ("spartn files", f"*.{ext}"),
+                ("all files", "*.*"),
+            ),
+        )
+        if filepath in ((), ""):
+            return None  # User cancelled
+        return filepath
+
     def set_trackfile_path(self) -> str:
         """
         Set track directory.

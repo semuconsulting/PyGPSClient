@@ -30,7 +30,7 @@ from pygpsclient.helpers import (
     stringvar2val,
     mapq_compress,
     mapq_decompress,
-    get_gpswnotow,
+    date2wnotow,
 )
 
 
@@ -177,7 +177,6 @@ class StaticTest(unittest.TestCase):
         self.assertAlmostEqual(res, 17255.05227009936, 4)
 
     def teststringvar2val(self):
-
         vals = [
             ("53", "U001"),
             ("-513", "I002"),
@@ -191,7 +190,6 @@ class StaticTest(unittest.TestCase):
             self.assertEqual(ress[i], res)
 
     def testmapqcompress(self):
-
         PREC = 6
         points = [
             53.4245,
@@ -231,7 +229,7 @@ class StaticTest(unittest.TestCase):
         ]
         for i, dat in enumerate(dats):
             y, m, d = dat
-            self.assertEqual(get_gpswnotow(datetime(y, m, d)), vals[i])
+            self.assertEqual(date2wnotow(datetime(y, m, d)), vals[i])
 
 
 if __name__ == "__main__":

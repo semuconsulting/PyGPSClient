@@ -17,7 +17,8 @@ Created on 26 Jan 2023
 """
 # pylint: disable=invalid-name, too-many-locals, too-many-instance-attributes
 
-from os import getenv
+from os import path, getenv
+from pathlib import Path
 from tkinter import (
     ttk,
     Frame,
@@ -46,25 +47,18 @@ from pygpsclient.globals import (
     ICON_DISCONN,
     ICON_BLANK,
     ICON_SOCKET,
+    ICON_LOAD,
     ENTCOL,
     CONNECTED,
     DISCONNECTED,
     READONLY,
+    SPARTN_PPSERVER,
+    SPARTN_PPREGIONS,
+    SPARTN_GNSS,
+    RXMMSG,
 )
-from pygpsclient.strings import (
-    LBLSPARTNIP,
-)
-from pygpsclient.helpers import (
-    valid_entry,
-    get_gpswnotow,
-    VALHEX,
-    VALDMY,
-    VALLEN,
-    VALINT,
-)
-
-PPSERVER = "pp.services.u-blox.com"
-PPREGIONS = ("eu", "us", "au")
+from pygpsclient.strings import LBLSPARTNIP
+from pygpsclient.helpers import valid_entry, VALLEN
 
 
 class SPARTNMQTTDialog(Frame):
@@ -99,11 +93,14 @@ class SPARTNMQTTDialog(Frame):
         self._img_serial = ImageTk.PhotoImage(Image.open(ICON_SERIAL))
         self._img_socket = ImageTk.PhotoImage(Image.open(ICON_SOCKET))
         self._img_disconn = ImageTk.PhotoImage(Image.open(ICON_DISCONN))
-        self.mqtt_stream_handler = None
+        self._img_load = ImageTk.PhotoImage(Image.open(ICON_LOAD))
+        self._stream_handler = None
         self._status = StringVar()
         self._mqtt_server = StringVar()
         self._mqtt_region = StringVar()
         self._mqtt_clientid = StringVar()
+        self._mqtt_crt = StringVar()
+        self._mqtt_pem = StringVar()
         self._mqtt_iptopic = IntVar()
         self._mqtt_mgatopic = IntVar()
         self._mqtt_keytopic = IntVar()
@@ -131,7 +128,7 @@ class SPARTNMQTTDialog(Frame):
         self._lbl_mqttregion = Label(self, text="Region")
         self._spn_mqttregion = Spinbox(
             self,
-            values=PPREGIONS,
+            values=SPARTN_PPREGIONS,
             textvariable=self._mqtt_region,
             readonlybackground=ENTCOL,
             state=READONLY,
@@ -147,7 +144,7 @@ class SPARTNMQTTDialog(Frame):
             relief="sunken",
             width=32,
         )
-        self._lbl_topics = Label(self, text="Topics:")
+        self._lbl_topics = Label(self, text="Topics")
         self._chk_mqtt_iptopic = Checkbutton(
             self,
             text="IP",
@@ -163,13 +160,43 @@ class SPARTNMQTTDialog(Frame):
             text="SPARTNKEY",
             variable=self._mqtt_keytopic,
         )
-        self._btn_mqttconnect = Button(
+        self._btn_opencrt = Button(
+            self,
+            width=45,
+            image=self._img_load,
+            command=lambda: self._get_spartnkeys("crt"),
+        )
+        self._lbl_mqttcrt = Label(self, text="CRT File")
+        self._ent_mqttcrt = Entry(
+            self,
+            textvariable=self._mqtt_crt,
+            bg=ENTCOL,
+            state=NORMAL,
+            relief="sunken",
+            width=32,
+        )
+        self._btn_openpem = Button(
+            self,
+            width=45,
+            image=self._img_load,
+            command=lambda: self._get_spartnkeys("pem"),
+        )
+        self._lbl_mqttpem = Label(self, text="PEM File")
+        self._ent_mqttpem = Entry(
+            self,
+            textvariable=self._mqtt_pem,
+            bg=ENTCOL,
+            state=NORMAL,
+            relief="sunken",
+            width=32,
+        )
+        self._btn_connect = Button(
             self,
             width=45,
             image=self._img_socket,
             command=lambda: self._on_connect(),
         )
-        self._btn_mqttdisconnect = Button(
+        self._btn_disconnect = Button(
             self,
             width=45,
             image=self._img_disconn,
@@ -182,40 +209,62 @@ class SPARTNMQTTDialog(Frame):
         Position widgets in frame.
         """
 
-        self._lbl_corrip.grid(column=0, row=0, columnspan=4, padx=3, pady=2, sticky=W)
+        self._lbl_corrip.grid(column=0, row=0, columnspan=6, padx=3, pady=2, sticky=W)
         self._lbl_mqttserver.grid(column=0, row=1, padx=3, pady=2, sticky=W)
         self._ent_mqttserver.grid(
-            column=1, row=1, columnspan=3, padx=3, pady=2, sticky=W
+            column=1, row=1, columnspan=5, padx=3, pady=2, sticky=W
         )
         self._lbl_mqttregion.grid(column=0, row=2, padx=3, pady=2, sticky=W)
         self._spn_mqttregion.grid(
-            column=1, row=2, columnspan=3, padx=3, pady=2, sticky=W
+            column=1, row=2, columnspan=5, padx=3, pady=2, sticky=W
         )
         self._lbl_mqttclientid.grid(column=0, row=3, padx=3, pady=2, sticky=W)
         self._ent_mqttclientid.grid(
-            column=1, row=3, columnspan=3, padx=3, pady=2, sticky=W
+            column=1, row=3, columnspan=5, padx=3, pady=2, sticky=W
         )
         self._lbl_topics.grid(column=0, row=4, padx=3, pady=2, sticky=W)
         self._chk_mqtt_iptopic.grid(column=1, row=4, padx=3, pady=2, sticky=W)
         self._chk_mqtt_mgatopic.grid(column=2, row=4, padx=3, pady=2, sticky=W)
         self._chk_mqtt_keytopic.grid(column=3, row=4, padx=3, pady=2, sticky=W)
-        ttk.Separator(self).grid(
-            column=0, row=5, columnspan=4, padx=2, pady=3, sticky=(W, E)
+        self._lbl_mqttcrt.grid(column=0, row=5, padx=3, columnspan=5, pady=2, sticky=W)
+        self._ent_mqttcrt.grid(
+            column=1, row=5, padx=3, columnspan=4, pady=2, sticky=(W, E)
         )
-        self._btn_mqttconnect.grid(column=0, row=6, padx=3, pady=2, sticky=W)
-        self._btn_mqttdisconnect.grid(column=2, row=6, padx=3, pady=2, sticky=W)
+        self._btn_opencrt.grid(column=5, row=5, padx=3, pady=2, sticky=E)
+        self._lbl_mqttpem.grid(column=0, row=6, columnspan=3, padx=3, pady=2, sticky=W)
+        self._ent_mqttpem.grid(
+            column=1, row=6, columnspan=4, padx=3, pady=2, sticky=(W, E)
+        )
+        self._btn_openpem.grid(column=5, row=6, padx=3, pady=2, sticky=E)
+        ttk.Separator(self).grid(
+            column=0, row=7, columnspan=6, padx=2, pady=3, sticky=(W, E)
+        )
+        self._btn_connect.grid(column=0, row=8, padx=3, pady=2, sticky=W)
+        self._btn_disconnect.grid(column=2, row=8, padx=3, pady=2, sticky=W)
 
     def _reset(self):
         """
         Reset configuration widgets.
         """
 
-        self._mqtt_server.set(PPSERVER)
-        self._mqtt_region.set(PPREGIONS[0])
+        self._mqtt_server.set(SPARTN_PPSERVER)
+        self._mqtt_region.set(SPARTN_PPREGIONS[0])
         self._mqtt_iptopic.set(1)
         self._mqtt_mgatopic.set(0)
         self._mqtt_keytopic.set(1)
-        self._mqtt_clientid.set(getenv("MQTTCLIENTID", default=""))
+        self._mqtt_clientid.set(getenv("MQTTCLIENTID", default="enter-client-id"))
+
+        # Thingstream > Location Services > PointPerfect Thing > Credentials
+        # Default location for key files is user's HOME directory
+        self._spartn_crt = path.join(
+            Path.home(), f"device-{self._mqtt_clientid.get()}-pp-cert.crt"
+        )
+        self._spartn_pem = path.join(
+            Path.home(), f"device-{self._mqtt_clientid.get()}-pp-key.pem"
+        )
+        self._mqtt_crt.set(self._spartn_crt)
+        self._mqtt_pem.set(self._spartn_pem)
+
         self.__container.set_status("", "blue")
         self.set_controls(DISCONNECTED)
 
@@ -228,13 +277,15 @@ class SPARTNMQTTDialog(Frame):
         """
 
         stat = NORMAL if status == CONNECTED else DISABLED
-        for wdg in (self._btn_mqttdisconnect,):
+        for wdg in (self._btn_disconnect,):
             wdg.config(state=stat)
         stat = DISABLED if status == CONNECTED else NORMAL
         for wdg in (
             self._ent_mqttserver,
-            self._btn_mqttconnect,
+            self._btn_connect,
             self._ent_mqttclientid,
+            self._ent_mqttcrt,
+            self._ent_mqttpem,
             self._chk_mqtt_iptopic,
             self._chk_mqtt_mgatopic,
             self._chk_mqtt_keytopic,
@@ -253,7 +304,24 @@ class SPARTNMQTTDialog(Frame):
         """
 
         valid = True
+        valid = valid & valid_entry(self._ent_mqttserver, VALLEN, 1, 50)
+        valid = valid & valid_entry(self._ent_mqttclientid, VALLEN, 1, 30)
+        valid = valid & valid_entry(self._ent_mqttcrt, VALLEN, 1, 254)
+        valid = valid & valid_entry(self._ent_mqttpem, VALLEN, 1, 254)
         return valid
+
+    def _get_spartnkeys(self, ext: str):
+        """
+        Get SPARTN key (*.pem) and cert (*.crt) files
+
+        :param str ext: file extension ("crt" or "pem")
+        """
+
+        spfile = self.__app.file_handler.open_spartnfile(ext)
+        if ext == "crt":
+            self._mqtt_crt.set(spfile)
+        elif ext == "pem":
+            self._mqtt_pem.set(spfile)
 
     def _on_connect(self):
         """
@@ -261,7 +329,7 @@ class SPARTNMQTTDialog(Frame):
         """
 
         self.__app.spartn_conn_status = CONNECTED
-        server = PPSERVER
+        server = SPARTN_PPSERVER
         region = self._mqtt_region.get()
         topics = []
         if self._mqtt_iptopic.get():
@@ -270,16 +338,18 @@ class SPARTNMQTTDialog(Frame):
             topics.append(("/pp/ubx/mga", 0))
         if self._mqtt_keytopic.get():
             topics.append(("/pp/ubx/0236/ip", 0))
+            self.__container.set_pending(RXMMSG, SPARTN_GNSS)
 
-        self.mqtt_stream_handler = MQTTHandler(
+        self._stream_handler = MQTTHandler(
             self.__app,
             "eu",
             self.__app.spartn_inqueue,
             clientid=self._mqtt_clientid.get(),
             mqtt_topics=topics,
             server=server,
+            tls=(self._mqtt_crt.get(), self._mqtt_pem.get()),
         )
-        self.mqtt_stream_handler.start()
+        self._stream_handler.start()
         self.__container.set_status(
             f"Connected to MQTT server {server}",
             "green",
@@ -291,10 +361,10 @@ class SPARTNMQTTDialog(Frame):
         Disconnect from MQTT client.
         """
 
-        if self.mqtt_stream_handler is not None:
+        if self._stream_handler is not None:
             self.__app.spartn_conn_status = DISCONNECTED
-            self.mqtt_stream_handler.stop()
-            self.mqtt_stream_handler = None
+            self._stream_handler.stop()
+            self._stream_handler = None
             self.__container.set_status(
                 "Disconnected",
                 "red",
@@ -306,5 +376,3 @@ class SPARTNMQTTDialog(Frame):
         Update pending confirmation status.
         :param UBXMessage msg: UBX config message
         """
-
-        pass

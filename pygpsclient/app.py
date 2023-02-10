@@ -613,7 +613,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
                 if self.conn_status == CONNECTED:
                     self._gnss_outqueue.put(raw_data)
                 if protocol(raw_data) == UBX_PROTOCOL:
-                    if parsed_data.identity[0:3] in ("CFG", "ACK", "INF", "MON"):
+                    if parsed_data.identity[0:3] in ("ACK", "CFG", "INF", "MON", "RXM"):
                         mkr = ""
                 self.process_data(raw_data, parsed_data, mkr)
             self._spartn_inqueue.task_done()

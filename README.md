@@ -81,8 +81,9 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 ![disconnect icon](/pygpsclient/resources/iconmonstr-media-control-50-24.png).
 * To display the UBX Configuration Dialog (*only functional when connected to a UBX GNSS device via serial port*), click
 ![gear icon](/pygpsclient/resources/iconmonstr-gear-2-24.png), or go to Menu..Options.
-* To display the NTRIP Client Configuration Dialog (*requires internet connection*), click
-![gear icon](/pygpsclient/resources/iconmonstr-antenna-6-24.png), or go to Menu..Options.
+* To display the NTRIP Client Configuration Dialog (*requires Internet connection*), click
+![gear icon](/pygpsclient/resources/iconmonstr-antenna-6-24.png), or go to Menu..Options..NTRIP Configuration Dialog.
+* To display the SPARTN Client Configuration Dialog (*may require Internet connection*), go to Menu..Options..SPARTN Configuration Dialog.
 * To expand or collapse the banner or serial port configuration widgets, click the ![expand icon](/pygpsclient/resources/iconmonstr-arrow-80-16.png)/![expand icon](/pygpsclient/resources/iconmonstr-triangle-1-16.png) buttons.
 * To show or hide the various widgets, go to Menu..View and click on the relevant hide/show option.
 * Protocols Shown - Select which protocols to display; NMEA, UBX and/or RTCM3 (NB: this only changes the displayed protocols - to change the actual protocols output by the receiver, use the CFG-PRT command).
@@ -130,7 +131,18 @@ warning ![warning icon](https://github.com/semuconsulting/PyGPSClient/blob/maste
 
 ![ntrip config widget screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/ntripconfig_widget.png?raw=true)
 
-To use:
+The NTRIP Configuration utility allows users to receive and process NTRIP RTK Correction data from an NTRIP caster to achieve cm level location accuracy.
+
+**Pre-Requisites:**
+
+- NTRIP-compatible GNSS receiver e.g. u-blox ZED-F9P
+- Internet access
+- URL of NTRIP caster
+- Login credentials for the NTRIP caster (where required)
+- Name of local MOUNTPOINT (if not using PyGPSClient's automatic mountpoint locator)
+
+**Instructions:**
+
 1. Enter the required NTRIP server URL (or IP address) and port (defaults to 2101). For services which require authorisation, enter your login username and password.
 1. To retrieve the sourcetable, leave the mountpoint field blank and click connect (*response may take a few seconds*). The required mountpoint may then be selected from the list, or entered manually. Where possible, `PyGPSClient` will automatically identify the closest mountpoint to the current location.
 1. For NTRIP services which require client position data via NMEA GGA sentences, select the appropriate sentence transmission interval in seconds. The default is 'None' (no GGA sentences sent). A value of 10 or 60 seconds is typical.
@@ -155,38 +167,61 @@ Below is a illustrative NTRIP DGPS data log, showing:
 
 ![spartn config widget screenshot](https://github.com/semuconsulting/PyGPSClient/blob/add-SPARTN-config-dialog/images/spartnconfig_widget.png?raw=true)
 
-The SPARTN Configuration utility allows users to configure MQTT client, L-Band correction receiver (e.g. NEO-D9S) and GNSS receiver (e.g. ZED-F9P).
+The SPARTN Configuration utility allows users to receive and process SPARTN RTK Correction data from an IP or L-Band source to achieve cm level location accuracy. It provides three independent configuration sections, one for IP Correction (MQTT), one for L-Band Correction (e.g. D9S) and a third for the GNSS receiver (e.g. F9P). 
 
-**NB:** PyGPSClient cannot currently parse or decode binary SPARTN correction data - it simply passes the data through to the receiver.
+The facility can be accessed via Menu..Options..SPARTN Configuration Dialog. The dialog must remain open while the facility is in use.
 
-To use:
+**NB:** PyGPSClient cannot currently parse or decode binary SPARTN correction data - it simply passes the raw data through to the receiver.
 
-1. The facility can be accessed via Menu..Options..SPARTN Configuration Dialog. The dialog must remain open while the facility is in use.
-1. It provides three independent configuration sections, one for IP Correction (MQTT), one for L-Band Correction (e.g. D9S) and a third for the GNSS receiver (e.g. F9P).
-1. Commercial SPARTN location services like u-blox PointPerfect require different Correction receiver L-Band configurations for different regions. The utility provides nominal default values but these may need to be amended in accordance with the parameters provided by the location service, typically under NDA. **NB:** parameters available in the public domain *may not* be appropriate and the authors of PyGPSClient **cannot** provide advice on appropriate settings.
-1. To configure the GNSS receiver for use with a commercial SPARTN location service, you will need to obtain current and next decryption keys and upload these to the GNSS receiver after every power cycle or reset. The keys are normally valid for 4 weeks.
-1. **NB:** Please ensure you understand and comply with the Terms and Conditions of any commercial SPARTN location service before subscribing.
+**Pre-Requisites:**
+
+1. IP Correction (MQTT Client):
+
+    - Internet access
+    - Subscription to relevant MQTT SPARTN location service e.g. u-blox / Thingstream PointPerfect, which should provide the following details:
+    - Client ID (which can be stored as environment variable `MQTTCLIENTID`)
+    - Encryption certificate (`*.crt`) and key (`*.pem`)
+    - Region code e.g. "us", "eu"
+
+2. L-BAND Correction (D9* Receiver):
+
+    - SPARTN L-Band correction receiver e.g. u-blox NEO-D9S
+    - Suitable Immarsat L-band antenna (NB: standard GNSS antenna may not be suitable)
+    - Subscription to L-Band location service e.g. u-blox / Thingstream PointPerfect, which should provide the following details:
+    - L-Band frequency; search window; use_serviceid?; use_descrambling?; use_prescrambling?; Service ID; Data Rate; Descrambler Init; Unique Word
+
+3. GNSS Receiver:
+
+    - SPARTN-compatible GNSS receiver e.g. u-blox ZED-F9P
+    - Subscription to either IP and/or L-Band location service(s) e.g. e.g. u-blox / Thingstream PointPerfect, which should provide the following details:
+    - Current and Next Encryption Keys in hexadecimal format; Valid From dates in YYYYMMDD format (keys normally valid for 4 week period).
+
+**Instructions:**
 
 #### IP Correction Configuration (MQTT)
 
+1. Enter your MQTT Client ID (or set it up beforehand as environment variable `MQTTCLIENTID`).
+1. Select the path to your MQTT `*.crt` and `*.pem` files (PyGPSClient will use the user's HOME directory by default)
+1. Select the required topics:
+    - IP (required) - this is the raw SPARTN correction data.
+    - MGA (optional) - this is Assist Now data as a UBX MGA message.
+    - SPARTNKEY (optional, recommended) - this is the SPARTN encryption keys as a UBX RXM-SPARTNKEY message.
 1. To connect to the MQTT server, select the Server URL, Client ID, Region and Topics and click ![connect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/ethernet-1-24.png?raw=true). To disconnect, click ![disconnect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-media-control-50-24.png?raw=true).
-1. The MQTT client requires certificate (`*.crt`) and key (`*.pem`) files which must be placed in the user's home directory.
-1. The Client ID can also be stored as an environment variable `MQTTCLIENTID`.
 
 #### L-Band Correction Configuration (D9*)
 
-1. At time of writing, the only supported SPARTN-compatible u-blox L-Band Correction receivers are those in the NEO-D9* family (e.g. NEO-D9S, NEO-D9C).
 1. To connect to the Correction receiver, select the receivers's port from the SPARTN dialog's Serial Port listbox and click ![connect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/usbport-1-24.png?raw=true). To disconnect, click ![disconnect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-media-control-50-24.png?raw=true).
 1. Select the required Output Port - this is the port used to connect the Correction receiver to the GNSS receiver e.g. UART2 or I2C.
 1. If both Correction and GNSS receivers are connected to the same PyGPSClient workstation (e.g. via separate USB ports), it is possible to run the utility in Output Port = 'Passthough' mode, whereby the output data from the Correction receiver (UBX `RXM-PMP` messages) will be automatically passed through to the GNSS receiver by PyGPSClient, without the need to connect the two externally.
+1. To enable INF-DEBUG messages, which give diagnostic information about current L-Band reception, click 'Enable Debug?'.
 1. Once connected, click ![send button](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-arrow-12-24.png?raw=true) to upload the configuration. The utility will send the relevant configuration command(s) to the Correction receiver and poll for an acknowledgement.
 
 #### GNSS Receiver Configuration (F9*)
 
-1. At time of writing, the only supported SPARTN-compatible u-blox GNSS receivers are those in the ZED-F9* family (e.g. ZED-F9P or ZED-F9R).
 1. Connect to the GNSS receiver first by clicking ![connect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/usbport-1-24.png?raw=true) on the main PyGPSClient settings panel.
 1. Enter the current and next keys in hexadecimal format e.g. `0102030405060708090a0b0c0d0e0f10`. The keys are normally 16 bytes long, or 32 hexadecimal characters.
 1. Enter the supplied Valid From dates in `YYYYMMDD` format. **NB:** These are *Valid From* dates rather than *Expiry* dates. If the location service provides Expiry dates, subtract 4 weeks from these to get the Valid From dates.
+1. NB: if you are subscribing to the MQTT SPARTNKEY topic, the key and date details will be entered automatically.
 1. Select 'Upload keys', 'Configure receiver' and 'Disable NMEA' options as required.
 1. Click ![send button](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-arrow-12-24.png?raw=true) to upload the configuration. The utility will send the relevant configuration command(s) to the receiver and poll for an acknowledgement.
 

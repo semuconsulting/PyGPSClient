@@ -223,9 +223,13 @@ SPARTN_GNSS = 8
 SPARTN_LBAND = 9
 SPARTN_MQTT = 10
 
-# SPARTN source enumeration
+# SPARTN globals
 SPARTN_SOURCE_LB = 1
 SPARTN_SOURCE_IP = 0
+SPARTN_PPSERVER = "pp.services.u-blox.com"
+SPARTN_PPREGIONS = ("eu", "us", "au")
+SPARTN_KEYLEN = 16
+RXMMSG = "RXM-SPARTN-KEY"
 
 GLONASS_NMEA = True  # use GLONASS NMEA SVID (65-96) rather than slot (1-24)
 # GNSS color codings:
