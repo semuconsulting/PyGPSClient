@@ -185,9 +185,11 @@ The facility can be accessed by clicking the ![SPARTN Client button](https://git
 
     - Internet access
     - Subscription to relevant MQTT SPARTN location service e.g. u-blox / Thingstream PointPerfect, which should provide the following details:
+    - Server e.g. `pp.services.u-blox.com`
     - Client ID (which can be stored as environment variable `MQTTCLIENTID`)
     - Encryption certificate (`*.crt`) and key (`*.pem`). If these are placed in the user's HOME directory, PyGPSClient will find them automatically.
-    - Region code e.g. "us", "eu"
+    - Region code e.g. `us`, `eu`
+    - A list of published topics. These typically include `/pp/ip/region` (binary SPARTN correction data for the selected region), `/pp/ubx/mga` (UBX MGA AssistNow ephemera data for each constellation) and `/pp/ubx/0236/ip` (UBX RXM-SPARTNKEY messages containing the decryption keys to be uploaded to the GNSS receiver).
 
 2. L-BAND Correction (D9* Receiver):
 
@@ -240,10 +242,11 @@ The Socket Server / NTRIP Caster facility is capable of operating in either of t
 
 **Pre-Requisites:**
 
-**NB:** Running in NTRIP caster mode is predicated on the host being connected to an RTK-compatible GNSS receiver **operating in Base Station mode** (either `SURVEY_IN` or `FIXED`) and outputting the requisite RTCM3 message types (1005, 1077, 1087, 1097, 1127 and 1230). In the case of the u-blox ZED-F9P receiver, for example, this is set using the `CFG-TMODE*` and `CFG-MSGOUT-RTCM*` configuration interface parameters available via the [UBX Configuration panel](#ubxconfig) - refer to the Integration Manual and Interface Specification for further details. PyGPSClient does *not* configure the receiver automatically, though an example configuration script for the u-blox ZED-F9P receiver may be found at [/examples/f9p_basestation.py](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/f9p_basestation.py). This script can also be used to generate user-defined preset command strings suitable for copying and pasting into a `ubxpresets` file (see [User Defined Presets](#userdefined) below).
-The server/caster binds to the host address '0.0.0.0' i.e. all available IP addresses on the host machine. It may be necessary to add a firewall rule on the host and/or client machine to allow remote traffic on the specified port.
+Running in NTRIP caster mode is predicated on the host being connected to an RTK-compatible GNSS receiver **operating in Base Station mode** (either `SURVEY_IN` or `FIXED`) and outputting the requisite RTCM3 message types (1005, 1077, 1087, 1097, 1127 and 1230). In the case of the u-blox ZED-F9P receiver, for example, this is set using the `CFG-TMODE*` and `CFG-MSGOUT-RTCM*` configuration interface parameters available via the [UBX Configuration panel](#ubxconfig) - refer to the Integration Manual and Interface Specification for further details. PyGPSClient does *not* configure the receiver automatically, though an example configuration script for the u-blox ZED-F9P receiver may be found at [/examples/f9p_basestation.py](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/f9p_basestation.py). This script can also be used to generate user-defined preset command strings suitable for copying and pasting into a `ubxpresets` file (see [User Defined Presets](#userdefined) below).
 
 **Instructions:**
+
+The server/caster binds to the host address '0.0.0.0' i.e. all available IP addresses on the host machine. It may be necessary to add a firewall rule on the host and/or client machine to allow remote traffic on the specified port.
 
 A label on the settings panel indicates the number of connected clients, and the server/caster status is indicated in the topmost banner: open with no clients: ![transmit icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-noclient-10-24.png?raw=true), open with clients: ![transmit icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-transmit-10-24.png?raw=true).
 
