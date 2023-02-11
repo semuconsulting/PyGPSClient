@@ -196,6 +196,14 @@ pygpsclient.spartn\_mqtt\_frame module
    :undoc-members:
    :show-inheritance:
 
+pygpsclient.spartnmessage module
+--------------------------------
+
+.. automodule:: pygpsclient.spartnmessage
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pygpsclient.spectrum\_frame module
 ----------------------------------
 

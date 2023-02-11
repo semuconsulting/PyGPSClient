@@ -43,6 +43,7 @@ from pygpsclient.globals import (
     GNSS_EOF_EVENT,
     NTRIP_EVENT,
     SPARTN_EVENT,
+    RXMMSG,
 )
 from pygpsclient._version import __version__ as VERSION
 from pygpsclient.helpers import check_latest
@@ -611,18 +612,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             if raw_data is not None and parsed_data is not None:
                 if self.conn_status == CONNECTED:
                     self._gnss_outqueue.put(raw_data)
-                # if protocol(raw_data) == UBX_PROTOCOL and not isinstance(
-                #     parsed_data, str
-                # ):
-                #     if parsed_data.identity[0:3] in (
-                #         "ACK",
-                #         "CFG",
-                #         "INF",
-                #         "MON",
-                #         "RXM",
-                #         "MGA",
-                #     ):
-                #         mkr = ""
                 self.process_data(raw_data, parsed_data, "SPARTN>>")
             self._spartn_inqueue.task_done()
 
@@ -675,7 +664,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             marker = "WARNING  "
 
         if msgprot == UBX_PROTOCOL and msgprot & protfilter:
-            if marker == "" or parsed_data.identity == "RXM-SPARTNKEY":
+            if marker == "" or parsed_data.identity == RXMMSG:
                 self.ubx_handler.process_data(raw_data, parsed_data)
             else:
                 parsed_data = marker + str(parsed_data)

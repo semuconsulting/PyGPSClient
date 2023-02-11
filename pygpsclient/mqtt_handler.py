@@ -26,12 +26,13 @@ from pyubx2 import (
     UBXParseError,
     SET,
 )
+from pygpsclient.spartnmessage import SPARTNMessage
 from pygpsclient.globals import (
-    SPARTN_EVENT,
     SPARTN_PPSERVER,
     TOPIC_IP,
     TOPIC_MGA,
     TOPIC_RXM,
+    SPARTN_EVENT,
 )
 
 
@@ -165,7 +166,6 @@ class MQTTHandler:
         Some MQTT topics may contain more than one UBX message in a single payload.
         """
 
-        parsed = f"<SPARTN(payload={msg.payload})>"
         if msg.topic in (TOPIC_MGA, TOPIC_RXM):  # multiple UBX MGA or RXM messages
             ubr = UBXReader(BytesIO(msg.payload), msgmode=SET)
             try:
@@ -175,6 +175,8 @@ class MQTTHandler:
             except UBXParseError:
                 parsed = f"MQTT UBXParseError {msg.topic} {msg.payload}"
                 userdata["gnss"].put((msg.payload, parsed))
+                userdata["master"].event_generate(userdata["readevent"])
         else:  # SPARTN protocol message
+            parsed = SPARTNMessage(payload=msg.payload)
             userdata["gnss"].put((msg.payload, parsed))
             userdata["master"].event_generate(userdata["readevent"])
