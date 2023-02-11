@@ -50,7 +50,7 @@ from pygpsclient.globals import (
     ICON_BLANK,
     ICON_SOCKET,
     ENTCOL,
-    CONNECTED,
+    CONNECTED_SPARTNLB,
     DISCONNECTED,
     NOPORTS,
     READONLY,
@@ -333,7 +333,10 @@ class SPARTNLBANDDialog(Frame):
         self._spartn_unqword.set(SPARTN_DEFAULT["unqword"])
         self._spartn_outport.set(PASSTHRU)
         self.__container.set_status("", "blue")
-        self.set_controls(DISCONNECTED)
+        if self.__app.rtk_conn_status == CONNECTED_SPARTNLB:
+            self.set_controls(CONNECTED_SPARTNLB)
+        else:
+            self.set_controls(DISCONNECTED)
 
     def set_controls(self, status: int):
         """
@@ -342,10 +345,10 @@ class SPARTNLBANDDialog(Frame):
         :param int status: connection status (0 = disconnected, 1 = connected)
         """
 
-        stat = DISABLED if status == CONNECTED else NORMAL
+        stat = DISABLED if status == CONNECTED_SPARTNLB else NORMAL
         for wdg in (self._btn_connect,):
             wdg.config(state=stat)
-        stat = NORMAL if status == CONNECTED else DISABLED
+        stat = NORMAL if status == CONNECTED_SPARTNLB else DISABLED
         for wdg in (
             self._ent_freq,
             self._ent_schwin,
@@ -360,7 +363,7 @@ class SPARTNLBANDDialog(Frame):
             self._btn_send,
         ):
             wdg.config(state=stat)
-        stat = READONLY if status == CONNECTED else DISABLED
+        stat = READONLY if status == CONNECTED_SPARTNLB else DISABLED
         for wdg in (
             self._spn_drat,
             self._spn_outport,
@@ -398,14 +401,14 @@ class SPARTNLBANDDialog(Frame):
             return
 
         # start serial stream thread
-        self.__app.spartn_conn_status = CONNECTED
+        self.__app.rtk_conn_status = CONNECTED_SPARTNLB
         self._stream_handler.start_read_thread(self)
         self.__container.set_status(
             f"Connected to {self.serial_settings.port}:{self.serial_settings.port_desc} "
             + f"@ {self.serial_settings.bpsrate}",
             "green",
         )
-        self.set_controls(CONNECTED)
+        self.set_controls(CONNECTED_SPARTNLB)
 
         # poll for config
         self._poll_config()
@@ -415,9 +418,9 @@ class SPARTNLBANDDialog(Frame):
         Disconnect from Correction receiver.
         """
 
-        if self.__app.spartn_conn_status == CONNECTED:
+        if self.__app.rtk_conn_status == CONNECTED_SPARTNLB:
             self._stream_handler.stop_read_thread()
-            self.__app.spartn_conn_status = DISCONNECTED
+            self.__app.rtk_conn_status = DISCONNECTED
             self.__container.set_status(
                 "Disconnected",
                 "red",
@@ -607,7 +610,7 @@ class SPARTNLBANDDialog(Frame):
         (0 = disconnected, 1 = serial, 2 = socket, 4 = file).
         """
 
-        return self.__app.spartn_conn_status
+        return self.__app.rtk_conn_status
 
     @property
     def read_event(self) -> str:

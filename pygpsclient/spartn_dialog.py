@@ -41,9 +41,9 @@ from pygpsclient.globals import (
     SPARTN_MQTT,
 )
 from pygpsclient.strings import DLGSPARTNCONFIG
-from pygpsclient.spartn_gnss_dialog import SPARTNGNSSDialog
-from pygpsclient.spartn_lband_dialog import SPARTNLBANDDialog
-from pygpsclient.spartn_mqtt_dialog import SPARTNMQTTDialog
+from pygpsclient.spartn_gnss_frame import SPARTNGNSSDialog
+from pygpsclient.spartn_lband_frame import SPARTNLBANDDialog
+from pygpsclient.spartn_mqtt_frame import SPARTNMQTTDialog
 
 RXMMSG = "RXM-SPARTN-KEY"
 CFGSET = "CFG-VALGET/SET"

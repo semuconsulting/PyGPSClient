@@ -59,6 +59,8 @@ from pygpsclient.globals import (
     UI,
     UIK,
     GGA_INTERVALS,
+    CONNECTED_NTRIP,
+    DISCONNECTED,
 )
 from pygpsclient.strings import (
     DLGNTRIPCONFIG,
@@ -624,6 +626,7 @@ class NTRIPConfigDialog(Toplevel):
                 output=self.__app.ntrip_inqueue,
             )
             self.set_controls(True)
+            self.__app.rtk_conn_status = CONNECTED_NTRIP
 
     def _disconnect(self):
         """
@@ -633,6 +636,7 @@ class NTRIPConfigDialog(Toplevel):
 
         self.__app.ntrip_handler.stop()
         self.set_controls(False)
+        self.__app.rtk_conn_status = DISCONNECTED
 
     def _valid_settings(self) -> bool:
         """

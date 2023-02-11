@@ -49,13 +49,16 @@ from pygpsclient.globals import (
     ICON_SOCKET,
     ICON_LOAD,
     ENTCOL,
-    CONNECTED,
+    CONNECTED_SPARTNIP,
     DISCONNECTED,
     READONLY,
     SPARTN_PPSERVER,
     SPARTN_PPREGIONS,
     SPARTN_GNSS,
     RXMMSG,
+    TOPIC_IP,
+    TOPIC_MGA,
+    TOPIC_RXM,
 )
 from pygpsclient.strings import LBLSPARTNIP
 from pygpsclient.helpers import valid_entry, VALLEN
@@ -123,7 +126,7 @@ class SPARTNMQTTDialog(Frame):
             bg=ENTCOL,
             state=NORMAL,
             relief="sunken",
-            width=20,
+            width=25,
         )
         self._lbl_mqttregion = Label(self, text="Region")
         self._spn_mqttregion = Spinbox(
@@ -142,7 +145,7 @@ class SPARTNMQTTDialog(Frame):
             bg=ENTCOL,
             state=NORMAL,
             relief="sunken",
-            width=32,
+            width=35,
         )
         self._lbl_topics = Label(self, text="Topics")
         self._chk_mqtt_iptopic = Checkbutton(
@@ -250,7 +253,7 @@ class SPARTNMQTTDialog(Frame):
         self._mqtt_server.set(SPARTN_PPSERVER)
         self._mqtt_region.set(SPARTN_PPREGIONS[0])
         self._mqtt_iptopic.set(1)
-        self._mqtt_mgatopic.set(0)
+        self._mqtt_mgatopic.set(1)
         self._mqtt_keytopic.set(1)
         self._mqtt_clientid.set(getenv("MQTTCLIENTID", default="enter-client-id"))
 
@@ -266,7 +269,11 @@ class SPARTNMQTTDialog(Frame):
         self._mqtt_pem.set(self._spartn_pem)
 
         self.__container.set_status("", "blue")
-        self.set_controls(DISCONNECTED)
+
+        if self.__app.rtk_conn_status == CONNECTED_SPARTNIP:
+            self.set_controls(CONNECTED_SPARTNIP)
+        else:
+            self.set_controls(DISCONNECTED)
 
     def set_controls(self, status: int):
         """
@@ -276,10 +283,10 @@ class SPARTNMQTTDialog(Frame):
         :param int status: connection status (0 = disconnected, 1 = connected)
         """
 
-        stat = NORMAL if status == CONNECTED else DISABLED
+        stat = NORMAL if status == CONNECTED_SPARTNIP else DISABLED
         for wdg in (self._btn_disconnect,):
             wdg.config(state=stat)
-        stat = DISABLED if status == CONNECTED else NORMAL
+        stat = DISABLED if status == CONNECTED_SPARTNIP else NORMAL
         for wdg in (
             self._ent_mqttserver,
             self._btn_connect,
@@ -289,9 +296,11 @@ class SPARTNMQTTDialog(Frame):
             self._chk_mqtt_iptopic,
             self._chk_mqtt_mgatopic,
             self._chk_mqtt_keytopic,
+            self._btn_opencrt,
+            self._btn_openpem,
         ):
             wdg.config(state=stat)
-        stat = DISABLED if status == CONNECTED else READONLY
+        stat = DISABLED if status == CONNECTED_SPARTNIP else READONLY
         for wdg in (self._spn_mqttregion,):
             wdg.config(state=stat)
 
@@ -328,16 +337,16 @@ class SPARTNMQTTDialog(Frame):
         Connect to MQTT client.
         """
 
-        self.__app.spartn_conn_status = CONNECTED
+        self.__app.rtk_conn_status = CONNECTED_SPARTNIP
         server = SPARTN_PPSERVER
         region = self._mqtt_region.get()
         topics = []
         if self._mqtt_iptopic.get():
-            topics.append((f"/pp/ip/{region}", 0))
+            topics.append((TOPIC_IP.format(region), 0))
         if self._mqtt_mgatopic.get():
-            topics.append(("/pp/ubx/mga", 0))
+            topics.append((TOPIC_MGA, 0))
         if self._mqtt_keytopic.get():
-            topics.append(("/pp/ubx/0236/ip", 0))
+            topics.append((TOPIC_RXM, 0))
             self.__container.set_pending(RXMMSG, SPARTN_GNSS)
 
         self._stream_handler = MQTTHandler(
@@ -354,7 +363,7 @@ class SPARTNMQTTDialog(Frame):
             f"Connected to MQTT server {server}",
             "green",
         )
-        self.set_controls(CONNECTED)
+        self.set_controls(CONNECTED_SPARTNIP)
 
     def _on_disconnect(self):
         """
@@ -362,7 +371,7 @@ class SPARTNMQTTDialog(Frame):
         """
 
         if self._stream_handler is not None:
-            self.__app.spartn_conn_status = DISCONNECTED
+            self.__app.rtk_conn_status = DISCONNECTED
             self._stream_handler.stop()
             self._stream_handler = None
             self.__container.set_status(

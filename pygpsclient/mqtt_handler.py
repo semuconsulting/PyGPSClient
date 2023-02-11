@@ -16,7 +16,7 @@ Created on 8 Feb 2023
 """
 
 from os import getenv
-
+from io import BytesIO
 from time import sleep
 from queue import Queue
 from threading import Thread, Event
@@ -24,11 +24,15 @@ import paho.mqtt.client as mqtt
 from pyubx2 import (
     UBXReader,
     UBXParseError,
-    protocol,
-    UBX_PROTOCOL,
-    GET,
+    SET,
 )
-from pygpsclient.globals import SPARTN_EVENT, SPARTN_PPSERVER
+from pygpsclient.globals import (
+    SPARTN_EVENT,
+    SPARTN_PPSERVER,
+    TOPIC_IP,
+    TOPIC_MGA,
+    TOPIC_RXM,
+)
 
 
 class MQTTHandler:
@@ -57,9 +61,9 @@ class MQTTHandler:
         self._topics = kwargs.get(
             "mqtt_topics",
             [
-                (f"/pp/ip/{region}", 0),
-                ("/pp/ubx/mga", 0),
-                ("/pp/ubx/0236/ip", 0),
+                (TOPIC_IP.format(region), 0),
+                (TOPIC_MGA, 0),
+                (TOPIC_RXM, 0),
             ],
         )
         # mqtt_topics = [(f"/pp/ip/{self._region}", 0), ("/pp/ubx/mga", 0), ("/pp/ubx/0236/Lp", 0)]
@@ -158,13 +162,19 @@ class MQTTHandler:
     def on_message(client, userdata, msg):  # pylint: disable=unused-argument
         """
         The callback for when a PUBLISH message is received from the server.
+        Some MQTT topics may contain more than one UBX message in a single payload.
         """
 
-        parsed = f"<MQTT(topic={msg.topic}, payload={msg.payload[0:10]}...)>"
-        if protocol(msg.payload) == UBX_PROTOCOL:
+        parsed = f"<SPARTN(payload={msg.payload})>"
+        if msg.topic in (TOPIC_MGA, TOPIC_RXM):  # multiple UBX MGA or RXM messages
+            ubr = UBXReader(BytesIO(msg.payload), msgmode=SET)
             try:
-                parsed = UBXReader.parse(msg.payload, msgmode=GET)
+                for raw, parsed in ubr.iterate():
+                    userdata["gnss"].put((raw, parsed))
+                    userdata["master"].event_generate(userdata["readevent"])
             except UBXParseError:
-                pass
-        userdata["gnss"].put((msg.payload, parsed))
-        userdata["master"].event_generate(userdata["readevent"])
+                parsed = f"MQTT UBXParseError {msg.topic} {msg.payload}"
+                userdata["gnss"].put((msg.payload, parsed))
+        else:  # SPARTN protocol message
+            userdata["gnss"].put((msg.payload, parsed))
+            userdata["master"].event_generate(userdata["readevent"])

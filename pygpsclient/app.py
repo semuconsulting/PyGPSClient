@@ -130,7 +130,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.nmea_handler = NMEAHandler(self)
         self.ubx_handler = UBXHandler(self)
         self._conn_status = DISCONNECTED
-        self._spartn_conn_status = DISCONNECTED
+        self._rtk_conn_status = DISCONNECTED
         self.ntrip_handler = GNSSNTRIPClient(self, verbosity=0)
         self.dlg_ubxconfig = None
         self.dlg_ntripconfig = None
@@ -606,16 +606,24 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         :param event event: read event
         """
 
-        mkr = "SPARTN>>"
         try:
             raw_data, parsed_data = self._spartn_inqueue.get(False)
             if raw_data is not None and parsed_data is not None:
                 if self.conn_status == CONNECTED:
                     self._gnss_outqueue.put(raw_data)
-                if protocol(raw_data) == UBX_PROTOCOL:
-                    if parsed_data.identity[0:3] in ("ACK", "CFG", "INF", "MON", "RXM"):
-                        mkr = ""
-                self.process_data(raw_data, parsed_data, mkr)
+                # if protocol(raw_data) == UBX_PROTOCOL and not isinstance(
+                #     parsed_data, str
+                # ):
+                #     if parsed_data.identity[0:3] in (
+                #         "ACK",
+                #         "CFG",
+                #         "INF",
+                #         "MON",
+                #         "RXM",
+                #         "MGA",
+                #     ):
+                #         mkr = ""
+                self.process_data(raw_data, parsed_data, "SPARTN>>")
             self._spartn_inqueue.task_done()
 
         except Empty:
@@ -663,11 +671,11 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         protfilter = self.frm_settings.protocol
         msgprot = protocol(raw_data)
-        if isinstance(parsed_data, str) and marker != "SPARTN>>":
+        if isinstance(parsed_data, str) and parsed_data[0:7] != "<SPARTN":
             marker = "WARNING  "
 
         if msgprot == UBX_PROTOCOL and msgprot & protfilter:
-            if marker == "":
+            if marker == "" or parsed_data.identity == "RXM-SPARTNKEY":
                 self.ubx_handler.process_data(raw_data, parsed_data)
             else:
                 parsed_data = marker + str(parsed_data)
@@ -881,21 +889,22 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             self.set_status("", "blue")
 
     @property
-    def spartn_conn_status(self) -> int:
+    def rtk_conn_status(self) -> int:
         """
         Getter for SPARTN connection status.
 
-        :param int status: connection status e.g. 1 = CONNECTED
+        :param int status: connection status e.g. 1 = NTRIP, 2 = SPARTN
         """
 
-        return self._spartn_conn_status
+        return self._rtk_conn_status
 
-    @spartn_conn_status.setter
-    def spartn_conn_status(self, status: int):
+    @rtk_conn_status.setter
+    def rtk_conn_status(self, status: int):
         """
         Setter for SPARTN connection status.
 
-        :param int status: connection status e.g. 1 = CONNECTED
+        :param int status: connection status e.g. 1 = NTRIP, 2 = SPARTN
         """
 
-        self._spartn_conn_status = status
+        self._rtk_conn_status = status
+        self.frm_banner.update_rtk_status(status)

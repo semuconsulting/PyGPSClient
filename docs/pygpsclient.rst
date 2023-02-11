@@ -172,26 +172,26 @@ pygpsclient.spartn\_dialog module
    :undoc-members:
    :show-inheritance:
 
-pygpsclient.spartn\_gnss\_dialog module
----------------------------------------
+pygpsclient.spartn\_gnss\_frame module
+--------------------------------------
 
-.. automodule:: pygpsclient.spartn_gnss_dialog
+.. automodule:: pygpsclient.spartn_gnss_frame
    :members:
    :undoc-members:
    :show-inheritance:
 
-pygpsclient.spartn\_lband\_dialog module
-----------------------------------------
+pygpsclient.spartn\_lband\_frame module
+---------------------------------------
 
-.. automodule:: pygpsclient.spartn_lband_dialog
+.. automodule:: pygpsclient.spartn_lband_frame
    :members:
    :undoc-members:
    :show-inheritance:
 
-pygpsclient.spartn\_mqtt\_dialog module
----------------------------------------
+pygpsclient.spartn\_mqtt\_frame module
+--------------------------------------
 
-.. automodule:: pygpsclient.spartn_mqtt_dialog
+.. automodule:: pygpsclient.spartn_mqtt_frame
    :members:
    :undoc-members:
    :show-inheritance:

@@ -31,7 +31,8 @@ ICON_CONFIRMED = os.path.join(DIRNAME, "resources/iconmonstr-check-mark-8-24.png
 ICON_WARNING = os.path.join(DIRNAME, "resources/iconmonstr-warning-1-24.png")
 ICON_UNKNOWN = os.path.join(DIRNAME, "resources/clear-1-24.png")
 ICON_UBXCONFIG = os.path.join(DIRNAME, "resources/iconmonstr-gear-2-24.png")
-ICON_NTRIPCONFIG = os.path.join(DIRNAME, "resources/iconmonstr-antenna-6-24.png")
+ICON_NTRIPCONFIG = os.path.join(DIRNAME, "resources/iconmonstr-antenna-4-24.png")
+ICON_SPARTNCONFIG = os.path.join(DIRNAME, "resources/iconmonstr-antenna-3-24.png")
 ICON_LOGREAD = os.path.join(DIRNAME, "resources/binary-1-24.png")
 ICON_REFRESH = os.path.join(DIRNAME, "resources/iconmonstr-refresh-6-16.png")
 ICON_CONTRACT = os.path.join(DIRNAME, "resources/iconmonstr-triangle-1-16.png")
@@ -230,6 +231,12 @@ SPARTN_PPSERVER = "pp.services.u-blox.com"
 SPARTN_PPREGIONS = ("eu", "us", "au")
 SPARTN_KEYLEN = 16
 RXMMSG = "RXM-SPARTN-KEY"
+CONNECTED_NTRIP = 1
+CONNECTED_SPARTNIP = 2
+CONNECTED_SPARTNLB = 4
+TOPIC_RXM = "/pp/ubx/0236/ip"
+TOPIC_MGA = "/pp/ubx/mga"
+TOPIC_IP = "/pp/ip/{}"
 
 GLONASS_NMEA = True  # use GLONASS NMEA SVID (65-96) rather than slot (1-24)
 # GNSS color codings:

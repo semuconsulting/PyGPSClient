@@ -60,6 +60,7 @@ from pygpsclient.globals import (
     ICON_EXIT,
     ICON_UBXCONFIG,
     ICON_NTRIPCONFIG,
+    ICON_SPARTNCONFIG,
     ICON_LOGREAD,
     KNOWNGPS,
     BPSRATES,
@@ -77,6 +78,7 @@ from pygpsclient.helpers import valid_entry, VALINT, VALURL, MAXPORT
 from pygpsclient.strings import (
     LBLUBXCONFIG,
     LBLNTRIPCONFIG,
+    LBLSPARTNCONFIG,
     LBLPROTDISP,
     LBLDATADISP,
     LBLDATALOG,
@@ -139,6 +141,7 @@ class SettingsFrame(Frame):
         self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
         self._img_ubxconfig = ImageTk.PhotoImage(Image.open(ICON_UBXCONFIG))
         self._img_ntripconfig = ImageTk.PhotoImage(Image.open(ICON_NTRIPCONFIG))
+        self._img_spartnconfig = ImageTk.PhotoImage(Image.open(ICON_SPARTNCONFIG))
         self._img_dataread = ImageTk.PhotoImage(Image.open(ICON_LOGREAD))
 
         self._body()
@@ -366,25 +369,35 @@ class SettingsFrame(Frame):
             state=DISABLED,
         )
         # configuration panel buttons
-        self._lbl_ubxconfig = Label(self._frm_options, text=LBLUBXCONFIG)
+        self._lbl_ubxconfig = Label(
+            self._frm_options,
+            text=LBLUBXCONFIG,
+        )
         self._btn_ubxconfig = Button(
             self._frm_options,
             width=45,
-            height=35,
-            text="UBX",
             image=self._img_ubxconfig,
             command=lambda: self._on_ubx_config(),
-            state=NORMAL,
         )
-        self._lbl_ntripconfig = Label(self._frm_options, text=LBLNTRIPCONFIG)
+        self._lbl_ntripconfig = Label(
+            self._frm_options,
+            text=LBLNTRIPCONFIG,
+        )
         self._btn_ntripconfig = Button(
             self._frm_options,
             width=45,
-            height=35,
-            text="NTRIP",
             image=self._img_ntripconfig,
             command=lambda: self._on_ntrip_config(),
-            state=NORMAL,
+        )
+        self._lbl_spartnconfig = Label(
+            self._frm_options,
+            text=LBLSPARTNCONFIG,
+        )
+        self._btn_spartnconfig = Button(
+            self._frm_options,
+            width=45,
+            image=self._img_spartnconfig,
+            command=lambda: self._on_spartn_config(),
         )
 
     def _do_layout(self):
@@ -460,10 +473,12 @@ class SettingsFrame(Frame):
         ttk.Separator(self._frm_options).grid(
             column=0, row=11, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
-        self._lbl_ubxconfig.grid(column=0, row=12, padx=2, pady=2, sticky=E)
-        self._btn_ubxconfig.grid(column=1, row=12, padx=2, pady=2, sticky=W)
-        self._lbl_ntripconfig.grid(column=2, row=12, padx=2, pady=2, sticky=E)
-        self._btn_ntripconfig.grid(column=3, row=12, padx=2, pady=2, sticky=W)
+        self._btn_ubxconfig.grid(column=0, row=12)
+        self._lbl_ubxconfig.grid(column=0, row=13)
+        self._btn_ntripconfig.grid(column=1, row=12)
+        self._lbl_ntripconfig.grid(column=1, row=13)
+        self._btn_spartnconfig.grid(column=2, row=12)
+        self._lbl_spartnconfig.grid(column=2, row=13)
 
     def _on_ubx_config(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -478,6 +493,13 @@ class SettingsFrame(Frame):
         """
 
         self.__app.ntripconfig()
+
+    def _on_spartn_config(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Open SPARTN Client configuration dialog panel.
+        """
+
+        self.__app.spartnconfig()
 
     def _on_webmap(self):
         """

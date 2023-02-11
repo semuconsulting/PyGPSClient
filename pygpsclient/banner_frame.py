@@ -30,11 +30,16 @@ from pygpsclient.globals import (
     ICON_EXPAND,
     ICON_CONTRACT,
     ICON_TRANSMIT,
-    ICON_NOTRANSMIT,
     ICON_NOCLIENT,
+    ICON_NTRIPCONFIG,
+    ICON_SPARTNCONFIG,
+    ICON_BLANK,
     CONNECTED,
     CONNECTED_SOCKET,
     CONNECTED_FILE,
+    CONNECTED_NTRIP,
+    CONNECTED_SPARTNIP,
+    CONNECTED_SPARTNLB,
     BGCOL,
     FGCOL,
 )
@@ -97,8 +102,10 @@ class BannerFrame(Frame):
         self._img_expand = ImageTk.PhotoImage(Image.open(ICON_EXPAND))
         self._img_contract = ImageTk.PhotoImage(Image.open(ICON_CONTRACT))
         self._img_transmit = ImageTk.PhotoImage(Image.open(ICON_TRANSMIT))
-        self._img_notransmit = ImageTk.PhotoImage(Image.open(ICON_NOTRANSMIT))
         self._img_noclient = ImageTk.PhotoImage(Image.open(ICON_NOCLIENT))
+        self._img_ntrip = ImageTk.PhotoImage(Image.open(ICON_NTRIPCONFIG))
+        self._img_spartn = ImageTk.PhotoImage(Image.open(ICON_SPARTNCONFIG))
+        self._img_blank = ImageTk.PhotoImage(Image.open(ICON_BLANK))
 
         self.width, self.height = self.get_size()
 
@@ -173,13 +180,19 @@ class BannerFrame(Frame):
         self._lbl_status_preset = Label(
             self._frm_connect, bg=self._bgcol, image=self._img_conn, fg="blue"
         )
+        self._lbl_rtk_preset = Label(
+            self._frm_connect,
+            bg=self._bgcol,
+            image=self._img_blank,
+            fg="grey",
+        )
         self._lbl_transmit_preset = Label(
             self._frm_connect,
             bg=self._bgcol,
-            image=self._img_notransmit,
-            text="0",
+            image=self._img_blank,
             fg="grey",
         )
+
         self._lbl_time = Label(
             self._frm_basic, textvariable=self._time, bg=self._bgcol, fg="cyan"
         )
@@ -266,8 +279,9 @@ class BannerFrame(Frame):
         Position widgets in frame.
         """
 
-        self._lbl_status_preset.grid(column=0, row=0, padx=8, pady=3, sticky=W)
-        self._lbl_transmit_preset.grid(column=1, row=0, padx=8, pady=3, sticky=W)
+        self._lbl_status_preset.grid(column=0, row=0, padx=2, pady=3, sticky=W)
+        self._lbl_rtk_preset.grid(column=1, row=0, padx=2, pady=3, sticky=W)
+        self._lbl_transmit_preset.grid(column=2, row=0, padx=2, pady=3, sticky=W)
         self._lbl_ltime.grid(column=1, row=0, pady=3, sticky=W)
         self._lbl_time.grid(column=2, row=0, pady=3, sticky=W)
         self._lbl_llat.grid(column=3, row=0, pady=3, sticky=W)
@@ -344,9 +358,23 @@ class BannerFrame(Frame):
         else:
             self._lbl_status_preset.configure(image=self._img_disconn)
 
+    def update_rtk_status(self, rtk: int = 0):
+        """
+        Update RTK status icon.
+
+        :param int rtk: rtk transmit status (none = 0, ntrip = 1, spartn = 2/4)
+        """
+
+        if rtk == CONNECTED_NTRIP:
+            self._lbl_rtk_preset.configure(image=self._img_ntrip)
+        elif rtk in (CONNECTED_SPARTNIP, CONNECTED_SPARTNLB):
+            self._lbl_rtk_preset.configure(image=self._img_spartn)
+        else:
+            self._lbl_rtk_preset.configure(image=self._img_blank)
+
     def update_transmit_status(self, transmit: int = 1):
         """
-        Update socket server status icon
+        Update socket server status icon.
 
         :param int transmit: socket server transmit status (-1, 0, 1)
         """
@@ -356,7 +384,7 @@ class BannerFrame(Frame):
         elif transmit == 0:
             self._lbl_transmit_preset.configure(image=self._img_noclient)
         else:
-            self._lbl_transmit_preset.configure(image=self._img_notransmit)
+            self._lbl_transmit_preset.configure(image=self._img_blank)
 
     def update_frame(self):
         """
