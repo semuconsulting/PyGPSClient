@@ -197,13 +197,13 @@ class SPARTNMQTTDialog(Frame):
             self,
             width=45,
             image=self._img_socket,
-            command=lambda: self._on_connect(),
+            command=lambda: self.on_connect(),
         )
         self._btn_disconnect = Button(
             self,
             width=45,
             image=self._img_disconn,
-            command=lambda: self._on_disconnect(),
+            command=lambda: self.on_disconnect(),
             state=DISABLED,
         )
 
@@ -332,7 +332,7 @@ class SPARTNMQTTDialog(Frame):
         elif ext == "pem":
             self._mqtt_pem.set(spfile)
 
-    def _on_connect(self):
+    def on_connect(self):
         """
         Connect to MQTT client.
         """
@@ -365,19 +365,20 @@ class SPARTNMQTTDialog(Frame):
         )
         self.set_controls(CONNECTED_SPARTNIP)
 
-    def _on_disconnect(self):
+    def on_disconnect(self):
         """
         Disconnect from MQTT client.
         """
 
-        if self._stream_handler is not None:
-            self.__app.rtk_conn_status = DISCONNECTED
-            self._stream_handler.stop()
-            self._stream_handler = None
-            self.__container.set_status(
-                "Disconnected",
-                "red",
-            )
+        if self.__app.rtk_conn_status == CONNECTED_SPARTNIP:
+            if self._stream_handler is not None:
+                self.__app.rtk_conn_status = DISCONNECTED
+                self._stream_handler.stop()
+                self._stream_handler = None
+                self.__container.set_status(
+                    "Disconnected",
+                    "red",
+                )
         self.set_controls(DISCONNECTED)
 
     def update_status(self, msg: UBXMessage):

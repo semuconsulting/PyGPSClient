@@ -625,6 +625,24 @@ def wnotow2date(wno: int, tow: int) -> datetime:
     return dat
 
 
+def getbits(bitfield: bytes, position: int, length: int) -> int:
+    """
+    Get integer value of masked bits in bitfield.
+
+    :param bytes bitfield: bytes
+    :param int position: position in bitfield, from leftmost bit
+    :param int length: length of masked bits
+    :return: value
+    :rtype: int
+    """
+
+    lbb = len(bitfield) * 8
+    if position + length > lbb:
+        return None
+
+    return int.from_bytes(bitfield) >> (lbb - position - length) & (pow(2, length) - 1)
+
+
 def parse_rxmspartnkey(msg: UBXMessage) -> list:
     """
     Extract dates and keys from RXM-SPARTNKEY message.

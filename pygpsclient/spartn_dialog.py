@@ -39,6 +39,7 @@ from pygpsclient.globals import (
     SPARTN_GNSS,
     SPARTN_LBAND,
     SPARTN_MQTT,
+    POPUP_TRANSIENT,
 )
 from pygpsclient.strings import DLGSPARTNCONFIG
 from pygpsclient.spartn_gnss_frame import SPARTNGNSSDialog
@@ -67,8 +68,8 @@ class SPARTNConfigDialog(Toplevel):
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
         Toplevel.__init__(self, app)
-        # if POPUP_TRANSIENT:
-        #     self.transient(self.__app)
+        if POPUP_TRANSIENT:
+            self.transient(self.__app)
         self.resizable(False, False)
         self.title(DLGSPARTNCONFIG)  # pylint: disable=E1102
         self.protocol("WM_DELETE_WINDOW", self.on_exit)
@@ -197,6 +198,8 @@ class SPARTNConfigDialog(Toplevel):
         Handle Exit button press.
         """
 
+        self._frm_corrip.on_disconnect()
+        self._frm_corrlband.on_disconnect()
         self.__app.stop_spartnconfig_thread()
         self.destroy()
 

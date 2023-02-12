@@ -258,13 +258,13 @@ class SPARTNLBANDDialog(Frame):
             self,
             width=45,
             image=self._img_serial,
-            command=lambda: self._on_connect(),
+            command=lambda: self.on_connect(),
         )
         self._btn_disconnect = Button(
             self,
             width=45,
             image=self._img_disconn,
-            command=lambda: self._on_disconnect(),
+            command=lambda: self.on_disconnect(),
             state=DISABLED,
         )
         self._lbl_send = Label(self, image=self._img_blank)
@@ -392,7 +392,7 @@ class SPARTNLBANDDialog(Frame):
 
         return valid
 
-    def _on_connect(self):
+    def on_connect(self):
         """
         Connect to Correction receiver.
         """
@@ -413,18 +413,19 @@ class SPARTNLBANDDialog(Frame):
         # poll for config
         self._poll_config()
 
-    def _on_disconnect(self):
+    def on_disconnect(self):
         """
         Disconnect from Correction receiver.
         """
 
         if self.__app.rtk_conn_status == CONNECTED_SPARTNLB:
-            self._stream_handler.stop_read_thread()
-            self.__app.rtk_conn_status = DISCONNECTED
-            self.__container.set_status(
-                "Disconnected",
-                "red",
-            )
+            if self._stream_handler is not None:
+                self._stream_handler.stop_read_thread()
+                self.__app.rtk_conn_status = DISCONNECTED
+                self.__container.set_status(
+                    "Disconnected",
+                    "red",
+                )
             self.set_controls(DISCONNECTED)
 
     def _format_cfgpoll(self) -> UBXMessage:

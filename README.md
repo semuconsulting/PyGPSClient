@@ -47,7 +47,7 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 ## <a name="features">Features</a>
 
 1. Runs on any platform which supports a Python 3 interpreter (>=3.7) and tkinter (>=8.6) GUI framework, including Windows, MacOS, Linux and Raspberry Pi OS.
-1. Supports NMEA, UBX, RTCM3 and NTRIP protocols.
+1. Supports NMEA, UBX, RTCM3, NTRIP and SPARTN protocols.
 1. Capable of reading from a variety of GNSS data streams: Serial (USB / UART), Socket (TCP / UDP) and binary datalog file.
 1. Configurable GUI with selectable and resizeable widgets.
 1. Expandable banner widget showing key navigation information.
@@ -174,6 +174,8 @@ Below is a illustrative NTRIP DGPS data log, showing:
 ![spartn config widget screenshot](https://github.com/semuconsulting/PyGPSClient/blob/add-SPARTN-config-dialog/images/spartnconfig_widget.png?raw=true)
 
 The SPARTN Configuration utility allows users to receive and process SPARTN RTK Correction data from an IP or L-Band source to achieve cm level location accuracy. It provides three independent configuration sections, one for IP Correction (MQTT), one for L-Band Correction (e.g. D9S) and a third for the GNSS receiver (e.g. F9P). 
+
+**NB:** the SPARTN client implements skeleton `SPARTNReader` and `SPARTNMessage` classes but these do not currently perform a full decode of SPARTN protocol messages. They basically parse snd decode just enough information to extract individual SPARTN messages from an MQTT pp/ip topic payload and identity each imessage type/subtype.
 
 The facility can be accessed by clicking the ![SPARTN Client button](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-antenna-3-24.png?raw=true) or selecting Menu..Options..NTRIP Configuration Dialog. . The dialog must remain open while the facility is in use.
 

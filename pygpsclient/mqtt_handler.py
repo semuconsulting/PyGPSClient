@@ -26,7 +26,12 @@ from pyubx2 import (
     UBXParseError,
     SET,
 )
-from pygpsclient.spartnmessage import SPARTNMessage
+from pygpsclient.spartnmessage import (
+    SPARTNReader,
+    SPARTNParseError,
+    SPARTNMessageError,
+    SPARTNStreamError,
+)
 from pygpsclient.globals import (
     SPARTN_PPSERVER,
     TOPIC_IP,
@@ -177,6 +182,12 @@ class MQTTHandler:
                 userdata["gnss"].put((msg.payload, parsed))
                 userdata["master"].event_generate(userdata["readevent"])
         else:  # SPARTN protocol message
-            parsed = SPARTNMessage(payload=msg.payload)
-            userdata["gnss"].put((msg.payload, parsed))
-            userdata["master"].event_generate(userdata["readevent"])
+            spr = SPARTNReader(BytesIO(msg.payload), msgmode=SET)
+            try:
+                for raw, parsed in spr.iterate():
+                    userdata["gnss"].put((raw, parsed))
+                    userdata["master"].event_generate(userdata["readevent"])
+            except (SPARTNMessageError, SPARTNParseError, SPARTNStreamError):
+                parsed = f"MQTT SPARTNParseError {msg.topic} {msg.payload}"
+                userdata["gnss"].put((msg.payload, parsed))
+                userdata["master"].event_generate(userdata["readevent"])

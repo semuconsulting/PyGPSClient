@@ -83,6 +83,8 @@ from pygpsclient.gpx_dialog import GPXViewerDialog
 from pygpsclient.nmea_handler import NMEAHandler
 from pygpsclient.ubx_handler import UBXHandler
 
+SPARTN_PROTOCOL = 9
+
 
 class App(Frame):  # pylint: disable=too-many-ancestors
     """
