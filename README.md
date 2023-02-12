@@ -175,7 +175,8 @@ Below is a illustrative NTRIP DGPS data log, showing:
 
 The SPARTN Configuration utility allows users to receive and process SPARTN RTK Correction data from an IP or L-Band source to achieve cm level location accuracy. It provides three independent configuration sections, one for IP Correction (MQTT), one for L-Band Correction (e.g. D9S) and a third for the GNSS receiver (e.g. F9P). 
 
-**NB:** the SPARTN client implements skeleton `SPARTNReader` and `SPARTNMessage` classes but these do not currently perform a full decode of SPARTN protocol messages. They basically parse snd decode just enough information to extract individual SPARTN messages from an MQTT pp/ip topic payload and identity each imessage type/subtype.
+**NB:** the SPARTN client implements skeleton `SPARTNReader` and `SPARTNMessage` classes. The `SPARTNReader` class will parse individual SPARTN messages from any binary stream containing
+*solely* SPARTN data e.g. an MQTT `/pp/ip` topic. The `SPARTNMessage` class does not currently perform a full decode of SPARTN protocol messages; it basically decodes just enough information to identify message type/subtype, payload length and other key metadata.
 
 The facility can be accessed by clicking the ![SPARTN Client button](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-antenna-3-24.png?raw=true) or selecting Menu..Options..NTRIP Configuration Dialog. . The dialog must remain open while the facility is in use.
 
