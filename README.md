@@ -180,8 +180,6 @@ The SPARTN Configuration utility allows users to receive and process SPARTN RTK 
 
 The facility can be accessed by clicking the ![SPARTN Client button](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-antenna-3-24.png?raw=true) or selecting Menu..Options..NTRIP Configuration Dialog. . The dialog must remain open while the facility is in use.
 
-**NB:** PyGPSClient cannot currently parse or decode binary SPARTN correction data - it simply passes the raw data through to the receiver.
-
 **Pre-Requisites:**
 
 1. IP Correction (MQTT Client):
@@ -459,7 +457,7 @@ For further details, refer to the `pygnssutils` homepage at [https://github.com/
 ---
 ## <a name="glossary">Glossary of Terms</a>
 
-For a general overview of GNSS, DGPS and NTRIP technologies and terminology, refer to [GNSS Positioning - A Reviser](https://www.semuconsulting.com/gnsswiki/).
+For a general overview of GNSS, DGPS, RTK, NTRIP and SPARTN technologies and terminology, refer to [GNSS Positioning - A Reviser](https://www.semuconsulting.com/gnsswiki/).
 
 * ACC - accuracy of location in real units (hacc - horizontal, vacc - vertical). Note that location accuracy is not directly provided via the standard NMEA message set, but is available from UBX messages e.g. NAV-POSLLH, NAV-PVT and some proprietary NMEA messages e.g. UBX00.
 * BEI - [BeiDou Navigation Satellite System](https://en.wikipedia.org/wiki/BeiDou).
