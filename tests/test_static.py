@@ -8,6 +8,7 @@ Static method tests for pygpsclient.helpers
 
 import unittest
 from datetime import datetime
+from pyubx2 import UBXReader
 from pygpsclient.helpers import (
     deg2rad,
     m2ft,
@@ -31,12 +32,15 @@ from pygpsclient.helpers import (
     mapq_compress,
     mapq_decompress,
     date2wnotow,
+    wnotow2date,
+    bitsval,
+    parse_rxmspartnkey,
 )
 
 
 class StaticTest(unittest.TestCase):
     def setUp(self):
-        pass
+        self.maxDiff = None
 
     def tearDown(self):
         pass
@@ -189,6 +193,68 @@ class StaticTest(unittest.TestCase):
             res = stringvar2val(val, att)
             self.assertEqual(ress[i], res)
 
+    def testdate2wnotow(self):
+        dats = [
+            (2023, 1, 1),
+            (2005, 11, 5),
+            (2020, 8, 20),
+            (2014, 3, 16),
+            (2023, 5, 21),
+            (2023, 5, 27),
+        ]
+        vals = [
+            (2243, 0),
+            (1347, 518400),
+            (2119, 345600),
+            (1784, 0),
+            (2263, 0),
+            (2263, 518400),
+        ]
+        for i, dat in enumerate(dats):
+            y, m, d = dat
+            self.assertEqual(date2wnotow(datetime(y, m, d)), vals[i])
+
+    def testwnotow2date(self):
+        vals = [
+            (2243, 0),
+            (1347, 518400),
+            (2119, 345600),
+            (1784, 0),
+            (2263, 0),
+            (2263, 518400),
+        ]
+        dats = [
+            "2023-01-01 00:00:00",
+            "2005-11-05 00:00:00",
+            "2020-08-20 00:00:00",
+            "2014-03-16 00:00:00",
+            "2023-05-21 00:00:00",
+            "2023-05-27 00:00:00",
+        ]
+        for i, (wno, tow) in enumerate(vals):
+            self.assertEqual(str(wnotow2date(wno, tow)), dats[i])
+        (wno, tow) = date2wnotow(datetime(2020, 4, 12))
+        self.assertEqual(wnotow2date(wno, tow), datetime(2020, 4, 12))
+
+    def testbitsval(self):
+        bits = [(7, 1), (8, 8), (22, 2), (24, 4), (40, 16)]
+        EXPECTED_RESULT = [1, 8, 3, 15, None]
+
+        bm = b"\x01\x08\x03\xf0\xff"
+        for i, (ps, ln) in enumerate(bits):
+            res = bitsval(bm, ps, ln)
+            self.assertEqual(res, EXPECTED_RESULT[i])
+
+    def testparserxm(self):
+        EXPECTED_RESULT = [
+            ("0c00", datetime(1988, 3, 1, 7, 40)),
+            ("290900", datetime(1988, 7, 4, 2, 40)),
+        ]
+        RXM_SPARTNKEY = b"\xb5b\x026\x19\x00\x01\x02\x00\x00\x00\x02+\x00\xd0Y\xc8\r\x00\x03+\x00\x00\xdfl\x0e\x0c\x00)\t\x00D;"
+        msg = UBXReader.parse(RXM_SPARTNKEY)
+        res = parse_rxmspartnkey(msg)
+        self.assertEqual(res, EXPECTED_RESULT)
+
     def testmapqcompress(self):
         PREC = 6
         points = [
@@ -209,27 +275,6 @@ class StaticTest(unittest.TestCase):
         print(pnts)
         for i, pnt in enumerate(pnts):
             self.assertAlmostEqual(pnt, points[i], PREC)
-
-    def testgpsweek(self):
-        dats = [
-            (2023, 1, 1),
-            (2005, 11, 5),
-            (2020, 8, 20),
-            (2014, 3, 16),
-            (2023, 5, 21),
-            (2023, 5, 27),
-        ]
-        vals = [
-            (2243, 0),
-            (1347, 518400),
-            (2119, 345600),
-            (1784, 0),
-            (2263, 0),
-            (2263, 518400),
-        ]
-        for i, dat in enumerate(dats):
-            y, m, d = dat
-            self.assertEqual(date2wnotow(datetime(y, m, d)), vals[i])
 
 
 if __name__ == "__main__":

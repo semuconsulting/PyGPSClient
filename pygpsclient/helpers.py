@@ -625,9 +625,9 @@ def wnotow2date(wno: int, tow: int) -> datetime:
     return dat
 
 
-def getbits(bitfield: bytes, position: int, length: int) -> int:
+def bitsval(bitfield: bytes, position: int, length: int) -> int:
     """
-    Get integer value of masked bits in bitfield.
+    Get unisgned integer value of masked bits in bitfield.
 
     :param bytes bitfield: bytes
     :param int position: position in bitfield, from leftmost bit

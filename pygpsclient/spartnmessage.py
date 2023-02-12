@@ -34,7 +34,7 @@ Created on 11 Feb 2023
 
 from socket import socket
 from pyubx2.socket_stream import SocketStream
-from pygpsclient.helpers import getbits
+from pygpsclient.helpers import bitsval
 
 SPARTN_PRE = 0x73
 SPARTN_MSGIDS = {
@@ -96,21 +96,21 @@ class SPARTNMessage:
         if self._payload is None:
             raise SPARTNMessageError("Payload must be provided")
 
-        self._preamble = getbits(self._payload, 0, 8)
+        self._preamble = bitsval(self._payload, 0, 8)
         if self._preamble != SPARTN_PRE:  # not SPARTN
             raise SPARTNParseError(f"Unknown message preamble {self._preamble}")
 
-        self.msgType = getbits(self._payload, 8, 7)
-        self.msgSubtype = getbits(self._payload, 32, 4)
-        self.nData = getbits(self._payload, 15, 10)
-        self.eaf = getbits(self._payload, 25, 1)
-        self.crcType = getbits(self._payload, 26, 2)
-        self.frameCrc = getbits(self._payload, 28, 4)
-        self.timeTagtype = getbits(self._payload, 36, 1)
+        self.msgType = bitsval(self._payload, 8, 7)
+        self.msgSubtype = bitsval(self._payload, 32, 4)
+        self.nData = bitsval(self._payload, 15, 10)
+        self.eaf = bitsval(self._payload, 25, 1)
+        self.crcType = bitsval(self._payload, 26, 2)
+        self.frameCrc = bitsval(self._payload, 28, 4)
+        self.timeTagtype = bitsval(self._payload, 36, 1)
         timl = 16 if self.timeTagtype == 0 else 32
-        self.gnssTimeTag = getbits(self._payload, 37, timl)
-        self.solutionId = getbits(self._payload, 37 + timl, 7)
-        self.solutionProcId = getbits(self._payload, 44 + timl, 4)
+        self.gnssTimeTag = bitsval(self._payload, 37, timl)
+        self.solutionId = bitsval(self._payload, 37 + timl, 7)
+        self.solutionProcId = bitsval(self._payload, 44 + timl, 4)
 
         self._do_attributes(**kwargs)
 
@@ -254,18 +254,18 @@ class SPARTNReader:
         # pylint: disable=unused-variable
 
         framestart = self._read_bytes(3)
-        msgType = getbits(framestart, 0, 7)
-        nData = getbits(framestart, 7, 10)
-        eaf = getbits(framestart, 17, 1)
-        crcType = getbits(framestart, 18, 2)
-        frameCrc = getbits(framestart, 20, 4)
+        msgType = bitsval(framestart, 0, 7)
+        nData = bitsval(framestart, 7, 10)
+        eaf = bitsval(framestart, 17, 1)
+        crcType = bitsval(framestart, 18, 2)
+        frameCrc = bitsval(framestart, 20, 4)
 
-        if eaf:
+        if eaf:  # encrypted
             payDesc = self._read_bytes(6)
-        else:
+        else:  # not encrypted
             payDesc = self._read_bytes(4)
-        msgSubtype = getbits(payDesc, 0, 4)
-        timeTagtype = getbits(payDesc, 4, 1)
+        msgSubtype = bitsval(payDesc, 0, 4)
+        timeTagtype = bitsval(payDesc, 4, 1)
         if timeTagtype:
             payDesc += self._read_bytes(2)
             gtlen = 32
@@ -273,10 +273,10 @@ class SPARTNReader:
         else:
             gtlen = 16
             pos = 21
-        gnssTimeTag = getbits(payDesc, 5, gtlen)
+        gnssTimeTag = bitsval(payDesc, 5, gtlen)
         if eaf:
-            authInd = getbits(payDesc, pos + 21, 3)
-            embAuthLen = getbits(payDesc, pos + 24, 3)
+            authInd = bitsval(payDesc, pos + 21, 3)
+            embAuthLen = bitsval(payDesc, pos + 24, 3)
         # print(
         #     f"DEBUG parse_spartn len paydesc {len(payDesc)*8} msgtype:",
         #     f"{msgType} eaf: {eaf} crctype: {crcType} subtype: {msgSubtype}",
