@@ -1,12 +1,10 @@
 """
-SPARTNMessage class.
-
 Skeleton SPARTNMessage and SPARTNReader classes.
 
-NB: this doesn't currently perform a full parse and decode of the SPARTN
-message protocol. It basically parses just enough information to extract
+NB: these don't currently perform a full parse and decode of the SPARTN
+message protocol. They basically parses just enough information to extract
 individual SPARTN messages from an MQTT pp/ip topic payload and identity
-each message type/subtype. It will NOT handle mixed protocol
+each message type/subtype. The reader will NOT handle mixed protocol
 streams - it expects the input stream to contain ONLY SPARTN protocol
 messages.
 
@@ -110,7 +108,7 @@ class SPARTNMessage:
         timl = 16 if self.timeTagtype == 0 else 32
         self.gnssTimeTag = getbits(self._payload, 37, timl)
         self.solutionId = getbits(self._payload, 37 + timl, 7)
-        self.solutionProcId = getbits(self._payload, 37 + timl + 7, 4)
+        self.solutionProcId = getbits(self._payload, 44 + timl, 4)
 
         self._do_attributes(**kwargs)
 
