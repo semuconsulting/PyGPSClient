@@ -1,12 +1,14 @@
 """
 Skeleton SPARTNMessage and SPARTNReader classes.
 
-NB: these don't currently perform a full parse and decode of the SPARTN
-message protocol. They basically parses just enough information to extract
-individual SPARTN messages from an MQTT pp/ip topic payload and identity
-each message type/subtype. The reader will NOT handle mixed protocol
-streams - it expects the input stream to contain ONLY SPARTN protocol
-messages.
+The SPARTNReader class will parse individual SPARTN messages
+from any binary stream containing *solely* SPARTN data e.g. an
+MQTT `/pp/ip` topic.
+
+The SPARTNMessage class does not currently perform a full decode
+of SPARTN protocol messages; it basically decodes just enough
+information to identify message type/subtype, payload length and
+other key metadata.
 
 Sourced from https://www.spartnformat.org/download/
 (available in the public domain)
@@ -15,11 +17,11 @@ Sourced from https://www.spartnformat.org/download/
 If anyone wants to contribute a full SPARTN message decode, be my guest :-)
 
 SPARTN 1X transport layer bit format:
-+----------+------------+-------------+------------+-----------+----------+
-| preamble | framestart |   payload   |  payload   | embedded  |   crc    |
-|   0x73   |            |  descriptor |            | auth data |          |
-+----------+------------+-------------+------------+-----------+----------+
-|<--- 8 -->|<--- 24 --->|<-- 32-64 -->|<- 8-8192 ->|<- 0-512 ->|<- 8-32 ->|
++-----------+------------+-------------+------------+-----------+----------+
+| preamble  | framestart |   payload   |  payload   | embedded  |   crc    |
+| 0x73  's' |            |  descriptor |            | auth data |          |
++-----------+------------+-------------+------------+-----------+----------+
+|<--- 8 --->|<--- 24 --->|<-- 32-64 -->|<- 8-8192 ->|<- 0-512 ->|<- 8-32 ->|
 
 
 Created on 11 Feb 2023
@@ -258,13 +260,13 @@ class SPARTNReader:
         crcType = getbits(framestart, 18, 2)
         frameCrc = getbits(framestart, 20, 4)
 
-        if eaf == 0:
-            payDesc = self._read_bytes(4)
-        else:
+        if eaf:
             payDesc = self._read_bytes(6)
+        else:
+            payDesc = self._read_bytes(4)
         msgSubtype = getbits(payDesc, 0, 4)
         timeTagtype = getbits(payDesc, 4, 1)
-        if timeTagtype == 1:
+        if timeTagtype:
             payDesc += self._read_bytes(2)
             gtlen = 32
             pos = 37
@@ -272,7 +274,7 @@ class SPARTNReader:
             gtlen = 16
             pos = 21
         gnssTimeTag = getbits(payDesc, 5, gtlen)
-        if eaf == 1:
+        if eaf:
             authInd = getbits(payDesc, pos + 21, 3)
             embAuthLen = getbits(payDesc, pos + 24, 3)
         # print(
@@ -282,19 +284,18 @@ class SPARTNReader:
         # )
         payload = self._read_bytes(nData)
         embAuth = b""
-        if eaf == 1:
-            if authInd > 1:
-                if embAuthLen == 0:
-                    aln = 8
-                elif embAuthLen == 1:
-                    aln = 12
-                elif embAuthLen == 2:
-                    aln = 16
-                elif embAuthLen == 3:
-                    aln = 32
-                elif embAuthLen == 4:
-                    aln = 64
-                embAuth = self._read_bytes(aln)
+        if eaf and authInd > 1:
+            if embAuthLen == 0:
+                aln = 8
+            elif embAuthLen == 1:
+                aln = 12
+            elif embAuthLen == 2:
+                aln = 16
+            elif embAuthLen == 3:
+                aln = 32
+            elif embAuthLen == 4:
+                aln = 64
+            embAuth = self._read_bytes(aln)
         crc = self._read_bytes(crcType + 1)
         raw_data = preamble + framestart + payDesc + payload + embAuth + crc
         parsed_data = self.parse(raw_data)
