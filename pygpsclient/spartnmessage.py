@@ -285,16 +285,7 @@ class SPARTNReader:
         payload = self._read_bytes(nData)
         embAuth = b""
         if eaf and authInd > 1:
-            if embAuthLen == 0:
-                aln = 8
-            elif embAuthLen == 1:
-                aln = 12
-            elif embAuthLen == 2:
-                aln = 16
-            elif embAuthLen == 3:
-                aln = 32
-            elif embAuthLen == 4:
-                aln = 64
+            aln = (embAuthLen + 1) * 8
             embAuth = self._read_bytes(aln)
         crc = self._read_bytes(crcType + 1)
         raw_data = preamble + framestart + payDesc + payload + embAuth + crc
