@@ -43,7 +43,6 @@ from pygpsclient.globals import (
     GNSS_EOF_EVENT,
     NTRIP_EVENT,
     SPARTN_EVENT,
-    RXMMSG,
 )
 from pygpsclient._version import __version__ as VERSION
 from pygpsclient.helpers import check_latest
@@ -82,6 +81,7 @@ from pygpsclient.spartn_dialog import SPARTNConfigDialog
 from pygpsclient.gpx_dialog import GPXViewerDialog
 from pygpsclient.nmea_handler import NMEAHandler
 from pygpsclient.ubx_handler import UBXHandler
+from pygpsclient.rtcm3_handler import RTCM3Handler
 
 SPARTN_PROTOCOL = 9
 
@@ -132,6 +132,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.stream_handler = StreamHandler(self)
         self.nmea_handler = NMEAHandler(self)
         self.ubx_handler = UBXHandler(self)
+        self.rtcm_handler = RTCM3Handler(self)
         self._conn_status = DISCONNECTED
         self._rtk_conn_status = DISCONNECTED
         self.ntrip_handler = GNSSNTRIPClient(self, verbosity=0)
@@ -662,28 +663,21 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         protfilter = self.frm_settings.protocol
         msgprot = protocol(raw_data)
-        if isinstance(parsed_data, str) and parsed_data[0:7] != "<SPARTN":
+        if isinstance(parsed_data, str):  # error message rather than parsed data
             marker = "WARNING  "
+            msgprot = 0
 
         if msgprot == UBX_PROTOCOL and msgprot & protfilter:
-            if marker == "" or parsed_data.identity == RXMMSG:
-                self.ubx_handler.process_data(raw_data, parsed_data)
-            else:
-                parsed_data = marker + str(parsed_data)
+            self.ubx_handler.process_data(raw_data, parsed_data)
         elif msgprot == NMEA_PROTOCOL and msgprot & protfilter:
-            if marker == "":
-                self.nmea_handler.process_data(raw_data, parsed_data)
-            else:
-                parsed_data = marker + str(parsed_data)
+            self.nmea_handler.process_data(raw_data, parsed_data)
         elif msgprot == RTCM3_PROTOCOL and msgprot & protfilter:
-            if marker != "":
-                parsed_data = marker + str(parsed_data)
-        else:
-            if marker != "":
-                parsed_data = marker + str(parsed_data)
+            self.rtcm_handler.process_data(raw_data, parsed_data)
 
+        # update console
         if self._widget_grid["Console"]["visible"]:
-            self.frm_console.update_console(raw_data, parsed_data)
+            if msgprot == 0 or msgprot & protfilter:
+                self.frm_console.update_console(raw_data, parsed_data, marker)
 
         # update visible widgets
         if datetime.now() > self._last_gui_update + timedelta(
@@ -884,7 +878,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
         Getter for SPARTN connection status.
 
-        :param int status: connection status e.g. 1 = NTRIP, 2 = SPARTN
+        :param int status: connection status - CONNECTED_SPARTNLB / CONNECTED_SPARTNIP
         """
 
         return self._rtk_conn_status
@@ -892,9 +886,9 @@ class App(Frame):  # pylint: disable=too-many-ancestors
     @rtk_conn_status.setter
     def rtk_conn_status(self, status: int):
         """
-        Setter for SPARTN connection status.
+        Setter for SPARTN connection status  - CONNECTED_SPARTNLB / CONNECTED_SPARTNIP
 
-        :param int status: connection status e.g. 1 = NTRIP, 2 = SPARTN
+        :param int status: connection status
         """
 
         self._rtk_conn_status = status

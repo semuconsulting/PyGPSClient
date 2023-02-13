@@ -583,6 +583,16 @@ class SPARTNLBANDDialog(Frame):
 
         self.__container.set_status(msg, color)
 
+    def set_connection(self, msg: str, color: str = "blue"):
+        """
+        Set status message.
+
+        :param str message: message to be displayed
+        :param str color: rgb color of text (blue)
+        """
+
+        self.__container.set_status(msg, color)
+
     @property
     def appmaster(self) -> object:
         """
