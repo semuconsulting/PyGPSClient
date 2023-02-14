@@ -79,7 +79,6 @@ BAUDRATE = 38400
 SPARTN_KEYLEN = 16
 RESERVED0 = b"\x00\x00"
 RESERVED1 = b"\x00"
-RXMMSG = "RXM-SPARTN-KEY"
 CFGSET = "CFG-VALGET/SET"
 CFGPOLL = "CFG-VALGET"
 INPORTS = ("I2C", "UART1", "UART2", "USB", "SPI")
@@ -433,14 +432,6 @@ class SPARTNLBANDDialog(Frame):
         Format UBX CFG-VALGET message to poll Correction receiver
         configuration.
         """
-
-        # TODO note on possible issue with LBAND RTK:
-        # We figured it out. Turns out the issue was with the parameter CFG-NAVSPG-CONSTR_DGNSSTO,
-        # which seems to specify how long to wait between correction messages before dropping RTK.
-        # It was set to 10 seconds: much too short to accomodate the infrequent messages from the D9S.
-        # The default factory value is 60 seconds, but I still find occasional RTK dropouts, so
-        # I've settled on 90 seconds for now. The reason it was set to 10 seconds was because of
-        # our previous testing of RTCM streaming.
 
         outport = self._spartn_outport.get()
         if outport == PASSTHRU:

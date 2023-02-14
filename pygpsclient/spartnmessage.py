@@ -176,6 +176,7 @@ class SPARTNReader:
 
     def __init__(self, datastream, **kwargs):
         """Constructor.
+
         :param datastream stream: input data stream
         :param int quitonerror: (kwarg) 0 = ignore,  1 = log and continue, 2 = (re)raise (1)
         :param int validate: (kwarg) 0 = ignore invalid checksum, 1 = validate checksum (1)
@@ -199,6 +200,7 @@ class SPARTNReader:
     def __next__(self) -> tuple:
         """
         Return next item in iteration.
+
         :return: tuple of (raw_data as bytes, parsed_data as rtcmMessage)
         :rtype: tuple
         :raises: StopIteration
@@ -214,6 +216,7 @@ class SPARTNReader:
         Read a single SPARTN message from the stream buffer
         and return both raw and parsed data.
         'quitonerror' determines whether to raise, log or ignore parsing errors.
+
         :return: tuple of (raw_data as bytes, parsed_data as SPARTNMessage)
         :rtype: tuple
         :raises: SPARTNStreamError (if unrecognised protocol in data stream)
@@ -245,11 +248,13 @@ class SPARTNReader:
 
     def _parse_spartn(self, preamble: bytes) -> tuple:
         """
-        Parse any SPARTN data in the stream.
+        Parse any SPARTN data in the stream. The structure of the transport layer
+        depends on encryption type, GNSS timetag format and CRC format.
 
         :param preamble hdr: preamble of SPARTN message
         :return: tuple of (raw_data as bytes, parsed_stub as SPARTNMessage)
         :rtype: tuple
+        :raises: EOFError if premature end of file
         """
         # pylint: disable=unused-variable
 
@@ -258,44 +263,55 @@ class SPARTNReader:
         nData = bitsval(framestart, 7, 10)
         eaf = bitsval(framestart, 17, 1)
         crcType = bitsval(framestart, 18, 2)
-        frameCrc = bitsval(framestart, 20, 4)
+        # frameCrc = bitsval(framestart, 20, 4)
 
-        if eaf:  # encrypted
-            payDesc = self._read_bytes(6)
-        else:  # not encrypted
-            payDesc = self._read_bytes(4)
+        payDesc = self._read_bytes(4)
         msgSubtype = bitsval(payDesc, 0, 4)
         timeTagtype = bitsval(payDesc, 4, 1)
         if timeTagtype:
             payDesc += self._read_bytes(2)
-            gtlen = 32
-            pos = 37
-        else:
-            gtlen = 16
-            pos = 21
+        gtlen = 32 if timeTagtype else 16
         gnssTimeTag = bitsval(payDesc, 5, gtlen)
+        # solutionId = bitsval(payDesc, gtlen + 5, 7)
+        # solutionProcId = bitsval(payDesc, gtlen + 12, 4)
+        authInd = 0
         if eaf:
-            authInd = bitsval(payDesc, pos + 21, 3)
-            embAuthLen = bitsval(payDesc, pos + 24, 3)
-        # print(
-        #     f"DEBUG parse_spartn len paydesc {len(payDesc)*8} msgtype:",
-        #     f"{msgType} eaf: {eaf} crctype: {crcType} subtype: {msgSubtype}",
-        #     f"gnsstime: {gnssTimeTag} timetag: {timeTagtype} authind: {authInd}",
-        # )
+            payDesc += self._read_bytes(2)
+            # encryptionId = bitsval(payDesc, gtlen + 16, 4)
+            # encryptionSeq = bitsval(payDesc, gtlen + 20, 6)
+            authInd = bitsval(payDesc, gtlen + 26, 3)
+            embAuthLen = bitsval(payDesc, gtlen + 29, 3)
         payload = self._read_bytes(nData)
         embAuth = b""
-        if eaf and authInd > 1:
-            aln = (embAuthLen + 1) * 8
+        if authInd > 1:
+            if embAuthLen == 0:
+                aln = 8
+            elif embAuthLen == 1:
+                aln = 12
+            elif embAuthLen == 2:
+                aln = 16
+            elif embAuthLen == 3:
+                aln = 32
+            elif embAuthLen == 4:
+                aln = 64
+            else:
+                aln = 0
             embAuth = self._read_bytes(aln)
         crc = self._read_bytes(crcType + 1)
         raw_data = preamble + framestart + payDesc + payload + embAuth + crc
         parsed_data = self.parse(raw_data)
+        # print(
+        #     f"DEBUG parse_spartn len paydesc {len(payDesc)*8} msgType: {msgType} msgSubtype: {msgSubtype}",
+        #     f"gnssTimeTag: {gnssTimeTag} timeTagtype: {timeTagtype} eaf: {eaf} authind: {authInd}",
+        #     f"embAuthLen {embAuthLen} crcType: {crcType} crc {int.from_bytes(crc,'little')}",
+        # )
 
         return (raw_data, parsed_data)
 
     def _read_bytes(self, size: int) -> bytes:
         """
         Read a specified number of bytes from stream.
+
         :param int size: number of bytes to read
         :return: bytes
         :rtype: bytes
@@ -310,6 +326,7 @@ class SPARTNReader:
     def iterate(self, **kwargs) -> tuple:
         """
         Invoke the iterator within an exception handling framework.
+
         :param int quitonerror: (kwarg) 0 = ignore,  1 = log and continue, 2 = (re)raise (1)
         :param object errorhandler: (kwarg) Optional error handler (None)
         :return: tuple of (raw_data as bytes, parsed_data as RTCMMessage)
@@ -346,6 +363,7 @@ class SPARTNReader:
     def datastream(self) -> object:
         """
         Getter for stream.
+
         :return: data stream
         :rtype: object
         """
@@ -356,6 +374,7 @@ class SPARTNReader:
     def parse(message: bytes, **kwargs) -> SPARTNMessage:
         """
         Parse SPARTN message to SPARTNMessage object.
+
         :param bytes message: SPARTN raw message bytes
         :return: SPARTNMessage object
         :rtype: SPARTNMessage

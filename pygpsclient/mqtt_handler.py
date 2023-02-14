@@ -56,7 +56,8 @@ class MQTTHandler:
         """
         Constructor.
 
-        :param str region: region eg. "uk"
+        :param object app: reference to calling application
+        :param str region: region eg. "eu"
         :param Queue outqueue: output queue to GNSS receiver
         """
 
@@ -158,7 +159,13 @@ class MQTTHandler:
     def on_connect(client, userdata, flags, rcd):  # pylint: disable=unused-argument
         """
         The callback for when the client receives a CONNACK response from the server.
+
+        :param object client: client
+        :param list userdata:  list of user defined data items
+        :param list flags: optional flags
+        :param int rcd: return status code
         """
+
         if rcd == 0:
             client.subscribe(userdata["topics"])
         else:
@@ -168,7 +175,11 @@ class MQTTHandler:
     def on_message(client, userdata, msg):  # pylint: disable=unused-argument
         """
         The callback for when a PUBLISH message is received from the server.
-        Some MQTT topics may contain more than one UBX message in a single payload.
+        Some MQTT topics may contain more than one UBX or SPARTN message in
+        a single payload.
+
+        :param list userdata: list of user defined data items
+        :param object msg: SPARTN or UBX message topic content
         """
 
         if msg.topic in (TOPIC_MGA, TOPIC_RXM):  # multiple UBX MGA or RXM messages

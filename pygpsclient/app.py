@@ -674,12 +674,12 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         elif msgprot == RTCM3_PROTOCOL and msgprot & protfilter:
             self.rtcm_handler.process_data(raw_data, parsed_data)
 
-        # update console
+        # update console if visible
         if self._widget_grid["Console"]["visible"]:
             if msgprot == 0 or msgprot & protfilter:
                 self.frm_console.update_console(raw_data, parsed_data, marker)
 
-        # update visible widgets
+        # periodically update widgets if visible
         if datetime.now() > self._last_gui_update + timedelta(
             seconds=GUI_UPDATE_INTERVAL
         ):

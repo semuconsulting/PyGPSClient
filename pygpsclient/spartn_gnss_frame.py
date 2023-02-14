@@ -3,6 +3,10 @@ SPARTN GNSS Receiver configuration dialog
 
 Created on 26 Jan 2023
 
+FYI CFG_NAVSPG_CONSTR_DGNSSTO governs how quickly rcvr drops out of RTK mode
+after loss of correction signal - default is 60 seconds but this may need
+to be increased if the correction source is intermittent.
+
 :author: semuadmin
 :copyright: SEMU Consulting © 2023
 :license: BSD 3-Clause
