@@ -82,6 +82,12 @@ class SPARTNMessageError(Exception):
     """
 
 
+class SPARTNTypeError(Exception):
+    """
+    SPARTN Type error.
+    """
+
+
 class SPARTNMessage:
     """
     SPARTNMessage class.
@@ -92,53 +98,79 @@ class SPARTNMessage:
         Constructor.
         """
 
-        self._payload = kwargs.get("payload", None)
-        if self._payload is None:
-            raise SPARTNMessageError("Payload must be provided")
+        # object is mutable during initialisation only
+        super().__setattr__("_immutable", False)
 
-        self._preamble = bitsval(self._payload, 0, 8)
+        self._transport = kwargs.get("transport", None)
+        if self._transport is None:
+            raise SPARTNMessageError("Transport must be provided")
+
+        self._preamble = bitsval(self._transport, 0, 8)
         if self._preamble != SPARTN_PRE:  # not SPARTN
             raise SPARTNParseError(f"Unknown message preamble {self._preamble}")
 
-        self.msgType = bitsval(self._payload, 8, 7)
-        self.msgSubtype = bitsval(self._payload, 32, 4)
-        self.nData = bitsval(self._payload, 15, 10)
-        self.eaf = bitsval(self._payload, 25, 1)
-        self.crcType = bitsval(self._payload, 26, 2)
-        self.frameCrc = bitsval(self._payload, 28, 4)
-        self.timeTagtype = bitsval(self._payload, 36, 1)
-        timl = 16 if self.timeTagtype == 0 else 32
-        self.gnssTimeTag = bitsval(self._payload, 37, timl)
-        self.solutionId = bitsval(self._payload, 37 + timl, 7)
-        self.solutionProcId = bitsval(self._payload, 44 + timl, 4)
+        self._scaling = kwargs.get("scaling", False)
 
-        self._do_attributes(**kwargs)
+        self._do_attributes()
 
-    def _do_attributes(self, **kwargs):
+        self._immutable = True  # once initialised, object is immutable
+
+    def _do_attributes(self):
         """
-        TODO this is where to do a full decode of a SPARTN message...
+        Populate SPARTNMessage attributes from transport.
+        :param bytes self._transport: SPARTN message transport
+        :raises: SPARTNTypeError
         """
 
-    @property
-    def identity(self) -> str:
-        """
-        Return message identity.
-        """
+        # start of framestart
+        self.msgType = bitsval(self._transport, 8, 7)
+        self.nData = bitsval(self._transport, 15, 10)
+        self.eaf = bitsval(self._transport, 25, 1)
+        self.crcType = bitsval(self._transport, 26, 2)
+        self.frameCrc = bitsval(self._transport, 28, 4)
 
-        return SPARTN_MSGIDS.get((self.msgType, self.msgSubtype), "UNKNOWN")
+        # start of payDesc
+        self.msgSubtype = bitsval(self._transport, 32, 4)
+        self.timeTagtype = bitsval(self._transport, 36, 1)
+        gln = 32 if self.timeTagtype else 16
+        self.gnssTimeTag = bitsval(self._transport, 37, gln)
+        pos = 37 + gln
+        self.solutionId = bitsval(self._transport, pos, 7)
+        self.solutionProcId = bitsval(self._transport, pos + 7, 4)
+        pos += 11
+        if self.eaf:  # encrypted payload
+            self.encryptionId = bitsval(self._transport, pos, 4)
+            self.encryptionSeq = bitsval(self._transport, pos + 4, 6)
+            self.authInd = bitsval(self._transport, pos + 10, 3)
+            self.embAuthLen = bitsval(self._transport, pos + 13, 3)
+            pos += 16
 
-    @property
-    def payload(self) -> str:
-        """
-        Return message payload.
-        """
+        # start of payload
+        self._payload = self._transport[int(pos / 8) : int(pos / 8) + self.nData]
 
-        return self._payload
+        # start of embAuth
+        pos += self.nData * 8
+        aln = 0
+        if self.authInd > 1:
+            if self.embAuthLen == 0:
+                aln = 64
+            elif self.embAuthLen == 1:
+                aln = 94
+            elif self.embAuthLen == 2:
+                aln = 128
+            elif self.embAuthLen == 3:
+                aln = 256
+            elif self.embAuthLen == 4:
+                aln = 512
+            self.embAuth = bitsval(self._transport, pos, aln)
+
+        # start of CRC
+        pos += aln
+        self.crc = bitsval(self._transport, pos, (self.crcType + 1) * 8)
 
     def __str__(self) -> str:
         """
         Human readable representation.
-
         :return: human readable representation
         :rtype: str
         """
@@ -161,12 +193,51 @@ class SPARTNMessage:
         """
         Machine readable representation.
         eval(repr(obj)) = obj
-
         :return: machine readable representation
         :rtype: str
         """
 
-        return f"SPARTNMessage(payload={self._payload})"
+        return f"SPARTNMessage(transport={self._transport})"
+
+    def __setattr__(self, name, value):
+        """
+        Override setattr to make object immutable after instantiation.
+        :param str name: attribute name
+        :param object value: attribute value
+        :raises: SPARTNMessageError
+        """
+
+        if self._immutable:
+            raise SPARTNMessageError(
+                f"Object is immutable. Updates to {name} not permitted after initialisation."
+            )
+
+        super().__setattr__(name, value)
+
+    def serialize(self) -> bytes:
+        """
+        Serialize message.
+        :return: serialized output
+        :rtype: bytes
+        """
+
+        return self._transport
+
+    @property
+    def identity(self) -> str:
+        """
+        Return message identity.
+        """
+
+        return SPARTN_MSGIDS.get((self.msgType, self.msgSubtype), "UNKNOWN")
+
+    @property
+    def payload(self) -> str:
+        """
+        Return message payload.
+        """
+
+        return self._payload
 
 
 class SPARTNReader:
@@ -382,4 +453,4 @@ class SPARTNReader:
         """
         # pylint: disable=unused-argument
 
-        return SPARTNMessage(payload=message)
+        return SPARTNMessage(transport=message)
