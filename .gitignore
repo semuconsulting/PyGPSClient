@@ -29,5 +29,4 @@ snapcraft.yaml
 *.pyc
 *.bin
 *.ubx
-*.log
 *.gpx

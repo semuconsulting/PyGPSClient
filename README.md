@@ -18,7 +18,7 @@
 
 PyGPSClient is a multi-platform graphical GNSS/GPS testing, diagnostic and UBX &copy; (u-blox &trade;) device configuration application written entirely in Python and tkinter.
 
-![full app screenshot ubx](https://github.com/semuconsulting/PyGPSClient/blob/add-SPARTN-config-dialog/images/app.png?raw=true)
+![full app screenshot ubx](https://github.com/semuconsulting/PyGPSClient/blob/master/images/app.png?raw=true)
 
 *Screenshot showing mixed-protocol stream from u-blox ZED-F9P receiver, using PyGPSClient's [NTRIP Client](#ntripconfig) to achieve >= 3cm accuracy*
 
@@ -171,7 +171,7 @@ Below is a illustrative NTRIP DGPS data log, showing:
 
 **BETA FEATURE**
 
-![spartn config widget screenshot](https://github.com/semuconsulting/PyGPSClient/blob/add-SPARTN-config-dialog/images/spartnconfig_widget.png?raw=true)
+![spartn config widget screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/spartnconfig_widget.png?raw=true)
 
 The SPARTN Configuration utility allows users to receive and process SPARTN RTK Correction data from an IP or L-Band source to achieve cm level location accuracy. It provides three independent configuration sections, one for IP Correction (MQTT), one for L-Band Correction (e.g. D9S) and a third for the GNSS receiver (e.g. F9P). 
 
