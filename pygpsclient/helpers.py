@@ -13,18 +13,19 @@ Created on 17 Apr 2021
 # pylint: disable=invalid-name
 
 import re
-
+from datetime import datetime, timedelta
 from tkinter import Toplevel, Entry, Label, Button, W
 import os
 from time import strftime
 from math import sin, cos, acos, radians
 from requests import get
-from pyubx2 import atttyp, attsiz
+from pyubx2 import UBXMessage, atttyp, attsiz
 from pygpsclient.globals import (
     MAX_SNR,
     FIXLOOKUP,
     ENTCOL,
     ERRCOL,
+    GPSEPOCH0,
 )
 
 # validation type flags
@@ -35,6 +36,9 @@ VALNONBLANK = 2
 VALINT = 4
 VALFLOAT = 8
 VALURL = 16
+VALHEX = 32
+VALDMY = 64
+VALLEN = 128
 EARTH_RADIUS = 6371  # km
 
 
@@ -478,6 +482,13 @@ def valid_entry(entry: Entry, valmode: int, low=None, high=None) -> bool:
                 valid = low < float(entry.get()) < high
             if valmode & VALURL:  # valid URL
                 valid = validURL(entry.get())
+            if valmode & VALHEX:  # valid hexadecimal
+                bytes.fromhex(entry.get())
+            if valmode & VALDMY:  # valid date YYYYMMDD
+                dat = entry.get()
+                datetime(int(dat[0:4]), int(dat[4:6]), int(dat[6:8]))
+            if valmode & VALLEN:  # valid length
+                valid = low <= len(entry.get()) <= high
     except ValueError:
         valid = False
 
@@ -578,6 +589,86 @@ def set_filename(path: str, mode: str, ext: str) -> tuple:
     filename = f"pygps{mode}-{strftime('%Y%m%d%H%M%S')}.{ext}"
     filepath = os.path.join(path, filename)
     return filename, filepath
+
+
+def date2wnotow(dat: datetime) -> tuple:
+    """
+    Get GPS Week number (Wno) and Time of Week (Tow)
+    for given datetime.
+
+    GPS Epoch 0 = 6th Jan 1980
+
+    :param datetime dat: calendar date
+    :return: tuple of (Wno, Tow)
+    :rtype: tuple
+    """
+
+    wno = int((dat - GPSEPOCH0).days / 7)
+    tow = ((dat.weekday() + 1) % 7) * 86400
+    return wno, tow
+
+
+def wnotow2date(wno: int, tow: int) -> datetime:
+    """
+    Get datetime from GPS Week number (Wno) and Time of Week (Tow).
+
+    GPS Epoch 0 = 6th Jan 1980
+
+    :param int wno: week number
+    :param int tow: time of week
+    :return: datetime
+    :rtype: datetime
+    """
+
+    dat = GPSEPOCH0 + timedelta(days=(wno * 7))
+    dat += timedelta(seconds=tow)
+    return dat
+
+
+def bitsval(bitfield: bytes, position: int, length: int) -> int:
+    """
+    Get unisgned integer value of masked bits in bitfield.
+
+    :param bytes bitfield: bytes
+    :param int position: position in bitfield, from leftmost bit
+    :param int length: length of masked bits
+    :return: value
+    :rtype: int
+    """
+
+    lbb = len(bitfield) * 8
+    if position + length > lbb:
+        return None
+
+    return int.from_bytes(bitfield, "big") >> (lbb - position - length) & (
+        pow(2, length) - 1
+    )
+
+
+def parse_rxmspartnkey(msg: UBXMessage) -> list:
+    """
+    Extract dates and keys from RXM-SPARTNKEY message.
+
+    :param UBXMessage msg: RXM-SPARTNKEY message
+    :return: list of (key, valid from date) tuples
+    :rtype: list
+    """
+
+    keys = []
+    pos = 0
+    for i in range(msg.numKeys):
+        lkey = getattr(msg, f"keyLengthBytes_{i+1:02}")
+        wno = getattr(msg, f"validFromWno_{i+1:02}")
+        tow = getattr(msg, f"validFromTow_{i+1:02}")
+        dat = wnotow2date(wno, tow)
+        key = ""
+        for n in range(0 + pos, lkey + pos):
+            keyb = getattr(msg, f"key_{n+1:02}")
+            key += f"{keyb:02x}"
+        keys.append((key, dat))
+        pos += lkey
+
+    return keys
 
 
 # ------------------------------------------------------------------

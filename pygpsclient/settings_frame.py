@@ -33,7 +33,7 @@ from tkinter import (
     DISABLED,
     HORIZONTAL,
 )
-
+from queue import Queue
 from PIL import ImageTk, Image
 import pyubx2.ubxtypes_core as ubt
 from pygpsclient.serialconfig_frame import SerialConfigFrame
@@ -60,21 +60,25 @@ from pygpsclient.globals import (
     ICON_EXIT,
     ICON_UBXCONFIG,
     ICON_NTRIPCONFIG,
+    ICON_SPARTNCONFIG,
     ICON_LOGREAD,
     KNOWNGPS,
     BPSRATES,
     FORMATS,
     MSGMODES,
+    TIMEOUTS,
     SOCKMODES,
     TAG_COLORS,
     SOCKSERVER_PORT,
     SOCKSERVER_NTRIP_PORT,
     SOCKSERVER_MAX_CLIENTS,
+    GNSS_EVENT,
 )
 from pygpsclient.helpers import valid_entry, VALINT, VALURL, MAXPORT
 from pygpsclient.strings import (
     LBLUBXCONFIG,
     LBLNTRIPCONFIG,
+    LBLSPARTNCONFIG,
     LBLPROTDISP,
     LBLDATADISP,
     LBLDATALOG,
@@ -85,18 +89,6 @@ from pygpsclient.strings import (
     LBLSERVERPORT,
     LBLDEGFORMAT,
     LBLSERVERMODE,
-)
-
-TIMEOUTS = (
-    "0.1",
-    "0.2",
-    "1",
-    "2",
-    "5",
-    "10",
-    "20",
-    "None",
-    "0",
 )
 
 
@@ -115,7 +107,7 @@ class SettingsFrame(Frame):
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.get_master()  # Reference to root class (Tk)
+        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         Frame.__init__(self, self.__master, *args, **kwargs)
 
         self._prot_nmea = IntVar()
@@ -149,6 +141,7 @@ class SettingsFrame(Frame):
         self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
         self._img_ubxconfig = ImageTk.PhotoImage(Image.open(ICON_UBXCONFIG))
         self._img_ntripconfig = ImageTk.PhotoImage(Image.open(ICON_NTRIPCONFIG))
+        self._img_spartnconfig = ImageTk.PhotoImage(Image.open(ICON_SPARTNCONFIG))
         self._img_dataread = ImageTk.PhotoImage(Image.open(ICON_LOGREAD))
 
         self._body()
@@ -376,25 +369,35 @@ class SettingsFrame(Frame):
             state=DISABLED,
         )
         # configuration panel buttons
-        self._lbl_ubxconfig = Label(self._frm_options, text=LBLUBXCONFIG)
+        self._lbl_ubxconfig = Label(
+            self._frm_options,
+            text=LBLUBXCONFIG,
+        )
         self._btn_ubxconfig = Button(
             self._frm_options,
             width=45,
-            height=35,
-            text="UBX",
             image=self._img_ubxconfig,
             command=lambda: self._on_ubx_config(),
-            state=NORMAL,
         )
-        self._lbl_ntripconfig = Label(self._frm_options, text=LBLNTRIPCONFIG)
+        self._lbl_ntripconfig = Label(
+            self._frm_options,
+            text=LBLNTRIPCONFIG,
+        )
         self._btn_ntripconfig = Button(
             self._frm_options,
             width=45,
-            height=35,
-            text="NTRIP",
             image=self._img_ntripconfig,
             command=lambda: self._on_ntrip_config(),
-            state=NORMAL,
+        )
+        self._lbl_spartnconfig = Label(
+            self._frm_options,
+            text=LBLSPARTNCONFIG,
+        )
+        self._btn_spartnconfig = Button(
+            self._frm_options,
+            width=45,
+            image=self._img_spartnconfig,
+            command=lambda: self._on_spartn_config(),
         )
 
     def _do_layout(self):
@@ -432,54 +435,50 @@ class SettingsFrame(Frame):
         )
 
         self._frm_options.grid(column=0, row=8, columnspan=4, sticky=(W, E))
-        self._lbl_protocol.grid(column=0, row=0, padx=2, pady=2, sticky=(W))
-        self._chk_nmea.grid(column=1, row=0, padx=0, pady=0, sticky=(W))
-        self._chk_ubx.grid(column=2, row=0, padx=0, pady=0, sticky=(W))
-        self._chk_rtcm.grid(column=3, row=0, padx=0, pady=0, sticky=(W))
-        self._lbl_consoledisplay.grid(column=0, row=1, padx=2, pady=2, sticky=(W))
+        self._lbl_protocol.grid(column=0, row=0, padx=2, pady=2, sticky=W)
+        self._chk_nmea.grid(column=1, row=0, padx=0, pady=0, sticky=W)
+        self._chk_ubx.grid(column=2, row=0, padx=0, pady=0, sticky=W)
+        self._chk_rtcm.grid(column=3, row=0, padx=0, pady=0, sticky=W)
+        self._lbl_consoledisplay.grid(column=0, row=1, padx=2, pady=2, sticky=W)
         self._spn_conformat.grid(
-            column=1, row=1, columnspan=2, padx=1, pady=2, sticky=(W)
+            column=1, row=1, columnspan=2, padx=1, pady=2, sticky=W
         )
-        self._chk_tags.grid(column=3, row=1, padx=1, pady=2, sticky=(W))
-        self._lbl_format.grid(column=0, row=2, padx=2, pady=2, sticky=(W))
-        self._spn_format.grid(column=1, row=2, padx=2, pady=2, sticky=(W))
-        self._lbl_units.grid(column=0, row=3, padx=2, pady=2, sticky=(W))
-        self._spn_units.grid(column=1, row=3, columnspan=3, padx=2, pady=2, sticky=(W))
-        self._chk_scroll.grid(column=0, row=4, padx=2, pady=2, sticky=(W))
-        self._spn_maxlines.grid(
-            column=1, row=4, columnspan=3, padx=2, pady=2, sticky=(W)
-        )
-        self._chk_webmap.grid(column=0, row=5, padx=2, pady=2, sticky=(W))
-        self._lbl_mapzoom.grid(column=1, row=5, sticky=(E))
-        self._scl_mapzoom.grid(column=2, row=5, columnspan=2, sticky=(W))
+        self._chk_tags.grid(column=3, row=1, padx=1, pady=2, sticky=W)
+        self._lbl_format.grid(column=0, row=2, padx=2, pady=2, sticky=W)
+        self._spn_format.grid(column=1, row=2, padx=2, pady=2, sticky=W)
+        self._lbl_units.grid(column=0, row=3, padx=2, pady=2, sticky=W)
+        self._spn_units.grid(column=1, row=3, columnspan=3, padx=2, pady=2, sticky=W)
+        self._chk_scroll.grid(column=0, row=4, padx=2, pady=2, sticky=W)
+        self._spn_maxlines.grid(column=1, row=4, columnspan=3, padx=2, pady=2, sticky=W)
+        self._chk_webmap.grid(column=0, row=5, padx=2, pady=2, sticky=W)
+        self._lbl_mapzoom.grid(column=1, row=5, sticky=E)
+        self._scl_mapzoom.grid(column=2, row=5, columnspan=2, sticky=W)
         self._chk_unusedsat.grid(
-            column=0, row=6, columnspan=2, padx=2, pady=2, sticky=(W)
+            column=0, row=6, columnspan=2, padx=2, pady=2, sticky=W
         )
-        self._chk_legend.grid(column=2, row=6, columnspan=2, padx=2, pady=2, sticky=(W))
-        self._chk_datalog.grid(column=0, row=7, padx=2, pady=2, sticky=(W))
-        self._spn_datalog.grid(
-            column=1, row=7, columnspan=3, padx=2, pady=2, sticky=(W)
-        )
+        self._chk_legend.grid(column=2, row=6, columnspan=2, padx=2, pady=2, sticky=W)
+        self._chk_datalog.grid(column=0, row=7, padx=2, pady=2, sticky=W)
+        self._spn_datalog.grid(column=1, row=7, columnspan=3, padx=2, pady=2, sticky=W)
         self._chk_recordtrack.grid(
-            column=0, row=8, columnspan=2, padx=2, pady=2, sticky=(W)
+            column=0, row=8, columnspan=2, padx=2, pady=2, sticky=W
         )
         self._chk_socketserve.grid(
             column=0, row=9, rowspan=2, padx=2, pady=2, sticky=(N, S, W)
         )
-        self._lbl_sockmode.grid(column=1, row=9, padx=2, pady=2, sticky=(E))
-        self._spn_sockmode.grid(
-            column=2, row=9, columnspan=2, padx=2, pady=2, sticky=(W)
-        )
-        self._lbl_sockport.grid(column=1, row=10, padx=2, pady=2, sticky=(E))
-        self._ent_sockport.grid(column=2, row=10, padx=2, pady=2, sticky=(W))
-        self._lbl_sockclients.grid(column=3, row=10, padx=2, pady=2, sticky=(W))
+        self._lbl_sockmode.grid(column=1, row=9, padx=2, pady=2, sticky=E)
+        self._spn_sockmode.grid(column=2, row=9, columnspan=2, padx=2, pady=2, sticky=W)
+        self._lbl_sockport.grid(column=1, row=10, padx=2, pady=2, sticky=E)
+        self._ent_sockport.grid(column=2, row=10, padx=2, pady=2, sticky=W)
+        self._lbl_sockclients.grid(column=3, row=10, padx=2, pady=2, sticky=W)
         ttk.Separator(self._frm_options).grid(
             column=0, row=11, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
-        self._lbl_ubxconfig.grid(column=0, row=12, padx=2, pady=2, sticky=(E))
-        self._btn_ubxconfig.grid(column=1, row=12, padx=2, pady=2, sticky=(W))
-        self._lbl_ntripconfig.grid(column=2, row=12, padx=2, pady=2, sticky=(E))
-        self._btn_ntripconfig.grid(column=3, row=12, padx=2, pady=2, sticky=(W))
+        self._btn_ubxconfig.grid(column=0, row=12)
+        self._lbl_ubxconfig.grid(column=0, row=13)
+        self._btn_ntripconfig.grid(column=1, row=12)
+        self._lbl_ntripconfig.grid(column=1, row=13)
+        self._btn_spartnconfig.grid(column=2, row=12)
+        self._lbl_spartnconfig.grid(column=2, row=13)
 
     def _on_ubx_config(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -494,6 +493,13 @@ class SettingsFrame(Frame):
         """
 
         self.__app.ntripconfig()
+
+    def _on_spartn_config(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Open SPARTN Client configuration dialog panel.
+        """
+
+        self.__app.spartnconfig()
 
     def _on_webmap(self):
         """
@@ -541,39 +547,38 @@ class SettingsFrame(Frame):
             self.__app.set_status("Track recording disabled", "blue")
 
     def _on_serial_stream(self):
-
-        if self.serial_settings().status == NOPORTS:
+        if self.serial_settings.status == NOPORTS:
             return
 
         self.__app.set_connection(
             (
-                f"{self.serial_settings().port}:{self.serial_settings().port_desc} "
-                + f"@ {self.serial_settings().bpsrate}"
+                f"{self.serial_settings.port}:{self.serial_settings.port_desc} "
+                + f"@ {self.serial_settings.bpsrate}"
             ),
             "green",
         )
         self.__app.set_status("")
         self.__app.conn_status = CONNECTED
-        msgmode = self.__app.frm_settings.serial_settings().msgmode
-        self.__app.stream_handler.start_read_thread(CONNECTED, msgmode)
+        self.__app.frm_mapview.reset_map_refresh()
+        self.__app.stream_handler.start_read_thread(self)
 
     def _on_socket_stream(self):
         """
         Start socket streamer if settings are valid
         """
 
-        msgmode = self.__app.frm_settings.serial_settings().msgmode
         valid = True
         valid = valid & valid_entry(self._frm_socket.ent_server, VALURL)
         valid = valid & valid_entry(self._frm_socket.ent_port, VALINT, 1, MAXPORT)
         if valid:
             self.__app.set_connection(
-                f"{self.socket_settings().server}:{self.socket_settings().port}",
+                f"{self.socket_settings.server}:{self.socket_settings.port}",
                 "green",
             )
             self.__app.set_status("")
             self.__app.conn_status = CONNECTED_SOCKET
-            self.__app.stream_handler.start_read_thread(CONNECTED_SOCKET, msgmode)
+            self.__app.frm_mapview.reset_map_refresh()
+            self.__app.stream_handler.start_read_thread(self)
         else:
             self.__app.set_status("ERROR - invalid settings", "red")
 
@@ -582,13 +587,13 @@ class SettingsFrame(Frame):
         Start data file streamer if file selected
         """
 
-        msgmode = self.__app.frm_settings.serial_settings().msgmode
         self._in_filepath = self.__app.file_handler.open_infile()
         if self._in_filepath is not None:
             self.__app.set_connection(f"{self._in_filepath}", "blue")
             self.__app.set_status("")
             self.__app.conn_status = CONNECTED_FILE
-            self.__app.stream_handler.start_read_thread(CONNECTED_FILE, msgmode)
+            self.__app.frm_mapview.reset_map_refresh()
+            self.__app.stream_handler.start_read_thread(self)
 
     def _on_socket_serve(self):
         """
@@ -737,9 +742,19 @@ class SettingsFrame(Frame):
         self.update_idletasks()  # Make sure we know about any resizing
         return (self.winfo_width(), self.winfo_height())
 
+    @property
+    def mode(self) -> int:
+        """
+        Getter for connection mode
+        (0 = disconnected, 1 = serial, 2 = socket, 4 = file).
+        """
+
+        return self.__app.conn_status
+
+    @property
     def serial_settings(self) -> Frame:
         """
-        Return reference to common serial configuration panel
+        Getter for common serial configuration panel
 
         :return: reference to serial form
         :rtype: Frame
@@ -747,9 +762,19 @@ class SettingsFrame(Frame):
 
         return self._frm_serial
 
+    @property
+    def read_event(self) -> str:
+        """
+        Getter for type of event to be raised when data
+        is added to gnss_inqueue.
+        """
+
+        return GNSS_EVENT
+
+    @property
     def socket_settings(self) -> Frame:
         """
-        Return reference to common socket configuration panel
+        Getter for common socket configuration panel
 
         :return: reference to socket form
         :rtype: Frame
@@ -1009,3 +1034,27 @@ class SettingsFrame(Frame):
             self._lbl_sockclients.config(fg="green")
         if self._socket_serve.get() == 1:
             self.__app.frm_banner.update_transmit_status(clients)
+
+    @property
+    def inqueue(self) -> Queue:
+        """
+        Getter for GNSS input queue.
+        """
+
+        return self.__app.gnss_inqueue
+
+    @property
+    def outqueue(self) -> Queue:
+        """
+        Getter for GNSS output queue.
+        """
+
+        return self.__app.gnss_outqueue
+
+    @property
+    def socketqueue(self) -> Queue:
+        """
+        Getter for input queue.
+        """
+
+        return self.__app.socket_inqueue

@@ -62,7 +62,7 @@ def config_rtcm(port_type: str) -> UBXMessage:
     if SHOW_PRESET:
         print(
             "Set ZED-F9P RTCM3 MSGOUT Basestation, "
-            f"CFG, CFG_VALSET, {ubx.payload.hex()}, 1\n"
+            f"CFG, CFG-VALSET, {ubx.payload.hex()}, 1\n"
         )
 
     return ubx
@@ -90,7 +90,7 @@ def config_svin(port_type: str, acc_limit: int, svin_min_dur: int) -> UBXMessage
     if SHOW_PRESET:
         print(
             "Set ZED-F9P to Survey-In Timing Mode Basestation, "
-            f"CFG, CFG_VALSET, {ubx.payload.hex()}, 1\n"
+            f"CFG, CFG-VALSET, {ubx.payload.hex()}, 1\n"
         )
 
     return ubx
@@ -137,7 +137,7 @@ def config_fixed(acc_limit: int, lat: float, lon: float, height: float) -> UBXMe
     if SHOW_PRESET:
         print(
             "Set ZED-F9P to Fixed Timing Mode Basestation, "
-            f"CFG, CFG_VALSET, {ubx.payload.hex()}, 1\n"
+            f"CFG, CFG-VALSET, {ubx.payload.hex()}, 1\n"
         )
 
     return ubx
@@ -146,14 +146,14 @@ def config_fixed(acc_limit: int, lat: float, lon: float, height: float) -> UBXMe
 if __name__ == "__main__":
 
     # Amend as required...
-    PORT = "/dev/tty.usbmodem141101"
+    PORT = "/dev/tty.usbmodem1101"
     PORT_TYPE = "USB"  # choose from "USB", "UART1", "UART2"
     BAUD = 38400
     TIMEOUT = 5
     SHOW_PRESET = True  # hide or show PyGPSClient preset string
 
     TMODE = TMODE_SVIN  # "TMODE_SVIN" or 1 = Survey-In, "TMODE_FIXED" or 2 = Fixed
-    ACC_LIMIT = 200  # accuracy in mm
+    ACC_LIMIT = 7000  # accuracy in mm
 
     # only used if TMODE = 1 ...
     SVIN_MIN_DUR = 90  # seconds

@@ -15,7 +15,7 @@
     "python.defaultInterpreterPath": "python3",
     "modulename": "pygpsclient",
     "distname": "PyGPSClient",
-    "moduleversion": "1.3.15",
+    "moduleversion": "1.3.16",
     "python.linting.pylintEnabled": true,
     "python.linting.enabled": true
 }

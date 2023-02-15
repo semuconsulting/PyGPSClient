@@ -59,6 +59,8 @@ from pygpsclient.globals import (
     UI,
     UIK,
     GGA_INTERVALS,
+    CONNECTED_NTRIP,
+    DISCONNECTED,
 )
 from pygpsclient.strings import (
     DLGNTRIPCONFIG,
@@ -101,7 +103,7 @@ class NTRIPConfigDialog(Toplevel):
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.get_master()  # Reference to root class (Tk)
+        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         Toplevel.__init__(self, app)
         if POPUP_TRANSIENT:
             self.transient(self.__app)
@@ -388,7 +390,7 @@ class NTRIPConfigDialog(Toplevel):
         self._lbl_status.grid(
             column=0, row=0, columnspan=colsp - 1, ipadx=3, ipady=3, sticky=(W, E)
         )
-        self._btn_exit.grid(column=colsp - 1, row=0, ipadx=3, ipady=3, sticky=(E))
+        self._btn_exit.grid(column=colsp - 1, row=0, ipadx=3, ipady=3, sticky=E)
 
         for frm in (self._frm_container, self._frm_status):
             for i in range(colsp):
@@ -423,13 +425,15 @@ class NTRIPConfigDialog(Toplevel):
         """
 
         try:
-
             self._settings = self.__app.ntrip_handler.settings
             self._connected = connected
             if msg is None:
                 server = self._settings["server"]
                 port = self._settings["port"]
-                mountpoint = "/" + self._settings["mountpoint"]
+                mp = self._settings["mountpoint"]
+                if mp is None:
+                    mp = ""
+                mountpoint = "/" + mp
                 if mountpoint == "/":
                     mountpoint = " - retrieving sourcetable..."
                 msg = (
@@ -619,9 +623,10 @@ class NTRIPConfigDialog(Toplevel):
                 reflon=self._settings["reflon"],
                 refalt=self._settings["refalt"],
                 refsep=self._settings["refsep"],
-                output=self.__app.ntripqueue,
+                output=self.__app.ntrip_inqueue,
             )
             self.set_controls(True)
+            self.__app.rtk_conn_status = CONNECTED_NTRIP
 
     def _disconnect(self):
         """
@@ -631,6 +636,7 @@ class NTRIPConfigDialog(Toplevel):
 
         self.__app.ntrip_handler.stop()
         self.set_controls(False)
+        self.__app.rtk_conn_status = DISCONNECTED
 
     def _valid_settings(self) -> bool:
         """

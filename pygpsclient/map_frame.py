@@ -55,7 +55,7 @@ class MapviewFrame(Frame):
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.get_master()  # Reference to root class (Tk)
+        self.__master = self.__app.appmaster  # Reference to root class (Tk)
 
         Frame.__init__(self, self.__master, *args, **kwargs)
 
@@ -164,7 +164,6 @@ class MapviewFrame(Frame):
         try:
             response = get(url, timeout=MAPQTIMEOUT)
             sc = responses[response.status_code]  # get descriptive HTTP status
-            # print(f"DEBUG url = {url}, \nsc = {sc}, \nresp = {response.content}")
             response.raise_for_status()  # raise Exception on HTTP error
             if sc == "OK":
                 img_data = response.content

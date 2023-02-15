@@ -84,14 +84,6 @@ pygpsclient.helpers module
    :undoc-members:
    :show-inheritance:
 
-pygpsclient.helpstrings module
-------------------------------
-
-.. automodule:: pygpsclient.helpstrings
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 pygpsclient.map\_frame module
 -----------------------------
 
@@ -104,6 +96,14 @@ pygpsclient.menu\_bar module
 ----------------------------
 
 .. automodule:: pygpsclient.menu_bar
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pygpsclient.mqtt\_handler module
+--------------------------------
+
+.. automodule:: pygpsclient.mqtt_handler
    :members:
    :undoc-members:
    :show-inheritance:
@@ -160,6 +160,46 @@ pygpsclient.socketconfig\_frame module
 --------------------------------------
 
 .. automodule:: pygpsclient.socketconfig_frame
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pygpsclient.spartn\_dialog module
+---------------------------------
+
+.. automodule:: pygpsclient.spartn_dialog
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pygpsclient.spartn\_gnss\_frame module
+--------------------------------------
+
+.. automodule:: pygpsclient.spartn_gnss_frame
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pygpsclient.spartn\_lband\_frame module
+---------------------------------------
+
+.. automodule:: pygpsclient.spartn_lband_frame
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pygpsclient.spartn\_mqtt\_frame module
+--------------------------------------
+
+.. automodule:: pygpsclient.spartn_mqtt_frame
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pygpsclient.spartnmessage module
+--------------------------------
+
+.. automodule:: pygpsclient.spartnmessage
    :members:
    :undoc-members:
    :show-inheritance:

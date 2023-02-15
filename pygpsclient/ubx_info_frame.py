@@ -47,7 +47,7 @@ class UBX_INFO_Frame(Frame):
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.get_master()  # Reference to root class (Tk)
+        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.__container = container
 
         Frame.__init__(self, self.__container.container, *args, **kwargs)
@@ -93,20 +93,20 @@ class UBX_INFO_Frame(Frame):
         Layout widgets.
         """
 
-        self._lbl_swverl.grid(column=0, row=0, padx=2, sticky=(W))
-        self._lbl_swver.grid(column=1, row=0, columnspan=2, padx=2, sticky=(W))
-        self._lbl_hwverl.grid(column=3, row=0, padx=2, sticky=(W))
-        self._lbl_hwver.grid(column=4, row=0, columnspan=2, padx=2, sticky=(W))
-        self._lbl_fwverl.grid(column=0, row=1, padx=2, sticky=(W))
-        self._lbl_fwver.grid(column=1, row=1, columnspan=2, padx=2, sticky=(W))
-        self._lbl_romverl.grid(column=3, row=1, padx=2, sticky=(W))
-        self._lbl_romver.grid(column=4, row=1, columnspan=2, padx=2, sticky=(W))
-        self._lbl_gnssl.grid(column=0, row=2, columnspan=1, padx=2, sticky=(W))
-        self._lbl_gnss.grid(column=1, row=2, columnspan=4, padx=2, sticky=(W))
-        self._lbl_ant_statusl.grid(column=0, row=3, columnspan=1, padx=2, sticky=(W))
-        self._lbl_ant_status.grid(column=1, row=3, columnspan=2, padx=2, sticky=(W))
-        self._lbl_ant_powerl.grid(column=3, row=3, columnspan=1, padx=2, sticky=(W))
-        self._lbl_ant_power.grid(column=4, row=3, columnspan=2, padx=2, sticky=(W))
+        self._lbl_swverl.grid(column=0, row=0, padx=2, sticky=W)
+        self._lbl_swver.grid(column=1, row=0, columnspan=2, padx=2, sticky=W)
+        self._lbl_hwverl.grid(column=3, row=0, padx=2, sticky=W)
+        self._lbl_hwver.grid(column=4, row=0, columnspan=2, padx=2, sticky=W)
+        self._lbl_fwverl.grid(column=0, row=1, padx=2, sticky=W)
+        self._lbl_fwver.grid(column=1, row=1, columnspan=2, padx=2, sticky=W)
+        self._lbl_romverl.grid(column=3, row=1, padx=2, sticky=W)
+        self._lbl_romver.grid(column=4, row=1, columnspan=2, padx=2, sticky=W)
+        self._lbl_gnssl.grid(column=0, row=2, columnspan=1, padx=2, sticky=W)
+        self._lbl_gnss.grid(column=1, row=2, columnspan=4, padx=2, sticky=W)
+        self._lbl_ant_statusl.grid(column=0, row=3, columnspan=1, padx=2, sticky=W)
+        self._lbl_ant_status.grid(column=1, row=3, columnspan=2, padx=2, sticky=W)
+        self._lbl_ant_powerl.grid(column=3, row=3, columnspan=1, padx=2, sticky=W)
+        self._lbl_ant_power.grid(column=4, row=3, columnspan=2, padx=2, sticky=W)
 
         (cols, rows) = self.grid_size()
         for i in range(cols):
@@ -140,7 +140,6 @@ class UBX_INFO_Frame(Frame):
 
         # MON-VER information (for firmware version)
         if msg.identity == "MON-VER":
-
             exts = []
             fw_version = b"n/a"
             protocol = b"n/a"
@@ -179,7 +178,6 @@ class UBX_INFO_Frame(Frame):
 
         # MON-HW information (for antenna status)
         if msg.identity == "MON-HW":
-
             ant_status = getattr(msg, "aStatus", 1)
             ant_power = getattr(msg, "aPower", 2)
             self._ant_status.set(ANTSTATUS[ant_status])
@@ -194,7 +192,7 @@ class UBX_INFO_Frame(Frame):
 
         for msgtype in ("MON-VER", "MON-HW"):
             msg = UBXMessage(msgtype[0:3], msgtype, POLL)
-            self.__app.stream_handler.serial.write(msg.serialize())
+            self.__app.gnss_outqueue.put(msg.serialize())
             self.__container.set_status(f"{msgtype} POLL message sent", "blue")
         self.__container.set_pending("MON-VER", UBX_MONVER)
         self.__container.set_pending("MON-HW", UBX_MONHW)

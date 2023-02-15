@@ -13,9 +13,11 @@ Created on 14 Sep 2020
 # pylint: disable=invalid-name, line-too-long
 
 import os
+from datetime import datetime
 from pyubx2 import GET, SET, POLL
 
 DIRNAME = os.path.dirname(__file__)
+ICON_BLANK = os.path.join(DIRNAME, "resources/blank-1-24.png")
 ICON_APP = os.path.join(DIRNAME, "resources/iconmonstr-location-27-32.png")
 ICON_CONN = os.path.join(DIRNAME, "resources/iconmonstr-media-control-48-24.png")
 ICON_SERIAL = os.path.join(DIRNAME, "resources/usbport-1-24.png")
@@ -29,7 +31,8 @@ ICON_CONFIRMED = os.path.join(DIRNAME, "resources/iconmonstr-check-mark-8-24.png
 ICON_WARNING = os.path.join(DIRNAME, "resources/iconmonstr-warning-1-24.png")
 ICON_UNKNOWN = os.path.join(DIRNAME, "resources/clear-1-24.png")
 ICON_UBXCONFIG = os.path.join(DIRNAME, "resources/iconmonstr-gear-2-24.png")
-ICON_NTRIPCONFIG = os.path.join(DIRNAME, "resources/iconmonstr-antenna-6-24.png")
+ICON_NTRIPCONFIG = os.path.join(DIRNAME, "resources/iconmonstr-antenna-4-24.png")
+ICON_SPARTNCONFIG = os.path.join(DIRNAME, "resources/iconmonstr-antenna-3-24.png")
 ICON_LOGREAD = os.path.join(DIRNAME, "resources/binary-1-24.png")
 ICON_REFRESH = os.path.join(DIRNAME, "resources/iconmonstr-refresh-6-16.png")
 ICON_CONTRACT = os.path.join(DIRNAME, "resources/iconmonstr-triangle-1-16.png")
@@ -73,7 +76,8 @@ GPX_NS = " ".join(
         'http://www.topografix.com/GPX/1/1/gpx.xsd"',
     )
 )
-
+EPILOG = "© 2022 SEMU Consulting BSD 3-Clause license - https://github.com/semuconsulting/pygpsclient/"
+GPSEPOCH0 = datetime(1980, 1, 6)  # for Wno and Tow calculations
 GPXLIMIT = 500  # max number of track points supported by MapQuest API
 CHECK_FOR_UPDATES = (
     False  # check for newer PyPi version on startup (requires internet connection)
@@ -89,6 +93,17 @@ MAXLOGLINES = 10000  # maximum number of 'lines' per datalog file
 QUITONERRORDEFAULT = 1
 POPUP_TRANSIENT = True  # whether pop-up config dialogs are always on top
 PORTIDS = ("0 I2C", "1 UART1", "2 UART2", "3 USB", "4 SPI")
+TIMEOUTS = (
+    "0.1",
+    "0.2",
+    "1",
+    "2",
+    "5",
+    "10",
+    "20",
+    "None",
+    "0",
+)
 ANTSTATUS = ("INIT", "DONTKNOW", "OK", "SHORT", "OPEN")
 ANTPOWER = ("OFF", "ON", "DONTKNOW")
 GGA_INTERVALS = ("None", "2", "5", "10", "60", "120")
@@ -159,6 +174,11 @@ MSGMODES = {
     "SET": SET,
     "POLL": POLL,
 }
+# read event types
+GNSS_EVENT = "<<gnss_read>>"
+GNSS_EOF_EVENT = "<<gnss_eof>>"
+NTRIP_EVENT = "<<ntrip_read>>"
+SPARTN_EVENT = "<<spartn_read>>"
 # default widget frame sizes:
 WIDGETU1 = (250, 250)  # small widget size
 WIDGETU2 = (350, 250)  # medium widget size
@@ -200,6 +220,23 @@ UBX_CFGVAL = 4
 UBX_PRESET = 5
 UBX_CFGRATE = 6
 UBX_CFGOTHER = 7
+SPARTN_GNSS = 8
+SPARTN_LBAND = 9
+SPARTN_MQTT = 10
+
+# SPARTN globals
+SPARTN_SOURCE_LB = 1
+SPARTN_SOURCE_IP = 0
+SPARTN_PPSERVER = "pp.services.u-blox.com"
+SPARTN_PPREGIONS = ("eu", "us", "au")
+SPARTN_KEYLEN = 16
+RXMMSG = "RXM-SPARTN-KEY"
+CONNECTED_NTRIP = 8
+CONNECTED_SPARTNIP = 16
+CONNECTED_SPARTNLB = CONNECTED
+TOPIC_RXM = "/pp/ubx/0236/ip"
+TOPIC_MGA = "/pp/ubx/mga"
+TOPIC_IP = "/pp/ip/{}"
 
 GLONASS_NMEA = True  # use GLONASS NMEA SVID (65-96) rather than slot (1-24)
 # GNSS color codings:
@@ -237,16 +274,20 @@ FIXLOOKUP = {
     "VTGA": "3D",  # posMode
     "VTGD": "RTK",
     "VTGE": "DR",
-    "NAV-PVT1": "DR",  # fixType
+    "NAV-PVT1": "DR",  # fixType or carrSoln
     "NAV-PVT2": "2D",
     "NAV-PVT3": "3D",
     "NAV-PVT4": "GNSS+DR",
     "NAV-PVT5": "TIME ONLY",
-    "NAV-STATUS1": "DR",  # gpsFix
+    "NAV-PVT6": "RTK FLOAT",
+    "NAV-PVT7": "RTK FIXED",
+    "NAV-STATUS1": "DR",  # gpsFix or carrSoln
     "NAV-STATUS2": "3D",
     "NAV-STATUS3": "3D",
     "NAV-STATUS4": "GNSS+DR",
     "NAV-STATUS5": "TIME ONLY",
+    "NAV-STATUS6": "RTK FLOAT",
+    "NAV-STATUS7": "RTK FIXED",
     "NAV-SOL1": "DR",  # gpsFix
     "NAV-SOL2": "3D",
     "NAV-SOL3": "3D",
@@ -257,16 +298,21 @@ FIXLOOKUP = {
     "HNR-PVT3": "3D",
     "HNR-PVT4": "GNSS+DR",
     "HNR-PVT5": "TIME ONLY",
-    "NAV2-PVT1": "DR",  # fixType
+    "HNR-PVT6": "RTK",
+    "NAV2-PVT1": "DR",  # fixType or carrSoln
     "NAV2-PVT2": "2D",
     "NAV2-PVT3": "3D",
     "NAV2-PVT4": "GNSS+DR",
     "NAV2-PVT5": "TIME ONLY",
-    "NAV2-STATUS1": "DR",  # gpsFix
+    "NAV2-PVT6": "RTK FLOAT",
+    "NAV2-PVT7": "RTK FIXED",
+    "NAV2-STATUS1": "DR",  # gpsFix or carrSoln
     "NAV2-STATUS2": "3D",
     "NAV2-STATUS3": "3D",
     "NAV2-STATUS4": "GNSS+DR",
     "NAV2-STATUS5": "TIME ONLY",
+    "NAV2-STATUS6": "RTK FLOAT",
+    "NAV2-STATUS7": "RTK FIXED",
 }
 
 FONT_MENU = "TkMenuFont"

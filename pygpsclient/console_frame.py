@@ -37,7 +37,7 @@ class ConsoleFrame(Frame):
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.get_master()  # Reference to root class (Tk)
+        self.__master = self.__app.appmaster  # Reference to root class (Tk)
 
         Frame.__init__(self, self.__master, *args, **kwargs)
 
@@ -91,7 +91,7 @@ class ConsoleFrame(Frame):
 
         self.bind("<Configure>", self._on_resize)
 
-    def update_console(self, raw_data, parsed_data):
+    def update_console(self, raw_data: bytes, parsed_data: object, marker: str = ""):
         """
         Print the latest data stream to the console in raw (NMEA) or
         parsed (key,value pair) format.
@@ -99,7 +99,9 @@ class ConsoleFrame(Frame):
         'maxlines' defines the maximum number of scrollable lines that are
         retained in the text box on a FIFO basis.
 
-        :param str data: data from input stream
+        :param bytes raw_data: raw data from input stream
+        :param object parsed_data: parsed data from input stream
+        :param str marker: information string to prepend to parsed data display
 
         """
 
@@ -113,7 +115,7 @@ class ConsoleFrame(Frame):
             data = hextable(raw_data)
         else:
             self.txt_console.configure(font=FONT_TEXT)
-            data = str(parsed_data)
+            data = f"{marker}{parsed_data}"
 
         con = self.txt_console
         con.configure(state="normal")

@@ -30,6 +30,7 @@ from pygpsclient.strings import (
     WDGMAP,
     WDGSPECTRUM,
     MENURESET,
+    MENUSPARTNCONFIG,
 )
 
 
@@ -48,7 +49,7 @@ class MenuBar(Menu):
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.get_master()  # Reference to root class (Tk)
+        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         Menu.__init__(self, self.__master, *args, **kwargs)
 
         self.option_add("*Font", "TkMenuFont")
@@ -120,6 +121,12 @@ class MenuBar(Menu):
             state=NORMAL,
         )
         self.options_menu.add_command(
+            label=MENUSPARTNCONFIG,
+            underline=1,
+            command=self.__app.spartnconfig,
+            state=NORMAL,
+        )
+        self.options_menu.add_command(
             label=MENUGPXVIEWER,
             underline=1,
             command=self.__app.gpxviewer,
@@ -130,7 +137,7 @@ class MenuBar(Menu):
         # Create a pull-down menu for help operations
         self.help_menu = Menu(self, tearoff=False)
         self.help_menu.add_command(
-            label=MENUABOUT, underline=1, command=self.__app.about
+            label=MENUABOUT, underline=1, command=self.__app.on_about
         )
         self.add_cascade(menu=self.help_menu, label=MENUHELP)
 

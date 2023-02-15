@@ -5,7 +5,9 @@
 [How to Use](#howtouse) |
 [UBX Configuration](#ubxconfig) |
 [NTRIP Client](#ntripconfig) |
+[SPARTN Client](#spartnconfig) |
 [Socket Server / NTRIP Caster](#socketserver) |
+[GPX Track Viewer](#gpxviewer) |
 [Installation](#installation) |
 [Mapquest API Key](#mapquestapi) |
 [User-defined Presets](#userdefined) |
@@ -16,9 +18,9 @@
 
 PyGPSClient is a multi-platform graphical GNSS/GPS testing, diagnostic and UBX &copy; (u-blox &trade;) device configuration application written entirely in Python and tkinter.
 
-![full app screenshot ubx](https://github.com/semuconsulting/PyGPSClient/blob/master/images/app.png?raw=true)
+![full app screenshot ubx](https://github.com/semuconsulting/PyGPSClient/blob/add-SPARTN-config-dialog/images/app.png?raw=true)
 
-*Screenshot showing mixed-protocol stream from u-blox ZED-F9P receiver, using PyGPSClient's [NTRIP Client](#ntripconfig) to achieve >= 1cm accuracy*
+*Screenshot showing mixed-protocol stream from u-blox ZED-F9P receiver, using PyGPSClient's [NTRIP Client](#ntripconfig) to achieve >= 3cm accuracy*
 
 The application can be installed using the standard `pip` Python package manager - see [installation instructions](#installation) below.
 
@@ -45,7 +47,7 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 ## <a name="features">Features</a>
 
 1. Runs on any platform which supports a Python 3 interpreter (>=3.7) and tkinter (>=8.6) GUI framework, including Windows, MacOS, Linux and Raspberry Pi OS.
-1. Supports NMEA, UBX, RTCM3 and NTRIP protocols.
+1. Supports NMEA, UBX, RTCM3, NTRIP and SPARTN protocols.
 1. Capable of reading from a variety of GNSS data streams: Serial (USB / UART), Socket (TCP / UDP) and binary datalog file.
 1. Configurable GUI with selectable and resizeable widgets.
 1. Expandable banner widget showing key navigation information.
@@ -58,27 +60,19 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 1. Spectrum widget showing spectrum analysis chart from MON-SPAN message (*UBX MON-SPAN messages must be enabled or polled*).
 1. Data logging in parsed, binary, hexadecimal string and tabulated hexadecimal formats (NB. only binary datalogs can be re-read by PyGPSClient's parser).
 1. Track recording in GPX format.
-1. GPX Track Viewer utility with elevation and speed profiles and track metadata (*requires an Internet connection and free 
+1. [UBX Configuration Dialog](#ubxconfig), with the ability to send a variety of UBX CFG configuration commands to u-blox GNSS devices. This includes the facility to add **user-defined commands or command sequences** - see instructions under [user-defined presets](#userdefined) below. While not intended to be a direct replacement, the application supports much of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool.
+1. [NTRIP Client](#ntripconfig) facility with the ability to connect to a specified NTRIP caster, parse the incoming RTCM3 data and feed this data to a compatible GNSS receiver (*requires an Internet connection and access to a suitable NTRIP caster*).
+1. [SPARTN Client](#spartnconfig) facility with the ability to configure an IP or L-Band SPARTN Correction source and SPARTN-compatible GNSS receiver (e.g. ZED-F9P) and pass the incoming correction data to the GNSS receiver (*requires an Internet connection and access to a SPARTN location service*).
+1. [Socket Server / NTRIP Caster](#socketserver) facility with two modes of operation: (a) open, unauthenticated Socket Server or (b) NTRIP Caster.
+1. [GPX Track Viewer](#gpxviewer) utility with elevation and speed profiles and track metadata (*requires an Internet connection and free 
 [MapQuest API Key](https://developer.mapquest.com/user/login/sign-up)*).
-1. UBX Configuration Dialog, with the ability to send a variety of UBX CFG configuration commands to u-blox GNSS devices. This includes the facility to add **user-defined commands or command sequences** - see instructions under [user-defined presets](#userdefined) below. While not intended to be a direct replacement, the application supports much of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool.
-1. [NTRIP](https://en.wikipedia.org/wiki/Networked_Transport_of_RTCM_via_Internet_Protocol) Client ([differential GPS enhancement](https://en.wikipedia.org/wiki/Differential_GPS)) facility with the ability to connect to a specified NTRIP server (caster), parse the incoming RTCM3 data and feed this data to a compatible GNSS device (*requires an Internet connection and access to a suitable NTRIP caster*).
-1. [Socket Server / NTRIP Caster](#socketserver)  with two modes of operation: (a) open, unauthenticated Socket Server or (b) NTRIP Caster.
-
-![spectrum screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/spectrumM9N.png?raw=true)
-![spectrum screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/spectrumF9P.png?raw=true)
-
-*Spectrum analysis charts from MON-SPAN message from NEO-M9N and ZED-F9P receivers*
-
-![gpxviewer screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/gpxviewer.png?raw=true)
-
-*GPX Track Viewer screenshot*
 
 ---
 ## <a name="howtouse">How to Use</a>
 
 * To connect to a listed serial device, select the device from the listbox, set the appropriate serial connection parameters and click 
 ![connect icon](/pygpsclient/resources/usbport-1-24.png). The application will endeavour to pre-select a recognised GNSS/GPS device but this is platform and device dependent. Press the ![refresh](/pygpsclient/resources/iconmonstr-refresh-6-16.png) button to refresh the list of connected devices at any point. `Rate bps` (baud rate) is typically the only setting that might need adjusting, but tweaking the `timeout` setting may improve performance on certain platforms. The `Msg Mode` parameter defaults to `GET` i.e., periodic or poll response messages *from* a receiver. If you wish to parse streams of command or poll messages being sent *to* a receiver, set the `Msg Mode` to `SET` or `POLL`.
-* A default user-defined serial port can also be passed via the environment variable `PYGPSCLIENT_USERPORT` or as a command line keyword argument `port=/dev/tty12345`.
+* A default user-defined serial port can also be passed via the environment variable `PYGPSCLIENT_USERPORT` or as a command line argument `--userport /dev/tty12345`.
 * To connect to a TCP or UDP socket, enter the server URL and port, select the protocol (defaults to TCP) and click 
 ![connect socket icon](/pygpsclient/resources/ethernet-1-24.png).
 * To stream from a previously-saved <a name="filestream">binary datalog file</a>, click 
@@ -87,8 +81,9 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 ![disconnect icon](/pygpsclient/resources/iconmonstr-media-control-50-24.png).
 * To display the UBX Configuration Dialog (*only functional when connected to a UBX GNSS device via serial port*), click
 ![gear icon](/pygpsclient/resources/iconmonstr-gear-2-24.png), or go to Menu..Options.
-* To display the NTRIP Client Configuration Dialog (*requires internet connection*), click
-![gear icon](/pygpsclient/resources/iconmonstr-antenna-6-24.png), or go to Menu..Options.
+* To display the NTRIP Client Configuration Dialog (*requires Internet connection*), click
+![gear icon](/pygpsclient/resources/iconmonstr-antenna-6-24.png), or go to Menu..Options..NTRIP Configuration Dialog.
+* To display the SPARTN Client Configuration Dialog (*may require Internet connection*), go to Menu..Options..SPARTN Configuration Dialog.
 * To expand or collapse the banner or serial port configuration widgets, click the ![expand icon](/pygpsclient/resources/iconmonstr-arrow-80-16.png)/![expand icon](/pygpsclient/resources/iconmonstr-triangle-1-16.png) buttons.
 * To show or hide the various widgets, go to Menu..View and click on the relevant hide/show option.
 * Protocols Shown - Select which protocols to display; NMEA, UBX and/or RTCM3 (NB: this only changes the displayed protocols - to change the actual protocols output by the receiver, use the CFG-PRT command).
@@ -109,6 +104,12 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 ### <a name="ubxconfig">UBX Configuration Facilities</a>
 
 ![ubxconfig widget screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/ubxconfig_widget.png?raw=true)
+
+**Pre-Requisites:**
+
+- u-blox GNSS receiver e.g. u-blox NEO-M8S, ZED-F9P, connected to the workstation via USB or UART port.
+
+**Instructions:**
 
 The UBX Configuration Dialog currently supports the following UBX configuration panels:
 1. Version panel shows current device hardware/firmware versions (*via MON-VER and MON-HW polls*).
@@ -136,7 +137,18 @@ warning ![warning icon](https://github.com/semuconsulting/PyGPSClient/blob/maste
 
 ![ntrip config widget screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/ntripconfig_widget.png?raw=true)
 
-To use:
+The NTRIP Configuration utility allows users to receive and process NTRIP RTK Correction data from an NTRIP caster to achieve cm level location accuracy. The facility can be accessed by clicking the ![NTRIP Client button](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-antenna-4-24.png?raw=true) or selecting Menu..Options..NTRIP Configuration Dialog. 
+
+**Pre-Requisites:**
+
+- NTRIP-compatible GNSS receiver e.g. u-blox ZED-F9P
+- Internet access
+- URL of NTRIP caster
+- Login credentials for the NTRIP caster (where required)
+- Name of local MOUNTPOINT (if not using PyGPSClient's automatic mountpoint locator)
+
+**Instructions:**
+
 1. Enter the required NTRIP server URL (or IP address) and port (defaults to 2101). For services which require authorisation, enter your login username and password.
 1. To retrieve the sourcetable, leave the mountpoint field blank and click connect (*response may take a few seconds*). The required mountpoint may then be selected from the list, or entered manually. Where possible, `PyGPSClient` will automatically identify the closest mountpoint to the current location.
 1. For NTRIP services which require client position data via NMEA GGA sentences, select the appropriate sentence transmission interval in seconds. The default is 'None' (no GGA sentences sent). A value of 10 or 60 seconds is typical.
@@ -155,17 +167,96 @@ Below is a illustrative NTRIP DGPS data log, showing:
 **NB:** Please respect the terms and conditions of any remote NTRIP service used with this facility. For testing or evaluation purposes, consider deploying a local [SNIP LITE](https://www.use-snip.com/download/) server. *Inappropriate use of an NTRIP service may result in your account being blocked*.
 
 ---
+### <a name="spartnconfig">SPARTN Client Facilities</a>
+
+**BETA FEATURE**
+
+![spartn config widget screenshot](https://github.com/semuconsulting/PyGPSClient/blob/add-SPARTN-config-dialog/images/spartnconfig_widget.png?raw=true)
+
+The SPARTN Configuration utility allows users to receive and process SPARTN RTK Correction data from an IP or L-Band source to achieve cm level location accuracy. It provides three independent configuration sections, one for IP Correction (MQTT), one for L-Band Correction (e.g. D9S) and a third for the GNSS receiver (e.g. F9P). 
+
+**NB:** the SPARTN client implements skeleton `SPARTNReader` and `SPARTNMessage` classes. The `SPARTNReader` class will parse individual SPARTN messages from any binary stream containing
+*solely* SPARTN data e.g. an MQTT `/pp/ip` topic. The `SPARTNMessage` class does not currently perform a full decode of SPARTN protocol messages; it basically decodes just enough information to identify message type/subtype, payload length and other key metadata.
+
+The facility can be accessed by clicking the ![SPARTN Client button](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-antenna-3-24.png?raw=true) or selecting Menu..Options..NTRIP Configuration Dialog. . The dialog must remain open while the facility is in use.
+
+**Pre-Requisites:**
+
+1. IP Correction (MQTT Client):
+
+    - Internet access
+    - Subscription to relevant MQTT SPARTN location service e.g. u-blox / Thingstream PointPerfect, which should provide the following details:
+    - Server e.g. `pp.services.u-blox.com`
+    - Client ID (which can be stored as environment variable `MQTTCLIENTID`)
+    - Encryption certificate (`*.crt`) and key (`*.pem`). If these are placed in the user's HOME directory, PyGPSClient will find them automatically.
+    - Region code e.g. `us`, `eu`
+    - A list of published topics. These typically include `/pp/ip/region` (binary SPARTN correction data for the selected region), `/pp/ubx/mga` (UBX MGA AssistNow ephemera data for each constellation) and `/pp/ubx/0236/ip` (UBX RXM-SPARTNKEY messages containing the decryption keys to be uploaded to the GNSS receiver).
+
+2. L-BAND Correction (D9* Receiver):
+
+    - SPARTN L-Band correction receiver e.g. u-blox NEO-D9S
+    - Suitable Immarsat L-band antenna (NB: standard GNSS antenna may not be suitable)
+    - Subscription to L-Band location service e.g. u-blox / Thingstream PointPerfect, which should provide the following details:
+    - L-Band frequency; search window; use_serviceid?; use_descrambling?; use_prescrambling?; Service ID; Data Rate; Descrambler Init; Unique Word
+
+3. GNSS Receiver:
+
+    - SPARTN-compatible GNSS receiver e.g. u-blox ZED-F9P
+    - Subscription to either IP and/or L-Band location service(s) e.g. e.g. u-blox / Thingstream PointPerfect, which should provide the following details:
+    - Current and Next Encryption Keys in hexadecimal format; Valid From dates in YYYYMMDD format (keys normally valid for 4 week period).
+
+**Instructions:**
+
+#### IP Correction Configuration (MQTT)
+
+1. Enter your MQTT Client ID (or set it up beforehand as environment variable `MQTTCLIENTID`).
+1. Select the path to your MQTT `*.crt` and `*.pem` files (PyGPSClient will use the user's HOME directory by default).
+1. Select the required topics:
+    - IP (required) - this is the raw SPARTN correction data.
+    - MGA (optional) - this is Assist Now data as a UBX MGA message.
+    - SPARTNKEY (optional, recommended) - this is the SPARTN encryption keys as a UBX RXM-SPARTNKEY message.
+1. To connect to the MQTT server, select the Server URL, Client ID, Region and Topics and click ![connect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/ethernet-1-24.png?raw=true). To disconnect, click ![disconnect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-media-control-50-24.png?raw=true).
+
+#### L-Band Correction Configuration (D9*)
+
+1. To connect to the Correction receiver, select the receivers's port from the SPARTN dialog's Serial Port listbox and click ![connect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/usbport-1-24.png?raw=true). To disconnect, click ![disconnect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-media-control-50-24.png?raw=true).
+1. Select the required Output Port - this is the port used to connect the Correction receiver to the GNSS receiver e.g. UART2 or I2C.
+1. If both Correction and GNSS receivers are connected to the same PyGPSClient workstation (e.g. via separate USB ports), it is possible to run the utility in Output Port = 'Passthough' mode, whereby the output data from the Correction receiver (UBX `RXM-PMP` messages) will be automatically passed through to the GNSS receiver by PyGPSClient, without the need to connect the two externally.
+1. To enable INF-DEBUG messages, which give diagnostic information about current L-Band reception, click 'Enable Debug?'.
+1. Once connected, click ![send button](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-arrow-12-24.png?raw=true) to upload the configuration. The utility will send the relevant configuration command(s) to the Correction receiver and poll for an acknowledgement.
+
+#### GNSS Receiver Configuration (F9*)
+
+1. Connect to the GNSS receiver first by clicking ![connect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/usbport-1-24.png?raw=true) on the main PyGPSClient settings panel.
+1. Enter the current and next keys in hexadecimal format e.g. `0102030405060708090a0b0c0d0e0f10`. The keys are normally 16 bytes long, or 32 hexadecimal characters.
+1. Enter the supplied Valid From dates in `YYYYMMDD` format. **NB:** These are *Valid From* dates rather than *Expiry* dates. If the location service provides Expiry dates, subtract 4 weeks from these to get the Valid From dates.
+1. NB: if you are subscribing to the MQTT SPARTNKEY topic, the key and date details will be entered automatically on reeipt of an MQTT SPARTNKEY message.
+1. Select 'Upload keys', 'Configure receiver' and 'Disable NMEA' options as required.
+1. Click ![send button](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-arrow-12-24.png?raw=true) to upload the configuration. The utility will send the relevant configuration command(s) to the receiver and poll for an acknowledgement.
+
+---
 ### <a name="socketserver">Socket Server / NTRIP Caster Facilities</a>
 
 The Socket Server / NTRIP Caster facility is capable of operating in either of two modes;
 1. SOCKET SERVER - an open, unauthenticated TCP socket server available to any socket client including, for example, another instance of PyGPSClient or `gnssdump` (CLI utility installed with `pygnssutils`) running on another machine. In this mode it will broadcast the host's currently connected GNSS data stream (NMEA, UBX, RTCM3). The default port is 50010.
-2. NTRIP CASTER - a simple implementation of an authenticated NTRIP caster available to any NTRIP client including, for example, the PyGPSClient NTRIP Client facility or `gnssntripclient` (CLI utility installed with `pygnssutils`). Login credentials for the NTRIP caster are set via host environment variables `PYGPSCLIENT_USER` and `PYGPSCLIENT_PASSWORD`. The default port is 2101. **See prerequisites below.**
+2. NTRIP CASTER - a simple implementation of an authenticated NTRIP caster available to any NTRIP client including, for example, the PyGPSClient NTRIP Client facility or `gnssntripclient` (CLI utility installed with `pygnssutils`). Login credentials for the NTRIP caster are set via host environment variables `PYGPSCLIENT_USER` and `PYGPSCLIENT_PASSWORD`. The default port is 2101.
+
+**Pre-Requisites:**
+
+Running in NTRIP caster mode is predicated on the host being connected to an RTK-compatible GNSS receiver **operating in Base Station mode** (either `SURVEY_IN` or `FIXED`) and outputting the requisite RTCM3 message types (1005, 1077, 1087, 1097, 1127 and 1230). In the case of the u-blox ZED-F9P receiver, for example, this is set using the `CFG-TMODE*` and `CFG-MSGOUT-RTCM*` configuration interface parameters available via the [UBX Configuration panel](#ubxconfig) - refer to the Integration Manual and Interface Specification for further details. PyGPSClient does *not* configure the receiver automatically, though an example configuration script for the u-blox ZED-F9P receiver may be found at [/examples/f9p_basestation.py](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/f9p_basestation.py). This script can also be used to generate user-defined preset command strings suitable for copying and pasting into a `ubxpresets` file (see [User Defined Presets](#userdefined) below).
+
+**Instructions:**
 
 The server/caster binds to the host address '0.0.0.0' i.e. all available IP addresses on the host machine. It may be necessary to add a firewall rule on the host and/or client machine to allow remote traffic on the specified port.
 
-A label on the settings panel indicates the number of connected clients, and the server/caster status is indicated in the topmost banner: closed: ![transmit icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-notransmit-10-24.png?raw=true), open with no clients: ![transmit icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-noclient-10-24.png?raw=true), open with clients: ![transmit icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-transmit-10-24.png?raw=true).
+A label on the settings panel indicates the number of connected clients, and the server/caster status is indicated in the topmost banner: open with no clients: ![transmit icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-noclient-10-24.png?raw=true), open with clients: ![transmit icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-transmit-10-24.png?raw=true).
 
-**NB:** Running in NTRIP caster mode is predicated on the host being connected to an RTK-compatible GNSS receiver **operating in Base Station mode** (either `SURVEY_IN` or `FIXED`) and outputting the requisite RTCM3 message types (1005, 1077, 1087, 1097, 1127 and 1230). In the case of the u-blox ZED-F9P receiver, for example, this is set using the `CFG-TMODE*` and `CFG-MSGOUT-RTCM*` configuration interface parameters available via the [UBX Configuration panel](#ubxconfig) - refer to the Integration Manual and Interface Specification for further details. PyGPSClient does *not* configure the receiver automatically, though an example configuration script for the u-blox ZED-F9P receiver may be found at [/examples/f9p_basestation.py](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/f9p_basestation.py). This script can also be used to generate user-defined preset command strings suitable for copying and pasting into a `ubxpresets` file (see [User Defined Presets](#userdefined) below).
+---
+### <a name="gpxviewer">GPX Track Viewer</a>
+
+![gpxviewer screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/gpxviewer.png?raw=true)
+
+*GPX Track Viewer screenshot*
 
 ---
 ## <a name="installation">Installation</a>
@@ -231,7 +322,7 @@ pygpsclient
 
 Optionally, a user-defined serial port can be passed as a keyword argument, e.g.
 ```shell
-pygpsclient port=/dev/tty12345
+pygpsclient --userport /dev/tty12345
 ```
 
 If desired, you can add a shortcut to this command to your desktop or favourites menu.
@@ -271,7 +362,7 @@ See [requirements.txt](requirements.txt).
 The following Python libraries are required (these will be installed automatically if using pip to install PyGPSClient):
 
 ```shell
-python3 -m pip install --upgrade pygnssutils pyserial Pillow requests
+python3 -m pip install --upgrade pygnssutils pyserial Pillow requests paho-mqtt
 ```
 
 To install PyGPSClient manually, download and unzip this repository and run:
@@ -280,10 +371,10 @@ To install PyGPSClient manually, download and unzip this repository and run:
 python3 -m /path_to_folder/foldername/pygpsclient
 ```
 
-e.g. if you downloaded and unzipped to a folder named `PyGPSClient-1.3.12`, run: 
+e.g. if you downloaded and unzipped to a folder named `PyGPSClient-1.3.16`, run: 
 
 ```shell
-python3 -m /path_to_folder/PyGPSClient-1.3.12/pygpsclient
+python3 -m /path_to_folder/PyGPSClient-1.3.16/pygpsclient
 ```
 
 ---
@@ -366,7 +457,7 @@ For further details, refer to the `pygnssutils` homepage at [https://github.com/
 ---
 ## <a name="glossary">Glossary of Terms</a>
 
-For a general overview of GNSS, DGPS and NTRIP technologies and terminology, refer to [GNSS Positioning - A Reviser](https://www.semuconsulting.com/gnsswiki/).
+For a general overview of GNSS, DGPS, RTK, NTRIP and SPARTN technologies and terminology, refer to [GNSS Positioning - A Reviser](https://www.semuconsulting.com/gnsswiki/).
 
 * ACC - accuracy of location in real units (hacc - horizontal, vacc - vertical). Note that location accuracy is not directly provided via the standard NMEA message set, but is available from UBX messages e.g. NAV-POSLLH, NAV-PVT and some proprietary NMEA messages e.g. UBX00.
 * BEI - [BeiDou Navigation Satellite System](https://en.wikipedia.org/wiki/BeiDou).

@@ -40,7 +40,7 @@ class GraphviewFrame(Frame):
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.get_master()  # Reference to root class (Tk)
+        self.__master = self.__app.appmaster  # Reference to root class (Tk)
 
         Frame.__init__(self, self.__master, *args, **kwargs)
 

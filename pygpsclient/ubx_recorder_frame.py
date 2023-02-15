@@ -74,7 +74,7 @@ class UBX_Recorder_Frame(Frame):
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.get_master()  # Reference to root class (Tk)
+        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.__container = container  # Reference to UBX Configuration dialog
 
         Frame.__init__(self, self.__container.container, *args, **kwargs)
@@ -156,12 +156,12 @@ class UBX_Recorder_Frame(Frame):
         """
 
         self._lbl_recorder.grid(column=0, row=0, columnspan=6, padx=3, sticky=(W, E))
-        self._btn_load.grid(column=0, row=1, ipadx=3, ipady=3, sticky=(W))
-        self._btn_save.grid(column=1, row=1, ipadx=3, ipady=3, sticky=(W))
-        self._btn_play.grid(column=2, row=1, ipadx=3, ipady=3, sticky=(W))
-        self._btn_record.grid(column=3, row=1, ipadx=3, ipady=3, sticky=(W))
-        self._btn_undo.grid(column=4, row=1, ipadx=3, ipady=3, sticky=(W))
-        self._btn_delete.grid(column=5, row=1, ipadx=3, ipady=3, sticky=(W))
+        self._btn_load.grid(column=0, row=1, ipadx=3, ipady=3, sticky=W)
+        self._btn_save.grid(column=1, row=1, ipadx=3, ipady=3, sticky=W)
+        self._btn_play.grid(column=2, row=1, ipadx=3, ipady=3, sticky=W)
+        self._btn_record.grid(column=3, row=1, ipadx=3, ipady=3, sticky=W)
+        self._btn_undo.grid(column=4, row=1, ipadx=3, ipady=3, sticky=W)
+        self._btn_delete.grid(column=5, row=1, ipadx=3, ipady=3, sticky=W)
         self._lbl_status.grid(column=0, row=2, columnspan=6, padx=3, sticky=(W, E))
         self._lbl_activity.grid(column=0, row=3, columnspan=6, padx=3, sticky=(W, E))
 
@@ -293,7 +293,7 @@ class UBX_Recorder_Frame(Frame):
                 self._lbl_activity.config(
                     text=f"{i} Sending {msg.identity}", fg=COLGOOD
                 )
-                self.__app.stream_handler.serial_write(msg.serialize())
+                self.__app.gnss_outqueue.put(msg.serialize())
                 sleep(0.01)
             self._lbl_activity.config(
                 text=f"{i + 1} command{'s' if i > 0 else ''} sent to device", fg=COLGOOD
@@ -404,7 +404,6 @@ class UBX_Recorder_Frame(Frame):
             cols = [(COLWHIT, COLBAD), (COLBAD, self._bg)]
             i = 0
             while not stop.is_set():
-
                 i = not i
                 self._lbl_activity.config(
                     text="RECORDING", fg=cols[i][0], bg=cols[i][1]

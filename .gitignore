@@ -9,8 +9,10 @@ Pipfile*.*
 /htmlcov
 /build
 /dist
+/references
 /docs/_build
 /examples/temp*
+/examples/pointperfect
 /logs/*.log
 /logs/*.gpx
 /PyGPSClient_*
@@ -19,9 +21,13 @@ Pipfile*.*
 /__pycache__
 /.dbeaver
 /pygpsclient/__pycache__
-*.pyc
 mqapikey
 /.pytest_cache/
 pylint_report.txt
 snapcraft.yaml
 /wiki
+*.pyc
+*.bin
+*.ubx
+*.log
+*.gpx

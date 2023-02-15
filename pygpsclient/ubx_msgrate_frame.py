@@ -62,7 +62,7 @@ class UBX_MSGRATE_Frame(Frame):
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.get_master()  # Reference to root class (Tk)
+        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.__container = container
 
         Frame.__init__(self, self.__container.container, *args, **kwargs)
@@ -172,21 +172,21 @@ class UBX_MSGRATE_Frame(Frame):
             column=0, row=1, columnspan=2, rowspan=11, padx=3, pady=3, sticky=(W, E)
         )
         self._scr_cfg_msg.grid(column=1, row=1, rowspan=11, sticky=(N, S, E))
-        self._lbl_ddc.grid(column=2, row=1, rowspan=2, padx=0, pady=1, sticky=(E))
-        self._spn_ddc.grid(column=3, row=1, rowspan=2, padx=0, pady=0, sticky=(W))
-        self._lbl_uart1.grid(column=2, row=3, rowspan=2, padx=0, pady=1, sticky=(E))
-        self._spn_uart1.grid(column=3, row=3, rowspan=2, padx=0, pady=0, sticky=(W))
-        self._lbl_uart2.grid(column=2, row=5, rowspan=2, padx=0, pady=1, sticky=(E))
-        self._spn_uart2.grid(column=3, row=5, rowspan=2, padx=0, pady=0, sticky=(W))
-        self._lbl_usb.grid(column=2, row=7, rowspan=2, padx=0, pady=1, sticky=(E))
-        self._spn_usb.grid(column=3, row=7, rowspan=2, padx=0, pady=0, sticky=(W))
-        self._lbl_spi.grid(column=2, row=9, rowspan=2, padx=0, pady=1, sticky=(E))
-        self._spn_spi.grid(column=3, row=9, rowspan=2, padx=0, pady=0, sticky=(W))
+        self._lbl_ddc.grid(column=2, row=1, rowspan=2, padx=0, pady=1, sticky=E)
+        self._spn_ddc.grid(column=3, row=1, rowspan=2, padx=0, pady=0, sticky=W)
+        self._lbl_uart1.grid(column=2, row=3, rowspan=2, padx=0, pady=1, sticky=E)
+        self._spn_uart1.grid(column=3, row=3, rowspan=2, padx=0, pady=0, sticky=W)
+        self._lbl_uart2.grid(column=2, row=5, rowspan=2, padx=0, pady=1, sticky=E)
+        self._spn_uart2.grid(column=3, row=5, rowspan=2, padx=0, pady=0, sticky=W)
+        self._lbl_usb.grid(column=2, row=7, rowspan=2, padx=0, pady=1, sticky=E)
+        self._spn_usb.grid(column=3, row=7, rowspan=2, padx=0, pady=0, sticky=W)
+        self._lbl_spi.grid(column=2, row=9, rowspan=2, padx=0, pady=1, sticky=E)
+        self._spn_spi.grid(column=3, row=9, rowspan=2, padx=0, pady=0, sticky=W)
         self._btn_send_command.grid(
-            column=4, row=1, rowspan=11, ipadx=3, ipady=3, sticky=(E)
+            column=4, row=1, rowspan=11, ipadx=3, ipady=3, sticky=E
         )
         self._lbl_send_command.grid(
-            column=5, row=1, rowspan=11, ipadx=3, ipady=3, sticky=(E)
+            column=5, row=1, rowspan=11, ipadx=3, ipady=3, sticky=E
         )
 
         (cols, rows) = self.grid_size()
@@ -222,7 +222,6 @@ class UBX_MSGRATE_Frame(Frame):
         """
 
         if msg.identity == "CFG-MSG":
-
             self.__container.set_status("CFG-MSG GET message received", "green")
             self._ddc_rate.set(msg.rateDDC)
             self._uart1_rate.set(msg.rateUART1)

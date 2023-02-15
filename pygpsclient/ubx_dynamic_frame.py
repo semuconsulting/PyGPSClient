@@ -99,7 +99,7 @@ class UBX_Dynamic_Frame(Frame):
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.get_master()  # Reference to root class (Tk)
+        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.__container = container
 
         Frame.__init__(self, self.__container.container, *args, **kwargs)
@@ -171,10 +171,10 @@ class UBX_Dynamic_Frame(Frame):
         )
         self._scr_cfg_cmd.grid(column=1, row=1, rowspan=6, sticky=(N, S, E))
         self._btn_send_command.grid(
-            column=3, row=1, rowspan=3, ipadx=3, ipady=3, sticky=(W)
+            column=3, row=1, rowspan=3, ipadx=3, ipady=3, sticky=W
         )
         self._lbl_send_command.grid(
-            column=3, row=4, rowspan=3, ipadx=3, ipady=3, sticky=(W)
+            column=3, row=4, rowspan=3, ipadx=3, ipady=3, sticky=W
         )
         self._lbl_command.grid(column=0, row=7, columnspan=4, padx=3, sticky=(W, E))
         self._frm_container.grid(
@@ -295,7 +295,6 @@ class UBX_Dynamic_Frame(Frame):
         """
 
         for nam, att in pdict.items():  # process each attribute in dict
-
             if isinstance(att, tuple):  # repeating group or bitfield
                 numr, attd = att
                 if numr in (
@@ -409,15 +408,15 @@ class UBX_Dynamic_Frame(Frame):
                 mval = hex(int.from_bytes(mval, "big"))
             self._cfg_atts[nam][0].set(mval)
 
-        Label(self._frm_attrs, text=nam).grid(column=0, row=row, sticky=(E))
+        Label(self._frm_attrs, text=nam).grid(column=0, row=row, sticky=E)
         Entry(
             self._frm_attrs,
             readonlybackground=ENTCOL,
             textvariable=self._cfg_atts[nam][0],
             relief="sunken",
             bg=ENTCOL,
-        ).grid(column=1, row=row, sticky=(W))
-        Label(self._frm_attrs, text=att).grid(column=2, row=row, sticky=(W))
+        ).grid(column=1, row=row, sticky=W)
+        Label(self._frm_attrs, text=att).grid(column=2, row=row, sticky=W)
         row += 1
 
         return row
@@ -430,11 +429,10 @@ class UBX_Dynamic_Frame(Frame):
         nam = ""
         ent = StringVar().set("")
         try:
-
             # create dict of attribute keyword arguments from
             # Entry field string variables
             vals = {}
-            for (nam, (ent, att)) in self._cfg_atts.items():
+            for nam, (ent, att) in self._cfg_atts.items():
                 val = ent.get()
                 vals[nam] = stringvar2val(val, att)
 

@@ -94,12 +94,12 @@ class GPXViewerDialog(Toplevel):
         """Constructor."""
 
         self.__app = app
-        # self.__master = self.__app.get_master()  # link to root Tk window
+        # self.__master = self.__app.appmaster  # link to root Tk window
         Toplevel.__init__(self, app)
         if POPUP_TRANSIENT:
             self.transient(self.__app)
         self.resizable(True, True)
-        self.title(DLGGPXVIEWER)
+        self.title(DLGGPXVIEWER)  # pylint: disable=E1102
         self.protocol("WM_DELETE_WINDOW", self.on_exit)
         self._img_load = ImageTk.PhotoImage(Image.open(ICON_LOAD))
         self._img_redraw = ImageTk.PhotoImage(Image.open(ICON_REDRAW))
@@ -208,7 +208,7 @@ class GPXViewerDialog(Toplevel):
             padx=3,
             pady=3,
         )
-        self._btn_exit.grid(column=4, row=1, padx=3, pady=3, sticky=(E))
+        self._btn_exit.grid(column=4, row=1, padx=3, pady=3, sticky=E)
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=3)
@@ -301,7 +301,6 @@ class GPXViewerDialog(Toplevel):
         self._do_mapalert(DLGGPXLOAD)
 
         with open(self._gpxfile, "r", encoding="utf-8") as gpx:
-
             try:
                 parser = minidom.parse(gpx)
                 trkpts = parser.getElementsByTagName("trkpt")
@@ -486,7 +485,6 @@ class GPXViewerDialog(Toplevel):
         x2 = AXIS_XL
         y2 = self.pheight - AXIS_Y
         for i, (_, _, _, ele, _) in enumerate(track):
-
             if ele is None:
                 continue
             x1, y1 = self._get_point(maxe, maxx, 0, i)
@@ -498,7 +496,6 @@ class GPXViewerDialog(Toplevel):
         x2 = AXIS_XL
         y2 = self.pheight - AXIS_Y
         for i, (_, _, _, _, spd) in enumerate(track):
-
             if spd is None:
                 continue
             x1, y1 = x2, y2

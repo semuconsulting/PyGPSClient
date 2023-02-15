@@ -112,7 +112,7 @@ class UBX_PRESET_Frame(Frame):
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.get_master()  # Reference to root class (Tk)
+        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.__container = container
 
         Frame.__init__(self, self.__container.container, *args, **kwargs)
@@ -223,7 +223,6 @@ class UBX_PRESET_Frame(Frame):
         status = CONFIRMED
         confids = ("MON-VER", "ACK-ACK")
         try:
-
             if self._preset_command == PSTRESET:
                 status = self._do_factory_reset()
             elif self._preset_command == PSTSAVE:
