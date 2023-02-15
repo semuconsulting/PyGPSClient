@@ -288,7 +288,6 @@ class NMEAHandler:
         # self.__app.gnss_status.alt = data.altRef height above datum, not SL
         self.__app.gnss_status.speed = data.SOG
         self.__app.gnss_status.track = data.COG
-        self.__app.gnss_status.pdop = data.PDOP
         self.__app.gnss_status.hdop = data.HDOP
         self.__app.gnss_status.vdop = data.VDOP
         self.__app.gnss_status.hacc = data.hAcc
