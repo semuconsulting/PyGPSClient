@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE v1.3.17
+
+FIXES:
+
+1. Cater for updates in pynmeagps to fix typo in UBX00 message - PUBX00 message provideds TDOP rather than PDOP. 
+
 ### RELEASE v1.3.16
 
 ENHANCEMENTS:

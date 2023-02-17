@@ -640,8 +640,8 @@ def bitsval(bitfield: bytes, position: int, length: int) -> int:
     if position + length > lbb:
         return None
 
-    return int.from_bytes(bitfield, "big") >> (lbb - position - length) & (
-        pow(2, length) - 1
+    return (
+        int.from_bytes(bitfield, "big") >> (lbb - position - length) & 2**length - 1
     )
 
 
@@ -710,7 +710,7 @@ def mapq_decompress(encoded: str, precision: int = 6) -> list:
     :rtype: list
     """
 
-    precision = pow(10, -precision)
+    precision = 10**-precision
     leng = len(encoded)
     index = 0
     lat = 0
@@ -760,7 +760,7 @@ def mapq_compress(points: list, precision: int = 6) -> str:
     leng = len(points)
     index = 0
     encoded = ""
-    precision = pow(10, precision)
+    precision = 10**precision
     while index < leng:
         #  Round to N decimal places
         lat = round(points[index] * precision)
