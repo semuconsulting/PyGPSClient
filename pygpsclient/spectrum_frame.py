@@ -14,8 +14,9 @@ Created on 23 Dec 2022
 
 from math import ceil
 from tkinter import Frame, Canvas, font, BOTH, YES
-from pygpsclient.globals import WIDGETU2, BGCOL, FGCOL
-from pygpsclient.strings import MONSPANERROR
+from pyubx2 import UBXMessage, SET
+from pygpsclient.globals import WIDGETU2, BGCOL, FGCOL, SPECTRUMVIEW
+from pygpsclient.strings import MONSPANERROR, DLGNOMONSPAN
 
 # Relative offsets of graph axes and legends
 AXIS_XL = 19
@@ -75,6 +76,7 @@ class SpectrumviewFrame(Frame):
         self._minhz = MIN_HZ
         self._maxhz = MAX_HZ
         self._monspan_enabled = False
+        self._pending_confs = {}
         self._body()
 
         self.bind("<Configure>", self._on_resize)
@@ -162,6 +164,73 @@ class SpectrumviewFrame(Frame):
                 text=MONSPANERROR,
                 fill="orange",
             )
+
+    def reset(self):
+        """
+        Reset spectrumview frame.
+        """
+
+        self.__app.gnss_status.spectrum_data = []
+        self.can_spectrumview.delete("all")
+        self.update_frame()
+        self.enable_MONSPAN(self.winfo_ismapped())
+
+    def enable_MONSPAN(self, status: bool):
+        """
+        Enable/disable UBX MON-SPAN (b'\x0a\x31') message.
+
+        :param bool status: 0 = off, 1 = on
+        """
+
+        msg = UBXMessage(
+            "CFG",
+            "CFG-MSG",
+            SET,
+            msgClass=0x0A,
+            msgID=0x31,
+            rateUART1=status,
+            rateUART2=status,
+            rateUSB=status,
+        )
+        self.__app.gnss_outqueue.put(msg.serialize())
+        for msgid in ("ACK-ACK", "ACK-NAK"):
+            self._set_pending(msgid, SPECTRUMVIEW)
+
+    def _set_pending(self, msgid: int, ubxfrm: int):
+        """
+        Set pending confirmation flag for Spectrumview frame to
+        signify that it's waiting for a confirmation message.
+
+        :param int msgid: UBX message identity
+        :param int ubxfrm: integer representing UBX configuration frame (0-6)
+        """
+
+        self._pending_confs[msgid] = ubxfrm
+
+    def update_pending(self, msg: UBXMessage):
+        """
+        Receives polled confirmation message from the ubx_handler and
+        updates spectrumview canvas.
+
+        :param UBXMessage msg: UBX config message
+        """
+
+        pending = self._pending_confs.get(msg.identity, False)
+
+        if pending and msg.identity == "ACK-NAK":
+            self.reset()
+            w, h = self.width, self.height
+            self.can_spectrumview.create_text(
+                w / 2,
+                h / 2,
+                text=DLGNOMONSPAN,
+                fill="orange",
+            )
+            self._pending_confs.pop("ACK-NAK")
+            self._monspan_enabled = False
+
+        if self._pending_confs.get("ACK-ACK", False):
+            self._pending_confs.pop("ACK-ACK")
 
     def update_frame(self):
         """
@@ -272,7 +341,7 @@ class SpectrumviewFrame(Frame):
 
         # for each RF block in MON-SPAN message
         for i, rfblock in enumerate(rfblocks):
-            (spec, spn, res, ctr, pga) = rfblock
+            (spec, spn, res, ctr, _) = rfblock
             minhz = int(min(minhz, ctr - res * (spn / res) / 2))
             maxhz = int(max(maxhz, ctr + res * (spn / res) / 2))
             spanhz = []

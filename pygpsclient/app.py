@@ -304,6 +304,9 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         if wdg["menu"] is not None:
             self.menu.view_menu.entryconfig(wdg["menu"], label=f"{lbl} {nam}")
 
+        if nam == WDGSPECTRUM:
+            self.frm_spectrumview.enable_MONSPAN(wdg["visible"])
+
         return col, row
 
     def _attach_events(self):

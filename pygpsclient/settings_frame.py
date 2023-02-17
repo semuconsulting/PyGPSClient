@@ -559,7 +559,7 @@ class SettingsFrame(Frame):
         )
         self.__app.set_status("")
         self.__app.conn_status = CONNECTED
-        self.__app.frm_mapview.reset_map_refresh()
+        self._reset_frames()
         self.__app.stream_handler.start_read_thread(self)
 
     def _on_socket_stream(self):
@@ -577,7 +577,7 @@ class SettingsFrame(Frame):
             )
             self.__app.set_status("")
             self.__app.conn_status = CONNECTED_SOCKET
-            self.__app.frm_mapview.reset_map_refresh()
+            self._reset_frames()
             self.__app.stream_handler.start_read_thread(self)
         else:
             self.__app.set_status("ERROR - invalid settings", "red")
@@ -592,8 +592,16 @@ class SettingsFrame(Frame):
             self.__app.set_connection(f"{self._in_filepath}", "blue")
             self.__app.set_status("")
             self.__app.conn_status = CONNECTED_FILE
-            self.__app.frm_mapview.reset_map_refresh()
+            self._reset_frames()
             self.__app.stream_handler.start_read_thread(self)
+
+    def _reset_frames(self):
+        """
+        Reset frames.
+        """
+
+        self.__app.frm_mapview.reset_map_refresh()
+        self.__app.frm_spectrumview.reset()
 
     def _on_socket_serve(self):
         """

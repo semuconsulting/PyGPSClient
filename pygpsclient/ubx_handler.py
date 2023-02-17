@@ -87,9 +87,18 @@ class UBXHandler:
 
         if self.__app.dlg_ubxconfig is not None:
             self.__app.dlg_ubxconfig.update_pending(msg)
+
         # if SPARTN config dialog is open, send CFG & ACKs there as well
         if self.__app.dlg_spartnconfig is not None:
             self.__app.dlg_spartnconfig.update_pending(msg)
+
+        # if Spectrumview widget exists, send NAKs there as well
+        if self.__app.frm_spectrumview is not None and msg.identity in (
+            "ACK-ACK",
+            "ACK-NAK",
+        ):
+            if msg.clsID == 6 and msg.msgID == 1:  # CFG-MSG
+                self.__app.frm_spectrumview.update_pending(msg)
 
     def _process_NAV_POSLLH(self, data: UBXMessage):
         """
