@@ -50,6 +50,7 @@ from pygpsclient.globals import (
     ICON_LOAD,
     ENTCOL,
     CONNECTED_SPARTNIP,
+    CONNECTED_SPARTNLB,
     DISCONNECTED,
     READONLY,
     SPARTN_PPSERVER,
@@ -60,7 +61,7 @@ from pygpsclient.globals import (
     TOPIC_MGA,
     TOPIC_RXM,
 )
-from pygpsclient.strings import LBLSPARTNIP
+from pygpsclient.strings import LBLSPARTNIP, DLGSPARTNWARN
 from pygpsclient.helpers import valid_entry, VALLEN
 
 
@@ -336,6 +337,13 @@ class SPARTNMQTTDialog(Frame):
         """
         Connect to MQTT client.
         """
+
+        if self.__app.rtk_conn_status == CONNECTED_SPARTNLB:
+            self.__container.set_status(
+                DLGSPARTNWARN.format("L-Band", "IP"),
+                "red",
+            )
+            return
 
         self.__app.rtk_conn_status = CONNECTED_SPARTNIP
         server = SPARTN_PPSERVER

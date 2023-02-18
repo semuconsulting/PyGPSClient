@@ -51,6 +51,7 @@ from pygpsclient.globals import (
     ICON_SOCKET,
     ENTCOL,
     CONNECTED_SPARTNLB,
+    CONNECTED_SPARTNIP,
     DISCONNECTED,
     NOPORTS,
     READONLY,
@@ -65,6 +66,7 @@ from pygpsclient.strings import (
     LBLSPARTNLB,
     CONFIGOK,
     CONFIGBAD,
+    DLGSPARTNWARN,
 )
 from pygpsclient.helpers import (
     valid_entry,
@@ -395,6 +397,13 @@ class SPARTNLBANDDialog(Frame):
         """
         Connect to Correction receiver.
         """
+
+        if self.__app.rtk_conn_status == CONNECTED_SPARTNIP:
+            self.__container.set_status(
+                DLGSPARTNWARN.format("IP", "L-Band"),
+                "red",
+            )
+            return
 
         if self.serial_settings.status == NOPORTS:
             return

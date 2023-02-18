@@ -157,6 +157,7 @@ DLGGPXLOAD = "LOADING GPX TRACK ..."
 DLGGPXERROR = "GPX PARSING ERROR!"
 DLGGPXNULL = "NO TRACKPOINTS IN GPX FILE!"
 DLGNOMONSPAN = "This receiver does not appear to\nsupport the MON-SPAN message"
+DLGSPARTNWARN = "WARNING! Disconnect from {} client before using {} client"
 
 # UBX Preset Command Descriptions
 PSTRESET = "CFG-CFG - RESTORE FACTORY DEFAULTS"
