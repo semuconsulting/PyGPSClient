@@ -362,7 +362,7 @@ See [requirements.txt](requirements.txt).
 The following Python libraries are required (these will be installed automatically if using pip to install PyGPSClient):
 
 ```shell
-python3 -m pip install --upgrade pygnssutils pyserial Pillow requests paho-mqtt
+python3 -m pip install --upgrade pygnssutils pyserial Pillow requests paho-mqtt pyspartn
 ```
 
 To install PyGPSClient manually, download and unzip this repository and run:
