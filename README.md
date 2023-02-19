@@ -195,9 +195,9 @@ The facility can be accessed by clicking the ![SPARTN Client button](https://git
 2. L-BAND Correction (D9* Receiver):
 
     - SPARTN L-Band correction receiver e.g. u-blox NEO-D9S
-    - Suitable Immarsat L-band antenna (NB: standard GNSS antenna may not be suitable)
+    - Suitable Inmarsat L-band antenna and good satellite reception on regional frequency (NB: standard GNSS antenna may not be suitable) 
     - Subscription to L-Band location service e.g. u-blox / Thingstream PointPerfect, which should provide the following details:
-    - L-Band frequency; search window; use_serviceid?; use_descrambling?; use_prescrambling?; Service ID; Data Rate; Descrambler Init; Unique Word
+    - L-Band frequency; Search window; Use_serviceid?; Use_descrambling?; Use_prescrambling?; Service ID; Data Rate; Descrambler Init; Unique Word
 
 3. GNSS Receiver:
 
