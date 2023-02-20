@@ -195,7 +195,7 @@ class MQTTHandler:
         else:  # SPARTN protocol message
             spr = SPARTNReader(BytesIO(msg.payload))
             try:
-                for raw, parsed in spr.iterate():
+                for raw, parsed in spr:
                     userdata["gnss"].put((raw, parsed))
                     userdata["master"].event_generate(userdata["readevent"])
             except (SPARTNMessageError, SPARTNParseError, SPARTNStreamError):
