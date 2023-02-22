@@ -27,7 +27,7 @@ setup(
         "Pillow>=7.2.0",
         "pyserial>=3.5",
         "paho-mqtt>=1.6.1",
-        # "pyspartn>=0.1.3",
+        "pyspartn>=0.1.3",
     ],
     package_data={
         "pygpsclient": [
