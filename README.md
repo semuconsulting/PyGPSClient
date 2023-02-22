@@ -207,6 +207,8 @@ The facility can be accessed by clicking the ![SPARTN Client button](https://git
 
 **Instructions:**
 
+The SPARTN client configuration can be loaded from a JSON file provided by the Location Service provider (e.g. u-blox / Thingstream) by clicking `Load Keys from JSON`. If the JSON file is valid, the Client ID, MQTT Server URL, Current and Next decryption keys and Valid from dates will be entered automatically.
+
 #### IP Correction Configuration (MQTT)
 
 1. Enter your MQTT Client ID (or set it up beforehand as environment variable `MQTTCLIENTID`).
