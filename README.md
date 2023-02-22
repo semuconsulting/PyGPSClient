@@ -235,6 +235,13 @@ The SPARTN client configuration can be loaded from a JSON file provided by the L
 1. Select 'Upload keys', 'Configure receiver' and 'Disable NMEA' options as required.
 1. Click ![send button](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-arrow-12-24.png?raw=true) to upload the configuration. The utility will send the relevant configuration command(s) to the receiver and poll for an acknowledgement.
 
+
+Below is a illustrative SPARTN DGPS data log, showing:
+* Incoming UBX MGA (Assist-Now) messages; in this case, MGA-GAL-EPH (Assist-Now Galileo ephemera data).
+* Incoming SPARTN correction messages; in this case - SPARTN-1X-GAD (geographic area defition) and SPARTN-1X-HPAC (high-precision atmosphere correction). 
+* Outgoing UBX RXM-COR confirmation messages from receiver showing that the SPARTN data has been received and decrypted OK.
+
+![spartn console screenshot](/images/spartn_consolelog.png)
 ---
 ### <a name="socketserver">Socket Server / NTRIP Caster Facilities</a>
 
@@ -321,9 +328,9 @@ To run the application, if the Python 3 scripts (bin) directory is in your PATH,
 pygpsclient
 ```
 
-Optionally, a user-defined serial port can be passed as a keyword argument, e.g.
+`pygpsclient` also accepts optional command line arguments for user ports, MapQuest API key and MQTT Client ID. Type the following for help:
 ```shell
-pygpsclient --userport /dev/tty12345
+pygpsclient -h
 ```
 
 If desired, you can add a shortcut to this command to your desktop or favourites menu.
