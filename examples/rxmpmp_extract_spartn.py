@@ -23,7 +23,7 @@ with open(FILENAME, "rb") as stream:
     ubr = UBXReader(stream)
     payload = b""
     m = 0
-    for raw, parsed in ubr.iterate():
+    for raw, parsed in ubr:
         if parsed.identity == "RXM-PMP":
             m += 1
             # print(parsed)
@@ -35,7 +35,7 @@ with open(FILENAME, "rb") as stream:
 try:
     spr = SPARTNReader(BytesIO(payload))
     n = 0
-    for raw, parsed in spr.iterate():
+    for raw, parsed in spr:
         if isinstance(parsed, SPARTNMessage):
             print(parsed)
             n += 1

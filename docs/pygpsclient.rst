@@ -180,6 +180,14 @@ pygpsclient.spartn\_gnss\_frame module
    :undoc-members:
    :show-inheritance:
 
+pygpsclient.spartn\_json\_config module
+---------------------------------------
+
+.. automodule:: pygpsclient.spartn_json_config
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pygpsclient.spartn\_lband\_frame module
 ---------------------------------------
 

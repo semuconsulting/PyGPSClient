@@ -257,24 +257,27 @@ class SPARTNMQTTDialog(Frame):
         self._mqtt_mgatopic.set(1)
         self._mqtt_keytopic.set(1)
         self._mqtt_clientid.set(getenv("MQTTCLIENTID", default="enter-client-id"))
-
-        # Thingstream > Location Services > PointPerfect Thing > Credentials
-        # Default location for key files is user's HOME directory
-        self._spartn_crt = path.join(
-            Path.home(), f"device-{self._mqtt_clientid.get()}-pp-cert.crt"
-        )
-        self._spartn_pem = path.join(
-            Path.home(), f"device-{self._mqtt_clientid.get()}-pp-key.pem"
-        )
-        self._mqtt_crt.set(self._spartn_crt)
-        self._mqtt_pem.set(self._spartn_pem)
-
+        self._reset_keypaths(self._mqtt_clientid.get())
         self.__container.set_status("", "blue")
 
         if self.__app.rtk_conn_status == CONNECTED_SPARTNIP:
             self.set_controls(CONNECTED_SPARTNIP)
         else:
             self.set_controls(DISCONNECTED)
+
+    def _reset_keypaths(self, clientid):
+        """
+        Reset key and cert file paths.
+
+        :param str clientid: Client ID
+        """
+
+        # Thingstream > Location Services > PointPerfect Thing > Credentials
+        # Default location for key files is user's HOME directory
+        spartn_crt = path.join(Path.home(), f"device-{clientid}-pp-cert.crt")
+        spartn_pem = path.join(Path.home(), f"device-{clientid}-pp-key.pem")
+        self._mqtt_crt.set(spartn_crt)
+        self._mqtt_pem.set(spartn_pem)
 
     def set_controls(self, status: int):
         """
@@ -373,18 +376,21 @@ class SPARTNMQTTDialog(Frame):
         )
         self.set_controls(CONNECTED_SPARTNIP)
 
-    def on_disconnect(self):
+    def on_disconnect(self, msg: str = ""):
         """
         Disconnect from MQTT client.
+
+        :param str msg: optional disconnection message
         """
 
+        msg += "Disconnected"
         if self.__app.rtk_conn_status == CONNECTED_SPARTNIP:
             if self._stream_handler is not None:
                 self.__app.rtk_conn_status = DISCONNECTED
                 self._stream_handler.stop()
                 self._stream_handler = None
                 self.__container.set_status(
-                    "Disconnected",
+                    msg,
                     "red",
                 )
         self.set_controls(DISCONNECTED)
@@ -394,3 +400,46 @@ class SPARTNMQTTDialog(Frame):
         Update pending confirmation status.
         :param UBXMessage msg: UBX config message
         """
+
+    @property
+    def server(self) -> str:
+        """
+        Getter for server.
+
+        :return: server
+        :rtype: str
+        """
+
+        return self._mqtt_server.get()
+
+    @server.setter
+    def server(self, server: str):
+        """
+        Setter for server.
+
+        :param str clientid: Client ID
+        """
+
+        self._mqtt_server.set(server)
+
+    @property
+    def clientid(self) -> str:
+        """
+        Getter for Client ID.
+
+        :return: client ID
+        :rtype: str
+        """
+
+        return self._mqtt_clientid.get()
+
+    @clientid.setter
+    def clientid(self, clientid: str):
+        """
+        Setter for Client ID.
+
+        :param str clientid: Client ID
+        """
+
+        self._mqtt_clientid.set(clientid)
+        self._reset_keypaths(clientid)

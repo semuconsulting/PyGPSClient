@@ -1,5 +1,13 @@
 # PyGPSClient Release Notes
 
+### RELEASE v1.3.18rc0
+
+ENHANCEMENTS:
+
+1. Use `pyspartn` library rather than embedded spartn class. `pyspartn` still in Alpha but functionality required for PyGPSClient is solid.
+2. SPARTN Config dialog - add facility to load keys from JSON file.
+3. Minor improvements to SPARTN client error handling.
+
 ### RELEASE v1.3.17
 
 FIXES:

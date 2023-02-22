@@ -257,6 +257,26 @@ class FileHandler:
             return None  # User cancelled
         return filepath
 
+    def open_spartnjson(self) -> str:
+        """
+        Open JSON SPARTN config file.
+
+        :return: json file path
+        :rtype: str
+        """
+
+        filepath = filedialog.askopenfilename(
+            title=READTITLE,
+            initialdir=HOME,
+            filetypes=(
+                ("json files", f"*.json"),
+                ("all files", "*.*"),
+            ),
+        )
+        if filepath in ((), ""):
+            return None  # User cancelled
+        return filepath
+
     def set_trackfile_path(self) -> str:
         """
         Set track directory.

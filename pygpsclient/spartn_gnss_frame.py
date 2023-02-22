@@ -47,6 +47,7 @@ from pygpsclient.globals import (
     ICON_WARNING,
     ICON_DISCONN,
     ICON_BLANK,
+    ICON_LOAD,
     ENTCOL,
     CONNECTED,
     SPARTN_SOURCE_LB,
@@ -63,6 +64,9 @@ from pygpsclient.strings import (
     LBLSPTNUPLOAD,
     LBLSPTNFP,
     LBLSPTNNMEA,
+    LBLJSONLOAD,
+    DLGJSONOK,
+    DLGJSONERR,
     NOTCONN,
     NULLSEND,
     LBLSPARTNGN,
@@ -77,6 +81,7 @@ from pygpsclient.helpers import (
     VALDMY,
     VALLEN,
 )
+from pygpsclient.spartn_json_config import SpartnJsonConfig
 
 U2MAX = 2e16 - 1
 U8MAX = 2e64 - 1
@@ -117,6 +122,7 @@ class SPARTNGNSSDialog(Frame):
         self._img_warn = ImageTk.PhotoImage(Image.open(ICON_WARNING))
         self._img_send = ImageTk.PhotoImage(Image.open(ICON_SEND))
         self._img_disconn = ImageTk.PhotoImage(Image.open(ICON_DISCONN))
+        self._img_load = ImageTk.PhotoImage(Image.open(ICON_LOAD))
         self._status = StringVar()
         self._spartn_source = IntVar()
         self._status_cfgmsg = StringVar()
@@ -188,6 +194,16 @@ class SPARTNGNSSDialog(Frame):
             variable=self._spartn_source,
             value=SPARTN_SOURCE_LB,
         )
+        self._lbl_loadjson = Label(
+            self,
+            text=LBLJSONLOAD,
+        )
+        self._btn_loadjson = Button(
+            self,
+            width=45,
+            image=self._img_load,
+            command=lambda: self._on_load_json(),
+        )
         self._chk_upload_keys = Checkbutton(
             self,
             text=LBLSPTNUPLOAD,
@@ -217,34 +233,39 @@ class SPARTNGNSSDialog(Frame):
         """
 
         self._lbl_gnss.grid(column=0, row=0, columnspan=4, padx=3, pady=2, sticky=W)
-        self._lbl_curr.grid(column=0, row=1, columnspan=4, padx=3, pady=2, sticky=W)
-        self._lbl_key1.grid(column=0, row=2, padx=3, pady=2, sticky=W)
-        self._ent_key1.grid(column=1, row=2, columnspan=3, padx=3, pady=2, sticky=W)
-        self._lbl_valdate1.grid(column=0, row=3, padx=3, pady=2, sticky=W)
-        self._ent_valdate1.grid(column=1, row=3, columnspan=3, padx=3, pady=2, sticky=W)
+        self._lbl_loadjson.grid(column=0, row=1, padx=3, pady=2, sticky=W)
+        self._btn_loadjson.grid(column=1, row=1, columnspan=3, padx=3, pady=2, sticky=W)
         ttk.Separator(self).grid(
-            column=0, row=4, columnspan=4, padx=2, pady=3, sticky=(W, E)
+            column=0, row=2, columnspan=4, padx=2, pady=3, sticky=(W, E)
         )
-        self._lbl_next.grid(column=0, row=5, columnspan=3, padx=3, pady=2, sticky=W)
-        self._lbl_key2.grid(column=0, row=6, padx=3, pady=2, sticky=W)
-        self._ent_key2.grid(column=1, row=6, columnspan=3, padx=2, pady=2, sticky=W)
-        self._lbl_valdate2.grid(column=0, row=7, padx=3, pady=2, sticky=W)
-        self._ent_valdate2.grid(column=1, row=7, columnspan=3, padx=3, pady=2, sticky=W)
+        self._lbl_curr.grid(column=0, row=3, columnspan=4, padx=3, pady=2, sticky=W)
+        self._lbl_key1.grid(column=0, row=4, padx=3, pady=2, sticky=W)
+        self._ent_key1.grid(column=1, row=4, columnspan=3, padx=3, pady=2, sticky=W)
+        self._lbl_valdate1.grid(column=0, row=5, padx=3, pady=2, sticky=W)
+        self._ent_valdate1.grid(column=1, row=5, columnspan=3, padx=3, pady=2, sticky=W)
         ttk.Separator(self).grid(
-            column=0, row=8, columnspan=4, padx=2, pady=3, sticky=(W, E)
+            column=0, row=6, columnspan=4, padx=2, pady=3, sticky=(W, E)
         )
-        self._rad_source0.grid(column=0, row=9, padx=3, pady=2, sticky=W)
-        self._rad_source1.grid(column=1, row=9, columnspan=3, padx=3, pady=2, sticky=W)
-        self._chk_upload_keys.grid(column=0, row=10, padx=3, pady=2, sticky=W)
-        self._chk_send_config.grid(column=1, row=10, padx=3, pady=2, sticky=W)
+        self._lbl_next.grid(column=0, row=7, columnspan=3, padx=3, pady=2, sticky=W)
+        self._lbl_key2.grid(column=0, row=8, padx=3, pady=2, sticky=W)
+        self._ent_key2.grid(column=1, row=8, columnspan=3, padx=2, pady=2, sticky=W)
+        self._lbl_valdate2.grid(column=0, row=9, padx=3, pady=2, sticky=W)
+        self._ent_valdate2.grid(column=1, row=9, columnspan=3, padx=3, pady=2, sticky=W)
+        ttk.Separator(self).grid(
+            column=0, row=10, columnspan=4, padx=2, pady=3, sticky=(W, E)
+        )
+        self._rad_source0.grid(column=0, row=11, padx=3, pady=2, sticky=W)
+        self._rad_source1.grid(column=1, row=11, columnspan=3, padx=3, pady=2, sticky=W)
+        self._chk_upload_keys.grid(column=0, row=12, padx=3, pady=2, sticky=W)
+        self._chk_send_config.grid(column=1, row=12, padx=3, pady=2, sticky=W)
         self._chk_disable_nmea.grid(
-            column=2, row=10, columnspan=2, padx=3, pady=2, sticky=W
+            column=2, row=12, columnspan=2, padx=3, pady=2, sticky=W
         )
         ttk.Separator(self).grid(
-            column=0, row=11, columnspan=4, padx=2, pady=3, sticky=(W, E)
+            column=0, row=13, columnspan=4, padx=2, pady=3, sticky=(W, E)
         )
-        self._btn_send_command.grid(column=2, row=12, padx=3, pady=2, sticky=W)
-        self._lbl_send_command.grid(column=3, row=12, padx=3, pady=2, sticky=W)
+        self._btn_send_command.grid(column=2, row=14, padx=3, pady=2, sticky=W)
+        self._lbl_send_command.grid(column=3, row=14, padx=3, pady=2, sticky=W)
 
     def _reset(self):
         """
@@ -441,3 +462,29 @@ class SPARTNGNSSDialog(Frame):
             self._lbl_send_command.config(image=self._img_warn)
             self.__container.set_status(CONFIGBAD.format(CFGSET), "red")
         self.update_idletasks()
+
+    def _on_load_json(self):
+        """
+        Load SPARTN decryption keys from JSON file.
+        """
+        # pylint: disable=unused-variable
+
+        jsonfile = self.__app.file_handler.open_spartnjson()
+        if jsonfile is None:
+            return
+
+        try:
+            spc = SpartnJsonConfig(jsonfile)
+            # strip scheme and port from server name
+            scheme, host, port = spc.server.split(":")
+            self.__container.server = host.replace("//", "")
+            self.__container.clientid = spc.clientid
+            (key, start, _) = spc.current_key
+            self._spartn_key1.set(key)
+            self._spartn_valdate1.set(start.strftime("%Y%m%d"))
+            (key, start, _) = spc.next_key
+            self._spartn_key2.set(key)
+            self._spartn_valdate2.set(start.strftime("%Y%m%d"))
+            self.__container.set_status(DLGJSONOK.format(jsonfile), "green")
+        except Exception as err:  # pylint: disable=broad-exception-caught
+            self.__container.set_status(DLGJSONERR.format(err), "red")

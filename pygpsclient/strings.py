@@ -137,7 +137,7 @@ LBLSPTNNMEA = "Disable NMEA?"
 LBLSPARTNIP = "IP CORRECTION CONFIGURATION (MQTT)"
 LBLSPARTNLB = "L-BAND CORRECTION CONFIGURATION (D9*)"
 LBLSPARTNGN = "GNSS RECEIVER CONFIGURATION (F9*)"
-
+LBLJSONLOAD = "Load Keys From JSON"
 
 # Dialog text
 DLGUBXCONFIG = "UBX Configuration"
@@ -158,6 +158,8 @@ DLGGPXERROR = "GPX PARSING ERROR!"
 DLGGPXNULL = "NO TRACKPOINTS IN GPX FILE!"
 DLGNOMONSPAN = "This receiver does not appear to\nsupport the MON-SPAN message"
 DLGSPARTNWARN = "WARNING! Disconnect from {} client before using {} client"
+DLGJSONERR = "ERROR! {}"
+DLGJSONOK = "Keys loaded from {}"
 
 # UBX Preset Command Descriptions
 PSTRESET = "CFG-CFG - RESTORE FACTORY DEFAULTS"

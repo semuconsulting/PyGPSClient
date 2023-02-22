@@ -171,7 +171,7 @@ Below is a illustrative NTRIP DGPS data log, showing:
 
 **BETA FEATURE**
 
-![spartn config widget screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/spartnconfig_widget.png?raw=true)
+![spartn config widget screenshot](/images/spartnconfig_widget.png)
 
 The SPARTN Configuration utility allows users to receive and process SPARTN RTK Correction data from an IP or L-Band source to achieve cm level location accuracy. It provides three independent configuration sections, one for IP Correction (MQTT), one for L-Band Correction (e.g. D9S) and a third for the GNSS receiver (e.g. F9P). 
 

@@ -421,17 +421,20 @@ class SPARTNLBANDDialog(Frame):
         # poll for config
         self._poll_config()
 
-    def on_disconnect(self):
+    def on_disconnect(self, msg: str = ""):
         """
-        Disconnect from Correction receiver.
+        Disconnect from L-Band Correction receiver.
+
+        :param str msg: optional disconnection message
         """
 
+        msg += "Disconnected"
         if self.__app.rtk_conn_status == CONNECTED_SPARTNLB:
             if self._stream_handler is not None:
                 self._stream_handler.stop_read_thread()
                 self.__app.rtk_conn_status = DISCONNECTED
                 self.__container.set_status(
-                    "Disconnected",
+                    msg,
                     "red",
                 )
             self.set_controls(DISCONNECTED)

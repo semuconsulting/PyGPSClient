@@ -3,8 +3,8 @@ u-blox PointPerfect MQTT client with AssistNow v0.6
 
 Based on pointperfect.assistnow-client-06.py
 
-NB: MQTT certificate (*.crt) and key (*.pem) files must be placed in
-the user's home directory.
+NB: MQTT TLS certificate (*.crt) and key (*.pem) files must
+be placed in the user's home directory.
 
 The Client ID can be set as environment variable MQTTCLIENTID.
 
@@ -137,23 +137,34 @@ class MQTTHandler:
         client.on_connect = self.on_connect
         client.on_message = self.on_message
         (certfile, keyfile) = tls
-        client.tls_set(certfile=certfile, keyfile=keyfile)
 
-        while not stopevent.is_set():
-            try:
-                client.connect(server, port=8883)
-                break
-            except Exception:  # pylint: disable=broad-exception-caught
-                # print("Trying to connect ...")
-                pass
-            sleep(3)
+        try:
+            client.tls_set(certfile=certfile, keyfile=keyfile)
 
-        client.loop_start()
-        while not stopevent.is_set():
-            # run the client loop in the same thread, as callback access gnss
-            # client.loop(timeout=0.1)
-            sleep(0.1)
-        client.loop_stop()
+            while not stopevent.is_set():
+                try:
+                    client.connect(server, port=8883)
+                    break
+                except Exception:  # pylint: disable=broad-exception-caught
+                    # print("Trying to connect ...")
+                    pass
+                sleep(3)
+
+            client.loop_start()
+            while not stopevent.is_set():
+                # run the client loop in the same thread, as callback access gnss
+                # client.loop(timeout=0.1)
+                sleep(0.1)
+            # client.loop_stop()
+        except FileNotFoundError:
+            stopevent.set()
+            self.__app.dlg_spartnconfig.disconnect_ip(
+                "ERROR! TLS certificate or key file(s) not found. "
+            )
+        finally:
+            client.loop_stop()
+
+        return 1
 
     @staticmethod
     def on_connect(client, userdata, flags, rcd):  # pylint: disable=unused-argument
@@ -185,7 +196,7 @@ class MQTTHandler:
         if msg.topic in (TOPIC_MGA, TOPIC_RXM):  # multiple UBX MGA or RXM messages
             ubr = UBXReader(BytesIO(msg.payload), msgmode=SET)
             try:
-                for raw, parsed in ubr.iterate():
+                for raw, parsed in ubr:
                     userdata["gnss"].put((raw, parsed))
                     userdata["master"].event_generate(userdata["readevent"])
             except UBXParseError:
