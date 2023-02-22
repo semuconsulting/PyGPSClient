@@ -28,6 +28,8 @@ def main():
     ap.add_argument(
         "-S", "--spartnport", required=False, help="User-defined SPARTN receiver port"
     )
+    ap.add_argument("--mqapikey", required=False, help="MapQuest API Key")
+    ap.add_argument("--mqttclientid", required=False, help="MQTT Client ID")
 
     kwargs = vars(ap.parse_args())
 

@@ -391,7 +391,7 @@ class GPXViewerDialog(Toplevel):
         """
         # pylint: disable=unused-variable
 
-        apikey = self.__app.api_key
+        mqapikey = self.__app.mqapikey
         lat1, lon1, _, _, _ = self._track[0]  # start point, labelled 1
         lat2, lon2, _, _, _ = self._track[-1]  # end point, labelled 2
         points = []
@@ -416,7 +416,7 @@ class GPXViewerDialog(Toplevel):
 
         try:
             url = GPXMAPURL.format(
-                apikey,
+                mqapikey,
                 lat1,
                 lon1,
                 lat2,

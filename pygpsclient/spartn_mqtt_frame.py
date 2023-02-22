@@ -256,7 +256,7 @@ class SPARTNMQTTDialog(Frame):
         self._mqtt_iptopic.set(1)
         self._mqtt_mgatopic.set(1)
         self._mqtt_keytopic.set(1)
-        self._mqtt_clientid.set(getenv("MQTTCLIENTID", default="enter-client-id"))
+        self._mqtt_clientid.set(self.__app.mqttclientid)
         self._reset_keypaths(self._mqtt_clientid.get())
         self.__container.set_status("", "blue")
 

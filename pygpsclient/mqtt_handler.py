@@ -15,7 +15,6 @@ Created on 8 Feb 2023
 :license: BSD 3-Clause
 """
 
-from os import getenv
 from io import BytesIO
 from time import sleep
 from queue import Queue
@@ -63,7 +62,7 @@ class MQTTHandler:
 
         self.__app = app
         self.__master = self.__app.appmaster
-        self._clientid = kwargs.get("clientid", getenv("MQTTCLIENTID", default=""))
+        self._clientid = kwargs.get("clientid", "")
         self._server = kwargs.get("server", SPARTN_PPSERVER)
         self._topics = kwargs.get(
             "mqtt_topics",

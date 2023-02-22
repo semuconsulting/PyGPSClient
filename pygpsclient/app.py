@@ -108,6 +108,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._spartn_user_port = kwargs.pop(
             "spartnport", getenv("PYGPSCLIENT_SPARTNPORT", "")
         )
+        self._mqapikey = kwargs.pop("mqapikey", getenv("MQAPIKEY", ""))
+        self._mqttclientid = kwargs.pop("mqttclientid", getenv("MQTTCLIENTID", ""))
 
         Frame.__init__(self, self.__master, *args, **kwargs)
 
@@ -147,8 +149,9 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._socket_thread = None
         self._socket_server = None
 
-        # Load web map api key if there is one
-        self.api_key = self.file_handler.load_apikey()
+        # Load MapQuest web map api key if not already defined
+        if self._mqapikey == "":
+            self._mqapikey = self.file_handler.load_mqapikey()
 
         # Load console color tags from file
         self.colortags = self.file_handler.load_colortags()
@@ -794,6 +797,22 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         return self._spartn_user_port
+
+    @property
+    def mqapikey(self) -> str:
+        """
+        Getter for MapQuerst API Key.
+        """
+
+        return self._mqapikey
+
+    @property
+    def mqttclientid(self) -> str:
+        """
+        Getter for MQTT Client ID.
+        """
+
+        return self._mqttclientid
 
     @property
     def gnss_inqueue(self) -> Queue:
