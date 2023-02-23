@@ -40,6 +40,8 @@ from pygpsclient.globals import (
     SPARTN_LBAND,
     SPARTN_MQTT,
     POPUP_TRANSIENT,
+    CONNECTED_SPARTNIP,
+    CONNECTED_SPARTNLB,
 )
 from pygpsclient.strings import DLGSPARTNCONFIG
 from pygpsclient.spartn_gnss_frame import SPARTNGNSSDialog
@@ -237,6 +239,22 @@ class SPARTNConfigDialog(Toplevel):
             for msgid in (msg.identity, "ACK-ACK", "ACK-NAK"):
                 if self._pending_confs.get(msgid, None) == spartnfrm:
                     self._pending_confs.pop(msgid)
+
+    def set_controls(self, status, msgt):
+        """
+        Set controls in IP or L-Band clients.
+
+        :param bool status: connected to SPARTN server yes/no
+        :param tuple msgt: tuple of (message, color)
+        """
+
+        if status == CONNECTED_SPARTNIP:
+            self._frm_corrip.set_controls(status)
+        elif status == CONNECTED_SPARTNLB:
+            self._frm_corrlband.set_controls(status)
+        if msgt is not None:
+            msg, col = msgt
+            self.set_status(msg, col)
 
     def disconnect_ip(self, msg: str = ""):
         """

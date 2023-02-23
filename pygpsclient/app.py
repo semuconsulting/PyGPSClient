@@ -24,7 +24,7 @@ from pyubx2 import (
     UBX_PROTOCOL,
     RTCM3_PROTOCOL,
 )
-from pygnssutils import GNSSNTRIPClient
+from pygnssutils import GNSSNTRIPClient, GNSSSPARTNClient
 from pygnssutils.socket_server import SocketServer, ClientHandler
 from pygpsclient.globals import (
     ICON_APP,
@@ -138,6 +138,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._conn_status = DISCONNECTED
         self._rtk_conn_status = DISCONNECTED
         self.ntrip_handler = GNSSNTRIPClient(self, verbosity=0)
+        self.spartn_handler = GNSSSPARTNClient(self, verbosity=0)
         self.dlg_ubxconfig = None
         self.dlg_ntripconfig = None
         self.dlg_spartnconfig = None
@@ -629,16 +630,27 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         except (SerialException, SerialTimeoutException) as err:
             self.set_status(f"Error sending to device {err}", "red")
 
-    def update_ntrip_status(self, status: bool, msg: tuple = None):
+    def update_ntrip_status(self, status: bool, msgt: tuple = None):
         """
         Update NTRIP configuration dialog connection status.
 
         :param bool status: connected to NTRIP server yes/no
-        :param tuple msg: tuple of (message, color)
+        :param tuple msgt: tuple of (message, color)
         """
 
         if self.dlg_ntripconfig is not None:
-            self.dlg_ntripconfig.set_controls(status, msg)
+            self.dlg_ntripconfig.set_controls(status, msgt)
+
+    def update_spartn_status(self, status: bool, msgt: tuple = None):
+        """
+        Update SPARTN configuration dialog connection status.
+
+        :param bool status: connected to SPARTN server (NONE, IP, LBAND)
+        :param tuple msgt: tuple of (message, color)
+        """
+
+        if self.dlg_spartnconfig is not None:
+            self.dlg_spartnconfig.set_controls(status, msgt)
 
     def get_coordinates(self) -> tuple:
         """

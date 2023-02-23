@@ -113,6 +113,10 @@ class ConsoleFrame(Frame):
             data = str(raw_data.hex())
         elif self.__app.frm_settings.display_format == FORMATS[3]:  # hex tabular
             data = hextable(raw_data)
+        elif (
+            self.__app.frm_settings.display_format == FORMATS[4]
+        ):  # parsed + hex tabular
+            data = f"{marker}{parsed_data}\n" + hextable(raw_data)
         else:
             self.txt_console.configure(font=FONT_TEXT)
             data = f"{marker}{parsed_data}"

@@ -17,7 +17,7 @@ Created on 26 Jan 2023
 """
 # pylint: disable=invalid-name, too-many-locals, too-many-instance-attributes
 
-from os import path, getenv
+from os import path
 from pathlib import Path
 from tkinter import (
     ttk,
@@ -108,6 +108,8 @@ class SPARTNMQTTDialog(Frame):
         self._mqtt_iptopic = IntVar()
         self._mqtt_mgatopic = IntVar()
         self._mqtt_keytopic = IntVar()
+        self._settings = {}
+        self._connected = DISCONNECTED
 
         self._body()
         self._do_layout()
@@ -278,6 +280,19 @@ class SPARTNMQTTDialog(Frame):
         spartn_pem = path.join(Path.home(), f"device-{clientid}-pp-key.pem")
         self._mqtt_crt.set(spartn_crt)
         self._mqtt_pem.set(spartn_pem)
+
+    def _get_settings(self):
+        """
+        Get settings from SPARTN handler.
+        """
+
+        self._connected = self.__app.spartn_handler.connected
+        self._settings = self.__app.spartn_handler.settings_ip
+
+    def _set_settings(self):
+        """
+        Set settings for SPARTN handler.
+        """
 
     def set_controls(self, status: int):
         """

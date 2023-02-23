@@ -150,6 +150,8 @@ class SPARTNLBANDDialog(Frame):
         self._spartn_outport = StringVar()
         self._spartn_enabledbg = IntVar()
         self._ports = INPORTS
+        self._settings = {}
+        self._connected = DISCONNECTED
 
         self._body()
         self._do_layout()
@@ -370,6 +372,19 @@ class SPARTNLBANDDialog(Frame):
             self._spn_outport,
         ):
             wdg.config(state=stat)
+
+    def _get_settings(self):
+        """
+        Get settings from SPARTN handler.
+        """
+
+        self._connected = self.__app.spartn_handler.connected
+        self._settings = self.__app.spartn_handler.settings_lband
+
+    def _set_settings(self):
+        """
+        Set settings for SPARTN handler.
+        """
 
     def _valid_settings(self) -> bool:
         """
