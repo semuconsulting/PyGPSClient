@@ -135,10 +135,10 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.nmea_handler = NMEAHandler(self)
         self.ubx_handler = UBXHandler(self)
         self.rtcm_handler = RTCM3Handler(self)
-        self._conn_status = DISCONNECTED
-        self._rtk_conn_status = DISCONNECTED
         self.ntrip_handler = GNSSNTRIPClient(self, verbosity=0)
         self.spartn_handler = GNSSMQTTClient(self, verbosity=0)
+        self._conn_status = DISCONNECTED
+        self._rtk_conn_status = DISCONNECTED
         self.dlg_ubxconfig = None
         self.dlg_ntripconfig = None
         self.dlg_spartnconfig = None

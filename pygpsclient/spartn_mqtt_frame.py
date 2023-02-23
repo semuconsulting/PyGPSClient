@@ -107,6 +107,8 @@ class SPARTNMQTTDialog(Frame):
         self._mqtt_mgatopic = IntVar()
         self._mqtt_keytopic = IntVar()
         self._settings = {}
+        # spartn_inqueue is read by app and passed to GNSS receiver
+        self._output = self.__app.spartn_inqueue
         self._connected = DISCONNECTED
 
         self._body()
@@ -251,13 +253,6 @@ class SPARTNMQTTDialog(Frame):
         Reset configuration widgets.
         """
 
-        # self._mqtt_server.set(SPARTN_PPSERVER)
-        # self._mqtt_region.set(SPARTN_PPREGIONS[0])
-        # self._mqtt_iptopic.set(1)
-        # self._mqtt_mgatopic.set(1)
-        # self._mqtt_keytopic.set(1)
-        # self._mqtt_clientid.set(self.__app.mqttclientid)
-
         self._get_settings()
         self._reset_keypaths(self._mqtt_clientid.get())
         self.__container.set_status("", "blue")
@@ -273,8 +268,6 @@ class SPARTNMQTTDialog(Frame):
         :param str clientid: Client ID
         """
 
-        # Thingstream > Location Services > PointPerfect Thing > Credentials
-        # Default location for key files is user's HOME directory
         spartn_crt = path.join(Path.home(), f"device-{clientid}-pp-cert.crt")
         spartn_pem = path.join(Path.home(), f"device-{clientid}-pp-key.pem")
         self._mqtt_crt.set(spartn_crt)
@@ -311,6 +304,7 @@ class SPARTNMQTTDialog(Frame):
         self._settings["topic_key"] = self._mqtt_keytopic.get()
         self._settings["tlscrt"] = self._mqtt_crt.get()
         self._settings["tlskey"] = self._mqtt_pem.get()
+        self._settings["output"] = self._output
 
     def set_controls(self, status: int):
         """
@@ -401,7 +395,7 @@ class SPARTNMQTTDialog(Frame):
                 topic_key=self._settings["topic_key"],
                 tlscrt=self._settings["tlscrt"],
                 tlskey=self._settings["tlskey"],
-                output=self.__app.spartn_inqueue,
+                output=self._settings["output"],
             )
             self.set_controls(CONNECTED_SPARTNIP)
             self.__container.set_status(
@@ -433,26 +427,26 @@ class SPARTNMQTTDialog(Frame):
         :param UBXMessage msg: UBX config message
         """
 
-    @property
-    def server(self) -> str:
-        """
-        Getter for server.
+    # @property
+    # def server(self) -> str:
+    #     """
+    #     Getter for server.
 
-        :return: server
-        :rtype: str
-        """
+    #     :return: server
+    #     :rtype: str
+    #     """
 
-        return self._mqtt_server.get()
+    #     return self._mqtt_server.get()
 
-    @server.setter
-    def server(self, server: str):
-        """
-        Setter for server.
+    # @server.setter
+    # def server(self, server: str):
+    #     """
+    #     Setter for server.
 
-        :param str clientid: Client ID
-        """
+    #     :param str clientid: Client ID
+    #     """
 
-        self._mqtt_server.set(server)
+    #     self._mqtt_server.set(server)
 
     @property
     def clientid(self) -> str:
