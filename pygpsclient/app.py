@@ -24,7 +24,7 @@ from pyubx2 import (
     UBX_PROTOCOL,
     RTCM3_PROTOCOL,
 )
-from pygnssutils import GNSSNTRIPClient, GNSSSPARTNClient
+from pygnssutils import GNSSNTRIPClient, GNSSMQTTClient
 from pygnssutils.socket_server import SocketServer, ClientHandler
 from pygpsclient.globals import (
     ICON_APP,
@@ -138,7 +138,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._conn_status = DISCONNECTED
         self._rtk_conn_status = DISCONNECTED
         self.ntrip_handler = GNSSNTRIPClient(self, verbosity=0)
-        self.spartn_handler = GNSSSPARTNClient(self, verbosity=0)
+        self.spartn_handler = GNSSMQTTClient(self, verbosity=0)
         self.dlg_ubxconfig = None
         self.dlg_ntripconfig = None
         self.dlg_spartnconfig = None
@@ -912,7 +912,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
         Getter for SPARTN connection status.
 
-        :param int status: connection status - CONNECTED_SPARTNLB / CONNECTED_SPARTNIP
+        :param int status: connection status
+        CONNECTED_NTRIP / CONNECTED_SPARTNLB / CONNECTED_SPARTNIP
         """
 
         return self._rtk_conn_status
@@ -920,7 +921,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
     @rtk_conn_status.setter
     def rtk_conn_status(self, status: int):
         """
-        Setter for SPARTN connection status  - CONNECTED_SPARTNLB / CONNECTED_SPARTNIP
+        Setter for SPARTN connection status
+        CONNECTED_NTRIP / CONNECTED_SPARTNLB / CONNECTED_SPARTNIP
 
         :param int status: connection status
         """

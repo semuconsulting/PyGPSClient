@@ -373,19 +373,6 @@ class SPARTNLBANDDialog(Frame):
         ):
             wdg.config(state=stat)
 
-    def _get_settings(self):
-        """
-        Get settings from SPARTN handler.
-        """
-
-        self._connected = self.__app.spartn_handler.connected
-        self._settings = self.__app.spartn_handler.settings_lband
-
-    def _set_settings(self):
-        """
-        Set settings for SPARTN handler.
-        """
-
     def _valid_settings(self) -> bool:
         """
         Validate settings.

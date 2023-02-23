@@ -100,14 +100,6 @@ pygpsclient.menu\_bar module
    :undoc-members:
    :show-inheritance:
 
-pygpsclient.mqtt\_handler module
---------------------------------
-
-.. automodule:: pygpsclient.mqtt_handler
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 pygpsclient.nmea\_handler module
 --------------------------------
 
