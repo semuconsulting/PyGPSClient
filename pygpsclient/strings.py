@@ -63,6 +63,7 @@ UBXPOLL = "Polling current UBX configuration..."
 MONSPANERROR = "Enable or poll MON-SPAN message"
 VERCHECK = "Newer version of PyGPSClient available: {}"
 NULLSEND = "Nothing to send"
+CONFIGRXM = "{} polled, {} key(s) loaded"
 CONFIGOK = "{} command accepted"
 CONFIGBAD = "{} command rejected"
 

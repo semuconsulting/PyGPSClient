@@ -72,6 +72,7 @@ from pygpsclient.strings import (
     LBLSPARTNGN,
     CONFIGOK,
     CONFIGBAD,
+    CONFIGRXM,
 )
 from pygpsclient.helpers import (
     valid_entry,
@@ -280,6 +281,8 @@ class SPARTNGNSSDialog(Frame):
         self._send_f9p_config.set(1)
         self._disable_nmea.set(0)
 
+        self._poll_config()
+
     def _valid_gnss_settings(self) -> bool:
         """
         Validate GNSS receiver settings.
@@ -350,7 +353,7 @@ class SPARTNGNSSDialog(Frame):
         wno1, tow1 = date2wnotow(self._get_date(self._spartn_valdate1))
         wno1b = val2bytes(wno1, U2)
         tow1b = val2bytes(tow1, U4)
-        key2 = bytes.fromhex(self._spartn_key1.get())
+        key2 = bytes.fromhex(self._spartn_key2.get())
         keylen2 = val2bytes(len(key2), U1)
         wno2, tow2 = date2wnotow(self._get_date(self._spartn_valdate2))
         wno2b = val2bytes(wno2, U2)
@@ -437,6 +440,17 @@ class SPARTNGNSSDialog(Frame):
         dat = val.get()
         return datetime(int(dat[0:4]), int(dat[4:6]), int(dat[6:8]))
 
+    def _poll_config(self):
+        """
+        Poll receiver for current RXM-SPARTN-KEY configuration.
+        """
+
+        msg = UBXMessage("RXM", RXMMSG, POLL)
+        self.__app.gnss_outqueue.put(msg.serialize())
+
+        for msgid in (RXMMSG, "ACK-ACK", "ACK-NAK"):
+            self.__container.set_pending(msgid, SPARTN_GNSS)
+
     def update_status(self, msg: UBXMessage):
         """
         Update pending confirmation status.
@@ -444,17 +458,17 @@ class SPARTNGNSSDialog(Frame):
         """
 
         if msg.identity == RXMMSG:
-            if msg.numKeys == 2:  # check both keys have been uploaded
-                self._lbl_send_command.config(image=self._img_confirmed)
+            self._lbl_send_command.config(image=self._img_confirmed)
+            if msg.numKeys == 2:
                 keydata = parse_rxmspartnkey(msg)  # key1, date1, key2, date2
                 self._spartn_key1.set(keydata[0][0])
                 self._spartn_valdate1.set(keydata[0][1].strftime("%Y%m%d"))
                 self._spartn_key2.set(keydata[1][0])
                 self._spartn_valdate2.set(keydata[1][1].strftime("%Y%m%d"))
-                self.__container.set_status(CONFIGOK.format(RXMMSG), "green")
+                col = "green"
             else:
-                self._lbl_send_command.config(image=self._img_warn)
-                self.__container.set_status(CONFIGBAD.format(RXMMSG), "red")
+                col = "red"
+            self.__container.set_status(CONFIGRXM.format(RXMMSG, msg.numKeys), col)
         elif msg.identity == "ACK-ACK":
             self._lbl_send_command.config(image=self._img_confirmed)
             self.__container.set_status(CONFIGOK.format(CFGSET), "green")
