@@ -22,11 +22,10 @@ setup(
         exclude=["tests", "references", "images", "docs", "examples"],
     ),
     install_requires=[
-        "pygnssutils>=1.0.2",
+        "pygnssutils>=1.0.4",
         "requests>=2.24.0",
         "Pillow>=7.2.0",
         "pyserial>=3.5",
-        "paho-mqtt>=1.6.1",
         "pyspartn>=0.1.3",
     ],
     package_data={

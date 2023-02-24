@@ -150,6 +150,8 @@ class SPARTNLBANDDialog(Frame):
         self._spartn_outport = StringVar()
         self._spartn_enabledbg = IntVar()
         self._ports = INPORTS
+        self._settings = {}
+        self._connected = DISCONNECTED
 
         self._body()
         self._do_layout()

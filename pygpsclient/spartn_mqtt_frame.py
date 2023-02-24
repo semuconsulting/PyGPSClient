@@ -17,7 +17,7 @@ Created on 26 Jan 2023
 """
 # pylint: disable=invalid-name, too-many-locals, too-many-instance-attributes
 
-from os import path, getenv
+from os import path
 from pathlib import Path
 from tkinter import (
     ttk,
@@ -36,7 +36,6 @@ from tkinter import (
 )
 from PIL import ImageTk, Image
 from pyubx2 import UBXMessage
-from pygpsclient.mqtt_handler import MQTTHandler
 from pygpsclient.globals import (
     ICON_EXIT,
     ICON_SEND,
@@ -53,13 +52,10 @@ from pygpsclient.globals import (
     CONNECTED_SPARTNLB,
     DISCONNECTED,
     READONLY,
-    SPARTN_PPSERVER,
     SPARTN_PPREGIONS,
     SPARTN_GNSS,
     RXMMSG,
-    TOPIC_IP,
-    TOPIC_MGA,
-    TOPIC_RXM,
+    OUTPORT_SPARTN,
 )
 from pygpsclient.strings import LBLSPARTNIP, DLGSPARTNWARN
 from pygpsclient.helpers import valid_entry, VALLEN
@@ -101,6 +97,8 @@ class SPARTNMQTTDialog(Frame):
         self._stream_handler = None
         self._status = StringVar()
         self._mqtt_server = StringVar()
+        self._mqtt_port = IntVar()
+        self._mqtt_port.set(OUTPORT_SPARTN)
         self._mqtt_region = StringVar()
         self._mqtt_clientid = StringVar()
         self._mqtt_crt = StringVar()
@@ -108,6 +106,10 @@ class SPARTNMQTTDialog(Frame):
         self._mqtt_iptopic = IntVar()
         self._mqtt_mgatopic = IntVar()
         self._mqtt_keytopic = IntVar()
+        self._settings = {}
+        # spartn_inqueue is read by app and passed to GNSS receiver
+        self._output = self.__app.spartn_inqueue
+        self._connected = DISCONNECTED
 
         self._body()
         self._do_layout()
@@ -251,15 +253,9 @@ class SPARTNMQTTDialog(Frame):
         Reset configuration widgets.
         """
 
-        self._mqtt_server.set(SPARTN_PPSERVER)
-        self._mqtt_region.set(SPARTN_PPREGIONS[0])
-        self._mqtt_iptopic.set(1)
-        self._mqtt_mgatopic.set(1)
-        self._mqtt_keytopic.set(1)
-        self._mqtt_clientid.set(self.__app.mqttclientid)
+        self._get_settings()
         self._reset_keypaths(self._mqtt_clientid.get())
         self.__container.set_status("", "blue")
-
         if self.__app.rtk_conn_status == CONNECTED_SPARTNIP:
             self.set_controls(CONNECTED_SPARTNIP)
         else:
@@ -272,12 +268,43 @@ class SPARTNMQTTDialog(Frame):
         :param str clientid: Client ID
         """
 
-        # Thingstream > Location Services > PointPerfect Thing > Credentials
-        # Default location for key files is user's HOME directory
         spartn_crt = path.join(Path.home(), f"device-{clientid}-pp-cert.crt")
         spartn_pem = path.join(Path.home(), f"device-{clientid}-pp-key.pem")
         self._mqtt_crt.set(spartn_crt)
         self._mqtt_pem.set(spartn_pem)
+
+    def _get_settings(self):
+        """
+        Get settings from SPARTN handler.
+        """
+
+        self._connected = self.__app.spartn_handler.connected
+        self._settings = self.__app.spartn_handler.settings
+        self._mqtt_server.set(self._settings["server"])
+        self._mqtt_port.set(self._settings["port"])
+        self._mqtt_region.set(self._settings["region"])
+        self._mqtt_clientid.set(self._settings["clientid"])
+        self._mqtt_iptopic.set(self._settings["topic_ip"])
+        self._mqtt_mgatopic.set(self._settings["topic_mga"])
+        self._mqtt_keytopic.set(self._settings["topic_key"])
+        self._mqtt_crt.set(self._settings["tlscrt"])
+        self._mqtt_pem.set(self._settings["tlskey"])
+
+    def _set_settings(self):
+        """
+        Set settings for SPARTN handler.
+        """
+
+        self._settings["server"] = self._mqtt_server.get()
+        self._settings["port"] = self._mqtt_port.get()
+        self._settings["region"] = self._mqtt_region.get()
+        self._settings["clientid"] = self._mqtt_clientid.get()
+        self._settings["topic_ip"] = self._mqtt_iptopic.get()
+        self._settings["topic_mga"] = self._mqtt_mgatopic.get()
+        self._settings["topic_key"] = self._mqtt_keytopic.get()
+        self._settings["tlscrt"] = self._mqtt_crt.get()
+        self._settings["tlskey"] = self._mqtt_pem.get()
+        self._settings["output"] = self._output
 
     def set_controls(self, status: int):
         """
@@ -318,7 +345,7 @@ class SPARTNMQTTDialog(Frame):
 
         valid = True
         valid = valid & valid_entry(self._ent_mqttserver, VALLEN, 1, 50)
-        valid = valid & valid_entry(self._ent_mqttclientid, VALLEN, 1, 30)
+        valid = valid & valid_entry(self._ent_mqttclientid, VALLEN, 1, 50)
         valid = valid & valid_entry(self._ent_mqttcrt, VALLEN, 1, 254)
         valid = valid & valid_entry(self._ent_mqttpem, VALLEN, 1, 254)
         return valid
@@ -348,33 +375,34 @@ class SPARTNMQTTDialog(Frame):
             )
             return
 
-        self.__app.rtk_conn_status = CONNECTED_SPARTNIP
-        server = SPARTN_PPSERVER
-        region = self._mqtt_region.get()
-        topics = []
-        if self._mqtt_iptopic.get():
-            topics.append((TOPIC_IP.format(region), 0))
-        if self._mqtt_mgatopic.get():
-            topics.append((TOPIC_MGA, 0))
-        if self._mqtt_keytopic.get():
-            topics.append((TOPIC_RXM, 0))
-            self.__container.set_pending(RXMMSG, SPARTN_GNSS)
+        server = ""
 
-        self._stream_handler = MQTTHandler(
-            self.__app,
-            "eu",
-            self.__app.spartn_inqueue,
-            clientid=self._mqtt_clientid.get(),
-            mqtt_topics=topics,
-            server=server,
-            tls=(self._mqtt_crt.get(), self._mqtt_pem.get()),
-        )
-        self._stream_handler.start()
-        self.__container.set_status(
-            f"Connected to MQTT server {server}",
-            "green",
-        )
-        self.set_controls(CONNECTED_SPARTNIP)
+        if self._valid_settings():
+            # if subscribing to SPARTNKEY topic, set pending flag
+            # for GNSS dialog to update key details when they arrive
+            # via RXM-SPARTNKEY message
+            if self._settings["topic_key"]:
+                self.__container.set_pending(RXMMSG, SPARTN_GNSS)
+
+            self._set_settings()
+            self.__app.spartn_handler.start(
+                server=self._settings["server"],
+                port=self._settings["port"],
+                clientid=self._settings["clientid"],
+                region=self._settings["region"],
+                topic_ip=self._settings["topic_ip"],
+                topic_mga=self._settings["topic_mga"],
+                topic_key=self._settings["topic_key"],
+                tlscrt=self._settings["tlscrt"],
+                tlskey=self._settings["tlskey"],
+                output=self._settings["output"],
+            )
+            self.set_controls(CONNECTED_SPARTNIP)
+            self.__container.set_status(
+                f"Connected to MQTT server {server}",
+                "green",
+            )
+            self.__app.rtk_conn_status = CONNECTED_SPARTNIP
 
     def on_disconnect(self, msg: str = ""):
         """
@@ -385,14 +413,12 @@ class SPARTNMQTTDialog(Frame):
 
         msg += "Disconnected"
         if self.__app.rtk_conn_status == CONNECTED_SPARTNIP:
-            if self._stream_handler is not None:
-                self.__app.rtk_conn_status = DISCONNECTED
-                self._stream_handler.stop()
-                self._stream_handler = None
-                self.__container.set_status(
-                    msg,
-                    "red",
-                )
+            self.__app.spartn_handler.stop()
+            self.__app.rtk_conn_status = DISCONNECTED
+            self.__container.set_status(
+                msg,
+                "red",
+            )
         self.set_controls(DISCONNECTED)
 
     def update_status(self, msg: UBXMessage):
@@ -401,26 +427,26 @@ class SPARTNMQTTDialog(Frame):
         :param UBXMessage msg: UBX config message
         """
 
-    @property
-    def server(self) -> str:
-        """
-        Getter for server.
+    # @property
+    # def server(self) -> str:
+    #     """
+    #     Getter for server.
 
-        :return: server
-        :rtype: str
-        """
+    #     :return: server
+    #     :rtype: str
+    #     """
 
-        return self._mqtt_server.get()
+    #     return self._mqtt_server.get()
 
-    @server.setter
-    def server(self, server: str):
-        """
-        Setter for server.
+    # @server.setter
+    # def server(self, server: str):
+    #     """
+    #     Setter for server.
 
-        :param str clientid: Client ID
-        """
+    #     :param str clientid: Client ID
+    #     """
 
-        self._mqtt_server.set(server)
+    #     self._mqtt_server.set(server)
 
     @property
     def clientid(self) -> str:
