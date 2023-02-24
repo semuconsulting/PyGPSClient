@@ -22,6 +22,8 @@ PyGPSClient is a multi-platform graphical GNSS/GPS testing, diagnostic and UBX &
 
 *Screenshot showing mixed-protocol stream from u-blox ZED-F9P receiver, using PyGPSClient's [NTRIP Client](#ntripconfig) to achieve >= 3cm accuracy*
 
+While not intended to be a direct replacement, the application supports much of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool.
+
 The application can be installed using the standard `pip` Python package manager - see [installation instructions](#installation) below.
 
 ---
@@ -60,8 +62,8 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 1. Spectrum widget showing spectrum analysis chart from MON-SPAN message (*UBX MON-SPAN messages must be enabled or polled*).
 1. Data logging in parsed, binary, hexadecimal string and tabulated hexadecimal formats (NB. only binary datalogs can be re-read by PyGPSClient's parser).
 1. Track recording in GPX format.
-1. [UBX Configuration Dialog](#ubxconfig), with the ability to send a variety of UBX CFG configuration commands to u-blox GNSS devices. This includes the facility to add **user-defined commands or command sequences** - see instructions under [user-defined presets](#userdefined) below. While not intended to be a direct replacement, the application supports much of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool.
-1. [NTRIP Client](#ntripconfig) facility with the ability to connect to a specified NTRIP caster, parse the incoming RTCM3 data and feed this data to a compatible GNSS receiver (*requires an Internet connection and access to a suitable NTRIP caster*).
+1. [UBX Configuration Dialog](#ubxconfig), with the ability to send a variety of UBX CFG configuration commands to u-blox GNSS devices. This includes the facility to add **user-defined commands or command sequences** - see instructions under [user-defined presets](#userdefined) below.
+1. [NTRIP Client](#ntripconfig) facility with the ability to connect to a specified NTRIP caster, parse the incoming RTCM3 data and feed this data to a compatible GNSS receiver (*requires an Internet connection and access to an NTRIP caster and local mountpoint*).
 1. [SPARTN Client](#spartnconfig) facility with the ability to configure an IP or L-Band SPARTN Correction source and SPARTN-compatible GNSS receiver (e.g. ZED-F9P) and pass the incoming correction data to the GNSS receiver (*requires an Internet connection and access to a SPARTN location service*).
 1. [Socket Server / NTRIP Caster](#socketserver) facility with two modes of operation: (a) open, unauthenticated Socket Server or (b) NTRIP Caster.
 1. [GPX Track Viewer](#gpxviewer) utility with elevation and speed profiles and track metadata (*requires an Internet connection and free 
@@ -71,21 +73,14 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 ## <a name="howtouse">How to Use</a>
 
 * To connect to a listed serial device, select the device from the listbox, set the appropriate serial connection parameters and click 
-![connect icon](/pygpsclient/resources/usbport-1-24.png). The application will endeavour to pre-select a recognised GNSS/GPS device but this is platform and device dependent. Press the ![refresh](/pygpsclient/resources/iconmonstr-refresh-6-16.png) button to refresh the list of connected devices at any point. `Rate bps` (baud rate) is typically the only setting that might need adjusting, but tweaking the `timeout` setting may improve performance on certain platforms. The `Msg Mode` parameter defaults to `GET` i.e., periodic or poll response messages *from* a receiver. If you wish to parse streams of command or poll messages being sent *to* a receiver, set the `Msg Mode` to `SET` or `POLL`.
+![connect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/usbport-1-24.png?raw=true). The application will endeavour to pre-select a recognised GNSS/GPS device but this is platform and device dependent. Press the ![refresh](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-refresh-6-16.png?raw=true) button to refresh the list of connected devices at any point. `Rate bps` (baud rate) is typically the only setting that might need adjusting, but tweaking the `timeout` setting may improve performance on certain platforms. The `Msg Mode` parameter defaults to `GET` i.e., periodic or poll response messages *from* a receiver. If you wish to parse streams of command or poll messages being sent *to* a receiver, set the `Msg Mode` to `SET` or `POLL`.
 * A default user-defined serial port can also be passed via the environment variable `PYGPSCLIENT_USERPORT` or as a command line argument `--userport /dev/tty12345`.
 * To connect to a TCP or UDP socket, enter the server URL and port, select the protocol (defaults to TCP) and click 
-![connect socket icon](/pygpsclient/resources/ethernet-1-24.png).
+![connect socket icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/ethernet-1-24.png?raw=true).
 * To stream from a previously-saved <a name="filestream">binary datalog file</a>, click 
-![connect-file icon](/pygpsclient/resources/binary-1-24.png) and select the file type (`*.log, *.ubx, *.*`) and path. PyGPSClient datalog files will be named e.g. `pygpsdata-20220427114802.log`, but any binary dump of an GNSS receiver output is acceptable, including `*.ubx` files produced by u-center.
+![connect-file icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/binary-1-24.png?raw=true) and select the file type (`*.log, *.ubx, *.*`) and path. PyGPSClient datalog files will be named e.g. `pygpsdata-20220427114802.log`, but any binary dump of an GNSS receiver output is acceptable, including `*.ubx` files produced by u-center.
 * To disconnect from the data stream, click
-![disconnect icon](/pygpsclient/resources/iconmonstr-media-control-50-24.png).
-* To display the UBX Configuration Dialog (*only functional when connected to a UBX GNSS device via serial port*), click
-![gear icon](/pygpsclient/resources/iconmonstr-gear-2-24.png), or go to Menu..Options.
-* To display the NTRIP Client Configuration Dialog (*requires Internet connection*), click
-![gear icon](/pygpsclient/resources/iconmonstr-antenna-6-24.png), or go to Menu..Options..NTRIP Configuration Dialog.
-* To display the SPARTN Client Configuration Dialog (*may require Internet connection*), go to Menu..Options..SPARTN Configuration Dialog.
-* To expand or collapse the banner or serial port configuration widgets, click the ![expand icon](/pygpsclient/resources/iconmonstr-arrow-80-16.png)/![expand icon](/pygpsclient/resources/iconmonstr-triangle-1-16.png) buttons.
-* To show or hide the various widgets, go to Menu..View and click on the relevant hide/show option.
+![disconnect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-media-control-50-24.png?raw=true).
 * Protocols Shown - Select which protocols to display; NMEA, UBX and/or RTCM3 (NB: this only changes the displayed protocols - to change the actual protocols output by the receiver, use the CFG-PRT command).
 * Console Display - Select from parsed, binary or hexadecimal formats.
 * Tags - Turn console color tagging on or off. User-configurable color tags are loaded from a file "colortags" (lower case, no extension) in the user's home directory - see example provided. NB: color tagging does impose a small performance overhead - turning it off will improve console response times at very high transaction rates.
@@ -97,8 +92,13 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 * GPX Track - Turn track recording (in GPX format) on or off. You will be prompted to select the directory into which timestamped track files are saved.
 * GPX Track Viewer - Display the GPX Track Viewer dialog via Menu..Options..GPX Track Viewer. Click the load button to load a GPX file and display the map and profile. Click the redraw button to redraw the map.
 * Socket / NTRIP Server - Turn Socket / NTRIP Server on or off.
-* UBX Configuration - Opens UBX configuration panel (only functional with u-blox devices).
-* NTRIP Client Configuration - Opens NTRIP Client configuration panel.
+* To display the UBX Configuration Dialog (*only functional when connected to a UBX GNSS device via serial port*), click
+![gear icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-gear-2-24.png?raw=true), or go to Menu..Options..UBX Configuration Dialog.
+* To display the NTRIP Client Configuration Dialog (*requires Internet connection*), click
+![ntrip icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-antenna-4-24.png?raw=true), or go to Menu..Options..NTRIP Configuration Dialog.
+* To display the SPARTN Client Configuration Dialog (*may require Internet connection*), click ![spartn icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-antenna-3-24.png?raw=true), go to Menu..Options..SPARTN Configuration Dialog.
+* To expand or collapse the banner or serial port configuration widgets, click the ![expand icon](https://github.com/semuconsulting/PyGPSClient/blob/master//pygpsclient/resources/iconmonstr-arrow-80-16.png?raw=true)/![expand icon](https://github.com/semuconsulting/PyGPSClient/blob/master//pygpsclient/resources/iconmonstr-triangle-1-16.png?raw=true) buttons.
+* To show or hide the various widgets, go to Menu..View and click on the relevant hide/show option.
 
 ---
 ### <a name="ubxconfig">UBX Configuration Facilities</a>
@@ -130,14 +130,14 @@ warning ![warning icon](https://github.com/semuconsulting/PyGPSClient/blob/maste
 
 **Note:**
 * Poll and Acknowledgement responses can take several seconds at high message transmission rates, or be discarded altogether if the device's transmit buffer is full (*txbuff-alloc error*). To ensure timely responses, try increasing the baud rate and/or temporarily reducing transmitted message rates using the configuration commands provided.
-* A warning icon (typically accompanied by an ACK-NAK response) is usually an indication that one or more of the commands sent is not supported by your receiver.
+* A warning icon (typically accompanied by an ACK-NAK response) is usually an indication that one or more of the commands sent is not supported by your receiver. 
 
 ---
 ### <a name="ntripconfig">NTRIP Client Facilities</a>
 
 ![ntrip config widget screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/ntripconfig_widget.png?raw=true)
 
-The NTRIP Configuration utility allows users to receive and process NTRIP RTK Correction data from an NTRIP caster to achieve cm level location accuracy. The facility can be accessed by clicking the ![NTRIP Client button](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-antenna-4-24.png?raw=true) or selecting Menu..Options..NTRIP Configuration Dialog. 
+The NTRIP Configuration utility allows users to receive and process NTRIP RTK Correction data from an NTRIP caster to achieve cm level location accuracy. The facility can be accessed by clicking ![NTRIP Client button](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-antenna-4-24.png?raw=true) or selecting Menu..Options..NTRIP Configuration Dialog. 
 
 **Pre-Requisites:**
 
@@ -177,7 +177,7 @@ The SPARTN Configuration utility allows users to receive and process SPARTN RTK 
 
 **NB:** the SPARTN client utilises a new [`pyspartn`](https://github.com/semuconsulting/pyspartn) library. The `pyspartn.SPARTNReader` class will parse individual SPARTN messages from any binary stream containing *solely* SPARTN data e.g. an MQTT `/pp/ip` topic. The `pyspartn.SPARTNMessage` class is in Alpha and does not currently perform a full decode of SPARTN protocol messages; it basically decodes just enough information to identify message type/subtype, payload length and other key metadata.
 
-The facility can be accessed by clicking the ![SPARTN Client button](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-antenna-3-24.png?raw=true) or selecting Menu..Options..NTRIP Configuration Dialog. . The dialog must remain open while the facility is in use.
+The facility can be accessed by clicking ![SPARTN Client button](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-antenna-3-24.png?raw=true) or selecting Menu..Options..NTRIP Configuration Dialog. . The dialog must remain open while the facility is in use.
 
 **Pre-Requisites:**
 
@@ -187,7 +187,7 @@ The facility can be accessed by clicking the ![SPARTN Client button](https://git
     - Subscription to relevant MQTT SPARTN location service e.g. u-blox / Thingstream PointPerfect, which should provide the following details:
     - Server e.g. `pp.services.u-blox.com`
     - Client ID (which can be stored as environment variable `MQTTCLIENTID`)
-    - Encryption certificate (`*.crt`) and key (`*.pem`). If these are placed in the user's HOME directory, PyGPSClient will find them automatically.
+    - Encryption certificate (`*.crt`) and key (`*.pem`) files. If these are placed in the user's HOME directory using the location service's standard naming convention, PyGPSClient will find them automatically.
     - Region code e.g. `us`, `eu`
     - A list of published topics. These typically include `/pp/ip/region` (binary SPARTN correction data for the selected region), `/pp/ubx/mga` (UBX MGA AssistNow ephemera data for each constellation) and `/pp/ubx/0236/ip` (UBX RXM-SPARTNKEY messages containing the decryption keys to be uploaded to the GNSS receiver).
 
@@ -211,7 +211,7 @@ The SPARTN client configuration can be loaded from a JSON file provided by the L
 #### IP Correction Configuration (MQTT)
 
 1. Enter your MQTT Client ID (or set it up beforehand as environment variable `MQTTCLIENTID`).
-1. Select the path to your MQTT `*.crt` and `*.pem` files (PyGPSClient will use the user's HOME directory by default).
+1. Select the path to the MQTT `*.crt` and `*.pem` files provided by the location service (PyGPSClient will use the user's HOME directory by default).
 1. Select the required topics:
     - IP (required) - this is the raw SPARTN correction data.
     - MGA (optional) - this is Assist Now data as a UBX MGA message.
@@ -220,7 +220,7 @@ The SPARTN client configuration can be loaded from a JSON file provided by the L
 
 #### L-Band Correction Configuration (D9*)
 
-1. To connect to the Correction receiver, select the receivers's port from the SPARTN dialog's Serial Port listbox and click ![connect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/usbport-1-24.png?raw=true). To disconnect, click ![disconnect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-media-control-50-24.png?raw=true).
+1. To connect to the Correction receiver, select the receiver's port from the SPARTN dialog's Serial Port listbox and click ![connect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/usbport-1-24.png?raw=true). To disconnect, click ![disconnect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-media-control-50-24.png?raw=true).
 1. Select the required Output Port - this is the port used to connect the Correction receiver to the GNSS receiver e.g. UART2 or I2C.
 1. If both Correction and GNSS receivers are connected to the same PyGPSClient workstation (e.g. via separate USB ports), it is possible to run the utility in Output Port = 'Passthough' mode, whereby the output data from the Correction receiver (UBX `RXM-PMP` messages) will be automatically passed through to the GNSS receiver by PyGPSClient, without the need to connect the two externally.
 1. To enable INF-DEBUG messages, which give diagnostic information about current L-Band reception, click 'Enable Debug?'.
@@ -231,8 +231,9 @@ The SPARTN client configuration can be loaded from a JSON file provided by the L
 1. Connect to the GNSS receiver first by clicking ![connect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/usbport-1-24.png?raw=true) on the main PyGPSClient settings panel.
 1. Enter the current and next keys in hexadecimal format e.g. `0102030405060708090a0b0c0d0e0f10`. The keys are normally 16 bytes long, or 32 hexadecimal characters.
 1. Enter the supplied Valid From dates in `YYYYMMDD` format. **NB:** These are *Valid From* dates rather than *Expiry* dates. If the location service provides Expiry dates, subtract 4 weeks from these to get the Valid From dates.
-1. NB: if you are subscribing to the MQTT SPARTNKEY topic, the key and date details will be entered automatically on reeipt of an MQTT SPARTNKEY message.
+1. NB: if you are subscribing to the MQTT SPARTNKEY (`/pp/ubx/0236/ip`) topic, the key and date details will be entered automatically on receipt of a UBX RXM-SPARTNKEY message (which may take a few seconds after connecting). Alternatively, they can be uploaded from a JSON file.
 1. Select 'Upload keys', 'Configure receiver' and 'Disable NMEA' options as required.
+1. To reduce traffic volumes, you can choose to disable NMEA messages from the receiver. A minimal set of UBX NAV messages will be enabled in their place.
 1. Click ![send button](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-arrow-12-24.png?raw=true) to upload the configuration. The utility will send the relevant configuration command(s) to the receiver and poll for an acknowledgement.
 
 
@@ -265,6 +266,8 @@ A label on the settings panel indicates the number of connected clients, and the
 ![gpxviewer screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/gpxviewer.png?raw=true)
 
 *GPX Track Viewer screenshot*
+
+The GPX Track Viewer can display any valid GPX file containing trackpoints (`<trkpt>..</trkpt>` elements). The map display requires a free [MapQuest API key](#mapquestapi). The Y axis scales will reflect the current choice of units (metric or imperial). Click ![refresh icon](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-refresh-lined-24.png?raw=true) to refresh the display after any changes (e.g. resizing, zooming or change of units).
 
 ---
 ## <a name="installation">Installation</a>
@@ -358,7 +361,7 @@ and look for the `Location:` entry in the response, e.g.
 [Desktop Entry]
 Type=Application
 Terminal=false
-Name=PyGPSClient
+Name=PyGPSClient --mqttclientid lkaasdfjsdh-flkj-adhs-lkfj-hjhfdsf --mqapikey asjkdhflakdshflkjasdhfgsjfyfgiuy
 Icon=/home/user/.local/lib/python3.11/site-packages/pygpsclient/resources/pygpsclient.ico
 Exec=/home/user/.local/bin/pygpsclient
 ```
@@ -370,7 +373,7 @@ See [requirements.txt](requirements.txt).
 The following Python libraries are required (these will be installed automatically if using pip to install PyGPSClient):
 
 ```shell
-python3 -m pip install --upgrade pygnssutils pyserial Pillow requests paho-mqtt pyspartn
+python3 -m pip install --upgrade pygnssutils pyserial Pillow requests pyspartn
 ```
 
 To install PyGPSClient manually, download and unzip this repository and run:
@@ -388,11 +391,15 @@ python3 -m /path_to_folder/PyGPSClient-1.3.16/pygpsclient
 ---
 ## <a name="mapquestapi">MapQuest API Key</a>
 
+**Pre-Requisites:**
+
 To use the optional dynamic web-based mapview or GPX Track Viewer facilities, you need to request and install a 
 free [MapQuest API key](https://developer.mapquest.com/user/login/sign-up) (*no payment details required*).
 The free edition of this API allows for up to 15,000 transactions/month (roughly 500/day) on a non-commercial basis.
 For this reason, the map refresh rate is intentionally limited to 1/minute* to avoid exceeding the free transaction
 limit under normal use. **NB:** this facility is *not* intended to be used for real time navigational purposes.
+
+**Instructions:**
 
 Once you have received the API key (a 32-character alphanumeric string), you can either:
 
