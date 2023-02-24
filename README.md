@@ -453,9 +453,9 @@ The `pygnssutils` library which underpins many of the functions in `PyGPSClient`
 
 1. `gnssdump` CLI utility. This is essentially a configurable input/output wrapper around the [`pyubx2.UBXReader`](https://github.com/semuconsulting/pyubx2#reading) class with flexible message formatting and filtering options for NMEA, UBX and RTCM3 protocols.
 1. `gnssserver` CLI utility. This implements a TCP Socket Server for GNSS data streams which is also capable of being run as a simple NTRIP Server.
-1. `gnssntripclient` CLI utility. This implements
-a simple NTRIP Client which receives RTCM3 correction data from an NTRIP Server and (optionally) sends this to a
+1. `gnssntripclient` CLI utility. This implements a simple NTRIP Client which receives RTCM3 correction data from an NTRIP Server and (optionally) sends this to a
 designated output stream.
+1. `gnssmqttclient` CLI utility. This implements a simple SPARTN IP (MQTT) Client which receives SPARTN and UBX correction data from a SPARTN IP location service (e.g. u-blox / Thingstream PointPerfect) and (optionally) sends this to a designated output stream.
 1. <a name="ubxsave">`ubxsave` CLI utility</a>. This saves a complete set of configuration data from any Generation 9+ u-blox device (e.g. NEO-M9N or ZED-F9P) to a file. The file can then be reloaded to any compatible device using the `ubxload` utility.
 1. `ubxload` CLI utility. This reads a file containing binary configuration data and loads it into any compatible Generation 9+ u-blox device (e.g. NEO-M9N or ZED-F9P).
 1. `ubxsetrate` CLI utility. A simple utility which sets NMEA or UBX message rates on u-blox GNSS receivers.

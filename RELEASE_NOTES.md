@@ -5,8 +5,9 @@
 ENHANCEMENTS:
 
 1. Use `pyspartn` library rather than embedded spartn class. `pyspartn` still in Alpha but functionality required for PyGPSClient is solid.
-2. SPARTN Config dialog - add facility to load keys from JSON file.
-3. Minor improvements to SPARTN client error handling.
+1. Use `pygnssutils.GNSSMQTTClient` class in `pygnssutils>=1.0.4` rather than embedded `MQTTHandler` class. MQTT client also now available as a command line utility `gnssmqttclient` - see https://github.com/semuconsulting/pygnssutils#gnssmqttclient for details.
+1. SPARTN Config dialog - add facility to load keys from JSON file.
+1. Minor improvements to SPARTN client error handling.
 
 ### RELEASE v1.3.17
 
