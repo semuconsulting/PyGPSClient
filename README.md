@@ -239,7 +239,7 @@ The SPARTN client configuration can be loaded from a JSON file provided by the L
 
 Below is a illustrative SPARTN DGPS data log, showing:
 * Incoming UBX MGA (Assist-Now) messages; in this case, MGA-GAL-EPH (Assist-Now Galileo ephemera data).
-* Incoming SPARTN correction messages; in this case - SPARTN-1X-GAD (geographic area defition) and SPARTN-1X-HPAC (high-precision atmosphere correction). 
+* Incoming SPARTN correction messages; in this case - SPARTN-1X-GAD (geographic area definition) and SPARTN-1X-HPAC (high-precision atmosphere correction). 
 * Outgoing UBX RXM-COR confirmation messages from receiver showing that the SPARTN data has been received and decrypted OK.
 
 ![spartn console screenshot](/images/spartn_consolelog.png)

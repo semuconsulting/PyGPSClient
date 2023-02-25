@@ -66,6 +66,7 @@ NULLSEND = "Nothing to send"
 CONFIGRXM = "{} polled, {} key(s) loaded"
 CONFIGOK = "{} command accepted"
 CONFIGBAD = "{} command rejected"
+MQTTCONN = "Connecting to MQTT server {}..."
 
 
 # Menu text

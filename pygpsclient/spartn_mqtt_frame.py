@@ -57,7 +57,7 @@ from pygpsclient.globals import (
     RXMMSG,
     OUTPORT_SPARTN,
 )
-from pygpsclient.strings import LBLSPARTNIP, DLGSPARTNWARN
+from pygpsclient.strings import LBLSPARTNIP, DLGSPARTNWARN, MQTTCONN
 from pygpsclient.helpers import valid_entry, VALLEN
 
 
@@ -399,7 +399,7 @@ class SPARTNMQTTDialog(Frame):
             )
             self.set_controls(CONNECTED_SPARTNIP)
             self.__container.set_status(
-                f"Connected to MQTT server {server}",
+                MQTTCONN.format(server),
                 "green",
             )
             self.__app.rtk_conn_status = CONNECTED_SPARTNIP
@@ -426,27 +426,6 @@ class SPARTNMQTTDialog(Frame):
         Update pending confirmation status.
         :param UBXMessage msg: UBX config message
         """
-
-    # @property
-    # def server(self) -> str:
-    #     """
-    #     Getter for server.
-
-    #     :return: server
-    #     :rtype: str
-    #     """
-
-    #     return self._mqtt_server.get()
-
-    # @server.setter
-    # def server(self, server: str):
-    #     """
-    #     Setter for server.
-
-    #     :param str clientid: Client ID
-    #     """
-
-    #     self._mqtt_server.set(server)
 
     @property
     def clientid(self) -> str:

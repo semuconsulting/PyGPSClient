@@ -447,9 +447,7 @@ class SPARTNGNSSDialog(Frame):
 
         msg = UBXMessage("RXM", RXMMSG, POLL)
         self.__app.gnss_outqueue.put(msg.serialize())
-
-        for msgid in (RXMMSG, "ACK-ACK", "ACK-NAK"):
-            self.__container.set_pending(msgid, SPARTN_GNSS)
+        self.__container.set_pending(RXMMSG, SPARTN_GNSS)
 
     def update_status(self, msg: UBXMessage):
         """
