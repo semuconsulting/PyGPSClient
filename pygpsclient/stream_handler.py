@@ -67,30 +67,6 @@ class StreamHandler:
         self._sockserve_event = Event()
         self._owner = None
 
-    @property
-    def sock_serve(self) -> bool:
-        """
-        Getter for socket serve event status.
-
-        :return: socket server status (True/False)
-        :rtype: bool
-        """
-
-        return self._sockserve_event.is_set()
-
-    @sock_serve.setter
-    def sock_serve(self, status: bool):
-        """
-        Setter for socket serve event status.
-
-        :param bool status: sock serve status
-        """
-
-        if status:
-            self._sockserve_event.set()
-        else:
-            self._sockserve_event.clear()
-
     def start_read_thread(self, settings: dict):
         """
         Start the stream read thread.
@@ -314,3 +290,27 @@ class StreamHandler:
 
         if self._owner is not None:
             self._owner.set_status(msg, col)
+
+    @property
+    def sock_serve(self) -> bool:
+        """
+        Getter for socket serve event status.
+
+        :return: socket server status (True/False)
+        :rtype: bool
+        """
+
+        return self._sockserve_event.is_set()
+
+    @sock_serve.setter
+    def sock_serve(self, status: bool):
+        """
+        Setter for socket serve event status.
+
+        :param bool status: sock serve status
+        """
+
+        if status:
+            self._sockserve_event.set()
+        else:
+            self._sockserve_event.clear()
