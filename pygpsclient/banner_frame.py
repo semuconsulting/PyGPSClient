@@ -512,7 +512,8 @@ class BannerFrame(Frame):
         )
         if units in (UI, UIK):
             self._hvacc.set(
-                f"hacc {m2ft(self.__app.gnss_status.hacc):.3f}\nvacc {m2ft(self.__app.gnss_status.vacc):.3f}"
+                f"hacc {m2ft(self.__app.gnss_status.hacc):.3f}\n"
+                + "vacc {m2ft(self.__app.gnss_status.vacc):.3f}"
             )
         else:
             self._hvacc.set(

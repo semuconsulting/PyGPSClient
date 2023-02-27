@@ -263,7 +263,7 @@ class FileHandler:
             title=READTITLE,
             initialdir=HOME,
             filetypes=(
-                ("json files", f"*.json"),
+                ("json files", "*.json"),
                 ("all files", "*.*"),
             ),
         )

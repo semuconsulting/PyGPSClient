@@ -200,7 +200,6 @@ class SPARTNConfigDialog(Toplevel):
         Handle Exit button press.
         """
 
-        self._frm_corrlband.on_disconnect()
         self.__app.stop_spartnconfig_thread()
         self.destroy()
 

@@ -177,7 +177,7 @@ The SPARTN Configuration utility allows users to receive and process SPARTN RTK 
 
 **NB:** the SPARTN client utilises a new [`pyspartn`](https://github.com/semuconsulting/pyspartn) library. The `pyspartn.SPARTNReader` class will parse individual SPARTN messages from any binary stream containing *solely* SPARTN data e.g. an MQTT `/pp/ip` topic. The `pyspartn.SPARTNMessage` class is in Alpha and does not currently perform a full decode of SPARTN protocol messages; it basically decodes just enough information to identify message type/subtype, payload length and other key metadata.
 
-The facility can be accessed by clicking ![SPARTN Client button](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-antenna-3-24.png?raw=true) or selecting Menu..Options..NTRIP Configuration Dialog. . The dialog must remain open while the facility is in use.
+The facility can be accessed by clicking ![SPARTN Client button](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient/resources/iconmonstr-antenna-3-24.png?raw=true) or selecting Menu..Options..NTRIP Configuration Dialog.
 
 **Pre-Requisites:**
 

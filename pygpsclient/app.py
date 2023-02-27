@@ -132,6 +132,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._socket_inqueue = Queue()  # message from socket
         self.file_handler = FileHandler(self)
         self.stream_handler = StreamHandler(self)
+        self.spartn_stream_handler = StreamHandler(self)
         self.nmea_handler = NMEAHandler(self)
         self.ubx_handler = UBXHandler(self)
         self.rtcm_handler = RTCM3Handler(self)

@@ -31,7 +31,6 @@ from tkinter import (
     NORMAL,
     DISABLED,
 )
-from queue import Queue
 from PIL import ImageTk, Image
 from pyubx2 import (
     UBXMessage,
@@ -61,6 +60,7 @@ from pygpsclient.globals import (
     TIMEOUTS,
     SPARTN_EVENT,
     SPARTN_LBAND,
+    SPARTN_EOF_EVENT,
 )
 from pygpsclient.strings import (
     LBLSPARTNLB,
@@ -73,7 +73,6 @@ from pygpsclient.helpers import (
     VALINT,
 )
 from pygpsclient.serialconfig_frame import SerialConfigFrame
-from pygpsclient.stream_handler import StreamHandler
 
 U2MAX = 2e16 - 1
 U8MAX = 2e64 - 1
@@ -136,7 +135,6 @@ class SPARTNLBANDDialog(Frame):
         self._img_serial = ImageTk.PhotoImage(Image.open(ICON_SERIAL))
         self._img_socket = ImageTk.PhotoImage(Image.open(ICON_SOCKET))
         self._img_disconn = ImageTk.PhotoImage(Image.open(ICON_DISCONN))
-        self._stream_handler = StreamHandler(self)
         self._status = StringVar()
         self._spartn_freq = StringVar()
         self._spartn_schwin = StringVar()
@@ -412,7 +410,7 @@ class SPARTNLBANDDialog(Frame):
 
         # start serial stream thread
         self.__app.rtk_conn_status = CONNECTED_SPARTNLB
-        self._stream_handler.start_read_thread(self)
+        self.__app.spartn_stream_handler.start_read_thread(self._get_settings())
         self.__container.set_status(
             f"Connected to {self.serial_settings.port}:{self.serial_settings.port_desc} "
             + f"@ {self.serial_settings.bpsrate}",
@@ -420,7 +418,6 @@ class SPARTNLBANDDialog(Frame):
         )
         self.set_controls(CONNECTED_SPARTNLB)
 
-        # poll for config
         self._poll_config()
 
     def on_disconnect(self, msg: str = ""):
@@ -432,14 +429,33 @@ class SPARTNLBANDDialog(Frame):
 
         msg += "Disconnected"
         if self.__app.rtk_conn_status == CONNECTED_SPARTNLB:
-            if self._stream_handler is not None:
-                self._stream_handler.stop_read_thread()
+            if self.__app.spartn_stream_handler is not None:
+                self.__app.spartn_stream_handler.stop_read_thread()
                 self.__app.rtk_conn_status = DISCONNECTED
                 self.__container.set_status(
                     msg,
                     "red",
                 )
             self.set_controls(DISCONNECTED)
+
+    def _get_settings(self) -> dict:
+        """
+        Get settings dict.
+
+        :return: dictionary of settings for stream handler
+        :rtype: dict
+        """
+
+        return {
+            "owner": self,
+            "read_event": SPARTN_EVENT,
+            "eof_event": SPARTN_EOF_EVENT,
+            "inqueue": self.__app.spartn_inqueue,
+            "socket_inqueue": self.__app.socket_inqueue,
+            "outqueue": self.__app.spartn_outqueue,
+            "serial_settings": self.serial_settings,
+            "in_filepath": "",
+        }
 
     def _format_cfgpoll(self) -> UBXMessage:
         """
@@ -518,7 +534,6 @@ class SPARTNLBANDDialog(Frame):
         self.__container.set_status(f"{CFGSET} command sent", "green")
         self._lbl_send.config(image=self._img_pending)
 
-        # poll for config
         self._poll_config()
 
     def _poll_config(self):
@@ -578,6 +593,25 @@ class SPARTNLBANDDialog(Frame):
     # FOLLOWING METHODS REQUIRED BY STREAM_HANDLER
     # ============================================
 
+    @property
+    def conn_status(self) -> int:
+        """
+        Getter for connection status
+        (0 = disconnected, 1 = serial, 2 = socket, 4 = file).
+        """
+
+        return self.__app.rtk_conn_status
+
+    @conn_status.setter
+    def conn_status(self, status: int):
+        """
+        Setter for connection status.
+
+        :param int status: 0 = disconnected, 1 = serial, 2 = socket, 4 = file.
+        """
+
+        self.__app.rtk_conn_status = status
+
     def set_status(self, msg: str, color: str = "blue"):
         """
         Set status message.
@@ -599,16 +633,6 @@ class SPARTNLBANDDialog(Frame):
         self.__container.set_status(msg, color)
 
     @property
-    def appmaster(self) -> object:
-        """
-        Getter for application master (Tk)
-
-        :return: reference to application master (Tk)
-        """
-
-        return self.__master
-
-    @property
     def serial_settings(self) -> Frame:
         """
         Getter for common serial configuration panel
@@ -618,45 +642,3 @@ class SPARTNLBANDDialog(Frame):
         """
 
         return self._frm_spartn_serial
-
-    @property
-    def mode(self) -> int:
-        """
-        Getter for connection mode
-        (0 = disconnected, 1 = serial, 2 = socket, 4 = file).
-        """
-
-        return self.__app.rtk_conn_status
-
-    @property
-    def read_event(self) -> str:
-        """
-        Getter for type of event to be raised when data
-        is added to spartn_inqueue.
-        """
-
-        return SPARTN_EVENT
-
-    @property
-    def inqueue(self) -> Queue:
-        """
-        Getter for SPARTN input queue.
-        """
-
-        return self.__app.spartn_inqueue
-
-    @property
-    def outqueue(self) -> Queue:
-        """
-        Getter for SPARTN output queue.
-        """
-
-        return self.__app.spartn_outqueue
-
-    @property
-    def socketqueue(self) -> Queue:
-        """
-        Getter for socket input queue.
-        """
-
-        return self.__app.socket_inqueue

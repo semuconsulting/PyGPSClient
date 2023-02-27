@@ -179,6 +179,7 @@ GNSS_EVENT = "<<gnss_read>>"
 GNSS_EOF_EVENT = "<<gnss_eof>>"
 NTRIP_EVENT = "<<ntrip_read>>"
 SPARTN_EVENT = "<<spartn_read>>"
+SPARTN_EOF_EVENT = "<<spartn_eof>>"
 # default widget frame sizes:
 WIDGETU1 = (250, 250)  # small widget size
 WIDGETU2 = (350, 250)  # medium widget size

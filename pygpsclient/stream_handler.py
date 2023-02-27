@@ -4,15 +4,13 @@ StreamHandler class for PyGPSClient application
 This handles all the stream i/o, threaded read process and direction to
 the appropriate protocol handler.
 
-NB: requires the calling app to implement the following attributes:
+NB: The calling object ('settings["owner"]') must implement the following methods:
 
-- mode
-- infile_path
-- socket_settings
-- read_event
-- inqueue
-- outqueue
-- serial_settings
+- conn_status(self) -> int:
+- conn_status(self, status: int):
+- set_status(self, msg: str, col: str):
+- set_connection(self, msg: str, col: str):
+- serial_settings(self) -> Frame:
 
 Created on 16 Sep 2020
 
@@ -44,7 +42,6 @@ from pygpsclient.globals import (
     DISCONNECTED,
     FILEREAD_INTERVAL,
     DEFAULT_BUFSIZE,
-    GNSS_EOF_EVENT,
 )
 from pygpsclient.strings import ENDOFFILE
 
@@ -68,7 +65,7 @@ class StreamHandler:
         self._stream_thread = None
         self._stopevent = Event()
         self._sockserve_event = Event()
-        self._mode = DISCONNECTED
+        self._owner = None
 
     @property
     def sock_serve(self) -> bool:
@@ -94,15 +91,15 @@ class StreamHandler:
         else:
             self._sockserve_event.clear()
 
-    def start_read_thread(self, settings: object):
+    def start_read_thread(self, settings: dict):
         """
         Start the stream read thread.
 
-        :param object settings: reference to object holding settings attributes
+        :param dict settings: settings dictionary
         """
 
         self._stopevent.clear()
-        self._mode = settings.mode
+        self._owner = settings["owner"]
         self._stream_thread = Thread(
             target=self._read_thread,
             args=(
@@ -113,7 +110,7 @@ class StreamHandler:
             daemon=True,
         )
         self._stream_thread.start()
-        self.__app.set_status("Connected", "blue")
+        self._set_status("Connected", "blue")
 
     def stop_read_thread(self):
         """
@@ -122,13 +119,13 @@ class StreamHandler:
 
         self._stopevent.set()
         self._stream_thread = None
-        self.__app.conn_status = DISCONNECTED
+        self._owner.conn_status = DISCONNECTED
 
     def _read_thread(
         self,
         stopevent: Event,
         sockserve_event: Event,
-        settings: object,
+        settings: dict,
     ):
         """
         THREADED PROCESS
@@ -137,13 +134,15 @@ class StreamHandler:
 
         :param Event stopevent: thread stop event
         :param Event sockserve_event: socket serving event
-        :param object settings: reference to object holding settings attributes
+        :param dict settings: settings dictionary
         """
 
         connstr = ""
+        owner = settings["owner"]
+        conn_status = owner.conn_status
         try:
-            if settings.mode == CONNECTED:
-                ser = settings.serial_settings
+            if conn_status == CONNECTED:
+                ser = settings["serial_settings"]
                 connstr = f"{ser.port}:{ser.port_desc} @ {str(ser.bpsrate)}"
                 with Serial(
                     ser.port,
@@ -162,8 +161,8 @@ class StreamHandler:
                         settings,
                     )
 
-            elif settings.mode == CONNECTED_FILE:
-                in_filepath = settings.infilepath
+            elif conn_status == CONNECTED_FILE:
+                in_filepath = settings["in_filepath"]
                 connstr = f"{in_filepath}"
                 with open(in_filepath, "rb") as serial_object:
                     self._readloop(
@@ -173,8 +172,8 @@ class StreamHandler:
                         settings,
                     )
 
-            elif settings.mode == CONNECTED_SOCKET:
-                soc = settings.socket_settings
+            elif conn_status == CONNECTED_SOCKET:
+                soc = settings["socket_settings"]
                 server = soc.server
                 port = soc.port
                 connstr = f"{server}:{port}"
@@ -192,7 +191,7 @@ class StreamHandler:
                     )
 
         except (EOFError, TimeoutError):
-            self.__master.event_generate(GNSS_EOF_EVENT)
+            self.__master.event_generate(settings["eof_event"])
         except (
             IOError,
             SerialException,
@@ -203,16 +202,16 @@ class StreamHandler:
         ) as err:
             if not stopevent.is_set():
                 stopevent.set()
-                self.__app.conn_status = DISCONNECTED
-                self.__app.set_connection(connstr, "red")
-                self.__app.set_status(f"Error in stream read {err}", "red")
+                owner.conn_status = DISCONNECTED
+                self._set_connection(connstr, "red")
+                self._set_status(f"Error in stream read {err}", "red")
 
     def _readloop(
         self,
         stopevent: Event,
         sockserve_event: Event,
         serial_object: object,
-        settings: object,
+        settings: dict,
     ):
         """
         Read stream continously until stop event or stream error.
@@ -223,9 +222,10 @@ class StreamHandler:
         :param Event stopevent: thread stop event
         :param Event sockserve_event: socket serving event
         :param object serial_object: serial data stream
-        :param object settings: reference to object holding settings attributes
+        :param dict settings: settings dictionary
         """
 
+        owner = settings["owner"]
         # stream = BufferedReader(serial_object)
         stream = serial_object
         ubr = UBXReader(
@@ -233,39 +233,38 @@ class StreamHandler:
             protfilter=NMEA_PROTOCOL | UBX_PROTOCOL | RTCM3_PROTOCOL,
             quitonerror=ERR_IGNORE,
             bufsize=DEFAULT_BUFSIZE,
-            msgmode=settings.serial_settings.msgmode,
+            msgmode=settings["serial_settings"].msgmode,
         )
 
         raw_data = None
         parsed_data = None
         lastread = datetime.now()
-        readevent = settings.read_event
         while not stopevent.is_set():
             try:
-                if settings.mode in (CONNECTED, CONNECTED_SOCKET) or (
-                    settings.mode == CONNECTED_FILE
+                if owner.conn_status in (CONNECTED, CONNECTED_SOCKET) or (
+                    owner.conn_status == CONNECTED_FILE
                     and datetime.now() > lastread + timedelta(seconds=FILEREAD_INTERVAL)
                 ):
                     raw_data, parsed_data = ubr.read()
                     if raw_data is not None:
-                        settings.inqueue.put((raw_data, parsed_data))
-                        self.__master.event_generate(readevent)
+                        settings["inqueue"].put((raw_data, parsed_data))
+                        self.__master.event_generate(settings["read_event"])
                         if sockserve_event.is_set():
-                            settings.socketqueue.put(raw_data)
+                            settings["socketqueue"].put(raw_data)
                     else:
-                        if settings.mode == CONNECTED_FILE:
+                        if owner.conn_status == CONNECTED_FILE:
                             raise EOFError
-                    if settings.mode == CONNECTED_FILE:
+                    if owner.conn_status == CONNECTED_FILE:
                         lastread = datetime.now()
 
                     # write any queued output data to serial stream
-                    if settings.mode == CONNECTED:
+                    if owner.conn_status == CONNECTED:
                         try:
-                            while not settings.outqueue.empty():
-                                data = settings.outqueue.get(False)
+                            while not settings["outqueue"].empty():
+                                data = settings["outqueue"].get(False)
                                 if data is not None:
                                     serial_object.write(data)
-                                settings.outqueue.task_done()
+                                settings["outqueue"].task_done()
                         except Empty:
                             pass
 
@@ -278,8 +277,8 @@ class StreamHandler:
                 RTCMParseError,
             ) as err:
                 parsed_data = f"Error parsing data stream {err}"
-                settings.inqueue.put((raw_data, parsed_data))
-                self.__master.event_generate(readevent)
+                settings["inqueue"].put((raw_data, parsed_data))
+                self.__master.event_generate(settings["read_event"])
                 continue
 
     def on_eof(self, event):  # pylint: disable=unused-argument
@@ -292,4 +291,26 @@ class StreamHandler:
 
         self.stop_read_thread()
         self.__app.frm_settings.server_state = 0  # turn off socket server
-        self.__app.set_status(ENDOFFILE, "blue")
+        self._set_status(ENDOFFILE, "blue")
+
+    def _set_connection(self, msg, col):
+        """
+        Set connection message.
+
+        :param str msg: status message
+        :param str col: colour
+        """
+
+        if self._owner is not None:
+            self._owner.set_connection(msg, col)
+
+    def _set_status(self, msg, col):
+        """
+        Set status message.
+
+        :param str msg: status message
+        :param str col: colour
+        """
+
+        if self._owner is not None:
+            self._owner.set_status(msg, col)

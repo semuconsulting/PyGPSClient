@@ -33,7 +33,6 @@ from tkinter import (
     DISABLED,
     HORIZONTAL,
 )
-from queue import Queue
 from PIL import ImageTk, Image
 import pyubx2.ubxtypes_core as ubt
 from pygpsclient.serialconfig_frame import SerialConfigFrame
@@ -73,6 +72,7 @@ from pygpsclient.globals import (
     SOCKSERVER_NTRIP_PORT,
     SOCKSERVER_MAX_CLIENTS,
     GNSS_EVENT,
+    GNSS_EOF_EVENT,
 )
 from pygpsclient.helpers import valid_entry, VALINT, VALURL, MAXPORT
 from pygpsclient.strings import (
@@ -560,7 +560,7 @@ class SettingsFrame(Frame):
         self.__app.set_status("")
         self.__app.conn_status = CONNECTED
         self._reset_frames()
-        self.__app.stream_handler.start_read_thread(self)
+        self.__app.stream_handler.start_read_thread(self._get_settings())
 
     def _on_socket_stream(self):
         """
@@ -578,7 +578,7 @@ class SettingsFrame(Frame):
             self.__app.set_status("")
             self.__app.conn_status = CONNECTED_SOCKET
             self._reset_frames()
-            self.__app.stream_handler.start_read_thread(self)
+            self.__app.stream_handler.start_read_thread(self._get_settings())
         else:
             self.__app.set_status("ERROR - invalid settings", "red")
 
@@ -593,7 +593,27 @@ class SettingsFrame(Frame):
             self.__app.set_status("")
             self.__app.conn_status = CONNECTED_FILE
             self._reset_frames()
-            self.__app.stream_handler.start_read_thread(self)
+            self.__app.stream_handler.start_read_thread(self._get_settings())
+
+    def _get_settings(self) -> dict:
+        """
+        Get settings dict.
+
+        :return: dictionary of settings for stream handler
+        :rtype: dict
+        """
+
+        return {
+            "owner": self,
+            "read_event": GNSS_EVENT,
+            "eof_event": GNSS_EOF_EVENT,
+            "inqueue": self.__app.gnss_inqueue,
+            "socket_inqueue": self.__app.socket_inqueue,
+            "outqueue": self.__app.gnss_outqueue,
+            "serial_settings": self._frm_serial,
+            "socket_settings": self._frm_socket,
+            "in_filepath": self._in_filepath,
+        }
 
     def _reset_frames(self):
         """
@@ -749,46 +769,6 @@ class SettingsFrame(Frame):
 
         self.update_idletasks()  # Make sure we know about any resizing
         return (self.winfo_width(), self.winfo_height())
-
-    @property
-    def mode(self) -> int:
-        """
-        Getter for connection mode
-        (0 = disconnected, 1 = serial, 2 = socket, 4 = file).
-        """
-
-        return self.__app.conn_status
-
-    @property
-    def serial_settings(self) -> Frame:
-        """
-        Getter for common serial configuration panel
-
-        :return: reference to serial form
-        :rtype: Frame
-        """
-
-        return self._frm_serial
-
-    @property
-    def read_event(self) -> str:
-        """
-        Getter for type of event to be raised when data
-        is added to gnss_inqueue.
-        """
-
-        return GNSS_EVENT
-
-    @property
-    def socket_settings(self) -> Frame:
-        """
-        Getter for common socket configuration panel
-
-        :return: reference to socket form
-        :rtype: Frame
-        """
-
-        return self._frm_socket
 
     @property
     def protocol(self) -> int:
@@ -1043,26 +1023,67 @@ class SettingsFrame(Frame):
         if self._socket_serve.get() == 1:
             self.__app.frm_banner.update_transmit_status(clients)
 
-    @property
-    def inqueue(self) -> Queue:
-        """
-        Getter for GNSS input queue.
-        """
-
-        return self.__app.gnss_inqueue
+    # ============================================
+    # FOLLOWING METHODS REQUIRED BY STREAM_HANDLER
+    # ============================================
 
     @property
-    def outqueue(self) -> Queue:
+    def conn_status(self) -> int:
         """
-        Getter for GNSS output queue.
+        Getter for connection mode
+        (0 = disconnected, 1 = serial, 2 = socket, 4 = file).
         """
 
-        return self.__app.gnss_outqueue
+        return self.__app.conn_status
+
+    @conn_status.setter
+    def conn_status(self, status: int):
+        """
+        Setter for connection mode.
+
+        :param int status: 0 = disconnected, 1 = serial, 2 = socket, 4 = file.
+        """
+
+        self.__app.conn_status = status
+
+    def set_status(self, msg: str, col: str):
+        """
+        Set status message.
+
+        :param str msg: status message.
+        :param str col: colour
+        """
+
+        self.__app.set_status(msg, col)
+
+    def set_connection(self, msg: str, col: str):
+        """
+        Set connection message.
+
+        :param str msg: status message.
+        :param str col: colour
+        """
+
+        self.__app.set_connection(msg, col)
 
     @property
-    def socketqueue(self) -> Queue:
+    def serial_settings(self) -> Frame:
         """
-        Getter for input queue.
+        Getter for common serial configuration panel
+
+        :return: reference to serial form
+        :rtype: Frame
         """
 
-        return self.__app.socket_inqueue
+        return self._frm_serial
+
+    @property
+    def socket_settings(self) -> Frame:
+        """
+        Getter for common socket configuration panel
+
+        :return: reference to socket form
+        :rtype: Frame
+        """
+
+        return self._frm_socket

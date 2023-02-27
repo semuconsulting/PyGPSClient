@@ -360,7 +360,7 @@ class UBX_Dynamic_Frame(Frame):
             Label(self._frm_attrs, text="Group Size:").grid(
                 column=0, row=row, sticky=(E)
             )
-            Label(self._frm_attrs, text=numr).grid(column=1, row=row, sticky=(W))
+            Label(self._frm_attrs, text=numr).grid(column=1, row=row, sticky=W)
             row += 1
 
         row = self._add_widgets(msg, attd, row, index)
