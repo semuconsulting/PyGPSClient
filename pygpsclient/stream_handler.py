@@ -95,7 +95,8 @@ class StreamHandler:
 
         self._stopevent.set()
         self._stream_thread = None
-        self._owner.conn_status = DISCONNECTED
+        if self._owner is not None:
+            self._owner.conn_status = DISCONNECTED
 
     def _read_thread(
         self,
