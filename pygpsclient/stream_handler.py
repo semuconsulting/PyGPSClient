@@ -226,8 +226,9 @@ class StreamHandler:
                     if raw_data is not None:
                         settings["inqueue"].put((raw_data, parsed_data))
                         self.__master.event_generate(settings["read_event"])
+                        # if socket server is running
                         if sockserve_event.is_set():
-                            settings["socketqueue"].put(raw_data)
+                            settings["socket_outqueue"].put(raw_data)
                     else:
                         if owner.conn_status == CONNECTED_FILE:
                             raise EOFError

@@ -130,6 +130,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._spartn_inqueue = Queue()  # messages from SPARTN correction rcvr
         self._spartn_outqueue = Queue()  # messages to SPARTN correction rcvr
         self._socket_inqueue = Queue()  # message from socket
+        self._socket_outqueue = Queue()  # message to socket
         self.file_handler = FileHandler(self)
         self.stream_handler = StreamHandler(self)
         self.spartn_stream_handler = StreamHandler(self)
@@ -506,7 +507,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
                 SOCKSERVER_HOST,
                 port,
                 SOCKSERVER_MAX_CLIENTS,
-                self._socket_inqueue,
+                self._socket_outqueue,
             ),
             daemon=True,
         )
@@ -852,6 +853,14 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         return self._socket_inqueue
 
     @property
+    def socket_outqueue(self) -> Queue:
+        """
+        Getter for socket output queue.
+        """
+
+        return self._socket_outqueue
+
+    @property
     def ntrip_inqueue(self) -> Queue:
         """
         Getter for NTRIP input queue.
@@ -874,14 +883,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         return self._spartn_outqueue
-
-    @property
-    def socketqueue(self) -> Queue:
-        """
-        Getter for socket queue.
-        """
-
-        return self._socket_inqueue
 
     @property
     def conn_status(self) -> int:

@@ -446,8 +446,9 @@ class SPARTNLBANDDialog(Frame):
             "read_event": SPARTN_EVENT,
             "eof_event": SPARTN_EOF_EVENT,
             "inqueue": self.__app.spartn_inqueue,
-            "socket_inqueue": self.__app.socket_inqueue,
             "outqueue": self.__app.spartn_outqueue,
+            "socket_inqueue": self.__app.socket_inqueue,
+            "socket_outqueue": self.__app.socket_outqueue,
             "serial_settings": self.serial_settings,
             "in_filepath": "",
         }
