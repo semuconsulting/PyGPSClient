@@ -40,6 +40,8 @@ from pygpsclient.globals import (
     SPARTN_LBAND,
     SPARTN_MQTT,
     POPUP_TRANSIENT,
+    CONNECTED_SPARTNIP,
+    CONNECTED_SPARTNLB,
 )
 from pygpsclient.strings import DLGSPARTNCONFIG
 from pygpsclient.spartn_gnss_frame import SPARTNGNSSDialog
@@ -189,7 +191,7 @@ class SPARTNConfigDialog(Toplevel):
         :param str color: rgb color of text (blue)
         """
 
-        message = (message[:80] + "..") if len(message) > 80 else message
+        message = (message[:180] + "..") if len(message) > 180 else message
         self._lbl_status.config(fg=color)
         self._status.set(" " + message)
 
@@ -198,8 +200,6 @@ class SPARTNConfigDialog(Toplevel):
         Handle Exit button press.
         """
 
-        self._frm_corrip.on_disconnect()
-        self._frm_corrlband.on_disconnect()
         self.__app.stop_spartnconfig_thread()
         self.destroy()
 
@@ -238,6 +238,40 @@ class SPARTNConfigDialog(Toplevel):
                 if self._pending_confs.get(msgid, None) == spartnfrm:
                     self._pending_confs.pop(msgid)
 
+    def set_controls(self, status, msgt):
+        """
+        Set controls in IP or L-Band clients.
+
+        :param bool status: connected to SPARTN server yes/no
+        :param tuple msgt: tuple of (message, color)
+        """
+
+        if status == CONNECTED_SPARTNIP:
+            self._frm_corrip.set_controls(status)
+        elif status == CONNECTED_SPARTNLB:
+            self._frm_corrlband.set_controls(status)
+        if msgt is not None:
+            msg, col = msgt
+            self.set_status(msg, col)
+
+    def disconnect_ip(self, msg: str = ""):
+        """
+        Disconnect from IP (MQTT) client.
+
+        :param str msg: optional disconnection message
+        """
+
+        self._frm_corrip.on_disconnect(msg)
+
+    def disconnect_lband(self, msg: str = ""):
+        """
+        Disconnect from L-Band client.
+
+        :param str msg: optional disconnection message
+        """
+
+        self._frm_corrlband.on_disconnect(msg)
+
     @property
     def container(self):
         """
@@ -245,3 +279,45 @@ class SPARTNConfigDialog(Toplevel):
         """
 
         return self._frm_container
+
+    @property
+    def server(self) -> str:
+        """
+        Getter for server.
+
+        :return: server
+        :rtype: str
+        """
+
+        return self._frm_corrip.server
+
+    @server.setter
+    def server(self, server: str):
+        """
+        Setter for server.
+
+        :param str clientid: Client ID
+        """
+
+        self._frm_corrip.server = server
+
+    @property
+    def clientid(self) -> str:
+        """
+        Getter for Client ID from IP configuration dialog.
+
+        :return: client ID
+        :rtype: str
+        """
+
+        return self._frm_corrip.clientid
+
+    @clientid.setter
+    def clientid(self, clientid: str):
+        """
+        Setter for Client ID.
+
+        :param str clientid: Client ID
+        """
+
+        self._frm_corrip.clientid = clientid

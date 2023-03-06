@@ -1,5 +1,25 @@
 # PyGPSClient Release Notes
 
+### RELEASE v1.3.18
+
+FIXES:
+
+1. Fix to GNSS SPARTN key config upload. Fixes [#44](https://github.com/semuconsulting/PyGPSClient/issues/44)
+
+ENHANCEMENTS TO SPARTN CLIENT:
+
+1. SPARTN dialog no longer needs to be kept open while IP or L-Band client is running.
+1. Use `pygnssutils.GNSSMQTTClient` class in `pygnssutils>=1.0.4` rather than embedded `MQTTHandler` class. MQTT client also now available as a command line utility `gnssmqttclient` - see https://github.com/semuconsulting/pygnssutils#gnssmqttclient for details.
+1. Enhance and streamline SPARTN client functionality.
+1. Minor improvements to SPARTN client error handling.
+1. Add ability to load SPARTN config from JSON file.
+
+OTHER ENHANCEMENTS:
+
+1. Auto-enable MON-SPAN message if Spectrum View widget is opened.
+1. Various comment and docstring improvements.
+
+
 ### RELEASE v1.3.17
 
 FIXES:

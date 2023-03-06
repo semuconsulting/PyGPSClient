@@ -146,8 +146,8 @@ class MapviewFrame(Frame):
         sc = "NO CONNECTION"
         msg = ""
 
-        apikey = self.__app.api_key
-        if apikey == "":
+        mqapikey = self.__app.mqapikey
+        if mqapikey == "":
             self._disp_error(NOWEBMAPKEY)
             return
 
@@ -159,7 +159,7 @@ class MapviewFrame(Frame):
             return
         self._last_map_update = now
 
-        url = self._format_url(apikey, lat, lon, hacc)
+        url = self._format_url(mqapikey, lat, lon, hacc)
 
         try:
             response = get(url, timeout=MAPQTIMEOUT)
@@ -191,11 +191,11 @@ class MapviewFrame(Frame):
             (5, 5, 20, 20), start=90, extent=wait, fill="#ffffff", outline=""
         )
 
-    def _format_url(self, apikey: str, lat: float, lon: float, hacc: float):
+    def _format_url(self, mqapikey: str, lat: float, lon: float, hacc: float):
         """
         Formats URL for web map download.
 
-        :param str apikey: MapQuest API key
+        :param str mqapikey: MapQuest API key
         :param float lat: latitude
         :param float lon: longitude
         :param float hacc: horizontal accuracy
@@ -211,7 +211,7 @@ class MapviewFrame(Frame):
         scalebar = "true" if zoom < 20 else "false"
 
         return MAPURL.format(
-            apikey,
+            mqapikey,
             lat,
             lon,
             zoom,

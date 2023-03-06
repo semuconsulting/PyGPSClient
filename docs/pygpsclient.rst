@@ -100,14 +100,6 @@ pygpsclient.menu\_bar module
    :undoc-members:
    :show-inheritance:
 
-pygpsclient.mqtt\_handler module
---------------------------------
-
-.. automodule:: pygpsclient.mqtt_handler
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 pygpsclient.nmea\_handler module
 --------------------------------
 
@@ -180,6 +172,14 @@ pygpsclient.spartn\_gnss\_frame module
    :undoc-members:
    :show-inheritance:
 
+pygpsclient.spartn\_json\_config module
+---------------------------------------
+
+.. automodule:: pygpsclient.spartn_json_config
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pygpsclient.spartn\_lband\_frame module
 ---------------------------------------
 
@@ -192,14 +192,6 @@ pygpsclient.spartn\_mqtt\_frame module
 --------------------------------------
 
 .. automodule:: pygpsclient.spartn_mqtt_frame
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-pygpsclient.spartnmessage module
---------------------------------
-
-.. automodule:: pygpsclient.spartnmessage
    :members:
    :undoc-members:
    :show-inheritance:

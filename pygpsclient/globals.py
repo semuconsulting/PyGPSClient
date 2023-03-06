@@ -179,6 +179,7 @@ GNSS_EVENT = "<<gnss_read>>"
 GNSS_EOF_EVENT = "<<gnss_eof>>"
 NTRIP_EVENT = "<<ntrip_read>>"
 SPARTN_EVENT = "<<spartn_read>>"
+SPARTN_EOF_EVENT = "<<spartn_eof>>"
 # default widget frame sizes:
 WIDGETU1 = (250, 250)  # small widget size
 WIDGETU2 = (350, 250)  # medium widget size
@@ -223,12 +224,14 @@ UBX_CFGOTHER = 7
 SPARTN_GNSS = 8
 SPARTN_LBAND = 9
 SPARTN_MQTT = 10
+SPECTRUMVIEW = 11
 
 # SPARTN globals
 SPARTN_SOURCE_LB = 1
 SPARTN_SOURCE_IP = 0
 SPARTN_PPSERVER = "pp.services.u-blox.com"
-SPARTN_PPREGIONS = ("eu", "us", "au")
+OUTPORT_SPARTN = 8883
+SPARTN_PPREGIONS = ("eu", "us", "kr", "au")
 SPARTN_KEYLEN = 16
 RXMMSG = "RXM-SPARTN-KEY"
 CONNECTED_NTRIP = 8

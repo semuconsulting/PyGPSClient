@@ -16,6 +16,7 @@ from pygnssutils import version as PGVERSION
 from pyubx2 import version as UBXVERSION
 from pynmeagps import version as NMEAVERSION
 from pyrtcm import version as RTCMVERSION
+from pyspartn import version as SPARTNVERSION
 from pygpsclient.helpers import check_latest
 from pygpsclient.globals import ICON_APP, ICON_EXIT, GITHUB_URL
 from pygpsclient.strings import ABOUTTXT, COPYRIGHTTXT, DLGABOUT
@@ -27,6 +28,7 @@ LIBVERSIONS = {
     "pyubx2": UBXVERSION,
     "pynmeagps": NMEAVERSION,
     "pyrtcm": RTCMVERSION,
+    "pyspartn": SPARTNVERSION,
 }
 
 

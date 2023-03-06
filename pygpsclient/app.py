@@ -24,7 +24,7 @@ from pyubx2 import (
     UBX_PROTOCOL,
     RTCM3_PROTOCOL,
 )
-from pygnssutils import GNSSNTRIPClient
+from pygnssutils import GNSSNTRIPClient, GNSSMQTTClient
 from pygnssutils.socket_server import SocketServer, ClientHandler
 from pygpsclient.globals import (
     ICON_APP,
@@ -108,6 +108,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._spartn_user_port = kwargs.pop(
             "spartnport", getenv("PYGPSCLIENT_SPARTNPORT", "")
         )
+        self._mqapikey = kwargs.pop("mqapikey", getenv("MQAPIKEY", ""))
+        self._mqttclientid = kwargs.pop("mqttclientid", getenv("MQTTCLIENTID", ""))
 
         Frame.__init__(self, self.__master, *args, **kwargs)
 
@@ -128,14 +130,17 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._spartn_inqueue = Queue()  # messages from SPARTN correction rcvr
         self._spartn_outqueue = Queue()  # messages to SPARTN correction rcvr
         self._socket_inqueue = Queue()  # message from socket
+        self._socket_outqueue = Queue()  # message to socket
         self.file_handler = FileHandler(self)
         self.stream_handler = StreamHandler(self)
+        self.spartn_stream_handler = StreamHandler(self)
         self.nmea_handler = NMEAHandler(self)
         self.ubx_handler = UBXHandler(self)
         self.rtcm_handler = RTCM3Handler(self)
+        self.ntrip_handler = GNSSNTRIPClient(self, verbosity=0)
+        self.spartn_handler = GNSSMQTTClient(self, verbosity=0)
         self._conn_status = DISCONNECTED
         self._rtk_conn_status = DISCONNECTED
-        self.ntrip_handler = GNSSNTRIPClient(self, verbosity=0)
         self.dlg_ubxconfig = None
         self.dlg_ntripconfig = None
         self.dlg_spartnconfig = None
@@ -147,8 +152,9 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._socket_thread = None
         self._socket_server = None
 
-        # Load web map api key if there is one
-        self.api_key = self.file_handler.load_apikey()
+        # Load MapQuest web map api key if not already defined
+        if self._mqapikey == "":
+            self._mqapikey = self.file_handler.load_mqapikey()
 
         # Load console color tags from file
         self.colortags = self.file_handler.load_colortags()
@@ -303,6 +309,9 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         if wdg["menu"] is not None:
             self.menu.view_menu.entryconfig(wdg["menu"], label=f"{lbl} {nam}")
+
+        if nam == WDGSPECTRUM:
+            self.frm_spectrumview.enable_MONSPAN(wdg["visible"])
 
         return col, row
 
@@ -498,7 +507,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
                 SOCKSERVER_HOST,
                 port,
                 SOCKSERVER_MAX_CLIENTS,
-                self._socket_inqueue,
+                self._socket_outqueue,
             ),
             daemon=True,
         )
@@ -623,16 +632,27 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         except (SerialException, SerialTimeoutException) as err:
             self.set_status(f"Error sending to device {err}", "red")
 
-    def update_ntrip_status(self, status: bool, msg: tuple = None):
+    def update_ntrip_status(self, status: bool, msgt: tuple = None):
         """
         Update NTRIP configuration dialog connection status.
 
         :param bool status: connected to NTRIP server yes/no
-        :param tuple msg: tuple of (message, color)
+        :param tuple msgt: tuple of (message, color)
         """
 
         if self.dlg_ntripconfig is not None:
-            self.dlg_ntripconfig.set_controls(status, msg)
+            self.dlg_ntripconfig.set_controls(status, msgt)
+
+    def update_spartn_status(self, status: bool, msgt: tuple = None):
+        """
+        Update SPARTN configuration dialog connection status.
+
+        :param bool status: connected to SPARTN server (NONE, IP, LBAND)
+        :param tuple msgt: tuple of (message, color)
+        """
+
+        if self.dlg_spartnconfig is not None:
+            self.dlg_spartnconfig.set_controls(status, msgt)
 
     def get_coordinates(self) -> tuple:
         """
@@ -793,6 +813,22 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         return self._spartn_user_port
 
     @property
+    def mqapikey(self) -> str:
+        """
+        Getter for MapQuerst API Key.
+        """
+
+        return self._mqapikey
+
+    @property
+    def mqttclientid(self) -> str:
+        """
+        Getter for MQTT Client ID.
+        """
+
+        return self._mqttclientid
+
+    @property
     def gnss_inqueue(self) -> Queue:
         """
         Getter for GNSS message input queue.
@@ -817,6 +853,14 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         return self._socket_inqueue
 
     @property
+    def socket_outqueue(self) -> Queue:
+        """
+        Getter for socket output queue.
+        """
+
+        return self._socket_outqueue
+
+    @property
     def ntrip_inqueue(self) -> Queue:
         """
         Getter for NTRIP input queue.
@@ -839,14 +883,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         return self._spartn_outqueue
-
-    @property
-    def socketqueue(self) -> Queue:
-        """
-        Getter for socket queue.
-        """
-
-        return self._socket_inqueue
 
     @property
     def conn_status(self) -> int:
@@ -878,7 +914,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
         Getter for SPARTN connection status.
 
-        :param int status: connection status - CONNECTED_SPARTNLB / CONNECTED_SPARTNIP
+        :param int status: connection status
+        CONNECTED_NTRIP / CONNECTED_SPARTNLB / CONNECTED_SPARTNIP
         """
 
         return self._rtk_conn_status
@@ -886,7 +923,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
     @rtk_conn_status.setter
     def rtk_conn_status(self, status: int):
         """
-        Setter for SPARTN connection status  - CONNECTED_SPARTNLB / CONNECTED_SPARTNIP
+        Setter for SPARTN connection status
+        CONNECTED_NTRIP / CONNECTED_SPARTNLB / CONNECTED_SPARTNIP
 
         :param int status: connection status
         """

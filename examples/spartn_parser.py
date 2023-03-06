@@ -22,7 +22,7 @@ INFILE = "spartn_mqtt.log"
 i = 0
 with open(INFILE, "rb") as stream:
     spr = SPARTNReader(stream)
-    for raw_data, parsed_data in spr.iterate():
+    for raw_data, parsed_data in spr:
         print(parsed_data)
         i += 1
 

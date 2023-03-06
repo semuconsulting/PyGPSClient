@@ -88,5 +88,6 @@ UBX, msgId=06;orange
 UNKNOWN PROTOCOL;red
 ERROR;red
 WARNING;red
-NTRIP>>;mediumpurple1
-NTRIP<<;mediumpurple1
+NTRIP>>;#9f30c1
+NTRIP<<;#9f30c1
+SPARTN>>;#a53570

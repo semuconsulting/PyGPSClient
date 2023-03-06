@@ -20,16 +20,18 @@ from pygpsclient._version import __version__ as VERSION
 def main():
     """The main tkinter loop."""
 
-    ap = ArgumentParser(epilog=EPILOG, argument_default=SUPPRESS)
-    ap.add_argument("-V", "--version", action="version", version="%(prog)s " + VERSION)
-    ap.add_argument(
+    arp = ArgumentParser(epilog=EPILOG, argument_default=SUPPRESS)
+    arp.add_argument("-V", "--version", action="version", version="%(prog)s " + VERSION)
+    arp.add_argument(
         "-U", "--userport", required=False, help="User-defined GNSS receiver port"
     )
-    ap.add_argument(
+    arp.add_argument(
         "-S", "--spartnport", required=False, help="User-defined SPARTN receiver port"
     )
+    arp.add_argument("--mqapikey", required=False, help="MapQuest API Key")
+    arp.add_argument("--mqttclientid", required=False, help="MQTT Client ID")
 
-    kwargs = vars(ap.parse_args())
+    kwargs = vars(arp.parse_args())
 
     root = Tk()
     App(root, **kwargs)

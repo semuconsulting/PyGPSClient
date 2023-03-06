@@ -620,7 +620,7 @@ def wnotow2date(wno: int, tow: int) -> datetime:
     :rtype: datetime
     """
 
-    dat = GPSEPOCH0 + timedelta(days=(wno * 7))
+    dat = GPSEPOCH0 + timedelta(days=wno * 7)
     dat += timedelta(seconds=tow)
     return dat
 

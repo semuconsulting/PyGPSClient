@@ -47,6 +47,7 @@ from pygpsclient.globals import (
     ICON_WARNING,
     ICON_DISCONN,
     ICON_BLANK,
+    ICON_LOAD,
     ENTCOL,
     CONNECTED,
     SPARTN_SOURCE_LB,
@@ -63,11 +64,15 @@ from pygpsclient.strings import (
     LBLSPTNUPLOAD,
     LBLSPTNFP,
     LBLSPTNNMEA,
+    LBLJSONLOAD,
+    DLGJSONOK,
+    DLGJSONERR,
     NOTCONN,
     NULLSEND,
     LBLSPARTNGN,
     CONFIGOK,
     CONFIGBAD,
+    CONFIGRXM,
 )
 from pygpsclient.helpers import (
     valid_entry,
@@ -77,6 +82,7 @@ from pygpsclient.helpers import (
     VALDMY,
     VALLEN,
 )
+from pygpsclient.spartn_json_config import SpartnJsonConfig
 
 U2MAX = 2e16 - 1
 U8MAX = 2e64 - 1
@@ -117,6 +123,7 @@ class SPARTNGNSSDialog(Frame):
         self._img_warn = ImageTk.PhotoImage(Image.open(ICON_WARNING))
         self._img_send = ImageTk.PhotoImage(Image.open(ICON_SEND))
         self._img_disconn = ImageTk.PhotoImage(Image.open(ICON_DISCONN))
+        self._img_load = ImageTk.PhotoImage(Image.open(ICON_LOAD))
         self._status = StringVar()
         self._spartn_source = IntVar()
         self._status_cfgmsg = StringVar()
@@ -188,6 +195,16 @@ class SPARTNGNSSDialog(Frame):
             variable=self._spartn_source,
             value=SPARTN_SOURCE_LB,
         )
+        self._lbl_loadjson = Label(
+            self,
+            text=LBLJSONLOAD,
+        )
+        self._btn_loadjson = Button(
+            self,
+            width=45,
+            image=self._img_load,
+            command=lambda: self._on_load_json(),
+        )
         self._chk_upload_keys = Checkbutton(
             self,
             text=LBLSPTNUPLOAD,
@@ -217,34 +234,39 @@ class SPARTNGNSSDialog(Frame):
         """
 
         self._lbl_gnss.grid(column=0, row=0, columnspan=4, padx=3, pady=2, sticky=W)
-        self._lbl_curr.grid(column=0, row=1, columnspan=4, padx=3, pady=2, sticky=W)
-        self._lbl_key1.grid(column=0, row=2, padx=3, pady=2, sticky=W)
-        self._ent_key1.grid(column=1, row=2, columnspan=3, padx=3, pady=2, sticky=W)
-        self._lbl_valdate1.grid(column=0, row=3, padx=3, pady=2, sticky=W)
-        self._ent_valdate1.grid(column=1, row=3, columnspan=3, padx=3, pady=2, sticky=W)
+        self._lbl_loadjson.grid(column=0, row=1, padx=3, pady=2, sticky=W)
+        self._btn_loadjson.grid(column=1, row=1, columnspan=3, padx=3, pady=2, sticky=W)
         ttk.Separator(self).grid(
-            column=0, row=4, columnspan=4, padx=2, pady=3, sticky=(W, E)
+            column=0, row=2, columnspan=4, padx=2, pady=3, sticky=(W, E)
         )
-        self._lbl_next.grid(column=0, row=5, columnspan=3, padx=3, pady=2, sticky=W)
-        self._lbl_key2.grid(column=0, row=6, padx=3, pady=2, sticky=W)
-        self._ent_key2.grid(column=1, row=6, columnspan=3, padx=2, pady=2, sticky=W)
-        self._lbl_valdate2.grid(column=0, row=7, padx=3, pady=2, sticky=W)
-        self._ent_valdate2.grid(column=1, row=7, columnspan=3, padx=3, pady=2, sticky=W)
+        self._lbl_curr.grid(column=0, row=3, columnspan=4, padx=3, pady=2, sticky=W)
+        self._lbl_key1.grid(column=0, row=4, padx=3, pady=2, sticky=W)
+        self._ent_key1.grid(column=1, row=4, columnspan=3, padx=3, pady=2, sticky=W)
+        self._lbl_valdate1.grid(column=0, row=5, padx=3, pady=2, sticky=W)
+        self._ent_valdate1.grid(column=1, row=5, columnspan=3, padx=3, pady=2, sticky=W)
         ttk.Separator(self).grid(
-            column=0, row=8, columnspan=4, padx=2, pady=3, sticky=(W, E)
+            column=0, row=6, columnspan=4, padx=2, pady=3, sticky=(W, E)
         )
-        self._rad_source0.grid(column=0, row=9, padx=3, pady=2, sticky=W)
-        self._rad_source1.grid(column=1, row=9, columnspan=3, padx=3, pady=2, sticky=W)
-        self._chk_upload_keys.grid(column=0, row=10, padx=3, pady=2, sticky=W)
-        self._chk_send_config.grid(column=1, row=10, padx=3, pady=2, sticky=W)
+        self._lbl_next.grid(column=0, row=7, columnspan=3, padx=3, pady=2, sticky=W)
+        self._lbl_key2.grid(column=0, row=8, padx=3, pady=2, sticky=W)
+        self._ent_key2.grid(column=1, row=8, columnspan=3, padx=2, pady=2, sticky=W)
+        self._lbl_valdate2.grid(column=0, row=9, padx=3, pady=2, sticky=W)
+        self._ent_valdate2.grid(column=1, row=9, columnspan=3, padx=3, pady=2, sticky=W)
+        ttk.Separator(self).grid(
+            column=0, row=10, columnspan=4, padx=2, pady=3, sticky=(W, E)
+        )
+        self._rad_source0.grid(column=0, row=11, padx=3, pady=2, sticky=W)
+        self._rad_source1.grid(column=1, row=11, columnspan=3, padx=3, pady=2, sticky=W)
+        self._chk_upload_keys.grid(column=0, row=12, padx=3, pady=2, sticky=W)
+        self._chk_send_config.grid(column=1, row=12, padx=3, pady=2, sticky=W)
         self._chk_disable_nmea.grid(
-            column=2, row=10, columnspan=2, padx=3, pady=2, sticky=W
+            column=2, row=12, columnspan=2, padx=3, pady=2, sticky=W
         )
         ttk.Separator(self).grid(
-            column=0, row=11, columnspan=4, padx=2, pady=3, sticky=(W, E)
+            column=0, row=13, columnspan=4, padx=2, pady=3, sticky=(W, E)
         )
-        self._btn_send_command.grid(column=2, row=12, padx=3, pady=2, sticky=W)
-        self._lbl_send_command.grid(column=3, row=12, padx=3, pady=2, sticky=W)
+        self._btn_send_command.grid(column=2, row=14, padx=3, pady=2, sticky=W)
+        self._lbl_send_command.grid(column=3, row=14, padx=3, pady=2, sticky=W)
 
     def _reset(self):
         """
@@ -258,6 +280,8 @@ class SPARTNGNSSDialog(Frame):
         self._upload_keys.set(1)
         self._send_f9p_config.set(1)
         self._disable_nmea.set(0)
+
+        self._poll_config()
 
     def _valid_gnss_settings(self) -> bool:
         """
@@ -329,7 +353,7 @@ class SPARTNGNSSDialog(Frame):
         wno1, tow1 = date2wnotow(self._get_date(self._spartn_valdate1))
         wno1b = val2bytes(wno1, U2)
         tow1b = val2bytes(tow1, U4)
-        key2 = bytes.fromhex(self._spartn_key1.get())
+        key2 = bytes.fromhex(self._spartn_key2.get())
         keylen2 = val2bytes(len(key2), U1)
         wno2, tow2 = date2wnotow(self._get_date(self._spartn_valdate2))
         wno2b = val2bytes(wno2, U2)
@@ -416,6 +440,15 @@ class SPARTNGNSSDialog(Frame):
         dat = val.get()
         return datetime(int(dat[0:4]), int(dat[4:6]), int(dat[6:8]))
 
+    def _poll_config(self):
+        """
+        Poll receiver for current RXM-SPARTN-KEY configuration.
+        """
+
+        msg = UBXMessage("RXM", RXMMSG, POLL)
+        self.__app.gnss_outqueue.put(msg.serialize())
+        self.__container.set_pending(RXMMSG, SPARTN_GNSS)
+
     def update_status(self, msg: UBXMessage):
         """
         Update pending confirmation status.
@@ -423,17 +456,17 @@ class SPARTNGNSSDialog(Frame):
         """
 
         if msg.identity == RXMMSG:
-            if msg.numKeys == 2:  # check both keys have been uploaded
-                self._lbl_send_command.config(image=self._img_confirmed)
+            self._lbl_send_command.config(image=self._img_confirmed)
+            if msg.numKeys == 2:
                 keydata = parse_rxmspartnkey(msg)  # key1, date1, key2, date2
                 self._spartn_key1.set(keydata[0][0])
                 self._spartn_valdate1.set(keydata[0][1].strftime("%Y%m%d"))
                 self._spartn_key2.set(keydata[1][0])
                 self._spartn_valdate2.set(keydata[1][1].strftime("%Y%m%d"))
-                self.__container.set_status(CONFIGOK.format(RXMMSG), "green")
+                col = "green"
             else:
-                self._lbl_send_command.config(image=self._img_warn)
-                self.__container.set_status(CONFIGBAD.format(RXMMSG), "red")
+                col = "red"
+            self.__container.set_status(CONFIGRXM.format(RXMMSG, msg.numKeys), col)
         elif msg.identity == "ACK-ACK":
             self._lbl_send_command.config(image=self._img_confirmed)
             self.__container.set_status(CONFIGOK.format(CFGSET), "green")
@@ -441,3 +474,29 @@ class SPARTNGNSSDialog(Frame):
             self._lbl_send_command.config(image=self._img_warn)
             self.__container.set_status(CONFIGBAD.format(CFGSET), "red")
         self.update_idletasks()
+
+    def _on_load_json(self):
+        """
+        Load SPARTN decryption keys from JSON file.
+        """
+        # pylint: disable=unused-variable
+
+        jsonfile = self.__app.file_handler.open_spartnjson()
+        if jsonfile is None:
+            return
+
+        try:
+            spc = SpartnJsonConfig(jsonfile)
+            # strip scheme and port from server name
+            scheme, host, port = spc.server.split(":")
+            self.__container.server = host.replace("//", "")
+            self.__container.clientid = spc.clientid
+            (key, start, _) = spc.current_key
+            self._spartn_key1.set(key)
+            self._spartn_valdate1.set(start.strftime("%Y%m%d"))
+            (key, start, _) = spc.next_key
+            self._spartn_key2.set(key)
+            self._spartn_valdate2.set(start.strftime("%Y%m%d"))
+            self.__container.set_status(DLGJSONOK.format(jsonfile), "green")
+        except Exception as err:  # pylint: disable=broad-exception-caught
+            self.__container.set_status(DLGJSONERR.format(err), "red")

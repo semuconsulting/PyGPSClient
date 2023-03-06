@@ -68,30 +68,24 @@ class FileHandler:
         self.close_logfile()
         self.close_trackfile()
 
-    def load_apikey(self) -> str:
+    def load_mqapikey(self) -> str:
         """
-        Load MapQuest web map api key from environment variable or
+        Load MapQuest web map api key from
         key file in user's home directory.
 
-        :return: apikey
+        :return: mqapikey
         :rtype: str
         """
 
-        # load from env variable if set
-        apikey = os.getenv("MQAPIKEY")
-        if apikey is not None:
-            return apikey
-
-        # otherwise load from file
         filepath = os.path.join(HOME, MQAPIKEY)
         try:
             with open(filepath, "r") as file:
-                apikey = file.read()
+                mqapikey = file.read()
         except OSError:
             # Error message will be displayed on mapview widget if invoked
-            apikey = ""
+            mqapikey = ""
 
-        return apikey
+        return mqapikey
 
     def load_colortags(self) -> list:
         """
@@ -250,6 +244,26 @@ class FileHandler:
             initialdir=HOME,
             filetypes=(
                 ("spartn files", f"*.{ext}"),
+                ("all files", "*.*"),
+            ),
+        )
+        if filepath in ((), ""):
+            return None  # User cancelled
+        return filepath
+
+    def open_spartnjson(self) -> str:
+        """
+        Open JSON SPARTN config file.
+
+        :return: json file path
+        :rtype: str
+        """
+
+        filepath = filedialog.askopenfilename(
+            title=READTITLE,
+            initialdir=HOME,
+            filetypes=(
+                ("json files", "*.json"),
                 ("all files", "*.*"),
             ),
         )

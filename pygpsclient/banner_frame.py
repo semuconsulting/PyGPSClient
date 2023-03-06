@@ -15,7 +15,7 @@ from platform import system
 from tkinter import Frame, Label, Button, StringVar, font, N, S, W, E, SUNKEN
 from PIL import ImageTk, Image
 from pyubx2 import dop2str
-from pygnssutils.helpers import latlon2dms, latlon2dmm
+from pynmeagps.nmeahelpers import latlon2dms, latlon2dmm
 from pygpsclient.globals import (
     DMM,
     DMS,
@@ -425,9 +425,9 @@ class BannerFrame(Frame):
         lon = self.__app.gnss_status.lon
         if isinstance(lat, (int, float)) and isinstance(lon, (int, float)):
             if disp_format == DMS:
-                lat, lon = latlon2dms((lat, lon))
+                lat, lon = latlon2dms(lat, lon)
             elif disp_format == DMM:
-                lat, lon = latlon2dmm((lat, lon))
+                lat, lon = latlon2dmm(lat, lon)
             self._lat.set(f"{lat:<15}")
             self._lon.set(f"{lon:<15}")
         else:
@@ -512,7 +512,8 @@ class BannerFrame(Frame):
         )
         if units in (UI, UIK):
             self._hvacc.set(
-                f"hacc {m2ft(self.__app.gnss_status.hacc):.3f}\nvacc {m2ft(self.__app.gnss_status.vacc):.3f}"
+                f"hacc {m2ft(self.__app.gnss_status.hacc):.3f}\n"
+                + "vacc {m2ft(self.__app.gnss_status.vacc):.3f}"
             )
         else:
             self._hvacc.set(

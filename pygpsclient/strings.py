@@ -19,7 +19,7 @@ INTROTXTNOPORTS = "Welcome to PyGPSClient!"
 HELPTXT = "Help..About - display About dialog."
 
 ABOUTTXT = (
-    "PyGPSClient is a free, open-source NMEA, UBX & RTCM3 GNSS/GPS client "
+    "PyGPSClient is a free, open-source NMEA, UBX, RTCM3, NTRIP & SPARTN GNSS/GPS client "
     + "application written entirely in Python and tkinter. "
     + "Instructions and source code are available on GitHub at the link below."
 )
@@ -63,8 +63,10 @@ UBXPOLL = "Polling current UBX configuration..."
 MONSPANERROR = "Enable or poll MON-SPAN message"
 VERCHECK = "Newer version of PyGPSClient available: {}"
 NULLSEND = "Nothing to send"
+CONFIGRXM = "{} polled, {} key(s) loaded"
 CONFIGOK = "{} command accepted"
 CONFIGBAD = "{} command rejected"
+MQTTCONN = "Connecting to MQTT server {}..."
 
 
 # Menu text
@@ -137,7 +139,7 @@ LBLSPTNNMEA = "Disable NMEA?"
 LBLSPARTNIP = "IP CORRECTION CONFIGURATION (MQTT)"
 LBLSPARTNLB = "L-BAND CORRECTION CONFIGURATION (D9*)"
 LBLSPARTNGN = "GNSS RECEIVER CONFIGURATION (F9*)"
-
+LBLJSONLOAD = "Load Keys From JSON"
 
 # Dialog text
 DLGUBXCONFIG = "UBX Configuration"
@@ -156,6 +158,10 @@ DLGGPXPROMPT = "CLICK FOLDER ICON TO LOAD GPX FILE"
 DLGGPXLOAD = "LOADING GPX TRACK ..."
 DLGGPXERROR = "GPX PARSING ERROR!"
 DLGGPXNULL = "NO TRACKPOINTS IN GPX FILE!"
+DLGNOMONSPAN = "This receiver does not appear to\nsupport the MON-SPAN message"
+DLGSPARTNWARN = "WARNING! Disconnect from {} client before using {} client"
+DLGJSONERR = "ERROR! {}"
+DLGJSONOK = "Keys loaded from {}"
 
 # UBX Preset Command Descriptions
 PSTRESET = "CFG-CFG - RESTORE FACTORY DEFAULTS"
