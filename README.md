@@ -171,7 +171,7 @@ Below is a illustrative NTRIP DGPS data log, showing:
 
 **BETA FEATURE**
 
-![spartn config widget screenshot](/images/spartnconfig_widget.png)
+![spartn config widget screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/spartnconfig_widget.png?raw=true)
 
 The SPARTN Configuration utility allows users to receive and process SPARTN RTK Correction data from an IP or L-Band source to achieve cm level location accuracy. It provides three independent configuration sections, one for IP Correction (MQTT), one for L-Band Correction (e.g. D9S) and a third for the GNSS receiver (e.g. F9P). 
 
@@ -242,7 +242,7 @@ Below is a illustrative SPARTN DGPS data log, showing:
 * Incoming SPARTN correction messages; in this case - SPARTN-1X-GAD (geographic area definition) and SPARTN-1X-HPAC (high-precision atmosphere correction). 
 * Outgoing UBX RXM-COR confirmation messages from receiver showing that the SPARTN data has been received and decrypted OK.
 
-![spartn console screenshot](/images/spartn_consolelog.png)
+![spartn console screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/spartn_consolelog.png?raw=true)
 ---
 ### <a name="socketserver">Socket Server / NTRIP Caster Facilities</a>
 
