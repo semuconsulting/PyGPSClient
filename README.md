@@ -12,7 +12,6 @@
 [Mapquest API Key](#mapquestapi) |
 [User-defined Presets](#userdefined) |
 [CLI Utilities](#cli) |
-[Glossary of Terms](#glossary) |
 [License](#license) |
 [Author Information](#author)
 
@@ -36,6 +35,8 @@ The application can be installed using the standard `pip` Python package manager
 ![Last Commit](https://img.shields.io/github/last-commit/semuconsulting/PyGPSClient)
 ![Contributors](https://img.shields.io/github/contributors/semuconsulting/PyGPSClient.svg)
 ![Open Issues](https://img.shields.io/github/issues-raw/semuconsulting/PyGPSClient)
+
+The PyGPSClient home page is at [PyGPSClient GUI](https://www.semuconsulting.com/pygpsclientgui/#home). For a general overview of GNSS, DGPS, RTK, NTRIP and SPARTN technologies and terminology, refer to [GNSS Positioning - A Reviser](https://www.semuconsulting.com/gnsswiki/).
 
 Sphinx API Documentation in HTML format is available at [https://www.semuconsulting.com/pygpsclient](https://www.semuconsulting.com/pygpsclient).
 
@@ -468,32 +469,6 @@ designated output stream.
 1. `ubxsetrate` CLI utility. A simple utility which sets NMEA or UBX message rates on u-blox GNSS receivers.
 
 For further details, refer to the `pygnssutils` homepage at [https://github.com/semuconsulting/pygnssutils](https://github.com/semuconsulting/pygnssutils).
-
----
-## <a name="glossary">Glossary of Terms</a>
-
-For a general overview of GNSS, DGPS, RTK, NTRIP and SPARTN technologies and terminology, refer to [GNSS Positioning - A Reviser](https://www.semuconsulting.com/gnsswiki/).
-
-* ACC - accuracy of location in real units (hacc - horizontal, vacc - vertical). Note that location accuracy is not directly provided via the standard NMEA message set, but is available from UBX messages e.g. NAV-POSLLH, NAV-PVT and some proprietary NMEA messages e.g. UBX00.
-* BEI - [BeiDou Navigation Satellite System](https://en.wikipedia.org/wiki/BeiDou).
-* DGPS - [Differential GPS](https://en.wikipedia.org/wiki/Differential_GPS).
-* DOP - [dilution of precision](https://gisgeography.com/gps-accuracy-hdop-pdop-gdop-multipath/) (pdop - overall position, hdop - horizontal, vdop - vertical).
-* GAL - [Galileo Satellite Navigation](https://en.wikipedia.org/wiki/Galileo_(satellite_navigation)).
-* GLO - [GLONASS, Global Navigation Satellite System](https://en.wikipedia.org/wiki/GLONASS).
-* GNSS - [Global Navigation Satellite System](https://en.wikipedia.org/wiki/Satellite_navigation).
-* GPS - [Global Positioning System](https://en.wikipedia.org/wiki/Global_Positioning_System).
-* IME - [IMES, Indoor MEssaging System](https://www.gpsworld.com/wirelessindoor-positioningopening-up-indoors-11603/).
-* NTRIP - [Networked Transport of RTCM via Internet Protocol](https://en.wikipedia.org/wiki/Networked_Transport_of_RTCM_via_Internet_Protocol).
-* PRN - [pseudo-random noise number](https://www.gps.gov/technical/prn-codes/) (code that each satellite transmits to differentiate itself from other satellites in the active constellation).
-* QZSS - [Quasi-Zenith Satellite System](https://en.wikipedia.org/wiki/Quasi-Zenith_Satellite_System).
-* RTCM(3) - [RTCM 10403.n Differential GNSS Services standard](https://rtcm.myshopify.com/collections/differential-global-navigation-satellite-dgnss-standards/products/rtcm-10403-2-differential-gnss-global-navigation-satellite-systems-services-version-3-february-1-2013).
-* RTK - [Real-time Kinematics](https://en.wikipedia.org/wiki/Real-time_kinematic_positioning).
-* SBA - [SBAS, Satellite-based Augmentation System](https://en.wikipedia.org/wiki/GNSS_augmentation#Satellite-based_augmentation_system).
-* SIP - satellites used in position solution.
-* SIV - satellites in view.
-* SPARTN - [Secure Position Augmentation for Real Time Navigation](https://www.spartnformat.org/).
-* SV(N) - [space vehicle number](https://en.wikipedia.org/wiki/List_of_GPS_satellites) (serial number assigned to each satellite).
-* UTC - coordinated universal time.
 
 ---
 ## <a name="license">License</a>

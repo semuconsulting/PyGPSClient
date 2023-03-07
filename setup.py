@@ -12,7 +12,7 @@ Created on 12 Sep 2020
 from setuptools import setup, find_namespace_packages
 from pygpsclient import version as VERSION
 
-with open("README.md", "r") as fh:
+with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
@@ -47,7 +47,7 @@ setup(
     description="PyGPSClient GNSS/GPS Graphical Client",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/semuconsulting/PyGPSClient",
+    url="https://www.semuconsulting.com/pygpsclientgui",
     license="BSD 3-Clause 'Modified' License",
     keywords="PyGPSClient GNSS GPS GLONASS NMEA UBX GIS",
     platforms="Windows, MacOS, Linux",
