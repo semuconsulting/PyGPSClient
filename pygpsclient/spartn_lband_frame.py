@@ -29,6 +29,7 @@ from tkinter import (
 from PIL import ImageTk, Image
 from pyubx2 import (
     UBXMessage,
+    SET,
     TXN_NONE,
     SET_LAYER_RAM,
     POLL_LAYER_RAM,
@@ -141,7 +142,8 @@ class SPARTNLBANDDialog(Frame):
         self._spartn_descrminit = StringVar()
         self._spartn_unqword = StringVar()
         self._spartn_outport = StringVar()
-        self._spartn_enabledbg = IntVar()
+        self._enabledbg = IntVar()
+        self._saveconfig = IntVar()
         self._ports = INPORTS
         self._settings = {}
         self._connected = DISCONNECTED
@@ -177,7 +179,7 @@ class SPARTNLBANDDialog(Frame):
         self._chk_enabledbg = Checkbutton(
             self,
             text="Enable Debug?",
-            variable=self._spartn_enabledbg,
+            variable=self._enabledbg,
         )
         self._lbl_schwin = Label(self, text="Search window")
         self._ent_schwin = Entry(
@@ -187,6 +189,11 @@ class SPARTNLBANDDialog(Frame):
             state=NORMAL,
             relief="sunken",
             width=10,
+        )
+        self._chk_saveconfig = Checkbutton(
+            self,
+            text="Save Config?",
+            variable=self._saveconfig,
         )
         self._chk_usesid = Checkbutton(
             self,
@@ -289,7 +296,8 @@ class SPARTNLBANDDialog(Frame):
         self._ent_freq.grid(column=1, row=3, sticky=W)
         self._chk_enabledbg.grid(column=2, row=3, columnspan=2, sticky=W)
         self._lbl_schwin.grid(column=0, row=4, sticky=W)
-        self._ent_schwin.grid(column=1, row=4, columnspan=3, sticky=W)
+        self._ent_schwin.grid(column=1, row=4, sticky=W)
+        self._chk_saveconfig.grid(column=2, row=4, sticky=W)
         self._chk_usesid.grid(column=0, row=5, sticky=W)
         self._chk_descrm.grid(column=1, row=5, sticky=W)
         self._chk_prescram.grid(column=2, row=5, columnspan=2, sticky=W)
@@ -316,9 +324,9 @@ class SPARTNLBANDDialog(Frame):
         Reset configuration widgets.
         """
 
-        self._spartn_enabledbg.set(0)
+        self._enabledbg.set(0)
+        self._saveconfig.set(0)
         self._spartn_drat.set(PMP_DATARATES["B2400"])
-        self._spartn_freq.set(SPARTN_DEFAULT["freq"])
         self._spartn_freq.set(SPARTN_DEFAULT["freq"])
         self._spartn_schwin.set(SPARTN_DEFAULT["schwin"])
         self._spartn_usesid.set(SPARTN_DEFAULT["usesid"])
@@ -352,6 +360,7 @@ class SPARTNLBANDDialog(Frame):
             self._ent_unqword,
             self._ent_descraminit,
             self._chk_enabledbg,
+            self._chk_saveconfig,
             self._chk_descrm,
             self._chk_prescram,
             self._chk_usesid,
@@ -507,7 +516,7 @@ class SPARTNLBANDDialog(Frame):
         for port in INPORTS:
             cfgdata.append((f"CFG_MSGOUT_UBX_RXM_PMP_{port}", 1))
             cfgdata.append((f"CFG_{port}OUTPROT_UBX", 1))
-            if self._spartn_enabledbg.get():
+            if self._enabledbg.get():
                 cfgdata.append((f"CFG_INFMSG_UBX_{port}", b"\x1f"))
             else:
                 cfgdata.append((f"CFG_INFMSG_UBX_{port}", b"\x07"))
@@ -515,6 +524,25 @@ class SPARTNLBANDDialog(Frame):
             cfgdata.append(f"CFG_{outport}_BAUDRATE", int(self.serial_settings.bpsrate))
 
         msg = UBXMessage.config_set(SET_LAYER_RAM, TXN_NONE, cfgdata)
+        return msg
+
+    def _format_cfgcfg(self) -> UBXMessage:
+        """
+        Format UBX CFG-CFG command to persist configuration
+        to correction receiver's BBR / Flash / EEPROM memory.
+        """
+
+        msg = UBXMessage(
+            "CFG",
+            "CFG-CFG",
+            SET,
+            # clearMask=b"\x01\x00\x00\x00",
+            saveMask=b"\x1f\x1f\x00\x00",
+            # loadMask=b"\x01\x00\x00\x00",
+            devBBR=1,
+            devFlash=1,
+            devEEPROM=1,
+        )
         return msg
 
     def _on_send_config(self):
@@ -529,6 +557,11 @@ class SPARTNLBANDDialog(Frame):
         self._send_command(msg)
         self.__container.set_status(f"{CFGSET} command sent", "green")
         self._lbl_send.config(image=self._img_pending)
+
+        # save config to persistent memory
+        if self._saveconfig.get():
+            msg = self._format_cfgcfg()
+            self._send_command(msg)
 
         self._poll_config()
 
