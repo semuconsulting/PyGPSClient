@@ -15,10 +15,10 @@ assignees: semuadmin
 
 A clear and concise description of what the bug is.
 
-Please specify the pygpsclient version (`>>> pygpsclient.version`) and, where possible, include:
+Please specify the pygpsclient version (`pygpsclient -V) and, where possible, include:
 - A screenshot of the error.
 - The error message and full traceback.
-- A binary / hexadecimal dump of the UBX data stream (e.g. from PuTTY, screen or u-center).
+- A binary / hexadecimal dump of the UBX data stream (e.g. from PuTTY or screen).
 
 **To Reproduce**
 
@@ -32,13 +32,13 @@ A clear and concise description of what you expected to happen.
 
 **Desktop (please complete the following information):**
 
-- The operating system you're using [e.g. Windows 10, MacOS Big Sur, Ubuntu Bionic]
-- The version of Python you're using (e.g. Python 3.8.3)
+- The operating system you're using [e.g. Windows 11, MacOS Ventura, Ubuntu Kinetic]
+- The version of Python you're using (e.g. Python 3.11.1)
 - The type of serial connection [e.g. USB, UART1, I2C]
 
 **GNSS/GPS Device (please complete the following information as best you can):**
 
-- Device Model/Generation: [e.g. u-blox NEO-9M]
+- Device Model/Generation: [e.g. u-blox NEO-M9]
 - Firmware Version: [e.g. SPG 4.03]
 - Protocol: [e.g. 32.00]
  
