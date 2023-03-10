@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE CANDIDATE v1.3.19
+
+ENHANCEMENTS:
+
+1. Facility to store L-Band correction receiver (D9S) configuration to persistent storage (BBR, Flash, EEPROM) added to SPARTN Configuration Panel.
+
 ### RELEASE v1.3.18
 
 FIXES:
