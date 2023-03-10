@@ -1,5 +1,5 @@
 """
-!!! EXPERIMENTAL - FOR TESTING ONLY !!!
+FOR TESTING ONLY
 
 Threaded GNSS TCP socket server.
 
