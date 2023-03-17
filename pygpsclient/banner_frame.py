@@ -508,16 +508,18 @@ class BannerFrame(Frame):
         pdop = self.__app.gnss_status.pdop
         self._dop.set(f"{pdop:.2f} {dop2str(pdop):<9}")
         self._hvdop.set(
-            f"hdop {self.__app.gnss_status.hdop:.2f}\nvdop {self.__app.gnss_status.vdop:.2f}"
+            f"hdop {self.__app.gnss_status.hdop:.2f}\n"
+            + f"vdop {self.__app.gnss_status.vdop:.2f}"
         )
         if units in (UI, UIK):
             self._hvacc.set(
                 f"hacc {m2ft(self.__app.gnss_status.hacc):.3f}\n"
-                + "vacc {m2ft(self.__app.gnss_status.vacc):.3f}"
+                + f"vacc {m2ft(self.__app.gnss_status.vacc):.3f}"
             )
         else:
             self._hvacc.set(
-                f"hacc {self.__app.gnss_status.hacc:.3f}\nvacc {self.__app.gnss_status.vacc:.3f}"
+                f"hacc {self.__app.gnss_status.hacc:.3f}\n"
+                + f"vacc {self.__app.gnss_status.vacc:.3f}"
             )
 
     def _update_dgps(self):
