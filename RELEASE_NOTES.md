@@ -2,6 +2,10 @@
 
 ### RELEASE CANDIDATE v1.3.19
 
+FIXES:
+
+1. Fix glitch which caused banner hAcc/vAcc values to be garbled if using imperial units.
+
 ENHANCEMENTS:
 
 1. Facility to store L-Band correction receiver (D9S) configuration to persistent storage (BBR, Flash, EEPROM) added to SPARTN Configuration Panel.
