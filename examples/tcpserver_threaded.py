@@ -146,7 +146,6 @@ class GNSSServer(StreamRequestHandler):
 
 
 if __name__ == "__main__":
-
     print(f"Creating TCP server on {HOST}:{PORT}")
     server = ThreadingTCPServer((HOST, PORT), GNSSServer)
 

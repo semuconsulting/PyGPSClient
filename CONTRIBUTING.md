@@ -12,29 +12,34 @@ Please help us keep our issue list small by adding fixes: #{$ISSUE_NO} to the co
 
 ## Coding conventions
 
-  * This is open source software. We endeavour to make the code as transparent as possible.
-  * We use Visual Studio Code with the Microsoft Python extension for development and testing, but you are at liberty to use your preferred IDE.
-  * We document the code in accordance with [Sphinx](https://www.sphinx-doc.org/en/master/) docstring conventions.
-  * We use [pylint](https://pypi.org/project/pylint/) (>=2.13.0) for code analysis.
-  * We use [black](https://pypi.org/project/black/) (>=22.0) for code formatting and ask that you do the same.
+* This is open source software. Code should be as simple and transparent as possible. Favour clarity over brevity.
+* The code should be compatible with Python >= 3.7.
+* Avoid external library dependencies unless there's a compelling reason not to.
+* We use and recommend [Visual Studio Code](https://code.visualstudio.com/) with the [Python Extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python) for development and testing.
+* Code should be documented in accordance with [Sphinx](https://www.sphinx-doc.org/en/master/) docstring conventions.
+* Code should formatted using [black](https://pypi.org/project/black/) (>= 23.1.0).
+* We use and recommend [pylint](https://pypi.org/project/pylint/) (>=2.17.0) for code analysis.
 
 ## Testing
 
 While we endeavour to test on as wide a variety of u-blox devices as possible, as a volunteer project we only have a limited number of devices available. We particularly welcome testing contributions relating to specialised devices (e.g. high precision HP, real-time kinematics RTK, Automotive Dead-Reckoning ADR, etc.).
 
-We use python's native unittest framework for local unit testing, complemented by the GitHub Actions automated build and testing workflow. Code coverage is somewhat limited at present so we welcome improvements.
+We use Python's native unittest framework for local unit testing, complemented by the GitHub Actions automated build and testing workflow.
 
 Please write unittest examples for new code you create and add them to the `/tests` folder following the naming convention `test_*.py`.
 
-We test on the following platforms using u-blox NEO-M6, NEO-M9 and ZED-F9P devices:
-* Windows 10 & 11
-* MacOS (12 Monterey)
-* Linux (Ubuntu 22.04 LTS Jammy Jellyfish)
-* Raspberry Pi OS (32-bit)
+We test on the following platforms using a variety of u-blox devices (NEO-M6, NEO-M7, NEO-M8, NEO-M9, NEO-D9S, ZED-F9P, NEO-M10S):
+
+* Windows 11
+* MacOS (Ventura)
+* Linux (Ubuntu Kinetic)
+* Raspberry Pi OS (Bullseye 32-bit & 64-bit)
 
 ## Submitting changes
 
 Please send a [GitHub Pull Request to PyGPSClient](https://github.com/semuconsulting/PyGPSClient/pulls) with a clear list of what you've done (read more about [pull requests](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/about-pull-requests)). Please follow our coding conventions (below) and make sure all of your commits are atomic (one feature per commit).
+
+Please sign all commits - see [Signing GitHub Commits](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits) for instructions.
 
 Always write a clear log message for your commits. One-line messages are fine for small changes, but bigger changes should look like this:
 
