@@ -35,6 +35,7 @@ WDGSATS = "Satellites"
 WDGLEVELS = "Levels"
 WDGMAP = "Map"
 WDGSPECTRUM = "Spectrum"
+WDGSCATTER = "Scatter Plot"
 HIDE = "Hide"
 SHOW = "Show"
 

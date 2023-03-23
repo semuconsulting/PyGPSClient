@@ -29,6 +29,7 @@ from pygpsclient.strings import (
     WDGLEVELS,
     WDGMAP,
     WDGSPECTRUM,
+    WDGSCATTER,
     MENURESET,
     MENUSPARTNCONFIG,
 )
@@ -97,6 +98,10 @@ class MenuBar(Menu):
         self.view_menu.add_command(
             underline=1,
             command=lambda: self._toggle_widget(WDGSPECTRUM),
+        )
+        self.view_menu.add_command(
+            underline=1,
+            command=lambda: self._toggle_widget(WDGSCATTER),
         )
         self.view_menu.add_command(
             underline=1,

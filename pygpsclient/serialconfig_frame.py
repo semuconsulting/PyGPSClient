@@ -53,7 +53,7 @@ PARITIES = {
 }
 # These ranges can be overridden via keyword arguments:
 # (the default value will be the first in the range)
-BPSRATE_RNG = (9600, 19200, 38400, 57600, 115200, 4800)
+BPSRATE_RNG = (9600, 19200, 38400, 57600, 115200, 1000000, 4800)
 DATABITS_RNG = (8, 5, 6, 7)
 STOPBITS_RNG = (1, 1.5, 2)
 PARITY_RNG = list(PARITIES.keys())
