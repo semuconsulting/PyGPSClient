@@ -186,7 +186,7 @@ WIDGETU2 = (350, 250)  # medium widget size
 WIDGETU3 = (950, 350)  # Console size
 WIDGETU4 = (600, 600)  # GPX Track viewer size
 MAXCOLSPAN = 4  # max colspan of widgets
-MAXROWSPAN = 3  # max no of widget rows
+MAXROWSPAN = 4  # max no of widget rows
 
 BGCOL = "gray24"  # default widget background color
 FGCOL = "white"  # default widget foreground color
