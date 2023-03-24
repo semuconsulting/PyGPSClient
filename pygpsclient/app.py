@@ -363,7 +363,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         for nam, wdg in self._widget_grid.items():
-            wdg["visible"] = nam != WDGSPECTRUM
+            wdg["visible"] = nam not in (WDGSPECTRUM, WDGSCATTER)
         self._grid_widgets()
 
     def set_connection(self, message, color="blue"):
