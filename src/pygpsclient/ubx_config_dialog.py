@@ -18,7 +18,6 @@ Created on 19 Sep 2020
 :copyright: SEMU Consulting © 2020
 :license: BSD 3-Clause
 """
-# pylint: disable=invalid-name, too-many-instance-attributes
 
 from tkinter import (
     Toplevel,

@@ -11,7 +11,6 @@ to be increased if the correction source is intermittent.
 :copyright: SEMU Consulting © 2023
 :license: BSD 3-Clause
 """
-# pylint: disable=invalid-name, too-many-locals, too-many-instance-attributes
 
 from datetime import datetime, timedelta
 from tkinter import (

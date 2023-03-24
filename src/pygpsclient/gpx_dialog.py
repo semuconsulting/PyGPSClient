@@ -9,7 +9,7 @@ Created on 10 Jan 2023
 :copyright: SEMU Consulting © 2023
 :license: BSD 3-Clause
 """
-# pylint: disable=invalid-name, unused-argument, too-many-instance-attributes, too-many-locals
+# pylint: disable=unused-argument
 
 from xml.dom import minidom
 from io import BytesIO

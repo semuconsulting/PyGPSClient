@@ -63,13 +63,13 @@
             "problemMatcher": []
         },
         {
+            // uses project .pylintrc file
             "label": "Pylint",
             "type": "process",
             "command": "${config:python.defaultInterpreterPath}",
             "args": [
                 "-m",
                 "pylint",
-                "--reports=y",
                 "${config:modulename}"
             ],
             "problemMatcher": []
@@ -176,6 +176,7 @@
                 "Clean",
                 "Format",
                 "PylintError",
+                "Pylint",
                 "Build",
                 "Test",
                 //"Coverage",
