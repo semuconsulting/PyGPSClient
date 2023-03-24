@@ -1,5 +1,16 @@
 # PyGPSClient Release Notes
 
+### RELEASE v1.3.20
+
+ENHANCEMENTS:
+
+1. New Scatter Plot widget added, showing variability in position reporting over a period of time. Access via View..Show/Hide Scatter Plot. Thanks to @nmichaels-qualinx for contribution.
+
+CHANGES:
+
+1. Project migrated to pyproject.toml build mechanism and standard project structure (/src). The setuptools build backend has been retained.
+2. Internal build and test workflow streamlined.
+
 ### RELEASE v1.3.19
 
 FIXES:
