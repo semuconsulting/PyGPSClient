@@ -124,6 +124,14 @@ pygpsclient.rtcm3\_handler module
    :undoc-members:
    :show-inheritance:
 
+pygpsclient.scatter\_frame module
+---------------------------------
+
+.. automodule:: pygpsclient.scatter_frame
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pygpsclient.serialconfig\_frame module
 --------------------------------------
 
