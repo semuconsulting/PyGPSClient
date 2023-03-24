@@ -27,6 +27,7 @@ setup(
         "Pillow>=9.0.0",
         "pyserial>=3.5",
         "pyspartn>=0.1.3",
+        "geographiclib==2.0.0",
     ],
     package_data={
         "pygpsclient": [

@@ -136,7 +136,7 @@ KNOWNGPS = (
     "USB_to_UART",
 )
 # list of available bps rates (first entry in list is the default):
-BPSRATES = (9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600, 4800)
+BPSRATES = (9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600, 1000000, 4800)
 # terminator for NMEA protocol
 CRLF = b"\x0d\x0a"
 # socket client defaults

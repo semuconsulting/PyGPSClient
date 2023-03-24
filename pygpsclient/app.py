@@ -60,6 +60,7 @@ from pygpsclient.strings import (
     WDGLEVELS,
     WDGMAP,
     WDGSPECTRUM,
+    WDGSCATTER,
     VERCHECK,
 )
 from pygpsclient.gnss_status import GNSSStatus
@@ -74,6 +75,7 @@ from pygpsclient.stream_handler import StreamHandler
 from pygpsclient.settings_frame import SettingsFrame
 from pygpsclient.skyview_frame import SkyviewFrame
 from pygpsclient.spectrum_frame import SpectrumviewFrame
+from pygpsclient.scatter_frame import ScatterViewFrame
 from pygpsclient.status_frame import StatusFrame
 from pygpsclient.ubx_config_dialog import UBXConfigDialog
 from pygpsclient.ntrip_client_dialog import NTRIPConfigDialog
@@ -167,6 +169,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.frm_satview.init_sats()
         self.frm_graphview.init_graph()
         self.frm_spectrumview.init_graph()
+        self.frm_scatterview.init_graph()
         self.frm_banner.update_conn_status(DISCONNECTED)
 
         # Check for more recent version
@@ -189,6 +192,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.frm_satview = SkyviewFrame(self, borderwidth=2, relief="groove")
         self.frm_graphview = GraphviewFrame(self, borderwidth=2, relief="groove")
         self.frm_spectrumview = SpectrumviewFrame(self, borderwidth=2, relief="groove")
+        self.frm_scatterview = ScatterViewFrame(self, borderwidth=2, relief="groove")
 
         self.__master.config(menu=self.menu)
 
@@ -229,6 +233,11 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             WDGSPECTRUM: {
                 "menu": 6,
                 "frm": "frm_spectrumview",
+                "visible": False,
+            },
+            WDGSCATTER: {
+                "menu": 7,
+                "frm": "frm_scatterview",
                 "visible": False,
             },
             WDGSTATUS: {
