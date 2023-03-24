@@ -23,7 +23,6 @@ Point = namedtuple("Point", ["lat", "lon"])
 geo = Geodesic.WGS84
 
 
-# pylint: disable=too-many-instance-attributes
 class ScatterViewFrame(Frame):
     """
     Scatterplot view frame class.
@@ -77,7 +76,7 @@ class ScatterViewFrame(Frame):
         self.canvas.pack(fill=BOTH, expand=YES)
         self.scale_widget.pack(fill="x", expand=NO)
 
-    def _rescale(self, scale):
+    def _rescale(self):
         self._on_resize(None)
 
     def _on_resize(self, event):  # pylint: disable=unused-argument

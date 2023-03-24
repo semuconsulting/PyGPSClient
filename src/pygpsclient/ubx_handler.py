@@ -9,7 +9,6 @@ Created on 30 Sep 2020
 :copyright: SEMU Consulting © 2020
 :license: BSD 3-Clause
 """
-# pylint: disable=invalid-name
 
 from pyubx2 import UBXMessage, itow2utc
 from pygpsclient.globals import GLONASS_NMEA

@@ -10,7 +10,7 @@ Created on 14 Sep 2020
 :license: BSD 3-Clause
 
 """
-# pylint: disable=invalid-name, line-too-long
+# pylint: disable=line-too-long
 
 import os
 from datetime import datetime

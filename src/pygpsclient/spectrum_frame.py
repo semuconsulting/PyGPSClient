@@ -11,8 +11,6 @@ Created on 23 Dec 2022
 :license: BSD 3-Clause
 """
 
-# pylint: disable=invalid-name
-
 from math import ceil
 from tkinter import Frame, Canvas, font, BOTH, YES
 from pyubx2 import UBXMessage, SET

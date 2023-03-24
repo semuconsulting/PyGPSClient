@@ -13,7 +13,6 @@ Created on 2 Apr 2022
 :copyright: SEMU Consulting © 2022
 :license: BSD 3-Clause
 """
-# pylint: disable=invalid-name
 
 from tkinter import (
     ttk,

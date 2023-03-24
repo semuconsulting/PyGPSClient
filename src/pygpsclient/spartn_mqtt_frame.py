@@ -15,7 +15,6 @@ Created on 26 Jan 2023
 :copyright: SEMU Consulting © 2023
 :license: BSD 3-Clause
 """
-# pylint: disable=invalid-name, too-many-locals, too-many-instance-attributes
 
 from os import path
 from pathlib import Path

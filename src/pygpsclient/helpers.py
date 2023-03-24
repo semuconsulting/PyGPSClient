@@ -10,7 +10,6 @@ Created on 17 Apr 2021
 :license: BSD 3-Clause
 
 """
-# pylint: disable=invalid-name
 
 import re
 from datetime import datetime, timedelta

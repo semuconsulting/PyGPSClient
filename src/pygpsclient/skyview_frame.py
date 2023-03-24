@@ -9,7 +9,6 @@ Created on 13 Sep 2020
 :copyright: SEMU Consulting © 2020
 :license: BSD 3-Clause
 """
-# pylint: disable=invalid-name
 
 from tkinter import Frame, Canvas, font, BOTH, YES
 from operator import itemgetter

@@ -9,7 +9,6 @@ Created on 14 Sep 2020
 :copyright: SEMU Consulting © 2020
 :license: BSD 3-Clause
 """
-# pylint: disable=invalid-name
 
 from tkinter import Frame, Canvas, font, BOTH, YES
 from pygpsclient.globals import WIDGETU2, BGCOL, FGCOL, MAX_SNR, GNSS_LIST

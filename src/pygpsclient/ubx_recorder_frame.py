@@ -13,7 +13,6 @@ Created on 9 Jan 2023
 :copyright: SEMU Consulting © 2023
 :license: BSD 3-Clause
 """
-# pylint: disable=invalid-name, too-many-instance-attributes
 
 from time import sleep
 from threading import Event, Thread
