@@ -17,6 +17,7 @@ keywords= [
     "PyGPSClient",
     "GNSS",
     "GPS",
+    "GALILEO",
     "GLONASS",
     "BEIDOU",
     "NMEA",
@@ -26,6 +27,7 @@ keywords= [
     "SPARTN",
     "RTK",
     "DGPS",
+    "u-center",
     ]
 readme = "README.md"
 requires-python = ">=3.7"
