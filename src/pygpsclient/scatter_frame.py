@@ -44,7 +44,7 @@ class ScatterViewFrame(Frame):
 
         def_w, def_h = WIDGETU2
 
-        self.dot_col = "#8888FF"
+        self.dot_col = "orange"
         self.width = kwargs.get("width", def_w)
         self.height = kwargs.get("height", def_h)
         self.fg_col = FGCOL
@@ -113,16 +113,13 @@ class ScatterViewFrame(Frame):
 
         if self.mean is None:
             return
-
-        height = lbl_font.metrics("linespace")
-        lat = f"Lon {self.mean.lat:<012.10}"
-        lon = f"Lat {self.mean.lon:<012.10}"
-        width = max(lbl_font.measure(lat), lbl_font.measure(lon))
+        lat = f"Lon {self.mean.lat:14.10f}"
+        lon = f"Lat {self.mean.lon:15.10f}"
         self.canvas.create_text(
-            width, height, text=lat, fill=self.fg_col, font=lbl_font
+            5, 10, text=lat, fill=self.fg_col, font=lbl_font, anchor="w"
         )
         self.canvas.create_text(
-            width, height * 2, text=lon, fill=self.fg_col, font=lbl_font
+            5, 20, text=lon, fill=self.fg_col, font=lbl_font, anchor="w"
         )
 
     def init_graph(self):

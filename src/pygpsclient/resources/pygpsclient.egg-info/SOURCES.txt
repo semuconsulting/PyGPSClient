@@ -1,0 +1,11 @@
+LICENSE
+MANIFEST.in
+README.md
+pyproject.toml
+src/pygpsclient/resources/pygpsclient.egg-info/PKG-INFO
+src/pygpsclient/resources/pygpsclient.egg-info/SOURCES.txt
+src/pygpsclient/resources/pygpsclient.egg-info/dependency_links.txt
+src/pygpsclient/resources/pygpsclient.egg-info/entry_points.txt
+src/pygpsclient/resources/pygpsclient.egg-info/requires.txt
+src/pygpsclient/resources/pygpsclient.egg-info/top_level.txt
+tests/test_static.py

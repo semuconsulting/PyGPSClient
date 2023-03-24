@@ -1,0 +1,2 @@
+[run]
+omit = tests/*,examples/*,*/certifi/*,*/charset_normalizer/*,*/idna/*,*/pynmeagps/*,*/pyubx2/*,*/pyrtcm/*,*/requests/*,*/urllib3/*

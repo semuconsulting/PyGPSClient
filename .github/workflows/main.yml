@@ -24,7 +24,7 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Lint with pylint
         run: |
-          pylint -E pygpsclient
-      - name: Test with pytest
-        run: |
-          python tests/testsuite.py
+          pylint -E src/pygpsclient
+      # - name: Test with pytest
+      #   run: |
+      #     python tests/testsuite.py

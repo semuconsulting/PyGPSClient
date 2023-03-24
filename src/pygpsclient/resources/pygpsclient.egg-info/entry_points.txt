@@ -1,0 +1,2 @@
+[console_scripts]
+wibbly = pygpsclient.__main__:main
