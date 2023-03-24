@@ -15,9 +15,9 @@ Pipfile*.*
 /examples/pointperfect
 /logs/*.log
 /logs/*.gpx
-/PyGPSClient_*
-/PyGPSClient-*
-/PyGPSClient.egg*
+/pygpsclient_*
+/pygpsclient-*
+src/pygpsclient.egg*
 /__pycache__
 /.dbeaver
 /pygpsclient/__pycache__

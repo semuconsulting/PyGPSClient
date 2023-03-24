@@ -1,4 +1,4 @@
 include LICENSE
-include pygpsclient/resources/*.*
+include src/pygpsclient/resources/*.*
 global-exclude __pycache__
 global-exclude *.pyc
