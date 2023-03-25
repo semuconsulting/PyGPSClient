@@ -6,6 +6,19 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "Run Local Version",
+            "type": "process",
+            "command": "${config:python.defaultInterpreterPath}",
+            "args": [
+                "-m",
+                "pygpsclient"
+            ],
+            "options": {
+                "cwd": "src"
+            },
+            "problemMatcher": []
+        },
+        {
             "label": "Update Toolchain",
             "type": "process",
             "command": "${config:python.defaultInterpreterPath}",
