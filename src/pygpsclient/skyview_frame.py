@@ -13,7 +13,7 @@ Created on 13 Sep 2020
 from tkinter import Frame, Canvas, font, BOTH, YES
 from operator import itemgetter
 from pygpsclient.globals import WIDGETU1, BGCOL, FGCOL, GNSS_LIST
-from pygpsclient.helpers import snr2col, cel2cart
+from pygpsclient.helpers import snr2col, cel2cart, col2contrast
 
 OL_WID = 2
 
@@ -128,19 +128,20 @@ class SkyviewFrame(Frame):
                     snr = int(snr)
                 (_, ol_col) = GNSS_LIST[gnssId]
                 prn = f"{int(prn):02}"
+                bg_col = snr2col(snr)
                 self.can_satview.create_circle(
                     x + (w / 2),
                     y + (h / 2),
                     (maxr / 10),
                     outline=ol_col,
-                    fill=snr2col(snr),
+                    fill=bg_col,
                     width=OL_WID,
                 )
                 self.can_satview.create_text(
                     x + (w / 2),
                     y + (h / 2),
                     text=prn,
-                    fill=self.fg_col,
+                    fill=col2contrast(bg_col),
                     font=resize_font,
                 )
             except ValueError:

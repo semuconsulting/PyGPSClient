@@ -305,7 +305,7 @@ def hsv2rgb(h: float, s: float, v: float) -> str:
     :param float h: hue (0-1)
     :param float s: saturation (0-1)
     :param float v: value (0-1)
-    :return: rgb color value e.g. "#032a4e"
+    :return: RGB color string e.g. "#032a4e"
     :rtype: str
 
     """
@@ -335,13 +335,31 @@ def hsv2rgb(h: float, s: float, v: float) -> str:
     return f"#{r:02x}{g:02x}{b:02x}"
 
 
+def col2contrast(col: str) -> str:
+    """
+    Find best contrasting color against background
+    using perceived luminance (human eye favors green color).
+
+    :param str col: RGB color string e.g. "#032a4e"
+    :return: "black' or "white"
+    :rtype: str
+    """
+
+    r = int(col[1:3], 16)
+    g = int(col[3:5], 16)
+    b = int(col[5:7], 16)
+    luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+    col = "black" if luminance > 0.5 else "white"
+    return col
+
+
 def snr2col(snr: int) -> str:
     """
     Convert satellite signal-to-noise ratio to a color
     high = green, low = red.
 
     :param int snr: signal to noise ratio as integer
-    :return: rgb color string
+    :return: RGB color string e.g. "#032a4e"
     :rtype: str
 
     """
@@ -380,7 +398,7 @@ def check_latest(name: str) -> str:
     """
     Check for latest version of module on PyPi.
 
-    :param: str name: name of module to check
+    :param str name: name of module to check
     :return: latest version e.g. "1.3.5"
     :rtype: str
     """
