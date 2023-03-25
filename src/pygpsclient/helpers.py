@@ -298,6 +298,35 @@ def pos2iso6709(lat: float, lon: float, alt: float, crs: str = "WGS_84") -> str:
     return iso6709
 
 
+def rgb2str(r: int, g: int, b: int) -> str:
+    """
+    Convert R,G,B values to RGB color string.
+
+    :param int r: red value (0-255)
+    :param int g: green value (0-255)
+    :param int b: blue value (0-255)
+    :return: RGB color string e.g. "#032a4e"
+    :rtype: str
+    """
+
+    return f"#{r:02x}{g:02x}{b:02x}"
+
+
+def str2rgb(col: str) -> tuple:
+    """
+    Convert RGB color string to R,G,B values.
+
+    :param str col: RGB color string e.g. "#032a4e"
+    :return: tuple of (r,g,b) as integers
+    :rtype: tuple
+    """
+
+    r = int(col[1:3], 16)
+    g = int(col[3:5], 16)
+    b = int(col[5:7], 16)
+    return (r, g, b)
+
+
 def hsv2rgb(h: float, s: float, v: float) -> str:
     """
     Convert HSV values (in range 0-1) to RGB color string.
@@ -307,12 +336,11 @@ def hsv2rgb(h: float, s: float, v: float) -> str:
     :param float v: value (0-1)
     :return: RGB color string e.g. "#032a4e"
     :rtype: str
-
     """
 
     v = int(v * 255)
     if s == 0.0:
-        return f"#{v:02x}{v:02x}{v:02x}"
+        return rgb2str(v, v, v)
     i = int(h * 6.0)
     f = (h * 6.0) - i
     p = int(v * (1.0 - s))
@@ -332,7 +360,7 @@ def hsv2rgb(h: float, s: float, v: float) -> str:
     if i == 5:
         r, g, b = v, p, q
 
-    return f"#{r:02x}{g:02x}{b:02x}"
+    return rgb2str(r, g, b)
 
 
 def col2contrast(col: str) -> str:
@@ -345,9 +373,7 @@ def col2contrast(col: str) -> str:
     :rtype: str
     """
 
-    r = int(col[1:3], 16)
-    g = int(col[3:5], 16)
-    b = int(col[5:7], 16)
+    r, g, b = str2rgb(col)
     luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
     col = "black" if luminance > 0.5 else "white"
     return col
