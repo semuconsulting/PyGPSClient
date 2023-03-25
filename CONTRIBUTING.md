@@ -19,6 +19,7 @@ Please help us keep our issue list small by adding fixes: #{$ISSUE_NO} to the co
 * Code should be documented in accordance with [Sphinx](https://www.sphinx-doc.org/en/master/) docstring conventions.
 * Code should formatted using [black](https://pypi.org/project/black/) (>= 23.1.0).
 * We use and recommend [pylint](https://pypi.org/project/pylint/) (>=2.17.0) for code analysis.
+* Commits should be [signed](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits).
 
 ## Testing
 

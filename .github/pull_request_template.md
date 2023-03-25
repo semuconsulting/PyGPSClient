@@ -8,7 +8,7 @@ Fixes # (issue)
 
 ## Testing
 
-Please test all changes, however trivial, against the supplied unittest suite `tests/test_*.py` e.g. by executing the `tests/testsuite.py` module or using your IDE's native Python unittest integration facilities. Please describe any test cases you have amended or added to this suite to maintain >= 99% code coverage.
+Please test all changes, however trivial, against the supplied unittest suite `tests/test_*.py`. Please describe any test cases you have amended or added to this suite to maintain >= 99% code coverage.
 
 - [ ] Test A
 - [ ] Test B
@@ -23,4 +23,5 @@ Please test all changes, however trivial, against the supplied unittest suite `t
 - [ ] I have tested my code against the full `tests/test_*.py` unittest suite.
 - [ ] My changes generate no new warnings.
 - [ ] Any dependent changes have been merged and published in downstream modules.
+- [ ] I have [signed](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits) my commits.
 - [ ] I understand and acknowledge that the code will be published under a BSD 3-Clause license.
