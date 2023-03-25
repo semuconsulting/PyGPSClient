@@ -95,7 +95,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
     def __init__(self, master, *args, **kwargs):
         """
-        Set up main application and add frames
+        Set up main application and add frames.
 
         :param tkinter.Tk master: reference to Tk root
         :param args: optional args
@@ -922,9 +922,9 @@ class App(Frame):  # pylint: disable=too-many-ancestors
     def rtk_conn_status(self) -> int:
         """
         Getter for SPARTN connection status.
+        CONNECTED_NTRIP / CONNECTED_SPARTNLB / CONNECTED_SPARTNIP
 
         :param int status: connection status
-        CONNECTED_NTRIP / CONNECTED_SPARTNLB / CONNECTED_SPARTNIP
         """
 
         return self._rtk_conn_status

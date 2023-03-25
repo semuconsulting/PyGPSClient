@@ -489,7 +489,7 @@ class BannerFrame(Frame):
             self._lbl_fix.config(fg="red")
         self._fix.set(fix)
 
-    def _update_siv(self, **kwargs):
+    def _update_siv(self):
         """
         Update siv and sip
         """
@@ -497,7 +497,7 @@ class BannerFrame(Frame):
         self._siv.set(f"{self.__app.gnss_status.siv:02d}")
         self._sip.set(f"{self.__app.gnss_status.sip:02d}")
 
-    def _update_dop(self, units, **kwargs):
+    def _update_dop(self, units):
         """
         Update precision and accuracy
 

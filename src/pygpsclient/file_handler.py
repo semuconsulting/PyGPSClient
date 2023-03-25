@@ -78,7 +78,7 @@ class FileHandler:
 
         filepath = os.path.join(HOME, MQAPIKEY)
         try:
-            with open(filepath, "r") as file:
+            with open(filepath, "r", encoding="utf-8") as file:
                 mqapikey = file.read()
         except OSError:
             # Error message will be displayed on mapview widget if invoked
@@ -102,7 +102,7 @@ class FileHandler:
         ctags = []
         filepath = os.path.join(HOME, COLORTAGS)
         try:
-            with open(filepath, "r") as file:
+            with open(filepath, "r", encoding="utf-8") as file:
                 for line in file:
                     ctag = line.split(";")
                     if len(ctag) == 2:
@@ -126,7 +126,7 @@ class FileHandler:
         presets = []
         filepath = os.path.join(HOME, UBXPRESETS)
         try:
-            with open(filepath, "r") as file:
+            with open(filepath, "r", encoding="utf-8") as file:
                 for line in file:
                     presets.append(line)
         except OSError:
@@ -291,7 +291,7 @@ class FileHandler:
         """
 
         _, self._trackname = set_filename(self._trackpath, "track", "gpx")
-        self._trackfile = open(self._trackname, "a")
+        self._trackfile = open(self._trackname, "a", encoding="utf-8")
 
         date = datetime.now().isoformat() + "Z"
         gpxtrack = (

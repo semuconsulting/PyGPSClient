@@ -94,7 +94,7 @@ class SpectrumviewFrame(Frame):
 
     def init_graph(self):
         """
-        Initialise spectrum chart
+        Initialise spectrum chart.
         """
 
         w, h = self.width, self.height
@@ -236,7 +236,7 @@ class SpectrumviewFrame(Frame):
         Plot MON-SPAN spectrum analysis.
 
         spectrum_data is list of tuples (spec, spn, res, ctr, pga),
-        one item per RF block
+        one item per RF block.
         """
 
         self._monspan_enabled = True
@@ -362,7 +362,7 @@ class SpectrumviewFrame(Frame):
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """
-        Resize frame
+        Resize frame.
 
         :param event event: resize event
         """

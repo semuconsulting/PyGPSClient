@@ -76,7 +76,7 @@ class ScatterViewFrame(Frame):
         self.canvas.pack(fill=BOTH, expand=YES)
         self.scale_widget.pack(fill="x", expand=NO)
 
-    def _rescale(self):
+    def _rescale(self, scale):  # pylint: disable=unused-argument
         self._on_resize(None)
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
