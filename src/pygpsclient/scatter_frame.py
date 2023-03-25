@@ -112,13 +112,15 @@ class ScatterViewFrame(Frame):
 
         if self.mean is None:
             return
+
+        height = lbl_font.metrics("linespace")
         lat = f"Lon {self.mean.lat:14.10f}"
         lon = f"Lat {self.mean.lon:15.10f}"
         self.canvas.create_text(
             5, 10, text=lat, fill=self.fg_col, font=lbl_font, anchor="w"
         )
         self.canvas.create_text(
-            5, 20, text=lon, fill=self.fg_col, font=lbl_font, anchor="w"
+            5, 10 + height, text=lon, fill=self.fg_col, font=lbl_font, anchor="w"
         )
 
     def init_graph(self):

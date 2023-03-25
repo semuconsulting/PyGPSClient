@@ -86,6 +86,15 @@ from pygpsclient.ubx_handler import UBXHandler
 from pygpsclient.rtcm3_handler import RTCM3Handler
 
 SPARTN_PROTOCOL = 9
+DEFAULT_WIDGETS = (
+    WDGBANNER,
+    WDGCONSOLE,
+    WDGSATS,
+    WDGLEVELS,
+    WDGMAP,
+    WDGSETTINGS,
+    WDGSTATUS,
+)
 
 
 class App(Frame):  # pylint: disable=too-many-ancestors
@@ -275,13 +284,10 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         col = row = 0
         for nam in self._widget_grid:
-            if nam == WDGSETTINGS:  # always on top right
-                col = MAXCOLSPAN
-                row = 1
-            if nam == WDGSTATUS:  # always on bottom left
-                col = 0
-                row = MAXROWSPAN
-            col, row = self._grid_widget(nam, col, row)
+            if nam not in (WDGSETTINGS, WDGSTATUS):
+                col, row = self._grid_widget(nam, col, row)
+        self._grid_widget(WDGSETTINGS, MAXCOLSPAN, 1)
+        self._grid_widget(WDGSTATUS, 0, MAXROWSPAN)
 
     def _grid_widget(self, nam: str, col: int, row: int) -> tuple:
         """
@@ -301,6 +307,10 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             if col >= MAXCOLSPAN and nam != WDGSETTINGS:
                 col = 0
                 row += rowspan
+            if nam == WDGSETTINGS:
+                rowspan = MAXROWSPAN - 1
+            elif nam == WDGSTATUS:
+                colspan = MAXCOLSPAN + 1
             getattr(self, wdg["frm"]).grid(
                 column=col,
                 row=row,
@@ -363,7 +373,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         for nam, wdg in self._widget_grid.items():
-            wdg["visible"] = nam not in (WDGSPECTRUM, WDGSCATTER)
+            wdg["visible"] = nam in DEFAULT_WIDGETS
         self._grid_widgets()
 
     def set_connection(self, message, color="blue"):

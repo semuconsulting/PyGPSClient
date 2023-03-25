@@ -6,6 +6,24 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "Update Toolchain",
+            "type": "process",
+            "command": "${config:python.defaultInterpreterPath}",
+            "args": [
+                "-m",
+                "pip",
+                "install",
+                "--upgrade",
+                "pylint",
+                "black",
+                "coverage",
+                "Sphinx",
+                "sphinx-rtd-theme",
+                "setuptools",
+            ],
+            "problemMatcher": []
+        },
+        {
             "label": "Clean",
             "type": "shell",
             "command": "rm",
@@ -173,6 +191,7 @@
             ],
             "dependsOrder": "sequence",
             "dependsOn": [
+                "Update Toolchain",
                 "Clean",
                 "Format",
                 "PylintError",
