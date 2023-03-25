@@ -315,7 +315,7 @@ The easiest way to install the latest version of `PyGPSClient` is with
 [pip](http://pypi.python.org/pypi/pip/):
 
 ```shell
-python3 -m pip install --upgrade PyGPSClient
+python3 -m pip install --upgrade pygpsclient
 ```
 
 If required, `PyGPSClient` can also be installed into a virtual environment, e.g.:
@@ -324,7 +324,7 @@ If required, `PyGPSClient` can also be installed into a virtual environment, e.g
 python3 -m pip install --user --upgrade virtualenv
 python3 -m virtualenv env
 source env/bin/activate (or env\Scripts\activate on Windows)
-(env) python3 -m pip install --upgrade PyGPSClient
+(env) python3 -m pip install --upgrade pygpsclient
 ...
 deactivate
 ```
@@ -350,7 +350,7 @@ python3 -m pygpsclient
 
 **Tip:** to find the site_packages location, type:
 ```shell
-python3 -m pip show PyGPSClient
+python3 -m pip show pygpsclient
 ``` 
 and look for the `Location:` entry in the response, e.g.
 
@@ -385,10 +385,10 @@ To install PyGPSClient manually, download and unzip this repository and run:
 python3 -m /path_to_folder/foldername/pygpsclient
 ```
 
-e.g. if you downloaded and unzipped to a folder named `PyGPSClient-1.3.16`, run: 
+e.g. if you downloaded and unzipped to a folder named `PyGPSClient-1.3.20`, run: 
 
 ```shell
-python3 -m /path_to_folder/PyGPSClient-1.3.16/pygpsclient
+python3 -m /path_to_folder/PyGPSClient-1.3.20/pygpsclient
 ```
 
 ---
