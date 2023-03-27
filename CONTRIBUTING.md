@@ -25,9 +25,9 @@ Please help us keep our issue list small by adding fixes: #{$ISSUE_NO} to the co
 
 While we endeavour to test on as wide a variety of u-blox devices as possible, as a volunteer project we only have a limited number of devices available. We particularly welcome testing contributions relating to specialised devices (e.g. high precision HP, real-time kinematics RTK, Automotive Dead-Reckoning ADR, etc.).
 
-We use Python's native unittest framework for local unit testing, complemented by the GitHub Actions automated build and testing workflow.
+We use Python's native pytest framework for local unit testing, complemented by the GitHub Actions automated build and testing workflow.
 
-Please write unittest examples for new code you create and add them to the `/tests` folder following the naming convention `test_*.py`.
+Please write pytest examples for new code you create and add them to the `/tests` folder following the naming convention `test_*.py`.
 
 We test on the following platforms using a variety of u-blox devices (NEO-M6, NEO-M7, NEO-M8, NEO-M9, NEO-D9S, ZED-F9P, NEO-M10S):
 

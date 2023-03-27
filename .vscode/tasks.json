@@ -2,7 +2,8 @@
     // See https://go.microsoft.com/fwlink/?LinkId=733558
     // for the documentation about the tasks.json format
     // These Python project tasks assume you have installed and configured: 
-    // build, wheel, black, pylint, unittest, coverage, Sphinx, sphinx-rtd-theme
+    // build, wheel, black, pylint, pytest, pytest-cov, Sphinx, sphinx-rtd-theme
+    // Use the Update Toolchain task to install the necessary packages.
     "version": "2.0.0",
     "tasks": [
         {
@@ -31,8 +32,9 @@
                 "build",
                 "wheel",
                 "pylint",
+                "pytest",
+                "pytest-cov",
                 "black",
-                "coverage",
                 "Sphinx",
                 "sphinx-rtd-theme",
             ],
@@ -125,23 +127,7 @@
             "command": "${config:python.defaultInterpreterPath}",
             "args": [
                 "-m",
-                "unittest"
-            ],
-            "problemMatcher": []
-        },
-        {
-            "label": "Coverage",
-            "type": "shell",
-            "command": "${config:python.defaultInterpreterPath}",
-            "args": [
-                "-m",
-                "coverage",
-                "run",
-                "-m",
-                "unittest",
-                "&&",
-                "coverage",
-                "html",
+                "pytest"
             ],
             "problemMatcher": []
         },
@@ -206,24 +192,14 @@
             ],
             "dependsOrder": "sequence",
             "dependsOn": [
-                "Update Toolchain",
+                //"Update Toolchain",
                 "Clean",
                 "Format",
                 "PylintError",
                 "Pylint",
-                "Build",
                 "Test",
-                //"Coverage",
+                "Build",
                 "Sphinx HTML"
-            ],
-            "problemMatcher": []
-        },
-        {
-            "label": "Benchmark",
-            "type": "process",
-            "command": "${config:python.defaultInterpreterPath}",
-            "args": [
-                "${workspaceFolder}/examples/benchmark.py",
             ],
             "problemMatcher": []
         },
