@@ -1,5 +1,16 @@
 # PyGPSClient Release Notes
 
+### RELEASE v1.3.21
+
+ENHANCEMENTS:
+
+1. Various minor tweaks to improve widget legibility, contrast and positioning at various scales.
+1. Correctly cater for up to 3 rows of optional widgets.
+1. Add color helper functions rgb2str, str2rgb, col2contrast.
+1. Address minor pylint advisories.
+1. Added 'Update Toolchain' task to VS Code workflow.
+
+
 ### RELEASE v1.3.20
 
 ENHANCEMENTS:
