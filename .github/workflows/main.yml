@@ -25,6 +25,6 @@ jobs:
       - name: Lint with pylint
         run: |
           pylint -E src/pygpsclient
-      # - name: Test with pytest
-      #   run: |
-      #     python tests/testsuite.py
+      - name: Test with pytest
+        run: |
+          pytest
