@@ -79,9 +79,10 @@ GPX_NS = " ".join(
 EPILOG = "© 2022 SEMU Consulting BSD 3-Clause license - https://github.com/semuconsulting/pygpsclient/"
 GPSEPOCH0 = datetime(1980, 1, 6)  # for Wno and Tow calculations
 GPXLIMIT = 500  # max number of track points supported by MapQuest API
-CHECK_FOR_UPDATES = (
-    False  # check for newer PyPi version on startup (requires internet connection)
-)
+# Check for newer PyPi version on startup (requires internet connection).
+# NB: the PyPi API is not very quick so enabling this will increase
+# application startup time.
+CHECK_FOR_UPDATES = False
 GUI_UPDATE_INTERVAL = 0.5  # minimum GUI widget update interval (seconds)
 GPX_TRACK_INTERVAL = 1  # minimum GPS track update interval (seconds)
 FILEREAD_INTERVAL = 0.02  # delay between successive datalog file reads (seconds)

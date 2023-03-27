@@ -6,6 +6,39 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "Run Local Version",
+            "type": "process",
+            "command": "${config:python.defaultInterpreterPath}",
+            "args": [
+                "-m",
+                "pygpsclient"
+            ],
+            "options": {
+                "cwd": "src"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Update Toolchain",
+            "type": "process",
+            "command": "${config:python.defaultInterpreterPath}",
+            "args": [
+                "-m",
+                "pip",
+                "install",
+                "--upgrade",
+                "setuptools",
+                "build",
+                "wheel",
+                "pylint",
+                "black",
+                "coverage",
+                "Sphinx",
+                "sphinx-rtd-theme",
+            ],
+            "problemMatcher": []
+        },
+        {
             "label": "Clean",
             "type": "shell",
             "command": "rm",
@@ -173,6 +206,7 @@
             ],
             "dependsOrder": "sequence",
             "dependsOn": [
+                "Update Toolchain",
                 "Clean",
                 "Format",
                 "PylintError",
