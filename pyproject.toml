@@ -81,6 +81,27 @@ test = [
     "sphinx-rtd-theme >= 1.2.0",
 ]
 
+[tool.pylint]
+exit-zero = ""
+disable = """
+    raw-checker-failed,
+    bad-inline-option,
+    locally-disabled,
+    file-ignored,
+    suppressed-message,
+    useless-suppression,
+    deprecated-pragma,
+    use-symbolic-message-instead,
+    too-many-instance-attributes,
+    too-many-branches,
+    too-many-statements,
+    unused-private-member,
+    too-few-public-methods,
+    too-many-public-methods,
+    too-many-locals,
+    invalid-name
+"""
+
 [tool.pytest.ini_options]
 minversion = "7.0"
 addopts = "--cov --cov-report html --cov-report term-missing"
