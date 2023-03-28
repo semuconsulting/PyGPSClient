@@ -588,8 +588,9 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         Start socket server thread.
         """
 
-        port = self.frm_settings.server_port
-        ntripmode = self.frm_settings.server_mode
+        settings = self.frm_settings.config
+        port = int(settings["sockport"])
+        ntripmode = settings["sockmode"]
         self._socket_thread = Thread(
             target=self._sockserver_thread,
             args=(
@@ -627,6 +628,9 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         :param Queue socketqueue: socket server read queue
         """
 
+        print(
+            f"DEBUG sockserver_thread {ntripmode} {socketqueue} {maxclients} {host} {port}"
+        )
         try:
             with SocketServer(
                 self, ntripmode, maxclients, socketqueue, (host, port), ClientHandler
@@ -771,7 +775,9 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         :param str marker: string prepended to console entries e.g. "NTRIP>>"
         """
 
-        protfilter = self.frm_settings.protocol
+        settings = self.frm_settings.config
+
+        protfilter = settings["protocol"]
         msgprot = protocol(raw_data)
         if isinstance(parsed_data, str):  # error message rather than parsed data
             marker = "WARNING  "
@@ -801,11 +807,11 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             self._last_gui_update = datetime.now()
 
         # update GPX track file if enabled
-        if self.frm_settings.record_track:
+        if settings["recordtrack"]:
             self._update_gpx_track()
 
         # update log file if enabled
-        if self.frm_settings.datalogging:
+        if settings["datalog"]:
             self.file_handler.write_logfile(raw_data, parsed_data)
 
     def _update_gpx_track(self):

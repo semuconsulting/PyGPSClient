@@ -606,7 +606,8 @@ class GPXViewerDialog(Toplevel):
         :rtype: tuple
         """
 
-        units = self.__app.frm_settings.units
+        settings = self.__app.frm_settings.config
+        units = settings["units"]
 
         if units == UI:
             dst_u = "miles"

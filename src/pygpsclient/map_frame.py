@@ -86,8 +86,8 @@ class MapviewFrame(Frame):
         lat = self.__app.gnss_status.lat
         lon = self.__app.gnss_status.lon
         hacc = self.__app.gnss_status.hacc
-
-        if self.__app.frm_settings.webmap:
+        settings = self.__app.frm_settings.config
+        if settings["webmap"]:
             static = False
         else:
             static = True
@@ -204,7 +204,8 @@ class MapviewFrame(Frame):
 
         w, h = self.width, self.height
         radius = str(hacc / 1000)  # km
-        zoom = self.__app.frm_settings.mapzoom
+        settings = self.__app.frm_settings.config
+        zoom = settings["mapzoom"]
         # seems to be bug in MapQuest API which causes error
         # if scalebar displayed at maximum zoom
         scalebar = "true" if zoom < 20 else "false"

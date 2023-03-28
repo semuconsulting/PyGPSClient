@@ -178,7 +178,8 @@ class NMEAHandler:
         """
         # pylint: disable=consider-using-dict-items
 
-        show_unused = self.__app.frm_settings.show_unused
+        settings = self.__app.frm_settings.config
+        show_unused = settings["unusedsat"]
         self.gsv_data = []
         gsv_dict = {}
         now = time()

@@ -259,17 +259,19 @@ class FileHandler:
         if self._logfile is None:
             return
 
+        settings = self.__app.frm_settings.config
+        lfm = settings["logformat"]
         data = []
-        if self.__app.frm_settings.logformat in (
+        if lfm in (
             FORMATS[0],
             FORMATS[4],
         ):  # parsed, parsed + hex tabular
             data.append(parsed_data)
-        if self.__app.frm_settings.logformat == FORMATS[1]:  # binary
+        if lfm == FORMATS[1]:  # binary
             data.append(raw_data)
-        if self.__app.frm_settings.logformat == FORMATS[2]:  # hex string
+        if lfm == FORMATS[2]:  # hex string
             data.append(raw_data.hex())
-        if self.__app.frm_settings.logformat in (
+        if lfm in (
             FORMATS[3],
             FORMATS[4],
         ):  # hex tabular, parsed + hex tabular
