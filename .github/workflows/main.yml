@@ -20,11 +20,11 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip setuptools wheel pylint pytest pytest-cov
+          python -m pip install --upgrade pip setuptools build wheel pylint pytest pytest-cov
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Lint with pylint
         run: |
           pylint -E src/pygpsclient
-      # - name: Test with pytest
-      #   run: |
-      #     python tests/testsuite.py
+      - name: Test with pytest
+        run: |
+          pytest

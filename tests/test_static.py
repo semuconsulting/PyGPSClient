@@ -6,12 +6,7 @@ Static method tests for pygpsclient.helpers
 @author: semuadmin
 """
 
-import os
-import sys
 import unittest
-
-ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
-sys.path.append(os.path.join(ROOT, "src"))
 
 from datetime import datetime
 from pyubx2 import UBXReader
