@@ -73,6 +73,7 @@ from pygpsclient.globals import (
     SOCKSERVER_MAX_CLIENTS,
     GNSS_EVENT,
     GNSS_EOF_EVENT,
+    BADCOL,
 )
 from pygpsclient.helpers import valid_entry, VALINT, VALURL, MAXPORT
 from pygpsclient.strings import (
@@ -89,6 +90,7 @@ from pygpsclient.strings import (
     LBLSERVERPORT,
     LBLDEGFORMAT,
     LBLSERVERMODE,
+    CONFIGERR,
 )
 
 
@@ -615,6 +617,61 @@ class SettingsFrame(Frame):
             "socket_settings": self._frm_socket,
             "in_filepath": self._in_filepath,
         }
+
+    @property
+    def config(self) -> dict:
+        """
+        Getter for configuration settings to save as file.
+
+        :return: settings as dictionary
+        :rtype: dict
+        """
+
+        config = {
+            "nmeaprot": self._prot_nmea.get(),
+            "ubxprot": self._prot_ubx.get(),
+            "rtcmprot": self._prot_rtcm3.get(),
+            "format": self._format.get(),
+            "units": self._units.get(),
+            "autoscroll": self._autoscroll.get(),
+            "maxlines": self._maxlines.get(),
+            "dispformat": self._display_format.get(),
+            "webmap": self._webmap.get(),
+            "mapzoom": self._mapzoom.get(),
+            "legend": self._show_legend.get(),
+            "unusedsat": self._show_unusedsat.get(),
+            "sockserver": self._socket_serve.get(),
+            "sockport": self._sock_port.get(),
+            "sockmode": self._sock_mode.get(),
+        }
+        return config
+
+    @config.setter
+    def config(self, config: dict):
+        """
+        Setter for configuration loaded from file.
+
+        :param dict config: configuration
+        """
+
+        try:
+            self._prot_nmea.set(config["nmeaprot"])
+            self._prot_ubx.set(config["ubxprot"])
+            self._prot_rtcm3.set(config["rtcmprot"])
+            self._format.set(config["format"])
+            self._units.set(config["units"])
+            self._autoscroll.set(config["autoscroll"])
+            self._maxlines.set(config["maxlines"])
+            self._display_format.set(config["dispformat"])
+            self._webmap.set(config["webmap"])
+            self._mapzoom.set(config["mapzoom"])
+            self._show_legend.set(config["legend"])
+            self._show_unusedsat.set(config["unusedsat"])
+            self._socket_serve.set(config["sockserver"])
+            self._sock_port.set(config["sockport"])
+            self._sock_mode.set(config["sockmode"])
+        except KeyError as err:
+            self.set_status(f"{CONFIGERR} - {err}", BADCOL)
 
     def _reset_frames(self):
         """

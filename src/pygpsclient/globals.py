@@ -109,7 +109,8 @@ ANTSTATUS = ("INIT", "DONTKNOW", "OK", "SHORT", "OPEN")
 ANTPOWER = ("OFF", "ON", "DONTKNOW")
 GGA_INTERVALS = ("None", "2", "5", "10", "60", "120")
 ENABLE_CFG_OTHER = True  # enable CFG=* Other Configuration command panel
-# names of user preset files:
+# names of user config and preset files:
+CONFIGFILE = "pygpsclient.json"
 MQAPIKEY = "mqapikey"
 UBXPRESETS = "ubxpresets"
 COLORTAGS = "colortags"
@@ -194,6 +195,9 @@ FGCOL = "white"  # default widget foreground color
 ENTCOL = "azure"  # default valid data entry field background color
 ERRCOL = "pink"  # default invalid data entry field background color
 INFCOL = "steelblue3"  # readonly info field text color
+OKCOL = "green"
+INFCOL = "blue"
+BADCOL = "red"
 READONLY = "readonly"
 ERROR = "ERR!"
 DDD = "DD.D"

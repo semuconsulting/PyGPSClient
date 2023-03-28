@@ -13,6 +13,8 @@ Created on 12 Sep 2020
 from tkinter import Menu, NORMAL
 
 from pygpsclient.strings import (
+    MENUSAVE,
+    MENULOAD,
     MENUFILE,
     MENUVIEW,
     MENUOPTION,
@@ -56,10 +58,12 @@ class MenuBar(Menu):
         self.option_add("*Font", "TkMenuFont")
         # Create a pull-down menu for file operations
         self.file_menu = Menu(self, tearoff=False)
-        #         self.file_menu.add_command(label=MENUSAVE, underline=1,
-        #                                    command=self.__app.frm_settings._save_settings)
-        #         self.file_menu.add_command(label=MENULOAD, underline=1,
-        #                                    command=self.__app.frm_settings._load_settings)
+        self.file_menu.add_command(
+            label=MENUSAVE, underline=5, command=self.__app.save_config
+        )
+        self.file_menu.add_command(
+            label=MENULOAD, underline=5, command=self.__app.load_config
+        )
         self.file_menu.add_command(
             label=MENUEXIT,
             underline=1,

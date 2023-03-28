@@ -13,10 +13,12 @@ Created on 16 Sep 2020
 import os
 from datetime import datetime
 from pathlib import Path
+import json
 from tkinter import filedialog
 from pyubx2 import hextable
 
 from pygpsclient.globals import (
+    CONFIGFILE,
     MQAPIKEY,
     COLORTAGS,
     UBXPRESETS,
@@ -26,7 +28,11 @@ from pygpsclient.globals import (
     GITHUB_URL,
     FORMATS,
 )
-from pygpsclient.strings import SAVETITLE, READTITLE
+from pygpsclient.strings import (
+    SAVETITLE,
+    READTITLE,
+    CONFIGTITLE,
+)
 from pygpsclient.helpers import set_filename
 
 HOME = str(Path.home())
@@ -66,6 +72,70 @@ class FileHandler:
 
         self.close_logfile()
         self.close_trackfile()
+
+    def load_config(self, filename: Path = os.path.join(HOME, CONFIGFILE)) -> dict:
+        """
+        Load "pygpsclient.json" configuration file. If filename is not provided,
+        defaults to $HOME/pygpsclient.json, otherwise user is prompted for path.
+
+        :param Path filename: fully qualified filename, or None for prompt
+        :return: configuration settings as dictionary
+        :rtype: dict
+        """
+
+        try:
+            if filename is None:
+                filename = filedialog.askopenfilename(
+                    title=CONFIGTITLE,
+                    initialdir=HOME,
+                    filetypes=(
+                        ("config files", "*.json"),
+                        ("all files", "*.*"),
+                    ),
+                )
+                if filename in ((), ""):
+                    return None  # User cancelled
+
+            with open(filename, "r", encoding="utf-8") as jsonfile:
+                config = json.load(jsonfile)
+        except (OSError, json.JSONDecodeError):
+            return None
+
+        return config
+
+    def save_config(
+        self, config: dict, filename: Path = os.path.join(HOME, CONFIGFILE)
+    ) -> int:
+        """
+        Save configuration file. If filename is not provided, defaults to
+        $HOME/pygpsclient.json, otherwise user is prompted for filename.
+
+        :param dict config: configuration settings as dictionary
+        :param Path filename: fully qualified filename, or None for prompt
+        :return: return code 1 = success, None = failure
+        :rtype: int
+        """
+
+        try:
+            if filename is None:
+                filename = filedialog.asksaveasfilename(
+                    title=CONFIGTITLE,
+                    initialdir=HOME,
+                    initialfile=CONFIGFILE.split(".")[0],
+                    filetypes=(
+                        ("config files", "*.json"),
+                        ("all files", "*.*"),
+                    ),
+                )
+                if filename in ((), ""):
+                    return None  # User cancelled
+
+            with open(filename, "w", encoding="utf-8") as file:
+                cfgstr = json.dumps(config)
+                file.write(cfgstr)
+                return 1
+        except (OSError, json.JSONDecodeError):
+            return None
 
     def load_mqapikey(self) -> str:
         """
