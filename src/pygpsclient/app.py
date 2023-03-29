@@ -140,13 +140,13 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._widget_grid = {}
 
         # Instantiate protocol handler classes
-        self._gnss_inqueue = Queue()  # messages from GNSS receiver
-        self._gnss_outqueue = Queue()  # messages to GNSS receiver
-        self._ntrip_inqueue = Queue()  # messages from NTRIP source
-        self._spartn_inqueue = Queue()  # messages from SPARTN correction rcvr
-        self._spartn_outqueue = Queue()  # messages to SPARTN correction rcvr
-        self._socket_inqueue = Queue()  # message from socket
-        self._socket_outqueue = Queue()  # message to socket
+        self.gnss_inqueue = Queue()  # messages from GNSS receiver
+        self.gnss_outqueue = Queue()  # messages to GNSS receiver
+        self.ntrip_inqueue = Queue()  # messages from NTRIP source
+        self.spartn_inqueue = Queue()  # messages from SPARTN correction rcvr
+        self.spartn_outqueue = Queue()  # messages to SPARTN correction rcvr
+        self.socket_inqueue = Queue()  # message from socket
+        self.socket_outqueue = Queue()  # message to socket
         self.file_handler = FileHandler(self)
         self.stream_handler = StreamHandler(self)
         self.spartn_stream_handler = StreamHandler(self)
@@ -155,20 +155,20 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.rtcm_handler = RTCM3Handler(self)
         self.ntrip_handler = GNSSNTRIPClient(self, verbosity=0)
         self.spartn_handler = GNSSMQTTClient(self, verbosity=0)
-        self._conn_status = DISCONNECTED
-        self._rtk_conn_status = DISCONNECTED
-        self._map_update_interval = MAP_UPDATE_INTERVAL
         self.dlg_ubxconfig = None
         self.dlg_ntripconfig = None
         self.dlg_spartnconfig = None
         self.dlg_gpxviewer = None
+        self.config = None
+        self._conn_status = DISCONNECTED
+        self._rtk_conn_status = DISCONNECTED
+        self._map_update_interval = MAP_UPDATE_INTERVAL
         self._ubx_config_thread = None
         self._gpxviewer_thread = None
         self._ntrip_config_thread = None
         self._spartn_config_thread = None
         self._socket_thread = None
         self._socket_server = None
-        self._config = None
 
         # FOLLOWING FILE LOADS ARE DEPRECATED - USE CONFIG FILE INSTEAD
         # Load MapQuest web map api key if not already defined
@@ -191,19 +191,19 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.frm_banner.update_conn_status(DISCONNECTED)
 
         # Load configuration from file if it exists
-        self._config = self.file_handler.load_config(configfile)
-        if isinstance(self._config, str):  # load failed
-            if "No such file" in self._config:  # file not found
+        self.config = self.file_handler.load_config(configfile)
+        if isinstance(self.config, str):  # load failed
+            if "No such file" in self.config:  # file not found
                 msg = f"{LOADCONFIGNF} {configfile}"
             else:  # parsing error
-                msg = f"{LOADCONFIGBAD} {configfile} {self._config}"
+                msg = f"{LOADCONFIGBAD} {configfile} {self.config}"
             self.frm_status.set_status(msg, BADCOL)
-            self._config = {}
+            self.config = {}
         else:  # load succeeded
             self.frm_status.set_status(f"{LOADCONFIGOK} {configfile}", OKCOL)
-            self.app_config = self._config
-            self.widget_config = self._config
-            self.frm_settings.config = self._config
+            self.app_config = self.config
+            self.widget_config = self.config
+            self.frm_settings.config = self.config
 
         # Check for more recent version (if enabled)
         if CHECK_FOR_UPDATES:
@@ -377,71 +377,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             wdg["visible"] = nam in DEFAULT_WIDGETS
         self._grid_widgets()
 
-    @property
-    def app_config(self) -> dict:
-        """
-        Getter for app config.
-
-        This contains user-defined ports, various API keys
-        and colortagging values.
-        """
-
-        config = {
-            "mapupdateinterval": self._map_update_interval,
-            "userport": self._user_port,
-            "spartnport": self._spartn_user_port,
-            "mqapikey": self._mqapikey,
-            "mqttclientid": self._mqttclientid,
-            "colortags": self._colortags,
-            "ubxpresets": self._ubxpresets,
-        }
-        return config
-
-    @app_config.setter
-    def app_config(self, config):
-        """
-        Setter for app config.
-
-        :param dict config: configuration as dict
-        """
-
-        self._map_update_interval = config.get("mapupdateinterval", MAP_UPDATE_INTERVAL)
-        self._user_port = config.get("userport", self._user_port)
-        self._spartn_user_port = config.get("spartnport", self._spartn_user_port)
-        self._mqapikey = config.get("mqapikey", self._mqapikey)
-        self._mqttclientid = config.get("mqttclientid", self._mqttclientid)
-        self._colortags = config.get("colortags", self._colortags)
-        self._ubxpresets = config.get("ubxpresets", self._ubxpresets)
-
-    @property
-    def widget_config(self) -> dict:
-        """
-        Getter for widget configuration.
-
-        :return: widget configuration as dict
-        :rtype: dict
-        """
-
-        return {key: vals["visible"] for key, vals in self._widget_grid.items()}
-
-    @widget_config.setter
-    def widget_config(self, config):
-        """
-        Setter for widget config.
-
-        This contains the visibility of the various widgets.
-
-        :param dict config: configuration as dict
-        """
-
-        try:
-            for key, vals in self._widget_grid.items():
-                vals["visible"] = config[key]
-        except KeyError as err:
-            self.set_status(f"{CONFIGERR} - {err}", BADCOL)
-
-        self._grid_widgets()
-
     def _attach_events(self):
         """
         Bind events to main application.
@@ -492,14 +427,14 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         Load configuration file menu option.
         """
 
-        self._config = self.file_handler.load_config(None)
-        if isinstance(self._config, str):  # load failed
-            self.set_status(f"{LOADCONFIGBAD} {self._config}", BADCOL)
-            self._config = None
+        self.config = self.file_handler.load_config(None)
+        if isinstance(self.config, str):  # load failed
+            self.set_status(f"{LOADCONFIGBAD} {self.config}", BADCOL)
+            self.config = None
         else:
             self.set_status(LOADCONFIGOK, OKCOL)
-            self.frm_settings.config = self._config
-            self.widget_config = self._config
+            self.frm_settings.config = self.config
+            self.widget_config = self.config
             self.app_config = self.config
 
     def save_config(self):
@@ -508,15 +443,15 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         # combine the various config sections into one dict
-        self._config = {
+        self.config = {
             **self.frm_settings.config,
             **self.widget_config,
             **self.app_config,
         }
-        rcd = self.file_handler.save_config(self._config, None)
+        rcd = self.file_handler.save_config(self.config, None)
         if isinstance(rcd, str):  # save failed
-            self.set_status(f"{SAVECONFIGBAD} {self._config}", BADCOL)
-            self._config = None
+            self.set_status(f"{SAVECONFIGBAD} {self.config}", BADCOL)
+            self.config = None
         else:
             self.set_status(SAVECONFIGOK, OKCOL)
 
@@ -649,7 +584,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
                 SOCKSERVER_HOST,
                 port,
                 SOCKSERVER_MAX_CLIENTS,
-                self._socket_outqueue,
+                self.socket_outqueue,
             ),
             daemon=True,
         )
@@ -718,10 +653,10 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         try:
-            raw_data, parsed_data = self._gnss_inqueue.get(False)
+            raw_data, parsed_data = self.gnss_inqueue.get(False)
             if raw_data is not None and parsed_data is not None:
                 self.process_data(raw_data, parsed_data)
-            self._gnss_inqueue.task_done()
+            self.gnss_inqueue.task_done()
         except Empty:
             pass
 
@@ -734,15 +669,15 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         try:
-            raw_data, parsed_data = self._ntrip_inqueue.get(False)
+            raw_data, parsed_data = self.ntrip_inqueue.get(False)
             if raw_data is not None and parsed_data is not None:
                 if protocol(raw_data) == RTCM3_PROTOCOL:
                     if self.conn_status == CONNECTED:
-                        self._gnss_outqueue.put(raw_data)
+                        self.gnss_outqueue.put(raw_data)
                     self.process_data(raw_data, parsed_data, "NTRIP>>")
                 else:  # e.g. NMEA GGA sentence sent to NTRIP server
                     self.process_data(raw_data, parsed_data, "NTRIP<<")
-            self._ntrip_inqueue.task_done()
+            self.ntrip_inqueue.task_done()
         except Empty:
             pass
         except (SerialException, SerialTimeoutException) as err:
@@ -757,12 +692,12 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         try:
-            raw_data, parsed_data = self._spartn_inqueue.get(False)
+            raw_data, parsed_data = self.spartn_inqueue.get(False)
             if raw_data is not None and parsed_data is not None:
                 if self.conn_status == CONNECTED:
-                    self._gnss_outqueue.put(raw_data)
+                    self.gnss_outqueue.put(raw_data)
                 self.process_data(raw_data, parsed_data, "SPARTN>>")
-            self._spartn_inqueue.task_done()
+            self.spartn_inqueue.task_done()
 
         except Empty:
             pass
@@ -865,86 +800,77 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             self.set_status(VERCHECK.format(latest), BADCOL)
 
     @property
+    def app_config(self) -> dict:
+        """
+        Getter for app config.
+
+        This contains user-defined ports, various API keys
+        and colortagging values.
+        """
+
+        config = {
+            "mapupdateinterval": self._map_update_interval,
+            "userport": self._user_port,
+            "spartnport": self._spartn_user_port,
+            "mqapikey": self._mqapikey,
+            "mqttclientid": self._mqttclientid,
+            "colortags": self._colortags,
+            "ubxpresets": self._ubxpresets,
+        }
+        return config
+
+    @app_config.setter
+    def app_config(self, config):
+        """
+        Setter for app config.
+
+        :param dict config: configuration as dict
+        """
+
+        self._map_update_interval = config.get("mapupdateinterval", MAP_UPDATE_INTERVAL)
+        self._user_port = config.get("userport", self._user_port)
+        self._spartn_user_port = config.get("spartnport", self._spartn_user_port)
+        self._mqapikey = config.get("mqapikey", self._mqapikey)
+        self._mqttclientid = config.get("mqttclientid", self._mqttclientid)
+        self._colortags = config.get("colortags", self._colortags)
+        self._ubxpresets = config.get("ubxpresets", self._ubxpresets)
+
+    @property
+    def widget_config(self) -> dict:
+        """
+        Getter for widget configuration.
+
+        :return: widget configuration as dict
+        :rtype: dict
+        """
+
+        return {key: vals["visible"] for key, vals in self._widget_grid.items()}
+
+    @widget_config.setter
+    def widget_config(self, config):
+        """
+        Setter for widget config.
+
+        This contains the visibility of the various widgets.
+
+        :param dict config: configuration as dict
+        """
+
+        try:
+            for key, vals in self._widget_grid.items():
+                vals["visible"] = config[key]
+        except KeyError as err:
+            self.set_status(f"{CONFIGERR} - {err}", BADCOL)
+
+        self._grid_widgets()
+
+    @property
     def appmaster(self) -> object:
         """
         Getter for application master (Tk).
         """
 
         return self.__master
-
-    @property
-    def config(self) -> dict:
-        """
-        Getter for configuration.
-        """
-
-        return self._config
-
-    @config.setter
-    def config(self, config: dict):
-        """
-        Setter for configuration.
-
-        :param dict config: configuration
-        """
-
-        self._config = config
-
-    @property
-    def gnss_inqueue(self) -> Queue:
-        """
-        Getter for GNSS message input queue.
-        """
-
-        return self._gnss_inqueue
-
-    @property
-    def gnss_outqueue(self) -> Queue:
-        """
-        Getter for GNSS message output queue.
-        """
-
-        return self._gnss_outqueue
-
-    @property
-    def socket_inqueue(self) -> Queue:
-        """
-        Getter for socket input queue.
-        """
-
-        return self._socket_inqueue
-
-    @property
-    def socket_outqueue(self) -> Queue:
-        """
-        Getter for socket output queue.
-        """
-
-        return self._socket_outqueue
-
-    @property
-    def ntrip_inqueue(self) -> Queue:
-        """
-        Getter for NTRIP input queue.
-        """
-
-        return self._ntrip_inqueue
-
-    @property
-    def spartn_inqueue(self) -> Queue:
-        """
-        Getter for SPARTN input queue.
-        """
-
-        return self._spartn_inqueue
-
-    @property
-    def spartn_outqueue(self) -> Queue:
-        """
-        Getter for SPARTN output queue.
-        """
-
-        return self._spartn_outqueue
 
     @property
     def conn_status(self) -> int:
