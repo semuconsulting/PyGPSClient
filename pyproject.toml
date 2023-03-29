@@ -82,7 +82,10 @@ test = [
 ]
 
 [tool.pylint]
-exit-zero = ""
+jobs = 0
+reports = "y"
+py-version = "3.7"
+exit-zero = "y"
 disable = """
     raw-checker-failed,
     bad-inline-option,
@@ -94,7 +97,6 @@ disable = """
     use-symbolic-message-instead,
     too-many-instance-attributes,
     too-many-branches,
-    too-many-statements,
     unused-private-member,
     too-few-public-methods,
     too-many-public-methods,
@@ -104,7 +106,7 @@ disable = """
 
 [tool.pytest.ini_options]
 minversion = "7.0"
-addopts = "--cov --cov-report html --cov-report term-missing"
+addopts = "--cov --cov-report html --cov-report term-missing -p no:cacheprovider"
 pythonpath = ["src"]
 
 [tool.coverage.run]

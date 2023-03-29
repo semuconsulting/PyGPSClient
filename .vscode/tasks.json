@@ -7,19 +7,6 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Run Local Version",
-            "type": "process",
-            "command": "${config:python.defaultInterpreterPath}",
-            "args": [
-                "-m",
-                "pygpsclient"
-            ],
-            "options": {
-                "cwd": "src"
-            },
-            "problemMatcher": []
-        },
-        {
             "label": "Update Toolchain",
             "type": "process",
             "command": "${config:python.defaultInterpreterPath}",
@@ -38,6 +25,19 @@
                 "Sphinx",
                 "sphinx-rtd-theme",
             ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Run Local Version",
+            "type": "process",
+            "command": "${config:python.defaultInterpreterPath}",
+            "args": [
+                "-m",
+                "pygpsclient"
+            ],
+            "options": {
+                "cwd": "src"
+            },
             "problemMatcher": []
         },
         {
@@ -98,14 +98,13 @@
             "problemMatcher": []
         },
         {
-            // uses project .pylintrc file
             "label": "Pylint",
             "type": "process",
             "command": "${config:python.defaultInterpreterPath}",
             "args": [
                 "-m",
                 "pylint",
-                "${config:modulename}"
+                "src/${config:modulename}"
             ],
             "problemMatcher": []
         },
