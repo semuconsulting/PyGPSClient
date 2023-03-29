@@ -127,7 +127,7 @@ class SettingsFrame(Frame):
         self._record_track = IntVar()
         self._show_unusedsat = IntVar()
         self._show_legend = IntVar()
-        self._colortags = IntVar()
+        self._colortag = IntVar()
         self._socket_serve = IntVar()
         self._sock_port = StringVar()
         self._sock_mode = StringVar()
@@ -252,7 +252,7 @@ class SettingsFrame(Frame):
         self._chk_tags = Checkbutton(
             self._frm_options,
             text="Tags",
-            variable=self._colortags,
+            variable=self._colortag,
         )
         self._lbl_format = Label(self._frm_options, text=LBLDEGFORMAT)
         self._spn_format = Spinbox(
@@ -640,7 +640,7 @@ class SettingsFrame(Frame):
             "ubxprot": self._prot_ubx.get(),
             "rtcmprot": self._prot_rtcm3.get(),
             "degreesformat": self._degrees_format.get(),
-            "colortags": self._colortags.get(),
+            "colortag": self._colortag.get(),
             "units": self._units.get(),
             "autoscroll": self._autoscroll.get(),
             "maxlines": self._maxlines.get(),
@@ -671,7 +671,7 @@ class SettingsFrame(Frame):
             self._prot_ubx.set(config.get("ubxprot", 1))
             self._prot_rtcm3.set(config.get("rtcmprot", 1))
             self._degrees_format.set(config.get("degreesformat", DDD))
-            self._colortags.set(config.get("colortags", TAG_COLORS))
+            self._colortag.set(config.get("colortag", TAG_COLORS))
             self._units.set(config.get("units", UMM))
             self._autoscroll.set(config.get("autoscroll", 1))
             self._maxlines.set(config.get("maxlines", 200))

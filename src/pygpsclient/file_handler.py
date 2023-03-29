@@ -18,6 +18,8 @@ from tkinter import filedialog
 from pyubx2 import hextable
 
 from pygpsclient.globals import (
+    HOME,
+    CONFIGNAME,
     CONFIGFILE,
     MQAPIKEY,
     COLORTAGS,
@@ -34,8 +36,6 @@ from pygpsclient.strings import (
     CONFIGTITLE,
 )
 from pygpsclient.helpers import set_filename
-
-HOME = str(Path.home())
 
 
 class FileHandler:
@@ -73,10 +73,10 @@ class FileHandler:
         self.close_logfile()
         self.close_trackfile()
 
-    def load_config(self, filename: Path = os.path.join(HOME, CONFIGFILE)) -> dict:
+    def load_config(self, filename: Path = CONFIGFILE) -> dict:
         """
-        Load "pygpsclient.json" configuration file. If filename is not provided,
-        defaults to $HOME/pygpsclient.json, otherwise user is prompted for path.
+        Load configuration file. If filename is not provided, defaults
+        to $HOME/pygpsclient.json, otherwise user is prompted for path.
 
         :param Path filename: fully qualified filename, or None for prompt
         :return: configuration settings as dictionary
@@ -103,15 +103,13 @@ class FileHandler:
 
         return config
 
-    def save_config(
-        self, config: dict, filename: Path = os.path.join(HOME, CONFIGFILE)
-    ) -> int:
+    def save_config(self, config: dict, filename: Path = CONFIGFILE) -> int:
         """
         Save configuration file. If filename is not provided, defaults to
         $HOME/pygpsclient.json, otherwise user is prompted for filename.
 
         :param dict config: configuration settings as dictionary
-        :param Path filename: fully qualified filename, or None for prompt
+        :param Path filename: fully qualified path to config file, or None for prompt
         :return: return code 1 = success, None = failure
         :rtype: int
         """
@@ -121,7 +119,7 @@ class FileHandler:
                 filename = filedialog.asksaveasfilename(
                     title=CONFIGTITLE,
                     initialdir=HOME,
-                    initialfile=CONFIGFILE.split(".")[0],
+                    initialfile=CONFIGNAME,
                     filetypes=(
                         ("config files", "*.json"),
                         ("all files", "*.*"),

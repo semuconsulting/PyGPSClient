@@ -125,7 +125,7 @@ class ConsoleFrame(Frame):
         con.insert(END, data + "\n")
 
         # format of this list of tuples is (tag, highlight color)
-        if settings["colortags"]:
+        if settings["colortag"]:
             self._tag_line(data, self.__app.colortags)
             if self._halt != "":
                 self.__app.stream_handler.stop_read_thread()

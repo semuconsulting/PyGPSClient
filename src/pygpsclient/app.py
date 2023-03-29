@@ -46,6 +46,7 @@ from pygpsclient.globals import (
     OKCOL,
     INFCOL,
     BADCOL,
+    CONFIGFILE,
 )
 from pygpsclient._version import __version__ as VERSION
 from pygpsclient.helpers import check_latest
@@ -123,6 +124,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         # user-defined serial port can be passed as environment variable
         # or command line keyword argument
+        configfile = kwargs.pop("config", CONFIGFILE)
         self._user_port = kwargs.pop("userport", getenv("PYGPSCLIENT_USERPORT", ""))
         self._spartn_user_port = kwargs.pop(
             "spartnport", getenv("PYGPSCLIENT_SPARTNPORT", "")
@@ -173,7 +175,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._config = None
 
         # Load configuration from file if it exists
-        self._config = self.file_handler.load_config()
+        self._config = self.file_handler.load_config(configfile)
 
         # Load MapQuest web map api key if not already defined
         if self._mqapikey == "":
@@ -194,10 +196,13 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.frm_banner.update_conn_status(DISCONNECTED)
 
         # Set initial configuration from file
-        if self._config is not None:
-            self.frm_settings.config = self._config
+        if self._config is None:
+            self.frm_status.set_status(f"{LOADCONFIGBAD} {configfile}", BADCOL)
+        else:
+            self.app_config = self._config
             self.widget_config = self._config
-            self.frm_status.set_status(LOADCONFIGOK, OKCOL)
+            self.frm_settings.config = self._config
+            self.frm_status.set_status(f"{LOADCONFIGOK} {configfile}", OKCOL)
 
         # Check for more recent version (if enabled)
         if CHECK_FOR_UPDATES:
@@ -372,6 +377,38 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._grid_widgets()
 
     @property
+    def app_config(self) -> dict:
+        """
+        Getter for app config.
+
+        This contains user-defined ports, various API keys
+        and colortagging values.
+        """
+
+        config = {
+            "userport": self._user_port,
+            "spartnport": self.spartn_user_port,
+            "mqapikey": self._mqapikey,
+            "mqttclientid": self._mqttclientid,
+            "colortags": self.colortags,
+        }
+        return config
+
+    @app_config.setter
+    def app_config(self, config):
+        """
+        Setter for app config.
+
+        :param dict config: configuration as dict
+        """
+
+        self._user_port = config.get("userport", self._user_port)
+        self._spartn_user_port = config.get("spartnport", self.spartn_user_port)
+        self._mqapikey = config.get("mqapikey", self._mqapikey)
+        self._mqttclientid = config.get("mqttclientid", self._mqttclientid)
+        self.colortags = config.get("colortags", self.colortags)
+
+    @property
     def widget_config(self) -> dict:
         """
         Getter for widget configuration.
@@ -386,6 +423,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
     def widget_config(self, config):
         """
         Setter for widget config.
+
+        This contains the visibility of the various widgets.
 
         :param dict config: configuration as dict
         """
@@ -455,14 +494,19 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             self.set_status(LOADCONFIGOK, OKCOL)
             self.frm_settings.config = self._config
             self.widget_config = self._config
+            self.app_config = self.config
 
     def save_config(self):
         """
         Save configuration file menu option.
         """
 
-        # combine settings and widget visibility
-        self._config = {**self.frm_settings.config, **self.widget_config}
+        # combine the various config sections into one dict
+        self._config = {
+            **self.frm_settings.config,
+            **self.widget_config,
+            **self.app_config,
+        }
         rcd = self.file_handler.save_config(self._config, None)
         if rcd is None:
             self.set_status(SAVECONFIGBAD, BADCOL)
