@@ -11,7 +11,7 @@ maintainers = [
   {name = "semuadmin", email = "semuadmin@semuconsulting.com"}
 ]
 description = "GNSS Diagnostic and UBX Configuration GUI Application"
-version = "1.3.21"
+version = "1.3.22"
 license = {file = "LICENSE"}
 keywords= [
     "PyGPSClient",
