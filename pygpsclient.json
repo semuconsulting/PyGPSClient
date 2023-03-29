@@ -357,7 +357,7 @@
 			"#a53570"
 		]
 	],
-	"userpresets": [
+	"ubxpresets": [
 		"Stop GNSS, CFG, CFG-RST, 00000800, 1\n",
 		"Start GNSS, CFG, CFG-RST, 00000900, 1\n",
 		"Enable NMEA UBX00 & UBX03 sentences, CFG, CFG-MSG, f100010100010100, 1, CFG, CFG-MSG, f103010100010100, 1\n",

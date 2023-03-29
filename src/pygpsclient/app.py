@@ -188,7 +188,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         # Load user-defined UBX command presets from file
         # DEPRECATED - USE CONFIG FILE INSTEAD
-        self._userpresets = self.file_handler.load_user_presets()
+        self._ubxpresets = self.file_handler.load_ubx_presets()
 
         self._body()
         self._do_layout()
@@ -397,7 +397,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             "mqapikey": self._mqapikey,
             "mqttclientid": self._mqttclientid,
             "colortags": self.colortags,
-            "userpresets": self._userpresets,
+            "ubxpresets": self._ubxpresets,
         }
         return config
 
@@ -414,7 +414,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._mqapikey = config.get("mqapikey", self._mqapikey)
         self._mqttclientid = config.get("mqttclientid", self._mqttclientid)
         self._colortags = config.get("colortags", self._colortags)
-        self._userpresets = config.get("userpresets", self._userpresets)
+        self._ubxpresets = config.get("ubxpresets", self._ubxpresets)
 
     @property
     def widget_config(self) -> dict:
@@ -969,12 +969,12 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         return self._colortags
 
     @property
-    def userpresets(self) -> list:
+    def ubxpresets(self) -> list:
         """
         Getter for user-defined UBX command presets.
         """
 
-        return self._userpresets
+        return self._ubxpresets
 
     @property
     def user_port(self) -> str:

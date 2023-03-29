@@ -187,7 +187,7 @@ class FileHandler:
 
         return ctags
 
-    def load_user_presets(self) -> str:
+    def load_ubx_presets(self) -> list:
         """
         DEPRECATED - USE CONFIG FILE INSTEAD.
 
@@ -208,7 +208,7 @@ class FileHandler:
 
         return presets
 
-    def set_logfile_path(self) -> str:
+    def set_logfile_path(self) -> Path:
         """
         Set file path.
 
@@ -232,7 +232,7 @@ class FileHandler:
         _, self._logname = set_filename(self._logpath, "data", "log")
         self._logfile = open(self._logname, "a+b")
 
-    def open_infile(self) -> str:
+    def open_infile(self) -> Path:
         """
         Open input file for streaming.
 
@@ -305,7 +305,7 @@ class FileHandler:
         except IOError:
             pass
 
-    def open_spartnfile(self, ext: str) -> str:
+    def open_spartnfile(self, ext: str) -> Path:
         """
         Open spartn key / cert files.
 
@@ -326,7 +326,7 @@ class FileHandler:
             return None  # User cancelled
         return filepath
 
-    def open_spartnjson(self) -> str:
+    def open_spartnjson(self) -> Path:
         """
         Open JSON SPARTN config file.
 
@@ -346,7 +346,7 @@ class FileHandler:
             return None  # User cancelled
         return filepath
 
-    def set_trackfile_path(self) -> str:
+    def set_trackfile_path(self) -> Path:
         """
         Set track directory.
 
