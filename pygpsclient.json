@@ -4,7 +4,6 @@
 	"ubxprot": 1,
 	"rtcmprot": 1,
 	"degreesformat": "DD.D",
-	"colortag": 0,
 	"units": "Metric m/s",
 	"autoscroll": 1,
 	"maxlines": 200,
@@ -30,6 +29,8 @@
 	"Settings": true,
 	"userport": "",
 	"spartnport": "",
+	"mqapikey": "mymqapikeyvalue",
+	"colortag": 0,
 	"colortags": [
 		[
 			"ACK-ACK",

@@ -85,7 +85,7 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 ![disconnect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-media-control-50-24.png?raw=true).
 * Protocols Shown - Select which protocols to display; NMEA, UBX and/or RTCM3 (NB: this only changes the displayed protocols - to change the actual protocols output by the receiver, use the CFG-PRT command).
 * Console Display - Select from parsed, binary or hexadecimal formats.
-* Tags - Turn console color tagging on or off. User-configurable color tags are loaded from a file "colortags" (lower case, no extension) in the user's home directory - see example provided. NB: color tagging does impose a small performance overhead - turning it off will improve console response times at very high transaction rates.
+* Tags - Turn console color tagging on or off. User-configurable color tags are loaded from the `"colortag":` (`0` = disable, `1`=enable) and `"colortags":` (`[string, color]` pairs) values in the json configuration file - see example provided. NB: color tagging does impose a small performance overhead - turning it off will improve console response times at very high transaction rates.
 * Degrees Format and Units - Change the displayed degree and unit formats.
 * Zoom - Change the web map scale (any change will take effect at the next map refresh, indicated by a small timer icon at the top left of the panel).
 * Show Legend - Turn the graph legend on or off.
@@ -99,8 +99,10 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 * To display the NTRIP Client Configuration Dialog (*requires Internet connection*), click
 ![ntrip icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-antenna-4-24.png?raw=true), or go to Menu..Options..NTRIP Configuration Dialog.
 * To display the SPARTN Client Configuration Dialog (*may require Internet connection*), click ![spartn icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-antenna-3-24.png?raw=true), go to Menu..Options..SPARTN Configuration Dialog.
-* To expand or collapse the banner or serial port configuration widgets, click the ![expand icon](https://github.com/semuconsulting/PyGPSClient/blob/master//pygpsclient/resources/iconmonstr-arrow-80-16.png?raw=true)/![expand icon](https://github.com/semuconsulting/PyGPSClient/blob/master//pygpsclient/resources/iconmonstr-triangle-1-16.png?raw=true) buttons.
+* To expand or collapse the banner or serial port configuration widgets, click the ![expand icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-arrow-80-16.png?raw=true)/![expand icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-triangle-1-16.png?raw=true) buttons.
 * To show or hide the various widgets, go to Menu..View and click on the relevant hide/show option.
+* To save the current configuration to a file, go to File..Save Configuration.
+* To load a saved configuration file, go to File..Load Configuration. The default configuration file location is `$HOME/pygpsclient.json`.
 
 ---
 ### <a name="ubxconfig">UBX Configuration Facilities</a>
@@ -385,10 +387,10 @@ To install PyGPSClient manually, download and unzip this repository and run:
 python3 -m /path_to_folder/foldername/pygpsclient
 ```
 
-e.g. if you downloaded and unzipped to a folder named `PyGPSClient-1.3.20`, run: 
+e.g. if you downloaded and unzipped to a folder named `PyGPSClient-1.3.21`, run: 
 
 ```shell
-python3 -m /path_to_folder/PyGPSClient-1.3.20/pygpsclient
+python3 -m /path_to_folder/PyGPSClient-1.3.21/pygpsclient
 ```
 
 ---
@@ -408,7 +410,7 @@ Once you have received the API key (a 32-character alphanumeric string), you can
 
 1. create an environment variable named `MQAPIKEY` (all upper case) and set this to the API key value. It is recommended 
 that this is a User variable rather than a System/Global variable.
-2. copy it to a file named `mqapikey` (lower case, no extension) and place this file in the user's home directory.
+2. copy it to the key value `"mqapikey":` in the json configuration file.
 
 *The web map refresh rate can be amended if required by changing the MAP_UPDATE_INTERVAL constant in `globals.py`.
 
