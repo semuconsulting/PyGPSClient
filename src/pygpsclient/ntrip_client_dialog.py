@@ -666,12 +666,13 @@ class NTRIPConfigDialog(Toplevel):
         :param float dist: distance to mountpoint km
         """
 
+        settings = self.__app.frm_settings.config
         if name in (None, ""):
             return
         dist_l = "Distance n/a"
         dist_u = "km"
         if isinstance(dist, float):
-            units = self.__app.frm_settings.units
+            units = settings["units"]
             if units in (UI, UIK):
                 dist *= KM2MILES
                 dist_u = "miles"

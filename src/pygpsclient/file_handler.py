@@ -13,10 +13,14 @@ Created on 16 Sep 2020
 import os
 from datetime import datetime
 from pathlib import Path
+import json
 from tkinter import filedialog
 from pyubx2 import hextable
 
 from pygpsclient.globals import (
+    HOME,
+    CONFIGNAME,
+    CONFIGFILE,
     MQAPIKEY,
     COLORTAGS,
     UBXPRESETS,
@@ -26,10 +30,12 @@ from pygpsclient.globals import (
     GITHUB_URL,
     FORMATS,
 )
-from pygpsclient.strings import SAVETITLE, READTITLE
+from pygpsclient.strings import (
+    SAVETITLE,
+    READTITLE,
+    CONFIGTITLE,
+)
 from pygpsclient.helpers import set_filename
-
-HOME = str(Path.home())
 
 
 class FileHandler:
@@ -66,6 +72,68 @@ class FileHandler:
 
         self.close_logfile()
         self.close_trackfile()
+
+    def load_config(self, filename: Path = CONFIGFILE) -> dict:
+        """
+        Load configuration file. If filename is not provided, defaults
+        to $HOME/pygpsclient.json, otherwise user is prompted for path.
+
+        :param Path filename: fully qualified filename, or None for prompt
+        :return: configuration settings as dictionary
+        :rtype: dict
+        """
+
+        try:
+            if filename is None:
+                filename = filedialog.askopenfilename(
+                    title=CONFIGTITLE,
+                    initialdir=HOME,
+                    filetypes=(
+                        ("config files", "*.json"),
+                        ("all files", "*.*"),
+                    ),
+                )
+                if filename in ((), ""):
+                    return None  # User cancelled
+
+            with open(filename, "r", encoding="utf-8") as jsonfile:
+                config = json.load(jsonfile)
+        except (OSError, json.JSONDecodeError):
+            return None
+
+        return config
+
+    def save_config(self, config: dict, filename: Path = CONFIGFILE) -> int:
+        """
+        Save configuration file. If filename is not provided, defaults to
+        $HOME/pygpsclient.json, otherwise user is prompted for filename.
+
+        :param dict config: configuration settings as dictionary
+        :param Path filename: fully qualified path to config file, or None for prompt
+        :return: return code 1 = success, None = failure
+        :rtype: int
+        """
+
+        try:
+            if filename is None:
+                filename = filedialog.asksaveasfilename(
+                    title=CONFIGTITLE,
+                    initialdir=HOME,
+                    initialfile=CONFIGNAME,
+                    filetypes=(
+                        ("config files", "*.json"),
+                        ("all files", "*.*"),
+                    ),
+                )
+                if filename in ((), ""):
+                    return None  # User cancelled
+
+            with open(filename, "w", encoding="utf-8") as file:
+                cfgstr = json.dumps(config)
+                file.write(cfgstr)
+                return 1
+        except (OSError, json.JSONDecodeError):
+            return None
 
     def load_mqapikey(self) -> str:
         """
@@ -189,17 +257,19 @@ class FileHandler:
         if self._logfile is None:
             return
 
+        settings = self.__app.frm_settings.config
+        lfm = settings["logformat"]
         data = []
-        if self.__app.frm_settings.logformat in (
+        if lfm in (
             FORMATS[0],
             FORMATS[4],
         ):  # parsed, parsed + hex tabular
             data.append(parsed_data)
-        if self.__app.frm_settings.logformat == FORMATS[1]:  # binary
+        if lfm == FORMATS[1]:  # binary
             data.append(raw_data)
-        if self.__app.frm_settings.logformat == FORMATS[2]:  # hex string
+        if lfm == FORMATS[2]:  # hex string
             data.append(raw_data.hex())
-        if self.__app.frm_settings.logformat in (
+        if lfm in (
             FORMATS[3],
             FORMATS[4],
         ):  # hex tabular, parsed + hex tabular

@@ -43,10 +43,18 @@ from pygpsclient.globals import (
     GNSS_EOF_EVENT,
     NTRIP_EVENT,
     SPARTN_EVENT,
+    OKCOL,
+    INFCOL,
+    BADCOL,
+    CONFIGFILE,
 )
 from pygpsclient._version import __version__ as VERSION
 from pygpsclient.helpers import check_latest
 from pygpsclient.strings import (
+    LOADCONFIGOK,
+    LOADCONFIGBAD,
+    SAVECONFIGOK,
+    SAVECONFIGBAD,
     TITLE,
     INTROTXTNOPORTS,
     NOTCONN,
@@ -62,6 +70,7 @@ from pygpsclient.strings import (
     WDGSPECTRUM,
     WDGSCATTER,
     VERCHECK,
+    CONFIGERR,
 )
 from pygpsclient.gnss_status import GNSSStatus
 from pygpsclient.about_dialog import AboutDialog
@@ -115,6 +124,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         # user-defined serial port can be passed as environment variable
         # or command line keyword argument
+        configfile = kwargs.pop("config", CONFIGFILE)
         self._user_port = kwargs.pop("userport", getenv("PYGPSCLIENT_USERPORT", ""))
         self._spartn_user_port = kwargs.pop(
             "spartnport", getenv("PYGPSCLIENT_SPARTNPORT", "")
@@ -162,6 +172,10 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._spartn_config_thread = None
         self._socket_thread = None
         self._socket_server = None
+        self._config = None
+
+        # Load configuration from file if it exists
+        self._config = self.file_handler.load_config(configfile)
 
         # Load MapQuest web map api key if not already defined
         if self._mqapikey == "":
@@ -181,7 +195,16 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.frm_scatterview.init_graph()
         self.frm_banner.update_conn_status(DISCONNECTED)
 
-        # Check for more recent version
+        # Set initial configuration from file
+        if self._config is None:
+            self.frm_status.set_status(f"{LOADCONFIGBAD} {configfile}", BADCOL)
+        else:
+            self.app_config = self._config
+            self.widget_config = self._config
+            self.frm_settings.config = self._config
+            self.frm_status.set_status(f"{LOADCONFIGOK} {configfile}", OKCOL)
+
+        # Check for more recent version (if enabled)
         if CHECK_FOR_UPDATES:
             self._check_update()
 
@@ -275,7 +298,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             self.__master.grid_rowconfigure(row, weight=1)
 
         if self.frm_settings.serial_settings.status == NOPORTS:
-            self.set_status(INTROTXTNOPORTS, "red")
+            self.set_status(INTROTXTNOPORTS, BADCOL)
 
     def _grid_widgets(self):
         """
@@ -334,6 +357,86 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         return col, row
 
+    def toggle_widget(self, widget: str):
+        """
+        Toggle widget visibility.
+
+        :param str widget: widget name
+        """
+
+        self._widget_grid[widget]["visible"] = not self._widget_grid[widget]["visible"]
+        self._grid_widgets()
+
+    def reset_widgets(self):
+        """
+        Reset widgets to default layout.
+        """
+
+        for nam, wdg in self._widget_grid.items():
+            wdg["visible"] = nam in DEFAULT_WIDGETS
+        self._grid_widgets()
+
+    @property
+    def app_config(self) -> dict:
+        """
+        Getter for app config.
+
+        This contains user-defined ports, various API keys
+        and colortagging values.
+        """
+
+        config = {
+            "userport": self._user_port,
+            "spartnport": self.spartn_user_port,
+            "mqapikey": self._mqapikey,
+            "mqttclientid": self._mqttclientid,
+            "colortags": self.colortags,
+        }
+        return config
+
+    @app_config.setter
+    def app_config(self, config):
+        """
+        Setter for app config.
+
+        :param dict config: configuration as dict
+        """
+
+        self._user_port = config.get("userport", self._user_port)
+        self._spartn_user_port = config.get("spartnport", self.spartn_user_port)
+        self._mqapikey = config.get("mqapikey", self._mqapikey)
+        self._mqttclientid = config.get("mqttclientid", self._mqttclientid)
+        self.colortags = config.get("colortags", self.colortags)
+
+    @property
+    def widget_config(self) -> dict:
+        """
+        Getter for widget configuration.
+
+        :return: widget configuration as dict
+        :rtype: dict
+        """
+
+        return {wdg: self._widget_grid[wdg]["visible"] for wdg in self._widget_grid}
+
+    @widget_config.setter
+    def widget_config(self, config):
+        """
+        Setter for widget config.
+
+        This contains the visibility of the various widgets.
+
+        :param dict config: configuration as dict
+        """
+
+        try:
+            for key, vals in self._widget_grid.items():
+                vals["visible"] = config[key]
+        except KeyError as err:
+            self.set_status(f"{CONFIGERR} - {err}", BADCOL)
+
+        self._grid_widgets()
+
     def _attach_events(self):
         """
         Bind events to main application.
@@ -357,26 +460,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.font_md2 = font.Font(size=14)
         self.font_lg = font.Font(size=18)
 
-    def toggle_widget(self, widget: str):
-        """
-        Toggle widget visibility.
-
-        :param str widget: widget name
-        """
-
-        self._widget_grid[widget]["visible"] = not self._widget_grid[widget]["visible"]
-        self._grid_widgets()
-
-    def reset_widgets(self):
-        """
-        Reset widgets to default layout.
-        """
-
-        for nam, wdg in self._widget_grid.items():
-            wdg["visible"] = nam in DEFAULT_WIDGETS
-        self._grid_widgets()
-
-    def set_connection(self, message, color="blue"):
+    def set_connection(self, message, color=INFCOL):
         """
         Sets connection description in status bar.
 
@@ -397,6 +481,37 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         self.frm_status.set_status(message, color)
+
+    def load_config(self):
+        """
+        Load configuration file menu option.
+        """
+
+        self._config = self.file_handler.load_config(None)
+        if self._config is None:
+            self.set_status(LOADCONFIGBAD, BADCOL)
+        else:
+            self.set_status(LOADCONFIGOK, OKCOL)
+            self.frm_settings.config = self._config
+            self.widget_config = self._config
+            self.app_config = self.config
+
+    def save_config(self):
+        """
+        Save configuration file menu option.
+        """
+
+        # combine the various config sections into one dict
+        self._config = {
+            **self.frm_settings.config,
+            **self.widget_config,
+            **self.app_config,
+        }
+        rcd = self.file_handler.save_config(self._config, None)
+        if rcd is None:
+            self.set_status(SAVECONFIGBAD, BADCOL)
+        else:
+            self.set_status(SAVECONFIGOK, OKCOL)
 
     def on_about(self):
         """
@@ -517,8 +632,9 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         Start socket server thread.
         """
 
-        port = self.frm_settings.server_port
-        ntripmode = self.frm_settings.server_mode
+        settings = self.frm_settings.config
+        port = int(settings["sockport"])
+        ntripmode = settings["sockmode"]
         self._socket_thread = Thread(
             target=self._sockserver_thread,
             args=(
@@ -556,13 +672,16 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         :param Queue socketqueue: socket server read queue
         """
 
+        print(
+            f"DEBUG sockserver_thread {ntripmode} {socketqueue} {maxclients} {host} {port}"
+        )
         try:
             with SocketServer(
                 self, ntripmode, maxclients, socketqueue, (host, port), ClientHandler
             ) as self._socket_server:
                 self._socket_server.serve_forever()
         except OSError as err:
-            self.set_status(f"Error starting socket server {err}", "red")
+            self.set_status(f"Error starting socket server {err}", BADCOL)
 
     def update_clients(self, clients: int):
         """
@@ -625,7 +744,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         except Empty:
             pass
         except (SerialException, SerialTimeoutException) as err:
-            self.set_status(f"Error sending to device {err}", "red")
+            self.set_status(f"Error sending to device {err}", BADCOL)
 
     def on_spartn_read(self, event):  # pylint: disable=unused-argument
         """
@@ -649,7 +768,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         except Empty:
             pass
         except (SerialException, SerialTimeoutException) as err:
-            self.set_status(f"Error sending to device {err}", "red")
+            self.set_status(f"Error sending to device {err}", BADCOL)
 
     def update_ntrip_status(self, status: bool, msgt: tuple = None):
         """
@@ -700,7 +819,9 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         :param str marker: string prepended to console entries e.g. "NTRIP>>"
         """
 
-        protfilter = self.frm_settings.protocol
+        settings = self.frm_settings.config
+
+        protfilter = settings["protocol"]
         msgprot = protocol(raw_data)
         if isinstance(parsed_data, str):  # error message rather than parsed data
             marker = "WARNING  "
@@ -730,11 +851,11 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             self._last_gui_update = datetime.now()
 
         # update GPX track file if enabled
-        if self.frm_settings.record_track:
+        if settings["recordtrack"]:
             self._update_gpx_track()
 
         # update log file if enabled
-        if self.frm_settings.datalogging:
+        if settings["datalog"]:
             self.file_handler.write_logfile(raw_data, parsed_data)
 
     def _update_gpx_track(self):
@@ -803,7 +924,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         latest = check_latest("PyGPSClient")
         if latest not in (VERSION, "N/A"):
-            self.set_status(VERCHECK.format(latest), "red")
+            self.set_status(VERCHECK.format(latest), BADCOL)
 
     @property
     def appmaster(self) -> object:
@@ -812,6 +933,24 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         return self.__master
+
+    @property
+    def config(self) -> str:
+        """
+        Getter for configuration.
+        """
+
+        return self._config
+
+    @config.setter
+    def config(self, config: dict):
+        """
+        Setter for configuration.
+
+        :param dict config: configuration
+        """
+
+        self._config = config
 
     @property
     def user_port(self) -> str:
@@ -925,8 +1064,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.frm_banner.update_conn_status(status)
         self.frm_settings.enable_controls(status)
         if status == DISCONNECTED:
-            self.set_connection(NOTCONN, "red")
-            self.set_status("", "blue")
+            self.set_connection(NOTCONN, BADCOL)
+            self.set_status("", INFCOL)
 
     @property
     def rtk_conn_status(self) -> int:

@@ -390,11 +390,12 @@ class BannerFrame(Frame):
         Sets text of banner from GNSSStatus object.
         """
 
-        disp_format = self.__app.frm_settings.format
-        units = self.__app.frm_settings.units
+        settings = self.__app.frm_settings.config
+        deg_format = settings["degreesformat"]
+        units = settings["units"]
 
         self._update_time()
-        self._update_pos(disp_format, units)
+        self._update_pos(deg_format, units)
         self._update_track(units)
         self._update_fix()
         self._update_siv()
@@ -412,7 +413,7 @@ class BannerFrame(Frame):
         else:
             self._time.set(tim)
 
-    def _update_pos(self, disp_format, units):
+    def _update_pos(self, deg_format, units):
         """
         Update position
 
@@ -423,9 +424,9 @@ class BannerFrame(Frame):
         lat = self.__app.gnss_status.lat
         lon = self.__app.gnss_status.lon
         if isinstance(lat, (int, float)) and isinstance(lon, (int, float)):
-            if disp_format == DMS:
+            if deg_format == DMS:
                 lat, lon = latlon2dms(lat, lon)
-            elif disp_format == DMM:
+            elif deg_format == DMM:
                 lat, lon = latlon2dmm(lat, lon)
             self._lat.set(f"{lat:<15}")
             self._lon.set(f"{lon:<15}")

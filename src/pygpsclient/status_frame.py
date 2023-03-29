@@ -76,8 +76,8 @@ class StatusFrame(Frame):
 
         """
 
-        if len(message) > 80:
-            message = "..." + message[-80:]
+        if len(message) > 100:
+            message = "..." + message[-100:]
         self._lbl_status_preset.config(fg=color)
         self._status.set("  " + message)
 

@@ -104,17 +104,17 @@ class ConsoleFrame(Frame):
 
         """
 
+        settings = self.__app.frm_settings.config
+        cfm = settings["consoleformat"]
         self._halt = ""
         self.txt_console.configure(font=FONT_FIXED)
-        if self.__app.frm_settings.display_format == FORMATS[1]:  # binary
+        if cfm == FORMATS[1]:  # binary
             data = str(raw_data).strip("\n")
-        elif self.__app.frm_settings.display_format == FORMATS[2]:  # hex string
+        elif cfm == FORMATS[2]:  # hex string
             data = str(raw_data.hex())
-        elif self.__app.frm_settings.display_format == FORMATS[3]:  # hex tabular
+        elif cfm == FORMATS[3]:  # hex tabular
             data = hextable(raw_data)
-        elif (
-            self.__app.frm_settings.display_format == FORMATS[4]
-        ):  # parsed + hex tabular
+        elif cfm == FORMATS[4]:  # parsed + hex tabular
             data = f"{marker}{parsed_data}\n{hextable(raw_data)}"
         else:
             self.txt_console.configure(font=FONT_TEXT)
@@ -125,14 +125,14 @@ class ConsoleFrame(Frame):
         con.insert(END, data + "\n")
 
         # format of this list of tuples is (tag, highlight color)
-        if self.__app.frm_settings.colortagging:
+        if settings["colortag"]:
             self._tag_line(data, self.__app.colortags)
             if self._halt != "":
                 self.__app.stream_handler.stop_read_thread()
                 self.__app.set_status(f"Halted on user tag match: {self._halt}", "red")
 
         idx = float(con.index("end"))  # Lazy but it works
-        if idx > self.__app.frm_settings.maxlines:
+        if idx > settings["maxlines"]:
             # Remember these tcl indices look like floats but they're not!
             # ("1.0:, "2.0") signifies "from the first character in
             # line 1 (inclusive) to the first character in line 2 (exclusive)"
@@ -140,7 +140,7 @@ class ConsoleFrame(Frame):
             con.delete("1.0", "2.0")
 
         # con.update_idletasks()
-        if self.__app.frm_settings.autoscroll:
+        if settings["autoscroll"]:
             con.see("end")
         con.configure(state="disabled")
 

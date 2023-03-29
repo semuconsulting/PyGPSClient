@@ -87,7 +87,7 @@ class GraphviewFrame(Frame):
                 font=resize_font,
             )
 
-        if self.__app.frm_settings.show_legend:
+        if self.__app.frm_settings.config["legend"]:
             self._draw_legend()
 
     def _draw_legend(self):

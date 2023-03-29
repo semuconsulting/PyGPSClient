@@ -44,6 +44,7 @@ from requests import (
 )
 from PIL import ImageTk, Image
 from pygpsclient.globals import (
+    HOME,
     ICON_LOAD,
     ICON_EXIT,
     ICON_REDRAW,
@@ -76,7 +77,6 @@ from pygpsclient.strings import (
 from pygpsclient.helpers import mapq_compress, haversine
 
 
-HOME = str(Path.home())
 # profile chart parameters:
 AXIS_XL = 35  # x axis left offset
 AXIS_XR = 35  # x axis right offset
@@ -606,7 +606,8 @@ class GPXViewerDialog(Toplevel):
         :rtype: tuple
         """
 
-        units = self.__app.frm_settings.units
+        settings = self.__app.frm_settings.config
+        units = settings["units"]
 
         if units == UI:
             dst_u = "miles"

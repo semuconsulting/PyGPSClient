@@ -12,7 +12,7 @@ import sys
 from argparse import ArgumentParser, SUPPRESS
 from tkinter import Tk
 
-from pygpsclient.globals import EPILOG
+from pygpsclient.globals import EPILOG, CONFIGFILE
 from pygpsclient.app import App
 from pygpsclient._version import __version__ as VERSION
 
@@ -22,6 +22,12 @@ def main():
 
     arp = ArgumentParser(epilog=EPILOG, argument_default=SUPPRESS)
     arp.add_argument("-V", "--version", action="version", version="%(prog)s " + VERSION)
+    arp.add_argument(
+        "-C",
+        "--config",
+        required=False,
+        help=f"Fully-qualified path to config file ({CONFIGFILE})",
+    )
     arp.add_argument(
         "-U", "--userport", required=False, help="User-defined GNSS receiver port"
     )
