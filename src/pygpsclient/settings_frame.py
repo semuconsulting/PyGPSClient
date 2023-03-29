@@ -162,13 +162,14 @@ class SettingsFrame(Frame):
         self.option_add("*Font", self.__app.font_sm)
 
         # serial port configuration panel
+        userport = self.__app.config.get("userport", "")
         self._frm_serial = SerialConfigFrame(
             self,
             preselect=KNOWNGPS,
             timeouts=TIMEOUTS,
             bpsrates=BPSRATES,
             msgmodes=list(MSGMODES.keys()),
-            userport=self.__app.user_port,  # user-defined serial port
+            userport=userport,  # user-defined serial port
         )
 
         # socket configuration panel

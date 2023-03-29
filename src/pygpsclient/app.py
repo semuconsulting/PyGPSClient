@@ -1,10 +1,6 @@
 """
 PyGPSClient - Main tkinter application class.
 
-Hosts the various GUI widgets and update routines.
-Holds a GNSSStatus object containing the latest
-GNSS receiver readings.
-
 Created on 12 Sep 2020
 
 :author: semuadmin
@@ -32,7 +28,6 @@ from pygpsclient.globals import (
     DISCONNECTED,
     NOPORTS,
     GUI_UPDATE_INTERVAL,
-    GPX_TRACK_INTERVAL,
     SOCKSERVER_MAX_CLIENTS,
     SOCKSERVER_HOST,
     MAXCOLSPAN,
@@ -47,6 +42,7 @@ from pygpsclient.globals import (
     INFCOL,
     BADCOL,
     CONFIGFILE,
+    MAP_UPDATE_INTERVAL,
 )
 from pygpsclient._version import __version__ as VERSION
 from pygpsclient.helpers import check_latest
@@ -139,7 +135,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.__master.iconphoto(True, PhotoImage(file=ICON_APP))
         self.gnss_status = GNSSStatus()  # holds latest GNSS readings
         self._last_gui_update = datetime.now()
-        self._last_track_update = datetime.now()
+        # self._last_track_update = datetime.now()
 
         # dict containing widget grid positions
         self._widget_grid = {}
@@ -162,6 +158,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.spartn_handler = GNSSMQTTClient(self, verbosity=0)
         self._conn_status = DISCONNECTED
         self._rtk_conn_status = DISCONNECTED
+        self._map_update_interval = MAP_UPDATE_INTERVAL
         self.dlg_ubxconfig = None
         self.dlg_ntripconfig = None
         self.dlg_spartnconfig = None
@@ -392,11 +389,12 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         config = {
+            "mapupdateinterval": self._map_update_interval,
             "userport": self._user_port,
-            "spartnport": self.spartn_user_port,
+            "spartnport": self._spartn_user_port,
             "mqapikey": self._mqapikey,
             "mqttclientid": self._mqttclientid,
-            "colortags": self.colortags,
+            "colortags": self._colortags,
             "ubxpresets": self._ubxpresets,
         }
         return config
@@ -409,12 +407,13 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         :param dict config: configuration as dict
         """
 
+        self._map_update_interval = config.get("mapupdateinterval", MAP_UPDATE_INTERVAL)
         self._user_port = config.get("userport", self._user_port)
-        self._spartn_user_port = config.get("spartnport", self.spartn_user_port)
+        self._spartn_user_port = config.get("spartnport", self._spartn_user_port)
         self._mqapikey = config.get("mqapikey", self._mqapikey)
         self._mqttclientid = config.get("mqttclientid", self._mqttclientid)
-        self._colortags = config.get("colortags", self._colortags)
-        self._ubxpresets = config.get("ubxpresets", self._ubxpresets)
+        self._colortags = config.get("colortags", [])
+        self._ubxpresets = config.get("ubxpresets", [])
 
     @property
     def widget_config(self) -> dict:
@@ -425,7 +424,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         :rtype: dict
         """
 
-        return {wdg: self._widget_grid[wdg]["visible"] for wdg in self._widget_grid}
+        return {key: vals["visible"] for key, vals in self._widget_grid.items()}
 
     @widget_config.setter
     def widget_config(self, config):
@@ -680,9 +679,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         :param Queue socketqueue: socket server read queue
         """
 
-        print(
-            f"DEBUG sockserver_thread {ntripmode} {socketqueue} {maxclients} {host} {port}"
-        )
         try:
             with SocketServer(
                 self, ntripmode, maxclients, socketqueue, (host, port), ClientHandler
@@ -733,8 +729,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
         EVENT TRIGGERED
         Action on <<ntrip_read>> event - read data from NTRIP queue.
-        If it's RTCM3 data, send to connected receiver and display on console.
-        If it's NMEA, just display on console.
 
         :param event event: read event
         """
@@ -758,9 +752,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
         EVENT TRIGGERED
         Action on <<spartn_read>> event - read data from SPARTN queue.
-        If it's RXM-PMP data, send to connected receiver and display on console
-        with a "SPARTN>>" marker. Anything else, just display on console with a
-        "SPARTN>>" marker.
 
         :param event event: read event
         """
@@ -818,9 +809,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
     def process_data(self, raw_data: bytes, parsed_data: object, marker: str = ""):
         """
-        Update the various GUI widgets, GPX track and log file
-        with the latest data. Parsed data tagged with a 'marker' is
-        written to the console for information but not processed further.
+        Update the various GUI widgets, GPX track and log file.
 
         :param bytes raw_data: raw message data
         :param object parsed data: NMEAMessage, UBXMessage or RTCMMessage
@@ -860,70 +849,11 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         # update GPX track file if enabled
         if settings["recordtrack"]:
-            self._update_gpx_track()
+            self.file_handler.update_gpx_track()
 
         # update log file if enabled
         if settings["datalog"]:
             self.file_handler.write_logfile(raw_data, parsed_data)
-
-    def _update_gpx_track(self):
-        """
-        Update GPX track with latest valid position readings.
-        """
-
-        # must have valid coords
-        if self.gnss_status.lat == "" or self.gnss_status.lon == "":
-            return
-
-        if datetime.now() > self._last_track_update + timedelta(
-            seconds=GPX_TRACK_INTERVAL
-        ):
-            today = datetime.now()
-            gpstime = self.gnss_status.utc
-            trktime = datetime(
-                today.year,
-                today.month,
-                today.day,
-                gpstime.hour,
-                gpstime.minute,
-                gpstime.second,
-                gpstime.microsecond,
-            )
-            time = f"{trktime.isoformat()}Z"
-            if self.gnss_status.diff_corr:
-                fix = "dgps"
-            elif self.gnss_status.fix == "3D":
-                fix = "3d"
-            elif self.gnss_status.fix == "2D":
-                fix = "2d"
-            else:
-                fix = "none"
-            diff_age = self.gnss_status.diff_age
-            diff_station = self.gnss_status.diff_station
-            if diff_age in [None, "", 0] or diff_station in [None, "", 0]:
-                self.file_handler.add_trackpoint(
-                    self.gnss_status.lat,
-                    self.gnss_status.lon,
-                    ele=self.gnss_status.alt,
-                    time=time,
-                    fix=fix,
-                    sat=self.gnss_status.sip,
-                    pdop=self.gnss_status.pdop,
-                )
-            else:
-                self.file_handler.add_trackpoint(
-                    self.gnss_status.lat,
-                    self.gnss_status.lon,
-                    ele=self.gnss_status.alt,
-                    time=time,
-                    fix=fix,
-                    sat=self.gnss_status.sip,
-                    pdop=self.gnss_status.pdop,
-                    ageofdgpsdata=diff_age,
-                    dgpsid=diff_station,
-                )
-
-            self._last_track_update = datetime.now()
 
     def _check_update(self):
         """
@@ -943,11 +873,13 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         return self.__master
 
     @property
-    def config(self) -> str:
+    def config(self) -> dict:
         """
         Getter for configuration.
         """
 
+        if self._config is None:
+            return {}
         return self._config
 
     @config.setter
@@ -959,56 +891,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         self._config = config
-
-    @property
-    def colortags(self) -> list:
-        """
-        Getter for console color tagging values.
-        """
-
-        return self._colortags
-
-    @property
-    def ubxpresets(self) -> list:
-        """
-        Getter for user-defined UBX command presets.
-        """
-
-        return self._ubxpresets
-
-    @property
-    def user_port(self) -> str:
-        """
-        Getter for user-defined port passed as optional
-        command line keyword argument.
-        """
-
-        return self._user_port
-
-    @property
-    def spartn_user_port(self) -> str:
-        """
-        Getter for user-defined spartn port passed as optional
-        command line keyword argument.
-        """
-
-        return self._spartn_user_port
-
-    @property
-    def mqapikey(self) -> str:
-        """
-        Getter for MapQuerst API Key.
-        """
-
-        return self._mqapikey
-
-    @property
-    def mqttclientid(self) -> str:
-        """
-        Getter for MQTT Client ID.
-        """
-
-        return self._mqttclientid
 
     @property
     def gnss_inqueue(self) -> Queue:
@@ -1095,7 +977,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
     def rtk_conn_status(self) -> int:
         """
         Getter for SPARTN connection status.
-        CONNECTED_NTRIP / CONNECTED_SPARTNLB / CONNECTED_SPARTNIP
 
         :param int status: connection status
         """
@@ -1105,8 +986,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
     @rtk_conn_status.setter
     def rtk_conn_status(self, status: int):
         """
-        Setter for SPARTN connection status
-        CONNECTED_NTRIP / CONNECTED_SPARTNLB / CONNECTED_SPARTNIP
+        Setter for SPARTN connection status.
 
         :param int status: connection status
         """

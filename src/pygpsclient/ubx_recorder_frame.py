@@ -16,7 +16,6 @@ Created on 9 Jan 2023
 
 from time import sleep
 from threading import Event, Thread
-from pathlib import Path
 from tkinter import (
     Frame,
     Button,

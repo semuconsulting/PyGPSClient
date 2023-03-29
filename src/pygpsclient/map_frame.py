@@ -15,6 +15,7 @@ Created on 13 Sep 2020
 :license: BSD 3-Clause
 """
 
+from os import getenv
 from io import BytesIO
 from time import time
 from tkinter import Frame, Canvas, font, NW, N, S, E, W
@@ -64,6 +65,12 @@ class MapviewFrame(Frame):
         self._img = None
         self._marker = None
         self._last_map_update = 0
+        settings = self.__app.config
+        if settings is None:
+            mapupdateinterval = MAP_UPDATE_INTERVAL
+        else:
+            mapupdateinterval = settings.get("mapupdateinterval", MAP_UPDATE_INTERVAL)
+        self._map_update_interval = mapupdateinterval
         self._body()
 
         self.bind("<Configure>", self._on_resize)
@@ -145,15 +152,15 @@ class MapviewFrame(Frame):
         sc = "NO CONNECTION"
         msg = ""
 
-        mqapikey = self.__app.mqapikey
+        mqapikey = self.__app.config.get("mqapikey", getenv("mqapikey", ""))
         if mqapikey == "":
             self._disp_error(NOWEBMAPKEY)
             return
 
         now = time()
-        if now - self._last_map_update < MAP_UPDATE_INTERVAL:
+        if now - self._last_map_update < self._map_update_interval:
             self._draw_countdown(
-                (-360 / MAP_UPDATE_INTERVAL) * (now - self._last_map_update)
+                (-360 / self._map_update_interval) * (now - self._last_map_update)
             )
             return
         self._last_map_update = now

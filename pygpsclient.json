@@ -9,6 +9,7 @@
 	"maxlines": 200,
 	"consoleformat": "Parsed",
 	"webmap": 0,
+	"mapupdateinterval": 60,
 	"mapzoom": 10,
 	"legend": 1,
 	"unusedsat": 1,

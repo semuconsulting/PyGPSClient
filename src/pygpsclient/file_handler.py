@@ -11,7 +11,7 @@ Created on 16 Sep 2020
 """
 
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 import json
 from tkinter import filedialog
@@ -29,6 +29,7 @@ from pygpsclient.globals import (
     GPX_NS,
     GITHUB_URL,
     FORMATS,
+    GPX_TRACK_INTERVAL,
 )
 from pygpsclient.strings import (
     SAVETITLE,
@@ -64,6 +65,7 @@ class FileHandler:
         self._configpath = None
         self._configfile = None
         self._lines = 0
+        self._last_track_update = datetime.fromordinal(1)
 
     def __del__(self):
         """
@@ -445,3 +447,63 @@ class FileHandler:
                 self._trackfile.close()
         except (IOError, ValueError):
             pass
+
+    def update_gpx_track(self):
+        """
+        Update GPX track with latest valid position readings.
+        """
+
+        gnss_status = self.__app.gnss_status
+        # must have valid coords
+        if gnss_status.lat == "" or gnss_status.lon == "":
+            return
+
+        if datetime.now() > self._last_track_update + timedelta(
+            seconds=GPX_TRACK_INTERVAL
+        ):
+            today = datetime.now()
+            gpstime = gnss_status.utc
+            trktime = datetime(
+                today.year,
+                today.month,
+                today.day,
+                gpstime.hour,
+                gpstime.minute,
+                gpstime.second,
+                gpstime.microsecond,
+            )
+            time = f"{trktime.isoformat()}Z"
+            if gnss_status.diff_corr:
+                fix = "dgps"
+            elif gnss_status.fix == "3D":
+                fix = "3d"
+            elif gnss_status.fix == "2D":
+                fix = "2d"
+            else:
+                fix = "none"
+            diff_age = gnss_status.diff_age
+            diff_station = gnss_status.diff_station
+            if diff_age in [None, "", 0] or diff_station in [None, "", 0]:
+                self.add_trackpoint(
+                    gnss_status.lat,
+                    gnss_status.lon,
+                    ele=gnss_status.alt,
+                    time=time,
+                    fix=fix,
+                    sat=gnss_status.sip,
+                    pdop=gnss_status.pdop,
+                )
+            else:
+                self.add_trackpoint(
+                    gnss_status.lat,
+                    gnss_status.lon,
+                    ele=gnss_status.alt,
+                    time=time,
+                    fix=fix,
+                    sat=gnss_status.sip,
+                    pdop=gnss_status.pdop,
+                    ageofdgpsdata=diff_age,
+                    dgpsid=diff_station,
+                )
+
+            self._last_track_update = datetime.now()

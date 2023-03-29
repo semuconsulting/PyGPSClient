@@ -13,7 +13,6 @@ Created on 10 Jan 2023
 
 from xml.dom import minidom
 from io import BytesIO
-from pathlib import Path
 from datetime import datetime
 from tkinter import (
     Toplevel,
@@ -391,7 +390,7 @@ class GPXViewerDialog(Toplevel):
         """
         # pylint: disable=unused-variable
 
-        mqapikey = self.__app.mqapikey
+        mqapikey = self.__app.config.get("mqapikey", "")
         lat1, lon1, _, _, _ = self._track[0]  # start point, labelled 1
         lat2, lon2, _, _, _ = self._track[-1]  # end point, labelled 2
         points = []
