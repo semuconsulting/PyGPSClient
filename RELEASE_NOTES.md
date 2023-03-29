@@ -4,7 +4,13 @@
 
 ENHANCEMENTS:
 
-1. Add facility to save and reload PyGPSClient application configuration file in json format. Covers frm_settings dialog values (display format, units, etc.), widget configuration and other global app settings including user-defined ports, API keys and colortagging values.
+1. Add facility to save and reload PyGPSClient application configuration file in json format. Covers:
+    * frm_settings dialog values (protocols, console format, degrees format, units, etc.)
+    * widget configuration (which widgets are visible or hidden)
+    * user-defined GNSS and SPARTN serial ports
+    * API keys
+    * console color tagging values
+    * user-defined UBX command presets
 1. Will look for default config file `$HOME/pygpsclient.json` on startup - a sample file is provided.
 1. Add ability to specify a custom config file via command line argument `-C`, `--config`.
 1. Application config file obviates need for discrete `colortags` and `mqapikey` files. These will be deprecated in a subsequent version.

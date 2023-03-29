@@ -178,11 +178,17 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._config = self.file_handler.load_config(configfile)
 
         # Load MapQuest web map api key if not already defined
+        # DEPRECATED - USE CONFIG FILE INSTEAD
         if self._mqapikey == "":
             self._mqapikey = self.file_handler.load_mqapikey()
 
         # Load console color tags from file
-        self.colortags = self.file_handler.load_colortags()
+        # DEPRECATED - USE CONFIG FILE INSTEAD
+        self._colortags = self.file_handler.load_colortags()
+
+        # Load user-defined UBX command presets from file
+        # DEPRECATED - USE CONFIG FILE INSTEAD
+        self._userpresets = self.file_handler.load_user_presets()
 
         self._body()
         self._do_layout()
@@ -391,6 +397,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             "mqapikey": self._mqapikey,
             "mqttclientid": self._mqttclientid,
             "colortags": self.colortags,
+            "userpresets": self._userpresets,
         }
         return config
 
@@ -406,7 +413,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._spartn_user_port = config.get("spartnport", self.spartn_user_port)
         self._mqapikey = config.get("mqapikey", self._mqapikey)
         self._mqttclientid = config.get("mqttclientid", self._mqttclientid)
-        self.colortags = config.get("colortags", self.colortags)
+        self._colortags = config.get("colortags", self._colortags)
+        self._userpresets = config.get("userpresets", self._userpresets)
 
     @property
     def widget_config(self) -> dict:
@@ -951,6 +959,22 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         self._config = config
+
+    @property
+    def colortags(self) -> str:
+        """
+        Getter for console color tagging values.
+        """
+
+        return self._colortags
+
+    @property
+    def userpresets(self) -> str:
+        """
+        Getter for user-defined UBX command presets.
+        """
+
+        return self._userpresets
 
     @property
     def user_port(self) -> str:

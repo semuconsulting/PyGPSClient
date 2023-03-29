@@ -85,7 +85,7 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 ![disconnect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-media-control-50-24.png?raw=true).
 * Protocols Shown - Select which protocols to display; NMEA, UBX and/or RTCM3 (NB: this only changes the displayed protocols - to change the actual protocols output by the receiver, use the CFG-PRT command).
 * Console Display - Select from parsed, binary or hexadecimal formats.
-* Tags - Turn console color tagging on or off. User-configurable color tags are loaded from the `"colortag":` (`0` = disable, `1`=enable) and `"colortags":` (`[string, color]` pairs) values in the json configuration file - see example provided. NB: color tagging does impose a small performance overhead - turning it off will improve console response times at very high transaction rates.
+* Color Tagging - Turn console color tagging on or off. User-configurable color tags are loaded from the `"colortag":` value (`0` = disable, `1`=enable) and `"colortags":` list (`[string, color]` pairs) in the json configuration file (see example provided). NB: color tagging does impose a small performance overhead - turning it off will improve console response times at very high transaction rates.
 * Degrees Format and Units - Change the displayed degree and unit formats.
 * Zoom - Change the web map scale (any change will take effect at the next map refresh, indicated by a small timer icon at the top left of the panel).
 * Show Legend - Turn the graph legend on or off.
@@ -410,7 +410,7 @@ Once you have received the API key (a 32-character alphanumeric string), you can
 
 1. create an environment variable named `MQAPIKEY` (all upper case) and set this to the API key value. It is recommended 
 that this is a User variable rather than a System/Global variable.
-2. copy it to the key value `"mqapikey":` in the json configuration file.
+2. copy it to the key value `"mqapikey":` in the json configuration file (see example provided).
 
 *The web map refresh rate can be amended if required by changing the MAP_UPDATE_INTERVAL constant in `globals.py`.
 
@@ -418,7 +418,7 @@ that this is a User variable rather than a System/Global variable.
 ## <a name="userdefined">User Defined Presets</a>
 
 The UBX Configuration Dialog includes the facility to send user-defined UBX configuration messages or message sequences to the receiver. These can be set up by adding
-appropriate comma-delimited message descriptions and payload definitions to a file named `ubxpresets` (lower case, no extension), and then placing this file in the user's home directory. The message definition comprises a free-format text description (*avoid embedded commas*) 
+appropriate comma-delimited message descriptions and payload definitions to the `"ubxpresets":` list in the json configuration file (see example provided). The message definition comprises a free-format text description (*avoid embedded commas*) 
 followed by one or more [pyubx2 UBXMessage constructors](https://pypi.org/project/pyubx2/), i.e. 
 1. message class as a string e.g. `CFG` (must be a valid class from pyubx2.UBX_CLASSES)
 2. message id as a string e.g. `CFG-MSG` (must be a valid id from pyubx2.UBX_MSGIDS)

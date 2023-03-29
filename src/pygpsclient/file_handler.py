@@ -137,6 +137,7 @@ class FileHandler:
 
     def load_mqapikey(self) -> str:
         """
+        DEPRECATED - USE CONFIG FILE INSTEAD
         Load MapQuest web map api key from
         key file in user's home directory.
 
@@ -156,6 +157,7 @@ class FileHandler:
 
     def load_colortags(self) -> list:
         """
+        DEPRECATED - USE CONFIG FILE INSTEAD
         Load user defined colortags from file.
 
         Expects file in format:
@@ -185,6 +187,7 @@ class FileHandler:
 
     def load_user_presets(self) -> str:
         """
+        DEPRECATED - USE CONFIG FILE INSTEAD
         Load user configuration message presets from user's home directory.
 
         :return: user presets
