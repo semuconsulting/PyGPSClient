@@ -253,7 +253,7 @@ class SPARTNMQTTDialog(Frame):
         """
 
         self._get_settings()
-        self._mqtt_clientid.set(self.__app.config.get("mqttclientid", ""))
+        self._mqtt_clientid.set(self.__app.app_config.get("mqttclientid", ""))
         self._reset_keypaths(self._mqtt_clientid.get())
         self.__container.set_status("", "blue")
         if self.__app.rtk_conn_status == CONNECTED_SPARTNIP:

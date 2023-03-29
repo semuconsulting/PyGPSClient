@@ -206,7 +206,7 @@ class FileHandler:
                 for line in file:
                     presets.append(line)
         except OSError:
-            presets = ""
+            pass
 
         return presets
 

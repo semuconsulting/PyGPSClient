@@ -49,6 +49,7 @@ from pygpsclient.helpers import check_latest
 from pygpsclient.strings import (
     LOADCONFIGOK,
     LOADCONFIGBAD,
+    LOADCONFIGNF,
     SAVECONFIGOK,
     SAVECONFIGBAD,
     TITLE,
@@ -192,15 +193,17 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         # Load configuration from file if it exists
         self._config = self.file_handler.load_config(configfile)
         if isinstance(self._config, str):  # load failed
-            self.frm_status.set_status(
-                f"{LOADCONFIGBAD} {configfile} {self._config}", BADCOL
-            )
-            self._config = None
+            if "No such file" in self._config:  # file not found
+                msg = f"{LOADCONFIGNF} {configfile}"
+            else:  # parsing error
+                msg = f"{LOADCONFIGBAD} {configfile} {self._config}"
+            self.frm_status.set_status(msg, BADCOL)
+            self._config = {}
         else:  # load succeeded
+            self.frm_status.set_status(f"{LOADCONFIGOK} {configfile}", OKCOL)
             self.app_config = self._config
             self.widget_config = self._config
             self.frm_settings.config = self._config
-            self.frm_status.set_status(f"{LOADCONFIGOK} {configfile}", OKCOL)
 
         # Check for more recent version (if enabled)
         if CHECK_FOR_UPDATES:
@@ -407,8 +410,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._spartn_user_port = config.get("spartnport", self._spartn_user_port)
         self._mqapikey = config.get("mqapikey", self._mqapikey)
         self._mqttclientid = config.get("mqttclientid", self._mqttclientid)
-        self._colortags = config.get("colortags", [])
-        self._ubxpresets = config.get("ubxpresets", [])
+        self._colortags = config.get("colortags", self._colortags)
+        self._ubxpresets = config.get("ubxpresets", self._ubxpresets)
 
     @property
     def widget_config(self) -> dict:
@@ -875,8 +878,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         Getter for configuration.
         """
 
-        if self._config is None:
-            return {}
         return self._config
 
     @config.setter

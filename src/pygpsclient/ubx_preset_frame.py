@@ -195,7 +195,7 @@ class UBX_PRESET_Frame(Frame):
         """
 
         # Load user-defined presets if there are any
-        self._userpresets = self.__app.config.get("ubxpresets", [])
+        self._userpresets = self.__app.app_config.get("ubxpresets", [])
 
         idx = 0
         for pst in PRESET_COMMMANDS:

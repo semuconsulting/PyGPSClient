@@ -148,11 +148,11 @@ class MapviewFrame(Frame):
         sc = "NO CONNECTION"
         msg = ""
 
-        mqapikey = self.__app.config.get("mqapikey", getenv("mqapikey", ""))
+        mqapikey = self.__app.app_config.get("mqapikey", getenv("mqapikey", ""))
         if mqapikey == "":
             self._disp_error(NOWEBMAPKEY)
             return
-        map_update_interval = self.__app.config.get(
+        map_update_interval = self.__app.app_config.get(
             "mapupdateinterval", MAP_UPDATE_INTERVAL
         )
         map_update_interval = max(map_update_interval, MIN_UPDATE_INTERVAL)

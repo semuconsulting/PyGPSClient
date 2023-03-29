@@ -126,7 +126,7 @@ class ConsoleFrame(Frame):
 
         # format of this list of tuples is (tag, highlight color)
         if settings["colortag"]:
-            colortags = self.__app.config.get("colortags", [])
+            colortags = self.__app.app_config.get("colortags", [])
             self._tag_line(data, colortags)
             if self._halt != "":
                 self.__app.stream_handler.stop_read_thread()
