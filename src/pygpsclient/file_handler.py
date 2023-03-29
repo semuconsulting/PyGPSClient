@@ -82,7 +82,7 @@ class FileHandler:
 
         :param Path filename: fully qualified filename, or None for prompt
         :return: configuration settings as dictionary
-        :rtype: dict
+        :rtype: dict or str if error
         """
 
         try:
@@ -100,8 +100,8 @@ class FileHandler:
 
             with open(filename, "r", encoding="utf-8") as jsonfile:
                 config = json.load(jsonfile)
-        except (OSError, json.JSONDecodeError):
-            return None
+        except (OSError, json.JSONDecodeError) as err:
+            return str(err)
 
         return config
 
@@ -112,8 +112,8 @@ class FileHandler:
 
         :param dict config: configuration settings as dictionary
         :param Path filename: fully qualified path to config file, or None for prompt
-        :return: return code 1 = success, None = failure
-        :rtype: int
+        :return: return code 1 = success, err str = failure
+        :rtype: int or str if error
         """
 
         try:
@@ -134,8 +134,8 @@ class FileHandler:
                 cfgstr = json.dumps(config)
                 file.write(cfgstr)
                 return 1
-        except (OSError, json.JSONDecodeError):
-            return None
+        except (OSError, json.JSONDecodeError) as err:
+            return str(err)
 
     def load_mqapikey(self) -> str:
         """

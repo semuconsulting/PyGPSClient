@@ -135,8 +135,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.__master.iconphoto(True, PhotoImage(file=ICON_APP))
         self.gnss_status = GNSSStatus()  # holds latest GNSS readings
         self._last_gui_update = datetime.now()
-        # self._last_track_update = datetime.now()
-
         # dict containing widget grid positions
         self._widget_grid = {}
 
@@ -171,20 +169,13 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._socket_server = None
         self._config = None
 
-        # Load configuration from file if it exists
-        self._config = self.file_handler.load_config(configfile)
-
+        # FOLLOWING FILE LOADS ARE DEPRECATED - USE CONFIG FILE INSTEAD
         # Load MapQuest web map api key if not already defined
-        # DEPRECATED - USE CONFIG FILE INSTEAD
         if self._mqapikey == "":
             self._mqapikey = self.file_handler.load_mqapikey()
-
         # Load console color tags from file
-        # DEPRECATED - USE CONFIG FILE INSTEAD
         self._colortags = self.file_handler.load_colortags()
-
         # Load user-defined UBX command presets from file
-        # DEPRECATED - USE CONFIG FILE INSTEAD
         self._ubxpresets = self.file_handler.load_ubx_presets()
 
         self._body()
@@ -198,10 +189,14 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.frm_scatterview.init_graph()
         self.frm_banner.update_conn_status(DISCONNECTED)
 
-        # Set initial configuration from file
-        if self._config is None:
-            self.frm_status.set_status(f"{LOADCONFIGBAD} {configfile}", BADCOL)
-        else:
+        # Load configuration from file if it exists
+        self._config = self.file_handler.load_config(configfile)
+        if isinstance(self._config, str):  # load failed
+            self.frm_status.set_status(
+                f"{LOADCONFIGBAD} {configfile} {self._config}", BADCOL
+            )
+            self._config = None
+        else:  # load succeeded
             self.app_config = self._config
             self.widget_config = self._config
             self.frm_settings.config = self._config
@@ -495,8 +490,9 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         self._config = self.file_handler.load_config(None)
-        if self._config is None:
-            self.set_status(LOADCONFIGBAD, BADCOL)
+        if isinstance(self._config, str):  # load failed
+            self.set_status(f"{LOADCONFIGBAD} {self._config}", BADCOL)
+            self._config = None
         else:
             self.set_status(LOADCONFIGOK, OKCOL)
             self.frm_settings.config = self._config
@@ -515,8 +511,9 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             **self.app_config,
         }
         rcd = self.file_handler.save_config(self._config, None)
-        if rcd is None:
-            self.set_status(SAVECONFIGBAD, BADCOL)
+        if isinstance(rcd, str):  # save failed
+            self.set_status(f"{SAVECONFIGBAD} {self._config}", BADCOL)
+            self._config = None
         else:
             self.set_status(SAVECONFIGOK, OKCOL)
 
