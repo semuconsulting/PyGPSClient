@@ -961,7 +961,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._config = config
 
     @property
-    def colortags(self) -> str:
+    def colortags(self) -> list:
         """
         Getter for console color tagging values.
         """
@@ -969,7 +969,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         return self._colortags
 
     @property
-    def userpresets(self) -> str:
+    def userpresets(self) -> list:
         """
         Getter for user-defined UBX command presets.
         """
