@@ -27,6 +27,7 @@ from pygpsclient.globals import (
     WIDGETU2,
     MAPURL,
     MAP_UPDATE_INTERVAL,
+    MIN_UPDATE_INTERVAL,
     MAPQTIMEOUT,
     IMG_WORLD,
     ICON_POS,
@@ -65,12 +66,7 @@ class MapviewFrame(Frame):
         self._img = None
         self._marker = None
         self._last_map_update = 0
-        settings = self.__app.config
-        if settings is None:
-            mapupdateinterval = MAP_UPDATE_INTERVAL
-        else:
-            mapupdateinterval = settings.get("mapupdateinterval", MAP_UPDATE_INTERVAL)
-        self._map_update_interval = mapupdateinterval
+        # self._map_update_interval = MAP_UPDATE_INTERVAL
         self._body()
 
         self.bind("<Configure>", self._on_resize)
@@ -156,11 +152,15 @@ class MapviewFrame(Frame):
         if mqapikey == "":
             self._disp_error(NOWEBMAPKEY)
             return
+        map_update_interval = self.__app.config.get(
+            "mapupdateinterval", MAP_UPDATE_INTERVAL
+        )
+        map_update_interval = max(map_update_interval, MIN_UPDATE_INTERVAL)
 
         now = time()
-        if now - self._last_map_update < self._map_update_interval:
+        if now - self._last_map_update < map_update_interval:
             self._draw_countdown(
-                (-360 / self._map_update_interval) * (now - self._last_map_update)
+                (-360 / map_update_interval) * (now - self._last_map_update)
             )
             return
         self._last_map_update = now

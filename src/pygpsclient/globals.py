@@ -65,9 +65,9 @@ GPXMAPURL = (
     + "&locations={},{}||{},{}&zoom={}&size={},{}&defaultMarker=marker-num"
     + "&shape=weight:2|border:{}|{}&scalebar={}|bottom"
 )
-MAP_UPDATE_INTERVAL = (
-    60  # how frequently the mapquest api is called to update the web map (seconds)
-)
+# how frequently the mapquest api is called to update the web map (seconds)
+MAP_UPDATE_INTERVAL = 60
+MIN_UPDATE_INTERVAL = 5
 XML_HDR = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
 GPX_NS = " ".join(
     (
