@@ -34,12 +34,15 @@ TICK_GHZ = 40000000  # 40 MHz divisions
 TICK_COL = "grey"
 RF_BANDS = {
     "E6": 1278750000,
-    "G3": 1207140000,  # also E5b
+    "E5b": 1207140000,
+    "E5a": 1176450000,
+    "E1": 1575420000,
+    "G3": 1207140000,
     "G2": 1245781250,
     "G1": 1597218750,
-    "L5": 1176450000,  # also E5a
+    "L5": 1176450000,
     "L2": 1227600000,
-    "L1": 1575420000,  # also E1
+    "L1": 1575420000,
 }
 RF_LIST = {
     0: "aquamarine2",
@@ -245,7 +248,7 @@ class SpectrumviewFrame(Frame):
 
         self._monspan_enabled = True
         w, h = self.width, self.height
-        resize_font = font.Font(size=min(int(h / 25), 10))
+        resize_font = font.Font(size=min(int(h / 25), 8))
         fonth = resize_font.metrics("linespace")
         rfblocks = self.__app.gnss_status.spectrum_data
         if len(rfblocks) == 0:
@@ -266,9 +269,10 @@ class SpectrumviewFrame(Frame):
                     "G": (fonth * 2, GNSS_LIST[6][1]),  # GLONASS
                     "E": (fonth * 3, GNSS_LIST[2][1]),  # Galileo
                 }[nam[0:1]]
-                self.can_spectrumview.create_line(
-                    x1, y1, x1, y2, fill=col, dash=(5, 2), width=OL_WID
-                )
+                if nam not in ("E1", "E5a", "E5b"):  # same freq as other bands
+                    self.can_spectrumview.create_line(
+                        x1, y1, x1, y2, fill=col, dash=(5, 2), width=OL_WID
+                    )
                 self.can_spectrumview.create_text(
                     x2 + 2,
                     y2 - yoff - 1,
