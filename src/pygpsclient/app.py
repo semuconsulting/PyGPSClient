@@ -286,7 +286,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
                 "menu": 0,
                 "frm": "frm_settings",
                 "visible": True,
-                "rowspan": 2,
+                "rowspan": MAXROWSPAN - 1,
                 "sticky": (N, W, E),
             },
         }
@@ -333,10 +333,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             if col >= MAXCOLSPAN and nam != WDGSETTINGS:
                 col = 0
                 row += rowspan
-            if nam == WDGSETTINGS:
-                rowspan = MAXROWSPAN - 1
-            elif nam == WDGSTATUS:
-                colspan = MAXCOLSPAN + 1
             getattr(self, wdg["frm"]).grid(
                 column=col,
                 row=row,
