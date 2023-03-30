@@ -14,14 +14,14 @@ Created on 23 Dec 2022
 from math import ceil
 from tkinter import Frame, Canvas, font, BOTH, YES
 from pyubx2 import UBXMessage, SET
-from pygpsclient.globals import WIDGETU2, BGCOL, FGCOL, SPECTRUMVIEW
+from pygpsclient.globals import WIDGETU2, BGCOL, FGCOL, SPECTRUMVIEW, GNSS_LIST
 from pygpsclient.strings import MONSPANERROR, DLGNOMONSPAN
 
 # Relative offsets of graph axes and legends
 AXIS_XL = 19
 AXIS_XR = 10
 AXIS_Y = 22
-OL_WID = 2
+OL_WID = 1
 LEG_XOFF = AXIS_XL + 15
 LEG_YOFF = 5
 LEG_GAP = 8
@@ -32,11 +32,14 @@ MAX_HZ = 1650000000
 TICK_DB = 20  # 20 dB divisions
 TICK_GHZ = 40000000  # 40 MHz divisions
 TICK_COL = "grey"
-RF_SIGS_COL = "palegreen3"
-RF_SIGS = {
-    "L1": 1575420000,
+RF_BANDS = {
+    "E6": 1278750000,
+    "G3": 1207140000,  # also E5b
+    "G2": 1245781250,
+    "G1": 1597218750,
+    "L5": 1176450000,  # also E5a
     "L2": 1227600000,
-    "L5": 1176450000,
+    "L1": 1575420000,  # also E1
 }
 RF_LIST = {
     0: "aquamarine2",
@@ -99,6 +102,7 @@ class SpectrumviewFrame(Frame):
 
         w, h = self.width, self.height
         resize_font = font.Font(size=min(int(w / 25), 6))
+        fonth = resize_font.metrics("linespace")
 
         self.can_spectrumview.delete("all")
 
@@ -111,7 +115,7 @@ class SpectrumviewFrame(Frame):
                 x1, y1, x2 + 1, y1, fill=TICK_COL if i else FGCOL
             )
             self.can_spectrumview.create_text(
-                x1 - 10,
+                x1 - fonth,
                 y1,
                 text=f"{db}",
                 angle=90,
@@ -130,7 +134,7 @@ class SpectrumviewFrame(Frame):
             )
             self.can_spectrumview.create_text(
                 x1,
-                y1 + 10,
+                y1 + fonth,
                 text=f"{hz / 1e9:.2f}",  # GHz
                 fill=FGCOL,
                 font=resize_font,
@@ -139,14 +143,14 @@ class SpectrumviewFrame(Frame):
 
         self.can_spectrumview.create_text(
             w - AXIS_XR,
-            h - AXIS_Y,
+            h - AXIS_Y - 2,
             text="GHz",
             fill=FGCOL,
             font=resize_font,
             anchor="se",
         )
         self.can_spectrumview.create_text(
-            AXIS_XL,
+            AXIS_XL + 2,
             LEG_YOFF,
             text="dB",
             fill=FGCOL,
@@ -242,6 +246,7 @@ class SpectrumviewFrame(Frame):
         self._monspan_enabled = True
         w, h = self.width, self.height
         resize_font = font.Font(size=min(int(h / 25), 10))
+        fonth = resize_font.metrics("linespace")
         rfblocks = self.__app.gnss_status.spectrum_data
         if len(rfblocks) == 0:
             return
@@ -251,19 +256,24 @@ class SpectrumviewFrame(Frame):
         )
         self.init_graph()
 
-        # plot L1, L2, L5 markers
-        for nam, frq in RF_SIGS.items():
+        # plot frequency band markers
+        for nam, frq in RF_BANDS.items():
             if self._minhz < frq < self._maxhz:
                 x1, y1 = self._get_point(w, h, frq, self._maxdb)
                 x2, y2 = self._get_point(w, h, frq, self._mindb)
+                yoff, col = {
+                    "L": (fonth, GNSS_LIST[0][1]),  # GPS
+                    "G": (fonth * 2, GNSS_LIST[6][1]),  # GLONASS
+                    "E": (fonth * 3, GNSS_LIST[2][1]),  # Galileo
+                }[nam[0:1]]
                 self.can_spectrumview.create_line(
-                    x1, y1, x1, y2, fill=RF_SIGS_COL, dash=(5, 2), width=OL_WID
+                    x1, y1, x1, y2, fill=col, dash=(5, 2), width=OL_WID
                 )
                 self.can_spectrumview.create_text(
-                    x2 + 3,
-                    y2 - 15,
+                    x2 + 2,
+                    y2 - yoff - 1,
                     text=nam,
-                    fill=RF_SIGS_COL,
+                    fill=col,
                     anchor="nw",
                     font=resize_font,
                 )
