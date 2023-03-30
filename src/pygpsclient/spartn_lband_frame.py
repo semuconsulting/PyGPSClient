@@ -158,7 +158,7 @@ class SPARTNLBANDDialog(Frame):
         # pylint: disable=unnecessary-lambda
         self._lbl_corrlband = Label(self, text=LBLSPARTNLB)
         # Correction receiver serial port configuration panel
-        userport = self.__app.config.get("spartnport", "")
+        userport = self.__app.app_config.get("spartnport", "")
         self._frm_spartn_serial = SerialConfigFrame(
             self,
             preselect=KNOWNGPS,

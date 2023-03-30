@@ -171,6 +171,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._socket_server = None
 
         # FOLLOWING FILE LOADS ARE DEPRECATED - USE CONFIG FILE INSTEAD
+        # (ANY CONFIG FILE SETTINGS WILL OVERRIDE THESE)
         # Load MapQuest web map api key if not already defined
         if self._mqapikey == "":
             self._mqapikey = self.file_handler.load_mqapikey()
@@ -179,31 +180,34 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         # Load user-defined UBX command presets from file
         self._ubxpresets = self.file_handler.load_ubx_presets()
 
+        # Load configuration from file if it exists
+        config_loaded = False
+        self.config = self.file_handler.load_config(configfile)
+        if isinstance(self.config, dict):  # load succeeded
+            config_loaded = True
+            self.app_config = self.config  # do this before initialising widgets
+
         self._body()
         self._do_layout()
         self._attach_events()
 
         # Initialise widgets
+        if config_loaded:
+            cfgmsg = f"{LOADCONFIGOK} {configfile}"
+            self.widget_config = self.config
+            self.frm_settings.config = self.config
+        else:
+            if "No such file" in self.config:  # file not found
+                cfgmsg = f"{LOADCONFIGNF} - {configfile}"
+            else:  # json parsing error
+                cfgmsg = f"{LOADCONFIGBAD} - {configfile} {self.config}"
+            self.config = {}
+        self.frm_status.set_status(cfgmsg, INFCOL)
         self.frm_satview.init_sats()
         self.frm_graphview.init_graph()
         self.frm_spectrumview.init_graph()
         self.frm_scatterview.init_graph()
         self.frm_banner.update_conn_status(DISCONNECTED)
-
-        # Load configuration from file if it exists
-        self.config = self.file_handler.load_config(configfile)
-        if isinstance(self.config, str):  # load failed
-            if "No such file" in self.config:  # file not found
-                msg = f"{LOADCONFIGNF} {configfile}"
-            else:  # parsing error
-                msg = f"{LOADCONFIGBAD} {configfile} {self.config}"
-            self.frm_status.set_status(msg, BADCOL)
-            self.config = {}
-        else:  # load succeeded
-            self.frm_status.set_status(f"{LOADCONFIGOK} {configfile}", OKCOL)
-            self.app_config = self.config
-            self.widget_config = self.config
-            self.frm_settings.config = self.config
 
         # Check for more recent version (if enabled)
         if CHECK_FOR_UPDATES:
