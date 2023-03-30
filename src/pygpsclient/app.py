@@ -168,6 +168,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._spartn_config_thread = None
         self._socket_thread = None
         self._socket_server = None
+        self._colcount = 0
+        self._rowcount = 0
 
         # FOLLOWING FILE LOADS ARE DEPRECATED - USE CONFIG FILE INSTEAD
         # (ANY CONFIG FILE SETTINGS WILL OVERRIDE THESE)
@@ -207,6 +209,9 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.frm_scatterview.init_graph()
         self.frm_banner.update_conn_status(DISCONNECTED)
 
+        if self.frm_settings.serial_settings.status == NOPORTS:
+            self.set_status(INTROTXTNOPORTS, BADCOL)
+
         # Check for more recent version (if enabled)
         if CHECK_FOR_UPDATES:
             self._check_update()
@@ -233,22 +238,39 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
     def _do_layout(self):
         """
-        Arrange widgets in main application frame.
+        Arrange widgets in main application frame, and set
+        initial widget visibility and menu label (show/hide).
+
+        Dynamic widgets will be automatically positioned in sequence
+        and will expand or collapse to fit available space unless
+        otherwise specified in this widget_grid.
         """
 
-        # Set initial widget visibility and menu index
         self._widget_grid = {
+            # fixed relative position
             WDGBANNER: {
                 "menu": None,
                 "frm": "frm_banner",
                 "visible": True,
-                "colspan": MAXCOLSPAN + 1,
             },
+            WDGSETTINGS: {
+                "menu": 0,
+                "frm": "frm_settings",
+                "visible": True,
+                "sticky": (N, W, E),
+            },
+            WDGSTATUS: {
+                "menu": 1,
+                "frm": "frm_status",
+                "visible": True,
+                "sticky": (W, E),
+            },
+            # dynamic relative position
             WDGCONSOLE: {
                 "menu": 2,
                 "frm": "frm_console",
-                "colspan": MAXCOLSPAN,
                 "visible": True,
+                "colspan": MAXCOLSPAN,
             },
             WDGSATS: {
                 "menu": 3,
@@ -275,67 +297,63 @@ class App(Frame):  # pylint: disable=too-many-ancestors
                 "frm": "frm_scatterview",
                 "visible": False,
             },
-            WDGSTATUS: {
-                "menu": 1,
-                "frm": "frm_status",
-                "visible": True,
-                "sticky": (W, E),
-                "colspan": MAXCOLSPAN + 1,
-            },
-            WDGSETTINGS: {
-                "menu": 0,
-                "frm": "frm_settings",
-                "visible": True,
-                "rowspan": MAXROWSPAN - 1,
-                "sticky": (N, W, E),
-            },
+            # add any new widgets here and update View menu
         }
 
         self._grid_widgets()
 
-        # NB: these column and row weights define the grid's
-        # 'pack by size' behaviour
-        for col in range(MAXCOLSPAN):
-            self.__master.grid_columnconfigure(col, weight=1)
-        for row in range(1, MAXROWSPAN):
-            self.__master.grid_rowconfigure(row, weight=1)
-
-        if self.frm_settings.serial_settings.status == NOPORTS:
-            self.set_status(INTROTXTNOPORTS, BADCOL)
-
     def _grid_widgets(self):
         """
-        Arrange widgets in grid.
+        Arrange widgets in grid, and set column and row 'weights'.
+        These govern whether a widget will expand or collapse
+        in either direction to fill the available space.
         """
 
-        col = row = 0
-        for nam in self._widget_grid:
-            if nam not in (WDGSETTINGS, WDGSTATUS):
+        col = mcol = 0
+        row = mrow = 1
+        for i, nam in enumerate(self._widget_grid):
+            if i > 2:  # only position dynamic widgets
                 col, row = self._grid_widget(nam, col, row)
-        self._grid_widget(WDGSETTINGS, MAXCOLSPAN, 1)
-        self._grid_widget(WDGSTATUS, 0, MAXROWSPAN)
+            mcol = max(col, mcol)
+            mrow = max(row, mrow)
 
-    def _grid_widget(self, nam: str, col: int, row: int) -> tuple:
+        for col in range(MAXCOLSPAN + 1):
+            self.__master.grid_columnconfigure(col, weight=0 if col > mcol - 1 else 1)
+        for row in range(1, MAXROWSPAN + 2):
+            self.__master.grid_rowconfigure(row, weight=0 if row > mrow else 1)
+
+        self._grid_widget(WDGSETTINGS, mcol, 1, 1, mrow)  # always on top
+        self._grid_widget(WDGBANNER, 0, 0, mcol + 1, 1)  # always on right
+        self._grid_widget(WDGSTATUS, 0, mrow + 1, mcol + 1, 1)  # always on bottom
+
+    def _grid_widget(
+        self, nam: str, col: int, row: int, colspan: int = 1, rowspan: int = 1
+    ) -> tuple:
         """
-        Arrange individual widget and update show/hide menu label.
+        Arrange individual widget and update menu label (show/hide).
 
         :param str nam: name of widget
         :param int col: column
         :param int row: row
-        :return: next (col, row)
+        :param int colspan: optional columnspan
+        :param int rowspan: optional rowspan
+        :return: next available (col, row)
         :rtype: tuple
         """
 
         wdg = self._widget_grid[nam]
         if wdg["visible"]:
-            colspan = wdg.get("colspan", 1)
-            rowspan = wdg.get("rowspan", 1)
+            colspan = wdg.get("colspan", colspan)
+            rowspan = wdg.get("rowspan", rowspan)
             if col >= MAXCOLSPAN and nam != WDGSETTINGS:
                 col = 0
                 row += rowspan
+            # keep track of cumulative cols & rows
+            ccol = wdg.get("col", col)
+            crow = wdg.get("row", row)
             getattr(self, wdg["frm"]).grid(
-                column=col,
-                row=row,
+                column=ccol,
+                row=crow,
                 columnspan=colspan,
                 rowspan=rowspan,
                 padx=2,
@@ -348,10 +366,12 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             getattr(self, wdg["frm"]).grid_forget()
             lbl = SHOW
 
+        # update menu label (show/hide)
         if wdg["menu"] is not None:
             self.menu.view_menu.entryconfig(wdg["menu"], label=f"{lbl} {nam}")
 
         if nam == WDGSPECTRUM:
+            # enable MON-SPAN messages if spectrum widget is visible
             self.frm_spectrumview.enable_MONSPAN(wdg["visible"])
 
         return col, row

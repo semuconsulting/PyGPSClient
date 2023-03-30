@@ -14,7 +14,8 @@ ENHANCEMENTS:
 1. Will look for default config file `$HOME/pygpsclient.json` on startup - a sample file is provided.
 1. Add ability to specify a custom config file via command line argument `-C`, `--config`.
 1. Application config file obviates need for discrete `colortags` and `mqapikey` files. These will be deprecated in a subsequent version.
-1. Minor improvements to spectrum widget to show additional GLONASS & Galileo frequency band markers in addition to GPS
+1. Minor improvements to spectrum widget to show GLONASS & Galileo frequency band markers in addition to GPS.
+1. Minor improvements to automated widget positioning and resizing.
 
 ### RELEASE v1.3.21
 
