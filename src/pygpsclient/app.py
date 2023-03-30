@@ -49,7 +49,6 @@ from pygpsclient.helpers import check_latest
 from pygpsclient.strings import (
     LOADCONFIGOK,
     LOADCONFIGBAD,
-    LOADCONFIGNF,
     SAVECONFIGOK,
     SAVECONFIGBAD,
     TITLE,
@@ -193,16 +192,15 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         # Initialise widgets
         if config_loaded:
-            cfgmsg = f"{LOADCONFIGOK} {configfile}"
             self.widget_config = self.config
             self.frm_settings.config = self.config
+            self.frm_status.set_status(f"{LOADCONFIGOK} {configfile}", OKCOL)
         else:
-            if "No such file" in self.config:  # file not found
-                cfgmsg = f"{LOADCONFIGNF} - {configfile}"
-            else:  # json parsing error
-                cfgmsg = f"{LOADCONFIGBAD} - {configfile} {self.config}"
+            # self.config is str containing error msg
+            self.frm_status.set_status(
+                f"{LOADCONFIGBAD} {configfile} {self.config}", BADCOL
+            )
             self.config = {}
-        self.frm_status.set_status(cfgmsg, INFCOL)
         self.frm_satview.init_sats()
         self.frm_graphview.init_graph()
         self.frm_spectrumview.init_graph()
