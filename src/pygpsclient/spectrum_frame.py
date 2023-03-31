@@ -28,7 +28,6 @@ MAX_HZ = 1650000000
 TICK_DB = 20  # 20 dB divisions
 TICK_GHZ = 40000000  # 40 MHz divisions
 TICK_COL = "grey"
-SHOW_RFBANDS = True
 RF_BANDS = {
     "B1": 1575420000,
     "B3": 1268520000,
@@ -84,6 +83,7 @@ class SpectrumviewFrame(Frame):
         self._maxhz = MAX_HZ
         self._monspan_enabled = False
         self._pending_confs = {}
+        self._showrf = True
         self._body()
         self._set_fontsize()
         self._attach_events()
@@ -106,6 +106,8 @@ class SpectrumviewFrame(Frame):
         """
 
         self.bind("<Configure>", self._on_resize)
+        self.can_spectrumview.bind("<ButtonRelease-1>", self._on_click)
+        self.can_spectrumview.bind("<Double-Button-1>", self._toggle_rf)
 
     def init_graph(self):
         """
@@ -269,7 +271,7 @@ class SpectrumviewFrame(Frame):
         self.init_graph()
 
         # plot frequency band markers
-        if SHOW_RFBANDS:
+        if self._showrf:
             for nam, frq in RF_BANDS.items():
                 if self._minhz < frq < self._maxhz:
                     x1, y1 = self._get_point(w, h, frq, self._maxdb)
@@ -361,6 +363,25 @@ class SpectrumviewFrame(Frame):
         y = h - offset - ((h - self._fonth) * (db / (self._maxdb - self._mindb)))
         return (int(x), int(y))
 
+    def _set_point(self, x: int, y: int) -> tuple:
+        """
+        Get frequency & level corresponding to cursor x,y position.
+
+        :param x int: cursor x position
+        :param y int: cursor y position
+        :return: (Ghz, dB) values
+        :rtype: tuple
+        """
+
+        w = self.width
+        h = self.height
+        offset = self._fonth + 4
+        hz = (
+            self._minhz + (x - offset) * (self._maxhz - self._minhz) / (w - offset * 2)
+        ) / 1e9
+        db = (y - h + offset) * (self._maxdb - self._mindb) / (-1 * (h - self._fonth))
+        return (hz, db)
+
     def _get_limits(self, rfblocks: list) -> tuple:
         """
         Get axis limits for all RF blocks and convert
@@ -408,6 +429,28 @@ class SpectrumviewFrame(Frame):
         """
 
         self.width, self.height = self.get_size()
+
+    def _on_click(self, event):  # pylint: disable=unused-argument
+        """
+        Show frequency at cursor.
+        """
+
+        hz, db = self._set_point(event.x, event.y)
+        self.can_spectrumview.create_text(
+            event.x,
+            event.y,
+            text=f"{hz:.3f} GHz\n{db:.1f} dB",
+            fill=FGCOL,
+            font=self._font,
+            anchor="center",
+        )
+
+    def _toggle_rf(self, event):  # pylint: disable=unused-argument
+        """
+        Toggle RF band markers on/off.
+        """
+
+        self._showrf = not self._showrf
 
     def get_size(self):
         """
