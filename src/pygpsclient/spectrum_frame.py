@@ -18,8 +18,8 @@ from pygpsclient.globals import WIDGETU2, BGCOL, FGCOL, SPECTRUMVIEW, GNSS_LIST
 from pygpsclient.strings import MONSPANERROR, DLGNOMONSPAN
 
 # Graph dimensions
-RESFONT = 32  # font size relative to widget size
-MINFONT = 8  # minimum font size
+RESFONT = 24  # font size relative to widget size
+MINFONT = 7  # minimum font size
 OL_WID = 1
 MIN_DB = 0
 MAX_DB = 180
@@ -28,14 +28,20 @@ MAX_HZ = 1650000000
 TICK_DB = 20  # 20 dB divisions
 TICK_GHZ = 40000000  # 40 MHz divisions
 TICK_COL = "grey"
+SHOW_RFBANDS = True
 RF_BANDS = {
+    "B1": 1575420000,
+    "B3": 1268520000,
+    "B2": 1202025000,
+    "B2a": 1176450000,
+    "SAR": 1544500000,
     "E6": 1278750000,
-    "E5b": 1207140000,
+    "E5b": 1202025000,
     "E5a": 1176450000,
     "E1": 1575420000,
-    "G3": 1207140000,
-    "G2": 1245781250,
-    "G1": 1597218750,
+    "G3": 1202025000,
+    "G2": 1248060000,
+    "G1": 1600995000,
     "L5": 1176450000,
     "L2": 1227600000,
     "L1": 1575420000,
@@ -80,7 +86,7 @@ class SpectrumviewFrame(Frame):
         self._pending_confs = {}
         self._body()
         self._set_fontsize()
-        self.bind("<Configure>", self._on_resize)
+        self._attach_events()
 
     def _body(self):
         """
@@ -93,6 +99,13 @@ class SpectrumviewFrame(Frame):
             self, width=self.width, height=self.height, bg=BGCOL
         )
         self.can_spectrumview.pack(fill=BOTH, expand=YES)
+
+    def _attach_events(self):
+        """
+        Bind events to frame.
+        """
+
+        self.bind("<Configure>", self._on_resize)
 
     def init_graph(self):
         """
@@ -149,7 +162,7 @@ class SpectrumviewFrame(Frame):
             font=self._font,
             anchor="se",
         )
-        x, y = self._get_point(w, h, self._minhz + self._fonth, self._maxdb - 10)
+        x, y = self._get_point(w, h, self._minhz + self._fonth, self._maxdb - 5)
         self.can_spectrumview.create_text(
             x,
             y,
@@ -256,27 +269,37 @@ class SpectrumviewFrame(Frame):
         self.init_graph()
 
         # plot frequency band markers
-        for nam, frq in RF_BANDS.items():
-            if self._minhz < frq < self._maxhz:
-                x1, y1 = self._get_point(w, h, frq, self._maxdb)
-                x2, y2 = self._get_point(w, h, frq, self._mindb)
-                yoff, col = {
-                    "L": (self._fonth, GNSS_LIST[0][1]),  # GPS
-                    "G": (self._fonth * 2, GNSS_LIST[6][1]),  # GLONASS
-                    "E": (self._fonth * 3, GNSS_LIST[2][1]),  # Galileo
-                }[nam[0:1]]
-                if nam not in ("E1", "E5a", "E5b"):  # same freq as other bands
-                    self.can_spectrumview.create_line(
-                        x1, y1, x1, y2, fill=col, dash=(5, 2), width=OL_WID
+        if SHOW_RFBANDS:
+            for nam, frq in RF_BANDS.items():
+                if self._minhz < frq < self._maxhz:
+                    x1, y1 = self._get_point(w, h, frq, self._maxdb)
+                    x2, y2 = self._get_point(w, h, frq, self._mindb)
+                    yoff, col = {
+                        "L": (self._fonth, GNSS_LIST[0][1]),  # GPS
+                        "G": (self._fonth * 2, GNSS_LIST[6][1]),  # GLONASS
+                        "E": (self._fonth * 3, GNSS_LIST[2][1]),  # Galileo
+                        "S": (self._fonth * 3, GNSS_LIST[2][1]),  # Galileo SAR
+                        "B": (self._fonth * 4, GNSS_LIST[3][1]),  # Beidou
+                    }[nam[0:1]]
+                    if nam not in (
+                        "E1",
+                        "E5a",
+                        "E5b",
+                        "B2a",
+                        "B2",
+                        "B1",
+                    ):  # same freq as other bands
+                        self.can_spectrumview.create_line(
+                            x1, y1, x1, y2, fill=col, dash=(5, 2), width=OL_WID
+                        )
+                    self.can_spectrumview.create_text(
+                        x2 + 2,
+                        y2 - yoff - 1,
+                        text=nam,
+                        fill=col,
+                        anchor="nw",
+                        font=self._font,
                     )
-                self.can_spectrumview.create_text(
-                    x2 + 2,
-                    y2 - yoff - 1,
-                    text=nam,
-                    fill=col,
-                    anchor="nw",
-                    font=self._font,
-                )
 
         # for each RF block in MON-SPAN message
         for i, rfblock in enumerate(specxy):

@@ -374,6 +374,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             # enable MON-SPAN messages if spectrum widget is visible
             self.frm_spectrumview.enable_MONSPAN(wdg["visible"])
 
+        # force widget to rescale
+        getattr(self, wdg["frm"]).event_generate("<Configure>")
         return col, row
 
     def toggle_widget(self, widget: str):

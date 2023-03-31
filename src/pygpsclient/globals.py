@@ -255,7 +255,7 @@ GNSS_LIST = {
     0: ("GPS", "royalblue"),
     1: ("SBA", "orange"),
     2: ("GAL", "green4"),
-    3: ("BEI", "purple"),
+    3: ("BEI", "mediumpurple2"),
     4: ("IME", "violet"),
     5: ("QZS", "yellow"),
     6: ("GLO", "indianred"),
