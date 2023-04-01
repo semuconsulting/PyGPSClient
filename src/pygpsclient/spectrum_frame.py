@@ -347,9 +347,8 @@ class SpectrumviewFrame(Frame):
         :rtype: tuple
         """
 
-        min_db = MIN_DB
         offset = self._fonth + 4
-        val_db = db - min_db
+        val_db = db - self._mindb
         range_db = self._maxdb - self._mindb
         range_x = self.width - offset * 2
         val_hz = hz - self._minhz
@@ -370,7 +369,6 @@ class SpectrumviewFrame(Frame):
         :rtype: tuple
         """
 
-        min_db = MIN_DB
         offset = self._fonth + 4
         val_x = x - offset
         range_x = self.width - offset * 2
@@ -380,7 +378,7 @@ class SpectrumviewFrame(Frame):
         range_hz = self._maxhz - self._minhz
 
         hz = self._minhz + (val_x * range_hz / range_x)
-        db = min_db + (val_y * range_db / range_y)
+        db = self._mindb + (val_y * range_db / range_y)
         return (hz / 1e9, db)
 
     def _get_limits(self, rfblocks: list) -> tuple:
