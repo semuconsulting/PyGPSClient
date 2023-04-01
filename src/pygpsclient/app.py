@@ -199,9 +199,14 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             self.frm_status.set_status(f"{LOADCONFIGOK} {configfile}", OKCOL)
         else:
             # self.config is str containing error msg
-            self.frm_status.set_status(
-                f"{LOADCONFIGBAD} {configfile} {self.config}", BADCOL
-            )
+            if "No such file or directory" in self.config:
+                self.frm_status.set_status(
+                    f"Configuration file not found {configfile}", INFCOL
+                )
+            else:
+                self.frm_status.set_status(
+                    f"{LOADCONFIGBAD} {configfile} {self.config}", BADCOL
+                )
             self.config = {}
         self.frm_satview.init_sats()
         self.frm_graphview.init_graph()
