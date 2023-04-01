@@ -121,7 +121,7 @@ class FileHandler:
                 filename = filedialog.asksaveasfilename(
                     title=CONFIGTITLE,
                     initialdir=HOME,
-                    initialfile=CONFIGNAME,
+                    initialfile=f"{CONFIGNAME}.json",
                     filetypes=(
                         ("config files", "*.json"),
                         ("all files", "*.*"),
