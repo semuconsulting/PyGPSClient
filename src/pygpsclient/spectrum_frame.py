@@ -363,7 +363,7 @@ class SpectrumviewFrame(Frame):
         y = h - offset - ((h - self._fonth) * (db / (self._maxdb - self._mindb)))
         return (int(x), int(y))
 
-    def _set_point(self, x: int, y: int) -> tuple:
+    def _get_hzdb(self, x: int, y: int) -> tuple:
         """
         Get frequency & level corresponding to cursor x,y position.
 
@@ -435,7 +435,7 @@ class SpectrumviewFrame(Frame):
         Show frequency at cursor.
         """
 
-        hz, db = self._set_point(event.x, event.y)
+        hz, db = self._get_hzdb(event.x, event.y)
         self.can_spectrumview.create_text(
             event.x,
             event.y,
