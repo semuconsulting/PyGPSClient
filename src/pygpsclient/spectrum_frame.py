@@ -21,7 +21,7 @@ from pygpsclient.strings import MONSPANERROR, DLGNOMONSPAN
 RESFONT = 24  # font size relative to widget size
 MINFONT = 7  # minimum font size
 OL_WID = 1
-MIN_DB = 0
+MIN_DB = 20
 MAX_DB = 180
 MIN_HZ = 1130000000
 MAX_HZ = 1650000000
@@ -114,15 +114,13 @@ class SpectrumviewFrame(Frame):
         Initialise spectrum chart.
         """
 
-        w, h = self.width, self.height
-
         self.can_spectrumview.delete("all")
 
         # plot y (dB) axis grid
         i = 0
         for db in range(self._mindb, self._maxdb, TICK_DB):
-            x1, y1 = self._get_point(w, h, self._minhz, db)
-            x2, y2 = self._get_point(w, h, self._maxhz, db)
+            x1, y1 = self._get_point(self._minhz, db)
+            x2, y2 = self._get_point(self._maxhz, db)
             self.can_spectrumview.create_line(
                 x1, y1, x2 + 1, y1, fill=TICK_COL if i else FGCOL
             )
@@ -140,8 +138,8 @@ class SpectrumviewFrame(Frame):
         # plot x (Hz) axis grid
         i = 0
         for hz in range(self._minhz, self._maxhz, TICK_GHZ):
-            x1, y1 = self._get_point(w, h, hz, self._mindb)
-            x2, y2 = self._get_point(w, h, hz, self._maxdb)
+            x1, y1 = self._get_point(hz, self._mindb)
+            x2, y2 = self._get_point(hz, self._maxdb)
             self.can_spectrumview.create_line(
                 x1, y1 - 1, x1, y2, fill=TICK_COL if i else FGCOL
             )
@@ -155,7 +153,7 @@ class SpectrumviewFrame(Frame):
             )
             i += 1
 
-        x, y = self._get_point(w, h, self._maxhz, self._mindb)
+        x, y = self._get_point(self._maxhz, self._mindb)
         self.can_spectrumview.create_text(
             x,
             y,
@@ -164,7 +162,7 @@ class SpectrumviewFrame(Frame):
             font=self._font,
             anchor="se",
         )
-        x, y = self._get_point(w, h, self._minhz + self._fonth, self._maxdb - 5)
+        x, y = self._get_point(self._minhz + self._fonth, self._maxdb - 5)
         self.can_spectrumview.create_text(
             x,
             y,
@@ -178,8 +176,8 @@ class SpectrumviewFrame(Frame):
         # display 'enable MON-SPAN' warning
         if not self._monspan_enabled:
             self.can_spectrumview.create_text(
-                w / 2,
-                h / 2,
+                self.width / 2,
+                self.height / 2,
                 text=MONSPANERROR,
                 fill="orange",
             )
@@ -274,8 +272,8 @@ class SpectrumviewFrame(Frame):
         if self._showrf:
             for nam, frq in RF_BANDS.items():
                 if self._minhz < frq < self._maxhz:
-                    x1, y1 = self._get_point(w, h, frq, self._maxdb)
-                    x2, y2 = self._get_point(w, h, frq, self._mindb)
+                    x1, y1 = self._get_point(frq, self._maxdb)
+                    x2, y2 = self._get_point(frq, self._mindb)
                     yoff, col = {
                         "L": (self._fonth, GNSS_LIST[0][1]),  # GPS
                         "G": (self._fonth * 2, GNSS_LIST[6][1]),  # GLONASS
@@ -308,12 +306,8 @@ class SpectrumviewFrame(Frame):
             col = RF_LIST[i % len(RF_LIST)]
 
             # draw legend for this RF block
-            x1, y1 = self._get_point(
-                w, h, self._minhz + ((i + 0.3) * 1e8), self._maxdb - 15
-            )
-            x2, y2 = self._get_point(
-                w, h, self._minhz + ((i + 0.7) * 1e8), self._maxdb - 15
-            )
+            x1, y1 = self._get_point(self._minhz + ((i + 0.3) * 1e8), self._maxdb - 15)
+            x2, y2 = self._get_point(self._minhz + ((i + 0.7) * 1e8), self._maxdb - 15)
             self.can_spectrumview.create_line(
                 x1,
                 y1,
@@ -336,7 +330,7 @@ class SpectrumviewFrame(Frame):
             y2 = h - 5
             for n, (hz, db) in enumerate(rfblock):
                 x1, y1 = x2, y2
-                x2, y2 = self._get_point(w, h, hz, db)
+                x2, y2 = self._get_point(hz, db)
                 if n:
                     self.can_spectrumview.create_line(
                         x1, y1, x2, y2, fill=col, width=OL_WID
@@ -344,23 +338,27 @@ class SpectrumviewFrame(Frame):
 
         self.can_spectrumview.update_idletasks()
 
-    def _get_point(self, w: int, h: int, hz: float, db: float) -> tuple:
+    def _get_point(self, hz: float, db: float) -> tuple:
         """
         Convert (hz,db) values to canvas pixel coordinates (x,y).
 
-        :param w int: width of canvas
-        :param h int: height of canvas
         :param hz float: hz (x) value
         :param db float: db (y) value
-        :return: (x,y) coordinates as integers
+        :return: (x, y) coordinates
         :rtype: tuple
         """
 
+        min_db = MIN_DB
         offset = self._fonth + 4
-        x = offset + (
-            (w - offset * 2) * (hz - self._minhz) / (self._maxhz - self._minhz)
-        )
-        y = h - offset - ((h - self._fonth) * (db / (self._maxdb - self._mindb)))
+        val_db = db - min_db
+        range_db = self._maxdb - self._mindb
+        range_x = self.width - offset * 2
+        val_hz = hz - self._minhz
+        range_hz = self._maxhz - self._minhz
+        range_y = self.height - self._fonth
+
+        x = offset + (range_x * val_hz / range_hz)
+        y = self.height - offset - (range_y * val_db / range_db)
         return (int(x), int(y))
 
     def _get_hzdb(self, x: int, y: int) -> tuple:
@@ -373,14 +371,18 @@ class SpectrumviewFrame(Frame):
         :rtype: tuple
         """
 
-        w = self.width
-        h = self.height
+        min_db = MIN_DB
         offset = self._fonth + 4
-        hz = (
-            self._minhz + (x - offset) * (self._maxhz - self._minhz) / (w - offset * 2)
-        ) / 1e9
-        db = (y - h + offset) * (self._maxdb - self._mindb) / (-1 * (h - self._fonth))
-        return (hz, db)
+        val_x = x - offset
+        range_x = self.width - offset * 2
+        range_db = self._maxdb - self._mindb
+        val_y = y - self.height + offset
+        range_y = -(self.height - self._fonth)
+        range_hz = self._maxhz - self._minhz
+
+        hz = self._minhz + (val_x * range_hz / range_x)
+        db = min_db + (val_y * range_db / range_y)
+        return (hz / 1e9, db)
 
     def _get_limits(self, rfblocks: list) -> tuple:
         """

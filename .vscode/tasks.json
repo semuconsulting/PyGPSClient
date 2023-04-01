@@ -202,9 +202,9 @@
             ],
             "dependsOrder": "sequence",
             "dependsOn": [
+                "Clean",
                 "Update Toolchain",
                 "Install Dependencies",
-                "Clean",
                 "Format",
                 "PylintError",
                 "Pylint",
