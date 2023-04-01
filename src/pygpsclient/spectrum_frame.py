@@ -258,7 +258,6 @@ class SpectrumviewFrame(Frame):
         """
 
         self._monspan_enabled = True
-        w, h = self.width, self.height
         rfblocks = self.__app.gnss_status.spectrum_data
         if len(rfblocks) == 0:
             return
@@ -327,7 +326,7 @@ class SpectrumviewFrame(Frame):
 
             # plot spectrum for this RF block
             x2 = 5
-            y2 = h - 5
+            y2 = self.height - 5
             for n, (hz, db) in enumerate(rfblock):
                 x1, y1 = x2, y2
                 x2, y2 = self._get_point(hz, db)
@@ -357,8 +356,8 @@ class SpectrumviewFrame(Frame):
         range_hz = self._maxhz - self._minhz
         range_y = self.height - self._fonth
 
-        x = offset + (range_x * val_hz / range_hz)
-        y = self.height - offset - (range_y * val_db / range_db)
+        x = offset + (val_hz * range_x / range_hz)
+        y = self.height - offset - (val_db * range_y / range_db)
         return (int(x), int(y))
 
     def _get_hzdb(self, x: int, y: int) -> tuple:
@@ -377,7 +376,7 @@ class SpectrumviewFrame(Frame):
         range_x = self.width - offset * 2
         range_db = self._maxdb - self._mindb
         val_y = y - self.height + offset
-        range_y = -(self.height - self._fonth)
+        range_y = self._fonth - self.height
         range_hz = self._maxhz - self._minhz
 
         hz = self._minhz + (val_x * range_hz / range_x)
