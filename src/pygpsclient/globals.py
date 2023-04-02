@@ -15,7 +15,10 @@ Created on 14 Sep 2020
 from os import path
 from pathlib import Path
 from datetime import datetime
+from collections import namedtuple
 from pyubx2 import GET, SET, POLL
+
+Point = namedtuple("Point", ["lat", "lon"])
 
 HOME = Path.home()
 DIRNAME = path.dirname(__file__)

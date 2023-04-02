@@ -9,6 +9,7 @@ Static method tests for pygpsclient.helpers
 import unittest
 
 from datetime import datetime
+from geographiclib.geodesic import Geodesic
 from pyubx2 import UBXReader
 from pygpsclient.helpers import (
     deg2rad,
@@ -28,6 +29,7 @@ from pygpsclient.helpers import (
     fix2desc,
     validURL,
     haversine,
+    bearing,
     get_mp_distance,
     stringvar2val,
     mapq_compress,
@@ -37,6 +39,8 @@ from pygpsclient.helpers import (
     bitsval,
     parse_rxmspartnkey,
 )
+
+geo = Geodesic.WGS84
 
 
 class StaticTest(unittest.TestCase):
@@ -134,6 +138,16 @@ class StaticTest(unittest.TestCase):
         self.assertAlmostEqual(res, 5005.114961720793, 4)
         res = haversine(-12.645, 34.867, 145.1745, -56.27846)
         self.assertAlmostEqual(res, 10703.380604004034, 4)
+
+    def testbearing(self):
+        res = bearing(51.23, -2.41, 53.205, -2.34)
+        self.assertAlmostEqual(res, 1.216362703824359, 4)
+        res = bearing(51.23145, -2.41, 51.23145, -2.34)
+        self.assertAlmostEqual(res, 89.9727111358776, 4)
+        res = bearing(51.23, -2.41, 34.205, 56.34)
+        self.assertAlmostEqual(res, 88.58134073451902, 4)
+        res = bearing(-12.645, 34.867, -34.1745, 48.27846)
+        self.assertAlmostEqual(res, 152.70835788275326, 4)
 
     def testgetmpdistance(self):
         mp = [
