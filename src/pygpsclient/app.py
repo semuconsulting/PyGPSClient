@@ -183,7 +183,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         # Load configuration from file if it exists
         config_loaded = False
-        self.config = self.file_handler.load_config(configfile)
+        _, self.config = self.file_handler.load_config(configfile)
         if isinstance(self.config, dict):  # load succeeded
             config_loaded = True
             self.app_config = self.config  # do this before initialising widgets
@@ -452,12 +452,12 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         Load configuration file menu option.
         """
 
-        self.config = self.file_handler.load_config(None)
+        filename, self.config = self.file_handler.load_config(None)
         if isinstance(self.config, str):  # load failed
             self.set_status(f"{LOADCONFIGBAD} {self.config}", BADCOL)
             self.config = None
         else:
-            self.set_status(LOADCONFIGOK, OKCOL)
+            self.set_status(f"{LOADCONFIGOK} {filename}", OKCOL)
             self.frm_settings.config = self.config
             self.widget_config = self.config
             self.app_config = self.config

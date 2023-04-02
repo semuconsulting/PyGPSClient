@@ -75,14 +75,14 @@ class FileHandler:
         self.close_logfile()
         self.close_trackfile()
 
-    def load_config(self, filename: Path = CONFIGFILE) -> dict:
+    def load_config(self, filename: Path = CONFIGFILE) -> tuple:
         """
         Load configuration file. If filename is not provided, defaults
         to $HOME/pygpsclient.json, otherwise user is prompted for path.
 
         :param Path filename: fully qualified filename, or None for prompt
-        :return: configuration settings as dictionary
-        :rtype: dict or str if error
+        :return: filename and configuration settings as dictionary
+        :rtype: tuple or str if error
         """
 
         try:
@@ -103,7 +103,7 @@ class FileHandler:
         except (OSError, json.JSONDecodeError) as err:
             return str(err)
 
-        return config
+        return (filename, config)
 
     def save_config(self, config: dict, filename: Path = CONFIGFILE) -> int:
         """
