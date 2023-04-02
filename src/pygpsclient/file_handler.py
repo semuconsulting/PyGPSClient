@@ -11,12 +11,16 @@ Created on 16 Sep 2020
 """
 
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
+import json
 from tkinter import filedialog
 from pyubx2 import hextable
 
 from pygpsclient.globals import (
+    HOME,
+    CONFIGNAME,
+    CONFIGFILE,
     MQAPIKEY,
     COLORTAGS,
     UBXPRESETS,
@@ -25,11 +29,14 @@ from pygpsclient.globals import (
     GPX_NS,
     GITHUB_URL,
     FORMATS,
+    GPX_TRACK_INTERVAL,
 )
-from pygpsclient.strings import SAVETITLE, READTITLE
+from pygpsclient.strings import (
+    SAVETITLE,
+    READTITLE,
+    CONFIGTITLE,
+)
 from pygpsclient.helpers import set_filename
-
-HOME = str(Path.home())
 
 
 class FileHandler:
@@ -58,6 +65,7 @@ class FileHandler:
         self._configpath = None
         self._configfile = None
         self._lines = 0
+        self._last_track_update = datetime.fromordinal(1)
 
     def __del__(self):
         """
@@ -67,8 +75,72 @@ class FileHandler:
         self.close_logfile()
         self.close_trackfile()
 
+    def load_config(self, filename: Path = CONFIGFILE) -> dict:
+        """
+        Load configuration file. If filename is not provided, defaults
+        to $HOME/pygpsclient.json, otherwise user is prompted for path.
+
+        :param Path filename: fully qualified filename, or None for prompt
+        :return: configuration settings as dictionary
+        :rtype: dict or str if error
+        """
+
+        try:
+            if filename is None:
+                filename = filedialog.askopenfilename(
+                    title=CONFIGTITLE,
+                    initialdir=HOME,
+                    filetypes=(
+                        ("config files", "*.json"),
+                        ("all files", "*.*"),
+                    ),
+                )
+                if filename in ((), ""):
+                    return None  # User cancelled
+
+            with open(filename, "r", encoding="utf-8") as jsonfile:
+                config = json.load(jsonfile)
+        except (OSError, json.JSONDecodeError) as err:
+            return str(err)
+
+        return config
+
+    def save_config(self, config: dict, filename: Path = CONFIGFILE) -> int:
+        """
+        Save configuration file. If filename is not provided, defaults to
+        $HOME/pygpsclient.json, otherwise user is prompted for filename.
+
+        :param dict config: configuration settings as dictionary
+        :param Path filename: fully qualified path to config file, or None for prompt
+        :return: return code 1 = success, err str = failure
+        :rtype: int or str if error
+        """
+
+        try:
+            if filename is None:
+                filename = filedialog.asksaveasfilename(
+                    title=CONFIGTITLE,
+                    initialdir=HOME,
+                    initialfile=f"{CONFIGNAME}.json",
+                    filetypes=(
+                        ("config files", "*.json"),
+                        ("all files", "*.*"),
+                    ),
+                )
+                if filename in ((), ""):
+                    return None  # User cancelled
+
+            with open(filename, "w", encoding="utf-8") as file:
+                cfgstr = json.dumps(config)
+                file.write(cfgstr)
+                return 1
+        except (OSError, json.JSONDecodeError) as err:
+            return str(err)
+
     def load_mqapikey(self) -> str:
         """
+        DEPRECATED - USE CONFIG FILE INSTEAD.
+
         Load MapQuest web map api key from
         key file in user's home directory.
 
@@ -88,6 +160,8 @@ class FileHandler:
 
     def load_colortags(self) -> list:
         """
+        DEPRECATED - USE CONFIG FILE INSTEAD.
+
         Load user defined colortags from file.
 
         Expects file in format:
@@ -115,8 +189,10 @@ class FileHandler:
 
         return ctags
 
-    def load_user_presets(self) -> str:
+    def load_ubx_presets(self) -> list:
         """
+        DEPRECATED - USE CONFIG FILE INSTEAD.
+
         Load user configuration message presets from user's home directory.
 
         :return: user presets
@@ -130,11 +206,11 @@ class FileHandler:
                 for line in file:
                     presets.append(line)
         except OSError:
-            presets = ""
+            pass
 
         return presets
 
-    def set_logfile_path(self) -> str:
+    def set_logfile_path(self) -> Path:
         """
         Set file path.
 
@@ -158,7 +234,7 @@ class FileHandler:
         _, self._logname = set_filename(self._logpath, "data", "log")
         self._logfile = open(self._logname, "a+b")
 
-    def open_infile(self) -> str:
+    def open_infile(self) -> Path:
         """
         Open input file for streaming.
 
@@ -189,17 +265,19 @@ class FileHandler:
         if self._logfile is None:
             return
 
+        settings = self.__app.frm_settings.config
+        lfm = settings["logformat"]
         data = []
-        if self.__app.frm_settings.logformat in (
+        if lfm in (
             FORMATS[0],
             FORMATS[4],
         ):  # parsed, parsed + hex tabular
             data.append(parsed_data)
-        if self.__app.frm_settings.logformat == FORMATS[1]:  # binary
+        if lfm == FORMATS[1]:  # binary
             data.append(raw_data)
-        if self.__app.frm_settings.logformat == FORMATS[2]:  # hex string
+        if lfm == FORMATS[2]:  # hex string
             data.append(raw_data.hex())
-        if self.__app.frm_settings.logformat in (
+        if lfm in (
             FORMATS[3],
             FORMATS[4],
         ):  # hex tabular, parsed + hex tabular
@@ -229,7 +307,7 @@ class FileHandler:
         except IOError:
             pass
 
-    def open_spartnfile(self, ext: str) -> str:
+    def open_spartnfile(self, ext: str) -> Path:
         """
         Open spartn key / cert files.
 
@@ -250,7 +328,7 @@ class FileHandler:
             return None  # User cancelled
         return filepath
 
-    def open_spartnjson(self) -> str:
+    def open_spartnjson(self) -> Path:
         """
         Open JSON SPARTN config file.
 
@@ -270,7 +348,7 @@ class FileHandler:
             return None  # User cancelled
         return filepath
 
-    def set_trackfile_path(self) -> str:
+    def set_trackfile_path(self) -> Path:
         """
         Set track directory.
 
@@ -369,3 +447,63 @@ class FileHandler:
                 self._trackfile.close()
         except (IOError, ValueError):
             pass
+
+    def update_gpx_track(self):
+        """
+        Update GPX track with latest valid position readings.
+        """
+
+        gnss_status = self.__app.gnss_status
+        # must have valid coords
+        if gnss_status.lat == "" or gnss_status.lon == "":
+            return
+
+        if datetime.now() > self._last_track_update + timedelta(
+            seconds=GPX_TRACK_INTERVAL
+        ):
+            today = datetime.now()
+            gpstime = gnss_status.utc
+            trktime = datetime(
+                today.year,
+                today.month,
+                today.day,
+                gpstime.hour,
+                gpstime.minute,
+                gpstime.second,
+                gpstime.microsecond,
+            )
+            time = f"{trktime.isoformat()}Z"
+            if gnss_status.diff_corr:
+                fix = "dgps"
+            elif gnss_status.fix == "3D":
+                fix = "3d"
+            elif gnss_status.fix == "2D":
+                fix = "2d"
+            else:
+                fix = "none"
+            diff_age = gnss_status.diff_age
+            diff_station = gnss_status.diff_station
+            if diff_age in [None, "", 0] or diff_station in [None, "", 0]:
+                self.add_trackpoint(
+                    gnss_status.lat,
+                    gnss_status.lon,
+                    ele=gnss_status.alt,
+                    time=time,
+                    fix=fix,
+                    sat=gnss_status.sip,
+                    pdop=gnss_status.pdop,
+                )
+            else:
+                self.add_trackpoint(
+                    gnss_status.lat,
+                    gnss_status.lon,
+                    ele=gnss_status.alt,
+                    time=time,
+                    fix=fix,
+                    sat=gnss_status.sip,
+                    pdop=gnss_status.pdop,
+                    ageofdgpsdata=diff_age,
+                    dgpsid=diff_station,
+                )
+
+            self._last_track_update = datetime.now()

@@ -60,7 +60,7 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 1. Graphview widget showing current satellite reception (signal-to-noise ratio).
 1. Mapview widget with location marker, showing either a static Mercator world map, or an optional dynamic web-based map downloaded via a MapQuest API (*requires an Internet connection and free 
 [MapQuest API Key](https://developer.mapquest.com/user/login/sign-up)*).
-1. Spectrum widget showing spectrum analysis chart from MON-SPAN message (*UBX MON-SPAN messages must be enabled or polled*).
+1. Spectrum widget showing a spectrum analysis chart (*GNSS receiver must be capable of outputting UBX MON-SPAN messages*).
 1. Scatterplot widget showing variability in position reporting over time.
 1. Data logging in parsed, binary, hexadecimal string and tabulated hexadecimal formats (NB. only binary datalogs can be re-read by PyGPSClient's parser).
 1. Track recording in GPX format.
@@ -85,11 +85,12 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 ![disconnect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-media-control-50-24.png?raw=true).
 * Protocols Shown - Select which protocols to display; NMEA, UBX and/or RTCM3 (NB: this only changes the displayed protocols - to change the actual protocols output by the receiver, use the CFG-PRT command).
 * Console Display - Select from parsed, binary or hexadecimal formats.
-* Tags - Turn console color tagging on or off. User-configurable color tags are loaded from a file "colortags" (lower case, no extension) in the user's home directory - see example provided. NB: color tagging does impose a small performance overhead - turning it off will improve console response times at very high transaction rates.
+* Color Tagging - Turn console color tagging on or off. User-configurable color tags are loaded from the `"colortag":` value (`0` = disable, `1`=enable) and `"colortags":` list (`[string, color]` pairs) in the json configuration file (see example provided). NB: color tagging does impose a small performance overhead - turning it off will improve console response times at very high transaction rates.
 * Degrees Format and Units - Change the displayed degree and unit formats.
 * Zoom - Change the web map scale (any change will take effect at the next map refresh, indicated by a small timer icon at the top left of the panel).
 * Show Legend - Turn the graph legend on or off.
 * Show Unused Satellites - Include or exclude satellites that are not used in the navigation solution (e.g. because their signal level is too low) from the graph and sky view panels.
+* Spectrum widget - When shown, PyGPSClient will automatically configure the receiver to output UBX MON-SPAN messages. Clicking anywhere in the spectrum chart will briefly display the frequency and decibel reading at that point. Double-clicking anywhere in the chart will toggle the GNSS frequency band markers (L1, G2, etc.) on or off. 
 * DataLogging - Turn Data logging in the selected format on or off. You will be prompted to select the directory into which timestamped log files are saved (NB. only binary datalogs can be re-read by PyGPSClient's parser).
 * GPX Track - Turn track recording (in GPX format) on or off. You will be prompted to select the directory into which timestamped track files are saved.
 * GPX Track Viewer - Display the GPX Track Viewer dialog via Menu..Options..GPX Track Viewer. Click the load button to load a GPX file and display the map and profile. Click the redraw button to redraw the map.
@@ -99,8 +100,10 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 * To display the NTRIP Client Configuration Dialog (*requires Internet connection*), click
 ![ntrip icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-antenna-4-24.png?raw=true), or go to Menu..Options..NTRIP Configuration Dialog.
 * To display the SPARTN Client Configuration Dialog (*may require Internet connection*), click ![spartn icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-antenna-3-24.png?raw=true), go to Menu..Options..SPARTN Configuration Dialog.
-* To expand or collapse the banner or serial port configuration widgets, click the ![expand icon](https://github.com/semuconsulting/PyGPSClient/blob/master//pygpsclient/resources/iconmonstr-arrow-80-16.png?raw=true)/![expand icon](https://github.com/semuconsulting/PyGPSClient/blob/master//pygpsclient/resources/iconmonstr-triangle-1-16.png?raw=true) buttons.
+* To expand or collapse the banner or serial port configuration widgets, click the ![expand icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-arrow-80-16.png?raw=true)/![expand icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-triangle-1-16.png?raw=true) buttons.
 * To show or hide the various widgets, go to Menu..View and click on the relevant hide/show option.
+* To save the current configuration to a file, go to File..Save Configuration.
+* To load a saved configuration file, go to File..Load Configuration. The default configuration file location is `$HOME/pygpsclient.json`.
 
 ---
 ### <a name="ubxconfig">UBX Configuration Facilities</a>
@@ -385,10 +388,10 @@ To install PyGPSClient manually, download and unzip this repository and run:
 python3 -m /path_to_folder/foldername/pygpsclient
 ```
 
-e.g. if you downloaded and unzipped to a folder named `PyGPSClient-1.3.20`, run: 
+e.g. if you downloaded and unzipped to a folder named `PyGPSClient-1.3.21`, run: 
 
 ```shell
-python3 -m /path_to_folder/PyGPSClient-1.3.20/pygpsclient
+python3 -m /path_to_folder/PyGPSClient-1.3.21/pygpsclient
 ```
 
 ---
@@ -408,7 +411,7 @@ Once you have received the API key (a 32-character alphanumeric string), you can
 
 1. create an environment variable named `MQAPIKEY` (all upper case) and set this to the API key value. It is recommended 
 that this is a User variable rather than a System/Global variable.
-2. copy it to a file named `mqapikey` (lower case, no extension) and place this file in the user's home directory.
+2. copy it to the key value `"mqapikey":` in the json configuration file (see example provided).
 
 *The web map refresh rate can be amended if required by changing the MAP_UPDATE_INTERVAL constant in `globals.py`.
 
@@ -416,7 +419,7 @@ that this is a User variable rather than a System/Global variable.
 ## <a name="userdefined">User Defined Presets</a>
 
 The UBX Configuration Dialog includes the facility to send user-defined UBX configuration messages or message sequences to the receiver. These can be set up by adding
-appropriate comma-delimited message descriptions and payload definitions to a file named `ubxpresets` (lower case, no extension), and then placing this file in the user's home directory. The message definition comprises a free-format text description (*avoid embedded commas*) 
+appropriate comma-delimited message descriptions and payload definitions to the `"ubxpresets":` list in the json configuration file (see example provided). The message definition comprises a free-format text description (*avoid embedded commas*) 
 followed by one or more [pyubx2 UBXMessage constructors](https://pypi.org/project/pyubx2/), i.e. 
 1. message class as a string e.g. `CFG` (must be a valid class from pyubx2.UBX_CLASSES)
 2. message id as a string e.g. `CFG-MSG` (must be a valid id from pyubx2.UBX_MSGIDS)

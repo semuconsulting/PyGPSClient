@@ -12,43 +12,45 @@ Created on 14 Sep 2020
 """
 # pylint: disable=line-too-long
 
-import os
+from os import path
+from pathlib import Path
 from datetime import datetime
 from pyubx2 import GET, SET, POLL
 
-DIRNAME = os.path.dirname(__file__)
-ICON_BLANK = os.path.join(DIRNAME, "resources/blank-1-24.png")
-ICON_APP = os.path.join(DIRNAME, "resources/iconmonstr-location-27-32.png")
-ICON_CONN = os.path.join(DIRNAME, "resources/iconmonstr-media-control-48-24.png")
-ICON_SERIAL = os.path.join(DIRNAME, "resources/usbport-1-24.png")
-ICON_SOCKET = os.path.join(DIRNAME, "resources/ethernet-1-24.png")
-ICON_DISCONN = os.path.join(DIRNAME, "resources/iconmonstr-media-control-50-24.png")
-ICON_POS = os.path.join(DIRNAME, "resources/iconmonstr-location-1-24.png")
-ICON_SEND = os.path.join(DIRNAME, "resources/iconmonstr-arrow-12-24.png")
-ICON_EXIT = os.path.join(DIRNAME, "resources/iconmonstr-door-6-24.png")
-ICON_PENDING = os.path.join(DIRNAME, "resources/iconmonstr-time-6-24.png")
-ICON_CONFIRMED = os.path.join(DIRNAME, "resources/iconmonstr-check-mark-8-24.png")
-ICON_WARNING = os.path.join(DIRNAME, "resources/iconmonstr-warning-1-24.png")
-ICON_UNKNOWN = os.path.join(DIRNAME, "resources/clear-1-24.png")
-ICON_UBXCONFIG = os.path.join(DIRNAME, "resources/iconmonstr-gear-2-24.png")
-ICON_NTRIPCONFIG = os.path.join(DIRNAME, "resources/iconmonstr-antenna-4-24.png")
-ICON_SPARTNCONFIG = os.path.join(DIRNAME, "resources/iconmonstr-antenna-3-24.png")
-ICON_LOGREAD = os.path.join(DIRNAME, "resources/binary-1-24.png")
-ICON_REFRESH = os.path.join(DIRNAME, "resources/iconmonstr-refresh-6-16.png")
-ICON_CONTRACT = os.path.join(DIRNAME, "resources/iconmonstr-triangle-1-16.png")
-ICON_EXPAND = os.path.join(DIRNAME, "resources/iconmonstr-arrow-80-16.png")
-ICON_TRANSMIT = os.path.join(DIRNAME, "resources/iconmonstr-transmit-10-24.png")
-ICON_NOTRANSMIT = os.path.join(DIRNAME, "resources/iconmonstr-notransmit-10-24.png")
-ICON_NOCLIENT = os.path.join(DIRNAME, "resources/iconmonstr-noclient-10-24.png")
-ICON_LOAD = os.path.join(DIRNAME, "resources/iconmonstr-folder-18-24.png")
-ICON_SAVE = os.path.join(DIRNAME, "resources/iconmonstr-save-14-24.png")
-ICON_PLAY = os.path.join(DIRNAME, "resources/iconmonstr-media-control-48-24.png")
-ICON_RECORD = os.path.join(DIRNAME, "resources/iconmonstr-record-24.png")
-ICON_STOP = os.path.join(DIRNAME, "resources/iconmonstr-stop-1-24.png")
-ICON_UNDO = os.path.join(DIRNAME, "resources/iconmonstr-undo-24.png")
-ICON_DELETE = os.path.join(DIRNAME, "resources/iconmonstr-trash-can-filled-24.png")
-ICON_REDRAW = os.path.join(DIRNAME, "resources/iconmonstr-refresh-lined-24.png")
-IMG_WORLD = os.path.join(DIRNAME, "resources/world.png")
+HOME = Path.home()
+DIRNAME = path.dirname(__file__)
+ICON_BLANK = path.join(DIRNAME, "resources/blank-1-24.png")
+ICON_APP = path.join(DIRNAME, "resources/iconmonstr-location-27-32.png")
+ICON_CONN = path.join(DIRNAME, "resources/iconmonstr-media-control-48-24.png")
+ICON_SERIAL = path.join(DIRNAME, "resources/usbport-1-24.png")
+ICON_SOCKET = path.join(DIRNAME, "resources/ethernet-1-24.png")
+ICON_DISCONN = path.join(DIRNAME, "resources/iconmonstr-media-control-50-24.png")
+ICON_POS = path.join(DIRNAME, "resources/iconmonstr-location-1-24.png")
+ICON_SEND = path.join(DIRNAME, "resources/iconmonstr-arrow-12-24.png")
+ICON_EXIT = path.join(DIRNAME, "resources/iconmonstr-door-6-24.png")
+ICON_PENDING = path.join(DIRNAME, "resources/iconmonstr-time-6-24.png")
+ICON_CONFIRMED = path.join(DIRNAME, "resources/iconmonstr-check-mark-8-24.png")
+ICON_WARNING = path.join(DIRNAME, "resources/iconmonstr-warning-1-24.png")
+ICON_UNKNOWN = path.join(DIRNAME, "resources/clear-1-24.png")
+ICON_UBXCONFIG = path.join(DIRNAME, "resources/iconmonstr-gear-2-24.png")
+ICON_NTRIPCONFIG = path.join(DIRNAME, "resources/iconmonstr-antenna-4-24.png")
+ICON_SPARTNCONFIG = path.join(DIRNAME, "resources/iconmonstr-antenna-3-24.png")
+ICON_LOGREAD = path.join(DIRNAME, "resources/binary-1-24.png")
+ICON_REFRESH = path.join(DIRNAME, "resources/iconmonstr-refresh-6-16.png")
+ICON_CONTRACT = path.join(DIRNAME, "resources/iconmonstr-triangle-1-16.png")
+ICON_EXPAND = path.join(DIRNAME, "resources/iconmonstr-arrow-80-16.png")
+ICON_TRANSMIT = path.join(DIRNAME, "resources/iconmonstr-transmit-10-24.png")
+ICON_NOTRANSMIT = path.join(DIRNAME, "resources/iconmonstr-notransmit-10-24.png")
+ICON_NOCLIENT = path.join(DIRNAME, "resources/iconmonstr-noclient-10-24.png")
+ICON_LOAD = path.join(DIRNAME, "resources/iconmonstr-folder-18-24.png")
+ICON_SAVE = path.join(DIRNAME, "resources/iconmonstr-save-14-24.png")
+ICON_PLAY = path.join(DIRNAME, "resources/iconmonstr-media-control-48-24.png")
+ICON_RECORD = path.join(DIRNAME, "resources/iconmonstr-record-24.png")
+ICON_STOP = path.join(DIRNAME, "resources/iconmonstr-stop-1-24.png")
+ICON_UNDO = path.join(DIRNAME, "resources/iconmonstr-undo-24.png")
+ICON_DELETE = path.join(DIRNAME, "resources/iconmonstr-trash-can-filled-24.png")
+ICON_REDRAW = path.join(DIRNAME, "resources/iconmonstr-refresh-lined-24.png")
+IMG_WORLD = path.join(DIRNAME, "resources/world.png")
 PYPI_URL = "https://pypi.org/pypi/PyGPSClient"
 GITHUB_URL = "https://github.com/semuconsulting/PyGPSClient"
 MAPQURL = "https://www.mapquestapi.com/staticmap/v5/map?key={}"
@@ -63,9 +65,9 @@ GPXMAPURL = (
     + "&locations={},{}||{},{}&zoom={}&size={},{}&defaultMarker=marker-num"
     + "&shape=weight:2|border:{}|{}&scalebar={}|bottom"
 )
-MAP_UPDATE_INTERVAL = (
-    60  # how frequently the mapquest api is called to update the web map (seconds)
-)
+# how frequently the mapquest api is called to update the web map (seconds)
+MAP_UPDATE_INTERVAL = 60
+MIN_UPDATE_INTERVAL = 5
 XML_HDR = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
 GPX_NS = " ".join(
     (
@@ -109,7 +111,9 @@ ANTSTATUS = ("INIT", "DONTKNOW", "OK", "SHORT", "OPEN")
 ANTPOWER = ("OFF", "ON", "DONTKNOW")
 GGA_INTERVALS = ("None", "2", "5", "10", "60", "120")
 ENABLE_CFG_OTHER = True  # enable CFG=* Other Configuration command panel
-# names of user preset files:
+# names of user config and preset files:
+CONFIGNAME = "pygpsclient"
+CONFIGFILE = path.join(HOME, f"{CONFIGNAME}.json")
 MQAPIKEY = "mqapikey"
 UBXPRESETS = "ubxpresets"
 COLORTAGS = "colortags"
@@ -186,7 +190,7 @@ WIDGETU1 = (250, 250)  # small widget size
 WIDGETU2 = (350, 250)  # medium widget size
 WIDGETU3 = (950, 350)  # Console size
 WIDGETU4 = (600, 600)  # GPX Track viewer size
-MAXCOLSPAN = 4  # max colspan of widgets
+MAXCOLSPAN = 4  # max no of widget columns
 MAXROWSPAN = 4  # max no of widget rows
 
 BGCOL = "gray24"  # default widget background color
@@ -194,6 +198,9 @@ FGCOL = "white"  # default widget foreground color
 ENTCOL = "azure"  # default valid data entry field background color
 ERRCOL = "pink"  # default invalid data entry field background color
 INFCOL = "steelblue3"  # readonly info field text color
+OKCOL = "green"
+INFCOL = "blue"
+BADCOL = "red"
 READONLY = "readonly"
 ERROR = "ERR!"
 DDD = "DD.D"
@@ -248,7 +255,7 @@ GNSS_LIST = {
     0: ("GPS", "royalblue"),
     1: ("SBA", "orange"),
     2: ("GAL", "green4"),
-    3: ("BEI", "purple"),
+    3: ("BEI", "mediumpurple2"),
     4: ("IME", "violet"),
     5: ("QZS", "yellow"),
     6: ("GLO", "indianred"),

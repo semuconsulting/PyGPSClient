@@ -158,13 +158,14 @@ class SPARTNLBANDDialog(Frame):
         # pylint: disable=unnecessary-lambda
         self._lbl_corrlband = Label(self, text=LBLSPARTNLB)
         # Correction receiver serial port configuration panel
+        userport = self.__app.app_config.get("spartnport", "")
         self._frm_spartn_serial = SerialConfigFrame(
             self,
             preselect=KNOWNGPS,
             timeouts=TIMEOUTS,
             bpsrates=BPSRATES,
             msgmodes=list(MSGMODES.keys()),
-            userport=self.__app.spartn_user_port,  # user-defined serial port
+            userport=userport,  # user-defined serial port
         )
         self._lbl_freq = Label(self, text="L-Band Frequency (Hz)")
         self._ent_freq = Entry(

@@ -73,6 +73,7 @@ from pygpsclient.globals import (
     SOCKSERVER_MAX_CLIENTS,
     GNSS_EVENT,
     GNSS_EOF_EVENT,
+    BADCOL,
 )
 from pygpsclient.helpers import valid_entry, VALINT, VALURL, MAXPORT
 from pygpsclient.strings import (
@@ -89,6 +90,7 @@ from pygpsclient.strings import (
     LBLSERVERPORT,
     LBLDEGFORMAT,
     LBLSERVERMODE,
+    CONFIGERR,
 )
 
 
@@ -110,6 +112,8 @@ class SettingsFrame(Frame):
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
         Frame.__init__(self, self.__master, *args, **kwargs)
 
+        self.infilepath = None
+        self.outfilepath = None
         self._prot_nmea = IntVar()
         self._prot_ubx = IntVar()
         self._prot_rtcm3 = IntVar()
@@ -118,22 +122,20 @@ class SettingsFrame(Frame):
         self._webmap = IntVar()
         self._mapzoom = IntVar()
         self._units = StringVar()
-        self._format = StringVar()
+        self._degrees_format = StringVar()
+        self._console_format = StringVar()
         self._datalog = IntVar()
         self._logformat = StringVar()
         self._record_track = IntVar()
         self._show_unusedsat = IntVar()
         self._show_legend = IntVar()
-        self._colortags = IntVar()
+        self._colortag = IntVar()
         self._socket_serve = IntVar()
         self._sock_port = StringVar()
         self._sock_mode = StringVar()
         self._sock_clients = StringVar()
         self._validsettings = True
-        self._in_filepath = None
-        self._logpath = None
         self._trackpath = None
-        self._display_format = StringVar()
         self._img_conn = ImageTk.PhotoImage(Image.open(ICON_CONN))
         self._img_serial = ImageTk.PhotoImage(Image.open(ICON_SERIAL))
         self._img_socket = ImageTk.PhotoImage(Image.open(ICON_SOCKET))
@@ -160,13 +162,14 @@ class SettingsFrame(Frame):
         self.option_add("*Font", self.__app.font_sm)
 
         # serial port configuration panel
+        userport = self.__app.app_config.get("userport", "")
         self._frm_serial = SerialConfigFrame(
             self,
             preselect=KNOWNGPS,
             timeouts=TIMEOUTS,
             bpsrates=BPSRATES,
             msgmodes=list(MSGMODES.keys()),
-            userport=self.__app.user_port,  # user-defined serial port
+            userport=userport,  # user-defined serial port
         )
 
         # socket configuration panel
@@ -245,12 +248,12 @@ class SettingsFrame(Frame):
             state=READONLY,
             readonlybackground=ENTCOL,
             wrap=True,
-            textvariable=self._display_format,
+            textvariable=self._console_format,
         )
         self._chk_tags = Checkbutton(
             self._frm_options,
             text="Tags",
-            variable=self._colortags,
+            variable=self._colortag,
         )
         self._lbl_format = Label(self._frm_options, text=LBLDEGFORMAT)
         self._spn_format = Spinbox(
@@ -260,7 +263,7 @@ class SettingsFrame(Frame):
             state=READONLY,
             readonlybackground=ENTCOL,
             wrap=True,
-            textvariable=self._format,
+            textvariable=self._degrees_format,
         )
         self._lbl_units = Label(self._frm_options, text="Units")
         self._spn_units = Spinbox(
@@ -514,14 +517,16 @@ class SettingsFrame(Frame):
         """
 
         if self._datalog.get() == 1:
-            self._logpath = self.__app.file_handler.set_logfile_path()
-            if self._logpath is not None:
-                self.__app.set_status("Data logging enabled: " + self._logpath, "green")
+            self.outfilepath = self.__app.file_handler.set_logfile_path()
+            if self.outfilepath is not None:
+                self.__app.set_status(
+                    "Data logging enabled: " + self.outfilepath, "green"
+                )
                 self.__app.file_handler.open_logfile()
             else:
                 self._datalog.set(False)
         else:
-            self._logpath = None
+            self.outfilepath = None
             self._datalog.set(False)
             self.__app.file_handler.close_logfile()
             self.__app.set_status("Data logging disabled", "blue")
@@ -587,9 +592,9 @@ class SettingsFrame(Frame):
         Start data file streamer if file selected
         """
 
-        self._in_filepath = self.__app.file_handler.open_infile()
-        if self._in_filepath is not None:
-            self.__app.set_connection(f"{self._in_filepath}", "blue")
+        self.infilepath = self.__app.file_handler.open_infile()
+        if self.infilepath is not None:
+            self.__app.set_connection(f"{self.infilepath}", "blue")
             self.__app.set_status("")
             self.__app.conn_status = CONNECTED_FILE
             self._reset_frames()
@@ -613,8 +618,16 @@ class SettingsFrame(Frame):
             "socket_outqueue": self.__app.socket_outqueue,
             "serial_settings": self._frm_serial,
             "socket_settings": self._frm_socket,
-            "in_filepath": self._in_filepath,
+            "in_filepath": self.infilepath,
         }
+
+    def _reset(self):
+        """
+        Reset settings to defaults.
+        """
+
+        self.config = {}
+        self.clients = 0
 
     def _reset_frames(self):
         """
@@ -666,32 +679,6 @@ class SettingsFrame(Frame):
             self.__app.stop_sockserver_thread()
             self._socket_serve.set(0)
             self.clients = 0
-
-    def _reset(self):
-        """
-        Reset settings to defaults.
-        """
-
-        self._prot_nmea.set(1)
-        self._prot_ubx.set(1)
-        self._prot_rtcm3.set(1)
-        self._format.set(DDD)
-        self._units.set(UMM)
-        self._autoscroll.set(1)
-        self._maxlines.set(300)
-        self._display_format.set(FORMATS[0])  # Parsed
-        self._webmap.set(False)
-        self._mapzoom.set(10)
-        self._show_legend.set(True)
-        self._show_unusedsat.set(False)
-        self._datalog.set(False)
-        self._record_track.set(False)
-        self._logformat.set(FORMATS[1])  # Binary
-        self._colortags.set(TAG_COLORS)
-        self._socket_serve.set(0)
-        self._sock_port.set(SOCKSERVER_PORT)
-        self._sock_mode.set(SOCKMODES[0])  # open
-        self.clients = 0
 
     def enable_controls(self, status: int):
         """
@@ -772,186 +759,78 @@ class SettingsFrame(Frame):
         return (self.winfo_width(), self.winfo_height())
 
     @property
-    def protocol(self) -> int:
+    def config(self) -> dict:
         """
-        Getter for displayed protocols
+        Getter for configuration settings to save as file.
 
-        :return: protocol displayed (1=NMEA, 2=UBX, 4=RTMC3, 7=ALL)
-        :rtype: int
+        :return: settings as dictionary
+        :rtype: dict
         """
 
-        return (
+        protocol = (
             (ubt.NMEA_PROTOCOL * self._prot_nmea.get())
             + (ubt.UBX_PROTOCOL * self._prot_ubx.get())
             + (ubt.RTCM3_PROTOCOL * self._prot_rtcm3.get())
         )
+        sockmode = 0 if self._sock_mode.get() == SOCKMODES[0] else 1
 
-    @property
-    def display_format(self) -> int:
+        config = {
+            "protocol": protocol,
+            "nmeaprot": self._prot_nmea.get(),
+            "ubxprot": self._prot_ubx.get(),
+            "rtcmprot": self._prot_rtcm3.get(),
+            "degreesformat": self._degrees_format.get(),
+            "colortag": self._colortag.get(),
+            "units": self._units.get(),
+            "autoscroll": self._autoscroll.get(),
+            "maxlines": self._maxlines.get(),
+            "consoleformat": self._console_format.get(),
+            "webmap": self._webmap.get(),
+            "mapzoom": self._mapzoom.get(),
+            "legend": self._show_legend.get(),
+            "unusedsat": self._show_unusedsat.get(),
+            "logformat": self._logformat.get(),
+            "datalog": self._datalog.get(),
+            "recordtrack": self._record_track.get(),
+            "sockserver": self._socket_serve.get(),
+            "sockport": self._sock_port.get(),
+            "sockmode": sockmode,
+        }
+        return config
+
+    @config.setter
+    def config(self, config: dict):
         """
-        Getter for console display format
+        Setter for configuration loaded from file.
 
-        :return: display format (0 - parsed, 1 = binary, 2 = hex)
-        :rtype: int
-        """
-
-        return self._display_format.get()
-
-    @property
-    def autoscroll(self) -> int:
-        """
-        Getter for autoscroll flag
-
-        :return: scroll setting (0 = no scroll, 1 = auto)
-        :rtype: int
-        """
-
-        return self._autoscroll.get()
-
-    @property
-    def maxlines(self) -> int:
-        """
-        Getter for max console display lines
-
-        :return: max lines in console display (default=300)
-        :rtype: int
-        """
-
-        return self._maxlines.get()
-
-    @property
-    def webmap(self) -> int:
-        """
-        Getter for webmap flag
-
-        :return: map type (0 = static map, 1 = dynamic web map)
-        :rtype: int
+        :param dict config: configuration
         """
 
-        return self._webmap.get()
-
-    @property
-    def mapzoom(self) -> int:
-        """
-        Getter for webmap zoom level
-
-        :return: webmap zoom level (1-20)
-        :rtype: int
-        """
-
-        return self._mapzoom.get()
-
-    @property
-    def units(self) -> str:
-        """
-        Getter for display units
-
-        :return: "UMM" = metric m/s, "UMK" = metric kmph,
-                 "UI" = imperial mph, "UIK" = imperial knots
-        :rtype: str
-        """
-
-        return self._units.get()
-
-    @property
-    def format(self) -> str:
-        """
-        Getter for degrees format
-
-        :return: "DD.D" = decimal degrees, "DM.M" = degrees, decimal minutes,
-                 "D.M.S" = degrees, minutes, seconds
-        :rtype: str
-        """
-
-        return self._format.get()
-
-    @property
-    def colortagging(self) -> bool:
-        """
-        Getter for colortags boolean
-
-        :return: colortag on/off
-        :rtype: bool
-        """
-
-        return self._colortags.get()
-
-    @property
-    def infilepath(self) -> str:
-        """
-        Getter for input file path
-
-        :return: input file path
-        :rtype: str
-        """
-
-        return self._in_filepath
-
-    @property
-    def outfilepath(self) -> str:
-        """
-        Getter for output file path
-
-        :return: output file path
-        :rtype: str
-        """
-
-        return self._logpath
-
-    @property
-    def datalogging(self) -> int:
-        """
-        Getter for datalogging flag
-
-        :return: 0 = no log, 1 = record datalog
-        :rtype: int
-        """
-
-        return self._datalog.get()
-
-    @property
-    def logformat(self) -> str:
-        """
-        Getter for datalogging format
-
-        :return: "Parsed", "Binary", "Hex", "Hextable"
-        :rtype: str
-        """
-
-        return self._logformat.get()
-
-    @property
-    def record_track(self) -> int:
-        """
-        Getter for record track flag
-
-        :return: 0 = no track, 1 = record track
-        :rtype: int
-        """
-
-        return self._record_track.get()
-
-    @property
-    def show_unused(self) -> int:
-        """
-        Getter for zero signal flag
-
-        :return: 0 = exclude, 1 = include
-        :rtype: int
-        """
-
-        return self._show_unusedsat.get()
-
-    @property
-    def show_legend(self) -> int:
-        """
-        Getter for graph legend flag
-
-        :return: 0 = hide, 1 = show
-        :rtype: int
-        """
-
-        return self._show_legend.get()
+        try:
+            self._prot_nmea.set(config.get("nmeaprot", 1))
+            self._prot_ubx.set(config.get("ubxprot", 1))
+            self._prot_rtcm3.set(config.get("rtcmprot", 1))
+            self._degrees_format.set(config.get("degreesformat", DDD))
+            self._colortag.set(config.get("colortag", TAG_COLORS))
+            self._units.set(config.get("units", UMM))
+            self._autoscroll.set(config.get("autoscroll", 1))
+            self._maxlines.set(config.get("maxlines", 200))
+            self._console_format.set(config.get("consoleformat", FORMATS[0]))
+            self._webmap.set(config.get("webmap", 0))
+            self._mapzoom.set(config.get("mapzoom", 10))
+            self._show_legend.set(config.get("legend", 1))
+            self._show_unusedsat.set(config.get("unusedsat", 1))
+            self._logformat.set(config.get("logformat", FORMATS[1]))  # Binary
+            # don't persist datalog or gpx track settings...
+            # self._datalog.set(config.get("datalog", 0))
+            # self._record_track.set(config.get("recordtrack", 0))
+            self._socket_serve.set(config.get("sockserver", 0))
+            self._sock_port.set(config.get("sockport", SOCKSERVER_PORT))
+            self._sock_mode.set(
+                SOCKMODES[1] if config.get("sockmode", 0) == 1 else SOCKMODES[0]
+            )
+        except KeyError as err:
+            self.set_status(f"{CONFIGERR} - {err}", BADCOL)
 
     @property
     def server_state(self) -> int:
@@ -973,30 +852,6 @@ class SettingsFrame(Frame):
         """
 
         self._socket_serve.set(status)
-
-    @property
-    def server_port(self) -> int:
-        """
-        Getter for socket server port
-
-        :return: port
-        :rtype: int
-        """
-
-        return int(self._sock_port.get())
-
-    @property
-    def server_mode(self) -> int:
-        """
-        Getter for socket server mode
-
-        :return: 0 = open socket server, 1 = NTRIP server
-        :rtype: int
-        """
-
-        if self._sock_mode.get() == SOCKMODES[1]:  # "NTRIP SERVER"
-            return 1
-        return 0
 
     @property
     def clients(self) -> int:

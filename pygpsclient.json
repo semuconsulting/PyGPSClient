@@ -1,0 +1,392 @@
+{
+	"protocol": 7,
+	"nmeaprot": 1,
+	"ubxprot": 1,
+	"rtcmprot": 1,
+	"degreesformat": "DD.D",
+	"units": "Metric m/s",
+	"autoscroll": 1,
+	"maxlines": 200,
+	"consoleformat": "Parsed",
+	"webmap": 0,
+	"mapupdateinterval": 60,
+	"mapzoom": 10,
+	"legend": 1,
+	"unusedsat": 1,
+	"logformat": "Binary",
+	"datalog": 0,
+	"recordtrack": 0,
+	"sockserver": 0,
+	"sockport": "50010",
+	"sockmode": 0,
+	"Banner": true,
+	"Console": true,
+	"Satellites": true,
+	"Levels": true,
+	"Map": true,
+	"Spectrum": false,
+	"Scatter Plot": false,
+	"Status": true,
+	"Settings": true,
+	"userport": "",
+	"spartnport": "",
+	"mqapikey": "mymqapikeyvalue",
+	"colortag": 0,
+	"colortags": [
+		[
+			"ACK-ACK",
+			"green2"
+		],
+		[
+			"ACK-NAK",
+			"orange red"
+		],
+		[
+			"CFG-MSG",
+			"cyan"
+		],
+		[
+			"CFG-VALGET",
+			"deepskyblue"
+		],
+		[
+			"NMEA",
+			"lightblue1"
+		],
+		[
+			"DTM",
+			"deepskyblue"
+		],
+		[
+			"GAQ",
+			"pink"
+		],
+		[
+			"GBQ",
+			"pink"
+		],
+		[
+			"GBS",
+			"pink"
+		],
+		[
+			"GGA",
+			"orange"
+		],
+		[
+			"GLL",
+			"orange"
+		],
+		[
+			"GLQ",
+			"pink"
+		],
+		[
+			"GNQ",
+			"pink"
+		],
+		[
+			"GNS",
+			"orange"
+		],
+		[
+			"GQQ",
+			"pink"
+		],
+		[
+			"GRS",
+			"yellow"
+		],
+		[
+			"GSA",
+			"green2"
+		],
+		[
+			"GST",
+			"mediumpurple2"
+		],
+		[
+			"GSV",
+			"yellow"
+		],
+		[
+			"RLM",
+			"pink"
+		],
+		[
+			"RMC",
+			"orange"
+		],
+		[
+			"RXM",
+			"skyblue1"
+		],
+		[
+			"THS",
+			"deepskyblue"
+		],
+		[
+			"TXT",
+			"lightgrey"
+		],
+		[
+			"VLW",
+			"deepskyblue"
+		],
+		[
+			"VTG",
+			"deepskyblue"
+		],
+		[
+			"ZDA",
+			"cyan"
+		],
+		[
+			"HNR-PVT",
+			"orange"
+		],
+		[
+			"INF-ERROR",
+			"red2"
+		],
+		[
+			"INF-NOTICE",
+			"deepskyblue"
+		],
+		[
+			"INF-WARNING",
+			"orange"
+		],
+		[
+			"LOG",
+			"skyblue1"
+		],
+		[
+			"MON",
+			"skyblue1"
+		],
+		[
+			"NAV-ATT",
+			"yellow"
+		],
+		[
+			"NAV-AOPSTATUS",
+			"yellow"
+		],
+		[
+			"NAV-CLOCK",
+			"cyan"
+		],
+		[
+			"NAV-COV",
+			"yellow"
+		],
+		[
+			"NAV-DGPS",
+			"mediumpurple2"
+		],
+		[
+			"NAV-DOP",
+			"mediumpurple2"
+		],
+		[
+			"NAV-EELL",
+			"yellow"
+		],
+		[
+			"NAV-EOE",
+			"yellow"
+		],
+		[
+			"NAV-GEOFENCE",
+			"yellow"
+		],
+		[
+			"NAV-HPPOSECEF",
+			"orange"
+		],
+		[
+			"NAV-HPPOSLLH",
+			"orange"
+		],
+		[
+			"NAV-ODO",
+			"deepskyblue"
+		],
+		[
+			"NAV-ORB",
+			"yellow"
+		],
+		[
+			"NAV-PL",
+			"yellow"
+		],
+		[
+			"NAV-POSECEF",
+			"orange"
+		],
+		[
+			"NAV-POSLLH",
+			"orange"
+		],
+		[
+			"NAV-PVT",
+			"orange"
+		],
+		[
+			"NAV-RELPOSNED",
+			"deepskyblue"
+		],
+		[
+			"NAV-SAT",
+			"yellow"
+		],
+		[
+			"NAV-SBAS",
+			"yellow"
+		],
+		[
+			"NAV-SIG",
+			"yellow"
+		],
+		[
+			"NAV-SLAS",
+			"yellow"
+		],
+		[
+			"NAV-SOL",
+			"green2"
+		],
+		[
+			"NAV-STATUS",
+			"green2"
+		],
+		[
+			"NAV-SVIN",
+			"mediumpurple2"
+		],
+		[
+			"NAV-SVINFO",
+			"yellow"
+		],
+		[
+			"NAV-TIMEBDS",
+			"cyan"
+		],
+		[
+			"NAV-TIMEGAL",
+			"cyan"
+		],
+		[
+			"NAV-TIMEGLO",
+			"cyan"
+		],
+		[
+			"NAV-TIMEGPS",
+			"cyan"
+		],
+		[
+			"NAV-TIMELS",
+			"cyan"
+		],
+		[
+			"NAV-TIMEQZSS",
+			"cyan"
+		],
+		[
+			"NAV-TIMEUTC",
+			"cyan"
+		],
+		[
+			"NAV-VELECEF",
+			"deepskyblue"
+		],
+		[
+			"NAV-VELNED",
+			"deepskyblue"
+		],
+		[
+			"RTCM",
+			"lightblue1"
+		],
+		[
+			"UBX",
+			"lightblue1"
+		],
+		[
+			"UBX, msgId=00",
+			"aquamarine2"
+		],
+		[
+			"UBX, msgId=03",
+			"yellow"
+		],
+		[
+			"UBX, msgId=04",
+			"cyan"
+		],
+		[
+			"UBX, msgId=05",
+			"orange"
+		],
+		[
+			"UBX, msgId=06",
+			"orange"
+		],
+		[
+			"UNKNOWN PROTOCOL",
+			"red"
+		],
+		[
+			"ERROR",
+			"red"
+		],
+		[
+			"WARNING",
+			"red"
+		],
+		[
+			"NTRIP>>",
+			"#9f30c1"
+		],
+		[
+			"NTRIP<<",
+			"#9f30c1"
+		],
+		[
+			"SPARTN>>",
+			"#a53570"
+		]
+	],
+	"ubxpresets": [
+		"Stop GNSS, CFG, CFG-RST, 00000800, 1\n",
+		"Start GNSS, CFG, CFG-RST, 00000900, 1\n",
+		"Enable NMEA UBX00 & UBX03 sentences, CFG, CFG-MSG, f100010100010100, 1, CFG, CFG-MSG, f103010100010100, 1\n",
+		"Poll NEO-9 UART1/2 baud rates, CFG, CFG-VALGET, 000000000100524001005340, 2\n",
+		"Poll NEO-9 Message Rates, CFG, CFG-VALGET, 00000000ffff9120, 2, CFG, CFG-VALGET, 00004000ffff9120, 2, CFG, CFG-VALGET, 00008000ffff9120, 2\n",
+		"Set ZED-F9P RTCM3 MSGOUT Basestation, CFG, CFG-VALSET, 00010000c002912001cf02912001d4029120011b03912001d902912001060391200101039120018403912001, 1\n",
+		"Set ZED-F9P to Survey-In Timing Mode Basestation, CFG, CFG-VALSET, 0001000001000320011100034070110100100003405a0000008b00912001, 1\n",
+		"Poll Receiver Software Version, MON, MON-VER, , 2\n",
+		"Poll Datum, CFG, CFG-DAT, , 2\n",
+		"Poll GNSS config, CFG, CFG-GNSS, , 2\n",
+		"Poll NMEA config, CFG, CFG-NMEA, , 2\n",
+		"Poll Satellite-based Augmentation, CFG, CFG-SBAS, , 2\n",
+		"Poll Receiver Management, CFG, CFG-RXM, , 2\n",
+		"Poll RXM-SPARTN-KEY, RXM, RXM-SPARTN-KEY, , 2\n",
+		"Poll RXM-COR, RXM, RXM-COR, , 2\n",
+		"Poll Navigation Mode, CFG, CFG-NAV5, , 2\n",
+		"Poll Expert Navigation mode, CFG, CFG-NAVX5, , 2\n",
+		"Poll Geofencing, CFG, CFG-GEOFENCE, , 2\n",
+		"Poll Timepulse, CFG, CFG-TP5, , 2\n",
+		"Set NEO-M8T Timepulse to 1 Hz, CFG, CFG-TP5, 000100003200000001000000010000003200000032000000000000006f000000, 1\n",
+		"Set NEO-M8T Timepulse to 8 MHz, CFG, CFG-TP5, 000100003200000000127a0000127a003200000032000000000000006f000000, 1\n",
+		"Limit NMEA GNSS to GPS only, CFG, CFG-NMEA, 0040000276000000000000010000000000000000, 1\n",
+		"Limit NMEA GNSS to GLONASS only, CFG, CFG-NMEA, 0040000257000000000000010000000000000000, 1\n",
+		"Set NMEA GNSS to ALL, CFG, CFG-NMEA, 0040000200000000000000010000000000000000, 1\n",
+		"Limit UBX GNSS to GPS only, CFG, CFG-GNSS, 0020200700081000010001010101030000000101020408000000010103081000000001010400080000000103050003000000010506080E0000000101, 1\n",
+		"Limit UBX GNSS to GLONASS only, CFG, CFG-GNSS, 0020200700081000000001010101030000000101020408000000010103081000000001010400080000000103050003000000010506080E0001000101, 1\n",
+		"Set UBX GNSS to ALL, CFG, CFG-GNSS, 0020200700081000010001010101030001000101020408000000010103081000000001010400080000000103050003000100010506080E0001000101, 1\n",
+		"Send RXM-SPARTN-KEY, RXM, RXM-SPARTN-KEY, 010200000010c80800e907000010cc0800e9070084e1864a9b587a7a712d88d6e17fe5ce77a3e8cf29c965947164a6fc7740ba9a, 1\n",
+		"FORCE COLD RESTART !*** Expect ClearCommError ***!, CFG, CFG-RST, ffff0100, 1"
+	]
+}

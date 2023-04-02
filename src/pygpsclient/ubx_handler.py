@@ -160,6 +160,8 @@ class UBXHandler:
         :param UBXMessage data: NAV-SAT parsed message
         """
 
+        settings = self.__app.frm_settings.config
+        show_unused = settings["unusedsat"]
         self.gsv_data = []
         num_siv = int(data.numSvs)
 
@@ -173,7 +175,7 @@ class UBXHandler:
             elev = getattr(data, "elev" + idx)
             azim = getattr(data, "azim" + idx)
             cno = getattr(data, "cno" + idx)
-            if cno == 0 and not self.__app.frm_settings.show_unused:  # omit unused sats
+            if cno == 0 and not show_unused:  # omit unused sats
                 continue
             self.gsv_data.append((gnssId, svid, elev, azim, cno))
 
@@ -202,6 +204,8 @@ class UBXHandler:
         :param UBXMessage data: NAV-SVINFO parsed message
         """
 
+        settings = self.__app.frm_settings.config
+        show_unused = settings["unusedsat"]
         self.gsv_data = []
         num_siv = int(data.numCh)
 
@@ -212,7 +216,7 @@ class UBXHandler:
             elev = getattr(data, "elev" + idx)
             azim = getattr(data, "azim" + idx)
             cno = getattr(data, "cno" + idx)
-            if cno == 0 and not self.__app.frm_settings.show_unused:  # omit unused sats
+            if cno == 0 and not show_unused:  # omit unused sats
                 continue
             self.gsv_data.append((gnssId, svid, elev, azim, cno))
 

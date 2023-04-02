@@ -15,6 +15,7 @@ Created on 13 Sep 2020
 :license: BSD 3-Clause
 """
 
+from os import getenv
 from io import BytesIO
 from time import time
 from tkinter import Frame, Canvas, font, NW, N, S, E, W
@@ -26,6 +27,7 @@ from pygpsclient.globals import (
     WIDGETU2,
     MAPURL,
     MAP_UPDATE_INTERVAL,
+    MIN_UPDATE_INTERVAL,
     MAPQTIMEOUT,
     IMG_WORLD,
     ICON_POS,
@@ -64,6 +66,7 @@ class MapviewFrame(Frame):
         self._img = None
         self._marker = None
         self._last_map_update = 0
+        # self._map_update_interval = MAP_UPDATE_INTERVAL
         self._body()
 
         self.bind("<Configure>", self._on_resize)
@@ -86,8 +89,8 @@ class MapviewFrame(Frame):
         lat = self.__app.gnss_status.lat
         lon = self.__app.gnss_status.lon
         hacc = self.__app.gnss_status.hacc
-
-        if self.__app.frm_settings.webmap:
+        settings = self.__app.frm_settings.config
+        if settings["webmap"]:
             static = False
         else:
             static = True
@@ -145,15 +148,19 @@ class MapviewFrame(Frame):
         sc = "NO CONNECTION"
         msg = ""
 
-        mqapikey = self.__app.mqapikey
+        mqapikey = self.__app.app_config.get("mqapikey", getenv("mqapikey", ""))
         if mqapikey == "":
             self._disp_error(NOWEBMAPKEY)
             return
+        map_update_interval = self.__app.app_config.get(
+            "mapupdateinterval", MAP_UPDATE_INTERVAL
+        )
+        map_update_interval = max(map_update_interval, MIN_UPDATE_INTERVAL)
 
         now = time()
-        if now - self._last_map_update < MAP_UPDATE_INTERVAL:
+        if now - self._last_map_update < map_update_interval:
             self._draw_countdown(
-                (-360 / MAP_UPDATE_INTERVAL) * (now - self._last_map_update)
+                (-360 / map_update_interval) * (now - self._last_map_update)
             )
             return
         self._last_map_update = now
@@ -204,7 +211,8 @@ class MapviewFrame(Frame):
 
         w, h = self.width, self.height
         radius = str(hacc / 1000)  # km
-        zoom = self.__app.frm_settings.mapzoom
+        settings = self.__app.frm_settings.config
+        zoom = settings["mapzoom"]
         # seems to be bug in MapQuest API which causes error
         # if scalebar displayed at maximum zoom
         scalebar = "true" if zoom < 20 else "false"

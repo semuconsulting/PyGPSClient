@@ -1,10 +1,6 @@
 """
 PyGPSClient - Main tkinter application class.
 
-Hosts the various GUI widgets and update routines.
-Holds a GNSSStatus object containing the latest
-GNSS receiver readings.
-
 Created on 12 Sep 2020
 
 :author: semuadmin
@@ -32,7 +28,6 @@ from pygpsclient.globals import (
     DISCONNECTED,
     NOPORTS,
     GUI_UPDATE_INTERVAL,
-    GPX_TRACK_INTERVAL,
     SOCKSERVER_MAX_CLIENTS,
     SOCKSERVER_HOST,
     MAXCOLSPAN,
@@ -43,10 +38,19 @@ from pygpsclient.globals import (
     GNSS_EOF_EVENT,
     NTRIP_EVENT,
     SPARTN_EVENT,
+    OKCOL,
+    INFCOL,
+    BADCOL,
+    CONFIGFILE,
+    MAP_UPDATE_INTERVAL,
 )
 from pygpsclient._version import __version__ as VERSION
 from pygpsclient.helpers import check_latest
 from pygpsclient.strings import (
+    LOADCONFIGOK,
+    LOADCONFIGBAD,
+    SAVECONFIGOK,
+    SAVECONFIGBAD,
     TITLE,
     INTROTXTNOPORTS,
     NOTCONN,
@@ -62,6 +66,7 @@ from pygpsclient.strings import (
     WDGSPECTRUM,
     WDGSCATTER,
     VERCHECK,
+    CONFIGERR,
 )
 from pygpsclient.gnss_status import GNSSStatus
 from pygpsclient.about_dialog import AboutDialog
@@ -115,6 +120,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         # user-defined serial port can be passed as environment variable
         # or command line keyword argument
+        configfile = kwargs.pop("config", CONFIGFILE)
         self._user_port = kwargs.pop("userport", getenv("PYGPSCLIENT_USERPORT", ""))
         self._spartn_user_port = kwargs.pop(
             "spartnport", getenv("PYGPSCLIENT_SPARTNPORT", "")
@@ -129,19 +135,17 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.__master.iconphoto(True, PhotoImage(file=ICON_APP))
         self.gnss_status = GNSSStatus()  # holds latest GNSS readings
         self._last_gui_update = datetime.now()
-        self._last_track_update = datetime.now()
-
         # dict containing widget grid positions
         self._widget_grid = {}
 
         # Instantiate protocol handler classes
-        self._gnss_inqueue = Queue()  # messages from GNSS receiver
-        self._gnss_outqueue = Queue()  # messages to GNSS receiver
-        self._ntrip_inqueue = Queue()  # messages from NTRIP source
-        self._spartn_inqueue = Queue()  # messages from SPARTN correction rcvr
-        self._spartn_outqueue = Queue()  # messages to SPARTN correction rcvr
-        self._socket_inqueue = Queue()  # message from socket
-        self._socket_outqueue = Queue()  # message to socket
+        self.gnss_inqueue = Queue()  # messages from GNSS receiver
+        self.gnss_outqueue = Queue()  # messages to GNSS receiver
+        self.ntrip_inqueue = Queue()  # messages from NTRIP source
+        self.spartn_inqueue = Queue()  # messages from SPARTN correction rcvr
+        self.spartn_outqueue = Queue()  # messages to SPARTN correction rcvr
+        self.socket_inqueue = Queue()  # message from socket
+        self.socket_outqueue = Queue()  # message to socket
         self.file_handler = FileHandler(self)
         self.stream_handler = StreamHandler(self)
         self.spartn_stream_handler = StreamHandler(self)
@@ -150,38 +154,70 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.rtcm_handler = RTCM3Handler(self)
         self.ntrip_handler = GNSSNTRIPClient(self, verbosity=0)
         self.spartn_handler = GNSSMQTTClient(self, verbosity=0)
-        self._conn_status = DISCONNECTED
-        self._rtk_conn_status = DISCONNECTED
         self.dlg_ubxconfig = None
         self.dlg_ntripconfig = None
         self.dlg_spartnconfig = None
         self.dlg_gpxviewer = None
+        self.config = None
+        self._conn_status = DISCONNECTED
+        self._rtk_conn_status = DISCONNECTED
+        self._map_update_interval = MAP_UPDATE_INTERVAL
         self._ubx_config_thread = None
         self._gpxviewer_thread = None
         self._ntrip_config_thread = None
         self._spartn_config_thread = None
         self._socket_thread = None
         self._socket_server = None
+        self._colcount = 0
+        self._rowcount = 0
 
+        # FOLLOWING FILE LOADS ARE DEPRECATED - USE CONFIG FILE INSTEAD
+        # (ANY CONFIG FILE SETTINGS WILL OVERRIDE THESE)
         # Load MapQuest web map api key if not already defined
         if self._mqapikey == "":
             self._mqapikey = self.file_handler.load_mqapikey()
-
         # Load console color tags from file
-        self.colortags = self.file_handler.load_colortags()
+        self._colortags = self.file_handler.load_colortags()
+        # Load user-defined UBX command presets from file
+        self._ubxpresets = self.file_handler.load_ubx_presets()
+
+        # Load configuration from file if it exists
+        config_loaded = False
+        self.config = self.file_handler.load_config(configfile)
+        if isinstance(self.config, dict):  # load succeeded
+            config_loaded = True
+            self.app_config = self.config  # do this before initialising widgets
 
         self._body()
         self._do_layout()
         self._attach_events()
 
         # Initialise widgets
+        if config_loaded:
+            self.widget_config = self.config
+            self.frm_settings.config = self.config
+            self.frm_status.set_status(f"{LOADCONFIGOK} {configfile}", OKCOL)
+        else:
+            # self.config is str containing error msg
+            if "No such file or directory" in self.config:
+                self.frm_status.set_status(
+                    f"Configuration file not found {configfile}", INFCOL
+                )
+            else:
+                self.frm_status.set_status(
+                    f"{LOADCONFIGBAD} {configfile} {self.config}", BADCOL
+                )
+            self.config = {}
         self.frm_satview.init_sats()
         self.frm_graphview.init_graph()
         self.frm_spectrumview.init_graph()
         self.frm_scatterview.init_graph()
         self.frm_banner.update_conn_status(DISCONNECTED)
 
-        # Check for more recent version
+        if self.frm_settings.serial_settings.status == NOPORTS:
+            self.set_status(INTROTXTNOPORTS, BADCOL)
+
+        # Check for more recent version (if enabled)
         if CHECK_FOR_UPDATES:
             self._check_update()
 
@@ -207,22 +243,39 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
     def _do_layout(self):
         """
-        Arrange widgets in main application frame.
+        Arrange widgets in main application frame, and set
+        initial widget visibility and menu label (show/hide).
+
+        Dynamic widgets will be automatically positioned in sequence
+        and will expand or collapse to fit available space unless
+        otherwise specified in this widget_grid.
         """
 
-        # Set initial widget visibility and menu index
         self._widget_grid = {
+            # fixed relative position
             WDGBANNER: {
                 "menu": None,
                 "frm": "frm_banner",
                 "visible": True,
-                "colspan": MAXCOLSPAN + 1,
             },
+            WDGSETTINGS: {
+                "menu": 0,
+                "frm": "frm_settings",
+                "visible": True,
+                "sticky": (N, W, E),
+            },
+            WDGSTATUS: {
+                "menu": 1,
+                "frm": "frm_status",
+                "visible": True,
+                "sticky": (W, E),
+            },
+            # dynamic relative position
             WDGCONSOLE: {
                 "menu": 2,
                 "frm": "frm_console",
-                "colspan": MAXCOLSPAN,
                 "visible": True,
+                "colspan": MAXCOLSPAN,
             },
             WDGSATS: {
                 "menu": 3,
@@ -249,71 +302,63 @@ class App(Frame):  # pylint: disable=too-many-ancestors
                 "frm": "frm_scatterview",
                 "visible": False,
             },
-            WDGSTATUS: {
-                "menu": 1,
-                "frm": "frm_status",
-                "visible": True,
-                "sticky": (W, E),
-                "colspan": MAXCOLSPAN + 1,
-            },
-            WDGSETTINGS: {
-                "menu": 0,
-                "frm": "frm_settings",
-                "visible": True,
-                "rowspan": 2,
-                "sticky": (N, W, E),
-            },
+            # add any new widgets here and update View menu
         }
 
         self._grid_widgets()
 
-        # NB: these column and row weights define the grid's
-        # 'pack by size' behaviour
-        for col in range(MAXCOLSPAN):
-            self.__master.grid_columnconfigure(col, weight=1)
-        for row in range(1, MAXROWSPAN):
-            self.__master.grid_rowconfigure(row, weight=1)
-
-        if self.frm_settings.serial_settings.status == NOPORTS:
-            self.set_status(INTROTXTNOPORTS, "red")
-
     def _grid_widgets(self):
         """
-        Arrange widgets in grid.
+        Arrange widgets in grid, and set column and row 'weights'.
+        These govern whether a widget will expand or collapse
+        in either direction to fill the available space.
         """
 
-        col = row = 0
-        for nam in self._widget_grid:
-            if nam not in (WDGSETTINGS, WDGSTATUS):
+        col = mcol = 0
+        row = mrow = 1
+        for i, nam in enumerate(self._widget_grid):
+            if i > 2:  # only position dynamic widgets
                 col, row = self._grid_widget(nam, col, row)
-        self._grid_widget(WDGSETTINGS, MAXCOLSPAN, 1)
-        self._grid_widget(WDGSTATUS, 0, MAXROWSPAN)
+            mcol = max(col, mcol)
+            mrow = max(row, mrow)
 
-    def _grid_widget(self, nam: str, col: int, row: int) -> tuple:
+        for col in range(MAXCOLSPAN + 1):
+            self.__master.grid_columnconfigure(col, weight=0 if col > mcol - 1 else 1)
+        for row in range(1, MAXROWSPAN + 2):
+            self.__master.grid_rowconfigure(row, weight=0 if row > mrow else 1)
+
+        self._grid_widget(WDGSETTINGS, mcol, 1, 1, mrow)  # always on top
+        self._grid_widget(WDGBANNER, 0, 0, mcol + 1, 1)  # always on right
+        self._grid_widget(WDGSTATUS, 0, mrow + 1, mcol + 1, 1)  # always on bottom
+
+    def _grid_widget(
+        self, nam: str, col: int, row: int, colspan: int = 1, rowspan: int = 1
+    ) -> tuple:
         """
-        Arrange individual widget and update show/hide menu label.
+        Arrange individual widget and update menu label (show/hide).
 
         :param str nam: name of widget
         :param int col: column
         :param int row: row
-        :return: next (col, row)
+        :param int colspan: optional columnspan
+        :param int rowspan: optional rowspan
+        :return: next available (col, row)
         :rtype: tuple
         """
 
         wdg = self._widget_grid[nam]
         if wdg["visible"]:
-            colspan = wdg.get("colspan", 1)
-            rowspan = wdg.get("rowspan", 1)
+            colspan = wdg.get("colspan", colspan)
+            rowspan = wdg.get("rowspan", rowspan)
             if col >= MAXCOLSPAN and nam != WDGSETTINGS:
                 col = 0
                 row += rowspan
-            if nam == WDGSETTINGS:
-                rowspan = MAXROWSPAN - 1
-            elif nam == WDGSTATUS:
-                colspan = MAXCOLSPAN + 1
+            # keep track of cumulative cols & rows
+            ccol = wdg.get("col", col)
+            crow = wdg.get("row", row)
             getattr(self, wdg["frm"]).grid(
-                column=col,
-                row=row,
+                column=ccol,
+                row=crow,
                 columnspan=colspan,
                 rowspan=rowspan,
                 padx=2,
@@ -326,13 +371,36 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             getattr(self, wdg["frm"]).grid_forget()
             lbl = SHOW
 
+        # update menu label (show/hide)
         if wdg["menu"] is not None:
             self.menu.view_menu.entryconfig(wdg["menu"], label=f"{lbl} {nam}")
 
         if nam == WDGSPECTRUM:
+            # enable MON-SPAN messages if spectrum widget is visible
             self.frm_spectrumview.enable_MONSPAN(wdg["visible"])
 
+        # force widget to rescale
+        getattr(self, wdg["frm"]).event_generate("<Configure>")
         return col, row
+
+    def toggle_widget(self, widget: str):
+        """
+        Toggle widget visibility.
+
+        :param str widget: widget name
+        """
+
+        self._widget_grid[widget]["visible"] = not self._widget_grid[widget]["visible"]
+        self._grid_widgets()
+
+    def reset_widgets(self):
+        """
+        Reset widgets to default layout.
+        """
+
+        for nam, wdg in self._widget_grid.items():
+            wdg["visible"] = nam in DEFAULT_WIDGETS
+        self._grid_widgets()
 
     def _attach_events(self):
         """
@@ -357,26 +425,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.font_md2 = font.Font(size=14)
         self.font_lg = font.Font(size=18)
 
-    def toggle_widget(self, widget: str):
-        """
-        Toggle widget visibility.
-
-        :param str widget: widget name
-        """
-
-        self._widget_grid[widget]["visible"] = not self._widget_grid[widget]["visible"]
-        self._grid_widgets()
-
-    def reset_widgets(self):
-        """
-        Reset widgets to default layout.
-        """
-
-        for nam, wdg in self._widget_grid.items():
-            wdg["visible"] = nam in DEFAULT_WIDGETS
-        self._grid_widgets()
-
-    def set_connection(self, message, color="blue"):
+    def set_connection(self, message, color=INFCOL):
         """
         Sets connection description in status bar.
 
@@ -397,6 +446,39 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         self.frm_status.set_status(message, color)
+
+    def load_config(self):
+        """
+        Load configuration file menu option.
+        """
+
+        self.config = self.file_handler.load_config(None)
+        if isinstance(self.config, str):  # load failed
+            self.set_status(f"{LOADCONFIGBAD} {self.config}", BADCOL)
+            self.config = None
+        else:
+            self.set_status(LOADCONFIGOK, OKCOL)
+            self.frm_settings.config = self.config
+            self.widget_config = self.config
+            self.app_config = self.config
+
+    def save_config(self):
+        """
+        Save configuration file menu option.
+        """
+
+        # combine the various config sections into one dict
+        self.config = {
+            **self.frm_settings.config,
+            **self.widget_config,
+            **self.app_config,
+        }
+        rcd = self.file_handler.save_config(self.config, None)
+        if isinstance(rcd, str):  # save failed
+            self.set_status(f"{SAVECONFIGBAD} {self.config}", BADCOL)
+            self.config = None
+        else:
+            self.set_status(SAVECONFIGOK, OKCOL)
 
     def on_about(self):
         """
@@ -517,8 +599,9 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         Start socket server thread.
         """
 
-        port = self.frm_settings.server_port
-        ntripmode = self.frm_settings.server_mode
+        settings = self.frm_settings.config
+        port = int(settings["sockport"])
+        ntripmode = settings["sockmode"]
         self._socket_thread = Thread(
             target=self._sockserver_thread,
             args=(
@@ -526,7 +609,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
                 SOCKSERVER_HOST,
                 port,
                 SOCKSERVER_MAX_CLIENTS,
-                self._socket_outqueue,
+                self.socket_outqueue,
             ),
             daemon=True,
         )
@@ -562,7 +645,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             ) as self._socket_server:
                 self._socket_server.serve_forever()
         except OSError as err:
-            self.set_status(f"Error starting socket server {err}", "red")
+            self.set_status(f"Error starting socket server {err}", BADCOL)
 
     def update_clients(self, clients: int):
         """
@@ -595,10 +678,10 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         try:
-            raw_data, parsed_data = self._gnss_inqueue.get(False)
+            raw_data, parsed_data = self.gnss_inqueue.get(False)
             if raw_data is not None and parsed_data is not None:
                 self.process_data(raw_data, parsed_data)
-            self._gnss_inqueue.task_done()
+            self.gnss_inqueue.task_done()
         except Empty:
             pass
 
@@ -606,50 +689,45 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
         EVENT TRIGGERED
         Action on <<ntrip_read>> event - read data from NTRIP queue.
-        If it's RTCM3 data, send to connected receiver and display on console.
-        If it's NMEA, just display on console.
 
         :param event event: read event
         """
 
         try:
-            raw_data, parsed_data = self._ntrip_inqueue.get(False)
+            raw_data, parsed_data = self.ntrip_inqueue.get(False)
             if raw_data is not None and parsed_data is not None:
                 if protocol(raw_data) == RTCM3_PROTOCOL:
                     if self.conn_status == CONNECTED:
-                        self._gnss_outqueue.put(raw_data)
+                        self.gnss_outqueue.put(raw_data)
                     self.process_data(raw_data, parsed_data, "NTRIP>>")
                 else:  # e.g. NMEA GGA sentence sent to NTRIP server
                     self.process_data(raw_data, parsed_data, "NTRIP<<")
-            self._ntrip_inqueue.task_done()
+            self.ntrip_inqueue.task_done()
         except Empty:
             pass
         except (SerialException, SerialTimeoutException) as err:
-            self.set_status(f"Error sending to device {err}", "red")
+            self.set_status(f"Error sending to device {err}", BADCOL)
 
     def on_spartn_read(self, event):  # pylint: disable=unused-argument
         """
         EVENT TRIGGERED
         Action on <<spartn_read>> event - read data from SPARTN queue.
-        If it's RXM-PMP data, send to connected receiver and display on console
-        with a "SPARTN>>" marker. Anything else, just display on console with a
-        "SPARTN>>" marker.
 
         :param event event: read event
         """
 
         try:
-            raw_data, parsed_data = self._spartn_inqueue.get(False)
+            raw_data, parsed_data = self.spartn_inqueue.get(False)
             if raw_data is not None and parsed_data is not None:
                 if self.conn_status == CONNECTED:
-                    self._gnss_outqueue.put(raw_data)
+                    self.gnss_outqueue.put(raw_data)
                 self.process_data(raw_data, parsed_data, "SPARTN>>")
-            self._spartn_inqueue.task_done()
+            self.spartn_inqueue.task_done()
 
         except Empty:
             pass
         except (SerialException, SerialTimeoutException) as err:
-            self.set_status(f"Error sending to device {err}", "red")
+            self.set_status(f"Error sending to device {err}", BADCOL)
 
     def update_ntrip_status(self, status: bool, msgt: tuple = None):
         """
@@ -691,16 +769,16 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
     def process_data(self, raw_data: bytes, parsed_data: object, marker: str = ""):
         """
-        Update the various GUI widgets, GPX track and log file
-        with the latest data. Parsed data tagged with a 'marker' is
-        written to the console for information but not processed further.
+        Update the various GUI widgets, GPX track and log file.
 
         :param bytes raw_data: raw message data
         :param object parsed data: NMEAMessage, UBXMessage or RTCMMessage
         :param str marker: string prepended to console entries e.g. "NTRIP>>"
         """
 
-        protfilter = self.frm_settings.protocol
+        settings = self.frm_settings.config
+
+        protfilter = settings["protocol"]
         msgprot = protocol(raw_data)
         if isinstance(parsed_data, str):  # error message rather than parsed data
             marker = "WARNING  "
@@ -730,71 +808,12 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             self._last_gui_update = datetime.now()
 
         # update GPX track file if enabled
-        if self.frm_settings.record_track:
-            self._update_gpx_track()
+        if settings["recordtrack"]:
+            self.file_handler.update_gpx_track()
 
         # update log file if enabled
-        if self.frm_settings.datalogging:
+        if settings["datalog"]:
             self.file_handler.write_logfile(raw_data, parsed_data)
-
-    def _update_gpx_track(self):
-        """
-        Update GPX track with latest valid position readings.
-        """
-
-        # must have valid coords
-        if self.gnss_status.lat == "" or self.gnss_status.lon == "":
-            return
-
-        if datetime.now() > self._last_track_update + timedelta(
-            seconds=GPX_TRACK_INTERVAL
-        ):
-            today = datetime.now()
-            gpstime = self.gnss_status.utc
-            trktime = datetime(
-                today.year,
-                today.month,
-                today.day,
-                gpstime.hour,
-                gpstime.minute,
-                gpstime.second,
-                gpstime.microsecond,
-            )
-            time = f"{trktime.isoformat()}Z"
-            if self.gnss_status.diff_corr:
-                fix = "dgps"
-            elif self.gnss_status.fix == "3D":
-                fix = "3d"
-            elif self.gnss_status.fix == "2D":
-                fix = "2d"
-            else:
-                fix = "none"
-            diff_age = self.gnss_status.diff_age
-            diff_station = self.gnss_status.diff_station
-            if diff_age in [None, "", 0] or diff_station in [None, "", 0]:
-                self.file_handler.add_trackpoint(
-                    self.gnss_status.lat,
-                    self.gnss_status.lon,
-                    ele=self.gnss_status.alt,
-                    time=time,
-                    fix=fix,
-                    sat=self.gnss_status.sip,
-                    pdop=self.gnss_status.pdop,
-                )
-            else:
-                self.file_handler.add_trackpoint(
-                    self.gnss_status.lat,
-                    self.gnss_status.lon,
-                    ele=self.gnss_status.alt,
-                    time=time,
-                    fix=fix,
-                    sat=self.gnss_status.sip,
-                    pdop=self.gnss_status.pdop,
-                    ageofdgpsdata=diff_age,
-                    dgpsid=diff_station,
-                )
-
-            self._last_track_update = datetime.now()
 
     def _check_update(self):
         """
@@ -803,7 +822,72 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         latest = check_latest("PyGPSClient")
         if latest not in (VERSION, "N/A"):
-            self.set_status(VERCHECK.format(latest), "red")
+            self.set_status(VERCHECK.format(latest), BADCOL)
+
+    @property
+    def app_config(self) -> dict:
+        """
+        Getter for app config.
+
+        This contains user-defined ports, various API keys
+        and colortagging values.
+        """
+
+        config = {
+            "mapupdateinterval": self._map_update_interval,
+            "userport": self._user_port,
+            "spartnport": self._spartn_user_port,
+            "mqapikey": self._mqapikey,
+            "mqttclientid": self._mqttclientid,
+            "colortags": self._colortags,
+            "ubxpresets": self._ubxpresets,
+        }
+        return config
+
+    @app_config.setter
+    def app_config(self, config):
+        """
+        Setter for app config.
+
+        :param dict config: configuration as dict
+        """
+
+        self._map_update_interval = config.get("mapupdateinterval", MAP_UPDATE_INTERVAL)
+        self._user_port = config.get("userport", self._user_port)
+        self._spartn_user_port = config.get("spartnport", self._spartn_user_port)
+        self._mqapikey = config.get("mqapikey", self._mqapikey)
+        self._mqttclientid = config.get("mqttclientid", self._mqttclientid)
+        self._colortags = config.get("colortags", self._colortags)
+        self._ubxpresets = config.get("ubxpresets", self._ubxpresets)
+
+    @property
+    def widget_config(self) -> dict:
+        """
+        Getter for widget configuration.
+
+        :return: widget configuration as dict
+        :rtype: dict
+        """
+
+        return {key: vals["visible"] for key, vals in self._widget_grid.items()}
+
+    @widget_config.setter
+    def widget_config(self, config):
+        """
+        Setter for widget config.
+
+        This contains the visibility of the various widgets.
+
+        :param dict config: configuration as dict
+        """
+
+        try:
+            for key, vals in self._widget_grid.items():
+                vals["visible"] = config[key]
+        except KeyError as err:
+            self.set_status(f"{CONFIGERR} - {err}", BADCOL)
+
+        self._grid_widgets()
 
     @property
     def appmaster(self) -> object:
@@ -812,96 +896,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         return self.__master
-
-    @property
-    def user_port(self) -> str:
-        """
-        Getter for user-defined port passed as optional
-        command line keyword argument.
-        """
-
-        return self._user_port
-
-    @property
-    def spartn_user_port(self) -> str:
-        """
-        Getter for user-defined spartn port passed as optional
-        command line keyword argument.
-        """
-
-        return self._spartn_user_port
-
-    @property
-    def mqapikey(self) -> str:
-        """
-        Getter for MapQuerst API Key.
-        """
-
-        return self._mqapikey
-
-    @property
-    def mqttclientid(self) -> str:
-        """
-        Getter for MQTT Client ID.
-        """
-
-        return self._mqttclientid
-
-    @property
-    def gnss_inqueue(self) -> Queue:
-        """
-        Getter for GNSS message input queue.
-        """
-
-        return self._gnss_inqueue
-
-    @property
-    def gnss_outqueue(self) -> Queue:
-        """
-        Getter for GNSS message output queue.
-        """
-
-        return self._gnss_outqueue
-
-    @property
-    def socket_inqueue(self) -> Queue:
-        """
-        Getter for socket input queue.
-        """
-
-        return self._socket_inqueue
-
-    @property
-    def socket_outqueue(self) -> Queue:
-        """
-        Getter for socket output queue.
-        """
-
-        return self._socket_outqueue
-
-    @property
-    def ntrip_inqueue(self) -> Queue:
-        """
-        Getter for NTRIP input queue.
-        """
-
-        return self._ntrip_inqueue
-
-    @property
-    def spartn_inqueue(self) -> Queue:
-        """
-        Getter for SPARTN input queue.
-        """
-
-        return self._spartn_inqueue
-
-    @property
-    def spartn_outqueue(self) -> Queue:
-        """
-        Getter for SPARTN output queue.
-        """
-
-        return self._spartn_outqueue
 
     @property
     def conn_status(self) -> int:
@@ -925,14 +919,13 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.frm_banner.update_conn_status(status)
         self.frm_settings.enable_controls(status)
         if status == DISCONNECTED:
-            self.set_connection(NOTCONN, "red")
-            self.set_status("", "blue")
+            self.set_connection(NOTCONN, BADCOL)
+            self.set_status("", INFCOL)
 
     @property
     def rtk_conn_status(self) -> int:
         """
         Getter for SPARTN connection status.
-        CONNECTED_NTRIP / CONNECTED_SPARTNLB / CONNECTED_SPARTNIP
 
         :param int status: connection status
         """
@@ -942,8 +935,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
     @rtk_conn_status.setter
     def rtk_conn_status(self, status: int):
         """
-        Setter for SPARTN connection status
-        CONNECTED_NTRIP / CONNECTED_SPARTNLB / CONNECTED_SPARTNIP
+        Setter for SPARTN connection status.
 
         :param int status: connection status
         """

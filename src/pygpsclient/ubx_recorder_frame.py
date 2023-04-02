@@ -16,7 +16,6 @@ Created on 9 Jan 2023
 
 from time import sleep
 from threading import Event, Thread
-from pathlib import Path
 from tkinter import (
     Frame,
     Button,
@@ -34,6 +33,7 @@ from pyubx2 import (
     UBX_PROTOCOL,
 )
 from pygpsclient.globals import (
+    HOME,
     ICON_SEND,
     ICON_STOP,
     ICON_RECORD,
@@ -45,7 +45,6 @@ from pygpsclient.globals import (
 from pygpsclient.strings import LBLCFGRECORD, READTITLE, SAVETITLE
 from pygpsclient.helpers import set_filename
 
-HOME = str(Path.home())
 STOP = 0
 PLAY = 1
 RECORD = 2

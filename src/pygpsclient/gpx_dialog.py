@@ -13,7 +13,6 @@ Created on 10 Jan 2023
 
 from xml.dom import minidom
 from io import BytesIO
-from pathlib import Path
 from datetime import datetime
 from tkinter import (
     Toplevel,
@@ -44,6 +43,7 @@ from requests import (
 )
 from PIL import ImageTk, Image
 from pygpsclient.globals import (
+    HOME,
     ICON_LOAD,
     ICON_EXIT,
     ICON_REDRAW,
@@ -76,7 +76,6 @@ from pygpsclient.strings import (
 from pygpsclient.helpers import mapq_compress, haversine
 
 
-HOME = str(Path.home())
 # profile chart parameters:
 AXIS_XL = 35  # x axis left offset
 AXIS_XR = 35  # x axis right offset
@@ -391,7 +390,7 @@ class GPXViewerDialog(Toplevel):
         """
         # pylint: disable=unused-variable
 
-        mqapikey = self.__app.mqapikey
+        mqapikey = self.__app.config.get("mqapikey", "")
         lat1, lon1, _, _, _ = self._track[0]  # start point, labelled 1
         lat2, lon2, _, _, _ = self._track[-1]  # end point, labelled 2
         points = []
@@ -606,7 +605,8 @@ class GPXViewerDialog(Toplevel):
         :rtype: tuple
         """
 
-        units = self.__app.frm_settings.units
+        settings = self.__app.frm_settings.config
+        units = settings["units"]
 
         if units == UI:
             dst_u = "miles"
