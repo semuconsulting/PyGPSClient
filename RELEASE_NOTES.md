@@ -1,5 +1,14 @@
 # PyGPSClient Release Notes
 
+### RELEASE CANDIDATE v1.3.23
+
+CHANGES:
+
+1. Add bearing helper method in pygpsclient.helpers and remove dependency on geographiclib
+1. Minor fixes to configuration load status messages
+
+ENHANCEMENTS:
+
 ### RELEASE v1.3.22
 
 ENHANCEMENTS:
