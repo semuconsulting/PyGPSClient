@@ -32,7 +32,6 @@ from pyubx2 import (
 )
 
 from pygpsclient.globals import (
-    ENTCOL,
     ICON_SEND,
     ICON_WARNING,
     ICON_PENDING,
@@ -137,7 +136,6 @@ class UBX_PRESET_Frame(Frame):
             self,
             border=2,
             relief="sunken",
-            bg=ENTCOL,
             height=11,
             width=34,
             justify=LEFT,
@@ -268,13 +266,19 @@ class UBX_PRESET_Frame(Frame):
 
             if status == CONFIRMED:
                 self._lbl_send_command.config(image=self._img_pending)
-                self.__container.set_status("Command(s) sent", "blue")
+                self.__container.set_status(
+                    "Command(s) sent",
+                )
                 for msgid in confids:
                     self.__container.set_pending(msgid, UBX_PRESET)
             elif status == CANCELLED:
-                self.__container.set_status("Command(s) cancelled", "blue")
+                self.__container.set_status(
+                    "Command(s) cancelled",
+                )
             elif status == NOMINAL:
-                self.__container.set_status("Command(s) sent, no results", "blue")
+                self.__container.set_status(
+                    "Command(s) sent, no results",
+                )
 
         except Exception as err:  # pylint: disable=broad-except
             self.__container.set_status(f"Error {err}", "red")

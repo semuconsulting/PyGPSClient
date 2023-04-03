@@ -181,17 +181,18 @@ class SPARTNConfigDialog(Toplevel):
         Reset configuration widgets.
         """
 
-        self.set_status("", "blue")
+        self.set_status("")
 
-    def set_status(self, message: str, color: str = "blue"):
+    def set_status(self, message: str, color: str = ""):
         """
         Set status message.
         :param str message: message to be displayed
-        :param str color: rgb color of text (blue)
+        :param str color: rgb color of text
         """
 
         message = (message[:180] + "..") if len(message) > 180 else message
-        self._lbl_status.config(fg=color)
+        if color != "":
+            self._lbl_status.config(fg=color)
         self._status.set(" " + message)
 
     def on_exit(self, *args, **kwargs):  # pylint: disable=unused-argument

@@ -22,8 +22,6 @@ from pyubx2 import UBXMessage, atttyp, attsiz
 from pygpsclient.globals import (
     MAX_SNR,
     FIXLOOKUP,
-    ENTCOL,
-    ERRCOL,
     GPSEPOCH0,
 )
 
@@ -535,7 +533,11 @@ def valid_entry(entry: Entry, valmode: int, low=None, high=None) -> bool:
     except ValueError:
         valid = False
 
-    entry.config(bg=ENTCOL if valid else ERRCOL)
+    # entry.config(bg=ENTCOL if valid else ERRCOL)
+    if valid:
+        entry.configure(highlightbackground="grey", highlightcolor="grey")
+    else:
+        entry.configure(highlightbackground="red", highlightcolor="red")
     return valid
 
 

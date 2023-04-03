@@ -274,7 +274,7 @@ class UBXConfigDialog(Toplevel):
                 if self._pending_confs.get(msgid, None) == ubxfrm:
                     self._pending_confs.pop(msgid)
 
-    def set_status(self, message: str, color: str = "blue"):
+    def set_status(self, message: str, color: str = ""):
         """
         Set status message.
 
@@ -283,7 +283,8 @@ class UBXConfigDialog(Toplevel):
         """
 
         message = (message[:120] + "..") if len(message) > 120 else message
-        self._lbl_status.config(fg=color)
+        if color != "":
+            self._lbl_status.config(fg=color)
         self._status.set("  " + message)
 
     def on_exit(self, *args, **kwargs):  # pylint: disable=unused-argument

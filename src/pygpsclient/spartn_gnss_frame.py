@@ -47,7 +47,6 @@ from pygpsclient.globals import (
     ICON_DISCONN,
     ICON_BLANK,
     ICON_LOAD,
-    ENTCOL,
     CONNECTED,
     SPARTN_SOURCE_LB,
     SPARTN_SOURCE_IP,
@@ -152,7 +151,6 @@ class SPARTNGNSSDialog(Frame):
         self._ent_key1 = Entry(
             self,
             textvariable=self._spartn_key1,
-            bg=ENTCOL,
             state=NORMAL,
             relief="sunken",
             width=32,
@@ -161,7 +159,6 @@ class SPARTNGNSSDialog(Frame):
         self._ent_valdate1 = Entry(
             self,
             textvariable=self._spartn_valdate1,
-            bg=ENTCOL,
             state=NORMAL,
             relief="sunken",
             width=8,
@@ -171,7 +168,6 @@ class SPARTNGNSSDialog(Frame):
         self._ent_key2 = Entry(
             self,
             textvariable=self._spartn_key2,
-            bg=ENTCOL,
             state=NORMAL,
             relief="sunken",
             width=32,
@@ -180,7 +176,6 @@ class SPARTNGNSSDialog(Frame):
         self._ent_valdate2 = Entry(
             self,
             textvariable=self._spartn_valdate2,
-            bg=ENTCOL,
             state=NORMAL,
             relief="sunken",
             width=8,

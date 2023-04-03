@@ -34,7 +34,6 @@ from pyubx2 import (
 )
 from pyubx2.ubxhelpers import key_from_val
 from pygpsclient.globals import (
-    ENTCOL,
     ICON_SEND,
     ICON_WARNING,
     ICON_PENDING,
@@ -93,7 +92,6 @@ class UBX_MSGRATE_Frame(Frame):
             self,
             border=2,
             relief="sunken",
-            bg=ENTCOL,
             height=9,
             justify=LEFT,
             exportselection=False,
@@ -109,7 +107,6 @@ class UBX_MSGRATE_Frame(Frame):
             to=MAX_RATE,
             textvariable=self._ddc_rate,
             state=READONLY,
-            readonlybackground=ENTCOL,
         )
         self._lbl_uart1 = Label(self, text="UART1")
         self._spn_uart1 = Spinbox(
@@ -119,7 +116,6 @@ class UBX_MSGRATE_Frame(Frame):
             to=MAX_RATE,
             textvariable=self._uart1_rate,
             state=READONLY,
-            readonlybackground=ENTCOL,
         )
         self._lbl_uart2 = Label(self, text="UART2")
         self._spn_uart2 = Spinbox(
@@ -129,7 +125,6 @@ class UBX_MSGRATE_Frame(Frame):
             to=MAX_RATE,
             textvariable=self._uart2_rate,
             state=READONLY,
-            readonlybackground=ENTCOL,
         )
         self._lbl_usb = Label(self, text="USB")
         self._spn_usb = Spinbox(
@@ -139,7 +134,6 @@ class UBX_MSGRATE_Frame(Frame):
             to=MAX_RATE,
             textvariable=self._usb_rate,
             state=READONLY,
-            readonlybackground=ENTCOL,
         )
         self._lbl_spi = Label(self, text="SPI")
         self._spn_spi = Spinbox(
@@ -149,7 +143,6 @@ class UBX_MSGRATE_Frame(Frame):
             to=MAX_RATE,
             textvariable=self._spi_rate,
             state=READONLY,
-            readonlybackground=ENTCOL,
         )
         self._lbl_send_command = Label(self)
         self._btn_send_command = Button(
@@ -288,6 +281,8 @@ class UBX_MSGRATE_Frame(Frame):
         msg = UBXMessage("CFG", "CFG-MSG", POLL, payload=msgtyp)
         self.__container.send_command(msg)
         self._lbl_send_command.config(image=self._img_pending)
-        self.__container.set_status("CFG-MSG POLL message sent", "blue")
+        self.__container.set_status(
+            "CFG-MSG POLL message sent",
+        )
         for msgid in ("CFG-MSG", "ACK-NAK"):
             self.__container.set_pending(msgid, UBX_CFGMSG)
