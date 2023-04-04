@@ -2,4 +2,5 @@ pygnssutils>=1.0.6
 requests>=2.28.0
 Pillow>=9.0.0
 pyserial>=3.5
+pynmeagps>=1.0.22
 pyspartn>=0.1.4

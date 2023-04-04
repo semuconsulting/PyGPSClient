@@ -188,7 +188,7 @@ class StaticTest(unittest.TestCase):
             "",
         ]
         res = get_mp_distance(34.123, 14.6743, mp)
-        self.assertAlmostEqual(res, 8588.392, 4)
+        self.assertAlmostEqual(res, 8588.391732771786, 4)
         mp = [
             "tobetsu-tsujino",
             "Tobetsu",
@@ -210,7 +210,7 @@ class StaticTest(unittest.TestCase):
             "",
         ]
         res = get_mp_distance(-34.123, -8.6743, mp)
-        self.assertAlmostEqual(res, 17274.382, 4)
+        self.assertAlmostEqual(res, 17274.381937035745, 4)
 
     def teststringvar2val(self):
         vals = [
