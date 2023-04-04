@@ -15,8 +15,8 @@ from statistics import mean
 import math
 from tkinter import Frame, font, BOTH, YES, NO, IntVar, Scale, HORIZONTAL
 
+from pynmeagps import haversine, bearing
 from pygpsclient.globals import WIDGETU2, BGCOL, FGCOL, Point
-from pygpsclient.helpers import haversine, bearing
 from pygpsclient.skyview_frame import Canvas
 
 

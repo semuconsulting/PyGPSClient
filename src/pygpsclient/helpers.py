@@ -16,9 +16,10 @@ from datetime import datetime, timedelta
 from tkinter import Toplevel, Entry, Label, Button, W
 import os
 from time import strftime
-from math import sin, cos, acos, radians, atan2, pi
+from math import sin, cos, pi
 from requests import get
 from pyubx2 import UBXMessage, atttyp, attsiz
+from pynmeagps import haversine
 from pygpsclient.globals import (
     MAX_SNR,
     FIXLOOKUP,
@@ -121,21 +122,6 @@ class ConfirmBox(Toplevel):
         return self._rc
 
 
-def deg2rad(deg: float) -> float:
-    """
-    Convert degrees to radians.
-
-    :param float deg: degrees
-    :return: radians
-    :rtype: float
-
-    """
-
-    if not isinstance(deg, (float, int)):
-        return 0
-    return radians(deg)
-
-
 def cel2cart(elevation: float, azimuth: float) -> tuple:
     """
     Convert celestial coordinates (degrees) to Cartesian coordinates.
@@ -149,8 +135,8 @@ def cel2cart(elevation: float, azimuth: float) -> tuple:
 
     if not (isinstance(elevation, (float, int)) and isinstance(azimuth, (float, int))):
         return (0, 0)
-    elevation = radians(elevation)
-    azimuth = radians(azimuth)
+    elevation = elevation * pi / 180
+    azimuth = azimuth * pi / 180
     x = cos(azimuth) * cos(elevation)
     y = sin(azimuth) * cos(elevation)
     return (x, y)
@@ -539,51 +525,51 @@ def valid_entry(entry: Entry, valmode: int, low=None, high=None) -> bool:
     return valid
 
 
-def haversine(
-    lat1: float, lon1: float, lat2: float, lon2: float, rds: int = EARTH_RADIUS
-) -> float:
-    """
-    Calculate spherical distance between two coordinates using haversine formula.
+# def haversine(
+#     lat1: float, lon1: float, lat2: float, lon2: float, rds: int = EARTH_RADIUS
+# ) -> float:
+#     """
+#     Calculate spherical distance between two coordinates using haversine formula.
 
-    :param float lat1: lat1 φ1
-    :param float lon1: lon1 λ1
-    :param float lat2: lat2 φ2
-    :param float lon2: lon2 λ2
-    :param float rds: earth radius (6371 km)
-    :return: spherical distance in km
-    :rtype: float
-    """
+#     :param float lat1: lat1 φ1
+#     :param float lon1: lon1 λ1
+#     :param float lat2: lat2 φ2
+#     :param float lon2: lon2 λ2
+#     :param float rds: earth radius (6371 km)
+#     :return: spherical distance in km
+#     :rtype: float
+#     """
 
-    coordinates = lat1, lon1, lat2, lon2
-    phi1, lambda1, phi2, lambda2 = [radians(c) for c in coordinates]
-    dist = rds * acos(
-        cos(phi2 - phi1) - cos(phi1) * cos(phi2) * (1 - cos(lambda2 - lambda1))
-    )
+#     coordinates = lat1, lon1, lat2, lon2
+#     phi1, lambda1, phi2, lambda2 = [radians(c) for c in coordinates]
+#     dist = rds * acos(
+#         cos(phi2 - phi1) - cos(phi1) * cos(phi2) * (1 - cos(lambda2 - lambda1))
+#     )
 
-    return dist
+#     return dist
 
 
-def bearing(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-    """
-    Calculate bearing between two coordinates.
+# def bearing(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+#     """
+#     Calculate bearing between two coordinates.
 
-    :param float lat1: lat1 φ1
-    :param float lon1: lon1 λ1
-    :param float lat2: lat2 φ2
-    :param float lon2: lon2 λ2
-    :param float rds: earth radius (6371 km)
-    :return: bearing in degrees
-    :rtype: float
-    """
+#     :param float lat1: lat1 φ1
+#     :param float lon1: lon1 λ1
+#     :param float lat2: lat2 φ2
+#     :param float lon2: lon2 λ2
+#     :param float rds: earth radius (6371 km)
+#     :return: bearing in degrees
+#     :rtype: float
+#     """
 
-    coordinates = lat1, lon1, lat2, lon2
-    phi1, lambda1, phi2, lambda2 = [radians(c) for c in coordinates]
-    y = sin(lambda2 - lambda1) * cos(phi2)
-    x = cos(phi1) * sin(phi2) - sin(phi1) * cos(phi2) * cos(lambda2 - lambda1)
-    theta = atan2(y, x)
-    brng = (theta * 180 / pi + 360) % 360
+#     coordinates = lat1, lon1, lat2, lon2
+#     phi1, lambda1, phi2, lambda2 = [radians(c) for c in coordinates]
+#     y = sin(lambda2 - lambda1) * cos(phi2)
+#     x = cos(phi1) * sin(phi2) - sin(phi1) * cos(phi2) * cos(lambda2 - lambda1)
+#     theta = atan2(y, x)
+#     brng = (theta * 180 / pi + 360) % 360
 
-    return brng
+#     return brng
 
 
 def get_mp_distance(lat: float, lon: float, mp: list) -> float:

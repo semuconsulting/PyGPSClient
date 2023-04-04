@@ -9,10 +9,8 @@ Static method tests for pygpsclient.helpers
 import unittest
 
 from datetime import datetime
-from geographiclib.geodesic import Geodesic
 from pyubx2 import UBXReader
 from pygpsclient.helpers import (
-    deg2rad,
     m2ft,
     ms2kmph,
     ms2knots,
@@ -28,8 +26,6 @@ from pygpsclient.helpers import (
     corrage2int,
     fix2desc,
     validURL,
-    haversine,
-    bearing,
     get_mp_distance,
     stringvar2val,
     mapq_compress,
@@ -40,8 +36,6 @@ from pygpsclient.helpers import (
     parse_rxmspartnkey,
 )
 
-geo = Geodesic.WGS84
-
 
 class StaticTest(unittest.TestCase):
     def setUp(self):
@@ -49,10 +43,6 @@ class StaticTest(unittest.TestCase):
 
     def tearDown(self):
         pass
-
-    def testdeg2rad(self):
-        res = deg2rad(147)
-        self.assertAlmostEqual(res, 2.565634, 5)
 
     def testcel2cart(self):
         (elev, azim) = cel2cart(34, 128)
@@ -133,22 +123,6 @@ class StaticTest(unittest.TestCase):
         res = validURL("sdfffasdff")
         self.assertEqual(res, False)
 
-    def testhaversine(self):
-        res = haversine(51.23, -2.41, 34.205, 56.34)
-        self.assertAlmostEqual(res, 5005.114961720793, 4)
-        res = haversine(-12.645, 34.867, 145.1745, -56.27846)
-        self.assertAlmostEqual(res, 10703.380604004034, 4)
-
-    def testbearing(self):
-        res = bearing(51.23, -2.41, 53.205, -2.34)
-        self.assertAlmostEqual(res, 1.216362703824359, 4)
-        res = bearing(51.23145, -2.41, 51.23145, -2.34)
-        self.assertAlmostEqual(res, 89.9727111358776, 4)
-        res = bearing(51.23, -2.41, 34.205, 56.34)
-        self.assertAlmostEqual(res, 88.58134073451902, 4)
-        res = bearing(-12.645, 34.867, -34.1745, 48.27846)
-        self.assertAlmostEqual(res, 152.70835788275326, 4)
-
     def testgetmpdistance(self):
         mp = [
             "TKC-EGA",
@@ -171,7 +145,7 @@ class StaticTest(unittest.TestCase):
             "",
         ]
         res = get_mp_distance(34.123, 14.6743, mp)
-        self.assertAlmostEqual(res, 8578.78150461319, 4)
+        self.assertAlmostEqual(res, 8588.392, 4)
         mp = [
             "tobetsu-tsujino",
             "Tobetsu",
@@ -193,7 +167,7 @@ class StaticTest(unittest.TestCase):
             "",
         ]
         res = get_mp_distance(-34.123, -8.6743, mp)
-        self.assertAlmostEqual(res, 17255.05227009936, 4)
+        self.assertAlmostEqual(res, 17274.382, 4)
 
     def teststringvar2val(self):
         vals = [
