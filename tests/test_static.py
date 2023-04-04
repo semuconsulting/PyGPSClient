@@ -122,6 +122,12 @@ class StaticTest(unittest.TestCase):
             res = hsv2rgb(h, 0.2, 0.9)
             self.assertEqual(res, EXPECTED_RESULTS[i])
 
+    def teststr2rgb(self):
+        res = str2rgb("#b7e5e5")
+        self.assertEqual(res, (183, 229, 229))
+        res = str2rgb("#e5e5e5")
+        self.assertEqual(res, (229, 229, 229))
+
     def testsnr2col(self):
         res = snr2col(38)
         self.assertEqual(res, "#77cc28")
