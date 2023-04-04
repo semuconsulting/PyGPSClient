@@ -4,8 +4,10 @@
 
 CHANGES:
 
-1. Add bearing helper method in pygpsclient.helpers and remove dependency on geographiclib
-1. Minor fixes to configuration load status messages
+1. Improved legibility in 'Light' and 'Dark' O/S modes by removing hard-coded Entry widget background colors. Fixes [#60](https://github.com/semuconsulting/PyGPSClient/issues/60). (*NB: the PyGPSClient application itself retains its 'dark' main widget GUI styling and there are no current plans to introduce user-selectable color themes.*)
+1. Remove dependency on geographiclib library. Utilises haversine and bearing methods in pynmeagps library instead.
+1. Minimum pygnssutils version updated to 1.0.6.
+1. Minor fixes to configuration load status messages.
 
 ENHANCEMENTS:
 
