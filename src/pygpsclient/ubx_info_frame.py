@@ -17,7 +17,6 @@ from tkinter import (
 from PIL import ImageTk, Image
 from pyubx2 import UBXMessage, POLL
 from pygpsclient.globals import (
-    INFCOL,
     ICON_SEND,
     ICON_WARNING,
     ICON_PENDING,
@@ -73,19 +72,19 @@ class UBX_INFO_Frame(Frame):
         """
 
         self._lbl_swverl = Label(self, text="Software")
-        self._lbl_swver = Label(self, textvariable=self._sw_version, fg=INFCOL)
+        self._lbl_swver = Label(self, textvariable=self._sw_version)
         self._lbl_hwverl = Label(self, text="Hardware")
-        self._lbl_hwver = Label(self, textvariable=self._hw_version, fg=INFCOL)
+        self._lbl_hwver = Label(self, textvariable=self._hw_version)
         self._lbl_fwverl = Label(self, text="Firmware")
-        self._lbl_fwver = Label(self, textvariable=self._fw_version, fg=INFCOL)
+        self._lbl_fwver = Label(self, textvariable=self._fw_version)
         self._lbl_romverl = Label(self, text="Protocol")
-        self._lbl_romver = Label(self, textvariable=self._protocol, fg=INFCOL)
+        self._lbl_romver = Label(self, textvariable=self._protocol)
         self._lbl_gnssl = Label(self, text="GNSS/AS")
-        self._lbl_gnss = Label(self, textvariable=self._gnss_supported, fg=INFCOL)
+        self._lbl_gnss = Label(self, textvariable=self._gnss_supported)
         self._lbl_ant_statusl = Label(self, text="Ant. Status")
-        self._lbl_ant_status = Label(self, textvariable=self._ant_status, fg=INFCOL)
+        self._lbl_ant_status = Label(self, textvariable=self._ant_status)
         self._lbl_ant_powerl = Label(self, text="Ant. Power")
-        self._lbl_ant_power = Label(self, textvariable=self._ant_power, fg=INFCOL)
+        self._lbl_ant_power = Label(self, textvariable=self._ant_power)
 
     def _do_layout(self):
         """
@@ -192,6 +191,8 @@ class UBX_INFO_Frame(Frame):
         for msgtype in ("MON-VER", "MON-HW"):
             msg = UBXMessage(msgtype[0:3], msgtype, POLL)
             self.__app.gnss_outqueue.put(msg.serialize())
-            self.__container.set_status(f"{msgtype} POLL message sent", "blue")
+            self.__container.set_status(
+                f"{msgtype} POLL message sent",
+            )
         self.__container.set_pending("MON-VER", UBX_MONVER)
         self.__container.set_pending("MON-HW", UBX_MONHW)

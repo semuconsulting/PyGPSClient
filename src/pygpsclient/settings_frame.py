@@ -38,7 +38,6 @@ import pyubx2.ubxtypes_core as ubt
 from pygpsclient.serialconfig_frame import SerialConfigFrame
 from pygpsclient.socketconfig_frame import SocketConfigFrame
 from pygpsclient.globals import (
-    ENTCOL,
     DDD,
     DMM,
     DMS,
@@ -246,7 +245,6 @@ class SettingsFrame(Frame):
             values=FORMATS,
             width=10,
             state=READONLY,
-            readonlybackground=ENTCOL,
             wrap=True,
             textvariable=self._console_format,
         )
@@ -261,7 +259,6 @@ class SettingsFrame(Frame):
             values=(DDD, DMS, DMM),
             width=6,
             state=READONLY,
-            readonlybackground=ENTCOL,
             wrap=True,
             textvariable=self._degrees_format,
         )
@@ -271,7 +268,6 @@ class SettingsFrame(Frame):
             values=(UMM, UIK, UI, UMK),
             width=13,
             state=READONLY,
-            readonlybackground=ENTCOL,
             wrap=True,
             textvariable=self._units,
         )
@@ -282,7 +278,6 @@ class SettingsFrame(Frame):
             self._frm_options,
             values=("100", "200", "500", "1000", "2000"),
             width=6,
-            readonlybackground=ENTCOL,
             wrap=True,
             textvariable=self._maxlines,
             state=READONLY,
@@ -300,7 +295,6 @@ class SettingsFrame(Frame):
             to=20,
             orient=HORIZONTAL,
             relief="sunken",
-            bg=ENTCOL,
             variable=self._mapzoom,
         )
         self._chk_unusedsat = Checkbutton(
@@ -319,7 +313,6 @@ class SettingsFrame(Frame):
             self._frm_options,
             values=(FORMATS),
             width=20,
-            readonlybackground=ENTCOL,
             wrap=True,
             textvariable=self._logformat,
             state=READONLY,
@@ -348,7 +341,6 @@ class SettingsFrame(Frame):
             values=SOCKMODES,
             width=18,
             state=DISABLED,
-            readonlybackground=ENTCOL,
             wrap=True,
             textvariable=self._sock_mode,
             command=lambda: self._on_sockmode(),
@@ -361,7 +353,6 @@ class SettingsFrame(Frame):
         self._ent_sockport = Entry(
             self._frm_options,
             textvariable=self._sock_port,
-            bg=ENTCOL,
             relief="sunken",
             width=6,
             state=DISABLED,
@@ -519,9 +510,7 @@ class SettingsFrame(Frame):
         if self._datalog.get() == 1:
             self.outfilepath = self.__app.file_handler.set_logfile_path()
             if self.outfilepath is not None:
-                self.__app.set_status(
-                    "Data logging enabled: " + self.outfilepath, "green"
-                )
+                self.__app.set_status("Data logging enabled: " + self.outfilepath)
                 self.__app.file_handler.open_logfile()
             else:
                 self._datalog.set(False)
@@ -529,7 +518,7 @@ class SettingsFrame(Frame):
             self.outfilepath = None
             self._datalog.set(False)
             self.__app.file_handler.close_logfile()
-            self.__app.set_status("Data logging disabled", "blue")
+            self.__app.set_status("Data logging disabled")
 
     def _on_record_track(self):
         """
@@ -539,9 +528,7 @@ class SettingsFrame(Frame):
         if self._record_track.get() == 1:
             self._trackpath = self.__app.file_handler.set_trackfile_path()
             if self._trackpath is not None:
-                self.__app.set_status(
-                    "Track recording enabled: " + self._trackpath, "green"
-                )
+                self.__app.set_status("Track recording enabled: " + self._trackpath)
                 self.__app.file_handler.open_trackfile()
             else:
                 self._record_track.set(False)
@@ -549,7 +536,7 @@ class SettingsFrame(Frame):
             self._trackpath = None
             self._record_track.set(False)
             self.__app.file_handler.close_trackfile()
-            self.__app.set_status("Track recording disabled", "blue")
+            self.__app.set_status("Track recording disabled")
 
     def _on_serial_stream(self):
         if self.serial_settings.status == NOPORTS:
@@ -594,7 +581,7 @@ class SettingsFrame(Frame):
 
         self.infilepath = self.__app.file_handler.open_infile()
         if self.infilepath is not None:
-            self.__app.set_connection(f"{self.infilepath}", "blue")
+            self.__app.set_connection(f"{self.infilepath}")
             self.__app.set_status("")
             self.__app.conn_status = CONNECTED_FILE
             self._reset_frames()

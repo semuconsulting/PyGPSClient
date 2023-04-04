@@ -87,7 +87,6 @@ class SerialConfigFrame(Frame):
         self._timeout_rng = kwargs.pop("timeouts", TIMEOUT_RNG)
         self._msgmode_rng = kwargs.pop("msgmodes", ())
         self._preselect = kwargs.pop("preselect", ())
-        self._readonlybg = kwargs.pop("readonlybackground", BGCOL)
 
         Frame.__init__(self, container, *args, **kwargs)
 
@@ -125,7 +124,6 @@ class SerialConfigFrame(Frame):
             self._frm_basic,
             border=2,
             relief="sunken",
-            bg=self._readonlybg,
             width=32,
             height=5,
             justify=LEFT,
@@ -143,7 +141,6 @@ class SerialConfigFrame(Frame):
             values=self._bpsrate_rng,
             width=8,
             state=READONLY,
-            readonlybackground=self._readonlybg,
             wrap=True,
             textvariable=self._bpsrate,
         )
@@ -169,7 +166,6 @@ class SerialConfigFrame(Frame):
             values=self._databits_rng,
             width=3,
             state=READONLY,
-            readonlybackground=self._readonlybg,
             wrap=True,
             textvariable=self._databits,
         )
@@ -179,7 +175,6 @@ class SerialConfigFrame(Frame):
             values=self._stopbits_rng,
             width=3,
             state=READONLY,
-            readonlybackground=self._readonlybg,
             wrap=True,
             textvariable=self._stopbits,
         )
@@ -189,7 +184,6 @@ class SerialConfigFrame(Frame):
             values=self._parity_rng,
             width=6,
             state=READONLY,
-            readonlybackground=self._readonlybg,
             wrap=True,
             textvariable=self._parity,
         )
@@ -205,7 +199,6 @@ class SerialConfigFrame(Frame):
             values=self._timeout_rng,
             width=4,
             state=READONLY,
-            readonlybackground=self._readonlybg,
             wrap=True,
             textvariable=self._timeout,
         )
@@ -215,7 +208,6 @@ class SerialConfigFrame(Frame):
             values=self._msgmode_rng,
             width=4,
             state=READONLY,
-            readonlybackground=self._readonlybg,
             wrap=True,
             textvariable=self._msgmode,
         )

@@ -177,19 +177,13 @@ class BannerFrame(Frame):
 
         self.option_add("*Font", self.__app.font_lg)
         self._lbl_status_preset = Label(
-            self._frm_connect, bg=self._bgcol, image=self._img_conn, fg="blue"
+            self._frm_connect, bg=self._bgcol, image=self._img_conn
         )
         self._lbl_rtk_preset = Label(
-            self._frm_connect,
-            bg=self._bgcol,
-            image=self._img_blank,
-            fg="grey",
+            self._frm_connect, bg=self._bgcol, image=self._img_blank
         )
         self._lbl_transmit_preset = Label(
-            self._frm_connect,
-            bg=self._bgcol,
-            image=self._img_blank,
-            fg="grey",
+            self._frm_connect, bg=self._bgcol, image=self._img_blank
         )
 
         self._lbl_time = Label(

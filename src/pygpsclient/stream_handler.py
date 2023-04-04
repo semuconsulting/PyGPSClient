@@ -86,7 +86,7 @@ class StreamHandler:
             daemon=True,
         )
         self._stream_thread.start()
-        self._set_status("Connected", "blue")
+        self._set_status("Connected")
 
     def stop_read_thread(self):
         """
@@ -269,9 +269,11 @@ class StreamHandler:
 
         self.stop_read_thread()
         self.__app.frm_settings.server_state = 0  # turn off socket server
-        self._set_status(ENDOFFILE, "blue")
+        self._set_status(
+            ENDOFFILE,
+        )
 
-    def _set_connection(self, msg, col):
+    def _set_connection(self, msg: str, col: str = ""):
         """
         Set connection message.
 
@@ -282,7 +284,7 @@ class StreamHandler:
         if self._owner is not None:
             self._owner.set_connection(msg, col)
 
-    def _set_status(self, msg, col):
+    def _set_status(self, msg: str, col: str = ""):
         """
         Set status message.
 

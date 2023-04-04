@@ -23,8 +23,6 @@ from pynmeagps import haversine
 from pygpsclient.globals import (
     MAX_SNR,
     FIXLOOKUP,
-    ENTCOL,
-    ERRCOL,
     GPSEPOCH0,
 )
 
@@ -406,6 +404,80 @@ def svid2gnssid(svid) -> int:
     return gnssId
 
 
+def haversine(
+    lat1: float, lon1: float, lat2: float, lon2: float, rds: int = EARTH_RADIUS
+) -> float:
+    """
+    Calculate spherical distance between two coordinates using haversine formula.
+
+    :param float lat1: lat1 φ1
+    :param float lon1: lon1 λ1
+    :param float lat2: lat2 φ2
+    :param float lon2: lon2 λ2
+    :param float rds: earth radius (6371 km)
+    :return: spherical distance in km
+    :rtype: float
+    """
+
+    coordinates = lat1, lon1, lat2, lon2
+    phi1, lambda1, phi2, lambda2 = [radians(c) for c in coordinates]
+    dist = rds * acos(
+        cos(phi2 - phi1) - cos(phi1) * cos(phi2) * (1 - cos(lambda2 - lambda1))
+    )
+
+    return dist
+
+
+def bearing(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """
+    Calculate bearing between two coordinates.
+
+    :param float lat1: lat1 φ1
+    :param float lon1: lon1 λ1
+    :param float lat2: lat2 φ2
+    :param float lon2: lon2 λ2
+    :param float rds: earth radius (6371 km)
+    :return: bearing in degrees
+    :rtype: float
+    """
+
+    coordinates = lat1, lon1, lat2, lon2
+    phi1, lambda1, phi2, lambda2 = [radians(c) for c in coordinates]
+    y = sin(lambda2 - lambda1) * cos(phi2)
+    x = cos(phi1) * sin(phi2) - sin(phi1) * cos(phi2) * cos(lambda2 - lambda1)
+    theta = atan2(y, x)
+    brng = (theta * 180 / pi + 360) % 360
+
+    return brng
+
+
+def get_mp_distance(lat: float, lon: float, mp: list) -> float:
+    """
+    Get distance to mountpoint from current location (if known).
+
+    The sourcetable mountpoint entry is a list where index [0]
+    is the name and indices [8] & [9] are the lat/lon. Not all
+    sourcetable entries provide this information.
+
+    :param float lat: current latitude
+    :param float lon: current longitude
+    :param list mp: sourcetable mountpoint entry
+    :return: distance to mountpoint in km, or None if n/a
+    :rtype: float or None
+    """
+
+    dist = None
+    try:
+        if len(mp) > 9:  # if location provided for this mountpoint
+            lat2 = float(mp[8])
+            lon2 = float(mp[9])
+            dist = haversine(lat, lon, lat2, lon2)
+    except (ValueError, TypeError):
+        pass
+
+    return dist
+
+
 def check_latest(name: str) -> str:
     """
     Check for latest version of module on PyPi.
@@ -521,7 +593,13 @@ def valid_entry(entry: Entry, valmode: int, low=None, high=None) -> bool:
     except ValueError:
         valid = False
 
-    entry.config(bg=ENTCOL if valid else ERRCOL)
+    # entry.config(bg=ENTCOL if valid else ERRCOL)
+    if valid:
+        entry.configure(highlightthickness=0)
+    else:
+        entry.configure(
+            highlightthickness=1, highlightbackground="red", highlightcolor="red"
+        )
     return valid
 
 

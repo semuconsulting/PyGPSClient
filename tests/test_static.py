@@ -5,6 +5,7 @@ Static method tests for pygpsclient.helpers
 
 @author: semuadmin
 """
+# pylint: disable=missing-docstring
 
 import unittest
 
@@ -19,8 +20,10 @@ from pygpsclient.helpers import (
     kmph2ms,
     knots2ms,
     pos2iso6709,
+    str2rgb,
     hsv2rgb,
     snr2col,
+    col2contrast,
     svid2gnssid,
     cel2cart,
     corrage2int,
@@ -48,42 +51,76 @@ class StaticTest(unittest.TestCase):
         (elev, azim) = cel2cart(34, 128)
         self.assertAlmostEqual(elev, -0.510406, 5)
         self.assertAlmostEqual(azim, 0.653290, 5)
+        res = cel2cart("xxx", "xxx")
+        self.assertEqual(res, (0, 0))
 
     def testm2ft(self):
         res = m2ft(39.234)
         self.assertAlmostEqual(res, 128.720476, 5)
+        res = m2ft("xxx")
+        self.assertEqual(res, 0)
 
     def testft2m(self):
         res = ft2m(124.063)
         self.assertAlmostEqual(res, 37.814401, 5)
+        res = ft2m("xxx")
+        self.assertEqual(res, 0)
 
     def testms2kmph(self):
         res = ms2kmph(3.654)
         self.assertAlmostEqual(res, 13.154400, 5)
+        res = ms2kmph("xxx")
+        self.assertEqual(res, 0)
 
     def testms2mph(self):
         res = ms2mph(3.654)
         self.assertAlmostEqual(res, 8.173766, 5)
+        res = ms2mph("xxx")
+        self.assertEqual(res, 0)
 
     def testms2knots(self):
         res = ms2knots(3.654)
         self.assertAlmostEqual(res, 7.102805, 5)
+        res = ms2knots("xxx")
+        self.assertEqual(res, 0)
 
     def testkmph2ms(self):
         res = kmph2ms(3.654)
         self.assertAlmostEqual(res, 1.015000, 5)
+        res = kmph2ms("xxx")
+        self.assertEqual(res, 0)
 
     def testknots2ms(self):
         res = knots2ms(3.654)
         self.assertAlmostEqual(res, 1.879781, 5)
+        res = knots2ms("xxx")
+        self.assertEqual(res, 0)
 
     def testpos2iso6709(self):
         res = pos2iso6709(53.12, -2.165, 35)
         self.assertEqual(res, "+53.12-2.165+35CRSWGS_84/")
+        res = pos2iso6709("", -2.165, 35)
+        self.assertEqual(res, "")
 
     def testhsv2rgb(self):
         res = hsv2rgb(0.5, 0.2, 0.9)
         self.assertEqual(res, "#b7e5e5")
+        res = hsv2rgb(0.5, 0.0, 0.9)
+        self.assertEqual(res, "#e5e5e5")
+
+    def testhsv2rgb2(self):
+        EXPECTED_RESULTS = [
+            "#e5b7b7",
+            "#e5e5b7",
+            "#b7e5b7",
+            "#b7e5e5",
+            "#b7b7e5",
+            "#e5b7e5",
+        ]
+        for i in range(6):
+            h = i / 6
+            res = hsv2rgb(h, 0.2, 0.9)
+            self.assertEqual(res, EXPECTED_RESULTS[i])
 
     def testsnr2col(self):
         res = snr2col(38)
@@ -95,6 +132,12 @@ class StaticTest(unittest.TestCase):
         for i, svid in enumerate(svids):
             res = svid2gnssid(svid)
             self.assertEqual(res, EXPECTED_RESULT[i])
+
+    def testcol2contrast(self):
+        res = col2contrast("#ff0000")
+        self.assertEqual(res, "white")
+        res = col2contrast("#dddddd")
+        self.assertEqual(res, "black")
 
     def testfix2desc(self):
         EXPECTED_RESULT = ["3D", "RTK FIXED", "RTK FLOAT", "3D", "NO FIX"]

@@ -25,7 +25,6 @@ from pyubx2 import (
     SET,
 )
 from .globals import (
-    ENTCOL,
     ICON_SEND,
     ICON_WARNING,
     ICON_PENDING,
@@ -90,7 +89,6 @@ class UBX_RATE_Frame(Frame):
             values=(25, 50, 100, 200, 500, 1000, 2000, 5000, 10000),
             width=6,
             state=READONLY,
-            readonlybackground=ENTCOL,
             wrap=True,
             textvariable=self._measint,
         )
@@ -101,7 +99,6 @@ class UBX_RATE_Frame(Frame):
             to=127,
             width=4,
             state=READONLY,
-            readonlybackground=ENTCOL,
             wrap=True,
             textvariable=self._navrate,
         )
@@ -111,7 +108,6 @@ class UBX_RATE_Frame(Frame):
             values=list(TIMEREFS.values()),
             width=5,
             state=READONLY,
-            readonlybackground=ENTCOL,
             wrap=True,
             textvariable=self._timeref,
         )
@@ -211,7 +207,9 @@ class UBX_RATE_Frame(Frame):
         )
         self.__container.send_command(msg)
         self._lbl_send_command.config(image=self._img_pending)
-        self.__container.set_status("CFG-RATE SET message sent", "blue")
+        self.__container.set_status(
+            "CFG-RATE SET message sent",
+        )
         self.__container.set_pending(UBX_CFGRATE, ("ACK-ACK", "ACK-NAK"))
 
         self._do_poll_rate()
@@ -224,6 +222,8 @@ class UBX_RATE_Frame(Frame):
         msg = UBXMessage("CFG", "CFG-RATE", POLL)
         self.__container.send_command(msg)
         self._lbl_send_command.config(image=self._img_pending)
-        self.__container.set_status("CFG-RATE POLL message sent", "blue")
+        self.__container.set_status(
+            "CFG-RATE POLL message sent",
+        )
         for msgid in ("CFG-RATE", "ACK-NAK"):
             self.__container.set_pending(msgid, UBX_CFGRATE)
