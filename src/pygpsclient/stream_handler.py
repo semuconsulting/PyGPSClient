@@ -234,6 +234,7 @@ class StreamHandler:
                             raise EOFError
                     if owner.conn_status == CONNECTED_FILE:
                         lastread = datetime.now()
+                        self.__master.update_idletasks()
 
                     # write any queued output data to serial stream
                     if owner.conn_status == CONNECTED:
