@@ -449,7 +449,10 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         Load configuration file menu option.
         """
 
-        filename, self.config = self.file_handler.load_config(None)
+        data = self.file_handler.load_config(None)
+        if data is None:
+            return
+        filename, self.config = data
         if isinstance(self.config, str):  # load failed
             self.set_status(f"{LOADCONFIGBAD} {self.config}", BADCOL)
             self.config = None
@@ -471,6 +474,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             **self.app_config,
         }
         rcd = self.file_handler.save_config(self.config, None)
+        if rcd is None:
+            return
         if isinstance(rcd, str):  # save failed
             self.set_status(f"{SAVECONFIGBAD} {self.config}", BADCOL)
             self.config = None
