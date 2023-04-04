@@ -10,17 +10,13 @@ Created 23 March 2023
 :copyright: Qualinx B.V.
 :license: BSD 3-Clause
 """
-from collections import namedtuple
-from statistics import mean
-import math
+
+from math import radians, sqrt, cos, sin
 from tkinter import Frame, font, BOTH, YES, NO, IntVar, Scale, HORIZONTAL
-from geographiclib.geodesic import Geodesic
-from pygpsclient.globals import WIDGETU2, BGCOL, FGCOL
+
+from pynmeagps import haversine, bearing
+from pygpsclient.globals import WIDGETU2, BGCOL, FGCOL, Point
 from pygpsclient.skyview_frame import Canvas
-
-
-Point = namedtuple("Point", ["lat", "lon"])
-geo = Geodesic.WGS84
 
 
 class ScatterViewFrame(Frame):
@@ -51,7 +47,7 @@ class ScatterViewFrame(Frame):
         self.one_meter = 1
         self.mean = None
         self._body()
-        self.bind("<Configure>", self._on_resize)
+        self._attach_events()
 
     def _body(self):
         """Set up frame and widgets."""
@@ -76,25 +72,48 @@ class ScatterViewFrame(Frame):
         self.canvas.pack(fill=BOTH, expand=YES)
         self.scale_widget.pack(fill="x", expand=NO)
 
+    def _attach_events(self):
+        """
+        Bind events to frame.
+        """
+
+        self.bind("<Configure>", self._on_resize)
+        self.canvas.bind("<Double-Button-1>", self._on_clear)
+
     def _rescale(self, scale):  # pylint: disable=unused-argument
+        """
+        Rescale widget.
+        """
+
         self._on_resize(None)
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """
-        Resize frame
+        Resize frame.
 
-        :param event: resize event
+        :param Event event: resize event
         """
 
         self.width, self.height = self.get_size()
         self.init_graph()
         self.redraw()
 
-    def get_size(self):
+    def _on_clear(self, event):  # pylint: disable=unused-argument
+        """ "
+        Clear plot.
+
+        :param Event event: clear event
+        """
+
+        self.points = []
+        self.init_graph()
+
+    def get_size(self) -> tuple:
         """
         Get current canvas size.
 
-        :return window size (width, height)
+        :return: window size (width, height)
+        :rtype: tuple
         """
 
         self.update_idletasks()  # Make sure we know about resizing
@@ -102,12 +121,12 @@ class ScatterViewFrame(Frame):
         height = self.canvas.winfo_height()
         return (width, height)
 
-    def _draw_mean(self, lbl_font):
+    def _draw_mean(self, lbl_font: font):
         """
         Draw the mean position in the corner of the plot. Uses
         self.mean as the position to draw.
 
-        :param lbl_font: Font to use.
+        :param font lbl_font: Font to use.
         """
 
         if self.mean is None:
@@ -145,8 +164,8 @@ class ScatterViewFrame(Frame):
             distance = m_per_circle * (idx + 1)
             if len(str(distance)) > 4:
                 distance = round(distance, 3)
-            txt_x = width / 2 + math.sqrt(2) / 2 * maxr * rad
-            txt_y = height / 2 + math.sqrt(2) / 2 * maxr * rad
+            txt_x = width / 2 + sqrt(2) / 2 * maxr * rad
+            txt_y = height / 2 + sqrt(2) / 2 * maxr * rad
             self.canvas.create_text(
                 txt_x, txt_y, text=f"{distance}m", fill=self.fg_col, font=lbl_font
             )
@@ -154,29 +173,22 @@ class ScatterViewFrame(Frame):
         self.one_meter = (maxr * 0.25) / m_per_circle
         self._draw_mean(lbl_font)
 
-    def draw_point(self, center, position):
+    def draw_point(self, center: Point, position: Point):
         """
         Draw a Point on the scatterplot, given a center Point.
 
-        :param Point center: The center of the plot
+        :param Point center: The cen ter of the plot
         :param Point position: The point to draw
         """
-        inv = geo.Inverse(
-            center.lat,
-            center.lon,
-            position.lat,
-            position.lon,
-            outmask=geo.AZIMUTH | geo.DISTANCE,
-        )
-        angle = inv["azi1"]
-        distance = inv["s12"]
-        distance *= self.one_meter
-        theta = math.radians(90 - angle)
-        pos_x = distance * math.cos(theta)
-        pos_y = distance * math.sin(theta)
+
+        distance = haversine(center.lat, center.lon, position.lat, position.lon)  # km
+        distance *= self.one_meter * 1000  # convert to meters & adjust to scale
+        angle = bearing(center.lat, center.lon, position.lat, position.lon)
+        theta = radians(90 - angle)
+        pos_x = distance * cos(theta)
+        pos_y = distance * sin(theta)
         center_x = self.width / 2
         center_y = self.height / 2
-
         pt_x = center_x + pos_x
         pt_y = center_y - pos_y
         self.canvas.create_circle(
@@ -189,8 +201,10 @@ class ScatterViewFrame(Frame):
         on the scatter plot. Note that this will make for some very
         weird results near poles.
         """
-        ave_lat = mean(p.lat for p in self.points)
-        ave_lon = mean(p.lon for p in self.points)
+
+        num = len(self.points)
+        ave_lat = sum(p.lat for p in self.points) / num
+        ave_lon = sum(p.lon for p in self.points) / num
         ave_pos = Point(ave_lat, ave_lon)
         return ave_pos
 
