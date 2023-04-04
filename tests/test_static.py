@@ -29,6 +29,7 @@ from pygpsclient.helpers import (
     corrage2int,
     fix2desc,
     validURL,
+    haversine,
     get_mp_distance,
     stringvar2val,
     mapq_compress,
@@ -171,6 +172,12 @@ class StaticTest(unittest.TestCase):
         self.assertEqual(res, False)
         res = validURL("sdfffasdff")
         self.assertEqual(res, False)
+
+    def testhaversine(self):
+        res = haversine(51.23, -2.41, 34.205, 56.34)
+        self.assertAlmostEqual(res, 5010.721853179245, 4)
+        res = haversine(-12.645, 34.867, 145.1745, -56.27846)
+        self.assertAlmostEqual(res, 10715.370876703888, 4)
 
     def testgetmpdistance(self):
         mp = [

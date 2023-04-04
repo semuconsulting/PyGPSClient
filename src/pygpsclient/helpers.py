@@ -556,6 +556,33 @@ def valid_entry(entry: Entry, valmode: int, low=None, high=None) -> bool:
     return valid
 
 
+def get_mp_distance(lat: float, lon: float, mp: list) -> float:
+    """
+    Get distance to mountpoint from current location (if known).
+
+    The sourcetable mountpoint entry is a list where index [0]
+    is the name and indices [8] & [9] are the lat/lon. Not all
+    sourcetable entries provide this information.
+
+    :param float lat: current latitude
+    :param float lon: current longitude
+    :param list mp: sourcetable mountpoint entry
+    :return: distance to mountpoint in km, or None if n/a
+    :rtype: float or None
+    """
+
+    dist = None
+    try:
+        if len(mp) > 9:  # if location provided for this mountpoint
+            lat2 = float(mp[8])
+            lon2 = float(mp[9])
+            dist = haversine(lat, lon, lat2, lon2)
+    except ValueError:
+        pass
+
+    return dist
+
+
 def stringvar2val(val: str, att: str) -> object:
     """
     Convert StringVar entry to appropriate attribute value type.

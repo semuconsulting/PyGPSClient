@@ -10,14 +10,17 @@ Created 23 March 2023
 :copyright: Qualinx B.V.
 :license: BSD 3-Clause
 """
-
+from collections import namedtuple
 from statistics import mean
 import math
 from tkinter import Frame, font, BOTH, YES, NO, IntVar, Scale, HORIZONTAL
-
-from pynmeagps import haversine, bearing
-from pygpsclient.globals import WIDGETU2, BGCOL, FGCOL, Point
+from geographiclib.geodesic import Geodesic
+from pygpsclient.globals import WIDGETU2, BGCOL, FGCOL
 from pygpsclient.skyview_frame import Canvas
+
+
+Point = namedtuple("Point", ["lat", "lon"])
+geo = Geodesic.WGS84
 
 
 class ScatterViewFrame(Frame):
@@ -158,15 +161,17 @@ class ScatterViewFrame(Frame):
         :param Point center: The center of the plot
         :param Point position: The point to draw
         """
-
-        lat1 = center.lat
-        lon1 = center.lon
-        lat2 = position.lat
-        lon2 = position.lon
-        distance = haversine(lat1, lon1, lat2, lon2)  # km
-        angle = bearing(lat1, lon1, lat2, lon2)  # degrees
-        distance *= self.one_meter * 1000  # meters
-        theta = math.radians(90 - angle)  # radians
+        inv = geo.Inverse(
+            center.lat,
+            center.lon,
+            position.lat,
+            position.lon,
+            outmask=geo.AZIMUTH | geo.DISTANCE,
+        )
+        angle = inv["azi1"]
+        distance = inv["s12"]
+        distance *= self.one_meter
+        theta = math.radians(90 - angle)
         pos_x = distance * math.cos(theta)
         pos_y = distance * math.sin(theta)
         center_x = self.width / 2
