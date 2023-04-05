@@ -84,7 +84,10 @@ test = [
 jobs = 0
 reports = "y"
 py-version = "3.7"
-exit-zero = "y"
+#exit-zero = "y"
+fail-under = "9.8"
+fail-on = "E,F"
+clear-cache-post-run = "y"
 disable = """
     raw-checker-failed,
     bad-inline-option,
