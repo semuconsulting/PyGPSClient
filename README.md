@@ -90,7 +90,8 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 * Zoom - Change the web map scale (any change will take effect at the next map refresh, indicated by a small timer icon at the top left of the panel).
 * Show Legend - Turn the graph legend on or off.
 * Show Unused Satellites - Include or exclude satellites that are not used in the navigation solution (e.g. because their signal level is too low) from the graph and sky view panels.
-* Spectrum widget - When shown, PyGPSClient will automatically configure the receiver to output UBX MON-SPAN messages. Clicking anywhere in the spectrum chart will briefly display the frequency and decibel reading at that point. Double-clicking anywhere in the chart will toggle the GNSS frequency band markers (L1, G2, etc.) on or off. 
+* Spectrum widget - When shown, PyGPSClient will automatically configure the receiver to output UBX MON-SPAN messages. Clicking anywhere in the spectrum chart will briefly display the frequency and decibel reading at that point. Double-clicking anywhere in the chart will toggle the GNSS frequency band markers (L1, G2, etc.) on or off.
+* Scatter Plot widget - Double-clicking anywhere in the plot will clear existing data.
 * DataLogging - Turn Data logging in the selected format on or off. You will be prompted to select the directory into which timestamped log files are saved (NB. only binary datalogs can be re-read by PyGPSClient's parser).
 * GPX Track - Turn track recording (in GPX format) on or off. You will be prompted to select the directory into which timestamped track files are saved.
 * GPX Track Viewer - Display the GPX Track Viewer dialog via Menu..Options..GPX Track Viewer. Click the load button to load a GPX file and display the map and profile. Click the redraw button to redraw the map.
