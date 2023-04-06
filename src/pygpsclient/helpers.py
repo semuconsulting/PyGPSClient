@@ -37,7 +37,6 @@ VALURL = 16
 VALHEX = 32
 VALDMY = 64
 VALLEN = 128
-EARTH_RADIUS = 6371  # km
 
 
 class ConfirmBox(Toplevel):
