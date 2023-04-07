@@ -244,6 +244,7 @@ class SpectrumviewFrame(Frame):
                 h / 2,
                 text=DLGNOMONSPAN,
                 fill="orange",
+                anchor="s",
             )
             self._pending_confs.pop("ACK-NAK")
             self._monspan_enabled = False
