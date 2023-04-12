@@ -290,7 +290,7 @@ the Python 3 scripts (bin) and site_packages directories are included in your PA
 - Tk (tkinter) >= 8.6*¹*
 - Screen resolution >= 800 x 600; Ideally >= 1400 x 900, though the main application window is resizeable and reconfigurable.
 
-On Windows and MacOS, pip, tkinter and the necessary imaging libraries are including with the official [Python.org](https://www.python.org/downloads/) installation package.  On some Linux distributions like Ubuntu 18+ and Raspberry Pi OS, they may need to be installed separately*²*, e.g.:
+On Windows and MacOS, pip, tkinter and the necessary imaging libraries are included with the official [Python.org](https://www.python.org/downloads/) installation package.  On some Linux distributions like Ubuntu 18+ and Raspberry Pi OS, they may need to be installed separately*²*, e.g.:
 
 ```shell
 sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk
