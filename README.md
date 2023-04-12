@@ -280,17 +280,19 @@ The GPX Track Viewer can display any valid GPX file containing trackpoints (`<tr
 ## <a name="installation">Installation</a>
 
 In the following, `python3` & `pip` refer to the Python 3 executables. You may need to type 
-`python` or `pip3`, depending on your particular environment. It is also recommended that 
+`python` or `pip3`, depending on your particular environment. It is recommended that 
 the Python 3 scripts (bin) and site_packages directories are included in your PATH 
 (*many standard Python 3 installation packages will do this automatically*).
 
 ### Platform Dependencies
 
-On Windows and MacOS, pip, tkinter and the necessary imaging libraries are generally packaged with Python 3.  On some Linux distributions like Ubuntu 18+ and Raspberry Pi OS, they may need to be installed separately, e.g.:
+On Windows and MacOS, pip, tkinter and the necessary imaging libraries are including with the official [Python.org](https://www.python.org/downloads/) installation package.  On some Linux distributions like Ubuntu 18+ and Raspberry Pi OS, they may need to be installed separately, e.g.:
 
 ```shell
 sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk
 ```
+
+*NB:* The version of Python embedded with most Apple MacOS platforms includes a [deprecated version of tkinter (8.5)](https://www.python.org/download/mac/tcltk/). Use an official [Python.org](https://www.python.org/downloads/) installation package instead.
 
 *NB:* If you're compiling the latest version of Python 3 from source, you may also need to install tk-dev (or a similarly named package e.g. tk-devel) first. Refer to http://wiki.python.org/moin/TkInter for further details.
 
