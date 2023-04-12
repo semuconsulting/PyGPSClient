@@ -287,23 +287,22 @@ the Python 3 scripts (bin) and site_packages directories are included in your PA
 ### Platform Dependencies
 
 - Python >= 3.7
-- Tk (tkinter) >= 8.6
+- Tk (tkinter) >= 8.6*¹*
+- Screen resolution >= 800 x 600; Ideally >= 1400 x 900, though the main application window is resizeable and reconfigurable.
 
-On Windows and MacOS, pip, tkinter and the necessary imaging libraries are including with the official [Python.org](https://www.python.org/downloads/) installation package.  On some Linux distributions like Ubuntu 18+ and Raspberry Pi OS, they may need to be installed separately, e.g.:
+On Windows and MacOS, pip, tkinter and the necessary imaging libraries are including with the official [Python.org](https://www.python.org/downloads/) installation package.  On some Linux distributions like Ubuntu 18+ and Raspberry Pi OS, they may need to be installed separately*²*, e.g.:
 
 ```shell
 sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk
 ```
 
-*NB:* The version of Python supplied with most Apple MacOS platforms includes a [deprecated version of tkinter](https://www.python.org/download/mac/tcltk/) (8.5). Use an official [Python.org](https://www.python.org/downloads/) installation package instead.
+*¹* The version of Python supplied with most Apple MacOS platforms includes a [deprecated version of tkinter](https://www.python.org/download/mac/tcltk/) (8.5). Use an official [Python.org](https://www.python.org/downloads/) installation package instead.
 
-*NB:* If you're compiling the latest version of Python 3 from source, you may also need to install tk-dev (or a similarly named package e.g. tk-devel) first. Refer to http://wiki.python.org/moin/TkInter for further details.
+*²* If you're compiling the latest version of Python 3 from source, you may also need to install tk-dev (or a similarly named package e.g. tk-devel) first. Refer to http://wiki.python.org/moin/TkInter for further details:
 
 ```shell
 sudo apt install tk-dev
 ```
-
-Ideally the platform screen resolution will be at least 1400 x 900, though the main application window is resizeable.
 
 ### User Privileges
 
