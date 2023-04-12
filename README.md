@@ -286,13 +286,16 @@ the Python 3 scripts (bin) and site_packages directories are included in your PA
 
 ### Platform Dependencies
 
+- Python >= 3.7
+- Tk (tkinter) >= 8.6
+
 On Windows and MacOS, pip, tkinter and the necessary imaging libraries are including with the official [Python.org](https://www.python.org/downloads/) installation package.  On some Linux distributions like Ubuntu 18+ and Raspberry Pi OS, they may need to be installed separately, e.g.:
 
 ```shell
 sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk
 ```
 
-*NB:* The version of Python embedded with most Apple MacOS platforms includes a [deprecated version of tkinter (8.5)](https://www.python.org/download/mac/tcltk/). Use an official [Python.org](https://www.python.org/downloads/) installation package instead.
+*NB:* The version of Python supplied with most Apple MacOS platforms includes a [deprecated version of tkinter](https://www.python.org/download/mac/tcltk/) (8.5). Use an official [Python.org](https://www.python.org/downloads/) installation package instead.
 
 *NB:* If you're compiling the latest version of Python 3 from source, you may also need to install tk-dev (or a similarly named package e.g. tk-devel) first. Refer to http://wiki.python.org/moin/TkInter for further details.
 
