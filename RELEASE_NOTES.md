@@ -1,6 +1,6 @@
 # PyGPSClient Release Notes
 
-### RELEASE CANDIDATE v1.3.23
+### RELEASE v1.3.23
 
 CHANGES:
 
@@ -8,7 +8,6 @@ CHANGES:
 1. Minimum pygnssutils version updated to 1.0.6.
 1. Minor fixes to configuration load status messages.
 
-ENHANCEMENTS:
 
 ### RELEASE v1.3.22
 
