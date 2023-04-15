@@ -43,7 +43,6 @@ from pygpsclient.globals import (
     ICON_DISCONN,
     ICON_BLANK,
     ICON_SOCKET,
-    ENTCOL,
     CONNECTED_SPARTNLB,
     CONNECTED_SPARTNIP,
     DISCONNECTED,
@@ -171,7 +170,6 @@ class SPARTNLBANDDialog(Frame):
         self._ent_freq = Entry(
             self,
             textvariable=self._spartn_freq,
-            bg=ENTCOL,
             state=NORMAL,
             relief="sunken",
             width=10,
@@ -185,7 +183,6 @@ class SPARTNLBANDDialog(Frame):
         self._ent_schwin = Entry(
             self,
             textvariable=self._spartn_schwin,
-            bg=ENTCOL,
             state=NORMAL,
             relief="sunken",
             width=10,
@@ -204,7 +201,6 @@ class SPARTNLBANDDialog(Frame):
         self._ent_sid = Entry(
             self,
             textvariable=self._spartn_sid,
-            bg=ENTCOL,
             state=NORMAL,
             relief="sunken",
             width=10,
@@ -214,7 +210,6 @@ class SPARTNLBANDDialog(Frame):
             self,
             values=list(PMP_DATARATES.values()),
             textvariable=self._spartn_drat,
-            readonlybackground=ENTCOL,
             state=READONLY,
             width=5,
             wrap=True,
@@ -233,7 +228,6 @@ class SPARTNLBANDDialog(Frame):
         self._ent_descraminit = Entry(
             self,
             textvariable=self._spartn_descrminit,
-            bg=ENTCOL,
             state=NORMAL,
             relief="sunken",
             width=10,
@@ -242,7 +236,6 @@ class SPARTNLBANDDialog(Frame):
         self._ent_unqword = Entry(
             self,
             textvariable=self._spartn_unqword,
-            bg=ENTCOL,
             state=NORMAL,
             relief="sunken",
             width=20,
@@ -252,7 +245,6 @@ class SPARTNLBANDDialog(Frame):
             self,
             values=INPORTS + (PASSTHRU,),
             textvariable=self._spartn_outport,
-            readonlybackground=ENTCOL,
             state=READONLY,
             width=10,
             wrap=True,
@@ -336,7 +328,7 @@ class SPARTNLBANDDialog(Frame):
         self._spartn_descrminit.set(SPARTN_DEFAULT["descrminit"])
         self._spartn_unqword.set(SPARTN_DEFAULT["unqword"])
         self._spartn_outport.set(PASSTHRU)
-        self.__container.set_status("", "blue")
+        self.__container.set_status("")
         if self.__app.rtk_conn_status == CONNECTED_SPARTNLB:
             self.set_controls(CONNECTED_SPARTNLB)
         else:
@@ -641,7 +633,7 @@ class SPARTNLBANDDialog(Frame):
 
         self.__app.rtk_conn_status = status
 
-    def set_status(self, msg: str, color: str = "blue"):
+    def set_status(self, msg: str, color: str = ""):
         """
         Set status message.
 
@@ -649,9 +641,12 @@ class SPARTNLBANDDialog(Frame):
         :param str color: rgb color of text (blue)
         """
 
-        self.__container.set_status(msg, color)
+        if color == "":
+            self.__container.set_status(msg)
+        else:
+            self.__container.set_status(msg, color)
 
-    def set_connection(self, msg: str, color: str = "blue"):
+    def set_connection(self, msg: str, color: str = ""):
         """
         Set status message.
 
@@ -659,7 +654,10 @@ class SPARTNLBANDDialog(Frame):
         :param str color: rgb color of text (blue)
         """
 
-        self.__container.set_status(msg, color)
+        if color == "":
+            self.__container.set_status(msg)
+        else:
+            self.__container.set_status(msg, color)
 
     @property
     def serial_settings(self) -> Frame:

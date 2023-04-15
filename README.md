@@ -90,7 +90,8 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 * Zoom - Change the web map scale (any change will take effect at the next map refresh, indicated by a small timer icon at the top left of the panel).
 * Show Legend - Turn the graph legend on or off.
 * Show Unused Satellites - Include or exclude satellites that are not used in the navigation solution (e.g. because their signal level is too low) from the graph and sky view panels.
-* Spectrum widget - When shown, PyGPSClient will automatically configure the receiver to output UBX MON-SPAN messages. Clicking anywhere in the spectrum chart will briefly display the frequency and decibel reading at that point. Double-clicking anywhere in the chart will toggle the GNSS frequency band markers (L1, G2, etc.) on or off. 
+* Spectrum widget - When shown, PyGPSClient will automatically configure the receiver to output UBX MON-SPAN messages. Clicking anywhere in the spectrum chart will briefly display the frequency and decibel reading at that point. Double-clicking anywhere in the chart will toggle the GNSS frequency band markers (L1, G2, etc.) on or off.
+* Scatter Plot widget - Double-clicking anywhere in the plot will clear existing data.
 * DataLogging - Turn Data logging in the selected format on or off. You will be prompted to select the directory into which timestamped log files are saved (NB. only binary datalogs can be re-read by PyGPSClient's parser).
 * GPX Track - Turn track recording (in GPX format) on or off. You will be prompted to select the directory into which timestamped track files are saved.
 * GPX Track Viewer - Display the GPX Track Viewer dialog via Menu..Options..GPX Track Viewer. Click the load button to load a GPX file and display the map and profile. Click the redraw button to redraw the map.
@@ -173,8 +174,6 @@ Below is a illustrative NTRIP DGPS data log, showing:
 
 ---
 ### <a name="spartnconfig">SPARTN Client Facilities</a>
-
-**BETA FEATURE**
 
 ![spartn config widget screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/spartnconfig_widget.png?raw=true)
 
@@ -279,25 +278,29 @@ The GPX Track Viewer can display any valid GPX file containing trackpoints (`<tr
 ## <a name="installation">Installation</a>
 
 In the following, `python3` & `pip` refer to the Python 3 executables. You may need to type 
-`python` or `pip3`, depending on your particular environment. It is also recommended that 
+`python` or `pip3`, depending on your particular environment. It is recommended that 
 the Python 3 scripts (bin) and site_packages directories are included in your PATH 
 (*many standard Python 3 installation packages will do this automatically*).
 
 ### Platform Dependencies
 
-On Windows and MacOS, pip, tkinter and the necessary imaging libraries are generally packaged with Python 3.  On some Linux distributions like Ubuntu 18+ and Raspberry Pi OS, they may need to be installed separately, e.g.:
+- Python >= 3.7
+- Tk (tkinter) >= 8.6*¹*
+- Screen resolution >= 800 x 600; Ideally >= 1400 x 900, though the main application window is resizeable and reconfigurable.
+
+On Windows and MacOS, pip, tkinter and the necessary imaging libraries are included with the official [Python.org](https://www.python.org/downloads/) installation package.  On some Linux distributions like Ubuntu 18+ and Raspberry Pi OS, they may need to be installed separately*²*, e.g.:
 
 ```shell
 sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk
 ```
 
-*NB:* If you're compiling the latest version of Python 3 from source, you may also need to install tk-dev (or a similarly named package e.g. tk-devel) first. Refer to http://wiki.python.org/moin/TkInter for further details.
+*¹* The version of Python supplied with most Apple MacOS platforms includes a [deprecated version of tkinter](https://www.python.org/download/mac/tcltk/) (8.5). Use an official [Python.org](https://www.python.org/downloads/) installation package instead.
+
+*²* If you're compiling the latest version of Python 3 from source, you may also need to install tk-dev (or a similarly named package e.g. tk-devel) first. Refer to http://wiki.python.org/moin/TkInter for further details:
 
 ```shell
 sudo apt install tk-dev
 ```
-
-Ideally the platform screen resolution will be at least 1400 x 900, though the main application window is resizeable.
 
 ### User Privileges
 

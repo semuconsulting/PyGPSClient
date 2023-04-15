@@ -53,7 +53,6 @@ from pyubx2 import (
     X24,
 )
 from .globals import (
-    ENTCOL,
     ICON_SEND,
     ICON_WARNING,
     ICON_PENDING,
@@ -126,7 +125,6 @@ class UBX_Dynamic_Frame(Frame):
             self,
             border=2,
             relief="sunken",
-            bg=ENTCOL,
             height=11,
             justify=LEFT,
             exportselection=False,
@@ -346,10 +344,10 @@ class UBX_Dynamic_Frame(Frame):
             #     )
             #     Entry(
             #         self._frm_attrs,
-            #         readonlybackground=ENTCOL,
+            #
             #         textvariable=self._cfg_atts[nam],
             #         relief="sunken",
-            #         bg=ENTCOL,
+            #
             #     ).grid(column=1, row=row, sticky=(W))
             #     Label(self._frm_attrs, text=U1).grid(column=2, row=row, sticky=(W))
             #     row += 1
@@ -410,10 +408,8 @@ class UBX_Dynamic_Frame(Frame):
         Label(self._frm_attrs, text=nam).grid(column=0, row=row, sticky=E)
         Entry(
             self._frm_attrs,
-            readonlybackground=ENTCOL,
             textvariable=self._cfg_atts[nam][0],
             relief="sunken",
-            bg=ENTCOL,
         ).grid(column=1, row=row, sticky=W)
         Label(self._frm_attrs, text=att).grid(column=2, row=row, sticky=W)
         row += 1
@@ -441,7 +437,9 @@ class UBX_Dynamic_Frame(Frame):
             # send message, update status and await response
             self.__container.send_command(msg)
             self._lbl_send_command.config(image=self._img_pending)
-            self.__container.set_status(f"{self._cfg_id} SET message sent", "blue")
+            self.__container.set_status(
+                f"{self._cfg_id} SET message sent",
+            )
             for msgid in ("ACK-ACK", "ACK-NAK"):
                 self.__container.set_pending(msgid, UBX_CFGOTHER)
 
@@ -459,10 +457,14 @@ class UBX_Dynamic_Frame(Frame):
         if self._cfg_id in UBX_PAYLOADS_POLL:  # CFG is POLLable
             msg = UBXMessage("CFG", self._cfg_id, POLL)
             self.__container.send_command(msg)
-            self.__container.set_status(f"{self._cfg_id} POLL message sent", "blue")
+            self.__container.set_status(
+                f"{self._cfg_id} POLL message sent",
+            )
             self._lbl_send_command.config(image=self._img_pending)
             for msgid in (self._cfg_id, "ACK-NAK"):
                 self.__container.set_pending(msgid, UBX_CFGOTHER)
         else:  # CFG cannot be POLLed
-            self.__container.set_status(f"{self._cfg_id} No POLL available", "blue")
+            self.__container.set_status(
+                f"{self._cfg_id} No POLL available",
+            )
             self._lbl_send_command.config(image=self._img_unknown)

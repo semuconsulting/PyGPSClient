@@ -84,6 +84,7 @@ class SpectrumviewFrame(Frame):
         self._monspan_enabled = False
         self._pending_confs = {}
         self._showrf = True
+        self._chartpos = None
         self._body()
         self._set_fontsize()
         self._attach_events()
@@ -106,7 +107,7 @@ class SpectrumviewFrame(Frame):
         """
 
         self.bind("<Configure>", self._on_resize)
-        self.can_spectrumview.bind("<ButtonRelease-1>", self._on_click)
+        self.can_spectrumview.bind("<Button-1>", self._on_click)
         self.can_spectrumview.bind("<Double-Button-1>", self._toggle_rf)
 
     def init_graph(self):
@@ -188,6 +189,7 @@ class SpectrumviewFrame(Frame):
         """
 
         self.__app.gnss_status.spectrum_data = []
+        self._chartpos = None
         self.can_spectrumview.delete("all")
         self.update_frame()
         self.enable_MONSPAN(self.winfo_ismapped())
@@ -242,6 +244,7 @@ class SpectrumviewFrame(Frame):
                 h / 2,
                 text=DLGNOMONSPAN,
                 fill="orange",
+                anchor="s",
             )
             self._pending_confs.pop("ACK-NAK")
             self._monspan_enabled = False
@@ -335,7 +338,19 @@ class SpectrumviewFrame(Frame):
                         x1, y1, x2, y2, fill=col, width=OL_WID
                     )
 
-        self.can_spectrumview.update_idletasks()
+        # display any flagged chart position
+        if self._chartpos is not None:
+            x, y, hz, db = self._chartpos
+            self.can_spectrumview.create_text(
+                x,
+                y,
+                text=f"{hz:.3f} GHz\n{db:.1f} dB",
+                fill=FGCOL,
+                font=self._font,
+                anchor="center",
+            )
+
+        # self.can_spectrumview.update_idletasks()
 
     def _get_point(self, hz: float, db: float) -> tuple:
         """
@@ -428,21 +443,15 @@ class SpectrumviewFrame(Frame):
         """
 
         self.width, self.height = self.get_size()
+        self._chartpos = None
 
-    def _on_click(self, event):  # pylint: disable=unused-argument
+    def _on_click(self, event):
         """
-        Show frequency at cursor.
+        Save flagged chart position.
         """
 
         hz, db = self._get_hzdb(event.x, event.y)
-        self.can_spectrumview.create_text(
-            event.x,
-            event.y,
-            text=f"{hz:.3f} GHz\n{db:.1f} dB",
-            fill=FGCOL,
-            font=self._font,
-            anchor="center",
-        )
+        self._chartpos = (event.x, event.y, hz, db)
 
     def _toggle_rf(self, event):  # pylint: disable=unused-argument
         """
@@ -450,6 +459,7 @@ class SpectrumviewFrame(Frame):
         """
 
         self._showrf = not self._showrf
+        self._chartpos = None
 
     def get_size(self):
         """

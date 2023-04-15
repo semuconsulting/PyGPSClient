@@ -46,7 +46,6 @@ from pygpsclient.globals import (
     ICON_BLANK,
     ICON_SOCKET,
     ICON_LOAD,
-    ENTCOL,
     CONNECTED_SPARTNIP,
     CONNECTED_SPARTNLB,
     DISCONNECTED,
@@ -125,7 +124,6 @@ class SPARTNMQTTDialog(Frame):
         self._ent_mqttserver = Entry(
             self,
             textvariable=self._mqtt_server,
-            bg=ENTCOL,
             state=NORMAL,
             relief="sunken",
             width=25,
@@ -135,7 +133,6 @@ class SPARTNMQTTDialog(Frame):
             self,
             values=SPARTN_PPREGIONS,
             textvariable=self._mqtt_region,
-            readonlybackground=ENTCOL,
             state=READONLY,
             width=4,
             wrap=True,
@@ -144,7 +141,6 @@ class SPARTNMQTTDialog(Frame):
         self._ent_mqttclientid = Entry(
             self,
             textvariable=self._mqtt_clientid,
-            bg=ENTCOL,
             state=NORMAL,
             relief="sunken",
             width=35,
@@ -175,7 +171,6 @@ class SPARTNMQTTDialog(Frame):
         self._ent_mqttcrt = Entry(
             self,
             textvariable=self._mqtt_crt,
-            bg=ENTCOL,
             state=NORMAL,
             relief="sunken",
             width=32,
@@ -190,7 +185,6 @@ class SPARTNMQTTDialog(Frame):
         self._ent_mqttpem = Entry(
             self,
             textvariable=self._mqtt_pem,
-            bg=ENTCOL,
             state=NORMAL,
             relief="sunken",
             width=32,
@@ -255,7 +249,9 @@ class SPARTNMQTTDialog(Frame):
         self._get_settings()
         self._mqtt_clientid.set(self.__app.app_config.get("mqttclientid", ""))
         self._reset_keypaths(self._mqtt_clientid.get())
-        self.__container.set_status("", "blue")
+        self.__container.set_status(
+            "",
+        )
         if self.__app.rtk_conn_status == CONNECTED_SPARTNIP:
             self.set_controls(CONNECTED_SPARTNIP)
         else:

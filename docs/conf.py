@@ -13,9 +13,8 @@
 import os
 import sys
 
-ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+sys.path.insert(0, os.path.abspath("../src"))
 
-sys.path.append(os.path.join(ROOT, "src"))
 from pygpsclient import version as VERSION
 
 # sys.path.insert(0, os.path.abspath('../pygpsclient'))

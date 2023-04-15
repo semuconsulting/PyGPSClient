@@ -16,14 +16,13 @@ from datetime import datetime, timedelta
 from tkinter import Toplevel, Entry, Label, Button, W
 import os
 from time import strftime
-from math import sin, cos, acos, radians
+from math import sin, cos, pi
 from requests import get
+from pynmeagps import haversine
 from pyubx2 import UBXMessage, atttyp, attsiz
 from pygpsclient.globals import (
     MAX_SNR,
     FIXLOOKUP,
-    ENTCOL,
-    ERRCOL,
     GPSEPOCH0,
 )
 
@@ -38,7 +37,6 @@ VALURL = 16
 VALHEX = 32
 VALDMY = 64
 VALLEN = 128
-EARTH_RADIUS = 6371  # km
 
 
 class ConfirmBox(Toplevel):
@@ -121,21 +119,6 @@ class ConfirmBox(Toplevel):
         return self._rc
 
 
-def deg2rad(deg: float) -> float:
-    """
-    Convert degrees to radians.
-
-    :param float deg: degrees
-    :return: radians
-    :rtype: float
-
-    """
-
-    if not isinstance(deg, (float, int)):
-        return 0
-    return radians(deg)
-
-
 def cel2cart(elevation: float, azimuth: float) -> tuple:
     """
     Convert celestial coordinates (degrees) to Cartesian coordinates.
@@ -149,8 +132,8 @@ def cel2cart(elevation: float, azimuth: float) -> tuple:
 
     if not (isinstance(elevation, (float, int)) and isinstance(azimuth, (float, int))):
         return (0, 0)
-    elevation = radians(elevation)
-    azimuth = radians(azimuth)
+    elevation = elevation * pi / 180
+    azimuth = azimuth * pi / 180
     x = cos(azimuth) * cos(elevation)
     y = sin(azimuth) * cos(elevation)
     return (x, y)
@@ -420,6 +403,33 @@ def svid2gnssid(svid) -> int:
     return gnssId
 
 
+def get_mp_distance(lat: float, lon: float, mp: list) -> float:
+    """
+    Get distance to mountpoint from current location (if known).
+
+    The sourcetable mountpoint entry is a list where index [0]
+    is the name and indices [8] & [9] are the lat/lon. Not all
+    sourcetable entries provide this information.
+
+    :param float lat: current latitude
+    :param float lon: current longitude
+    :param list mp: sourcetable mountpoint entry
+    :return: distance to mountpoint in km, or None if n/a
+    :rtype: float or None
+    """
+
+    dist = None
+    try:
+        if len(mp) > 9:  # if location provided for this mountpoint
+            lat2 = float(mp[8])
+            lon2 = float(mp[9])
+            dist = haversine(lat, lon, lat2, lon2)
+    except (ValueError, TypeError):
+        pass
+
+    return dist
+
+
 def check_latest(name: str) -> str:
     """
     Check for latest version of module on PyPi.
@@ -535,59 +545,14 @@ def valid_entry(entry: Entry, valmode: int, low=None, high=None) -> bool:
     except ValueError:
         valid = False
 
-    entry.config(bg=ENTCOL if valid else ERRCOL)
+    # entry.config(bg=ENTCOL if valid else ERRCOL)
+    if valid:
+        entry.configure(highlightthickness=0)
+    else:
+        entry.configure(
+            highlightthickness=1, highlightbackground="red", highlightcolor="red"
+        )
     return valid
-
-
-def haversine(
-    lat1: float, lon1: float, lat2: float, lon2: float, rds: int = EARTH_RADIUS
-) -> float:
-    """
-    Calculate spherical distance between two coordinates using haversine formula.
-
-    :param float lat1: lat1
-    :param float lon1: lon1
-    :param float lat2: lat2
-    :param float lon2: lon2
-    :param float rds: earth radius (6371 km)
-    :return: spherical distance in km
-    :rtype: float
-    """
-
-    coordinates = lat1, lon1, lat2, lon2
-    phi1, lambda1, phi2, lambda2 = [radians(c) for c in coordinates]
-    dist = rds * acos(
-        cos(phi2 - phi1) - cos(phi1) * cos(phi2) * (1 - cos(lambda2 - lambda1))
-    )
-
-    return dist
-
-
-def get_mp_distance(lat: float, lon: float, mp: list) -> float:
-    """
-    Get distance to mountpoint from current location (if known).
-
-    The sourcetable mountpoint entry is a list where index [0]
-    is the name and indices [8] & [9] are the lat/lon. Not all
-    sourcetable entries provide this information.
-
-    :param float lat: current latitude
-    :param float lon: current longitude
-    :param list mp: sourcetable mountpoint entry
-    :return: distance to mountpoint in km, or None if n/a
-    :rtype: float or None
-    """
-
-    dist = None
-    try:
-        if len(mp) > 9:  # if location provided for this mountpoint
-            lat2 = float(mp[8])
-            lon2 = float(mp[9])
-            dist = haversine(lat, lon, lat2, lon2)
-    except ValueError:
-        pass
-
-    return dist
 
 
 def stringvar2val(val: str, att: str) -> object:

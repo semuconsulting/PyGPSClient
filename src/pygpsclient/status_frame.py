@@ -53,7 +53,7 @@ class StatusFrame(Frame):
         ttk.Separator(self, orient=VERTICAL).grid(column=1, row=0, sticky=(N, S))
         self._lbl_status_preset.grid(column=2, row=0, sticky=(W, E))
 
-    def set_connection(self, connection: str, color="blue"):
+    def set_connection(self, connection: str, color: str = ""):
         """
         Sets connection description in status bar.
 
@@ -64,10 +64,11 @@ class StatusFrame(Frame):
 
         if len(connection) > 100:
             connection = "..." + connection[-100:]
-        self._lbl_connection.config(fg=color)
+        if color != "":
+            self._lbl_connection.config(fg=color)
         self._connection.set("  " + connection)
 
-    def set_status(self, message, color="blue"):
+    def set_status(self, message, color: str = ""):
         """
         Sets message in status bar.
 
@@ -78,7 +79,8 @@ class StatusFrame(Frame):
 
         if len(message) > 100:
             message = "..." + message[-100:]
-        self._lbl_status_preset.config(fg=color)
+        if color != "":
+            self._lbl_status_preset.config(fg=color)
         self._status.set("  " + message)
 
     def clear_status(self):

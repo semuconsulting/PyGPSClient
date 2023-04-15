@@ -26,7 +26,6 @@ from pyubx2 import (
     SET,
 )
 from .globals import (
-    ENTCOL,
     ICON_SEND,
     ICON_WARNING,
     ICON_PENDING,
@@ -93,7 +92,6 @@ class UBX_PORT_Frame(Frame):
             values=PORTIDS,
             width=8,
             state=READONLY,
-            readonlybackground=ENTCOL,
             wrap=True,
             textvariable=self._portid,
             command=lambda: self._on_select_portid(),  # pylint: disable=unnecessary-lambda
@@ -104,7 +102,6 @@ class UBX_PORT_Frame(Frame):
             values=(BPSRATES),
             width=6,
             state=READONLY,
-            readonlybackground=ENTCOL,
             wrap=True,
             textvariable=self._bpsrate,
         )
@@ -254,7 +251,9 @@ class UBX_PORT_Frame(Frame):
         )
         self.__container.send_command(msg)
         self._lbl_send_command.config(image=self._img_pending)
-        self.__container.set_status("CFG-PRT SET message sent", "blue")
+        self.__container.set_status(
+            "CFG-PRT SET message sent",
+        )
         for msgid in ("ACK-NAK", "ACK-NAK"):
             self.__container.set_pending(msgid, UBX_CFGPRT)
 
@@ -269,6 +268,8 @@ class UBX_PORT_Frame(Frame):
         msg = UBXMessage("CFG", "CFG-PRT", POLL, portID=portID)
         self.__container.send_command(msg)
         self._lbl_send_command.config(image=self._img_pending)
-        self.__container.set_status("CFG-PRT POLL message sent", "blue")
+        self.__container.set_status(
+            "CFG-PRT POLL message sent",
+        )
         for msgid in ("CFG-PRT", "ACK-NAK"):
             self.__container.set_pending(msgid, UBX_CFGPRT)

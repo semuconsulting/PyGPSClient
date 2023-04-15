@@ -97,18 +97,6 @@
             "problemMatcher": []
         },
         {
-            "label": "PylintError",
-            "type": "process",
-            "command": "${config:python.defaultInterpreterPath}",
-            "args": [
-                "-m",
-                "pylint",
-                "-E",
-                "src/${config:modulename}"
-            ],
-            "problemMatcher": []
-        },
-        {
             "label": "Pylint",
             "type": "process",
             "command": "${config:python.defaultInterpreterPath}",
@@ -128,6 +116,7 @@
                 "build",
                 ".",
                 "--wheel",
+                "--sdist",
             ],
             "problemMatcher": []
         },
@@ -137,7 +126,13 @@
             "command": "${config:python.defaultInterpreterPath}",
             "args": [
                 "-m",
-                "pytest"
+                "pytest",
+                "--cov",
+                "--cov-report=html",
+                "--cov-fail-under",
+                "5",
+                "--cov=${config:distname}",
+                "tests/",
             ],
             "problemMatcher": []
         },
@@ -146,6 +141,13 @@
             "type": "process",
             "command": "sphinx-apidoc",
             "args": [
+                "--doc-project=${config:modulename}",
+                "--doc-author=semuadmin",
+                "--doc-version=${config:moduleversion}",
+                "--doc-release=${config:moduleversion}",
+                "--ext-autodoc",
+                "--ext-viewcode",
+                "--templatedir=docs",
                 "-f",
                 "-o",
                 "docs",
@@ -206,7 +208,6 @@
                 "Update Toolchain",
                 "Install Dependencies",
                 "Format",
-                "PylintError",
                 "Pylint",
                 "Test",
                 "Build",

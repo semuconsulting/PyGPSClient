@@ -15,7 +15,8 @@ Please test all changes, however trivial, against the supplied pytest suite `tes
 
 ## Checklist:
 
-- [ ] My code follows the style guidelines of this project (see `CONTRIBUTING.MD`).
+- [ ] I agree to abide by the code of conduct (see [CODE_OF_CONDUCT.md](https://github.com/semuconsulting/pyubx2/blob/master/CODE_OF_CONDUCT.md)).
+- [ ] My code follows the style guidelines of this project (see [CONTRIBUTING.MD](https://github.com/semuconsulting/pyubx2/blob/master/CONTRIBUTING.md)).
 - [ ] I have performed a self-review of my own code.
 - [ ] I have commented my code, particularly in hard-to-understand areas.
 - [ ] I have made corresponding changes to the documentation.

@@ -20,7 +20,11 @@ from pygpsclient._version import __version__ as VERSION
 def main():
     """The main tkinter loop."""
 
-    arp = ArgumentParser(epilog=EPILOG, argument_default=SUPPRESS)
+    arp = ArgumentParser(
+        epilog=EPILOG,
+        argument_default=SUPPRESS,
+        description="Config file will override other command line arguments",
+    )
     arp.add_argument("-V", "--version", action="version", version="%(prog)s " + VERSION)
     arp.add_argument(
         "-C",

@@ -98,7 +98,6 @@ class AboutDialog:
         self._lbl_copyright = Label(
             self._dialog,
             text=COPYRIGHTTXT,
-            fg="blue",
             font=self.__app.font_sm,
             cursor="hand2",
         )

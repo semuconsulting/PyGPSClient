@@ -1,5 +1,15 @@
 # PyGPSClient Release Notes
 
+### RELEASE CANDIDATE v1.3.23
+
+CHANGES:
+
+1. Improved legibility in 'Light' and 'Dark' O/S modes by removing hard-coded Entry widget background colors. Fixes [#60](https://github.com/semuconsulting/PyGPSClient/issues/60). (*NB: the PyGPSClient application itself retains its 'dark' main widget GUI styling and there are no current plans to introduce user-selectable color themes.*)
+1. Minimum pygnssutils version updated to 1.0.6.
+1. Minor fixes to configuration load status messages.
+
+ENHANCEMENTS:
+
 ### RELEASE v1.3.22
 
 ENHANCEMENTS:

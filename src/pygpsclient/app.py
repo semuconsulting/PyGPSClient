@@ -39,7 +39,6 @@ from pygpsclient.globals import (
     NTRIP_EVENT,
     SPARTN_EVENT,
     OKCOL,
-    INFCOL,
     BADCOL,
     CONFIGFILE,
     MAP_UPDATE_INTERVAL,
@@ -183,7 +182,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         # Load configuration from file if it exists
         config_loaded = False
-        self.config = self.file_handler.load_config(configfile)
+        _, self.config = self.file_handler.load_config(configfile)
         if isinstance(self.config, dict):  # load succeeded
             config_loaded = True
             self.app_config = self.config  # do this before initialising widgets
@@ -200,12 +199,10 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         else:
             # self.config is str containing error msg
             if "No such file or directory" in self.config:
-                self.frm_status.set_status(
-                    f"Configuration file not found {configfile}", INFCOL
-                )
+                self.frm_status.set_status(f"Configuration file not found {configfile}")
             else:
                 self.frm_status.set_status(
-                    f"{LOADCONFIGBAD} {configfile} {self.config}", BADCOL
+                    f"{LOADCONFIGBAD} {configfile} {self.config}"
                 )
             self.config = {}
         self.frm_satview.init_sats()
@@ -425,7 +422,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.font_md2 = font.Font(size=14)
         self.font_lg = font.Font(size=18)
 
-    def set_connection(self, message, color=INFCOL):
+    def set_connection(self, message, color="green"):
         """
         Sets connection description in status bar.
 
@@ -434,9 +431,9 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         """
 
-        self.frm_status.set_connection(message, color)
+        self.frm_status.set_connection(message, color=color)
 
-    def set_status(self, message, color="black"):
+    def set_status(self, message, color="green"):
         """
         Sets text of status bar.
 
@@ -452,12 +449,15 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         Load configuration file menu option.
         """
 
-        self.config = self.file_handler.load_config(None)
+        data = self.file_handler.load_config(None)
+        if data is None:
+            return
+        filename, self.config = data
         if isinstance(self.config, str):  # load failed
             self.set_status(f"{LOADCONFIGBAD} {self.config}", BADCOL)
             self.config = None
         else:
-            self.set_status(LOADCONFIGOK, OKCOL)
+            self.set_status(f"{LOADCONFIGOK} {filename}", OKCOL)
             self.frm_settings.config = self.config
             self.widget_config = self.config
             self.app_config = self.config
@@ -474,6 +474,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             **self.app_config,
         }
         rcd = self.file_handler.save_config(self.config, None)
+        if rcd is None:
+            return
         if isinstance(rcd, str):  # save failed
             self.set_status(f"{SAVECONFIGBAD} {self.config}", BADCOL)
             self.config = None
@@ -919,8 +921,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.frm_banner.update_conn_status(status)
         self.frm_settings.enable_controls(status)
         if status == DISCONNECTED:
-            self.set_connection(NOTCONN, BADCOL)
-            self.set_status("", INFCOL)
+            self.set_connection(NOTCONN)
+            self.set_status("")
 
     @property
     def rtk_conn_status(self) -> int:

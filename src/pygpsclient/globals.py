@@ -13,9 +13,13 @@ Created on 14 Sep 2020
 # pylint: disable=line-too-long
 
 from os import path
+from collections import namedtuple
 from pathlib import Path
 from datetime import datetime
+
 from pyubx2 import GET, SET, POLL
+
+Point = namedtuple("Point", ["lat", "lon"])
 
 HOME = Path.home()
 DIRNAME = path.dirname(__file__)
@@ -195,11 +199,10 @@ MAXROWSPAN = 4  # max no of widget rows
 
 BGCOL = "gray24"  # default widget background color
 FGCOL = "white"  # default widget foreground color
-ENTCOL = "azure"  # default valid data entry field background color
+# ENTCOL = "azure"  # default valid data entry field background color
 ERRCOL = "pink"  # default invalid data entry field background color
-INFCOL = "steelblue3"  # readonly info field text color
+# INFCOL = "steelblue3"  # readonly info field text color
 OKCOL = "green"
-INFCOL = "blue"
 BADCOL = "red"
 READONLY = "readonly"
 ERROR = "ERR!"

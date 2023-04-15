@@ -243,10 +243,11 @@ class MapviewFrame(Frame):
         self.can_mapview.delete("all")
         self.can_mapview.create_text(
             w / 2,
-            h / 2 - (w / 20),
+            h / 2,
             text=msg,
             fill="orange",
             font=resize_font,
+            anchor="s",
         )
 
     def reset_map_refresh(self):

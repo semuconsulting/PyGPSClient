@@ -49,11 +49,6 @@ STOP = 0
 PLAY = 1
 RECORD = 2
 FLASH = 0.7
-COLGOOD = "green"
-COLBAD = "red"
-COLINFO = "blue"
-COLNORM = "black"
-COLWHIT = "white"
 
 
 class UBX_Recorder_Frame(Frame):
@@ -145,8 +140,8 @@ class UBX_Recorder_Frame(Frame):
             command=self._on_delete,
             font=self.__app.font_md,
         )
-        self._lbl_status = Label(self, text="", fg=COLINFO, anchor="center")
-        self._lbl_activity = Label(self, text="", fg=COLBAD, anchor="center")
+        self._lbl_status = Label(self, text="", anchor="center")
+        self._lbl_activity = Label(self, text="", anchor="center")
 
     def _do_layout(self):
         """
@@ -222,7 +217,7 @@ class UBX_Recorder_Frame(Frame):
             return
 
         self._cmds_stored = []
-        self._lbl_activity.config(text="Loading commands...", fg=COLINFO)
+        self._lbl_activity.config(text="Loading commands...")
 
         with open(self._configfile, "rb") as file:
             ubr = UBXReader(file, protfilter=UBX_PROTOCOL, msgmode=SET)
@@ -238,8 +233,7 @@ class UBX_Recorder_Frame(Frame):
         if i > 0:
             fname = self._configfile.split("/")[-1]
             self._lbl_activity.config(
-                text=f"{i} Command{'s' if i > 1 else ''} loaded from {fname}",
-                fg=COLINFO,
+                text=f"{i} Command{'s' if i > 1 else ''} loaded from {fname}"
             )
 
         self._update_status()
@@ -253,22 +247,21 @@ class UBX_Recorder_Frame(Frame):
             return
 
         if len(self._cmds_stored) == 0:
-            self._lbl_activity.config(text="Nothing to save", fg=COLBAD)
+            self._lbl_activity.config(text="Nothing to save")
             return
 
         fname, self._configfile = self._set_configfile_path()
         if self._configfile is None:
             return
 
-        self._lbl_activity.config(text="Saving commands...", fg=COLINFO)
+        self._lbl_activity.config(text="Saving commands...")
         with open(self._configfile, "wb") as file:
             i = 0
             for i, msg in enumerate(self._cmds_stored):
                 file.write(msg.serialize())
         self._cmds_stored = []
         self._lbl_activity.config(
-            text=f"{i + 1} command{'s' if i > 0 else ''} saved to {fname}",
-            fg=COLINFO,
+            text=f"{i + 1} command{'s' if i > 0 else ''} saved to {fname}"
         )
         self._update_status()
 
@@ -281,20 +274,18 @@ class UBX_Recorder_Frame(Frame):
             return
 
         if len(self._cmds_stored) == 0:
-            self._lbl_activity.config(text="Nothing to send", fg=COLBAD)
+            self._lbl_activity.config(text="Nothing to send")
             return
 
         if self._rec_status == STOP:
             self._rec_status = PLAY
             i = 0
             for i, msg in enumerate(self._cmds_stored):
-                self._lbl_activity.config(
-                    text=f"{i} Sending {msg.identity}", fg=COLGOOD
-                )
+                self._lbl_activity.config(text=f"{i} Sending {msg.identity}")
                 self.__app.gnss_outqueue.put(msg.serialize())
                 sleep(0.01)
             self._lbl_activity.config(
-                text=f"{i + 1} command{'s' if i > 0 else ''} sent to device", fg=COLGOOD
+                text=f"{i + 1} command{'s' if i > 0 else ''} sent to device"
             )
             self._rec_status = STOP
         self._update_status()
@@ -318,7 +309,7 @@ class UBX_Recorder_Frame(Frame):
             self._stop_event.set()
             self._rec_status = STOP
             self.__container.recordmode = False
-            self._lbl_activity.config(text="Recording stopped", fg=COLNORM, bg=self._bg)
+            self._lbl_activity.config(text="Recording stopped")
         self._update_status()
 
     def _on_undo(self):
@@ -327,13 +318,13 @@ class UBX_Recorder_Frame(Frame):
         """
 
         if len(self._cmds_stored) == 0:
-            self._lbl_activity.config(text="Nothing to undo", fg=COLBAD)
+            self._lbl_activity.config(text="Nothing to undo")
             return
 
         if self._rec_status == STOP:
             if len(self._cmds_stored) > 0:
                 self._cmds_stored.pop()
-                self._lbl_activity.config(text="Last command undone", fg=COLINFO)
+                self._lbl_activity.config(text="Last command undone")
                 self._update_status()
 
     def _on_delete(self):
@@ -345,14 +336,11 @@ class UBX_Recorder_Frame(Frame):
             return
 
         if len(self._cmds_stored) == 0:
-            self._lbl_activity.config(text="Nothing to delete", fg=COLBAD)
+            self._lbl_activity.config(text="Nothing to delete")
             return
 
         i = len(self._cmds_stored)
-        self._lbl_activity.config(
-            text=f"{i} command{'s' if i > 1 else ''} deleted",
-            fg=COLBAD,
-        )
+        self._lbl_activity.config(text=f"{i} command{'s' if i > 1 else ''} deleted")
         self._cmds_stored = []
         self._update_status()
 
@@ -363,10 +351,7 @@ class UBX_Recorder_Frame(Frame):
 
         lcs = len(self._cmds_stored)
         lst = f". Last command: {self._cmds_stored[-1].identity}" if lcs > 0 else ""
-        self._lbl_status.config(
-            text=f"Commands in memory: {lcs}{lst}",
-            fg=COLINFO,
-        )
+        self._lbl_status.config(text=f"Commands in memory: {lcs}{lst}")
 
         if self._rec_status == STOP:
             pimg = self._img_play
@@ -399,7 +384,7 @@ class UBX_Recorder_Frame(Frame):
         """
 
         try:
-            cols = [(COLWHIT, COLBAD), (COLBAD, self._bg)]
+            cols = [("white", "red"), ("red", "white")]
             i = 0
             while not stop.is_set():
                 i = not i

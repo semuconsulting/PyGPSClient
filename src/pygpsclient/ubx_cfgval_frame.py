@@ -32,9 +32,6 @@ from PIL import ImageTk, Image
 from pyubx2 import UBXMessage, UBX_CONFIG_DATABASE
 from pyubx2.ubxhelpers import atttyp, attsiz, cfgname2key
 from pygpsclient.globals import (
-    ENTCOL,
-    ERRCOL,
-    INFCOL,
     ICON_SEND,
     ICON_WARNING,
     ICON_PENDING,
@@ -152,7 +149,6 @@ class UBX_CFGVAL_Frame(Frame):
             self,
             border=2,
             relief="sunken",
-            bg=ENTCOL,
             height=5,
             justify=LEFT,
             exportselection=False,
@@ -168,7 +164,6 @@ class UBX_CFGVAL_Frame(Frame):
             self,
             border=2,
             relief="sunken",
-            bg=ENTCOL,
             height=5,
             justify=LEFT,
             exportselection=False,
@@ -193,9 +188,7 @@ class UBX_CFGVAL_Frame(Frame):
         self._lbl_keyid = Label(
             self,
             textvariable=self._cfgkeyid,
-            bg=ENTCOL,
             width=10,
-            fg=INFCOL,
             border=1,
             relief="sunken",
         )
@@ -203,9 +196,7 @@ class UBX_CFGVAL_Frame(Frame):
         self._lbl_att = Label(
             self,
             textvariable=self._cfgatt,
-            bg=ENTCOL,
             width=5,
-            fg=INFCOL,
             border=1,
             relief="sunken",
         )
@@ -214,18 +205,14 @@ class UBX_CFGVAL_Frame(Frame):
             self,
             textvariable=self._cfglayer,
             values=("RAM", "BBR", "FLASH", "DEFAULT"),
-            bg=ENTCOL,
             wrap=True,
             width=8,
             state=READONLY,
-            readonlybackground=ENTCOL,
         )
         self._lbl_val = Label(self, text="Value")
         self._ent_val = Entry(
             self,
             textvariable=self._cfgval,
-            readonlybackground=ENTCOL,
-            fg=INFCOL,
             state=READONLY,
             relief="sunken",
         )
@@ -306,9 +293,9 @@ class UBX_CFGVAL_Frame(Frame):
         """
 
         if self._cfgmode.get() == VALSET:
-            self._ent_val.config(state=NORMAL, bg=ENTCOL, fg="Black")
+            self._ent_val.config(state=NORMAL)
         else:
-            self._ent_val.config(state=READONLY, readonlybackground=ENTCOL, fg=INFCOL)
+            self._ent_val.config(state=READONLY)
 
     def _on_select_cat(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -401,13 +388,13 @@ class UBX_CFGVAL_Frame(Frame):
         if valid_entry:
             msg = UBXMessage.config_set(layers, transaction, cfgData)
             self.__container.send_command(msg)
-            self._ent_val.configure(bg=ENTCOL)
             self._lbl_send_command.config(image=self._img_pending)
-            self.__container.set_status("CFG-VALSET SET message sent", "blue")
+            self.__container.set_status(
+                "CFG-VALSET SET message sent",
+            )
             for msgid in ("ACK-ACK", "ACK-NAK"):
                 self.__container.set_pending(msgid, UBX_CFGVAL)
         else:
-            self._ent_val.configure(bg=ERRCOL)
             self._lbl_send_command.config(image=self._img_warn)
             typ = ATTDICT[att]
             self.__container.set_status(
@@ -438,9 +425,8 @@ class UBX_CFGVAL_Frame(Frame):
         ]
         msg = UBXMessage.config_del(layers, transaction, key)
         self.__container.send_command(msg)
-        self._ent_val.configure(bg=ENTCOL)
         self._lbl_send_command.config(image=self._img_pending)
-        self.__container.set_status("CFG-VALDEL SET message sent", "blue")
+        self.__container.set_status("CFG-VALDEL SET message sent")
         for msgid in ("ACK-ACK", "ACK-NAK"):
             self.__container.set_pending(msgid, UBX_CFGVAL)
 
@@ -464,9 +450,8 @@ class UBX_CFGVAL_Frame(Frame):
         ]
         msg = UBXMessage.config_poll(layers, transaction, keys)
         self.__container.send_command(msg)
-        self._ent_val.configure(bg=ENTCOL)
         self._lbl_send_command.config(image=self._img_pending)
-        self.__container.set_status("CFG-VALGET POLL message sent", "blue")
+        self.__container.set_status("CFG-VALGET POLL message sent")
         for msgid in ("CFG-VALGET", "ACK-ACK", "ACK-NAK"):
             self.__container.set_pending(msgid, UBX_CFGVAL)
 

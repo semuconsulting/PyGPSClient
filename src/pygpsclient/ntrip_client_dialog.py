@@ -52,7 +52,6 @@ from pygpsclient.globals import (
     UBX_CFGMSG,
     UBX_CFGVAL,
     UBX_PRESET,
-    ENTCOL,
     READONLY,
     POPUP_TRANSIENT,
     UI,
@@ -171,7 +170,6 @@ class NTRIPConfigDialog(Toplevel):
         self._ent_server = Entry(
             self._frm_container,
             textvariable=self._ntrip_server,
-            bg=ENTCOL,
             state=NORMAL,
             relief="sunken",
             width=50,
@@ -180,7 +178,6 @@ class NTRIPConfigDialog(Toplevel):
         self._ent_port = Entry(
             self._frm_container,
             textvariable=self._ntrip_port,
-            bg=ENTCOL,
             state=NORMAL,
             relief="sunken",
             width=6,
@@ -189,7 +186,6 @@ class NTRIPConfigDialog(Toplevel):
         self._ent_mountpoint = Entry(
             self._frm_container,
             textvariable=self._ntrip_mountpoint,
-            bg=ENTCOL,
             state=NORMAL,
             relief="sunken",
             width=20,
@@ -203,7 +199,6 @@ class NTRIPConfigDialog(Toplevel):
         self._lbl_sourcetable = Label(self._frm_container, text=LBLNTRIPSTR)
         self._lbx_sourcetable = Listbox(
             self._frm_container,
-            bg=ENTCOL,
             height=4,
             relief="sunken",
             width=55,
@@ -220,7 +215,6 @@ class NTRIPConfigDialog(Toplevel):
             self._frm_container,
             values=(NTRIP_VERSIONS),
             width=4,
-            readonlybackground=ENTCOL,
             wrap=True,
             textvariable=self._ntrip_version,
             state=READONLY,
@@ -229,7 +223,6 @@ class NTRIPConfigDialog(Toplevel):
         self._ent_user = Entry(
             self._frm_container,
             textvariable=self._ntrip_user,
-            bg=ENTCOL,
             state=NORMAL,
             relief="sunken",
             width=50,
@@ -238,7 +231,6 @@ class NTRIPConfigDialog(Toplevel):
         self._ent_password = Entry(
             self._frm_container,
             textvariable=self._ntrip_password,
-            bg=ENTCOL,
             state=NORMAL,
             relief="sunken",
             width=20,
@@ -249,7 +241,6 @@ class NTRIPConfigDialog(Toplevel):
             self._frm_container,
             values=(GGA_INTERVALS),
             width=5,
-            readonlybackground=ENTCOL,
             wrap=True,
             textvariable=self._ntrip_gga_interval,
             state=READONLY,
@@ -267,7 +258,6 @@ class NTRIPConfigDialog(Toplevel):
         self._ent_lat = Entry(
             self._frm_container,
             textvariable=self._ntrip_gga_lat,
-            bg=ENTCOL,
             state=NORMAL,
             relief="sunken",
             width=15,
@@ -276,7 +266,6 @@ class NTRIPConfigDialog(Toplevel):
         self._ent_lon = Entry(
             self._frm_container,
             textvariable=self._ntrip_gga_lon,
-            bg=ENTCOL,
             state=NORMAL,
             relief="sunken",
             width=15,
@@ -285,7 +274,6 @@ class NTRIPConfigDialog(Toplevel):
         self._ent_alt = Entry(
             self._frm_container,
             textvariable=self._ntrip_gga_alt,
-            bg=ENTCOL,
             state=NORMAL,
             relief="sunken",
             width=15,
@@ -294,7 +282,6 @@ class NTRIPConfigDialog(Toplevel):
         self._ent_sep = Entry(
             self._frm_container,
             textvariable=self._ntrip_gga_sep,
-            bg=ENTCOL,
             state=NORMAL,
             relief="sunken",
             width=15,
@@ -436,12 +423,11 @@ class NTRIPConfigDialog(Toplevel):
                 if mountpoint == "/":
                     mountpoint = " - retrieving sourcetable..."
                 msg = (
-                    (f"Connected to {server}:{port}{mountpoint}", "green")
+                    f"Connected to {server}:{port}{mountpoint}"
                     if self._connected
-                    else ("Disconnected", "blue")
+                    else "Disconnected"
                 )
-            txt, col = msg
-            self.set_status(txt, col)
+            self.set_status(msg)
 
             self._btn_disconnect.config(state=(NORMAL if connected else DISABLED))
 
@@ -482,16 +468,17 @@ class NTRIPConfigDialog(Toplevel):
         except TclError:  # fudge during thread termination
             pass
 
-    def set_status(self, message: str, color: str = "blue"):
+    def set_status(self, message: str, color: str = ""):
         """
         Set status message.
 
         :param str message: message to be displayed
-        :param str color: rgb color of text (blue)
+        :param str color: rgb color of text
         """
 
         message = (message[:80] + "..") if len(message) > 80 else message
-        self._lbl_status.config(fg=color)
+        if color != "":
+            self._lbl_status.config(fg=color)
         self._status.set(" " + message)
 
     def _on_select_mp(self, event):

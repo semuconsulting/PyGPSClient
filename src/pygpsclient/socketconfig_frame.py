@@ -30,8 +30,6 @@ from pygpsclient.globals import DEFAULT_SERVER, DEFAULT_PORT
 ADVOFF = "\u25bc"
 ADVON = "\u25b2"
 READONLY = "readonly"
-ENTCOL = "azure"
-BGCOL = "azure"
 DISCONNECTED = 0
 CONNECTED = 1
 PROTOCOLS = ["TCP", "UDP"]
@@ -50,8 +48,6 @@ class SocketConfigFrame(Frame):
         :param args: optional args to pass to Frame parent class
         :param kwargs: optional kwargs for value ranges, or to pass to Frame parent class
         """
-
-        self._readonlybg = kwargs.pop("readonlybackground", BGCOL)
 
         Frame.__init__(self, container, *args, **kwargs)
 
@@ -75,7 +71,6 @@ class SocketConfigFrame(Frame):
         self.ent_server = Entry(
             self._frm_basic,
             textvariable=self._server,
-            bg=ENTCOL,
             relief="sunken",
             width=32,
         )
@@ -84,7 +79,6 @@ class SocketConfigFrame(Frame):
         self.ent_port = Entry(
             self._frm_basic,
             textvariable=self._port,
-            bg=ENTCOL,
             relief="sunken",
             width=6,
         )
@@ -95,7 +89,6 @@ class SocketConfigFrame(Frame):
             values=PROTOCOLS,
             width=12,
             state=READONLY,
-            readonlybackground=self._readonlybg,
             wrap=True,
         )
 
