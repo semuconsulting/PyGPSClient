@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE v1.3.24
+
+FIXES:
+
+1. Fixes #63 ValueError if pygpsclient started with no default config file
+
 ### RELEASE v1.3.23
 
 CHANGES:
