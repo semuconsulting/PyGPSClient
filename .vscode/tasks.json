@@ -22,7 +22,7 @@
             "problemMatcher": []
         },
         {
-            "label": "Install Dependencies",
+            "label": "Update Dependencies",
             "type": "process",
             "command": "${config:python.defaultInterpreterPath}",
             "args": [
@@ -206,7 +206,7 @@
             "dependsOn": [
                 "Clean",
                 "Update Toolchain",
-                "Install Dependencies",
+                "Update Dependencies",
                 "Format",
                 "Pylint",
                 "Test",
