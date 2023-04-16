@@ -96,12 +96,12 @@ class FileHandler:
                     ),
                 )
                 if filename in ((), ""):
-                    return None  # User cancelled
+                    return (None, None)  # User cancelled
 
             with open(filename, "r", encoding="utf-8") as jsonfile:
                 config = json.load(jsonfile)
         except (OSError, json.JSONDecodeError) as err:
-            return str(err)
+            return (None, str(err))
 
         return (filename, config)
 
