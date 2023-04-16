@@ -6,6 +6,9 @@ position.
 
 Created 23 March 2023
 
+Amended by semuadmin on 4 April 2023 to eliminate dependency on
+statistics and geographiclib libraries.
+
 :author: Nathan Michaels
 :copyright: Qualinx B.V.
 :license: BSD 3-Clause

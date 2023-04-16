@@ -157,7 +157,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.dlg_ntripconfig = None
         self.dlg_spartnconfig = None
         self.dlg_gpxviewer = None
-        self.config = None
+        self.config = {}
         self._conn_status = DISCONNECTED
         self._rtk_conn_status = DISCONNECTED
         self._map_update_interval = MAP_UPDATE_INTERVAL
@@ -449,13 +449,11 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         Load configuration file menu option.
         """
 
-        data = self.file_handler.load_config(None)
-        if data is None:
-            return
-        filename, self.config = data
+        filename, self.config = self.file_handler.load_config(None)
+        if self.config is None:
+            return  # user cancelled
         if isinstance(self.config, str):  # load failed
             self.set_status(f"{LOADCONFIGBAD} {self.config}", BADCOL)
-            self.config = None
         else:
             self.set_status(f"{LOADCONFIGOK} {filename}", OKCOL)
             self.frm_settings.config = self.config
