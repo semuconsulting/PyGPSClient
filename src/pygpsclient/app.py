@@ -454,7 +454,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             return  # user cancelled
         if isinstance(self.config, str):  # load failed
             self.set_status(f"{LOADCONFIGBAD} {self.config}", BADCOL)
-            # self.app_config = {}
         else:
             self.set_status(f"{LOADCONFIGOK} {filename}", OKCOL)
             self.frm_settings.config = self.config
