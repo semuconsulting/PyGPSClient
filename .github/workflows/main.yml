@@ -28,6 +28,7 @@ jobs:
       - name: Test with pytest
         run: |
           pytest
-      - uses: pyupio/safety@2.3.5
-        with:
-          api-key: ${{ secrets.SAFETY_API_KEY }}
+      # pyupio/safety action currently uses deprecated set-output command
+      # - uses: pyupio/safety@2.3.5
+      #   with:
+      #     api-key: ${{ secrets.SAFETY_API_KEY }}
