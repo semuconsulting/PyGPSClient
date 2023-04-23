@@ -1,5 +1,12 @@
 # PyGPSClient Release Notes
 
+### RELEASE CANDIDATE v1.3.25
+
+CHANGES:
+
+1. Internal updates to VS Code and GHA workflows.
+1. Bandit security analysis added to VS Code and GHA workflows.
+
 ### RELEASE v1.3.24
 
 FIXES:

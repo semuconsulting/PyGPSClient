@@ -11,7 +11,7 @@ maintainers = [
   {name = "semuadmin", email = "semuadmin@semuconsulting.com"}
 ]
 description = "GNSS Diagnostic and UBX Configuration GUI Application"
-version = "1.3.24"
+version = "1.3.25"
 license = {file = "LICENSE"}
 keywords= [
     "PyGPSClient",
@@ -71,23 +71,26 @@ repository = "https://github.com/semuconsulting/PyGPSClient"
 changelog = "https://github.com/semuconsulting/PyGPSClient/blob/master/RELEASE_NOTES.md"
 
 [project.optional-dependencies]
+deploy = [
+    "build>=0.10",
+    "pip>=23",
+    "setuptools>=66.0",
+    "wheel>=0.40"
+]
 test = [
     "bandit>=1.7",
     "black>=23.1",
-    "build>=0.10",
     "certifi>=2022.12",
-    "pip>=23",
     "pylint>=2.17",
     "pytest>=7.2",
     "pytest-cov>=4.0",
-    "setuptools>=66.0",
     "Sphinx>=5.3",
     "sphinx-rtd-theme>=1.2.0",
-    "wheel>=0.40"
+
 ]
 [tool.bandit]
 exclude_dirs = ["docs", "examples", "tests"]
-skips = []
+skips = ["B104","B318","B408"] # bind 0.0.0.0; minidom
 
 [tool.pylint]
 jobs = 0
