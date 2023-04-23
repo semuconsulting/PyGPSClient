@@ -108,6 +108,21 @@
             "problemMatcher": []
         },
         {
+            "label": "Security",
+            "type": "process",
+            "command": "${config:python.defaultInterpreterPath}",
+            "args": [
+                "-m",
+                "bandit",
+                "-c",
+                "pyproject.toml",
+                "-r",
+                "--exit-zero",
+                "."
+            ],
+            "problemMatcher": []
+        },
+        {
             "label": "Build",
             "type": "process",
             "command": "${config:python.defaultInterpreterPath}",
@@ -209,6 +224,7 @@
                 "Update Dependencies",
                 "Format",
                 "Pylint",
+                "Security",
                 "Test",
                 "Build",
                 "Sphinx HTML"
