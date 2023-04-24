@@ -6,6 +6,7 @@ CHANGES:
 
 1. Internal updates to VS Code and GHA workflows.
 1. Bandit security analysis added to VS Code and GHA workflows.
+1. Imports sorted using iSort.
 
 ### RELEASE v1.3.24
 
