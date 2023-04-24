@@ -1,5 +1,8 @@
 name: pygpsclient
 
+env: 
+  MODULE: sandpit
+
 on:
   push:
     branches:
@@ -29,7 +32,7 @@ jobs:
           pip install .
       - name: Lint with pylint
         run: |
-          pylint -E src/pygpsclient
+          pylint -E src/$MODULE
       - name: Security vulnerability analysis with bandit
         run: |
           bandit -c pyproject.toml -r -lll .
