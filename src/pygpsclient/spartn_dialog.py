@@ -16,36 +16,28 @@ Created on 26 Jan 2023
 :license: BSD 3-Clause
 """
 
-from tkinter import (
-    Toplevel,
-    Frame,
-    Button,
-    Label,
-    StringVar,
-    N,
-    S,
-    E,
-    W,
-)
-from PIL import ImageTk, Image
+from tkinter import Button, E, Frame, Label, N, S, StringVar, Toplevel, W
+
+from PIL import Image, ImageTk
 from pyubx2 import UBXMessage
+
 from pygpsclient.globals import (
-    ICON_EXIT,
+    CONNECTED_SPARTNIP,
+    CONNECTED_SPARTNLB,
+    ICON_BLANK,
     ICON_CONFIRMED,
+    ICON_EXIT,
     ICON_PENDING,
     ICON_WARNING,
-    ICON_BLANK,
+    POPUP_TRANSIENT,
     SPARTN_GNSS,
     SPARTN_LBAND,
     SPARTN_MQTT,
-    POPUP_TRANSIENT,
-    CONNECTED_SPARTNIP,
-    CONNECTED_SPARTNLB,
 )
-from pygpsclient.strings import DLGSPARTNCONFIG
 from pygpsclient.spartn_gnss_frame import SPARTNGNSSDialog
 from pygpsclient.spartn_lband_frame import SPARTNLBANDDialog
 from pygpsclient.spartn_mqtt_frame import SPARTNMQTTDialog
+from pygpsclient.strings import DLGSPARTNCONFIG
 
 RXMMSG = "RXM-SPARTN-KEY"
 CFGSET = "CFG-VALGET/SET"

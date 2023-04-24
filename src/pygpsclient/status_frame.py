@@ -10,7 +10,7 @@ Created on 12 Sep 2020
 :license: BSD 3-Clause
 """
 
-from tkinter import ttk, Frame, Label, StringVar, N, S, W, E, VERTICAL
+from tkinter import VERTICAL, E, Frame, Label, N, S, StringVar, W, ttk
 
 
 class StatusFrame(Frame):

@@ -10,30 +10,30 @@ Created on 12 Sep 2020
 :license: BSD 3-Clause
 """
 
-from tkinter import Menu, NORMAL
+from tkinter import NORMAL, Menu
 
 from pygpsclient.strings import (
-    MENUSAVE,
-    MENULOAD,
-    MENUFILE,
-    MENUVIEW,
-    MENUOPTION,
-    MENUEXIT,
     MENUABOUT,
-    MENUHELP,
-    MENUUBXCONFIG,
-    MENUNTRIPCONFIG,
+    MENUEXIT,
+    MENUFILE,
     MENUGPXVIEWER,
-    WDGSETTINGS,
-    WDGSTATUS,
+    MENUHELP,
+    MENULOAD,
+    MENUNTRIPCONFIG,
+    MENUOPTION,
+    MENURESET,
+    MENUSAVE,
+    MENUSPARTNCONFIG,
+    MENUUBXCONFIG,
+    MENUVIEW,
     WDGCONSOLE,
-    WDGSATS,
     WDGLEVELS,
     WDGMAP,
-    WDGSPECTRUM,
+    WDGSATS,
     WDGSCATTER,
-    MENURESET,
-    MENUSPARTNCONFIG,
+    WDGSETTINGS,
+    WDGSPECTRUM,
+    WDGSTATUS,
 )
 
 

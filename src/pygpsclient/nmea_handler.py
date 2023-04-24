@@ -11,9 +11,11 @@ Created on 30 Sep 2020
 """
 
 from time import time
+
 from pynmeagps import NMEAMessage
+
 from pygpsclient.globals import SAT_EXPIRY
-from pygpsclient.helpers import knots2ms, kmph2ms, fix2desc
+from pygpsclient.helpers import fix2desc, kmph2ms, knots2ms
 
 
 class NMEAHandler:

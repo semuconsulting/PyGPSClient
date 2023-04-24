@@ -9,33 +9,35 @@ Created on 22 Dec 2020
 """
 
 from tkinter import (
-    Frame,
-    Radiobutton,
-    Listbox,
-    Spinbox,
-    Scrollbar,
-    Button,
-    Label,
-    StringVar,
-    IntVar,
-    Entry,
-    N,
-    S,
-    E,
-    W,
-    LEFT,
-    VERTICAL,
     HORIZONTAL,
+    LEFT,
     NORMAL,
+    VERTICAL,
+    Button,
+    E,
+    Entry,
+    Frame,
+    IntVar,
+    Label,
+    Listbox,
+    N,
+    Radiobutton,
+    S,
+    Scrollbar,
+    Spinbox,
+    StringVar,
+    W,
 )
-from PIL import ImageTk, Image
-from pyubx2 import UBXMessage, UBX_CONFIG_DATABASE
-from pyubx2.ubxhelpers import atttyp, attsiz, cfgname2key
+
+from PIL import Image, ImageTk
+from pyubx2 import UBX_CONFIG_DATABASE, UBXMessage
+from pyubx2.ubxhelpers import attsiz, atttyp, cfgname2key
+
 from pygpsclient.globals import (
+    ICON_CONFIRMED,
+    ICON_PENDING,
     ICON_SEND,
     ICON_WARNING,
-    ICON_PENDING,
-    ICON_CONFIRMED,
     READONLY,
     UBX_CFGVAL,
 )

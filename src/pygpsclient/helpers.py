@@ -11,20 +11,18 @@ Created on 17 Apr 2021
 
 """
 
+import os
 import re
 from datetime import datetime, timedelta
-from tkinter import Toplevel, Entry, Label, Button, W
-import os
+from math import cos, pi, sin
 from time import strftime
-from math import sin, cos, pi
-from requests import get
+from tkinter import Button, Entry, Label, Toplevel, W
+
 from pynmeagps import haversine
-from pyubx2 import UBXMessage, atttyp, attsiz
-from pygpsclient.globals import (
-    MAX_SNR,
-    FIXLOOKUP,
-    GPSEPOCH0,
-)
+from pyubx2 import UBXMessage, attsiz, atttyp
+from requests import get
+
+from pygpsclient.globals import FIXLOOKUP, GPSEPOCH0, MAX_SNR
 
 # validation type flags
 MAXPORT = 65535

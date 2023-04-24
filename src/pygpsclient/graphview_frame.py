@@ -10,8 +10,9 @@ Created on 14 Sep 2020
 :license: BSD 3-Clause
 """
 
-from tkinter import Frame, Canvas, font, BOTH, YES
-from pygpsclient.globals import WIDGETU2, BGCOL, FGCOL, MAX_SNR, GNSS_LIST
+from tkinter import BOTH, YES, Canvas, Frame, font
+
+from pygpsclient.globals import BGCOL, FGCOL, GNSS_LIST, MAX_SNR, WIDGETU2
 from pygpsclient.helpers import snr2col
 
 # Relative offsets of graph axes and legend

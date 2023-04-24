@@ -8,24 +8,21 @@ Created on 22 Dec 2020
 :license: BSD 3-Clause
 """
 
-from tkinter import (
-    Frame,
-    Label,
-    StringVar,
-    W,
-)
-from PIL import ImageTk, Image
-from pyubx2 import UBXMessage, POLL
+from tkinter import Frame, Label, StringVar, W
+
+from PIL import Image, ImageTk
+from pyubx2 import POLL, UBXMessage
+
 from pygpsclient.globals import (
-    ICON_SEND,
-    ICON_WARNING,
-    ICON_PENDING,
-    ICON_CONFIRMED,
     ANTPOWER,
     ANTSTATUS,
-    UBX_MONVER,
-    UBX_MONHW,
     CONNECTED,
+    ICON_CONFIRMED,
+    ICON_PENDING,
+    ICON_SEND,
+    ICON_WARNING,
+    UBX_MONHW,
+    UBX_MONVER,
 )
 
 

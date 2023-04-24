@@ -13,26 +13,25 @@ Created on 26 Apr 2022
 :license: BSD 3-Clause
 """
 
-from socketserver import ThreadingTCPServer, StreamRequestHandler
 from io import BufferedReader
-from threading import Thread, Event
 from queue import Queue
-from serial import Serial, SerialException, SerialTimeoutException
+from socketserver import StreamRequestHandler, ThreadingTCPServer
+from threading import Event, Thread
 
-from pyubx2 import (
-    UBXReader,
-    ERR_IGNORE,
-    UBX_PROTOCOL,
-    NMEA_PROTOCOL,
-    RTCM3_PROTOCOL,
-    UBXMessageError,
-    UBXParseError,
-)
 from pynmeagps import NMEAMessageError, NMEAParseError
 from pyrtcm import RTCMMessageError, RTCMParseError
-from pygpsclient.globals import (
-    DEFAULT_BUFSIZE,
+from pyubx2 import (
+    ERR_IGNORE,
+    NMEA_PROTOCOL,
+    RTCM3_PROTOCOL,
+    UBX_PROTOCOL,
+    UBXMessageError,
+    UBXParseError,
+    UBXReader,
 )
+from serial import Serial, SerialException, SerialTimeoutException
+
+from pygpsclient.globals import DEFAULT_BUFSIZE
 
 
 class SockServer(ThreadingTCPServer):
@@ -224,7 +223,6 @@ class StreamHandler:
         """
 
         try:
-
             with Serial(
                 self._serport, self._baud, timeout=self._timeout
             ) as self._serial_object:
@@ -255,7 +253,6 @@ class StreamHandler:
         parsed_data = None
         while not stopevent.is_set():
             try:
-
                 raw_data, parsed_data = ubr.read()
                 if raw_data is not None:
                     # print(parsed_data)
@@ -273,7 +270,6 @@ class StreamHandler:
 
 
 if __name__ == "__main__":
-
     SERIAL = "/dev/tty.usbmodem14101"
     BAUD = 9600
     TIMEOUT = 0.1

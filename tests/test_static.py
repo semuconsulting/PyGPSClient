@@ -8,36 +8,37 @@ Static method tests for pygpsclient.helpers
 # pylint: disable=missing-docstring
 
 import unittest
-
 from datetime import datetime
+
 from pyubx2 import UBXReader
+
 from pygpsclient.helpers import (
+    bitsval,
+    cel2cart,
+    col2contrast,
+    corrage2int,
+    date2wnotow,
+    fix2desc,
+    ft2m,
+    get_mp_distance,
+    haversine,
+    hsv2rgb,
+    kmph2ms,
+    knots2ms,
     m2ft,
+    mapq_compress,
+    mapq_decompress,
     ms2kmph,
     ms2knots,
     ms2mph,
-    ft2m,
-    kmph2ms,
-    knots2ms,
-    pos2iso6709,
-    str2rgb,
-    hsv2rgb,
-    snr2col,
-    col2contrast,
-    svid2gnssid,
-    cel2cart,
-    corrage2int,
-    fix2desc,
-    validURL,
-    haversine,
-    get_mp_distance,
-    stringvar2val,
-    mapq_compress,
-    mapq_decompress,
-    date2wnotow,
-    wnotow2date,
-    bitsval,
     parse_rxmspartnkey,
+    pos2iso6709,
+    snr2col,
+    str2rgb,
+    stringvar2val,
+    svid2gnssid,
+    validURL,
+    wnotow2date,
 )
 
 

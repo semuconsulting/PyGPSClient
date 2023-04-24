@@ -11,43 +11,40 @@ Created on 13 Sep 2020
 """
 
 from platform import system
-from tkinter import Frame, Label, Button, StringVar, font, N, S, W, E, SUNKEN
-from PIL import ImageTk, Image
+from tkinter import SUNKEN, Button, E, Frame, Label, N, S, StringVar, W, font
+
+from PIL import Image, ImageTk
+from pynmeagps.nmeahelpers import latlon2dmm, latlon2dms
 from pyubx2 import dop2str
-from pynmeagps.nmeahelpers import latlon2dms, latlon2dmm
+
 from pygpsclient.globals import (
-    DMM,
-    DMS,
-    UMK,
-    UI,
-    UIK,
-    ICON_CONN,
-    ICON_SERIAL,
-    ICON_SOCKET,
-    ICON_DISCONN,
-    ICON_LOGREAD,
-    ICON_EXPAND,
-    ICON_CONTRACT,
-    ICON_TRANSMIT,
-    ICON_NOCLIENT,
-    ICON_NTRIPCONFIG,
-    ICON_SPARTNCONFIG,
-    ICON_BLANK,
+    BGCOL,
     CONNECTED,
-    CONNECTED_SOCKET,
     CONNECTED_FILE,
     CONNECTED_NTRIP,
+    CONNECTED_SOCKET,
     CONNECTED_SPARTNIP,
     CONNECTED_SPARTNLB,
-    BGCOL,
+    DMM,
+    DMS,
     FGCOL,
+    ICON_BLANK,
+    ICON_CONN,
+    ICON_CONTRACT,
+    ICON_DISCONN,
+    ICON_EXPAND,
+    ICON_LOGREAD,
+    ICON_NOCLIENT,
+    ICON_NTRIPCONFIG,
+    ICON_SERIAL,
+    ICON_SOCKET,
+    ICON_SPARTNCONFIG,
+    ICON_TRANSMIT,
+    UI,
+    UIK,
+    UMK,
 )
-from pygpsclient.helpers import (
-    m2ft,
-    ms2mph,
-    ms2kmph,
-    ms2knots,
-)
+from pygpsclient.helpers import m2ft, ms2kmph, ms2knots, ms2mph
 
 DGPSYES = "YES"
 DGPSNO = "N/A"

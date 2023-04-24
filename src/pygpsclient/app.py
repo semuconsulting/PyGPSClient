@@ -8,86 +8,83 @@ Created on 12 Sep 2020
 :license: BSD 3-Clause
 """
 
-from os import getenv
-from threading import Thread
-from queue import Queue, Empty
 from datetime import datetime, timedelta
-from tkinter import Frame, N, S, E, W, PhotoImage, font
+from os import getenv
+from queue import Empty, Queue
+from threading import Thread
+from tkinter import E, Frame, N, PhotoImage, S, W, font
+
+from pygnssutils import GNSSMQTTClient, GNSSNTRIPClient
+from pygnssutils.socket_server import ClientHandler, SocketServer
+from pyubx2 import NMEA_PROTOCOL, RTCM3_PROTOCOL, UBX_PROTOCOL, protocol
 from serial import SerialException, SerialTimeoutException
-from pyubx2 import (
-    protocol,
-    NMEA_PROTOCOL,
-    UBX_PROTOCOL,
-    RTCM3_PROTOCOL,
-)
-from pygnssutils import GNSSNTRIPClient, GNSSMQTTClient
-from pygnssutils.socket_server import SocketServer, ClientHandler
-from pygpsclient.globals import (
-    ICON_APP,
-    CONNECTED,
-    DISCONNECTED,
-    NOPORTS,
-    GUI_UPDATE_INTERVAL,
-    SOCKSERVER_MAX_CLIENTS,
-    SOCKSERVER_HOST,
-    MAXCOLSPAN,
-    MAXROWSPAN,
-    CHECK_FOR_UPDATES,
-    WIDGETU4,
-    GNSS_EVENT,
-    GNSS_EOF_EVENT,
-    NTRIP_EVENT,
-    SPARTN_EVENT,
-    OKCOL,
-    BADCOL,
-    CONFIGFILE,
-    MAP_UPDATE_INTERVAL,
-)
+
 from pygpsclient._version import __version__ as VERSION
-from pygpsclient.helpers import check_latest
-from pygpsclient.strings import (
-    LOADCONFIGOK,
-    LOADCONFIGBAD,
-    SAVECONFIGOK,
-    SAVECONFIGBAD,
-    TITLE,
-    INTROTXTNOPORTS,
-    NOTCONN,
-    HIDE,
-    SHOW,
-    WDGBANNER,
-    WDGSETTINGS,
-    WDGSTATUS,
-    WDGCONSOLE,
-    WDGSATS,
-    WDGLEVELS,
-    WDGMAP,
-    WDGSPECTRUM,
-    WDGSCATTER,
-    VERCHECK,
-    CONFIGERR,
-)
-from pygpsclient.gnss_status import GNSSStatus
 from pygpsclient.about_dialog import AboutDialog
 from pygpsclient.banner_frame import BannerFrame
 from pygpsclient.console_frame import ConsoleFrame
 from pygpsclient.file_handler import FileHandler
+from pygpsclient.globals import (
+    BADCOL,
+    CHECK_FOR_UPDATES,
+    CONFIGFILE,
+    CONNECTED,
+    DISCONNECTED,
+    GNSS_EOF_EVENT,
+    GNSS_EVENT,
+    GUI_UPDATE_INTERVAL,
+    ICON_APP,
+    MAP_UPDATE_INTERVAL,
+    MAXCOLSPAN,
+    MAXROWSPAN,
+    NOPORTS,
+    NTRIP_EVENT,
+    OKCOL,
+    SOCKSERVER_HOST,
+    SOCKSERVER_MAX_CLIENTS,
+    SPARTN_EVENT,
+    WIDGETU4,
+)
+from pygpsclient.gnss_status import GNSSStatus
+from pygpsclient.gpx_dialog import GPXViewerDialog
 from pygpsclient.graphview_frame import GraphviewFrame
+from pygpsclient.helpers import check_latest
 from pygpsclient.map_frame import MapviewFrame
 from pygpsclient.menu_bar import MenuBar
-from pygpsclient.stream_handler import StreamHandler
+from pygpsclient.nmea_handler import NMEAHandler
+from pygpsclient.ntrip_client_dialog import NTRIPConfigDialog
+from pygpsclient.rtcm3_handler import RTCM3Handler
+from pygpsclient.scatter_frame import ScatterViewFrame
 from pygpsclient.settings_frame import SettingsFrame
 from pygpsclient.skyview_frame import SkyviewFrame
-from pygpsclient.spectrum_frame import SpectrumviewFrame
-from pygpsclient.scatter_frame import ScatterViewFrame
-from pygpsclient.status_frame import StatusFrame
-from pygpsclient.ubx_config_dialog import UBXConfigDialog
-from pygpsclient.ntrip_client_dialog import NTRIPConfigDialog
 from pygpsclient.spartn_dialog import SPARTNConfigDialog
-from pygpsclient.gpx_dialog import GPXViewerDialog
-from pygpsclient.nmea_handler import NMEAHandler
+from pygpsclient.spectrum_frame import SpectrumviewFrame
+from pygpsclient.status_frame import StatusFrame
+from pygpsclient.stream_handler import StreamHandler
+from pygpsclient.strings import (
+    CONFIGERR,
+    HIDE,
+    INTROTXTNOPORTS,
+    LOADCONFIGBAD,
+    LOADCONFIGOK,
+    NOTCONN,
+    SAVECONFIGBAD,
+    SAVECONFIGOK,
+    SHOW,
+    TITLE,
+    VERCHECK,
+    WDGBANNER,
+    WDGCONSOLE,
+    WDGLEVELS,
+    WDGMAP,
+    WDGSATS,
+    WDGSCATTER,
+    WDGSETTINGS,
+    WDGSPECTRUM,
+    WDGSTATUS,
+)
+from pygpsclient.ubx_config_dialog import UBXConfigDialog
 from pygpsclient.ubx_handler import UBXHandler
-from pygpsclient.rtcm3_handler import RTCM3Handler
 
 SPARTN_PROTOCOL = 9
 DEFAULT_WIDGETS = (

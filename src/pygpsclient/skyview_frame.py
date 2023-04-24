@@ -10,10 +10,11 @@ Created on 13 Sep 2020
 :license: BSD 3-Clause
 """
 
-from tkinter import Frame, Canvas, font, BOTH, YES
 from operator import itemgetter
-from pygpsclient.globals import WIDGETU1, BGCOL, FGCOL, GNSS_LIST
-from pygpsclient.helpers import snr2col, cel2cart, col2contrast
+from tkinter import BOTH, YES, Canvas, Frame, font
+
+from pygpsclient.globals import BGCOL, FGCOL, GNSS_LIST, WIDGETU1
+from pygpsclient.helpers import cel2cart, col2contrast, snr2col
 
 OL_WID = 2
 

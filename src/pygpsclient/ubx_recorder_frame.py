@@ -14,36 +14,25 @@ Created on 9 Jan 2023
 :license: BSD 3-Clause
 """
 
-from time import sleep
 from threading import Event, Thread
-from tkinter import (
-    Frame,
-    Button,
-    Label,
-    filedialog,
-    TclError,
-    E,
-    W,
-)
-from PIL import ImageTk, Image
-from pyubx2 import (
-    UBXMessage,
-    UBXReader,
-    SET,
-    UBX_PROTOCOL,
-)
+from time import sleep
+from tkinter import Button, E, Frame, Label, TclError, W, filedialog
+
+from PIL import Image, ImageTk
+from pyubx2 import SET, UBX_PROTOCOL, UBXMessage, UBXReader
+
 from pygpsclient.globals import (
     HOME,
+    ICON_DELETE,
+    ICON_LOAD,
+    ICON_RECORD,
+    ICON_SAVE,
     ICON_SEND,
     ICON_STOP,
-    ICON_RECORD,
     ICON_UNDO,
-    ICON_LOAD,
-    ICON_SAVE,
-    ICON_DELETE,
 )
-from pygpsclient.strings import LBLCFGRECORD, READTITLE, SAVETITLE
 from pygpsclient.helpers import set_filename
+from pygpsclient.strings import LBLCFGRECORD, READTITLE, SAVETITLE
 
 STOP = 0
 PLAY = 1

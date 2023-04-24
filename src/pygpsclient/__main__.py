@@ -9,12 +9,12 @@ Created on 12 Sep 2020
 """
 
 import sys
-from argparse import ArgumentParser, SUPPRESS
+from argparse import SUPPRESS, ArgumentParser
 from tkinter import Tk
 
-from pygpsclient.globals import EPILOG, CONFIGFILE
-from pygpsclient.app import App
 from pygpsclient._version import __version__ as VERSION
+from pygpsclient.app import App
+from pygpsclient.globals import CONFIGFILE, EPILOG
 
 
 def main():

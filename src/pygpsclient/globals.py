@@ -12,12 +12,12 @@ Created on 14 Sep 2020
 """
 # pylint: disable=line-too-long
 
-from os import path
 from collections import namedtuple
-from pathlib import Path
 from datetime import datetime
+from os import path
+from pathlib import Path
 
-from pyubx2 import GET, SET, POLL
+from pyubx2 import GET, POLL, SET
 
 Point = namedtuple("Point", ["lat", "lon"])
 

@@ -19,44 +19,46 @@ Created on 26 Jan 2023
 from os import path
 from pathlib import Path
 from tkinter import (
-    ttk,
-    Frame,
+    DISABLED,
+    NORMAL,
     Button,
     Checkbutton,
-    Spinbox,
-    Label,
-    Entry,
-    StringVar,
-    IntVar,
     E,
+    Entry,
+    Frame,
+    IntVar,
+    Label,
+    Spinbox,
+    StringVar,
     W,
-    NORMAL,
-    DISABLED,
+    ttk,
 )
-from PIL import ImageTk, Image
+
+from PIL import Image, ImageTk
 from pyubx2 import UBXMessage
+
 from pygpsclient.globals import (
-    ICON_EXIT,
-    ICON_SEND,
-    ICON_CONFIRMED,
-    ICON_PENDING,
-    ICON_WARNING,
-    ICON_SERIAL,
-    ICON_DISCONN,
-    ICON_BLANK,
-    ICON_SOCKET,
-    ICON_LOAD,
     CONNECTED_SPARTNIP,
     CONNECTED_SPARTNLB,
     DISCONNECTED,
-    READONLY,
-    SPARTN_PPREGIONS,
-    SPARTN_GNSS,
-    RXMMSG,
+    ICON_BLANK,
+    ICON_CONFIRMED,
+    ICON_DISCONN,
+    ICON_EXIT,
+    ICON_LOAD,
+    ICON_PENDING,
+    ICON_SEND,
+    ICON_SERIAL,
+    ICON_SOCKET,
+    ICON_WARNING,
     OUTPORT_SPARTN,
+    READONLY,
+    RXMMSG,
+    SPARTN_GNSS,
+    SPARTN_PPREGIONS,
 )
-from pygpsclient.strings import LBLSPARTNIP, DLGSPARTNWARN, MQTTCONN
-from pygpsclient.helpers import valid_entry, VALLEN
+from pygpsclient.helpers import VALLEN, valid_entry
+from pygpsclient.strings import DLGSPARTNWARN, LBLSPARTNIP, MQTTCONN
 
 
 class SPARTNMQTTDialog(Frame):

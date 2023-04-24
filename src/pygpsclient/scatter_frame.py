@@ -14,11 +14,12 @@ statistics and geographiclib libraries.
 :license: BSD 3-Clause
 """
 
-from math import radians, sqrt, cos, sin
-from tkinter import Frame, font, BOTH, YES, NO, IntVar, Scale, HORIZONTAL
+from math import cos, radians, sin, sqrt
+from tkinter import BOTH, HORIZONTAL, NO, YES, Frame, IntVar, Scale, font
 
-from pynmeagps import haversine, bearing
-from pygpsclient.globals import WIDGETU2, BGCOL, FGCOL, Point
+from pynmeagps import bearing, haversine
+
+from pygpsclient.globals import BGCOL, FGCOL, WIDGETU2, Point
 from pygpsclient.skyview_frame import Canvas
 
 

@@ -15,30 +15,32 @@ Created on 24 Dec 2020
 """
 
 from tkinter import (
-    Frame,
-    Listbox,
-    Scrollbar,
-    Spinbox,
-    Checkbutton,
+    DISABLED,
+    HORIZONTAL,
+    LEFT,
+    NORMAL,
+    VERTICAL,
     Button,
-    Label,
-    IntVar,
+    Checkbutton,
     DoubleVar,
-    StringVar,
+    E,
+    Frame,
+    IntVar,
+    Label,
+    Listbox,
     N,
     S,
-    E,
+    Scrollbar,
+    Spinbox,
+    StringVar,
     W,
-    LEFT,
-    VERTICAL,
-    HORIZONTAL,
-    NORMAL,
-    DISABLED,
 )
-from PIL import ImageTk, Image
+
+from PIL import Image, ImageTk
+from serial import PARITY_EVEN, PARITY_MARK, PARITY_NONE, PARITY_ODD, PARITY_SPACE
 from serial.tools.list_ports import comports
-from serial import PARITY_NONE, PARITY_EVEN, PARITY_ODD, PARITY_MARK, PARITY_SPACE
-from pygpsclient.globals import ICON_REFRESH, ICON_EXPAND, ICON_CONTRACT, MSGMODES
+
+from pygpsclient.globals import ICON_CONTRACT, ICON_EXPAND, ICON_REFRESH, MSGMODES
 from pygpsclient.strings import LBLUDPORT
 
 ADVOFF = "\u25bc"

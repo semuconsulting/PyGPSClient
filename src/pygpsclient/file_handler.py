@@ -10,33 +10,30 @@ Created on 16 Sep 2020
 :license: BSD 3-Clause
 """
 
+import json
 import os
 from datetime import datetime, timedelta
 from pathlib import Path
-import json
 from tkinter import filedialog
+
 from pyubx2 import hextable
 
 from pygpsclient.globals import (
-    HOME,
-    CONFIGNAME,
-    CONFIGFILE,
-    MQAPIKEY,
     COLORTAGS,
-    UBXPRESETS,
-    MAXLOGLINES,
-    XML_HDR,
-    GPX_NS,
-    GITHUB_URL,
+    CONFIGFILE,
+    CONFIGNAME,
     FORMATS,
+    GITHUB_URL,
+    GPX_NS,
     GPX_TRACK_INTERVAL,
-)
-from pygpsclient.strings import (
-    SAVETITLE,
-    READTITLE,
-    CONFIGTITLE,
+    HOME,
+    MAXLOGLINES,
+    MQAPIKEY,
+    UBXPRESETS,
+    XML_HDR,
 )
 from pygpsclient.helpers import set_filename
+from pygpsclient.strings import CONFIGTITLE, READTITLE, SAVETITLE
 
 
 class FileHandler:
