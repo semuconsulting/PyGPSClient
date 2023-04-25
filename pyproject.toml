@@ -72,22 +72,26 @@ changelog = "https://github.com/semuconsulting/PyGPSClient/blob/master/RELEASE_N
 
 [project.optional-dependencies]
 deploy = [
-    "build>=0.10",
+    "build",
     "pip>=23",
-    "setuptools>=66.0",
-    "wheel>=0.40"
+    "setuptools",
+    "wheel"
 ]
 test = [
-    "bandit>=1.7",
-    "black>=23.1",
-    "certifi>=2022.12",
-    "pylint>=2.17",
-    "pytest>=7.2",
-    "pytest-cov>=4.0",
-    "Sphinx>=5.3",
-    "sphinx-rtd-theme>=1.2.0",
-
+    "bandit",
+    "black",
+    "certifi",
+    "pylint",
+    "pytest",
+    "pytest-cov",
+    "Sphinx",
+    "sphinx-rtd-theme",
 ]
+
+[tool.black]
+line-length = 88
+target-version = ['py37']
+
 [tool.bandit]
 exclude_dirs = ["docs", "examples", "tests"]
 skips = ["B104","B318","B408"] # bind 0.0.0.0; minidom
@@ -95,8 +99,8 @@ skips = ["B104","B318","B408"] # bind 0.0.0.0; minidom
 [tool.pylint]
 jobs = 0
 reports = "y"
+recursive = "y"
 py-version = "3.7"
-#exit-zero = "y"
 fail-under = "9.8"
 fail-on = "E,F"
 clear-cache-post-run = "y"

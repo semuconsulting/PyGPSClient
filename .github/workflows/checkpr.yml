@@ -1,8 +1,5 @@
 name: checkpr
 
-env:
-  MODULE: sandpit
-
 on:
   pull_request:
 
@@ -26,7 +23,7 @@ jobs:
       - name: Install code dependencies
         run: pip install .
       - name: Lint with pylint
-        run: pylint -E src/$MODULE
+        run: pylint -E src
       - name: Scan security vulnerabilities with bandit
         run: bandit -c pyproject.toml -r .
       - name: Generate coverage report

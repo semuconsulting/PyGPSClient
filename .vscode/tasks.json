@@ -99,7 +99,7 @@
             "args": [
                 "-m",
                 "black",
-                "src/${config:modulename}"
+                "src"
             ],
             "problemMatcher": []
         },
@@ -110,7 +110,7 @@
             "args": [
                 "-m",
                 "pylint",
-                "src/${config:modulename}"
+                "src"
             ],
             "problemMatcher": []
         },
@@ -149,12 +149,6 @@
             "args": [
                 "-m",
                 "pytest",
-                "--cov",
-                "--cov-report=html",
-                "--cov-fail-under",
-                "5",
-                "--cov=${config:distname}",
-                "tests/",
             ],
             "problemMatcher": []
         },
