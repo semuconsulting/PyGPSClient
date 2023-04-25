@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=40.8.0", "wheel"]
+requires = ["setuptools>=66.0.0", "wheel"]
 build-backend = "setuptools.build_meta:__legacy__"
 
 [project]
@@ -73,8 +73,8 @@ changelog = "https://github.com/semuconsulting/PyGPSClient/blob/master/RELEASE_N
 [project.optional-dependencies]
 deploy = [
     "build",
-    "pip>=23",
-    "setuptools",
+    "pip",
+    "setuptools>=66.0.0",
     "wheel"
 ]
 test = [
