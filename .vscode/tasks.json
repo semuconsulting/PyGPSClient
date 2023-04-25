@@ -204,7 +204,8 @@
                 "s3",
                 "cp",
                 "${workspaceFolder}/docs/_build/html",
-                "s3://www.semuconsulting.com/${config:modulename}/"
+                "s3://www.semuconsulting.com/${config:modulename}/",
+                "--recursive"
             ],
             "dependsOrder": "sequence",
             "dependsOn": [
