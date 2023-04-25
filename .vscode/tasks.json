@@ -197,7 +197,7 @@
             "problemMatcher": []
         },
         {
-            "label": "Sphinx Deploy to S3",
+            "label": "Sphinx Deploy to S3", // needs AWS credentials
             "type": "process",
             "command": "aws",
             "args": [
