@@ -4,9 +4,11 @@
 
 CHANGES:
 
-1. Internal updates to VS Code and GHA workflows.
+1. Internal updates to VSCode and GHA workflows.
 1. Bandit security analysis added to VS Code and GHA workflows.
-1. Imports sorted using iSort.
+1. Update min pygnssutils version to 1.0.7
+
+No functional changes
 
 ### RELEASE v1.3.24
 
