@@ -495,7 +495,7 @@ Application icons from [iconmonstr](https://iconmonstr.com/license/) &copy;.
 
 semuadmin@semuconsulting.com
 
-[![discord channel](https://img.shields.io/discord/1100827159741874197)](https://discord.com/channels/1100827159741874197/1100827160257765540)
+[![Discord general channel](https://img.shields.io/discord/1100827159741874197)](https://discord.com/channels/1100827159741874197/1100827160257765540)
 
 `PyGPSClient` is maintained entirely by unpaid volunteers. It receives no funding from advertising or corporate sponsorship. If you find the utility useful, a small donation would be greatly appreciated!
 
