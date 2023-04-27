@@ -46,20 +46,16 @@ def txt2ubx(fname: str):
                         print(escapeall(cfgdata))
                         payload = version + layer + position + cfgdata
                         ubx = UBXMessage(cls, mid, GET, payload=payload)
-                        print(ubx)
-                        print(escapeall(ubx.serialize()))
                         outfile_get.write(ubx.serialize())
                         # only convert CFG-VALGET
                         if not (cls == b"\x06" and mid == b"\x8b"):
                             continue
-                        layers = b"\x01"
-                        transaction = b"\x00"
+                        layers = b"\x01" # bbr only
+                        transaction = b"\x00" # not transactional
                         reserved0 = b"\x00"
                         payload = version + layers + transaction + reserved0 + cfgdata
                         # create a CFG-VALSET message from the input CFG-VALGET
                         ubx = UBXMessage(b"\x06", b"\x8a", SET, payload=payload)
-                        print(ubx)
-                        print(escapeall(ubx.serialize()))
                         outfile_set.write(ubx.serialize())
                         write += 1
                     except Exception as err:  # pylint: disable=broad-exception-caught
