@@ -16,7 +16,7 @@ Created on 27 Apr 2023
 @author: semuadmin
 """
 
-from pyubx2 import UBXMessage, escapeall, GET, SET
+from pyubx2 import UBXMessage, GET, SET
 
 def txt2ubx(fname: str):
     """
@@ -43,7 +43,6 @@ def txt2ubx(fname: str):
                         layer = data[5:6]
                         position = data[6:8]
                         cfgdata = data[8:]
-                        print(escapeall(cfgdata))
                         payload = version + layer + position + cfgdata
                         ubx = UBXMessage(cls, mid, GET, payload=payload)
                         outfile_get.write(ubx.serialize())
