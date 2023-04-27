@@ -225,7 +225,7 @@ class UBX_Recorder_Frame(Frame):
             return
 
         self._cmds_stored = []
-        self._lbl_activity.config(text="Loading commands...")
+        self._update_activity("Loading commands...")
 
         if self._configfile[-3:] == "txt":
             i = self._on_load_txt(self._configfile)
@@ -234,8 +234,8 @@ class UBX_Recorder_Frame(Frame):
 
         if i > 0:
             fname = self._configfile.split("/")[-1]
-            self._lbl_activity.config(
-                text=f"{i} Command{'s' if i > 1 else ''} loaded from {fname}"
+            self._update_activity(
+                f"{i} Command{'s' if i > 1 else ''} loaded from {fname}"
             )
 
         self._update_status()
@@ -302,7 +302,7 @@ class UBX_Recorder_Frame(Frame):
                         self._cmds_stored.append(parsed)
                         i += 1
                 except Exception:  # pylint: disable=broad-exception-caught
-                    self._lbl_activity.config(text="ERROR parsing file!")
+                    self._update_activity("ERROR parsing file!")
                     return 0
 
         return i
@@ -316,22 +316,20 @@ class UBX_Recorder_Frame(Frame):
             return
 
         if len(self._cmds_stored) == 0:
-            self._lbl_activity.config(text="Nothing to save")
+            self._update_activity("Nothing to save")
             return
 
         fname, self._configfile = self._set_configfile_path()
         if self._configfile is None:
             return
 
-        self._lbl_activity.config(text="Saving commands...")
+        self._update_activity("Saving commands...")
         with open(self._configfile, "wb") as file:
             i = 0
             for i, msg in enumerate(self._cmds_stored):
                 file.write(msg.serialize())
         self._cmds_stored = []
-        self._lbl_activity.config(
-            text=f"{i + 1} command{'s' if i > 0 else ''} saved to {fname}"
-        )
+        self._update_activity(f"{i + 1} command{'s' if i > 0 else ''} saved to {fname}")
         self._update_status()
 
     def _on_play(self):
@@ -343,18 +341,18 @@ class UBX_Recorder_Frame(Frame):
             return
 
         if len(self._cmds_stored) == 0:
-            self._lbl_activity.config(text="Nothing to send")
+            self._update_activity("Nothing to send")
             return
 
         if self._rec_status == STOP:
             self._rec_status = PLAY
             i = 0
             for i, msg in enumerate(self._cmds_stored):
-                self._lbl_activity.config(text=f"{i} Sending {msg.identity}")
+                self._update_activity(f"{i} Sending {msg.identity}")
                 self.__app.gnss_outqueue.put(msg.serialize())
                 sleep(0.01)
-            self._lbl_activity.config(
-                text=f"{i + 1} command{'s' if i > 0 else ''} sent to device"
+            self._update_activity(
+                f"{i + 1} command{'s' if i > 0 else ''} sent to device"
             )
             self._rec_status = STOP
         self._update_status()
@@ -378,7 +376,7 @@ class UBX_Recorder_Frame(Frame):
             self._stop_event.set()
             self._rec_status = STOP
             self.__container.recordmode = False
-            self._lbl_activity.config(text="Recording stopped")
+            self._update_activity("Recording stopped")
         self._update_status()
 
     def _on_undo(self):
@@ -387,13 +385,13 @@ class UBX_Recorder_Frame(Frame):
         """
 
         if len(self._cmds_stored) == 0:
-            self._lbl_activity.config(text="Nothing to undo")
+            self._update_activity("Nothing to undo")
             return
 
         if self._rec_status == STOP:
             if len(self._cmds_stored) > 0:
                 self._cmds_stored.pop()
-                self._lbl_activity.config(text="Last command undone")
+                self._update_activity("Last command undone")
                 self._update_status()
 
     def _on_delete(self):
@@ -405,11 +403,11 @@ class UBX_Recorder_Frame(Frame):
             return
 
         if len(self._cmds_stored) == 0:
-            self._lbl_activity.config(text="Nothing to delete")
+            self._update_activity("Nothing to delete")
             return
 
         i = len(self._cmds_stored)
-        self._lbl_activity.config(text=f"{i} command{'s' if i > 1 else ''} deleted")
+        self._update_activity(f"{i} command{'s' if i > 1 else ''} deleted")
         self._cmds_stored = []
         self._update_status()
 
@@ -434,6 +432,17 @@ class UBX_Recorder_Frame(Frame):
 
         self._btn_play.config(image=pimg)
         self._btn_record.config(image=rimg)
+
+    def _update_activity(self, msg: str):
+        """
+        Update activity label.
+
+        :param str msg: message
+        """
+
+        if len(msg) > 55:
+            msg = f"{msg[0:30]}...{msg[-22:]}"
+        self._lbl_activity.config(text=msg)
 
     def update_record(self, msg: UBXMessage):
         """
