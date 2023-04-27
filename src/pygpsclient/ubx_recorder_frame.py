@@ -19,7 +19,21 @@ from time import sleep
 from tkinter import Button, E, Frame, Label, TclError, W, filedialog
 
 from PIL import Image, ImageTk
-from pyubx2 import SET, UBX_PROTOCOL, UBXMessage, UBXReader
+from pyubx2 import (
+    POLL_LAYER_BBR,
+    POLL_LAYER_FLASH,
+    SET,
+    SET_LAYER_BBR,
+    SET_LAYER_FLASH,
+    SET_LAYER_RAM,
+    TXN_NONE,
+    U1,
+    UBX_PROTOCOL,
+    UBXMessage,
+    UBXReader,
+    bytes2val,
+    val2bytes,
+)
 
 from pygpsclient.globals import (
     HOME,
@@ -38,6 +52,9 @@ STOP = 0
 PLAY = 1
 RECORD = 2
 FLASH = 0.7
+CFG = b"\x06"
+VALSET = b"\x8a"
+VALGET = b"\x8b"
 
 
 class UBX_Recorder_Frame(Frame):
@@ -187,8 +204,10 @@ class UBX_Recorder_Frame(Frame):
             parent=self.__container,
             title=READTITLE,
             initialdir=HOME,
+            defaultextension="ubx",
             filetypes=(
-                ("config files", "*.ubx"),
+                ("ubx config files", "*.ubx"),
+                ("u-center config files", "*.txt"),
                 ("all files", "*.*"),
             ),
         )
@@ -208,7 +227,29 @@ class UBX_Recorder_Frame(Frame):
         self._cmds_stored = []
         self._lbl_activity.config(text="Loading commands...")
 
-        with open(self._configfile, "rb") as file:
+        if self._configfile[-3:] == "txt":
+            i = self._on_load_txt(self._configfile)
+        else:
+            i = self._on_load_ubx(self._configfile)
+
+        if i > 0:
+            fname = self._configfile.split("/")[-1]
+            self._lbl_activity.config(
+                text=f"{i} Command{'s' if i > 1 else ''} loaded from {fname}"
+            )
+
+        self._update_status()
+
+    def _on_load_ubx(self, fname: str) -> int:
+        """
+        Load binary ubx configuration file
+
+        :param str fname: input filename
+        :return: no of items read
+        :rtype: int
+        """
+
+        with open(fname, "rb") as file:
             ubr = UBXReader(file, protfilter=UBX_PROTOCOL, msgmode=SET)
             eof = False
             i = 0
@@ -219,13 +260,52 @@ class UBX_Recorder_Frame(Frame):
                     i += 1
                 else:
                     eof = True
-        if i > 0:
-            fname = self._configfile.split("/")[-1]
-            self._lbl_activity.config(
-                text=f"{i} Command{'s' if i > 1 else ''} loaded from {fname}"
-            )
+        return i
 
-        self._update_status()
+    def _on_load_txt(self, fname: str) -> int:
+        """
+        Load u-center format text configuration file.
+
+        Any messages other than CFG-VALGET (0x068b) are discarded.
+        The CFG-VALGET messages are converted into CFG-VALGET.
+
+        :param str fname: input file name
+        :return: no of items read
+        :rtype: int
+        """
+
+        with open(fname, "r", encoding="utf-8") as file:
+            i = 0
+            for line in file:
+                try:
+                    parts = line.replace(" ", "").split("-")
+                    data = bytes.fromhex(parts[-1])
+                    cls = data[0:1]
+                    mid = data[1:2]
+                    if cls != CFG or mid != VALGET:
+                        continue
+                    version = data[4:5]
+                    layer = bytes2val(data[5:6], U1)
+                    if layer == POLL_LAYER_BBR:
+                        layers = SET_LAYER_BBR
+                    elif layer == POLL_LAYER_FLASH:
+                        layers = SET_LAYER_FLASH
+                    else:
+                        layers = SET_LAYER_RAM
+                    layers = val2bytes(layers, U1)
+                    transaction = val2bytes(TXN_NONE, U1)  # not transactional
+                    reserved0 = b"\x00"
+                    cfgdata = data[8:]
+                    payload = version + layers + transaction + reserved0 + cfgdata
+                    parsed = UBXMessage(CFG, VALSET, SET, payload=payload)
+                    if parsed is not None:
+                        self._cmds_stored.append(parsed)
+                        i += 1
+                except Exception:  # pylint: disable=broad-exception-caught
+                    self._lbl_activity.config(text="ERROR parsing file!")
+                    return 0
+
+        return i
 
     def _on_save(self):
         """

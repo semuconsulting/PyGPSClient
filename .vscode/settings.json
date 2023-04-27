@@ -1,7 +1,7 @@
 {
     "python.testing.pytestEnabled": true,
     "python.testing.unittestEnabled": false,
-    "python.formatting.provider": "none",
+    "python.formatting.provider": "black",
     "editor.formatOnSave": true,
     // NB: for Windows, assumes symlink has been set python3<==>python
     "python.defaultInterpreterPath": "python3",
@@ -10,7 +10,4 @@
     "modulename": "pygpsclient",
     "distname": "pygpsclient",
     "moduleversion": "1.3.25",
-    "[python]": {
-        "editor.defaultFormatter": "ms-python.black-formatter"
-    }
 }

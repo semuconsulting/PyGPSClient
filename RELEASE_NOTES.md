@@ -2,11 +2,15 @@
 
 ### RELEASE CANDIDATE v1.3.25
 
+ENHANCEMENT:
+
+1. UBX Configuration Load/Save/Record facility will now accept u-center *.txt configuration files (**for Generation 9+ devices only**) as well as binary *.ubx files.
+
 CHANGES:
 
-1. Internal updates to VSCode and GHA workflows.
 1. Bandit security analysis added to VS Code and GHA workflows.
 1. Update min pygnssutils version to 1.0.7
+1. Internal updates to VSCode and GHA workflows.
 
 No functional changes
 
