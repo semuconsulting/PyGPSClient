@@ -249,17 +249,22 @@ class UBX_Recorder_Frame(Frame):
         :rtype: int
         """
 
-        with open(fname, "rb") as file:
-            ubr = UBXReader(file, protfilter=UBX_PROTOCOL, msgmode=SET)
-            eof = False
-            i = 0
-            while not eof:
-                _, parsed = ubr.read()
-                if parsed is not None:
-                    self._cmds_stored.append(parsed)
-                    i += 1
-                else:
-                    eof = True
+        try:
+            with open(fname, "rb") as file:
+                ubr = UBXReader(file, protfilter=UBX_PROTOCOL, msgmode=SET)
+                eof = False
+                i = 0
+                while not eof:
+                    _, parsed = ubr.read()
+                    if parsed is not None:
+                        self._cmds_stored.append(parsed)
+                        i += 1
+                    else:
+                        eof = True
+        except Exception:  # pylint: disable=broad-exception-caught
+            self._update_activity(f"ERROR parsing {fname}!")
+            return 0
+
         return i
 
     def _on_load_txt(self, fname: str) -> int:
@@ -274,10 +279,10 @@ class UBX_Recorder_Frame(Frame):
         :rtype: int
         """
 
-        with open(fname, "r", encoding="utf-8") as file:
-            i = 0
-            for line in file:
-                try:
+        try:
+            with open(fname, "r", encoding="utf-8") as file:
+                i = 0
+                for line in file:
                     parts = line.replace(" ", "").split("-")
                     data = bytes.fromhex(parts[-1])
                     cls = data[0:1]
@@ -301,9 +306,9 @@ class UBX_Recorder_Frame(Frame):
                     if parsed is not None:
                         self._cmds_stored.append(parsed)
                         i += 1
-                except Exception:  # pylint: disable=broad-exception-caught
-                    self._update_activity("ERROR parsing file!")
-                    return 0
+        except Exception:  # pylint: disable=broad-exception-caught
+            self._update_activity(f"ERROR parsing {fname}!")
+            return 0
 
         return i
 
