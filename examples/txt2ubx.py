@@ -6,16 +6,17 @@ Utility which converts u-center *.txt configuration files to binary *.ubx files.
 Two output files are produced:
 
 *.get.ubx - contains GET (MON-VER and CFG-VALGET) messages mirroring the input file
-*.set.ubx - contains SET (converted CFG-VALSET) messages which can be used to apply configuration
+*.set.ubx - contains SET (converted CFG-VALSET) messages which can be used to set configuration
 
+The *.set.ubx file can be loaded into PyGPSClient's UBX Configuration Load/Save/record facility
+and uploaded to the receiver.
 
 Created on 27 Apr 2023
 
 @author: semuadmin
 """
 
-from pyubx2 import UBXMessage, GET, SET
-
+from pyubx2 import UBXMessage, escapeall, GET, SET
 
 def txt2ubx(fname: str):
     """
@@ -34,25 +35,31 @@ def txt2ubx(fname: str):
                     try:
                         read += 1
                         parts = line.replace(" ", "").split("-")
-                        payload = bytes.fromhex(parts[-1])
-                        cls = payload[0:1]
-                        mid = payload[1:2]
-                        # lenb = payload[2:4]
-                        ubx = UBXMessage(cls, mid, GET, payload=payload[4:])
+                        data = bytes.fromhex(parts[-1])
+                        cls = data[0:1]
+                        mid = data[1:2]
+                        # lenb = data[2:4]
+                        version = data[4:5]
+                        layer = data[5:6]
+                        position = data[6:8]
+                        cfgdata = data[8:]
+                        print(escapeall(cfgdata))
+                        payload = version + layer + position + cfgdata
+                        ubx = UBXMessage(cls, mid, GET, payload=payload)
+                        print(ubx)
+                        print(escapeall(ubx.serialize()))
                         outfile_get.write(ubx.serialize())
                         # only convert CFG-VALGET
                         if not (cls == b"\x06" and mid == b"\x8b"):
                             continue
-                        version = payload[4:5]
-                        # layer = payload[5:6]
-                        # position = payload[6:8]
-                        data = payload[8:]
-                        layers = b"\x01\x00"  # bbr
-                        transaction = b"\x00"  # not transactional
+                        layers = b"\x01"
+                        transaction = b"\x00"
                         reserved0 = b"\x00"
-                        payload = version + layers + transaction + reserved0 + data
+                        payload = version + layers + transaction + reserved0 + cfgdata
                         # create a CFG-VALSET message from the input CFG-VALGET
                         ubx = UBXMessage(b"\x06", b"\x8a", SET, payload=payload)
+                        print(ubx)
+                        print(escapeall(ubx.serialize()))
                         outfile_set.write(ubx.serialize())
                         write += 1
                     except Exception as err:  # pylint: disable=broad-exception-caught
@@ -61,6 +68,5 @@ def txt2ubx(fname: str):
                         continue
 
     print(f"{read} GET messages read, {write} SET messages written, {errors} errors")
-
 
 txt2ubx("simpleRTK2B_FW132_Base-00.txt")
