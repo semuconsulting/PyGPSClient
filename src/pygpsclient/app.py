@@ -441,6 +441,15 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         self.frm_status.set_status(message, color)
 
+    def set_event(self, evt: str):
+        """
+        Generate event
+
+        :param str evt: event type string
+        """
+
+        self.__master.event_generate(evt)
+
     def load_config(self):
         """
         Load configuration file menu option.
@@ -736,17 +745,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         if self.dlg_ntripconfig is not None:
             self.dlg_ntripconfig.set_controls(status, msgt)
-
-    def update_spartn_status(self, status: bool, msgt: tuple = None):
-        """
-        Update SPARTN configuration dialog connection status.
-
-        :param bool status: connected to SPARTN server (NONE, IP, LBAND)
-        :param tuple msgt: tuple of (message, color)
-        """
-
-        if self.dlg_spartnconfig is not None:
-            self.dlg_spartnconfig.set_controls(status, msgt)
 
     def get_coordinates(self) -> tuple:
         """
