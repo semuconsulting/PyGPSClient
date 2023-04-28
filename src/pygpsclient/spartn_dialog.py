@@ -230,7 +230,7 @@ class SPARTNConfigDialog(Toplevel):
                 if self._pending_confs.get(msgid, None) == spartnfrm:
                     self._pending_confs.pop(msgid)
 
-    def set_controls(self, status, msgt):
+    def set_controls(self, status: bool, msgt: tuple = None):
         """
         Set controls in IP or L-Band clients.
 

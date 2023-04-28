@@ -2,9 +2,13 @@
 
 ### RELEASE CANDIDATE v1.3.25
 
-ENHANCEMENT:
+ENHANCEMENTS:
 
 1. UBX Configuration Load/Save/Record facility will now accept u-center *.txt configuration files (**for Generation 9+ devices only**) as well as binary *.ubx files. Thanks for @wdwalker in #66 for suggestion.
+
+FIXES:
+
+1. Fix error when updating NTRIP Client dialog status (e.g. with 'unauthorized' errors)
 
 CHANGES:
 

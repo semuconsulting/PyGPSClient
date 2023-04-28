@@ -397,18 +397,18 @@ class NTRIPConfigDialog(Toplevel):
         self._get_settings()
         self.set_controls(self._connected)
 
-    def set_controls(self, connected: bool, msg: tuple = None):
+    def set_controls(self, connected: bool, msgt: tuple = None):
         """
         Enable or disable controls depending on connection status.
 
         :param bool status: connection status (True/False)
-        :param tuple msg: optional status message tuple (text, color)
+        :param tuple msgt: tuple of (message, color)
         """
 
         try:
             self._settings = self.__app.ntrip_handler.settings
             self._connected = connected
-            if msg is None:
+            if msgt is None:
                 server = self._settings["server"]
                 port = self._settings["port"]
                 mp = self._settings["mountpoint"]
@@ -422,7 +422,11 @@ class NTRIPConfigDialog(Toplevel):
                     if self._connected
                     else "Disconnected"
                 )
-            self.set_status(msg)
+            if msgt is None:
+                self.set_status("")
+            else:
+                msg, col = msgt
+                self.set_status(msg, col)
 
             self._btn_disconnect.config(state=(NORMAL if connected else DISABLED))
 
@@ -471,7 +475,7 @@ class NTRIPConfigDialog(Toplevel):
         :param str color: rgb color of text
         """
 
-        message = (message[:80] + "..") if len(message) > 80 else message
+        message = f"{message[:78]}.." if len(message) > 80 else message
         if color != "":
             self._lbl_status.config(fg=color)
         self._status.set(" " + message)
