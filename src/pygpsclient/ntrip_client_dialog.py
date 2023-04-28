@@ -423,7 +423,7 @@ class NTRIPConfigDialog(Toplevel):
                     else "Disconnected"
                 )
             if msgt is None:
-                self.set_status("")
+                self.set_status(msg, "blue")
             else:
                 msg, col = msgt
                 self.set_status(msg, col)
