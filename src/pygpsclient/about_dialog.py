@@ -20,7 +20,7 @@ from pyspartn import version as SPARTNVERSION
 from pyubx2 import version as UBXVERSION
 
 from pygpsclient._version import __version__ as VERSION
-from pygpsclient.globals import GITHUB_URL, ICON_APP, ICON_EXIT
+from pygpsclient.globals import DLGTABOUT, GITHUB_URL, ICON_APP, ICON_EXIT
 from pygpsclient.helpers import check_latest
 from pygpsclient.strings import ABOUTTXT, COPYRIGHTTXT, DLGABOUT
 
@@ -145,6 +145,7 @@ class AboutDialog:
         Handle OK button press.
         """
 
+        self.__app.stop_dialog(DLGTABOUT)
         self._dialog.destroy()
 
     def _check_for_update(self, *args, **kwargs):  # pylint: disable=unused-argument

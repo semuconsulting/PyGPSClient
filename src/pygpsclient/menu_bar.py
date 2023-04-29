@@ -12,6 +12,7 @@ Created on 12 Sep 2020
 
 from tkinter import NORMAL, Menu
 
+from pygpsclient.globals import DLGTABOUT, DLGTGPX, DLGTNTRIP, DLGTSPARTN, DLGTUBX
 from pygpsclient.strings import (
     MENUABOUT,
     MENUEXIT,
@@ -120,25 +121,25 @@ class MenuBar(Menu):
         self.options_menu.add_command(
             label=MENUUBXCONFIG,
             underline=1,
-            command=self.__app.ubxconfig,
+            command=lambda: self.__app.start_dialog(DLGTUBX),
             state=NORMAL,
         )
         self.options_menu.add_command(
             label=MENUNTRIPCONFIG,
             underline=1,
-            command=self.__app.ntripconfig,
+            command=lambda: self.__app.start_dialog(DLGTNTRIP),
             state=NORMAL,
         )
         self.options_menu.add_command(
             label=MENUSPARTNCONFIG,
             underline=1,
-            command=self.__app.spartnconfig,
+            command=lambda: self.__app.start_dialog(DLGTSPARTN),
             state=NORMAL,
         )
         self.options_menu.add_command(
             label=MENUGPXVIEWER,
             underline=1,
-            command=self.__app.gpxviewer,
+            command=lambda: self.__app.start_dialog(DLGTGPX),
             state=NORMAL,
         )
         self.add_cascade(menu=self.options_menu, label=MENUOPTION)
@@ -146,7 +147,9 @@ class MenuBar(Menu):
         # Create a pull-down menu for help operations
         self.help_menu = Menu(self, tearoff=False)
         self.help_menu.add_command(
-            label=MENUABOUT, underline=1, command=self.__app.on_about
+            label=MENUABOUT,
+            underline=1,
+            command=lambda: self.__app.start_dialog(DLGTABOUT),
         )
         self.add_cascade(menu=self.help_menu, label=MENUHELP)
 

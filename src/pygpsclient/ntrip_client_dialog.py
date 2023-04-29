@@ -46,6 +46,7 @@ from pygnssutils.helpers import find_mp_distance
 from pygpsclient.globals import (
     CONNECTED_NTRIP,
     DISCONNECTED,
+    DLGTNTRIP,
     GGA_INTERVALS,
     ICON_CONN,
     ICON_DISCONN,
@@ -510,8 +511,7 @@ class NTRIPConfigDialog(Toplevel):
         Handle Exit button press.
         """
 
-        # self.__master.update_idletasks()
-        self.__app.stop_ntripconfig_thread()
+        self.__app.stop_dialog(DLGTNTRIP)
         self.destroy()
 
     def get_size(self):

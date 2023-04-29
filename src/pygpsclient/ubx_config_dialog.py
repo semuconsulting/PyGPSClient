@@ -26,6 +26,7 @@ from pyubx2 import UBXMessage
 
 from pygpsclient.globals import (
     CONNECTED,
+    DLGTUBX,
     ENABLE_CFG_OTHER,
     ICON_EXIT,
     POPUP_TRANSIENT,
@@ -284,8 +285,7 @@ class UBXConfigDialog(Toplevel):
         Handle Exit button press.
         """
 
-        # self.__master.update_idletasks()
-        self.__app.stop_ubxconfig_thread()
+        self.__app.stop_dialog(DLGTUBX)
         self.destroy()
 
     def get_size(self):

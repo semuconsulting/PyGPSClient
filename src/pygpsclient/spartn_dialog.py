@@ -24,6 +24,7 @@ from pyubx2 import UBXMessage
 from pygpsclient.globals import (
     CONNECTED_SPARTNIP,
     CONNECTED_SPARTNLB,
+    DLGTSPARTN,
     ICON_BLANK,
     ICON_CONFIRMED,
     ICON_EXIT,
@@ -192,7 +193,7 @@ class SPARTNConfigDialog(Toplevel):
         Handle Exit button press.
         """
 
-        self.__app.stop_spartnconfig_thread()
+        self.__app.stop_dialog(DLGTSPARTN)
         self.destroy()
 
     def set_pending(self, msgid: int, spartnfrm: int):

@@ -12,7 +12,7 @@ Created on 30 Sep 2020
 
 from pyubx2 import UBXMessage, itow2utc
 
-from pygpsclient.globals import GLONASS_NMEA
+from pygpsclient.globals import DLGTSPARTN, DLGTUBX, GLONASS_NMEA
 from pygpsclient.helpers import corrage2int, fix2desc, svid2gnssid
 
 
@@ -85,12 +85,12 @@ class UBXHandler:
         :param UBXMessage msg: UBX config message
         """
 
-        if self.__app.dlg_ubxconfig is not None:
-            self.__app.dlg_ubxconfig.update_pending(msg)
+        if self.__app.dialog(DLGTUBX) is not None:
+            self.__app.dialog(DLGTUBX).update_pending(msg)
 
         # if SPARTN config dialog is open, send CFG & ACKs there as well
-        if self.__app.dlg_spartnconfig is not None:
-            self.__app.dlg_spartnconfig.update_pending(msg)
+        if self.__app.dialog(DLGTSPARTN) is not None:
+            self.__app.dialog(DLGTSPARTN).update_pending(msg)
 
         # if Spectrumview widget exists, send NAKs there as well
         if self.__app.frm_spectrumview is not None and msg.identity in (
@@ -302,5 +302,5 @@ class UBXHandler:
         :param UBXMessage data: RXM-SPARTN_KEY poll response message
         """
 
-        if self.__app.dlg_spartnconfig is not None:
-            self.__app.dlg_spartnconfig.update_pending(data)
+        if self.__app.dialog(DLGTSPARTN) is not None:
+            self.__app.dialog(DLGTSPARTN).update_pending(data)

@@ -41,6 +41,7 @@ from requests import ConnectTimeout, HTTPError, RequestException, get
 
 from pygpsclient.globals import (
     BGCOL,
+    DLGTGPX,
     GPXLIMIT,
     GPXMAPURL,
     HOME,
@@ -229,7 +230,7 @@ class GPXViewerDialog(Toplevel):
         Handle Exit button press.
         """
 
-        self.__app.stop_gpxviewer_thread()
+        self.__app.stop_dialog(DLGTGPX)
         self.destroy()
 
     def _on_redraw(self, *args, **kwargs):

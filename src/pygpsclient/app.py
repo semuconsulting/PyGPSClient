@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from os import getenv
 from queue import Empty, Queue
 from threading import Thread
-from tkinter import E, Frame, N, PhotoImage, S, W, font
+from tkinter import E, Frame, N, PhotoImage, S, W, font, Tk, Toplevel
 
 from pygnssutils import GNSSMQTTClient, GNSSNTRIPClient
 from pygnssutils.socket_server import ClientHandler, SocketServer
@@ -30,6 +30,13 @@ from pygpsclient.globals import (
     CONFIGFILE,
     CONNECTED,
     DISCONNECTED,
+    DLG,
+    DLGTABOUT,
+    DLGTGPX,
+    DLGTNTRIP,
+    DLGTSPARTN,
+    DLGTUBX,
+    FRM,
     GNSS_EOF_EVENT,
     GNSS_EVENT,
     GUI_UPDATE_INTERVAL,
@@ -43,7 +50,7 @@ from pygpsclient.globals import (
     SOCKSERVER_HOST,
     SOCKSERVER_MAX_CLIENTS,
     SPARTN_EVENT,
-    WIDGETU4,
+    THD,
 )
 from pygpsclient.gnss_status import GNSSStatus
 from pygpsclient.gpx_dialog import GPXViewerDialog
@@ -150,10 +157,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.rtcm_handler = RTCM3Handler(self)
         self.ntrip_handler = GNSSNTRIPClient(self, verbosity=0)
         self.spartn_handler = GNSSMQTTClient(self, verbosity=0)
-        self.dlg_ubxconfig = None
-        self.dlg_ntripconfig = None
-        self.dlg_spartnconfig = None
-        self.dlg_gpxviewer = None
+        self.dlg_threads = {}
         self.config = {}
         self._conn_status = DISCONNECTED
         self._rtk_conn_status = DISCONNECTED
@@ -186,6 +190,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         self._body()
         self._do_layout()
+        self._init_dialogs()
         self._attach_events()
 
         # Initialise widgets
@@ -396,6 +401,20 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             wdg["visible"] = nam in DEFAULT_WIDGETS
         self._grid_widgets()
 
+    def _init_dialogs(self):
+        """
+        Initialise dictionary of dialog statuses.
+        """
+
+        self.dlg_threads = {
+            DLGTABOUT: {FRM: AboutDialog, THD: None, DLG: None},
+            DLGTUBX: {FRM: UBXConfigDialog, THD: None, DLG: None},
+            DLGTNTRIP: {FRM: NTRIPConfigDialog, THD: None, DLG: None},
+            DLGTSPARTN: {FRM: SPARTNConfigDialog, THD: None, DLG: None},
+            DLGTGPX: {FRM: GPXViewerDialog, THD: None, DLG: None},
+            # add any new dialogs here
+        }
+
     def _attach_events(self):
         """
         Bind events to main application.
@@ -486,119 +505,51 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         else:
             self.set_status(SAVECONFIGOK, OKCOL)
 
-    def on_about(self):
+    def start_dialog(self, dlg: str):
         """
-        Open About dialog.
+        Start a threaded dialog task if the dialog is not already open.
+
+        :param str dlg: name of dialog
         """
 
-        AboutDialog(self)
-
-    def ubxconfig(self):
-        """
-        Start UBX Config dialog thread.
-        """
-
-        if self._ubx_config_thread is None:
-            self._ubx_config_thread = Thread(
-                target=self._ubxconfig_thread, daemon=False
+        if self.dlg_threads[dlg][THD] is None:
+            self.dlg_threads[dlg][THD] = Thread(
+                target=self._dialog_thread, args=(dlg,), daemon=False
             )
-            self._ubx_config_thread.start()
+            self.dlg_threads[dlg][THD].start()
 
-    def _ubxconfig_thread(self):
+    def _dialog_thread(self, dlg: str):
         """
-        THREADED PROCESS UBX Configuration Dialog.
-        """
+        THREADED PROCESS
 
-        self.dlg_ubxconfig = UBXConfigDialog(self)
+        Dialog thread.
 
-    def stop_ubxconfig_thread(self):
-        """
-        Stop UBX Configuration dialog thread.
+        :param str dlg: name of dialog
         """
 
-        if self._ubx_config_thread is not None:
-            self._ubx_config_thread = None
-            self.dlg_ubxconfig = None
+        frm = self.dlg_threads[dlg][FRM]
+        self.dlg_threads[dlg][DLG] = frm(self)
 
-    def ntripconfig(self):
+    def stop_dialog(self, dlg: str):
         """
-        Start NTRIP Config dialog thread.
-        """
+        Register dialog as closed.
 
-        if self._ntrip_config_thread is None:
-            self._ntrip_config_thread = Thread(
-                target=self._ntripconfig_thread, daemon=False
-            )
-            self._ntrip_config_thread.start()
-
-    def _ntripconfig_thread(self):
-        """
-        THREADED PROCESS NTRIP Configuration Dialog.
+        :param str dlg: name of dialog
         """
 
-        self.dlg_ntripconfig = NTRIPConfigDialog(self)
+        self.dlg_threads[dlg][THD] = None
+        self.dlg_threads[dlg][DLG] = None
 
-    def stop_ntripconfig_thread(self):
+    def dialog(self, dlg: str) -> Toplevel:
         """
-        Stop NTRIP Configuration dialog thread.
-        """
+        Get reference to dialog instance.
 
-        if self._ntrip_config_thread is not None:
-            self._ntrip_config_thread = None
-            self.dlg_ntripconfig = None
-
-    def spartnconfig(self):
-        """
-        Start SPARTN Config dialog thread.
+        :param str dlg: name of dialog
+        :return: dialog instance
+        :rtype: Toplevel
         """
 
-        if self._spartn_config_thread is None:
-            self._spartn_config_thread = Thread(
-                target=self._spartnconfig_thread, daemon=False
-            )
-            self._spartn_config_thread.start()
-
-    def _spartnconfig_thread(self):
-        """
-        THREADED PROCESS SPARTN Configuration Dialog.
-        """
-
-        self.dlg_spartnconfig = SPARTNConfigDialog(self)
-
-    def stop_spartnconfig_thread(self):
-        """
-        Stop SPARTN Configuration dialog thread.
-        """
-
-        if self._spartn_config_thread is not None:
-            self._spartn_config_thread = None
-            self.dlg_spartnconfig = None
-
-    def gpxviewer(self):
-        """
-        Start GPX Viewer dialog thread.
-        """
-
-        if self._gpxviewer_thread is None:
-            self._gpxviewer_thread = Thread(target=self._gpx_thread, daemon=False)
-            self._gpxviewer_thread.start()
-
-    def _gpx_thread(self):
-        """
-        THREADED PROCESS GPX Viewer Dialog.
-        """
-
-        width, height = WIDGETU4
-        self.dlg_gpxviewer = GPXViewerDialog(self, width=width, height=height)
-
-    def stop_gpxviewer_thread(self):
-        """
-        Stop GPX Viewer dialog thread.
-        """
-
-        if self._gpxviewer_thread is not None:
-            self._gpxviewer_thread = None
-            self.dlg_gpxviewer = None
+        return self.dlg_threads[dlg][DLG]
 
     def start_sockserver_thread(self):
         """
@@ -671,14 +622,12 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.file_handler.close_trackfile()
         self.stop_sockserver_thread()
         self.stream_handler.stop_read_thread()
-        self.stop_ubxconfig_thread()
-        self.stop_ntripconfig_thread()
         self.__master.destroy()
 
     def on_gnss_read(self, event):  # pylint: disable=unused-argument
         """
         EVENT TRIGGERED
-        Action on <<gnss_read>> event - read any data on the message queue.
+        Action on <<gnss_read>> event - read data from GNSS queue.
 
         :param event event: read event
         """
@@ -743,8 +692,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         :param tuple msgt: tuple of (message, color)
         """
 
-        if self.dlg_ntripconfig is not None:
-            self.dlg_ntripconfig.set_controls(status, msgt)
+        if self.dialog(DLGTNTRIP) is not None:
+            self.dialog(DLGTNTRIP).set_controls(status, msgt)
 
     def get_coordinates(self) -> tuple:
         """
@@ -822,10 +771,13 @@ class App(Frame):  # pylint: disable=too-many-ancestors
     @property
     def app_config(self) -> dict:
         """
-        Getter for app config.
+        Getter for application configuration.
 
         This contains user-defined ports, various API keys
         and colortagging values.
+
+        :return: configuration
+        :rtype: dict
         """
 
         config = {
@@ -842,7 +794,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
     @app_config.setter
     def app_config(self, config):
         """
-        Setter for app config.
+        Setter for application configuration.
 
         :param dict config: configuration as dict
         """
@@ -860,6 +812,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
         Getter for widget configuration.
 
+        This contains the current status (visibility) of the various widgets.
+
         :return: widget configuration as dict
         :rtype: dict
         """
@@ -869,9 +823,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
     @widget_config.setter
     def widget_config(self, config):
         """
-        Setter for widget config.
-
-        This contains the visibility of the various widgets.
+        Setter for widget configuration.
 
         :param dict config: configuration as dict
         """
@@ -885,9 +837,12 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._grid_widgets()
 
     @property
-    def appmaster(self) -> object:
+    def appmaster(self) -> Tk:
         """
         Getter for application master (Tk).
+
+        :return: reference to master Tk instance
+        :rtype: Tk
         """
 
         return self.__master
@@ -897,7 +852,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
         Getter for connection status.
 
-        :param int status: connection status e.g. 1 = CONNECTED
+        :return: connection status e.g. 1 = CONNECTED
+        :rtype: int
         """
 
         return self._conn_status
@@ -922,7 +878,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
         Getter for SPARTN connection status.
 
-        :param int status: connection status
+        :return: connection status
+        :rtype: int
         """
 
         return self._rtk_conn_status

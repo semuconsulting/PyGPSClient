@@ -55,6 +55,18 @@ ICON_UNDO = path.join(DIRNAME, "resources/iconmonstr-undo-24.png")
 ICON_DELETE = path.join(DIRNAME, "resources/iconmonstr-trash-can-filled-24.png")
 ICON_REDRAW = path.join(DIRNAME, "resources/iconmonstr-refresh-lined-24.png")
 IMG_WORLD = path.join(DIRNAME, "resources/world.png")
+
+# dialog task names
+DLGTABOUT = "about"
+DLGTUBX = "ubxconfig"
+DLGTNTRIP = "ntripconfig"
+DLGTSPARTN = "spartnconfig"
+DLGTGPX = "gpxviewer"
+THD = "thd"
+DLG = "dlg"
+FRM = "frm"
+
+# URLS
 PYPI_URL = "https://pypi.org/pypi/PyGPSClient"
 GITHUB_URL = "https://github.com/semuconsulting/PyGPSClient"
 MAPQURL = "https://www.mapquestapi.com/staticmap/v5/map?key={}"
@@ -69,6 +81,7 @@ GPXMAPURL = (
     + "&locations={},{}||{},{}&zoom={}&size={},{}&defaultMarker=marker-num"
     + "&shape=weight:2|border:{}|{}&scalebar={}|bottom"
 )
+
 # how frequently the mapquest api is called to update the web map (seconds)
 MAP_UPDATE_INTERVAL = 60
 MIN_UPDATE_INTERVAL = 5

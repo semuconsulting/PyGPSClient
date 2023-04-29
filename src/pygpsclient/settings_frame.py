@@ -45,6 +45,9 @@ from pygpsclient.globals import (
     CONNECTED_SOCKET,
     DDD,
     DISCONNECTED,
+    DLGTNTRIP,
+    DLGTSPARTN,
+    DLGTUBX,
     DMM,
     DMS,
     FORMATS,
@@ -481,21 +484,21 @@ class SettingsFrame(Frame):
         Open UBX configuration dialog panel.
         """
 
-        self.__app.ubxconfig()
+        self.__app.start_dialog(DLGTUBX)
 
     def _on_ntrip_config(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
         Open NTRIP Client configuration dialog panel.
         """
 
-        self.__app.ntripconfig()
+        self.__app.start_dialog(DLGTNTRIP)
 
     def _on_spartn_config(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
         Open SPARTN Client configuration dialog panel.
         """
 
-        self.__app.spartnconfig()
+        self.__app.start_dialog(DLGTSPARTN)
 
     def _on_webmap(self):
         """
