@@ -57,11 +57,11 @@ ICON_REDRAW = path.join(DIRNAME, "resources/iconmonstr-refresh-lined-24.png")
 IMG_WORLD = path.join(DIRNAME, "resources/world.png")
 
 # dialog task names
-DLGTABOUT = "about"
-DLGTUBX = "ubxconfig"
-DLGTNTRIP = "ntripconfig"
-DLGTSPARTN = "spartnconfig"
-DLGTGPX = "gpxviewer"
+DLGTABOUT = "About"
+DLGTUBX = "UBX Configuration"
+DLGTNTRIP = "NTRIP Configuration"
+DLGTSPARTN = "SPARTN Configuration"
+DLGTGPX = "GPX Track Viewer"
 THD = "thd"
 DLG = "dlg"
 FRM = "frm"
