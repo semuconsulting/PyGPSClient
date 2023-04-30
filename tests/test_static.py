@@ -330,7 +330,7 @@ class StaticTest(unittest.TestCase):
             self.assertIsInstance(wdict["menu"], (int, NoneType)),
             self.assertIsInstance(wdict["default"], bool),
             self.assertIsInstance(wdict["frm"], str),
-            self.assertEquals(wdict["frm"][0:4], "frm_"),
+            self.assertEqual(wdict["frm"][0:4], "frm_"),
             self.assertIsInstance(wdict["visible"], bool),
 
 
