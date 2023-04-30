@@ -75,6 +75,8 @@ class UBXHandler:
             self._process_RXM_RTCM(parsed_data)
         elif parsed_data.identity == "MON-SPAN":
             self._process_MON_SPAN(parsed_data)
+        elif parsed_data.identity == "MON-SYS":
+            self._process_MON_SYS(parsed_data)
         elif parsed_data.identity == "RXM-SPARTN-KEY":
             self._process_RXM_SPARTN_KEY(parsed_data)
 
@@ -294,6 +296,28 @@ class UBXHandler:
             rfbs.append((spec, spn, res, ctr, pga))
 
         self.__app.gnss_status.spectrum_data = rfbs
+
+    def _process_MON_SYS(self, data: UBXMessage):
+        """
+        Process MON-SYS sentences - System Monitor Information.
+
+        :param UBXMessage data: MON-SYS parsed message
+        """
+
+        sysdata = {}
+        sysdata["bootType"] = data.bootType
+        sysdata["cpuLoad"] = data.cpuLoad
+        sysdata["cpuLoadMax"] = data.cpuLoadMax
+        sysdata["memUsage"] = data.memUsage
+        sysdata["memUsageMax"] = data.memUsageMax
+        sysdata["ioUsage"] = data.ioUsage
+        sysdata["ioUsageMax"] = data.ioUsageMax
+        sysdata["runTime"] = data.runTime
+        sysdata["noticeCount"] = data.noticeCount
+        sysdata["warnCount"] = data.warnCount
+        sysdata["errorCount"] = data.errorCount
+        sysdata["tempValue"] = data.tempValue
+        self.__app.gnss_status.sysmon_data = sysdata
 
     def _process_RXM_SPARTN_KEY(self, data: UBXMessage):
         """

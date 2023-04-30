@@ -416,7 +416,7 @@ Once you have received the API key (a 32-character alphanumeric string), you can
 that this is a User variable rather than a System/Global variable.
 2. copy it to the key value `"mqapikey":` in the json configuration file (see example provided).
 
-*The web map refresh rate can be amended if required by changing the MAP_UPDATE_INTERVAL constant in `globals.py`.
+*The web map refresh rate can be amended if required by changing the `mapupdateinterval` value in your *.json configuration file..
 
 ---
 ## <a name="userdefined">User Defined Presets</a>

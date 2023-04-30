@@ -1,5 +1,9 @@
 # PyGPSClient Release Notes
 
+### add-MON-SYS-widget
+
+1. Add widget displaying MON-SYS system monitor data in graphical format
+
 ### RELEASE v1.3.25
 
 ENHANCEMENTS:
