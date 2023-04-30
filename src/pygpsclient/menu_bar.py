@@ -23,27 +23,9 @@ from pygpsclient.strings import (
     MENURESET,
     MENUSAVE,
     MENUVIEW,
-    WDGCONSOLE,
-    WDGLEVELS,
-    WDGMAP,
-    WDGSATS,
-    WDGSCATTER,
-    WDGSETTINGS,
-    WDGSPECTRUM,
-    WDGSTATUS,
 )
+from pygpsclient.widgets import widget_grid
 
-# NB: order here must correspond to self._widget_grid in app.py
-WIDGETS = (
-    WDGSETTINGS,
-    WDGSTATUS,
-    WDGCONSOLE,
-    WDGSATS,
-    WDGLEVELS,
-    WDGMAP,
-    WDGSPECTRUM,
-    WDGSCATTER,
-)
 DIALOGS = (DLGTUBX, DLGTNTRIP, DLGTSPARTN, DLGTGPX)
 
 
@@ -85,10 +67,11 @@ class MenuBar(Menu):
         # Create a pull-down menu for view operations
         # Menu labels are set in app._grid_widgets() function
         self.view_menu = Menu(self, tearoff=False)
-        for wdg in WIDGETS:
-            self.view_menu.add_command(
-                underline=1, command=lambda i=wdg: self.__app.toggle_widget(i)
-            )
+        for wdg, wdict in widget_grid.items():
+            if wdict["menu"] is not None:
+                self.view_menu.add_command(
+                    underline=1, command=lambda i=wdg: self.__app.toggle_widget(i)
+                )
         self.view_menu.add_command(
             underline=1,
             label=MENURESET,

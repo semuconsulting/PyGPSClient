@@ -81,6 +81,7 @@ test = [
     "bandit",
     "black",
     "certifi",
+    "isort",
     "pylint",
     "pytest",
     "pytest-cov",
@@ -89,8 +90,11 @@ test = [
 ]
 
 [tool.black]
-line-length = 88
 target-version = ['py37']
+
+[tool.isort]
+py_version = 37
+profile = "black"
 
 [tool.bandit]
 exclude_dirs = ["docs", "examples", "tests"]

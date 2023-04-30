@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from os import getenv
 from queue import Empty, Queue
 from threading import Thread
-from tkinter import E, Frame, N, PhotoImage, S, W, font, Tk, Toplevel
+from tkinter import E, Frame, N, PhotoImage, S, Tk, Toplevel, W, font
 
 from pygnssutils import GNSSMQTTClient, GNSSNTRIPClient
 from pygnssutils.socket_server import ClientHandler, SocketServer
@@ -42,8 +42,6 @@ from pygpsclient.globals import (
     GUI_UPDATE_INTERVAL,
     ICON_APP,
     MAP_UPDATE_INTERVAL,
-    MAXCOLSPAN,
-    MAXROWSPAN,
     NOPORTS,
     NTRIP_EVENT,
     OKCOL,
@@ -70,39 +68,30 @@ from pygpsclient.status_frame import StatusFrame
 from pygpsclient.stream_handler import StreamHandler
 from pygpsclient.strings import (
     CONFIGERR,
-    HIDE,
     INTROTXTNOPORTS,
     LOADCONFIGBAD,
     LOADCONFIGOK,
     NOTCONN,
     SAVECONFIGBAD,
     SAVECONFIGOK,
-    SHOW,
     TITLE,
     VERCHECK,
-    WDGBANNER,
-    WDGCONSOLE,
-    WDGLEVELS,
-    WDGMAP,
-    WDGSATS,
-    WDGSCATTER,
-    WDGSETTINGS,
-    WDGSPECTRUM,
-    WDGSTATUS,
 )
 from pygpsclient.ubx_config_dialog import UBXConfigDialog
 from pygpsclient.ubx_handler import UBXHandler
+from pygpsclient.widgets import (
+    HIDE,
+    MAXCOLSPAN,
+    MAXROWSPAN,
+    SHOW,
+    WDGBANNER,
+    WDGSETTINGS,
+    WDGSPECTRUM,
+    WDGSTATUS,
+    widget_grid,
+)
 
 SPARTN_PROTOCOL = 9
-DEFAULT_WIDGETS = (
-    WDGBANNER,
-    WDGCONSOLE,
-    WDGSATS,
-    WDGLEVELS,
-    WDGMAP,
-    WDGSETTINGS,
-    WDGSTATUS,
-)
 
 
 class App(Frame):  # pylint: disable=too-many-ancestors
@@ -110,7 +99,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
     Main PyGPSClient GUI Application Class.
     """
 
-    def __init__(self, master, *args, **kwargs):
+    def __init__(self, master, *args, **kwargs):  # pylint: disable=too-many-statements
         """
         Set up main application and add frames.
 
@@ -246,60 +235,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         otherwise specified in this widget_grid.
         """
 
-        self._widget_grid = {
-            # fixed relative position
-            WDGBANNER: {
-                "menu": None,
-                "frm": "frm_banner",
-                "visible": True,
-            },
-            WDGSETTINGS: {
-                "menu": 0,
-                "frm": "frm_settings",
-                "visible": True,
-                "sticky": (N, W, E),
-            },
-            WDGSTATUS: {
-                "menu": 1,
-                "frm": "frm_status",
-                "visible": True,
-                "sticky": (W, E),
-            },
-            # dynamic relative position
-            WDGCONSOLE: {
-                "menu": 2,
-                "frm": "frm_console",
-                "visible": True,
-                "colspan": MAXCOLSPAN,
-            },
-            WDGSATS: {
-                "menu": 3,
-                "frm": "frm_satview",
-                "visible": True,
-            },
-            WDGLEVELS: {
-                "menu": 4,
-                "frm": "frm_graphview",
-                "visible": True,
-            },
-            WDGMAP: {
-                "menu": 5,
-                "frm": "frm_mapview",
-                "visible": True,
-            },
-            WDGSPECTRUM: {
-                "menu": 6,
-                "frm": "frm_spectrumview",
-                "visible": False,
-            },
-            WDGSCATTER: {
-                "menu": 7,
-                "frm": "frm_scatterview",
-                "visible": False,
-            },
-            # add any new widgets here and update View menu
-        }
-
+        self._widget_grid = widget_grid
         self._grid_widgets()
 
     def _grid_widgets(self):
@@ -393,8 +329,9 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         Reset widgets to default layout.
         """
 
-        for nam, wdg in self._widget_grid.items():
-            wdg["visible"] = nam in DEFAULT_WIDGETS
+        for _, wdg in self._widget_grid.items():
+            # wdg["visible"] = nam in DEFAULT_WIDGETS
+            wdg["visible"] = wdg["default"]
         self._grid_widgets()
 
     def _init_dialogs(self):

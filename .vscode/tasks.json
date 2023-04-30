@@ -93,6 +93,19 @@
             "problemMatcher": []
         },
         {
+            "label": "Sort Imports",
+            "type": "process",
+            "command": "${config:python.defaultInterpreterPath}",
+            "args": [
+                "-m",
+                "isort",
+                "src",
+                "--jobs",
+                "-1"
+            ],
+            "problemMatcher": []
+        },
+        {
             "label": "Format",
             "type": "process",
             "command": "${config:python.defaultInterpreterPath}",
@@ -226,6 +239,7 @@
                 "Install Test Dependencies",
                 "Install Dependencies",
                 "Security",
+                "Sort Imports",
                 "Format",
                 "Pylint",
                 "Test",

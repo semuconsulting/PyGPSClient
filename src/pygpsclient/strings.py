@@ -28,17 +28,17 @@ ABOUTTXT = (
 MAPAPIURL = "https://developer.mapquest.com/user/login/sign-up"
 
 # Widget titles
-WDGBANNER = "Banner"
-WDGSETTINGS = "Settings"
-WDGSTATUS = "Status"
-WDGCONSOLE = "Console"
-WDGSATS = "Satellites"
-WDGLEVELS = "Levels"
-WDGMAP = "Map"
-WDGSPECTRUM = "Spectrum"
-WDGSCATTER = "Scatter Plot"
-HIDE = "Hide"
-SHOW = "Show"
+# WDGBANNER = "Banner"
+# WDGSETTINGS = "Settings"
+# WDGSTATUS = "Status"
+# WDGCONSOLE = "Console"
+# WDGSATS = "Satellites"
+# WDGLEVELS = "Levels"
+# WDGMAP = "Map"
+# WDGSPECTRUM = "Spectrum"
+# WDGSCATTER = "Scatter Plot"
+# HIDE = "Hide"
+# SHOW = "Show"
 
 # Message text
 SETINITTXT = "Settings initialised"
