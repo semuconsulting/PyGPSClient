@@ -1,10 +1,17 @@
 # PyGPSClient Release Notes
 
-### RELEASE CANDIDATE v1.3.25
+### RELEASE v1.3.25
 
 ENHANCEMENTS:
 
-1. UBX Configuration Load/Save/Record facility will now accept u-center *.txt configuration files (**for Generation 9+ devices only**) as well as binary *.ubx files. Thanks for @wdwalker in #66 for suggestion.
+1. UBX Configuration Load/Save/Record facility will now accept u-center *.txt configuration files (**for Generation 9+ devices only**) as well as binary *.ubx files. Thanks for @wdwalker in #66 for suggestion. Compatible configuration files for ZED-F9P devices can be found, for example, on the [ArduSimple web site](https://www.ardusimple.com/configuration-files/). FYI: Generation 9+ u-center *.txt configuration files contain hexadecimal representations of MON-VER and CFG_VALGET UBX messages, e.g.:
+    ```
+    MON-VER - 0A 04 DC 00 45 ...
+    CFG-VALGET - 06 8B 44 01 ...
+    CFG-VALGET - 06 8B 44 01 ...
+    ```
+    The CFG-VALGET messages are converted into CFG-VALSET commands for uploading to the receiver. 
+1. New module `widgets.py` containing a configuration data dictionary for all user-selectable widgets. Intention is to make it easier to add and configure new widgets.
 
 FIXES:
 
@@ -15,8 +22,6 @@ CHANGES:
 1. Bandit security analysis added to VS Code and GHA workflows.
 1. Update min pygnssutils version to 1.0.7
 1. Internal updates to VSCode and GHA workflows.
-
-No functional changes
 
 ### RELEASE v1.3.24
 
