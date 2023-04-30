@@ -128,7 +128,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.gnss_status = GNSSStatus()  # holds latest GNSS readings
         self._last_gui_update = datetime.now()
         # dict containing widget grid positions
-        self._widget_grid = {}
+        self._widget_grid = widget_grid
 
         # Instantiate protocol handler classes
         self.gnss_inqueue = Queue()  # messages from GNSS receiver
@@ -228,21 +228,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
     def _do_layout(self):
         """
         Arrange widgets in main application frame, and set
-        initial widget visibility and menu label (show/hide).
-
-        Dynamic widgets will be automatically positioned in sequence
-        and will expand or collapse to fit available space unless
-        otherwise specified in this widget_grid.
-        """
-
-        self._widget_grid = widget_grid
-        self._grid_widgets()
-
-    def _grid_widgets(self):
-        """
-        Arrange widgets in grid, and set column and row 'weights'.
-        These govern whether a widget will expand or collapse
-        in either direction to fill the available space.
+        widget visibility and menu label (show/hide).
         """
 
         col = mcol = 0
@@ -322,7 +308,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         self._widget_grid[widget]["visible"] = not self._widget_grid[widget]["visible"]
-        self._grid_widgets()
+        self._do_layout()
 
     def reset_widgets(self):
         """
@@ -332,7 +318,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         for _, wdg in self._widget_grid.items():
             # wdg["visible"] = nam in DEFAULT_WIDGETS
             wdg["visible"] = wdg["default"]
-        self._grid_widgets()
+        self._do_layout()
 
     def _init_dialogs(self):
         """
@@ -767,7 +753,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         except KeyError as err:
             self.set_status(f"{CONFIGERR} - {err}", BADCOL)
 
-        self._grid_widgets()
+        self._do_layout()
 
     @property
     def appmaster(self) -> Tk:
