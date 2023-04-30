@@ -316,7 +316,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         for _, wdg in self._widget_grid.items():
-            # wdg["visible"] = nam in DEFAULT_WIDGETS
             wdg["visible"] = wdg["default"]
         self._do_layout()
 

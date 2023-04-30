@@ -11,6 +11,7 @@ import unittest
 from datetime import datetime
 
 from pyubx2 import UBXReader
+from pygpsclient.widgets import widget_grid
 
 from pygpsclient.helpers import (
     bitsval,
@@ -321,6 +322,16 @@ class StaticTest(unittest.TestCase):
         print(pnts)
         for i, pnt in enumerate(pnts):
             self.assertAlmostEqual(pnt, points[i], PREC)
+
+    def testwidgetgrid(self):  # ensure widgets.py is correctly defined
+        NoneType = type(None)
+        for wdg, wdict in widget_grid.items():
+            self.assertIsInstance(wdg, str),
+            self.assertIsInstance(wdict["menu"], (int, NoneType)),
+            self.assertIsInstance(wdict["default"], bool),
+            self.assertIsInstance(wdict["frm"], str),
+            self.assertEquals(wdict["frm"][0:4], "frm_"),
+            self.assertIsInstance(wdict["visible"], bool),
 
 
 if __name__ == "__main__":

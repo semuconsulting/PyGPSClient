@@ -5,6 +5,11 @@ Global constants, strings and dictionaries used to
 position and hide/show the various user-selectable
 widgets in the main container frame.
 
+To add a new widget to PyGPSClient:
+1. create a new frame class `widgetname_frame.py`.
+2. instantiate it in app._body() as `frm_widgetname`.
+3. add an entry to the foot of the widget_grid dictionary.
+
 Created on 30 Apr 2023
 
 :author: semuadmin
