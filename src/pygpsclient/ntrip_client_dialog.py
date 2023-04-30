@@ -15,71 +15,67 @@ Created on 2 Apr 2022
 """
 
 from tkinter import (
-    ttk,
-    Toplevel,
-    Frame,
-    Button,
-    Label,
-    Entry,
-    Spinbox,
-    Listbox,
-    Scrollbar,
-    Radiobutton,
-    StringVar,
-    IntVar,
-    N,
-    S,
-    E,
-    W,
-    NORMAL,
     DISABLED,
     END,
-    VERTICAL,
     HORIZONTAL,
+    NORMAL,
+    VERTICAL,
+    Button,
+    E,
+    Entry,
+    Frame,
+    IntVar,
+    Label,
+    Listbox,
+    N,
+    Radiobutton,
+    S,
+    Scrollbar,
+    Spinbox,
+    StringVar,
     TclError,
+    Toplevel,
+    W,
+    ttk,
 )
-from PIL import ImageTk, Image
+
+from PIL import Image, ImageTk
 from pygnssutils import NOGGA
 from pygnssutils.helpers import find_mp_distance
+
 from pygpsclient.globals import (
-    ICON_EXIT,
-    ICON_CONN,
-    ICON_DISCONN,
-    UBX_MONVER,
-    UBX_MONHW,
-    UBX_CFGPRT,
-    UBX_CFGRATE,
-    UBX_CFGMSG,
-    UBX_CFGVAL,
-    UBX_PRESET,
-    READONLY,
-    POPUP_TRANSIENT,
-    UI,
-    UIK,
-    GGA_INTERVALS,
     CONNECTED_NTRIP,
     DISCONNECTED,
+    DLGTNTRIP,
+    GGA_INTERVALS,
+    ICON_CONN,
+    ICON_DISCONN,
+    ICON_EXIT,
+    POPUP_TRANSIENT,
+    READONLY,
+    UBX_CFGMSG,
+    UBX_CFGPRT,
+    UBX_CFGRATE,
+    UBX_CFGVAL,
+    UBX_MONHW,
+    UBX_MONVER,
+    UBX_PRESET,
+    UI,
+    UIK,
 )
+from pygpsclient.helpers import MAXALT, MAXPORT, VALFLOAT, VALINT, VALURL, valid_entry
 from pygpsclient.strings import (
     DLGNTRIPCONFIG,
-    LBLNTRIPSERVER,
-    LBLNTRIPPORT,
-    LBLNTRIPVERSION,
-    LBLNTRIPMOUNT,
-    LBLNTRIPUSER,
-    LBLNTRIPPWD,
-    LBLNTRIPGGAINT,
-    LBLNTRIPSTR,
-    LBLGGALIVE,
     LBLGGAFIXED,
-)
-from pygpsclient.helpers import (
-    valid_entry,
-    VALINT,
-    VALFLOAT,
-    VALURL,
-    MAXPORT,
-    MAXALT,
+    LBLGGALIVE,
+    LBLNTRIPGGAINT,
+    LBLNTRIPMOUNT,
+    LBLNTRIPPORT,
+    LBLNTRIPPWD,
+    LBLNTRIPSERVER,
+    LBLNTRIPSTR,
+    LBLNTRIPUSER,
+    LBLNTRIPVERSION,
 )
 
 NTRIP_VERSIONS = ("2.0", "1.0")
@@ -402,18 +398,18 @@ class NTRIPConfigDialog(Toplevel):
         self._get_settings()
         self.set_controls(self._connected)
 
-    def set_controls(self, connected: bool, msg: tuple = None):
+    def set_controls(self, connected: bool, msgt: tuple = None):
         """
         Enable or disable controls depending on connection status.
 
         :param bool status: connection status (True/False)
-        :param tuple msg: optional status message tuple (text, color)
+        :param tuple msgt: tuple of (message, color)
         """
 
         try:
             self._settings = self.__app.ntrip_handler.settings
             self._connected = connected
-            if msg is None:
+            if msgt is None:
                 server = self._settings["server"]
                 port = self._settings["port"]
                 mp = self._settings["mountpoint"]
@@ -427,7 +423,11 @@ class NTRIPConfigDialog(Toplevel):
                     if self._connected
                     else "Disconnected"
                 )
-            self.set_status(msg)
+            if msgt is None:
+                self.set_status(msg, "blue")
+            else:
+                msg, col = msgt
+                self.set_status(msg, col)
 
             self._btn_disconnect.config(state=(NORMAL if connected else DISABLED))
 
@@ -476,7 +476,7 @@ class NTRIPConfigDialog(Toplevel):
         :param str color: rgb color of text
         """
 
-        message = (message[:80] + "..") if len(message) > 80 else message
+        message = f"{message[:78]}.." if len(message) > 80 else message
         if color != "":
             self._lbl_status.config(fg=color)
         self._status.set(" " + message)
@@ -511,8 +511,7 @@ class NTRIPConfigDialog(Toplevel):
         Handle Exit button press.
         """
 
-        # self.__master.update_idletasks()
-        self.__app.stop_ntripconfig_thread()
+        self.__app.stop_dialog(DLGTNTRIP)
         self.destroy()
 
     def get_size(self):

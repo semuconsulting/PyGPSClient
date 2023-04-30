@@ -15,81 +15,86 @@ Created on 12 Sep 2020
 # pylint: disable=unnecessary-lambda
 
 from tkinter import (
-    ttk,
-    Frame,
-    Button,
-    Label,
-    Entry,
-    Spinbox,
-    Scale,
-    Checkbutton,
-    StringVar,
-    IntVar,
-    N,
-    S,
-    E,
-    W,
-    NORMAL,
     DISABLED,
     HORIZONTAL,
+    NORMAL,
+    Button,
+    Checkbutton,
+    E,
+    Entry,
+    Frame,
+    IntVar,
+    Label,
+    N,
+    S,
+    Scale,
+    Spinbox,
+    StringVar,
+    W,
+    ttk,
 )
-from PIL import ImageTk, Image
+
 import pyubx2.ubxtypes_core as ubt
-from pygpsclient.serialconfig_frame import SerialConfigFrame
-from pygpsclient.socketconfig_frame import SocketConfigFrame
+from PIL import Image, ImageTk
+
 from pygpsclient.globals import (
+    BADCOL,
+    BPSRATES,
+    CONNECTED,
+    CONNECTED_FILE,
+    CONNECTED_SOCKET,
     DDD,
+    DISCONNECTED,
+    DLGTNTRIP,
+    DLGTSPARTN,
+    DLGTUBX,
     DMM,
     DMS,
-    UMM,
-    UMK,
-    UI,
-    UIK,
-    READONLY,
-    CONNECTED,
-    CONNECTED_SOCKET,
-    CONNECTED_FILE,
-    DISCONNECTED,
-    NOPORTS,
+    FORMATS,
+    GNSS_EOF_EVENT,
+    GNSS_EVENT,
     ICON_CONN,
-    ICON_SERIAL,
-    ICON_SOCKET,
     ICON_DISCONN,
     ICON_EXIT,
-    ICON_UBXCONFIG,
-    ICON_NTRIPCONFIG,
-    ICON_SPARTNCONFIG,
     ICON_LOGREAD,
+    ICON_NTRIPCONFIG,
+    ICON_SERIAL,
+    ICON_SOCKET,
+    ICON_SPARTNCONFIG,
+    ICON_UBXCONFIG,
     KNOWNGPS,
-    BPSRATES,
-    FORMATS,
     MSGMODES,
-    TIMEOUTS,
+    NOPORTS,
+    READONLY,
     SOCKMODES,
-    TAG_COLORS,
-    SOCKSERVER_PORT,
-    SOCKSERVER_NTRIP_PORT,
     SOCKSERVER_MAX_CLIENTS,
-    GNSS_EVENT,
-    GNSS_EOF_EVENT,
-    BADCOL,
+    SOCKSERVER_NTRIP_PORT,
+    SOCKSERVER_PORT,
+    TAG_COLORS,
+    TIMEOUTS,
+    UI,
+    UIK,
+    UMK,
+    UMM,
 )
-from pygpsclient.helpers import valid_entry, VALINT, VALURL, MAXPORT
+from pygpsclient.helpers import MAXPORT, VALINT, VALURL, valid_entry
+from pygpsclient.serialconfig_frame import SerialConfigFrame
+from pygpsclient.socketconfig_frame import SocketConfigFrame
 from pygpsclient.strings import (
-    LBLUBXCONFIG,
-    LBLNTRIPCONFIG,
-    LBLSPARTNCONFIG,
-    LBLPROTDISP,
+    CONFIGERR,
     LBLDATADISP,
     LBLDATALOG,
-    LBLTRACKRECORD,
-    LBLSHOWUNUSED,
-    LBLLEGEND,
-    LBLSOCKSERVE,
-    LBLSERVERPORT,
     LBLDEGFORMAT,
+    LBLLEGEND,
+    LBLNTRIPCONFIG,
+    LBLPROTDISP,
     LBLSERVERMODE,
-    CONFIGERR,
+    LBLSERVERPORT,
+    LBLSHOWUNUSED,
+    LBLSOCKSERVE,
+    LBLSPARTNCONFIG,
+    LBLTRACKRECORD,
+    LBLUBXCONFIG,
 )
 
 
@@ -479,21 +484,21 @@ class SettingsFrame(Frame):
         Open UBX configuration dialog panel.
         """
 
-        self.__app.ubxconfig()
+        self.__app.start_dialog(DLGTUBX)
 
     def _on_ntrip_config(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
         Open NTRIP Client configuration dialog panel.
         """
 
-        self.__app.ntripconfig()
+        self.__app.start_dialog(DLGTNTRIP)
 
     def _on_spartn_config(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
         Open SPARTN Client configuration dialog panel.
         """
 
-        self.__app.spartnconfig()
+        self.__app.start_dialog(DLGTSPARTN)
 
     def _on_webmap(self):
         """

@@ -12,8 +12,9 @@ Created on 18 Frb 2023
 """
 
 from io import BytesIO
+
+from pyspartn import SPARTNMessage, SPARTNReader
 from pyubx2 import UBXReader
-from pyspartn import SPARTNReader, SPARTNMessage
 
 FILENAME = "D9S_RXM_PMP.ubx"
 

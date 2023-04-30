@@ -11,33 +11,30 @@ Created on 22 Sep 2020
 """
 
 from tkinter import (
-    Frame,
-    Listbox,
-    Spinbox,
-    Scrollbar,
-    Button,
-    Label,
-    IntVar,
-    N,
-    S,
-    E,
-    W,
     LEFT,
     VERTICAL,
+    Button,
+    E,
+    Frame,
+    IntVar,
+    Label,
+    Listbox,
+    N,
+    S,
+    Scrollbar,
+    Spinbox,
+    W,
 )
-from PIL import ImageTk, Image
-from pyubx2 import (
-    UBXMessage,
-    POLL,
-    SET,
-    UBX_MSGIDS,
-)
+
+from PIL import Image, ImageTk
+from pyubx2 import POLL, SET, UBX_MSGIDS, UBXMessage
 from pyubx2.ubxhelpers import key_from_val
+
 from pygpsclient.globals import (
+    ICON_CONFIRMED,
+    ICON_PENDING,
     ICON_SEND,
     ICON_WARNING,
-    ICON_PENDING,
-    ICON_CONFIRMED,
     READONLY,
     UBX_CFGMSG,
 )

@@ -9,62 +9,57 @@ Created on 22 Dec 2020
 """
 
 from tkinter import (
-    Frame,
-    Listbox,
-    Scrollbar,
-    Button,
-    Label,
-    N,
-    S,
-    E,
-    W,
+    HORIZONTAL,
     LEFT,
     VERTICAL,
-    HORIZONTAL,
-)
-from PIL import ImageTk, Image
-from pyubx2 import (
-    UBXMessage,
-    POLL,
-    SET,
-    UBX_MSGIDS,
-    UBX_PAYLOADS_POLL,
+    Button,
+    E,
+    Frame,
+    Label,
+    Listbox,
+    N,
+    S,
+    Scrollbar,
+    W,
 )
 
+from PIL import Image, ImageTk
+from pyubx2 import POLL, SET, UBX_MSGIDS, UBX_PAYLOADS_POLL, UBXMessage
+
 from pygpsclient.globals import (
+    ICON_CONFIRMED,
+    ICON_PENDING,
     ICON_SEND,
     ICON_WARNING,
-    ICON_PENDING,
-    ICON_CONFIRMED,
     UBX_PRESET,
 )
 from pygpsclient.helpers import ConfirmBox
 from pygpsclient.strings import (
-    LBLPRESET,
     DLGRESET,
-    DLGSAVE,
     DLGRESETCONFIRM,
+    DLGSAVE,
     DLGSAVECONFIRM,
-    PSTRESET,
-    PSTSAVE,
-    PSTMINNMEAON,
-    PSTALLNMEAON,
-    PSTALLNMEAOFF,
-    PSTMINUBXON,
-    PSTALLUBXON,
-    PSTALLUBXOFF,
-    PSTALLINFON,
+    LBLPRESET,
     PSTALLINFOFF,
-    PSTALLLOGON,
+    PSTALLINFON,
     PSTALLLOGOFF,
-    PSTALLMONON,
+    PSTALLLOGON,
     PSTALLMONOFF,
-    PSTALLRXMON,
+    PSTALLMONON,
+    PSTALLNMEAOFF,
+    PSTALLNMEAON,
     PSTALLRXMOFF,
-    PSTPOLLPORT,
-    PSTPOLLINFO,
+    PSTALLRXMON,
+    PSTALLUBXOFF,
+    PSTALLUBXON,
+    PSTMINNMEAON,
+    PSTMINUBXON,
     PSTPOLLALLCFG,
     PSTPOLLALLNAV,
+    PSTPOLLINFO,
+    PSTPOLLPORT,
+    PSTRESET,
+    PSTSAVE,
 )
 
 PRESET_COMMMANDS = [

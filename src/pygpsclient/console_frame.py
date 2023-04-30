@@ -10,15 +10,11 @@ Created on 12 Sep 2020
 :license: BSD 3-Clause
 """
 
-from tkinter import Frame, Text, Scrollbar, S, E, W, END, HORIZONTAL, VERTICAL, N
+from tkinter import END, HORIZONTAL, VERTICAL, E, Frame, N, S, Scrollbar, Text, W
+
 from pyubx2 import hextable
-from pygpsclient.globals import (
-    BGCOL,
-    FGCOL,
-    FORMATS,
-    FONT_TEXT,
-    FONT_FIXED,
-)
+
+from pygpsclient.globals import BGCOL, FGCOL, FONT_FIXED, FONT_TEXT, FORMATS
 
 
 class ConsoleFrame(Frame):

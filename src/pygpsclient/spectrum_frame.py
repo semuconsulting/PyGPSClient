@@ -12,10 +12,12 @@ Created on 23 Dec 2022
 """
 
 from math import ceil
-from tkinter import Frame, Canvas, font, BOTH, YES
-from pyubx2 import UBXMessage, SET
-from pygpsclient.globals import WIDGETU2, BGCOL, FGCOL, SPECTRUMVIEW, GNSS_LIST
-from pygpsclient.strings import MONSPANERROR, DLGNOMONSPAN
+from tkinter import BOTH, YES, Canvas, Frame, font
+
+from pyubx2 import SET, UBXMessage
+
+from pygpsclient.globals import BGCOL, FGCOL, GNSS_LIST, SPECTRUMVIEW, WIDGETU2
+from pygpsclient.strings import DLGNOMONSPAN, MONSPANERROR
 
 # Graph dimensions
 RESFONT = 24  # font size relative to widget size

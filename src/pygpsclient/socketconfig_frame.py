@@ -14,18 +14,9 @@ Created on 27 Apr 2022
 :license: BSD 3-Clause
 """
 
-from tkinter import (
-    Frame,
-    Entry,
-    Spinbox,
-    Label,
-    StringVar,
-    E,
-    W,
-    NORMAL,
-    DISABLED,
-)
-from pygpsclient.globals import DEFAULT_SERVER, DEFAULT_PORT
+from tkinter import DISABLED, NORMAL, E, Entry, Frame, Label, Spinbox, StringVar, W
+
+from pygpsclient.globals import DEFAULT_PORT, DEFAULT_SERVER
 
 ADVOFF = "\u25bc"
 ADVON = "\u25b2"

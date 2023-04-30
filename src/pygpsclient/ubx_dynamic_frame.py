@@ -21,47 +21,49 @@ Created on 17 Aug 2022
 """
 
 from tkinter import (
-    Frame,
-    Canvas,
-    Listbox,
-    Scrollbar,
-    Entry,
-    Button,
-    Label,
-    StringVar,
+    END,
     LEFT,
     VERTICAL,
+    Button,
+    Canvas,
+    E,
+    Entry,
+    Frame,
+    Label,
+    Listbox,
     N,
     S,
-    E,
+    Scrollbar,
+    StringVar,
     W,
-    END,
 )
-from PIL import ImageTk, Image
+
+from PIL import Image, ImageTk
 from pyubx2 import (
-    UBXMessage,
     POLL,
     SET,
-    UBX_PAYLOADS_SET,
     UBX_PAYLOADS_POLL,
-    atttyp,
+    UBX_PAYLOADS_SET,
     X1,
     X2,
     X4,
     X6,
     X8,
     X24,
+    UBXMessage,
+    atttyp,
 )
+
 from .globals import (
-    ICON_SEND,
-    ICON_WARNING,
-    ICON_PENDING,
     ICON_CONFIRMED,
+    ICON_PENDING,
+    ICON_SEND,
     ICON_UNKNOWN,
+    ICON_WARNING,
     UBX_CFGOTHER,
 )
-from .strings import LBLCFGDYN
 from .helpers import stringvar2val
+from .strings import LBLCFGDYN
 
 # dimensions of scrollable attribute window
 SCROLLX = 300

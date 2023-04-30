@@ -19,42 +19,35 @@ Created on 19 Sep 2020
 :license: BSD 3-Clause
 """
 
-from tkinter import (
-    Toplevel,
-    Frame,
-    Button,
-    Label,
-    StringVar,
-    N,
-    S,
-    E,
-    W,
-)
-from PIL import ImageTk, Image
+from tkinter import Button, E, Frame, Label, N, S, StringVar, Toplevel, W
+
+from PIL import Image, ImageTk
 from pyubx2 import UBXMessage
+
 from pygpsclient.globals import (
+    CONNECTED,
+    DLGTUBX,
+    ENABLE_CFG_OTHER,
     ICON_EXIT,
-    UBX_MONVER,
-    UBX_MONHW,
+    POPUP_TRANSIENT,
+    UBX_CFGMSG,
+    UBX_CFGOTHER,
     UBX_CFGPRT,
     UBX_CFGRATE,
-    UBX_CFGMSG,
     UBX_CFGVAL,
-    UBX_CFGOTHER,
+    UBX_MONHW,
+    UBX_MONVER,
     UBX_PRESET,
-    CONNECTED,
-    ENABLE_CFG_OTHER,
 )
 from pygpsclient.strings import DLGUBXCONFIG
-from pygpsclient.globals import POPUP_TRANSIENT
-from pygpsclient.ubx_info_frame import UBX_INFO_Frame
-from pygpsclient.ubx_port_frame import UBX_PORT_Frame
-from pygpsclient.ubx_msgrate_frame import UBX_MSGRATE_Frame
-from pygpsclient.ubx_preset_frame import UBX_PRESET_Frame
 from pygpsclient.ubx_cfgval_frame import UBX_CFGVAL_Frame
-from pygpsclient.ubx_solrate_frame import UBX_RATE_Frame
 from pygpsclient.ubx_dynamic_frame import UBX_Dynamic_Frame
+from pygpsclient.ubx_info_frame import UBX_INFO_Frame
+from pygpsclient.ubx_msgrate_frame import UBX_MSGRATE_Frame
+from pygpsclient.ubx_port_frame import UBX_PORT_Frame
+from pygpsclient.ubx_preset_frame import UBX_PRESET_Frame
 from pygpsclient.ubx_recorder_frame import UBX_Recorder_Frame
+from pygpsclient.ubx_solrate_frame import UBX_RATE_Frame
 
 
 class UBXConfigDialog(Toplevel):
@@ -292,8 +285,7 @@ class UBXConfigDialog(Toplevel):
         Handle Exit button press.
         """
 
-        # self.__master.update_idletasks()
-        self.__app.stop_ubxconfig_thread()
+        self.__app.stop_dialog(DLGTUBX)
         self.destroy()
 
     def get_size(self):

@@ -12,12 +12,12 @@ Created on 14 Sep 2020
 """
 # pylint: disable=line-too-long
 
-from os import path
 from collections import namedtuple
-from pathlib import Path
 from datetime import datetime
+from os import path
+from pathlib import Path
 
-from pyubx2 import GET, SET, POLL
+from pyubx2 import GET, POLL, SET
 
 Point = namedtuple("Point", ["lat", "lon"])
 
@@ -55,6 +55,18 @@ ICON_UNDO = path.join(DIRNAME, "resources/iconmonstr-undo-24.png")
 ICON_DELETE = path.join(DIRNAME, "resources/iconmonstr-trash-can-filled-24.png")
 ICON_REDRAW = path.join(DIRNAME, "resources/iconmonstr-refresh-lined-24.png")
 IMG_WORLD = path.join(DIRNAME, "resources/world.png")
+
+# dialog task names
+DLGTABOUT = "About"
+DLGTUBX = "UBX Configuration"
+DLGTNTRIP = "NTRIP Configuration"
+DLGTSPARTN = "SPARTN Configuration"
+DLGTGPX = "GPX Track Viewer"
+THD = "thd"
+DLG = "dlg"
+FRM = "frm"
+
+# URLS
 PYPI_URL = "https://pypi.org/pypi/PyGPSClient"
 GITHUB_URL = "https://github.com/semuconsulting/PyGPSClient"
 MAPQURL = "https://www.mapquestapi.com/staticmap/v5/map?key={}"
@@ -69,6 +81,7 @@ GPXMAPURL = (
     + "&locations={},{}||{},{}&zoom={}&size={},{}&defaultMarker=marker-num"
     + "&shape=weight:2|border:{}|{}&scalebar={}|bottom"
 )
+
 # how frequently the mapquest api is called to update the web map (seconds)
 MAP_UPDATE_INTERVAL = 60
 MIN_UPDATE_INTERVAL = 5
@@ -194,8 +207,6 @@ WIDGETU1 = (250, 250)  # small widget size
 WIDGETU2 = (350, 250)  # medium widget size
 WIDGETU3 = (950, 350)  # Console size
 WIDGETU4 = (600, 600)  # GPX Track viewer size
-MAXCOLSPAN = 4  # max no of widget columns
-MAXROWSPAN = 4  # max no of widget rows
 
 BGCOL = "gray24"  # default widget background color
 FGCOL = "white"  # default widget foreground color

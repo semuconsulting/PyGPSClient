@@ -20,28 +20,30 @@ Created on 16 Sep 2020
 """
 
 import socket
-from threading import Thread, Event
-from queue import Empty
 from datetime import datetime, timedelta
-from serial import Serial, SerialException, SerialTimeoutException
-from pyubx2 import (
-    UBXReader,
-    UBXMessageError,
-    UBXParseError,
-    ERR_IGNORE,
-    UBX_PROTOCOL,
-    NMEA_PROTOCOL,
-    RTCM3_PROTOCOL,
-)
+from queue import Empty
+from threading import Event, Thread
+
 from pynmeagps import NMEAMessageError, NMEAParseError
 from pyrtcm import RTCMMessageError, RTCMParseError
+from pyubx2 import (
+    ERR_IGNORE,
+    NMEA_PROTOCOL,
+    RTCM3_PROTOCOL,
+    UBX_PROTOCOL,
+    UBXMessageError,
+    UBXParseError,
+    UBXReader,
+)
+from serial import Serial, SerialException, SerialTimeoutException
+
 from pygpsclient.globals import (
     CONNECTED,
     CONNECTED_FILE,
     CONNECTED_SOCKET,
+    DEFAULT_BUFSIZE,
     DISCONNECTED,
     FILEREAD_INTERVAL,
-    DEFAULT_BUFSIZE,
 )
 from pygpsclient.strings import ENDOFFILE
 

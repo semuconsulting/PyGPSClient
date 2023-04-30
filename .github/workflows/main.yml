@@ -18,17 +18,21 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
+      - name: Install deploy dependencies
         run: |
-          python -m pip install --upgrade pip setuptools build wheel pylint pytest pytest-cov
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install .[deploy]
+      - name: Install test dependencies
+        run: |
+          pip install .[test]
+      - name: Install code dependencies
+        run: |
+          pip install .
       - name: Lint with pylint
         run: |
-          pylint -E src/pygpsclient
+          pylint -E src
+      - name: Security vulnerability analysis with bandit
+        run: |
+          bandit -c pyproject.toml -r -lll .
       - name: Test with pytest
         run: |
           pytest
-      # pyupio/safety action currently uses deprecated set-output command
-      # - uses: pyupio/safety@2.3.5
-      #   with:
-      #     api-key: ${{ secrets.SAFETY_API_KEY }}

@@ -19,6 +19,7 @@ Please help us keep our issue list small by adding fixes: #{$ISSUE_NO} to the co
 * Code should be documented in accordance with [Sphinx](https://www.sphinx-doc.org/en/master/) docstring conventions.
 * Code should formatted using [black](https://pypi.org/project/black/) (>= 23.1.0).
 * We use and recommend [pylint](https://pypi.org/project/pylint/) (>=2.17.0) for code analysis.
+* We use and recommend [bandit](https://pypi.org/project/bandit/) (>=1.7) for security vulnerability analysis.
 * Commits should be [signed](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits).
 
 ## Testing
@@ -33,7 +34,7 @@ We test on the following platforms using a variety of u-blox devices (NEO-M6, NE
 
 * Windows 11
 * MacOS (Ventura)
-* Linux (Ubuntu Kinetic)
+* Linux (Ubuntu Kinetic & Lunar)
 * Raspberry Pi OS (Bullseye 32-bit & 64-bit)
 
 ## Submitting changes

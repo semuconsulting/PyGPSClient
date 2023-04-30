@@ -8,30 +8,19 @@ Created on 19 Feb 2020
 :license: BSD 3-Clause
 """
 
-from tkinter import (
-    Frame,
-    Spinbox,
-    Button,
-    Label,
-    IntVar,
-    StringVar,
-    E,
-    W,
-)
-from PIL import ImageTk, Image
-from pyubx2 import (
-    UBXMessage,
-    POLL,
-    SET,
-)
+from tkinter import Button, E, Frame, IntVar, Label, Spinbox, StringVar, W
+
+from PIL import Image, ImageTk
+from pyubx2 import POLL, SET, UBXMessage
+
 from .globals import (
+    CONNECTED,
+    ICON_CONFIRMED,
+    ICON_PENDING,
     ICON_SEND,
     ICON_WARNING,
-    ICON_PENDING,
-    ICON_CONFIRMED,
     READONLY,
     UBX_CFGRATE,
-    CONNECTED,
 )
 from .strings import LBLCFGRATE
 

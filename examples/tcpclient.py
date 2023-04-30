@@ -13,10 +13,11 @@ Created on 26 Apr 2022
 """
 
 import socket
-from pyubx2 import UBXReader
+
+import pyubx2.ubxtypes_core as ubt
 from pynmeagps import NMEAReader
 from pyrtcm import RTCMReader
-import pyubx2.ubxtypes_core as ubt
+from pyubx2 import UBXReader
 
 HOST = "localhost"  # The remote host
 PORT = 50007  # The same port as used by the server
@@ -72,9 +73,7 @@ class TCPClient:
         start = 0
 
         while start < len(buf):
-
             try:
-
                 byte1 = self._read_bytes(buf, start, 1)
                 # if not NMEA, UBX or RTCM3, skip and continue
                 if byte1 not in (b"\x24", b"\xb5", b"\xd3"):
@@ -164,7 +163,6 @@ class TCPClient:
 
 
 if __name__ == "__main__":
-
     print(f"Creating TCP client on {HOST}:{PORT}")
     client = TCPClient(HOST, PORT)
 

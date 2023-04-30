@@ -10,31 +10,23 @@ Created on 12 Sep 2020
 :license: BSD 3-Clause
 """
 
-from tkinter import Menu, NORMAL
+from tkinter import Menu
 
+from pygpsclient.globals import DLGTABOUT, DLGTGPX, DLGTNTRIP, DLGTSPARTN, DLGTUBX
 from pygpsclient.strings import (
-    MENUSAVE,
-    MENULOAD,
-    MENUFILE,
-    MENUVIEW,
-    MENUOPTION,
-    MENUEXIT,
     MENUABOUT,
+    MENUEXIT,
+    MENUFILE,
     MENUHELP,
-    MENUUBXCONFIG,
-    MENUNTRIPCONFIG,
-    MENUGPXVIEWER,
-    WDGSETTINGS,
-    WDGSTATUS,
-    WDGCONSOLE,
-    WDGSATS,
-    WDGLEVELS,
-    WDGMAP,
-    WDGSPECTRUM,
-    WDGSCATTER,
+    MENULOAD,
+    MENUOPTION,
     MENURESET,
-    MENUSPARTNCONFIG,
+    MENUSAVE,
+    MENUVIEW,
 )
+from pygpsclient.widgets import widget_grid
+
+DIALOGS = (DLGTUBX, DLGTNTRIP, DLGTSPARTN, DLGTGPX)
 
 
 class MenuBar(Menu):
@@ -75,93 +67,33 @@ class MenuBar(Menu):
         # Create a pull-down menu for view operations
         # Menu labels are set in app._grid_widgets() function
         self.view_menu = Menu(self, tearoff=False)
-        self.view_menu.add_command(
-            underline=1,
-            command=lambda: self._toggle_widget(WDGSETTINGS),
-        )
-        self.view_menu.add_command(
-            underline=1,
-            command=lambda: self._toggle_widget(WDGSTATUS),
-        )
-        self.view_menu.add_command(
-            underline=1,
-            command=lambda: self._toggle_widget(WDGCONSOLE),
-        )
-        self.view_menu.add_command(
-            underline=1,
-            command=lambda: self._toggle_widget(WDGSATS),
-        )
-        self.view_menu.add_command(
-            underline=1,
-            command=lambda: self._toggle_widget(WDGLEVELS),
-        )
-        self.view_menu.add_command(
-            underline=1,
-            command=lambda: self._toggle_widget(WDGMAP),
-        )
-        self.view_menu.add_command(
-            underline=1,
-            command=lambda: self._toggle_widget(WDGSPECTRUM),
-        )
-        self.view_menu.add_command(
-            underline=1,
-            command=lambda: self._toggle_widget(WDGSCATTER),
-        )
+        for wdg, wdict in widget_grid.items():
+            if wdict["menu"] is not None:
+                self.view_menu.add_command(
+                    underline=1, command=lambda i=wdg: self.__app.toggle_widget(i)
+                )
         self.view_menu.add_command(
             underline=1,
             label=MENURESET,
-            command=lambda: self._reset_widgets(),  # pylint: disable=unnecessary-lambda
+            command=lambda: self.__app.reset_widgets(),  # pylint: disable=unnecessary-lambda
         )
-
         self.add_cascade(menu=self.view_menu, label=MENUVIEW)
 
         # Create a pull-down menu for view operations
         self.options_menu = Menu(self, tearoff=False)
-        self.options_menu.add_command(
-            label=MENUUBXCONFIG,
-            underline=1,
-            command=self.__app.ubxconfig,
-            state=NORMAL,
-        )
-        self.options_menu.add_command(
-            label=MENUNTRIPCONFIG,
-            underline=1,
-            command=self.__app.ntripconfig,
-            state=NORMAL,
-        )
-        self.options_menu.add_command(
-            label=MENUSPARTNCONFIG,
-            underline=1,
-            command=self.__app.spartnconfig,
-            state=NORMAL,
-        )
-        self.options_menu.add_command(
-            label=MENUGPXVIEWER,
-            underline=1,
-            command=self.__app.gpxviewer,
-            state=NORMAL,
-        )
+        for dlg in DIALOGS:
+            self.options_menu.add_command(
+                label=dlg,
+                underline=1,
+                command=lambda i=dlg: self.__app.start_dialog(i),
+            )
         self.add_cascade(menu=self.options_menu, label=MENUOPTION)
 
         # Create a pull-down menu for help operations
         self.help_menu = Menu(self, tearoff=False)
         self.help_menu.add_command(
-            label=MENUABOUT, underline=1, command=self.__app.on_about
+            label=MENUABOUT,
+            underline=1,
+            command=lambda: self.__app.start_dialog(DLGTABOUT),
         )
         self.add_cascade(menu=self.help_menu, label=MENUHELP)
-
-    def _toggle_widget(self, widget: str):
-        """
-        Set widget visibility.
-
-        :param str widget: name of widget
-        """
-
-        self.__app.toggle_widget(widget)
-
-    def _reset_widgets(self):
-        """
-        Reset widgets to default layout
-        """
-
-        self.__app.reset_widgets()

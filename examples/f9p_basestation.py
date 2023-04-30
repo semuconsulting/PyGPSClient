@@ -18,8 +18,9 @@ Created on 26 Apr 2022
 """
 
 from math import trunc
-from serial import Serial
+
 from pyubx2 import UBXMessage
+from serial import Serial
 
 TMODE_SVIN = 1
 TMODE_FIXED = 2
@@ -144,7 +145,6 @@ def config_fixed(acc_limit: int, lat: float, lon: float, height: float) -> UBXMe
 
 
 if __name__ == "__main__":
-
     # Amend as required...
     PORT = "/dev/tty.usbmodem1101"
     PORT_TYPE = "USB"  # choose from "USB", "UART1", "UART2"
@@ -165,7 +165,6 @@ if __name__ == "__main__":
 
     print(f"Configuring receiver on {PORT} @ {BAUD:,} baud.\n")
     with Serial(PORT, BAUD, timeout=TIMEOUT) as stream:
-
         # configure RTCM3 outputs
         msg = config_rtcm(PORT_TYPE)
         send_msg(stream, msg)

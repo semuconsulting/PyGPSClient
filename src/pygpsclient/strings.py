@@ -27,19 +27,6 @@ ABOUTTXT = (
 
 MAPAPIURL = "https://developer.mapquest.com/user/login/sign-up"
 
-# Widget titles
-WDGBANNER = "Banner"
-WDGSETTINGS = "Settings"
-WDGSTATUS = "Status"
-WDGCONSOLE = "Console"
-WDGSATS = "Satellites"
-WDGLEVELS = "Levels"
-WDGMAP = "Map"
-WDGSPECTRUM = "Spectrum"
-WDGSCATTER = "Scatter Plot"
-HIDE = "Hide"
-SHOW = "Show"
-
 # Message text
 SETINITTXT = "Settings initialised"
 VALERROR = "ERROR! Please correct highlighted entries"
@@ -85,16 +72,10 @@ MENULOAD = "Load Configuration"
 MENUEXIT = "Exit"
 MENUCAN = "Cancel"
 MENURST = "Reset"
-MENUHIDEUBX = "Hide UBX Config"
-MENUSHOWUBX = "Show UBX Config"
-MENUUBXCONFIG = "UBX Configuration Dialog"
-MENUNTRIPCONFIG = "NTRIP Configuration Dialog"
-MENUSPARTNCONFIG = "SPARTN Configuration Dialog"
-MENUHOWTO = "How To"
 MENUABOUT = "About"
 MENUHELP = "Help"
 MENURESET = "Reset Layout"
-MENUGPXVIEWER = "GPX Track Viewer Dialog"
+
 
 # Button text
 BTNPLOT = "PLOT"

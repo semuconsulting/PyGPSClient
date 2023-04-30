@@ -12,16 +12,16 @@ Created on 26 Apr 2022
 :license: BSD 3-Clause
 """
 
-from socketserver import ThreadingTCPServer, StreamRequestHandler
 import random
 
 # from serial import Serial
 from datetime import datetime
-
+from socketserver import StreamRequestHandler, ThreadingTCPServer
 from time import sleep
-from pyubx2 import UBXMessage, GET  # , UBXReader
+
 from pynmeagps import NMEAMessage
 from pyrtcm import RTCMMessage
+from pyubx2 import GET, UBXMessage  # , UBXReader
 
 SERPORT = "/dev/tty.usbmodem141101"
 BAUD = 9600

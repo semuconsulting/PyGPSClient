@@ -14,73 +14,65 @@ to be increased if the correction source is intermittent.
 
 from datetime import datetime, timedelta
 from tkinter import (
-    ttk,
-    Frame,
+    NORMAL,
     Button,
     Checkbutton,
-    Radiobutton,
-    Label,
-    Entry,
-    StringVar,
-    IntVar,
     E,
+    Entry,
+    Frame,
+    IntVar,
+    Label,
+    Radiobutton,
+    StringVar,
     W,
-    NORMAL,
+    ttk,
 )
-from PIL import ImageTk, Image
-from pyubx2 import (
-    UBXMessage,
-    val2bytes,
-    SET,
-    POLL,
-    U1,
-    U2,
-    U4,
-    TXN_NONE,
-    SET_LAYER_RAM,
-)
+
+from PIL import Image, ImageTk
+from pyubx2 import POLL, SET, SET_LAYER_RAM, TXN_NONE, U1, U2, U4, UBXMessage, val2bytes
+
 from pygpsclient.globals import (
-    ICON_SEND,
-    ICON_CONFIRMED,
-    ICON_PENDING,
-    ICON_WARNING,
-    ICON_DISCONN,
-    ICON_BLANK,
-    ICON_LOAD,
     CONNECTED,
-    SPARTN_SOURCE_LB,
-    SPARTN_SOURCE_IP,
+    ICON_BLANK,
+    ICON_CONFIRMED,
+    ICON_DISCONN,
+    ICON_LOAD,
+    ICON_PENDING,
+    ICON_SEND,
+    ICON_WARNING,
+    RXMMSG,
     SPARTN_GNSS,
     SPARTN_KEYLEN,
-    RXMMSG,
-)
-from pygpsclient.strings import (
-    LBLSPTNCURR,
-    LBLSPTNNEXT,
-    LBLSPTNKEY,
-    LBLSPTNDAT,
-    LBLSPTNUPLOAD,
-    LBLSPTNFP,
-    LBLSPTNNMEA,
-    LBLJSONLOAD,
-    DLGJSONOK,
-    DLGJSONERR,
-    NOTCONN,
-    NULLSEND,
-    LBLSPARTNGN,
-    CONFIGOK,
-    CONFIGBAD,
-    CONFIGRXM,
+    SPARTN_SOURCE_IP,
+    SPARTN_SOURCE_LB,
 )
 from pygpsclient.helpers import (
-    valid_entry,
+    VALDMY,
+    VALHEX,
+    VALLEN,
     date2wnotow,
     parse_rxmspartnkey,
-    VALHEX,
-    VALDMY,
-    VALLEN,
+    valid_entry,
 )
 from pygpsclient.spartn_json_config import SpartnJsonConfig
+from pygpsclient.strings import (
+    CONFIGBAD,
+    CONFIGOK,
+    CONFIGRXM,
+    DLGJSONERR,
+    DLGJSONOK,
+    LBLJSONLOAD,
+    LBLSPARTNGN,
+    LBLSPTNCURR,
+    LBLSPTNDAT,
+    LBLSPTNFP,
+    LBLSPTNKEY,
+    LBLSPTNNEXT,
+    LBLSPTNNMEA,
+    LBLSPTNUPLOAD,
+    NOTCONN,
+    NULLSEND,
+)
 
 U2MAX = 2e16 - 1
 U8MAX = 2e64 - 1

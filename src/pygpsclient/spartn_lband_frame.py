@@ -9,64 +9,52 @@ Created on 26 Jan 2023
 """
 
 from tkinter import (
-    ttk,
-    Frame,
+    DISABLED,
+    NORMAL,
     Button,
     Checkbutton,
-    Spinbox,
-    Label,
+    E,
     Entry,
-    StringVar,
+    Frame,
     IntVar,
+    Label,
     N,
     S,
-    E,
+    Spinbox,
+    StringVar,
     W,
-    NORMAL,
-    DISABLED,
+    ttk,
 )
-from PIL import ImageTk, Image
-from pyubx2 import (
-    UBXMessage,
-    SET,
-    TXN_NONE,
-    SET_LAYER_RAM,
-    POLL_LAYER_RAM,
-)
+
+from PIL import Image, ImageTk
+from pyubx2 import POLL_LAYER_RAM, SET, SET_LAYER_RAM, TXN_NONE, UBXMessage
+
 from pygpsclient.globals import (
-    ICON_EXIT,
-    ICON_SEND,
-    ICON_CONFIRMED,
-    ICON_PENDING,
-    ICON_WARNING,
-    ICON_SERIAL,
-    ICON_DISCONN,
-    ICON_BLANK,
-    ICON_SOCKET,
-    CONNECTED_SPARTNLB,
-    CONNECTED_SPARTNIP,
-    DISCONNECTED,
-    NOPORTS,
-    READONLY,
     BPSRATES,
+    CONNECTED_SPARTNIP,
+    CONNECTED_SPARTNLB,
+    DISCONNECTED,
+    ICON_BLANK,
+    ICON_CONFIRMED,
+    ICON_DISCONN,
+    ICON_EXIT,
+    ICON_PENDING,
+    ICON_SEND,
+    ICON_SERIAL,
+    ICON_SOCKET,
+    ICON_WARNING,
     KNOWNGPS,
     MSGMODES,
-    TIMEOUTS,
+    NOPORTS,
+    READONLY,
+    SPARTN_EOF_EVENT,
     SPARTN_EVENT,
     SPARTN_LBAND,
-    SPARTN_EOF_EVENT,
+    TIMEOUTS,
 )
-from pygpsclient.strings import (
-    LBLSPARTNLB,
-    CONFIGOK,
-    CONFIGBAD,
-    DLGSPARTNWARN,
-)
-from pygpsclient.helpers import (
-    valid_entry,
-    VALINT,
-)
+from pygpsclient.helpers import VALINT, valid_entry
 from pygpsclient.serialconfig_frame import SerialConfigFrame
+from pygpsclient.strings import CONFIGBAD, CONFIGOK, DLGSPARTNWARN, LBLSPARTNLB
 
 U2MAX = 2e16 - 1
 U8MAX = 2e64 - 1

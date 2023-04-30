@@ -15,30 +15,27 @@ Created on 13 Sep 2020
 :license: BSD 3-Clause
 """
 
-from os import getenv
-from io import BytesIO
-from time import time
-from tkinter import Frame, Canvas, font, NW, N, S, E, W
 from http.client import responses
-from PIL import ImageTk, Image
-from requests import get, RequestException, ConnectionError as ConnError, ConnectTimeout
+from io import BytesIO
+from os import getenv
+from time import time
+from tkinter import NW, Canvas, E, Frame, N, S, W, font
+
+from PIL import Image, ImageTk
+from requests import ConnectionError as ConnError
+from requests import ConnectTimeout, RequestException, get
 
 from pygpsclient.globals import (
-    WIDGETU2,
-    MAPURL,
-    MAP_UPDATE_INTERVAL,
-    MIN_UPDATE_INTERVAL,
-    MAPQTIMEOUT,
-    IMG_WORLD,
-    ICON_POS,
     BGCOL,
+    ICON_POS,
+    IMG_WORLD,
+    MAP_UPDATE_INTERVAL,
+    MAPQTIMEOUT,
+    MAPURL,
+    MIN_UPDATE_INTERVAL,
+    WIDGETU2,
 )
-from pygpsclient.strings import (
-    NOWEBMAPFIX,
-    NOWEBMAPCONN,
-    NOWEBMAPHTTP,
-    NOWEBMAPKEY,
-)
+from pygpsclient.strings import NOWEBMAPCONN, NOWEBMAPFIX, NOWEBMAPHTTP, NOWEBMAPKEY
 
 
 class MapviewFrame(Frame):

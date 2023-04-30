@@ -8,19 +8,21 @@ Created on 20 Sep 2020
 :license: BSD 3-Clause
 """
 
-from tkinter import Toplevel, Label, Button
 from platform import python_version
+from tkinter import Button, Label, Toplevel
 from webbrowser import open_new_tab
-from PIL import ImageTk, Image
+
+from PIL import Image, ImageTk
 from pygnssutils import version as PGVERSION
-from pyubx2 import version as UBXVERSION
 from pynmeagps import version as NMEAVERSION
 from pyrtcm import version as RTCMVERSION
 from pyspartn import version as SPARTNVERSION
-from pygpsclient.helpers import check_latest
-from pygpsclient.globals import ICON_APP, ICON_EXIT, GITHUB_URL
-from pygpsclient.strings import ABOUTTXT, COPYRIGHTTXT, DLGABOUT
+from pyubx2 import version as UBXVERSION
+
 from pygpsclient._version import __version__ as VERSION
+from pygpsclient.globals import DLGTABOUT, GITHUB_URL, ICON_APP, ICON_EXIT
+from pygpsclient.helpers import check_latest
+from pygpsclient.strings import ABOUTTXT, COPYRIGHTTXT, DLGABOUT
 
 LIBVERSIONS = {
     "PyGPSClient": VERSION,
@@ -143,6 +145,7 @@ class AboutDialog:
         Handle OK button press.
         """
 
+        self.__app.stop_dialog(DLGTABOUT)
         self._dialog.destroy()
 
     def _check_for_update(self, *args, **kwargs):  # pylint: disable=unused-argument

@@ -11,69 +11,66 @@ Created on 10 Jan 2023
 """
 # pylint: disable=unused-argument
 
-from xml.dom import minidom
-from io import BytesIO
 from datetime import datetime
+from http.client import responses
+from io import BytesIO
 from tkinter import (
-    Toplevel,
-    Frame,
-    Canvas,
-    Spinbox,
-    Label,
-    Button,
-    font,
-    filedialog,
-    StringVar,
-    IntVar,
+    BOTH,
     NW,
+    YES,
+    Button,
+    Canvas,
+    E,
+    Frame,
+    IntVar,
+    Label,
     N,
     S,
+    Spinbox,
+    StringVar,
+    Toplevel,
     W,
-    E,
-    BOTH,
-    YES,
+    filedialog,
+    font,
 )
-from http.client import responses
-from requests import (
-    get,
-    RequestException,
-    ConnectionError as ConnError,
-    ConnectTimeout,
-    HTTPError,
-)
-from PIL import ImageTk, Image
+from xml.dom import minidom
+
+from PIL import Image, ImageTk
+from requests import ConnectionError as ConnError
+from requests import ConnectTimeout, HTTPError, RequestException, get
+
 from pygpsclient.globals import (
-    HOME,
-    ICON_LOAD,
-    ICON_EXIT,
-    ICON_REDRAW,
-    GPXMAPURL,
-    GPXLIMIT,
-    MAPQTIMEOUT,
-    POPUP_TRANSIENT,
     BGCOL,
-    READONLY,
-    UMK,
-    UI,
-    UIK,
-    KPH2MPH,
-    KPH2KNT,
-    KPH2MPS,
-    M2FT,
+    DLGTGPX,
+    GPXLIMIT,
+    GPXMAPURL,
+    HOME,
+    ICON_EXIT,
+    ICON_LOAD,
+    ICON_REDRAW,
     KM2M,
     KM2MIL,
     KM2NMIL,
+    KPH2KNT,
+    KPH2MPH,
+    KPH2MPS,
+    M2FT,
+    MAPQTIMEOUT,
+    POPUP_TRANSIENT,
+    READONLY,
+    UI,
+    UIK,
+    UMK,
 )
+from pygpsclient.helpers import haversine, mapq_compress
 from pygpsclient.strings import (
+    DLGGPXERROR,
+    DLGGPXLOAD,
+    DLGGPXNULL,
+    DLGGPXPROMPT,
     DLGGPXVIEWER,
     READTITLE,
-    DLGGPXPROMPT,
-    DLGGPXLOAD,
-    DLGGPXERROR,
-    DLGGPXNULL,
 )
-from pygpsclient.helpers import mapq_compress, haversine
-
 
 # profile chart parameters:
 AXIS_XL = 35  # x axis left offset
@@ -233,7 +230,7 @@ class GPXViewerDialog(Toplevel):
         Handle Exit button press.
         """
 
-        self.__app.stop_gpxviewer_thread()
+        self.__app.stop_dialog(DLGTGPX)
         self.destroy()
 
     def _on_redraw(self, *args, **kwargs):

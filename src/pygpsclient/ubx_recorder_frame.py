@@ -14,41 +14,47 @@ Created on 9 Jan 2023
 :license: BSD 3-Clause
 """
 
-from time import sleep
 from threading import Event, Thread
-from tkinter import (
-    Frame,
-    Button,
-    Label,
-    filedialog,
-    TclError,
-    E,
-    W,
-)
-from PIL import ImageTk, Image
+from time import sleep
+from tkinter import Button, E, Frame, Label, TclError, W, filedialog
+
+from PIL import Image, ImageTk
 from pyubx2 import (
+    POLL_LAYER_BBR,
+    POLL_LAYER_FLASH,
+    SET,
+    SET_LAYER_BBR,
+    SET_LAYER_FLASH,
+    SET_LAYER_RAM,
+    TXN_NONE,
+    U1,
+    UBX_PROTOCOL,
     UBXMessage,
     UBXReader,
-    SET,
-    UBX_PROTOCOL,
+    bytes2val,
+    val2bytes,
 )
+
 from pygpsclient.globals import (
     HOME,
+    ICON_DELETE,
+    ICON_LOAD,
+    ICON_RECORD,
+    ICON_SAVE,
     ICON_SEND,
     ICON_STOP,
-    ICON_RECORD,
     ICON_UNDO,
-    ICON_LOAD,
-    ICON_SAVE,
-    ICON_DELETE,
 )
-from pygpsclient.strings import LBLCFGRECORD, READTITLE, SAVETITLE
 from pygpsclient.helpers import set_filename
+from pygpsclient.strings import LBLCFGRECORD, READTITLE, SAVETITLE
 
 STOP = 0
 PLAY = 1
 RECORD = 2
 FLASH = 0.7
+CFG = b"\x06"
+VALSET = b"\x8a"
+VALGET = b"\x8b"
 
 
 class UBX_Recorder_Frame(Frame):
@@ -198,8 +204,10 @@ class UBX_Recorder_Frame(Frame):
             parent=self.__container,
             title=READTITLE,
             initialdir=HOME,
+            defaultextension="ubx",
             filetypes=(
-                ("config files", "*.ubx"),
+                ("ubx config files", "*.ubx"),
+                ("u-center config files", "*.txt"),
                 ("all files", "*.*"),
             ),
         )
@@ -217,26 +225,92 @@ class UBX_Recorder_Frame(Frame):
             return
 
         self._cmds_stored = []
-        self._lbl_activity.config(text="Loading commands...")
+        self._update_activity("Loading commands...")
 
-        with open(self._configfile, "rb") as file:
-            ubr = UBXReader(file, protfilter=UBX_PROTOCOL, msgmode=SET)
-            eof = False
-            i = 0
-            while not eof:
-                _, parsed = ubr.read()
-                if parsed is not None:
-                    self._cmds_stored.append(parsed)
-                    i += 1
-                else:
-                    eof = True
+        if self._configfile[-3:] == "txt":
+            i = self._on_load_txt(self._configfile)
+        else:
+            i = self._on_load_ubx(self._configfile)
+
         if i > 0:
             fname = self._configfile.split("/")[-1]
-            self._lbl_activity.config(
-                text=f"{i} Command{'s' if i > 1 else ''} loaded from {fname}"
+            self._update_activity(
+                f"{i} Command{'s' if i > 1 else ''} loaded from {fname}"
             )
 
         self._update_status()
+
+    def _on_load_ubx(self, fname: str) -> int:
+        """
+        Load binary ubx configuration file
+
+        :param str fname: input filename
+        :return: no of items read
+        :rtype: int
+        """
+
+        try:
+            with open(fname, "rb") as file:
+                ubr = UBXReader(file, protfilter=UBX_PROTOCOL, msgmode=SET)
+                eof = False
+                i = 0
+                while not eof:
+                    _, parsed = ubr.read()
+                    if parsed is not None:
+                        self._cmds_stored.append(parsed)
+                        i += 1
+                    else:
+                        eof = True
+        except Exception:  # pylint: disable=broad-exception-caught
+            self._update_activity(f"ERROR parsing {fname}!")
+            return 0
+
+        return i
+
+    def _on_load_txt(self, fname: str) -> int:
+        """
+        Load u-center format text configuration file.
+
+        Any messages other than CFG-VALGET (0x068b) are discarded.
+        The CFG-VALGET messages are converted into CFG-VALGET.
+
+        :param str fname: input file name
+        :return: no of items read
+        :rtype: int
+        """
+
+        try:
+            with open(fname, "r", encoding="utf-8") as file:
+                i = 0
+                for line in file:
+                    parts = line.replace(" ", "").split("-")
+                    data = bytes.fromhex(parts[-1])
+                    cls = data[0:1]
+                    mid = data[1:2]
+                    if cls != CFG or mid != VALGET:
+                        continue
+                    version = data[4:5]
+                    layer = bytes2val(data[5:6], U1)
+                    if layer == POLL_LAYER_BBR:
+                        layers = SET_LAYER_BBR
+                    elif layer == POLL_LAYER_FLASH:
+                        layers = SET_LAYER_FLASH
+                    else:
+                        layers = SET_LAYER_RAM
+                    layers = val2bytes(layers, U1)
+                    transaction = val2bytes(TXN_NONE, U1)  # not transactional
+                    reserved0 = b"\x00"
+                    cfgdata = data[8:]
+                    payload = version + layers + transaction + reserved0 + cfgdata
+                    parsed = UBXMessage(CFG, VALSET, SET, payload=payload)
+                    if parsed is not None:
+                        self._cmds_stored.append(parsed)
+                        i += 1
+        except Exception:  # pylint: disable=broad-exception-caught
+            self._update_activity(f"ERROR parsing {fname}!")
+            return 0
+
+        return i
 
     def _on_save(self):
         """
@@ -247,22 +321,20 @@ class UBX_Recorder_Frame(Frame):
             return
 
         if len(self._cmds_stored) == 0:
-            self._lbl_activity.config(text="Nothing to save")
+            self._update_activity("Nothing to save")
             return
 
         fname, self._configfile = self._set_configfile_path()
         if self._configfile is None:
             return
 
-        self._lbl_activity.config(text="Saving commands...")
+        self._update_activity("Saving commands...")
         with open(self._configfile, "wb") as file:
             i = 0
             for i, msg in enumerate(self._cmds_stored):
                 file.write(msg.serialize())
         self._cmds_stored = []
-        self._lbl_activity.config(
-            text=f"{i + 1} command{'s' if i > 0 else ''} saved to {fname}"
-        )
+        self._update_activity(f"{i + 1} command{'s' if i > 0 else ''} saved to {fname}")
         self._update_status()
 
     def _on_play(self):
@@ -274,18 +346,18 @@ class UBX_Recorder_Frame(Frame):
             return
 
         if len(self._cmds_stored) == 0:
-            self._lbl_activity.config(text="Nothing to send")
+            self._update_activity("Nothing to send")
             return
 
         if self._rec_status == STOP:
             self._rec_status = PLAY
             i = 0
             for i, msg in enumerate(self._cmds_stored):
-                self._lbl_activity.config(text=f"{i} Sending {msg.identity}")
+                self._update_activity(f"{i} Sending {msg.identity}")
                 self.__app.gnss_outqueue.put(msg.serialize())
                 sleep(0.01)
-            self._lbl_activity.config(
-                text=f"{i + 1} command{'s' if i > 0 else ''} sent to device"
+            self._update_activity(
+                f"{i + 1} command{'s' if i > 0 else ''} sent to device"
             )
             self._rec_status = STOP
         self._update_status()
@@ -309,7 +381,7 @@ class UBX_Recorder_Frame(Frame):
             self._stop_event.set()
             self._rec_status = STOP
             self.__container.recordmode = False
-            self._lbl_activity.config(text="Recording stopped")
+            self._update_activity("Recording stopped")
         self._update_status()
 
     def _on_undo(self):
@@ -318,13 +390,13 @@ class UBX_Recorder_Frame(Frame):
         """
 
         if len(self._cmds_stored) == 0:
-            self._lbl_activity.config(text="Nothing to undo")
+            self._update_activity("Nothing to undo")
             return
 
         if self._rec_status == STOP:
             if len(self._cmds_stored) > 0:
                 self._cmds_stored.pop()
-                self._lbl_activity.config(text="Last command undone")
+                self._update_activity("Last command undone")
                 self._update_status()
 
     def _on_delete(self):
@@ -336,11 +408,11 @@ class UBX_Recorder_Frame(Frame):
             return
 
         if len(self._cmds_stored) == 0:
-            self._lbl_activity.config(text="Nothing to delete")
+            self._update_activity("Nothing to delete")
             return
 
         i = len(self._cmds_stored)
-        self._lbl_activity.config(text=f"{i} command{'s' if i > 1 else ''} deleted")
+        self._update_activity(f"{i} command{'s' if i > 1 else ''} deleted")
         self._cmds_stored = []
         self._update_status()
 
@@ -365,6 +437,17 @@ class UBX_Recorder_Frame(Frame):
 
         self._btn_play.config(image=pimg)
         self._btn_record.config(image=rimg)
+
+    def _update_activity(self, msg: str):
+        """
+        Update activity label.
+
+        :param str msg: message
+        """
+
+        if len(msg) > 55:
+            msg = f"{msg[0:30]}...{msg[-22:]}"
+        self._lbl_activity.config(text=msg)
 
     def update_record(self, msg: UBXMessage):
         """

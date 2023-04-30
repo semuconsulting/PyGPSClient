@@ -1,5 +1,0 @@
-Pillow>=9.0.0
-pygnssutils>=1.0.6
-pyserial>=3.5
-pyspartn>=0.1.6
-requests>=2.28.0
