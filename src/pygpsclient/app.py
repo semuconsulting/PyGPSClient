@@ -732,6 +732,17 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._ubxpresets = config.get("ubxpresets", self._ubxpresets)
 
     @property
+    def widgets(self) -> dict:
+        """
+        Getter for widget grid.
+
+        :return: widget grid
+        :rtype: dict
+        """
+
+        return self._widget_grid
+
+    @property
     def widget_config(self) -> dict:
         """
         Getter for widget configuration.

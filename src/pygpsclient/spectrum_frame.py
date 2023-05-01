@@ -17,7 +17,7 @@ from tkinter import BOTH, YES, Canvas, Frame, font
 from pyubx2 import SET, UBXMessage
 
 from pygpsclient.globals import BGCOL, FGCOL, GNSS_LIST, SPECTRUMVIEW, WIDGETU2
-from pygpsclient.strings import DLGNOMONSPAN, MONSPANERROR
+from pygpsclient.strings import DLGENABLEMONSPAN, DLGNOMONSPAN, DLGWAITMONSPAN
 
 # Graph dimensions
 RESFONT = 24  # font size relative to widget size
@@ -55,6 +55,7 @@ RF_LIST = {
     4: "dodgerblue",
     5: "darkorange",
 }
+ACTIVE = ""
 
 
 class SpectrumviewFrame(Frame):
@@ -83,7 +84,7 @@ class SpectrumviewFrame(Frame):
         self._maxdb = MAX_DB
         self._minhz = MIN_HZ
         self._maxhz = MAX_HZ
-        self._monspan_enabled = False
+        self._monspan_status = DLGENABLEMONSPAN
         self._pending_confs = {}
         self._showrf = True
         self._chartpos = None
@@ -177,13 +178,12 @@ class SpectrumviewFrame(Frame):
         )
 
         # display 'enable MON-SPAN' warning
-        if not self._monspan_enabled:
-            self.can_spectrumview.create_text(
-                self.width / 2,
-                self.height / 2,
-                text=MONSPANERROR,
-                fill="orange",
-            )
+        self.can_spectrumview.create_text(
+            self.width / 2,
+            self.height / 2,
+            text=self._monspan_status,
+            fill="orange",
+        )
 
     def reset(self):
         """
@@ -216,6 +216,7 @@ class SpectrumviewFrame(Frame):
         self.__app.gnss_outqueue.put(msg.serialize())
         for msgid in ("ACK-ACK", "ACK-NAK"):
             self._set_pending(msgid, SPECTRUMVIEW)
+        self._monspan_status = DLGWAITMONSPAN
 
     def _set_pending(self, msgid: int, ubxfrm: int):
         """
@@ -249,7 +250,8 @@ class SpectrumviewFrame(Frame):
                 anchor="s",
             )
             self._pending_confs.pop("ACK-NAK")
-            self._monspan_enabled = False
+            self._monspan_status = DLGNOMONSPAN
+            self.init_graph()
 
         if self._pending_confs.get("ACK-ACK", False):
             self._pending_confs.pop("ACK-ACK")
@@ -262,10 +264,10 @@ class SpectrumviewFrame(Frame):
         one item per RF block.
         """
 
-        self._monspan_enabled = True
         rfblocks = self.__app.gnss_status.spectrum_data
         if len(rfblocks) == 0:
             return
+        self._monspan_status = ACTIVE
 
         specxy, self._minhz, self._maxhz, self._mindb, self._maxdb = self._get_limits(
             rfblocks

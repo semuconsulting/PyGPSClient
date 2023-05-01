@@ -16,7 +16,7 @@ from tkinter import BOTH, YES, Canvas, Frame, font
 from pyubx2 import SET, UBXMessage
 
 from pygpsclient.globals import BGCOL, SYSMONVIEW, WIDGETU2
-from pygpsclient.strings import DLGNOMONSYS, DLGWAITMONSYS, MONSYSERROR
+from pygpsclient.strings import DLGENABLEMONSYS, DLGNOMONSYS, DLGWAITMONSYS
 
 # Graph dimensions
 RESFONT = 40  # font size relative to widget size
@@ -41,6 +41,7 @@ BOOTTYPES = {
     9: "VDD_RF fail",
     10: "V_CORE_HIGH fail",
 }
+ACTIVE = ""
 
 
 class SysmonFrame(Frame):
@@ -65,7 +66,7 @@ class SysmonFrame(Frame):
         def_w, def_h = WIDGETU2
         self.width = kwargs.get("width", def_w)
         self.height = kwargs.get("height", def_h)
-        self._monsys_enabled = False
+        self._monsys_status = DLGENABLEMONSYS
         self._pending_confs = {}
         self._maxtemp = 0
         self._body()
@@ -96,15 +97,12 @@ class SysmonFrame(Frame):
         """
 
         self.can_sysmon.delete("all")
-
-        # display 'enable MON-SYS' warning
-        if not self._monsys_enabled:
-            self.can_sysmon.create_text(
-                self.width / 2,
-                self.height / 2,
-                text=MONSYSERROR,
-                fill="orange",
-            )
+        self.can_sysmon.create_text(
+            self.width / 2,
+            self.height / 2,
+            text=self._monsys_status,
+            fill="orange",
+        )
 
     def _on_clear(self, event):  # pylint: disable=unused-argument
         """
@@ -113,7 +111,10 @@ class SysmonFrame(Frame):
         :param Event event: clear event
         """
 
+        self.__app.gnss_status.sysmon_data = {}
+        self.__app.gnss_status.comms_data = {}
         self._maxtemp = 0
+        self._monsys_status = DLGWAITMONSYS
         self.init_chart()
 
     def enable_MONSYS(self, status: bool):
@@ -139,14 +140,8 @@ class SysmonFrame(Frame):
             self.__app.gnss_outqueue.put(msg.serialize())
         for msgid in ("ACK-ACK", "ACK-NAK"):
             self._set_pending(msgid, SYSMONVIEW)
-        w, h = self.width, self.height
-        self.can_sysmon.create_text(
-            w / 2,
-            h / 2,
-            text=DLGWAITMONSYS,
-            fill="orange",
-            anchor="s",
-        )
+        self._monsys_status = DLGWAITMONSYS
+        self.init_chart()
 
     def _set_pending(self, msgid: int, ubxfrm: int):
         """
@@ -168,19 +163,10 @@ class SysmonFrame(Frame):
         """
 
         pending = self._pending_confs.get(msg.identity, False)
-
         if pending and msg.identity == "ACK-NAK":
-            # self._on_clear()
-            w, h = self.width, self.height
-            self.can_sysmon.create_text(
-                w / 2,
-                h / 2,
-                text=DLGNOMONSYS,
-                fill="orange",
-                anchor="s",
-            )
             self._pending_confs.pop("ACK-NAK")
-            self._monsys_enabled = False
+            self._monsys_status = DLGNOMONSYS
+            self.init_chart()
 
         if self._pending_confs.get("ACK-ACK", False):
             self._pending_confs.pop("ACK-ACK")
@@ -192,9 +178,6 @@ class SysmonFrame(Frame):
         spectrum_data is list of tuples (spec, spn, res, ctr, pga),
         one item per RF block.
         """
-
-        self._monsys_enabled = True
-        self.init_chart()
 
         try:
             sysdata = self.__app.gnss_status.sysmon_data
@@ -214,13 +197,16 @@ class SysmonFrame(Frame):
             tempValueP = tempValue * 100 / MAXTEMP
             self._maxtemp = max(tempValue, self._maxtemp) * 100 / MAXTEMP
 
+            self._monsys_status = ACTIVE
+            self.init_chart()
+
             y = self._fonth
             y = self._draw_line(XOFFSET, y, cpuLoadMax, cpuLoad, "CPU", "%")
             y = self._draw_line(XOFFSET, y, memUsageMax, memUsage, "Memory", "%")
             y = self._draw_line(XOFFSET, y, ioUsageMax, ioUsage, "I/O", "%")
             if commsdata != {}:
-                for port, pdata in commsdata.items():
-                    y = self._draw_io(XOFFSET, y, port, pdata)
+                for port, pdata in sorted(commsdata.items()):
+                    y = self._draw_port_io(XOFFSET, y, port, pdata)
             y += SPACING
             y = self._draw_line(XOFFSET, y, self._maxtemp, tempValueP, "Temp", "°C")
 
@@ -254,7 +240,7 @@ class SysmonFrame(Frame):
         Draw line on chart.
         """
 
-        scale = (self.width - (2 * xoffset)) / 100
+        scale = (self.width - (3 * xoffset)) / 100
         x = xoffset
         if val > 100:
             val = 100
@@ -288,21 +274,22 @@ class SysmonFrame(Frame):
         y += self._fonth + SPACING
         return y
 
-    def _draw_io(self, xoffset: int, y: int, port: int, pdata: tuple):
+    def _draw_port_io(self, xoffset: int, y: int, port: int, pdata: tuple):
         """
-        Draw port I/O lines on chart
+        Draw port I/O TX & RX lines on chart
 
         :param port: _description_
         :param pdata: _description_
         """
 
-        cap = self._font.measure("5: ")
-        scale = (self.width - (2 * (xoffset + cap))) / 100
+        cap = self._font.measure("port 888: ")
+        scale = (self.width - cap - (3 * xoffset)) / 100
         x = xoffset
+        port = f"port {port:03x}:"
         self.can_sysmon.create_text(  # port
             x,
             y,
-            text=f"{port}: ",
+            text=port,
             fill=TXTCOL,
             anchor="w",
             font=self._font,
@@ -326,9 +313,24 @@ class SysmonFrame(Frame):
                 fill=self._set_col(pdata[i]),
                 width=2,
             )
-            p += 3
+            p += 4
         y += self._fonth
         return y
+
+    def _set_col(self, val: float) -> str:
+        """
+        Set chart line color
+
+        :param val: value as %
+        :return: color string
+        :rtype: str
+        """
+
+        if val > TOPLIM:
+            return "orangered"
+        if val > MIDLIM:
+            return "orange"
+        return "yellowgreen"
 
     def _format_runtime(self, runtime: int) -> str:
         """
@@ -339,17 +341,17 @@ class SysmonFrame(Frame):
         "rtype: str
         """
 
-        if runtime > 60:
-            rnt = runtime / 60
-            rntu = "mins"
+        if runtime > 86400:
+            rnt = runtime / 86400
+            rntu = "days"
             rntf = ",.2f"
         elif runtime > 3600:
             rnt = runtime / 3600
             rntu = "hours"
             rntf = ",.2f"
-        elif runtime > 86400:
-            rnt = runtime / 86400
-            rntu = "days"
+        elif runtime > 60:
+            rnt = runtime / 60
+            rntu = "mins"
             rntf = ",.2f"
         else:
             rnt = runtime
@@ -388,18 +390,3 @@ class SysmonFrame(Frame):
         dim = min(self.width, self.height)
         self._font = font.Font(size=max(int(dim * RESFONT / 1000), MINFONT))
         self._fonth = self._font.metrics("linespace")
-
-    def _set_col(self, val: float) -> str:
-        """
-        Set chart line color
-
-        :param val: value as %
-        :return: color string
-        :rtype: str
-        """
-
-        if val > TOPLIM:
-            return "orangered"
-        if val > MIDLIM:
-            return "orange"
-        return "yellowgreen"
