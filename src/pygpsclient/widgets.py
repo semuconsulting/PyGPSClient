@@ -90,16 +90,16 @@ widget_grid = {
         "frm": "frm_spectrumview",
         "visible": False,
     },
-    WDGSCATTER: {
+    WDGSYSMON: {
         "menu": 7,
         "default": False,
-        "frm": "frm_scatterview",
+        "frm": "frm_sysmon",
         "visible": False,
     },
-    WDGSYSMON: {
+    WDGSCATTER: {
         "menu": 8,
         "default": False,
-        "frm": "frm_sysmon",
+        "frm": "frm_scatterview",
         "visible": False,
     },
     # add any new widgets here
