@@ -124,8 +124,6 @@ TIMEOUTS = (
     "None",
     "0",
 )
-ANTSTATUS = ("INIT", "DONTKNOW", "OK", "SHORT", "OPEN")
-ANTPOWER = ("OFF", "ON", "DONTKNOW")
 GGA_INTERVALS = ("None", "2", "5", "10", "60", "120")
 ENABLE_CFG_OTHER = True  # enable CFG=* Other Configuration command panel
 # names of user config and preset files:
