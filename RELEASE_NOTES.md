@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE CANDIDATE v1.3.26
+
+ENHANCEMENTS:
+
+1. Add user-selectable System Monitor widget which displays device system status in bar chart format (cpu, memory and I/O utilisation, temperature, boot state, etc.), for those u-blox devices that support MON-SYS and MON-COMMS message types. To access, select Menu..View..Show System Monitor.
+
 ### RELEASE v1.3.25
 
 ENHANCEMENTS:
