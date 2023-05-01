@@ -77,6 +77,7 @@ from pygpsclient.strings import (
     TITLE,
     VERCHECK,
 )
+from pygpsclient.sysmon_frame import SysmonFrame
 from pygpsclient.ubx_config_dialog import UBXConfigDialog
 from pygpsclient.ubx_handler import UBXHandler
 from pygpsclient.widgets import (
@@ -88,6 +89,7 @@ from pygpsclient.widgets import (
     WDGSETTINGS,
     WDGSPECTRUM,
     WDGSTATUS,
+    WDGSYSMON,
     widget_grid,
 )
 
@@ -222,6 +224,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.frm_graphview = GraphviewFrame(self, borderwidth=2, relief="groove")
         self.frm_spectrumview = SpectrumviewFrame(self, borderwidth=2, relief="groove")
         self.frm_scatterview = ScatterViewFrame(self, borderwidth=2, relief="groove")
+        self.frm_sysmon = SysmonFrame(self, borderwidth=2, relief="groove")
 
         self.__master.config(menu=self.menu)
 
@@ -295,6 +298,9 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         if nam == WDGSPECTRUM:
             # enable MON-SPAN messages if spectrum widget is visible
             self.frm_spectrumview.enable_MONSPAN(wdg["visible"])
+        elif nam == WDGSYSMON:
+            # enable MON-SYS messages if sysmon widget is visible
+            self.frm_sysmon.enable_MONSYS(wdg["visible"])
 
         # force widget to rescale
         getattr(self, wdg["frm"]).event_generate("<Configure>")
@@ -724,6 +730,17 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._mqttclientid = config.get("mqttclientid", self._mqttclientid)
         self._colortags = config.get("colortags", self._colortags)
         self._ubxpresets = config.get("ubxpresets", self._ubxpresets)
+
+    @property
+    def widgets(self) -> dict:
+        """
+        Getter for widget grid.
+
+        :return: widget grid
+        :rtype: dict
+        """
+
+        return self._widget_grid
 
     @property
     def widget_config(self) -> dict:

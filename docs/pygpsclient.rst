@@ -236,6 +236,14 @@ pygpsclient.strings module
    :undoc-members:
    :show-inheritance:
 
+pygpsclient.sysmon\_frame module
+--------------------------------
+
+.. automodule:: pygpsclient.sysmon_frame
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pygpsclient.ubx\_cfgval\_frame module
 -------------------------------------
 
