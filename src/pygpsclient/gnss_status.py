@@ -45,3 +45,4 @@ class GNSSStatus:
         self.gsv_data = []  # list of satellite tuples (gnssId, svid, elev, azim, cno)
         self.spectrum_data = []  # list of spectrum data (spec, spn, res, ctr, pga)
         self.sysmon_data = {}  # dict of system monitor data (cpu and memory load, etc.)
+        self.comms_data = {}  # dict of comms port utilisation (tx and rx loads)

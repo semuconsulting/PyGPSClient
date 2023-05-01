@@ -24,6 +24,10 @@ MINFONT = 8  # minimum font size
 MAXTEMP = 100  # °C
 TOPLIM = 80
 MIDLIM = 50
+XOFFSET = 10
+SPACING = 5
+DASH = (5, 2)
+TXTCOL = "white"
 BOOTTYPES = {
     0: "Unknown",
     1: "Cold Start",
@@ -114,24 +118,25 @@ class SysmonFrame(Frame):
 
     def enable_MONSYS(self, status: bool):
         """
-        Enable/disable UBX MON-SYS (b'\x0a\x39') message.
+        Enable/disable UBX MON-SYS & MON-COMMS messages.
 
         NB: CPU Load value only valid if rate = 1
 
         :param bool status: 0 = off, 1 = on
         """
 
-        msg = UBXMessage(
-            "CFG",
-            "CFG-MSG",
-            SET,
-            msgClass=0x0A,
-            msgID=0x39,
-            rateUART1=status,
-            rateUART2=status,
-            rateUSB=status,
-        )
-        self.__app.gnss_outqueue.put(msg.serialize())
+        for mid in (0x39, 0x36):
+            msg = UBXMessage(
+                "CFG",
+                "CFG-MSG",
+                SET,
+                msgClass=0x0A,
+                msgID=mid,
+                rateUART1=status,
+                rateUART2=status,
+                rateUSB=status,
+            )
+            self.__app.gnss_outqueue.put(msg.serialize())
         for msgid in ("ACK-ACK", "ACK-NAK"):
             self._set_pending(msgid, SYSMONVIEW)
         w, h = self.width, self.height
@@ -190,12 +195,10 @@ class SysmonFrame(Frame):
 
         self._monsys_enabled = True
         self.init_chart()
-        xoffset = 10
-        y = 10
-        scale = (self.width - (2 * xoffset)) / 100
 
         try:
             sysdata = self.__app.gnss_status.sysmon_data
+            commsdata = self.__app.gnss_status.comms_data
             bootType = BOOTTYPES.get(sysdata["bootType"], "N/A")
             cpuLoad = sysdata["cpuLoad"]
             cpuLoadMax = sysdata["cpuLoadMax"]
@@ -204,70 +207,63 @@ class SysmonFrame(Frame):
             ioUsage = sysdata["ioUsage"]
             ioUsageMax = sysdata["ioUsageMax"]
             runTime = sysdata["runTime"]
-            if runTime > 60:
-                runTimeU = runTime / 60
-                unt = "mins"
-                fmt = ",.2f"
-            elif runTime > 3600:
-                runTimeU = runTime / 3600
-                unt = "hours"
-                fmt = ",.2f"
-            else:
-                runTimeU = runTime
-                unt = "secs"
-                fmt = ",.0f"
-
             noticeCount = sysdata["noticeCount"]
             warnCount = sysdata["warnCount"]
             errorCount = sysdata["errorCount"]
             tempValue = sysdata["tempValue"]
             tempValueP = tempValue * 100 / MAXTEMP
             self._maxtemp = max(tempValue, self._maxtemp) * 100 / MAXTEMP
+
+            y = self._fonth
+            y = self._draw_line(XOFFSET, y, cpuLoadMax, cpuLoad, "CPU", "%")
+            y = self._draw_line(XOFFSET, y, memUsageMax, memUsage, "Memory", "%")
+            y = self._draw_line(XOFFSET, y, ioUsageMax, ioUsage, "I/O", "%")
+            if commsdata != {}:
+                for port, pdata in commsdata.items():
+                    y = self._draw_io(XOFFSET, y, port, pdata)
+            y += SPACING
+            y = self._draw_line(XOFFSET, y, self._maxtemp, tempValueP, "Temp", "°C")
+
+            txt = (
+                f"Boot Type: {bootType}\n"
+                + self._format_runtime(runTime)
+                + f"Notices: {noticeCount}, Warnings: {warnCount}, Errors: {errorCount}"
+            )
+            self.can_sysmon.create_text(
+                XOFFSET,
+                y,
+                text=txt,
+                fill=TXTCOL,
+                anchor="nw",
+                font=self._font,
+            )
+
         except KeyError:
             return
 
-        y = self._draw_line(xoffset, y, scale, cpuLoadMax, cpuLoad, "CPU", "%")
-        y = self._draw_line(xoffset, y, scale, memUsageMax, memUsage, "Memory", "%")
-        y = self._draw_line(xoffset, y, scale, ioUsageMax, ioUsage, "I/O", "%")
-        y = self._draw_line(xoffset, y, scale, self._maxtemp, tempValueP, "Temp", "°C")
-        y += self._fonth
-        self.can_sysmon.create_text(
-            xoffset,
-            y,
-            text=f"Boot Type: {bootType}, Runtime: {runTimeU:{fmt}} {unt}",
-            fill="white",
-            anchor="w",
-            font=self._font,
-        )
-        y += 2 * self._fonth
-        self.can_sysmon.create_text(
-            xoffset,
-            y,
-            text=f"Notices: {noticeCount}, Warnings: {warnCount}, Errors: {errorCount}",
-            fill="white",
-            anchor="w",
-            font=self._font,
-        )
-
     def _draw_line(
-        self, x: int, y: int, scale: float, maxval: int, val: int, lbl: str, unit: str
+        self,
+        xoffset: int,
+        y: int,
+        maxval: int,
+        val: int,
+        lbl: str,
+        unit: str,
     ) -> int:
         """
         Draw line on chart.
         """
 
-        y += self._fonth
+        scale = (self.width - (2 * xoffset)) / 100
+        x = xoffset
         if val > 100:
             val = 100
             lbl += "!"
-        txtcol = "white"
-        dash = (5, 2)
-        thick = self._fonth - 2
         self.can_sysmon.create_text(
             x,
             y,
             text=f"{lbl}: {val} {unit}",
-            fill=txtcol,
+            fill=TXTCOL,
             anchor="w",
             font=self._font,
         )
@@ -278,8 +274,8 @@ class SysmonFrame(Frame):
             x + maxval * scale,
             y,
             fill=self._set_col(maxval),
-            dash=dash,
-            width=thick,
+            dash=DASH,
+            width=self._fonth,
         )
         self.can_sysmon.create_line(
             x,
@@ -287,10 +283,79 @@ class SysmonFrame(Frame):
             x + val * scale,
             y,
             fill=self._set_col(val),
-            width=thick,
+            width=self._fonth,
         )
+        y += self._fonth + SPACING
+        return y
+
+    def _draw_io(self, xoffset: int, y: int, port: int, pdata: tuple):
+        """
+        Draw port I/O lines on chart
+
+        :param port: _description_
+        :param pdata: _description_
+        """
+
+        cap = self._font.measure("5: ")
+        scale = (self.width - (2 * (xoffset + cap))) / 100
+        x = xoffset
+        self.can_sysmon.create_text(  # port
+            x,
+            y,
+            text=f"{port}: ",
+            fill=TXTCOL,
+            anchor="w",
+            font=self._font,
+        )
+        p = -1
+        for i in range(0, 4, 2):  # RX & TX
+            self.can_sysmon.create_line(  # max
+                x + cap,
+                y + p,
+                x + cap + pdata[i + 1] * scale,
+                y + p,
+                fill=self._set_col(pdata[i + 1]),
+                dash=DASH,
+                width=2,
+            )
+            self.can_sysmon.create_line(  # val
+                x + cap,
+                y + p,
+                x + cap + pdata[i] * scale,
+                y + p,
+                fill=self._set_col(pdata[i]),
+                width=2,
+            )
+            p += 3
         y += self._fonth
         return y
+
+    def _format_runtime(self, runtime: int) -> str:
+        """
+        Format runtime in appropriate units.
+
+        :param runtime: runtime in seconds
+        :return: runtime in secs, mins, hours or days
+        "rtype: str
+        """
+
+        if runtime > 60:
+            rnt = runtime / 60
+            rntu = "mins"
+            rntf = ",.2f"
+        elif runtime > 3600:
+            rnt = runtime / 3600
+            rntu = "hours"
+            rntf = ",.2f"
+        elif runtime > 86400:
+            rnt = runtime / 86400
+            rntu = "days"
+            rntf = ",.2f"
+        else:
+            rnt = runtime
+            rntu = "secs"
+            rntf = ",.0f"
+        return f"Runtime: {rnt:{rntf}} {rntu}\n"
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """

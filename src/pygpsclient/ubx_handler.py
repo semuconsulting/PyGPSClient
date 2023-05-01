@@ -77,6 +77,8 @@ class UBXHandler:
             self._process_MON_SPAN(parsed_data)
         elif parsed_data.identity == "MON-SYS":
             self._process_MON_SYS(parsed_data)
+        elif parsed_data.identity == "MON-COMMS":
+            self._process_MON_COMMS(parsed_data)
         elif parsed_data.identity == "RXM-SPARTN-KEY":
             self._process_RXM_SPARTN_KEY(parsed_data)
 
@@ -318,6 +320,24 @@ class UBXHandler:
         sysdata["errorCount"] = data.errorCount
         sysdata["tempValue"] = data.tempValue
         self.__app.gnss_status.sysmon_data = sysdata
+
+    def _process_MON_COMMS(self, data: UBXMessage):
+        """
+        Process MON-COMMS sentences - Comms Port Information.
+
+        :param UBXMessage data: MON-COMMS parsed message
+        """
+
+        commsdata = {}
+        for i in range(1, data.nPorts + 1):
+            idx = f"_{i:02}"
+            # pid = getattr(data, "portId" + idx)
+            tx = getattr(data, "txUsage" + idx)
+            txmax = getattr(data, "txPeakUsage" + idx)
+            rx = getattr(data, "rxUsage" + idx)
+            rxmax = getattr(data, "rxPeakUsage" + idx)
+            commsdata[i] = (tx, txmax, rx, rxmax)
+        self.__app.gnss_status.comms_data = commsdata
 
     def _process_RXM_SPARTN_KEY(self, data: UBXMessage):
         """
