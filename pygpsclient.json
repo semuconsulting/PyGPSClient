@@ -30,6 +30,10 @@
 	"Settings": true,
 	"userport": "",
 	"spartnport": "",
+	"defaultport": [
+		"USB",
+		"UART1"
+	],
 	"mqapikey": "mymqapikeyvalue",
 	"colortag": 0,
 	"colortags": [

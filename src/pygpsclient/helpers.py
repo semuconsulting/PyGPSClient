@@ -23,6 +23,7 @@ from pyubx2 import UBXMessage, attsiz, atttyp
 from requests import get
 
 from pygpsclient.globals import FIXLOOKUP, GPSEPOCH0, MAX_SNR
+from pygpsclient.strings import NA
 
 # validation type flags
 MAXPORT = 65535
@@ -685,10 +686,13 @@ def bytes2unit(valb: int) -> tuple:
     :return: tuple of (value, units)
     """
 
+    if not isinstance(valb, (int, float)):
+        return 0, NA
+
     BYTESUNITS = ["", "KB", "MB", "GB", "TB", "PB"]
     i = 0
     val = valb
-    while val > 100:
+    while val > 500:
         val = valb / (2 ** (i * 10))
         i += 1
         if i > 4:
@@ -705,6 +709,9 @@ def secs2unit(secs: int) -> tuple:
     :return: tuple of (value, units)
     :rtype: tuple
     """
+
+    if not isinstance(secs, (int, float)):
+        return 0, NA
 
     SECSUNITS = ["secs", "mins", "hrs", "days"]
     SECSDIV = [60, 3600, 86400]

@@ -150,6 +150,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.spartn_handler = GNSSMQTTClient(self, verbosity=0)
         self.dlg_threads = {}
         self.config = {}
+        self._default_port = "USB"
         self._conn_status = DISCONNECTED
         self._rtk_conn_status = DISCONNECTED
         self._map_update_interval = MAP_UPDATE_INTERVAL
@@ -716,6 +717,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             "mapupdateinterval": self._map_update_interval,
             "userport": self._user_port,
             "spartnport": self._spartn_user_port,
+            "defaultport": self._default_port,
             "mqapikey": self._mqapikey,
             "mqttclientid": self._mqttclientid,
             "colortags": self._colortags,
@@ -734,6 +736,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._map_update_interval = config.get("mapupdateinterval", MAP_UPDATE_INTERVAL)
         self._user_port = config.get("userport", self._user_port)
         self._spartn_user_port = config.get("spartnport", self._spartn_user_port)
+        self._default_port = config.get("defaultport", self._default_port)
         self._mqapikey = config.get("mqapikey", self._mqapikey)
         self._mqttclientid = config.get("mqttclientid", self._mqttclientid)
         self._colortags = config.get("colortags", self._colortags)

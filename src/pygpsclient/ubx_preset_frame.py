@@ -449,9 +449,21 @@ class UBX_PRESET_Frame(Frame):
         NB A rate of n means 'for every nth position solution',
         so values > 1 mean the message is sent less often.
 
+        The port(s) this applies to are defined in the 'defaultport'
+        configuration setting as a string or list.
+
         :param str msgtype: type of config message
         :param int msgrate: message rate (i.e. every nth position solution)
         """
+
+        rates = {}
+        prts = self.__app.app_config.get("defaultport", "USB")
+        if isinstance(prts, str):
+            prts = [
+                prts,
+            ]
+        for prt in prts:
+            rates[prt] = msgrate
 
         msgClass = int.from_bytes(msgtype[0:1], "little", signed=False)
         msgID = int.from_bytes(msgtype[1:2], "little", signed=False)
@@ -461,11 +473,11 @@ class UBX_PRESET_Frame(Frame):
             SET,
             msgClass=msgClass,
             msgID=msgID,
-            rateDDC=msgrate,
-            rateUART1=msgrate,
-            rateUART2=msgrate,
-            rateUSB=msgrate,
-            rateSPI=msgrate,
+            rateDDC=rates.get("I2C", 0),
+            rateUART1=rates.get("UART1", 0),
+            rateUART2=rates.get("UART2", 0),
+            rateUSB=rates.get("USB", 0),
+            rateSPI=rates.get("SPI", 0),
         )
         self.__container.send_command(msg)
 

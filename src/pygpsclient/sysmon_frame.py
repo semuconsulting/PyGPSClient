@@ -11,11 +11,11 @@ Created on 30 Apr 2023
 :license: BSD 3-Clause
 """
 
-from tkinter import BOTH, YES, Canvas, Frame
+from tkinter import BOTH, YES, Canvas, Checkbutton, E, Frame, IntVar, N, S, W
 
 from pyubx2 import SET, UBXMessage
 
-from pygpsclient.globals import BGCOL, SYSMONVIEW, WIDGETU2
+from pygpsclient.globals import BGCOL, FGCOL, SYSMONVIEW, WIDGETU2
 from pygpsclient.helpers import bytes2unit, secs2unit, sizefont
 from pygpsclient.strings import DLGENABLEMONSYS, DLGNOMONSYS, DLGWAITMONSYS, NA
 
@@ -42,12 +42,19 @@ BOOTTYPES = {
     9: "VDD_RF fail",
     10: "V_CORE_HIGH fail",
 }
+PORTIDS = {
+    0x0000: "I2C",  # I2C
+    0x0100: "UART1",  # 256 UART1
+    0x0101: "101",  # 257 not documented
+    0x0200: "200",  # 512 not documented
+    0x0201: "UART2",  # 513 UART2
+    0x0300: "USB",  # 768 USB
+    0x0400: "SPI",  # 1024 SPI
+}
 ACTIVE = ""
 MAXLINES = 23
 MINFONT = 4
 MAXWAIT = 5
-TOTAL = 0
-PENDING = 1
 
 
 class SysmonFrame(Frame):
@@ -76,6 +83,7 @@ class SysmonFrame(Frame):
         self._pending_confs = {}
         self._maxtemp = 0
         self._waits = 0
+        self._mode = IntVar()
         self._body()
         self._set_fontsize()
         self._attach_events()
@@ -88,7 +96,20 @@ class SysmonFrame(Frame):
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
         self.can_sysmon = Canvas(self, width=self.width, height=self.height, bg=BGCOL)
+        self._frm_status = Frame(self, bg=BGCOL)
         self.can_sysmon.pack(fill=BOTH, expand=YES)
+        self._chk_mode = Checkbutton(
+            self._frm_status,
+            text="Actual I/O",
+            variable=self._mode,
+            fg=FGCOL,
+            bg=BGCOL,
+        )
+        self.can_sysmon.grid(column=0, row=0, padx=0, pady=0, sticky=(N, S, W, E))
+        self._frm_status.grid(column=0, row=1, padx=2, pady=2, sticky=(W, E))
+        self._chk_mode.grid(column=0, row=0, padx=0, pady=0, sticky=W)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
 
     def _attach_events(self):
         """
@@ -97,6 +118,7 @@ class SysmonFrame(Frame):
 
         self.bind("<Configure>", self._on_resize)
         self.can_sysmon.bind("<Double-Button-1>", self._on_clear)
+        self._mode.trace_add("write", self._on_mode)
 
     def init_chart(self):
         """
@@ -123,6 +145,18 @@ class SysmonFrame(Frame):
         self._maxtemp = 0
         self._monsys_status = DLGWAITMONSYS
         self.init_chart()
+
+    def _on_mode(self, *args):  # pylint: disable=unused-argument
+        """
+        Update I/O display mode.
+
+        :param Event event: clear event
+        """
+
+        if self._mode.get():
+            self._chk_mode.config(text="Pending I/O")
+        else:
+            self._chk_mode.config(text="Actual I/O")
 
     def enable_MONSYS(self, status: bool):
         """
@@ -294,9 +328,7 @@ class SysmonFrame(Frame):
             y += self._fonth + SPACING
         return y
 
-    def _chart_ioparm(
-        self, xoffset: int, y: int, port: int, pdata: tuple, mode: int = TOTAL
-    ):
+    def _chart_ioparm(self, xoffset: int, y: int, port: int, pdata: tuple):
         """
         Draw port I/O captions and tx/rx bar charts on canvas.
 
@@ -307,16 +339,17 @@ class SysmonFrame(Frame):
         :param int mode: 0 = total bytes, 1 = pending bytes
         """
 
+        mod = self._mode.get()
         cap = self._font.measure("port 888 tx 88.88 GB rx 88.88 GB : ")
         scale = (self.width - cap - (3 * xoffset)) / 100
         x = xoffset
-        txb, txbu = bytes2unit(pdata[3 if mode == PENDING else 2])
-        rxb, rxbu = bytes2unit(pdata[6 if mode == PENDING else 5])
-        port = f"port {port:03x} tx {txb:.02f} {txbu} rx {rxb:.02f} {rxbu}:"
+        txb, txbu = bytes2unit(pdata[3 if mod else 2])  # total or pending
+        rxb, rxbu = bytes2unit(pdata[6 if mod else 5])
+        prt = f"port {PORTIDS.get(port, NA)} tx {txb:.02f} {txbu} rx {rxb:.02f} {rxbu}:"
         self.can_sysmon.create_text(  # port
             x,
             y,
-            text=port,
+            text=prt,
             fill=TXTCOL,
             anchor="w",
             font=self._font,
