@@ -24,6 +24,7 @@ ABOUTTXT = (
     + "It supports NMEA, UBX, RTCM3, NTRIP & SPARTN protocols. "
     + "Instructions and source code are available on GitHub at the link below."
 )
+NA = "N/A"
 
 MAPAPIURL = "https://developer.mapquest.com/user/login/sign-up"
 
@@ -146,11 +147,11 @@ DLGGPXLOAD = "LOADING GPX TRACK ..."
 DLGGPXERROR = "GPX PARSING ERROR!"
 DLGGPXNULL = "NO TRACKPOINTS IN GPX FILE!"
 DLGENABLEMONSPAN = "Enable or poll MON-SPAN message"
-DLGNOMONSPAN = "This receiver does not appear to\nsupport the MON-SPAN message"
+DLGNOMONSPAN = "This receiver does not appear to\nsupport the MON-SPAN messages"
 DLGWAITMONSPAN = "Waiting for MON-SPAN message..."
-DLGENABLEMONSYS = "Enable or poll MON-SYS message"
-DLGNOMONSYS = "This receiver does not appear to\nsupport the MON-SYS message"
-DLGWAITMONSYS = "Waiting for MON-SYS message..."
+DLGENABLEMONSYS = "Enable or poll MON-SYS/COMMS messages"
+DLGNOMONSYS = "This receiver does not appear to support\nthe MON-SYS/COMMS messages"
+DLGWAITMONSYS = "Waiting for MON-SYS/COMMS messages..."
 DLGSPARTNWARN = "WARNING! Disconnect from {} client before using {} client"
 DLGJSONERR = "ERROR! {}"
 DLGJSONOK = "Keys loaded from {}"

@@ -326,6 +326,13 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             wdg["visible"] = wdg["default"]
         self._do_layout()
 
+    def reset_gnssstatus(self):
+        """
+        Reset gnss_status dict e.g. after reconnecting.
+        """
+
+        self.gnss_status = GNSSStatus()
+
     def _init_dialogs(self):
         """
         Initialise dictionary of dialog statuses.

@@ -628,6 +628,7 @@ class SettingsFrame(Frame):
 
         self.__app.frm_mapview.reset_map_refresh()
         self.__app.frm_spectrumview.reset()
+        self.__app.reset_gnssstatus()
 
     def _on_socket_serve(self):
         """

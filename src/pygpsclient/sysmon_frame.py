@@ -17,7 +17,7 @@ from pyubx2 import SET, UBXMessage
 
 from pygpsclient.globals import BGCOL, SYSMONVIEW, WIDGETU2
 from pygpsclient.helpers import sizefont
-from pygpsclient.strings import DLGENABLEMONSYS, DLGNOMONSYS, DLGWAITMONSYS
+from pygpsclient.strings import DLGENABLEMONSYS, DLGNOMONSYS, DLGWAITMONSYS, NA
 
 # Graph dimensions
 RESFONT = 35  # font size relative to widget size
@@ -43,8 +43,9 @@ BOOTTYPES = {
     10: "V_CORE_HIGH fail",
 }
 ACTIVE = ""
-MAXLINES = 20
+MAXLINES = 23
 MINFONT = 4
+MAXWAIT = 5
 
 
 class SysmonFrame(Frame):
@@ -72,6 +73,7 @@ class SysmonFrame(Frame):
         self._monsys_status = DLGENABLEMONSYS
         self._pending_confs = {}
         self._maxtemp = 0
+        self._waits = 0
         self._body()
         self._set_fontsize()
         self._attach_events()
@@ -169,7 +171,7 @@ class SysmonFrame(Frame):
         if pending and msg.identity == "ACK-NAK":
             self._pending_confs.pop("ACK-NAK")
             self._monsys_status = DLGNOMONSYS
-            self.init_chart()
+            # self.init_chart()
 
         if self._pending_confs.get("ACK-ACK", False):
             self._pending_confs.pop("ACK-ACK")
@@ -182,34 +184,47 @@ class SysmonFrame(Frame):
         one item per RF block.
         """
 
+        sysdata = self.__app.gnss_status.sysmon_data
+        commsdata = self.__app.gnss_status.comms_data
+
+        # If no updates received after a period, assume
+        # receiver doesn't support MON-SYS and/or MON-COMMS
+        if len(sysdata) == 0 and len(commsdata) == 0:
+            self._waits += 1
+            if self._waits >= MAXWAIT:
+                self._monsys_status = DLGNOMONSYS
+                self.init_chart()
+            return
+
+        self._monsys_status = ACTIVE
+        self._waits = 0
         try:
-            sysdata = self.__app.gnss_status.sysmon_data
-            commsdata = self.__app.gnss_status.comms_data
-            bootType = BOOTTYPES.get(sysdata["bootType"], "N/A")
-            cpuLoad = sysdata["cpuLoad"]
-            cpuLoadMax = sysdata["cpuLoadMax"]
-            memUsage = sysdata["memUsage"]
-            memUsageMax = sysdata["memUsageMax"]
-            ioUsage = sysdata["ioUsage"]
-            ioUsageMax = sysdata["ioUsageMax"]
-            runTime = sysdata["runTime"]
-            noticeCount = sysdata["noticeCount"]
-            warnCount = sysdata["warnCount"]
-            errorCount = sysdata["errorCount"]
-            tempValue = sysdata["tempValue"]
-            tempValueP = tempValue * 100 / MAXTEMP
-            self._maxtemp = max(tempValue, self._maxtemp) * 100 / MAXTEMP
+            bootType = BOOTTYPES[sysdata.get("bootType", 0)]
+            cpuLoad = sysdata.get("cpuLoad", NA)
+            cpuLoadMax = sysdata.get("cpuLoadMax", NA)
+            memUsage = sysdata.get("memUsage", NA)
+            memUsageMax = sysdata.get("memUsageMax", NA)
+            ioUsage = sysdata.get("ioUsage", NA)
+            ioUsageMax = sysdata.get("ioUsageMax", NA)
+            runTime = sysdata.get("runTime", NA)
+            noticeCount = sysdata.get("noticeCount", NA)
+            warnCount = sysdata.get("warnCount", NA)
+            errorCount = sysdata.get("errorCount", NA)
+            tempValue = sysdata.get("tempValue", NA)
+            if isinstance(tempValue, int):
+                tempValueP = tempValue * 100 / MAXTEMP
+                self._maxtemp = max(tempValue, self._maxtemp) * 100 / MAXTEMP
+            else:
+                tempValueP = NA
 
-            self._monsys_status = ACTIVE
             self.init_chart()
-
             y = self._fonth
             y = self._draw_line(XOFFSET, y, cpuLoadMax, cpuLoad, "CPU", "%")
             y = self._draw_line(XOFFSET, y, memUsageMax, memUsage, "Memory", "%")
             y = self._draw_line(XOFFSET, y, ioUsageMax, ioUsage, "I/O", "%")
-            if commsdata != {}:
-                for port, pdata in sorted(commsdata.items()):
-                    y = self._draw_port_io(XOFFSET, y, port, pdata)
+
+            for port, pdata in sorted(commsdata.items()):
+                y = self._draw_port_io(XOFFSET, y, port, pdata)
             y += SPACING
             y = self._draw_line(XOFFSET, y, self._maxtemp, tempValueP, "Temp", "°C")
 
@@ -226,9 +241,9 @@ class SysmonFrame(Frame):
                 anchor="nw",
                 font=self._font,
             )
-
         except KeyError:
-            return
+            self._monsys_status = DLGNOMONSYS
+            self.init_chart()
 
     def _draw_line(
         self,
@@ -245,9 +260,6 @@ class SysmonFrame(Frame):
 
         scale = (self.width - (3 * xoffset)) / 100
         x = xoffset
-        if val > 100:
-            val = 100
-            lbl += "!"
         self.can_sysmon.create_text(
             x,
             y,
@@ -257,24 +269,26 @@ class SysmonFrame(Frame):
             font=self._font,
         )
         y += self._fonth
-        self.can_sysmon.create_line(
-            x,
-            y,
-            x + maxval * scale,
-            y,
-            fill=self._set_col(maxval),
-            dash=DASH,
-            width=self._fonth,
-        )
-        self.can_sysmon.create_line(
-            x,
-            y,
-            x + val * scale,
-            y,
-            fill=self._set_col(val),
-            width=self._fonth,
-        )
-        y += self._fonth + SPACING
+        if isinstance(maxval, (int, float)):
+            self.can_sysmon.create_line(
+                x,
+                y,
+                x + maxval * scale,
+                y,
+                fill=self._set_col(maxval),
+                dash=DASH,
+                width=self._fonth,
+            )
+        if isinstance(val, (int, float)):
+            self.can_sysmon.create_line(
+                x,
+                y,
+                x + val * scale,
+                y,
+                fill=self._set_col(val),
+                width=self._fonth,
+            )
+            y += self._fonth + SPACING
         return y
 
     def _draw_port_io(self, xoffset: int, y: int, port: int, pdata: tuple):
@@ -344,6 +358,8 @@ class SysmonFrame(Frame):
         "rtype: str
         """
 
+        if not isinstance(runtime, int):
+            return "Runtime: N/A\n"
         if runtime > 86400:
             rnt = runtime / 86400
             rntu = "days"
