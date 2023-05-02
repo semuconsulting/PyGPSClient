@@ -16,7 +16,7 @@ from tkinter import BOTH, YES, Canvas, Frame
 from pyubx2 import SET, UBXMessage
 
 from pygpsclient.globals import BGCOL, SYSMONVIEW, WIDGETU2
-from pygpsclient.helpers import sizefont
+from pygpsclient.helpers import bytes2unit, secs2unit, sizefont
 from pygpsclient.strings import DLGENABLEMONSYS, DLGNOMONSYS, DLGWAITMONSYS, NA
 
 # Graph dimensions
@@ -46,6 +46,8 @@ ACTIVE = ""
 MAXLINES = 23
 MINFONT = 4
 MAXWAIT = 5
+TOTAL = 0
+PENDING = 1
 
 
 class SysmonFrame(Frame):
@@ -219,18 +221,19 @@ class SysmonFrame(Frame):
 
             self.init_chart()
             y = self._fonth
-            y = self._draw_line(XOFFSET, y, cpuLoadMax, cpuLoad, "CPU", "%")
-            y = self._draw_line(XOFFSET, y, memUsageMax, memUsage, "Memory", "%")
-            y = self._draw_line(XOFFSET, y, ioUsageMax, ioUsage, "I/O", "%")
+            y = self._chart_parm(XOFFSET, y, cpuLoadMax, cpuLoad, "CPU", "%")
+            y = self._chart_parm(XOFFSET, y, memUsageMax, memUsage, "Memory", "%")
+            y = self._chart_parm(XOFFSET, y, ioUsageMax, ioUsage, "I/O", "%")
 
             for port, pdata in sorted(commsdata.items()):
-                y = self._draw_port_io(XOFFSET, y, port, pdata)
+                y = self._chart_ioparm(XOFFSET, y, port, pdata)
             y += SPACING
-            y = self._draw_line(XOFFSET, y, self._maxtemp, tempValueP, "Temp", "°C")
+            y = self._chart_parm(XOFFSET, y, self._maxtemp, tempValueP, "Temp", "°C")
 
+            rtm, rtmu = secs2unit(runTime)
             txt = (
                 f"Boot Type: {bootType}\n"
-                + self._format_runtime(runTime)
+                + f"Runtime: {rtm:,.02f} {rtmu}\n"
                 + f"Notices: {noticeCount}, Warnings: {warnCount}, Errors: {errorCount}"
             )
             self.can_sysmon.create_text(
@@ -245,7 +248,7 @@ class SysmonFrame(Frame):
             self._monsys_status = DLGNOMONSYS
             self.init_chart()
 
-    def _draw_line(
+    def _chart_parm(
         self,
         xoffset: int,
         y: int,
@@ -255,7 +258,7 @@ class SysmonFrame(Frame):
         unit: str,
     ) -> int:
         """
-        Draw line on chart.
+        Draw caption and bar charts on canvas.
         """
 
         scale = (self.width - (3 * xoffset)) / 100
@@ -291,18 +294,25 @@ class SysmonFrame(Frame):
             y += self._fonth + SPACING
         return y
 
-    def _draw_port_io(self, xoffset: int, y: int, port: int, pdata: tuple):
+    def _chart_ioparm(
+        self, xoffset: int, y: int, port: int, pdata: tuple, mode: int = TOTAL
+    ):
         """
-        Draw port I/O TX & RX lines on chart
+        Draw port I/O captions and tx/rx bar charts on canvas.
 
-        :param port: _description_
-        :param pdata: _description_
+        :param int xoffset: x axis offset
+        :param int y: y axis
+        :param int port: port id
+        :param tuple pdata: port data tx & rx
+        :param int mode: 0 = total bytes, 1 = pending bytes
         """
 
-        cap = self._font.measure("port 888: ")
+        cap = self._font.measure("port 888 tx 88.88 GB rx 88.88 GB : ")
         scale = (self.width - cap - (3 * xoffset)) / 100
         x = xoffset
-        port = f"port {port:03x}:"
+        txb, txbu = bytes2unit(pdata[3 if mode == PENDING else 2])
+        rxb, rxbu = bytes2unit(pdata[6 if mode == PENDING else 5])
+        port = f"port {port:03x} tx {txb:.02f} {txbu} rx {rxb:.02f} {rxbu}:"
         self.can_sysmon.create_text(  # port
             x,
             y,
@@ -312,7 +322,7 @@ class SysmonFrame(Frame):
             font=self._font,
         )
         p = -1
-        for i in range(0, 4, 2):  # RX & TX
+        for i in range(0, 8, 4):  # RX & TX
             self.can_sysmon.create_line(  # max
                 x + cap,
                 y + p,
@@ -348,35 +358,6 @@ class SysmonFrame(Frame):
         if val > MIDLIM:
             return "orange"
         return "yellowgreen"
-
-    def _format_runtime(self, runtime: int) -> str:
-        """
-        Format runtime in appropriate units.
-
-        :param runtime: runtime in seconds
-        :return: runtime in secs, mins, hours or days
-        "rtype: str
-        """
-
-        if not isinstance(runtime, int):
-            return "Runtime: N/A\n"
-        if runtime > 86400:
-            rnt = runtime / 86400
-            rntu = "days"
-            rntf = ",.2f"
-        elif runtime > 3600:
-            rnt = runtime / 3600
-            rntu = "hours"
-            rntf = ",.2f"
-        elif runtime > 60:
-            rnt = runtime / 60
-            rntu = "mins"
-            rntf = ",.2f"
-        else:
-            rnt = runtime
-            rntu = "secs"
-            rntf = ",.0f"
-        return f"Runtime: {rnt:{rntf}} {rntu}\n"
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """

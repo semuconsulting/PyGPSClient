@@ -115,6 +115,59 @@ class UBXHandler:
         if self.__app.dialog(DLGTUBX) is not None:
             self.__app.dialog(DLGTUBX).update_pending(msg)
 
+    def _process_MON_SYS(self, data: UBXMessage):
+        """
+        Process MON-SYS sentences - System Monitor Information.
+
+        :param UBXMessage data: MON-SYS parsed message
+        """
+
+        sysdata = {}
+        sysdata["bootType"] = data.bootType
+        sysdata["cpuLoad"] = data.cpuLoad
+        sysdata["cpuLoadMax"] = data.cpuLoadMax
+        sysdata["memUsage"] = data.memUsage
+        sysdata["memUsageMax"] = data.memUsageMax
+        sysdata["ioUsage"] = data.ioUsage
+        sysdata["ioUsageMax"] = data.ioUsageMax
+        sysdata["runTime"] = data.runTime
+        sysdata["noticeCount"] = data.noticeCount
+        sysdata["warnCount"] = data.warnCount
+        sysdata["errorCount"] = data.errorCount
+        sysdata["tempValue"] = data.tempValue
+        self.__app.gnss_status.sysmon_data = sysdata
+
+    def _process_MON_COMMS(self, data: UBXMessage):
+        """
+        Process MON-COMMS sentences - Comms Port Information.
+
+        :param UBXMessage data: MON-COMMS parsed message
+        """
+
+        commsdata = {}
+        for i in range(1, data.nPorts + 1):
+            idx = f"_{i:02}"
+            pid = getattr(data, "portId" + idx)
+            tx = getattr(data, "txUsage" + idx)
+            txmax = getattr(data, "txPeakUsage" + idx)
+            txbytes = getattr(data, "txBytes" + idx)
+            txpending = getattr(data, "txPending" + idx)
+            rx = getattr(data, "rxUsage" + idx)
+            rxmax = getattr(data, "rxPeakUsage" + idx)
+            rxbytes = getattr(data, "rxBytes" + idx)
+            rxpending = getattr(data, "rxPending" + idx)
+            commsdata[pid] = (
+                tx,
+                txmax,
+                txbytes,
+                txpending,
+                rx,
+                rxmax,
+                rxbytes,
+                rxpending,
+            )
+        self.__app.gnss_status.comms_data = commsdata
+
     def _process_NAV_POSLLH(self, data: UBXMessage):
         """
         Process NAV-(HP)POSLLH sentence - Latitude, Longitude, Height.
@@ -309,46 +362,6 @@ class UBXHandler:
             rfbs.append((spec, spn, res, ctr, pga))
 
         self.__app.gnss_status.spectrum_data = rfbs
-
-    def _process_MON_SYS(self, data: UBXMessage):
-        """
-        Process MON-SYS sentences - System Monitor Information.
-
-        :param UBXMessage data: MON-SYS parsed message
-        """
-
-        sysdata = {}
-        sysdata["bootType"] = data.bootType
-        sysdata["cpuLoad"] = data.cpuLoad
-        sysdata["cpuLoadMax"] = data.cpuLoadMax
-        sysdata["memUsage"] = data.memUsage
-        sysdata["memUsageMax"] = data.memUsageMax
-        sysdata["ioUsage"] = data.ioUsage
-        sysdata["ioUsageMax"] = data.ioUsageMax
-        sysdata["runTime"] = data.runTime
-        sysdata["noticeCount"] = data.noticeCount
-        sysdata["warnCount"] = data.warnCount
-        sysdata["errorCount"] = data.errorCount
-        sysdata["tempValue"] = data.tempValue
-        self.__app.gnss_status.sysmon_data = sysdata
-
-    def _process_MON_COMMS(self, data: UBXMessage):
-        """
-        Process MON-COMMS sentences - Comms Port Information.
-
-        :param UBXMessage data: MON-COMMS parsed message
-        """
-
-        commsdata = {}
-        for i in range(1, data.nPorts + 1):
-            idx = f"_{i:02}"
-            pid = getattr(data, "portId" + idx)
-            tx = getattr(data, "txUsage" + idx)
-            txmax = getattr(data, "txPeakUsage" + idx)
-            rx = getattr(data, "rxUsage" + idx)
-            rxmax = getattr(data, "rxPeakUsage" + idx)
-            commsdata[pid] = (tx, txmax, rx, rxmax)
-        self.__app.gnss_status.comms_data = commsdata
 
     def _process_RXM_SPARTN_KEY(self, data: UBXMessage):
         """

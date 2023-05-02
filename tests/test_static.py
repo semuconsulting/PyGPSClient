@@ -15,6 +15,7 @@ from pygpsclient.widgets import widget_grid
 
 from pygpsclient.helpers import (
     bitsval,
+    bytes2unit,
     cel2cart,
     col2contrast,
     corrage2int,
@@ -34,6 +35,7 @@ from pygpsclient.helpers import (
     ms2mph,
     parse_rxmspartnkey,
     pos2iso6709,
+    secs2unit,
     snr2col,
     str2rgb,
     stringvar2val,
@@ -322,6 +324,34 @@ class StaticTest(unittest.TestCase):
         print(pnts)
         for i, pnt in enumerate(pnts):
             self.assertAlmostEqual(pnt, points[i], PREC)
+
+    def testbytes2unit(self):  # test bytes2unit
+        blist = [123, 5365, 97467383, 1982864663735305, 15234, 3]
+        bres = [
+            (0.1201171875, "MB"),
+            (5.2392578125, "MB"),
+            (92.95213985443115, "GB"),
+            (1803.4049060000189, 'PB'),
+            (14.876953125, "MB"),
+            (3, ""),
+        ]
+        for i, b in enumerate(blist):
+            res = bytes2unit(b)
+            self.assertEqual(res, bres[i])
+
+    def testsecs2unit(self):  # test secs2unit
+        slist = [123, 5365, 97467383, 103, 15234, 3]
+        sres = [
+            (2.05, "mins"),
+            (89.41666666666667, "mins"),
+            (1128.094710648148, "days"),
+            (1.7166666666666666, "mins"),
+            (4.2316666666666665, "hrs"),
+            (3, "secs"),
+        ]
+        for i, b in enumerate(slist):
+            res = secs2unit(b)
+            self.assertEqual(res, sres[i])
 
     def testwidgetgrid(self):  # ensure widgets.py is correctly defined
         NoneType = type(None)

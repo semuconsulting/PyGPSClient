@@ -677,6 +677,48 @@ def parse_rxmspartnkey(msg: UBXMessage) -> list:
     return keys
 
 
+def bytes2unit(valb: int) -> tuple:
+    """Format bytes as KB, MB, GB etc
+    such that value < 100.
+
+    :param int valb: bytes
+    :return: tuple of (value, units)
+    """
+
+    BYTESUNITS = ["", "KB", "MB", "GB", "TB", "PB"]
+    i = 0
+    val = valb
+    while val > 100:
+        val = valb / (2 ** (i * 10))
+        i += 1
+        if i > 4:
+            break
+    return val, BYTESUNITS[i]
+
+
+def secs2unit(secs: int) -> tuple:
+    """
+    Format seconds as secs, mins, hours or days
+    such that value is > 100.
+
+    :param int secs: seconds
+    :return: tuple of (value, units)
+    :rtype: tuple
+    """
+
+    SECSUNITS = ["secs", "mins", "hrs", "days"]
+    SECSDIV = [60, 3600, 86400]
+
+    i = 0
+    val = secs
+    while val > 100:
+        val = secs / SECSDIV[i]
+        i += 1
+        if i > 2:
+            break
+    return val, SECSUNITS[i]
+
+
 def sizefont(height: int, lines: int, minfont: int) -> tuple:
     """
     Set font size according to number of text lines on widget
