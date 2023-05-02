@@ -48,6 +48,7 @@ class GraphviewFrame(Frame):
         self.width = kwargs.get("width", def_w)
         self.height = kwargs.get("height", def_h)
         self._body()
+        self._attach_events()
 
         self.bind("<Configure>", self._on_resize)
 
@@ -62,6 +63,24 @@ class GraphviewFrame(Frame):
             self, width=self.width, height=self.height, bg=BGCOL
         )
         self.can_graphview.pack(fill=BOTH, expand=YES)
+
+    def _attach_events(self):
+        """
+        Bind events to frame.
+        """
+
+        self.can_graphview.bind("<Double-Button-1>", self._on_legend)
+
+    def _on_legend(self, event):
+        """
+        On double-click - toggle legend on/off.
+
+        :param event: event
+        """
+
+        self.__app.frm_settings.show_legend.set(
+            not self.__app.frm_settings.show_legend.get()
+        )
 
     def init_graph(self):
         """

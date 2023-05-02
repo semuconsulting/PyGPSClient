@@ -45,8 +45,8 @@ BOOTTYPES = {
 PORTIDS = {
     0x0000: "I2C",  # I2C
     0x0100: "UART1",  # 256 UART1
-    0x0101: "101",  # 257 not documented
-    0x0200: "200",  # 512 not documented
+    0x0101: "INT1",  # 257 inter-cpu connect
+    0x0200: "INT2",  # 512 inter-cpu connect
     0x0201: "UART2",  # 513 UART2
     0x0300: "USB",  # 768 USB
     0x0400: "SPI",  # 1024 SPI
@@ -260,7 +260,7 @@ class SysmonFrame(Frame):
             y = self._chart_parm(XOFFSET, y, ioUsageMax, ioUsage, "I/O", "%")
 
             for port, pdata in sorted(commsdata.items()):
-                y = self._chart_ioparm(XOFFSET, y, port, pdata)
+                y = self._chart_io(XOFFSET, y, port, pdata)
             y += SPACING
             y = self._chart_parm(XOFFSET, y, self._maxtemp, tempValueP, "Temp", "°C")
 
@@ -328,9 +328,12 @@ class SysmonFrame(Frame):
             y += self._fonth + SPACING
         return y
 
-    def _chart_ioparm(self, xoffset: int, y: int, port: int, pdata: tuple):
+    def _chart_io(self, xoffset: int, y: int, port: int, pdata: tuple):
         """
         Draw port I/O captions and tx/rx bar charts on canvas.
+
+        I/O byte counts will display actual or pending, depending
+        on mode setting.
 
         :param int xoffset: x axis offset
         :param int y: y axis
@@ -340,12 +343,14 @@ class SysmonFrame(Frame):
         """
 
         mod = self._mode.get()
-        cap = self._font.measure("port 888 tx 88.88 GB rx 88.88 GB : ")
+        cap = self._font.measure("UART2 tx 88.88 GB rx 88.88 GB : ")
         scale = (self.width - cap - (3 * xoffset)) / 100
         x = xoffset
         txb, txbu = bytes2unit(pdata[3 if mod else 2])  # total or pending
+        txf = "d" if txbu == "" else ".02f"
         rxb, rxbu = bytes2unit(pdata[6 if mod else 5])
-        prt = f"port {PORTIDS.get(port, NA)} tx {txb:.02f} {txbu} rx {rxb:.02f} {rxbu}:"
+        rxf = "d" if rxbu == "" else ".02f"
+        prt = f"{PORTIDS.get(port, NA)} tx {txb:{txf}} {txbu} rx {rxb:{rxf}} {rxbu}:"
         self.can_sysmon.create_text(  # port
             x,
             y,
