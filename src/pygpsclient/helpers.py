@@ -16,7 +16,7 @@ import re
 from datetime import datetime, timedelta
 from math import cos, pi, sin
 from time import strftime
-from tkinter import Button, Entry, Label, Toplevel, W
+from tkinter import Button, Entry, Label, Toplevel, W, font
 
 from pynmeagps import haversine
 from pyubx2 import UBXMessage, attsiz, atttyp
@@ -675,6 +675,26 @@ def parse_rxmspartnkey(msg: UBXMessage) -> list:
         pos += lkey
 
     return keys
+
+
+def sizefont(height: int, lines: int, minfont: int) -> tuple:
+    """
+    Set font size according to number of text lines on widget
+    of given height.
+
+    :param int maxlines: max no of lines of text
+    :param int minfont: min font size
+    :returns: tuple of (font, fontheight)
+    :rtype: tuple
+    """
+
+    fh = 0
+    fs = minfont
+    while fh * lines < height:
+        fnt = font.Font(size=fs)
+        fh = fnt.metrics("linespace")
+        fs += 1
+    return fnt, fh
 
 
 # ------------------------------------------------------------------

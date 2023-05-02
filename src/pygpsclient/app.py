@@ -295,6 +295,9 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         if wdg["menu"] is not None:
             self.menu.view_menu.entryconfig(wdg["menu"], label=f"{lbl} {nam}")
 
+        # force widget to rescale
+        getattr(self, wdg["frm"]).event_generate("<Configure>")
+
         if nam == WDGSPECTRUM:
             # enable MON-SPAN messages if spectrum widget is visible
             self.frm_spectrumview.enable_MONSPAN(wdg["visible"])
@@ -302,8 +305,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             # enable MON-SYS messages if sysmon widget is visible
             self.frm_sysmon.enable_MONSYS(wdg["visible"])
 
-        # force widget to rescale
-        getattr(self, wdg["frm"]).event_generate("<Configure>")
         return col, row
 
     def toggle_widget(self, widget: str):

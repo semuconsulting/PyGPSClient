@@ -11,16 +11,17 @@ Created on 30 Apr 2023
 :license: BSD 3-Clause
 """
 
-from tkinter import BOTH, YES, Canvas, Frame, font
+from tkinter import BOTH, YES, Canvas, Frame
 
 from pyubx2 import SET, UBXMessage
 
 from pygpsclient.globals import BGCOL, SYSMONVIEW, WIDGETU2
+from pygpsclient.helpers import sizefont
 from pygpsclient.strings import DLGENABLEMONSYS, DLGNOMONSYS, DLGWAITMONSYS
 
 # Graph dimensions
-RESFONT = 40  # font size relative to widget size
-MINFONT = 8  # minimum font size
+RESFONT = 35  # font size relative to widget size
+MINFONT = 6  # minimum font size
 MAXTEMP = 100  # °C
 TOPLIM = 80
 MIDLIM = 50
@@ -42,6 +43,8 @@ BOOTTYPES = {
     10: "V_CORE_HIGH fail",
 }
 ACTIVE = ""
+MAXLINES = 20
+MINFONT = 4
 
 
 class SysmonFrame(Frame):
@@ -384,9 +387,7 @@ class SysmonFrame(Frame):
 
     def _set_fontsize(self):
         """
-        Set font size and line spacing
+        Set font size to accommodate specified number of lines on canvas.
         """
 
-        dim = min(self.width, self.height)
-        self._font = font.Font(size=max(int(dim * RESFONT / 1000), MINFONT))
-        self._fonth = self._font.metrics("linespace")
+        self._font, self._fonth = sizefont(self.height, MAXLINES, MINFONT)
