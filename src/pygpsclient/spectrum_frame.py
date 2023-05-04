@@ -14,9 +14,10 @@ Created on 23 Dec 2022
 from math import ceil
 from tkinter import BOTH, YES, Canvas, Frame, font
 
-from pyubx2 import SET, UBXMessage
+from pyubx2 import UBXMessage
 
 from pygpsclient.globals import BGCOL, FGCOL, GNSS_LIST, SPECTRUMVIEW, WIDGETU2
+from pygpsclient.helpers import setubxrate
 from pygpsclient.strings import DLGENABLEMONSPAN, DLGNOMONSPAN, DLGWAITMONSPAN
 
 # Graph dimensions
@@ -198,22 +199,12 @@ class SpectrumviewFrame(Frame):
 
     def enable_MONSPAN(self, status: bool):
         """
-        Enable/disable UBX MON-SPAN (b'\x0a\x31') message.
+        Enable/disable UBX MON-SPAN message.
 
         :param bool status: 0 = off, 1 = on
         """
 
-        msg = UBXMessage(
-            "CFG",
-            "CFG-MSG",
-            SET,
-            msgClass=0x0A,
-            msgID=0x31,
-            rateUART1=status,
-            rateUART2=status,
-            rateUSB=status,
-        )
-        self.__app.gnss_outqueue.put(msg.serialize())
+        setubxrate(self.__app, 0x0A, 0x31, status)
         for msgid in ("ACK-ACK", "ACK-NAK"):
             self._set_pending(msgid, SPECTRUMVIEW)
         self._monspan_status = DLGWAITMONSPAN

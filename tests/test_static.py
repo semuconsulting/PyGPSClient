@@ -326,14 +326,15 @@ class StaticTest(unittest.TestCase):
             self.assertAlmostEqual(pnt, points[i], PREC)
 
     def testbytes2unit(self):  # test bytes2unit
-        blist = [123, 5365, 97467383, 1982864663735305, 15234, 3]
+        blist = [123, 5365, 97467383, 1982864663735305, 15234, 3, 0]
         bres = [
             (123, ""),
-            (5.2392578125, "MB"),
-            (92.95213985443115, "GB"),
-            (1803.4049060000189, "PB"),
-            (14.876953125, "MB"),
+            (5.2392578125, "KB"),
+            (92.95213985443115, "MB"),
+            (1803.4049060000189, "TB"),
+            (14.876953125, "KB"),
             (3, ""),
+            (0, ""),
         ]
         for i, b in enumerate(blist):
             res = bytes2unit(b)

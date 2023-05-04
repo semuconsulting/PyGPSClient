@@ -1,8 +1,9 @@
 """
 System Monitor frame for PyGPSClient application.
 
-This present current u-blox receiver status based
-on MON-SYS polls
+Shows cpu, memory, i/o status, core temperature and warning/error counts
+for u-blox devices which support the MON-SYS and/or MON-COMMS UBX message
+types.
 
 Created on 30 Apr 2023
 
@@ -11,24 +12,19 @@ Created on 30 Apr 2023
 :license: BSD 3-Clause
 """
 
-from tkinter import BOTH, YES, Canvas, Checkbutton, E, Frame, IntVar, N, S, W
+from tkinter import Canvas, Checkbutton, E, Frame, IntVar, N, S, W
 
-from pyubx2 import SET, UBXMessage
+from pyubx2 import UBXMessage
 
 from pygpsclient.globals import BGCOL, FGCOL, SYSMONVIEW, WIDGETU2
-from pygpsclient.helpers import bytes2unit, secs2unit, sizefont
+from pygpsclient.helpers import bytes2unit, hsv2rgb, secs2unit, setubxrate, sizefont
 from pygpsclient.strings import DLGENABLEMONSYS, DLGNOMONSYS, DLGWAITMONSYS, NA
 
-# Graph dimensions
-RESFONT = 35  # font size relative to widget size
 MINFONT = 6  # minimum font size
 MAXTEMP = 100  # °C
-TOPLIM = 80
-MIDLIM = 50
 XOFFSET = 10
 SPACING = 5
 DASH = (5, 2)
-TXTCOL = "white"
 BOOTTYPES = {
     0: "Unknown",
     1: "Cold Start",
@@ -43,7 +39,7 @@ BOOTTYPES = {
     10: "V_CORE_HIGH fail",
 }
 PORTIDS = {
-    0x0000: "I2C",  # I2C
+    0x0000: "I2C",  # 0 I2C
     0x0100: "UART1",  # 256 UART1
     0x0101: "INT1",  # 257 inter-cpu connect
     0x0200: "INT2",  # 512 inter-cpu connect
@@ -54,7 +50,7 @@ PORTIDS = {
 ACTIVE = ""
 MAXLINES = 23
 MINFONT = 4
-MAXWAIT = 5
+MAXWAIT = 10
 
 
 class SysmonFrame(Frame):
@@ -85,19 +81,16 @@ class SysmonFrame(Frame):
         self._waits = 0
         self._mode = IntVar()
         self._body()
-        self._set_fontsize()
         self._attach_events()
+        self._set_fontsize()
 
     def _body(self):
         """
         Set up frame and widgets.
         """
 
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(0, weight=1)
-        self.can_sysmon = Canvas(self, width=self.width, height=self.height, bg=BGCOL)
+        self._can_sysmon = Canvas(self, width=self.width, height=self.height, bg=BGCOL)
         self._frm_status = Frame(self, bg=BGCOL)
-        self.can_sysmon.pack(fill=BOTH, expand=YES)
         self._chk_mode = Checkbutton(
             self._frm_status,
             text="Actual I/O",
@@ -105,7 +98,7 @@ class SysmonFrame(Frame):
             fg=FGCOL,
             bg=BGCOL,
         )
-        self.can_sysmon.grid(column=0, row=0, padx=0, pady=0, sticky=(N, S, W, E))
+        self._can_sysmon.grid(column=0, row=0, padx=0, pady=0, sticky=(N, S, W, E))
         self._frm_status.grid(column=0, row=1, padx=2, pady=2, sticky=(W, E))
         self._chk_mode.grid(column=0, row=0, padx=0, pady=0, sticky=W)
         self.grid_columnconfigure(0, weight=1)
@@ -117,7 +110,7 @@ class SysmonFrame(Frame):
         """
 
         self.bind("<Configure>", self._on_resize)
-        self.can_sysmon.bind("<Double-Button-1>", self._on_clear)
+        self._can_sysmon.bind("<Double-Button-1>", self._on_clear)
         self._mode.trace_add("write", self._on_mode)
 
     def init_chart(self):
@@ -125,8 +118,8 @@ class SysmonFrame(Frame):
         Initialise sysmon chart.
         """
 
-        self.can_sysmon.delete("all")
-        self.can_sysmon.create_text(
+        self._can_sysmon.delete("all")
+        self._can_sysmon.create_text(
             self.width / 2,
             self.height / 2,
             text=self._monsys_status,
@@ -135,7 +128,7 @@ class SysmonFrame(Frame):
 
     def _on_clear(self, event):  # pylint: disable=unused-argument
         """
-        Clear plot.
+        Clear chart data and reinitialise canvas.
 
         :param Event event: clear event
         """
@@ -148,37 +141,26 @@ class SysmonFrame(Frame):
 
     def _on_mode(self, *args):  # pylint: disable=unused-argument
         """
-        Update I/O display mode.
+        Update I/O display mode - actual or pending i/o.
 
         :param Event event: clear event
         """
 
-        if self._mode.get():
-            self._chk_mode.config(text="Pending I/O")
-        else:
-            self._chk_mode.config(text="Actual I/O")
+        txt = "Pending I/O" if self._mode.get() else "Actual I/O"
+        self._chk_mode.config(text=txt)
 
-    def enable_MONSYS(self, status: bool):
+    def enable_MONSYS(self, status: int):
         """
-        Enable/disable UBX MON-SYS & MON-COMMS messages.
+        Enable/disable UBX MON-SYS & MON-COMMS messages on
+        default port(s).
 
         NB: CPU Load value only valid if rate = 1
 
-        :param bool status: 0 = off, 1 = on
+        :param int status: 0 = off, 1 = on
         """
 
         for mid in (0x39, 0x36):
-            msg = UBXMessage(
-                "CFG",
-                "CFG-MSG",
-                SET,
-                msgClass=0x0A,
-                msgID=mid,
-                rateUART1=status,
-                rateUART2=status,
-                rateUSB=status,
-            )
-            self.__app.gnss_outqueue.put(msg.serialize())
+            setubxrate(self.__app, 0x0A, mid, status)
         for msgid in ("ACK-ACK", "ACK-NAK"):
             self._set_pending(msgid, SYSMONVIEW)
         self._monsys_status = DLGWAITMONSYS
@@ -186,7 +168,7 @@ class SysmonFrame(Frame):
 
     def _set_pending(self, msgid: int, ubxfrm: int):
         """
-        Set pending confirmation flag for Sysmonview frame to
+        Set pending confirmation flag for sysmon widget to
         signify that it's waiting for a confirmation message.
 
         :param int msgid: UBX message identity
@@ -198,7 +180,7 @@ class SysmonFrame(Frame):
     def update_pending(self, msg: UBXMessage):
         """
         Receives polled confirmation message from the ubx_handler and
-        updates sysmon canvas.
+        updates sysmon status.
 
         :param UBXMessage msg: UBX config message
         """
@@ -207,7 +189,6 @@ class SysmonFrame(Frame):
         if pending and msg.identity == "ACK-NAK":
             self._pending_confs.pop("ACK-NAK")
             self._monsys_status = DLGNOMONSYS
-            # self.init_chart()
 
         if self._pending_confs.get("ACK-ACK", False):
             self._pending_confs.pop("ACK-ACK")
@@ -216,16 +197,17 @@ class SysmonFrame(Frame):
         """
         Plot MON-SPAN spectrum analysis.
 
-        spectrum_data is list of tuples (spec, spn, res, ctr, pga),
-        one item per RF block.
+        If no updates received after a given number of trys,
+        assume receiver doesn't support MON-SYS or MON-COMMS.
+
+        sysmon_data is a list of sys monitor parms.
+        comms-data is a tuple of tx and rx values
         """
 
         sysdata = self.__app.gnss_status.sysmon_data
         commsdata = self.__app.gnss_status.comms_data
 
-        # If no updates received after a period, assume
-        # receiver doesn't support MON-SYS and/or MON-COMMS
-        if len(sysdata) == 0 and len(commsdata) == 0:
+        if len(sysdata) + len(commsdata) == 0:
             self._waits += 1
             if self._waits >= MAXWAIT:
                 self._monsys_status = DLGNOMONSYS
@@ -258,27 +240,27 @@ class SysmonFrame(Frame):
             y = self._chart_parm(XOFFSET, y, cpuLoadMax, cpuLoad, "CPU", "%")
             y = self._chart_parm(XOFFSET, y, memUsageMax, memUsage, "Memory", "%")
             y = self._chart_parm(XOFFSET, y, ioUsageMax, ioUsage, "I/O", "%")
-
             for port, pdata in sorted(commsdata.items()):
                 y = self._chart_io(XOFFSET, y, port, pdata)
             y += SPACING
             y = self._chart_parm(XOFFSET, y, self._maxtemp, tempValueP, "Temp", "°C")
 
             rtm, rtmu = secs2unit(runTime)
+            rtf = "" if rtmu == "secs" else ",.02f"
             txt = (
                 f"Boot Type: {bootType}\n"
-                + f"Runtime: {rtm:,.02f} {rtmu}\n"
+                + f"Runtime: {rtm:{rtf}} {rtmu}\n"
                 + f"Notices: {noticeCount}, Warnings: {warnCount}, Errors: {errorCount}"
             )
-            self.can_sysmon.create_text(
+            self._can_sysmon.create_text(
                 XOFFSET,
                 y,
                 text=txt,
-                fill=TXTCOL,
+                fill=FGCOL,
                 anchor="nw",
                 font=self._font,
             )
-        except KeyError:
+        except KeyError:  # invalid sysmon-data or comms-data
             self._monsys_status = DLGNOMONSYS
             self.init_chart()
 
@@ -292,22 +274,22 @@ class SysmonFrame(Frame):
         unit: str,
     ) -> int:
         """
-        Draw caption and bar charts on canvas.
+        Draw caption and current/max bar charts on canvas.
         """
 
         scale = (self.width - (3 * xoffset)) / 100
         x = xoffset
-        self.can_sysmon.create_text(
+        self._can_sysmon.create_text(
             x,
             y,
             text=f"{lbl}: {val} {unit}",
-            fill=TXTCOL,
+            fill=FGCOL,
             anchor="w",
             font=self._font,
         )
         y += self._fonth
         if isinstance(maxval, (int, float)):
-            self.can_sysmon.create_line(
+            self._can_sysmon.create_line(
                 x,
                 y,
                 x + maxval * scale,
@@ -317,7 +299,7 @@ class SysmonFrame(Frame):
                 width=self._fonth,
             )
         if isinstance(val, (int, float)):
-            self.can_sysmon.create_line(
+            self._can_sysmon.create_line(
                 x,
                 y,
                 x + val * scale,
@@ -330,7 +312,7 @@ class SysmonFrame(Frame):
 
     def _chart_io(self, xoffset: int, y: int, port: int, pdata: tuple):
         """
-        Draw port I/O captions and tx/rx bar charts on canvas.
+        Draw port I/O captions and tx/rx current/max bar charts on canvas.
 
         I/O byte counts will display actual or pending, depending
         on mode setting.
@@ -348,20 +330,20 @@ class SysmonFrame(Frame):
         x = xoffset
         txb, txbu = bytes2unit(pdata[3 if mod else 2])  # total or pending
         txf = "d" if txbu == "" else ".02f"
-        rxb, rxbu = bytes2unit(pdata[6 if mod else 5])
+        rxb, rxbu = bytes2unit(pdata[7 if mod else 6])
         rxf = "d" if rxbu == "" else ".02f"
-        prt = f"{PORTIDS.get(port, NA)} tx {txb:{txf}} {txbu} rx {rxb:{rxf}} {rxbu}:"
-        self.can_sysmon.create_text(  # port
+        txt = f"{PORTIDS.get(port, NA)} tx {txb:{txf}} {txbu} rx {rxb:{rxf}} {rxbu}:"
+        self._can_sysmon.create_text(  # port
             x,
             y,
-            text=prt,
-            fill=TXTCOL,
+            text=txt,
+            fill=FGCOL,
             anchor="w",
             font=self._font,
         )
         p = -1
         for i in range(0, 8, 4):  # RX & TX
-            self.can_sysmon.create_line(  # max
+            self._can_sysmon.create_line(  # max
                 x + cap,
                 y + p,
                 x + cap + pdata[i + 1] * scale,
@@ -370,7 +352,7 @@ class SysmonFrame(Frame):
                 dash=DASH,
                 width=2,
             )
-            self.can_sysmon.create_line(  # val
+            self._can_sysmon.create_line(  # val
                 x + cap,
                 y + p,
                 x + cap + pdata[i] * scale,
@@ -384,18 +366,15 @@ class SysmonFrame(Frame):
 
     def _set_col(self, val: float) -> str:
         """
-        Set chart line color
+        Set bar chart line color
+        (green low, red high).
 
         :param val: value as %
         :return: color string
         :rtype: str
         """
 
-        if val > TOPLIM:
-            return "orangered"
-        if val > MIDLIM:
-            return "orange"
-        return "yellowgreen"
+        return hsv2rgb((100 - val) / 300, 0.8, 0.8)
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """
@@ -415,8 +394,8 @@ class SysmonFrame(Frame):
         """
 
         self.update_idletasks()  # Make sure we know about any resizing
-        width = self.can_sysmon.winfo_width()
-        height = self.can_sysmon.winfo_height()
+        width = self._can_sysmon.winfo_width()
+        height = self._can_sysmon.winfo_height()
         self._set_fontsize()
         return (width, height)
 

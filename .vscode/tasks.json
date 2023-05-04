@@ -76,7 +76,7 @@
                     "-Path",
                     "build\\,",
                     "dist\\,",
-                    "htmlcov\\,",
+                    //"htmlcov\\,",
                     "docs\\_build,",
                     "${config:modulename}.egg-info",
                     "-Recurse",
@@ -221,6 +221,20 @@
             "problemMatcher": []
         },
         {
+            "label": "Install Wheel",
+            "type": "process",
+            "command": "${config:python.defaultInterpreterPath}",
+            "args": [
+                "-m",
+                "pip",
+                "install",
+                "${workspaceFolder}/dist/${config:distname}-${config:moduleversion}-py3-none-any.whl",
+                "--user",
+                "--force-reinstall"
+            ],
+            "problemMatcher": []
+        },
+        {
             "label": "Install Locally",
             "type": "process",
             "command": "${config:python.defaultInterpreterPath}",
@@ -235,9 +249,9 @@
             "dependsOrder": "sequence",
             "dependsOn": [
                 "Clean",
-                "Install Deploy Dependencies",
-                "Install Test Dependencies",
-                "Install Dependencies",
+                //"Install Deploy Dependencies",
+                //"Install Test Dependencies",
+                //"Install Dependencies",
                 "Security",
                 "Sort Imports",
                 "Format",

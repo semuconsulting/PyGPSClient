@@ -19,7 +19,7 @@ from time import strftime
 from tkinter import Button, Entry, Label, Toplevel, W, font
 
 from pynmeagps import haversine
-from pyubx2 import UBXMessage, attsiz, atttyp
+from pyubx2 import SET, UBXMessage, attsiz, atttyp
 from requests import get
 
 from pygpsclient.globals import FIXLOOKUP, GPSEPOCH0, MAX_SNR
@@ -443,7 +443,7 @@ def check_latest(name: str) -> str:
             "version"
         ]
     except Exception:  # pylint: disable=broad-except
-        return "N/A"
+        return NA
 
 
 def fix2desc(msgid: str, fix: object) -> str:
@@ -689,15 +689,17 @@ def bytes2unit(valb: int) -> tuple:
     if not isinstance(valb, (int, float)):
         return 0, NA
 
-    BYTESUNITS = ["", "KB", "MB", "GB", "TB", "PB"]
+    BYTESUNITS = ["", "KB", "MB", "GB", "TB"]
     i = 0
     val = valb
+    valu = BYTESUNITS[i]
     while val > 500:
         val = valb / (2 ** (i * 10))
+        valu = BYTESUNITS[i]
         i += 1
         if i > 4:
             break
-    return val, BYTESUNITS[i]
+    return val, valu
 
 
 def secs2unit(secs: int) -> tuple:
@@ -744,6 +746,50 @@ def sizefont(height: int, lines: int, minfont: int) -> tuple:
         fh = fnt.metrics("linespace")
         fs += 1
     return fnt, fh
+
+
+def setubxrate(app: object, msgclass: int, msgid: int, rate: int = 1):
+    """
+    Set rate on specified UBX message on default port(s).
+
+    The port(s) this applies to are defined in the 'defaultport'
+    configuration setting as a string or list.
+
+    Rate is relative to navigation solution e.g.
+    a rate of '4' means 'every 4th navigation solution'
+    (higher = less frequent).
+
+    :param App app: calling application (PyGPSClient)
+    :param int msgclass: msgClass
+    :param int msgid: msgId
+    :param int rate: message rate (0 = off)
+    """
+
+    if app is None:
+        return
+
+    rates = {}
+    prts = app.app_config.get("defaultport", "USB")
+    if isinstance(prts, str):
+        prts = [
+            prts,
+        ]
+    for prt in prts:
+        rates[prt] = rate
+
+    msg = UBXMessage(
+        "CFG",
+        "CFG-MSG",
+        SET,
+        msgClass=msgclass,
+        msgID=msgid,
+        rateDDC=rates.get("I2C", 0),
+        rateUART1=rates.get("UART1", 0),
+        rateUART2=rates.get("UART2", 0),
+        rateUSB=rates.get("USB", 0),
+        rateSPI=rates.get("SPI", 0),
+    )
+    app.gnss_outqueue.put(msg.serialize())
 
 
 # ------------------------------------------------------------------
