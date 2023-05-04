@@ -65,8 +65,7 @@ class MapviewFrame(Frame):
         self._last_map_update = 0
         # self._map_update_interval = MAP_UPDATE_INTERVAL
         self._body()
-
-        self.bind("<Configure>", self._on_resize)
+        self._attach_events()
 
     def _body(self):
         """
@@ -75,8 +74,25 @@ class MapviewFrame(Frame):
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
-        self.can_mapview = Canvas(self, width=self.width, height=self.height, bg=BGCOL)
-        self.can_mapview.grid(column=0, row=0, sticky=(N, S, E, W))
+        self._can_mapview = Canvas(self, width=self.width, height=self.height, bg=BGCOL)
+        self._can_mapview.grid(column=0, row=0, sticky=(N, S, E, W))
+
+    def _attach_events(self):
+        """
+        Bind events to frame.
+        """
+
+        self.bind("<Configure>", self._on_resize)
+        self._can_mapview.bind("<Double-Button-1>", self.on_refresh)
+
+    def on_refresh(self, event):  # pylint: disable=unused-argument
+        """
+        Trigger refresh of web map.
+
+        :param event: event
+        """
+
+        self._last_map_update = 0
 
     def update_frame(self):
         """
@@ -123,15 +139,15 @@ class MapviewFrame(Frame):
         OFFSET_Y = 0
 
         w, h = self.width, self.height
-        self.can_mapview.delete("all")
+        self._can_mapview.delete("all")
         self._img = ImageTk.PhotoImage(
             Image.open(IMG_WORLD).resize((w, h), Image.ANTIALIAS)
         )
         self._marker = ImageTk.PhotoImage(Image.open(ICON_POS))
-        self.can_mapview.create_image(0, 0, image=self._img, anchor=NW)
+        self._can_mapview.create_image(0, 0, image=self._img, anchor=NW)
         x = (w / 2) + int((lon * (w / 360))) + OFFSET_X
         y = (h / 2) - int((lat * (h / 180))) + OFFSET_Y
-        self.can_mapview.create_image(x, y, image=self._marker, anchor=S)
+        self._can_mapview.create_image(x, y, image=self._marker, anchor=S)
 
     def _draw_web_map(self, lat: float, lon: float, hacc: float):
         """
@@ -171,9 +187,9 @@ class MapviewFrame(Frame):
             if sc == "OK":
                 img_data = response.content
                 self._img = ImageTk.PhotoImage(Image.open(BytesIO(img_data)))
-                self.can_mapview.delete("all")
-                self.can_mapview.create_image(0, 0, image=self._img, anchor=NW)
-                self.can_mapview.update_idletasks()
+                self._can_mapview.delete("all")
+                self._can_mapview.create_image(0, 0, image=self._img, anchor=NW)
+                self._can_mapview.update_idletasks()
                 return
         except (ConnError, ConnectTimeout):
             msg = NOWEBMAPCONN
@@ -189,8 +205,8 @@ class MapviewFrame(Frame):
         :param int wait: wait time in seconds
         """
 
-        self.can_mapview.create_oval((5, 5, 20, 20), fill="#616161", outline="")
-        self.can_mapview.create_arc(
+        self._can_mapview.create_oval((5, 5, 20, 20), fill="#616161", outline="")
+        self._can_mapview.create_arc(
             (5, 5, 20, 20), start=90, extent=wait, fill="#ffffff", outline=""
         )
 
@@ -237,8 +253,8 @@ class MapviewFrame(Frame):
         w, h = self.width, self.height
         resize_font = font.Font(size=min(int(w / 20), 14))
 
-        self.can_mapview.delete("all")
-        self.can_mapview.create_text(
+        self._can_mapview.delete("all")
+        self._can_mapview.create_text(
             w / 2,
             h / 2,
             text=msg,
@@ -272,6 +288,6 @@ class MapviewFrame(Frame):
         """
 
         self.update_idletasks()  # Make sure we know about any resizing
-        width = self.can_mapview.winfo_width()
-        height = self.can_mapview.winfo_height()
+        width = self._can_mapview.winfo_width()
+        height = self._can_mapview.winfo_height()
         return (width, height)
