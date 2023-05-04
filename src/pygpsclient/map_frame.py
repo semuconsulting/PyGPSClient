@@ -25,15 +25,12 @@ from PIL import Image, ImageTk
 from requests import ConnectionError as ConnError
 from requests import ConnectTimeout, RequestException, get
 
-from pygpsclient.globals import (
-    BGCOL,
-    ICON_POS,
-    IMG_WORLD,
+from pygpsclient.globals import BGCOL, ICON_POS, IMG_WORLD, WIDGETU2
+from pygpsclient.mapquest import (
     MAP_UPDATE_INTERVAL,
     MAPQTIMEOUT,
     MAPURL,
     MIN_UPDATE_INTERVAL,
-    WIDGETU2,
 )
 from pygpsclient.strings import NOWEBMAPCONN, NOWEBMAPFIX, NOWEBMAPHTTP, NOWEBMAPKEY
 

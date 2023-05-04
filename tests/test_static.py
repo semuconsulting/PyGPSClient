@@ -28,8 +28,6 @@ from pygpsclient.helpers import (
     kmph2ms,
     knots2ms,
     m2ft,
-    mapq_compress,
-    mapq_decompress,
     ms2kmph,
     ms2knots,
     ms2mph,
@@ -43,6 +41,7 @@ from pygpsclient.helpers import (
     validURL,
     wnotow2date,
 )
+from pygpsclient.mapquest import mapq_compress, mapq_decompress
 
 
 class StaticTest(unittest.TestCase):

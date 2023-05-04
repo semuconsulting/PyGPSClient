@@ -67,24 +67,8 @@ DLG = "dlg"
 FRM = "frm"
 
 # URLS
-PYPI_URL = "https://pypi.org/pypi/PyGPSClient"
 GITHUB_URL = "https://github.com/semuconsulting/PyGPSClient"
-MAPQURL = "https://www.mapquestapi.com/staticmap/v5/map?key={}"
-MAPQTIMEOUT = 5
-MAPURL = (
-    MAPQURL
-    + "&locations={},{}&zoom={}&size={},{}&defaultMarker=marker-sm-616161-ff4444"
-    + "&shape=radius:{}|weight:1|fill:ccffff50|border:88888850|{},{}&scalebar={}"
-)
-GPXMAPURL = (
-    MAPQURL
-    + "&locations={},{}||{},{}&zoom={}&size={},{}&defaultMarker=marker-num"
-    + "&shape=weight:2|border:{}|{}&scalebar={}|bottom"
-)
-
-# how frequently the mapquest api is called to update the web map (seconds)
-MAP_UPDATE_INTERVAL = 60
-MIN_UPDATE_INTERVAL = 5
+PYPI_URL = "https://pypi.org/pypi/PyGPSClient"
 XML_HDR = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
 GPX_NS = " ".join(
     (
@@ -95,9 +79,9 @@ GPX_NS = " ".join(
         'http://www.topografix.com/GPX/1/1/gpx.xsd"',
     )
 )
+
 EPILOG = "© 2022 SEMU Consulting BSD 3-Clause license - https://github.com/semuconsulting/pygpsclient/"
 GPSEPOCH0 = datetime(1980, 1, 6)  # for Wno and Tow calculations
-GPXLIMIT = 500  # max number of track points supported by MapQuest API
 # Check for newer PyPi version on startup (requires internet connection).
 # NB: the PyPi API is not very quick so enabling this will increase
 # application startup time.

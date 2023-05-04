@@ -41,7 +41,6 @@ from pygpsclient.globals import (
     GNSS_EVENT,
     GUI_UPDATE_INTERVAL,
     ICON_APP,
-    MAP_UPDATE_INTERVAL,
     NOPORTS,
     NTRIP_EVENT,
     OKCOL,
@@ -55,6 +54,7 @@ from pygpsclient.gpx_dialog import GPXViewerDialog
 from pygpsclient.graphview_frame import GraphviewFrame
 from pygpsclient.helpers import check_latest
 from pygpsclient.map_frame import MapviewFrame
+from pygpsclient.mapquest import MAP_UPDATE_INTERVAL
 from pygpsclient.menu_bar import MenuBar
 from pygpsclient.nmea_handler import NMEAHandler
 from pygpsclient.ntrip_client_dialog import NTRIPConfigDialog
