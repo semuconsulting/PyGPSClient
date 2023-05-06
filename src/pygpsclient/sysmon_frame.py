@@ -325,20 +325,28 @@ class SysmonFrame(Frame):
         """
 
         mod = self._mode.get()
-        cap = self._font.measure("UART2 tx 88.88 GB rx 88.88 GB : ")
+        cap = self._font.measure("UART2 → 888.88 GB ← 888.88 GB: ⇄")
         scale = (self.width - cap - (3 * xoffset)) / 100
         x = xoffset
         txb, txbu = bytes2unit(pdata[3 if mod else 2])  # total or pending
         txf = "d" if txbu == "" else ".02f"
         rxb, rxbu = bytes2unit(pdata[7 if mod else 6])
         rxf = "d" if rxbu == "" else ".02f"
-        txt = f"{PORTIDS.get(port, NA)} tx {txb:{txf}} {txbu} rx {rxb:{rxf}} {rxbu}:"
+        txt = f"{PORTIDS.get(port, NA)} → {txb:{txf}} {txbu} ← {rxb:{rxf}} {rxbu}:"
         self._can_sysmon.create_text(  # port
             x,
             y,
             text=txt,
             fill=FGCOL,
             anchor="w",
+            font=self._font,
+        )
+        self._can_sysmon.create_text(  # port
+            x + cap - 1,
+            y,
+            text="⇄",
+            fill=FGCOL,
+            anchor="e",
             font=self._font,
         )
         p = -1
@@ -374,7 +382,7 @@ class SysmonFrame(Frame):
         :rtype: str
         """
 
-        return hsv2rgb((100 - val) / 300, 0.8, 0.8)
+        return hsv2rgb((100 - min(100, val)) / 300, 0.8, 0.8)
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """
