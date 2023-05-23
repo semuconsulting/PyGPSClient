@@ -8,7 +8,7 @@ ENHANCEMENTS:
 
 ![Sysmon widget](./images/sysmon_widget.png)
 
-1. Add IPv6 support to NTRIP configuration panel (requires pygnssutils >= 1.0.9).
+1. Add IPv6 support to NTRIP configuration panel (requires pygnssutils >= 1.0.8).
 1. Add double-click actions to widgets;
 
    - double-click graph widget to toggle legend
@@ -18,7 +18,7 @@ ENHANCEMENTS:
 
 CHANGES:
 
-1. Update min pygnssutils version to 1.0.8
+1. Update min pygnssutils version to 1.0.9
 
 ### RELEASE v1.3.25
 
