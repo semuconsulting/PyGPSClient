@@ -33,7 +33,7 @@ from pygpsclient.globals import (
     ICON_WARNING,
     UBX_PRESET,
 )
-from pygpsclient.helpers import ConfirmBox
+from pygpsclient.helpers import ConfirmBox, setubxrate
 from pygpsclient.strings import (
     DLGRESET,
     DLGRESETCONFIRM,
@@ -446,28 +446,13 @@ class UBX_PRESET_Frame(Frame):
         """
         Set rate for specified message type via CFG-MSG.
 
-        NB A rate of n means 'for every nth position solution',
-        so values > 1 mean the message is sent less often.
-
         :param str msgtype: type of config message
         :param int msgrate: message rate (i.e. every nth position solution)
         """
 
         msgClass = int.from_bytes(msgtype[0:1], "little", signed=False)
         msgID = int.from_bytes(msgtype[1:2], "little", signed=False)
-        msg = UBXMessage(
-            "CFG",
-            "CFG-MSG",
-            SET,
-            msgClass=msgClass,
-            msgID=msgID,
-            rateDDC=msgrate,
-            rateUART1=msgrate,
-            rateUART2=msgrate,
-            rateUSB=msgrate,
-            rateSPI=msgrate,
-        )
-        self.__container.send_command(msg)
+        setubxrate(self.__app, msgClass, msgID, msgrate)
 
     def _do_factory_reset(self) -> bool:
         """

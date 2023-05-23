@@ -11,7 +11,6 @@ Welcome to PyGPSClient's documentation!
    :caption: Contents:
 
 
-
 Indices and tables
 ==================
 

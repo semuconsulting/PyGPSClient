@@ -16,13 +16,14 @@ import re
 from datetime import datetime, timedelta
 from math import cos, pi, sin
 from time import strftime
-from tkinter import Button, Entry, Label, Toplevel, W
+from tkinter import Button, Entry, Label, Toplevel, W, font
 
 from pynmeagps import haversine
-from pyubx2 import UBXMessage, attsiz, atttyp
+from pyubx2 import SET, UBXMessage, attsiz, atttyp
 from requests import get
 
 from pygpsclient.globals import FIXLOOKUP, GPSEPOCH0, MAX_SNR
+from pygpsclient.strings import NA
 
 # validation type flags
 MAXPORT = 65535
@@ -442,7 +443,7 @@ def check_latest(name: str) -> str:
             "version"
         ]
     except Exception:  # pylint: disable=broad-except
-        return "N/A"
+        return NA
 
 
 def fix2desc(msgid: str, fix: object) -> str:
@@ -677,108 +678,115 @@ def parse_rxmspartnkey(msg: UBXMessage) -> list:
     return keys
 
 
-# ------------------------------------------------------------------
-# FOLLOWING MAPQUEST POLYGON COMPRESSION AND DECOMPRESSION ROUTINES
-# ADAPTED FROM THE ORIGINAL JAVASCRIPT EXAMPLES:
-# https://developer.mapquest.com/documentation/common/encode-decode/
-# ------------------------------------------------------------------
+def bytes2unit(valb: int) -> tuple:
+    """Format bytes as KB, MB, GB etc
+    such that value < 100.
 
-
-def mapq_encode(num: int) -> str:
-    """
-    Encode number representing character.
-
-    :param int num: number to encode
-    :return: encoded number as string
-    :rtype: str
+    :param int valb: bytes
+    :return: tuple of (value, units)
     """
 
-    num = num << 1
-    if num < 0:
-        num = ~(num)
+    if not isinstance(valb, (int, float)):
+        return 0, NA
 
-    encoded = ""
-    while num >= 0x20:
-        encoded += chr((0x20 | (num & 0x1F)) + 63)
-        num >>= 5
+    BYTESUNITS = ["", "KB", "MB", "GB", "TB"]
+    i = 0
+    val = valb
+    valu = BYTESUNITS[i]
+    while val > 500:
+        val = valb / (2 ** (i * 10))
+        valu = BYTESUNITS[i]
+        i += 1
+        if i > 4:
+            break
+    return val, valu
 
-    encoded += chr(num + 63)
-    return encoded
 
-
-def mapq_decompress(encoded: str, precision: int = 6) -> list:
+def secs2unit(secs: int) -> tuple:
     """
-    Decompress polygon for MapQuest API.
+    Format seconds as secs, mins, hours or days
+    such that value is > 100.
 
-    :param str encoded: polygon encoded as string
-    :param int precision: no decimal places precision (6)
-    :return: polygon as list of points
-    :rtype: list
-    """
-
-    precision = 10**-precision
-    leng = len(encoded)
-    index = 0
-    lat = 0
-    lng = 0
-    array = []
-    while index < leng:
-        shift = 0
-        result = 0
-        b = 0xFF
-        while b >= 0x20:
-            b = ord(encoded[index]) - 63
-            index += 1
-            result |= (b & 0x1F) << shift
-            shift += 5
-
-        dlat = ~(result >> 1) if (result & 1) else (result >> 1)
-        lat += dlat
-        shift = 0
-        result = 0
-        b = 0xFF
-        while b >= 0x20:
-            b = ord(encoded[index]) - 63
-            index += 1
-            result |= (b & 0x1F) << shift
-            shift += 5
-
-        dlng = ~(result >> 1) if (result & 1) else (result >> 1)
-        lng += dlng
-        array.append(lat * precision)
-        array.append(lng * precision)
-
-    return array
-
-
-def mapq_compress(points: list, precision: int = 6) -> str:
-    """
-    Compress polygon for MapQuest API.
-
-    :param str points: polygon as list of points
-    :param int precision: no decimal places precision (6)
-    :return: polygon encoded as string
-    :rtype: string
+    :param int secs: seconds
+    :return: tuple of (value, units)
+    :rtype: tuple
     """
 
-    oldLat = 0
-    oldLng = 0
-    leng = len(points)
-    index = 0
-    encoded = ""
-    precision = 10**precision
-    while index < leng:
-        #  Round to N decimal places
-        lat = round(points[index] * precision)
-        index += 1
-        lng = round(points[index] * precision)
-        index += 1
+    if not isinstance(secs, (int, float)):
+        return 0, NA
 
-        #  Encode the differences between the points
-        encoded += mapq_encode(lat - oldLat)
-        encoded += mapq_encode(lng - oldLng)
+    SECSUNITS = ["secs", "mins", "hrs", "days"]
+    SECSDIV = [60, 3600, 86400]
 
-        oldLat = lat
-        oldLng = lng
+    i = 0
+    val = secs
+    while val > 100:
+        val = secs / SECSDIV[i]
+        i += 1
+        if i > 2:
+            break
+    return val, SECSUNITS[i]
 
-    return encoded
+
+def sizefont(height: int, lines: int, minfont: int) -> tuple:
+    """
+    Set font size according to number of text lines on widget
+    of given height.
+
+    :param int maxlines: max no of lines of text
+    :param int minfont: min font size
+    :returns: tuple of (font, fontheight)
+    :rtype: tuple
+    """
+
+    fh = 0
+    fs = minfont
+    while fh * lines < height:
+        fnt = font.Font(size=fs)
+        fh = fnt.metrics("linespace")
+        fs += 1
+    return fnt, fh
+
+
+def setubxrate(app: object, msgclass: int, msgid: int, rate: int = 1):
+    """
+    Set rate on specified UBX message on default port(s).
+
+    The port(s) this applies to are defined in the 'defaultport'
+    configuration setting as a string or list.
+
+    Rate is relative to navigation solution e.g.
+    a rate of '4' means 'every 4th navigation solution'
+    (higher = less frequent).
+
+    :param App app: calling application (PyGPSClient)
+    :param int msgclass: msgClass
+    :param int msgid: msgId
+    :param int rate: message rate (0 = off)
+    """
+
+    if app is None:
+        return
+
+    rates = {}
+    prts = app.app_config.get("defaultport", "USB")
+    if isinstance(prts, str):
+        prts = [
+            prts,
+        ]
+    for prt in prts:
+        rates[prt] = rate
+
+    msg = UBXMessage(
+        "CFG",
+        "CFG-MSG",
+        SET,
+        msgClass=msgclass,
+        msgID=msgid,
+        rateDDC=rates.get("I2C", 0),
+        rateUART1=rates.get("UART1", 0),
+        rateUART2=rates.get("UART2", 0),
+        rateUSB=rates.get("USB", 0),
+        rateSPI=rates.get("SPI", 0),
+    )
+    app.gnss_outqueue.put(msg.serialize())

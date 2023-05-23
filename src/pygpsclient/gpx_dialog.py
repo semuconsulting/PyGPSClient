@@ -42,8 +42,6 @@ from requests import ConnectTimeout, HTTPError, RequestException, get
 from pygpsclient.globals import (
     BGCOL,
     DLGTGPX,
-    GPXLIMIT,
-    GPXMAPURL,
     HOME,
     ICON_EXIT,
     ICON_LOAD,
@@ -55,14 +53,14 @@ from pygpsclient.globals import (
     KPH2MPH,
     KPH2MPS,
     M2FT,
-    MAPQTIMEOUT,
     POPUP_TRANSIENT,
     READONLY,
     UI,
     UIK,
     UMK,
 )
-from pygpsclient.helpers import haversine, mapq_compress
+from pygpsclient.helpers import haversine
+from pygpsclient.mapquest import GPXLIMIT, GPXMAPURL, MAPQTIMEOUT, mapq_compress
 from pygpsclient.strings import (
     DLGGPXERROR,
     DLGGPXLOAD,

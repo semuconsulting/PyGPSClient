@@ -14,6 +14,7 @@ from pyubx2 import UBXMessage, itow2utc
 
 from pygpsclient.globals import DLGTSPARTN, DLGTUBX, GLONASS_NMEA
 from pygpsclient.helpers import corrage2int, fix2desc, svid2gnssid
+from pygpsclient.widgets import WDGSPECTRUM, WDGSYSMON
 
 
 class UBXHandler:
@@ -50,9 +51,9 @@ class UBXHandler:
             return
 
         if parsed_data.identity[0:3] in ("ACK", "CFG"):
-            self._update_ubxconfig(parsed_data)
+            self._process_ACK(parsed_data)
         elif parsed_data.identity in ("MON-VER", "MON-HW"):
-            self._update_ubxconfig(parsed_data)
+            self._process_MONVER(parsed_data)
         elif parsed_data.identity in ("NAV-POSLLH", "NAV-HPPOSLLH"):
             self._process_NAV_POSLLH(parsed_data)
         elif parsed_data.identity in ("NAV-PVT", "NAV2-PVT"):
@@ -75,12 +76,16 @@ class UBXHandler:
             self._process_RXM_RTCM(parsed_data)
         elif parsed_data.identity == "MON-SPAN":
             self._process_MON_SPAN(parsed_data)
+        elif parsed_data.identity == "MON-SYS":
+            self._process_MON_SYS(parsed_data)
+        elif parsed_data.identity == "MON-COMMS":
+            self._process_MON_COMMS(parsed_data)
         elif parsed_data.identity == "RXM-SPARTN-KEY":
             self._process_RXM_SPARTN_KEY(parsed_data)
 
-    def _update_ubxconfig(self, msg: UBXMessage):
+    def _process_ACK(self, msg: UBXMessage):
         """
-        Update UBX Config dialog status.
+        Process ACK-ACK & ACK-NAK sentences and CFG poll responses.
 
         :param UBXMessage msg: UBX config message
         """
@@ -88,17 +93,80 @@ class UBXHandler:
         if self.__app.dialog(DLGTUBX) is not None:
             self.__app.dialog(DLGTUBX).update_pending(msg)
 
-        # if SPARTN config dialog is open, send CFG & ACKs there as well
+        # if SPARTN config dialog is open, send CFG & ACKs there
         if self.__app.dialog(DLGTSPARTN) is not None:
             self.__app.dialog(DLGTSPARTN).update_pending(msg)
 
-        # if Spectrumview widget exists, send NAKs there as well
-        if self.__app.frm_spectrumview is not None and msg.identity in (
-            "ACK-ACK",
-            "ACK-NAK",
-        ):
-            if msg.clsID == 6 and msg.msgID == 1:  # CFG-MSG
-                self.__app.frm_spectrumview.update_pending(msg)
+        # if Spectrumview or Sysmon widgets are active, send ACKSs there
+        if msg.identity in ("ACK-ACK", "ACK-NAK"):
+            wdgs = self.__app.widgets
+            for wdg in (WDGSYSMON, WDGSPECTRUM):
+                if wdgs[wdg]["visible"]:
+                    if msg.clsID == 6 and msg.msgID == 1:  # CFG-MSG
+                        getattr(self.__app, wdgs[wdg]["frm"]).update_pending(msg)
+
+    def _process_MONVER(self, msg: UBXMessage):
+        """
+        Process MON-VER & MON-HW sentences.
+
+        :param UBXMessage msg: UBX config message
+        """
+
+        if self.__app.dialog(DLGTUBX) is not None:
+            self.__app.dialog(DLGTUBX).update_pending(msg)
+
+    def _process_MON_SYS(self, data: UBXMessage):
+        """
+        Process MON-SYS sentences - System Monitor Information.
+
+        :param UBXMessage data: MON-SYS parsed message
+        """
+
+        sysdata = {}
+        sysdata["bootType"] = data.bootType
+        sysdata["cpuLoad"] = data.cpuLoad
+        sysdata["cpuLoadMax"] = data.cpuLoadMax
+        sysdata["memUsage"] = data.memUsage
+        sysdata["memUsageMax"] = data.memUsageMax
+        sysdata["ioUsage"] = data.ioUsage
+        sysdata["ioUsageMax"] = data.ioUsageMax
+        sysdata["runTime"] = data.runTime
+        sysdata["noticeCount"] = data.noticeCount
+        sysdata["warnCount"] = data.warnCount
+        sysdata["errorCount"] = data.errorCount
+        sysdata["tempValue"] = data.tempValue
+        self.__app.gnss_status.sysmon_data = sysdata
+
+    def _process_MON_COMMS(self, data: UBXMessage):
+        """
+        Process MON-COMMS sentences - Comms Port Information.
+
+        :param UBXMessage data: MON-COMMS parsed message
+        """
+
+        commsdata = {}
+        for i in range(1, data.nPorts + 1):
+            idx = f"_{i:02}"
+            pid = getattr(data, "portId" + idx)
+            tx = getattr(data, "txUsage" + idx)
+            txmax = getattr(data, "txPeakUsage" + idx)
+            txbytes = getattr(data, "txBytes" + idx)
+            txpending = getattr(data, "txPending" + idx)
+            rx = getattr(data, "rxUsage" + idx)
+            rxmax = getattr(data, "rxPeakUsage" + idx)
+            rxbytes = getattr(data, "rxBytes" + idx)
+            rxpending = getattr(data, "rxPending" + idx)
+            commsdata[pid] = (
+                tx,
+                txmax,
+                txbytes,
+                txpending,
+                rx,
+                rxmax,
+                rxbytes,
+                rxpending,
+            )
+        self.__app.gnss_status.comms_data = commsdata
 
     def _process_NAV_POSLLH(self, data: UBXMessage):
         """

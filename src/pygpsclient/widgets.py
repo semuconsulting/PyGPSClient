@@ -9,6 +9,9 @@ To add a new widget to PyGPSClient:
 1. create a new frame class `widgetname_frame.py`.
 2. instantiate it in app._body() as `frm_widgetname`.
 3. add an entry to the foot of the widget_grid dictionary.
+4. if the widget requires data not already in the `app.gnss_status`
+data dictionary, add the requisite data items to the `GNSSStatus`
+class definition and update `ubx_handler` to populate them.
 
 Created on 30 Apr 2023
 
@@ -30,6 +33,7 @@ WDGLEVELS = "Levels"
 WDGMAP = "Map"
 WDGSPECTRUM = "Spectrum"
 WDGSCATTER = "Scatter Plot"
+WDGSYSMON = "System Monitor"
 
 widget_grid = {
     # these have a fixed relative position
@@ -86,8 +90,14 @@ widget_grid = {
         "frm": "frm_spectrumview",
         "visible": False,
     },
-    WDGSCATTER: {
+    WDGSYSMON: {
         "menu": 7,
+        "default": False,
+        "frm": "frm_sysmon",
+        "visible": False,
+    },
+    WDGSCATTER: {
+        "menu": 8,
         "default": False,
         "frm": "frm_scatterview",
         "visible": False,

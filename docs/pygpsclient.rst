@@ -92,6 +92,14 @@ pygpsclient.map\_frame module
    :undoc-members:
    :show-inheritance:
 
+pygpsclient.mapquest module
+---------------------------
+
+.. automodule:: pygpsclient.mapquest
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pygpsclient.menu\_bar module
 ----------------------------
 
@@ -232,6 +240,14 @@ pygpsclient.strings module
 --------------------------
 
 .. automodule:: pygpsclient.strings
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pygpsclient.sysmon\_frame module
+--------------------------------
+
+.. automodule:: pygpsclient.sysmon_frame
    :members:
    :undoc-members:
    :show-inheritance:

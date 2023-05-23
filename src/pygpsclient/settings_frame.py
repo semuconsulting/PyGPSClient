@@ -132,7 +132,7 @@ class SettingsFrame(Frame):
         self._logformat = StringVar()
         self._record_track = IntVar()
         self._show_unusedsat = IntVar()
-        self._show_legend = IntVar()
+        self.show_legend = IntVar()
         self._colortag = IntVar()
         self._socket_serve = IntVar()
         self._sock_port = StringVar()
@@ -306,7 +306,7 @@ class SettingsFrame(Frame):
             self._frm_options, text=LBLSHOWUNUSED, variable=self._show_unusedsat
         )
         self._chk_legend = Checkbutton(
-            self._frm_options, text=LBLLEGEND, variable=self._show_legend
+            self._frm_options, text=LBLLEGEND, variable=self.show_legend
         )
         self._chk_datalog = Checkbutton(
             self._frm_options,
@@ -628,6 +628,7 @@ class SettingsFrame(Frame):
 
         self.__app.frm_mapview.reset_map_refresh()
         self.__app.frm_spectrumview.reset()
+        self.__app.reset_gnssstatus()
 
     def _on_socket_serve(self):
         """
@@ -779,7 +780,7 @@ class SettingsFrame(Frame):
             "consoleformat": self._console_format.get(),
             "webmap": self._webmap.get(),
             "mapzoom": self._mapzoom.get(),
-            "legend": self._show_legend.get(),
+            "legend": self.show_legend.get(),
             "unusedsat": self._show_unusedsat.get(),
             "logformat": self._logformat.get(),
             "datalog": self._datalog.get(),
@@ -810,7 +811,7 @@ class SettingsFrame(Frame):
             self._console_format.set(config.get("consoleformat", FORMATS[0]))
             self._webmap.set(config.get("webmap", 0))
             self._mapzoom.set(config.get("mapzoom", 10))
-            self._show_legend.set(config.get("legend", 1))
+            self.show_legend.set(config.get("legend", 1))
             self._show_unusedsat.set(config.get("unusedsat", 1))
             self._logformat.set(config.get("logformat", FORMATS[1]))  # Binary
             # don't persist datalog or gpx track settings...

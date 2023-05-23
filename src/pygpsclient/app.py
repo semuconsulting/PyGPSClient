@@ -41,7 +41,6 @@ from pygpsclient.globals import (
     GNSS_EVENT,
     GUI_UPDATE_INTERVAL,
     ICON_APP,
-    MAP_UPDATE_INTERVAL,
     NOPORTS,
     NTRIP_EVENT,
     OKCOL,
@@ -55,6 +54,7 @@ from pygpsclient.gpx_dialog import GPXViewerDialog
 from pygpsclient.graphview_frame import GraphviewFrame
 from pygpsclient.helpers import check_latest
 from pygpsclient.map_frame import MapviewFrame
+from pygpsclient.mapquest import MAP_UPDATE_INTERVAL
 from pygpsclient.menu_bar import MenuBar
 from pygpsclient.nmea_handler import NMEAHandler
 from pygpsclient.ntrip_client_dialog import NTRIPConfigDialog
@@ -77,6 +77,7 @@ from pygpsclient.strings import (
     TITLE,
     VERCHECK,
 )
+from pygpsclient.sysmon_frame import SysmonFrame
 from pygpsclient.ubx_config_dialog import UBXConfigDialog
 from pygpsclient.ubx_handler import UBXHandler
 from pygpsclient.widgets import (
@@ -88,6 +89,7 @@ from pygpsclient.widgets import (
     WDGSETTINGS,
     WDGSPECTRUM,
     WDGSTATUS,
+    WDGSYSMON,
     widget_grid,
 )
 
@@ -148,6 +150,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.spartn_handler = GNSSMQTTClient(self, verbosity=0)
         self.dlg_threads = {}
         self.config = {}
+        self._default_port = "USB"
         self._conn_status = DISCONNECTED
         self._rtk_conn_status = DISCONNECTED
         self._map_update_interval = MAP_UPDATE_INTERVAL
@@ -222,6 +225,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.frm_graphview = GraphviewFrame(self, borderwidth=2, relief="groove")
         self.frm_spectrumview = SpectrumviewFrame(self, borderwidth=2, relief="groove")
         self.frm_scatterview = ScatterViewFrame(self, borderwidth=2, relief="groove")
+        self.frm_sysmon = SysmonFrame(self, borderwidth=2, relief="groove")
 
         self.__master.config(menu=self.menu)
 
@@ -292,12 +296,16 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         if wdg["menu"] is not None:
             self.menu.view_menu.entryconfig(wdg["menu"], label=f"{lbl} {nam}")
 
+        # force widget to rescale
+        getattr(self, wdg["frm"]).event_generate("<Configure>")
+
         if nam == WDGSPECTRUM:
             # enable MON-SPAN messages if spectrum widget is visible
             self.frm_spectrumview.enable_MONSPAN(wdg["visible"])
+        elif nam == WDGSYSMON:
+            # enable MON-SYS messages if sysmon widget is visible
+            self.frm_sysmon.enable_MONSYS(wdg["visible"])
 
-        # force widget to rescale
-        getattr(self, wdg["frm"]).event_generate("<Configure>")
         return col, row
 
     def toggle_widget(self, widget: str):
@@ -318,6 +326,13 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         for _, wdg in self._widget_grid.items():
             wdg["visible"] = wdg["default"]
         self._do_layout()
+
+    def reset_gnssstatus(self):
+        """
+        Reset gnss_status dict e.g. after reconnecting.
+        """
+
+        self.gnss_status = GNSSStatus()
 
     def _init_dialogs(self):
         """
@@ -702,6 +717,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             "mapupdateinterval": self._map_update_interval,
             "userport": self._user_port,
             "spartnport": self._spartn_user_port,
+            "defaultport": self._default_port,
             "mqapikey": self._mqapikey,
             "mqttclientid": self._mqttclientid,
             "colortags": self._colortags,
@@ -720,10 +736,22 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._map_update_interval = config.get("mapupdateinterval", MAP_UPDATE_INTERVAL)
         self._user_port = config.get("userport", self._user_port)
         self._spartn_user_port = config.get("spartnport", self._spartn_user_port)
+        self._default_port = config.get("defaultport", self._default_port)
         self._mqapikey = config.get("mqapikey", self._mqapikey)
         self._mqttclientid = config.get("mqttclientid", self._mqttclientid)
         self._colortags = config.get("colortags", self._colortags)
         self._ubxpresets = config.get("ubxpresets", self._ubxpresets)
+
+    @property
+    def widgets(self) -> dict:
+        """
+        Getter for widget grid.
+
+        :return: widget grid
+        :rtype: dict
+        """
+
+        return self._widget_grid
 
     @property
     def widget_config(self) -> dict:

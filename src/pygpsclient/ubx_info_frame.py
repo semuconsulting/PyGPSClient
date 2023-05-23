@@ -8,14 +8,12 @@ Created on 22 Dec 2020
 :license: BSD 3-Clause
 """
 
-from tkinter import Frame, Label, StringVar, W
+from tkinter import Frame, Label, W
 
 from PIL import Image, ImageTk
 from pyubx2 import POLL, UBXMessage
 
 from pygpsclient.globals import (
-    ANTPOWER,
-    ANTSTATUS,
     CONNECTED,
     ICON_CONFIRMED,
     ICON_PENDING,
@@ -24,6 +22,9 @@ from pygpsclient.globals import (
     UBX_MONHW,
     UBX_MONVER,
 )
+
+ANTSTATUS = ("INIT", "DONTKNOW", "OK", "SHORT", "OPEN")
+ANTPOWER = ("OFF", "ON", "DONTKNOW")
 
 
 class UBX_INFO_Frame(Frame):
@@ -51,13 +52,6 @@ class UBX_INFO_Frame(Frame):
         self._img_pending = ImageTk.PhotoImage(Image.open(ICON_PENDING))
         self._img_confirmed = ImageTk.PhotoImage(Image.open(ICON_CONFIRMED))
         self._img_warn = ImageTk.PhotoImage(Image.open(ICON_WARNING))
-        self._sw_version = StringVar()
-        self._hw_version = StringVar()
-        self._fw_version = StringVar()
-        self._ant_status = StringVar()
-        self._ant_power = StringVar()
-        self._protocol = StringVar()
-        self._gnss_supported = StringVar()
 
         self._body()
         self._do_layout()
@@ -69,19 +63,19 @@ class UBX_INFO_Frame(Frame):
         """
 
         self._lbl_swverl = Label(self, text="Software")
-        self._lbl_swver = Label(self, textvariable=self._sw_version)
+        self._lbl_swver = Label(self)
         self._lbl_hwverl = Label(self, text="Hardware")
-        self._lbl_hwver = Label(self, textvariable=self._hw_version)
+        self._lbl_hwver = Label(self)
         self._lbl_fwverl = Label(self, text="Firmware")
-        self._lbl_fwver = Label(self, textvariable=self._fw_version)
+        self._lbl_fwver = Label(self)
         self._lbl_romverl = Label(self, text="Protocol")
-        self._lbl_romver = Label(self, textvariable=self._protocol)
+        self._lbl_romver = Label(self)
         self._lbl_gnssl = Label(self, text="GNSS/AS")
-        self._lbl_gnss = Label(self, textvariable=self._gnss_supported)
+        self._lbl_gnss = Label(self)
         self._lbl_ant_statusl = Label(self, text="Ant. Status")
-        self._lbl_ant_status = Label(self, textvariable=self._ant_status)
+        self._lbl_ant_status = Label(self)
         self._lbl_ant_powerl = Label(self, text="Ant. Power")
-        self._lbl_ant_power = Label(self, textvariable=self._ant_power)
+        self._lbl_ant_power = Label(self)
 
     def _do_layout(self):
         """
@@ -165,18 +159,18 @@ class UBX_INFO_Frame(Frame):
                     if gnss in exts[i]:
                         gnss_supported = gnss_supported + gnss + b" "
 
-            self._sw_version.set(sw_version)
-            self._hw_version.set(hw_version)
-            self._fw_version.set(fw_version)
-            self._protocol.set(protocol)
-            self._gnss_supported.set(gnss_supported)
+            self._lbl_swver.config(text=sw_version)
+            self._lbl_hwver.config(text=hw_version)
+            self._lbl_fwver.config(text=fw_version)
+            self._lbl_romver.config(text=protocol)
+            self._lbl_gnss.config(text=gnss_supported)
 
         # MON-HW information (for antenna status)
         if msg.identity == "MON-HW":
             ant_status = getattr(msg, "aStatus", 1)
             ant_power = getattr(msg, "aPower", 2)
-            self._ant_status.set(ANTSTATUS[ant_status])
-            self._ant_power.set(ANTPOWER[ant_power])
+            self._lbl_ant_status.config(text=ANTSTATUS[ant_status])
+            self._lbl_ant_power.config(text=ANTPOWER[ant_power])
 
         self.__container.set_status(f"{msg.identity} GET message received", "green")
 

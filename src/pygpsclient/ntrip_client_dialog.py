@@ -14,6 +14,7 @@ Created on 2 Apr 2022
 :license: BSD 3-Clause
 """
 
+from socket import AF_INET, AF_INET6
 from tkinter import (
     DISABLED,
     END,
@@ -122,6 +123,7 @@ class NTRIPConfigDialog(Toplevel):
         self._ntrip_version = StringVar()
         self._ntrip_server = StringVar()
         self._ntrip_port = StringVar()
+        self._ntrip_ipprot = StringVar()
         self._ntrip_mountpoint = StringVar()
         self._ntrip_mpdist = StringVar()
         self._ntrip_user = StringVar()
@@ -177,6 +179,14 @@ class NTRIPConfigDialog(Toplevel):
             state=NORMAL,
             relief="sunken",
             width=6,
+        )
+        self._spn_ipprot = Spinbox(
+            self._frm_container,
+            values=("IPv4", "IPv6"),
+            textvariable=self._ntrip_ipprot,
+            width=6,
+            wrap=True,
+            state=NORMAL,
         )
         self._lbl_mountpoint = Label(self._frm_container, text=LBLNTRIPMOUNT)
         self._ent_mountpoint = Entry(
@@ -324,6 +334,7 @@ class NTRIPConfigDialog(Toplevel):
         self._ent_server.grid(column=1, row=0, columnspan=2, padx=3, pady=3, sticky=W)
         self._lbl_port.grid(column=0, row=1, padx=3, pady=3, sticky=W)
         self._ent_port.grid(column=1, row=1, padx=3, pady=3, sticky=W)
+        self._spn_ipprot.grid(column=2, row=1, padx=3, pady=3, sticky=W)
         self._lbl_mountpoint.grid(column=0, row=2, padx=3, pady=3, sticky=W)
         self._ent_mountpoint.grid(column=1, row=2, padx=3, pady=3, sticky=W)
         self._lbl_mpdist.grid(column=2, row=2, padx=3, pady=3, sticky=W)
@@ -441,6 +452,7 @@ class NTRIPConfigDialog(Toplevel):
                 self._btn_connect,
                 self._ent_server,
                 self._ent_port,
+                self._spn_ipprot,
                 self._ent_mountpoint,
                 self._ent_user,
                 self._ent_password,
@@ -532,6 +544,8 @@ class NTRIPConfigDialog(Toplevel):
 
         self._connected = self.__app.ntrip_handler.connected
         self._settings = self.__app.ntrip_handler.settings
+        ipprot = self._settings.get("ipprot", AF_INET)
+        self._ntrip_ipprot.set("IPv6" if ipprot == AF_INET6 else "IPv4")
         self._ntrip_server.set(self._settings["server"])
         self._ntrip_port.set(self._settings["port"])
         self._ntrip_mountpoint.set(self._settings["mountpoint"])
@@ -557,6 +571,9 @@ class NTRIPConfigDialog(Toplevel):
         Set settings for NTRIP handler.
         """
 
+        self._settings["ipprot"] = (
+            AF_INET6 if self._ntrip_ipprot.get() == "IPv6" else AF_INET
+        )
         self._settings["server"] = self._ntrip_server.get()
         self._settings["port"] = self._ntrip_port.get()
         self._settings["mountpoint"] = self._ntrip_mountpoint.get()
@@ -596,6 +613,7 @@ class NTRIPConfigDialog(Toplevel):
         if self._valid_settings():
             self._set_settings()
             self.__app.ntrip_handler.run(
+                ipprot="IPv6" if self._settings["ipprot"] == AF_INET6 else "IPv4",
                 server=self._settings["server"],
                 port=self._settings["port"],
                 mountpoint=self._settings["mountpoint"],

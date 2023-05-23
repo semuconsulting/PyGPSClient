@@ -1,5 +1,25 @@
 # PyGPSClient Release Notes
 
+### RELEASE CANDIDATE v1.3.26
+
+ENHANCEMENTS:
+
+1. Add System Monitor widget which displays device system status in bar chart format (cpu, memory and I/O utilisation, temperature, boot state, etc.), for those u-blox devices that support MON-SYS and MON-COMMS message types. To access, select Menu..View..Show System Monitor.
+
+![Sysmon widget](./images/sysmon_widget.png)
+
+1. Add IPv6 support to NTRIP configuration panel (requires pygnssutils >= 1.0.9).
+1. Add double-click actions to widgets;
+
+   - double-click graph widget to toggle legend
+   - double-click spectrum widget to toggle legend and L-Band markers
+   - double-click map widget to refresh web map immediately
+   - double-click scatterplot widget to reset plot
+
+CHANGES:
+
+1. Update min pygnssutils version to 1.0.8
+
 ### RELEASE v1.3.25
 
 ENHANCEMENTS:
