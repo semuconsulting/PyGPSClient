@@ -1,10 +1,9 @@
 """
-RTCM3 Protocol handler - handles all incoming RTCM3 messages
+rtcm3_handler.py
 
-THIS IS JUST A STUB FOR NOW AS THERE'S CURRENTLY NO NEED
-TO PROCESS RTCM3 DATA TO UPDATE THE GUI
+RTCM Protocol handler - handles all incoming RTCM messages.
 
-Uses pyrtcm library for parsing
+Parses individual RTCM3 sentences (using pyrtcm library).
 
 Created on 10 Apr 2022
 

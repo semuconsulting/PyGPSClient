@@ -1,7 +1,13 @@
 """
-NMEA Protocol handler - handles all incoming standard and proprietary NMEA sentences
+nmea_handler.py
 
-Uses pynmea2 library for parsing
+NMEA Protocol handler - handles all incoming standard and
+proprietary NMEA sentences.
+
+Parses individual NMEA sentences (using pynmeagps library)
+and adds selected attribute values to the app.gnss_status
+data dictionary. This dictionary is then used to periodically
+update the app banner and user-selectable widgets.
 
 Created on 30 Sep 2020
 

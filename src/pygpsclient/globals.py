@@ -1,4 +1,6 @@
 """
+globals.py
+
 PyGPSClient Globals
 
 Collection of global constants
