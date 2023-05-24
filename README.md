@@ -16,7 +16,7 @@
 
 PyGPSClient is a free, open-source, multi-platform graphical GNSS/GPS testing, diagnostic and UBX &copy; (u-blox &trade;) device configuration application written entirely in Python and tkinter. 
 * Runs on any platform which supports a Python 3 interpreter (>=3.7) and tkinter (>=8.6) GUI framework, including Windows, MacOS, Linux and Raspberry Pi OS.
-* Supports NMEA, UBX, RTCM3, NTRIP and SPARTN protocols.
+* Supports NMEA, UBX, RTCM3, NTRIP and SPARTN protocols and a full range of UBX device configuration parameters.
 * Capable of reading from a variety of GNSS data streams: Serial (USB / UART), Socket (TCP / UDP), binary datalog file/terminal capture and u-center recording.
 * Configurable GUI with user-selectable and resizeable widgets.
 * Supports data logging in parsed, binary and hexadecimal formats.
@@ -87,10 +87,10 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 |![banner widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/banner_widget.png?raw=true)| Expandable banner showing key navigation status information. To expand or collapse the banner or serial port configuration widgets, click the ![expand icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-arrow-80-16.png?raw=true)/![expand icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-triangle-1-16.png?raw=true) buttons. |
 |![console widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/console_widget.png?raw=true)| Configurable serial console widget showing incoming GNSS, NTRIP and SPARTN data streams in either parsed, binary or tabular hexadecimal formats. Supports user-configurable color tagging of selected strings for easy identification. Color tags are loaded from the `"colortag":` value (`0` = disable, `1` = enable) and `"colortags":` list (`[string, color]` pairs) in the json configuration file (see example provided). NB: color tagging does impose a small performance overhead - turning it off will improve console response times at very high transaction rates.|
 |![skyview widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/skyview_widget.png?raw=true)| Skyview widget showing current satellite visibility and position (elevation / azimuth). Satellite icon borders are colour-coded to distinguish between different GNSS constellations |
-|![graphview widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/graphview_widget.png?raw=true)| Graphview widget showing current satellite reception (signal-to-noise ratio). Double-click to toggle legend. |
+|![graphview widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/graphview_widget.png?raw=true)| Graphview widget showing current satellite reception (carrier-to-noise ratio or cnr). Double-click to toggle legend. |
 |![static map](https://github.com/semuconsulting/PyGPSClient/blob/master/images/staticmap.png?raw=true)| Static Mercator world map showing current global location. |
-|![webmap widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/webmap_widget.png?raw=true)| Dynamic, scalable web map via MapQuest API (*requires an Internet connection and free [Mapquest API Key](#mapquestapi)). By default, the web page will automatically refresh every 60 seconds (*indicated by a small timer icon at the top left*). The default refresh rate can be amended by changing the `mapupdateinterval` value in your *.json configuration file, but **NB** the facility is not intended to be used for real-time navigation. Double-click anywhere in the map to immediately refresh. |
-|![spectrum widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/spectrum_widget.png?raw=true)| Spectrum widget showing a spectrum analysis chart (*GNSS receiver must be capable of outputting UBX MON-SPAN messages*). Clicking anywhere in the spectrum chart will briefly display the frequency and decibel reading at that point. Double-clicking anywhere in the chart will toggle the GNSS frequency band markers (L1, G2, etc.) on or off. |
+|![webmap widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/webmap_widget.png?raw=true)| Dynamic, scalable web map via MapQuest API (*requires an Internet connection and free [Mapquest API Key](#mapquestapi)*). By default, the web page will automatically refresh every 60 seconds (*indicated by a small timer icon at the top left*). The default refresh rate can be amended by changing the `mapupdateinterval` value in your *.json configuration file, but **NB** the facility is not intended to be used for real-time navigation. Double-click anywhere in the map to immediately refresh. |
+|![spectrum widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/spectrum_widget.png?raw=true)| Spectrum widget showing a spectrum analysis chart (*GNSS receiver must be capable of outputting UBX MON-SPAN messages*). Clicking anywhere in the spectrum chart will display the frequency and decibel reading at that point. Double-clicking anywhere in the chart will toggle the GNSS frequency band markers (L1, G2, etc.) on or off. |
 |![sysmon widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/sysmon_widget.png?raw=true)| System Monitor widget showing device cpu, memory and I/O utilisation (*GNSS receiver must be capable of outputting UBX MON-SYS and/or MON-COMMS messages*). Tick checkbox to toggle between actual (cumulative) I/O stats and pending I/O. |
 |![scatterplot widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/scatterplot_widget.png?raw=true)| Scatterplot widget showing variability in position reporting over time. Double-click to clear existing plot. |
 
@@ -268,7 +268,7 @@ The GPX Track Viewer can display any valid GPX file containing trackpoints (`<tr
 In the following, `python3` & `pip` refer to the Python 3 executables. You may need to type 
 `python` or `pip3`, depending on your particular environment. It is recommended that 
 the Python 3 scripts (bin) and site_packages directories are included in your PATH 
-(*many standard Python 3 installation packages will do this automatically*).
+(*most standard Python 3 installation packages will do this automatically if you select the 'Add to PATH' option during installation*).
 
 ### Platform Dependencies
 
@@ -365,12 +365,10 @@ Exec=/home/user/.local/bin/pygpsclient
 
 ### 2. Manual installation
 
-See [requirements.txt](requirements.txt).
-
 The following Python libraries are required (these will be installed automatically if using pip to install PyGPSClient):
 
 ```shell
-python3 -m pip install --upgrade pygnssutils pyserial Pillow requests pyspartn
+python3 -m pip install --upgrade Pillow pygnssutils pyserial pyspartn requests 
 ```
 
 To install PyGPSClient manually, download and unzip this repository and run:
@@ -379,10 +377,10 @@ To install PyGPSClient manually, download and unzip this repository and run:
 python3 -m /path_to_folder/foldername/pygpsclient
 ```
 
-e.g. if you downloaded and unzipped to a folder named `PyGPSClient-1.3.21`, run: 
+e.g. if you downloaded and unzipped to a folder named `PyGPSClient-1.3.26`, run: 
 
 ```shell
-python3 -m /path_to_folder/PyGPSClient-1.3.21/pygpsclient
+python3 -m /path_to_folder/PyGPSClient-1.3.26/pygpsclient
 ```
 
 ---
