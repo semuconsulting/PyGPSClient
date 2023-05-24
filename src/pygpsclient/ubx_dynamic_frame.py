@@ -63,12 +63,12 @@ from .globals import (
     UBX_CFGOTHER,
 )
 from .helpers import stringvar2val
-from .strings import LBLCFGDYN
+from .strings import LBLCFGGENERIC
 
 # dimensions of scrollable attribute window
 SCROLLX = 300
 SCROLLY = 300
-# following CFG types exluded from selection...
+# following CFG types excluded from selection...
 CFG_EXCLUDED = (
     "CFG-DAT-NUM",  # deprecated
     "CFG-GEOFENCE",  # 'variable by size' groups not yet implemented - use pyubx2
@@ -122,7 +122,7 @@ class UBX_Dynamic_Frame(Frame):
         Set up frame and widgets.
         """
 
-        self._lbl_cfg_dyn = Label(self, text=LBLCFGDYN, anchor="w")
+        self._lbl_cfg_dyn = Label(self, text=LBLCFGGENERIC, anchor="w")
         self._lbx_cfg_cmd = Listbox(
             self,
             border=2,

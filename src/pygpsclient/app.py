@@ -121,6 +121,9 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._spartn_user_port = kwargs.pop(
             "spartnport", getenv("PYGPSCLIENT_SPARTNPORT", "")
         )
+        self._bind_address = kwargs.pop(
+            "bindaddress", getenv("PYGPSCLIENT_BINDADDRESS", SOCKSERVER_HOST)
+        )
         self._mqapikey = kwargs.pop("mqapikey", getenv("MQAPIKEY", ""))
         self._mqttclientid = kwargs.pop("mqttclientid", getenv("MQTTCLIENTID", ""))
 
@@ -498,7 +501,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             target=self._sockserver_thread,
             args=(
                 ntripmode,
-                SOCKSERVER_HOST,
+                self._bind_address,
                 port,
                 SOCKSERVER_MAX_CLIENTS,
                 self.socket_outqueue,
@@ -724,6 +727,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             "mqttclientid": self._mqttclientid,
             "colortags": self._colortags,
             "ubxpresets": self._ubxpresets,
+            "bindaddress": self._bind_address,
         }
         return config
 
@@ -743,6 +747,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._mqttclientid = config.get("mqttclientid", self._mqttclientid)
         self._colortags = config.get("colortags", self._colortags)
         self._ubxpresets = config.get("ubxpresets", self._ubxpresets)
+        self._bind_address = config.get("bindaddress", self._bind_address)
 
     @property
     def widgets(self) -> dict:

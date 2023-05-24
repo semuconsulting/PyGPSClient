@@ -34,6 +34,7 @@
 		"USB"
 	],
 	"mqapikey": "mymqapikeyvalue",
+	"bindaddress": "0.0.0.0",
 	"colortag": 0,
 	"colortags": [
 		[
