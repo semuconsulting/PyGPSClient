@@ -65,7 +65,7 @@ dependencies = [
 pygpsclient = "pygpsclient.__main__:main"
 
 [project.urls]
-homepage = "https://www.semuconsulting.com/pygpsclientgui"
+homepage = "https://github.com/semuconsulting/PyGPSClient"
 documentation = "https://www.semuconsulting.com/pygpsclient/"
 repository = "https://github.com/semuconsulting/PyGPSClient"
 changelog = "https://github.com/semuconsulting/PyGPSClient/blob/master/RELEASE_NOTES.md"
