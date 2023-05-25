@@ -85,11 +85,11 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 | User-selectable 'widgets' | To show or hide the various widgets, go to Menu..View and click on the relevant hide/show option. |
 |---------------------------|---------------------------------------------------------------------------------------------------|
 |![banner widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/banner_widget.png?raw=true)| Expandable banner showing key navigation status information. To expand or collapse the banner or serial port configuration widgets, click the ![expand icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-arrow-80-16.png?raw=true)/![expand icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-triangle-1-16.png?raw=true) buttons. |
-|![console widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/console_widget.png?raw=true)| Configurable serial console widget showing incoming GNSS, NTRIP and SPARTN data streams in either parsed, binary or tabular hexadecimal formats. Supports user-configurable color tagging of selected strings for easy identification. Color tags are loaded from the `"colortag":` value (`0` = disable, `1` = enable) and `"colortags":` list (`[string, color]` pairs) in the json configuration file (see example provided). NB: color tagging does impose a small performance overhead - turning it off will improve console response times at very high transaction rates.|
+|![console widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/console_widget.png?raw=true)| Configurable serial console widget showing incoming GNSS, NTRIP and SPARTN data streams in either parsed, binary or tabular hexadecimal formats. Supports user-configurable color tagging of selected strings for easy identification. Color tags are loaded from the `colortag:` value (`0` = disable, `1` = enable) and `colortags:` list (`[string, color]` pairs) in your json configuration file (see example provided). NB: color tagging does impose a small performance overhead - turning it off will improve console response times at very high transaction rates.|
 |![skyview widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/skyview_widget.png?raw=true)| Skyview widget showing current satellite visibility and position (elevation / azimuth). Satellite icon borders are colour-coded to distinguish between different GNSS constellations. For consistency between NMEA and UBX data sources, will display GLONASS NMEA SVID (65-96) rather than slot (1-24). |
 |![graphview widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/graphview_widget.png?raw=true)| Graphview widget showing current satellite reception (carrier-to-noise ratio or cnr). Double-click to toggle legend. |
 |![static map](https://github.com/semuconsulting/PyGPSClient/blob/master/images/staticmap.png?raw=true)| Static Mercator world map showing current global location. |
-|![webmap widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/webmap_widget.png?raw=true)| Dynamic, scalable web map via MapQuest API (*requires an Internet connection and free [Mapquest API Key](#mapquestapi)*). By default, the web map will automatically refresh every 60 seconds (*indicated by a small timer icon at the top left*). The default refresh rate can be amended by changing the `mapupdateinterval` value in your *.json configuration file, but **NB** the facility is not intended to be used for real-time navigation. Double-click anywhere in the map to immediately refresh. |
+|![webmap widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/webmap_widget.png?raw=true)| Dynamic, scalable web map via MapQuest API (*requires an Internet connection and free [Mapquest API Key](#mapquestapi)*). By default, the web map will automatically refresh every 60 seconds (*indicated by a small timer icon at the top left*). The default refresh rate can be amended by changing the `mapupdateinterval:` value in your json configuration file, but **NB** the facility is not intended to be used for real-time navigation. Double-click anywhere in the map to immediately refresh. |
 |![spectrum widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/spectrum_widget.png?raw=true)| Spectrum widget showing a spectrum analysis chart (*GNSS receiver must be capable of outputting UBX MON-SPAN messages*). Clicking anywhere in the spectrum chart will display the frequency and decibel reading at that point. Double-clicking anywhere in the chart will toggle the GNSS frequency band markers (L1, G2, etc.) on or off. |
 |![sysmon widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/sysmon_widget.png?raw=true)| System Monitor widget showing device cpu, memory and I/O utilisation (*GNSS receiver must be capable of outputting UBX MON-SYS and/or MON-COMMS messages*). Tick checkbox to toggle between actual (cumulative) I/O stats and pending I/O. |
 |![scatterplot widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/scatterplot_widget.png?raw=true)| Scatterplot widget showing variability in position reporting over time. Double-click to clear existing plot. |
@@ -241,7 +241,7 @@ Below is a illustrative SPARTN DGPS data log, showing:
 
 The Socket Server / NTRIP Caster facility is capable of operating in either of two modes;
 1. SOCKET SERVER - an open, unauthenticated TCP socket server available to any socket client including, for example, another instance of PyGPSClient or `gnssdump` (CLI utility installed with `pygnssutils`) running on another machine. In this mode it will broadcast the host's currently connected GNSS data stream (NMEA, UBX, RTCM3). The default port is 50010.
-2. NTRIP CASTER - a simple implementation of an authenticated NTRIP caster available to any NTRIP client including, for example, the PyGPSClient NTRIP Client facility or `gnssntripclient` (CLI utility installed with `pygnssutils`). Login credentials for the NTRIP caster are set via host environment variables `PYGPSCLIENT_USER` and `PYGPSCLIENT_PASSWORD`. Default settings are as follows: port: 2101, mountpoint: pygnssutils, user: anon, password: password.
+2. NTRIP CASTER - a simple implementation of an authenticated NTRIP caster available to any NTRIP client including, for example, the PyGPSClient NTRIP Client facility or `gnssntripclient` (CLI utility installed with `pygnssutils`). Login credentials for the NTRIP caster are set via host environment variables `PYGPSCLIENT_USER` and `PYGPSCLIENT_PASSWORD`. Default settings are as follows: bind address: 0.0.0.0, port: 2101, mountpoint: pygnssutils, user: anon, password: password.
 
 **Pre-Requisites:**
 
@@ -249,7 +249,7 @@ Running in NTRIP caster mode is predicated on the host being connected to an RTK
 
 **Instructions:**
 
-By default, the server/caster binds to the host address '0.0.0.0' (IPv4) or '::' (IPv6) i.e. all available IP addresses on the host machine. This can be overridden via the `bindaddress` value in your *.json configuration file, the `--bindaddress` command line argument, or via a host environment variable `PYGPSCLIENT_BINDADDRESS`. It may be necessary to add a firewall rule on the host and/or client machine to allow remote traffic on the specified address:port.
+By default, the server/caster binds to the host address '0.0.0.0' (IPv4) or '::' (IPv6) i.e. all available IP addresses on the host machine. This can be overridden via the `bindaddress:` value in your json configuration file, the `--bindaddress` command line argument, or via a host environment variable `PYGPSCLIENT_BINDADDRESS`. It may be necessary to add a firewall rule on the host and/or client machine to allow remote traffic on the specified address:port.
 
 A label on the settings panel indicates the number of connected clients, and the server/caster status is indicated in the topmost banner: open with no clients: ![transmit icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-noclient-10-24.png?raw=true), open with clients: ![transmit icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-transmit-10-24.png?raw=true).
 
@@ -398,17 +398,18 @@ limit under normal use. **NB:** this facility is *not* intended to be used for r
 
 Once you have received the API key (a 32-character alphanumeric string), you can either:
 
-1. create an environment variable named `MQAPIKEY` (all upper case) and set this to the API key value. It is recommended 
+1. Create an environment variable named `MQAPIKEY` (all upper case) and set this to the API key value. It is recommended 
 that this is a User variable rather than a System/Global variable.
-2. copy it to the key value `"mqapikey":` in the json configuration file (see example provided).
+2. Copy it to the `mqapikey:` value in your json configuration file (see example provided).
+3. Pass it via command line argument `--mqapikey`.
 
-*The web map refresh rate can be amended if required by changing the `mapupdateinterval` value in your *.json configuration file.
+*The web map refresh rate can be amended if required by changing the `mapupdateinterval:` value in your json configuration file.
 
 ---
 ## <a name="userdefined">User Defined Presets</a>
 
 The UBX Configuration Dialog includes the facility to send user-defined UBX configuration messages or message sequences to the receiver. These can be set up by adding
-appropriate comma-delimited message descriptions and payload definitions to the `"ubxpresets":` list in the json configuration file (see example provided). The message definition comprises a free-format text description (*avoid embedded commas*) 
+appropriate comma-delimited message descriptions and payload definitions to the `ubxpresets:` list in your json configuration file (see example provided). The message definition comprises a free-format text description (*avoid embedded commas*) 
 followed by one or more [pyubx2 UBXMessage constructors](https://pypi.org/project/pyubx2/), i.e. 
 1. message class as a string e.g. `CFG` (must be a valid class from pyubx2.UBX_CLASSES)
 2. message id as a string e.g. `CFG-MSG` (must be a valid id from pyubx2.UBX_MSGIDS)

@@ -41,7 +41,6 @@ def main():
     arp.add_argument(
         "--bindaddress",
         required=False,
-        default="0.0.0.0",
         help="User-defined socket server IP address binding (0.0.0.0)",
     )
     arp.add_argument("--mqapikey", required=False, help="MapQuest API Key")

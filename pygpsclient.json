@@ -17,6 +17,7 @@
 	"datalog": 0,
 	"recordtrack": 0,
 	"sockserver": 0,
+	"bindaddress": "0.0.0.0",
 	"sockport": "50010",
 	"sockmode": 0,
 	"Banner": true,
@@ -34,7 +35,6 @@
 		"USB"
 	],
 	"mqapikey": "mymqapikeyvalue",
-	"bindaddress": "0.0.0.0",
 	"colortag": 0,
 	"colortags": [
 		[
