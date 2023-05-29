@@ -11,7 +11,6 @@ Created on 16 Sep 2020
 """
 
 import json
-import os
 from datetime import datetime, timedelta
 from pathlib import Path
 from tkinter import filedialog
@@ -19,7 +18,6 @@ from tkinter import filedialog
 from pyubx2 import hextable
 
 from pygpsclient.globals import (
-    COLORTAGS,
     CONFIGFILE,
     CONFIGNAME,
     FORMATS,
@@ -28,8 +26,6 @@ from pygpsclient.globals import (
     GPX_TRACK_INTERVAL,
     HOME,
     MAXLOGLINES,
-    MQAPIKEY,
-    UBXPRESETS,
     XML_HDR,
 )
 from pygpsclient.helpers import set_filename
@@ -133,79 +129,6 @@ class FileHandler:
                 return 1
         except (OSError, json.JSONDecodeError) as err:
             return str(err)
-
-    def load_mqapikey(self) -> str:
-        """
-        DEPRECATED - USE CONFIG FILE INSTEAD.
-
-        Load MapQuest web map api key from
-        key file in user's home directory.
-
-        :return: mqapikey
-        :rtype: str
-        """
-
-        filepath = os.path.join(HOME, MQAPIKEY)
-        try:
-            with open(filepath, "r", encoding="utf-8") as file:
-                mqapikey = file.read()
-        except OSError:
-            # Error message will be displayed on mapview widget if invoked
-            mqapikey = ""
-
-        return mqapikey
-
-    def load_colortags(self) -> list:
-        """
-        DEPRECATED - USE CONFIG FILE INSTEAD.
-
-        Load user defined colortags from file.
-
-        Expects file in format:
-        string1;color1
-        string2;color2
-        etc.
-
-        :return: list of colortags
-        :rtype: list
-        """
-
-        ctags = []
-        filepath = os.path.join(HOME, COLORTAGS)
-        try:
-            with open(filepath, "r", encoding="utf-8") as file:
-                for line in file:
-                    ctag = line.split(";")
-                    if len(ctag) == 2:
-                        if ctag[0][0:1] != "#":  # ignore comments
-                            tag = ctag[0].strip(" \n")
-                            col = ctag[1].strip(" \n")
-                            ctags.append((tag, col))
-        except OSError:
-            pass
-
-        return ctags
-
-    def load_ubx_presets(self) -> list:
-        """
-        DEPRECATED - USE CONFIG FILE INSTEAD.
-
-        Load user configuration message presets from user's home directory.
-
-        :return: user presets
-        :rtype: str
-        """
-
-        presets = []
-        filepath = os.path.join(HOME, UBXPRESETS)
-        try:
-            with open(filepath, "r", encoding="utf-8") as file:
-                for line in file:
-                    presets.append(line)
-        except OSError:
-            pass
-
-        return presets
 
     def set_logfile_path(self) -> Path:
         """

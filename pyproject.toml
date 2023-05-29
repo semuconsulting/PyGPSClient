@@ -11,7 +11,7 @@ maintainers = [
   {name = "semuadmin", email = "semuadmin@semuconsulting.com"}
 ]
 description = "GNSS Diagnostic and UBX Configuration GUI Application"
-version = "1.3.26"
+version = "1.3.27"
 license = {file = "LICENSE"}
 keywords= [
     "PyGPSClient",
@@ -30,7 +30,7 @@ keywords= [
     "u-center",
     ]
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 classifiers = [
     "License :: OSI Approved :: BSD License",
     "Operating System :: OS Independent",
@@ -43,7 +43,6 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "Intended Audience :: End Users/Desktop",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",

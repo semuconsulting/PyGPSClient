@@ -15,7 +15,7 @@
 [Author Information](#author)
 
 PyGPSClient is a free, open-source, multi-platform graphical GNSS/GPS testing, diagnostic and UBX &copy; (u-blox &trade;) device configuration application written entirely in Python and tkinter. 
-* Runs on any platform which supports a Python 3 interpreter (>=3.7) and tkinter (>=8.6) GUI framework, including Windows, MacOS, Linux and Raspberry Pi OS.
+* Runs on any platform which supports a Python 3 interpreter (>=3.8) and tkinter (>=8.6) GUI framework, including Windows, MacOS, Linux and Raspberry Pi OS.
 * Supports NMEA, UBX, RTCM3, NTRIP and SPARTN protocols and a full range of UBX device configuration parameters.
 * Capable of reading from a variety of GNSS data streams: Serial (USB / UART), Socket (TCP / UDP), binary datalog file/terminal capture and u-center recording.
 * Configurable GUI with user-selectable and resizable widgets.
