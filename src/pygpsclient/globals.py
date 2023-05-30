@@ -330,6 +330,3 @@ FIXLOOKUP = {
 FONT_MENU = "TkMenuFont"
 FONT_TEXT = "TkTextFont"
 FONT_FIXED = "TkFixedFont"
-TAG_COLORS = False  # default colortag setting
-
-# TAGS are now in 'colortags' file in user's home directory
