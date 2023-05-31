@@ -89,10 +89,10 @@ test = [
 ]
 
 [tool.black]
-target-version = ['py37']
+target-version = ['py38']
 
 [tool.isort]
-py_version = 37
+py_version = 38
 profile = "black"
 
 [tool.bandit]
@@ -103,7 +103,7 @@ skips = ["B104","B318","B408"] # bind 0.0.0.0; minidom
 jobs = 0
 reports = "y"
 recursive = "y"
-py-version = "3.7"
+py-version = "3.8"
 fail-under = "9.8"
 fail-on = "E,F"
 clear-cache-post-run = "y"
