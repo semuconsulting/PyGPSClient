@@ -55,9 +55,9 @@ classifiers = [
 dependencies = [
     "requests>=2.28.0",
     "Pillow>=9.0.0",
-    "pygnssutils>=1.0.9",
+    "pygnssutils>=1.0.10",
     "pyserial>=3.5",
-    "pyspartn>=0.1.6",
+    "pyspartn>=0.1.7",
 ]
 
 [project.scripts]

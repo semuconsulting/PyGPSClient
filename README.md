@@ -272,7 +272,7 @@ the Python 3 scripts (bin) and site_packages directories are included in your PA
 
 ### Platform Dependencies
 
-- Python >= 3.7
+- Python >= 3.8
 - Tk (tkinter) >= 8.6*¹*
 - Screen resolution >= 800 x 600; Ideally >= 1400 x 900, though the main application window is resizeable and reconfigurable.
 
