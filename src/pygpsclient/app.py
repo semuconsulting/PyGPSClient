@@ -164,17 +164,9 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._colcount = 0
         self._rowcount = 0
 
-        # FOLLOWING FILE LOADS ARE DEPRECATED - USE CONFIG FILE INSTEAD
-        # (ANY CONFIG FILE SETTINGS WILL OVERRIDE THESE)
-        # Load MapQuest web map api key if not already defined
-        if self._mqapikey == "":
-            self._mqapikey = self.file_handler.load_mqapikey()
-        # Load console color tags from file
-        self._colortags = self.file_handler.load_colortags()
-        # Load user-defined UBX command presets from file
-        self._ubxpresets = self.file_handler.load_ubx_presets()
-
         # Load configuration from file if it exists
+        self._colortags = []
+        self._ubxpresets = []
         config_loaded = False
         _, self.config = self.file_handler.load_config(configfile)
         if isinstance(self.config, dict):  # load succeeded

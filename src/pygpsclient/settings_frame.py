@@ -70,7 +70,6 @@ from pygpsclient.globals import (
     SOCKSERVER_MAX_CLIENTS,
     SOCKSERVER_NTRIP_PORT,
     SOCKSERVER_PORT,
-    TAG_COLORS,
     TIMEOUTS,
     UI,
     UIK,
@@ -804,7 +803,7 @@ class SettingsFrame(Frame):
             self._prot_ubx.set(config.get("ubxprot", 1))
             self._prot_rtcm3.set(config.get("rtcmprot", 1))
             self._degrees_format.set(config.get("degreesformat", DDD))
-            self._colortag.set(config.get("colortag", TAG_COLORS))
+            self._colortag.set(config.get("colortag", 0))
             self._units.set(config.get("units", UMM))
             self._autoscroll.set(config.get("autoscroll", 1))
             self._maxlines.set(config.get("maxlines", 200))

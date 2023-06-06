@@ -42,49 +42,6 @@ from pygpsclient.globals import (
     UBX_CFGVAL,
 )
 
-UBX_CONFIG_CATEGORIES = [
-    "CFG_ANA",
-    "CFG_BATCH",
-    "CFG_BDS",
-    "CFG_GEOFENCE",
-    "CFG_HW_ANT",
-    "CFG_HW_RF",
-    "CFG_I2C",
-    "CFG_INFMSG",
-    "CFG_ITFM",
-    "CFG_LOGFILTER",
-    "CFG_MOT",
-    "CFG_MSGOUT_NMEA",
-    "CFG_MSGOUT_PUBX",
-    "CFG_MSGOUT_RTCM",
-    "CFG_MSGOUT_UBX",
-    "CFG_NAV2",
-    "CFG_NAVHPG",
-    "CFG_NAVSPG",
-    "CFG_NMEA",
-    "CFG_ODO",
-    "CFG_PM",
-    "CFG_PMP",
-    "CFG_QZSS",
-    "CFG_RATE",
-    "CFG_RINV",
-    "CFG_RTCM",
-    "CFG_SBAS",
-    "CFG_SEC",
-    "CFG_SFCORE",
-    "CFG_SFIMU",
-    "CFG_SFODO",
-    "CFG_SIGNAL",
-    "CFG_SPARTN",
-    "CFG_SPI",
-    "CFG_TMODE",
-    "CFG_TP",
-    "CFG_TXREADY",
-    "CFG_UART1",
-    "CFG_UART2",
-    "CFG_USB",
-]
-
 VALSET = 0
 VALDEL = 1
 VALGET = 2
@@ -282,10 +239,19 @@ class UBX_CFGVAL_Frame(Frame):
 
     def reset(self):
         """
-        Reset panel.
+        Reset panel with sorted list of unique UBX Config Database key categories.
         """
 
-        for i, cat in enumerate(UBX_CONFIG_CATEGORIES):
+        cdb_cats = []
+        for cdb in UBX_CONFIG_DATABASE:
+            cdbs = cdb.split("_", maxsplit=3)
+            cdbp = f"{cdbs[0]}_{cdbs[1]}"
+            if cdbs[1] == "MSGOUT":  # subdivide large MSGOUT category
+                cdbp += f"_{cdbs[2]}"
+            if cdbp not in cdb_cats:
+                cdb_cats.append(cdbp)
+
+        for i, cat in enumerate(cdb_cats):
             self._lbx_cat.insert(i, cat)
         self._cfgmode.set(2)
 
