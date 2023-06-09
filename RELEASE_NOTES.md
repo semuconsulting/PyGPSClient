@@ -1,6 +1,10 @@
 # PyGPSClient Release Notes
 
-### RELEASE CANDIDATE v1.3.27
+### RELEASE CANDIDATE v1.3.28
+
+1. Enhancements to *.txt config file upload in UBX Configuration panel to support other command types including CFG-MSG and CFG-PRT, in addition to CFG-VALSET.
+
+### RELEASE v1.3.27
 
 1. Remove redundant config file readers - all saved config should now be placed in *.json configuration file.
 1. Remove Python 3.7 support (now end of life)
