@@ -406,16 +406,14 @@ class UBX_PRESET_Frame(Frame):
 
     def _do_set_minNAV(self):
         """
-        Turn on minimum set of UBX-NAV messages (PVT & SVINFO).
+        Turn on minimum set of UBX-NAV messages (DOP, PVT, & SAT).
         """
 
         for msgtype in UBX_MSGIDS:
             if msgtype[0:1] == b"\x01":  # UBX-NAV
                 if msgtype == b"\x01\x07":  # NAV-PVT
                     self._do_cfgmsg(msgtype, 1)
-                #                 elif msgtype == b"\x01\x30":  # NAV-SVINFO (deprecated)
-                #                     self._do_cfgmsg(msgtype, 4)
-                elif msgtype == b"\x01\x35":  # NAV-SAT
+                elif msgtype in (b"\x01\x04", b"\x01\x35"):  # NAV-DOP, NAV-SAT
                     self._do_cfgmsg(msgtype, 4)
                 else:
                     self._do_cfgmsg(msgtype, 0)
