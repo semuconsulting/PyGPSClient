@@ -351,16 +351,26 @@ and look for the `Location:` entry in the response, e.g.
 - MacOS: `Location: /Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages`
 - Windows: `Location: c:\users\username\appdata\roaming\python\python311\lib\site-packages`
 
-**Tip:** To create an application launcher for linux distributions like Ubuntu, create a text file named `pygpsclient.desktop` with the following content (*edited for your particular environment*) and copy this to the `/home/user/.local/share/applications` folder, e.g.
+**Tip:** To create an application launcher for Linux distributions like Ubuntu, create a text file named `pygpsclient.desktop` with the following content (*edited for your particular environment*) and copy this to the `/home/user/.local/share/applications` folder, e.g.
 
 ```
 [Desktop Entry]
 Type=Application
 Terminal=false
-Name=PyGPSClient --mqttclientid lkaasdfjsdh-flkj-adhs-lkfj-hjhfdsf --mqapikey asjkdhflakdshflkjasdhfgsjfyfgiuy
+Name=PyGPSClient
 Icon=/home/user/.local/lib/python3.11/site-packages/pygpsclient/resources/pygpsclient.ico
 Exec=/home/user/.local/bin/pygpsclient
 ```
+
+**Tip:** To create an application launcher for MacOS, use MacOS's Automator tool to create a "Run Shell Script" application and save this as `PyGPSClient.app`, e.g.
+
+Shell: /bin/zsh
+```
+/Library/Frameworks/Python.framework/Versions/3.11/bin/pygpsclient
+```
+
+To assign an icon to this application, right-click on the `PyGPSClient` entry in the Applications folder, select "Get Info" and drag-and-drop the pygpsclient.ico image file from the site-packages folder (e.g. "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/pygpsclient/resources/pygpsclient.ico") to the default application icon at the top left.
+
 
 ### 2. Manual installation
 
