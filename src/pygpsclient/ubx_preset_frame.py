@@ -218,7 +218,7 @@ class UBX_PRESET_Frame(Frame):
             if self._preset_command == PSTRESET:
                 status = self._do_factory_reset()
             elif self._preset_command == PSTSAVE:
-                status = self._do_save_config()
+                status = self._do_store_config()
             elif self._preset_command == PSTMINNMEAON:
                 self._do_set_minnmea()
             elif self._preset_command == PSTALLNMEAON:
@@ -478,9 +478,9 @@ class UBX_PRESET_Frame(Frame):
 
         return CANCELLED
 
-    def _do_save_config(self) -> bool:
+    def _do_store_config(self) -> bool:
         """
-        Save current configuration to persistent storage
+        Store current configuration in persistent storage
         but display confirmation message box first.
 
         :return: boolean signifying whether OK was pressed
