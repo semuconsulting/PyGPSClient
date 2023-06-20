@@ -34,7 +34,8 @@
 	"defaultport": [
 		"USB"
 	],
-	"mqapikey": "mymqapikeyvalue",
+	"mqapikey": "<======= my mqapikeyvalue =====>",
+	"mqttclientid": "<========= my mqttclientid ========>",
 	"colortag": 0,
 	"colortags": [
 		[
