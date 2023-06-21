@@ -23,6 +23,7 @@ from tkinter import (
     IntVar,
     Label,
     Radiobutton,
+    Spinbox,
     StringVar,
     W,
     ttk,
@@ -40,6 +41,7 @@ from pygpsclient.globals import (
     ICON_PENDING,
     ICON_SEND,
     ICON_WARNING,
+    READONLY,
     RXMMSG,
     SPARTN_GNSS,
     SPARTN_KEYLEN,
@@ -123,6 +125,7 @@ class SPARTNGNSSDialog(Frame):
         self._spartn_valdate2 = StringVar()
         self._upload_keys = IntVar()
         self._send_f9p_config = IntVar()
+        self._dgnssto = IntVar()
         self._disable_nmea = IntVar()
         self._ports = INPORTS
 
@@ -180,6 +183,18 @@ class SPARTNGNSSDialog(Frame):
             text="L-Band",
             variable=self._spartn_source,
             value=SPARTN_SOURCE_LB,
+        )
+        self._lbl_dgnssto = Label(
+            self,
+            text="DGPS Timeout",
+        )
+        self._spn_dgnssto = Spinbox(
+            self,
+            values=(60, 120, 240),
+            width=4,
+            state=READONLY,
+            wrap=True,
+            textvariable=self._dgnssto,
         )
         self._lbl_loadjson = Label(
             self,
@@ -243,16 +258,18 @@ class SPARTNGNSSDialog(Frame):
         )
         self._rad_source0.grid(column=0, row=11, padx=3, pady=2, sticky=W)
         self._rad_source1.grid(column=1, row=11, columnspan=3, padx=3, pady=2, sticky=W)
-        self._chk_upload_keys.grid(column=0, row=12, padx=3, pady=2, sticky=W)
-        self._chk_send_config.grid(column=1, row=12, padx=3, pady=2, sticky=W)
+        self._lbl_dgnssto.grid(column=0, row=12, columnspan=3, padx=3, pady=2, sticky=W)
+        self._spn_dgnssto.grid(column=1, row=12, columnspan=3, padx=3, pady=2, sticky=W)
+        self._chk_upload_keys.grid(column=0, row=13, padx=3, pady=2, sticky=W)
+        self._chk_send_config.grid(column=1, row=13, padx=3, pady=2, sticky=W)
         self._chk_disable_nmea.grid(
-            column=2, row=12, columnspan=2, padx=3, pady=2, sticky=W
+            column=2, row=13, columnspan=2, padx=3, pady=2, sticky=W
         )
         ttk.Separator(self).grid(
-            column=0, row=13, columnspan=4, padx=2, pady=3, sticky=(W, E)
+            column=0, row=14, columnspan=4, padx=2, pady=3, sticky=(W, E)
         )
-        self._btn_send_command.grid(column=2, row=14, padx=3, pady=2, sticky=W)
-        self._lbl_send_command.grid(column=3, row=14, padx=3, pady=2, sticky=W)
+        self._btn_send_command.grid(column=2, row=15, padx=3, pady=2, sticky=W)
+        self._lbl_send_command.grid(column=3, row=15, padx=3, pady=2, sticky=W)
 
     def _reset(self):
         """
@@ -306,6 +323,8 @@ class SPARTNGNSSDialog(Frame):
         cfgdata = []
         # select SPARTN source (L-band or IP)
         cfgdata.append(("CFG_SPARTN_USE_SOURCE", self._spartn_source.get()))
+        # set DGNSS Timeout (default = 60, higher can be better with L-Band)
+        cfgdata.append(("CFG_NAVSPG_CONSTR_DGNSSTO", self._dgnssto.get()))
         # enable SPARTN and UBX on selected ports
         for port in self._ports:
             cfgdata.append((f"CFG_{port}INPROT_UBX", 1))

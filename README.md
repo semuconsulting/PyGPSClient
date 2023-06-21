@@ -224,7 +224,7 @@ The SPARTN client configuration can be loaded from a JSON file provided by the L
 1. Enter the current and next keys in hexadecimal format e.g. `0102030405060708090a0b0c0d0e0f10`. The keys are normally 16 bytes long, or 32 hexadecimal characters.
 1. Enter the supplied Valid From dates in `YYYYMMDD` format. **NB:** These are *Valid From* dates rather than *Expiry* dates. If the location service provides Expiry dates, subtract 4 weeks from these to get the Valid From dates.
 1. NB: if you are subscribing to the MQTT SPARTNKEY (`/pp/ubx/0236/ip`) topic, the key and date details will be entered automatically on receipt of a UBX RXM-SPARTNKEY message (which may take a few seconds after connecting). Alternatively, they can be uploaded from a JSON file.
-1. Select 'Upload keys', 'Configure receiver' and 'Disable NMEA' options as required.
+1. Select 'DGPS Timeout', 'Upload keys', 'Configure receiver' and 'Disable NMEA' options as required.
 1. To reduce traffic volumes, you can choose to disable NMEA messages from the receiver. A minimal set of UBX NAV messages will be enabled in their place.
 1. Click ![send button](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-arrow-12-24.png?raw=true) to upload the configuration. The utility will send the relevant configuration command(s) to the receiver and poll for an acknowledgement.
 
