@@ -2,7 +2,8 @@
 
 ### RELEASE CANDIDATE v1.3.28
 
-1. Enhancements to *.txt config file upload in UBX Configuration panel to support other command types including CFG-MSG and CFG-PRT, in addition to CFG-VALSET.
+1. Enhancement to *.txt config file upload in UBX Configuration panel to support other command types including CFG-MSG and CFG-PRT, in addition to CFG-VALSET.
+1. Enhancment to SPARTN configuration panel to allow user to amend receiver DGNSS Timeout value (can be useful when using L-Band SPARTN sources).
 
 ### RELEASE v1.3.27
 
