@@ -15,12 +15,12 @@ Please test all changes, however trivial, against the supplied pytest suite `tes
 
 ## Checklist:
 
-- [ ] I agree to abide by the code of conduct (see [CODE_OF_CONDUCT.md](https://github.com/semuconsulting/pyubx2/blob/master/CODE_OF_CONDUCT.md)).
-- [ ] My code follows the style guidelines of this project (see [CONTRIBUTING.MD](https://github.com/semuconsulting/pyubx2/blob/master/CONTRIBUTING.md)).
+- [ ] I agree to abide by the code of conduct (see [CODE_OF_CONDUCT.md](https://github.com/semuconsulting/pygpsclient/blob/master/CODE_OF_CONDUCT.md)).
+- [ ] My code follows the style guidelines of this project (see [CONTRIBUTING.MD](https://github.com/semuconsulting/pygpsclient/blob/master/CONTRIBUTING.md)).
 - [ ] I have performed a self-review of my own code.
 - [ ] I have commented my code, particularly in hard-to-understand areas.
 - [ ] I have made corresponding changes to the documentation.
-- [ ] (*if appropriate*) I have added test cases to the `tests/test_*.py` unittest suite to maintain >= 99% code coverage.
+- [ ] (*if appropriate*) I have added test cases to the `tests/test_*.py` unittest suite to maintain test coverage.
 - [ ] I have tested my code against the full `tests/test_*.py` unittest suite.
 - [ ] My changes generate no new warnings.
 - [ ] Any dependent changes have been merged and published in downstream modules.
