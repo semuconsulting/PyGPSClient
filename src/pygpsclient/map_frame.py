@@ -131,6 +131,7 @@ class MapviewFrame(Frame):
         :param float lat: latitude
         :param float lon: longitude
         """
+        # pylint: disable=no-member
 
         OFFSET_X = 0
         OFFSET_Y = 0
