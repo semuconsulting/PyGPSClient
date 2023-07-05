@@ -139,7 +139,7 @@ class MapviewFrame(Frame):
         w, h = self.width, self.height
         self._can_mapview.delete("all")
         self._img = ImageTk.PhotoImage(
-            Image.open(IMG_WORLD).resize((w, h), Image.ANTIALIAS)
+            Image.open(IMG_WORLD).resize((w, h))  # , Image.ANTIALIAS)
         )
         self._marker = ImageTk.PhotoImage(Image.open(ICON_POS))
         self._can_mapview.create_image(0, 0, image=self._img, anchor=NW)
