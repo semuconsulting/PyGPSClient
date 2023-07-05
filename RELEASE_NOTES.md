@@ -6,6 +6,10 @@
 1. Enhancement to SPARTN configuration panel to allow user to amend receiver DGNSS Timeout value (can be useful when using L-Band SPARTN sources).
 1. Add IPv6 support for TCP/UDP connections.
 
+FIXES:
+
+1. Fix issue with PIL.ANTIALIAS keyword no longer being supported; stopped static map being loaded.
+
 ### RELEASE v1.3.27
 
 1. Remove redundant config file readers - all saved config should now be placed in *.json configuration file.
