@@ -2,7 +2,7 @@
 
 ### RELEASE CANDIDATE v1.3.28
 
-1. Enhancement to *.txt config file upload in UBX Configuration panel to support other command types including CFG-MSG and CFG-PRT, in addition to CFG-VALSET.
+1. Enhancement to *.txt config file upload in UBX Configuration panel to expand support for u-blox devices other than F9\* series.
 1. Enhancement to SPARTN configuration panel to allow user to amend receiver DGNSS Timeout value (can be useful when using L-Band SPARTN sources).
 1. Add IPv6 support for TCP/UDP connections.
 
