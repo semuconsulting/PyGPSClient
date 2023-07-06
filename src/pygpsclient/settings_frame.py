@@ -16,7 +16,6 @@ Created on 12 Sep 2020
 
 from tkinter import (
     DISABLED,
-    HORIZONTAL,
     NORMAL,
     Button,
     Checkbutton,
@@ -27,7 +26,6 @@ from tkinter import (
     Label,
     N,
     S,
-    Scale,
     Spinbox,
     StringVar,
     W,
@@ -84,7 +82,6 @@ from pygpsclient.strings import (
     LBLDATADISP,
     LBLDATALOG,
     LBLDEGFORMAT,
-    LBLLEGEND,
     LBLNTRIPCONFIG,
     LBLPROTDISP,
     LBLSERVERMODE,
@@ -123,7 +120,7 @@ class SettingsFrame(Frame):
         self._autoscroll = IntVar()
         self._maxlines = IntVar()
         self._webmap = IntVar()
-        self._mapzoom = IntVar()
+        self.mapzoom = IntVar()
         self._units = StringVar()
         self._degrees_format = StringVar()
         self._console_format = StringVar()
@@ -292,20 +289,8 @@ class SettingsFrame(Frame):
             variable=self._webmap,
             command=lambda: self._on_webmap(),
         )
-        self._lbl_mapzoom = Label(self._frm_options, text="Zoom")
-        self._scl_mapzoom = Scale(
-            self._frm_options,
-            from_=1,
-            to=20,
-            orient=HORIZONTAL,
-            relief="sunken",
-            variable=self._mapzoom,
-        )
         self._chk_unusedsat = Checkbutton(
             self._frm_options, text=LBLSHOWUNUSED, variable=self._show_unusedsat
-        )
-        self._chk_legend = Checkbutton(
-            self._frm_options, text=LBLLEGEND, variable=self.show_legend
         )
         self._chk_datalog = Checkbutton(
             self._frm_options,
@@ -449,12 +434,9 @@ class SettingsFrame(Frame):
         self._chk_scroll.grid(column=0, row=4, padx=2, pady=2, sticky=W)
         self._spn_maxlines.grid(column=1, row=4, columnspan=3, padx=2, pady=2, sticky=W)
         self._chk_webmap.grid(column=0, row=5, padx=2, pady=2, sticky=W)
-        self._lbl_mapzoom.grid(column=1, row=5, sticky=E)
-        self._scl_mapzoom.grid(column=2, row=5, columnspan=2, sticky=W)
         self._chk_unusedsat.grid(
             column=0, row=6, columnspan=2, padx=2, pady=2, sticky=W
         )
-        self._chk_legend.grid(column=2, row=6, columnspan=2, padx=2, pady=2, sticky=W)
         self._chk_datalog.grid(column=0, row=7, padx=2, pady=2, sticky=W)
         self._spn_datalog.grid(column=1, row=7, columnspan=3, padx=2, pady=2, sticky=W)
         self._chk_recordtrack.grid(
@@ -778,7 +760,7 @@ class SettingsFrame(Frame):
             "maxlines": self._maxlines.get(),
             "consoleformat": self._console_format.get(),
             "webmap": self._webmap.get(),
-            "mapzoom": self._mapzoom.get(),
+            "mapzoom": self.mapzoom.get(),
             "legend": self.show_legend.get(),
             "unusedsat": self._show_unusedsat.get(),
             "logformat": self._logformat.get(),
@@ -809,7 +791,7 @@ class SettingsFrame(Frame):
             self._maxlines.set(config.get("maxlines", 200))
             self._console_format.set(config.get("consoleformat", FORMATS[0]))
             self._webmap.set(config.get("webmap", 0))
-            self._mapzoom.set(config.get("mapzoom", 10))
+            self.mapzoom.set(config.get("mapzoom", 10))
             self.show_legend.set(config.get("legend", 1))
             self._show_unusedsat.set(config.get("unusedsat", 1))
             self._logformat.set(config.get("logformat", FORMATS[1]))  # Binary

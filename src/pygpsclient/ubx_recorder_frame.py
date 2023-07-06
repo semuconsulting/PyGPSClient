@@ -55,6 +55,8 @@ FLASH = 0.7
 CFG = b"\x06"
 VALSET = b"\x8a"
 VALGET = b"\x8b"
+MSG = b"\x01"
+PRT = b"\x00"
 
 
 class UBX_Recorder_Frame(Frame):
@@ -271,7 +273,7 @@ class UBX_Recorder_Frame(Frame):
         """
         Load u-center format text configuration file.
 
-        Any messages other than CFG-VALGET (0x068b) are discarded.
+        Any messages other than CFG-MSG, CFG-PRT or CFG-VALGET are discarded.
         The CFG-VALGET messages are converted into CFG-VALGET.
 
         :param str fname: input file name
@@ -287,22 +289,25 @@ class UBX_Recorder_Frame(Frame):
                     data = bytes.fromhex(parts[-1])
                     cls = data[0:1]
                     mid = data[1:2]
-                    if cls != CFG or mid != VALGET:
+                    if cls != CFG:
                         continue
-                    version = data[4:5]
-                    layer = bytes2val(data[5:6], U1)
-                    if layer == POLL_LAYER_BBR:
-                        layers = SET_LAYER_BBR
-                    elif layer == POLL_LAYER_FLASH:
-                        layers = SET_LAYER_FLASH
-                    else:
-                        layers = SET_LAYER_RAM
-                    layers = val2bytes(layers, U1)
-                    transaction = val2bytes(TXN_NONE, U1)  # not transactional
-                    reserved0 = b"\x00"
-                    cfgdata = data[8:]
-                    payload = version + layers + transaction + reserved0 + cfgdata
-                    parsed = UBXMessage(CFG, VALSET, SET, payload=payload)
+                    if mid == VALGET:
+                        version = data[4:5]
+                        layer = bytes2val(data[5:6], U1)
+                        if layer == POLL_LAYER_BBR:
+                            layers = SET_LAYER_BBR
+                        elif layer == POLL_LAYER_FLASH:
+                            layers = SET_LAYER_FLASH
+                        else:
+                            layers = SET_LAYER_RAM
+                        layers = val2bytes(layers, U1)
+                        transaction = val2bytes(TXN_NONE, U1)  # not transactional
+                        reserved0 = b"\x00"
+                        cfgdata = data[8:]
+                        payload = version + layers + transaction + reserved0 + cfgdata
+                        parsed = UBXMessage(CFG, VALSET, SET, payload=payload)
+                    else:  # legacy CFG command
+                        parsed = UBXMessage(CFG, mid, SET, payload=data[4:])
                     if parsed is not None:
                         self._cmds_stored.append(parsed)
                         i += 1

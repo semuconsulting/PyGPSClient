@@ -14,7 +14,6 @@ Created on 17 Apr 2021
 """
 
 import os
-import re
 from datetime import datetime, timedelta
 from math import cos, pi, sin
 from time import strftime
@@ -498,17 +497,18 @@ def validURL(url: str) -> bool:
     """
     # pylint: disable=line-too-long
 
-    regex = re.compile(
-        # r"^(?:http|https)?://"  # http:// or https://
-        r"^(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|"  # domain...
-        r"localhost|"  # localhost...
-        r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})"  # ...or ip
-        r"(?::\d+)?"  # optional port
-        r"(?:/?|[/?]\S+)$",
-        re.IGNORECASE,
-    )
+    # regex = re.compile(
+    #     # r"^(?:http|https)?://"  # http:// or https://
+    #     r"^(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|"  # domain...
+    #     r"localhost|"  # localhost...
+    #     r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})"  # ...or ip
+    #     r"(?::\d+)?"  # optional port
+    #     r"(?:/?|[/?]\S+)$",
+    #     re.IGNORECASE,
+    # )
 
-    return re.match(regex, url) is not None
+    # return re.match(regex, url) is not None
+    return url not in (None, "")
 
 
 def valid_entry(entry: Entry, valmode: int, low=None, high=None) -> bool:

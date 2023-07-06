@@ -1,6 +1,17 @@
 # PyGPSClient Release Notes
 
-### RELEASE CANDIDATE v1.3.27
+### RELEASE CANDIDATE v1.3.28
+
+1. Enhancement to *.txt config file upload in UBX Configuration panel to expand support for u-blox devices other than F9\* series.
+1. Enhancement to SPARTN configuration panel to allow user to amend receiver DGNSS Timeout value (can be useful when using L-Band SPARTN sources).
+1. Add IPv6 support for TCP/UDP connections.
+1. Add Zoom in/out icons to webmap widget and remove slider from main settings panel.
+
+FIXES:
+
+1. Fix issue with PIL.ANTIALIAS keyword no longer being supported; stopped static map being loaded.
+
+### RELEASE v1.3.27
 
 1. Remove redundant config file readers - all saved config should now be placed in *.json configuration file.
 1. Remove Python 3.7 support (now end of life)

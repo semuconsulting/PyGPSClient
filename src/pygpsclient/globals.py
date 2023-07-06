@@ -121,6 +121,7 @@ COLORTAGS = "colortags"
 # list of recognised serial device descriptors:
 KNOWNGPS = (
     "CP210",
+    "FT230",
     "FT232",
     "garmin",
     "Garmin",

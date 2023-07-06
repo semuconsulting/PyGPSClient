@@ -72,7 +72,8 @@ PMP_DATARATES = {
     "B2400": 2400,
     "B4800": 4800,
 }
-SPARTN_DEFAULT = {
+D9S_FACTORY = {
+    "name": "D9S Factory Default",
     "freq": 1539812500,
     "schwin": 2200,
     "usesid": 1,
@@ -83,6 +84,32 @@ SPARTN_DEFAULT = {
     "descrminit": 23560,
     "unqword": 16238547128276412563,
 }
+D9S_PP_US = {
+    "name": "D9S PointPerfect US",
+    "freq": 1556290000,
+    "schwin": 2200,
+    "usesid": 0,
+    "sid": 21845,
+    "drat": PMP_DATARATES["B2400"],
+    "descrm": 1,
+    "prescrm": 0,
+    "descrminit": 26969,
+    "unqword": 16238547128276412563,
+}
+D9S_PP_EU = {
+    "name": "D9S PointPerfect EU",
+    "freq": 1545260000,
+    "schwin": 2200,
+    "usesid": 0,
+    "sid": 21845,
+    "drat": PMP_DATARATES["B2400"],
+    "descrm": 1,
+    "prescrm": 0,
+    "descrminit": 26969,
+    "unqword": 16238547128276412563,
+}
+# D9S default configuration
+D9S_CONFIG = D9S_PP_US  # D9S_FACTORY
 
 
 class SPARTNLBANDDialog(Frame):
@@ -307,14 +334,14 @@ class SPARTNLBANDDialog(Frame):
         self._enabledbg.set(0)
         self._saveconfig.set(0)
         self._spartn_drat.set(PMP_DATARATES["B2400"])
-        self._spartn_freq.set(SPARTN_DEFAULT["freq"])
-        self._spartn_schwin.set(SPARTN_DEFAULT["schwin"])
-        self._spartn_usesid.set(SPARTN_DEFAULT["usesid"])
-        self._spartn_sid.set(SPARTN_DEFAULT["sid"])
-        self._spartn_descrm.set(SPARTN_DEFAULT["descrm"])
-        self._spartn_prescrm.set(SPARTN_DEFAULT["prescrm"])
-        self._spartn_descrminit.set(SPARTN_DEFAULT["descrminit"])
-        self._spartn_unqword.set(SPARTN_DEFAULT["unqword"])
+        self._spartn_freq.set(D9S_CONFIG["freq"])
+        self._spartn_schwin.set(D9S_CONFIG["schwin"])
+        self._spartn_usesid.set(D9S_CONFIG["usesid"])
+        self._spartn_sid.set(D9S_CONFIG["sid"])
+        self._spartn_descrm.set(D9S_CONFIG["descrm"])
+        self._spartn_prescrm.set(D9S_CONFIG["prescrm"])
+        self._spartn_descrminit.set(D9S_CONFIG["descrminit"])
+        self._spartn_unqword.set(D9S_CONFIG["unqword"])
         self._spartn_outport.set(PASSTHRU)
         self.__container.set_status("")
         if self.__app.rtk_conn_status == CONNECTED_SPARTNLB:

@@ -71,7 +71,7 @@ class GraphviewFrame(Frame):
 
         self.can_graphview.bind("<Double-Button-1>", self._on_legend)
 
-    def _on_legend(self, event):
+    def _on_legend(self, event):  # pylint: disable=unused-argument
         """
         On double-click - toggle legend on/off.
 

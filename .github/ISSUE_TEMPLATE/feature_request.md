@@ -10,6 +10,9 @@ labels: ''
 assignees: semuadmin
 
 ---
+# PyGPSClient Feature Request Template
+
+**NB**: Please raise any feature requests or queries in the [pygpsclient Discussions Channels](https://github.com/semuconsulting/pygpsclient/discussions) in the first instance.
 
 **Is your feature request related to a problem? Please describe.**
 

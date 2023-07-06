@@ -17,11 +17,11 @@
 PyGPSClient is a free, open-source, multi-platform graphical GNSS/GPS testing, diagnostic and UBX &copy; (u-blox &trade;) device configuration application written entirely in Python and tkinter. 
 * Runs on any platform which supports a Python 3 interpreter (>=3.8) and tkinter (>=8.6) GUI framework, including Windows, MacOS, Linux and Raspberry Pi OS.
 * Supports NMEA, UBX, RTCM3, NTRIP and SPARTN protocols.
-* While not intended to be a direct replacement, the application supports most of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool.
 * Capable of reading from a variety of GNSS data streams: Serial (USB / UART), Socket (TCP / UDP), binary datalog file/terminal capture and u-center recording.
 * Configurable GUI with user-selectable and resizable widgets.
 * Supports data logging in parsed, binary and hexadecimal formats.
 * Supports track recording and display in GPX format.
+* While not intended to be a direct replacement, the application supports most of the UBX monitoring and configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool.
 
 ![full app screenshot ubx](https://github.com/semuconsulting/PyGPSClient/blob/master/images/app.png?raw=true)
 
@@ -63,8 +63,6 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 ![disconnect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-media-control-50-24.png?raw=true).
 1. Protocols Shown - Select which protocols to display; NMEA, UBX and/or RTCM3 (NB: this only changes the displayed protocols - to change the actual protocols output by the receiver, use the [UBX Configuration Dialog](#ubxconfig)).
 1. Degrees Format and Units - Change the displayed degree (D.DD / D.M.S / D.M.MM) and unit (metric/imperial) formats.
-1. Zoom - Change the web map scale (any change will take effect at the next map refresh, indicated by a small timer icon at the top left of the panel).
-1. Show Legend - Turn the graph legend on or off.
 1. Show Unused Satellites - Include or exclude satellites that are not used in the navigation solution (e.g. because their signal level is too low) from the graph and sky view panels.
 1. DataLogging - Turn Data logging in the selected format on or off. You will be prompted to select the directory into which timestamped log files are saved.
 1. GPX Track - Turn track recording (in GPX format) on or off. You will be prompted to select the directory into which timestamped track files are saved.
@@ -88,7 +86,7 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 |![skyview widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/skyview_widget.png?raw=true)| Skyview widget showing current satellite visibility and position (elevation / azimuth). Satellite icon borders are colour-coded to distinguish between different GNSS constellations. For consistency between NMEA and UBX data sources, will display GLONASS NMEA SVID (65-96) rather than slot (1-24). |
 |![graphview widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/graphview_widget.png?raw=true)| Graphview widget showing current satellite reception (carrier-to-noise ratio or cnr). Double-click to toggle legend. |
 |![static map](https://github.com/semuconsulting/PyGPSClient/blob/master/images/staticmap.png?raw=true)| Static Mercator world map showing current global location. |
-|![webmap widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/webmap_widget.png?raw=true)| Dynamic, scalable web map via MapQuest API (*requires an Internet connection and free [Mapquest API Key](#mapquestapi)*). By default, the web map will automatically refresh every 60 seconds (*indicated by a small timer icon at the top left*). The default refresh rate can be amended by changing the `mapupdateinterval:` value in your json configuration file, but **NB** the facility is not intended to be used for real-time navigation. Double-click anywhere in the map to immediately refresh. |
+|![webmap widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/webmap_widget.png?raw=true)| Dynamic, scalable web map via MapQuest API (*requires an Internet connection and free [Mapquest API Key](#mapquestapi)*). Left Click +/- to zoom in or out. Right click +/- to zoom in or out to maximum extent. By default, the web map will automatically refresh every 60 seconds (*indicated by a small timer icon at the top left*). The default refresh rate can be amended by changing the `mapupdateinterval:` value in your json configuration file, but **NB** the facility is not intended to be used for real-time navigation. Double-click anywhere in the map to immediately refresh. |
 |![spectrum widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/spectrum_widget.png?raw=true)| Spectrum widget showing a spectrum analysis chart (*GNSS receiver must be capable of outputting UBX MON-SPAN messages*). Clicking anywhere in the spectrum chart will display the frequency and decibel reading at that point. Double-clicking anywhere in the chart will toggle the GNSS frequency band markers (L1, G2, etc.) on or off. |
 |![sysmon widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/sysmon_widget.png?raw=true)| System Monitor widget showing device cpu, memory and I/O utilisation (*GNSS receiver must be capable of outputting UBX MON-SYS and/or MON-COMMS messages*). Tick checkbox to toggle between actual (cumulative) I/O stats and pending I/O. |
 |![scatterplot widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/scatterplot_widget.png?raw=true)| Scatterplot widget showing variability in position reporting over time. Double-click to clear existing plot. |
@@ -224,7 +222,7 @@ The SPARTN client configuration can be loaded from a JSON file provided by the L
 1. Enter the current and next keys in hexadecimal format e.g. `0102030405060708090a0b0c0d0e0f10`. The keys are normally 16 bytes long, or 32 hexadecimal characters.
 1. Enter the supplied Valid From dates in `YYYYMMDD` format. **NB:** These are *Valid From* dates rather than *Expiry* dates. If the location service provides Expiry dates, subtract 4 weeks from these to get the Valid From dates.
 1. NB: if you are subscribing to the MQTT SPARTNKEY (`/pp/ubx/0236/ip`) topic, the key and date details will be entered automatically on receipt of a UBX RXM-SPARTNKEY message (which may take a few seconds after connecting). Alternatively, they can be uploaded from a JSON file.
-1. Select 'Upload keys', 'Configure receiver' and 'Disable NMEA' options as required.
+1. Select 'DGPS Timeout', 'Upload keys', 'Configure receiver' and 'Disable NMEA' options as required.
 1. To reduce traffic volumes, you can choose to disable NMEA messages from the receiver. A minimal set of UBX NAV messages will be enabled in their place.
 1. Click ![send button](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-arrow-12-24.png?raw=true) to upload the configuration. The utility will send the relevant configuration command(s) to the receiver and poll for an acknowledgement.
 
@@ -351,16 +349,26 @@ and look for the `Location:` entry in the response, e.g.
 - MacOS: `Location: /Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages`
 - Windows: `Location: c:\users\username\appdata\roaming\python\python311\lib\site-packages`
 
-**Tip:** To create an application launcher for linux distributions like Ubuntu, create a text file named `pygpsclient.desktop` with the following content (*edited for your particular environment*) and copy this to the `/home/user/.local/share/applications` folder, e.g.
+**Tip:** To create an application launcher for Linux distributions like Ubuntu, create a text file named `pygpsclient.desktop` with the following content (*edited for your particular environment*) and copy this to the `/home/user/.local/share/applications` folder, e.g.
 
 ```
 [Desktop Entry]
 Type=Application
 Terminal=false
-Name=PyGPSClient --mqttclientid lkaasdfjsdh-flkj-adhs-lkfj-hjhfdsf --mqapikey asjkdhflakdshflkjasdhfgsjfyfgiuy
+Name=PyGPSClient
 Icon=/home/user/.local/lib/python3.11/site-packages/pygpsclient/resources/pygpsclient.ico
 Exec=/home/user/.local/bin/pygpsclient
 ```
+
+**Tip:** To create an application launcher for MacOS, use MacOS's Automator tool to create a "Run Shell Script" application and save this as `PyGPSClient.app`, e.g.
+
+Shell: /bin/zsh
+```
+/Library/Frameworks/Python.framework/Versions/3.11/bin/pygpsclient
+```
+
+To assign an icon to this application, right-click on the `PyGPSClient` entry in the Applications folder, select "Get Info" and drag-and-drop the pygpsclient.ico image file from the site-packages folder (e.g. "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/pygpsclient/resources/pygpsclient.ico") to the default application icon at the top left.
+
 
 ### 2. Manual installation
 

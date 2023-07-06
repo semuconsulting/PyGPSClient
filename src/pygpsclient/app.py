@@ -194,6 +194,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             self.config = {}
         self.frm_satview.init_sats()
         self.frm_graphview.init_graph()
+        self.frm_mapview.init_map()
         self.frm_spectrumview.init_graph()
         self.frm_scatterview.init_graph()
         self.frm_banner.update_conn_status(DISCONNECTED)

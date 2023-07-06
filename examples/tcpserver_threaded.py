@@ -26,7 +26,8 @@ from pyubx2 import GET, UBXMessage  # , UBXReader
 SERPORT = "/dev/tty.usbmodem141101"
 BAUD = 9600
 TIMEOUT = 3
-HOST = "localhost"
+AFAM = "IPv4"
+HOST = "::1" if AFAM == "IPv6" else "localhost"
 PORT = 50007  # Arbitrary non-privileged port
 DELAY = 0.1
 

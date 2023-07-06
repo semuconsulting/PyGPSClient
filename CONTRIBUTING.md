@@ -2,6 +2,8 @@
 
 PyGPSClient is a volunteer project and we appreciate any contribution, from fixing a grammar mistake in a comment to extending test coverage or implementing new functionality. Please read this section if you are contributing your work.
 
+If you're intending to make significant changes, please raise them in the [Discussions Channel](https://github.com/semuconsulting/pygpsclient/discussions/categories/ideas) beforehand.
+
 Being one of our contributors, you agree and confirm that:
 
 * The work is all your own.
@@ -40,6 +42,8 @@ We test on the following platforms using a variety of u-blox devices (NEO-M6, NE
 ## Submitting changes
 
 Please send a [GitHub Pull Request to PyGPSClient](https://github.com/semuconsulting/PyGPSClient/pulls) with a clear list of what you've done (read more about [pull requests](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/about-pull-requests)). Please follow our coding conventions (below) and make sure all of your commits are atomic (one feature per commit).
+
+Please use the supplied [Pull Request Template](https://github.com/semuconsulting/pygpsclient/blob/master/.github/pull_request_template.md).
 
 Please sign all commits - see [Signing GitHub Commits](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits) for instructions.
 

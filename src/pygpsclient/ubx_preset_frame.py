@@ -218,7 +218,7 @@ class UBX_PRESET_Frame(Frame):
             if self._preset_command == PSTRESET:
                 status = self._do_factory_reset()
             elif self._preset_command == PSTSAVE:
-                status = self._do_save_config()
+                status = self._do_store_config()
             elif self._preset_command == PSTMINNMEAON:
                 self._do_set_minnmea()
             elif self._preset_command == PSTALLNMEAON:
@@ -406,16 +406,14 @@ class UBX_PRESET_Frame(Frame):
 
     def _do_set_minNAV(self):
         """
-        Turn on minimum set of UBX-NAV messages (PVT & SVINFO).
+        Turn on minimum set of UBX-NAV messages (DOP, PVT, & SAT).
         """
 
         for msgtype in UBX_MSGIDS:
             if msgtype[0:1] == b"\x01":  # UBX-NAV
                 if msgtype == b"\x01\x07":  # NAV-PVT
                     self._do_cfgmsg(msgtype, 1)
-                #                 elif msgtype == b"\x01\x30":  # NAV-SVINFO (deprecated)
-                #                     self._do_cfgmsg(msgtype, 4)
-                elif msgtype == b"\x01\x35":  # NAV-SAT
+                elif msgtype in (b"\x01\x04", b"\x01\x35"):  # NAV-DOP, NAV-SAT
                     self._do_cfgmsg(msgtype, 4)
                 else:
                     self._do_cfgmsg(msgtype, 0)
@@ -480,9 +478,9 @@ class UBX_PRESET_Frame(Frame):
 
         return CANCELLED
 
-    def _do_save_config(self) -> bool:
+    def _do_store_config(self) -> bool:
         """
-        Save current configuration to persistent storage
+        Store current configuration in persistent storage
         but display confirmation message box first.
 
         :return: boolean signifying whether OK was pressed

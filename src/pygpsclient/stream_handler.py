@@ -156,11 +156,15 @@ class StreamHandler:
                 server = soc.server
                 port = soc.port
                 connstr = f"{server}:{port}"
-                if soc.protocol == "UDP":
+                if soc.protocol[-4:] == "IPv6":
+                    afam = socket.AF_INET6
+                else:  # IPv4
+                    afam = socket.AF_INET
+                if soc.protocol[:3] == "UDP":
                     socktype = socket.SOCK_DGRAM
                 else:  # TCP
                     socktype = socket.SOCK_STREAM
-                with socket.socket(socket.AF_INET, socktype) as serial_object:
+                with socket.socket(afam, socktype) as serial_object:
                     serial_object.connect((server, port))
                     self._readloop(
                         stopevent,

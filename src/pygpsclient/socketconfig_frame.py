@@ -23,7 +23,7 @@ ADVON = "\u25b2"
 READONLY = "readonly"
 DISCONNECTED = 0
 CONNECTED = 1
-PROTOCOLS = ["TCP", "UDP"]
+PROTOCOLS = ["TCP IPv4", "UDP IPv6", "UDP IPv4", "TCP IPv6"]
 
 
 class SocketConfigFrame(Frame):

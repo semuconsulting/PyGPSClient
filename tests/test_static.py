@@ -171,10 +171,14 @@ class StaticTest(unittest.TestCase):
         self.assertEqual(res, True)
         res = validURL("192.168.0.72")
         self.assertEqual(res, True)
-        res = validURL("192.168,0.72")
+        res = validURL(None)
         self.assertEqual(res, False)
-        res = validURL("sdfffasdff")
+        res = validURL("")
         self.assertEqual(res, False)
+        # res = validURL("192.168,0.72")
+        # self.assertEqual(res, False)
+        # res = validURL("sdfffasdff")
+        # self.assertEqual(res, False)
 
     def testhaversine(self):
         res = haversine(51.23, -2.41, 34.205, 56.34)
