@@ -1,6 +1,14 @@
 # PyGPSClient Release Notes
 
+### RELEASE CANDIDATE v1.3.29
+
+ENHANCEMENTS:
+
+1. Enhance webmap widget to display either world, map, or satellite basemaps.
+
 ### RELEASE v1.3.28
+
+ENHANCEMENTS:
 
 1. Enhancement to *.txt config file upload in UBX Configuration panel to expand support for u-blox devices other than F9\* series.
 1. Enhancement to SPARTN configuration panel to allow user to amend receiver DGNSS Timeout value (can be useful when using L-Band SPARTN sources).
