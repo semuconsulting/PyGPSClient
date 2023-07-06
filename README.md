@@ -181,6 +181,7 @@ The facility can be accessed by clicking ![SPARTN Client button](https://github.
     - Encryption certificate (`*.crt`) and key (`*.pem`) files. If these are placed in the user's HOME directory using the location service's standard naming convention, PyGPSClient will find them automatically.
     - Region code e.g. `us`, `eu`
     - A list of published topics. These typically include `/pp/ip/region` (binary SPARTN correction data for the selected region), `/pp/ubx/mga` (UBX MGA AssistNow ephemera data for each constellation) and `/pp/ubx/0236/ip` (UBX RXM-SPARTNKEY messages containing the decryption keys to be uploaded to the GNSS receiver).
+    - Python version <= 3.11. The [`paho-mqtt-python`](https://github.com/eclipse/paho.mqtt.python) library on which this function depends is not currently fully compatible with Python 3.12.beta releases.
 
 2. L-BAND Correction (D9* Receiver):
 
