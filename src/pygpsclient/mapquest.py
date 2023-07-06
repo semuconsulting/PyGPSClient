@@ -32,6 +32,8 @@ MAPQTIMEOUT = 5
 # how frequently the mapquest api is called to update the web map (seconds)
 MAP_UPDATE_INTERVAL = 60
 MIN_UPDATE_INTERVAL = 5
+MAX_ZOOM = 20
+MIN_ZOOM = 1
 
 
 def mapq_encode(num: int) -> str:

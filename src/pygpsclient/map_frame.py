@@ -30,9 +30,14 @@ from pygpsclient.mapquest import (
     MAP_UPDATE_INTERVAL,
     MAPQTIMEOUT,
     MAPURL,
+    MAX_ZOOM,
     MIN_UPDATE_INTERVAL,
+    MIN_ZOOM,
 )
 from pygpsclient.strings import NOWEBMAPCONN, NOWEBMAPFIX, NOWEBMAPHTTP, NOWEBMAPKEY
+
+ZOOMCOL = "blue"
+ZOOMEND = "lightgray"
 
 
 class MapviewFrame(Frame):
@@ -60,7 +65,10 @@ class MapviewFrame(Frame):
         self._img = None
         self._marker = None
         self._last_map_update = 0
-        self._zoom = 10
+        self._resize_font = font.Font(size=min(int(self.height / 5), 30))
+        self._resize_font_height = self._resize_font.metrics("linespace")
+        self._resize_font_width = self._resize_font.measure("+")
+        self._zoom = int((MAX_ZOOM - MIN_ZOOM) / 2)
         self._body()
         self._attach_events()
 
@@ -84,6 +92,14 @@ class MapviewFrame(Frame):
         self._can_mapview.bind("<Button-1>", self.on_zoom)
         self._can_mapview.bind("<Button-2>", self.on_zoom)
 
+    def init_map(self):
+        """
+        Initialise map.
+        """
+
+        settings = self.__app.frm_settings.config
+        self._zoom = settings["mapzoom"]
+
     def on_refresh(self, event):  # pylint: disable=unused-argument
         """
         Trigger refresh of web map.
@@ -93,47 +109,34 @@ class MapviewFrame(Frame):
 
         self._last_map_update = 0
 
-    def init_map(self):
-        """
-        Initialise map.
-        """
-
-        settings = self.__app.frm_settings.config
-        self._zoom = settings["mapzoom"]
-
     def on_zoom(self, event):  # pylint: disable=unused-argument
         """
         Trigger zoom in or out.
 
-        Left click increments zoom by 1.
-        Right click increments zoom to maximum extent.
+        Left click (event.num = 1) increments zoom by 1.
+        Right click (event.num = 2) increments zoom to maximum extent.
 
         :param event: event
         """
 
-        fn = font.Font(size=min(int(self.height / 5), 30))
-        fh = fn.metrics("linespace")
-        if (
-            self.width > event.x > self.width - fh
-            and self.height > event.y > self.height - fh
-        ):
-            if event.num == 1:
-                if self._zoom > 1:
-                    self._zoom -= 1
-            elif event.num == 2:
-                self._zoom = 1
-        elif (
-            self.width > event.x > self.width - fh
-            and self.height - fh > event.y > self.height - fh * 2
-        ):
-            if event.num == 1:
-                if self._zoom < 20:
-                    self._zoom += 1
-            elif event.num == 2:
-                self._zoom = 20
+        refresh = False
+        w, h = self.width, self.height
+        fw, fh = self._resize_font_width, self._resize_font_height
+        # zoom out (-) if not already at min
+        if w > event.x > w - 2 - fw and h > event.y > h - fh:
+            if self._zoom > MIN_ZOOM:
+                zinc = -1 if event.num == 1 else MIN_ZOOM - self._zoom
+                refresh = True
+        # zoom in (+) if not already at max
+        elif w > event.x > w - 2 - fw and h - fh > event.y > h - fh * 2:
+            if self._zoom < MAX_ZOOM:
+                zinc = 1 if event.num == 1 else MAX_ZOOM - self._zoom
+                refresh = True
 
-        self.__app.frm_settings.mapzoom.set(self._zoom)
-        self.on_refresh(event)
+        if refresh:
+            self._zoom += zinc
+            self.__app.frm_settings.mapzoom.set(self._zoom)
+            self.on_refresh(event)
 
     def update_frame(self):
         """
@@ -258,18 +261,29 @@ class MapviewFrame(Frame):
         Draw +/- zoom icons.
         """
 
-        fn = font.Font(size=min(int(self.height / 5), 30))
-        fh = fn.metrics("linespace")
         self._can_mapview.create_text(
-            self.width - 2,
-            self.height - 2 - fh,
+            self.width - 2 - self._resize_font_width / 2,
+            self.height - 2 - self._resize_font_height,
             text="+",
-            font=fn,
-            fill="blue",
-            anchor="se",
+            font=self._resize_font,
+            fill=ZOOMCOL if self._zoom < MAX_ZOOM else ZOOMEND,
+            anchor="s",
         )
         self._can_mapview.create_text(
-            self.width - 2, self.height - 2, text="−", font=fn, fill="blue", anchor="se"
+            self.width - 2 - self._resize_font_width / 2,
+            self.height - 2 - (self._resize_font_height / 1.2),
+            text=self._zoom,
+            fill=ZOOMCOL,
+            font=font.Font(size=8),
+            # anchor="e",
+        )
+        self._can_mapview.create_text(
+            self.width - 2 - self._resize_font_width / 2,
+            self.height - 2,
+            text="−",
+            font=self._resize_font,
+            fill=ZOOMCOL if self._zoom > MIN_ZOOM else ZOOMEND,
+            anchor="s",
         )
 
     def _format_url(self, mqapikey: str, lat: float, lon: float, hacc: float):
@@ -339,6 +353,9 @@ class MapviewFrame(Frame):
         """
 
         self.width, self.height = self.get_size()
+        self._resize_font = font.Font(size=min(int(self.height / 5), 30))
+        self._resize_font_height = self._resize_font.metrics("linespace")
+        self._resize_font_width = self._resize_font.measure("+")
 
     def get_size(self):
         """

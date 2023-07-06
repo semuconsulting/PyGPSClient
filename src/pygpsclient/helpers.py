@@ -14,7 +14,6 @@ Created on 17 Apr 2021
 """
 
 import os
-import re
 from datetime import datetime, timedelta
 from math import cos, pi, sin
 from time import strftime
