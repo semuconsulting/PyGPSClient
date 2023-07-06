@@ -102,6 +102,7 @@ class GPXViewerDialog(Toplevel):
         self.mheight = int(self.height * 0.75)
         self.pheight = int(self.height * 0.25)
         self._zoom = IntVar()
+        self._maptype = StringVar()
         zoom = int(kwargs.get("zoom", 12))
         self._zoom.set(zoom)
         self._info = []
@@ -155,6 +156,15 @@ class GPXViewerDialog(Toplevel):
             textvariable=self._zoom,
             state=READONLY,
         )
+        self._lbl_maptype = Label(self._frm_controls, text="Map Type")
+        self._spn_maptype = Spinbox(
+            self._frm_controls,
+            values=("map", "sat"),
+            width=5,
+            wrap=True,
+            textvariable=self._maptype,
+            state=READONLY,
+        )
         self._btn_redraw = Button(
             self._frm_controls,
             image=self._img_redraw,
@@ -194,13 +204,25 @@ class GPXViewerDialog(Toplevel):
             padx=3,
             pady=3,
         )
-        self._btn_redraw.grid(
+        self._lbl_maptype.grid(
             column=3,
             row=1,
             padx=3,
             pady=3,
         )
-        self._btn_exit.grid(column=4, row=1, padx=3, pady=3, sticky=E)
+        self._spn_maptype.grid(
+            column=4,
+            row=1,
+            padx=3,
+            pady=3,
+        )
+        self._btn_redraw.grid(
+            column=5,
+            row=1,
+            padx=3,
+            pady=3,
+        )
+        self._btn_exit.grid(column=6, row=1, padx=3, pady=3, sticky=E)
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=3)
@@ -405,6 +427,7 @@ class GPXViewerDialog(Toplevel):
         # seems to be bug in MapQuest API which causes error
         # if scalebar displayed at maximum zoom
         scalebar = "true" if self._zoom.get() < 20 else "false"
+        maptype = self._maptype.get()  # "map" or "sat"
 
         try:
             url = GPXMAPURL.format(
@@ -419,6 +442,7 @@ class GPXViewerDialog(Toplevel):
                 "ff00ff",
                 tstr,
                 scalebar,
+                maptype,
             )
             response = get(url, timeout=MAPQTIMEOUT)
             response.raise_for_status()  # raise Exception on HTTP error
