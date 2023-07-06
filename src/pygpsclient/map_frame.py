@@ -261,25 +261,27 @@ class MapviewFrame(Frame):
         Draw +/- zoom icons.
         """
 
+        w, h = self.width, self.height
+        fw, fh = self._resize_font_width, self._resize_font_height
         self._can_mapview.create_text(
-            self.width - 2 - self._resize_font_width / 2,
-            self.height - 2 - self._resize_font_height,
+            w - 2 - fw / 2,
+            h - 2 - fh,
             text="+",
             font=self._resize_font,
             fill=ZOOMCOL if self._zoom < MAX_ZOOM else ZOOMEND,
             anchor="s",
         )
         self._can_mapview.create_text(
-            self.width - 2 - self._resize_font_width / 2,
-            self.height - 2 - (self._resize_font_height / 1.2),
+            w - 2 - fw / 2,
+            h - 2 - fh / 1.2,
             text=self._zoom,
             fill=ZOOMCOL,
             font=font.Font(size=8),
             # anchor="e",
         )
         self._can_mapview.create_text(
-            self.width - 2 - self._resize_font_width / 2,
-            self.height - 2,
+            w - 2 - fw / 2,
+            h - 2,
             text="−",
             font=self._resize_font,
             fill=ZOOMCOL if self._zoom > MIN_ZOOM else ZOOMEND,
