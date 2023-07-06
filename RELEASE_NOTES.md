@@ -4,7 +4,7 @@
 
 ENHANCEMENTS:
 
-1. Enhance webmap widget to display either world, map, or satellite basemaps.
+1. Enhance webmap widget to display either world (static), map (web), or satellite (web) basemap.
 
 ### RELEASE v1.3.28
 

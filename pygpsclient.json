@@ -8,7 +8,7 @@
 	"autoscroll": 1,
 	"maxlines": 200,
 	"consoleformat": "Parsed",
-	"webmap": 0,
+	"maptype": "world",
 	"mapupdateinterval": 60,
 	"mapzoom": 10,
 	"legend": 1,

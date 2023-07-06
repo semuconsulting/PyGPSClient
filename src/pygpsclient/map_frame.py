@@ -69,7 +69,7 @@ class MapviewFrame(Frame):
         self._resize_font_height = self._resize_font.metrics("linespace")
         self._resize_font_width = self._resize_font.measure("+")
         self._zoom = int((MAX_ZOOM - MIN_ZOOM) / 2)
-        self._maptype = ""
+        self._lastmaptype = ""
         self._body()
         self._attach_events()
 
@@ -181,6 +181,7 @@ class MapviewFrame(Frame):
         OFFSET_X = 0
         OFFSET_Y = 0
 
+        self._lastmaptype = "world"
         w, h = self.width, self.height
         self._can_mapview.delete("all")
         self._img = ImageTk.PhotoImage(
@@ -205,8 +206,8 @@ class MapviewFrame(Frame):
         sc = "NO CONNECTION"
         msg = ""
 
-        if maptype != self._maptype:
-            self._maptype = maptype
+        if maptype != self._lastmaptype:
+            self._lastmaptype = maptype
             self.reset_map_refresh()
 
         mqapikey = self.__app.app_config.get("mqapikey", getenv("mqapikey", ""))

@@ -287,7 +287,7 @@ class SettingsFrame(Frame):
         self.spn_maptype = Spinbox(
             self._frm_options,
             values=("world", "map", "sat"),
-            width=8,
+            width=6,
             wrap=True,
             textvariable=self.maptype,
             state=READONLY,
