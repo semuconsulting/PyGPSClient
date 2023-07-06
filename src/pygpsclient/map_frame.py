@@ -60,7 +60,7 @@ class MapviewFrame(Frame):
         self._img = None
         self._marker = None
         self._last_map_update = 0
-        # self._map_update_interval = MAP_UPDATE_INTERVAL
+        self._zoom = 10
         self._body()
         self._attach_events()
 
@@ -81,6 +81,8 @@ class MapviewFrame(Frame):
 
         self.bind("<Configure>", self._on_resize)
         self._can_mapview.bind("<Double-Button-1>", self.on_refresh)
+        self._can_mapview.bind("<Button-1>", self.on_zoom)
+        self._can_mapview.bind("<Button-2>", self.on_zoom)
 
     def on_refresh(self, event):  # pylint: disable=unused-argument
         """
@@ -90,6 +92,48 @@ class MapviewFrame(Frame):
         """
 
         self._last_map_update = 0
+
+    def init_map(self):
+        """
+        Initialise map.
+        """
+
+        settings = self.__app.frm_settings.config
+        self._zoom = settings["mapzoom"]
+
+    def on_zoom(self, event):  # pylint: disable=unused-argument
+        """
+        Trigger zoom in or out.
+
+        Left click increments zoom by 1.
+        Right click increments zoom to maximum extent.
+
+        :param event: event
+        """
+
+        fn = font.Font(size=min(int(self.height / 5), 30))
+        fh = fn.metrics("linespace")
+        if (
+            self.width > event.x > self.width - fh
+            and self.height > event.y > self.height - fh
+        ):
+            if event.num == 1:
+                if self._zoom > 1:
+                    self._zoom -= 1
+            elif event.num == 2:
+                self._zoom = 1
+        elif (
+            self.width > event.x > self.width - fh
+            and self.height - fh > event.y > self.height - fh * 2
+        ):
+            if event.num == 1:
+                if self._zoom < 20:
+                    self._zoom += 1
+            elif event.num == 2:
+                self._zoom = 20
+
+        self.__app.frm_settings.mapzoom.set(self._zoom)
+        self.on_refresh(event)
 
     def update_frame(self):
         """
@@ -187,6 +231,7 @@ class MapviewFrame(Frame):
                 self._img = ImageTk.PhotoImage(Image.open(BytesIO(img_data)))
                 self._can_mapview.delete("all")
                 self._can_mapview.create_image(0, 0, image=self._img, anchor=NW)
+                self._draw_zoom()
                 self._can_mapview.update_idletasks()
                 return
         except (ConnError, ConnectTimeout):
@@ -208,6 +253,25 @@ class MapviewFrame(Frame):
             (5, 5, 20, 20), start=90, extent=wait, fill="#ffffff", outline=""
         )
 
+    def _draw_zoom(self):
+        """
+        Draw +/- zoom icons.
+        """
+
+        fn = font.Font(size=min(int(self.height / 5), 30))
+        fh = fn.metrics("linespace")
+        self._can_mapview.create_text(
+            self.width - 2,
+            self.height - 2 - fh,
+            text="+",
+            font=fn,
+            fill="blue",
+            anchor="se",
+        )
+        self._can_mapview.create_text(
+            self.width - 2, self.height - 2, text="−", font=fn, fill="blue", anchor="se"
+        )
+
     def _format_url(self, mqapikey: str, lat: float, lon: float, hacc: float):
         """
         Formats URL for web map download.
@@ -222,8 +286,7 @@ class MapviewFrame(Frame):
 
         w, h = self.width, self.height
         radius = str(hacc / 1000)  # km
-        settings = self.__app.frm_settings.config
-        zoom = settings["mapzoom"]
+        zoom = self._zoom
         # seems to be bug in MapQuest API which causes error
         # if scalebar displayed at maximum zoom
         scalebar = "true" if zoom < 20 else "false"

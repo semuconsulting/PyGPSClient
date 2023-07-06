@@ -5,6 +5,7 @@
 1. Enhancement to *.txt config file upload in UBX Configuration panel to expand support for u-blox devices other than F9\* series.
 1. Enhancement to SPARTN configuration panel to allow user to amend receiver DGNSS Timeout value (can be useful when using L-Band SPARTN sources).
 1. Add IPv6 support for TCP/UDP connections.
+1. Add Zoom in/out icons to webmap widget and remove slider from main settings panel.
 
 FIXES:
 
