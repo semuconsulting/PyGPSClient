@@ -6,6 +6,10 @@ ENHANCEMENTS:
 
 1. Enhance webmap widget to display either world (static), map (web), or satellite (web) basemap.
 
+FIXES:
+
+1. Fix right-click zoom function on mapview to work with Windows.
+
 ### RELEASE v1.3.28
 
 ENHANCEMENTS:

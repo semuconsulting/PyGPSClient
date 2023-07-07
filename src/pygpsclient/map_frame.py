@@ -89,9 +89,10 @@ class MapviewFrame(Frame):
         """
 
         self.bind("<Configure>", self._on_resize)
-        self._can_mapview.bind("<Double-Button-1>", self.on_refresh)
-        self._can_mapview.bind("<Button-1>", self.on_zoom)
-        self._can_mapview.bind("<Button-2>", self.on_zoom)
+        self._can_mapview.bind("<Double-Button-1>", self.on_refresh)  # double-click
+        self._can_mapview.bind("<Button-1>", self.on_zoom)  # left-click
+        self._can_mapview.bind("<Button-2>", self.on_zoom)  # right click Posix
+        self._can_mapview.bind("<Button-3>", self.on_zoom)  # right-click Windows
 
     def init_map(self):
         """
@@ -115,7 +116,7 @@ class MapviewFrame(Frame):
         Trigger zoom in or out.
 
         Left click (event.num = 1) increments zoom by 1.
-        Right click (event.num = 2) increments zoom to maximum extent.
+        Right click (event.num = 2/3) increments zoom to maximum extent.
 
         :param event: event
         """
