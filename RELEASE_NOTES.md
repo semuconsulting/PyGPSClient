@@ -10,6 +10,7 @@ ENHANCEMENTS:
 FIXES:
 
 1. Fix right-click zoom function on mapview to work with Windows.
+1. Connection error with IPv6 socket connections.
 
 ### RELEASE v1.3.28
 
