@@ -5,6 +5,7 @@
 ENHANCEMENTS:
 
 1. Enhance webmap widget to display either world (static), map (web), or satellite (web) basemap.
+1. Enhance stream handler to allow outbound writes to socket as well as USB/UART streams (requires pyubx2 >= 1.2.28). Allows users to configure or poll a remote receiver over TCP, *provided* the receiver's TCP client at the other end supports this.
 
 FIXES:
 

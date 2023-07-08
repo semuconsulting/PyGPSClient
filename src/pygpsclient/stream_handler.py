@@ -243,12 +243,12 @@ class StreamHandler:
                         self.__master.update_idletasks()
 
                     # write any queued output data to serial stream
-                    if owner.conn_status == CONNECTED:
+                    if owner.conn_status in (CONNECTED, CONNECTED_SOCKET):
                         try:
                             while not settings["outqueue"].empty():
                                 data = settings["outqueue"].get(False)
                                 if data is not None:
-                                    serial_object.write(data)
+                                    ubr.datastream.write(data)
                                 settings["outqueue"].task_done()
                         except Empty:
                             pass
