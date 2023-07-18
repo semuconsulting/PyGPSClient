@@ -1,6 +1,6 @@
 # PyGPSClient Release Notes
 
-### RELEASE CANDIDATE v1.3.29
+### RELEASE v1.3.29
 
 ENHANCEMENTS:
 
