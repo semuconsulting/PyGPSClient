@@ -455,7 +455,7 @@ Multiple commands can be concatenated on a single line. Illustrative examples ar
 		"Poll Geofencing, CFG, CFG-GEOFENCE, , 2",
 		"Poll Timepulse, CFG, CFG-TP5, , 2",
 		"Set NEO-M8T Timepulse to 8 MHz, CFG, CFG-TP5, 000100003200000000127a0000127a003200000032000000000000006f000000, 1",
-    ]
+	]
 ```
 
 ---
