@@ -155,17 +155,20 @@ class StreamHandler:
                 soc = settings["socket_settings"]
                 server = soc.server
                 port = soc.port
-                connstr = f"{server}:{port}"
                 if soc.protocol[-4:] == "IPv6":
                     afam = socket.AF_INET6
+                    conn = (server, port, 0, 0)
+                    connstr = f"{server}:{port},0,0"
                 else:  # IPv4
                     afam = socket.AF_INET
+                    conn = (server, port)
+                    connstr = f"{server}:{port}"
                 if soc.protocol[:3] == "UDP":
                     socktype = socket.SOCK_DGRAM
                 else:  # TCP
                     socktype = socket.SOCK_STREAM
                 with socket.socket(afam, socktype) as serial_object:
-                    serial_object.connect((server, port))
+                    serial_object.connect(conn)
                     self._readloop(
                         stopevent,
                         sockserve_event,
@@ -243,12 +246,12 @@ class StreamHandler:
                         self.__master.update_idletasks()
 
                     # write any queued output data to serial stream
-                    if owner.conn_status == CONNECTED:
+                    if owner.conn_status in (CONNECTED, CONNECTED_SOCKET):
                         try:
                             while not settings["outqueue"].empty():
                                 data = settings["outqueue"].get(False)
                                 if data is not None:
-                                    serial_object.write(data)
+                                    ubr.datastream.write(data)
                                 settings["outqueue"].task_done()
                         except Empty:
                             pass

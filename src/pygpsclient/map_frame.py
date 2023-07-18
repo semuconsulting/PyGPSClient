@@ -36,7 +36,7 @@ from pygpsclient.mapquest import (
 )
 from pygpsclient.strings import NOWEBMAPCONN, NOWEBMAPFIX, NOWEBMAPHTTP, NOWEBMAPKEY
 
-ZOOMCOL = "blue"
+ZOOMCOL = "red"
 ZOOMEND = "lightgray"
 
 
@@ -69,6 +69,7 @@ class MapviewFrame(Frame):
         self._resize_font_height = self._resize_font.metrics("linespace")
         self._resize_font_width = self._resize_font.measure("+")
         self._zoom = int((MAX_ZOOM - MIN_ZOOM) / 2)
+        self._lastmaptype = ""
         self._body()
         self._attach_events()
 
@@ -88,9 +89,10 @@ class MapviewFrame(Frame):
         """
 
         self.bind("<Configure>", self._on_resize)
-        self._can_mapview.bind("<Double-Button-1>", self.on_refresh)
-        self._can_mapview.bind("<Button-1>", self.on_zoom)
-        self._can_mapview.bind("<Button-2>", self.on_zoom)
+        self._can_mapview.bind("<Double-Button-1>", self.on_refresh)  # double-click
+        self._can_mapview.bind("<Button-1>", self.on_zoom)  # left-click
+        self._can_mapview.bind("<Button-2>", self.on_zoom)  # right click Posix
+        self._can_mapview.bind("<Button-3>", self.on_zoom)  # right-click Windows
 
     def init_map(self):
         """
@@ -114,7 +116,7 @@ class MapviewFrame(Frame):
         Trigger zoom in or out.
 
         Left click (event.num = 1) increments zoom by 1.
-        Right click (event.num = 2) increments zoom to maximum extent.
+        Right click (event.num = 2/3) increments zoom to maximum extent.
 
         :param event: event
         """
@@ -147,10 +149,6 @@ class MapviewFrame(Frame):
         lon = self.__app.gnss_status.lon
         hacc = self.__app.gnss_status.hacc
         settings = self.__app.frm_settings.config
-        if settings["webmap"]:
-            static = False
-        else:
-            static = True
 
         # if no valid position, display warning message
         # fix = kwargs.get("fix", 0)
@@ -164,12 +162,13 @@ class MapviewFrame(Frame):
             self._disp_error(NOWEBMAPFIX)
             return
 
-        if static:
+        maptype = settings.get("maptype", "world")
+        if maptype == "world":
             self._draw_static_map(lat, lon)
         else:
             if hacc is None or hacc == "":
                 hacc = 0
-            self._draw_web_map(lat, lon, hacc)
+            self._draw_web_map(lat, lon, hacc, maptype)
 
     def _draw_static_map(self, lat: float, lon: float):
         """
@@ -183,6 +182,7 @@ class MapviewFrame(Frame):
         OFFSET_X = 0
         OFFSET_Y = 0
 
+        self._lastmaptype = "world"
         w, h = self.width, self.height
         self._can_mapview.delete("all")
         self._img = ImageTk.PhotoImage(
@@ -194,17 +194,22 @@ class MapviewFrame(Frame):
         y = (h / 2) - int((lat * (h / 180))) + OFFSET_Y
         self._can_mapview.create_image(x, y, image=self._marker, anchor=S)
 
-    def _draw_web_map(self, lat: float, lon: float, hacc: float):
+    def _draw_web_map(self, lat: float, lon: float, hacc: float, maptype: str = "map"):
         """
         Draw scalable web map via MapQuest API
 
         :param float lat: latitude
         :param float lon: longitude
         :param float hacc: horizontal accuracy
+        :param str maptype: "map" or "sat"
         """
 
         sc = "NO CONNECTION"
         msg = ""
+
+        if maptype != self._lastmaptype:
+            self._lastmaptype = maptype
+            self.reset_map_refresh()
 
         mqapikey = self.__app.app_config.get("mqapikey", getenv("mqapikey", ""))
         if mqapikey == "":
@@ -223,7 +228,7 @@ class MapviewFrame(Frame):
             return
         self._last_map_update = now
 
-        url = self._format_url(mqapikey, lat, lon, hacc)
+        url = self._format_url(mqapikey, maptype, lat, lon, hacc)
 
         try:
             response = get(url, timeout=MAPQTIMEOUT)
@@ -288,11 +293,14 @@ class MapviewFrame(Frame):
             anchor="s",
         )
 
-    def _format_url(self, mqapikey: str, lat: float, lon: float, hacc: float):
+    def _format_url(
+        self, mqapikey: str, maptype: str, lat: float, lon: float, hacc: float
+    ):
         """
         Formats URL for web map download.
 
         :param str mqapikey: MapQuest API key
+        :param str maptype: "map" or "sat"
         :param float lat: latitude
         :param float lon: longitude
         :param float hacc: horizontal accuracy
@@ -318,6 +326,7 @@ class MapviewFrame(Frame):
             lat,
             lon,
             scalebar,
+            maptype,
         )
 
     def _disp_error(self, msg):

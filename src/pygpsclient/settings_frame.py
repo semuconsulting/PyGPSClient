@@ -119,7 +119,7 @@ class SettingsFrame(Frame):
         self._prot_rtcm3 = IntVar()
         self._autoscroll = IntVar()
         self._maxlines = IntVar()
-        self._webmap = IntVar()
+        self.maptype = StringVar()
         self.mapzoom = IntVar()
         self._units = StringVar()
         self._degrees_format = StringVar()
@@ -283,11 +283,14 @@ class SettingsFrame(Frame):
             textvariable=self._maxlines,
             state=READONLY,
         )
-        self._chk_webmap = Checkbutton(
+        self._lbl_maptype = Label(self._frm_options, text="Map Type")
+        self.spn_maptype = Spinbox(
             self._frm_options,
-            text="Web Map",
-            variable=self._webmap,
-            command=lambda: self._on_webmap(),
+            values=("world", "map", "sat"),
+            width=6,
+            wrap=True,
+            textvariable=self.maptype,
+            state=READONLY,
         )
         self._chk_unusedsat = Checkbutton(
             self._frm_options, text=LBLSHOWUNUSED, variable=self._show_unusedsat
@@ -433,7 +436,8 @@ class SettingsFrame(Frame):
         self._spn_units.grid(column=1, row=3, columnspan=3, padx=2, pady=2, sticky=W)
         self._chk_scroll.grid(column=0, row=4, padx=2, pady=2, sticky=W)
         self._spn_maxlines.grid(column=1, row=4, columnspan=3, padx=2, pady=2, sticky=W)
-        self._chk_webmap.grid(column=0, row=5, padx=2, pady=2, sticky=W)
+        self._lbl_maptype.grid(column=0, row=5, padx=2, pady=2, sticky=W)
+        self.spn_maptype.grid(column=1, row=5, padx=2, pady=2, sticky=W)
         self._chk_unusedsat.grid(
             column=0, row=6, columnspan=2, padx=2, pady=2, sticky=W
         )
@@ -481,7 +485,7 @@ class SettingsFrame(Frame):
 
         self.__app.start_dialog(DLGTSPARTN)
 
-    def _on_webmap(self):
+    def _on_webmap(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
         Reset webmap refresh timer
         """
@@ -759,7 +763,7 @@ class SettingsFrame(Frame):
             "autoscroll": self._autoscroll.get(),
             "maxlines": self._maxlines.get(),
             "consoleformat": self._console_format.get(),
-            "webmap": self._webmap.get(),
+            "maptype": self.maptype.get(),
             "mapzoom": self.mapzoom.get(),
             "legend": self.show_legend.get(),
             "unusedsat": self._show_unusedsat.get(),
@@ -790,7 +794,7 @@ class SettingsFrame(Frame):
             self._autoscroll.set(config.get("autoscroll", 1))
             self._maxlines.set(config.get("maxlines", 200))
             self._console_format.set(config.get("consoleformat", FORMATS[0]))
-            self._webmap.set(config.get("webmap", 0))
+            self.maptype.set(config.get("maptype", "world"))
             self.mapzoom.set(config.get("mapzoom", 10))
             self.show_legend.set(config.get("legend", 1))
             self._show_unusedsat.set(config.get("unusedsat", 1))

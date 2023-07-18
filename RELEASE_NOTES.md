@@ -1,6 +1,21 @@
 # PyGPSClient Release Notes
 
+### RELEASE CANDIDATE v1.3.29
+
+ENHANCEMENTS:
+
+1. Enhance webmap widget to display either world (static), map (web), or satellite (web) basemap.
+1. Enhance stream handler to allow outbound writes to socket as well as USB/UART streams (requires pyubx2 >= 1.2.28). Allows users to configure or poll a remote receiver over TCP, *provided* the receiver's TCP client at the other end supports this.
+1. Update dependency minimum versions for pygnssutils and pyspartn.
+
+FIXES:
+
+1. Fix right-click zoom function on mapview to work with Windows.
+1. Connection error with IPv6 socket connections.
+
 ### RELEASE v1.3.28
+
+ENHANCEMENTS:
 
 1. Enhancement to *.txt config file upload in UBX Configuration panel to expand support for u-blox devices other than F9\* series.
 1. Enhancement to SPARTN configuration panel to allow user to amend receiver DGNSS Timeout value (can be useful when using L-Band SPARTN sources).

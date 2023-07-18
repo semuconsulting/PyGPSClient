@@ -20,12 +20,12 @@ MAPQURL = "https://www.mapquestapi.com/staticmap/v5/map?key={}"
 MAPURL = (
     MAPQURL
     + "&locations={},{}&zoom={}&size={},{}&defaultMarker=marker-sm-616161-ff4444"
-    + "&shape=radius:{}|weight:1|fill:ccffff50|border:88888850|{},{}&scalebar={}"
+    + "&shape=radius:{}|weight:1|fill:ccffff50|border:88888850|{},{}&scalebar={}&type={}"
 )
 GPXMAPURL = (
     MAPQURL
     + "&locations={},{}||{},{}&zoom={}&size={},{}&defaultMarker=marker-num"
-    + "&shape=weight:2|border:{}|{}&scalebar={}|bottom"
+    + "&shape=weight:2|border:{}|{}&scalebar={}|bottom&type={}"
 )
 GPXLIMIT = 500  # max number of track points supported by MapQuest API
 MAPQTIMEOUT = 5
