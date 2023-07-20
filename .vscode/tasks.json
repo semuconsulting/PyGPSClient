@@ -68,7 +68,7 @@
                 "dist",
                 "htmlcov",
                 "docs/_build",
-                "${config:modulename}.egg-info",
+                "${config:modulename}.egg-info"
             ],
             "windows": {
                 "command": "Get-ChildItem",
@@ -76,7 +76,6 @@
                     "-Path",
                     "build\\,",
                     "dist\\,",
-                    //"htmlcov\\,",
                     "docs\\_build,",
                     "${config:modulename}.egg-info",
                     "-Recurse",
@@ -84,8 +83,8 @@
                     "Remove-Item",
                     "-Recurse",
                     "-Confirm:$false",
-                    "-Force",
-                ],
+                    "-Force"
+                ]
             },
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -151,9 +150,13 @@
                 "build",
                 ".",
                 "--wheel",
-                "--sdist",
+                "--sdist"
             ],
-            "problemMatcher": []
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         },
         {
             "label": "Test",
@@ -161,7 +164,7 @@
             "command": "${config:python.defaultInterpreterPath}",
             "args": [
                 "-m",
-                "pytest",
+                "pytest"
             ],
             "problemMatcher": []
         },
@@ -204,7 +207,7 @@
             "problemMatcher": []
         },
         {
-            "label": "Sphinx Deploy to S3", // needs AWS credentials
+            "label": "Sphinx Deploy to S3",
             "type": "process",
             "command": "aws",
             "args": [
@@ -249,9 +252,6 @@
             "dependsOrder": "sequence",
             "dependsOn": [
                 "Clean",
-                //"Install Deploy Dependencies",
-                //"Install Test Dependencies",
-                //"Install Dependencies",
                 "Security",
                 "Sort Imports",
                 "Format",
@@ -261,6 +261,6 @@
                 "Sphinx HTML"
             ],
             "problemMatcher": []
-        },
+        }
     ]
 }
