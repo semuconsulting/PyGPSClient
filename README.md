@@ -1,13 +1,13 @@
 # PyGPSClient
 
 [Current Status](#currentstatus) |
+[Installation](#installation) |
 [Instructions](#instructions) |
 [UBX Configuration](#ubxconfig) |
 [NTRIP Client](#ntripconfig) |
 [SPARTN Client](#spartnconfig) |
 [Socket Server / NTRIP Caster](#socketserver) |
 [GPX Track Viewer](#gpxviewer) |
-[Installation](#installation) |
 [Mapquest API Key](#mapquestapi) |
 [User-defined Presets](#userdefined) |
 [CLI Utilities](#cli) |
