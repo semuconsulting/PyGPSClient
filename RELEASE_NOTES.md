@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE CANDIDATE v1.3.30
+
+ENHANCEMENTS:
+
+1. Enhance socket reader IPv6 support.
+
 ### RELEASE v1.3.29
 
 ENHANCEMENTS:
