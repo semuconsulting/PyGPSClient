@@ -252,9 +252,9 @@ By default, the server/caster binds to the host address '0.0.0.0' (IPv4) or '::'
 
 If NTRIP CASTER mode is selected, an additional expandable panel is made available to allow the user to configure an attached ZED-F9P (or similar) receiver to operate in either `FIXED` or `SURVEY-IN` Base Station mode:
 
-| **FIXED** mode                                       | **SURVEY-IN** mode                                      |
-|------------------------------------------------------|---------------------------------------------------------|
-| ![basestation config](/images/basestation_fixed.png) | ![basestation config](/images/basestation_surveyin.png) |
+| **FIXED** mode                                          | **SURVEY-IN** mode                                      |
+|---------------------------------------------------------|---------------------------------------------------------|
+| ![basestation config](/images/basestation_fixed.png)    | ![basestation config](/images/basestation_surveyin.png) |
 | In this mode, the known base station coordinates are specified in either LLH or ECEF format. | In this mode, the base station coordinates are derived from the receiver's current navigation solution, provided the prescribed level of accuracy is met within the specified survey duration. | 
 
 A label on the settings panel indicates the number of connected clients, and the server/caster status is indicated in the topmost banner: open with no clients: ![transmit icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-noclient-10-24.png?raw=true), open with clients: ![transmit icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-transmit-10-24.png?raw=true).
