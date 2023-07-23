@@ -539,7 +539,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         :param int clients: no of connected clients
         """
 
-        self.frm_settings.clients = clients
+        self.frm_settings.frm_server.clients = clients
 
     def on_exit(self, *args, **kwargs):  # pylint: disable=unused-argument
         """

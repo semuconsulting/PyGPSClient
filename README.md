@@ -244,13 +244,21 @@ The Socket Server / NTRIP Caster facility is capable of operating in either of t
 
 **Pre-Requisites:**
 
-Running in NTRIP caster mode is predicated on the host being connected to an RTK-compatible GNSS receiver **operating in Base Station mode** (either `SURVEY_IN` or `FIXED`) and outputting the requisite RTCM3 message types (1005, 1077, 1087, 1097, 1127 and 1230). In the case of the u-blox ZED-F9P receiver, for example, this is set using the `CFG-TMODE*` and `CFG-MSGOUT-RTCM*` configuration interface parameters available via the [UBX Configuration panel](#ubxconfig) - refer to the Integration Manual and Interface Specification for further details. PyGPSClient does *not* configure the receiver automatically, though an example configuration script for the u-blox ZED-F9P receiver may be found at [/examples/f9p_basestation.py](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/f9p_basestation.py). This script can also be used to generate user-defined preset command strings suitable for copying and pasting into a `ubxpresets` file (see [User Defined Presets](#userdefined) below).
+Running in NTRIP CASTER mode is predicated on the host being connected to an RTK-compatible GNSS receiver **operating in Base Station mode** (either `FIXED` or `SURVEY_IN`) and outputting the requisite RTCM3 message types (1005, 1077, 1087, 1097, 1127 and 1230). 
 
 **Instructions:**
 
 By default, the server/caster binds to the host address '0.0.0.0' (IPv4) or '::' (IPv6) i.e. all available IP addresses on the host machine. This can be overridden via the settings panel or a host environment variable `PYGPSCLIENT_BINDADDRESS`. It may be necessary to add a firewall rule on the host and/or client machine to allow remote traffic on the specified address:port.
 
+If NTRIP CASTER mode is selected, an additional expandable panel is made available to allow the user to configure an attached ZED-F9P (or similar) receiver to operate in either `FIXED` or `SURVEY-IN` Base Station mode:
+
+| **FIXED** mode                                       | **SURVEY-IN** mode                                      |
+|------------------------------------------------------|---------------------------------------------------------|
+| ![basestation config](/images/basestation_fixed.png) | ![basestation config](/images/basestation_surveyin.png) |
+| In this mode, the known base station coordinates are specified in either LLH or ECEF format. | In this mode, the base station coordinates are derived from the receiver's current navigation solution, provided the prescribed level of accuracy is met within the specified survey duration. | 
+
 A label on the settings panel indicates the number of connected clients, and the server/caster status is indicated in the topmost banner: open with no clients: ![transmit icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-noclient-10-24.png?raw=true), open with clients: ![transmit icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-transmit-10-24.png?raw=true).
+
 
 ---
 ## <a name="gpxviewer">GPX Track Viewer</a>

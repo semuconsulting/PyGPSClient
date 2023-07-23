@@ -15,7 +15,7 @@ Created on 17 Apr 2021
 
 import os
 from datetime import datetime, timedelta
-from math import cos, pi, sin
+from math import cos, pi, sin, trunc
 from time import strftime
 from tkinter import Button, Entry, Label, Toplevel, W, font
 
@@ -29,6 +29,8 @@ from pygpsclient.strings import NA
 # validation type flags
 MAXPORT = 65535
 MAXALT = 10000.0  # meters arbitrary
+MAXFLOAT = 2e20
+MINFLOAT = -MAXFLOAT
 VALBLANK = 1
 VALNONBLANK = 2
 VALINT = 4
@@ -511,7 +513,7 @@ def validURL(url: str) -> bool:
     return url not in (None, "")
 
 
-def valid_entry(entry: Entry, valmode: int, low=None, high=None) -> bool:
+def valid_entry(entry: Entry, valmode: int, low=MINFLOAT, high=MAXFLOAT) -> bool:
     """
     Validates tkinter entry field and highlights it if in error.
 
@@ -792,3 +794,24 @@ def setubxrate(app: object, msgclass: int, msgid: int, rate: int = 1):
         rateSPI=rates.get("SPI", 0),
     )
     app.gnss_outqueue.put(msg.serialize())
+
+
+def val2hp(val: float, scale: float) -> tuple:
+    """
+    Convert a float value into separate
+    standard and high precisions components,
+    multiplied by a scaling factor to render them
+    as integers.
+
+    As required by e.g. UBX CFG-TMODE command.
+
+    :param float val: value as float
+    :param float scale: scaling factor e.g. 1e-7
+    :return: tuple of (standard precision, high precision)
+    :rtype: tuple
+    """
+
+    val = val / scale
+    val_sp = trunc(val)
+    val_hp = round((val - val_sp) * 100)
+    return val_sp, val_hp

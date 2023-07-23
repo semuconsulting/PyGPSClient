@@ -39,6 +39,7 @@ from pygpsclient.helpers import (
     stringvar2val,
     svid2gnssid,
     validURL,
+    val2hp,
     wnotow2date,
 )
 from pygpsclient.mapquest import mapq_compress, mapq_decompress
@@ -356,6 +357,14 @@ class StaticTest(unittest.TestCase):
         ]
         for i, b in enumerate(slist):
             res = secs2unit(b)
+            self.assertEqual(res, sres[i])
+
+    def testval2hp(self):  # test val2hp
+        slist = [(54.123456789, 1e-7), (-2.2498765437, 1e-7), (145.123456789, 1e-2)]
+        sres = [(541234567, 89), (-22498765, -44), (14512, 35)]
+        for i, b in enumerate(slist):
+            val, scale = b
+            res = val2hp(val, scale)
             self.assertEqual(res, sres[i])
 
     def testwidgetgrid(self):  # ensure widgets.py is correctly defined
