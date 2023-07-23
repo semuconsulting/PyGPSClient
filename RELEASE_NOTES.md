@@ -5,6 +5,7 @@
 ENHANCEMENTS:
 
 1. Enhance socket reader IPv6 support.
+1. Socker server bind address added to settings panel and stored in config file (can be derived from environment variable `PYGPSCLIENT_BINDADDRESS`).
 
 ### RELEASE v1.3.29
 

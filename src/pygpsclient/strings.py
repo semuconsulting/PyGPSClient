@@ -108,6 +108,7 @@ LBLNTRIPUSER = "User"
 LBLNTRIPPWD = "Password"
 LBLNTRIPSTR = "Sourcetable"
 LBLSOCKSERVE = "Socket Server /\nNTRIP Caster   "  # padded to align
+LBLSERVERHOST = "Host"
 LBLSERVERPORT = "Port"
 LBLDEGFORMAT = "Degrees Format"
 LBLSERVERMODE = "Mode"

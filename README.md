@@ -248,7 +248,7 @@ Running in NTRIP caster mode is predicated on the host being connected to an RTK
 
 **Instructions:**
 
-By default, the server/caster binds to the host address '0.0.0.0' (IPv4) or '::' (IPv6) i.e. all available IP addresses on the host machine. This can be overridden via the `bindaddress:` value in your json configuration file, the `--bindaddress` command line argument, or via a host environment variable `PYGPSCLIENT_BINDADDRESS`. It may be necessary to add a firewall rule on the host and/or client machine to allow remote traffic on the specified address:port.
+By default, the server/caster binds to the host address '0.0.0.0' (IPv4) or '::' (IPv6) i.e. all available IP addresses on the host machine. This can be overridden via the settings panel or a host environment variable `PYGPSCLIENT_BINDADDRESS`. It may be necessary to add a firewall rule on the host and/or client machine to allow remote traffic on the specified address:port.
 
 A label on the settings panel indicates the number of connected clients, and the server/caster status is indicated in the topmost banner: open with no clients: ![transmit icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-noclient-10-24.png?raw=true), open with clients: ![transmit icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-transmit-10-24.png?raw=true).
 
