@@ -148,6 +148,14 @@ pygpsclient.serialconfig\_frame module
    :undoc-members:
    :show-inheritance:
 
+pygpsclient.serverconfig\_frame module
+--------------------------------------
+
+.. automodule:: pygpsclient.serverconfig_frame
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pygpsclient.settings\_frame module
 ----------------------------------
 
