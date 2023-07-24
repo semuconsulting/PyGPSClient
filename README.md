@@ -252,16 +252,13 @@ By default, the server/caster binds to the host address '0.0.0.0' (IPv4) or '::'
 
 A label on the settings panel indicates the number of connected clients, and the server/caster status is indicated in the topmost banner: open with no clients: ![transmit icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-noclient-10-24.png?raw=true), open with clients: ![transmit icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-transmit-10-24.png?raw=true).
 
-If NTRIP CASTER mode is selected, an additional expandable panel is made available to allow the user to configure a connected RTK-compatible u-blox receiver (e.g. ZED-F9P) to operate in either `FIXED` or `SURVEY-IN` Base Station mode (*NB: parameters can only be amended while the server/caster is stopped*).
+If NTRIP CASTER mode is selected, an additional expandable panel is made available to allow the user to configure a connected RTK-compatible u-blox receiver (e.g. ZED-F9P) to operate in either `FIXED` or `SURVEY-IN` Base Station mode (*NB: parameters can only be amended while the server/caster is stopped*). If 'Configure Base Station' is checked, the selected configuration will be applied to the connected receiver once 'NTRIP Caster' mode is activated. 
 
 | Configuration Settings | Base Station Mode    |
 |------------------------------------------------------|---------------------------------------------------------|
-| ![basestation config](/images/basestation_fixed.png) | **FIXED**. In this mode, the known base station coordinates (*Antenna Reference Point or ARP*) are specified in either LLH or ECEF (X,Y,Z) format. The coordinates are pre-populated with the receiver's current navigation solution (if available), but these can be overridden with precisely surveyed values. If 'Configure Base' is checked, the configuration will be applied to the connected receiver once 'NTRIP Caster' mode is activated. If the coordinates are accepted, the Fix status will change to `TIME ONLY` and the receiver will start outputting RTCM `1005` (*ARP location*) messages.|
-| ![basestation config](/images/basestation_svin.png)  | **SURVEY-IN**. In this mode, the base station coordinates are derived from the receiver's current navigation solution, provided the prescribed level of accuracy (in cm) is met within the specified survey duration. If 'Configure Base' is checked, the configuration will be applied to the connected receiver once 'NTRIP Caster' mode is activated. If the survey is successful, the UBX NAV-SVIN monitoring message will indicate `valid=1, active=0`, the Fix status will change to `TIME ONLY` and the receiver will start outputting RTCM `1005` (*ARP location*) messages. 
+| ![basestation config](/images/basestation_fixed.png) | **FIXED**. In this mode, the known base station coordinates (*Antenna Reference Point or ARP*) are specified in either LLH or ECEF (X,Y,Z) format. The coordinates are pre-populated with the receiver's current navigation solution (if available), but these can be overridden with precisely surveyed values. If the coordinates are accepted, the Fix status will change to `TIME ONLY` and the receiver will start outputting RTCM `1005` (*ARP location*) messages.|
+| ![basestation config](/images/basestation_svin.png)  | **SURVEY-IN**. In this mode, the base station coordinates are derived from the receiver's current navigation solution, provided the prescribed level of accuracy is met within the specified survey duration. If the survey is successful, the UBX NAV-SVIN monitoring message will indicate `valid=1, active=0`, the Fix status will change to `TIME ONLY` and the receiver will start outputting RTCM `1005` (*ARP location*) messages. 
 | ![basestation config](/images/basestation_off.png)  | **DISABLED**. Disable base station operation.
-|    |    |
-
-
 
 ---
 ## <a name="gpxviewer">GPX Track Viewer</a>

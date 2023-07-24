@@ -40,6 +40,7 @@ from pygpsclient.globals import (
     ICON_CONTRACT,
     ICON_EXPAND,
     READONLY,
+    SOCK_NTRIP,
     SOCKMODES,
     SOCKSERVER_NTRIP_PORT,
     SOCKSERVER_PORT,
@@ -93,7 +94,7 @@ ACCURACIES = (
     30,
     20,
 )
-DURATIONS = (60, 300, 600, 1200, 240, 180, 120, 90)
+DURATIONS = (60, 1200, 600, 300, 240, 180, 120, 90)
 
 
 class ServerConfigFrame(Frame):
@@ -142,7 +143,6 @@ class ServerConfigFrame(Frame):
         """
 
         self._frm_basic = Frame(self)
-        # socket server configuration
         self._chk_socketserve = Checkbutton(
             self._frm_basic,
             text=LBLSOCKSERVE,
@@ -307,7 +307,7 @@ class ServerConfigFrame(Frame):
 
     def reset(self):
         """
-        Reset settings to defaults (first value in range).
+        Reset settings to defaults.
         """
 
         self._base_mode.set(BASE_SVIN)
@@ -322,12 +322,12 @@ class ServerConfigFrame(Frame):
         :param int status: status (0,1)
         """
 
-        self._chk_socketserve.configure(
-            state=(DISABLED if status == DISCONNECTED else NORMAL)
-        )
         if status == DISCONNECTED:
+            self._chk_socketserve.configure(state=DISABLED)
             self.socket_serve.set(0)
             self.clients = 0
+        else:
+            self._chk_socketserve.configure(state=NORMAL)
 
     def _on_socket_serve(self, var, index, mode):
         """
@@ -335,24 +335,24 @@ class ServerConfigFrame(Frame):
         Start or stop socket server.
         """
 
-        # validate entries
-        valid = True
-        valid = valid & valid_entry(self._ent_sockhost, VALNONBLANK)
-        valid = valid & valid_entry(self._ent_sockport, VALINT, 1, MAXPORT)
-        valid = valid & valid_entry(self._ent_fixedlat, VALFLOAT)
-        valid = valid & valid_entry(self._ent_fixedlon, VALFLOAT)
-        valid = valid & valid_entry(self._ent_fixedalt, VALFLOAT)
-        if valid:
-            self.__app.set_status("", "blue")
-        else:
-            self.__app.set_status("ERROR - invalid entry", "red")
-            self.socket_serve.set(0)
-            return
-
-        if self.socket_serve.get() == 1:
+        if self.socket_serve.get():
+            # validate entries
+            valid = True
+            valid = valid & valid_entry(self._ent_sockhost, VALNONBLANK)
+            valid = valid & valid_entry(self._ent_sockport, VALINT, 1, MAXPORT)
+            valid = valid & valid_entry(self._ent_fixedlat, VALFLOAT)
+            valid = valid & valid_entry(self._ent_fixedlon, VALFLOAT)
+            valid = valid & valid_entry(self._ent_fixedalt, VALFLOAT)
+            if valid:
+                self.__app.set_status("", "blue")
+            else:
+                self.__app.set_status("ERROR - invalid entry", "red")
+                self.socket_serve.set(0)
+                return
+            # start server
             self.__app.start_sockserver_thread()
             self.__app.stream_handler.sock_serve = True
-        else:
+        else:  # stop server
             self.__app.stop_sockserver_thread()
             self.__app.stream_handler.sock_serve = False
             self.clients = 0
@@ -385,9 +385,9 @@ class ServerConfigFrame(Frame):
         # configure receiver as base station if in NTRIP Caster mode
         # and 'Configure Base' option is checked.
         if (
-            self.socket_serve.get() == 1
-            and self.sock_mode.get() == SOCKMODES[1]
-            and self._set_basemode.get() == 1
+            self.socket_serve.get()
+            and self.sock_mode.get() == SOCK_NTRIP
+            and self._set_basemode.get()
         ):
             self._config_rcvr()
 
@@ -397,7 +397,7 @@ class ServerConfigFrame(Frame):
         if server mode is "NTRIP Caster".
         """
 
-        if self.sock_mode.get() != SOCKMODES[1]:  # NTRIP Caster
+        if self.sock_mode.get() != SOCK_NTRIP:
             return
         self._show_advanced = not self._show_advanced
         self._set_advanced()
@@ -420,7 +420,7 @@ class ServerConfigFrame(Frame):
         Set default port and expand button depending on socket server mode.
         """
 
-        if self.sock_mode.get() == SOCKMODES[1]:  # NTRIP Caster
+        if self.sock_mode.get() == SOCK_NTRIP:
             self.sock_port.set(SOCKSERVER_NTRIP_PORT)
             self._btn_toggle.grid(column=4, row=0, sticky=E)
             self._show_advanced = True
@@ -507,7 +507,7 @@ class ServerConfigFrame(Frame):
         try:
             if posmode == POS_ECEF:
                 lat, lon, alt = llh2ecef(lat, lon, alt)
-        except TypeError:
+        except TypeError:  # e.g. no NMEA fix
             lat = lon = alt = 0.0
         self._fixedlat.set(lat)
         self._fixedlon.set(lon)
