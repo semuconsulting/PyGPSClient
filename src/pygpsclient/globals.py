@@ -163,12 +163,6 @@ FORMAT_BIN = 2
 FORMAT_HEX = 4
 FORMAT_HEXTABLE = 8
 FORMATS = ("Parsed", "Binary", "Hex String", "Hex Tabular", "Parsed + Hex Tabular")
-# socket server modes
-SOCKMODES = ("SOCKET SERVER", "NTRIP CASTER")
-BASEMODES = ("SURVEY IN", "FIXED", "DISABLED")
-POSMODES = ("LLH", "ECEF")
-ACCURACIES = (5, 3, 2, 1, 10000, 5000, 2000, 1000, 500, 200, 100, 50, 20, 10)
-DURATIONS = (60, 300, 600, 1200, 240, 180, 120, 90)
 # connection mode flags:
 DISCONNECTED = 0
 CONNECTED = 1
@@ -187,6 +181,7 @@ MSGMODES = {
     "SET": SET,
     "POLL": POLL,
 }
+SOCKMODES = ("SOCKET SERVER", "NTRIP CASTER")
 # read event types
 GNSS_EVENT = "<<gnss_read>>"
 GNSS_EOF_EVENT = "<<gnss_eof>>"
@@ -198,7 +193,6 @@ WIDGETU1 = (250, 250)  # small widget size
 WIDGETU2 = (350, 250)  # medium widget size
 WIDGETU3 = (950, 350)  # Console size
 WIDGETU4 = (600, 600)  # GPX Track viewer size
-TRACEMODE = ("write", "unset")
 
 BGCOL = "gray24"  # default widget background color
 FGCOL = "white"  # default widget foreground color

@@ -495,6 +495,7 @@ class SettingsFrame(Frame):
         self.__app.conn_status = CONNECTED
         self._reset_frames()
         self.__app.stream_handler.start_read_thread(self._get_settings())
+        self.frm_server.set_status(CONNECTED)
 
     def _on_socket_stream(self):
         """
@@ -574,8 +575,7 @@ class SettingsFrame(Frame):
 
         if self.__app.conn_status in (CONNECTED, CONNECTED_FILE, CONNECTED_SOCKET):
             self.__app.stream_handler.stop_read_thread()
-            self.__app.stop_sockserver_thread()
-            # self._frm_server.set_status(0)
+            self.frm_server.set_status(DISCONNECTED)
 
     def enable_controls(self, status: int):
         """

@@ -1,7 +1,10 @@
 """
-Socket Server / NTRIP caster configuration Frame subclass.
+Socket Server / NTRIP caster configuration panel Frame class.
+Supports two modes of operation - Socket Server and NTRIP Caster.
 
-Exposes the server settings as properties.
+If running in NTRIP Caster mode, two base station modes are available -
+Survey-In and Fixed. The panel provides methods to configure RTK-compatible
+receiver (e.g. ZED-F9P) to operate in either of these base station modes.
 
 Application icons from https://iconmonstr.com/license/.
 
@@ -33,17 +36,13 @@ from PIL import Image, ImageTk
 from pyubx2 import UBXMessage, llh2ecef
 
 from pygpsclient.globals import (
-    ACCURACIES,
-    BASEMODES,
     DISCONNECTED,
-    DURATIONS,
     ICON_CONTRACT,
     ICON_EXPAND,
-    POSMODES,
+    READONLY,
     SOCKMODES,
     SOCKSERVER_NTRIP_PORT,
     SOCKSERVER_PORT,
-    TRACEMODE,
 )
 from pygpsclient.helpers import (
     MAXPORT,
@@ -54,20 +53,47 @@ from pygpsclient.helpers import (
     valid_entry,
 )
 from pygpsclient.strings import (
+    LBLACCURACY,
+    LBLCONFIGBASE,
+    LBLDURATIONS,
     LBLSERVERHOST,
     LBLSERVERMODE,
     LBLSERVERPORT,
     LBLSOCKSERVE,
 )
 
-ADVOFF = "\u25bc"
-ADVON = "\u25b2"
-READONLY = "readonly"
 TMODE_DISABLED = 0
 TMODE_SVIN = 1
 TMODE_FIXED = 2
 ECEF = 0
 LLH = 1
+BASE_SVIN = "SURVEY IN"
+BASE_FIXED = "FIXED"
+BASE_DISABLED = "DISABLED"
+POS_LLH = "LLH"
+POS_ECEF = "ECEF"
+BASEMODES = (BASE_SVIN, BASE_DISABLED, BASE_FIXED)
+POSMODES = (POS_LLH, POS_ECEF)
+ACCURACIES = (
+    10,
+    5,
+    3,
+    2,
+    1,
+    10000,
+    5000,
+    3000,
+    2000,
+    1000,
+    500,
+    300,
+    200,
+    100,
+    50,
+    30,
+    20,
+)
+DURATIONS = (60, 300, 600, 1200, 240, 180, 120, 90)
 
 
 class ServerConfigFrame(Frame):
@@ -95,10 +121,10 @@ class ServerConfigFrame(Frame):
         self.sock_mode = StringVar()
         self._sock_clients = StringVar()
         self._set_basemode = IntVar()
-        self._basemode = StringVar()
+        self._base_mode = StringVar()
         self._acclimit = IntVar()
         self._duration = IntVar()
-        self._posmode = StringVar()
+        self._pos_mode = StringVar()
         self._fixedlat = DoubleVar()
         self._fixedlon = DoubleVar()
         self._fixedalt = DoubleVar()
@@ -130,7 +156,7 @@ class ServerConfigFrame(Frame):
         self._spn_sockmode = Spinbox(
             self._frm_basic,
             values=SOCKMODES,
-            width=12,
+            width=14,
             state=READONLY,
             wrap=True,
             textvariable=self.sock_mode,
@@ -170,7 +196,7 @@ class ServerConfigFrame(Frame):
         self._frm_advanced = Frame(self)
         self._chk_set_basemode = Checkbutton(
             self._frm_advanced,
-            text="Configure Base",
+            text=LBLCONFIGBASE,
             variable=self._set_basemode,
         )
         self._spn_basemode = Spinbox(
@@ -179,11 +205,11 @@ class ServerConfigFrame(Frame):
             width=10,
             state=READONLY,
             wrap=True,
-            textvariable=self._basemode,
+            textvariable=self._base_mode,
         )
         self._lbl_acclimit = Label(
             self._frm_advanced,
-            text="Accuracy (cm)",
+            text=LBLACCURACY,
         )
         self._spn_acclimit = Spinbox(
             self._frm_advanced,
@@ -195,7 +221,7 @@ class ServerConfigFrame(Frame):
         )
         self._lbl_duration = Label(
             self._frm_advanced,
-            text="Duration (s)",
+            text=LBLDURATIONS,
         )
         self._spn_duration = Spinbox(
             self._frm_advanced,
@@ -211,7 +237,7 @@ class ServerConfigFrame(Frame):
             width=6,
             state=READONLY,
             wrap=True,
-            textvariable=self._posmode,
+            textvariable=self._pos_mode,
         )
         self._lbl_fixedlat = Label(
             self._frm_advanced,
@@ -273,21 +299,22 @@ class ServerConfigFrame(Frame):
         Bind events to variables.
         """
 
-        self.socket_serve.trace_add(TRACEMODE, self._on_socket_serve)
-        self.sock_mode.trace_add(TRACEMODE, self._on_sockmode)
-        self._basemode.trace_add(TRACEMODE, self._on_basemode)
-        self._posmode.trace_add(TRACEMODE, self._on_posmode)
+        tracemode = ("write", "unset")
+        self.socket_serve.trace_add(tracemode, self._on_socket_serve)
+        self.sock_mode.trace_add(tracemode, self._on_sockmode)
+        self._base_mode.trace_add(tracemode, self._on_basemode)
+        self._pos_mode.trace_add(tracemode, self._on_posmode)
 
     def reset(self):
         """
         Reset settings to defaults (first value in range).
         """
 
-        self._basemode.set(BASEMODES[0])
-        self._posmode.set(POSMODES[0])
+        self._base_mode.set(BASE_SVIN)
+        self._pos_mode.set(POS_LLH)
         self.clients = 0
 
-    def set_status(self, status: int = DISCONNECTED):
+    def set_status(self, status: int):
         """
         Set connection status, which determines whether controls
         are enabled or not: 0=DISCONNECTED, 1=CONNECTED
@@ -298,31 +325,17 @@ class ServerConfigFrame(Frame):
         self._chk_socketserve.configure(
             state=(DISABLED if status == DISCONNECTED else NORMAL)
         )
-
         if status == DISCONNECTED:
+            self.socket_serve.set(0)
             self.clients = 0
-
-    def _on_toggle_advanced(self):
-        """
-        Toggle advanced socket settings panel on or off
-        if server mode is "NTRIP Caster".
-        """
-
-        if self.sock_mode.get() != SOCKMODES[1]:
-            return
-        self._show_advanced = not self._show_advanced
-        if self._show_advanced:
-            self._frm_advanced.grid(column=0, row=1, columnspan=5, sticky=(W, E))
-            self._btn_toggle.config(image=self._img_contract)
-        else:
-            self._frm_advanced.grid_forget()
-            self._btn_toggle.config(image=self._img_expand)
 
     def _on_socket_serve(self, var, index, mode):
         """
+        Action when socket_serve variable is updated.
         Start or stop socket server.
         """
 
+        # validate entries
         valid = True
         valid = valid & valid_entry(self._ent_sockhost, VALNONBLANK)
         valid = valid & valid_entry(self._ent_sockport, VALINT, 1, MAXPORT)
@@ -369,28 +382,61 @@ class ServerConfigFrame(Frame):
                 state = READONLY if isinstance(wid, Spinbox) else NORMAL
             wid.config(state=state)
 
-        # Configure receiver as base station in in NTRIP caster mode
-        if self.sock_mode.get() == SOCKMODES[1] and self._set_basemode.get() == 1:
+        # configure receiver as base station if in NTRIP Caster mode
+        # and 'Configure Base' option is checked.
+        if (
+            self.socket_serve.get() == 1
+            and self.sock_mode.get() == SOCKMODES[1]
+            and self._set_basemode.get() == 1
+        ):
             self._config_rcvr()
+
+    def _on_toggle_advanced(self):
+        """
+        Toggle advanced socket settings panel on or off
+        if server mode is "NTRIP Caster".
+        """
+
+        if self.sock_mode.get() != SOCKMODES[1]:  # NTRIP Caster
+            return
+        self._show_advanced = not self._show_advanced
+        self._set_advanced()
+
+    def _set_advanced(self):
+        """
+        Set visibility of advanced socket server settings panel.
+        """
+
+        if self._show_advanced:
+            self._frm_advanced.grid(column=0, row=1, columnspan=5, sticky=(W, E))
+            self._btn_toggle.config(image=self._img_contract)
+        else:
+            self._frm_advanced.grid_forget()
+            self._btn_toggle.config(image=self._img_expand)
 
     def _on_sockmode(self, var, index, mode):
         """
-        Set default port depending on socket server mode.
+        Action when sock_mode variable is updated.
+        Set default port and expand button depending on socket server mode.
         """
 
         if self.sock_mode.get() == SOCKMODES[1]:  # NTRIP Caster
             self.sock_port.set(SOCKSERVER_NTRIP_PORT)
             self._btn_toggle.grid(column=4, row=0, sticky=E)
+            self._show_advanced = True
         else:
             self.sock_port.set(SOCKSERVER_PORT)
             self._btn_toggle.grid_forget()
+            self._show_advanced = False
+        self._set_advanced()
 
     def _on_basemode(self, var, index, mode):
         """
-        Set available fields depending on base mode.
+        Action when base_mode is updated.
+        Set field visibility depending on base mode.
         """
 
-        if self._basemode.get() == BASEMODES[0]:  # Survey In Base Mode
+        if self._base_mode.get() == BASE_SVIN:
             self._lbl_acclimit.grid(column=0, row=1, padx=2, pady=1, sticky=E)
             self._spn_acclimit.grid(column=1, row=1, padx=2, pady=1, sticky=W)
             self._lbl_duration.grid(column=2, row=1, padx=2, pady=1, sticky=E)
@@ -402,7 +448,7 @@ class ServerConfigFrame(Frame):
             self._ent_fixedlon.grid_forget()
             self._lbl_fixedalt.grid_forget()
             self._ent_fixedalt.grid_forget()
-        elif self._basemode.get() == BASEMODES[1]:  # Fixed Base Mode
+        elif self._base_mode.get() == BASE_FIXED:
             self._lbl_acclimit.grid(column=0, row=1, padx=2, pady=1, sticky=E)
             self._spn_acclimit.grid(column=1, row=1, padx=2, pady=1, sticky=W)
             self._spn_posmode.grid(column=0, row=2, rowspan=3, padx=2, pady=1, sticky=E)
@@ -420,7 +466,7 @@ class ServerConfigFrame(Frame):
             )
             self._lbl_duration.grid_forget()
             self._spn_duration.grid_forget()
-            self._set_coords(self._posmode.get())
+            self._set_coords(self._pos_mode.get())
         else:  # Disabled
             self._lbl_acclimit.grid_forget()
             self._spn_acclimit.grid_forget()
@@ -434,32 +480,35 @@ class ServerConfigFrame(Frame):
             self._lbl_duration.grid_forget()
             self._spn_duration.grid_forget()
 
-        # self._set_coords(self._posmode.get())
-
     def _on_posmode(self, var, index, mode):
         """
+        Action when pos_mode variable is updated.
         Set fixed reference labels depending on position mode (ECEF or LLH)
         """
 
         lbls = (
             ("Lat", "Lon", "Height (m)")
-            if self._posmode.get() == POSMODES[0]  # LLH
+            if self._pos_mode.get() == POS_LLH
             else ("X (m)", "Y (m)", "Z (m)")
         )
         self._lbl_fixedlat.config(text=lbls[0])
         self._lbl_fixedlon.config(text=lbls[1])
         self._lbl_fixedalt.config(text=lbls[2])
-        self._set_coords(self._posmode.get())
+        self._set_coords(self._pos_mode.get())
 
     def _set_coords(self, posmode: str):
-        """Set current coordinates in LLA or ECEF format.
+        """
+        Set current coordinates in LLH or ECEF format.
 
-        :param str posmode: position mode (LLA or ECEF)
+        :param str posmode: position mode (LLH or ECEF)
         """
 
         _, lat, lon, alt, _ = self.__app.get_coordinates()
-        if posmode == POSMODES[1]:
-            lat, lon, alt = llh2ecef(lat, lon, alt)
+        try:
+            if posmode == POS_ECEF:
+                lat, lon, alt = llh2ecef(lat, lon, alt)
+        except TypeError:
+            lat = lon = alt = 0.0
         self._fixedlat.set(lat)
         self._fixedlon.set(lon)
         self._fixedalt.set(alt)
@@ -489,29 +538,32 @@ class ServerConfigFrame(Frame):
         Configure receiver as Base Station if in NTRIP caster mode.
         """
 
-        if self._basemode.get() == BASEMODES[0]:  # SURVEY-IN
+        # set base station timing mode
+        if self._base_mode.get() == BASE_SVIN:
             msg = self._config_svin(self._acclimit.get(), self._duration.get())
-        elif self._basemode.get() == BASEMODES[1]:  # FIXED
+        elif self._base_mode.get() == BASE_FIXED:
             msg = self._config_fixed(
                 self._acclimit.get(),
                 self._fixedlat.get(),
                 self._fixedlon.get(),
                 self._fixedalt.get(),
             )
-        else:  # BASEMODES[2] = disabled
+        else:  # DISABLED
             msg = self._config_disable()
         self.__app.gnss_outqueue.put(msg.serialize())
 
-        rate = 0 if self._basemode.get() == BASEMODES[2] else 1
-        msg = self._config_rtcm(rate)
-        self.__app.gnss_outqueue.put(msg.serialize())
+        # set RTCM and UBX NAV-SVIN message output rate
+        rate = 0 if self._base_mode.get() == BASE_DISABLED else 1
+        for port in ("USB", "UART1"):
+            msg = self._config_msg_rates(rate, port)
+            self.__app.gnss_outqueue.put(msg.serialize())
 
-    def _config_rtcm(self, rate: int = 1, port_type: str = "USB") -> UBXMessage:
+    def _config_msg_rates(self, rate: int, port_type: str) -> UBXMessage:
         """
-        Configure which RTCM3 messages to output.
+        Configure RTCM3 and UBX NAV-SVIN message rates.
 
         :param int rate: message rate (0 = off)
-        :param str port_type: port that rcvr is connected on (USB)
+        :param str port_type: port that rcvr is connected on
         """
 
         layers = 1  # 1 = RAM, 2 = BBR, 4 = Flash (can be OR'd)
@@ -530,33 +582,32 @@ class ServerConfigFrame(Frame):
             cfg = f"CFG_MSGOUT_RTCM_3X_TYPE{rtcm_type}_{port_type}"
             cfg_data.append([cfg, rate])
 
+        # NAV-SVIN only output in SURVEY-IN mode
+        rate = rate if self._base_mode.get() == BASE_SVIN else 0
+        cfg = f"CFG_MSGOUT_UBX_NAV_SVIN_{port_type}"
+        cfg_data.append([cfg, rate])
+
         return UBXMessage.config_set(layers, transaction, cfg_data)
 
-    def _config_disable(self, port_type: str = "USB"):
+    def _config_disable(self):
         """
         Disable base station mode.
-
-        :param str port_type: port that rcvr is connected on (USB)
         """
 
         layers = 1
         transaction = 0
         cfg_data = [
             ("CFG_TMODE_MODE", TMODE_DISABLED),
-            (f"CFG_MSGOUT_UBX_NAV_SVIN_{port_type}", 0),
         ]
 
         return UBXMessage.config_set(layers, transaction, cfg_data)
 
-    def _config_svin(
-        self, acc_limit: int, svin_min_dur: int, port_type: str = "USB"
-    ) -> UBXMessage:
+    def _config_svin(self, acc_limit: int, svin_min_dur: int) -> UBXMessage:
         """
         Configure Survey-In mode with specied accuracy limit.
 
         :param int acc_limit: accuracy limit in cm
         :param int svin_min_dur: survey minimimum duration
-        :param str port_type: port that rcvr is connected on (USB)
         """
 
         layers = 1
@@ -566,18 +617,12 @@ class ServerConfigFrame(Frame):
             ("CFG_TMODE_MODE", TMODE_SVIN),
             ("CFG_TMODE_SVIN_ACC_LIMIT", acc_limit),
             ("CFG_TMODE_SVIN_MIN_DUR", svin_min_dur),
-            (f"CFG_MSGOUT_UBX_NAV_SVIN_{port_type}", 1),
         ]
 
         return UBXMessage.config_set(layers, transaction, cfg_data)
 
     def _config_fixed(
-        self,
-        acc_limit: int,
-        lat: float,
-        lon: float,
-        height: float,
-        port_type: str = "USB",
+        self, acc_limit: int, lat: float, lon: float, height: float
     ) -> UBXMessage:
         """
         Configure Fixed mode with specified coordinates.
@@ -591,7 +636,7 @@ class ServerConfigFrame(Frame):
         layers = 1
         transaction = 0
         acc_limit = int(acc_limit * 100)  # convert to 0.1 mm
-        if self._posmode.get() == POSMODES[0]:  # LLH
+        if self._pos_mode.get() == POS_LLH:
             lat_sp, lat_hp = val2sphp(lat, 1e-7)
             lon_sp, lon_hp = val2sphp(lon, 1e-7)
             height_sp, height_hp = val2sphp(height, 0.01)
@@ -605,7 +650,6 @@ class ServerConfigFrame(Frame):
                 ("CFG_TMODE_LON_HP", lon_hp),
                 ("CFG_TMODE_HEIGHT", height_sp),
                 ("CFG_TMODE_HEIGHT_HP", height_hp),
-                (f"CFG_MSGOUT_UBX_NAV_SVIN_{port_type}", 0),
             ]
         else:  # ECEF
             x_sp, x_hp = val2sphp(lat, 0.01)
@@ -621,7 +665,6 @@ class ServerConfigFrame(Frame):
                 ("CFG_TMODE_ECEF_Y_HP", y_hp),
                 ("CFG_TMODE_ECEF_Z", z_sp),
                 ("CFG_TMODE_ECEF_Z_HP", z_hp),
-                (f"CFG_MSGOUT_UBX_NAV_SVIN_{port_type}", 0),
             ]
 
         return UBXMessage.config_set(layers, transaction, cfg_data)
