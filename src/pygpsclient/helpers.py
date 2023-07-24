@@ -796,7 +796,7 @@ def setubxrate(app: object, msgclass: int, msgid: int, rate: int = 1):
     app.gnss_outqueue.put(msg.serialize())
 
 
-def val2hp(val: float, scale: float) -> tuple:
+def val2sphp(val: float, scale: float) -> tuple:
     """
     Convert a float value into separate
     standard and high precisions components,

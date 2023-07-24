@@ -30,7 +30,7 @@ from tkinter import (
 )
 
 from PIL import Image, ImageTk
-from pynmeagps import llh2ecef
+from pyubx2 import UBXMessage, llh2ecef
 
 from pygpsclient.globals import (
     ACCURACIES,
@@ -45,7 +45,14 @@ from pygpsclient.globals import (
     SOCKSERVER_PORT,
     TRACEMODE,
 )
-from pygpsclient.helpers import MAXPORT, VALFLOAT, VALINT, VALNONBLANK, valid_entry
+from pygpsclient.helpers import (
+    MAXPORT,
+    VALFLOAT,
+    VALINT,
+    VALNONBLANK,
+    val2sphp,
+    valid_entry,
+)
 from pygpsclient.strings import (
     LBLSERVERHOST,
     LBLSERVERMODE,
@@ -56,6 +63,11 @@ from pygpsclient.strings import (
 ADVOFF = "\u25bc"
 ADVON = "\u25b2"
 READONLY = "readonly"
+TMODE_DISABLED = 0
+TMODE_SVIN = 1
+TMODE_FIXED = 2
+ECEF = 0
+LLH = 1
 
 
 class ServerConfigFrame(Frame):
@@ -158,7 +170,7 @@ class ServerConfigFrame(Frame):
         self._frm_advanced = Frame(self)
         self._chk_set_basemode = Checkbutton(
             self._frm_advanced,
-            text="Enable Base Station",
+            text="Configure Base",
             variable=self._set_basemode,
         )
         self._spn_basemode = Spinbox(
@@ -223,7 +235,7 @@ class ServerConfigFrame(Frame):
         )
         self._lbl_fixedalt = Label(
             self._frm_advanced,
-            text="Height (mm)",
+            text="Height (m)",
         )
         self._ent_fixedalt = Entry(
             self._frm_advanced,
@@ -252,9 +264,9 @@ class ServerConfigFrame(Frame):
         self._btn_toggle.grid_forget()
         self._frm_advanced.grid_forget()
         self._chk_set_basemode.grid(
-            column=0, row=0, columnspan=2, padx=2, pady=1, sticky=W
+            column=0, row=0, columnspan=2, padx=2, pady=2, sticky=W
         )
-        self._spn_basemode.grid(column=2, row=0, columnspan=2, padx=2, pady=1, sticky=W)
+        self._spn_basemode.grid(column=2, row=0, columnspan=2, padx=2, pady=2, sticky=W)
 
     def _attach_events(self):
         """
@@ -263,7 +275,6 @@ class ServerConfigFrame(Frame):
 
         self.socket_serve.trace_add(TRACEMODE, self._on_socket_serve)
         self.sock_mode.trace_add(TRACEMODE, self._on_sockmode)
-        self._set_basemode.trace_add(TRACEMODE, self._on_set_basemode)
         self._basemode.trace_add(TRACEMODE, self._on_basemode)
         self._posmode.trace_add(TRACEMODE, self._on_posmode)
 
@@ -358,24 +369,21 @@ class ServerConfigFrame(Frame):
                 state = READONLY if isinstance(wid, Spinbox) else NORMAL
             wid.config(state=state)
 
+        # Configure receiver as base station in in NTRIP caster mode
+        if self.sock_mode.get() == SOCKMODES[1] and self._set_basemode.get() == 1:
+            self._config_rcvr()
+
     def _on_sockmode(self, var, index, mode):
         """
         Set default port depending on socket server mode.
         """
 
-        if self.sock_mode.get() == SOCKMODES[1]:  # NTRIP Server
+        if self.sock_mode.get() == SOCKMODES[1]:  # NTRIP Caster
             self.sock_port.set(SOCKSERVER_NTRIP_PORT)
             self._btn_toggle.grid(column=4, row=0, sticky=E)
         else:
             self.sock_port.set(SOCKSERVER_PORT)
             self._btn_toggle.grid_forget()
-
-    def _on_set_basemode(self, var, index, mode):
-        """
-        Configure receiver for base mode.
-        """
-
-        # TODO do something along the lines of F9P_basestation example
 
     def _on_basemode(self, var, index, mode):
         """
@@ -394,26 +402,39 @@ class ServerConfigFrame(Frame):
             self._ent_fixedlon.grid_forget()
             self._lbl_fixedalt.grid_forget()
             self._ent_fixedalt.grid_forget()
-        else:  # Fixed Base Mode
-            self._spn_posmode.grid(column=0, row=1, rowspan=3, padx=2, pady=1, sticky=E)
-            self._lbl_fixedlat.grid(column=1, row=1, padx=2, pady=1, sticky=E)
+        elif self._basemode.get() == BASEMODES[1]:  # Fixed Base Mode
+            self._lbl_acclimit.grid(column=0, row=1, padx=2, pady=1, sticky=E)
+            self._spn_acclimit.grid(column=1, row=1, padx=2, pady=1, sticky=W)
+            self._spn_posmode.grid(column=0, row=2, rowspan=3, padx=2, pady=1, sticky=E)
+            self._lbl_fixedlat.grid(column=1, row=2, padx=2, pady=1, sticky=E)
             self._ent_fixedlat.grid(
-                column=2, row=1, columnspan=3, padx=2, pady=1, sticky=W
-            )
-            self._lbl_fixedlon.grid(column=1, row=2, padx=2, pady=1, sticky=E)
-            self._ent_fixedlon.grid(
                 column=2, row=2, columnspan=3, padx=2, pady=1, sticky=W
             )
-            self._lbl_fixedalt.grid(column=1, row=3, padx=2, pady=1, sticky=E)
-            self._ent_fixedalt.grid(
+            self._lbl_fixedlon.grid(column=1, row=3, padx=2, pady=1, sticky=E)
+            self._ent_fixedlon.grid(
                 column=2, row=3, columnspan=3, padx=2, pady=1, sticky=W
             )
+            self._lbl_fixedalt.grid(column=1, row=4, padx=2, pady=1, sticky=E)
+            self._ent_fixedalt.grid(
+                column=2, row=4, columnspan=3, padx=2, pady=1, sticky=W
+            )
+            self._lbl_duration.grid_forget()
+            self._spn_duration.grid_forget()
+            self._set_coords(self._posmode.get())
+        else:  # Disabled
             self._lbl_acclimit.grid_forget()
             self._spn_acclimit.grid_forget()
+            self._spn_posmode.grid_forget()
+            self._lbl_fixedlat.grid_forget()
+            self._ent_fixedlat.grid_forget()
+            self._lbl_fixedlon.grid_forget()
+            self._ent_fixedlon.grid_forget()
+            self._lbl_fixedalt.grid_forget()
+            self._ent_fixedalt.grid_forget()
             self._lbl_duration.grid_forget()
             self._spn_duration.grid_forget()
 
-        self._set_coords(self._posmode.get())
+        # self._set_coords(self._posmode.get())
 
     def _on_posmode(self, var, index, mode):
         """
@@ -462,3 +483,145 @@ class ServerConfigFrame(Frame):
         self._sock_clients.set(clients)
         if self.socket_serve.get() == 1:
             self.__app.frm_banner.update_transmit_status(clients)
+
+    def _config_rcvr(self):
+        """
+        Configure receiver as Base Station if in NTRIP caster mode.
+        """
+
+        if self._basemode.get() == BASEMODES[0]:  # SURVEY-IN
+            msg = self._config_svin(self._acclimit.get(), self._duration.get())
+        elif self._basemode.get() == BASEMODES[1]:  # FIXED
+            msg = self._config_fixed(
+                self._acclimit.get(),
+                self._fixedlat.get(),
+                self._fixedlon.get(),
+                self._fixedalt.get(),
+            )
+        else:  # BASEMODES[2] = disabled
+            msg = self._config_disable()
+        self.__app.gnss_outqueue.put(msg.serialize())
+
+        rate = 0 if self._basemode.get() == BASEMODES[2] else 1
+        msg = self._config_rtcm(rate)
+        self.__app.gnss_outqueue.put(msg.serialize())
+
+    def _config_rtcm(self, rate: int = 1, port_type: str = "USB") -> UBXMessage:
+        """
+        Configure which RTCM3 messages to output.
+
+        :param int rate: message rate (0 = off)
+        :param str port_type: port that rcvr is connected on (USB)
+        """
+
+        layers = 1  # 1 = RAM, 2 = BBR, 4 = Flash (can be OR'd)
+        transaction = 0
+        cfg_data = []
+        for rtcm_type in (
+            "1005",
+            "1077",
+            "1087",
+            "1097",
+            "1127",
+            "1230",
+            "4072_0",
+            "4072_1",
+        ):
+            cfg = f"CFG_MSGOUT_RTCM_3X_TYPE{rtcm_type}_{port_type}"
+            cfg_data.append([cfg, rate])
+
+        return UBXMessage.config_set(layers, transaction, cfg_data)
+
+    def _config_disable(self, port_type: str = "USB"):
+        """
+        Disable base station mode.
+
+        :param str port_type: port that rcvr is connected on (USB)
+        """
+
+        layers = 1
+        transaction = 0
+        cfg_data = [
+            ("CFG_TMODE_MODE", TMODE_DISABLED),
+            (f"CFG_MSGOUT_UBX_NAV_SVIN_{port_type}", 0),
+        ]
+
+        return UBXMessage.config_set(layers, transaction, cfg_data)
+
+    def _config_svin(
+        self, acc_limit: int, svin_min_dur: int, port_type: str = "USB"
+    ) -> UBXMessage:
+        """
+        Configure Survey-In mode with specied accuracy limit.
+
+        :param int acc_limit: accuracy limit in cm
+        :param int svin_min_dur: survey minimimum duration
+        :param str port_type: port that rcvr is connected on (USB)
+        """
+
+        layers = 1
+        transaction = 0
+        acc_limit = int(acc_limit * 100)  # convert to 0.1 mm
+        cfg_data = [
+            ("CFG_TMODE_MODE", TMODE_SVIN),
+            ("CFG_TMODE_SVIN_ACC_LIMIT", acc_limit),
+            ("CFG_TMODE_SVIN_MIN_DUR", svin_min_dur),
+            (f"CFG_MSGOUT_UBX_NAV_SVIN_{port_type}", 1),
+        ]
+
+        return UBXMessage.config_set(layers, transaction, cfg_data)
+
+    def _config_fixed(
+        self,
+        acc_limit: int,
+        lat: float,
+        lon: float,
+        height: float,
+        port_type: str = "USB",
+    ) -> UBXMessage:
+        """
+        Configure Fixed mode with specified coordinates.
+
+        :param int acc_limit: accuracy limit in cm
+        :param float lat: lat or X in m
+        :param float lat: lon or Y in m
+        :param float lat: height or Z in m
+        """
+
+        layers = 1
+        transaction = 0
+        acc_limit = int(acc_limit * 100)  # convert to 0.1 mm
+        if self._posmode.get() == POSMODES[0]:  # LLH
+            lat_sp, lat_hp = val2sphp(lat, 1e-7)
+            lon_sp, lon_hp = val2sphp(lon, 1e-7)
+            height_sp, height_hp = val2sphp(height, 0.01)
+            cfg_data = [
+                ("CFG_TMODE_MODE", TMODE_FIXED),
+                ("CFG_TMODE_POS_TYPE", LLH),
+                ("CFG_TMODE_FIXED_POS_ACC", acc_limit),
+                ("CFG_TMODE_LAT", lat_sp),
+                ("CFG_TMODE_LAT_HP", lat_hp),
+                ("CFG_TMODE_LON", lon_sp),
+                ("CFG_TMODE_LON_HP", lon_hp),
+                ("CFG_TMODE_HEIGHT", height_sp),
+                ("CFG_TMODE_HEIGHT_HP", height_hp),
+                (f"CFG_MSGOUT_UBX_NAV_SVIN_{port_type}", 0),
+            ]
+        else:  # ECEF
+            x_sp, x_hp = val2sphp(lat, 0.01)
+            y_sp, y_hp = val2sphp(lon, 0.01)
+            z_sp, z_hp = val2sphp(height, 0.01)
+            cfg_data = [
+                ("CFG_TMODE_MODE", TMODE_FIXED),
+                ("CFG_TMODE_POS_TYPE", ECEF),
+                ("CFG_TMODE_FIXED_POS_ACC", acc_limit),
+                ("CFG_TMODE_ECEF_X", x_sp),
+                ("CFG_TMODE_ECEF_X_HP", x_hp),
+                ("CFG_TMODE_ECEF_Y", y_sp),
+                ("CFG_TMODE_ECEF_Y_HP", y_hp),
+                ("CFG_TMODE_ECEF_Z", z_sp),
+                ("CFG_TMODE_ECEF_Z_HP", z_hp),
+                (f"CFG_MSGOUT_UBX_NAV_SVIN_{port_type}", 0),
+            ]
+
+        return UBXMessage.config_set(layers, transaction, cfg_data)

@@ -165,7 +165,7 @@ FORMAT_HEXTABLE = 8
 FORMATS = ("Parsed", "Binary", "Hex String", "Hex Tabular", "Parsed + Hex Tabular")
 # socket server modes
 SOCKMODES = ("SOCKET SERVER", "NTRIP CASTER")
-BASEMODES = ("SURVEY IN", "FIXED")
+BASEMODES = ("SURVEY IN", "FIXED", "DISABLED")
 POSMODES = ("LLH", "ECEF")
 ACCURACIES = (5, 3, 2, 1, 10000, 5000, 2000, 1000, 500, 200, 100, 50, 20, 10)
 DURATIONS = (60, 300, 600, 1200, 240, 180, 120, 90)
