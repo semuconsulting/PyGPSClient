@@ -122,6 +122,10 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         )
         self._mqapikey = kwargs.pop("mqapikey", getenv("MQAPIKEY", ""))
         self._mqttclientid = kwargs.pop("mqttclientid", getenv("MQTTCLIENTID", ""))
+        self._ntrip_user = kwargs.pop("ntripuser", getenv("PYGPSCLIENT_USER", "anon"))
+        self._ntrip_password = kwargs.pop(
+            "ntrippassword", getenv("PYGPSCLIENT_USER", "password")
+        )
 
         Frame.__init__(self, self.__master, *args, **kwargs)
 
@@ -487,12 +491,16 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         host = settings["sockhost"]
         port = int(settings["sockport"])
         ntripmode = settings["sockmode"]
+        ntripuser = self._ntrip_user
+        ntrippassword = self._ntrip_password
         self._socket_thread = Thread(
             target=self._sockserver_thread,
             args=(
                 ntripmode,
                 host,
                 port,
+                ntripuser,
+                ntrippassword,
                 SOCKSERVER_MAX_CLIENTS,
                 self.socket_outqueue,
             ),
@@ -511,7 +519,14 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             self._socket_server.shutdown()
 
     def _sockserver_thread(
-        self, ntripmode: int, host: str, port: int, maxclients: int, socketqueue: Queue
+        self,
+        ntripmode: int,
+        host: str,
+        port: int,
+        ntripuser: str,
+        ntrippassword: str,
+        maxclients: int,
+        socketqueue: Queue,
     ):
         """
         THREADED
@@ -526,7 +541,14 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         try:
             with SocketServer(
-                self, ntripmode, maxclients, socketqueue, (host, port), ClientHandler
+                self,
+                ntripmode,
+                maxclients,
+                socketqueue,
+                (host, port),
+                ClientHandler,
+                ntripuser=ntripuser,
+                ntrippassword=ntrippassword,
             ) as self._socket_server:
                 self._socket_server.serve_forever()
         except OSError as err:
@@ -715,6 +737,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             "defaultport": self._default_port,
             "mqapikey": self._mqapikey,
             "mqttclientid": self._mqttclientid,
+            "ntripuser": self._ntrip_user,
+            "ntrippassword": self._ntrip_password,
             "colortags": self._colortags,
             "ubxpresets": self._ubxpresets,
         }
@@ -734,6 +758,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._default_port = config.get("defaultport", self._default_port)
         self._mqapikey = config.get("mqapikey", self._mqapikey)
         self._mqttclientid = config.get("mqttclientid", self._mqttclientid)
+        self._ntrip_user = config.get("ntripuser", self._ntrip_user)
+        self._ntrip_password = config.get("ntrippassword", self._ntrip_password)
         self._colortags = config.get("colortags", self._colortags)
         self._ubxpresets = config.get("ubxpresets", self._ubxpresets)
 
