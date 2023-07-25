@@ -14,9 +14,22 @@ Created on 27 Apr 2022
 :license: BSD 3-Clause
 """
 
-from tkinter import DISABLED, NORMAL, E, Entry, Frame, Label, Spinbox, StringVar, W
+from tkinter import (
+    DISABLED,
+    NORMAL,
+    Button,
+    E,
+    Entry,
+    Frame,
+    Label,
+    Spinbox,
+    StringVar,
+    W,
+)
 
-from pygpsclient.globals import DEFAULT_PORT, DEFAULT_SERVER
+from PIL import Image, ImageTk
+
+from pygpsclient.globals import DEFAULT_PORT, DEFAULT_SERVER, ICON_CONTRACT, ICON_EXPAND
 
 ADVOFF = "\u25bc"
 ADVON = "\u25b2"
@@ -47,6 +60,10 @@ class SocketConfigFrame(Frame):
         self._server = StringVar()
         self._port = StringVar()
         self._protocol = StringVar()
+        self._flowinfo = StringVar()
+        self._scopeid = StringVar()
+        self._img_expand = ImageTk.PhotoImage(Image.open(ICON_EXPAND))
+        self._img_contract = ImageTk.PhotoImage(Image.open(ICON_CONTRACT))
 
         self._body()
         self._do_layout()
@@ -81,6 +98,32 @@ class SocketConfigFrame(Frame):
             width=12,
             state=READONLY,
             wrap=True,
+            command=self._on_change_protocol,
+        )
+        self._btn_toggle = Button(
+            self._frm_basic,
+            command=self._on_toggle_advanced,
+            image=self._img_expand,
+            width=28,
+            height=22,
+        )
+        self._frm_advanced = Frame(self)
+        self._lbl_flowinfo = Label(self._frm_advanced, text="Flow Info")
+        self.ent_flowinfo = Entry(
+            self._frm_advanced,
+            textvariable=self._flowinfo,
+            relief="sunken",
+            width=6,
+            state=DISABLED,
+        )
+
+        self._lbl_scopeid = Label(self._frm_advanced, text="Scope ID")
+        self.ent_scopeid = Entry(
+            self._frm_advanced,
+            textvariable=self._scopeid,
+            relief="sunken",
+            width=6,
+            state=DISABLED,
         )
 
     def _do_layout(self):
@@ -97,6 +140,12 @@ class SocketConfigFrame(Frame):
         self.ent_port.grid(column=1, row=1, padx=2, pady=2, sticky=W)
         self._lbl_protocol.grid(column=3, row=1, padx=2, pady=2, sticky=W)
         self._spn_protocol.grid(column=4, row=1, padx=2, pady=2, sticky=W)
+        self._btn_toggle.grid(column=5, row=1, padx=2, pady=2, sticky=W)
+        self._frm_advanced.grid_forget()
+        self._lbl_flowinfo.grid(column=0, row=0, padx=2, pady=2, sticky=W)
+        self.ent_flowinfo.grid(column=1, row=0, padx=2, pady=2, sticky=W)
+        self._lbl_scopeid.grid(column=2, row=0, padx=2, pady=2, sticky=W)
+        self.ent_scopeid.grid(column=3, row=0, padx=2, pady=2, sticky=W)
 
     def reset(self):
         """
@@ -106,6 +155,8 @@ class SocketConfigFrame(Frame):
         self._server.set(DEFAULT_SERVER)
         self._port.set(DEFAULT_PORT)
         self._protocol.set(PROTOCOLS[0])
+        self._flowinfo.set(0)
+        self._scopeid.set(0)
 
     def set_status(self, status: int = DISCONNECTED):
         """
@@ -120,12 +171,48 @@ class SocketConfigFrame(Frame):
             self._lbl_server,
             self._lbl_port,
             self._lbl_protocol,
+            self._lbl_flowinfo,
+            self._lbl_scopeid,
             self.ent_server,
             self.ent_port,
+            self.ent_flowinfo,
+            self.ent_scopeid,
         ):
             widget.configure(state=(NORMAL if status == DISCONNECTED else DISABLED))
         for widget in (self._spn_protocol,):
             widget.configure(state=(READONLY if status == DISCONNECTED else DISABLED))
+
+    def _on_change_protocol(self):
+        """
+        Toggle fields only used for IPv6.
+        """
+
+        for widget in (
+            self._lbl_flowinfo,
+            self._lbl_scopeid,
+            self.ent_flowinfo,
+            self.ent_scopeid,
+        ):
+            widget.configure(
+                state=(
+                    NORMAL
+                    if self._protocol.get() in ("TCP IPv6", "UDP IPv6")
+                    else DISABLED
+                )
+            )
+
+    def _on_toggle_advanced(self):
+        """
+        Toggle advanced socket settings panel on or off.
+        """
+
+        self._show_advanced = not self._show_advanced
+        if self._show_advanced:
+            self._frm_advanced.grid(column=0, row=1, columnspan=4, sticky=(W, E))
+            self._btn_toggle.config(image=self._img_contract)
+        else:
+            self._frm_advanced.grid_forget()
+            self._btn_toggle.config(image=self._img_expand)
 
     @property
     def status(self) -> int:
@@ -160,6 +247,34 @@ class SocketConfigFrame(Frame):
 
         try:
             return int(self._port.get())
+        except ValueError:
+            return 0
+
+    @property
+    def flowinfo(self) -> int:
+        """
+        Getter for flowinfo.
+
+        :return: IPv6 flowinfo
+        :rtype: int
+        """
+
+        try:
+            return int(self._flowinfo.get())
+        except ValueError:
+            return 0
+
+    @property
+    def scopeid(self) -> int:
+        """
+        Getter for scopeid.
+
+        :return: IPv6 scopeid
+        :rtype: int
+        """
+
+        try:
+            return int(self._scopeid.get())
         except ValueError:
             return 0
 

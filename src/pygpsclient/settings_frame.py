@@ -14,18 +14,16 @@ Created on 12 Sep 2020
 """
 # pylint: disable=unnecessary-lambda
 
+from os import getenv
 from tkinter import (
     DISABLED,
     NORMAL,
     Button,
     Checkbutton,
     E,
-    Entry,
     Frame,
     IntVar,
     Label,
-    N,
-    S,
     Spinbox,
     StringVar,
     W,
@@ -65,8 +63,7 @@ from pygpsclient.globals import (
     NOPORTS,
     READONLY,
     SOCKMODES,
-    SOCKSERVER_MAX_CLIENTS,
-    SOCKSERVER_NTRIP_PORT,
+    SOCKSERVER_HOST,
     SOCKSERVER_PORT,
     TIMEOUTS,
     UI,
@@ -76,6 +73,7 @@ from pygpsclient.globals import (
 )
 from pygpsclient.helpers import MAXPORT, VALINT, VALURL, valid_entry
 from pygpsclient.serialconfig_frame import SerialConfigFrame
+from pygpsclient.serverconfig_frame import ServerConfigFrame
 from pygpsclient.socketconfig_frame import SocketConfigFrame
 from pygpsclient.strings import (
     CONFIGERR,
@@ -84,10 +82,7 @@ from pygpsclient.strings import (
     LBLDEGFORMAT,
     LBLNTRIPCONFIG,
     LBLPROTDISP,
-    LBLSERVERMODE,
-    LBLSERVERPORT,
     LBLSHOWUNUSED,
-    LBLSOCKSERVE,
     LBLSPARTNCONFIG,
     LBLTRACKRECORD,
     LBLUBXCONFIG,
@@ -130,10 +125,6 @@ class SettingsFrame(Frame):
         self._show_unusedsat = IntVar()
         self.show_legend = IntVar()
         self._colortag = IntVar()
-        self._socket_serve = IntVar()
-        self._sock_port = StringVar()
-        self._sock_mode = StringVar()
-        self._sock_clients = StringVar()
         self._validsettings = True
         self._trackpath = None
         self._img_conn = ImageTk.PhotoImage(Image.open(ICON_CONN))
@@ -316,44 +307,7 @@ class SettingsFrame(Frame):
             command=lambda: self._on_record_track(),
         )
         # socket server configuration
-        self._chk_socketserve = Checkbutton(
-            self._frm_options,
-            text=LBLSOCKSERVE,
-            variable=self._socket_serve,
-            command=lambda: self._on_socket_serve(),
-            state=DISABLED,
-        )
-        self._lbl_sockmode = Label(
-            self._frm_options,
-            text=LBLSERVERMODE,
-            state=DISABLED,
-        )
-        self._spn_sockmode = Spinbox(
-            self._frm_options,
-            values=SOCKMODES,
-            width=18,
-            state=DISABLED,
-            wrap=True,
-            textvariable=self._sock_mode,
-            command=lambda: self._on_sockmode(),
-        )
-        self._lbl_sockport = Label(
-            self._frm_options,
-            text=LBLSERVERPORT,
-            state=DISABLED,
-        )
-        self._ent_sockport = Entry(
-            self._frm_options,
-            textvariable=self._sock_port,
-            relief="sunken",
-            width=6,
-            state=DISABLED,
-        )
-        self._lbl_sockclients = Label(
-            self._frm_options,
-            textvariable=self._sock_clients,
-            state=DISABLED,
-        )
+        self.frm_server = ServerConfigFrame(self.__app, self._frm_options)
         # configuration panel buttons
         self._lbl_ubxconfig = Label(
             self._frm_options,
@@ -420,7 +374,7 @@ class SettingsFrame(Frame):
             column=0, row=7, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
 
-        self._frm_options.grid(column=0, row=8, columnspan=4, sticky=(W, E))
+        self._frm_options.grid(column=0, row=8, columnspan=5, sticky=(W, E))
         self._lbl_protocol.grid(column=0, row=0, padx=2, pady=2, sticky=W)
         self._chk_nmea.grid(column=1, row=0, padx=0, pady=0, sticky=W)
         self._chk_ubx.grid(column=2, row=0, padx=0, pady=0, sticky=W)
@@ -446,23 +400,21 @@ class SettingsFrame(Frame):
         self._chk_recordtrack.grid(
             column=0, row=8, columnspan=2, padx=2, pady=2, sticky=W
         )
-        self._chk_socketserve.grid(
-            column=0, row=9, rowspan=2, padx=2, pady=2, sticky=(N, S, W)
+        ttk.Separator(self._frm_options).grid(
+            column=0, row=9, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
-        self._lbl_sockmode.grid(column=1, row=9, padx=2, pady=2, sticky=E)
-        self._spn_sockmode.grid(column=2, row=9, columnspan=2, padx=2, pady=2, sticky=W)
-        self._lbl_sockport.grid(column=1, row=10, padx=2, pady=2, sticky=E)
-        self._ent_sockport.grid(column=2, row=10, padx=2, pady=2, sticky=W)
-        self._lbl_sockclients.grid(column=3, row=10, padx=2, pady=2, sticky=W)
+        self.frm_server.grid(
+            column=0, row=10, columnspan=4, padx=2, pady=2, sticky=(W, E)
+        )
         ttk.Separator(self._frm_options).grid(
             column=0, row=11, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
-        self._btn_ubxconfig.grid(column=0, row=12)
-        self._lbl_ubxconfig.grid(column=0, row=13)
-        self._btn_ntripconfig.grid(column=1, row=12)
-        self._lbl_ntripconfig.grid(column=1, row=13)
-        self._btn_spartnconfig.grid(column=2, row=12)
-        self._lbl_spartnconfig.grid(column=2, row=13)
+        self._btn_ubxconfig.grid(column=0, row=13)
+        self._lbl_ubxconfig.grid(column=0, row=14)
+        self._btn_ntripconfig.grid(column=1, row=13)
+        self._lbl_ntripconfig.grid(column=1, row=14)
+        self._btn_spartnconfig.grid(column=2, row=13)
+        self._lbl_spartnconfig.grid(column=2, row=14)
 
     def _on_ubx_config(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -543,6 +495,7 @@ class SettingsFrame(Frame):
         self.__app.conn_status = CONNECTED
         self._reset_frames()
         self.__app.stream_handler.start_read_thread(self._get_settings())
+        self.frm_server.set_status(CONNECTED)
 
     def _on_socket_stream(self):
         """
@@ -615,38 +568,6 @@ class SettingsFrame(Frame):
         self.__app.frm_spectrumview.reset()
         self.__app.reset_gnssstatus()
 
-    def _on_socket_serve(self):
-        """
-        Start or stop socket server.
-        """
-
-        if not valid_entry(self._ent_sockport, VALINT, 1, MAXPORT):
-            self.__app.set_status("ERROR - invalid port", "red")
-            self._socket_serve.set(0)
-            return
-
-        if self._socket_serve.get() == 1:
-            self.__app.start_sockserver_thread()
-            self._ent_sockport.config(state=DISABLED)
-            self._spn_sockmode.config(state=DISABLED)
-            self.__app.stream_handler.sock_serve = True
-        else:
-            self.__app.stop_sockserver_thread()
-            self._ent_sockport.config(state=NORMAL)
-            self._spn_sockmode.config(state=READONLY)
-            self.__app.stream_handler.sock_serve = False
-            self.clients = 0
-
-    def _on_sockmode(self):
-        """
-        Set default port depending on socket server mode.
-        """
-
-        if self._sock_mode.get() == SOCKMODES[1]:  # NTRIP Server
-            self._sock_port.set(SOCKSERVER_NTRIP_PORT)
-        else:
-            self._sock_port.set(SOCKSERVER_PORT)
-
     def _on_disconnect(self):
         """
         Disconnect from stream.
@@ -654,9 +575,7 @@ class SettingsFrame(Frame):
 
         if self.__app.conn_status in (CONNECTED, CONNECTED_FILE, CONNECTED_SOCKET):
             self.__app.stream_handler.stop_read_thread()
-            self.__app.stop_sockserver_thread()
-            self._socket_serve.set(0)
-            self.clients = 0
+            self.frm_server.set_status(DISCONNECTED)
 
     def enable_controls(self, status: int):
         """
@@ -671,6 +590,7 @@ class SettingsFrame(Frame):
 
         self._frm_serial.set_status(status)
         self._frm_socket.set_status(status)
+        self.frm_server.set_status(status)
 
         self._btn_connect.config(
             state=(
@@ -702,27 +622,6 @@ class SettingsFrame(Frame):
                 else READONLY
             )
         )
-        for ctl in (
-            self._chk_socketserve,
-            self._ent_sockport,
-            self._lbl_sockport,
-            self._lbl_sockmode,
-            self._lbl_sockclients,
-        ):
-            ctl.config(
-                state=(
-                    NORMAL
-                    if status in (CONNECTED, CONNECTED_SOCKET, CONNECTED_FILE)
-                    else DISABLED
-                )
-            )
-        self._spn_sockmode.config(
-            state=(
-                READONLY
-                if status in (CONNECTED, CONNECTED_SOCKET, CONNECTED_FILE)
-                else DISABLED
-            )
-        )
 
     def get_size(self) -> tuple:
         """
@@ -750,7 +649,7 @@ class SettingsFrame(Frame):
             + (ubt.UBX_PROTOCOL * self._prot_ubx.get())
             + (ubt.RTCM3_PROTOCOL * self._prot_rtcm3.get())
         )
-        sockmode = 0 if self._sock_mode.get() == SOCKMODES[0] else 1
+        sockmode = 1 if self.frm_server.sock_mode.get() == SOCKMODES[1] else 0
 
         config = {
             "protocol": protocol,
@@ -770,8 +669,9 @@ class SettingsFrame(Frame):
             "logformat": self._logformat.get(),
             "datalog": self._datalog.get(),
             "recordtrack": self._record_track.get(),
-            "sockserver": self._socket_serve.get(),
-            "sockport": self._sock_port.get(),
+            "sockserver": self.frm_server.socket_serve.get(),
+            "sockhost": self.frm_server.sock_host.get(),
+            "sockport": self.frm_server.sock_port.get(),
             "sockmode": sockmode,
         }
         return config
@@ -802,60 +702,18 @@ class SettingsFrame(Frame):
             # don't persist datalog or gpx track settings...
             # self._datalog.set(config.get("datalog", 0))
             # self._record_track.set(config.get("recordtrack", 0))
-            self._socket_serve.set(config.get("sockserver", 0))
-            self._sock_port.set(config.get("sockport", SOCKSERVER_PORT))
-            self._sock_mode.set(
+            self.frm_server.socket_serve.set(config.get("sockserver", 0))
+            self.frm_server.sock_host.set(
+                config.get(
+                    "sockhost", getenv("PYGPSCLIENT_BINDADDRESS", SOCKSERVER_HOST)
+                )
+            )
+            self.frm_server.sock_port.set(config.get("sockport", SOCKSERVER_PORT))
+            self.frm_server.sock_mode.set(
                 SOCKMODES[1] if config.get("sockmode", 0) == 1 else SOCKMODES[0]
             )
         except KeyError as err:
             self.set_status(f"{CONFIGERR} - {err}", BADCOL)
-
-    @property
-    def server_state(self) -> int:
-        """
-        Getter for socket server run status.
-
-        :return: status 0 = off, 1 = on
-        :rtype: int
-        """
-
-        return self._socket_serve.get()
-
-    @server_state.setter
-    def server_state(self, status: int):
-        """
-        Setter for server run status.
-
-        :param int status: 0 = off, 1 = on
-        """
-
-        self._socket_serve.set(status)
-
-    @property
-    def clients(self) -> int:
-        """
-        Getter for number of socket clients.
-        """
-
-        return self._sock_clients.get()
-
-    @clients.setter
-    def clients(self, clients: int):
-        """
-        Setter for number of socket clients.
-
-        :param int clients: no of clients connected
-        """
-
-        self._sock_clients.set(f"Clients {clients}")
-        if clients >= SOCKSERVER_MAX_CLIENTS:
-            self._lbl_sockclients.config(fg="red")
-        elif clients == 0:
-            self._lbl_sockclients.config(fg="black")
-        else:
-            self._lbl_sockclients.config(fg="green")
-        if self._socket_serve.get() == 1:
-            self.__app.frm_banner.update_transmit_status(clients)
 
     # ============================================
     # FOLLOWING METHODS REQUIRED BY STREAM_HANDLER

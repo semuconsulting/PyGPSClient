@@ -46,7 +46,6 @@ from pygpsclient.globals import (
     NOPORTS,
     NTRIP_EVENT,
     OKCOL,
-    SOCKSERVER_HOST,
     SOCKSERVER_MAX_CLIENTS,
     SPARTN_EVENT,
     THD,
@@ -120,9 +119,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._user_port = kwargs.pop("userport", getenv("PYGPSCLIENT_USERPORT", ""))
         self._spartn_user_port = kwargs.pop(
             "spartnport", getenv("PYGPSCLIENT_SPARTNPORT", "")
-        )
-        self._bind_address = kwargs.pop(
-            "bindaddress", getenv("PYGPSCLIENT_BINDADDRESS", SOCKSERVER_HOST)
         )
         self._mqapikey = kwargs.pop("mqapikey", getenv("MQAPIKEY", ""))
         self._mqttclientid = kwargs.pop("mqttclientid", getenv("MQTTCLIENTID", ""))
@@ -488,13 +484,14 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         settings = self.frm_settings.config
+        host = settings["sockhost"]
         port = int(settings["sockport"])
         ntripmode = settings["sockmode"]
         self._socket_thread = Thread(
             target=self._sockserver_thread,
             args=(
                 ntripmode,
-                self._bind_address,
+                host,
                 port,
                 SOCKSERVER_MAX_CLIENTS,
                 self.socket_outqueue,
@@ -542,7 +539,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         :param int clients: no of connected clients
         """
 
-        self.frm_settings.clients = clients
+        self.frm_settings.frm_server.clients = clients
 
     def on_exit(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -720,7 +717,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             "mqttclientid": self._mqttclientid,
             "colortags": self._colortags,
             "ubxpresets": self._ubxpresets,
-            "bindaddress": self._bind_address,
         }
         return config
 
@@ -740,7 +736,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._mqttclientid = config.get("mqttclientid", self._mqttclientid)
         self._colortags = config.get("colortags", self._colortags)
         self._ubxpresets = config.get("ubxpresets", self._ubxpresets)
-        self._bind_address = config.get("bindaddress", self._bind_address)
 
     @property
     def widgets(self) -> dict:

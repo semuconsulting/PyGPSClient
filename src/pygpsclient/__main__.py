@@ -38,11 +38,6 @@ def main():
     arp.add_argument(
         "-S", "--spartnport", required=False, help="User-defined SPARTN receiver port"
     )
-    arp.add_argument(
-        "--bindaddress",
-        required=False,
-        help="User-defined socket server IP address binding (0.0.0.0)",
-    )
     arp.add_argument("--mqapikey", required=False, help="MapQuest API Key")
     arp.add_argument("--mqttclientid", required=False, help="MQTT Client ID")
 

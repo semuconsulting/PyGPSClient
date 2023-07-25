@@ -1,5 +1,13 @@
 # PyGPSClient Release Notes
 
+### RELEASE CANDIDATE v1.3.30
+
+ENHANCEMENTS:
+
+1. Enhance [NTRIP Caster](https://github.com/semuconsulting/PyGPSClient#socketserver) facility to include ability to automatically configure a ZED-F9P (or similar) receiver to operate in Base Station mode (either Survey-In or Fixed).
+1. Enhance Socket Server facility to add host (bind) address, which is then stored in config file (can be derived from environment variable `PYGPSCLIENT_BINDADDRESS`).
+1. Enhance socket reader IPv6 support.
+
 ### RELEASE v1.3.29
 
 ENHANCEMENTS:
