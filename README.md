@@ -21,6 +21,7 @@ PyGPSClient is a free, open-source, multi-platform graphical GNSS/GPS testing, d
 * Configurable GUI with user-selectable and resizable widgets.
 * Supports data logging in parsed, binary and hexadecimal formats.
 * Supports track recording and display in GPX format.
+* Can serve as an [NTRIP base station](#basestation) with a compatible receiver (e.g. ZED-F9P).
 * While not intended to be a direct replacement, the application supports most of the UBX monitoring and configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool.
 
 ![full app screenshot ubx](https://github.com/semuconsulting/PyGPSClient/blob/master/images/app.png?raw=true)
@@ -256,11 +257,13 @@ If NTRIP CASTER mode is selected, an additional expandable panel is made availab
 
 NMEA messages can be suppressed in NTRIP Caster mode by checking 'Disable NMEA'. A minimum set of UBX messages will be output in their place.
 
+### <a name="basestation">Base Station Configuration</a>
+
 | Configuration Settings | Base Station Mode    |
 |------------------------------------------------------|---------------------------------------------------------|
-| ![basestation config](/images/basestation_fixed.png) | **FIXED**. In this mode, the known base station coordinates (*Antenna Reference Point or ARP*) are specified in either LLH or ECEF (X,Y,Z) format. The coordinates are pre-populated with the receiver's current navigation solution (if available), but these can be overridden with precisely surveyed values. If the coordinates are accepted, the UBX Fix status will change to `TIME ONLY` and the receiver will start outputting RTCM `1005` (*ARP location*) messages.|
-| ![basestation config](/images/basestation_svin.png)  | **SURVEY-IN**. In this mode, the base station coordinates are derived from the receiver's current navigation solution, provided the prescribed level of accuracy is met within the specified survey duration. If the survey is successful, the UBX NAV-SVIN monitoring message will indicate `valid=1, active=0`, the UBX Fix status will change to `TIME ONLY` and the receiver will start outputting RTCM `1005` (*ARP location*) messages. 
-| ![basestation config](/images/basestation_off.png)  | **DISABLED**. Disable base station operation.
+| ![basestation config](https://github.com/semuconsulting/PyGPSClient/blob/master/images/basestation_fixed.png?raw=true) | **FIXED**. In this mode, the known base station coordinates (*Antenna Reference Point or ARP*) are specified in either LLH or ECEF (X,Y,Z) format. The coordinates are pre-populated with the receiver's current navigation solution (if available), but these can be overridden with precisely surveyed values. If the coordinates are accepted, the UBX Fix status will change to `TIME ONLY` and the receiver will start outputting RTCM `1005` (*ARP location*) messages.|
+| ![basestation config](https://github.com/semuconsulting/PyGPSClient/blob/master/images/basestation_svin.png?raw=true)  | **SURVEY-IN**. In this mode, the base station coordinates are derived from the receiver's current navigation solution, provided the prescribed level of accuracy is met within the specified survey duration. If the survey is successful, the UBX NAV-SVIN monitoring message will indicate `valid=1, active=0`, the UBX Fix status will change to `TIME ONLY` and the receiver will start outputting RTCM `1005` (*ARP location*) messages. 
+| ![basestation config](https://github.com/semuconsulting/PyGPSClient/blob/master/images/basestation_off.png?raw=true)  | **DISABLED**. Disable base station operation.
 
 ---
 ## <a name="gpxviewer">GPX Track Viewer</a>
