@@ -253,9 +253,9 @@ By default, the server/caster binds to the host address '0.0.0.0' (IPv4) or '::'
 
 A label on the settings panel indicates the number of connected clients, and the server/caster status is indicated in the topmost banner: open with no clients: ![transmit icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-noclient-10-24.png?raw=true), open with clients: ![transmit icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-transmit-10-24.png?raw=true).
 
-If NTRIP CASTER mode is selected, an additional expandable panel is made available to allow the user to configure a connected RTK-compatible u-blox receiver (e.g. ZED-F9P) to operate in either `FIXED` or `SURVEY-IN` Base Station mode (*NB: parameters can only be amended while the server/caster is stopped*). If 'Configure Base Station' is checked, the selected configuration will be applied to the connected receiver once 'NTRIP Caster' mode is activated. 
+If NTRIP CASTER mode is selected, an additional expandable panel is made available to allow the user to configure a connected RTK-compatible u-blox receiver (e.g. ZED-F9P) to operate in either `FIXED` or `SURVEY-IN` Base Station mode (*NB: parameters can only be amended while the server/caster is stopped*). If 'Configure Base Station' is checked, the selected configuration will be applied to the connected receiver once NTRIP CASTER mode is activated. 
 
-NMEA messages can be suppressed in NTRIP Caster mode by checking 'Disable NMEA'. A minimum set of UBX messages will be output in their place.
+NMEA messages can be suppressed in NTRIP CASTER mode by checking 'Disable NMEA'. A minimum set of UBX messages will be output in their place.
 
 ### <a name="basestation">Base Station Configuration</a>
 

@@ -447,9 +447,9 @@ class ServerConfigFrame(Frame):
         if self._base_mode.get() == BASE_SVIN:
             self._lbl_acclimit.grid(column=0, row=1, padx=2, pady=1, sticky=E)
             self._spn_acclimit.grid(column=1, row=1, padx=2, pady=1, sticky=W)
-            self._lbl_duration.grid(column=2, row=1, padx=2, pady=1, sticky=E)
-            self._spn_duration.grid(column=3, row=1, padx=2, pady=1, sticky=W)
-            self._chk_disablenmea.grid(column=0, row=2, padx=2, pady=1, sticky=W)
+            self._chk_disablenmea.grid(column=2, row=1, padx=2, pady=1, sticky=W)
+            self._lbl_duration.grid(column=0, row=2, padx=2, pady=1, sticky=E)
+            self._spn_duration.grid(column=1, row=2, padx=2, pady=1, sticky=W)
             self._spn_posmode.grid_forget()
             self._lbl_fixedlat.grid_forget()
             self._ent_fixedlat.grid_forget()

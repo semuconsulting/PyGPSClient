@@ -9,7 +9,7 @@
     "python.linting.enabled": true,
     "modulename": "pygpsclient",
     "distname": "pygpsclient",
-    "moduleversion": "1.3.30",
+    "moduleversion": "1.4.0",
     "[python]": {
         "editor.defaultFormatter": "ms-python.black-formatter"
     },
