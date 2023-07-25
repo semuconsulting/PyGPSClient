@@ -129,6 +129,7 @@ class ServerConfigFrame(Frame):
         self._fixedlat = DoubleVar()
         self._fixedlon = DoubleVar()
         self._fixedalt = DoubleVar()
+        self._disable_nmea = IntVar()
         self._img_expand = ImageTk.PhotoImage(Image.open(ICON_EXPAND))
         self._img_contract = ImageTk.PhotoImage(Image.open(ICON_CONTRACT))
 
@@ -223,6 +224,11 @@ class ServerConfigFrame(Frame):
             self._frm_advanced,
             text=LBLDURATIONS,
         )
+        self._chk_disablenmea = Checkbutton(
+            self._frm_advanced,
+            text="Disable NMEA",
+            variable=self._disable_nmea,
+        )
         self._spn_duration = Spinbox(
             self._frm_advanced,
             values=DURATIONS,
@@ -312,6 +318,7 @@ class ServerConfigFrame(Frame):
 
         self._base_mode.set(BASE_SVIN)
         self._pos_mode.set(POS_LLH)
+        self._disable_nmea.set(1)
         self.clients = 0
 
     def set_status(self, status: int):
@@ -368,6 +375,7 @@ class ServerConfigFrame(Frame):
             self._spn_acclimit,
             self._lbl_duration,
             self._spn_duration,
+            self._chk_disablenmea,
             self._spn_posmode,
             self._lbl_fixedlat,
             self._ent_fixedlat,
@@ -441,6 +449,7 @@ class ServerConfigFrame(Frame):
             self._spn_acclimit.grid(column=1, row=1, padx=2, pady=1, sticky=W)
             self._lbl_duration.grid(column=2, row=1, padx=2, pady=1, sticky=E)
             self._spn_duration.grid(column=3, row=1, padx=2, pady=1, sticky=W)
+            self._chk_disablenmea.grid(column=0, row=2, padx=2, pady=1, sticky=W)
             self._spn_posmode.grid_forget()
             self._lbl_fixedlat.grid_forget()
             self._ent_fixedlat.grid_forget()
@@ -451,6 +460,7 @@ class ServerConfigFrame(Frame):
         elif self._base_mode.get() == BASE_FIXED:
             self._lbl_acclimit.grid(column=0, row=1, padx=2, pady=1, sticky=E)
             self._spn_acclimit.grid(column=1, row=1, padx=2, pady=1, sticky=W)
+            self._chk_disablenmea.grid(column=2, row=1, padx=2, pady=1, sticky=W)
             self._spn_posmode.grid(column=0, row=2, rowspan=3, padx=2, pady=1, sticky=E)
             self._lbl_fixedlat.grid(column=1, row=2, padx=2, pady=1, sticky=E)
             self._ent_fixedlat.grid(
@@ -468,6 +478,7 @@ class ServerConfigFrame(Frame):
             self._spn_duration.grid_forget()
             self._set_coords(self._pos_mode.get())
         else:  # Disabled
+            self._chk_disablenmea.grid(column=0, row=1, padx=2, pady=1, sticky=W)
             self._lbl_acclimit.grid_forget()
             self._spn_acclimit.grid_forget()
             self._spn_posmode.grid_forget()
@@ -556,6 +567,8 @@ class ServerConfigFrame(Frame):
         rate = 0 if self._base_mode.get() == BASE_DISABLED else 1
         for port in ("USB", "UART1"):
             msg = self._config_msg_rates(rate, port)
+            self.__app.gnss_outqueue.put(msg.serialize())
+            msg = self._config_nmea(self._disable_nmea.get(), port)
             self.__app.gnss_outqueue.put(msg.serialize())
 
     def _config_msg_rates(self, rate: int, port_type: str) -> UBXMessage:
@@ -666,5 +679,24 @@ class ServerConfigFrame(Frame):
                 ("CFG_TMODE_ECEF_Z", z_sp),
                 ("CFG_TMODE_ECEF_Z_HP", z_hp),
             ]
+
+        return UBXMessage.config_set(layers, transaction, cfg_data)
+
+    def _config_nmea(self, state: int, port_type: str) -> UBXMessage:
+        """
+        Disable NMEA messages at port level and use minimum UBX instead.
+
+        :param int state: 1 = disable NMEA, 0 = enable NMEA
+        :param str port_type: port that rcvr is connected on
+        """
+
+        nmea_state = 0 if state else 1
+        layers = 1
+        transaction = 0
+        cfg_data = []
+        cfg_data.append((f"CFG_{port_type}OUTPROT_NMEA", nmea_state))
+        cfg_data.append((f"CFG_{port_type}OUTPROT_UBX", 1))
+        cfg_data.append((f"CFG_MSGOUT_UBX_NAV_PVT_{port_type}", state))
+        cfg_data.append((f"CFG_MSGOUT_UBX_NAV_SAT_{port_type}", state * 4))
 
         return UBXMessage.config_set(layers, transaction, cfg_data)
