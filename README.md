@@ -240,28 +240,37 @@ Below is a illustrative SPARTN DGPS data log, showing:
 ## <a name="socketserver">Socket Server / NTRIP Caster Facilities</a>
 
 The Socket Server / NTRIP Caster facility is capable of operating in either of two modes;
-1. SOCKET SERVER - an open, unauthenticated TCP socket server available to any socket client including, for example, another instance of PyGPSClient or `gnssdump` (CLI utility installed with `pygnssutils`) running on another machine. In this mode it will broadcast the host's currently connected GNSS data stream (NMEA, UBX, RTCM3). The default port is 50010.
-2. NTRIP CASTER - a simple implementation of an authenticated NTRIP caster available to any NTRIP client including, for example, the PyGPSClient NTRIP Client facility or `gnssntripclient` (CLI utility installed with `pygnssutils`). Login credentials for the NTRIP caster are set via host environment variables `PYGPSCLIENT_USER` and `PYGPSCLIENT_PASSWORD`. Default settings are as follows: bind address: 0.0.0.0, port: 2101, mountpoint: pygnssutils, user: anon, password: password.
+1. SOCKET SERVER - an open, unauthenticated TCP socket server available to any socket client including, for example, another instance of PyGPSClient or the [`gnssdump` CLI utility](https://github.com/semuconsulting/pygnssutils#gnssdump). In this mode it will broadcast the host's currently connected GNSS data stream (NMEA, UBX, RTCM3). The default port is 50010.
+2. NTRIP CASTER - a simple implementation of an authenticated NTRIP caster available to any NTRIP client including, for example, the PyGPSClient NTRIP Client facility or the [`gnssntripclient` CLI utility](https://github.com/semuconsulting/pygnssutils#gnssntripclient). Login credentials for the NTRIP caster are set via PyGPSClient command line arguments `--ntripuser`, `--ntrippassword` or via host environment variables `PYGPSCLIENT_USER`, `PYGPSCLIENT_PASSWORD`. Default settings are as follows: bind address: 0.0.0.0, port: 2101, mountpoint: pygnssutils, user: anon, password: password.
+
+By default, the server/caster binds to the host address '0.0.0.0' (IPv4) or '::' (IPv6) i.e. all available IP addresses on the host machine. This can be overridden via the settings panel or a host environment variable `PYGPSCLIENT_BINDADDRESS`. A label on the settings panel indicates the number of connected clients, and the server/caster status is indicated in the topmost banner: open with no clients: ![transmit icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-noclient-10-24.png?raw=true), open with clients: ![transmit icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-transmit-10-24.png?raw=true).
 
 **Pre-Requisites:**
 
-Running in NTRIP CASTER mode is predicated on the host being connected to an RTK-compatible GNSS receiver (e.g. ZED-F9P) **operating in Base Station mode** (either `FIXED` or `SURVEY_IN`) and outputting the requisite RTCM3 message types (1005, 1077, 1087, 1097, 1127 and 1230). 
+1. Running in NTRIP CASTER mode is predicated on the host being connected to an RTK-compatible GNSS receiver (e.g. u-blox ZED-F9P) **operating in Base Station mode** (either `FIXED` or `SURVEY_IN`) and outputting the requisite RTCM3 message types (1005, 1077, 1087, 1097, 1127 and 1230). 
+1. It may be necessary to add a firewall rule on the host and/or client machine to allow remote traffic on the specified address:port.
 
 **Instructions:**
 
-By default, the server/caster binds to the host address '0.0.0.0' (IPv4) or '::' (IPv6) i.e. all available IP addresses on the host machine. This can be overridden via the settings panel or a host environment variable `PYGPSCLIENT_BINDADDRESS`. It may be necessary to add a firewall rule on the host and/or client machine to allow remote traffic on the specified address:port.
+**SOCKET SERVER MODE**
 
-A label on the settings panel indicates the number of connected clients, and the server/caster status is indicated in the topmost banner: open with no clients: ![transmit icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-noclient-10-24.png?raw=true), open with clients: ![transmit icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-transmit-10-24.png?raw=true).
+1. Select SOCKET SERVER mode and (if necessary) enter the host IP address and port.
+1. Check the Socket Server/NTRIP Caster checkbox to activate the server.
+1. To stop the server, uncheck the checkbox.
 
-If NTRIP CASTER mode is selected, an additional expandable panel is made available to allow the user to configure a connected RTK-compatible u-blox receiver (e.g. ZED-F9P) to operate in either `FIXED` or `SURVEY-IN` Base Station mode (*NB: parameters can only be amended while the server/caster is stopped*). If 'Configure Base Station' is checked, the selected configuration will be applied to the connected receiver once NTRIP CASTER mode is activated. 
+**NTRIP CASTER MODE**
 
-NMEA messages can be suppressed in NTRIP CASTER mode by checking 'Disable NMEA'. A minimum set of UBX messages will be output in their place.
+1. Select NTRIP CASTER mode and (if necessary) enter the host IP address and port.
+1. An additional expandable panel is made available to allow the user to configure a connected RTK-compatible u-blox receiver (e.g. ZED-F9P) to operate in either `FIXED` or `SURVEY-IN` Base Station mode (*NB: parameters can only be amended while the caster is stopped*). If 'Configure Base Station' is checked, the selected configuration will be applied to the connected receiver once the caster is activated. 
+1. NMEA messages can be suppressed by checking 'Disable NMEA'. A minimum set of UBX messages will be output in their place.
+1. Check the Socket Server/NTRIP Caster checkbox to activate the caster.
+1. To stop the caster, uncheck the checkbox.
 
 ### <a name="basestation">Base Station Configuration</a>
 
 | Configuration Settings | Base Station Mode    |
 |------------------------------------------------------|---------------------------------------------------------|
-| ![basestation config](https://github.com/semuconsulting/PyGPSClient/blob/master/images/basestation_fixed.png?raw=true) | **FIXED**. In this mode, the known base station coordinates (*Antenna Reference Point or ARP*) are specified in either LLH or ECEF (X,Y,Z) format. The coordinates are pre-populated with the receiver's current navigation solution (if available), but these can be overridden with precisely surveyed values. If the coordinates are accepted, the UBX Fix status will change to `TIME ONLY` and the receiver will start outputting RTCM `1005` (*ARP location*) messages.|
+| ![basestation config](https://github.com/semuconsulting/PyGPSClient/blob/master/images/basestation_fixed.png?raw=true) | **FIXED**. In this mode, the known base station coordinates (*Antenna Reference Point or ARP*) are specified in either LLH or ECEF (X,Y,Z) format. The coordinates are pre-populated with the receiver's current navigation solution (if available), but these can (and normally should) be overridden with accurately surveyed values. If the coordinates are accepted, the UBX Fix status will change to `TIME ONLY` and the receiver will start outputting RTCM `1005` (*ARP location*) messages.|
 | ![basestation config](https://github.com/semuconsulting/PyGPSClient/blob/master/images/basestation_svin.png?raw=true)  | **SURVEY-IN**. In this mode, the base station coordinates are derived from the receiver's current navigation solution, provided the prescribed level of accuracy is met within the specified survey duration. If the survey is successful, the UBX NAV-SVIN monitoring message will indicate `valid=1, active=0`, the UBX Fix status will change to `TIME ONLY` and the receiver will start outputting RTCM `1005` (*ARP location*) messages. 
 | ![basestation config](https://github.com/semuconsulting/PyGPSClient/blob/master/images/basestation_off.png?raw=true)  | **DISABLED**. Disable base station operation.
 
