@@ -63,6 +63,8 @@ class UBXHandler:
             self._process_NAV_POSLLH(parsed_data)
         elif parsed_data.identity in ("NAV-PVT", "NAV2-PVT"):
             self._process_NAV_PVT(parsed_data)
+        elif parsed_data.identity == "NAV-PVAT":
+            self._process_NAV_PVAT(parsed_data)
         elif parsed_data.identity == "NAV-VELNED":
             self._process_NAV_VELNED(parsed_data)
         elif parsed_data.identity in ("NAV-SAT", "NAV2-SAT"):
@@ -186,6 +188,7 @@ class UBXHandler:
         self.__app.gnss_status.alt = data.hMSL / 1000  # meters
         self.__app.gnss_status.hacc = data.hAcc / 1000  # meters
         self.__app.gnss_status.vacc = data.vAcc / 1000  # meters
+        self.__app.gnss_status.sep = (data.height - data.hMSL) / 1000  # meters
 
     def _process_NAV_PVT(self, data: UBXMessage):
         """
@@ -204,6 +207,7 @@ class UBXHandler:
         self.__app.gnss_status.sip = data.numSV
         self.__app.gnss_status.speed = data.gSpeed / 1000  # m/s
         self.__app.gnss_status.track = data.headMot
+        self.__app.gnss_status.sep = (data.height - data.hMSL) / 1000  # meters
         self.__app.gnss_status.fix = fix2desc("NAV-PVT", data.fixType)
         if data.carrSoln > 0:
             self.__app.gnss_status.fix = fix2desc("NAV-PVT", data.carrSoln + 5)
@@ -211,6 +215,21 @@ class UBXHandler:
         self.__app.gnss_status.diff_corr = data.difSoln
         if data.lastCorrectionAge != 0:
             self.__app.gnss_status.diff_age = corrage2int(data.lastCorrectionAge)
+
+    def _process_NAV_PVAT(self, data: UBXMessage):
+        """
+        Process NAV-PVAT sentence -  Navigation position velocity attitude time solution.
+
+        :param UBXMessage data: NAV-PVT parsed message
+        """
+
+        self.__app.gnss_status.utc = itow2utc(data.iTOW)  # datetime.time
+        self.__app.gnss_status.lat = data.lat
+        self.__app.gnss_status.lon = data.lon
+        self.__app.gnss_status.alt = data.hMSL / 1000  # meters
+        self.__app.gnss_status.speed = data.gSpeed / 1000  # m/s
+        self.__app.gnss_status.sip = data.numSV
+        self.__app.gnss_status.sep = (data.height - data.hMSL) / 1000  # meters
 
     def _process_NAV_VELNED(self, data: UBXMessage):
         """
