@@ -5,6 +5,7 @@
 CHANGES:
 
 1. Add NTRIP caster credentials as command line arguments.
+1. Add version update facility to About dialog.
 
 ### RELEASE v1.3.30
 

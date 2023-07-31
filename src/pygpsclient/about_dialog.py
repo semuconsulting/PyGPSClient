@@ -9,6 +9,8 @@ Created on 20 Sep 2020
 """
 
 from platform import python_version
+from subprocess import CalledProcessError, run
+from sys import platform
 from tkinter import Button, Label, Toplevel
 from webbrowser import open_new_tab
 
@@ -56,6 +58,7 @@ class AboutDialog:
         self._dialog.attributes("-topmost", "true")
         self._img_icon = ImageTk.PhotoImage(Image.open(ICON_APP))
         self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
+        self._updates = []
 
         self._body()
         self._do_layout()
@@ -153,6 +156,7 @@ class AboutDialog:
         Check for updates.
         """
 
+        self._updates = []
         for i, (nam, current) in enumerate(LIBVERSIONS.items()):
             latest = check_latest(nam)
             txt = f"{nam}: {current}"
@@ -162,6 +166,45 @@ class AboutDialog:
                 txt += ". Info not available!"
                 col = "red"
             else:
+                self._updates.append(nam)
                 txt += f". Latest version is {latest}"
                 col = "red"
             self._lbl_lib_versions[i].config(text=txt, fg=col)
+
+        if len(self._updates) > 0:
+            self._btn_checkupdate.config(text="UPDATE", fg="blue")
+            self._btn_checkupdate.bind("<Button>", self._do_update)
+
+    def _do_update(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Run python update.
+        """
+
+        self._btn_checkupdate.config(text="UPDATING...", fg="red")
+        self._dialog.update_idletasks()
+        pyc = "python" if platform == "win32" else "python3"
+        cmd = [
+            pyc,
+            "-m",
+            "pip",
+            "install",
+            "--upgrade",
+            "--user",
+            "--force-reinstall",
+        ]
+        for pkg in self._updates:
+            cmd.append(pkg)
+
+        try:
+            run(
+                cmd,
+                check=True,
+                capture_output=True,
+            )
+        except CalledProcessError:
+            self._btn_checkupdate.config(text="UPDATE FAILED", fg="red")
+            self._btn_checkupdate.bind("<Button>", self._check_for_update)
+            return
+
+        self._btn_checkupdate.config(text="RESTART APP", fg="red")
+        self._btn_checkupdate.bind("<Button>", self.__app.on_exit)
