@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE CANDIDATE v1.4.0
+
+CHANGES:
+
+1. Add NTRIP caster credentials as command line arguments.
+
 ### RELEASE v1.3.30
 
 ENHANCEMENTS:
