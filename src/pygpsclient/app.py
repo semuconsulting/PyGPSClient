@@ -171,26 +171,23 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         _, self.config = self.file_handler.load_config(configfile)
         if isinstance(self.config, dict):  # load succeeded
             config_loaded = True
-            self.app_config = self.config  # do this before initialising widgets
+            self.app_config = self.config
 
         self._body()
         self._do_layout()
         self._init_dialogs()
         self._attach_events()
 
-        # Initialise widgets
+        # Initialise settings once frm_settings has been instantiated
         if config_loaded:
-            self.widget_config = self.config
             self.frm_settings.config = self.config
-            self.frm_status.set_status(f"{LOADCONFIGOK} {configfile}", OKCOL)
+            self.set_status(f"{LOADCONFIGOK} {configfile}", OKCOL)
         else:
             # self.config is str containing error msg
             if "No such file or directory" in self.config:
-                self.frm_status.set_status(f"Configuration file not found {configfile}")
+                self.set_status(f"Configuration file not found {configfile}")
             else:
-                self.frm_status.set_status(
-                    f"{LOADCONFIGBAD} {configfile} {self.config}"
-                )
+                self.set_status(f"{LOADCONFIGBAD} {configfile} {self.config}")
             self.config = {}
         self.frm_satview.init_sats()
         self.frm_graphview.init_graph()
@@ -413,8 +410,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         else:
             self.set_status(f"{LOADCONFIGOK} {filename}", OKCOL)
             self.frm_settings.config = self.config
-            self.widget_config = self.config
             self.app_config = self.config
+            self._do_layout()
 
     def save_config(self):
         """
@@ -424,7 +421,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         # combine the various config sections into one dict
         self.config = {
             **self.frm_settings.config,
-            **self.widget_config,
             **self.app_config,
         }
         rcd = self.file_handler.save_config(self.config, None)
@@ -721,16 +717,14 @@ class App(Frame):  # pylint: disable=too-many-ancestors
     @property
     def app_config(self) -> dict:
         """
-        Getter for application configuration.
-
-        This contains user-defined ports, various API keys
-        and colortagging values.
+        Getter for application and widget configuration.
 
         :return: configuration
         :rtype: dict
         """
 
-        config = {
+        widg_config = {key: vals["visible"] for key, vals in self._widget_grid.items()}
+        app_config = {
             "mapupdateinterval": self._map_update_interval,
             "userport": self._user_port,
             "spartnport": self._spartn_user_port,
@@ -742,12 +736,12 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             "colortags": self._colortags,
             "ubxpresets": self._ubxpresets,
         }
-        return config
+        return dict(widg_config, **app_config)
 
     @app_config.setter
     def app_config(self, config):
         """
-        Setter for application configuration.
+        Setter for application and widget configuration.
 
         :param dict config: configuration as dict
         """
@@ -763,6 +757,12 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._colortags = config.get("colortags", self._colortags)
         self._ubxpresets = config.get("ubxpresets", self._ubxpresets)
 
+        try:
+            for key, vals in self._widget_grid.items():
+                vals["visible"] = config[key]
+        except KeyError as err:
+            self.set_status(f"{CONFIGERR} - {err}", BADCOL)
+
     @property
     def widgets(self) -> dict:
         """
@@ -773,35 +773,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         return self._widget_grid
-
-    @property
-    def widget_config(self) -> dict:
-        """
-        Getter for widget configuration.
-
-        This contains the current status (visibility) of the various widgets.
-
-        :return: widget configuration as dict
-        :rtype: dict
-        """
-
-        return {key: vals["visible"] for key, vals in self._widget_grid.items()}
-
-    @widget_config.setter
-    def widget_config(self, config):
-        """
-        Setter for widget configuration.
-
-        :param dict config: configuration as dict
-        """
-
-        try:
-            for key, vals in self._widget_grid.items():
-                vals["visible"] = config[key]
-        except KeyError as err:
-            self.set_status(f"{CONFIGERR} - {err}", BADCOL)
-
-        self._do_layout()
 
     @property
     def appmaster(self) -> Tk:
