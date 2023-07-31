@@ -6,6 +6,7 @@ CHANGES:
 
 1. Add NTRIP caster credentials as command line arguments.
 1. Add version update facility to About dialog.
+1. Add Survey-in countdown display to NTRIP caster panel.
 
 ### RELEASE v1.3.30
 

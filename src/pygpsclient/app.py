@@ -832,3 +832,15 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         self._rtk_conn_status = status
         self.frm_banner.update_rtk_status(status)
+
+    def svin_countdown(self, dur: int, valid: bool, active: bool):
+        """
+        Count down survey in duration
+
+        :param int dur: elapsed time
+        :param bool valid: valid flag
+        :param bool active: active flag
+        """
+
+        if self.frm_settings.frm_server is not None:
+            self.frm_settings.frm_server.svin_countdown(dur, valid, active)

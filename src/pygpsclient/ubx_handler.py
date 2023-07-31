@@ -71,6 +71,8 @@ class UBXHandler:
             self._process_NAV_SAT(parsed_data)
         elif parsed_data.identity in ("NAV-STATUS", "NAV2-STATUS)"):
             self._process_NAV_STATUS(parsed_data)
+        elif parsed_data.identity == "NAV-SVIN":
+            self._process_NAV_SVIN(parsed_data)
         elif parsed_data.identity == "NAV-SVINFO":
             self._process_NAV_SVINFO(parsed_data)
         elif parsed_data.identity == "NAV-SOL":
@@ -287,6 +289,15 @@ class UBXHandler:
         self.__app.gnss_status.fix = fix2desc("NAV-STATUS", data.gpsFix)
         if data.carrSoln > 0:
             self.__app.gnss_status.fix = fix2desc("NAV-STATUS", data.carrSoln + 5)
+
+    def _process_NAV_SVIN(self, data: UBXMessage):
+        """
+        Process NAV-SVIN sentences - Survey In Status.
+
+        :param UBXMessage data: NAV-SVIN parsed message
+        """
+
+        self.__app.svin_countdown(data.dur, data.valid, data.active)
 
     def _process_NAV_SVINFO(self, data: UBXMessage):
         """

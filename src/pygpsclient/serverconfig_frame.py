@@ -237,6 +237,10 @@ class ServerConfigFrame(Frame):
             wrap=True,
             textvariable=self._duration,
         )
+        self._lbl_elapsed = Label(
+            self._frm_advanced,
+            text="",
+        )
         self._spn_posmode = Spinbox(
             self._frm_advanced,
             values=POSMODES,
@@ -450,6 +454,7 @@ class ServerConfigFrame(Frame):
             self._chk_disablenmea.grid(column=2, row=1, padx=2, pady=1, sticky=W)
             self._lbl_duration.grid(column=0, row=2, padx=2, pady=1, sticky=E)
             self._spn_duration.grid(column=1, row=2, padx=2, pady=1, sticky=W)
+            self._lbl_elapsed.grid(column=2, row=2, padx=2, pady=1, sticky=W)
             self._spn_posmode.grid_forget()
             self._lbl_fixedlat.grid_forget()
             self._ent_fixedlat.grid_forget()
@@ -476,6 +481,7 @@ class ServerConfigFrame(Frame):
             )
             self._lbl_duration.grid_forget()
             self._spn_duration.grid_forget()
+            self._lbl_elapsed.grid_forget()
             self._set_coords(self._pos_mode.get())
         else:  # Disabled
             self._chk_disablenmea.grid(column=0, row=1, padx=2, pady=1, sticky=W)
@@ -490,6 +496,7 @@ class ServerConfigFrame(Frame):
             self._ent_fixedalt.grid_forget()
             self._lbl_duration.grid_forget()
             self._spn_duration.grid_forget()
+            self._lbl_elapsed.grid_forget()
 
     def _on_posmode(self, var, index, mode):
         """
@@ -700,3 +707,26 @@ class ServerConfigFrame(Frame):
         cfg_data.append((f"CFG_MSGOUT_UBX_NAV_SAT_{port_type}", state * 4))
 
         return UBXMessage.config_set(layers, transaction, cfg_data)
+
+    def svin_countdown(self, dur: int, valid: bool, active: bool):
+        """
+        Display countdown of remaining survey-in duration.
+
+        :param int dur: elapsed time
+        :param bool valid: valid flag
+        :param bool active: active flag
+        """
+
+        if not self.socket_serve.get():
+            return
+        MAX = 15
+        if not active and valid:
+            txt = "SVIN Valid"
+        elif not active and not valid:
+            txt = "SVIN Invalid"
+        elif active:
+            rem = int(((self._duration.get() - dur) / self._duration.get()) * MAX)
+            txt = "\u2588" * rem
+        else:
+            txt = ""
+        self._lbl_elapsed.config(text=txt, fg="grey65")
