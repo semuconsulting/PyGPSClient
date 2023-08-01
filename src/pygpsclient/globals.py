@@ -187,6 +187,7 @@ MSGMODES = {
 # read event types
 GNSS_EVENT = "<<gnss_read>>"
 GNSS_EOF_EVENT = "<<gnss_eof>>"
+GNSS_ERR_EVENT = "<<stream_error>>"
 NTRIP_EVENT = "<<ntrip_read>>"
 SPARTN_EVENT = "<<spartn_read>>"
 SPARTN_EOF_EVENT = "<<spartn_eof>>"

@@ -40,6 +40,7 @@ from pygpsclient.globals import (
     DLGTUBX,
     FRM,
     GNSS_EOF_EVENT,
+    GNSS_ERR_EVENT,
     GNSS_EVENT,
     GUI_UPDATE_INTERVAL,
     ICON_APP,
@@ -69,6 +70,7 @@ from pygpsclient.status_frame import StatusFrame
 from pygpsclient.stream_handler import StreamHandler
 from pygpsclient.strings import (
     CONFIGERR,
+    ENDOFFILE,
     INTROTXTNOPORTS,
     LOADCONFIGBAD,
     LOADCONFIGOK,
@@ -196,7 +198,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.frm_scatterview.init_graph()
         self.frm_banner.update_conn_status(DISCONNECTED)
 
-        if self.frm_settings.serial_settings.status == NOPORTS:
+        if self.frm_settings._frm_serial.status == NOPORTS:
             self.set_status(INTROTXTNOPORTS, BADCOL)
 
         # Check for more recent version (if enabled)
@@ -349,9 +351,11 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         self.__master.bind(GNSS_EVENT, self.on_gnss_read)
-        self.__master.bind(GNSS_EOF_EVENT, self.stream_handler.on_eof)
+        self.__master.bind(GNSS_EOF_EVENT, self.on_eof)
+        self.__master.bind(GNSS_ERR_EVENT, self.on_stream_error)
         self.__master.bind(NTRIP_EVENT, self.on_ntrip_read)
         self.__master.bind(SPARTN_EVENT, self.on_spartn_read)
+
         self.__master.bind_all("<Control-q>", self.on_exit)
 
     def _set_default_fonts(self):
@@ -630,6 +634,28 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         except (SerialException, SerialTimeoutException) as err:
             self.set_status(f"Error sending to device {err}", BADCOL)
 
+    def on_eof(self, event):  # pylint: disable=unused-argument
+        """
+        EVENT TRIGGERED
+        Action on end of file
+
+        :param event event: <<gnss_eof>> event
+        """
+
+        self.stream_handler.stop_read_thread()
+        self.frm_settings.server_state = 0  # turn off socket server
+        self.set_status(ENDOFFILE)
+
+    def on_stream_error(self, event):  # pylint: disable=unused-argument
+        """
+        EVENT TRIGGERED
+        Action on connection stream error
+
+        :param event event: <<stream_error>> event
+        """
+
+        self.conn_status = DISCONNECTED
+
     def update_ntrip_status(self, status: bool, msgt: tuple = None):
         """
         Update NTRIP configuration dialog connection status.
@@ -809,7 +835,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.frm_settings.enable_controls(status)
         if status == DISCONNECTED:
             self.set_connection(NOTCONN)
-            self.set_status("")
 
     @property
     def rtk_conn_status(self) -> int:
@@ -835,7 +860,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
     def svin_countdown(self, dur: int, valid: bool, active: bool):
         """
-        Count down survey in duration
+        Countdown survey-in duration for NTRIP caster mode.
 
         :param int dur: elapsed time
         :param bool valid: valid flag
