@@ -14,7 +14,7 @@ from platform import system
 from tkinter import SUNKEN, Button, E, Frame, Label, N, S, StringVar, W, font
 
 from PIL import Image, ImageTk
-from pynmeagps.nmeahelpers import latlon2dmm, latlon2dms
+from pynmeagps.nmeahelpers import latlon2dmm, latlon2dms, llh2ecef
 from pyubx2 import dop2str
 
 from pygpsclient.globals import (
@@ -27,6 +27,7 @@ from pygpsclient.globals import (
     CONNECTED_SPARTNLB,
     DMM,
     DMS,
+    ECEF,
     FGCOL,
     ICON_BLANK,
     ICON_CONN,
@@ -414,8 +415,19 @@ class BannerFrame(Frame):
 
         lat = self.__app.gnss_status.lat
         lon = self.__app.gnss_status.lon
+        alt = self.__app.gnss_status.alt  # hMSL
+        self._lbl_llat.config(text="lat:")
+        self._lbl_llon.config(text="lon:")
+        self._lbl_lalt.config(text="alt:")
+        alt_u = "m"
+
         if isinstance(lat, (int, float)) and isinstance(lon, (int, float)):
-            if deg_format == DMS:
+            if deg_format == ECEF:
+                lat, lon, alt = llh2ecef(lat, lon, alt)
+                self._lbl_llat.config(text="X:")
+                self._lbl_llon.config(text="Y:")
+                self._lbl_lalt.config(text="Z:")
+            elif deg_format == DMS:
                 lat, lon = latlon2dms(lat, lon)
             elif deg_format == DMM:
                 lat, lon = latlon2dmm(lat, lon)
@@ -425,9 +437,11 @@ class BannerFrame(Frame):
             self._lat.set("N/A            ")
             self._lon.set("N/A            ")
 
-        alt = self.__app.gnss_status.alt
-        alt_u = "m"
         if isinstance(alt, (int, float)):
+            if deg_format == ECEF:
+                self._alt.set(f"{alt:<15}")
+                self._alt_u.set("  ")
+                return
             if units in (UI, UIK):
                 alt = m2ft(alt)
                 alt_u = "ft"

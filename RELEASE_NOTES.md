@@ -7,6 +7,8 @@ CHANGES:
 1. Add NTRIP caster credentials as command line arguments.
 1. Add version update facility to About dialog.
 1. Add Survey-in countdown display to NTRIP caster panel.
+1. Add ECEF position format to banner.
+1. Internal streamlining of stream_handler and settings_frame
 
 ### RELEASE v1.3.30
 

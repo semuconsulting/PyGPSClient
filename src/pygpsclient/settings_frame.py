@@ -48,6 +48,7 @@ from pygpsclient.globals import (
     DLGTUBX,
     DMM,
     DMS,
+    ECEF,
     FORMATS,
     GNSS_EOF_EVENT,
     GNSS_EVENT,
@@ -250,7 +251,7 @@ class SettingsFrame(Frame):
         self._lbl_format = Label(self._frm_options, text=LBLDEGFORMAT)
         self._spn_format = Spinbox(
             self._frm_options,
-            values=(DDD, DMS, DMM),
+            values=(DDD, DMS, DMM, ECEF),
             width=6,
             state=READONLY,
             wrap=True,
