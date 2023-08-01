@@ -63,7 +63,7 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 1. To disconnect from the data stream, click
 ![disconnect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-media-control-50-24.png?raw=true).
 1. Protocols Shown - Select which protocols to display; NMEA, UBX and/or RTCM3 (NB: this only changes the displayed protocols - to change the actual protocols output by the receiver, use the [UBX Configuration Dialog](#ubxconfig)).
-1. Degrees Format and Units - Change the displayed degree (D.DD / D.M.S / D.M.MM) and unit (metric/imperial) formats.
+1. Position Format and Units - Change the displayed position (D.DD / D.M.S / D.M.MM / ECEF) and unit (metric/imperial) formats.
 1. Map Type - Select from "world", "map" or "sat" (*"map" and "sat" types require an Internet connection and free [Mapquest API Key](#mapquestapi)*).
 1. Show Unused Satellites - Include or exclude satellites that are not used in the navigation solution (e.g. because their signal level is too low) from the graph and sky view panels.
 1. DataLogging - Turn Data logging in the selected format on or off. You will be prompted to select the directory into which timestamped log files are saved.
