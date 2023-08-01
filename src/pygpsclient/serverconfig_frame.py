@@ -31,6 +31,7 @@ from tkinter import (
     StringVar,
     W,
 )
+from tkinter.ttk import Progressbar
 
 from PIL import Image, ImageTk
 from pyubx2 import UBXMessage, llh2ecef
@@ -95,6 +96,7 @@ ACCURACIES = (
     20,
 )
 DURATIONS = (60, 1200, 600, 300, 240, 180, 120, 90)
+MAXSVIN = 15
 
 
 class ServerConfigFrame(Frame):
@@ -240,6 +242,12 @@ class ServerConfigFrame(Frame):
         self._lbl_elapsed = Label(
             self._frm_advanced,
             text="",
+        )
+        self._pgb_elapsed = Progressbar(
+            self._frm_advanced,
+            orient="horizontal",
+            mode="determinate",
+            length=150,
         )
         self._spn_posmode = Spinbox(
             self._frm_advanced,
@@ -393,6 +401,7 @@ class ServerConfigFrame(Frame):
             else:
                 state = READONLY if isinstance(wid, Spinbox) else NORMAL
             wid.config(state=state)
+        self._lbl_elapsed.config(text="")
 
         # configure receiver as base station if in NTRIP Caster mode
         # and 'Configure Base' option is checked.
@@ -454,7 +463,10 @@ class ServerConfigFrame(Frame):
             self._chk_disablenmea.grid(column=2, row=1, padx=2, pady=1, sticky=W)
             self._lbl_duration.grid(column=0, row=2, padx=2, pady=1, sticky=E)
             self._spn_duration.grid(column=1, row=2, padx=2, pady=1, sticky=W)
-            self._lbl_elapsed.grid(column=2, row=2, padx=2, pady=1, sticky=W)
+            self._lbl_elapsed.grid(
+                column=2, row=2, columnspan=2, padx=2, pady=1, sticky=W
+            )
+            self._pgb_elapsed.grid_forget()
             self._spn_posmode.grid_forget()
             self._lbl_fixedlat.grid_forget()
             self._ent_fixedlat.grid_forget()
@@ -481,6 +493,7 @@ class ServerConfigFrame(Frame):
             )
             self._lbl_duration.grid_forget()
             self._spn_duration.grid_forget()
+            self._pgb_elapsed.grid_forget()
             self._lbl_elapsed.grid_forget()
             self._set_coords(self._pos_mode.get())
         else:  # Disabled
@@ -496,6 +509,7 @@ class ServerConfigFrame(Frame):
             self._ent_fixedalt.grid_forget()
             self._lbl_duration.grid_forget()
             self._spn_duration.grid_forget()
+            self._pgb_elapsed.grid_forget()
             self._lbl_elapsed.grid_forget()
 
     def _on_posmode(self, var, index, mode):
@@ -708,25 +722,28 @@ class ServerConfigFrame(Frame):
 
         return UBXMessage.config_set(layers, transaction, cfg_data)
 
-    def svin_countdown(self, dur: int, valid: bool, active: bool):
+    def svin_countdown(self, ela: int, valid: bool, active: bool):
         """
         Display countdown of remaining survey-in duration.
 
-        :param int dur: elapsed time
-        :param bool valid: valid flag
-        :param bool active: active flag
+        :param int ela: elapsed time
+        :param bool valid: SVIN validity status
+        :param bool active: SVIN active status
         """
 
-        if not self.socket_serve.get():
-            return
-        MAX = 15
-        if not active and valid:
-            txt = "SVIN Valid"
-        elif not active and not valid:
-            txt = "SVIN Invalid"
-        elif active:
-            rem = int(((self._duration.get() - dur) / self._duration.get()) * MAX)
-            txt = "\u2588" * rem
+        if self._base_mode.get() == BASE_SVIN and active and not valid:
+            self._lbl_elapsed.grid_forget()
+            self._pgb_elapsed.grid(
+                column=2, row=2, columnspan=2, padx=2, pady=1, sticky=W
+            )
+            dur = self._duration.get()
+            self._pgb_elapsed["value"] = 100 * (dur - ela) / dur
+        elif self._base_mode.get() == BASE_SVIN and valid:
+            self._pgb_elapsed.grid_forget()
+            self._lbl_elapsed.grid(
+                column=2, row=2, columnspan=2, padx=2, pady=1, sticky=W
+            )
+            self._lbl_elapsed.config(text="SVIN Valid")
         else:
-            txt = ""
-        self._lbl_elapsed.config(text=txt, fg="grey65")
+            self._lbl_elapsed.grid_forget()
+            self._pgb_elapsed.grid_forget()

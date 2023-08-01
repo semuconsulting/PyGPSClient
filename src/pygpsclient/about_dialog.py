@@ -180,7 +180,7 @@ class AboutDialog:
         Run python update.
         """
 
-        self._btn_checkupdate.config(text="UPDATING...", fg="red")
+        self._btn_checkupdate.config(text="UPDATING...", fg="blue")
         self._dialog.update_idletasks()
         pyc = "python" if platform == "win32" else "python3"
         cmd = [
@@ -206,5 +206,5 @@ class AboutDialog:
             self._btn_checkupdate.bind("<Button>", self._check_for_update)
             return
 
-        self._btn_checkupdate.config(text="RESTART APP", fg="red")
+        self._btn_checkupdate.config(text="RESTART APP", fg="green")
         self._btn_checkupdate.bind("<Button>", self.__app.on_exit)
