@@ -355,7 +355,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.__master.bind(GNSS_ERR_EVENT, self.on_stream_error)
         self.__master.bind(NTRIP_EVENT, self.on_ntrip_read)
         self.__master.bind(SPARTN_EVENT, self.on_spartn_read)
-
         self.__master.bind_all("<Control-q>", self.on_exit)
 
     def _set_default_fonts(self):
@@ -651,7 +650,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         EVENT TRIGGERED
         Action on connection stream error
 
-        :param event event: <<stream_error>> event
+        :param event event: <<gnss_error>> event
         """
 
         self.conn_status = DISCONNECTED

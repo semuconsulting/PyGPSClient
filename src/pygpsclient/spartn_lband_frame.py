@@ -49,6 +49,7 @@ from pygpsclient.globals import (
     NOPORTS,
     READONLY,
     SPARTN_EOF_EVENT,
+    SPARTN_ERR_EVENT,
     SPARTN_EVENT,
     SPARTN_LBAND,
     TIMEOUTS,
@@ -164,6 +165,7 @@ class SPARTNLBANDDialog(Frame):
 
         self._body()
         self._do_layout()
+        self._attach_events()
         self._reset()
 
     def _body(self):
@@ -327,6 +329,13 @@ class SPARTNLBANDDialog(Frame):
         self._btn_send.grid(column=2, row=12, padx=3, pady=2, sticky=W)
         self._lbl_send.grid(column=3, row=12, padx=3, pady=2, sticky=W)
 
+    def _attach_events(self):
+        """
+        Bind events to frame.
+        """
+
+        self.__master.bind(SPARTN_ERR_EVENT, self.on_error)
+
     def _reset(self):
         """
         Reset configuration widgets.
@@ -425,6 +434,7 @@ class SPARTNLBANDDialog(Frame):
         conndict = {
             "read_event": SPARTN_EVENT,
             "eof_event": SPARTN_EOF_EVENT,
+            "error_event": SPARTN_ERR_EVENT,
             "inqueue": self.__app.spartn_inqueue,
             "outqueue": self.__app.spartn_outqueue,
             "socket_inqueue": self.__app.socket_inqueue,
@@ -460,6 +470,16 @@ class SPARTNLBANDDialog(Frame):
                     "red",
                 )
             self.set_controls(DISCONNECTED)
+
+    def on_error(self, event):  # pylint: disable=unused-variable
+        """
+        EVENT TRIGGERED
+        Action on <<spartn_error>> event - disconnect.
+
+        :param event event: read event
+        """
+
+        self.on_disconnect()
 
     def _format_cfgpoll(self) -> UBXMessage:
         """

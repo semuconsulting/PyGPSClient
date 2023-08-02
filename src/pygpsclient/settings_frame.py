@@ -51,6 +51,7 @@ from pygpsclient.globals import (
     ECEF,
     FORMATS,
     GNSS_EOF_EVENT,
+    GNSS_ERR_EVENT,
     GNSS_EVENT,
     ICON_CONN,
     ICON_DISCONN,
@@ -429,6 +430,7 @@ class SettingsFrame(Frame):
         conndict = {
             "read_event": GNSS_EVENT,
             "eof_event": GNSS_EOF_EVENT,
+            "error_event": GNSS_ERR_EVENT,
             "inqueue": self.__app.gnss_inqueue,
             "outqueue": self.__app.gnss_outqueue,
             "socket_inqueue": self.__app.socket_inqueue,

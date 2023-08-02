@@ -409,7 +409,7 @@ class BannerFrame(Frame):
         """
         Update position
 
-        :param str disp_format: degrees display format as string (DMS, DMM, DDD)
+        :param str disp_format: position display format as string (DMS, DMM, DDD, ECEF)
         :param str units: distance units as string (UMM, UMK, UI, UIK)
         """
 
@@ -424,6 +424,8 @@ class BannerFrame(Frame):
         if isinstance(lat, (int, float)) and isinstance(lon, (int, float)):
             if deg_format == ECEF:
                 lat, lon, alt = llh2ecef(lat, lon, alt)
+                if units in (UI, UIK):
+                    lat, lon = (m2ft(x) for x in (lat, lon))
                 self._lbl_llat.config(text="X:")
                 self._lbl_llon.config(text="Y:")
                 self._lbl_lalt.config(text="Z:")
@@ -438,14 +440,11 @@ class BannerFrame(Frame):
             self._lon.set("N/A            ")
 
         if isinstance(alt, (int, float)):
-            if deg_format == ECEF:
-                self._alt.set(f"{alt:<15}")
-                self._alt_u.set("  ")
-                return
             if units in (UI, UIK):
                 alt = m2ft(alt)
                 alt_u = "ft"
-            self._alt.set(f"{alt:.3f}")
+            fmt = "<15" if deg_format == ECEF else ".3f"
+            self._alt.set(f"{alt:{fmt}}")
             self._alt_u.set(f"{alt_u:<2}")
         else:
             self._alt.set("N/A  ")

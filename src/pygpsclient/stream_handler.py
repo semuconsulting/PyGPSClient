@@ -181,7 +181,7 @@ class StreamHandler:
         ) as err:
             if not stopevent.is_set():
                 stopevent.set()
-                self.__master.event_generate(GNSS_ERR_EVENT)
+                self.__master.event_generate(settings["error_event"])
                 if hasattr(caller, "set_status"):
                     caller.set_status(str(err), "red")
 
