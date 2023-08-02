@@ -1,4 +1,6 @@
 """
+status_frane.py
+
 Status Bar frame class for PyGPSClient application.
 
 This handles the status bar notifications at the foot of the window.

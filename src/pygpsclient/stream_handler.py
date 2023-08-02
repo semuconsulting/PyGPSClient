@@ -3,13 +3,22 @@ stream_handler.py
 
 StreamHandler class for PyGPSClient application.
 
-This handles all the serial stream i/o. It is invoked in two use cases,
-signified by the 'caller' argument:
+This handles all the serial stream i/o. It uses the pyubx2.UBXReader
+class to read and parse incoming data from the receiver. It places
+this data on an input message queue and generates a <<read-event>>
+which triggers the main App class to process the data.
 
-- i/o with the main GNSS receiver.
-- i/o with a SPARTN L-Band receiver, when the SPARTN Client is active.
+It also reads any command and poll messages placed on an output
+message queue and sends these to the receiver.
 
-The caller object should implement a 'set_status()' method.
+The StreamHandler class is used by two PyGPSClient 'caller' objects:
+
+- SettingsFrame - i/o with the main GNSS receiver.
+- SpartnLbandDialog - i/o with a SPARTN L-Band receiver, when the
+SPARTN Client is active.
+
+The caller object can implement a 'set_status()' method to
+display any status messages output by StreamHandler.
 
 Created on 16 Sep 2020
 
@@ -42,7 +51,6 @@ from pygpsclient.globals import (
     CONNECTED_SOCKET,
     DEFAULT_BUFSIZE,
     FILEREAD_INTERVAL,
-    GNSS_ERR_EVENT,
 )
 
 
@@ -64,7 +72,6 @@ class StreamHandler:
 
         self._stream_thread = None
         self._stopevent = Event()
-        self._sockserve_event = Event()
 
     def start_read_thread(self, caller: object, settings: dict):
         """
@@ -80,7 +87,6 @@ class StreamHandler:
             args=(
                 caller,
                 self._stopevent,
-                self._sockserve_event,
                 settings,
             ),
             daemon=True,
@@ -99,17 +105,14 @@ class StreamHandler:
         self,
         caller,
         stopevent: Event,
-        sockserve_event: Event,
         settings: dict,
     ):
         """
         THREADED PROCESS
-
         Connects to selected data stream and starts read loop.
 
         :param caller owner: calling object
         :param Event stopevent: thread stop event
-        :param Event sockserve_event: socket serving event
         :param dict settings: settings dictionary
         """
 
@@ -129,7 +132,6 @@ class StreamHandler:
                 ) as stream:
                     self._readloop(
                         stopevent,
-                        sockserve_event,
                         stream,
                         settings,
                     )
@@ -139,7 +141,6 @@ class StreamHandler:
                 with open(in_filepath, "rb") as stream:
                     self._readloop(
                         stopevent,
-                        sockserve_event,
                         stream,
                         settings,
                     )
@@ -164,12 +165,12 @@ class StreamHandler:
                     stream.connect(conn)
                     self._readloop(
                         stopevent,
-                        sockserve_event,
                         stream,
                         settings,
                     )
 
         except (EOFError, TimeoutError):
+            stopevent.set()
             self.__master.event_generate(settings["eof_event"])
         except (
             IOError,
@@ -188,18 +189,17 @@ class StreamHandler:
     def _readloop(
         self,
         stopevent: Event,
-        sockserve_event: Event,
         stream: object,
         settings: dict,
     ):
         """
+        THREADED PROCESS
         Read stream continously until stop event or stream error.
 
         File streams use a small delay between reads to
         prevent thrashing.
 
         :param Event stopevent: thread stop event
-        :param Event sockserve_event: socket serving event
         :param object stream: serial data stream
         :param dict settings: settings dictionary
         """
@@ -210,7 +210,7 @@ class StreamHandler:
             protfilter=NMEA_PROTOCOL | UBX_PROTOCOL | RTCM3_PROTOCOL,
             quitonerror=ERR_IGNORE,
             bufsize=DEFAULT_BUFSIZE,
-            msgmode=settings["serial_settings"].msgmode,
+            msgmode=settings["msgmode"],
         )
 
         raw_data = None
@@ -226,9 +226,6 @@ class StreamHandler:
                     if raw_data is not None:
                         settings["inqueue"].put((raw_data, parsed_data))
                         self.__master.event_generate(settings["read_event"])
-                        # if socket server is running
-                        if sockserve_event.is_set():
-                            settings["socket_outqueue"].put(raw_data)
                     else:
                         if conntype == CONNECTED_FILE:
                             raise EOFError
@@ -259,27 +256,3 @@ class StreamHandler:
                 settings["inqueue"].put((raw_data, parsed_data))
                 self.__master.event_generate(settings["read_event"])
                 continue
-
-    @property
-    def sock_serve(self) -> bool:
-        """
-        Getter for socket serve event status.
-
-        :return: socket server status (True/False)
-        :rtype: bool
-        """
-
-        return self._sockserve_event.is_set()
-
-    @sock_serve.setter
-    def sock_serve(self, status: bool):
-        """
-        Setter for socket serve event status.
-
-        :param bool status: sock serve status
-        """
-
-        if status:
-            self._sockserve_event.set()
-        else:
-            self._sockserve_event.clear()

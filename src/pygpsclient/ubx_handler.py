@@ -6,7 +6,7 @@ UBX Protocol handler - handles all incoming UBX messages
 Parses individual UBX messages (using pyubx2 library)
 and adds selected attribute values to the app.gnss_status
 data dictionary. This dictionary is then used to periodically
-update the app banner and user-selectable widgets.
+update the various user-selectable widget panels.
 
 Created on 30 Sep 2020
 

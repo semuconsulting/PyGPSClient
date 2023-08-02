@@ -1,4 +1,6 @@
 """
+socketconfig_frame.py
+
 Generic socket configuration Frame subclass
 for use in tkinter applications which require a
 socket configuration facility.

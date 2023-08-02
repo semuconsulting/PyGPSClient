@@ -265,6 +265,7 @@ GNSS_LIST = {
     4: ("IME", "violet"),
     5: ("QZS", "yellow"),
     6: ("GLO", "indianred"),
+    7: ("NAV", "grey60"),
 }
 
 # map of fix values to descriptions

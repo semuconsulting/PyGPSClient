@@ -198,7 +198,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.frm_scatterview.init_graph()
         self.frm_banner.update_conn_status(DISCONNECTED)
 
-        if self.frm_settings._frm_serial.status == NOPORTS:
+        if self.frm_settings.frm_serial.status == NOPORTS:
             self.set_status(INTROTXTNOPORTS, BADCOL)
 
         # Check for more recent version (if enabled)
@@ -351,7 +351,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         self.__master.bind(GNSS_EVENT, self.on_gnss_read)
-        self.__master.bind(GNSS_EOF_EVENT, self.on_eof)
+        self.__master.bind(GNSS_EOF_EVENT, self.on_gnss_eof)
         self.__master.bind(GNSS_ERR_EVENT, self.on_stream_error)
         self.__master.bind(NTRIP_EVENT, self.on_ntrip_read)
         self.__master.bind(SPARTN_EVENT, self.on_spartn_read)
@@ -576,7 +576,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
     def on_gnss_read(self, event):  # pylint: disable=unused-argument
         """
         EVENT TRIGGERED
-        Action on <<gnss_read>> event - read data from GNSS queue.
+        Action on <<gnss_read>> event - data available on GNSS queue.
 
         :param event event: read event
         """
@@ -585,14 +585,29 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             raw_data, parsed_data = self.gnss_inqueue.get(False)
             if raw_data is not None and parsed_data is not None:
                 self.process_data(raw_data, parsed_data)
+            # if socket server is running, output raw data to socket
+            if self.frm_settings.frm_server.socketserving:
+                self.socket_outqueue.put(raw_data)
             self.gnss_inqueue.task_done()
         except Empty:
             pass
 
+    def on_gnss_eof(self, event):  # pylint: disable=unused-argument
+        """
+        EVENT TRIGGERED
+        Action on <<sgnss_eof>> event - end of file.
+
+        :param event event: <<gnss_eof>> event
+        """
+
+        self.frm_settings.frm_server.socketserving = False  # turn off socket server
+        self.conn_status = DISCONNECTED
+        self.set_status(ENDOFFILE)
+
     def on_ntrip_read(self, event):  # pylint: disable=unused-argument
         """
         EVENT TRIGGERED
-        Action on <<ntrip_read>> event - read data from NTRIP queue.
+        Action on <<ntrip_read>> event - data available on NTRIP queue.
 
         :param event event: read event
         """
@@ -615,7 +630,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
     def on_spartn_read(self, event):  # pylint: disable=unused-argument
         """
         EVENT TRIGGERED
-        Action on <<spartn_read>> event - read data from SPARTN queue.
+        Action on <<spartn_read>> event - data available on SPARTN queue.
 
         :param event event: read event
         """
@@ -633,22 +648,10 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         except (SerialException, SerialTimeoutException) as err:
             self.set_status(f"Error sending to device {err}", BADCOL)
 
-    def on_eof(self, event):  # pylint: disable=unused-argument
-        """
-        EVENT TRIGGERED
-        Action on end of file
-
-        :param event event: <<gnss_eof>> event
-        """
-
-        self.stream_handler.stop_read_thread()
-        self.frm_settings.server_state = 0  # turn off socket server
-        self.set_status(ENDOFFILE)
-
     def on_stream_error(self, event):  # pylint: disable=unused-argument
         """
         EVENT TRIGGERED
-        Action on connection stream error
+        Action on "<<gnss_error>>" event - connection streaming error.
 
         :param event event: <<gnss_error>> event
         """

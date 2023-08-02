@@ -1,9 +1,9 @@
 """
 helpers.py
 
-PyGPSClient Helpers
+PyGPSClient Helpers.
 
-Collection of helper methods
+Collection of helper methods.
 
 Created on 17 Apr 2021
 
@@ -400,6 +400,8 @@ def svid2gnssid(svid) -> int:
         gnssId = 5  # QZSS
     elif (65 <= svid <= 96) or svid == 255:
         gnssId = 6  # GLONASS
+    elif 247 <= svid <= 253:
+        gnssId = 7  # NAVIC
     else:
         gnssId = 0  # GPS
     return gnssId

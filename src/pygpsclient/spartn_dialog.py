@@ -36,7 +36,7 @@ from pygpsclient.globals import (
     SPARTN_MQTT,
 )
 from pygpsclient.spartn_gnss_frame import SPARTNGNSSDialog
-from pygpsclient.spartn_lband_frame import SPARTNLBANDDialog
+from pygpsclient.spartn_lband_frame import SpartnLbandDialog
 from pygpsclient.spartn_mqtt_frame import SPARTNMQTTDialog
 from pygpsclient.strings import DLGSPARTNCONFIG
 
@@ -102,7 +102,7 @@ class SPARTNConfigDialog(Toplevel):
         self._frm_corrip = SPARTNMQTTDialog(
             self.__app, self, borderwidth=2, relief="groove"
         )
-        self._frm_corrlband = SPARTNLBANDDialog(
+        self._frm_corrlband = SpartnLbandDialog(
             self.__app, self, borderwidth=2, relief="groove"
         )
         self._frm_gnss = SPARTNGNSSDialog(

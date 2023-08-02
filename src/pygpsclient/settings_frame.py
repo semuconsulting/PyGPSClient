@@ -4,7 +4,8 @@ settings_frame.py
 Settings frame class for PyGPSClient application.
 
 This handles the settings/configuration panel. It references
-the common SerialConfigFrame utility class for serial port settings.
+the SerialConfigFrame class for serial port settings
+and the SocketConfigFrame class for socket settings.
 
 Exposes the various settings as properties.
 
@@ -158,7 +159,7 @@ class SettingsFrame(Frame):
 
         # serial port configuration panel
         userport = self.__app.app_config.get("userport", "")
-        self._frm_serial = SerialConfigFrame(
+        self.frm_serial = SerialConfigFrame(
             self,
             preselect=KNOWNGPS,
             timeouts=TIMEOUTS,
@@ -168,7 +169,7 @@ class SettingsFrame(Frame):
         )
 
         # socket configuration panel
-        self._frm_socket = SocketConfigFrame(self)
+        self.frm_socket = SocketConfigFrame(self)
 
         # connection buttons
         self._frm_buttons = Frame(self)
@@ -349,14 +350,14 @@ class SettingsFrame(Frame):
         Position widgets in frame.
         """
 
-        self._frm_serial.grid(
+        self.frm_serial.grid(
             column=0, row=1, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
         ttk.Separator(self).grid(
             column=0, row=2, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
 
-        self._frm_socket.grid(
+        self.frm_socket.grid(
             column=0, row=3, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
         ttk.Separator(self).grid(
@@ -434,19 +435,19 @@ class SettingsFrame(Frame):
             "inqueue": self.__app.gnss_inqueue,
             "outqueue": self.__app.gnss_outqueue,
             "socket_inqueue": self.__app.socket_inqueue,
-            "socket_outqueue": self.__app.socket_outqueue,
             "conntype": conntype,
-            "serial_settings": self._frm_serial,
+            "msgmode": self.frm_serial.msgmode,
         }
 
         self.frm_server.set_status(conntype)
         if conntype == CONNECTED:
-            frm = self._frm_serial
+            frm = self.frm_serial
             if frm.status == NOPORTS:
                 return
             connstr = f"{frm.port}:{frm.port_desc} @ {frm.bpsrate}"
+            conndict = dict(conndict, **{"serial_settings": frm})
         elif conntype == CONNECTED_SOCKET:
-            frm = self._frm_socket
+            frm = self.frm_socket
             valid = True
             valid = valid & valid_entry(frm.ent_server, VALURL)
             valid = valid & valid_entry(frm.ent_port, VALINT, 1, MAXPORT)
@@ -567,8 +568,8 @@ class SettingsFrame(Frame):
 
         """
 
-        self._frm_serial.set_status(status)
-        self._frm_socket.set_status(status)
+        self.frm_serial.set_status(status)
+        self.frm_socket.set_status(status)
         self.frm_server.set_status(status)
 
         self._btn_connect.config(
@@ -648,7 +649,7 @@ class SettingsFrame(Frame):
             "logformat": self._logformat.get(),
             "datalog": self._datalog.get(),
             "recordtrack": self._record_track.get(),
-            "sockserver": self.frm_server.socket_serve.get(),
+            "sockserver": self.frm_server.socketserving,
             "sockhost": self.frm_server.sock_host.get(),
             "sockport": self.frm_server.sock_port.get(),
             "sockmode": sockmode,
@@ -681,7 +682,7 @@ class SettingsFrame(Frame):
             # don't persist datalog or gpx track settings...
             # self._datalog.set(config.get("datalog", 0))
             # self._record_track.set(config.get("recordtrack", 0))
-            self.frm_server.socket_serve.set(config.get("sockserver", 0))
+            self.frm_server.socketserving = config.get("sockserver", 0)
             self.frm_server.sock_host.set(
                 config.get(
                     "sockhost", getenv("PYGPSCLIENT_BINDADDRESS", SOCKSERVER_HOST)

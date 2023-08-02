@@ -1,4 +1,6 @@
 """
+serverconfig_frame.py
+
 Socket Server / NTRIP caster configuration panel Frame class.
 Supports two modes of operation - Socket Server and NTRIP Caster.
 
@@ -118,7 +120,7 @@ class ServerConfigFrame(Frame):
 
         self.__app = app
         self._show_advanced = False
-        self.socket_serve = IntVar()
+        self._socket_serve = IntVar()
         self.sock_port = StringVar()
         self.sock_host = StringVar()
         self.sock_mode = StringVar()
@@ -149,7 +151,7 @@ class ServerConfigFrame(Frame):
         self._chk_socketserve = Checkbutton(
             self._frm_basic,
             text=LBLSOCKSERVE,
-            variable=self.socket_serve,
+            variable=self._socket_serve,
             state=DISABLED,
         )
         self._lbl_sockmode = Label(
@@ -318,7 +320,7 @@ class ServerConfigFrame(Frame):
         """
 
         tracemode = ("write", "unset")
-        self.socket_serve.trace_add(tracemode, self._on_socket_serve)
+        self._socket_serve.trace_add(tracemode, self._on_socket_serve)
         self.sock_mode.trace_add(tracemode, self._on_sockmode)
         self._base_mode.trace_add(tracemode, self._on_basemode)
         self._pos_mode.trace_add(tracemode, self._on_posmode)
@@ -343,7 +345,7 @@ class ServerConfigFrame(Frame):
 
         if status == DISCONNECTED:
             self._chk_socketserve.configure(state=DISABLED)
-            self.socket_serve.set(0)
+            self._socket_serve.set(0)
             self.clients = 0
         else:
             self._chk_socketserve.configure(state=NORMAL)
@@ -354,7 +356,7 @@ class ServerConfigFrame(Frame):
         Start or stop socket server.
         """
 
-        if self.socket_serve.get():
+        if self._socket_serve.get():
             # validate entries
             valid = True
             valid = valid & valid_entry(self._ent_sockhost, VALNONBLANK)
@@ -366,7 +368,7 @@ class ServerConfigFrame(Frame):
                 self.__app.set_status("", "blue")
             else:
                 self.__app.set_status("ERROR - invalid entry", "red")
-                self.socket_serve.set(0)
+                self._socket_serve.set(0)
                 return
             # start server
             self.__app.start_sockserver_thread()
@@ -396,7 +398,7 @@ class ServerConfigFrame(Frame):
             self._lbl_fixedalt,
             self._ent_fixedalt,
         ):
-            if self.socket_serve.get():
+            if self._socket_serve.get():
                 state = DISABLED
             else:
                 state = READONLY if isinstance(wid, Spinbox) else NORMAL
@@ -406,7 +408,7 @@ class ServerConfigFrame(Frame):
         # configure receiver as base station if in NTRIP Caster mode
         # and 'Configure Base' option is checked.
         if (
-            self.socket_serve.get()
+            self._socket_serve.get()
             and self.sock_mode.get() == SOCK_NTRIP
             and self._set_basemode.get()
         ):
@@ -562,7 +564,7 @@ class ServerConfigFrame(Frame):
         """
 
         self._sock_clients.set(clients)
-        if self.socket_serve.get() == 1:
+        if self._socket_serve.get() == 1:
             self.__app.frm_banner.update_transmit_status(clients)
 
     def _config_rcvr(self):
@@ -747,3 +749,24 @@ class ServerConfigFrame(Frame):
         else:
             self._lbl_elapsed.grid_forget()
             self._pgb_elapsed.grid_forget()
+
+    @property
+    def socketserving(self) -> bool:
+        """
+        Getter for socket serve flag.
+
+        :return: server running True/False
+        :rtype: bool
+        """
+
+        return self._socket_serve.get()
+
+    @socketserving.setter
+    def socketserving(self, state: bool):
+        """
+        Setter for socket serve flag.
+
+        :param bool state: server running True/False
+        """
+
+        return self._socket_serve.set(state)

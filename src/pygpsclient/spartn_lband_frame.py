@@ -1,5 +1,8 @@
 """
-SPARTN L-Band Correction receiver configuration dialog
+SPARTN L-Band Correction receiver configuration dialog.
+
+This handles the configuration of the L-Band receiver
+(e.g. u-blox D9S) for the selected region.
 
 Created on 26 Jan 2023
 
@@ -114,7 +117,7 @@ D9S_PP_EU = {
 D9S_CONFIG = D9S_PP_US  # D9S_FACTORY
 
 
-class SPARTNLBANDDialog(Frame):
+class SpartnLbandDialog(Frame):
     """,
     SPARTNConfigDialog class.
     """
@@ -438,8 +441,8 @@ class SPARTNLBANDDialog(Frame):
             "inqueue": self.__app.spartn_inqueue,
             "outqueue": self.__app.spartn_outqueue,
             "socket_inqueue": self.__app.socket_inqueue,
-            "socket_outqueue": self.__app.socket_outqueue,
             "conntype": CONNECTED,
+            "msgmode": self.__app.frm_settings.frm_serial.msgmode,
             "serial_settings": self._frm_spartn_serial,
         }
 

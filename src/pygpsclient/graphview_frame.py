@@ -115,9 +115,9 @@ class GraphviewFrame(Frame):
         Draw GNSS color code legend
         """
 
-        w = self.width / 9
+        w = self.width / 10
         h = self.height / 15
-        resize_font = font.Font(size=min(int(self.height / 25), 10))
+        resize_font = font.Font(size=min(int(self.height / 30), 10))
 
         for i, (_, (gnssName, gnssCol)) in enumerate(GNSS_LIST.items()):
             x = LEG_XOFF + w * i
