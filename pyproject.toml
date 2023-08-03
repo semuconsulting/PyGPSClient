@@ -89,7 +89,13 @@ profile = "black"
 
 [tool.bandit]
 exclude_dirs = ["docs", "examples", "tests"]
-skips = ["B104", "B318", "B408", "B603"]     # bind 0.0.0.0; minidom; subroutine
+skips = [
+    "B104",
+    "B318",
+    "B404",
+    "B408",
+    "B603",
+] # bind 0.0.0.0; minidom; subroutine
 
 [tool.pylint]
 jobs = 0
