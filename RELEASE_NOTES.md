@@ -5,6 +5,7 @@
 ENHANCEMENTS:
 
 1. Add EBNO & FEC Bits values to SPARTN L-Band configuration panel to help monitor signal quality.
+1. Minor enhancements to banner position formatting
 
 ### RELEASE v1.4.0
 
