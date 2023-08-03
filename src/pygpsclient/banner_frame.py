@@ -14,7 +14,7 @@ from platform import system
 from tkinter import SUNKEN, Button, E, Frame, Label, N, S, StringVar, W, font
 
 from PIL import Image, ImageTk
-from pynmeagps.nmeahelpers import latlon2dmm, latlon2dms
+from pynmeagps.nmeahelpers import latlon2dmm, latlon2dms, llh2ecef
 from pyubx2 import dop2str
 
 from pygpsclient.globals import (
@@ -27,6 +27,7 @@ from pygpsclient.globals import (
     CONNECTED_SPARTNLB,
     DMM,
     DMS,
+    ECEF,
     FGCOL,
     ICON_BLANK,
     ICON_CONN,
@@ -408,14 +409,27 @@ class BannerFrame(Frame):
         """
         Update position
 
-        :param str disp_format: degrees display format as string (DMS, DMM, DDD)
+        :param str disp_format: position display format as string (DMS, DMM, DDD, ECEF)
         :param str units: distance units as string (UMM, UMK, UI, UIK)
         """
 
         lat = self.__app.gnss_status.lat
         lon = self.__app.gnss_status.lon
+        alt = self.__app.gnss_status.alt  # hMSL
+        self._lbl_llat.config(text="lat:")
+        self._lbl_llon.config(text="lon:")
+        self._lbl_lalt.config(text="alt:")
+        alt_u = "m"
+
         if isinstance(lat, (int, float)) and isinstance(lon, (int, float)):
-            if deg_format == DMS:
+            if deg_format == ECEF and isinstance(alt, (int, float)):
+                lat, lon, alt = llh2ecef(lat, lon, alt)
+                if units in (UI, UIK):
+                    lat, lon = (m2ft(x) for x in (lat, lon))
+                self._lbl_llat.config(text="X:")
+                self._lbl_llon.config(text="Y:")
+                self._lbl_lalt.config(text="Z:")
+            elif deg_format == DMS:
                 lat, lon = latlon2dms(lat, lon)
             elif deg_format == DMM:
                 lat, lon = latlon2dmm(lat, lon)
@@ -425,13 +439,12 @@ class BannerFrame(Frame):
             self._lat.set("N/A            ")
             self._lon.set("N/A            ")
 
-        alt = self.__app.gnss_status.alt
-        alt_u = "m"
         if isinstance(alt, (int, float)):
             if units in (UI, UIK):
                 alt = m2ft(alt)
                 alt_u = "ft"
-            self._alt.set(f"{alt:.3f}")
+            fmt = "<15" if deg_format == ECEF else ".3f"
+            self._alt.set(f"{alt:{fmt}}")
             self._alt_u.set(f"{alt_u:<2}")
         else:
             self._alt.set("N/A  ")

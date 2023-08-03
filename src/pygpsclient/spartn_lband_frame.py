@@ -1,5 +1,8 @@
 """
-SPARTN L-Band Correction receiver configuration dialog
+SPARTN L-Band Correction receiver configuration dialog.
+
+This handles the configuration of the L-Band receiver
+(e.g. u-blox D9S) for the selected region.
 
 Created on 26 Jan 2023
 
@@ -31,6 +34,7 @@ from pyubx2 import POLL_LAYER_RAM, SET, SET_LAYER_RAM, TXN_NONE, UBXMessage
 
 from pygpsclient.globals import (
     BPSRATES,
+    CONNECTED,
     CONNECTED_SPARTNIP,
     CONNECTED_SPARTNLB,
     DISCONNECTED,
@@ -48,6 +52,7 @@ from pygpsclient.globals import (
     NOPORTS,
     READONLY,
     SPARTN_EOF_EVENT,
+    SPARTN_ERR_EVENT,
     SPARTN_EVENT,
     SPARTN_LBAND,
     TIMEOUTS,
@@ -112,7 +117,7 @@ D9S_PP_EU = {
 D9S_CONFIG = D9S_PP_US  # D9S_FACTORY
 
 
-class SPARTNLBANDDialog(Frame):
+class SpartnLbandDialog(Frame):
     """,
     SPARTNConfigDialog class.
     """
@@ -163,6 +168,7 @@ class SPARTNLBANDDialog(Frame):
 
         self._body()
         self._do_layout()
+        self._attach_events()
         self._reset()
 
     def _body(self):
@@ -326,6 +332,13 @@ class SPARTNLBANDDialog(Frame):
         self._btn_send.grid(column=2, row=12, padx=3, pady=2, sticky=W)
         self._lbl_send.grid(column=3, row=12, padx=3, pady=2, sticky=W)
 
+    def _attach_events(self):
+        """
+        Bind events to frame.
+        """
+
+        self.__master.bind(SPARTN_ERR_EVENT, self.on_error)
+
     def _reset(self):
         """
         Reset configuration widgets.
@@ -356,6 +369,7 @@ class SPARTNLBANDDialog(Frame):
         :param int status: connection status (0 = disconnected, 1 = connected)
         """
 
+        self._frm_spartn_serial.set_status(status)
         stat = DISABLED if status == CONNECTED_SPARTNLB else NORMAL
         for wdg in (self._btn_connect,):
             wdg.config(state=stat)
@@ -409,6 +423,7 @@ class SPARTNLBANDDialog(Frame):
         Connect to Correction receiver.
         """
 
+        frm = self._frm_spartn_serial
         if self.__app.rtk_conn_status == CONNECTED_SPARTNIP:
             self.__container.set_status(
                 DLGSPARTNWARN.format("IP", "L-Band"),
@@ -416,16 +431,26 @@ class SPARTNLBANDDialog(Frame):
             )
             return
 
-        if self.serial_settings.status == NOPORTS:
+        if frm.status == NOPORTS:
             return
+
+        conndict = {
+            "read_event": SPARTN_EVENT,
+            "eof_event": SPARTN_EOF_EVENT,
+            "error_event": SPARTN_ERR_EVENT,
+            "inqueue": self.__app.spartn_inqueue,
+            "outqueue": self.__app.spartn_outqueue,
+            "socket_inqueue": self.__app.socket_inqueue,
+            "conntype": CONNECTED,
+            "msgmode": self.__app.frm_settings.frm_serial.msgmode,
+            "serial_settings": self._frm_spartn_serial,
+        }
 
         # start serial stream thread
         self.__app.rtk_conn_status = CONNECTED_SPARTNLB
-        self.__app.spartn_stream_handler.start_read_thread(self._get_settings())
+        self.__app.spartn_stream_handler.start_read_thread(self.__container, conndict)
         self.__container.set_status(
-            f"Connected to {self.serial_settings.port}:{self.serial_settings.port_desc} "
-            + f"@ {self.serial_settings.bpsrate}",
-            "green",
+            f"Connected to {frm.port}:{frm.port_desc} @ {frm.bpsrate}", "green"
         )
         self.set_controls(CONNECTED_SPARTNLB)
 
@@ -449,25 +474,15 @@ class SPARTNLBANDDialog(Frame):
                 )
             self.set_controls(DISCONNECTED)
 
-    def _get_settings(self) -> dict:
+    def on_error(self, event):  # pylint: disable=unused-variable
         """
-        Get settings dict.
+        EVENT TRIGGERED
+        Action on <<spartn_error>> event - disconnect.
 
-        :return: dictionary of settings for stream handler
-        :rtype: dict
+        :param event event: read event
         """
 
-        return {
-            "owner": self,
-            "read_event": SPARTN_EVENT,
-            "eof_event": SPARTN_EOF_EVENT,
-            "inqueue": self.__app.spartn_inqueue,
-            "outqueue": self.__app.spartn_outqueue,
-            "socket_inqueue": self.__app.socket_inqueue,
-            "socket_outqueue": self.__app.socket_outqueue,
-            "serial_settings": self.serial_settings,
-            "in_filepath": "",
-        }
+        self.on_disconnect()
 
     def _format_cfgpoll(self) -> UBXMessage:
         """
@@ -528,7 +543,9 @@ class SPARTNLBANDDialog(Frame):
             else:
                 cfgdata.append((f"CFG_INFMSG_UBX_{port}", b"\x07"))
         if outport in ("UART1", "UART2"):
-            cfgdata.append(f"CFG_{outport}_BAUDRATE", int(self.serial_settings.bpsrate))
+            cfgdata.append(
+                f"CFG_{outport}_BAUDRATE", int(self._frm_spartn_serial.bpsrate)
+            )
 
         msg = UBXMessage.config_set(SET_LAYER_RAM, TXN_NONE, cfgdata)
         return msg
@@ -624,63 +641,3 @@ class SPARTNLBANDDialog(Frame):
             self._lbl_send.config(image=self._img_warn)
             self.__container.set_status(CONFIGBAD.format(CFGSET), "red")
         self.update_idletasks()
-
-    # ============================================
-    # FOLLOWING METHODS REQUIRED BY STREAM_HANDLER
-    # ============================================
-
-    @property
-    def conn_status(self) -> int:
-        """
-        Getter for connection status
-        (0 = disconnected, 1 = serial, 2 = socket, 4 = file).
-        """
-
-        return self.__app.rtk_conn_status
-
-    @conn_status.setter
-    def conn_status(self, status: int):
-        """
-        Setter for connection status.
-
-        :param int status: 0 = disconnected, 1 = serial, 2 = socket, 4 = file.
-        """
-
-        self.__app.rtk_conn_status = status
-
-    def set_status(self, msg: str, color: str = ""):
-        """
-        Set status message.
-
-        :param str message: message to be displayed
-        :param str color: rgb color of text (blue)
-        """
-
-        if color == "":
-            self.__container.set_status(msg)
-        else:
-            self.__container.set_status(msg, color)
-
-    def set_connection(self, msg: str, color: str = ""):
-        """
-        Set status message.
-
-        :param str message: message to be displayed
-        :param str color: rgb color of text (blue)
-        """
-
-        if color == "":
-            self.__container.set_status(msg)
-        else:
-            self.__container.set_status(msg, color)
-
-    @property
-    def serial_settings(self) -> Frame:
-        """
-        Getter for common serial configuration panel
-
-        :return: reference to serial form
-        :rtype: Frame
-        """
-
-        return self._frm_spartn_serial

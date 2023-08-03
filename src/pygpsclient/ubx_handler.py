@@ -6,7 +6,7 @@ UBX Protocol handler - handles all incoming UBX messages
 Parses individual UBX messages (using pyubx2 library)
 and adds selected attribute values to the app.gnss_status
 data dictionary. This dictionary is then used to periodically
-update the app banner and user-selectable widgets.
+update the various user-selectable widget panels.
 
 Created on 30 Sep 2020
 
@@ -63,12 +63,16 @@ class UBXHandler:
             self._process_NAV_POSLLH(parsed_data)
         elif parsed_data.identity in ("NAV-PVT", "NAV2-PVT"):
             self._process_NAV_PVT(parsed_data)
+        elif parsed_data.identity == "NAV-PVAT":
+            self._process_NAV_PVAT(parsed_data)
         elif parsed_data.identity == "NAV-VELNED":
             self._process_NAV_VELNED(parsed_data)
         elif parsed_data.identity in ("NAV-SAT", "NAV2-SAT"):
             self._process_NAV_SAT(parsed_data)
         elif parsed_data.identity in ("NAV-STATUS", "NAV2-STATUS)"):
             self._process_NAV_STATUS(parsed_data)
+        elif parsed_data.identity == "NAV-SVIN":
+            self._process_NAV_SVIN(parsed_data)
         elif parsed_data.identity == "NAV-SVINFO":
             self._process_NAV_SVINFO(parsed_data)
         elif parsed_data.identity == "NAV-SOL":
@@ -186,6 +190,7 @@ class UBXHandler:
         self.__app.gnss_status.alt = data.hMSL / 1000  # meters
         self.__app.gnss_status.hacc = data.hAcc / 1000  # meters
         self.__app.gnss_status.vacc = data.vAcc / 1000  # meters
+        self.__app.gnss_status.sep = (data.height - data.hMSL) / 1000  # meters
 
     def _process_NAV_PVT(self, data: UBXMessage):
         """
@@ -204,6 +209,7 @@ class UBXHandler:
         self.__app.gnss_status.sip = data.numSV
         self.__app.gnss_status.speed = data.gSpeed / 1000  # m/s
         self.__app.gnss_status.track = data.headMot
+        self.__app.gnss_status.sep = (data.height - data.hMSL) / 1000  # meters
         self.__app.gnss_status.fix = fix2desc("NAV-PVT", data.fixType)
         if data.carrSoln > 0:
             self.__app.gnss_status.fix = fix2desc("NAV-PVT", data.carrSoln + 5)
@@ -211,6 +217,21 @@ class UBXHandler:
         self.__app.gnss_status.diff_corr = data.difSoln
         if data.lastCorrectionAge != 0:
             self.__app.gnss_status.diff_age = corrage2int(data.lastCorrectionAge)
+
+    def _process_NAV_PVAT(self, data: UBXMessage):
+        """
+        Process NAV-PVAT sentence -  Navigation position velocity attitude time solution.
+
+        :param UBXMessage data: NAV-PVT parsed message
+        """
+
+        self.__app.gnss_status.utc = itow2utc(data.iTOW)  # datetime.time
+        self.__app.gnss_status.lat = data.lat
+        self.__app.gnss_status.lon = data.lon
+        self.__app.gnss_status.alt = data.hMSL / 1000  # meters
+        self.__app.gnss_status.speed = data.gSpeed / 1000  # m/s
+        self.__app.gnss_status.sip = data.numSV
+        self.__app.gnss_status.sep = (data.height - data.hMSL) / 1000  # meters
 
     def _process_NAV_VELNED(self, data: UBXMessage):
         """
@@ -268,6 +289,15 @@ class UBXHandler:
         self.__app.gnss_status.fix = fix2desc("NAV-STATUS", data.gpsFix)
         if data.carrSoln > 0:
             self.__app.gnss_status.fix = fix2desc("NAV-STATUS", data.carrSoln + 5)
+
+    def _process_NAV_SVIN(self, data: UBXMessage):
+        """
+        Process NAV-SVIN sentences - Survey In Status.
+
+        :param UBXMessage data: NAV-SVIN parsed message
+        """
+
+        self.__app.svin_countdown(data.dur, data.valid, data.active)
 
     def _process_NAV_SVINFO(self, data: UBXMessage):
         """

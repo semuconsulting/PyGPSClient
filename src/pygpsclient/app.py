@@ -40,6 +40,7 @@ from pygpsclient.globals import (
     DLGTUBX,
     FRM,
     GNSS_EOF_EVENT,
+    GNSS_ERR_EVENT,
     GNSS_EVENT,
     GUI_UPDATE_INTERVAL,
     ICON_APP,
@@ -69,6 +70,7 @@ from pygpsclient.status_frame import StatusFrame
 from pygpsclient.stream_handler import StreamHandler
 from pygpsclient.strings import (
     CONFIGERR,
+    ENDOFFILE,
     INTROTXTNOPORTS,
     LOADCONFIGBAD,
     LOADCONFIGOK,
@@ -122,6 +124,10 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         )
         self._mqapikey = kwargs.pop("mqapikey", getenv("MQAPIKEY", ""))
         self._mqttclientid = kwargs.pop("mqttclientid", getenv("MQTTCLIENTID", ""))
+        self._ntrip_user = kwargs.pop("ntripuser", getenv("PYGPSCLIENT_USER", "anon"))
+        self._ntrip_password = kwargs.pop(
+            "ntrippassword", getenv("PYGPSCLIENT_USER", "password")
+        )
 
         Frame.__init__(self, self.__master, *args, **kwargs)
 
@@ -167,26 +173,23 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         _, self.config = self.file_handler.load_config(configfile)
         if isinstance(self.config, dict):  # load succeeded
             config_loaded = True
-            self.app_config = self.config  # do this before initialising widgets
+            self.app_config = self.config
 
         self._body()
         self._do_layout()
         self._init_dialogs()
         self._attach_events()
 
-        # Initialise widgets
+        # Initialise settings once frm_settings has been instantiated
         if config_loaded:
-            self.widget_config = self.config
             self.frm_settings.config = self.config
-            self.frm_status.set_status(f"{LOADCONFIGOK} {configfile}", OKCOL)
+            self.set_status(f"{LOADCONFIGOK} {configfile}", OKCOL)
         else:
             # self.config is str containing error msg
             if "No such file or directory" in self.config:
-                self.frm_status.set_status(f"Configuration file not found {configfile}")
+                self.set_status(f"Configuration file not found {configfile}")
             else:
-                self.frm_status.set_status(
-                    f"{LOADCONFIGBAD} {configfile} {self.config}"
-                )
+                self.set_status(f"{LOADCONFIGBAD} {configfile} {self.config}")
             self.config = {}
         self.frm_satview.init_sats()
         self.frm_graphview.init_graph()
@@ -195,7 +198,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.frm_scatterview.init_graph()
         self.frm_banner.update_conn_status(DISCONNECTED)
 
-        if self.frm_settings.serial_settings.status == NOPORTS:
+        if self.frm_settings.frm_serial.status == NOPORTS:
             self.set_status(INTROTXTNOPORTS, BADCOL)
 
         # Check for more recent version (if enabled)
@@ -348,7 +351,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         self.__master.bind(GNSS_EVENT, self.on_gnss_read)
-        self.__master.bind(GNSS_EOF_EVENT, self.stream_handler.on_eof)
+        self.__master.bind(GNSS_EOF_EVENT, self.on_gnss_eof)
+        self.__master.bind(GNSS_ERR_EVENT, self.on_stream_error)
         self.__master.bind(NTRIP_EVENT, self.on_ntrip_read)
         self.__master.bind(SPARTN_EVENT, self.on_spartn_read)
         self.__master.bind_all("<Control-q>", self.on_exit)
@@ -409,8 +413,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         else:
             self.set_status(f"{LOADCONFIGOK} {filename}", OKCOL)
             self.frm_settings.config = self.config
-            self.widget_config = self.config
             self.app_config = self.config
+            self._do_layout()
 
     def save_config(self):
         """
@@ -420,7 +424,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         # combine the various config sections into one dict
         self.config = {
             **self.frm_settings.config,
-            **self.widget_config,
             **self.app_config,
         }
         rcd = self.file_handler.save_config(self.config, None)
@@ -487,12 +490,16 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         host = settings["sockhost"]
         port = int(settings["sockport"])
         ntripmode = settings["sockmode"]
+        ntripuser = self._ntrip_user
+        ntrippassword = self._ntrip_password
         self._socket_thread = Thread(
             target=self._sockserver_thread,
             args=(
                 ntripmode,
                 host,
                 port,
+                ntripuser,
+                ntrippassword,
                 SOCKSERVER_MAX_CLIENTS,
                 self.socket_outqueue,
             ),
@@ -511,7 +518,14 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             self._socket_server.shutdown()
 
     def _sockserver_thread(
-        self, ntripmode: int, host: str, port: int, maxclients: int, socketqueue: Queue
+        self,
+        ntripmode: int,
+        host: str,
+        port: int,
+        ntripuser: str,
+        ntrippassword: str,
+        maxclients: int,
+        socketqueue: Queue,
     ):
         """
         THREADED
@@ -526,7 +540,14 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         try:
             with SocketServer(
-                self, ntripmode, maxclients, socketqueue, (host, port), ClientHandler
+                self,
+                ntripmode,
+                maxclients,
+                socketqueue,
+                (host, port),
+                ClientHandler,
+                ntripuser=ntripuser,
+                ntrippassword=ntrippassword,
             ) as self._socket_server:
                 self._socket_server.serve_forever()
         except OSError as err:
@@ -555,7 +576,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
     def on_gnss_read(self, event):  # pylint: disable=unused-argument
         """
         EVENT TRIGGERED
-        Action on <<gnss_read>> event - read data from GNSS queue.
+        Action on <<gnss_read>> event - data available on GNSS queue.
 
         :param event event: read event
         """
@@ -564,14 +585,29 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             raw_data, parsed_data = self.gnss_inqueue.get(False)
             if raw_data is not None and parsed_data is not None:
                 self.process_data(raw_data, parsed_data)
+            # if socket server is running, output raw data to socket
+            if self.frm_settings.frm_server.socketserving:
+                self.socket_outqueue.put(raw_data)
             self.gnss_inqueue.task_done()
         except Empty:
             pass
 
+    def on_gnss_eof(self, event):  # pylint: disable=unused-argument
+        """
+        EVENT TRIGGERED
+        Action on <<sgnss_eof>> event - end of file.
+
+        :param event event: <<gnss_eof>> event
+        """
+
+        self.frm_settings.frm_server.socketserving = False  # turn off socket server
+        self.conn_status = DISCONNECTED
+        self.set_status(ENDOFFILE)
+
     def on_ntrip_read(self, event):  # pylint: disable=unused-argument
         """
         EVENT TRIGGERED
-        Action on <<ntrip_read>> event - read data from NTRIP queue.
+        Action on <<ntrip_read>> event - data available on NTRIP queue.
 
         :param event event: read event
         """
@@ -594,7 +630,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
     def on_spartn_read(self, event):  # pylint: disable=unused-argument
         """
         EVENT TRIGGERED
-        Action on <<spartn_read>> event - read data from SPARTN queue.
+        Action on <<spartn_read>> event - data available on SPARTN queue.
 
         :param event event: read event
         """
@@ -611,6 +647,16 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             pass
         except (SerialException, SerialTimeoutException) as err:
             self.set_status(f"Error sending to device {err}", BADCOL)
+
+    def on_stream_error(self, event):  # pylint: disable=unused-argument
+        """
+        EVENT TRIGGERED
+        Action on "<<gnss_error>>" event - connection streaming error.
+
+        :param event event: <<gnss_error>> event
+        """
+
+        self.conn_status = DISCONNECTED
 
     def update_ntrip_status(self, status: bool, msgt: tuple = None):
         """
@@ -699,31 +745,31 @@ class App(Frame):  # pylint: disable=too-many-ancestors
     @property
     def app_config(self) -> dict:
         """
-        Getter for application configuration.
-
-        This contains user-defined ports, various API keys
-        and colortagging values.
+        Getter for application and widget configuration.
 
         :return: configuration
         :rtype: dict
         """
 
-        config = {
+        widg_config = {key: vals["visible"] for key, vals in self._widget_grid.items()}
+        app_config = {
             "mapupdateinterval": self._map_update_interval,
             "userport": self._user_port,
             "spartnport": self._spartn_user_port,
             "defaultport": self._default_port,
             "mqapikey": self._mqapikey,
             "mqttclientid": self._mqttclientid,
+            "ntripuser": self._ntrip_user,
+            "ntrippassword": self._ntrip_password,
             "colortags": self._colortags,
             "ubxpresets": self._ubxpresets,
         }
-        return config
+        return dict(widg_config, **app_config)
 
     @app_config.setter
     def app_config(self, config):
         """
-        Setter for application configuration.
+        Setter for application and widget configuration.
 
         :param dict config: configuration as dict
         """
@@ -734,8 +780,16 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._default_port = config.get("defaultport", self._default_port)
         self._mqapikey = config.get("mqapikey", self._mqapikey)
         self._mqttclientid = config.get("mqttclientid", self._mqttclientid)
+        self._ntrip_user = config.get("ntripuser", self._ntrip_user)
+        self._ntrip_password = config.get("ntrippassword", self._ntrip_password)
         self._colortags = config.get("colortags", self._colortags)
         self._ubxpresets = config.get("ubxpresets", self._ubxpresets)
+
+        try:
+            for key, vals in self._widget_grid.items():
+                vals["visible"] = config[key]
+        except KeyError as err:
+            self.set_status(f"{CONFIGERR} - {err}", BADCOL)
 
     @property
     def widgets(self) -> dict:
@@ -747,35 +801,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         return self._widget_grid
-
-    @property
-    def widget_config(self) -> dict:
-        """
-        Getter for widget configuration.
-
-        This contains the current status (visibility) of the various widgets.
-
-        :return: widget configuration as dict
-        :rtype: dict
-        """
-
-        return {key: vals["visible"] for key, vals in self._widget_grid.items()}
-
-    @widget_config.setter
-    def widget_config(self, config):
-        """
-        Setter for widget configuration.
-
-        :param dict config: configuration as dict
-        """
-
-        try:
-            for key, vals in self._widget_grid.items():
-                vals["visible"] = config[key]
-        except KeyError as err:
-            self.set_status(f"{CONFIGERR} - {err}", BADCOL)
-
-        self._do_layout()
 
     @property
     def appmaster(self) -> Tk:
@@ -812,7 +837,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.frm_settings.enable_controls(status)
         if status == DISCONNECTED:
             self.set_connection(NOTCONN)
-            self.set_status("")
 
     @property
     def rtk_conn_status(self) -> int:
@@ -835,3 +859,15 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         self._rtk_conn_status = status
         self.frm_banner.update_rtk_status(status)
+
+    def svin_countdown(self, dur: int, valid: bool, active: bool):
+        """
+        Countdown survey-in duration for NTRIP caster mode.
+
+        :param int dur: elapsed time
+        :param bool valid: valid flag
+        :param bool active: active flag
+        """
+
+        if self.frm_settings.frm_server is not None:
+            self.frm_settings.frm_server.svin_countdown(dur, valid, active)

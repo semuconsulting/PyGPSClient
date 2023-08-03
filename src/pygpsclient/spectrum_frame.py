@@ -1,4 +1,6 @@
 """
+spectrum_frame.py
+
 Spectrum Analysis frame class for PyGPSClient application.
 
 This handles a frame containing a spectrum analysis chart from

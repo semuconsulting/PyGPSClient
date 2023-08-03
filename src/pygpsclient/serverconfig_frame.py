@@ -1,4 +1,6 @@
 """
+serverconfig_frame.py
+
 Socket Server / NTRIP caster configuration panel Frame class.
 Supports two modes of operation - Socket Server and NTRIP Caster.
 
@@ -31,6 +33,7 @@ from tkinter import (
     StringVar,
     W,
 )
+from tkinter.ttk import Progressbar
 
 from PIL import Image, ImageTk
 from pyubx2 import UBXMessage, llh2ecef
@@ -95,6 +98,7 @@ ACCURACIES = (
     20,
 )
 DURATIONS = (60, 1200, 600, 300, 240, 180, 120, 90)
+MAXSVIN = 15
 
 
 class ServerConfigFrame(Frame):
@@ -116,7 +120,7 @@ class ServerConfigFrame(Frame):
 
         self.__app = app
         self._show_advanced = False
-        self.socket_serve = IntVar()
+        self._socket_serve = IntVar()
         self.sock_port = StringVar()
         self.sock_host = StringVar()
         self.sock_mode = StringVar()
@@ -147,7 +151,7 @@ class ServerConfigFrame(Frame):
         self._chk_socketserve = Checkbutton(
             self._frm_basic,
             text=LBLSOCKSERVE,
-            variable=self.socket_serve,
+            variable=self._socket_serve,
             state=DISABLED,
         )
         self._lbl_sockmode = Label(
@@ -237,6 +241,16 @@ class ServerConfigFrame(Frame):
             wrap=True,
             textvariable=self._duration,
         )
+        self._lbl_elapsed = Label(
+            self._frm_advanced,
+            text="",
+        )
+        self._pgb_elapsed = Progressbar(
+            self._frm_advanced,
+            orient="horizontal",
+            mode="determinate",
+            length=150,
+        )
         self._spn_posmode = Spinbox(
             self._frm_advanced,
             values=POSMODES,
@@ -306,7 +320,7 @@ class ServerConfigFrame(Frame):
         """
 
         tracemode = ("write", "unset")
-        self.socket_serve.trace_add(tracemode, self._on_socket_serve)
+        self._socket_serve.trace_add(tracemode, self._on_socket_serve)
         self.sock_mode.trace_add(tracemode, self._on_sockmode)
         self._base_mode.trace_add(tracemode, self._on_basemode)
         self._pos_mode.trace_add(tracemode, self._on_posmode)
@@ -331,7 +345,7 @@ class ServerConfigFrame(Frame):
 
         if status == DISCONNECTED:
             self._chk_socketserve.configure(state=DISABLED)
-            self.socket_serve.set(0)
+            self._socket_serve.set(0)
             self.clients = 0
         else:
             self._chk_socketserve.configure(state=NORMAL)
@@ -342,7 +356,7 @@ class ServerConfigFrame(Frame):
         Start or stop socket server.
         """
 
-        if self.socket_serve.get():
+        if self._socket_serve.get():
             # validate entries
             valid = True
             valid = valid & valid_entry(self._ent_sockhost, VALNONBLANK)
@@ -354,7 +368,7 @@ class ServerConfigFrame(Frame):
                 self.__app.set_status("", "blue")
             else:
                 self.__app.set_status("ERROR - invalid entry", "red")
-                self.socket_serve.set(0)
+                self._socket_serve.set(0)
                 return
             # start server
             self.__app.start_sockserver_thread()
@@ -384,16 +398,17 @@ class ServerConfigFrame(Frame):
             self._lbl_fixedalt,
             self._ent_fixedalt,
         ):
-            if self.socket_serve.get():
+            if self._socket_serve.get():
                 state = DISABLED
             else:
                 state = READONLY if isinstance(wid, Spinbox) else NORMAL
             wid.config(state=state)
+        self._lbl_elapsed.config(text="")
 
         # configure receiver as base station if in NTRIP Caster mode
         # and 'Configure Base' option is checked.
         if (
-            self.socket_serve.get()
+            self._socket_serve.get()
             and self.sock_mode.get() == SOCK_NTRIP
             and self._set_basemode.get()
         ):
@@ -447,9 +462,13 @@ class ServerConfigFrame(Frame):
         if self._base_mode.get() == BASE_SVIN:
             self._lbl_acclimit.grid(column=0, row=1, padx=2, pady=1, sticky=E)
             self._spn_acclimit.grid(column=1, row=1, padx=2, pady=1, sticky=W)
-            self._lbl_duration.grid(column=2, row=1, padx=2, pady=1, sticky=E)
-            self._spn_duration.grid(column=3, row=1, padx=2, pady=1, sticky=W)
-            self._chk_disablenmea.grid(column=0, row=2, padx=2, pady=1, sticky=W)
+            self._chk_disablenmea.grid(column=2, row=1, padx=2, pady=1, sticky=W)
+            self._lbl_duration.grid(column=0, row=2, padx=2, pady=1, sticky=E)
+            self._spn_duration.grid(column=1, row=2, padx=2, pady=1, sticky=W)
+            self._lbl_elapsed.grid(
+                column=2, row=2, columnspan=2, padx=2, pady=1, sticky=W
+            )
+            self._pgb_elapsed.grid_forget()
             self._spn_posmode.grid_forget()
             self._lbl_fixedlat.grid_forget()
             self._ent_fixedlat.grid_forget()
@@ -476,6 +495,8 @@ class ServerConfigFrame(Frame):
             )
             self._lbl_duration.grid_forget()
             self._spn_duration.grid_forget()
+            self._pgb_elapsed.grid_forget()
+            self._lbl_elapsed.grid_forget()
             self._set_coords(self._pos_mode.get())
         else:  # Disabled
             self._chk_disablenmea.grid(column=0, row=1, padx=2, pady=1, sticky=W)
@@ -490,6 +511,8 @@ class ServerConfigFrame(Frame):
             self._ent_fixedalt.grid_forget()
             self._lbl_duration.grid_forget()
             self._spn_duration.grid_forget()
+            self._pgb_elapsed.grid_forget()
+            self._lbl_elapsed.grid_forget()
 
     def _on_posmode(self, var, index, mode):
         """
@@ -541,7 +564,7 @@ class ServerConfigFrame(Frame):
         """
 
         self._sock_clients.set(clients)
-        if self.socket_serve.get() == 1:
+        if self._socket_serve.get() == 1:
             self.__app.frm_banner.update_transmit_status(clients)
 
     def _config_rcvr(self):
@@ -700,3 +723,50 @@ class ServerConfigFrame(Frame):
         cfg_data.append((f"CFG_MSGOUT_UBX_NAV_SAT_{port_type}", state * 4))
 
         return UBXMessage.config_set(layers, transaction, cfg_data)
+
+    def svin_countdown(self, ela: int, valid: bool, active: bool):
+        """
+        Display countdown of remaining survey-in duration.
+
+        :param int ela: elapsed time
+        :param bool valid: SVIN validity status
+        :param bool active: SVIN active status
+        """
+
+        if self._base_mode.get() == BASE_SVIN and active and not valid:
+            self._lbl_elapsed.grid_forget()
+            self._pgb_elapsed.grid(
+                column=2, row=2, columnspan=2, padx=2, pady=1, sticky=W
+            )
+            dur = self._duration.get()
+            self._pgb_elapsed["value"] = 100 * (dur - ela) / dur
+        elif self._base_mode.get() == BASE_SVIN and valid:
+            self._pgb_elapsed.grid_forget()
+            self._lbl_elapsed.grid(
+                column=2, row=2, columnspan=2, padx=2, pady=1, sticky=W
+            )
+            self._lbl_elapsed.config(text="SVIN Valid")
+        else:
+            self._lbl_elapsed.grid_forget()
+            self._pgb_elapsed.grid_forget()
+
+    @property
+    def socketserving(self) -> bool:
+        """
+        Getter for socket serve flag.
+
+        :return: server running True/False
+        :rtype: bool
+        """
+
+        return self._socket_serve.get()
+
+    @socketserving.setter
+    def socketserving(self, state: bool):
+        """
+        Setter for socket serve flag.
+
+        :param bool state: server running True/False
+        """
+
+        return self._socket_serve.set(state)

@@ -1,13 +1,10 @@
 """
+spartn_mqtt_frame.py
+
 SPARTN configuration dialog
 
 This is the pop-up dialog containing the various
 SPARTN configuration functions.
-
-This dialog maintains its own threaded serial
-stream handler for incoming and outgoing Correction
-receiver (D9S) data (RXM-PMP), and must remain open for
-SPARTN passthrough to work.
 
 Created on 26 Jan 2023
 

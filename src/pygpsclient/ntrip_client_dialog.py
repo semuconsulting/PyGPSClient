@@ -550,8 +550,8 @@ class NTRIPConfigDialog(Toplevel):
         self._ntrip_port.set(self._settings["port"])
         self._ntrip_mountpoint.set(self._settings["mountpoint"])
         self._ntrip_version.set(self._settings["version"])
-        self._ntrip_user.set(self._settings["user"])
-        self._ntrip_password.set(self._settings["password"])
+        self._ntrip_user.set(self._settings["ntripuser"])
+        self._ntrip_password.set(self._settings["ntrippassword"])
         ggaint = self._settings["ggainterval"]
         self._ntrip_gga_interval.set("None" if ggaint == NOGGA else ggaint)
         self._ntrip_gga_mode.set(self._settings["ggamode"])
@@ -578,8 +578,8 @@ class NTRIPConfigDialog(Toplevel):
         self._settings["port"] = self._ntrip_port.get()
         self._settings["mountpoint"] = self._ntrip_mountpoint.get()
         self._settings["version"] = self._ntrip_version.get()
-        self._settings["user"] = self._ntrip_user.get()
-        self._settings["password"] = self._ntrip_password.get()
+        self._settings["ntripuser"] = self._ntrip_user.get()
+        self._settings["ntrippassword"] = self._ntrip_password.get()
         self._settings["ggainterval"] = (
             NOGGA
             if self._ntrip_gga_interval.get() == "None"
@@ -618,8 +618,8 @@ class NTRIPConfigDialog(Toplevel):
                 port=self._settings["port"],
                 mountpoint=self._settings["mountpoint"],
                 version=self._settings["version"],
-                user=self._settings["user"],
-                password=self._settings["password"],
+                ntripuser=self._settings["ntripuser"],
+                ntrippassword=self._settings["ntrippassword"],
                 ggainterval=self._settings["ggainterval"],
                 ggamode=self._settings["ggamode"],
                 reflat=self._settings["reflat"],

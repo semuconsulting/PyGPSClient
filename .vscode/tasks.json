@@ -51,7 +51,11 @@
             "command": "${config:python.defaultInterpreterPath}",
             "args": [
                 "-m",
-                "pygpsclient"
+                "pygpsclient",
+                "--ntripuser",
+                "semuadmin",
+                "--ntrippassword",
+                "testpassword"
             ],
             "options": {
                 "cwd": "src"

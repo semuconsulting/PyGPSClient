@@ -1,16 +1,24 @@
 """
-StreamHandler class for PyGPSClient application
+stream_handler.py
 
-This handles all the stream i/o, threaded read process and direction to
-the appropriate protocol handler.
+StreamHandler class for PyGPSClient application.
 
-NB: The calling object ('settings["owner"]') must implement the following methods:
+This handles all the serial stream i/o. It uses the pyubx2.UBXReader
+class to read and parse incoming data from the receiver. It places
+this data on an input message queue and generates a <<read-event>>
+which triggers the main App class to process the data.
 
-- conn_status(self) -> int:
-- conn_status(self, status: int):
-- set_status(self, msg: str, col: str):
-- set_connection(self, msg: str, col: str):
-- serial_settings(self) -> Frame:
+It also reads any command and poll messages placed on an output
+message queue and sends these to the receiver.
+
+The StreamHandler class is used by two PyGPSClient 'caller' objects:
+
+- SettingsFrame - i/o with the main GNSS receiver.
+- SpartnLbandDialog - i/o with a SPARTN L-Band receiver, when the
+SPARTN Client is active.
+
+The caller object can implement a 'set_status()' method to
+display any status messages output by StreamHandler.
 
 Created on 16 Sep 2020
 
@@ -42,10 +50,8 @@ from pygpsclient.globals import (
     CONNECTED_FILE,
     CONNECTED_SOCKET,
     DEFAULT_BUFSIZE,
-    DISCONNECTED,
     FILEREAD_INTERVAL,
 )
-from pygpsclient.strings import ENDOFFILE
 
 
 class StreamHandler:
@@ -66,29 +72,26 @@ class StreamHandler:
 
         self._stream_thread = None
         self._stopevent = Event()
-        self._sockserve_event = Event()
-        self._owner = None
 
-    def start_read_thread(self, settings: dict):
+    def start_read_thread(self, caller: object, settings: dict):
         """
         Start the stream read thread.
 
+        :param caller owner: calling object
         :param dict settings: settings dictionary
         """
 
         self._stopevent.clear()
-        self._owner = settings["owner"]
         self._stream_thread = Thread(
             target=self._read_thread,
             args=(
+                caller,
                 self._stopevent,
-                self._sockserve_event,
                 settings,
             ),
             daemon=True,
         )
         self._stream_thread.start()
-        self._set_status("Connected")
 
     def stop_read_thread(self):
         """
@@ -97,32 +100,26 @@ class StreamHandler:
 
         self._stopevent.set()
         self._stream_thread = None
-        if self._owner is not None:
-            self._owner.conn_status = DISCONNECTED
 
     def _read_thread(
         self,
+        caller,
         stopevent: Event,
-        sockserve_event: Event,
         settings: dict,
     ):
         """
         THREADED PROCESS
-
         Connects to selected data stream and starts read loop.
 
+        :param caller owner: calling object
         :param Event stopevent: thread stop event
-        :param Event sockserve_event: socket serving event
         :param dict settings: settings dictionary
         """
 
-        connstr = ""
-        owner = settings["owner"]
-        conn_status = owner.conn_status
+        conntype = settings["conntype"]
         try:
-            if conn_status == CONNECTED:
+            if conntype == CONNECTED:
                 ser = settings["serial_settings"]
-                connstr = f"{ser.port}:{ser.port_desc} @ {str(ser.bpsrate)}"
                 with Serial(
                     ser.port,
                     ser.bpsrate,
@@ -132,26 +129,23 @@ class StreamHandler:
                     xonxoff=ser.xonxoff,
                     rtscts=ser.rtscts,
                     timeout=ser.timeout,
-                ) as serial_object:
+                ) as stream:
                     self._readloop(
                         stopevent,
-                        sockserve_event,
-                        serial_object,
+                        stream,
                         settings,
                     )
 
-            elif conn_status == CONNECTED_FILE:
+            elif conntype == CONNECTED_FILE:
                 in_filepath = settings["in_filepath"]
-                connstr = f"{in_filepath}"
-                with open(in_filepath, "rb") as serial_object:
+                with open(in_filepath, "rb") as stream:
                     self._readloop(
                         stopevent,
-                        sockserve_event,
-                        serial_object,
+                        stream,
                         settings,
                     )
 
-            elif conn_status == CONNECTED_SOCKET:
+            elif conntype == CONNECTED_SOCKET:
                 soc = settings["socket_settings"]
                 server = soc.server
                 port = soc.port
@@ -160,25 +154,23 @@ class StreamHandler:
                 if soc.protocol[-4:] == "IPv6":
                     afam = socket.AF_INET6
                     conn = (server, port, flowinfo, scopeid)
-                    connstr = f"{server}:{port},{flowinfo},{scopeid}"
                 else:  # IPv4
                     afam = socket.AF_INET
                     conn = (server, port)
-                    connstr = f"{server}:{port}"
                 if soc.protocol[:3] == "UDP":
                     socktype = socket.SOCK_DGRAM
                 else:  # TCP
                     socktype = socket.SOCK_STREAM
-                with socket.socket(afam, socktype) as serial_object:
-                    serial_object.connect(conn)
+                with socket.socket(afam, socktype) as stream:
+                    stream.connect(conn)
                     self._readloop(
                         stopevent,
-                        sockserve_event,
-                        serial_object,
+                        stream,
                         settings,
                     )
 
         except (EOFError, TimeoutError):
+            stopevent.set()
             self.__master.event_generate(settings["eof_event"])
         except (
             IOError,
@@ -190,38 +182,35 @@ class StreamHandler:
         ) as err:
             if not stopevent.is_set():
                 stopevent.set()
-                owner.conn_status = DISCONNECTED
-                self._set_connection(connstr, "red")
-                self._set_status(f"Error in stream read {err}", "red")
+                self.__master.event_generate(settings["error_event"])
+                if hasattr(caller, "set_status"):
+                    caller.set_status(str(err), "red")
 
     def _readloop(
         self,
         stopevent: Event,
-        sockserve_event: Event,
-        serial_object: object,
+        stream: object,
         settings: dict,
     ):
         """
+        THREADED PROCESS
         Read stream continously until stop event or stream error.
 
         File streams use a small delay between reads to
         prevent thrashing.
 
         :param Event stopevent: thread stop event
-        :param Event sockserve_event: socket serving event
-        :param object serial_object: serial data stream
+        :param object stream: serial data stream
         :param dict settings: settings dictionary
         """
 
-        owner = settings["owner"]
-        # stream = BufferedReader(serial_object)
-        stream = serial_object
+        conntype = settings["conntype"]
         ubr = UBXReader(
             stream,
             protfilter=NMEA_PROTOCOL | UBX_PROTOCOL | RTCM3_PROTOCOL,
             quitonerror=ERR_IGNORE,
             bufsize=DEFAULT_BUFSIZE,
-            msgmode=settings["serial_settings"].msgmode,
+            msgmode=settings["msgmode"],
         )
 
         raw_data = None
@@ -229,26 +218,23 @@ class StreamHandler:
         lastread = datetime.now()
         while not stopevent.is_set():
             try:
-                if owner.conn_status in (CONNECTED, CONNECTED_SOCKET) or (
-                    owner.conn_status == CONNECTED_FILE
+                if conntype in (CONNECTED, CONNECTED_SOCKET) or (
+                    conntype == CONNECTED_FILE
                     and datetime.now() > lastread + timedelta(seconds=FILEREAD_INTERVAL)
                 ):
                     raw_data, parsed_data = ubr.read()
                     if raw_data is not None:
                         settings["inqueue"].put((raw_data, parsed_data))
                         self.__master.event_generate(settings["read_event"])
-                        # if socket server is running
-                        if sockserve_event.is_set():
-                            settings["socket_outqueue"].put(raw_data)
                     else:
-                        if owner.conn_status == CONNECTED_FILE:
+                        if conntype == CONNECTED_FILE:
                             raise EOFError
-                    if owner.conn_status == CONNECTED_FILE:
+                    if conntype == CONNECTED_FILE:
                         lastread = datetime.now()
                         self.__master.update_idletasks()
 
                     # write any queued output data to serial stream
-                    if owner.conn_status in (CONNECTED, CONNECTED_SOCKET):
+                    if conntype in (CONNECTED, CONNECTED_SOCKET):
                         try:
                             while not settings["outqueue"].empty():
                                 data = settings["outqueue"].get(False)
@@ -270,63 +256,3 @@ class StreamHandler:
                 settings["inqueue"].put((raw_data, parsed_data))
                 self.__master.event_generate(settings["read_event"])
                 continue
-
-    def on_eof(self, event):  # pylint: disable=unused-argument
-        """
-        EVENT TRIGGERED
-        Action on end of file
-
-        :param event event: <<gnss_eof>> event
-        """
-
-        self.stop_read_thread()
-        self.__app.frm_settings.server_state = 0  # turn off socket server
-        self._set_status(
-            ENDOFFILE,
-        )
-
-    def _set_connection(self, msg: str, col: str = ""):
-        """
-        Set connection message.
-
-        :param str msg: status message
-        :param str col: colour
-        """
-
-        if self._owner is not None:
-            self._owner.set_connection(msg, col)
-
-    def _set_status(self, msg: str, col: str = ""):
-        """
-        Set status message.
-
-        :param str msg: status message
-        :param str col: colour
-        """
-
-        if self._owner is not None:
-            self._owner.set_status(msg, col)
-
-    @property
-    def sock_serve(self) -> bool:
-        """
-        Getter for socket serve event status.
-
-        :return: socket server status (True/False)
-        :rtype: bool
-        """
-
-        return self._sockserve_event.is_set()
-
-    @sock_serve.setter
-    def sock_serve(self, status: bool):
-        """
-        Setter for socket serve event status.
-
-        :param bool status: sock serve status
-        """
-
-        if status:
-            self._sockserve_event.set()
-        else:
-            self._sockserve_event.clear()

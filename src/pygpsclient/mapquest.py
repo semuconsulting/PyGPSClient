@@ -1,7 +1,7 @@
 """
 mapquest.py
 
-MapQuest API Constants and Methods
+MapQuest API Constants and Methods.
 
 MapQuest polygon compression and decompression routines
 adapted from the original javascript examples:

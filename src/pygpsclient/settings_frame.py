@@ -1,8 +1,11 @@
 """
+settings_frame.py
+
 Settings frame class for PyGPSClient application.
 
 This handles the settings/configuration panel. It references
-the common SerialConfigFrame utility class for serial port settings.
+the SerialConfigFrame class for serial port settings
+and the SocketConfigFrame class for socket settings.
 
 Exposes the various settings as properties.
 
@@ -46,8 +49,10 @@ from pygpsclient.globals import (
     DLGTUBX,
     DMM,
     DMS,
+    ECEF,
     FORMATS,
     GNSS_EOF_EVENT,
+    GNSS_ERR_EVENT,
     GNSS_EVENT,
     ICON_CONN,
     ICON_DISCONN,
@@ -154,7 +159,7 @@ class SettingsFrame(Frame):
 
         # serial port configuration panel
         userport = self.__app.app_config.get("userport", "")
-        self._frm_serial = SerialConfigFrame(
+        self.frm_serial = SerialConfigFrame(
             self,
             preselect=KNOWNGPS,
             timeouts=TIMEOUTS,
@@ -164,7 +169,7 @@ class SettingsFrame(Frame):
         )
 
         # socket configuration panel
-        self._frm_socket = SocketConfigFrame(self)
+        self.frm_socket = SocketConfigFrame(self)
 
         # connection buttons
         self._frm_buttons = Frame(self)
@@ -173,7 +178,7 @@ class SettingsFrame(Frame):
             width=45,
             height=35,
             image=self._img_serial,
-            command=lambda: self._on_serial_stream(),
+            command=lambda: self._on_connect(CONNECTED),
         )
         self._lbl_connect = Label(self._frm_buttons, text="USB/UART")
         self._btn_connect_socket = Button(
@@ -181,7 +186,7 @@ class SettingsFrame(Frame):
             width=45,
             height=35,
             image=self._img_socket,
-            command=lambda: self._on_socket_stream(),
+            command=lambda: self._on_connect(CONNECTED_SOCKET),
         )
         self._lbl_connect_socket = Label(self._frm_buttons, text="TCP/UDP")
         self._btn_connect_file = Button(
@@ -189,7 +194,7 @@ class SettingsFrame(Frame):
             width=45,
             height=35,
             image=self._img_dataread,
-            command=lambda: self._on_file_stream(),
+            command=lambda: self._on_connect(CONNECTED_FILE),
         )
         self._lbl_connect_file = Label(self._frm_buttons, text="FILE")
         self._btn_disconnect = Button(
@@ -197,7 +202,7 @@ class SettingsFrame(Frame):
             width=45,
             height=35,
             image=self._img_disconn,
-            command=lambda: self._on_disconnect(),
+            command=lambda: self._on_connect(DISCONNECTED),
             state=DISABLED,
         )
         self._lbl_disconnect = Label(self._frm_buttons, text="STOP")
@@ -248,7 +253,7 @@ class SettingsFrame(Frame):
         self._lbl_format = Label(self._frm_options, text=LBLDEGFORMAT)
         self._spn_format = Spinbox(
             self._frm_options,
-            values=(DDD, DMS, DMM),
+            values=(DDD, DMS, DMM, ECEF),
             width=6,
             state=READONLY,
             wrap=True,
@@ -345,14 +350,14 @@ class SettingsFrame(Frame):
         Position widgets in frame.
         """
 
-        self._frm_serial.grid(
+        self.frm_serial.grid(
             column=0, row=1, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
         ttk.Separator(self).grid(
             column=0, row=2, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
 
-        self._frm_socket.grid(
+        self.frm_socket.grid(
             column=0, row=3, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
         ttk.Separator(self).grid(
@@ -415,6 +420,61 @@ class SettingsFrame(Frame):
         self._lbl_ntripconfig.grid(column=1, row=14)
         self._btn_spartnconfig.grid(column=2, row=13)
         self._lbl_spartnconfig.grid(column=2, row=14)
+
+    def _on_connect(self, conntype: int):
+        """
+        Start or stop connection (serial, socket or file).
+
+        :param int conntype: connection type
+        """
+
+        conndict = {
+            "read_event": GNSS_EVENT,
+            "eof_event": GNSS_EOF_EVENT,
+            "error_event": GNSS_ERR_EVENT,
+            "inqueue": self.__app.gnss_inqueue,
+            "outqueue": self.__app.gnss_outqueue,
+            "socket_inqueue": self.__app.socket_inqueue,
+            "conntype": conntype,
+            "msgmode": self.frm_serial.msgmode,
+        }
+
+        self.frm_server.set_status(conntype)
+        if conntype == CONNECTED:
+            frm = self.frm_serial
+            if frm.status == NOPORTS:
+                return
+            connstr = f"{frm.port}:{frm.port_desc} @ {frm.bpsrate}"
+            conndict = dict(conndict, **{"serial_settings": frm})
+        elif conntype == CONNECTED_SOCKET:
+            frm = self.frm_socket
+            valid = True
+            valid = valid & valid_entry(frm.ent_server, VALURL)
+            valid = valid & valid_entry(frm.ent_port, VALINT, 1, MAXPORT)
+            if not valid:
+                self.__app.set_status("ERROR - invalid settings", "red")
+                return
+            connstr = f"{frm.server}:{frm.port}"
+            conndict = dict(conndict, **{"socket_settings": frm})
+        elif conntype == CONNECTED_FILE:
+            self.infilepath = self.__app.file_handler.open_infile()
+            if self.infilepath is None:
+                return
+            connstr = f"{self.infilepath}"
+            conndict = dict(conndict, **{"in_filepath": self.infilepath})
+        elif conntype == DISCONNECTED:
+            if self.__app.conn_status != DISCONNECTED:
+                self.__app.conn_status = DISCONNECTED
+                self.__app.stream_handler.stop_read_thread()
+                return
+        else:
+            return
+
+        self.__app.set_connection(connstr, "green")
+        self.__app.set_status("")
+        self.__app.conn_status = conntype
+        self._reset_frames()
+        self.__app.stream_handler.start_read_thread(self.__app, conndict)
 
     def _on_ubx_config(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -480,77 +540,6 @@ class SettingsFrame(Frame):
             self.__app.file_handler.close_trackfile()
             self.__app.set_status("Track recording disabled")
 
-    def _on_serial_stream(self):
-        if self.serial_settings.status == NOPORTS:
-            return
-
-        self.__app.set_connection(
-            (
-                f"{self.serial_settings.port}:{self.serial_settings.port_desc} "
-                + f"@ {self.serial_settings.bpsrate}"
-            ),
-            "green",
-        )
-        self.__app.set_status("")
-        self.__app.conn_status = CONNECTED
-        self._reset_frames()
-        self.__app.stream_handler.start_read_thread(self._get_settings())
-        self.frm_server.set_status(CONNECTED)
-
-    def _on_socket_stream(self):
-        """
-        Start socket streamer if settings are valid
-        """
-
-        valid = True
-        valid = valid & valid_entry(self._frm_socket.ent_server, VALURL)
-        valid = valid & valid_entry(self._frm_socket.ent_port, VALINT, 1, MAXPORT)
-        if valid:
-            self.__app.set_connection(
-                f"{self.socket_settings.server}:{self.socket_settings.port}",
-                "green",
-            )
-            self.__app.set_status("")
-            self.__app.conn_status = CONNECTED_SOCKET
-            self._reset_frames()
-            self.__app.stream_handler.start_read_thread(self._get_settings())
-        else:
-            self.__app.set_status("ERROR - invalid settings", "red")
-
-    def _on_file_stream(self):
-        """
-        Start data file streamer if file selected
-        """
-
-        self.infilepath = self.__app.file_handler.open_infile()
-        if self.infilepath is not None:
-            self.__app.set_connection(f"{self.infilepath}")
-            self.__app.set_status("")
-            self.__app.conn_status = CONNECTED_FILE
-            self._reset_frames()
-            self.__app.stream_handler.start_read_thread(self._get_settings())
-
-    def _get_settings(self) -> dict:
-        """
-        Get settings dict.
-
-        :return: dictionary of settings for stream handler
-        :rtype: dict
-        """
-
-        return {
-            "owner": self,
-            "read_event": GNSS_EVENT,
-            "eof_event": GNSS_EOF_EVENT,
-            "inqueue": self.__app.gnss_inqueue,
-            "outqueue": self.__app.gnss_outqueue,
-            "socket_inqueue": self.__app.socket_inqueue,
-            "socket_outqueue": self.__app.socket_outqueue,
-            "serial_settings": self._frm_serial,
-            "socket_settings": self._frm_socket,
-            "in_filepath": self.infilepath,
-        }
-
     def _reset(self):
         """
         Reset settings to defaults.
@@ -568,15 +557,6 @@ class SettingsFrame(Frame):
         self.__app.frm_spectrumview.reset()
         self.__app.reset_gnssstatus()
 
-    def _on_disconnect(self):
-        """
-        Disconnect from stream.
-        """
-
-        if self.__app.conn_status in (CONNECTED, CONNECTED_FILE, CONNECTED_SOCKET):
-            self.__app.stream_handler.stop_read_thread()
-            self.frm_server.set_status(DISCONNECTED)
-
     def enable_controls(self, status: int):
         """
         Public method to enable and disable those controls
@@ -588,8 +568,8 @@ class SettingsFrame(Frame):
 
         """
 
-        self._frm_serial.set_status(status)
-        self._frm_socket.set_status(status)
+        self.frm_serial.set_status(status)
+        self.frm_socket.set_status(status)
         self.frm_server.set_status(status)
 
         self._btn_connect.config(
@@ -669,7 +649,7 @@ class SettingsFrame(Frame):
             "logformat": self._logformat.get(),
             "datalog": self._datalog.get(),
             "recordtrack": self._record_track.get(),
-            "sockserver": self.frm_server.socket_serve.get(),
+            "sockserver": self.frm_server.socketserving,
             "sockhost": self.frm_server.sock_host.get(),
             "sockport": self.frm_server.sock_port.get(),
             "sockmode": sockmode,
@@ -702,7 +682,7 @@ class SettingsFrame(Frame):
             # don't persist datalog or gpx track settings...
             # self._datalog.set(config.get("datalog", 0))
             # self._record_track.set(config.get("recordtrack", 0))
-            self.frm_server.socket_serve.set(config.get("sockserver", 0))
+            self.frm_server.socketserving = config.get("sockserver", 0)
             self.frm_server.sock_host.set(
                 config.get(
                     "sockhost", getenv("PYGPSCLIENT_BINDADDRESS", SOCKSERVER_HOST)
@@ -713,69 +693,4 @@ class SettingsFrame(Frame):
                 SOCKMODES[1] if config.get("sockmode", 0) == 1 else SOCKMODES[0]
             )
         except KeyError as err:
-            self.set_status(f"{CONFIGERR} - {err}", BADCOL)
-
-    # ============================================
-    # FOLLOWING METHODS REQUIRED BY STREAM_HANDLER
-    # ============================================
-
-    @property
-    def conn_status(self) -> int:
-        """
-        Getter for connection mode
-        (0 = disconnected, 1 = serial, 2 = socket, 4 = file).
-        """
-
-        return self.__app.conn_status
-
-    @conn_status.setter
-    def conn_status(self, status: int):
-        """
-        Setter for connection mode.
-
-        :param int status: 0 = disconnected, 1 = serial, 2 = socket, 4 = file.
-        """
-
-        self.__app.conn_status = status
-
-    def set_status(self, msg: str, col: str):
-        """
-        Set status message.
-
-        :param str msg: status message.
-        :param str col: colour
-        """
-
-        self.__app.set_status(msg, col)
-
-    def set_connection(self, msg: str, col: str):
-        """
-        Set connection message.
-
-        :param str msg: status message.
-        :param str col: colour
-        """
-
-        self.__app.set_connection(msg, col)
-
-    @property
-    def serial_settings(self) -> Frame:
-        """
-        Getter for common serial configuration panel
-
-        :return: reference to serial form
-        :rtype: Frame
-        """
-
-        return self._frm_serial
-
-    @property
-    def socket_settings(self) -> Frame:
-        """
-        Getter for common socket configuration panel
-
-        :return: reference to socket form
-        :rtype: Frame
-        """
-
-        return self._frm_socket
+            self.__app.set_status(f"{CONFIGERR} - {err}", BADCOL)

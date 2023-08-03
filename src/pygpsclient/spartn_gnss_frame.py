@@ -1,11 +1,16 @@
 """
-SPARTN GNSS Receiver configuration dialog
+spartn_gnss_frame.py
 
-Created on 26 Jan 2023
+SPARTN GNSS Receiver configuration dialog.
+
+This handles the configuration of the GNSS receiver to receive and decrypt
+incoming SPARTN RTK messages.
 
 FYI CFG_NAVSPG_CONSTR_DGNSSTO governs how quickly rcvr drops out of RTK mode
 after loss of correction signal - default is 60 seconds but this may need
 to be increased if the correction source is intermittent.
+
+Created on 26 Jan 2023
 
 :author: semuadmin
 :copyright: SEMU Consulting © 2023

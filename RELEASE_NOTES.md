@@ -1,5 +1,20 @@
 # PyGPSClient Release Notes
 
+### RELEASE CANDIDATE v1.4.0
+
+ENHANCEMENTS:
+
+1. Add NTRIP caster credentials as command line arguments.
+1. Add version update facility to About dialog.
+1. Add Survey-in countdown display to NTRIP caster panel.
+1. Add ECEF position format to banner.
+1. Add display support for NAVIC GNSS constellation in graph and skyviews (already fully supported in pyubx2).
+1. Add display support for NMEA UBX,03 proprietary message.
+
+CHANGES:
+
+1. Internal streamlining of stream_handler and settings_frame.
+
 ### RELEASE v1.3.30
 
 ENHANCEMENTS:

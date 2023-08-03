@@ -36,6 +36,8 @@
 	],
 	"mqapikey": "<======= my mqapikeyvalue =====>",
 	"mqttclientid": "<========= my mqttclientid ========>",
+	"ntripuser": "anon",
+	"ntrippassword": "password",
 	"colortag": 0,
 	"colortags": [
 		[

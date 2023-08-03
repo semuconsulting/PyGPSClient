@@ -7,7 +7,7 @@ proprietary NMEA sentences.
 Parses individual NMEA sentences (using pynmeagps library)
 and adds selected attribute values to the app.gnss_status
 data dictionary. This dictionary is then used to periodically
-update the app banner and user-selectable widgets.
+update the various user-selectable widgets.
 
 Created on 30 Sep 2020
 
@@ -21,7 +21,7 @@ from time import time
 from pynmeagps import NMEAMessage
 
 from pygpsclient.globals import SAT_EXPIRY
-from pygpsclient.helpers import fix2desc, kmph2ms, knots2ms
+from pygpsclient.helpers import fix2desc, kmph2ms, knots2ms, svid2gnssid
 
 
 class NMEAHandler:
@@ -78,6 +78,9 @@ class NMEAHandler:
             # proprietary GPS Lat/Lon & Acc
             elif parsed_data.msgID == "UBX" and parsed_data.msgId == "00":
                 self._process_UBX00(parsed_data)
+            # proprietary GPS Lat/Lon & Acc
+            elif parsed_data.msgID == "UBX" and parsed_data.msgId == "03":
+                self._process_UBX03(parsed_data)
 
         except ValueError:
             pass
@@ -197,13 +200,15 @@ class NMEAHandler:
             gnss = 3  # Beidou (only available in MMEA 4.11)
         elif data.talker == "GL":
             gnss = 6  # GLONASS
+        elif data.talker == "GI":
+            gnss = 7  # NAVIC
         else:
             gnss = 0  # GPS, SBAS, QZSS
 
         try:
             if data.svid_01 != "":
                 svid = data.svid_01
-                key = str(gnss) + "-" + str(svid)
+                key = f"{gnss}-{svid}"
                 gsv_dict[key] = (
                     gnss,
                     svid,
@@ -214,7 +219,7 @@ class NMEAHandler:
                 )
             if data.svid_02 != "":
                 svid = data.svid_02
-                key = str(gnss) + "-" + str(svid)
+                key = f"{gnss}-{svid}"
                 gsv_dict[key] = (
                     gnss,
                     svid,
@@ -225,7 +230,7 @@ class NMEAHandler:
                 )
             if data.svid_03 != "":
                 svid = data.svid_03
-                key = str(gnss) + "-" + str(svid)
+                key = f"{gnss}-{svid}"
                 gsv_dict[key] = (
                     gnss,
                     svid,
@@ -236,7 +241,7 @@ class NMEAHandler:
                 )
             if data.svid_04 != "":
                 svid = data.svid_04
-                key = str(gnss) + "-" + str(svid)
+                key = f"{gnss}-{svid}"
                 gsv_dict[key] = (
                     gnss,
                     svid,
@@ -286,7 +291,7 @@ class NMEAHandler:
 
     def _process_UBX00(self, data: NMEAMessage):
         """
-        Process UXB00 sentence - GPS Vector track and Speed over the Ground.
+        Process UXB00 sentence - Lat/Long position data.
 
         :param pynmeagps.NMEAMessage data: parsed UBX,00 sentence
         """
@@ -301,3 +306,48 @@ class NMEAHandler:
         self.__app.gnss_status.hacc = data.hAcc
         self.__app.gnss_status.vacc = data.vAcc
         self.__app.gnss_status.sip = data.numSVs
+
+    def _process_UBX03(self, data: NMEAMessage):
+        """
+        Process UXB03 sentence - NMEA Satellite Status.
+
+        NB: this message appears to use the legacy NMEA 2.n
+        SVID numbering scheme. This may conflict with GSV
+        satellite data if both message types are enabled.
+
+        :param pynmeagps.NMEAMessage data: parsed UBX,03 sentence
+        """
+        # pylint: disable=consider-using-dict-items
+
+        settings = self.__app.frm_settings.config
+        show_unused = settings["unusedsat"]
+        self.gsv_data = []
+        gsv_dict = {}
+        now = time()
+        for i in range(data.numSv):
+            # status = getattr(data, f"status_{i+1:02}")
+            # if status == "U" or show_unused:
+            svid = getattr(data, f"svid_{i+1:02}")
+            gnss = svid2gnssid(svid)
+            key = f"{gnss}-{svid}"
+            gsv_dict[key] = (
+                gnss,
+                svid,
+                getattr(data, f"azi_{i+1:02}"),
+                getattr(data, f"ele_{i+1:02}"),
+                str(getattr(data, f"cno_{i+1:02}")),
+                now,
+            )
+
+        for key in gsv_dict:
+            self.gsv_log[key] = gsv_dict[key]
+
+        for key in self.gsv_log:
+            gnssId, svid, elev, azim, snr, lastupdate = self.gsv_log[key]
+            if snr in ("", "0", 0) and not show_unused:  # omit unused sats
+                continue
+            if now - lastupdate < SAT_EXPIRY:  # expire passed sats
+                self.gsv_data.append((gnssId, svid, elev, azim, snr))
+
+        self.__app.gnss_status.siv = len(self.gsv_data)
+        self.__app.gnss_status.gsv_data = self.gsv_data
