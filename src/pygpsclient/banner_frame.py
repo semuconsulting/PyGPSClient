@@ -422,7 +422,7 @@ class BannerFrame(Frame):
         alt_u = "m"
 
         if isinstance(lat, (int, float)) and isinstance(lon, (int, float)):
-            if deg_format == ECEF:
+            if deg_format == ECEF and isinstance(alt, (int, float)):
                 lat, lon, alt = llh2ecef(lat, lon, alt)
                 if units in (UI, UIK):
                     lat, lon = (m2ft(x) for x in (lat, lon))
