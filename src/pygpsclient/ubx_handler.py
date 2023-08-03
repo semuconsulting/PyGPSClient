@@ -89,6 +89,8 @@ class UBXHandler:
             self._process_MON_SYS(parsed_data)
         elif parsed_data.identity == "MON-COMMS":
             self._process_MON_COMMS(parsed_data)
+        elif parsed_data.identity == "RXM-PMP":
+            self._process_RXM_PMP(parsed_data)
         elif parsed_data.identity == "RXM-SPARTN-KEY":
             self._process_RXM_SPARTN_KEY(parsed_data)
 
@@ -403,6 +405,16 @@ class UBXHandler:
         Process RXM-SPARTN_KEY sentences - poll response.
 
         :param UBXMessage data: RXM-SPARTN_KEY poll response message
+        """
+
+        if self.__app.dialog(DLGTSPARTN) is not None:
+            self.__app.dialog(DLGTSPARTN).update_pending(data)
+
+    def _process_RXM_PMP(self, data: UBXMessage):
+        """
+        Process RXM-PMP sentence - SPARTN L-Band data.
+
+        :param UBXMessage data: RXM-PMP message
         """
 
         if self.__app.dialog(DLGTSPARTN) is not None:

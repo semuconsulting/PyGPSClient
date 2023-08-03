@@ -270,6 +270,8 @@ class SpartnLbandDialog(Frame):
             width=10,
             wrap=True,
         )
+        self._lbl_ebno = Label(self, text="")
+        self._lbl_fec = Label(self, text="")
         self._btn_connect = Button(
             self,
             width=45,
@@ -324,13 +326,15 @@ class SpartnLbandDialog(Frame):
         self._ent_unqword.grid(column=1, row=9, columnspan=3, sticky=W)
         self._lbl_outport.grid(column=0, row=10, sticky=W)
         self._spn_outport.grid(column=1, row=10, columnspan=3, sticky=W)
+        self._lbl_ebno.grid(column=0, row=11, sticky=W)
+        self._lbl_fec.grid(column=1, row=11, sticky=W)
         ttk.Separator(self).grid(
-            column=0, row=11, columnspan=4, padx=2, pady=3, sticky=(W, E)
+            column=0, row=12, columnspan=4, padx=2, pady=3, sticky=(W, E)
         )
-        self._btn_connect.grid(column=0, row=12, padx=3, pady=2, sticky=W)
-        self._btn_disconnect.grid(column=1, row=12, padx=3, pady=2, sticky=W)
-        self._btn_send.grid(column=2, row=12, padx=3, pady=2, sticky=W)
-        self._lbl_send.grid(column=3, row=12, padx=3, pady=2, sticky=W)
+        self._btn_connect.grid(column=0, row=13, padx=3, pady=2, sticky=W)
+        self._btn_disconnect.grid(column=1, row=13, padx=3, pady=2, sticky=W)
+        self._btn_send.grid(column=2, row=13, padx=3, pady=2, sticky=W)
+        self._lbl_send.grid(column=3, row=13, padx=3, pady=2, sticky=W)
 
     def _attach_events(self):
         """
@@ -640,4 +644,8 @@ class SpartnLbandDialog(Frame):
         elif msg.identity == "ACK-NAK":
             self._lbl_send.config(image=self._img_warn)
             self.__container.set_status(CONFIGBAD.format(CFGSET), "red")
+        elif msg.identity == "RXM-PMP":
+            self._lbl_ebno.config(text=f"EBNO: {msg.ebno}")
+            self._lbl_fec.config(text=f"FEC Bits: {msg.fecBits}")
+
         self.update_idletasks()

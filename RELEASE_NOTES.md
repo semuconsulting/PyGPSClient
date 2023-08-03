@@ -1,6 +1,12 @@
 # PyGPSClient Release Notes
 
-### RELEASE CANDIDATE v1.4.0
+### RELEASE CANDIDATE v1.4.1
+
+ENHANCEMENTS:
+
+1. Add EBNO & FEC Bits values to SPARTN L-Band configuration panel to help monitor signal quality.
+
+### RELEASE v1.4.0
 
 ENHANCEMENTS:
 

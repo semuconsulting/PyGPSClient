@@ -218,6 +218,7 @@ The SPARTN client configuration can be loaded from a JSON file provided by the L
 1. To enable INF-DEBUG messages, which give diagnostic information about current L-Band reception, click 'Enable Debug?'.
 1. To save the configuration to the device's persistent storage (Battery-backed RAM, Flash or EEPROM), click 'Save Config?'.
 1. Once connected, click ![send button](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-arrow-12-24.png?raw=true) to upload the configuration. The utility will send the relevant configuration command(s) to the Correction receiver and poll for an acknowledgement.
+1. If `RXM-PMP` messages are received, the EBNO and FEC Bits values will be displayed as an indication of signal quality and an aid to antenna alignment (*ideally EBNO > 10 and FEC Bits < 10*).
 
 ### GNSS Receiver Configuration (F9*)
 

@@ -216,6 +216,11 @@ class SPARTNConfigDialog(Toplevel):
         if not hasattr(msg, "identity"):
             return
 
+        # update ebno & fecBits values
+        if msg.identity == "RXM-PMP":
+            self._frm_corrlband.update_status(msg)
+            return
+
         spartnfrm = self._pending_confs.get(msg.identity, None)
 
         if spartnfrm is not None:
