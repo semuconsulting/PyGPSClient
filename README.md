@@ -291,6 +291,8 @@ In the following, `python3` & `pip` refer to the Python 3 executables. You may n
 the Python 3 scripts (bin) and site_packages directories are included in your PATH 
 (*most standard Python 3 installation packages will do this automatically if you select the 'Add to PATH' option during installation*).
 
+NB: if you're installing onto a 32-bit Linux platform (e.g. Raspberry PI OS 32), there may be additional installation steps - see note*³* below.
+
 ### Platform Dependencies
 
 - Python >= 3.8
@@ -309,6 +311,14 @@ sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk
 
 ```shell
 sudo apt install tk-dev
+```
+
+*³* On some 32-bit Linux platforms (e.g. Raspberry Pi OS 32), it may be necessary to install Rust compiler support in order to install the `cryptography` library which PyGPSClient uses (via `pyspartn`) to decrypt SPARTN messages (see [Discussion](https://github.com/semuconsulting/PyGPSClient/discussions/83)):
+
+```shell
+sudo apt-get install build-essential libssl-dev libffi-dev python3-dev cargo pkg-config
+python -m pip install cryptography
+python -m pip install PyGPSClient
 ```
 
 ### User Privileges
