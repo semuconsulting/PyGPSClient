@@ -313,12 +313,12 @@ sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk
 sudo apt install tk-dev
 ```
 
-*³* On some 32-bit Linux platforms (e.g. Raspberry Pi OS 32), it may be necessary to install Rust compiler support in order to install the `cryptography` library which PyGPSClient uses (via `pyspartn`) to decrypt SPARTN messages (see [Discussion](https://github.com/semuconsulting/PyGPSClient/discussions/83)):
+*³* On some 32-bit Linux platforms (e.g. Raspberry Pi OS 32), it may be necessary to [install Rust compiler support](https://www.rust-lang.org/tools/install) in order to install the `cryptography` library which PyGPSClient depends on to decrypt SPARTN messages (see [Discussion](https://github.com/semuconsulting/PyGPSClient/discussions/83)):
 
 ```shell
-sudo apt-get install build-essential libssl-dev libffi-dev python3-dev cargo pkg-config
-python -m pip install cryptography
-python -m pip install PyGPSClient
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+sudo apt-get install build-essential libssl-dev libffi-dev python3-dev pkg-config
+python3 -m pip install PyGPSClient
 ```
 
 ### User Privileges
