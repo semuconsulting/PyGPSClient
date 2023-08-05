@@ -787,7 +787,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         try:
             for key, vals in self._widget_grid.items():
-                vals["visible"] = config[key]
+                vals["visible"] = config.get(key, False)
         except KeyError as err:
             self.set_status(f"{CONFIGERR} - {err}", BADCOL)
 

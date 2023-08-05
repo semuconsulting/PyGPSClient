@@ -1,3 +1,4 @@
+
 # PyGPSClient
 
 [Current Status](#currentstatus) |
@@ -218,7 +219,6 @@ The SPARTN client configuration can be loaded from a JSON file provided by the L
 1. To enable INF-DEBUG messages, which give diagnostic information about current L-Band reception, click 'Enable Debug?'.
 1. To save the configuration to the device's persistent storage (Battery-backed RAM, Flash or EEPROM), click 'Save Config?'.
 1. Once connected, click ![send button](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-arrow-12-24.png?raw=true) to upload the configuration. The utility will send the relevant configuration command(s) to the Correction receiver and poll for an acknowledgement.
-1. If `RXM-PMP` messages are received, the EBNO and FEC Bits values will be displayed as an indication of signal quality and an aid to antenna alignment (*ideally EBNO > 10 and FEC Bits < 10*).
 
 ### GNSS Receiver Configuration (F9*)
 
@@ -292,6 +292,8 @@ In the following, `python3` & `pip` refer to the Python 3 executables. You may n
 the Python 3 scripts (bin) and site_packages directories are included in your PATH 
 (*most standard Python 3 installation packages will do this automatically if you select the 'Add to PATH' option during installation*).
 
+NB: if you're installing onto a 32-bit Linux platform (e.g. Raspberry Pi OS 32), there may be additional installation steps - see note*³* below.
+
 ### Platform Dependencies
 
 - Python >= 3.8
@@ -310,6 +312,13 @@ sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk
 
 ```shell
 sudo apt install tk-dev
+```
+
+*³* On some 32-bit Linux platforms (e.g. Raspberry Pi OS 32), it may be necessary to [install Rust compiler support](https://www.rust-lang.org/tools/install) and some [additional build dependencies](https://cryptography.io/en/latest/installation/) in order to install the `cryptography` library which PyGPSClient depends on to decrypt SPARTN messages (see [Discussion](https://github.com/semuconsulting/PyGPSClient/discussions/83)):
+
+```shell
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+sudo apt-get install build-essential libssl-dev libffi-dev python3-dev pkg-config
 ```
 
 ### User Privileges
