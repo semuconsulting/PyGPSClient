@@ -67,7 +67,10 @@ from pygpsclient.globals import (
     MSGMODES,
     NOPORTS,
     READONLY,
-    SOCKMODES,
+    SOCK_NTRIP,
+    SOCK_SERVER,
+    SOCKCLIENT_HOST,
+    SOCKCLIENT_PORT,
     SOCKSERVER_HOST,
     SOCKSERVER_PORT,
     TIMEOUTS,
@@ -110,6 +113,8 @@ class SettingsFrame(Frame):
 
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
+        self._init_config = kwargs.pop("config")
+
         Frame.__init__(self, self.__master, *args, **kwargs)
 
         self.infilepath = None
@@ -158,7 +163,7 @@ class SettingsFrame(Frame):
         self.option_add("*Font", self.__app.font_sm)
 
         # serial port configuration panel
-        userport = self.__app.app_config.get("userport", "")
+        userport = self._init_config.get("userport", "")
         self.frm_serial = SerialConfigFrame(
             self,
             preselect=KNOWNGPS,
@@ -168,8 +173,8 @@ class SettingsFrame(Frame):
             userport=userport,  # user-defined serial port
         )
 
-        # socket configuration panel
-        self.frm_socket = SocketConfigFrame(self)
+        # socket client configuration panel
+        self.frm_socketclient = SocketConfigFrame(self, config=self._init_config)
 
         # connection buttons
         self._frm_buttons = Frame(self)
@@ -312,7 +317,9 @@ class SettingsFrame(Frame):
             command=lambda: self._on_record_track(),
         )
         # socket server configuration
-        self.frm_server = ServerConfigFrame(self.__app, self._frm_options)
+        self.frm_socketserver = ServerConfigFrame(
+            self.__app, self, config=self._init_config
+        )
         # configuration panel buttons
         self._lbl_ubxconfig = Label(
             self._frm_options,
@@ -357,7 +364,7 @@ class SettingsFrame(Frame):
             column=0, row=2, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
 
-        self.frm_socket.grid(
+        self.frm_socketclient.grid(
             column=0, row=3, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
         ttk.Separator(self).grid(
@@ -408,7 +415,7 @@ class SettingsFrame(Frame):
         ttk.Separator(self._frm_options).grid(
             column=0, row=9, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
-        self.frm_server.grid(
+        self.frm_socketserver.grid(
             column=0, row=10, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
         ttk.Separator(self._frm_options).grid(
@@ -420,6 +427,23 @@ class SettingsFrame(Frame):
         self._lbl_ntripconfig.grid(column=1, row=14)
         self._btn_spartnconfig.grid(column=2, row=13)
         self._lbl_spartnconfig.grid(column=2, row=14)
+
+    def _reset(self):
+        """
+        Reset settings to defaults.
+        """
+
+        self.config = self._init_config
+        self.clients = 0
+
+    def _reset_frames(self):
+        """
+        Reset frames.
+        """
+
+        self.__app.frm_mapview.reset_map_refresh()
+        self.__app.frm_spectrumview.reset()
+        self.__app.reset_gnssstatus()
 
     def _on_connect(self, conntype: int):
         """
@@ -439,7 +463,7 @@ class SettingsFrame(Frame):
             "msgmode": self.frm_serial.msgmode,
         }
 
-        self.frm_server.set_status(conntype)
+        self.frm_socketserver.set_status(conntype)
         if conntype == CONNECTED:
             frm = self.frm_serial
             if frm.status == NOPORTS:
@@ -447,7 +471,7 @@ class SettingsFrame(Frame):
             connstr = f"{frm.port}:{frm.port_desc} @ {frm.bpsrate}"
             conndict = dict(conndict, **{"serial_settings": frm})
         elif conntype == CONNECTED_SOCKET:
-            frm = self.frm_socket
+            frm = self.frm_socketclient
             valid = True
             valid = valid & valid_entry(frm.ent_server, VALURL)
             valid = valid & valid_entry(frm.ent_port, VALINT, 1, MAXPORT)
@@ -540,23 +564,6 @@ class SettingsFrame(Frame):
             self.__app.file_handler.close_trackfile()
             self.__app.set_status("Track recording disabled")
 
-    def _reset(self):
-        """
-        Reset settings to defaults.
-        """
-
-        self.config = {}
-        self.clients = 0
-
-    def _reset_frames(self):
-        """
-        Reset frames.
-        """
-
-        self.__app.frm_mapview.reset_map_refresh()
-        self.__app.frm_spectrumview.reset()
-        self.__app.reset_gnssstatus()
-
     def enable_controls(self, status: int):
         """
         Public method to enable and disable those controls
@@ -569,8 +576,8 @@ class SettingsFrame(Frame):
         """
 
         self.frm_serial.set_status(status)
-        self.frm_socket.set_status(status)
-        self.frm_server.set_status(status)
+        self.frm_socketclient.set_status(status)
+        self.frm_socketserver.set_status(status)
 
         self._btn_connect.config(
             state=(
@@ -629,7 +636,7 @@ class SettingsFrame(Frame):
             + (ubt.UBX_PROTOCOL * self._prot_ubx.get())
             + (ubt.RTCM3_PROTOCOL * self._prot_rtcm3.get())
         )
-        sockmode = 1 if self.frm_server.sock_mode.get() == SOCKMODES[1] else 0
+        sockmode = 1 if self.frm_socketserver.sock_mode.get() == SOCK_NTRIP else 0
 
         config = {
             "protocol": protocol,
@@ -649,10 +656,23 @@ class SettingsFrame(Frame):
             "logformat": self._logformat.get(),
             "datalog": self._datalog.get(),
             "recordtrack": self._record_track.get(),
-            "sockserver": self.frm_server.socketserving,
-            "sockhost": self.frm_server.sock_host.get(),
-            "sockport": self.frm_server.sock_port.get(),
+            "sockclienthost": self.frm_socketclient.server.get(),
+            "sockclientport": self.frm_socketclient.port.get(),
+            "sockclientprotocol": self.frm_socketclient.protocol.get(),
+            "sockclientflowinfo": self.frm_socketclient.flowinfo.get(),
+            "sockclientscopeid": self.frm_socketclient.scopeid.get(),
+            "sockserver": self.frm_socketserver.socketserving,
+            "sockhost": self.frm_socketserver.sock_host.get(),
+            "sockport": self.frm_socketserver.sock_port.get(),
             "sockmode": sockmode,
+            "ntripcasterbasemode": self.frm_socketserver.base_mode.get(),
+            "ntripcasteracclimit": self.frm_socketserver.acclimit.get(),
+            "ntripcasterduration": self.frm_socketserver.duration.get(),
+            "ntripcasterposmode": self.frm_socketserver.pos_mode.get(),
+            "ntripcasterfixedlat": self.frm_socketserver.fixedlat.get(),
+            "ntripcasterfixedlon": self.frm_socketserver.fixedlon.get(),
+            "ntripcasterfixedalt": self.frm_socketserver.fixedalt.get(),
+            "ntripcasterdisablenmea": self.frm_socketserver.disable_nmea.get(),
         }
         return config
 
@@ -679,18 +699,38 @@ class SettingsFrame(Frame):
             self.show_legend.set(config.get("legend", 1))
             self._show_unusedsat.set(config.get("unusedsat", 1))
             self._logformat.set(config.get("logformat", FORMATS[1]))  # Binary
-            # don't persist datalog or gpx track settings...
-            # self._datalog.set(config.get("datalog", 0))
-            # self._record_track.set(config.get("recordtrack", 0))
-            self.frm_server.socketserving = config.get("sockserver", 0)
-            self.frm_server.sock_host.set(
+            self.frm_socketclient.server.set(
+                config.get("sockclienthost", SOCKCLIENT_HOST)
+            )
+            self.frm_socketclient.port.set(
+                config.get("sockclientport", SOCKCLIENT_PORT)
+            )
+            self.frm_socketclient.protocol.set(
+                config.get("sockclientprotocol", "TCP IPv4")
+            )
+            self.frm_socketclient.flowinfo.set(config.get("sockclientflowinfo", 0))
+            self.frm_socketclient.scopeid.set(config.get("sockclientscopeid", 0))
+            self.frm_socketserver.socketserving = config.get("sockserver", 0)
+            self.frm_socketserver.sock_host.set(
                 config.get(
                     "sockhost", getenv("PYGPSCLIENT_BINDADDRESS", SOCKSERVER_HOST)
                 )
             )
-            self.frm_server.sock_port.set(config.get("sockport", SOCKSERVER_PORT))
-            self.frm_server.sock_mode.set(
-                SOCKMODES[1] if config.get("sockmode", 0) == 1 else SOCKMODES[0]
+            self.frm_socketserver.sock_port.set(config.get("sockport", SOCKSERVER_PORT))
+            self.frm_socketserver.sock_mode.set(
+                SOCK_NTRIP if config.get("sockmode", 0) == 1 else SOCK_SERVER
+            )
+            self.frm_socketserver.base_mode.set(
+                config.get("ntripcasterbasemode", "SURVEY IN")
+            )
+            self.frm_socketserver.acclimit.set(config.get("ntripcasteracclimit", 10))
+            self.frm_socketserver.duration.set(config.get("ntripcasterduration", 60))
+            self.frm_socketserver.pos_mode.set(config.get("ntripcasterposmode", "LLH"))
+            self.frm_socketserver.fixedlat.set(config.get("ntripcasterfixedlat", 0))
+            self.frm_socketserver.fixedlon.set(config.get("ntripcasterfixedlon", 0))
+            self.frm_socketserver.fixedalt.set(config.get("ntripcasterfixedalt", 0))
+            self.frm_socketserver.disable_nmea.set(
+                config.get("ntripcasterdisablenmea", 1)
             )
         except KeyError as err:
             self.__app.set_status(f"{CONFIGERR} - {err}", BADCOL)

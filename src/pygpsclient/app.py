@@ -167,12 +167,14 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._rowcount = 0
 
         # Load configuration from file if it exists
+        self.config = {}
         self._colortags = []
         self._ubxpresets = []
         config_loaded = False
-        _, self.config = self.file_handler.load_config(configfile)
-        if isinstance(self.config, dict):  # load succeeded
+        _, config = self.file_handler.load_config(configfile)
+        if isinstance(config, dict):  # load succeeded
             config_loaded = True
+            self.config = config
             self.app_config = self.config
 
         self._body()
@@ -182,15 +184,13 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         # Initialise settings once frm_settings has been instantiated
         if config_loaded:
-            self.frm_settings.config = self.config
             self.set_status(f"{LOADCONFIGOK} {configfile}", OKCOL)
         else:
-            # self.config is str containing error msg
-            if "No such file or directory" in self.config:
+            if "No such file or directory" in config:
                 self.set_status(f"Configuration file not found {configfile}")
             else:
-                self.set_status(f"{LOADCONFIGBAD} {configfile} {self.config}")
-            self.config = {}
+                self.set_status(f"{LOADCONFIGBAD} {configfile} {config}")
+            # self.config = {}
         self.frm_satview.init_sats()
         self.frm_graphview.init_graph()
         self.frm_mapview.init_map()
@@ -215,7 +215,9 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.menu = MenuBar(self)
         self.frm_status = StatusFrame(self, borderwidth=2, relief="groove")
         self.frm_banner = BannerFrame(self, borderwidth=2, relief="groove")
-        self.frm_settings = SettingsFrame(self, borderwidth=2, relief="groove")
+        self.frm_settings = SettingsFrame(
+            self, borderwidth=2, relief="groove", config=self.config
+        )
         self.frm_console = ConsoleFrame(self, borderwidth=2, relief="groove")
         self.frm_mapview = MapviewFrame(self, borderwidth=2, relief="groove")
         self.frm_satview = SkyviewFrame(self, borderwidth=2, relief="groove")
@@ -560,7 +562,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         :param int clients: no of connected clients
         """
 
-        self.frm_settings.frm_server.clients = clients
+        self.frm_settings.frm_socketserver.clients = clients
 
     def on_exit(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -586,7 +588,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             if raw_data is not None and parsed_data is not None:
                 self.process_data(raw_data, parsed_data)
             # if socket server is running, output raw data to socket
-            if self.frm_settings.frm_server.socketserving:
+            if self.frm_settings.frm_socketserver.socketserving:
                 self.socket_outqueue.put(raw_data)
             self.gnss_inqueue.task_done()
         except Empty:
@@ -600,7 +602,9 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         :param event event: <<gnss_eof>> event
         """
 
-        self.frm_settings.frm_server.socketserving = False  # turn off socket server
+        self.frm_settings.frm_socketserver.socketserving = (
+            False  # turn off socket server
+        )
         self.conn_status = DISCONNECTED
         self.set_status(ENDOFFILE)
 
@@ -869,5 +873,5 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         :param bool active: active flag
         """
 
-        if self.frm_settings.frm_server is not None:
-            self.frm_settings.frm_server.svin_countdown(dur, valid, active)
+        if self.frm_settings.frm_socketserver is not None:
+            self.frm_settings.frm_socketserver.svin_countdown(dur, valid, active)
