@@ -1,4 +1,6 @@
 """
+nmea_client_dialog.py
+
 NTRIP client container dialog
 
 This is the pop-up dialog containing the various
@@ -65,7 +67,7 @@ from pygpsclient.globals import (
     UIK,
 )
 from pygpsclient.helpers import MAXALT, VALFLOAT, valid_entry
-from pygpsclient.socketconfig_frame import TCPIPV4, TCPIPV6, SocketConfigFrame
+from pygpsclient.socketconfig_frame import SocketConfigFrame
 from pygpsclient.strings import (
     DLGNTRIPCONFIG,
     LBLGGAFIXED,
@@ -80,6 +82,9 @@ from pygpsclient.strings import (
 
 NTRIP_VERSIONS = ("2.0", "1.0")
 KM2MILES = 0.6213712
+IP4 = "IPv4"
+IP6 = "IPv6"
+NPROTOCOLS = [IP4, IP6]
 
 
 class NTRIPConfigDialog(Toplevel):
@@ -148,7 +153,9 @@ class NTRIPConfigDialog(Toplevel):
 
         self._frm_container = Frame(self, borderwidth=2, relief="groove")
         self._frm_socket = SocketConfigFrame(
-            self._frm_container, config=self._init_config
+            self._frm_container,
+            config=self._init_config,
+            protocols=NPROTOCOLS,
         )
         self._frm_status = Frame(self._frm_container, borderwidth=2, relief="groove")
         self._lbl_status = Label(
@@ -523,7 +530,7 @@ class NTRIPConfigDialog(Toplevel):
         self._connected = self.__app.ntrip_handler.connected
         self._settings = self.__app.ntrip_handler.settings
         ipprot = self._settings.get("ipprot", AF_INET)
-        self._frm_socket.protocol.set(TCPIPV6 if ipprot == AF_INET6 else TCPIPV4)
+        self._frm_socket.protocol.set(IP6 if ipprot == AF_INET6 else IP4)
         self._frm_socket.server.set(self._settings["server"])
         self._frm_socket.port.set(self._settings["port"])
         self._frm_socket.flowinfo.set(self._settings["flowinfo"])
@@ -554,7 +561,7 @@ class NTRIPConfigDialog(Toplevel):
         self._settings["server"] = self._frm_socket.server.get()
         self._settings["port"] = self._frm_socket.port.get()
         self._settings["ipprot"] = (
-            AF_INET6 if self._frm_socket.protocol.get() == TCPIPV6 else AF_INET
+            AF_INET6 if self._frm_socket.protocol.get() == IP6 else AF_INET
         )
         self._settings["flowinfo"] = self._frm_socket.flowinfo.get()
         self._settings["scopeid"] = self._frm_socket.scopeid.get()
@@ -595,7 +602,7 @@ class NTRIPConfigDialog(Toplevel):
         if self._valid_settings():
             self._set_settings()
             self.__app.ntrip_handler.run(
-                ipprot="IPv6" if self._settings["ipprot"] == AF_INET6 else "IPv4",
+                ipprot=IP6 if self._settings["ipprot"] == AF_INET6 else IP4,
                 server=self._settings["server"],
                 port=self._settings["port"],
                 flowinfo=self._settings["flowinfo"],

@@ -1,4 +1,6 @@
 """
+scatter_frame.py
+
 Scatterplot frame class for PyGPS Application.
 
 This generates a scatterplot of positions, centered on the average

@@ -1,4 +1,6 @@
 """
+map_frame.py
+
 Mapview frame class for PyGPSClient application.
 
 This handles a frame containing a location map downloaded via a MapQuest API.

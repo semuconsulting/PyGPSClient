@@ -1,4 +1,6 @@
 """
+about_dialog.py
+
 About Dialog Box class for PyGPSClient application.
 
 Created on 20 Sep 2020

@@ -1,4 +1,6 @@
 """
+ubx_recorder_frame.py
+
 UBX Player/Recorder widget for CFG commands entered by user via UBX
 Configuration panel.
 

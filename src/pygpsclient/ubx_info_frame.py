@@ -1,4 +1,6 @@
 """
+ubx_info_frame.py
+
 UBX Configuration frame for MON-VER and MON-HW messages
 
 Created on 22 Dec 2020

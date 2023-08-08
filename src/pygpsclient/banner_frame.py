@@ -1,4 +1,6 @@
 """
+banner_frame.py
+
 Banner frame class for PyGPSClient application.
 
 This handles the top banner which prominently displays the current coordinates and status.

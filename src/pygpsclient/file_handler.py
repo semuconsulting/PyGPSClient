@@ -1,7 +1,9 @@
 """
-Filehandler class for PyGPSClient application
+file_handler.py
 
-This handles all the file i/o
+Filehandler class for PyGPSClient application.
+
+This handles all the file i/o.
 
 Created on 16 Sep 2020
 

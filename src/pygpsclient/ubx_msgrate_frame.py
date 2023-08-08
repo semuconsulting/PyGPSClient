@@ -1,4 +1,6 @@
 """
+ubx_msgrate_frame.py
+
 UBX Configuration frame for CFG-MSG commands
 
 Created on 22 Dec 2020

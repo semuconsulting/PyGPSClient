@@ -1,4 +1,6 @@
 """
+console_frame.py
+
 Console frame class for PyGPSClient application.
 
 This handles a scrollable text box into which the serial data is printed.

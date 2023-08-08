@@ -1,4 +1,6 @@
 """
+spartn_lband_frame.py
+
 SPARTN L-Band Correction receiver configuration dialog.
 
 This handles the configuration of the L-Band receiver

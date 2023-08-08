@@ -1,4 +1,6 @@
 """
+serialconfig_frame.py
+
 Generic serial port configuration Frame subclass
 for use in tkinter applications which require a
 serial port configuration facility.

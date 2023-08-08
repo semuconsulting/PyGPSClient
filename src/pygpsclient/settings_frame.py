@@ -524,14 +524,14 @@ class SettingsFrame(Frame):
 
     def _on_webmap(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
-        Reset webmap refresh timer
+        Reset webmap refresh timer.
         """
 
         self.__app.frm_mapview.reset_map_refresh()
 
     def _on_data_log(self):
         """
-        Start or stop data logger
+        Start or stop data logger.
         """
 
         if self._datalog.get() == 1:
@@ -549,7 +549,7 @@ class SettingsFrame(Frame):
 
     def _on_record_track(self):
         """
-        Start or stop track recorder
+        Start or stop track recorder.
         """
 
         if self._record_track.get() == 1:
@@ -567,8 +567,8 @@ class SettingsFrame(Frame):
 
     def enable_controls(self, status: int):
         """
-        Public method to enable and disable those controls
-        which depend on connection status.
+        Public method to enable or disable controls depending on
+        connection status.
 
         :param int status: connection status as integer
                (0=Disconnected, 1=Connected to serial,
@@ -628,6 +628,10 @@ class SettingsFrame(Frame):
         """
         Getter for configuration settings to save as file.
 
+        This collates current settings from the various frames
+        and protocol handlers into a dictionary which can be
+        saved to the pygpsclient.json config file.
+
         :return: settings as dictionary
         :rtype: dict
         """
@@ -643,6 +647,7 @@ class SettingsFrame(Frame):
         ntripprot = "IPv6" if ntripclient_settings["ipprot"] == AF_INET6 else "IPv4"
 
         config = {
+            # main settings from frm_settings
             "protocol": protocol,
             "nmeaprot": self._prot_nmea.get(),
             "ubxprot": self._prot_ubx.get(),
@@ -660,11 +665,13 @@ class SettingsFrame(Frame):
             "logformat": self._logformat.get(),
             "datalog": self._datalog.get(),
             "recordtrack": self._record_track.get(),
+            # socket client settings from frm_socketclient
             "sockclienthost": self.frm_socketclient.server.get(),
             "sockclientport": self.frm_socketclient.port.get(),
             "sockclientprotocol": self.frm_socketclient.protocol.get(),
             "sockclientflowinfo": self.frm_socketclient.flowinfo.get(),
             "sockclientscopeid": self.frm_socketclient.scopeid.get(),
+            # socket server settings from frm_sockerserver
             "sockserver": self.frm_socketserver.socketserving,
             "sockhost": self.frm_socketserver.sock_host.get(),
             "sockport": self.frm_socketserver.sock_port.get(),
@@ -677,7 +684,7 @@ class SettingsFrame(Frame):
             "ntripcasterfixedlon": self.frm_socketserver.fixedlon.get(),
             "ntripcasterfixedalt": self.frm_socketserver.fixedalt.get(),
             "ntripcasterdisablenmea": self.frm_socketserver.disable_nmea.get(),
-            # NTRIP Client settings from NTRIP handler running in background
+            # NTRIP client settings from pygnssutils.GNSSNTRIPClient
             "ntripclientserver": ntripclient_settings["server"],
             "ntripclientport": ntripclient_settings["port"],
             "ntripclientprotocol": ntripprot,
@@ -701,10 +708,14 @@ class SettingsFrame(Frame):
         """
         Setter for configuration loaded from file.
 
+        This reads the configuration dictionary from a pygpsclient.json
+        file and updates the various frames and protocol handlers.
+
         :param dict config: configuration
         """
 
         try:
+            # main settings to frm_settings
             self._prot_nmea.set(config.get("nmeaprot", 1))
             self._prot_ubx.set(config.get("ubxprot", 1))
             self._prot_rtcm3.set(config.get("rtcmprot", 1))
@@ -719,6 +730,7 @@ class SettingsFrame(Frame):
             self.show_legend.set(config.get("legend", 1))
             self._show_unusedsat.set(config.get("unusedsat", 1))
             self._logformat.set(config.get("logformat", FORMATS[1]))  # Binary
+            # socket client settings to frm_socketclient
             self.frm_socketclient.server.set(
                 config.get("sockclienthost", SOCKCLIENT_HOST)
             )
@@ -730,6 +742,7 @@ class SettingsFrame(Frame):
             )
             self.frm_socketclient.flowinfo.set(config.get("sockclientflowinfo", 0))
             self.frm_socketclient.scopeid.set(config.get("sockclientscopeid", 0))
+            # socket server settings to frm_sockerserver
             self.frm_socketserver.socketserving = config.get("sockserver", 0)
             self.frm_socketserver.sock_host.set(
                 config.get(
@@ -752,8 +765,7 @@ class SettingsFrame(Frame):
             self.frm_socketserver.disable_nmea.set(
                 config.get("ntripcasterdisablenmea", 1)
             )
-
-            # NTRIP Client settings for NTRIP handler running in background
+            # NTRIP client settings to pygnssutils.GNSSNTRIPClient
             ntripsettings = {}
             ntripsettings["server"] = config.get("ntripclientserver", "")
             ntripsettings["port"] = config.get("ntripclientport", 2101)
@@ -775,10 +787,7 @@ class SettingsFrame(Frame):
             ntripsettings["reflon"] = config.get("ntripclientreflon", 0.0)
             ntripsettings["refalt"] = config.get("ntripclientrefalt", 0.0)
             ntripsettings["refsep"] = config.get("ntripclientrefsep", 0.0)
-            if self.__app.rtk_conn_status == DISCONNECTED:
-                self.__app.ntrip_handler.settings = (
-                    ntripsettings  # pygnssutils >= 1.0.13
-                )
+            self.__app.ntrip_handler.settings = ntripsettings
 
         except KeyError as err:
             self.__app.set_status(f"{CONFIGERR} - {err}", BADCOL)

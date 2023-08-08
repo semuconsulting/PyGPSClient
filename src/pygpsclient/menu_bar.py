@@ -1,4 +1,6 @@
 """
+menu_bar.py
+
 Menubar class for PyGPSClient application.
 
 This handles the menu bar.

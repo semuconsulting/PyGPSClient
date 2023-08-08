@@ -1,4 +1,6 @@
 """
+strings.py
+
 ENGLISH language string literals for PyGPSClient application
 
 Created on 12 Sep 2020
@@ -158,6 +160,7 @@ DLGSPARTNWARN = "WARNING! Disconnect from {} client before using {} client"
 DLGUBXCONFIG = "UBX Configuration"
 DLGWAITMONSPAN = "Waiting for MON-SPAN message..."
 DLGWAITMONSYS = "Waiting for MON-SYS/COMMS messages..."
+DLGSTOPRTK = "WARNING! Stop NTRIP & SPARTN clients before saving configuration"
 
 # UBX Preset Command Descriptions
 PSTALLINFOFF = "CFG-INF - Turn OFF all non-error INF msgs"

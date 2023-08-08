@@ -1,4 +1,6 @@
 """
+skyview_frame.py
+
 Satview frame class for PyGPSClient application.
 
 This handles a frame containing a 2D plot of satellite visibility.

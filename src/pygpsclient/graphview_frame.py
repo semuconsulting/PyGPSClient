@@ -1,4 +1,6 @@
 """
+graphview_frame.py
+
 Graphview frame class for PyGPSClient application.
 
 This handles a frame containing a graph of current satellite reception.

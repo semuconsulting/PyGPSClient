@@ -3,6 +3,15 @@ app.py
 
 PyGPSClient - Main tkinter application class.
 
+- Instantiates all frames, widgets, and protocol handlers.
+- Starts and stops threaded dialog and client/server processes.
+- Maintains current connection status.
+- Reacts to various message events, processes navigation data
+  placed on input message queue by serial, socket or file stream reader
+  and assigns to appropriate NMEA, UBX or RTCM protocol handler.
+- Maintains central dictionary of current key navigation data as
+  `gnss_status`, for use by user-selectable widgets.
+
 Created on 12 Sep 2020
 
 :author: semuadmin
@@ -28,6 +37,7 @@ from pygpsclient.console_frame import ConsoleFrame
 from pygpsclient.file_handler import FileHandler
 from pygpsclient.globals import (
     BADCOL,
+    CFG,
     CHECK_FOR_UPDATES,
     CONFIGFILE,
     CONNECTED,
@@ -70,6 +80,7 @@ from pygpsclient.status_frame import StatusFrame
 from pygpsclient.stream_handler import StreamHandler
 from pygpsclient.strings import (
     CONFIGERR,
+    DLGSTOPRTK,
     ENDOFFILE,
     INTROTXTNOPORTS,
     LOADCONFIGBAD,
@@ -335,14 +346,16 @@ class App(Frame):  # pylint: disable=too-many-ancestors
     def _init_dialogs(self):
         """
         Initialise dictionary of dialog statuses.
+
+        This stores the current status of any threaded dialogs.
         """
 
         self.dlg_threads = {
-            DLGTABOUT: {FRM: AboutDialog, THD: None, DLG: None},
-            DLGTUBX: {FRM: UBXConfigDialog, THD: None, DLG: None},
-            DLGTNTRIP: {FRM: NTRIPConfigDialog, THD: None, DLG: None},
-            DLGTSPARTN: {FRM: SPARTNConfigDialog, THD: None, DLG: None},
-            DLGTGPX: {FRM: GPXViewerDialog, THD: None, DLG: None},
+            DLGTABOUT: {FRM: AboutDialog, THD: None, DLG: None, CFG: False},
+            DLGTUBX: {FRM: UBXConfigDialog, THD: None, DLG: None, CFG: True},
+            DLGTNTRIP: {FRM: NTRIPConfigDialog, THD: None, DLG: None, CFG: True},
+            DLGTSPARTN: {FRM: SPARTNConfigDialog, THD: None, DLG: None, CFG: True},
+            DLGTGPX: {FRM: GPXViewerDialog, THD: None, DLG: None, CFG: True},
             # add any new dialogs here
         }
 
@@ -406,6 +419,11 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         Load configuration file menu option.
         """
 
+        # Warn if NTRIP or SPARTN clients are running
+        if self.rtk_conn_status != DISCONNECTED:
+            self.set_status(DLGSTOPRTK, "red")
+            return
+
         filename, self.config = self.file_handler.load_config(None)
         if self.config is None:
             return  # user cancelled
@@ -422,7 +440,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         Save configuration file menu option.
         """
 
-        # combine the various config sections into one dict
         self.config = {
             **self.frm_settings.config,
             **self.app_config,
@@ -458,8 +475,9 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         :param str dlg: name of dialog
         """
 
+        config = self.config if self.dlg_threads[dlg][CFG] else {}
         frm = self.dlg_threads[dlg][FRM]
-        self.dlg_threads[dlg][DLG] = frm(self, config=self.config)
+        self.dlg_threads[dlg][DLG] = frm(self, config=config)
 
     def stop_dialog(self, dlg: str):
         """

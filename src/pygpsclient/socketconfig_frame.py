@@ -3,7 +3,10 @@ socketconfig_frame.py
 
 Generic socket configuration Frame subclass
 for use in tkinter applications which require a
-socket configuration facility.
+socket configuration facility:
+
+- Socket reader configuration in main settings panel.
+- NTRIP client configuration dialog.
 
 Application icons from https://iconmonstr.com/license/.
 
@@ -56,6 +59,7 @@ class SocketConfigFrame(Frame):
         """
 
         self._init_config = kwargs.pop("config", {})
+        self._protocol_values = kwargs.pop("protocols", PROTOCOLS)
         Frame.__init__(self, container, *args, **kwargs)
 
         self._show_advanced = False
@@ -97,7 +101,7 @@ class SocketConfigFrame(Frame):
         self._spn_protocol = Spinbox(
             self._frm_basic,
             textvariable=self.protocol,
-            values=PROTOCOLS,
+            values=self._protocol_values,
             width=12,
             state=READONLY,
             wrap=True,
@@ -157,7 +161,9 @@ class SocketConfigFrame(Frame):
 
         self.server.set(self._init_config.get("sockclienthost", DEFAULT_SERVER))
         self.port.set(self._init_config.get("sockclientport", DEFAULT_PORT))
-        self.protocol.set(self._init_config.get("sockclientprotocol", TCPIPV4))
+        self.protocol.set(
+            self._init_config.get("sockclientprotocol", self._protocol_values[0])
+        )
         self.flowinfo.set(self._init_config.get("sockclientflowinfo", 0))
         self.scopeid.set(self._init_config.get("sockclientscopeid", 0))
 
@@ -172,16 +178,25 @@ class SocketConfigFrame(Frame):
         self.status = status
         for widget in (
             self._lbl_server,
+            self.ent_server,
             self._lbl_port,
+            self.ent_port,
             self._lbl_protocol,
+        ):
+            widget.configure(state=(NORMAL if status == DISCONNECTED else DISABLED))
+        for widget in (
             self._lbl_flowinfo,
             self._lbl_scopeid,
-            self.ent_server,
-            self.ent_port,
             self.ent_flowinfo,
             self.ent_scopeid,
         ):
-            widget.configure(state=(NORMAL if status == DISCONNECTED else DISABLED))
+            widget.configure(
+                state=(
+                    NORMAL
+                    if (status == DISCONNECTED and self.protocol.get()[-4:]) == "IPv6"
+                    else DISABLED
+                )
+            )
         for widget in (self._spn_protocol,):
             widget.configure(state=(READONLY if status == DISCONNECTED else DISABLED))
 
@@ -197,11 +212,7 @@ class SocketConfigFrame(Frame):
             self.ent_scopeid,
         ):
             widget.configure(
-                state=(
-                    NORMAL
-                    if self.protocol.get() in ("TCP IPv6", "UDP IPv6")
-                    else DISABLED
-                )
+                state=(NORMAL if self.protocol.get()[-4:] == "IPv6" else DISABLED)
             )
 
     def _on_toggle_advanced(self):
