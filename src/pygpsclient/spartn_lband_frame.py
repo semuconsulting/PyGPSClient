@@ -478,7 +478,7 @@ class SpartnLbandDialog(Frame):
                 )
             self.set_controls(DISCONNECTED)
 
-    def on_error(self, event):  # pylint: disable=unused-variable
+    def on_error(self, event):  # pylint: disable=unused-argument
         """
         EVENT TRIGGERED
         Action on <<spartn_error>> event - disconnect.

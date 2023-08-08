@@ -41,7 +41,7 @@ class AboutDialog:
     About dialog box class
     """
 
-    def __init__(self, app):
+    def __init__(self, app, **kwargs):
         """
         Initialise Toplevel dialog
 

@@ -1,4 +1,6 @@
 """
+ubx_config_dialog.py
+
 UBX configuration container dialog
 
 This is the pop-up dialog containing the various
@@ -67,6 +69,8 @@ class UBXConfigDialog(Toplevel):
 
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
+        self._init_config = kwargs.pop("config", {})
+
         Toplevel.__init__(self, app)
         if POPUP_TRANSIENT:
             self.transient(self.__app)
@@ -126,7 +130,11 @@ class UBXConfigDialog(Toplevel):
             self.__app, self, borderwidth=2, relief="groove"
         )
         self._frm_preset = UBX_PRESET_Frame(
-            self.__app, self, borderwidth=2, relief="groove"
+            self.__app,
+            self,
+            borderwidth=2,
+            relief="groove",
+            config=self._init_config.get("ubxpresets", []),
         )
 
     def _do_layout(self):

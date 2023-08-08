@@ -96,8 +96,6 @@ from pygpsclient.widgets import (
     widget_grid,
 )
 
-SPARTN_PROTOCOL = 9
-
 
 class App(Frame):  # pylint: disable=too-many-ancestors
     """
@@ -182,7 +180,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._init_dialogs()
         self._attach_events()
 
-        # Initialise settings once frm_settings has been instantiated
+        # display config load status message once frm_settings
+        # has been instantiated
         if config_loaded:
             self.set_status(f"{LOADCONFIGOK} {configfile}", OKCOL)
         else:
@@ -190,7 +189,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
                 self.set_status(f"Configuration file not found {configfile}")
             else:
                 self.set_status(f"{LOADCONFIGBAD} {configfile} {config}")
-            # self.config = {}
+
         self.frm_satview.init_sats()
         self.frm_graphview.init_graph()
         self.frm_mapview.init_map()
@@ -460,7 +459,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         frm = self.dlg_threads[dlg][FRM]
-        self.dlg_threads[dlg][DLG] = frm(self)
+        self.dlg_threads[dlg][DLG] = frm(self, config=self.config)
 
     def stop_dialog(self, dlg: str):
         """

@@ -4,8 +4,10 @@
 
 ENHANCEMENTS:
 
+1. json configuration save procedure enhanced to save and restore all settings parameters, including NTRIP Caster and Client (but excluding SPARTN settings, as these are derived from service provider).
 1. Add EBNO & FEC Bits values to SPARTN L-Band configuration panel to help monitor signal quality.
-1. Minor enhancements to banner position formatting
+1. Minor enhancements to banner position formatting.
+1. Add IPv6 flowinfo & scopeid fields to NTRIP Client configuration panel.
 
 FIXES:
 

@@ -5,8 +5,6 @@ Generic socket configuration Frame subclass
 for use in tkinter applications which require a
 socket configuration facility.
 
-Exposes the socket settings as properties.
-
 Application icons from https://iconmonstr.com/license/.
 
 Created on 27 Apr 2022
@@ -39,7 +37,8 @@ READONLY = "readonly"
 DISCONNECTED = 0
 CONNECTED = 1
 TCPIPV4 = "TCP IPv4"
-PROTOCOLS = [TCPIPV4, "UDP IPv6", "UDP IPv4", "TCP IPv6"]
+TCPIPV6 = "TCP IPv6"
+PROTOCOLS = [TCPIPV4, "UDP IPv6", "UDP IPv4", TCPIPV6]
 
 
 class SocketConfigFrame(Frame):
@@ -56,7 +55,7 @@ class SocketConfigFrame(Frame):
         :param kwargs: optional kwargs for value ranges, or to pass to Frame parent class
         """
 
-        self._init_config = kwargs.pop("config")
+        self._init_config = kwargs.pop("config", {})
         Frame.__init__(self, container, *args, **kwargs)
 
         self._show_advanced = False

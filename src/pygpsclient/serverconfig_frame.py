@@ -74,9 +74,9 @@ LLH = 1
 BASE_SVIN = "SURVEY IN"
 BASE_FIXED = "FIXED"
 BASE_DISABLED = "DISABLED"
+BASEMODES = (BASE_SVIN, BASE_DISABLED, BASE_FIXED)
 POS_LLH = "LLH"
 POS_ECEF = "ECEF"
-BASEMODES = (BASE_SVIN, BASE_DISABLED, BASE_FIXED)
 POSMODES = (POS_LLH, POS_ECEF)
 ACCURACIES = (
     10,
@@ -116,7 +116,7 @@ class ServerConfigFrame(Frame):
         :param kwargs: optional kwargs for value ranges, or to pass to Frame parent class
         """
 
-        self._init_config = kwargs.pop("config")
+        self._init_config = kwargs.pop("config", {})
         Frame.__init__(self, container, *args, **kwargs)
 
         self.__app = app
@@ -138,7 +138,6 @@ class ServerConfigFrame(Frame):
         self.disable_nmea = IntVar()
         self._img_expand = ImageTk.PhotoImage(Image.open(ICON_EXPAND))
         self._img_contract = ImageTk.PhotoImage(Image.open(ICON_CONTRACT))
-        # self._sockserver_port = self._container.config.get("sockport", SOCKSERVER_PORT)
 
         self._body()
         self._do_layout()

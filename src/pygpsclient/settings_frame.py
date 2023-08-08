@@ -18,6 +18,7 @@ Created on 12 Sep 2020
 # pylint: disable=unnecessary-lambda
 
 from os import getenv
+from socket import AF_INET, AF_INET6
 from tkinter import (
     DISABLED,
     NORMAL,
@@ -113,7 +114,7 @@ class SettingsFrame(Frame):
 
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
-        self._init_config = kwargs.pop("config")
+        self._init_config = kwargs.pop("config", {})
 
         Frame.__init__(self, self.__master, *args, **kwargs)
 
@@ -638,6 +639,9 @@ class SettingsFrame(Frame):
         )
         sockmode = 1 if self.frm_socketserver.sock_mode.get() == SOCK_NTRIP else 0
 
+        ntripclient_settings = self.__app.ntrip_handler.settings
+        ntripprot = "IPv6" if ntripclient_settings["ipprot"] == AF_INET6 else "IPv4"
+
         config = {
             "protocol": protocol,
             "nmeaprot": self._prot_nmea.get(),
@@ -673,6 +677,22 @@ class SettingsFrame(Frame):
             "ntripcasterfixedlon": self.frm_socketserver.fixedlon.get(),
             "ntripcasterfixedalt": self.frm_socketserver.fixedalt.get(),
             "ntripcasterdisablenmea": self.frm_socketserver.disable_nmea.get(),
+            # NTRIP Client settings from NTRIP handler running in background
+            "ntripclientserver": ntripclient_settings["server"],
+            "ntripclientport": ntripclient_settings["port"],
+            "ntripclientprotocol": ntripprot,
+            "ntripclientflowinfo": ntripclient_settings["flowinfo"],
+            "ntripclientscopeid": ntripclient_settings["scopeid"],
+            "ntripclientmountpoint": ntripclient_settings["mountpoint"],
+            "ntripclientversion": ntripclient_settings["version"],
+            "ntripclientuser": ntripclient_settings["ntripuser"],
+            "ntripclientpassword": ntripclient_settings["ntrippassword"],
+            "ntripclientggainterval": ntripclient_settings["ggainterval"],
+            "ntripclientggamode": ntripclient_settings["ggamode"],
+            "ntripclientreflat": ntripclient_settings["reflat"],
+            "ntripclientreflon": ntripclient_settings["reflon"],
+            "ntripclientrefalt": ntripclient_settings["refalt"],
+            "ntripclientrefsep": ntripclient_settings["refsep"],
         }
         return config
 
@@ -732,5 +752,33 @@ class SettingsFrame(Frame):
             self.frm_socketserver.disable_nmea.set(
                 config.get("ntripcasterdisablenmea", 1)
             )
+
+            # NTRIP Client settings for NTRIP handler running in background
+            ntripsettings = {}
+            ntripsettings["server"] = config.get("ntripclientserver", "")
+            ntripsettings["port"] = config.get("ntripclientport", 2101)
+            ntripsettings["ipprot"] = (
+                AF_INET6 if config.get("ntripclientprotocol") == "IPv6" else AF_INET
+            )
+            ntripsettings["flowinfo"] = config.get("ntripclientflowinfo", 0)
+            ntripsettings["scopeid"] = config.get("ntripclientscopeid", 0)
+            ntripsettings["mountpoint"] = config.get("ntripclientmountpoint", "")
+            ntripsettings["sourcetable"] = []
+            ntripsettings["version"] = config.get("ntripclientversion", "2.0")
+            ntripsettings["ntripuser"] = config.get("ntripclientuser", "anon")
+            ntripsettings["ntrippassword"] = config.get(
+                "ntripclientpassword", "password"
+            )
+            ntripsettings["ggainterval"] = config.get("ntripclientggainterval", -1)
+            ntripsettings["ggamode"] = config.get("ntripclientggamode", 0)  # GGALIVE
+            ntripsettings["reflat"] = config.get("ntripclientreflat", 0.0)
+            ntripsettings["reflon"] = config.get("ntripclientreflon", 0.0)
+            ntripsettings["refalt"] = config.get("ntripclientrefalt", 0.0)
+            ntripsettings["refsep"] = config.get("ntripclientrefsep", 0.0)
+            if self.__app.rtk_conn_status == DISCONNECTED:
+                self.__app.ntrip_handler.settings = (
+                    ntripsettings  # pygnssutils >= 1.0.13
+                )
+
         except KeyError as err:
             self.__app.set_status(f"{CONFIGERR} - {err}", BADCOL)
