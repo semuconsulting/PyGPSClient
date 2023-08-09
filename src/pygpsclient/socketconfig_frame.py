@@ -33,6 +33,7 @@ from tkinter import (
 from PIL import Image, ImageTk
 
 from pygpsclient.globals import DEFAULT_PORT, DEFAULT_SERVER, ICON_CONTRACT, ICON_EXPAND
+from pygpsclient.helpers import MAXPORT, VALINT, VALURL, valid_entry
 
 ADVOFF = "\u25bc"
 ADVON = "\u25b2"
@@ -166,6 +167,21 @@ class SocketConfigFrame(Frame):
         )
         self.flowinfo.set(self._init_config.get("sockclientflowinfo", 0))
         self.scopeid.set(self._init_config.get("sockclientscopeid", 0))
+
+    def valid_settings(self) -> bool:
+        """
+        Validate settings.
+
+        :return: valid True/False
+        :rtype: bool
+        """
+
+        valid = True
+        valid = valid & valid_entry(self.ent_server, VALURL)
+        valid = valid & valid_entry(self.ent_port, VALINT, 0, MAXPORT)
+        valid = valid & valid_entry(self.ent_flowinfo, VALINT)
+        valid = valid & valid_entry(self.ent_scopeid, VALINT)
+        return valid
 
     def set_status(self, status: int = DISCONNECTED):
         """

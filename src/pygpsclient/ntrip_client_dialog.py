@@ -640,9 +640,7 @@ class NTRIPConfigDialog(Toplevel):
         :rtype: bool
         """
 
-        valid = True
-        # valid = valid & valid_entry(self._ent_server, VALURL)
-        # valid = valid & valid_entry(self._ent_port, VALINT, 1, MAXPORT)
+        valid = self._frm_socket.valid_settings()
         if self._settings["ggamode"] == 1:  # fixed reference
             valid = valid & valid_entry(self._ent_lat, VALFLOAT, -90.0, 90.0)
             valid = valid & valid_entry(self._ent_lon, VALFLOAT, -180.0, 180.0)

@@ -80,7 +80,6 @@ from pygpsclient.globals import (
     UMK,
     UMM,
 )
-from pygpsclient.helpers import MAXPORT, VALINT, VALURL, valid_entry
 from pygpsclient.serialconfig_frame import SerialConfigFrame
 from pygpsclient.serverconfig_frame import ServerConfigFrame
 from pygpsclient.socketconfig_frame import SocketConfigFrame
@@ -473,13 +472,10 @@ class SettingsFrame(Frame):
             conndict = dict(conndict, **{"serial_settings": frm})
         elif conntype == CONNECTED_SOCKET:
             frm = self.frm_socketclient
-            valid = True
-            valid = valid & valid_entry(frm.ent_server, VALURL)
-            valid = valid & valid_entry(frm.ent_port, VALINT, 1, MAXPORT)
-            if not valid:
+            if not frm.valid_settings():
                 self.__app.set_status("ERROR - invalid settings", "red")
                 return
-            connstr = f"{frm.server}:{frm.port}"
+            connstr = f"{frm.server.get()}:{frm.port.get()}"
             conndict = dict(conndict, **{"socket_settings": frm})
         elif conntype == CONNECTED_FILE:
             self.infilepath = self.__app.file_handler.open_infile()
@@ -671,7 +667,7 @@ class SettingsFrame(Frame):
             "sockclientprotocol": self.frm_socketclient.protocol.get(),
             "sockclientflowinfo": self.frm_socketclient.flowinfo.get(),
             "sockclientscopeid": self.frm_socketclient.scopeid.get(),
-            # socket server settings from frm_sockerserver
+            # socket server settings from frm_socketserver
             "sockserver": self.frm_socketserver.socketserving,
             "sockhost": self.frm_socketserver.sock_host.get(),
             "sockport": self.frm_socketserver.sock_port.get(),

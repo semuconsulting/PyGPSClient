@@ -645,6 +645,26 @@ class ServerConfigFrame(Frame):
 
         return UBXMessage.config_set(layers, transaction, cfg_data)
 
+    def _config_nmea(self, state: int, port_type: str = "USB") -> UBXMessage:
+        """
+        Enable or disable NMEA messages at port level and use minimum UBX instead.
+
+        :param int state: 1 = disable NMEA, 0 = enable NMEA
+        :param str port_type: port that rcvr is connected on
+        """
+
+        nmea_state = 0 if state else 1
+        layers = 1
+        transaction = 0
+        cfg_data = []
+        cfg_data.append((f"CFG_{port_type}OUTPROT_NMEA", nmea_state))
+        cfg_data.append((f"CFG_{port_type}OUTPROT_UBX", 1))
+        cfg_data.append((f"CFG_MSGOUT_UBX_NAV_PVT_{port_type}", state))
+        cfg_data.append((f"CFG_MSGOUT_UBX_NAV_DOP_{port_type}", state))
+        cfg_data.append((f"CFG_MSGOUT_UBX_NAV_SAT_{port_type}", state * 4))
+
+        return UBXMessage.config_set(layers, transaction, cfg_data)
+
     def _config_svin(self, acc_limit: int, svin_min_dur: int) -> UBXMessage:
         """
         Configure Survey-In mode with specied accuracy limit.
@@ -709,25 +729,6 @@ class ServerConfigFrame(Frame):
                 ("CFG_TMODE_ECEF_Z", z_sp),
                 ("CFG_TMODE_ECEF_Z_HP", z_hp),
             ]
-
-        return UBXMessage.config_set(layers, transaction, cfg_data)
-
-    def _config_nmea(self, state: int, port_type: str) -> UBXMessage:
-        """
-        Disable NMEA messages at port level and use minimum UBX instead.
-
-        :param int state: 1 = disable NMEA, 0 = enable NMEA
-        :param str port_type: port that rcvr is connected on
-        """
-
-        nmea_state = 0 if state else 1
-        layers = 1
-        transaction = 0
-        cfg_data = []
-        cfg_data.append((f"CFG_{port_type}OUTPROT_NMEA", nmea_state))
-        cfg_data.append((f"CFG_{port_type}OUTPROT_UBX", 1))
-        cfg_data.append((f"CFG_MSGOUT_UBX_NAV_PVT_{port_type}", state))
-        cfg_data.append((f"CFG_MSGOUT_UBX_NAV_SAT_{port_type}", state * 4))
 
         return UBXMessage.config_set(layers, transaction, cfg_data)
 
