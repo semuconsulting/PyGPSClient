@@ -53,12 +53,14 @@ from pygpsclient.helpers import (
     VALFLOAT,
     VALINT,
     VALNONBLANK,
+    config_nmea,
     val2sphp,
     valid_entry,
 )
 from pygpsclient.strings import (
     LBLACCURACY,
     LBLCONFIGBASE,
+    LBLDISNMEA,
     LBLDURATIONS,
     LBLSERVERHOST,
     LBLSERVERMODE,
@@ -232,7 +234,7 @@ class ServerConfigFrame(Frame):
         )
         self._chk_disablenmea = Checkbutton(
             self._frm_advanced,
-            text="Disable NMEA",
+            text=LBLDISNMEA,
             variable=self.disable_nmea,
         )
         self._spn_duration = Spinbox(
@@ -539,20 +541,28 @@ class ServerConfigFrame(Frame):
 
     def _set_coords(self, posmode: str):
         """
-        Set current coordinates in LLH or ECEF format.
+        Set current coordinates in LLH or ECEF format from values
+        provided in configuration file or, if blank, current receiver
+        position.
 
         :param str posmode: position mode (LLH or ECEF)
         """
 
-        _, lat, lon, alt, _ = self.__app.get_coordinates()
-        try:
-            if posmode == POS_ECEF:
-                lat, lon, alt = llh2ecef(lat, lon, alt)
-        except TypeError:  # e.g. no NMEA fix
-            lat = lon = alt = 0.0
-        self.fixedlat.set(lat)
-        self.fixedlon.set(lon)
-        self.fixedalt.set(alt)
+        if (
+            self._init_config.get("ntripcasterfixedlat", 0)
+            + self._init_config.get("ntripcasterfixedlon", 0)
+            + self._init_config.get("ntripcasterfixedalt", 0)
+            == 0
+        ):
+            _, lat, lon, alt, _ = self.__app.get_coordinates()
+            try:
+                if posmode == POS_ECEF:
+                    lat, lon, alt = llh2ecef(lat, lon, alt)
+            except TypeError:  # e.g. no NMEA fix
+                lat = lon = alt = 0.0
+            self.fixedlat.set(lat)
+            self.fixedlon.set(lon)
+            self.fixedalt.set(alt)
 
     @property
     def clients(self) -> int:
@@ -598,7 +608,7 @@ class ServerConfigFrame(Frame):
         for port in ("USB", "UART1"):
             msg = self._config_msg_rates(rate, port)
             self.__app.gnss_outqueue.put(msg.serialize())
-            msg = self._config_nmea(self.disable_nmea.get(), port)
+            msg = config_nmea(self.disable_nmea.get(), port)
             self.__app.gnss_outqueue.put(msg.serialize())
 
     def _config_msg_rates(self, rate: int, port_type: str) -> UBXMessage:
@@ -642,26 +652,6 @@ class ServerConfigFrame(Frame):
         cfg_data = [
             ("CFG_TMODE_MODE", TMODE_DISABLED),
         ]
-
-        return UBXMessage.config_set(layers, transaction, cfg_data)
-
-    def _config_nmea(self, state: int, port_type: str = "USB") -> UBXMessage:
-        """
-        Enable or disable NMEA messages at port level and use minimum UBX instead.
-
-        :param int state: 1 = disable NMEA, 0 = enable NMEA
-        :param str port_type: port that rcvr is connected on
-        """
-
-        nmea_state = 0 if state else 1
-        layers = 1
-        transaction = 0
-        cfg_data = []
-        cfg_data.append((f"CFG_{port_type}OUTPROT_NMEA", nmea_state))
-        cfg_data.append((f"CFG_{port_type}OUTPROT_UBX", 1))
-        cfg_data.append((f"CFG_MSGOUT_UBX_NAV_PVT_{port_type}", state))
-        cfg_data.append((f"CFG_MSGOUT_UBX_NAV_DOP_{port_type}", state))
-        cfg_data.append((f"CFG_MSGOUT_UBX_NAV_SAT_{port_type}", state * 4))
 
         return UBXMessage.config_set(layers, transaction, cfg_data)
 

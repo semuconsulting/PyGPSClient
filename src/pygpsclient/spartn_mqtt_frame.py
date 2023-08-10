@@ -54,7 +54,7 @@ from pygpsclient.globals import (
     SPARTN_GNSS,
     SPARTN_PPREGIONS,
 )
-from pygpsclient.helpers import VALLEN, valid_entry
+from pygpsclient.helpers import MAXPORT, VALINT, VALLEN, valid_entry
 from pygpsclient.strings import DLGSPARTNWARN, LBLSPARTNIP, MQTTCONN
 
 
@@ -126,6 +126,14 @@ class SPARTNMQTTDialog(Frame):
             state=NORMAL,
             relief="sunken",
             width=25,
+        )
+        self._lbl_mqttport = Label(self, text="Port")
+        self._ent_mqttport = Entry(
+            self,
+            textvariable=self._mqtt_port,
+            state=NORMAL,
+            relief="sunken",
+            width=8,
         )
         self._lbl_mqttregion = Label(self, text="Region")
         self._spn_mqttregion = Spinbox(
@@ -212,33 +220,35 @@ class SPARTNMQTTDialog(Frame):
         self._ent_mqttserver.grid(
             column=1, row=1, columnspan=5, padx=3, pady=2, sticky=W
         )
-        self._lbl_mqttregion.grid(column=0, row=2, padx=3, pady=2, sticky=W)
+        self._lbl_mqttport.grid(column=0, row=2, padx=3, pady=2, sticky=W)
+        self._ent_mqttport.grid(column=1, row=2, padx=3, pady=2, sticky=W)
+        self._lbl_mqttregion.grid(column=0, row=3, padx=3, pady=2, sticky=W)
         self._spn_mqttregion.grid(
-            column=1, row=2, columnspan=5, padx=3, pady=2, sticky=W
-        )
-        self._lbl_mqttclientid.grid(column=0, row=3, padx=3, pady=2, sticky=W)
-        self._ent_mqttclientid.grid(
             column=1, row=3, columnspan=5, padx=3, pady=2, sticky=W
         )
-        self._lbl_topics.grid(column=0, row=4, padx=3, pady=2, sticky=W)
-        self._chk_mqtt_iptopic.grid(column=1, row=4, padx=3, pady=2, sticky=W)
-        self._chk_mqtt_mgatopic.grid(column=2, row=4, padx=3, pady=2, sticky=W)
-        self._chk_mqtt_keytopic.grid(column=3, row=4, padx=3, pady=2, sticky=W)
-        self._lbl_mqttcrt.grid(column=0, row=5, padx=3, columnspan=5, pady=2, sticky=W)
+        self._lbl_mqttclientid.grid(column=0, row=4, padx=3, pady=2, sticky=W)
+        self._ent_mqttclientid.grid(
+            column=1, row=4, columnspan=5, padx=3, pady=2, sticky=W
+        )
+        self._lbl_topics.grid(column=0, row=5, padx=4, pady=2, sticky=W)
+        self._chk_mqtt_iptopic.grid(column=1, row=5, padx=3, pady=2, sticky=W)
+        self._chk_mqtt_mgatopic.grid(column=2, row=5, padx=3, pady=2, sticky=W)
+        self._chk_mqtt_keytopic.grid(column=3, row=5, padx=3, pady=2, sticky=W)
+        self._lbl_mqttcrt.grid(column=0, row=6, padx=3, columnspan=5, pady=2, sticky=W)
         self._ent_mqttcrt.grid(
-            column=1, row=5, padx=3, columnspan=4, pady=2, sticky=(W, E)
+            column=1, row=6, padx=3, columnspan=4, pady=2, sticky=(W, E)
         )
-        self._btn_opencrt.grid(column=5, row=5, padx=3, pady=2, sticky=E)
-        self._lbl_mqttpem.grid(column=0, row=6, columnspan=3, padx=3, pady=2, sticky=W)
+        self._btn_opencrt.grid(column=5, row=6, padx=3, pady=2, sticky=E)
+        self._lbl_mqttpem.grid(column=0, row=7, columnspan=3, padx=3, pady=2, sticky=W)
         self._ent_mqttpem.grid(
-            column=1, row=6, columnspan=4, padx=3, pady=2, sticky=(W, E)
+            column=1, row=7, columnspan=4, padx=3, pady=2, sticky=(W, E)
         )
-        self._btn_openpem.grid(column=5, row=6, padx=3, pady=2, sticky=E)
+        self._btn_openpem.grid(column=5, row=7, padx=3, pady=2, sticky=E)
         ttk.Separator(self).grid(
-            column=0, row=7, columnspan=6, padx=2, pady=3, sticky=(W, E)
+            column=0, row=8, columnspan=6, padx=2, pady=3, sticky=(W, E)
         )
-        self._btn_connect.grid(column=0, row=8, padx=3, pady=2, sticky=W)
-        self._btn_disconnect.grid(column=2, row=8, padx=3, pady=2, sticky=W)
+        self._btn_connect.grid(column=0, row=9, padx=3, pady=2, sticky=W)
+        self._btn_disconnect.grid(column=2, row=9, padx=3, pady=2, sticky=W)
 
     def _reset(self):
         """
@@ -246,7 +256,10 @@ class SPARTNMQTTDialog(Frame):
         """
 
         self._get_settings()
-        self._mqtt_clientid.set(self.__app.app_config.get("mqttclientid", ""))
+        self._mqtt_clientid.set(self.__app.frm_settings.config.get("mqttclientid", ""))
+        self._mqtt_region.set(
+            self.__app.frm_settings.config.get("mqttclientregion", "eu")
+        )
         self._reset_keypaths(self._mqtt_clientid.get())
         self.__container.set_status(
             "",
@@ -315,6 +328,7 @@ class SPARTNMQTTDialog(Frame):
         stat = DISABLED if status == CONNECTED_SPARTNIP else NORMAL
         for wdg in (
             self._ent_mqttserver,
+            self._ent_mqttport,
             self._btn_connect,
             self._ent_mqttclientid,
             self._ent_mqttcrt,
@@ -340,6 +354,7 @@ class SPARTNMQTTDialog(Frame):
 
         valid = True
         valid = valid & valid_entry(self._ent_mqttserver, VALLEN, 1, 50)
+        valid = valid & valid_entry(self._ent_mqttport, VALINT, 1, MAXPORT)
         valid = valid & valid_entry(self._ent_mqttclientid, VALLEN, 1, 50)
         valid = valid & valid_entry(self._ent_mqttcrt, VALLEN, 1, 254)
         valid = valid & valid_entry(self._ent_mqttpem, VALLEN, 1, 254)
@@ -398,6 +413,8 @@ class SPARTNMQTTDialog(Frame):
                 "green",
             )
             self.__app.rtk_conn_status = CONNECTED_SPARTNIP
+        else:
+            self.__container.set_status("ERROR! Invalid Settings", "red")
 
     def on_disconnect(self, msg: str = ""):
         """

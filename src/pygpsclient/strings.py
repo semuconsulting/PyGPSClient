@@ -127,12 +127,12 @@ LBLSPTNDAT = "Valid from YYYYMMDD"
 LBLSPTNFP = "Configure receiver"
 LBLSPTNKEY = "Key as hexadecimal"
 LBLSPTNNEXT = "NEXT SPARTN KEY:"
-LBLSPTNNMEA = "Disable NMEA"
 LBLSPTNUPLOAD = "Upload keys"
 LBLSTREAM = "Stream\nfrom file"
 LBLTRACKRECORD = "GPX Track"
 LBLUBXCONFIG = "UBX Config"
 LBLUDPORT = "USER-DEFINED PORT"
+LBLDISNMEA = "Disable NMEA"
 
 # Dialog text
 DLGABOUT = "PyGPSClient"

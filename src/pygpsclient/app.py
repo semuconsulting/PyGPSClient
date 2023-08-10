@@ -132,7 +132,10 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             "spartnport", getenv("PYGPSCLIENT_SPARTNPORT", "")
         )
         self._mqapikey = kwargs.pop("mqapikey", getenv("MQAPIKEY", ""))
-        self._mqttclientid = kwargs.pop("mqttclientid", getenv("MQTTCLIENTID", ""))
+        self.mqttclientid = kwargs.pop("mqttclientid", getenv("MQTTCLIENTID", ""))
+        self.mqttclientregion = kwargs.pop(
+            "mqttclientregion", getenv("MQTTCLIENTREGION", "eu")
+        )
         self._ntrip_user = kwargs.pop("ntripuser", getenv("PYGPSCLIENT_USER", "anon"))
         self._ntrip_password = kwargs.pop(
             "ntrippassword", getenv("PYGPSCLIENT_USER", "password")
@@ -166,7 +169,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.spartn_handler = GNSSMQTTClient(self, verbosity=0)
         self.dlg_threads = {}
         self.config = {}
-        self._default_port = "USB"
+        self._default_rcvr_connection = "USB"
         self._conn_status = DISCONNECTED
         self._rtk_conn_status = DISCONNECTED
         self._map_update_interval = MAP_UPDATE_INTERVAL
@@ -438,6 +441,10 @@ class App(Frame):  # pylint: disable=too-many-ancestors
     def save_config(self):
         """
         Save configuration file menu option.
+
+        Configuration is held in two places:
+        - frm_settings.config - updated via frames
+        - app.config - updated via CLI args, env variables or manual config file edits
         """
 
         self.config = {
@@ -766,7 +773,12 @@ class App(Frame):  # pylint: disable=too-many-ancestors
     @property
     def app_config(self) -> dict:
         """
-        Getter for application and widget configuration.
+        Getter for application configuration.
+
+        app_config contains the following configuration sources:
+        - environment variables
+        - CLI keyword arguments
+        - manual edits to json configuration file (colortags and ubxpresets)
 
         :return: configuration
         :rtype: dict
@@ -777,9 +789,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             "mapupdateinterval": self._map_update_interval,
             "userport": self._user_port,
             "spartnport": self._spartn_user_port,
-            "defaultport": self._default_port,
+            "defaultport": self._default_rcvr_connection,
             "mqapikey": self._mqapikey,
-            "mqttclientid": self._mqttclientid,
             "ntripuser": self._ntrip_user,
             "ntrippassword": self._ntrip_password,
             "colortags": self._colortags,
@@ -790,7 +801,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
     @app_config.setter
     def app_config(self, config):
         """
-        Setter for application and widget configuration.
+        Setter for application configuration.
 
         :param dict config: configuration as dict
         """
@@ -798,9 +809,10 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._map_update_interval = config.get("mapupdateinterval", MAP_UPDATE_INTERVAL)
         self._user_port = config.get("userport", self._user_port)
         self._spartn_user_port = config.get("spartnport", self._spartn_user_port)
-        self._default_port = config.get("defaultport", self._default_port)
+        self._default_rcvr_connection = config.get(
+            "defaultport", self._default_rcvr_connection
+        )
         self._mqapikey = config.get("mqapikey", self._mqapikey)
-        self._mqttclientid = config.get("mqttclientid", self._mqttclientid)
         self._ntrip_user = config.get("ntripuser", self._ntrip_user)
         self._ntrip_password = config.get("ntrippassword", self._ntrip_password)
         self._colortags = config.get("colortags", self._colortags)

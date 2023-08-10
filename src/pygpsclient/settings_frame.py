@@ -7,7 +7,9 @@ This handles the settings/configuration panel. It references
 the SerialConfigFrame class for serial port settings
 and the SocketConfigFrame class for socket settings.
 
-Exposes the various settings as properties.
+If also handles the formatting of a `config` dictonary
+which can be saved to or retrieved from a json configuration
+file.
 
 Created on 12 Sep 2020
 
@@ -17,7 +19,8 @@ Created on 12 Sep 2020
 """
 # pylint: disable=unnecessary-lambda
 
-from os import getenv
+from os import getenv, path
+from pathlib import Path
 from socket import AF_INET, AF_INET6
 from tkinter import (
     DISABLED,
@@ -67,6 +70,7 @@ from pygpsclient.globals import (
     KNOWNGPS,
     MSGMODES,
     NOPORTS,
+    OUTPORT_SPARTN,
     READONLY,
     SOCK_NTRIP,
     SOCK_SERVER,
@@ -74,6 +78,7 @@ from pygpsclient.globals import (
     SOCKCLIENT_PORT,
     SOCKSERVER_HOST,
     SOCKSERVER_PORT,
+    SPARTN_PPSERVER,
     TIMEOUTS,
     UI,
     UIK,
@@ -640,6 +645,7 @@ class SettingsFrame(Frame):
         sockmode = 1 if self.frm_socketserver.sock_mode.get() == SOCK_NTRIP else 0
 
         ntripclient_settings = self.__app.ntrip_handler.settings
+        spartnclient_settings = self.__app.spartn_handler.settings
         ntripprot = "IPv6" if ntripclient_settings["ipprot"] == AF_INET6 else "IPv4"
 
         config = {
@@ -696,6 +702,16 @@ class SettingsFrame(Frame):
             "ntripclientreflon": ntripclient_settings["reflon"],
             "ntripclientrefalt": ntripclient_settings["refalt"],
             "ntripclientrefsep": ntripclient_settings["refsep"],
+            # SPARTN client settings from pygnssutils.GNSSMQTTClient
+            "mqttclientserver": spartnclient_settings["server"],
+            "mqttclientport": spartnclient_settings["port"],
+            "mqttclientid": spartnclient_settings["clientid"],
+            "mgttclientregion": spartnclient_settings["region"],
+            "mgttclienttopicip": spartnclient_settings["topic_ip"],
+            "mgttclienttopicmga": spartnclient_settings["topic_mga"],
+            "mgttclienttopickey": spartnclient_settings["topic_key"],
+            "mgttclienttlscrt": spartnclient_settings["tlscrt"],
+            "mgttclienttlskey": spartnclient_settings["tlskey"],
         }
         return config
 
@@ -784,6 +800,29 @@ class SettingsFrame(Frame):
             ntripsettings["refalt"] = config.get("ntripclientrefalt", 0.0)
             ntripsettings["refsep"] = config.get("ntripclientrefsep", 0.0)
             self.__app.ntrip_handler.settings = ntripsettings
+            # SPARTN client settings to pygnssutils.GNSSMQTTClient
+            spartnsettings = {}
+            spartnsettings["server"] = config.get("mqttclientserver", SPARTN_PPSERVER)
+            spartnsettings["port"] = config.get("mqttclientport", OUTPORT_SPARTN)
+            spartnsettings["clientid"] = config.get(
+                "mqttclientid", self.__app.mqttclientid
+            )
+            spartnsettings["region"] = config.get(
+                "mgttclientregion", self.__app.mqttclientregion
+            )
+            spartnsettings["topic_ip"] = config.get("mgttclienttopicip", 1)
+            spartnsettings["topic_mga"] = config.get("mgttclienttopicmga", 1)
+            spartnsettings["topic_key"] = config.get("mgttclienttopickey", 1)
+            spartnsettings["tlscrt"] = config.get(
+                "mgttclienttlscrt",
+                path.join(Path.home(), f"device-{self.__app.mqttclientid}-pp-cert.crt"),
+            )
+            spartnsettings["tlskey"] = config.get(
+                "mgttclienttlskey",
+                path.join(Path.home(), f"device-{self.__app.mqttclientid}-pp-key.pem"),
+            )
+            spartnsettings["output"] = self.__app.spartn_inqueue
+            self.__app.spartn_handler.settings = spartnsettings
 
         except KeyError as err:
             self.__app.set_status(f"{CONFIGERR} - {err}", BADCOL)

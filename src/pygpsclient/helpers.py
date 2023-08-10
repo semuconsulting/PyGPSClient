@@ -40,6 +40,12 @@ VALHEX = 32
 VALDMY = 64
 VALLEN = 128
 
+# NTRIP enumerations
+NMEA = {"0": "No GGA", "1": "GGA"}
+AUTHS = {"N": "None", "B": "Basic", "D": "Digest"}
+CARRIERS = {"0": "No", "1": "L1", "2": "L1,L2"}
+SOLUTIONS = {"0": "Single", "1": "Network"}
+
 
 class ConfirmBox(Toplevel):
     """
@@ -407,6 +413,40 @@ def svid2gnssid(svid) -> int:
     return gnssId
 
 
+def get_mp_info(srt: list) -> dict:
+    """
+    Get mountpoint information from sourcetable entry.
+
+    :param list srt: sourcetable entry as list
+    :return: dictionary of mountpoint info
+    :rtype: dict or None if not available
+    """
+
+    try:
+        info = {
+            "name": srt[0],
+            "identifier": srt[1],
+            "format": srt[2],
+            "messages": srt[3],
+            "carrier": CARRIERS[srt[4]],
+            "navs": srt[5],
+            "network": srt[6],
+            "country": srt[7],
+            "lat": srt[8],
+            "lon": srt[9],
+            "gga": NMEA[srt[10]],
+            "solution": SOLUTIONS[srt[11]],
+            "generator": srt[12],
+            "encrypt": srt[13],
+            "auth": AUTHS[srt[14]],
+            "fee": srt[15],
+            "bitrate": srt[16],
+        }
+        return info
+    except IndexError:
+        return None
+
+
 def get_mp_distance(lat: float, lon: float, mp: list) -> float:
     """
     Get distance to mountpoint from current location (if known).
@@ -555,7 +595,7 @@ def valid_entry(entry: Entry, valmode: int, low=MINFLOAT, high=MAXFLOAT) -> bool
         entry.configure(highlightthickness=0)
     else:
         entry.configure(
-            highlightthickness=1, highlightbackground="red", highlightcolor="red"
+            highlightthickness=2, highlightbackground="red", highlightcolor="red"
         )
     return valid
 
@@ -817,3 +857,25 @@ def val2sphp(val: float, scale: float) -> tuple:
     val_sp = trunc(val)
     val_hp = round((val - val_sp) * 100)
     return val_sp, val_hp
+
+
+def config_nmea(state: int, port_type: str = "USB") -> UBXMessage:
+    """
+    Enable or disable NMEA messages at port level and use minimum UBX
+    instead (NAV-PRT, NAV_SAT, NAV_DOP).
+
+    :param int state: 1 = disable NMEA, 0 = enable NMEA
+    :param str port_type: port that rcvr is connected on
+    """
+
+    nmea_state = 0 if state else 1
+    layers = 1
+    transaction = 0
+    cfg_data = []
+    cfg_data.append((f"CFG_{port_type}OUTPROT_NMEA", nmea_state))
+    cfg_data.append((f"CFG_{port_type}OUTPROT_UBX", 1))
+    cfg_data.append((f"CFG_MSGOUT_UBX_NAV_PVT_{port_type}", state))
+    cfg_data.append((f"CFG_MSGOUT_UBX_NAV_DOP_{port_type}", state))
+    cfg_data.append((f"CFG_MSGOUT_UBX_NAV_SAT_{port_type}", state * 4))
+
+    return UBXMessage.config_set(layers, transaction, cfg_data)

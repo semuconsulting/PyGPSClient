@@ -66,7 +66,7 @@ from pygpsclient.globals import (
     UI,
     UIK,
 )
-from pygpsclient.helpers import MAXALT, VALFLOAT, valid_entry
+from pygpsclient.helpers import MAXALT, VALFLOAT, get_mp_info, valid_entry
 from pygpsclient.socketconfig_frame import SocketConfigFrame
 from pygpsclient.strings import (
     DLGNTRIPCONFIG,
@@ -175,7 +175,7 @@ class NTRIPConfigDialog(Toplevel):
             textvariable=self._ntrip_mountpoint,
             state=NORMAL,
             relief="sunken",
-            width=20,
+            width=15,
         )
         self._lbl_mpdist = Label(
             self._frm_container,
@@ -318,10 +318,8 @@ class NTRIPConfigDialog(Toplevel):
             column=0, row=3, columnspan=5, padx=3, pady=3, sticky=(W, E)
         )
         self._lbl_mountpoint.grid(column=0, row=4, padx=3, pady=3, sticky=W)
-        self._ent_mountpoint.grid(
-            column=1, row=4, columnspan=2, padx=3, pady=3, sticky=W
-        )
-        self._lbl_mpdist.grid(column=3, row=4, padx=3, pady=3, sticky=W)
+        self._ent_mountpoint.grid(column=1, row=4, padx=3, pady=3, sticky=W)
+        self._lbl_mpdist.grid(column=2, row=4, columnspan=2, padx=3, pady=3, sticky=W)
         self._lbl_sourcetable.grid(column=0, row=5, padx=3, pady=3, sticky=W)
         self._lbx_sourcetable.grid(
             column=1, row=5, columnspan=3, rowspan=4, padx=3, pady=3, sticky=(E, W)
@@ -342,27 +340,25 @@ class NTRIPConfigDialog(Toplevel):
             column=0, row=14, columnspan=5, padx=3, pady=3, sticky=(W, E)
         )
         self._lbl_ntripggaint.grid(column=0, row=15, padx=2, pady=3, sticky=W)
-        self._spn_ntripggaint.grid(
-            column=1, row=15, padx=3, pady=2, rowspan=2, sticky=W
-        )
-        self._rad_ggalive.grid(column=0, row=17, padx=3, pady=2, sticky=W)
-        self._rad_ggafixed.grid(column=1, row=17, padx=3, pady=2, sticky=W)
-        self._lbl_lat.grid(column=0, row=18, padx=3, pady=2, sticky=W)
-        self._ent_lat.grid(column=1, row=18, columnspan=2, padx=3, pady=2, sticky=W)
-        self._lbl_lon.grid(column=0, row=19, padx=3, pady=2, sticky=W)
-        self._ent_lon.grid(column=1, row=19, columnspan=2, padx=3, pady=2, sticky=W)
-        self._lbl_alt.grid(column=0, row=20, padx=3, pady=2, sticky=W)
-        self._ent_alt.grid(column=1, row=20, columnspan=2, padx=3, pady=2, sticky=W)
-        self._lbl_sep.grid(column=0, row=21, padx=3, pady=2, sticky=W)
-        self._ent_sep.grid(column=1, row=21, columnspan=2, padx=3, pady=2, sticky=W)
+        self._spn_ntripggaint.grid(column=1, row=15, padx=3, pady=2, sticky=W)
+        self._rad_ggalive.grid(column=0, row=16, padx=3, pady=2, sticky=W)
+        self._rad_ggafixed.grid(column=1, row=16, padx=3, pady=2, sticky=W)
+        self._lbl_lat.grid(column=0, row=17, padx=3, pady=2, sticky=W)
+        self._ent_lat.grid(column=1, row=17, columnspan=2, padx=3, pady=2, sticky=W)
+        self._lbl_lon.grid(column=2, row=17, padx=3, pady=2, sticky=W)
+        self._ent_lon.grid(column=3, row=17, columnspan=2, padx=3, pady=2, sticky=W)
+        self._lbl_alt.grid(column=0, row=18, padx=3, pady=2, sticky=W)
+        self._ent_alt.grid(column=1, row=18, columnspan=2, padx=3, pady=2, sticky=W)
+        self._lbl_sep.grid(column=2, row=18, padx=3, pady=2, sticky=W)
+        self._ent_sep.grid(column=3, row=18, columnspan=2, padx=3, pady=2, sticky=W)
         ttk.Separator(self._frm_container).grid(
-            column=0, row=22, columnspan=5, padx=3, pady=3, sticky=(W, E)
+            column=0, row=19, columnspan=5, padx=3, pady=3, sticky=(W, E)
         )
-        self._btn_connect.grid(column=0, row=23, padx=3, pady=3, sticky=W)
-        self._btn_disconnect.grid(column=1, row=23, padx=3, pady=3, sticky=W)
+        self._btn_connect.grid(column=0, row=20, padx=3, pady=3, sticky=W)
+        self._btn_disconnect.grid(column=1, row=20, padx=3, pady=3, sticky=W)
 
         # bottom of grid
-        row = 24
+        row = 21
         col = 0
         (colsp, rowsp) = self._frm_container.grid_size()
         self._frm_status.grid(column=col, row=row, columnspan=colsp, sticky=(W, E))
@@ -397,11 +393,14 @@ class NTRIPConfigDialog(Toplevel):
 
     def set_controls(self, connected: bool, msgt: tuple = None):
         """
-        Enable or disable controls depending on connection status.
+        Set App RTK connection status and enable or disable controls
+        depending on connection status.
 
         :param bool status: connection status (True/False)
         :param tuple msgt: tuple of (message, color)
         """
+
+        self.__app.rtk_conn_status = CONNECTED_NTRIP if connected else DISCONNECTED
 
         try:
             self._settings = self.__app.ntrip_handler.settings
@@ -490,6 +489,12 @@ class NTRIPConfigDialog(Toplevel):
             index = int(w.curselection()[0])
             srt = w.get(index)  # sourcetable entry
             name = srt[0]
+            info = get_mp_info(srt)
+            notes = (
+                ""
+                if info is None
+                else f', {info["gga"]}, {info["encrypt"]}, {info["auth"]}'
+            )
             self._ntrip_mountpoint.set(name)
             lat, lon = self._get_coordinates()
             if isinstance(lat, float) and isinstance(lon, float):
@@ -497,10 +502,10 @@ class NTRIPConfigDialog(Toplevel):
                     lat, lon, self._settings["sourcetable"], name
                 )
                 if mpname is None:
-                    self.set_mp_dist(None, name)
+                    self.set_mp_dist(None, name, notes)
                 else:
-                    self.set_mp_dist(mindist, mpname)
-        except IndexError:  # not yet populated
+                    self.set_mp_dist(mindist, mpname, notes)
+        except (IndexError, KeyError):  # not yet populated
             pass
 
     def on_exit(self, *args, **kwargs):  # pylint: disable=unused-argument
@@ -620,7 +625,6 @@ class NTRIPConfigDialog(Toplevel):
                 output=self.__app.ntrip_inqueue,
             )
             self.set_controls(True)
-            self.__app.rtk_conn_status = CONNECTED_NTRIP
 
     def _disconnect(self):
         """
@@ -630,7 +634,6 @@ class NTRIPConfigDialog(Toplevel):
 
         self.__app.ntrip_handler.stop()
         self.set_controls(False)
-        self.__app.rtk_conn_status = DISCONNECTED
 
     def _valid_settings(self) -> bool:
         """
@@ -652,7 +655,7 @@ class NTRIPConfigDialog(Toplevel):
 
         return valid
 
-    def set_mp_dist(self, dist: float, name: str = ""):
+    def set_mp_dist(self, dist: float, name: str = "", info: str = ""):
         """
         Set mountpoint distance label.
 
@@ -669,8 +672,7 @@ class NTRIPConfigDialog(Toplevel):
             if units in (UI, UIK):
                 dist *= KM2MILES
                 dist_u = "miles"
-            dist_l = f"Distance {dist:,.1f} {dist_u}"
-
+            dist_l = f"Dist: {dist:,.1f} {dist_u}{info}"
         self._ntrip_mountpoint.set(name)
         self._ntrip_mpdist.set(dist_l)
 

@@ -22,6 +22,7 @@ from pygpsclient.helpers import (
     fix2desc,
     ft2m,
     get_mp_distance,
+    get_mp_info,
     haversine,
     hsv2rgb,
     kmph2ms,
@@ -376,6 +377,51 @@ class StaticTest(unittest.TestCase):
             self.assertIsInstance(wdict["frm"], str),
             self.assertEqual(wdict["frm"][0:4], "frm_"),
             self.assertIsInstance(wdict["visible"], bool),
+
+    def testgetmpinfo(self):  # test get_mp_info
+        EXPECTED_RESULT = {
+            "name": "ACACU",
+            "identifier": "Curug",
+            "format": "RTCM 3.2",
+            "messages": "1005(31),1074(1),1084(1),1094(1)",
+            "carrier": "L1,L2",
+            "navs": "GPS+GLO+GAL",
+            "network": "SNIP",
+            "country": "SRB",
+            "lat": "45.47",
+            "lon": "20.06",
+            "gga": "GGA",
+            "solution": "Single",
+            "generator": "sNTRIP",
+            "encrypt": "none",
+            "auth": "Basic",
+            "fee": "N",
+            "bitrate": "3120",
+        }
+        srt = (
+            "ACACU",
+            "Curug",
+            "RTCM 3.2",
+            "1005(31),1074(1),1084(1),1094(1)",
+            "2",
+            "GPS+GLO+GAL",
+            "SNIP",
+            "SRB",
+            "45.47",
+            "20.06",
+            "1",
+            "0",
+            "sNTRIP",
+            "none",
+            "B",
+            "N",
+            "3120",
+            "",
+        )
+        res = get_mp_info(srt)
+        self.assertEqual(res, EXPECTED_RESULT)
+        res = get_mp_info([])
+        self.assertEqual(res, None)
 
 
 if __name__ == "__main__":
