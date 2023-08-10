@@ -298,7 +298,7 @@ NB: if you're installing onto a 32-bit Linux platform (e.g. Raspberry Pi OS 32),
 
 - Python >= 3.8
 - Tk (tkinter) >= 8.6*¹*
-- Screen resolution >= 800 x 600; Ideally >= 1400 x 900, though the main application window is resizeable and reconfigurable.
+- Screen resolution >= 800 x 600; Ideally >= 1920 x 1080, though the main application window is resizeable and reconfigurable.
 
 On Windows and MacOS, pip, tkinter and the necessary imaging libraries are included with the official [Python.org](https://www.python.org/downloads/) installation package.  On some Linux distributions like Ubuntu 18+ and Raspberry Pi OS, they may need to be installed separately*²*, e.g.:
 

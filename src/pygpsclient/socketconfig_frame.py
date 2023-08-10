@@ -50,7 +50,7 @@ class SocketConfigFrame(Frame):
     Socket configuration frame class.
     """
 
-    def __init__(self, container, *args, **kwargs):
+    def __init__(self, app, container, *args, **kwargs):
         """
         Constructor.
 
@@ -63,6 +63,8 @@ class SocketConfigFrame(Frame):
         self._protocol_values = kwargs.pop("protocols", PROTOCOLS)
         Frame.__init__(self, container, *args, **kwargs)
 
+        self.__app = app
+        self._container = container
         self._show_advanced = False
         self.status = DISCONNECTED
         self.server = StringVar()
@@ -75,6 +77,7 @@ class SocketConfigFrame(Frame):
 
         self._body()
         self._do_layout()
+        self._attach_events()
         self.reset()
 
     def _body(self):
@@ -154,6 +157,13 @@ class SocketConfigFrame(Frame):
         self.ent_flowinfo.grid(column=1, row=0, padx=2, pady=2, sticky=W)
         self._lbl_scopeid.grid(column=2, row=0, padx=2, pady=2, sticky=W)
         self.ent_scopeid.grid(column=3, row=0, padx=2, pady=2, sticky=W)
+
+    def _attach_events(self):
+        """
+        Bind events to variables.
+        """
+
+        self.bind("<Configure>", self._on_resize)
 
     def reset(self):
         """
@@ -243,3 +253,12 @@ class SocketConfigFrame(Frame):
         else:
             self._frm_advanced.grid_forget()
             self._btn_toggle.config(image=self._img_expand)
+
+    def _on_resize(self, event):  # pylint: disable=unused-argument
+        """
+        Resize frame.
+
+        :param event event: resize event
+        """
+
+        self.__app.frm_settings.on_expand()

@@ -4,13 +4,11 @@
 
 ENHANCEMENTS:
 
-NHANCEMENTS:
-
-1. Configuration *.json file save procedure enhanced to save and restore all user-configurable settings parameters, including those for NTRIP and SPARTN Clients. NB: changes require `pygnssutils>=1.0.13`.
-1. Order of precedence is:
+1. Configuration *.json file save procedure enhanced to save and restore all user-configurable settings parameters, including those for NTRIP and SPARTN Clients. NB: changes require `pygnssutils>=1.0.13`. Order of precedence for config settings is:
     1. *.json config file (all user-configurable settings)
     1. CLI keyword argument (where available)
     1. Environment Variable (where used)
+1. Add scrollbars to settings frame to allow better navigation on low-res displays.
 1. Add EBNO & FEC Bits values to SPARTN L-Band configuration panel to help monitor signal quality.
 1. Minor enhancements to banner position formatting.
 1. Add IPv6 flowinfo & scopeid fields to NTRIP Client configuration panel.

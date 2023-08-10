@@ -182,6 +182,7 @@ class SpartnLbandDialog(Frame):
         # Correction receiver serial port configuration panel
         userport = self.__app.app_config.get("spartnport", "")
         self._frm_spartn_serial = SerialConfigFrame(
+            self.__app,
             self,
             preselect=KNOWNGPS,
             timeouts=TIMEOUTS,

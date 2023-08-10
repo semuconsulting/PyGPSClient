@@ -323,6 +323,7 @@ class ServerConfigFrame(Frame):
         Bind events to variables.
         """
 
+        self.bind("<Configure>", self._on_resize)
         tracemode = ("write", "unset")
         self._socket_serve.trace_add(tracemode, self._on_socket_serve)
         self.sock_mode.trace_add(tracemode, self._on_sockmode)
@@ -768,3 +769,12 @@ class ServerConfigFrame(Frame):
         """
 
         return self._socket_serve.set(state)
+
+    def _on_resize(self, event):  # pylint: disable=unused-argument
+        """
+        Resize frame.
+
+        :param event event: resize event
+        """
+
+        self.__app.frm_settings.on_expand()

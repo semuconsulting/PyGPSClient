@@ -74,7 +74,7 @@ class SerialConfigFrame(Frame):
     Serial port configuration frame class.
     """
 
-    def __init__(self, container, *args, **kwargs):
+    def __init__(self, app, container, *args, **kwargs):
         """
         Constructor.
 
@@ -94,6 +94,7 @@ class SerialConfigFrame(Frame):
 
         Frame.__init__(self, container, *args, **kwargs)
 
+        self.__app = app
         self._show_advanced = False
         self._status = DISCONNECTED
         self._ports = ()
@@ -253,6 +254,7 @@ class SerialConfigFrame(Frame):
         Bind events to widgets.
         """
 
+        self.bind("<Configure>", self._on_resize)
         self._lbx_port.bind("<<ListboxSelect>>", self._on_select_port)
 
     def _get_ports(self):
@@ -508,3 +510,12 @@ class SerialConfigFrame(Frame):
         """
 
         return MSGMODES[self._msgmode.get()]
+
+    def _on_resize(self, event):  # pylint: disable=unused-argument
+        """
+        Resize frame.
+
+        :param event event: resize event
+        """
+
+        self.__app.frm_settings.on_expand()

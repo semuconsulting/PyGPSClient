@@ -108,7 +108,7 @@ class NTRIPConfigDialog(Toplevel):
         Toplevel.__init__(self, app)
         if POPUP_TRANSIENT:
             self.transient(self.__app)
-        self.resizable(True, True)  # allow for MacOS resize glitches
+        self.resizable(False, False)
         self.title(DLGNTRIPCONFIG)  # pylint: disable=E1102
         self.protocol("WM_DELETE_WINDOW", self.on_exit)
         self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
@@ -153,6 +153,7 @@ class NTRIPConfigDialog(Toplevel):
 
         self._frm_container = Frame(self, borderwidth=2, relief="groove")
         self._frm_socket = SocketConfigFrame(
+            self.__app,
             self._frm_container,
             config=self._init_config,
             protocols=NPROTOCOLS,

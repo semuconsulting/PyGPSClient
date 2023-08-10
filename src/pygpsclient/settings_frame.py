@@ -23,17 +23,28 @@ from os import getenv, path
 from pathlib import Path
 from socket import AF_INET, AF_INET6
 from tkinter import (
+    ALL,
+    BOTH,
+    BOTTOM,
     DISABLED,
+    HORIZONTAL,
+    LEFT,
     NORMAL,
+    RIGHT,
+    VERTICAL,
     Button,
+    Canvas,
     Checkbutton,
     E,
     Frame,
     IntVar,
     Label,
+    Scrollbar,
     Spinbox,
     StringVar,
     W,
+    X,
+    Y,
     ttk,
 )
 
@@ -101,6 +112,9 @@ from pygpsclient.strings import (
     LBLUBXCONFIG,
 )
 
+MINHEIGHT = 620
+MINWIDTH = 320
+
 
 class SettingsFrame(Frame):
     """
@@ -152,9 +166,52 @@ class SettingsFrame(Frame):
         self._img_spartnconfig = ImageTk.PhotoImage(Image.open(ICON_SPARTNCONFIG))
         self._img_dataread = ImageTk.PhotoImage(Image.open(ICON_LOGREAD))
 
+        self._container()  # create scrollable container
         self._body()
         self._do_layout()
         self._reset()
+
+    def _container(self):
+        """
+        Create scrollable container frame.
+
+        NB: any expandable sub-frames must implement an on_resize()
+        function which invokes the on_expand() method here.
+        """
+
+        self._frm_main = Frame(self)
+        self._frm_main.pack(fill=BOTH, expand=1)
+        self_frm_scrollx = Frame(self._frm_main)
+        self_frm_scrollx.pack(fill=X, side=BOTTOM)
+        self._can_container = Canvas(self._frm_main, height=MINHEIGHT, width=MINWIDTH)
+        self._frm_container = Frame(self._can_container)
+        self._can_container.pack(side=LEFT, fill=BOTH, expand=1)
+        x_scrollbar = Scrollbar(
+            self_frm_scrollx, orient=HORIZONTAL, command=self._can_container.xview
+        )
+        x_scrollbar.pack(side=BOTTOM, fill=X)
+        y_scrollbar = Scrollbar(
+            self._frm_main, orient=VERTICAL, command=self._can_container.yview
+        )
+        y_scrollbar.pack(side=RIGHT, fill=Y)
+        self._can_container.configure(xscrollcommand=x_scrollbar.set)
+        self._can_container.configure(yscrollcommand=y_scrollbar.set)
+        self._can_container.create_window(
+            (0, 0), window=self._frm_container, anchor="nw"
+        )
+        self._can_container.bind(
+            "<Configure>",
+            lambda e: self._can_container.config(
+                scrollregion=self._can_container.bbox(ALL)
+            ),
+        )
+
+    def on_expand(self):
+        """
+        Automatically expand container canvas when sub-frames are resized.
+        """
+
+        self._can_container.event_generate("<Configure>")
 
     def _body(self):
         """
@@ -162,15 +219,16 @@ class SettingsFrame(Frame):
         """
 
         for i in range(4):
-            self.grid_columnconfigure(i, weight=1)
-        self.grid_rowconfigure(0, weight=1)
+            self._frm_container.grid_columnconfigure(i, weight=1)
+        self._frm_container.grid_rowconfigure(0, weight=1)
 
-        self.option_add("*Font", self.__app.font_sm)
+        self._frm_container.option_add("*Font", self.__app.font_sm)
 
         # serial port configuration panel
         userport = self._init_config.get("userport", "")
         self.frm_serial = SerialConfigFrame(
-            self,
+            self.__app,
+            self._frm_container,
             preselect=KNOWNGPS,
             timeouts=TIMEOUTS,
             bpsrates=BPSRATES,
@@ -179,10 +237,12 @@ class SettingsFrame(Frame):
         )
 
         # socket client configuration panel
-        self.frm_socketclient = SocketConfigFrame(self, config=self._init_config)
+        self.frm_socketclient = SocketConfigFrame(
+            self.__app, self._frm_container, config=self._init_config
+        )
 
         # connection buttons
-        self._frm_buttons = Frame(self)
+        self._frm_buttons = Frame(self._frm_container)
         self._btn_connect = Button(
             self._frm_buttons,
             width=45,
@@ -229,7 +289,7 @@ class SettingsFrame(Frame):
         )
 
         # Other configuration options
-        self._frm_options = Frame(self)
+        self._frm_options = Frame(self._frm_container)
         self._lbl_protocol = Label(self._frm_options, text=LBLPROTDISP)
         self._chk_nmea = Checkbutton(
             self._frm_options,
@@ -269,7 +329,6 @@ class SettingsFrame(Frame):
             wrap=True,
             textvariable=self._degrees_format,
         )
-        self._lbl_units = Label(self._frm_options, text="Units")
         self._spn_units = Spinbox(
             self._frm_options,
             values=(UMM, UIK, UI, UMK),
@@ -323,7 +382,7 @@ class SettingsFrame(Frame):
         )
         # socket server configuration
         self.frm_socketserver = ServerConfigFrame(
-            self.__app, self, config=self._init_config
+            self.__app, self._frm_container, config=self._init_config
         )
         # configuration panel buttons
         self._lbl_ubxconfig = Label(
@@ -365,14 +424,14 @@ class SettingsFrame(Frame):
         self.frm_serial.grid(
             column=0, row=1, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
-        ttk.Separator(self).grid(
+        ttk.Separator(self._frm_container).grid(
             column=0, row=2, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
 
         self.frm_socketclient.grid(
             column=0, row=3, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
-        ttk.Separator(self).grid(
+        ttk.Separator(self._frm_container).grid(
             column=0, row=4, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
 
@@ -387,7 +446,7 @@ class SettingsFrame(Frame):
         self._lbl_connect_file.grid(column=2, row=1, padx=1, pady=1, sticky=(W, E))
         self._lbl_disconnect.grid(column=3, row=1, padx=1, pady=1, sticky=(W, E))
 
-        ttk.Separator(self).grid(
+        ttk.Separator(self._frm_container).grid(
             column=0, row=7, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
 
@@ -403,8 +462,7 @@ class SettingsFrame(Frame):
         self._chk_tags.grid(column=3, row=1, padx=1, pady=2, sticky=W)
         self._lbl_format.grid(column=0, row=2, padx=2, pady=2, sticky=W)
         self._spn_format.grid(column=1, row=2, padx=2, pady=2, sticky=W)
-        self._lbl_units.grid(column=0, row=3, padx=2, pady=2, sticky=W)
-        self._spn_units.grid(column=1, row=3, columnspan=3, padx=2, pady=2, sticky=W)
+        self._spn_units.grid(column=2, row=2, columnspan=2, padx=2, pady=2, sticky=W)
         self._chk_scroll.grid(column=0, row=4, padx=2, pady=2, sticky=W)
         self._spn_maxlines.grid(column=1, row=4, columnspan=3, padx=2, pady=2, sticky=W)
         self._lbl_maptype.grid(column=0, row=5, padx=2, pady=2, sticky=W)
