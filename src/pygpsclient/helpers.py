@@ -16,6 +16,7 @@ Created on 17 Apr 2021
 import os
 from datetime import datetime, timedelta
 from math import cos, pi, sin, trunc
+from platform import system
 from time import strftime
 from tkinter import Button, Entry, Label, Toplevel, W, font
 
@@ -879,3 +880,19 @@ def config_nmea(state: int, port_type: str = "USB") -> UBXMessage:
     cfg_data.append((f"CFG_MSGOUT_UBX_NAV_SAT_{port_type}", state * 4))
 
     return UBXMessage.config_set(layers, transaction, cfg_data)
+
+
+def adjust_dimensions(dim: int) -> int:
+    """
+    Adjust display dimensions for different operating systems.
+
+    :param int dim: dimension
+    :return: adjusted dimension
+    :rtype: int
+    """
+
+    if system() == "Windows":
+        return int(dim * 0.95)
+    if system() == "Darwin":
+        return int(dim * 0.9)
+    return int(dim)

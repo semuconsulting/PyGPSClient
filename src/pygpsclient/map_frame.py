@@ -102,7 +102,7 @@ class MapviewFrame(Frame):
         """
 
         settings = self.__app.frm_settings.config
-        self._zoom = settings["mapzoom"]
+        self._zoom = settings.get("mapzoom", 10)
 
     def on_refresh(self, event):  # pylint: disable=unused-argument
         """

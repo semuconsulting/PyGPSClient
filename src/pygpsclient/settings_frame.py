@@ -42,6 +42,7 @@ from tkinter import (
     Scrollbar,
     Spinbox,
     StringVar,
+    TclError,
     W,
     X,
     Y,
@@ -52,7 +53,6 @@ import pyubx2.ubxtypes_core as ubt
 from PIL import Image, ImageTk
 
 from pygpsclient.globals import (
-    BADCOL,
     BPSRATES,
     CONNECTED,
     CONNECTED_FILE,
@@ -96,11 +96,11 @@ from pygpsclient.globals import (
     UMK,
     UMM,
 )
+from pygpsclient.helpers import adjust_dimensions
 from pygpsclient.serialconfig_frame import SerialConfigFrame
 from pygpsclient.serverconfig_frame import ServerConfigFrame
 from pygpsclient.socketconfig_frame import SocketConfigFrame
 from pygpsclient.strings import (
-    CONFIGERR,
     LBLDATADISP,
     LBLDATALOG,
     LBLDEGFORMAT,
@@ -112,8 +112,8 @@ from pygpsclient.strings import (
     LBLUBXCONFIG,
 )
 
-MINHEIGHT = 620
-MINWIDTH = 320
+MINHEIGHT = 690
+MINWIDTH = 365
 
 
 class SettingsFrame(Frame):
@@ -179,11 +179,12 @@ class SettingsFrame(Frame):
         function which invokes the on_expand() method here.
         """
 
+        dimw, dimh = [adjust_dimensions(x) for x in (MINWIDTH, MINHEIGHT)]
         self._frm_main = Frame(self)
         self._frm_main.pack(fill=BOTH, expand=1)
         self_frm_scrollx = Frame(self._frm_main)
         self_frm_scrollx.pack(fill=X, side=BOTTOM)
-        self._can_container = Canvas(self._frm_main, height=MINHEIGHT, width=MINWIDTH)
+        self._can_container = Canvas(self._frm_main, height=dimh, width=dimw)
         self._frm_container = Frame(self._can_container)
         self._can_container.pack(side=LEFT, fill=BOTH, expand=1)
         x_scrollbar = Scrollbar(
@@ -508,6 +509,22 @@ class SettingsFrame(Frame):
         self.__app.frm_spectrumview.reset()
         self.__app.reset_gnssstatus()
 
+    def disable_all(self):
+        """
+        Disable all button functions (e.g. if config file is invalid).
+        """
+
+        for wdg in (
+            self._btn_connect,
+            self._btn_connect_file,
+            self._btn_connect_socket,
+            self._btn_disconnect,
+            self._btn_ubxconfig,
+            self._btn_ntripconfig,
+            self._btn_spartnconfig,
+        ):
+            wdg.config(state=DISABLED)
+
     def _on_connect(self, conntype: int):
         """
         Start or stop connection (serial, socket or file).
@@ -695,83 +712,87 @@ class SettingsFrame(Frame):
         :rtype: dict
         """
 
-        protocol = (
-            (ubt.NMEA_PROTOCOL * self._prot_nmea.get())
-            + (ubt.UBX_PROTOCOL * self._prot_ubx.get())
-            + (ubt.RTCM3_PROTOCOL * self._prot_rtcm3.get())
-        )
-        sockmode = 1 if self.frm_socketserver.sock_mode.get() == SOCK_NTRIP else 0
+        try:
+            protocol = (
+                (ubt.NMEA_PROTOCOL * self._prot_nmea.get())
+                + (ubt.UBX_PROTOCOL * self._prot_ubx.get())
+                + (ubt.RTCM3_PROTOCOL * self._prot_rtcm3.get())
+            )
+            sockmode = 1 if self.frm_socketserver.sock_mode.get() == SOCK_NTRIP else 0
 
-        ntripclient_settings = self.__app.ntrip_handler.settings
-        spartnclient_settings = self.__app.spartn_handler.settings
-        ntripprot = "IPv6" if ntripclient_settings["ipprot"] == AF_INET6 else "IPv4"
+            ntripclient_settings = self.__app.ntrip_handler.settings
+            spartnclient_settings = self.__app.spartn_handler.settings
+            ntripprot = "IPv6" if ntripclient_settings["ipprot"] == AF_INET6 else "IPv4"
 
-        config = {
-            # main settings from frm_settings
-            "protocol": protocol,
-            "nmeaprot": self._prot_nmea.get(),
-            "ubxprot": self._prot_ubx.get(),
-            "rtcmprot": self._prot_rtcm3.get(),
-            "degreesformat": self._degrees_format.get(),
-            "colortag": self._colortag.get(),
-            "units": self._units.get(),
-            "autoscroll": self._autoscroll.get(),
-            "maxlines": self._maxlines.get(),
-            "consoleformat": self._console_format.get(),
-            "maptype": self.maptype.get(),
-            "mapzoom": self.mapzoom.get(),
-            "legend": self.show_legend.get(),
-            "unusedsat": self._show_unusedsat.get(),
-            "logformat": self._logformat.get(),
-            "datalog": self._datalog.get(),
-            "recordtrack": self._record_track.get(),
-            # socket client settings from frm_socketclient
-            "sockclienthost": self.frm_socketclient.server.get(),
-            "sockclientport": self.frm_socketclient.port.get(),
-            "sockclientprotocol": self.frm_socketclient.protocol.get(),
-            "sockclientflowinfo": self.frm_socketclient.flowinfo.get(),
-            "sockclientscopeid": self.frm_socketclient.scopeid.get(),
-            # socket server settings from frm_socketserver
-            "sockserver": self.frm_socketserver.socketserving,
-            "sockhost": self.frm_socketserver.sock_host.get(),
-            "sockport": self.frm_socketserver.sock_port.get(),
-            "sockmode": sockmode,
-            "ntripcasterbasemode": self.frm_socketserver.base_mode.get(),
-            "ntripcasteracclimit": self.frm_socketserver.acclimit.get(),
-            "ntripcasterduration": self.frm_socketserver.duration.get(),
-            "ntripcasterposmode": self.frm_socketserver.pos_mode.get(),
-            "ntripcasterfixedlat": self.frm_socketserver.fixedlat.get(),
-            "ntripcasterfixedlon": self.frm_socketserver.fixedlon.get(),
-            "ntripcasterfixedalt": self.frm_socketserver.fixedalt.get(),
-            "ntripcasterdisablenmea": self.frm_socketserver.disable_nmea.get(),
-            # NTRIP client settings from pygnssutils.GNSSNTRIPClient
-            "ntripclientserver": ntripclient_settings["server"],
-            "ntripclientport": ntripclient_settings["port"],
-            "ntripclientprotocol": ntripprot,
-            "ntripclientflowinfo": ntripclient_settings["flowinfo"],
-            "ntripclientscopeid": ntripclient_settings["scopeid"],
-            "ntripclientmountpoint": ntripclient_settings["mountpoint"],
-            "ntripclientversion": ntripclient_settings["version"],
-            "ntripclientuser": ntripclient_settings["ntripuser"],
-            "ntripclientpassword": ntripclient_settings["ntrippassword"],
-            "ntripclientggainterval": ntripclient_settings["ggainterval"],
-            "ntripclientggamode": ntripclient_settings["ggamode"],
-            "ntripclientreflat": ntripclient_settings["reflat"],
-            "ntripclientreflon": ntripclient_settings["reflon"],
-            "ntripclientrefalt": ntripclient_settings["refalt"],
-            "ntripclientrefsep": ntripclient_settings["refsep"],
-            # SPARTN client settings from pygnssutils.GNSSMQTTClient
-            "mqttclientserver": spartnclient_settings["server"],
-            "mqttclientport": spartnclient_settings["port"],
-            "mqttclientid": spartnclient_settings["clientid"],
-            "mgttclientregion": spartnclient_settings["region"],
-            "mgttclienttopicip": spartnclient_settings["topic_ip"],
-            "mgttclienttopicmga": spartnclient_settings["topic_mga"],
-            "mgttclienttopickey": spartnclient_settings["topic_key"],
-            "mgttclienttlscrt": spartnclient_settings["tlscrt"],
-            "mgttclienttlskey": spartnclient_settings["tlskey"],
-        }
-        return config
+            config = {
+                # main settings from frm_settings
+                "protocol": protocol,
+                "nmeaprot": self._prot_nmea.get(),
+                "ubxprot": self._prot_ubx.get(),
+                "rtcmprot": self._prot_rtcm3.get(),
+                "degreesformat": self._degrees_format.get(),
+                "colortag": self._colortag.get(),
+                "units": self._units.get(),
+                "autoscroll": self._autoscroll.get(),
+                "maxlines": self._maxlines.get(),
+                "consoleformat": self._console_format.get(),
+                "maptype": self.maptype.get(),
+                "mapzoom": self.mapzoom.get(),
+                "legend": self.show_legend.get(),
+                "unusedsat": self._show_unusedsat.get(),
+                "logformat": self._logformat.get(),
+                "datalog": self._datalog.get(),
+                "recordtrack": self._record_track.get(),
+                # socket client settings from frm_socketclient
+                "sockclienthost": self.frm_socketclient.server.get(),
+                "sockclientport": self.frm_socketclient.port.get(),
+                "sockclientprotocol": self.frm_socketclient.protocol.get(),
+                "sockclientflowinfo": self.frm_socketclient.flowinfo.get(),
+                "sockclientscopeid": self.frm_socketclient.scopeid.get(),
+                # socket server settings from frm_socketserver
+                "sockserver": self.frm_socketserver.socketserving,
+                "sockhost": self.frm_socketserver.sock_host.get(),
+                "sockport": self.frm_socketserver.sock_port.get(),
+                "sockmode": sockmode,
+                "ntripcasterbasemode": self.frm_socketserver.base_mode.get(),
+                "ntripcasteracclimit": self.frm_socketserver.acclimit.get(),
+                "ntripcasterduration": self.frm_socketserver.duration.get(),
+                "ntripcasterposmode": self.frm_socketserver.pos_mode.get(),
+                "ntripcasterfixedlat": self.frm_socketserver.fixedlat.get(),
+                "ntripcasterfixedlon": self.frm_socketserver.fixedlon.get(),
+                "ntripcasterfixedalt": self.frm_socketserver.fixedalt.get(),
+                "ntripcasterdisablenmea": self.frm_socketserver.disable_nmea.get(),
+                # NTRIP client settings from pygnssutils.GNSSNTRIPClient
+                "ntripclientserver": ntripclient_settings["server"],
+                "ntripclientport": ntripclient_settings["port"],
+                "ntripclientprotocol": ntripprot,
+                "ntripclientflowinfo": ntripclient_settings["flowinfo"],
+                "ntripclientscopeid": ntripclient_settings["scopeid"],
+                "ntripclientmountpoint": ntripclient_settings["mountpoint"],
+                "ntripclientversion": ntripclient_settings["version"],
+                "ntripclientuser": ntripclient_settings["ntripuser"],
+                "ntripclientpassword": ntripclient_settings["ntrippassword"],
+                "ntripclientggainterval": ntripclient_settings["ggainterval"],
+                "ntripclientggamode": ntripclient_settings["ggamode"],
+                "ntripclientreflat": ntripclient_settings["reflat"],
+                "ntripclientreflon": ntripclient_settings["reflon"],
+                "ntripclientrefalt": ntripclient_settings["refalt"],
+                "ntripclientrefsep": ntripclient_settings["refsep"],
+                # SPARTN client settings from pygnssutils.GNSSMQTTClient
+                "mqttclientserver": spartnclient_settings["server"],
+                "mqttclientport": spartnclient_settings["port"],
+                "mqttclientid": spartnclient_settings["clientid"],
+                "mgttclientregion": spartnclient_settings["region"],
+                "mgttclienttopicip": spartnclient_settings["topic_ip"],
+                "mgttclienttopicmga": spartnclient_settings["topic_mga"],
+                "mgttclienttopickey": spartnclient_settings["topic_key"],
+                "mgttclienttlscrt": spartnclient_settings["tlscrt"],
+                "mgttclienttlskey": spartnclient_settings["tlskey"],
+            }
+            return config
+        except (KeyError, ValueError, TypeError, TclError) as err:
+            self.__app.on_invalid_config(err)
+            return {}
 
     @config.setter
     def config(self, config: dict):
@@ -882,5 +903,5 @@ class SettingsFrame(Frame):
             spartnsettings["output"] = self.__app.spartn_inqueue
             self.__app.spartn_handler.settings = spartnsettings
 
-        except KeyError as err:
-            self.__app.set_status(f"{CONFIGERR} - {err}", BADCOL)
+        except (KeyError, ValueError, TypeError, TclError) as err:
+            self.__app.on_invalid_config(err)

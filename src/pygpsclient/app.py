@@ -84,8 +84,10 @@ from pygpsclient.strings import (
     ENDOFFILE,
     INTROTXTNOPORTS,
     LOADCONFIGBAD,
+    LOADCONFIGNONE,
     LOADCONFIGOK,
     NOTCONN,
+    NOWDGSWARN,
     SAVECONFIGBAD,
     SAVECONFIGOK,
     TITLE,
@@ -126,7 +128,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         # user-defined serial port can be passed as environment variable
         # or command line keyword argument
-        configfile = kwargs.pop("config", CONFIGFILE)
+        self._configfile = kwargs.pop("config", CONFIGFILE)
         self._user_port = kwargs.pop("userport", getenv("PYGPSCLIENT_USERPORT", ""))
         self._spartn_user_port = kwargs.pop(
             "spartnport", getenv("PYGPSCLIENT_SPARTNPORT", "")
@@ -150,6 +152,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._last_gui_update = datetime.now()
         # dict containing widget grid positions
         self._widget_grid = widget_grid
+        self._nowidgets = True
 
         # Instantiate protocol handler classes
         self.gnss_inqueue = Queue()  # messages from GNSS receiver
@@ -183,7 +186,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._colortags = []
         self._ubxpresets = []
         config_loaded = False
-        _, config = self.file_handler.load_config(configfile)
+        _, config = self.file_handler.load_config(self._configfile)
         if isinstance(config, dict):  # load succeeded
             config_loaded = True
             self.config = config
@@ -197,12 +200,15 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         # display config load status message once frm_settings
         # has been instantiated
         if config_loaded:
-            self.set_status(f"{LOADCONFIGOK} {configfile}", OKCOL)
+            if self._nowidgets:
+                self.set_status(NOWDGSWARN.format(self._configfile), BADCOL)
+            else:
+                self.set_status(LOADCONFIGOK.format(self._configfile), OKCOL)
         else:
             if "No such file or directory" in config:
-                self.set_status(f"Configuration file not found {configfile}")
+                self.set_status(LOADCONFIGNONE.format(self._configfile))
             else:
-                self.set_status(f"{LOADCONFIGBAD} {configfile} {config}")
+                self.set_status(LOADCONFIGBAD.format(self._configfile, config))
 
         self.frm_satview.init_sats()
         self.frm_graphview.init_graph()
@@ -431,12 +437,15 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         if self.config is None:
             return  # user cancelled
         if isinstance(self.config, str):  # load failed
-            self.set_status(f"{LOADCONFIGBAD} {self.config}", BADCOL)
+            self.set_status(LOADCONFIGBAD.format(filename), BADCOL)
         else:
-            self.set_status(f"{LOADCONFIGOK} {filename}", OKCOL)
             self.frm_settings.config = self.config
             self.app_config = self.config
             self._do_layout()
+            if self._nowidgets:
+                self.set_status(NOWDGSWARN.format(filename), BADCOL)
+            else:
+                self.set_status(LOADCONFIGOK.format(filename), OKCOL)
 
     def save_config(self):
         """
@@ -819,8 +828,16 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self._ubxpresets = config.get("ubxpresets", self._ubxpresets)
 
         try:
+            self._nowidgets = True
             for key, vals in self._widget_grid.items():
-                vals["visible"] = config.get(key, False)
+                vis = config.get(key, False)
+                vals["visible"] = vis
+                if vis:
+                    self._nowidgets = False
+            # if no widgets are set as "visible", enable the status widget
+            # to display a warning to this effect
+            if self._nowidgets:
+                self._widget_grid["Status"]["visible"] = "true"
         except KeyError as err:
             self.set_status(f"{CONFIGERR} - {err}", BADCOL)
 
@@ -904,3 +921,13 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         if self.frm_settings.frm_socketserver is not None:
             self.frm_settings.frm_socketserver.svin_countdown(dur, valid, active)
+
+    def on_invalid_config(self, err: str):
+        """
+        Actions if config file is invalid.
+
+        :param str err: error message
+        """
+
+        self.set_status(f"{CONFIGERR} {self._configfile} - {err}", BADCOL)
+        self.frm_settings.disable_all()

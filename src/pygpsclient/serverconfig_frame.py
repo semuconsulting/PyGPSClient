@@ -124,7 +124,7 @@ class ServerConfigFrame(Frame):
         self.__app = app
         self._container = container
         self._show_advanced = False
-        self._socket_serve = IntVar()
+        self._socket_serve = StringVar()
         self.sock_port = StringVar()
         self.sock_host = StringVar()
         self.sock_mode = StringVar()
@@ -366,7 +366,7 @@ class ServerConfigFrame(Frame):
         Start or stop socket server.
         """
 
-        if self._socket_serve.get():
+        if self._socket_serve.get() in ("1", 1):
             # validate entries
             valid = True
             valid = valid & valid_entry(self._ent_sockhost, VALNONBLANK)
