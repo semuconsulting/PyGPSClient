@@ -408,7 +408,7 @@ class ServerConfigFrame(Frame):
             self._lbl_fixedalt,
             self._ent_fixedalt,
         ):
-            if self._socket_serve.get():
+            if self._socket_serve.get() in ("1", 1):
                 state = DISABLED
             else:
                 state = READONLY if isinstance(wid, Spinbox) else NORMAL
@@ -418,7 +418,7 @@ class ServerConfigFrame(Frame):
         # configure receiver as base station if in NTRIP Caster mode
         # and 'Configure Base' option is checked.
         if (
-            self._socket_serve.get()
+            self._socket_serve.get() in ("1", 1)
             and self.sock_mode.get() == SOCK_NTRIP
             and self._set_basemode.get()
         ):
@@ -582,7 +582,7 @@ class ServerConfigFrame(Frame):
         """
 
         self._sock_clients.set(clients)
-        if self._socket_serve.get() == 1:
+        if self._socket_serve.get() in ("1", 1):
             self.__app.frm_banner.update_transmit_status(clients)
 
     def _config_rcvr(self):
