@@ -3,10 +3,9 @@ socketconfig_frame.py
 
 Generic socket configuration Frame subclass
 for use in tkinter applications which require a
-socket configuration facility:
+socket configuration facility.
 
-- Socket reader configuration in main settings panel.
-- NTRIP client configuration dialog.
+Supply initial settings via `config` keyword argument.
 
 Application icons from https://iconmonstr.com/license/.
 
@@ -24,6 +23,7 @@ from tkinter import (
     E,
     Entry,
     Frame,
+    IntVar,
     Label,
     Spinbox,
     StringVar,
@@ -37,12 +37,14 @@ from pygpsclient.helpers import MAXPORT, VALINT, VALURL, valid_entry
 
 ADVOFF = "\u25bc"
 ADVON = "\u25b2"
-READONLY = "readonly"
-DISCONNECTED = 0
 CONNECTED = 1
+DISCONNECTED = 0
+READONLY = "readonly"
 TCPIPV4 = "TCP IPv4"
 TCPIPV6 = "TCP IPv6"
-PROTOCOLS = [TCPIPV4, "UDP IPv6", "UDP IPv4", TCPIPV6]
+UDPIPV4 = "UDP IPv4"
+UDPIPV6 = "UDP IPv6"
+PROTOCOLS = [TCPIPV4, UDPIPV6, UDPIPV4, TCPIPV6]
 
 
 class SocketConfigFrame(Frame):
@@ -59,8 +61,7 @@ class SocketConfigFrame(Frame):
         :param kwargs: optional kwargs for value ranges, or to pass to Frame parent class
         """
 
-        self._init_config = kwargs.pop("config", {})
-        self._protocol_values = kwargs.pop("protocols", PROTOCOLS)
+        self._saved_config = kwargs.pop("saved_config", {})
         Frame.__init__(self, container, *args, **kwargs)
 
         self.__app = app
@@ -68,10 +69,11 @@ class SocketConfigFrame(Frame):
         self._show_advanced = False
         self.status = DISCONNECTED
         self.server = StringVar()
-        self.port = StringVar()
+        self.port = IntVar()
         self.protocol = StringVar()
-        self.flowinfo = StringVar()
-        self.scopeid = StringVar()
+        self.flowinfo = IntVar()
+        self.scopeid = IntVar()
+        self._protocol_range = self._saved_config.get("protocols_l", PROTOCOLS)
         self._img_expand = ImageTk.PhotoImage(Image.open(ICON_EXPAND))
         self._img_contract = ImageTk.PhotoImage(Image.open(ICON_CONTRACT))
 
@@ -105,7 +107,7 @@ class SocketConfigFrame(Frame):
         self._spn_protocol = Spinbox(
             self._frm_basic,
             textvariable=self.protocol,
-            values=self._protocol_values,
+            values=self._protocol_range,
             width=12,
             state=READONLY,
             wrap=True,
@@ -170,13 +172,13 @@ class SocketConfigFrame(Frame):
         Reset settings to defaults (first value in range).
         """
 
-        self.server.set(self._init_config.get("sockclienthost", DEFAULT_SERVER))
-        self.port.set(self._init_config.get("sockclientport", DEFAULT_PORT))
+        self.server.set(self._saved_config.get("sockclienthost_s", DEFAULT_SERVER))
+        self.port.set(self._saved_config.get("sockclientport_n", DEFAULT_PORT))
         self.protocol.set(
-            self._init_config.get("sockclientprotocol", self._protocol_values[0])
+            self._saved_config.get("sockclientprotocol_s", self._protocol_range[0])
         )
-        self.flowinfo.set(self._init_config.get("sockclientflowinfo", 0))
-        self.scopeid.set(self._init_config.get("sockclientscopeid", 0))
+        self.flowinfo.set(self._saved_config.get("sockclientflowinfo_n", 0))
+        self.scopeid.set(self._saved_config.get("sockclientscopeid_n", 0))
 
     def valid_settings(self) -> bool:
         """

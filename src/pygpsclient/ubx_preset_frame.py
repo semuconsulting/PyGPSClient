@@ -109,7 +109,8 @@ class UBX_PRESET_Frame(Frame):
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.__container = container
-        self._init_config = kwargs.pop("config", [])  # list of presets
+        # saved_config just contains user presets...
+        self._saved_config = kwargs.pop("config", [])
 
         Frame.__init__(self, self.__container.container, *args, **kwargs)
 
@@ -195,7 +196,7 @@ class UBX_PRESET_Frame(Frame):
             self._lbx_preset.insert(idx, pst)
             idx += 1
 
-        for upst in self._init_config:
+        for upst in self._saved_config:
             self._lbx_preset.insert(idx, "USER " + upst)
             idx += 1
 

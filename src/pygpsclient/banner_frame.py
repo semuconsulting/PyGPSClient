@@ -368,8 +368,11 @@ class BannerFrame(Frame):
     def update_transmit_status(self, transmit: int = 1):
         """
         Update socket server status icon.
+        - -1 = not transmitting
+        - 0 transmitting, no clients
+        - 1 transmitting with clients
 
-        :param int transmit: socket server transmit status (-1, 0, 1)
+        :param int transmit: socket server transmit status
         """
 
         if transmit > 0:
@@ -385,8 +388,8 @@ class BannerFrame(Frame):
         """
 
         settings = self.__app.frm_settings.config
-        deg_format = settings["degreesformat"]
-        units = settings["units"]
+        deg_format = settings["degreesformat_s"]
+        units = settings["units_s"]
 
         self._update_time()
         self._update_pos(deg_format, units)
@@ -555,7 +558,7 @@ class BannerFrame(Frame):
 
         w = self.width
         # Cater for slightly different font behaviour on Linux
-        if system() in ("W32", "Darwin"):
+        if system() in ("Windows", "Darwin"):
             val = 55
             lbl = 75
             sup = 85

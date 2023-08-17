@@ -6,6 +6,11 @@ SPARTN configuration dialog
 This is the pop-up dialog containing the various
 SPARTN configuration functions.
 
+NB: The initial configuration for the SPARTN MQTT client
+(pygnssutils.GNSSMQTTClient) is set in app.update_SPARTN_handler().
+Once started, the persisted state for the SPARTN MQTT client is
+held in the threaded SPARTN handler itself, NOT in this frame.
+
 Created on 26 Jan 2023
 
 :author: semuadmin
@@ -48,10 +53,10 @@ from pygpsclient.globals import (
     ICON_SERIAL,
     ICON_SOCKET,
     ICON_WARNING,
-    OUTPORT_SPARTN,
     READONLY,
     RXMMSG,
     SPARTN_GNSS,
+    SPARTN_OUTPORT,
     SPARTN_PPREGIONS,
 )
 from pygpsclient.helpers import MAXPORT, VALINT, VALLEN, valid_entry
@@ -78,6 +83,7 @@ class SPARTNMQTTDialog(Frame):
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.__container = container  # container frame
+        self._saved_config = kwargs.pop("saved_config", {})
 
         Frame.__init__(self, self.__container.container, *args, **kwargs)
 
@@ -95,7 +101,7 @@ class SPARTNMQTTDialog(Frame):
         self._status = StringVar()
         self._mqtt_server = StringVar()
         self._mqtt_port = IntVar()
-        self._mqtt_port.set(OUTPORT_SPARTN)
+        self._mqtt_port.set(SPARTN_OUTPORT)
         self._mqtt_region = StringVar()
         self._mqtt_clientid = StringVar()
         self._mqtt_crt = StringVar()
@@ -256,10 +262,8 @@ class SPARTNMQTTDialog(Frame):
         """
 
         self._get_settings()
-        self._mqtt_clientid.set(self.__app.frm_settings.config.get("mqttclientid", ""))
-        self._mqtt_region.set(
-            self.__app.frm_settings.config.get("mqttclientregion", "eu")
-        )
+        # self._mqtt_clientid.set(self._saved_config.get("mqttclientid_s", ""))
+        # self._mqtt_region.set(self._saved_config.get("mqttclientregion_s", "eu"))
         self._reset_keypaths(self._mqtt_clientid.get())
         self.__container.set_status(
             "",

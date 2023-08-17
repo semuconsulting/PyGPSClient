@@ -151,16 +151,6 @@ class SysmonFrame(Frame):
         self._monsys_status = DLGWAITMONSYS
         self.init_chart()
 
-    # def _on_mode(self, *args):  # pylint: disable=unused-argument
-    #     """
-    #     Update I/O display mode - actual or pending i/o.
-
-    #     :param Event event: clear event
-    #     """
-
-    #     txt = "Pending I/O" if self._mode.get() else "Actual I/O"
-    #     self._chk_mode.config(text=txt)
-
     def enable_MONSYS(self, status: int):
         """
         Enable/disable UBX MON-SYS & MON-COMMS messages on

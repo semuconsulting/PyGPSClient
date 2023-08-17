@@ -116,7 +116,7 @@ class SpectrumviewFrame(Frame):
         self.can_spectrumview.bind("<Button-1>", self._on_click)
         self.can_spectrumview.bind("<Double-Button-1>", self._toggle_rf)
 
-    def init_graph(self):
+    def init_frame(self):
         """
         Initialise spectrum chart.
         """
@@ -244,7 +244,7 @@ class SpectrumviewFrame(Frame):
             )
             self._pending_confs.pop("ACK-NAK")
             self._monspan_status = DLGNOMONSPAN
-            self.init_graph()
+            self.init_frame()
 
         if self._pending_confs.get("ACK-ACK", False):
             self._pending_confs.pop("ACK-ACK")
@@ -265,7 +265,7 @@ class SpectrumviewFrame(Frame):
         specxy, self._minhz, self._maxhz, self._mindb, self._maxdb = self._get_limits(
             rfblocks
         )
-        self.init_graph()
+        self.init_frame()
 
         # plot frequency band markers
         if self._showrf:

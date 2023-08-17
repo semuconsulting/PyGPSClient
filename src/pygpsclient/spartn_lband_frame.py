@@ -6,6 +6,8 @@ SPARTN L-Band Correction receiver configuration dialog.
 This handles the configuration of the L-Band receiver
 (e.g. u-blox D9S) for the selected region.
 
+Supply initial settings via `config` keyword argument.
+
 Created on 26 Jan 2023
 
 :author: semuadmin
@@ -139,6 +141,7 @@ class SpartnLbandDialog(Frame):
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.__container = container  # container frame
+        self._saved_config = kwargs.pop("saved_config", {})
 
         Frame.__init__(self, self.__container.container, *args, **kwargs)
 
@@ -180,7 +183,6 @@ class SpartnLbandDialog(Frame):
         # pylint: disable=unnecessary-lambda
         self._lbl_corrlband = Label(self, text=LBLSPARTNLB)
         # Correction receiver serial port configuration panel
-        userport = self.__app.app_config.get("spartnport", "")
         self._frm_spartn_serial = SerialConfigFrame(
             self.__app,
             self,
@@ -188,7 +190,7 @@ class SpartnLbandDialog(Frame):
             timeouts=TIMEOUTS,
             bpsrates=BPSRATES,
             msgmodes=list(MSGMODES.keys()),
-            userport=userport,  # user-defined serial port
+            saved_config={"userport_s": self._saved_config.get("spartnport_s", "")},
         )
         self._lbl_freq = Label(self, text="L-Band Frequency (Hz)")
         self._ent_freq = Entry(

@@ -24,7 +24,7 @@ from pynmeagps import haversine
 from pyubx2 import SET, UBXMessage, attsiz, atttyp
 from requests import get
 
-from pygpsclient.globals import FIXLOOKUP, GPSEPOCH0, MAX_SNR
+from pygpsclient.globals import FIXLOOKUP, GPSEPOCH0, MAX_SNR, RCVR_CONNECTION
 from pygpsclient.strings import NA
 
 # validation type flags
@@ -816,7 +816,9 @@ def setubxrate(app: object, msgclass: int, msgid: int, rate: int = 1):
         return
 
     rates = {}
-    prts = app.app_config.get("defaultport", "USB")
+    prts = app.frm_settings.config.get(
+        "defaultport_s", app.frm_settings.config.get("defaultport", RCVR_CONNECTION)
+    )
     if isinstance(prts, str):
         prts = [
             prts,

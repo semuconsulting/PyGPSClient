@@ -69,8 +69,8 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 1. Show Unused Satellites - Include or exclude satellites that are not used in the navigation solution (e.g. because their signal level is too low) from the graph and sky view panels.
 1. DataLogging - Turn Data logging in the selected format on or off. You will be prompted to select the directory into which timestamped log files are saved.
 1. GPX Track - Turn track recording (in GPX format) on or off. You will be prompted to select the directory into which timestamped track files are saved.
-1. To save the current configuration to a file, go to File..Save Configuration. **NB:** NTRIP and SPARTN client settings are not saved until the client has been started at least once.
-1. To load a saved configuration file, go to File..Load Configuration. The default configuration file location is `$HOME/pygpsclient.json`. **NB** Any running NTRIP or SPARTN client must be stopped before loading a new configuration.
+1. To save the current configuration to a file, go to File..Save Configuration. **NB:** NTRIP and SPARTN client settings must be uploaded to the client handler (by clicking connect) before saving.
+1. To load a saved configuration file, go to File..Load Configuration. The default configuration file location is `$HOME/pygpsclient.json`. **NB** Any active serial or RTK connection must be stopped before loading a new configuration.
 
 1. [Socket Server / NTRIP Caster](#socketserver) facility with two modes of operation: (a) open, unauthenticated Socket Server or (b) NTRIP Caster (mountpoint = `pygnssutils`).
 1. [UBX Configuration Dialog](#ubxconfig), with the ability to send a variety of UBX CFG configuration commands to u-blox GNSS devices. This includes the facility to add **user-defined commands or command sequences** - see instructions under [user-defined presets](#userdefined) below. To display the UBX Configuration Dialog (*only functional when connected to a UBX GNSS device via serial port*), click
@@ -85,7 +85,7 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 | User-selectable 'widgets' | To show or hide the various widgets, go to Menu..View and click on the relevant hide/show option. |
 |---------------------------|---------------------------------------------------------------------------------------------------|
 |![banner widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/banner_widget.png?raw=true)| Expandable banner showing key navigation status information based on messages received from receiver. To expand or collapse the banner or serial port configuration widgets, click the ![expand icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-arrow-80-16.png?raw=true)/![expand icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-triangle-1-16.png?raw=true) buttons. **NB**: some fields (e.g. hdop/vdop, hacc/vacc) are only available from proprietary NMEA or UBX messages and may not be output by default. The minumum messages required to populate all available fields are: NMEA: GGA, GSA, GSV, RMC, UBX00 (proprietary); UBX: NAV-DOP, NAV-PVT, NAV_SAT |
-|![console widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/console_widget.png?raw=true)| Configurable serial console widget showing incoming GNSS, NTRIP and SPARTN data streams in either parsed, binary or tabular hexadecimal formats. Supports user-configurable color tagging of selected strings for easy identification. Color tags are loaded from the `colortag:` value (`0` = disable, `1` = enable) and `colortags:` list (`[string, color]` pairs) in your json configuration file (see example provided). NB: color tagging does impose a small performance overhead - turning it off will improve console response times at very high transaction rates.|
+|![console widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/console_widget.png?raw=true)| Configurable serial console widget showing incoming GNSS, NTRIP and SPARTN data streams in either parsed, binary or tabular hexadecimal formats. Supports user-configurable color tagging of selected strings for easy identification. Color tags are loaded from the `colortag_b:` value (`0` = disable, `1` = enable) and `colortags_l:` list (`[string, color]` pairs) in your json configuration file (see example provided). NB: color tagging does impose a small performance overhead - turning it off will improve console response times at very high transaction rates.|
 |![skyview widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/skyview_widget.png?raw=true)| Skyview widget showing current satellite visibility and position (elevation / azimuth). Satellite icon borders are colour-coded to distinguish between different GNSS constellations. For consistency between NMEA and UBX data sources, will display GLONASS NMEA SVID (65-96) rather than slot (1-24). |
 |![graphview widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/graphview_widget.png?raw=true)| Graphview widget showing current satellite reception (carrier-to-noise ratio or cnr). Double-click to toggle legend. |
 |![static map](https://github.com/semuconsulting/PyGPSClient/blob/master/images/staticmap.png?raw=true)| Static Mercator world map showing current global location. |
@@ -441,16 +441,16 @@ Once you have received the API key (a 32-character alphanumeric string), you can
 
 1. Create an environment variable named `MQAPIKEY` (all upper case) and set this to the API key value. It is recommended 
 that this is a User variable rather than a System/Global variable.
-2. Copy it to the `mqapikey:` value in your json configuration file (see example provided).
+2. Copy it to the `mqapikey_s:` value in your json configuration file (see example provided).
 3. Pass it via command line argument `--mqapikey`.
 
-*The web map refresh rate can be amended if required by changing the `mapupdateinterval:` value in your json configuration file.
+*The web map refresh rate can be amended if required by changing the `mapupdateinterval_n:` value in your json configuration file.
 
 ---
 ## <a name="userdefined">User Defined Presets</a>
 
 The UBX Configuration Dialog includes the facility to send user-defined UBX configuration messages or message sequences to the receiver. These can be set up by adding
-appropriate comma-delimited message descriptions and payload definitions to the `ubxpresets:` list in your json configuration file (see example provided). The message definition comprises a free-format text description (*avoid embedded commas*) 
+appropriate comma-delimited message descriptions and payload definitions to the `ubxpresets_l:` list in your json configuration file (see example provided). The message definition comprises a free-format text description (*avoid embedded commas*) 
 followed by one or more [pyubx2 UBXMessage constructors](https://pypi.org/project/pyubx2/), i.e. 
 1. message class as a string e.g. `CFG` (must be a valid class from pyubx2.UBX_CLASSES)
 2. message id as a string e.g. `CFG-MSG` (must be a valid id from pyubx2.UBX_MSGIDS)
@@ -462,7 +462,7 @@ followed by one or more [pyubx2 UBXMessage constructors](https://pypi.org/projec
 Multiple commands can be concatenated on a single line. Illustrative examples are shown below:
 
 ```
-	"ubxpresets": [
+	"ubxpresets_l": [
 		"Force HOT Reset (!!! Will require reconnection !!!), CFG, CFG-RST, 00000000, 1",
 		"Force WARM Reset (!!! Will require reconnection !!!), CFG, CFG-RST, 00010000, 1",
 		"Force COLD Reset (!!! Will require reconnection !!!), CFG, CFG-RST, ffff0000, 1",

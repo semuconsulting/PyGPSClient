@@ -102,7 +102,7 @@ class ScatterViewFrame(Frame):
         """
 
         self.width, self.height = self.get_size()
-        self.init_graph()
+        self.init_frame()
         self.redraw()
 
     def _on_clear(self, event):  # pylint: disable=unused-argument
@@ -113,7 +113,7 @@ class ScatterViewFrame(Frame):
         """
 
         self.points = []
-        self.init_graph()
+        self.init_frame()
 
     def get_size(self) -> tuple:
         """
@@ -149,7 +149,7 @@ class ScatterViewFrame(Frame):
             5, 10 + height, text=lon, fill=self.fg_col, font=lbl_font, anchor="w"
         )
 
-    def init_graph(self):
+    def init_frame(self):
         """
         Initialize scatter plot.
         """
@@ -246,7 +246,7 @@ class ScatterViewFrame(Frame):
         middle = self._ave_pos()
         if self.mean is not None and self.mean != middle:
             self.mean = middle
-            self.init_graph()
+            self.init_frame()
             self.redraw()
         else:
             self.mean = middle

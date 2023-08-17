@@ -36,6 +36,14 @@ pygpsclient.console\_frame module
    :undoc-members:
    :show-inheritance:
 
+pygpsclient.dialog\_state module
+--------------------------------
+
+.. automodule:: pygpsclient.dialog_state
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pygpsclient.file\_handler module
 --------------------------------
 
@@ -340,10 +348,10 @@ pygpsclient.ubx\_solrate\_frame module
    :undoc-members:
    :show-inheritance:
 
-pygpsclient.widgets module
---------------------------
+pygpsclient.widget\_state module
+--------------------------------
 
-.. automodule:: pygpsclient.widgets
+.. automodule:: pygpsclient.widget_state
    :members:
    :undoc-members:
    :show-inheritance:

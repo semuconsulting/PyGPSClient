@@ -76,7 +76,7 @@ class SkyviewFrame(Frame):
         )
         self.can_satview.pack(fill=BOTH, expand=YES)
 
-    def init_sats(self):
+    def init_frame(self):
         """
         Initialise satellite view
         """
@@ -115,7 +115,7 @@ class SkyviewFrame(Frame):
         axis_r = h / 18
         maxr = min((h / 2), (w / 2)) - (axis_r * 2)
         resize_font = font.Font(size=min(int(maxr / 10), 8))
-        self.init_sats()
+        self.init_frame()
 
         for d in sorted(data, key=itemgetter(4)):  # sort by ascending snr
             try:

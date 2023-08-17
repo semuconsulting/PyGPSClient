@@ -6,8 +6,10 @@ NTRIP client container dialog
 This is the pop-up dialog containing the various
 NTRIP client configuration functions.
 
-NB: the NTRIP handler gnssntripclient is part of the separate
-pygnssutils  package.
+NB: The initial configuration for the NTRIP client
+(pygnssutils.GNSSNTRIPClient) is set in app.update_NTRIP_handler().
+Once started, the persisted state for the NTRIP client is held in
+the threaded NTRIP handler itself, NOT in this frame.
 
 Created on 2 Apr 2022
 
@@ -84,7 +86,6 @@ NTRIP_VERSIONS = ("2.0", "1.0")
 KM2MILES = 0.6213712
 IP4 = "IPv4"
 IP6 = "IPv6"
-NPROTOCOLS = [IP4, IP6]
 
 
 class NTRIPConfigDialog(Toplevel):
@@ -103,7 +104,7 @@ class NTRIPConfigDialog(Toplevel):
 
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
-        self._init_config = kwargs.pop("config", {})
+        self._saved_config = kwargs.pop("saved_config", {})
 
         Toplevel.__init__(self, app)
         if POPUP_TRANSIENT:
@@ -152,11 +153,21 @@ class NTRIPConfigDialog(Toplevel):
         # pylint: disable=unnecessary-lambda
 
         self._frm_container = Frame(self, borderwidth=2, relief="groove")
+        # use NTRIP config settings in frm_socket
+        saved_ntrip_config = {
+            "sockclienthost_s": self._saved_config.get("ntripclienthost_s", ""),
+            "sockclientport_n": self._saved_config.get("ntripclientport_n", 2101),
+            "sockclientprotocol_s": self._saved_config.get(
+                "ntripclientprotocol_s", "IPv4"
+            ),
+            "sockclientflowinfo_n": self._saved_config.get("ntripclientflowinfo_n", 0),
+            "sockclientscopeid_n": self._saved_config.get("ntripclientscopeid_n", 0),
+            "protocols_l": [IP4, IP6],
+        }
         self._frm_socket = SocketConfigFrame(
             self.__app,
             self._frm_container,
-            config=self._init_config,
-            protocols=NPROTOCOLS,
+            saved_config=saved_ntrip_config,
         )
         self._frm_status = Frame(self._frm_container, borderwidth=2, relief="groove")
         self._lbl_status = Label(
@@ -530,7 +541,7 @@ class NTRIPConfigDialog(Toplevel):
 
     def _get_settings(self):
         """
-        Get settings from NTRIP handler.
+        Get settings from the NTRIP handler (pygnssutils.GNSSNTRIPClient).
         """
 
         self._connected = self.__app.ntrip_handler.connected
@@ -546,7 +557,7 @@ class NTRIPConfigDialog(Toplevel):
         self._ntrip_user.set(self._settings["ntripuser"])
         self._ntrip_password.set(self._settings["ntrippassword"])
         ggaint = self._settings["ggainterval"]
-        self._ntrip_gga_interval.set("None" if ggaint == NOGGA else ggaint)
+        self._ntrip_gga_interval.set("None" if ggaint in (NOGGA, "None") else ggaint)
         self._ntrip_gga_mode.set(self._settings["ggamode"])
         self._ntrip_gga_lat.set(self._settings["reflat"])
         self._ntrip_gga_lon.set(self._settings["reflon"])
@@ -575,16 +586,13 @@ class NTRIPConfigDialog(Toplevel):
         self._settings["version"] = self._ntrip_version.get()
         self._settings["ntripuser"] = self._ntrip_user.get()
         self._settings["ntrippassword"] = self._ntrip_password.get()
-        self._settings["ggainterval"] = (
-            NOGGA
-            if self._ntrip_gga_interval.get() == "None"
-            else self._ntrip_gga_interval.get()
-        )
+        ggaint = self._ntrip_gga_interval.get()
+        self._settings["ggainterval"] = NOGGA if ggaint in (NOGGA, "None") else ggaint
         self._settings["ggamode"] = self._ntrip_gga_mode.get()
-        self._settings["reflat"] = self._ntrip_gga_lat.get()
-        self._settings["reflon"] = self._ntrip_gga_lon.get()
-        self._settings["refalt"] = self._ntrip_gga_alt.get()
-        self._settings["refsep"] = self._ntrip_gga_sep.get()
+        self._settings["reflat"] = float(self._ntrip_gga_lat.get())
+        self._settings["reflon"] = float(self._ntrip_gga_lon.get())
+        self._settings["refalt"] = float(self._ntrip_gga_alt.get())
+        self._settings["refsep"] = float(self._ntrip_gga_sep.get())
 
     def update_sourcetable(self, stable: list):
         """
@@ -669,7 +677,7 @@ class NTRIPConfigDialog(Toplevel):
         dist_l = "Distance n/a"
         dist_u = "km"
         if isinstance(dist, float):
-            units = settings["units"]
+            units = settings["units_s"]
             if units in (UI, UIK):
                 dist *= KM2MILES
                 dist_u = "miles"

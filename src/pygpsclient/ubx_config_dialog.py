@@ -6,6 +6,8 @@ UBX configuration container dialog
 This is the pop-up dialog containing the various
 UBX configuration command frames.
 
+Supply initial settings via `config` keyword argument.
+
 NB: Individual UBX configuration commands do not have uniquely
 identifiable synchronous or asynchronous responses (e.g. unique
 txn ID). The way we keep tabs on confirmation status is to
@@ -69,7 +71,7 @@ class UBXConfigDialog(Toplevel):
 
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
-        self._init_config = kwargs.pop("config", {})
+        self._saved_config = kwargs.pop("config", {})
 
         Toplevel.__init__(self, app)
         if POPUP_TRANSIENT:
@@ -134,7 +136,10 @@ class UBXConfigDialog(Toplevel):
             self,
             borderwidth=2,
             relief="groove",
-            config=self._init_config.get("ubxpresets", []),
+            # cater for old and new config file element names...
+            config=self._saved_config.get(
+                "ubxpresets_l", self._saved_config.get("ubxpresets", [])
+            ),
         )
 
     def _do_layout(self):

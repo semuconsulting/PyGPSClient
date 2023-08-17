@@ -96,13 +96,12 @@ class MapviewFrame(Frame):
         self._can_mapview.bind("<Button-2>", self.on_zoom)  # right click Posix
         self._can_mapview.bind("<Button-3>", self.on_zoom)  # right-click Windows
 
-    def init_map(self):
+    def init_frame(self):
         """
         Initialise map.
         """
 
-        settings = self.__app.frm_settings.config
-        self._zoom = settings.get("mapzoom", 10)
+        self._zoom = self.__app.frm_settings.config.get("mapzoom", 10)
 
     def on_refresh(self, event):  # pylint: disable=unused-argument
         """
@@ -150,7 +149,6 @@ class MapviewFrame(Frame):
         lat = self.__app.gnss_status.lat
         lon = self.__app.gnss_status.lon
         hacc = self.__app.gnss_status.hacc
-        settings = self.__app.frm_settings.config
 
         # if no valid position, display warning message
         # fix = kwargs.get("fix", 0)
@@ -164,7 +162,7 @@ class MapviewFrame(Frame):
             self._disp_error(NOWEBMAPFIX)
             return
 
-        maptype = settings.get("maptype", "world")
+        maptype = self.__app.frm_settings.config.get("maptype_s", "world")
         if maptype == "world":
             self._draw_static_map(lat, lon)
         else:
@@ -213,14 +211,22 @@ class MapviewFrame(Frame):
             self._lastmaptype = maptype
             self.reset_map_refresh()
 
-        mqapikey = self.__app.app_config.get("mqapikey", getenv("mqapikey", ""))
+        mqapikey = self.__app.frm_settings.config.get(
+            "mqapikey_s",
+            self.__app.frm_settings.config.get("mqapikey", getenv("mqapikey", "")),
+        )
         if mqapikey == "":
             self._disp_error(NOWEBMAPKEY)
             return
-        map_update_interval = self.__app.app_config.get(
-            "mapupdateinterval", MAP_UPDATE_INTERVAL
+        map_update_interval = max(
+            self.__app.frm_settings.config.get(
+                "mapupdateinterval_n",
+                self.__app.frm_settings.config.get(
+                    "mapupdateinterval", MAP_UPDATE_INTERVAL
+                ),
+            ),
+            MIN_UPDATE_INTERVAL,
         )
-        map_update_interval = max(map_update_interval, MIN_UPDATE_INTERVAL)
 
         now = time()
         if now - self._last_map_update < map_update_interval:

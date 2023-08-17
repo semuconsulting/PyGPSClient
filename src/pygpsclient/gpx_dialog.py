@@ -405,7 +405,9 @@ class GPXViewerDialog(Toplevel):
         """
         # pylint: disable=unused-variable
 
-        mqapikey = self.__app.config.get("mqapikey", "")
+        mqapikey = self.__app.frm_settings.config.get(
+            "mqapikey_s", self.__app.frm_settings.config.get("mqapikey", "")
+        )
         lat1, lon1, _, _, _ = self._track[0]  # start point, labelled 1
         lat2, lon2, _, _, _ = self._track[-1]  # end point, labelled 2
         points = []
@@ -623,7 +625,7 @@ class GPXViewerDialog(Toplevel):
         """
 
         settings = self.__app.frm_settings.config
-        units = settings["units"]
+        units = settings["units_s"]
 
         if units == UI:
             dst_u = "miles"

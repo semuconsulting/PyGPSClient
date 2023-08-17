@@ -43,7 +43,7 @@ from pygpsclient.helpers import (
     wnotow2date,
 )
 from pygpsclient.mapquest import mapq_compress, mapq_decompress
-from pygpsclient.widgets import widget_grid
+from pygpsclient.widget_state import widget_state, MENU, VISIBLE, DEFAULT, FRAME
 
 
 class StaticTest(unittest.TestCase):
@@ -370,13 +370,13 @@ class StaticTest(unittest.TestCase):
 
     def testwidgetgrid(self):  # ensure widgets.py is correctly defined
         NoneType = type(None)
-        for wdg, wdict in widget_grid.items():
+        for wdg, wdict in widget_state.items():
             self.assertIsInstance(wdg, str),
-            self.assertIsInstance(wdict["menu"], (int, NoneType)),
-            self.assertIsInstance(wdict["default"], bool),
-            self.assertIsInstance(wdict["frm"], str),
+            self.assertIsInstance(wdict[MENU], (int, NoneType)),
+            self.assertIsInstance(wdict[DEFAULT], bool),
+            self.assertIsInstance(wdict[FRAME], str),
             self.assertEqual(wdict["frm"][0:4], "frm_"),
-            self.assertIsInstance(wdict["visible"], bool),
+            self.assertIsInstance(wdict[VISIBLE], bool),
 
     def testgetmpinfo(self):  # test get_mp_info
         EXPECTED_RESULT = {

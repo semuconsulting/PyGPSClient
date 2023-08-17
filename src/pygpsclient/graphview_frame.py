@@ -84,7 +84,7 @@ class GraphviewFrame(Frame):
             not self.__app.frm_settings.show_legend.get()
         )
 
-    def init_graph(self):
+    def init_frame(self):
         """
         Initialise graph view
         """
@@ -109,7 +109,7 @@ class GraphviewFrame(Frame):
                 font=resize_font,
             )
 
-        if self.__app.frm_settings.config.get("legend", 1):
+        if self.__app.frm_settings.config.get("legend_b", 1):
             self._draw_legend()
 
     def _draw_legend(self):
@@ -153,7 +153,7 @@ class GraphviewFrame(Frame):
             return
 
         w, h = self.width, self.height
-        self.init_graph()
+        self.init_frame()
 
         offset = AXIS_XL + 2
         colwidth = (w - AXIS_XL - AXIS_XR + 1) / siv

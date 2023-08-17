@@ -11,6 +11,8 @@ stream handler for incoming and outgoing Correction
 receiver (D9S) data (RXM-PMP), and must remain open for
 SPARTN passthrough to work.
 
+Supply initial settings via `config` keyword argument.
+
 Created on 26 Jan 2023
 
 :author: semuadmin
@@ -63,7 +65,7 @@ class SPARTNConfigDialog(Toplevel):
 
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
-        self._init_config = kwargs.pop("config", {})
+        self._saved_config = kwargs.pop("saved_config", {})
 
         Toplevel.__init__(self, app)
         if POPUP_TRANSIENT:
@@ -104,10 +106,18 @@ class SPARTNConfigDialog(Toplevel):
         )
 
         self._frm_corrip = SPARTNMQTTDialog(
-            self.__app, self, borderwidth=2, relief="groove"
+            self.__app,
+            self,
+            borderwidth=2,
+            relief="groove",
+            saved_config=self._saved_config,
         )
         self._frm_corrlband = SpartnLbandDialog(
-            self.__app, self, borderwidth=2, relief="groove"
+            self.__app,
+            self,
+            borderwidth=2,
+            relief="groove",
+            saved_config=self._saved_config,
         )
         self._frm_gnss = SPARTNGNSSDialog(
             self.__app, self, borderwidth=2, relief="groove"

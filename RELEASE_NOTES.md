@@ -8,6 +8,8 @@ ENHANCEMENTS:
     1. *.json config file (all user-configurable settings)
     1. CLI keyword argument (where available)
     1. Environment Variable (where used)
+    
+   **NB:** Configuration file element names have been changed to facilitate type validation (e.g. "sockclientport" is now "sockclientport_n" to signify it takes an integer value). Some older names will no longer be recognised. It is recommended to save a new copy of the default configuration as `pygpsclient.json`.
 1. Add scrollbars to settings frame to allow better navigation on low-res displays.
 1. Add EBNO & FEC Bits values to SPARTN L-Band configuration panel to help monitor signal quality.
 1. Minor enhancements to banner position formatting.
