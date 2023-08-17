@@ -27,7 +27,11 @@ from pyubx2 import hextable
 from pygpsclient.globals import (
     CONFIGFILE,
     CONFIGNAME,
-    FORMATS,
+    FORMAT_BINARY,
+    FORMAT_BOTH,
+    FORMAT_HEXSTR,
+    FORMAT_HEXTAB,
+    FORMAT_PARSED,
     GITHUB_URL,
     GPX_NS,
     GPX_TRACK_INTERVAL,
@@ -231,19 +235,13 @@ class FileHandler:
         settings = self.__app.frm_settings.config
         lfm = settings["logformat_s"]
         data = []
-        if lfm in (
-            FORMATS[0],
-            FORMATS[4],
-        ):  # parsed, parsed + hex tabular
+        if lfm in (FORMAT_PARSED, FORMAT_BOTH):
             data.append(parsed_data)
-        if lfm == FORMATS[1]:  # binary
+        if lfm == FORMAT_BINARY:
             data.append(raw_data)
-        if lfm == FORMATS[2]:  # hex string
+        if lfm == FORMAT_HEXSTR:
             data.append(raw_data.hex())
-        if lfm in (
-            FORMATS[3],
-            FORMATS[4],
-        ):  # hex tabular, parsed + hex tabular
+        if lfm in (FORMAT_HEXTAB, FORMAT_BOTH):
             data.append(hextable(raw_data))
 
         for datum in data:
@@ -417,8 +415,12 @@ class FileHandler:
         """
 
         gnss_status = self.__app.gnss_status
-        # must have valid coords
-        if gnss_status.lat == "" or gnss_status.lon == "":
+        # must have valid coords (apologies if you live on Null Island)
+        if (
+            isinstance(gnss_status.lat, str)
+            or isinstance(gnss_status.lon, str)
+            or (gnss_status.lat == 0 and gnss_status.lon == 0)
+        ):
             return
 
         if datetime.now() > self._last_track_update + timedelta(

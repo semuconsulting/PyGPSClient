@@ -437,11 +437,11 @@ limit under normal use. **NB:** this facility is *not* intended to be used for r
 
 **Instructions:**
 
-Once you have received the API key (a 32-character alphanumeric string), you can either:
+Once you have received the API key (a 32-character alphanumeric string), you can (in order of precedence):
 
-1. Create an environment variable named `MQAPIKEY` (all upper case) and set this to the API key value. It is recommended 
+1. Copy it to the `mqapikey_s:` value in your json configuration file (see example provided).
+2. Create an environment variable named `MQAPIKEY` (all upper case) and set this to the API key value. It is recommended 
 that this is a User variable rather than a System/Global variable.
-2. Copy it to the `mqapikey_s:` value in your json configuration file (see example provided).
 3. Pass it via command line argument `--mqapikey`.
 
 *The web map refresh rate can be amended if required by changing the `mapupdateinterval_n:` value in your json configuration file.

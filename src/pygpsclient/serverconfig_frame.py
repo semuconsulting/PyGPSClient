@@ -8,6 +8,8 @@ If running in NTRIP Caster mode, two base station modes are available -
 Survey-In and Fixed. The panel provides methods to configure RTK-compatible
 receiver (e.g. ZED-F9P) to operate in either of these base station modes.
 
+Supply initial settings via `saved-config` keyword argument.
+
 Application icons from https://iconmonstr.com/license/.
 
 Created on 23 Jul 2023

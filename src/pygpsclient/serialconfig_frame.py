@@ -5,7 +5,7 @@ Generic serial port configuration Frame subclass
 for use in tkinter applications which require a
 serial port configuration facility.
 
-Supply initial settings via `config` keyword argument.
+Supply initial settings via `saved-config` keyword argument.
 
 Exposes the serial port settings as properties.
 

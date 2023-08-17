@@ -82,16 +82,17 @@ FILEREAD_INTERVAL = 0.02  # delay between successive datalog file reads (seconds
 FONT_FIXED = "TkFixedFont"
 FONT_MENU = "TkMenuFont"
 FONT_TEXT = "TkTextFont"
-FORMAT_BIN = 2
-FORMAT_HEX = 4
-FORMAT_HEXTABLE = 8
-FORMAT_PARSED = 1
+FORMAT_BINARY = "Binary"
+FORMAT_BOTH = "Parsed + Hex Tabular"
+FORMAT_HEXSTR = "Hex String"
+FORMAT_HEXTAB = "Hex Tabular"
+FORMAT_PARSED = "Parsed"
 FORMATS = (
-    "Parsed",
-    "Binary",
-    "Hex String",
-    "Hex Tabular",
-    "Parsed + Hex Tabular",
+    FORMAT_PARSED,
+    FORMAT_BINARY,
+    FORMAT_HEXSTR,
+    FORMAT_HEXTAB,
+    FORMAT_BOTH,
 )
 FRAME = "frm"
 GGA_INTERVALS = ("None", "2", "5", "10", "60", "120")

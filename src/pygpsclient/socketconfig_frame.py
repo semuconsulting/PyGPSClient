@@ -5,7 +5,7 @@ Generic socket configuration Frame subclass
 for use in tkinter applications which require a
 socket configuration facility.
 
-Supply initial settings via `config` keyword argument.
+Supply initial settings via `saved-config` keyword argument.
 
 Application icons from https://iconmonstr.com/license/.
 

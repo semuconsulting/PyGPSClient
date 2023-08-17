@@ -16,7 +16,17 @@ from tkinter import END, HORIZONTAL, VERTICAL, E, Frame, N, S, Scrollbar, Text, 
 
 from pyubx2 import hextable
 
-from pygpsclient.globals import BGCOL, FGCOL, FONT_FIXED, FONT_TEXT, FORMATS
+from pygpsclient.globals import (
+    BGCOL,
+    FGCOL,
+    FONT_FIXED,
+    FONT_TEXT,
+    FORMAT_BINARY,
+    FORMAT_BOTH,
+    FORMAT_HEXSTR,
+    FORMAT_HEXTAB,
+    FORMAT_PARSED,
+)
 
 
 class ConsoleFrame(Frame):
@@ -102,19 +112,21 @@ class ConsoleFrame(Frame):
 
         """
 
-        consoleformat = self.__app.frm_settings.config.get("consoleformat_s", "parsed")
+        consoleformat = self.__app.frm_settings.config.get(
+            "consoleformat_s", FORMAT_PARSED
+        )
         colortagging = self.__app.frm_settings.config.get("colortag_b", 0)
         maxlines = self.__app.frm_settings.config.get("maxlines_n", 200)
         autoscroll = self.__app.frm_settings.config.get("autoscroll_b", 1)
         self._halt = ""
         self.txt_console.configure(font=FONT_FIXED)
-        if consoleformat == FORMATS[1]:  # binary
+        if consoleformat == FORMAT_BINARY:
             data = str(raw_data).strip("\n")
-        elif consoleformat == FORMATS[2]:  # hex string
+        elif consoleformat == FORMAT_HEXSTR:
             data = str(raw_data.hex())
-        elif consoleformat == FORMATS[3]:  # hex tabular
+        elif consoleformat == FORMAT_HEXTAB:
             data = hextable(raw_data)
-        elif consoleformat == FORMATS[4]:  # parsed + hex tabular
+        elif consoleformat == FORMAT_BOTH:
             data = f"{marker}{parsed_data}\n{hextable(raw_data)}"
         else:
             self.txt_console.configure(font=FONT_TEXT)

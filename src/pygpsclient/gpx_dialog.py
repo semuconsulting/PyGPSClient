@@ -542,7 +542,7 @@ class GPXViewerDialog(Toplevel):
         )
 
         # plot speed (yR) axis grid
-        for spd in range(0, maxs, int(maxs / 5)):
+        for spd in range(0, int(maxs), int(maxs / 5)):
             if spd is None:
                 continue
             x1, y1 = self._get_point(maxs, maxx, spd, maxx)

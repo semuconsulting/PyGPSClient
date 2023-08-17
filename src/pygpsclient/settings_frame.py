@@ -63,6 +63,8 @@ from pygpsclient.globals import (
     DMM,
     DMS,
     ECEF,
+    FORMAT_BINARY,
+    FORMAT_PARSED,
     FORMATS,
     GNSS_EOF_EVENT,
     GNSS_ERR_EVENT,
@@ -105,6 +107,8 @@ from pygpsclient.strings import (
     LBLUBXCONFIG,
 )
 
+MAXLINES = ("200", "500", "1000", "2000", "100")
+MAPTYPES = ("world", "map", "sat")
 MINHEIGHT = 690
 MINWIDTH = 365
 
@@ -334,7 +338,7 @@ class SettingsFrame(Frame):
         )
         self._spn_maxlines = Spinbox(
             self._frm_options,
-            values=("100", "200", "500", "1000", "2000"),
+            values=MAXLINES,
             width=6,
             wrap=True,
             textvariable=self._maxlines,
@@ -343,7 +347,7 @@ class SettingsFrame(Frame):
         self._lbl_maptype = Label(self._frm_options, text="Map Type")
         self.spn_maptype = Spinbox(
             self._frm_options,
-            values=("world", "map", "sat"),
+            values=MAPTYPES,
             width=6,
             wrap=True,
             textvariable=self.maptype,
@@ -496,15 +500,15 @@ class SettingsFrame(Frame):
         self._colortag.set(self.__app.saved_config.get("colortag_b", 0))
         self._units.set(self.__app.saved_config.get("units_s", UMM))
         self._autoscroll.set(self.__app.saved_config.get("autoscroll_b", 1))
-        self._maxlines.set(self.__app.saved_config.get("maxlines_n", 200))
+        self._maxlines.set(self.__app.saved_config.get("maxlines_n", MAXLINES[0]))
         self._console_format.set(
-            self.__app.saved_config.get("consoleformat_s", "parsed")
+            self.__app.saved_config.get("consoleformat_s", FORMAT_PARSED)
         )
-        self.maptype.set(self.__app.saved_config.get("maptype_s", "world"))
+        self.maptype.set(self.__app.saved_config.get("maptype_s", MAPTYPES[0]))
         self.mapzoom.set(self.__app.saved_config.get("mapzoom_n", 10))
         self.show_legend.set(self.__app.saved_config.get("legend_b", 1))
         self._show_unusedsat.set(self.__app.saved_config.get("unusedsat_b", 0))
-        self._logformat.set(self.__app.saved_config.get("logformat_s", "parsed"))
+        self._logformat.set(self.__app.saved_config.get("logformat_s", FORMAT_BINARY))
         self._datalog.set(self.__app.saved_config.get("datalog_b", 0))
         self._record_track.set(self.__app.saved_config.get("recordtrack_b", 0))
         self.clients = 0
