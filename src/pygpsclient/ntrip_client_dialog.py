@@ -58,6 +58,7 @@ from pygpsclient.globals import (
     ICON_EXIT,
     POPUP_TRANSIENT,
     READONLY,
+    SAVED_CONFIG,
     UBX_CFGMSG,
     UBX_CFGPRT,
     UBX_CFGRATE,
@@ -104,7 +105,7 @@ class NTRIPConfigDialog(Toplevel):
 
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
-        self._saved_config = kwargs.pop("saved_config", {})
+        self._saved_config = kwargs.pop(SAVED_CONFIG, {})
 
         Toplevel.__init__(self, app)
         if POPUP_TRANSIENT:

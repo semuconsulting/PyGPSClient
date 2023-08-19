@@ -55,6 +55,7 @@ from pygpsclient.globals import (
     MSGMODES,
     NOPORTS,
     READONLY,
+    SAVED_CONFIG,
     SPARTN_EOF_EVENT,
     SPARTN_ERR_EVENT,
     SPARTN_EVENT,
@@ -141,7 +142,7 @@ class SpartnLbandDialog(Frame):
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.__container = container  # container frame
-        self._saved_config = kwargs.pop("saved_config", {})
+        self._saved_config = kwargs.pop(SAVED_CONFIG, {})
 
         Frame.__init__(self, self.__container.container, *args, **kwargs)
 
@@ -353,18 +354,40 @@ class SpartnLbandDialog(Frame):
         Reset configuration widgets.
         """
 
-        self._enabledbg.set(0)
         self._saveconfig.set(0)
-        self._spartn_drat.set(PMP_DATARATES["B2400"])
-        self._spartn_freq.set(D9S_CONFIG["freq"])
-        self._spartn_schwin.set(D9S_CONFIG["schwin"])
-        self._spartn_usesid.set(D9S_CONFIG["usesid"])
-        self._spartn_sid.set(D9S_CONFIG["sid"])
-        self._spartn_descrm.set(D9S_CONFIG["descrm"])
-        self._spartn_prescrm.set(D9S_CONFIG["prescrm"])
-        self._spartn_descrminit.set(D9S_CONFIG["descrminit"])
-        self._spartn_unqword.set(D9S_CONFIG["unqword"])
-        self._spartn_outport.set(PASSTHRU)
+        self._enabledbg.set(self.__app.saved_config.get("lbandclientdebug_b", 0))
+        self._spartn_drat.set(
+            self.__app.saved_config.get("lbandclientdrat_n", PMP_DATARATES["B2400"])
+        )
+        self._spartn_freq.set(
+            self.__app.saved_config.get("lbandclientfreq_n", D9S_CONFIG["freq"])
+        )
+        self._spartn_schwin.set(
+            self.__app.saved_config.get("lbandclientschwin_n", D9S_CONFIG["schwin"])
+        )
+        self._spartn_usesid.set(
+            self.__app.saved_config.get("lbandclientusesid_b", D9S_CONFIG["usesid"])
+        )
+        self._spartn_sid.set(
+            self.__app.saved_config.get("lbandclientsid_n", D9S_CONFIG["sid"])
+        )
+        self._spartn_descrm.set(
+            self.__app.saved_config.get("lbandclientdescrm_b", D9S_CONFIG["descrm"])
+        )
+        self._spartn_prescrm.set(
+            self.__app.saved_config.get("lbandclientprescrm_b", D9S_CONFIG["prescrm"])
+        )
+        self._spartn_descrminit.set(
+            self.__app.saved_config.get(
+                "lbandclientdescrminit_b", D9S_CONFIG["descrminit"]
+            )
+        )
+        self._spartn_unqword.set(
+            self.__app.saved_config.get("lbandclientunqword_s", D9S_CONFIG["unqword"])
+        )
+        self._spartn_outport.set(
+            self.__app.saved_config.get("lbandclientoutport_s", PASSTHRU)
+        )
         self.__container.set_status("")
         if self.__app.rtk_conn_status == CONNECTED_SPARTNLB:
             self.set_controls(CONNECTED_SPARTNLB)
@@ -654,3 +677,31 @@ class SpartnLbandDialog(Frame):
             self._lbl_fec.config(text=f"FEC Bits: {msg.fecBits}")
 
         self.update_idletasks()
+
+    @property
+    def settings(self) -> dict:
+        """
+        Getter for settings.
+
+        :return: dictionary of settings
+        :rtype: dict
+        """
+
+        try:
+            settings = {
+                "spartnport": self._frm_spartn_serial.user_defined_port.get(),
+                "freq": int(self._spartn_freq.get()),
+                "schwin": int(self._spartn_schwin.get()),
+                "usesid": int(self._spartn_usesid.get()),
+                "sid": int(self._spartn_sid.get()),
+                "drat": int(self._spartn_drat.get()),
+                "descrm": int(self._spartn_descrm.get()),
+                "prescrm": int(self._spartn_prescrm.get()),
+                "descrminit": int(self._spartn_descrminit.get()),
+                "unqword": self._spartn_unqword.get(),
+                "outport": self._spartn_outport.get(),
+                "debug": int(self._enabledbg.get()),
+            }
+            return settings
+        except (TypeError, ValueError):
+            return {}

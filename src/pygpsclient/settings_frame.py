@@ -57,6 +57,7 @@ from pygpsclient.globals import (
     CONNECTED_SOCKET,
     DDD,
     DISCONNECTED,
+    DLG,
     DLGTNTRIP,
     DLGTSPARTN,
     DLGTUBX,
@@ -717,6 +718,11 @@ class SettingsFrame(Frame):
 
             ntripclient_settings = self.__app.ntrip_handler.settings
             spartnclient_settings = self.__app.spartn_handler.settings
+            # get SPARTN L-Band settings if dialog is open
+            lband_dlg = self.__app.dialogs[DLGTSPARTN][DLG]
+            lband_settings = (
+                {} if lband_dlg is None else lband_dlg.frm_corrlband.settings
+            )
             ntripprot = "IPv6" if ntripclient_settings["ipprot"] == AF_INET6 else "IPv4"
             ggaint = ntripclient_settings["ggainterval"]
             if ggaint == "None":
@@ -788,7 +794,7 @@ class SettingsFrame(Frame):
                 "ntripclientreflon_f": ntripclient_settings["reflon"],
                 "ntripclientrefalt_f": ntripclient_settings["refalt"],
                 "ntripclientrefsep_f": ntripclient_settings["refsep"],
-                # SPARTN IP client settings from pygnssutils.GNSSMQTTClient
+                # SPARTN MQTT (IP) client settings from pygnssutils.GNSSMQTTClient
                 "mqttclientserver_s": spartnclient_settings["server"],
                 "mqttclientport_n": spartnclient_settings["port"],
                 "mqttclientid_s": spartnclient_settings["clientid"],
@@ -798,8 +804,52 @@ class SettingsFrame(Frame):
                 "mgttclienttopickey_b": spartnclient_settings["topic_key"],
                 "mgttclienttlscrt_s": spartnclient_settings["tlscrt"],
                 "mgttclienttlskey_s": spartnclient_settings["tlskey"],
-                # SPARTN L-Band client user-defined serial port settings
-                "spartnport_s": self.__app.spartn_user_port,
+                # SPARTN L-Band client settings from SpartnLbandDialog if open
+                "spartnport_s": lband_settings.get(
+                    "spartnport", self.__app.saved_config.get("spartnport_s", "")
+                ),
+                "lbandclientfreq_n": lband_settings.get(
+                    "freq", self.__app.saved_config.get("lbandclientfreq_n", 1556290000)
+                ),
+                "lbandclientschwin_n": lband_settings.get(
+                    "schwin", self.__app.saved_config.get("lbandclientschwin_n", 2200)
+                ),
+                "lbandclientsid_n": lband_settings.get(
+                    "sid", self.__app.saved_config.get("lbandclientsid_n", 21845)
+                ),
+                "lbandclientdrat_n": lband_settings.get(
+                    "drat", self.__app.saved_config.get("lbandclientdrat_n", 2400)
+                ),
+                "lbandclientusesid_b": lband_settings.get(
+                    "usesid", self.__app.saved_config.get("lbandclientusesid_b", 0)
+                ),
+                "lbandclientdescrm_b": lband_settings.get(
+                    "descrm", self.__app.saved_config.get("lbandclientdescrm_b", 1)
+                ),
+                "lbandclientprescrm_b": lband_settings.get(
+                    "prescrm", self.__app.saved_config.get("lbandclientprescrm_b", 0)
+                ),
+                "lbandclientdescrminit_n": lband_settings.get(
+                    "descrminit",
+                    self.__app.saved_config.get("lbandclientdescrminit_n", 26969),
+                ),
+                "lbandclientunqword_s": lband_settings.get(
+                    "unqword",
+                    self.__app.saved_config.get(
+                        "lbandclientunqword_s", "16238547128276412563"
+                    ),
+                ),
+                "lbandclientoutport_s": lband_settings.get(
+                    "outport",
+                    self.__app.saved_config.get("lbandclient_outport_s", "Passthrough"),
+                ),
+                "lbandclientdebug_b": lband_settings.get(
+                    "debug",
+                    self.__app.saved_config.get(
+                        "lbandclientdebug_b",
+                        0,
+                    ),
+                ),
                 # Manually edited config settings
                 # (cater for older config file element names without suffices)
                 "mapupdateinterval_n": self.__app.saved_config.get(
@@ -825,7 +875,5 @@ class SettingsFrame(Frame):
             }
             return config
         except (KeyError, ValueError, TypeError, TclError) as err:
-            self.__app.set_status(
-                f"Error processing config data: {err}", BADCOL, BADCOL
-            )
+            self.__app.set_status(f"Error processing config data: {err}", BADCOL)
             return {}

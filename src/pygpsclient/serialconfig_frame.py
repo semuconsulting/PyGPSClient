@@ -46,7 +46,7 @@ from pyubx2 import GET, POLL, SET
 from serial import PARITY_EVEN, PARITY_MARK, PARITY_NONE, PARITY_ODD, PARITY_SPACE
 from serial.tools.list_ports import comports
 
-from pygpsclient.globals import ICON_CONTRACT, ICON_EXPAND, ICON_REFRESH
+from pygpsclient.globals import ICON_CONTRACT, ICON_EXPAND, ICON_REFRESH, SAVED_CONFIG
 from pygpsclient.strings import LBLUDPORT
 
 ADVOFF = "\u25bc"
@@ -98,7 +98,7 @@ class SerialConfigFrame(Frame):
         self._timeout_rng = kwargs.pop("timeouts", TIMEOUT_RNG)
         self._msgmode_name_rng = kwargs.pop("msgmodes", MSGMODE_RNG)
         self._preselect = kwargs.pop("preselect", ())
-        self._saved_config = kwargs.pop("saved_config", {})
+        self._saved_config = kwargs.pop(SAVED_CONFIG, {})
 
         Frame.__init__(self, container, *args, **kwargs)
 

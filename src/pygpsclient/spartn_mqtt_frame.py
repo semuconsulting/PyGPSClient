@@ -55,6 +55,7 @@ from pygpsclient.globals import (
     ICON_WARNING,
     READONLY,
     RXMMSG,
+    SAVED_CONFIG,
     SPARTN_GNSS,
     SPARTN_OUTPORT,
     SPARTN_PPREGIONS,
@@ -83,7 +84,7 @@ class SPARTNMQTTDialog(Frame):
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.__container = container  # container frame
-        self._saved_config = kwargs.pop("saved_config", {})
+        self._saved_config = kwargs.pop(SAVED_CONFIG, {})
 
         Frame.__init__(self, self.__container.container, *args, **kwargs)
 

@@ -876,13 +876,24 @@ class App(Frame):
     @property
     def widgets(self) -> dict:
         """
-        Getter for widget grid.
+        Getter for widget state.
 
-        :return: widget grid
+        :return: widget state
         :rtype: dict
         """
 
         return widget_state
+
+    @property
+    def dialogs(self) -> dict:
+        """
+        Getter for dialog state.
+
+        :return: dialog state
+        :rtype: dict
+        """
+
+        return dialog_state
 
     @property
     def appmaster(self) -> Tk:

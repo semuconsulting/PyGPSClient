@@ -45,6 +45,7 @@ from pygpsclient.globals import (
     ICON_CONTRACT,
     ICON_EXPAND,
     READONLY,
+    SAVED_CONFIG,
     SOCK_NTRIP,
     SOCKMODES,
     SOCKSERVER_NTRIP_PORT,
@@ -120,7 +121,7 @@ class ServerConfigFrame(Frame):
         :param kwargs: optional kwargs for value ranges, or to pass to Frame parent class
         """
 
-        self._saved_config = kwargs.pop("saved_config", {})
+        self._saved_config = kwargs.pop(SAVED_CONFIG, {})
         Frame.__init__(self, container, *args, **kwargs)
 
         self.__app = app

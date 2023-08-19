@@ -32,7 +32,13 @@ from tkinter import (
 
 from PIL import Image, ImageTk
 
-from pygpsclient.globals import DEFAULT_PORT, DEFAULT_SERVER, ICON_CONTRACT, ICON_EXPAND
+from pygpsclient.globals import (
+    DEFAULT_PORT,
+    DEFAULT_SERVER,
+    ICON_CONTRACT,
+    ICON_EXPAND,
+    SAVED_CONFIG,
+)
 from pygpsclient.helpers import MAXPORT, VALINT, VALURL, valid_entry
 
 ADVOFF = "\u25bc"
@@ -61,7 +67,7 @@ class SocketConfigFrame(Frame):
         :param kwargs: optional kwargs for value ranges, or to pass to Frame parent class
         """
 
-        self._saved_config = kwargs.pop("saved_config", {})
+        self._saved_config = kwargs.pop(SAVED_CONFIG, {})
         Frame.__init__(self, container, *args, **kwargs)
 
         self.__app = app

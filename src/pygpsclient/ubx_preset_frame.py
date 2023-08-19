@@ -33,6 +33,7 @@ from pygpsclient.globals import (
     ICON_PENDING,
     ICON_SEND,
     ICON_WARNING,
+    SAVED_CONFIG,
     UBX_PRESET,
 )
 from pygpsclient.helpers import ConfirmBox, setubxrate
@@ -110,7 +111,7 @@ class UBX_PRESET_Frame(Frame):
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.__container = container
         # saved_config just contains user presets...
-        self._saved_config = kwargs.pop("config", [])
+        self._saved_config = kwargs.pop(SAVED_CONFIG, [])
 
         Frame.__init__(self, self.__container.container, *args, **kwargs)
 

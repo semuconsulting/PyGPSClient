@@ -82,6 +82,17 @@
     "mgttclienttlscrt_s": "<=== FULLY QUALIFIED PATH TO MQTT CRT FILE ===>",
     "mgttclienttlskey_s": "<=== FULLY QUALIFIED PATH TO MQTT KEY FILE ===>",
     "spartnport_s": "",
+    "lbandclientfreq_n": 1556290000,
+    "lbandclientschwin_n": 2200,
+    "lbandclientsid_n": 21845,
+    "lbandclientdrat_n": 2400,
+    "lbandclientusesid_b": 0,
+    "lbandclientdescrm_b": 1,
+    "lbandclientprescrm_b": 0,
+    "lbandclientdescrminit_n": 26969,
+    "lbandclientunqword_s": "16238547128276412563",
+    "lbandclientoutport_s": "Passthrough",
+    "lbandclientdebug_b": 0,
     "colortags_l": [
         [
             "ACK-ACK",
