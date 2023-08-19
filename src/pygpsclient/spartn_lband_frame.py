@@ -34,7 +34,8 @@ from tkinter import (
 )
 
 from PIL import Image, ImageTk
-from pyubx2 import POLL_LAYER_RAM, SET, SET_LAYER_RAM, TXN_NONE, UBXMessage
+from pyubx2 import GET, POLL_LAYER_RAM, SET, SET_LAYER_RAM, TXN_NONE, UBXMessage
+from serial import PARITY_NONE
 
 from pygpsclient.globals import (
     BPSRATES,
@@ -184,6 +185,17 @@ class SpartnLbandDialog(Frame):
         # pylint: disable=unnecessary-lambda
         self._lbl_corrlband = Label(self, text=LBLSPARTNLB)
         # Correction receiver serial port configuration panel
+        saved_lband_config = {
+            "bpsrate_n": self.__app.saved_config.get("lbandclientbpsrate_n", 9600),
+            "databits_n": self.__app.saved_config.get("lbandclientdatabits_n", 8),
+            "stopbits_f": self.__app.saved_config.get("lbandclientstopbits_f", 1.0),
+            "parity_s": self.__app.saved_config.get("lbandclientparity_s", PARITY_NONE),
+            "rtscts_b": self.__app.saved_config.get("lbandclientrtscts_b", 0),
+            "xonxoff_b": self.__app.saved_config.get("lbandclientxonxoff_b", 0),
+            "timeout_f": self.__app.saved_config.get("lbandclienttimeout_f", 0.1),
+            "msgmode_n": self.__app.saved_config.get("lbandclientmsgmode_n", GET),
+            "userport_s": self.__app.saved_config.get("spartnport_s", ""),
+        }
         self._frm_spartn_serial = SerialConfigFrame(
             self.__app,
             self,
@@ -191,7 +203,7 @@ class SpartnLbandDialog(Frame):
             timeouts=TIMEOUTS,
             bpsrates=BPSRATES,
             msgmodes=list(MSGMODES.keys()),
-            saved_config={"userport_s": self._saved_config.get("spartnport_s", "")},
+            saved_config=saved_lband_config,
         )
         self._lbl_freq = Label(self, text="L-Band Frequency (Hz)")
         self._ent_freq = Entry(
@@ -689,7 +701,15 @@ class SpartnLbandDialog(Frame):
 
         try:
             settings = {
-                "spartnport": self._frm_spartn_serial.user_defined_port.get(),
+                "bpsrate": self._frm_spartn_serial.bpsrate,
+                "databits": self._frm_spartn_serial.databits,
+                "stopbits": self._frm_spartn_serial.stopbits,
+                "parity": self._frm_spartn_serial.parity,
+                "rtscts": self._frm_spartn_serial.rtscts,
+                "xonxoff": self._frm_spartn_serial.xonxoff,
+                "timeout": self._frm_spartn_serial.timeout,
+                "msgmode": self._frm_spartn_serial.msgmode,
+                "userport": self._frm_spartn_serial.userport,
                 "freq": int(self._spartn_freq.get()),
                 "schwin": int(self._spartn_schwin.get()),
                 "usesid": int(self._spartn_usesid.get()),

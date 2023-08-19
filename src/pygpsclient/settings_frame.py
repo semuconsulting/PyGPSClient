@@ -46,8 +46,10 @@ from tkinter import (
     ttk,
 )
 
-import pyubx2.ubxtypes_core as ubt
 from PIL import Image, ImageTk
+from pyubx2 import GET
+from pyubx2 import ubxtypes_core as ubt
+from serial import PARITY_NONE
 
 from pygpsclient.globals import (
     BADCOL,
@@ -718,7 +720,7 @@ class SettingsFrame(Frame):
 
             ntripclient_settings = self.__app.ntrip_handler.settings
             spartnclient_settings = self.__app.spartn_handler.settings
-            # get SPARTN L-Band settings if dialog is open
+            # get SPARTN L-Band settings if (and ONLY if) dialog is open
             lband_dlg = self.__app.dialogs[DLGTSPARTN][DLG]
             lband_settings = (
                 {} if lband_dlg is None else lband_dlg.frm_corrlband.settings
@@ -805,8 +807,34 @@ class SettingsFrame(Frame):
                 "mgttclienttlscrt_s": spartnclient_settings["tlscrt"],
                 "mgttclienttlskey_s": spartnclient_settings["tlskey"],
                 # SPARTN L-Band client settings from SpartnLbandDialog if open
+                "lbandclientbpsrate_n": lband_settings.get(
+                    "bpsrate", self.__app.saved_config.get("lbandclientbpsrate_n", 9600)
+                ),
+                "lbandclientdatabits_n": lband_settings.get(
+                    "databits", self.__app.saved_config.get("lbandclientdatabits_n", 8)
+                ),
+                "lbandclientstopbits_f": lband_settings.get(
+                    "stopbits",
+                    self.__app.saved_config.get("lbandclientstopbits_f", 1.0),
+                ),
+                "lbandclientparity_s": lband_settings.get(
+                    "parity",
+                    self.__app.saved_config.get("lbandclientparity_s", PARITY_NONE),
+                ),
+                "lbandclientrtscts_b": lband_settings.get(
+                    "rtscts", self.__app.saved_config.get("lbandclientrtscts_b", 0)
+                ),
+                "lbandclientxonxoff_b": lband_settings.get(
+                    "xonxoff", self.__app.saved_config.get("lbandclientxonxoff_b", 0)
+                ),
+                "lbandclienttimeout_f": lband_settings.get(
+                    "timeout", self.__app.saved_config.get("lbandclienttimeout_f", 0.1)
+                ),
+                "lbandclientmsgmode_n": lband_settings.get(
+                    "msgmode", self.__app.saved_config.get("lbandclientmsgmode_n", GET)
+                ),
                 "spartnport_s": lband_settings.get(
-                    "spartnport", self.__app.saved_config.get("spartnport_s", "")
+                    "userport", self.__app.saved_config.get("spartnport_s", "")
                 ),
                 "lbandclientfreq_n": lband_settings.get(
                     "freq", self.__app.saved_config.get("lbandclientfreq_n", 1556290000)
