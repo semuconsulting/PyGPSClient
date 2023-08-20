@@ -180,10 +180,12 @@ class App(Frame):
             self.saved_config = config
             # update configs needed to instantiate widgets and protocol handlers
             self.update_widgets()
-            self.update_NTRIP_handler()
-            self.update_SPARTN_handler()
         else:  # load failed - invalid json or attribute types
             self.saved_config = {}
+
+        # update NTRIP and SPARTN client handlers with initial config
+        self.update_NTRIP_handler()
+        self.update_SPARTN_handler()
 
         self._body()
         self._do_layout()
@@ -517,6 +519,7 @@ class App(Frame):
         Initial configuration of SPARTN handler (pygnssutils.GNSSMQTTClient).
         """
 
+        print(f"DEBUG app update SPARTN {self.mqttclientid}")
         try:
             spartnsettings = {}
             spartnsettings["server"] = self.saved_config.get(
