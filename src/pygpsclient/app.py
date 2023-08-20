@@ -519,7 +519,6 @@ class App(Frame):
         Initial configuration of SPARTN handler (pygnssutils.GNSSMQTTClient).
         """
 
-        print(f"DEBUG app update SPARTN {self.mqttclientid}")
         try:
             spartnsettings = {}
             spartnsettings["server"] = self.saved_config.get(
