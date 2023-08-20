@@ -1,5 +1,7 @@
 """
-UBX Configuration frame for CFG-RATE commands
+ubx_solrate_frame.py
+
+UBX Configuration frame for CFG-RATE commands.
 
 Created on 19 Feb 2020
 

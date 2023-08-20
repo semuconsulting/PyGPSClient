@@ -1,8 +1,12 @@
 """
+ubx_config_dialog.py
+
 UBX configuration container dialog
 
 This is the pop-up dialog containing the various
 UBX configuration command frames.
+
+Supply initial settings via `config` keyword argument.
 
 NB: Individual UBX configuration commands do not have uniquely
 identifiable synchronous or asynchronous responses (e.g. unique
@@ -31,6 +35,7 @@ from pygpsclient.globals import (
     ENABLE_CFG_OTHER,
     ICON_EXIT,
     POPUP_TRANSIENT,
+    SAVED_CONFIG,
     UBX_CFGMSG,
     UBX_CFGOTHER,
     UBX_CFGPRT,
@@ -67,6 +72,8 @@ class UBXConfigDialog(Toplevel):
 
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
+        self._saved_config = kwargs.pop(SAVED_CONFIG, {})
+
         Toplevel.__init__(self, app)
         if POPUP_TRANSIENT:
             self.transient(self.__app)
@@ -126,7 +133,14 @@ class UBXConfigDialog(Toplevel):
             self.__app, self, borderwidth=2, relief="groove"
         )
         self._frm_preset = UBX_PRESET_Frame(
-            self.__app, self, borderwidth=2, relief="groove"
+            self.__app,
+            self,
+            borderwidth=2,
+            relief="groove",
+            # cater for old and new config file element names...
+            saved_config=self._saved_config.get(
+                "ubxpresets_l", self._saved_config.get("ubxpresets", [])
+            ),
         )
 
     def _do_layout(self):

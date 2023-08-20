@@ -1,4 +1,6 @@
 """
+ubx_preset_frame.py
+
 UBX Configuration frame for preset and user-defined commands
 
 Created on 22 Dec 2020
@@ -31,6 +33,7 @@ from pygpsclient.globals import (
     ICON_PENDING,
     ICON_SEND,
     ICON_WARNING,
+    SAVED_CONFIG,
     UBX_PRESET,
 )
 from pygpsclient.helpers import ConfirmBox, setubxrate
@@ -107,6 +110,8 @@ class UBX_PRESET_Frame(Frame):
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.__container = container
+        # saved_config just contains user presets...
+        self._saved_config = kwargs.pop(SAVED_CONFIG, [])
 
         Frame.__init__(self, self.__container.container, *args, **kwargs)
 
@@ -184,18 +189,15 @@ class UBX_PRESET_Frame(Frame):
 
     def reset(self):
         """
-        Reset panel.
+        Reset panel - Load user-defined presets if there are any.
         """
-
-        # Load user-defined presets if there are any
-        self._userpresets = self.__app.app_config.get("ubxpresets", [])
 
         idx = 0
         for pst in PRESET_COMMMANDS:
             self._lbx_preset.insert(idx, pst)
             idx += 1
 
-        for upst in self._userpresets:
+        for upst in self._saved_config:
             self._lbx_preset.insert(idx, "USER " + upst)
             idx += 1
 

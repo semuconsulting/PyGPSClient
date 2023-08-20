@@ -1,7 +1,11 @@
 """
+serialconfig_frame.py
+
 Generic serial port configuration Frame subclass
 for use in tkinter applications which require a
 serial port configuration facility.
+
+Supply initial settings via `saved-config` keyword argument.
 
 Exposes the serial port settings as properties.
 
@@ -24,6 +28,7 @@ from tkinter import (
     Checkbutton,
     DoubleVar,
     E,
+    Entry,
     Frame,
     IntVar,
     Label,
@@ -37,34 +42,39 @@ from tkinter import (
 )
 
 from PIL import Image, ImageTk
+from pyubx2 import GET, POLL, SET
 from serial import PARITY_EVEN, PARITY_MARK, PARITY_NONE, PARITY_ODD, PARITY_SPACE
 from serial.tools.list_ports import comports
 
-from pygpsclient.globals import ICON_CONTRACT, ICON_EXPAND, ICON_REFRESH, MSGMODES
+from pygpsclient.globals import ICON_CONTRACT, ICON_EXPAND, ICON_REFRESH, SAVED_CONFIG
 from pygpsclient.strings import LBLUDPORT
 
 ADVOFF = "\u25bc"
 ADVON = "\u25b2"
-READONLY = "readonly"
-PARITIES = {
-    "None": PARITY_NONE,
-    "Even": PARITY_EVEN,
-    "Odd": PARITY_ODD,
-    "Mark": PARITY_MARK,
-    "Space": PARITY_SPACE,
-}
-# These ranges can be overridden via keyword arguments:
-# (the default value will be the first in the range)
-BPSRATE_RNG = (9600, 19200, 38400, 57600, 115200, 1000000, 4800)
-DATABITS_RNG = (8, 5, 6, 7)
-STOPBITS_RNG = (1, 1.5, 2)
-PARITY_RNG = list(PARITIES.keys())
-TIMEOUT_RNG = ("None", "0", "1", "2", "5", "10", "20")
 BGCOL = "azure"
-DISCONNECTED = 0
+BPSRATE_RNG = (9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600, 1000000, 4800)
 CONNECTED = 1
 CONNECTED_FILE = 2
+DATABITS_RNG = (8, 5, 6, 7)
+DISCONNECTED = 0
+MSGMODES = {
+    GET: "GET",
+    SET: "SET",
+    POLL: "POLL",
+}
+MSGMODE_RNG = list(MSGMODES.values())
 NOPORTS = 3
+PARITIES = {
+    PARITY_NONE: "None",
+    PARITY_EVEN: "Even",
+    PARITY_ODD: "Odd",
+    PARITY_MARK: "Mark",
+    PARITY_SPACE: "Space",
+}
+PARITY_RNG = list(PARITIES.values())
+READONLY = "readonly"
+STOPBITS_RNG = (1, 1.5, 2)
+TIMEOUT_RNG = ("0", "1", "2", "5", "10", "20")
 
 
 class SerialConfigFrame(Frame):
@@ -72,7 +82,7 @@ class SerialConfigFrame(Frame):
     Serial port configuration frame class.
     """
 
-    def __init__(self, container, *args, **kwargs):
+    def __init__(self, app, container, *args, **kwargs):
         """
         Constructor.
 
@@ -81,37 +91,40 @@ class SerialConfigFrame(Frame):
         :param kwargs: optional kwargs for value ranges, or to pass to Frame parent class
         """
 
-        self._userport = kwargs.pop("userport", "")  # user-defined port
         self._bpsrate_rng = kwargs.pop("bpsrates", BPSRATE_RNG)
         self._databits_rng = kwargs.pop("databits", DATABITS_RNG)
         self._stopbits_rng = kwargs.pop("stopbits", STOPBITS_RNG)
         self._parity_rng = kwargs.pop("parities", PARITY_RNG)
         self._timeout_rng = kwargs.pop("timeouts", TIMEOUT_RNG)
-        self._msgmode_rng = kwargs.pop("msgmodes", ())
+        self._msgmode_name_rng = kwargs.pop("msgmodes", MSGMODE_RNG)
         self._preselect = kwargs.pop("preselect", ())
+        self._saved_config = kwargs.pop(SAVED_CONFIG, {})
 
         Frame.__init__(self, container, *args, **kwargs)
 
+        self.__app = app
         self._show_advanced = False
         self._status = DISCONNECTED
         self._ports = ()
         self._port = StringVar()
+        self.user_defined_port = StringVar()
+        self.user_defined_port.set(self._saved_config.get("userport_s", ""))
         self._port_desc = StringVar()
         self._bpsrate = IntVar()
         self._databits = IntVar()
         self._stopbits = DoubleVar()
-        self._parity = StringVar()
+        self._parity_name = StringVar()
         self._rtscts = IntVar()
         self._xonxoff = IntVar()
-        self._timeout = StringVar()
-        self._msgmode = StringVar()
+        self._timeout = DoubleVar()
+        self._msgmode_name = StringVar()
         self._img_refresh = ImageTk.PhotoImage(Image.open(ICON_REFRESH))
         self._img_expand = ImageTk.PhotoImage(Image.open(ICON_EXPAND))
         self._img_contract = ImageTk.PhotoImage(Image.open(ICON_CONTRACT))
 
         self._body()
         self._do_layout()
-        self._get_ports()
+        # self._get_ports()
         self._attach_events()
         self.reset()
 
@@ -180,14 +193,14 @@ class SerialConfigFrame(Frame):
             wrap=True,
             textvariable=self._stopbits,
         )
-        self._lbl_parity = Label(self._frm_advanced, text="Parity")
-        self._spn_parity = Spinbox(
+        self._lbl_parity_name = Label(self._frm_advanced, text="Parity")
+        self._spn_parity_name = Spinbox(
             self._frm_advanced,
             values=self._parity_rng,
             width=6,
             state=READONLY,
             wrap=True,
-            textvariable=self._parity,
+            textvariable=self._parity_name,
         )
         self._chk_rts = Checkbutton(
             self._frm_advanced, text="RTS/CTS", variable=self._rtscts
@@ -204,14 +217,23 @@ class SerialConfigFrame(Frame):
             wrap=True,
             textvariable=self._timeout,
         )
-        self._lbl_msgmode = Label(self._frm_advanced, text="Msg Mode")
-        self._spn_msgmode = Spinbox(
+        self._lbl_msgmode_name = Label(self._frm_advanced, text="Msg Mode")
+        self._spn_msgmode_name = Spinbox(
             self._frm_advanced,
-            values=self._msgmode_rng,
+            values=self._msgmode_name_rng,
             width=4,
             state=READONLY,
             wrap=True,
-            textvariable=self._msgmode,
+            textvariable=self._msgmode_name,
+        )
+        self._lbl_userport = Label(
+            self._frm_advanced, text="User-defined\nPort               "
+        )
+        self._ent_userport = Entry(
+            self._frm_advanced,
+            textvariable=self.user_defined_port,
+            relief="sunken",
+            width=30,
         )
 
     def _do_layout(self):
@@ -236,22 +258,52 @@ class SerialConfigFrame(Frame):
         self._spn_databits.grid(column=1, row=0, sticky=W, padx=3, pady=2)
         self._lbl_stopbits.grid(column=2, row=0, sticky=W)
         self._spn_stopbits.grid(column=3, row=0, sticky=W, padx=3, pady=2)
-        self._lbl_parity.grid(column=0, row=1, sticky=W)
-        self._spn_parity.grid(column=1, row=1, sticky=W, padx=3, pady=2)
+        self._lbl_parity_name.grid(column=0, row=1, sticky=W)
+        self._spn_parity_name.grid(column=1, row=1, sticky=W, padx=3, pady=2)
         self._chk_rts.grid(column=2, row=1, sticky=W)
         self._chk_xon.grid(column=3, row=1, sticky=W, padx=3, pady=2)
         self._lbl_timeout.grid(column=0, row=2, sticky=W)
         self._spn_timeout.grid(column=1, row=2, sticky=W, padx=3, pady=2)
-        if len(self._msgmode_rng) > 0:
-            self._lbl_msgmode.grid(column=2, row=2, sticky=W)
-            self._spn_msgmode.grid(column=3, row=2, sticky=W, padx=3, pady=2)
+        if len(self._msgmode_name_rng) > 0:
+            self._lbl_msgmode_name.grid(column=2, row=2, sticky=W)
+            self._spn_msgmode_name.grid(column=3, row=2, sticky=W, padx=3, pady=2)
+        self._lbl_userport.grid(column=0, row=3, sticky=W)
+        self._ent_userport.grid(column=1, row=3, columnspan=3, sticky=W, padx=3, pady=2)
 
     def _attach_events(self):
         """
         Bind events to widgets.
         """
 
+        self.bind("<Configure>", self._on_resize)
         self._lbx_port.bind("<<ListboxSelect>>", self._on_select_port)
+
+    def reset(self):
+        """
+        Reset settings to defaults (first value in range).
+        """
+
+        self._bpsrate.set(self._saved_config.get("bpsrate_n", self._bpsrate_rng[0]))
+        self._databits.set(self._saved_config.get("databits_n", self._databits_rng[0]))
+        self._stopbits.set(self._saved_config.get("stopbits_f", self._stopbits_rng[0]))
+        self._parity_name.set(PARITIES[self._saved_config.get("parity_s", PARITY_NONE)])
+        self._rtscts.set(self._saved_config.get("rtscts_b", False))
+        self._xonxoff.set(self._saved_config.get("xonxoff_b", False))
+        self._timeout.set(self._saved_config.get("timeout_f", self._timeout_rng[0]))
+        self._msgmode_name.set(MSGMODES[self._saved_config.get("msgmode_n", GET)])
+        self.user_defined_port.set(self._saved_config.get("userport_s", ""))
+        self._on_refresh()
+
+    def _on_refresh(self):
+        """
+        Refresh list of ports.
+        """
+
+        if self._status in (CONNECTED, CONNECTED_FILE):
+            return
+        self.set_status(DISCONNECTED)
+        self._lbx_port.delete(0, "end")
+        self._get_ports()
 
     def _get_ports(self):
         """
@@ -268,8 +320,8 @@ class SerialConfigFrame(Frame):
         self._ports = sorted(comports())
         init_idx = 0
         recognised = False
-        if self._userport != "":
-            self._ports.insert(0, (self._userport, LBLUDPORT, None))
+        if self.user_defined_port.get() != "":
+            self._ports.insert(0, (self.user_defined_port.get(), LBLUDPORT, None))
 
         if len(self._ports) > 0:
             # default to first item in list
@@ -279,7 +331,7 @@ class SerialConfigFrame(Frame):
             self._port.set(port)
             self._port_desc.set(desc)
             for idx, (port, desc, _) in enumerate(self._ports):
-                self._lbx_port.insert(idx, port + ": " + desc)
+                self._lbx_port.insert(idx, f"{port}: {desc}")
                 # default selection to recognised GNSS device if possible
                 if not recognised:
                     for dev in self._preselect:
@@ -311,17 +363,6 @@ class SerialConfigFrame(Frame):
         self._port.set(port)
         self._port_desc.set(desc)
 
-    def _on_refresh(self):
-        """
-        Refresh list of ports.
-        """
-
-        if self._status in (CONNECTED, CONNECTED_FILE):
-            return
-        self.set_status(DISCONNECTED)
-        self._lbx_port.delete(0, "end")
-        self._get_ports()
-
     def _on_toggle_advanced(self):
         """
         Toggle advanced serial port settings panel on or off.
@@ -350,37 +391,25 @@ class SerialConfigFrame(Frame):
             self._lbl_bpsrate,
             self._lbl_databits,
             self._lbl_stopbits,
-            self._lbl_parity,
+            self._lbl_parity_name,
             self._lbl_timeout,
             self._chk_rts,
             self._chk_xon,
             self._lbx_port,
-            self._lbl_msgmode,
+            self._lbl_msgmode_name,
+            self._lbl_userport,
+            self._ent_userport,
         ):
             widget.configure(state=(NORMAL if status == DISCONNECTED else DISABLED))
         for widget in (
             self._spn_bpsrate,
             self._spn_databits,
             self._spn_stopbits,
-            self._spn_parity,
+            self._spn_parity_name,
             self._spn_timeout,
-            self._spn_msgmode,
+            self._spn_msgmode_name,
         ):
             widget.configure(state=(READONLY if status == DISCONNECTED else DISABLED))
-
-    def reset(self):
-        """
-        Reset settings to defaults (first value in range).
-        """
-
-        self._bpsrate.set(self._bpsrate_rng[0])
-        self._databits.set(self._databits_rng[0])
-        self._stopbits.set(self._stopbits_rng[0])
-        self._parity.set(self._parity_rng[0])
-        self._rtscts.set(False)
-        self._xonxoff.set(False)
-        self._timeout.set(self._timeout_rng[0])
-        self._msgmode.set("GET")
 
     @property
     def status(self) -> int:
@@ -458,7 +487,15 @@ class SerialConfigFrame(Frame):
         :rtype: str
         """
 
-        return PARITIES[self._parity.get()]
+        if self._parity_name.get() == PARITIES[PARITY_EVEN]:
+            return PARITY_EVEN
+        if self._parity_name.get() == PARITIES[PARITY_ODD]:
+            return PARITY_ODD
+        if self._parity_name.get() == PARITIES[PARITY_MARK]:
+            return PARITY_MARK
+        if self._parity_name.get() == PARITIES[PARITY_SPACE]:
+            return PARITY_SPACE
+        return PARITY_NONE
 
     @property
     def rtscts(self) -> bool:
@@ -505,4 +542,29 @@ class SerialConfigFrame(Frame):
         :rtype: int
         """
 
-        return MSGMODES[self._msgmode.get()]
+        # return MSGMODES[self._msgmode.get()]
+        if self._msgmode_name.get() == MSGMODES[SET]:
+            return SET
+        if self._msgmode_name.get() == MSGMODES[POLL]:
+            return POLL
+        return GET
+
+    @property
+    def userport(self) -> str:
+        """
+        Return user-defined port
+
+        :return: user-defined serial port
+        :rtype: str
+        """
+
+        return self.user_defined_port.get()
+
+    def _on_resize(self, event):  # pylint: disable=unused-argument
+        """
+        Resize frame.
+
+        :param event event: resize event
+        """
+
+        self.__app.frm_settings.on_expand()

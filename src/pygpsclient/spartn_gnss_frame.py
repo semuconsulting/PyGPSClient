@@ -68,6 +68,7 @@ from pygpsclient.strings import (
     CONFIGRXM,
     DLGJSONERR,
     DLGJSONOK,
+    LBLDISNMEA,
     LBLJSONLOAD,
     LBLSPARTNGN,
     LBLSPTNCURR,
@@ -75,7 +76,6 @@ from pygpsclient.strings import (
     LBLSPTNFP,
     LBLSPTNKEY,
     LBLSPTNNEXT,
-    LBLSPTNNMEA,
     LBLSPTNUPLOAD,
     NOTCONN,
     NULLSEND,
@@ -222,7 +222,7 @@ class SPARTNGNSSDialog(Frame):
             variable=self._send_f9p_config,
         )
         self._chk_disable_nmea = Checkbutton(
-            self, text=LBLSPTNNMEA, variable=self._disable_nmea
+            self, text=LBLDISNMEA, variable=self._disable_nmea
         )
         self._lbl_send_command = Label(self, image=self._img_blank)
         self._btn_send_command = Button(

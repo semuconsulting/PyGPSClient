@@ -1,5 +1,7 @@
 """
-UBX Configuration widget for user-selected CFG command
+ubx_dynamic_frame.py
+
+UBX Configuration widget for user-selected CFG command.
 
 Allows user to receive and update configuration for any legacy CFG-*
 command supported by the device which is not already supported by

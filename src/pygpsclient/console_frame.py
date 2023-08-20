@@ -1,4 +1,6 @@
 """
+console_frame.py
+
 Console frame class for PyGPSClient application.
 
 This handles a scrollable text box into which the serial data is printed.
@@ -14,7 +16,17 @@ from tkinter import END, HORIZONTAL, VERTICAL, E, Frame, N, S, Scrollbar, Text, 
 
 from pyubx2 import hextable
 
-from pygpsclient.globals import BGCOL, FGCOL, FONT_FIXED, FONT_TEXT, FORMATS
+from pygpsclient.globals import (
+    BGCOL,
+    FGCOL,
+    FONT_FIXED,
+    FONT_TEXT,
+    FORMAT_BINARY,
+    FORMAT_BOTH,
+    FORMAT_HEXSTR,
+    FORMAT_HEXTAB,
+    FORMAT_PARSED,
+)
 
 
 class ConsoleFrame(Frame):
@@ -100,17 +112,21 @@ class ConsoleFrame(Frame):
 
         """
 
-        settings = self.__app.frm_settings.config
-        cfm = settings["consoleformat"]
+        consoleformat = self.__app.frm_settings.config.get(
+            "consoleformat_s", FORMAT_PARSED
+        )
+        colortagging = self.__app.frm_settings.config.get("colortag_b", 0)
+        maxlines = self.__app.frm_settings.config.get("maxlines_n", 200)
+        autoscroll = self.__app.frm_settings.config.get("autoscroll_b", 1)
         self._halt = ""
         self.txt_console.configure(font=FONT_FIXED)
-        if cfm == FORMATS[1]:  # binary
+        if consoleformat == FORMAT_BINARY:
             data = str(raw_data).strip("\n")
-        elif cfm == FORMATS[2]:  # hex string
+        elif consoleformat == FORMAT_HEXSTR:
             data = str(raw_data.hex())
-        elif cfm == FORMATS[3]:  # hex tabular
+        elif consoleformat == FORMAT_HEXTAB:
             data = hextable(raw_data)
-        elif cfm == FORMATS[4]:  # parsed + hex tabular
+        elif consoleformat == FORMAT_BOTH:
             data = f"{marker}{parsed_data}\n{hextable(raw_data)}"
         else:
             self.txt_console.configure(font=FONT_TEXT)
@@ -121,15 +137,17 @@ class ConsoleFrame(Frame):
         con.insert(END, data + "\n")
 
         # format of this list of tuples is (tag, highlight color)
-        if settings["colortag"]:
-            colortags = self.__app.app_config.get("colortags", [])
+        if colortagging:
+            colortags = self.__app.frm_settings.config.get(
+                "colortags_l", self.__app.frm_settings.config.get("colortags", [])
+            )
             self._tag_line(data, colortags)
             if self._halt != "":
                 self.__app.stream_handler.stop_read_thread()
                 self.__app.set_status(f"Halted on user tag match: {self._halt}", "red")
 
         idx = float(con.index("end"))  # Lazy but it works
-        if idx > settings["maxlines"]:
+        if idx > maxlines:
             # Remember these tcl indices look like floats but they're not!
             # ("1.0:, "2.0") signifies "from the first character in
             # line 1 (inclusive) to the first character in line 2 (exclusive)"
@@ -137,7 +155,7 @@ class ConsoleFrame(Frame):
             con.delete("1.0", "2.0")
 
         # con.update_idletasks()
-        if settings["autoscroll"]:
+        if autoscroll:
             con.see("end")
         con.configure(state="disabled")
 

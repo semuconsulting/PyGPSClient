@@ -1,4 +1,6 @@
 """
+strings.py
+
 ENGLISH language string literals for PyGPSClient application
 
 Created on 12 Sep 2020
@@ -37,8 +39,9 @@ CONFIGRXM = "{} polled, {} key(s) loaded"
 CONFIGTITLE = "Config File"
 ENDOFFILE = "End of file reached"
 FILEOPENERROR = "Error opening file {}"
-LOADCONFIGBAD = "Configuration not loaded"
-LOADCONFIGOK = "Configuration loaded"
+LOADCONFIGBAD = "Configuration not loaded {} {}, using defaults"
+LOADCONFIGOK = "Configuration loaded {}"
+LOADCONFIGNONE = "Configuration file not found {}, using defaults"
 MQTTCONN = "Connecting to MQTT server {}..."
 NMEAVALERROR = "Value error in NMEA message: {}"
 NOTCONN = "Not connected"
@@ -50,7 +53,7 @@ NOWEBMAPKEY = NOWEBMAP + f"\nMQAPIKEY not found or invalid.\n\n{MAPAPIURL}"
 NULLSEND = "Nothing to send"
 OPENFILEERROR = "ERROR! File could not be opened"
 READTITLE = "Select File"
-SAVECONFIGBAD = "Configuration not saved"
+SAVECONFIGBAD = "Configuration not saved {}"
 SAVECONFIGOK = "Configuration saved OK"
 SAVEERROR = "ERROR! File could not be saved to specified directory"
 SAVETITLE = "Select Directory"
@@ -62,6 +65,7 @@ VALERROR = "ERROR! Please correct highlighted entries"
 VERCHECK = "Newer version of PyGPSClient available: {}"
 WAITNMEADATA = "Waiting for data..."
 WAITUBXDATA = "Waiting for data..."
+NOWDGSWARN = "WARNING! No widgets are enabled in config file {} - display will be blank"
 
 # Menu text
 MENUABOUT = "About"
@@ -125,12 +129,12 @@ LBLSPTNDAT = "Valid from YYYYMMDD"
 LBLSPTNFP = "Configure receiver"
 LBLSPTNKEY = "Key as hexadecimal"
 LBLSPTNNEXT = "NEXT SPARTN KEY:"
-LBLSPTNNMEA = "Disable NMEA"
 LBLSPTNUPLOAD = "Upload keys"
 LBLSTREAM = "Stream\nfrom file"
 LBLTRACKRECORD = "GPX Track"
 LBLUBXCONFIG = "UBX Config"
 LBLUDPORT = "USER-DEFINED PORT"
+LBLDISNMEA = "Disable NMEA"
 
 # Dialog text
 DLGABOUT = "PyGPSClient"
@@ -158,6 +162,7 @@ DLGSPARTNWARN = "WARNING! Disconnect from {} client before using {} client"
 DLGUBXCONFIG = "UBX Configuration"
 DLGWAITMONSPAN = "Waiting for MON-SPAN message..."
 DLGWAITMONSYS = "Waiting for MON-SYS/COMMS messages..."
+DLGSTOPRTK = "WARNING! Stop all active connections before loading configuration"
 
 # UBX Preset Command Descriptions
 PSTALLINFOFF = "CFG-INF - Turn OFF all non-error INF msgs"

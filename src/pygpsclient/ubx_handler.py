@@ -19,7 +19,7 @@ from pyubx2 import UBXMessage, itow2utc
 
 from pygpsclient.globals import DLGTSPARTN, DLGTUBX, GLONASS_NMEA
 from pygpsclient.helpers import corrage2int, fix2desc, svid2gnssid
-from pygpsclient.widgets import WDGSPECTRUM, WDGSYSMON
+from pygpsclient.widget_state import VISIBLE, WDGSPECTRUM, WDGSYSMON
 
 
 class UBXHandler:
@@ -89,6 +89,8 @@ class UBXHandler:
             self._process_MON_SYS(parsed_data)
         elif parsed_data.identity == "MON-COMMS":
             self._process_MON_COMMS(parsed_data)
+        elif parsed_data.identity == "RXM-PMP":
+            self._process_RXM_PMP(parsed_data)
         elif parsed_data.identity == "RXM-SPARTN-KEY":
             self._process_RXM_SPARTN_KEY(parsed_data)
 
@@ -110,7 +112,7 @@ class UBXHandler:
         if msg.identity in ("ACK-ACK", "ACK-NAK"):
             wdgs = self.__app.widgets
             for wdg in (WDGSYSMON, WDGSPECTRUM):
-                if wdgs[wdg]["visible"]:
+                if wdgs[wdg][VISIBLE]:
                     if msg.clsID == 6 and msg.msgID == 1:  # CFG-MSG
                         getattr(self.__app, wdgs[wdg]["frm"]).update_pending(msg)
 
@@ -256,7 +258,7 @@ class UBXHandler:
         """
 
         settings = self.__app.frm_settings.config
-        show_unused = settings["unusedsat"]
+        show_unused = settings["unusedsat_b"]
         self.gsv_data = []
         num_siv = int(data.numSvs)
 
@@ -309,7 +311,7 @@ class UBXHandler:
         """
 
         settings = self.__app.frm_settings.config
-        show_unused = settings["unusedsat"]
+        show_unused = settings["unusedsat_b"]
         self.gsv_data = []
         num_siv = int(data.numCh)
 
@@ -403,6 +405,16 @@ class UBXHandler:
         Process RXM-SPARTN_KEY sentences - poll response.
 
         :param UBXMessage data: RXM-SPARTN_KEY poll response message
+        """
+
+        if self.__app.dialog(DLGTSPARTN) is not None:
+            self.__app.dialog(DLGTSPARTN).update_pending(data)
+
+    def _process_RXM_PMP(self, data: UBXMessage):
+        """
+        Process RXM-PMP sentence - SPARTN L-Band data.
+
+        :param UBXMessage data: RXM-PMP message
         """
 
         if self.__app.dialog(DLGTSPARTN) is not None:

@@ -1,8 +1,12 @@
 """
+spartn_lband_frame.py
+
 SPARTN L-Band Correction receiver configuration dialog.
 
 This handles the configuration of the L-Band receiver
 (e.g. u-blox D9S) for the selected region.
+
+Supply initial settings via `config` keyword argument.
 
 Created on 26 Jan 2023
 
@@ -30,7 +34,8 @@ from tkinter import (
 )
 
 from PIL import Image, ImageTk
-from pyubx2 import POLL_LAYER_RAM, SET, SET_LAYER_RAM, TXN_NONE, UBXMessage
+from pyubx2 import GET, POLL_LAYER_RAM, SET, SET_LAYER_RAM, TXN_NONE, UBXMessage
+from serial import PARITY_NONE
 
 from pygpsclient.globals import (
     BPSRATES,
@@ -51,6 +56,7 @@ from pygpsclient.globals import (
     MSGMODES,
     NOPORTS,
     READONLY,
+    SAVED_CONFIG,
     SPARTN_EOF_EVENT,
     SPARTN_ERR_EVENT,
     SPARTN_EVENT,
@@ -137,6 +143,7 @@ class SpartnLbandDialog(Frame):
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.__container = container  # container frame
+        self._saved_config = kwargs.pop(SAVED_CONFIG, {})
 
         Frame.__init__(self, self.__container.container, *args, **kwargs)
 
@@ -178,14 +185,25 @@ class SpartnLbandDialog(Frame):
         # pylint: disable=unnecessary-lambda
         self._lbl_corrlband = Label(self, text=LBLSPARTNLB)
         # Correction receiver serial port configuration panel
-        userport = self.__app.app_config.get("spartnport", "")
+        saved_lband_config = {
+            "bpsrate_n": self.__app.saved_config.get("lbandclientbpsrate_n", 9600),
+            "databits_n": self.__app.saved_config.get("lbandclientdatabits_n", 8),
+            "stopbits_f": self.__app.saved_config.get("lbandclientstopbits_f", 1.0),
+            "parity_s": self.__app.saved_config.get("lbandclientparity_s", PARITY_NONE),
+            "rtscts_b": self.__app.saved_config.get("lbandclientrtscts_b", 0),
+            "xonxoff_b": self.__app.saved_config.get("lbandclientxonxoff_b", 0),
+            "timeout_f": self.__app.saved_config.get("lbandclienttimeout_f", 0.1),
+            "msgmode_n": self.__app.saved_config.get("lbandclientmsgmode_n", GET),
+            "userport_s": self.__app.saved_config.get("spartnport_s", ""),
+        }
         self._frm_spartn_serial = SerialConfigFrame(
+            self.__app,
             self,
             preselect=KNOWNGPS,
             timeouts=TIMEOUTS,
             bpsrates=BPSRATES,
             msgmodes=list(MSGMODES.keys()),
-            userport=userport,  # user-defined serial port
+            saved_config=saved_lband_config,
         )
         self._lbl_freq = Label(self, text="L-Band Frequency (Hz)")
         self._ent_freq = Entry(
@@ -270,6 +288,8 @@ class SpartnLbandDialog(Frame):
             width=10,
             wrap=True,
         )
+        self._lbl_ebno = Label(self, text="")
+        self._lbl_fec = Label(self, text="")
         self._btn_connect = Button(
             self,
             width=45,
@@ -324,13 +344,15 @@ class SpartnLbandDialog(Frame):
         self._ent_unqword.grid(column=1, row=9, columnspan=3, sticky=W)
         self._lbl_outport.grid(column=0, row=10, sticky=W)
         self._spn_outport.grid(column=1, row=10, columnspan=3, sticky=W)
+        self._lbl_ebno.grid(column=0, row=11, sticky=W)
+        self._lbl_fec.grid(column=1, row=11, sticky=W)
         ttk.Separator(self).grid(
-            column=0, row=11, columnspan=4, padx=2, pady=3, sticky=(W, E)
+            column=0, row=12, columnspan=4, padx=2, pady=3, sticky=(W, E)
         )
-        self._btn_connect.grid(column=0, row=12, padx=3, pady=2, sticky=W)
-        self._btn_disconnect.grid(column=1, row=12, padx=3, pady=2, sticky=W)
-        self._btn_send.grid(column=2, row=12, padx=3, pady=2, sticky=W)
-        self._lbl_send.grid(column=3, row=12, padx=3, pady=2, sticky=W)
+        self._btn_connect.grid(column=0, row=13, padx=3, pady=2, sticky=W)
+        self._btn_disconnect.grid(column=1, row=13, padx=3, pady=2, sticky=W)
+        self._btn_send.grid(column=2, row=13, padx=3, pady=2, sticky=W)
+        self._lbl_send.grid(column=3, row=13, padx=3, pady=2, sticky=W)
 
     def _attach_events(self):
         """
@@ -344,18 +366,40 @@ class SpartnLbandDialog(Frame):
         Reset configuration widgets.
         """
 
-        self._enabledbg.set(0)
         self._saveconfig.set(0)
-        self._spartn_drat.set(PMP_DATARATES["B2400"])
-        self._spartn_freq.set(D9S_CONFIG["freq"])
-        self._spartn_schwin.set(D9S_CONFIG["schwin"])
-        self._spartn_usesid.set(D9S_CONFIG["usesid"])
-        self._spartn_sid.set(D9S_CONFIG["sid"])
-        self._spartn_descrm.set(D9S_CONFIG["descrm"])
-        self._spartn_prescrm.set(D9S_CONFIG["prescrm"])
-        self._spartn_descrminit.set(D9S_CONFIG["descrminit"])
-        self._spartn_unqword.set(D9S_CONFIG["unqword"])
-        self._spartn_outport.set(PASSTHRU)
+        self._enabledbg.set(self.__app.saved_config.get("lbandclientdebug_b", 0))
+        self._spartn_drat.set(
+            self.__app.saved_config.get("lbandclientdrat_n", PMP_DATARATES["B2400"])
+        )
+        self._spartn_freq.set(
+            self.__app.saved_config.get("lbandclientfreq_n", D9S_CONFIG["freq"])
+        )
+        self._spartn_schwin.set(
+            self.__app.saved_config.get("lbandclientschwin_n", D9S_CONFIG["schwin"])
+        )
+        self._spartn_usesid.set(
+            self.__app.saved_config.get("lbandclientusesid_b", D9S_CONFIG["usesid"])
+        )
+        self._spartn_sid.set(
+            self.__app.saved_config.get("lbandclientsid_n", D9S_CONFIG["sid"])
+        )
+        self._spartn_descrm.set(
+            self.__app.saved_config.get("lbandclientdescrm_b", D9S_CONFIG["descrm"])
+        )
+        self._spartn_prescrm.set(
+            self.__app.saved_config.get("lbandclientprescrm_b", D9S_CONFIG["prescrm"])
+        )
+        self._spartn_descrminit.set(
+            self.__app.saved_config.get(
+                "lbandclientdescrminit_b", D9S_CONFIG["descrminit"]
+            )
+        )
+        self._spartn_unqword.set(
+            self.__app.saved_config.get("lbandclientunqword_s", D9S_CONFIG["unqword"])
+        )
+        self._spartn_outport.set(
+            self.__app.saved_config.get("lbandclientoutport_s", PASSTHRU)
+        )
         self.__container.set_status("")
         if self.__app.rtk_conn_status == CONNECTED_SPARTNLB:
             self.set_controls(CONNECTED_SPARTNLB)
@@ -474,7 +518,7 @@ class SpartnLbandDialog(Frame):
                 )
             self.set_controls(DISCONNECTED)
 
-    def on_error(self, event):  # pylint: disable=unused-variable
+    def on_error(self, event):  # pylint: disable=unused-argument
         """
         EVENT TRIGGERED
         Action on <<spartn_error>> event - disconnect.
@@ -640,4 +684,44 @@ class SpartnLbandDialog(Frame):
         elif msg.identity == "ACK-NAK":
             self._lbl_send.config(image=self._img_warn)
             self.__container.set_status(CONFIGBAD.format(CFGSET), "red")
+        elif msg.identity == "RXM-PMP":
+            self._lbl_ebno.config(text=f"EBNO: {msg.ebno}")
+            self._lbl_fec.config(text=f"FEC Bits: {msg.fecBits}")
+
         self.update_idletasks()
+
+    @property
+    def settings(self) -> dict:
+        """
+        Getter for settings.
+
+        :return: dictionary of settings
+        :rtype: dict
+        """
+
+        try:
+            settings = {
+                "bpsrate": self._frm_spartn_serial.bpsrate,
+                "databits": self._frm_spartn_serial.databits,
+                "stopbits": self._frm_spartn_serial.stopbits,
+                "parity": self._frm_spartn_serial.parity,
+                "rtscts": self._frm_spartn_serial.rtscts,
+                "xonxoff": self._frm_spartn_serial.xonxoff,
+                "timeout": self._frm_spartn_serial.timeout,
+                "msgmode": self._frm_spartn_serial.msgmode,
+                "userport": self._frm_spartn_serial.userport,
+                "freq": int(self._spartn_freq.get()),
+                "schwin": int(self._spartn_schwin.get()),
+                "usesid": int(self._spartn_usesid.get()),
+                "sid": int(self._spartn_sid.get()),
+                "drat": int(self._spartn_drat.get()),
+                "descrm": int(self._spartn_descrm.get()),
+                "prescrm": int(self._spartn_prescrm.get()),
+                "descrminit": int(self._spartn_descrminit.get()),
+                "unqword": self._spartn_unqword.get(),
+                "outport": self._spartn_outport.get(),
+                "debug": int(self._enabledbg.get()),
+            }
+            return settings
+        except (TypeError, ValueError):
+            return {}

@@ -1,4 +1,6 @@
 """
+banner_frame.py
+
 Banner frame class for PyGPSClient application.
 
 This handles the top banner which prominently displays the current coordinates and status.
@@ -366,8 +368,11 @@ class BannerFrame(Frame):
     def update_transmit_status(self, transmit: int = 1):
         """
         Update socket server status icon.
+        - -1 = not transmitting
+        - 0 transmitting, no clients
+        - 1 transmitting with clients
 
-        :param int transmit: socket server transmit status (-1, 0, 1)
+        :param int transmit: socket server transmit status
         """
 
         if transmit > 0:
@@ -383,8 +388,8 @@ class BannerFrame(Frame):
         """
 
         settings = self.__app.frm_settings.config
-        deg_format = settings["degreesformat"]
-        units = settings["units"]
+        deg_format = settings["degreesformat_s"]
+        units = settings["units_s"]
 
         self._update_time()
         self._update_pos(deg_format, units)
@@ -405,11 +410,11 @@ class BannerFrame(Frame):
         else:
             self._time.set(tim)
 
-    def _update_pos(self, deg_format, units):
+    def _update_pos(self, pos_format, units):
         """
-        Update position
+        Update position.
 
-        :param str disp_format: position display format as string (DMS, DMM, DDD, ECEF)
+        :param str pos_format: position display format as string (DMS, DMM, DDD, ECEF)
         :param str units: distance units as string (UMM, UMK, UI, UIK)
         """
 
@@ -419,34 +424,35 @@ class BannerFrame(Frame):
         self._lbl_llat.config(text="lat:")
         self._lbl_llon.config(text="lon:")
         self._lbl_lalt.config(text="alt:")
-        alt_u = "m"
+        alt_u = "ft" if units in (UI, UIK) else "m"
 
-        if isinstance(lat, (int, float)) and isinstance(lon, (int, float)):
-            if deg_format == ECEF and isinstance(alt, (int, float)):
+        try:
+            if pos_format == ECEF:
                 lat, lon, alt = llh2ecef(lat, lon, alt)
                 if units in (UI, UIK):
                     lat, lon = (m2ft(x) for x in (lat, lon))
                 self._lbl_llat.config(text="X:")
                 self._lbl_llon.config(text="Y:")
                 self._lbl_lalt.config(text="Z:")
-            elif deg_format == DMS:
-                lat, lon = latlon2dms(lat, lon)
-            elif deg_format == DMM:
-                lat, lon = latlon2dmm(lat, lon)
-            self._lat.set(f"{lat:<15}")
-            self._lon.set(f"{lon:<15}")
-        else:
+                self._lat.set(f"{lat:.4f}")
+                self._lon.set(f"{lon:.4f}")
+            else:
+                deg_f = "<15"
+                if pos_format == DMS:
+                    lat, lon = latlon2dms(lat, lon)
+                elif pos_format == DMM:
+                    lat, lon = latlon2dmm(lat, lon)
+                else:
+                    deg_f = ".8f"
+                if units in (UI, UIK):
+                    alt = m2ft(alt)
+                self._lat.set(f"{lat:{deg_f}}")
+                self._lon.set(f"{lon:{deg_f}}")
+            self._alt.set(f"{alt:.4f}")
+            self._alt_u.set(f"{alt_u:<2}")
+        except (TypeError, ValueError):
             self._lat.set("N/A            ")
             self._lon.set("N/A            ")
-
-        if isinstance(alt, (int, float)):
-            if units in (UI, UIK):
-                alt = m2ft(alt)
-                alt_u = "ft"
-            fmt = "<15" if deg_format == ECEF else ".3f"
-            self._alt.set(f"{alt:{fmt}}")
-            self._alt_u.set(f"{alt_u:<2}")
-        else:
             self._alt.set("N/A  ")
             self._alt_u.set("  ")
 
@@ -552,7 +558,7 @@ class BannerFrame(Frame):
 
         w = self.width
         # Cater for slightly different font behaviour on Linux
-        if system() in ("W32", "Darwin"):
+        if system() in ("Windows", "Darwin"):
             val = 55
             lbl = 75
             sup = 85

@@ -1,7 +1,14 @@
 """
-Filehandler class for PyGPSClient application
+file_handler.py
 
-This handles all the file i/o
+Filehandler class for PyGPSClient application.
+
+This handles all the file i/o, including:
+- binary gnss log file
+- json configuration file save, load and validation
+- datalog export
+- gpx file export
+- SPARTN key and crt files
 
 Created on 16 Sep 2020
 
@@ -20,7 +27,11 @@ from pyubx2 import hextable
 from pygpsclient.globals import (
     CONFIGFILE,
     CONFIGNAME,
-    FORMATS,
+    FORMAT_BINARY,
+    FORMAT_BOTH,
+    FORMAT_HEXSTR,
+    FORMAT_HEXTAB,
+    FORMAT_PARSED,
     GITHUB_URL,
     GPX_NS,
     GPX_TRACK_INTERVAL,
@@ -74,8 +85,8 @@ class FileHandler:
         to $HOME/pygpsclient.json, otherwise user is prompted for path.
 
         :param Path filename: fully qualified filename, or None for prompt
-        :return: filename and configuration settings as dictionary
-        :rtype: tuple or str if error
+        :return: filename, saved settings as dictionary and any error message
+        :rtype: tuple
         """
 
         try:
@@ -89,24 +100,60 @@ class FileHandler:
                     ),
                 )
                 if filename in ((), ""):
-                    return (None, None)  # User cancelled
+                    return (None, None, "cancelled")  # User cancelled
 
             with open(filename, "r", encoding="utf-8") as jsonfile:
                 config = json.load(jsonfile)
-        except (OSError, json.JSONDecodeError) as err:
-            return (None, str(err))
+                err = self.validate_config(config)
+                if err != "":
+                    raise ValueError(err)
+        except (ValueError, OSError, json.JSONDecodeError) as err:
+            return (None, None, str(err))
 
-        return (filename, config)
+        return (filename, config, "")
 
-    def save_config(self, config: dict, filename: Path = CONFIGFILE) -> int:
+    def validate_config(self, config: dict) -> str:
+        """
+        Validate configuration file using type designators.
+
+        :param dict config: unvalidated config dict
+        :return: error message ("" = valid)
+        :rtype: str
+        """
+
+        err = ""
+        for key, value in config.items():
+            ctype = key[-2:]
+            valstr = f'"{value}"' if isinstance(value, str) else value
+            if ctype == "_n" and not isinstance(value, int):
+                err = f"Invalid int value for {key}: {valstr}"
+                break
+            if ctype == "_f" and not isinstance(value, (int, float)):
+                err = f"Invalid float value for {key}: {valstr}"
+                break
+            if ctype == "_b" and value not in (0, 1):
+                err = f"Invalid bool value for {key}: {valstr}"
+                break
+            if ctype == "_d" and not isinstance(value, dict):
+                err = f"Invalid dict value for {key}: {valstr}"
+                break
+            if ctype == "_l" and not isinstance(value, list):
+                err = f"Invalid list value for {key}: {valstr}"
+                break
+            if ctype == "_t" and not isinstance(value, tuple):
+                err = f"Invalid tuple value for {key}: {valstr}"
+                break
+        return err
+
+    def save_config(self, config: dict, filename: Path = CONFIGFILE) -> str:
         """
         Save configuration file. If filename is not provided, defaults to
         $HOME/pygpsclient.json, otherwise user is prompted for filename.
 
         :param dict config: configuration settings as dictionary
         :param Path filename: fully qualified path to config file, or None for prompt
-        :return: return code 1 = success, err str = failure
-        :rtype: int or str if error
+        :return: return code "" = success, err str = failure
+        :rtype: str
         """
 
         try:
@@ -126,7 +173,7 @@ class FileHandler:
             with open(filename, "w", encoding="utf-8") as file:
                 cfgstr = json.dumps(config)
                 file.write(cfgstr)
-                return 1
+                return ""
         except (OSError, json.JSONDecodeError) as err:
             return str(err)
 
@@ -186,21 +233,15 @@ class FileHandler:
             return
 
         settings = self.__app.frm_settings.config
-        lfm = settings["logformat"]
+        lfm = settings["logformat_s"]
         data = []
-        if lfm in (
-            FORMATS[0],
-            FORMATS[4],
-        ):  # parsed, parsed + hex tabular
+        if lfm in (FORMAT_PARSED, FORMAT_BOTH):
             data.append(parsed_data)
-        if lfm == FORMATS[1]:  # binary
+        if lfm == FORMAT_BINARY:
             data.append(raw_data)
-        if lfm == FORMATS[2]:  # hex string
+        if lfm == FORMAT_HEXSTR:
             data.append(raw_data.hex())
-        if lfm in (
-            FORMATS[3],
-            FORMATS[4],
-        ):  # hex tabular, parsed + hex tabular
+        if lfm in (FORMAT_HEXTAB, FORMAT_BOTH):
             data.append(hextable(raw_data))
 
         for datum in data:
@@ -374,8 +415,12 @@ class FileHandler:
         """
 
         gnss_status = self.__app.gnss_status
-        # must have valid coords
-        if gnss_status.lat == "" or gnss_status.lon == "":
+        # must have valid coords (apologies if you live on Null Island)
+        if (
+            isinstance(gnss_status.lat, str)
+            or isinstance(gnss_status.lon, str)
+            or (gnss_status.lat == 0 and gnss_status.lon == 0)
+        ):
             return
 
         if datetime.now() > self._last_track_update + timedelta(

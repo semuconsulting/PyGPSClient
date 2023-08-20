@@ -1,4 +1,6 @@
 """
+sysmon_frame.py
+
 System Monitor frame for PyGPSClient application.
 
 Shows cpu, memory, i/o status, core temperature and warning/error counts
@@ -12,7 +14,7 @@ Created on 30 Apr 2023
 :license: BSD 3-Clause
 """
 
-from tkinter import Canvas, Checkbutton, E, Frame, IntVar, N, S, W
+from tkinter import Canvas, E, Frame, IntVar, N, Radiobutton, S, W
 
 from pyubx2 import UBXMessage
 
@@ -91,16 +93,26 @@ class SysmonFrame(Frame):
 
         self._can_sysmon = Canvas(self, width=self.width, height=self.height, bg=BGCOL)
         self._frm_status = Frame(self, bg=BGCOL)
-        self._chk_mode = Checkbutton(
+        self._rad_actual = Radiobutton(
             self._frm_status,
             text="Actual I/O",
             variable=self._mode,
+            value=0,
+            fg=FGCOL,
+            bg=BGCOL,
+        )
+        self._rad_pending = Radiobutton(
+            self._frm_status,
+            text="Pending I/O",
+            variable=self._mode,
+            value=1,
             fg=FGCOL,
             bg=BGCOL,
         )
         self._can_sysmon.grid(column=0, row=0, padx=0, pady=0, sticky=(N, S, W, E))
         self._frm_status.grid(column=0, row=1, padx=2, pady=2, sticky=(W, E))
-        self._chk_mode.grid(column=0, row=0, padx=0, pady=0, sticky=W)
+        self._rad_actual.grid(column=0, row=0, padx=0, pady=0, sticky=W)
+        self._rad_pending.grid(column=1, row=0, padx=0, pady=0, sticky=W)
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
@@ -111,7 +123,7 @@ class SysmonFrame(Frame):
 
         self.bind("<Configure>", self._on_resize)
         self._can_sysmon.bind("<Double-Button-1>", self._on_clear)
-        self._mode.trace_add("write", self._on_mode)
+        # self._mode.trace_add("write", self._on_mode)
 
     def init_chart(self):
         """
@@ -138,16 +150,6 @@ class SysmonFrame(Frame):
         self._maxtemp = 0
         self._monsys_status = DLGWAITMONSYS
         self.init_chart()
-
-    def _on_mode(self, *args):  # pylint: disable=unused-argument
-        """
-        Update I/O display mode - actual or pending i/o.
-
-        :param Event event: clear event
-        """
-
-        txt = "Pending I/O" if self._mode.get() else "Actual I/O"
-        self._chk_mode.config(text=txt)
 
     def enable_MONSYS(self, status: int):
         """

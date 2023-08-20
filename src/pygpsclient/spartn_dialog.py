@@ -1,13 +1,10 @@
 """
+spartn_dialog.py
+
 SPARTN configuration dialog
 
 This is the pop-up dialog containing the various
 SPARTN configuration functions.
-
-This dialog maintains its own threaded serial
-stream handler for incoming and outgoing Correction
-receiver (D9S) data (RXM-PMP), and must remain open for
-SPARTN passthrough to work.
 
 Created on 26 Jan 2023
 
@@ -31,6 +28,7 @@ from pygpsclient.globals import (
     ICON_PENDING,
     ICON_WARNING,
     POPUP_TRANSIENT,
+    SAVED_CONFIG,
     SPARTN_GNSS,
     SPARTN_LBAND,
     SPARTN_MQTT,
@@ -61,6 +59,8 @@ class SPARTNConfigDialog(Toplevel):
 
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
+        self._saved_config = kwargs.pop(SAVED_CONFIG, {})
+
         Toplevel.__init__(self, app)
         if POPUP_TRANSIENT:
             self.transient(self.__app)
@@ -99,13 +99,21 @@ class SPARTNConfigDialog(Toplevel):
             font=self.__app.font_md,
         )
 
-        self._frm_corrip = SPARTNMQTTDialog(
-            self.__app, self, borderwidth=2, relief="groove"
+        self.frm_corrip = SPARTNMQTTDialog(
+            self.__app,
+            self,
+            borderwidth=2,
+            relief="groove",
+            saved_config=self._saved_config,
         )
-        self._frm_corrlband = SpartnLbandDialog(
-            self.__app, self, borderwidth=2, relief="groove"
+        self.frm_corrlband = SpartnLbandDialog(
+            self.__app,
+            self,
+            borderwidth=2,
+            relief="groove",
+            saved_config=self._saved_config,
         )
-        self._frm_gnss = SPARTNGNSSDialog(
+        self.frm_gnss = SPARTNGNSSDialog(
             self.__app, self, borderwidth=2, relief="groove"
         )
 
@@ -114,21 +122,21 @@ class SPARTNConfigDialog(Toplevel):
         Position widgets in frame.
         """
 
-        self._frm_corrip.grid(
+        self.frm_corrip.grid(
             column=0,
             row=0,
             ipadx=5,
             ipady=5,
             sticky=(N, S, W, E),
         )
-        self._frm_corrlband.grid(
+        self.frm_corrlband.grid(
             column=1,
             row=0,
             ipadx=5,
             ipady=5,
             sticky=(N, S, W, E),
         )
-        self._frm_gnss.grid(
+        self.frm_gnss.grid(
             column=2,
             row=0,
             ipadx=5,
@@ -216,15 +224,20 @@ class SPARTNConfigDialog(Toplevel):
         if not hasattr(msg, "identity"):
             return
 
+        # update ebno & fecBits values
+        if msg.identity == "RXM-PMP":
+            self.frm_corrlband.update_status(msg)
+            return
+
         spartnfrm = self._pending_confs.get(msg.identity, None)
 
         if spartnfrm is not None:
             if spartnfrm == SPARTN_GNSS:
-                self._frm_gnss.update_status(msg)
+                self.frm_gnss.update_status(msg)
             elif spartnfrm == SPARTN_LBAND:
-                self._frm_corrlband.update_status(msg)
+                self.frm_corrlband.update_status(msg)
             elif spartnfrm == SPARTN_MQTT:
-                self._frm_corrip.update_status(msg)
+                self.frm_corrip.update_status(msg)
 
             # reset all confirmation flags for this frame
             for msgid in (msg.identity, "ACK-ACK", "ACK-NAK"):
@@ -240,9 +253,9 @@ class SPARTNConfigDialog(Toplevel):
         """
 
         if status == CONNECTED_SPARTNIP:
-            self._frm_corrip.set_controls(status)
+            self.frm_corrip.set_controls(status)
         elif status == CONNECTED_SPARTNLB:
-            self._frm_corrlband.set_controls(status)
+            self.frm_corrlband.set_controls(status)
         if msgt is not None:
             msg, col = msgt
             self.set_status(msg, col)
@@ -254,7 +267,7 @@ class SPARTNConfigDialog(Toplevel):
         :param str msg: optional disconnection message
         """
 
-        self._frm_corrip.on_disconnect(msg)
+        self.frm_corrip.on_disconnect(msg)
 
     def disconnect_lband(self, msg: str = ""):
         """
@@ -263,7 +276,7 @@ class SPARTNConfigDialog(Toplevel):
         :param str msg: optional disconnection message
         """
 
-        self._frm_corrlband.on_disconnect(msg)
+        self.frm_corrlband.on_disconnect(msg)
 
     @property
     def container(self):
@@ -282,7 +295,7 @@ class SPARTNConfigDialog(Toplevel):
         :rtype: str
         """
 
-        return self._frm_corrip.server
+        return self.frm_corrip.server
 
     @server.setter
     def server(self, server: str):
@@ -292,7 +305,7 @@ class SPARTNConfigDialog(Toplevel):
         :param str clientid: Client ID
         """
 
-        self._frm_corrip.server = server
+        self.frm_corrip.server = server
 
     @property
     def clientid(self) -> str:
@@ -303,7 +316,7 @@ class SPARTNConfigDialog(Toplevel):
         :rtype: str
         """
 
-        return self._frm_corrip.clientid
+        return self.frm_corrip.clientid
 
     @clientid.setter
     def clientid(self, clientid: str):
@@ -313,4 +326,4 @@ class SPARTNConfigDialog(Toplevel):
         :param str clientid: Client ID
         """
 
-        self._frm_corrip.clientid = clientid
+        self.frm_corrip.clientid = clientid

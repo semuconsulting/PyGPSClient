@@ -8,6 +8,8 @@ If running in NTRIP Caster mode, two base station modes are available -
 Survey-In and Fixed. The panel provides methods to configure RTK-compatible
 receiver (e.g. ZED-F9P) to operate in either of these base station modes.
 
+Supply initial settings via `saved-config` keyword argument.
+
 Application icons from https://iconmonstr.com/license/.
 
 Created on 23 Jul 2023
@@ -43,6 +45,7 @@ from pygpsclient.globals import (
     ICON_CONTRACT,
     ICON_EXPAND,
     READONLY,
+    SAVED_CONFIG,
     SOCK_NTRIP,
     SOCKMODES,
     SOCKSERVER_NTRIP_PORT,
@@ -53,12 +56,14 @@ from pygpsclient.helpers import (
     VALFLOAT,
     VALINT,
     VALNONBLANK,
+    config_nmea,
     val2sphp,
     valid_entry,
 )
 from pygpsclient.strings import (
     LBLACCURACY,
     LBLCONFIGBASE,
+    LBLDISNMEA,
     LBLDURATIONS,
     LBLSERVERHOST,
     LBLSERVERMODE,
@@ -66,18 +71,6 @@ from pygpsclient.strings import (
     LBLSOCKSERVE,
 )
 
-TMODE_DISABLED = 0
-TMODE_SVIN = 1
-TMODE_FIXED = 2
-ECEF = 0
-LLH = 1
-BASE_SVIN = "SURVEY IN"
-BASE_FIXED = "FIXED"
-BASE_DISABLED = "DISABLED"
-POS_LLH = "LLH"
-POS_ECEF = "ECEF"
-BASEMODES = (BASE_SVIN, BASE_DISABLED, BASE_FIXED)
-POSMODES = (POS_LLH, POS_ECEF)
 ACCURACIES = (
     10,
     5,
@@ -97,8 +90,20 @@ ACCURACIES = (
     30,
     20,
 )
+BASE_DISABLED = "DISABLED"
+BASE_FIXED = "FIXED"
+BASE_SVIN = "SURVEY IN"
+BASEMODES = (BASE_SVIN, BASE_DISABLED, BASE_FIXED)
 DURATIONS = (60, 1200, 600, 300, 240, 180, 120, 90)
+ECEF = 0
+LLH = 1
 MAXSVIN = 15
+POS_ECEF = "ECEF"
+POS_LLH = "LLH"
+POSMODES = (POS_LLH, POS_ECEF)
+TMODE_DISABLED = 0
+TMODE_FIXED = 2
+TMODE_SVIN = 1
 
 
 class ServerConfigFrame(Frame):
@@ -111,31 +116,39 @@ class ServerConfigFrame(Frame):
         Constructor.
 
         :param Frame app: reference to main tkinter application
-        :param tkinter.Frame container: reference to container frame
+        :param Frame container: reference to container frame
         :param args: optional args to pass to Frame parent class
         :param kwargs: optional kwargs for value ranges, or to pass to Frame parent class
         """
 
+        self._saved_config = kwargs.pop(SAVED_CONFIG, {})
         Frame.__init__(self, container, *args, **kwargs)
 
         self.__app = app
+        self._container = container
         self._show_advanced = False
         self._socket_serve = IntVar()
-        self.sock_port = StringVar()
+        self.sock_port = IntVar()
         self.sock_host = StringVar()
         self.sock_mode = StringVar()
         self._sock_clients = StringVar()
         self._set_basemode = IntVar()
-        self._base_mode = StringVar()
-        self._acclimit = IntVar()
-        self._duration = IntVar()
-        self._pos_mode = StringVar()
-        self._fixedlat = DoubleVar()
-        self._fixedlon = DoubleVar()
-        self._fixedalt = DoubleVar()
-        self._disable_nmea = IntVar()
+        self.base_mode = StringVar()
+        self.acclimit = IntVar()
+        self.duration = IntVar()
+        self.pos_mode = StringVar()
+        self.fixedlat = DoubleVar()
+        self.fixedlon = DoubleVar()
+        self.fixedalt = DoubleVar()
+        self.disable_nmea = IntVar()
+        self.user = StringVar()
+        self.password = StringVar()
         self._img_expand = ImageTk.PhotoImage(Image.open(ICON_EXPAND))
         self._img_contract = ImageTk.PhotoImage(Image.open(ICON_CONTRACT))
+        self._sock_port_temp = SOCKSERVER_PORT
+        self._fixed_lat_temp = 0
+        self._fixed_lon_temp = 0
+        self._fixed_alt_temp = 0
 
         self._body()
         self._do_layout()
@@ -199,6 +212,26 @@ class ServerConfigFrame(Frame):
             height=22,
         )
         self._frm_advanced = Frame(self)
+        self._lbl_user = Label(
+            self._frm_advanced,
+            text="User",
+        )
+        self._ent_user = Entry(
+            self._frm_advanced,
+            textvariable=self.user,
+            relief="sunken",
+            width=15,
+        )
+        self._lbl_password = Label(
+            self._frm_advanced,
+            text="Password",
+        )
+        self._ent_password = Entry(
+            self._frm_advanced,
+            textvariable=self.password,
+            relief="sunken",
+            width=15,
+        )
         self._chk_set_basemode = Checkbutton(
             self._frm_advanced,
             text=LBLCONFIGBASE,
@@ -210,7 +243,7 @@ class ServerConfigFrame(Frame):
             width=10,
             state=READONLY,
             wrap=True,
-            textvariable=self._base_mode,
+            textvariable=self.base_mode,
         )
         self._lbl_acclimit = Label(
             self._frm_advanced,
@@ -222,7 +255,7 @@ class ServerConfigFrame(Frame):
             width=5,
             state=READONLY,
             wrap=True,
-            textvariable=self._acclimit,
+            textvariable=self.acclimit,
         )
         self._lbl_duration = Label(
             self._frm_advanced,
@@ -230,8 +263,8 @@ class ServerConfigFrame(Frame):
         )
         self._chk_disablenmea = Checkbutton(
             self._frm_advanced,
-            text="Disable NMEA",
-            variable=self._disable_nmea,
+            text=LBLDISNMEA,
+            variable=self.disable_nmea,
         )
         self._spn_duration = Spinbox(
             self._frm_advanced,
@@ -239,7 +272,7 @@ class ServerConfigFrame(Frame):
             width=5,
             state=READONLY,
             wrap=True,
-            textvariable=self._duration,
+            textvariable=self.duration,
         )
         self._lbl_elapsed = Label(
             self._frm_advanced,
@@ -257,7 +290,7 @@ class ServerConfigFrame(Frame):
             width=6,
             state=READONLY,
             wrap=True,
-            textvariable=self._pos_mode,
+            textvariable=self.pos_mode,
         )
         self._lbl_fixedlat = Label(
             self._frm_advanced,
@@ -265,7 +298,7 @@ class ServerConfigFrame(Frame):
         )
         self._ent_fixedlat = Entry(
             self._frm_advanced,
-            textvariable=self._fixedlat,
+            textvariable=self.fixedlat,
             relief="sunken",
             width=18,
         )
@@ -275,7 +308,7 @@ class ServerConfigFrame(Frame):
         )
         self._ent_fixedlon = Entry(
             self._frm_advanced,
-            textvariable=self._fixedlon,
+            textvariable=self.fixedlon,
             relief="sunken",
             width=18,
         )
@@ -285,7 +318,7 @@ class ServerConfigFrame(Frame):
         )
         self._ent_fixedalt = Entry(
             self._frm_advanced,
-            textvariable=self._fixedalt,
+            textvariable=self.fixedalt,
             relief="sunken",
             width=18,
         )
@@ -319,21 +352,52 @@ class ServerConfigFrame(Frame):
         Bind events to variables.
         """
 
+        self.bind("<Configure>", self._on_resize)
         tracemode = ("write", "unset")
         self._socket_serve.trace_add(tracemode, self._on_socket_serve)
         self.sock_mode.trace_add(tracemode, self._on_sockmode)
-        self._base_mode.trace_add(tracemode, self._on_basemode)
-        self._pos_mode.trace_add(tracemode, self._on_posmode)
+        self.base_mode.trace_add(tracemode, self._on_basemode)
+        self.pos_mode.trace_add(tracemode, self._on_posmode)
 
     def reset(self):
         """
         Reset settings to defaults.
         """
 
-        self._base_mode.set(BASE_SVIN)
-        self._pos_mode.set(POS_LLH)
-        self._disable_nmea.set(1)
+        self.base_mode.set(self._saved_config.get("ntripcasterbasemode_s", BASE_SVIN))
+        self.acclimit.set(
+            self._saved_config.get("ntripcasteracclimit_f", ACCURACIES[0])
+        )
+        self.duration.set(self._saved_config.get("ntripcasterduration_n", DURATIONS[0]))
+        self.pos_mode.set(self._saved_config.get("ntripcasterposmode_s", POS_LLH))
+        self.fixedlat.set(self._saved_config.get("ntripcasterfixedlat_f", 0))
+        self.fixedlon.set(self._saved_config.get("ntripcasterfixedlon_f", 0))
+        self.fixedalt.set(self._saved_config.get("ntripcasterfixedalt_f", 0))
+        self.disable_nmea.set(self._saved_config.get("ntripcasterdisablenmea_b", 1))
+        self.sock_host.set(self._saved_config.get("sockhost_s", "0.0.0.0"))
+        self.sock_port.set(self._saved_config.get("sockport_n", SOCKSERVER_PORT))
+        self.fixedlat.set(self._saved_config.get("ntripcasterfixedlat_f", 0))
+        self.fixedlon.set(self._saved_config.get("ntripcasterfixedlon_f", 0))
+        self.fixedalt.set(self._saved_config.get("ntripcasterfixedalt_f", 0))
+        self.user.set(
+            self._saved_config.get(
+                "ntripcasteruser_s",
+                self._saved_config.get("ntripcasteruser", self.__app.ntripcaster_user),
+            )
+        )
+        self.password.set(
+            self._saved_config.get(
+                "ntripcasterpassword_s",
+                self._saved_config.get(
+                    "ntripcasterpassword", self.__app.ntripcaster_password
+                ),
+            )
+        )
         self.clients = 0
+        self._sock_port_temp = self.sock_port.get()
+        self._fixed_lat_temp = self.fixedlat.get()
+        self._fixed_lon_temp = self.fixedlon.get()
+        self._fixed_alt_temp = self.fixedalt.get()
 
     def set_status(self, status: int):
         """
@@ -373,6 +437,10 @@ class ServerConfigFrame(Frame):
             # start server
             self.__app.start_sockserver_thread()
             self.__app.stream_handler.sock_serve = True
+            self._sock_port_temp = self.sock_port.get()
+            self._fixed_lat_temp = self.fixedlat.get()
+            self._fixed_lon_temp = self.fixedlon.get()
+            self._fixed_alt_temp = self.fixedalt.get()
         else:  # stop server
             self.__app.stop_sockserver_thread()
             self.__app.stream_handler.sock_serve = False
@@ -397,6 +465,10 @@ class ServerConfigFrame(Frame):
             self._ent_fixedlon,
             self._lbl_fixedalt,
             self._ent_fixedalt,
+            self._lbl_user,
+            self._ent_user,
+            self._lbl_password,
+            self._ent_password,
         ):
             if self._socket_serve.get():
                 state = DISABLED
@@ -439,7 +511,7 @@ class ServerConfigFrame(Frame):
 
     def _on_sockmode(self, var, index, mode):
         """
-        Action when sock_mode variable is updated.
+        Action when sock_mode variable is updated (SOCKET SERVER/NTRIP CASTER).
         Set default port and expand button depending on socket server mode.
         """
 
@@ -448,18 +520,18 @@ class ServerConfigFrame(Frame):
             self._btn_toggle.grid(column=4, row=0, sticky=E)
             self._show_advanced = True
         else:
-            self.sock_port.set(SOCKSERVER_PORT)
+            self.sock_port.set(self._sock_port_temp)
             self._btn_toggle.grid_forget()
             self._show_advanced = False
         self._set_advanced()
 
     def _on_basemode(self, var, index, mode):
         """
-        Action when base_mode is updated.
+        Action when base_mode is updated (SVIN/FIXED).
         Set field visibility depending on base mode.
         """
 
-        if self._base_mode.get() == BASE_SVIN:
+        if self.base_mode.get() == BASE_SVIN:
             self._lbl_acclimit.grid(column=0, row=1, padx=2, pady=1, sticky=E)
             self._spn_acclimit.grid(column=1, row=1, padx=2, pady=1, sticky=W)
             self._chk_disablenmea.grid(column=2, row=1, padx=2, pady=1, sticky=W)
@@ -467,6 +539,12 @@ class ServerConfigFrame(Frame):
             self._spn_duration.grid(column=1, row=2, padx=2, pady=1, sticky=W)
             self._lbl_elapsed.grid(
                 column=2, row=2, columnspan=2, padx=2, pady=1, sticky=W
+            )
+            self._lbl_user.grid(column=0, row=3, padx=2, pady=1, sticky=E)
+            self._ent_user.grid(column=1, row=3, columnspan=2, padx=2, pady=1, sticky=W)
+            self._lbl_password.grid(column=0, row=4, padx=2, pady=1, sticky=E)
+            self._ent_password.grid(
+                column=1, row=4, columnspan=2, padx=2, pady=1, sticky=W
             )
             self._pgb_elapsed.grid_forget()
             self._spn_posmode.grid_forget()
@@ -476,7 +554,7 @@ class ServerConfigFrame(Frame):
             self._ent_fixedlon.grid_forget()
             self._lbl_fixedalt.grid_forget()
             self._ent_fixedalt.grid_forget()
-        elif self._base_mode.get() == BASE_FIXED:
+        elif self.base_mode.get() == BASE_FIXED:
             self._lbl_acclimit.grid(column=0, row=1, padx=2, pady=1, sticky=E)
             self._spn_acclimit.grid(column=1, row=1, padx=2, pady=1, sticky=W)
             self._chk_disablenmea.grid(column=2, row=1, padx=2, pady=1, sticky=W)
@@ -493,11 +571,17 @@ class ServerConfigFrame(Frame):
             self._ent_fixedalt.grid(
                 column=2, row=4, columnspan=3, padx=2, pady=1, sticky=W
             )
+            self._lbl_user.grid(column=0, row=5, padx=2, pady=1, sticky=E)
+            self._ent_user.grid(column=1, row=5, columnspan=2, padx=2, pady=1, sticky=W)
+            self._lbl_password.grid(column=0, row=6, padx=2, pady=1, sticky=E)
+            self._ent_password.grid(
+                column=1, row=6, columnspan=2, padx=2, pady=1, sticky=W
+            )
             self._lbl_duration.grid_forget()
             self._spn_duration.grid_forget()
             self._pgb_elapsed.grid_forget()
             self._lbl_elapsed.grid_forget()
-            self._set_coords(self._pos_mode.get())
+            self._set_coords(self.pos_mode.get())
         else:  # Disabled
             self._chk_disablenmea.grid(column=0, row=1, padx=2, pady=1, sticky=W)
             self._lbl_acclimit.grid_forget()
@@ -513,39 +597,50 @@ class ServerConfigFrame(Frame):
             self._spn_duration.grid_forget()
             self._pgb_elapsed.grid_forget()
             self._lbl_elapsed.grid_forget()
+            self._lbl_user.grid_forget()
+            self._ent_user.grid_forget()
+            self._lbl_password.grid_forget()
+            self._ent_password.grid_forget()
 
     def _on_posmode(self, var, index, mode):
         """
-        Action when pos_mode variable is updated.
+        Action when pos_mode variable is updated (LLH/ECEF).
         Set fixed reference labels depending on position mode (ECEF or LLH)
         """
 
         lbls = (
             ("Lat", "Lon", "Height (m)")
-            if self._pos_mode.get() == POS_LLH
+            if self.pos_mode.get() == POS_LLH
             else ("X (m)", "Y (m)", "Z (m)")
         )
         self._lbl_fixedlat.config(text=lbls[0])
         self._lbl_fixedlon.config(text=lbls[1])
         self._lbl_fixedalt.config(text=lbls[2])
-        self._set_coords(self._pos_mode.get())
+        self._set_coords(self.pos_mode.get())
 
     def _set_coords(self, posmode: str):
         """
-        Set current coordinates in LLH or ECEF format.
+        Set current coordinates in LLH or ECEF format from either:
+        - values provided in configuration file or, if blank/zero,
+        - current receiver position
 
         :param str posmode: position mode (LLH or ECEF)
         """
 
-        _, lat, lon, alt, _ = self.__app.get_coordinates()
+        lat = self._fixed_lat_temp
+        lon = self._fixed_lon_temp
+        alt = self._fixed_alt_temp
+        if lat in ("", "0", 0) and lon in ("", "0", 0) and alt in ("", "0", 0):
+            _, lat, lon, alt, _ = self.__app.get_coordinates()  # live position
+
         try:
             if posmode == POS_ECEF:
                 lat, lon, alt = llh2ecef(lat, lon, alt)
-        except TypeError:  # e.g. no NMEA fix
+        except TypeError:  # e.g. no fix
             lat = lon = alt = 0.0
-        self._fixedlat.set(lat)
-        self._fixedlon.set(lon)
-        self._fixedalt.set(alt)
+        self.fixedlat.set(lat)
+        self.fixedlon.set(lon)
+        self.fixedalt.set(alt)
 
     @property
     def clients(self) -> int:
@@ -564,7 +659,7 @@ class ServerConfigFrame(Frame):
         """
 
         self._sock_clients.set(clients)
-        if self._socket_serve.get() == 1:
+        if self._socket_serve.get() in ("1", 1):
             self.__app.frm_banner.update_transmit_status(clients)
 
     def _config_rcvr(self):
@@ -573,25 +668,25 @@ class ServerConfigFrame(Frame):
         """
 
         # set base station timing mode
-        if self._base_mode.get() == BASE_SVIN:
-            msg = self._config_svin(self._acclimit.get(), self._duration.get())
-        elif self._base_mode.get() == BASE_FIXED:
+        if self.base_mode.get() == BASE_SVIN:
+            msg = self._config_svin(self.acclimit.get(), self.duration.get())
+        elif self.base_mode.get() == BASE_FIXED:
             msg = self._config_fixed(
-                self._acclimit.get(),
-                self._fixedlat.get(),
-                self._fixedlon.get(),
-                self._fixedalt.get(),
+                self.acclimit.get(),
+                self.fixedlat.get(),
+                self.fixedlon.get(),
+                self.fixedalt.get(),
             )
         else:  # DISABLED
             msg = self._config_disable()
         self.__app.gnss_outqueue.put(msg.serialize())
 
         # set RTCM and UBX NAV-SVIN message output rate
-        rate = 0 if self._base_mode.get() == BASE_DISABLED else 1
+        rate = 0 if self.base_mode.get() == BASE_DISABLED else 1
         for port in ("USB", "UART1"):
             msg = self._config_msg_rates(rate, port)
             self.__app.gnss_outqueue.put(msg.serialize())
-            msg = self._config_nmea(self._disable_nmea.get(), port)
+            msg = config_nmea(self.disable_nmea.get(), port)
             self.__app.gnss_outqueue.put(msg.serialize())
 
     def _config_msg_rates(self, rate: int, port_type: str) -> UBXMessage:
@@ -619,7 +714,7 @@ class ServerConfigFrame(Frame):
             cfg_data.append([cfg, rate])
 
         # NAV-SVIN only output in SURVEY-IN mode
-        rate = rate if self._base_mode.get() == BASE_SVIN else 0
+        rate = rate if self.base_mode.get() == BASE_SVIN else 0
         cfg = f"CFG_MSGOUT_UBX_NAV_SVIN_{port_type}"
         cfg_data.append([cfg, rate])
 
@@ -672,7 +767,7 @@ class ServerConfigFrame(Frame):
         layers = 1
         transaction = 0
         acc_limit = int(acc_limit * 100)  # convert to 0.1 mm
-        if self._pos_mode.get() == POS_LLH:
+        if self.pos_mode.get() == POS_LLH:
             lat_sp, lat_hp = val2sphp(lat, 1e-7)
             lon_sp, lon_hp = val2sphp(lon, 1e-7)
             height_sp, height_hp = val2sphp(height, 0.01)
@@ -705,25 +800,6 @@ class ServerConfigFrame(Frame):
 
         return UBXMessage.config_set(layers, transaction, cfg_data)
 
-    def _config_nmea(self, state: int, port_type: str) -> UBXMessage:
-        """
-        Disable NMEA messages at port level and use minimum UBX instead.
-
-        :param int state: 1 = disable NMEA, 0 = enable NMEA
-        :param str port_type: port that rcvr is connected on
-        """
-
-        nmea_state = 0 if state else 1
-        layers = 1
-        transaction = 0
-        cfg_data = []
-        cfg_data.append((f"CFG_{port_type}OUTPROT_NMEA", nmea_state))
-        cfg_data.append((f"CFG_{port_type}OUTPROT_UBX", 1))
-        cfg_data.append((f"CFG_MSGOUT_UBX_NAV_PVT_{port_type}", state))
-        cfg_data.append((f"CFG_MSGOUT_UBX_NAV_SAT_{port_type}", state * 4))
-
-        return UBXMessage.config_set(layers, transaction, cfg_data)
-
     def svin_countdown(self, ela: int, valid: bool, active: bool):
         """
         Display countdown of remaining survey-in duration.
@@ -733,14 +809,14 @@ class ServerConfigFrame(Frame):
         :param bool active: SVIN active status
         """
 
-        if self._base_mode.get() == BASE_SVIN and active and not valid:
+        if self.base_mode.get() == BASE_SVIN and active and not valid:
             self._lbl_elapsed.grid_forget()
             self._pgb_elapsed.grid(
                 column=2, row=2, columnspan=2, padx=2, pady=1, sticky=W
             )
-            dur = self._duration.get()
+            dur = self.duration.get()
             self._pgb_elapsed["value"] = 100 * (dur - ela) / dur
-        elif self._base_mode.get() == BASE_SVIN and valid:
+        elif self.base_mode.get() == BASE_SVIN and valid:
             self._pgb_elapsed.grid_forget()
             self._lbl_elapsed.grid(
                 column=2, row=2, columnspan=2, padx=2, pady=1, sticky=W
@@ -770,3 +846,12 @@ class ServerConfigFrame(Frame):
         """
 
         return self._socket_serve.set(state)
+
+    def _on_resize(self, event):  # pylint: disable=unused-argument
+        """
+        Resize frame.
+
+        :param event event: resize event
+        """
+
+        self.__app.frm_settings.on_expand()

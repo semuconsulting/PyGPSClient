@@ -1,4 +1,6 @@
 """
+about_dialog.py
+
 About Dialog Box class for PyGPSClient application.
 
 Created on 20 Sep 2020
@@ -41,7 +43,7 @@ class AboutDialog:
     About dialog box class
     """
 
-    def __init__(self, app):
+    def __init__(self, app, **kwargs):
         """
         Initialise Toplevel dialog
 

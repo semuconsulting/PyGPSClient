@@ -5,7 +5,7 @@ Generic socket configuration Frame subclass
 for use in tkinter applications which require a
 socket configuration facility.
 
-Exposes the socket settings as properties.
+Supply initial settings via `saved-config` keyword argument.
 
 Application icons from https://iconmonstr.com/license/.
 
@@ -23,6 +23,7 @@ from tkinter import (
     E,
     Entry,
     Frame,
+    IntVar,
     Label,
     Spinbox,
     StringVar,
@@ -31,14 +32,25 @@ from tkinter import (
 
 from PIL import Image, ImageTk
 
-from pygpsclient.globals import DEFAULT_PORT, DEFAULT_SERVER, ICON_CONTRACT, ICON_EXPAND
+from pygpsclient.globals import (
+    DEFAULT_PORT,
+    DEFAULT_SERVER,
+    ICON_CONTRACT,
+    ICON_EXPAND,
+    SAVED_CONFIG,
+)
+from pygpsclient.helpers import MAXPORT, VALINT, VALURL, valid_entry
 
 ADVOFF = "\u25bc"
 ADVON = "\u25b2"
-READONLY = "readonly"
-DISCONNECTED = 0
 CONNECTED = 1
-PROTOCOLS = ["TCP IPv4", "UDP IPv6", "UDP IPv4", "TCP IPv6"]
+DISCONNECTED = 0
+READONLY = "readonly"
+TCPIPV4 = "TCP IPv4"
+TCPIPV6 = "TCP IPv6"
+UDPIPV4 = "UDP IPv4"
+UDPIPV6 = "UDP IPv6"
+PROTOCOLS = [TCPIPV4, UDPIPV6, UDPIPV4, TCPIPV6]
 
 
 class SocketConfigFrame(Frame):
@@ -46,7 +58,7 @@ class SocketConfigFrame(Frame):
     Socket configuration frame class.
     """
 
-    def __init__(self, container, *args, **kwargs):
+    def __init__(self, app, container, *args, **kwargs):
         """
         Constructor.
 
@@ -55,20 +67,25 @@ class SocketConfigFrame(Frame):
         :param kwargs: optional kwargs for value ranges, or to pass to Frame parent class
         """
 
+        self._saved_config = kwargs.pop(SAVED_CONFIG, {})
         Frame.__init__(self, container, *args, **kwargs)
 
+        self.__app = app
+        self._container = container
         self._show_advanced = False
-        self._status = DISCONNECTED
-        self._server = StringVar()
-        self._port = StringVar()
-        self._protocol = StringVar()
-        self._flowinfo = StringVar()
-        self._scopeid = StringVar()
+        self.status = DISCONNECTED
+        self.server = StringVar()
+        self.port = IntVar()
+        self.protocol = StringVar()
+        self.flowinfo = IntVar()
+        self.scopeid = IntVar()
+        self._protocol_range = self._saved_config.get("protocols_l", PROTOCOLS)
         self._img_expand = ImageTk.PhotoImage(Image.open(ICON_EXPAND))
         self._img_contract = ImageTk.PhotoImage(Image.open(ICON_CONTRACT))
 
         self._body()
         self._do_layout()
+        self._attach_events()
         self.reset()
 
     def _body(self):
@@ -80,7 +97,7 @@ class SocketConfigFrame(Frame):
         self._lbl_server = Label(self._frm_basic, text="Server")
         self.ent_server = Entry(
             self._frm_basic,
-            textvariable=self._server,
+            textvariable=self.server,
             relief="sunken",
             width=32,
         )
@@ -88,15 +105,15 @@ class SocketConfigFrame(Frame):
         self._lbl_port = Label(self._frm_basic, text="Port")
         self.ent_port = Entry(
             self._frm_basic,
-            textvariable=self._port,
+            textvariable=self.port,
             relief="sunken",
             width=6,
         )
         self._lbl_protocol = Label(self._frm_basic, text="Protocol")
         self._spn_protocol = Spinbox(
             self._frm_basic,
-            textvariable=self._protocol,
-            values=PROTOCOLS,
+            textvariable=self.protocol,
+            values=self._protocol_range,
             width=12,
             state=READONLY,
             wrap=True,
@@ -113,7 +130,7 @@ class SocketConfigFrame(Frame):
         self._lbl_flowinfo = Label(self._frm_advanced, text="Flow Info")
         self.ent_flowinfo = Entry(
             self._frm_advanced,
-            textvariable=self._flowinfo,
+            textvariable=self.flowinfo,
             relief="sunken",
             width=6,
             state=DISABLED,
@@ -122,7 +139,7 @@ class SocketConfigFrame(Frame):
         self._lbl_scopeid = Label(self._frm_advanced, text="Scope ID")
         self.ent_scopeid = Entry(
             self._frm_advanced,
-            textvariable=self._scopeid,
+            textvariable=self.scopeid,
             relief="sunken",
             width=6,
             state=DISABLED,
@@ -149,16 +166,40 @@ class SocketConfigFrame(Frame):
         self._lbl_scopeid.grid(column=2, row=0, padx=2, pady=2, sticky=W)
         self.ent_scopeid.grid(column=3, row=0, padx=2, pady=2, sticky=W)
 
+    def _attach_events(self):
+        """
+        Bind events to variables.
+        """
+
+        self.bind("<Configure>", self._on_resize)
+
     def reset(self):
         """
         Reset settings to defaults (first value in range).
         """
 
-        self._server.set(DEFAULT_SERVER)
-        self._port.set(DEFAULT_PORT)
-        self._protocol.set(PROTOCOLS[0])
-        self._flowinfo.set(0)
-        self._scopeid.set(0)
+        self.server.set(self._saved_config.get("sockclienthost_s", DEFAULT_SERVER))
+        self.port.set(self._saved_config.get("sockclientport_n", DEFAULT_PORT))
+        self.protocol.set(
+            self._saved_config.get("sockclientprotocol_s", self._protocol_range[0])
+        )
+        self.flowinfo.set(self._saved_config.get("sockclientflowinfo_n", 0))
+        self.scopeid.set(self._saved_config.get("sockclientscopeid_n", 0))
+
+    def valid_settings(self) -> bool:
+        """
+        Validate settings.
+
+        :return: valid True/False
+        :rtype: bool
+        """
+
+        valid = True
+        valid = valid & valid_entry(self.ent_server, VALURL)
+        valid = valid & valid_entry(self.ent_port, VALINT, 0, MAXPORT)
+        valid = valid & valid_entry(self.ent_flowinfo, VALINT)
+        valid = valid & valid_entry(self.ent_scopeid, VALINT)
+        return valid
 
     def set_status(self, status: int = DISCONNECTED):
         """
@@ -168,19 +209,28 @@ class SocketConfigFrame(Frame):
         :param int status: status (0,1)
         """
 
-        self._status = status
+        self.status = status
         for widget in (
             self._lbl_server,
+            self.ent_server,
             self._lbl_port,
+            self.ent_port,
             self._lbl_protocol,
+        ):
+            widget.configure(state=(NORMAL if status == DISCONNECTED else DISABLED))
+        for widget in (
             self._lbl_flowinfo,
             self._lbl_scopeid,
-            self.ent_server,
-            self.ent_port,
             self.ent_flowinfo,
             self.ent_scopeid,
         ):
-            widget.configure(state=(NORMAL if status == DISCONNECTED else DISABLED))
+            widget.configure(
+                state=(
+                    NORMAL
+                    if (status == DISCONNECTED and self.protocol.get()[-4:]) == "IPv6"
+                    else DISABLED
+                )
+            )
         for widget in (self._spn_protocol,):
             widget.configure(state=(READONLY if status == DISCONNECTED else DISABLED))
 
@@ -196,11 +246,7 @@ class SocketConfigFrame(Frame):
             self.ent_scopeid,
         ):
             widget.configure(
-                state=(
-                    NORMAL
-                    if self._protocol.get() in ("TCP IPv6", "UDP IPv6")
-                    else DISABLED
-                )
+                state=(NORMAL if self.protocol.get()[-4:] == "IPv6" else DISABLED)
             )
 
     def _on_toggle_advanced(self):
@@ -216,77 +262,11 @@ class SocketConfigFrame(Frame):
             self._frm_advanced.grid_forget()
             self._btn_toggle.config(image=self._img_expand)
 
-    @property
-    def status(self) -> int:
+    def _on_resize(self, event):  # pylint: disable=unused-argument
         """
-        Getter for status flag: 0=DISCONNECTED, 1=CONNECTED
+        Resize frame.
 
-        :return: status flag (0,1)
-        :rtype: int
+        :param event event: resize event
         """
 
-        return self._status
-
-    @property
-    def server(self) -> str:
-        """
-        Getter for server.
-
-        :return: server address
-        :rtype: str
-        """
-
-        return self._server.get()
-
-    @property
-    def port(self) -> int:
-        """
-        Getter for port.
-
-        :return: selected port description
-        :rtype: int
-        """
-
-        try:
-            return int(self._port.get())
-        except ValueError:
-            return 0
-
-    @property
-    def flowinfo(self) -> int:
-        """
-        Getter for flowinfo.
-
-        :return: IPv6 flowinfo
-        :rtype: int
-        """
-
-        try:
-            return int(self._flowinfo.get())
-        except ValueError:
-            return 0
-
-    @property
-    def scopeid(self) -> int:
-        """
-        Getter for scopeid.
-
-        :return: IPv6 scopeid
-        :rtype: int
-        """
-
-        try:
-            return int(self._scopeid.get())
-        except ValueError:
-            return 0
-
-    @property
-    def protocol(self) -> str:
-        """
-        Getter for protocol.
-
-        :return: selected protocol
-        :rtype: str
-        """
-
-        return self._protocol.get()
+        self.__app.frm_settings.on_expand()

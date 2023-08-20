@@ -147,17 +147,17 @@ class StreamHandler:
 
             elif conntype == CONNECTED_SOCKET:
                 soc = settings["socket_settings"]
-                server = soc.server
-                port = soc.port
-                flowinfo = soc.flowinfo
-                scopeid = soc.scopeid
-                if soc.protocol[-4:] == "IPv6":
+                server = soc.server.get()
+                port = int(soc.port.get())
+                flowinfo = int(soc.flowinfo.get())
+                scopeid = int(soc.scopeid.get())
+                if soc.protocol.get()[-4:] == "IPv6":
                     afam = socket.AF_INET6
                     conn = (server, port, flowinfo, scopeid)
                 else:  # IPv4
                     afam = socket.AF_INET
                     conn = (server, port)
-                if soc.protocol[:3] == "UDP":
+                if soc.protocol.get()[:3] == "UDP":
                     socktype = socket.SOCK_DGRAM
                 else:  # TCP
                     socktype = socket.SOCK_STREAM

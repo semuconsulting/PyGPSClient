@@ -1,5 +1,7 @@
 """
-UBX Configuration frame for CFG-VAL commands
+ubx_cfgval_frame.py
+
+UBX Configuration frame for CFG-VAL commands.
 
 Created on 22 Dec 2020
 

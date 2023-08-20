@@ -3,18 +3,31 @@ app.py
 
 PyGPSClient - Main tkinter application class.
 
+- Loads configuration from json file (if available)
+- Instantiates all frames, widgets, and protocol handlers.
+- Starts and stops threaded dialog and protocol handler processes.
+- Maintains current serial and RTK connection status.
+- Reacts to various message events, processes navigation data
+  placed on input message queue by serial, socket or file stream reader
+  and assigns to appropriate NMEA, UBX or RTCM protocol handler.
+- Maintains central dictionary of current key navigation data as
+  `gnss_status`, for use by user-selectable widgets.
+
 Created on 12 Sep 2020
 
 :author: semuadmin
 :copyright: SEMU Consulting © 2020
 :license: BSD 3-Clause
 """
+# pylint: disable=too-many-ancestors, no-member
 
 from datetime import datetime, timedelta
-from os import getenv
+from os import getenv, path
+from pathlib import Path
 from queue import Empty, Queue
+from socket import AF_INET, AF_INET6
 from threading import Thread
-from tkinter import E, Frame, N, PhotoImage, S, Tk, Toplevel, W, font
+from tkinter import E, Frame, N, PhotoImage, S, TclError, Tk, Toplevel, W, font
 
 from pygnssutils import GNSSMQTTClient, GNSSNTRIPClient
 from pygnssutils.socket_server import ClientHandler, SocketServer
@@ -22,23 +35,19 @@ from pyubx2 import NMEA_PROTOCOL, RTCM3_PROTOCOL, UBX_PROTOCOL, protocol
 from serial import SerialException, SerialTimeoutException
 
 from pygpsclient._version import __version__ as VERSION
-from pygpsclient.about_dialog import AboutDialog
-from pygpsclient.banner_frame import BannerFrame
-from pygpsclient.console_frame import ConsoleFrame
+from pygpsclient.dialog_state import dialog_state
 from pygpsclient.file_handler import FileHandler
 from pygpsclient.globals import (
     BADCOL,
+    CFG,
     CHECK_FOR_UPDATES,
+    CLASS,
     CONFIGFILE,
     CONNECTED,
     DISCONNECTED,
     DLG,
-    DLGTABOUT,
-    DLGTGPX,
     DLGTNTRIP,
-    DLGTSPARTN,
-    DLGTUBX,
-    FRM,
+    FRAME,
     GNSS_EOF_EVENT,
     GNSS_ERR_EVENT,
     GNSS_EVENT,
@@ -49,57 +58,53 @@ from pygpsclient.globals import (
     OKCOL,
     SOCKSERVER_MAX_CLIENTS,
     SPARTN_EVENT,
+    SPARTN_OUTPORT,
+    SPARTN_PPSERVER,
     THD,
 )
 from pygpsclient.gnss_status import GNSSStatus
-from pygpsclient.gpx_dialog import GPXViewerDialog
-from pygpsclient.graphview_frame import GraphviewFrame
 from pygpsclient.helpers import check_latest
-from pygpsclient.map_frame import MapviewFrame
-from pygpsclient.mapquest import MAP_UPDATE_INTERVAL
 from pygpsclient.menu_bar import MenuBar
 from pygpsclient.nmea_handler import NMEAHandler
-from pygpsclient.ntrip_client_dialog import NTRIPConfigDialog
 from pygpsclient.rtcm3_handler import RTCM3Handler
-from pygpsclient.scatter_frame import ScatterViewFrame
-from pygpsclient.settings_frame import SettingsFrame
-from pygpsclient.skyview_frame import SkyviewFrame
-from pygpsclient.spartn_dialog import SPARTNConfigDialog
-from pygpsclient.spectrum_frame import SpectrumviewFrame
-from pygpsclient.status_frame import StatusFrame
 from pygpsclient.stream_handler import StreamHandler
 from pygpsclient.strings import (
     CONFIGERR,
+    DLGSTOPRTK,
     ENDOFFILE,
     INTROTXTNOPORTS,
     LOADCONFIGBAD,
+    LOADCONFIGNONE,
     LOADCONFIGOK,
     NOTCONN,
+    NOWDGSWARN,
     SAVECONFIGBAD,
     SAVECONFIGOK,
     TITLE,
     VERCHECK,
 )
-from pygpsclient.sysmon_frame import SysmonFrame
-from pygpsclient.ubx_config_dialog import UBXConfigDialog
 from pygpsclient.ubx_handler import UBXHandler
-from pygpsclient.widgets import (
+from pygpsclient.widget_state import (
+    COLSPAN,
+    DEFAULT,
     HIDE,
     MAXCOLSPAN,
     MAXROWSPAN,
+    MENU,
+    ROWSPAN,
     SHOW,
+    STICKY,
+    VISIBLE,
     WDGBANNER,
     WDGSETTINGS,
     WDGSPECTRUM,
     WDGSTATUS,
     WDGSYSMON,
-    widget_grid,
+    widget_state,
 )
 
-SPARTN_PROTOCOL = 9
 
-
-class App(Frame):  # pylint: disable=too-many-ancestors
+class App(Frame):
     """
     Main PyGPSClient GUI Application Class.
     """
@@ -117,15 +122,20 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         # user-defined serial port can be passed as environment variable
         # or command line keyword argument
-        configfile = kwargs.pop("config", CONFIGFILE)
-        self._user_port = kwargs.pop("userport", getenv("PYGPSCLIENT_USERPORT", ""))
-        self._spartn_user_port = kwargs.pop(
+        self._configfile = kwargs.pop("config", CONFIGFILE)
+        self.user_port = kwargs.pop("userport", getenv("PYGPSCLIENT_USERPORT", ""))
+        self.spartn_user_port = kwargs.pop(
             "spartnport", getenv("PYGPSCLIENT_SPARTNPORT", "")
         )
-        self._mqapikey = kwargs.pop("mqapikey", getenv("MQAPIKEY", ""))
-        self._mqttclientid = kwargs.pop("mqttclientid", getenv("MQTTCLIENTID", ""))
-        self._ntrip_user = kwargs.pop("ntripuser", getenv("PYGPSCLIENT_USER", "anon"))
-        self._ntrip_password = kwargs.pop(
+        self.mqapikey = kwargs.pop("mqapikey", getenv("MQAPIKEY", ""))
+        self.mqttclientid = kwargs.pop("mqttclientid", getenv("MQTTCLIENTID", ""))
+        self.mqttclientregion = kwargs.pop(
+            "mqttclientregion", getenv("MQTTCLIENTREGION", "eu")
+        )
+        self.ntripcaster_user = kwargs.pop(
+            "ntripuser", getenv("PYGPSCLIENT_USER", "anon")
+        )
+        self.ntripcaster_password = kwargs.pop(
             "ntrippassword", getenv("PYGPSCLIENT_USER", "password")
         )
 
@@ -136,8 +146,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.__master.iconphoto(True, PhotoImage(file=ICON_APP))
         self.gnss_status = GNSSStatus()  # holds latest GNSS readings
         self._last_gui_update = datetime.now()
-        # dict containing widget grid positions
-        self._widget_grid = widget_grid
+        self._nowidgets = True
 
         # Instantiate protocol handler classes
         self.gnss_inqueue = Queue()  # messages from GNSS receiver
@@ -155,12 +164,9 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.rtcm_handler = RTCM3Handler(self)
         self.ntrip_handler = GNSSNTRIPClient(self, verbosity=0)
         self.spartn_handler = GNSSMQTTClient(self, verbosity=0)
-        self.dlg_threads = {}
-        self.config = {}
-        self._default_port = "USB"
+        self.saved_config = {}
         self._conn_status = DISCONNECTED
         self._rtk_conn_status = DISCONNECTED
-        self._map_update_interval = MAP_UPDATE_INTERVAL
         self._socket_thread = None
         self._socket_server = None
         self._colcount = 0
@@ -169,35 +175,43 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         # Load configuration from file if it exists
         self._colortags = []
         self._ubxpresets = []
-        config_loaded = False
-        _, self.config = self.file_handler.load_config(configfile)
-        if isinstance(self.config, dict):  # load succeeded
-            config_loaded = True
-            self.app_config = self.config
+        (_, config, configerr) = self.file_handler.load_config(self._configfile)
+        if configerr == "":  # load succeeded
+            self.saved_config = config
+            # update configs needed to instantiate widgets and protocol handlers
+            self.update_widgets()
+        else:  # load failed - invalid json or attribute types
+            self.saved_config = {}
+
+        # update NTRIP and SPARTN client handlers with initial config
+        self.update_NTRIP_handler()
+        self.update_SPARTN_handler()
 
         self._body()
         self._do_layout()
-        self._init_dialogs()
         self._attach_events()
 
-        # Initialise settings once frm_settings has been instantiated
-        if config_loaded:
-            self.frm_settings.config = self.config
-            self.set_status(f"{LOADCONFIGOK} {configfile}", OKCOL)
-        else:
-            # self.config is str containing error msg
-            if "No such file or directory" in self.config:
-                self.set_status(f"Configuration file not found {configfile}")
+        # display config load status once status frame has been instantiated
+        if configerr == "":
+            if self._nowidgets:  # if all widgets have been disabled in config
+                self.set_status(NOWDGSWARN.format(self._configfile), BADCOL)
             else:
-                self.set_status(f"{LOADCONFIGBAD} {configfile} {self.config}")
-            self.config = {}
-        self.frm_satview.init_sats()
-        self.frm_graphview.init_graph()
-        self.frm_mapview.init_map()
-        self.frm_spectrumview.init_graph()
-        self.frm_scatterview.init_graph()
-        self.frm_banner.update_conn_status(DISCONNECTED)
+                self.set_status(LOADCONFIGOK.format(self._configfile), OKCOL)
+        else:
+            if "No such file or directory" in configerr:
+                self.set_status(LOADCONFIGNONE.format(self._configfile), BADCOL)
+            else:
+                self.set_status(
+                    LOADCONFIGBAD.format(self._configfile, configerr), BADCOL
+                )
 
+        # initialise widgets
+        for value in widget_state.values():
+            frm = getattr(self, value[FRAME])
+            if hasattr(frm, "init_frame"):
+                frm.init_frame()
+
+        self.frm_banner.update_conn_status(DISCONNECTED)
         if self.frm_settings.frm_serial.status == NOPORTS:
             self.set_status(INTROTXTNOPORTS, BADCOL)
 
@@ -211,20 +225,14 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         self._set_default_fonts()
-
         self.menu = MenuBar(self)
-        self.frm_status = StatusFrame(self, borderwidth=2, relief="groove")
-        self.frm_banner = BannerFrame(self, borderwidth=2, relief="groove")
-        self.frm_settings = SettingsFrame(self, borderwidth=2, relief="groove")
-        self.frm_console = ConsoleFrame(self, borderwidth=2, relief="groove")
-        self.frm_mapview = MapviewFrame(self, borderwidth=2, relief="groove")
-        self.frm_satview = SkyviewFrame(self, borderwidth=2, relief="groove")
-        self.frm_graphview = GraphviewFrame(self, borderwidth=2, relief="groove")
-        self.frm_spectrumview = SpectrumviewFrame(self, borderwidth=2, relief="groove")
-        self.frm_scatterview = ScatterViewFrame(self, borderwidth=2, relief="groove")
-        self.frm_sysmon = SysmonFrame(self, borderwidth=2, relief="groove")
-
         self.__master.config(menu=self.menu)
+
+        # dynamically instantiate widgets defined in widgets_grid
+        for value in widget_state.values():
+            _ = setattr(
+                self, value[FRAME], value[CLASS](self, borderwidth=2, relief="groove")
+            )
 
     def _do_layout(self):
         """
@@ -234,7 +242,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         col = mcol = 0
         row = mrow = 1
-        for i, nam in enumerate(self._widget_grid):
+        for i, nam in enumerate(widget_state):
             if i > 2:  # only position dynamic widgets
                 col, row = self._grid_widget(nam, col, row)
             mcol = max(col, mcol)
@@ -264,44 +272,44 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         :rtype: tuple
         """
 
-        wdg = self._widget_grid[nam]
-        if wdg["visible"]:
-            colspan = wdg.get("colspan", colspan)
-            rowspan = wdg.get("rowspan", rowspan)
+        wdg = widget_state[nam]
+        if wdg[VISIBLE]:
+            colspan = wdg.get(COLSPAN, colspan)
+            rowspan = wdg.get(ROWSPAN, rowspan)
             if col >= MAXCOLSPAN and nam != WDGSETTINGS:
                 col = 0
                 row += rowspan
             # keep track of cumulative cols & rows
             ccol = wdg.get("col", col)
             crow = wdg.get("row", row)
-            getattr(self, wdg["frm"]).grid(
+            getattr(self, wdg[FRAME]).grid(
                 column=ccol,
                 row=crow,
                 columnspan=colspan,
                 rowspan=rowspan,
                 padx=2,
                 pady=2,
-                sticky=wdg.get("sticky", (N, S, W, E)),
+                sticky=wdg.get(STICKY, (N, S, W, E)),
             )
             col += colspan
             lbl = HIDE
         else:
-            getattr(self, wdg["frm"]).grid_forget()
+            getattr(self, wdg[FRAME]).grid_forget()
             lbl = SHOW
 
         # update menu label (show/hide)
-        if wdg["menu"] is not None:
-            self.menu.view_menu.entryconfig(wdg["menu"], label=f"{lbl} {nam}")
+        if wdg[MENU] is not None:
+            self.menu.view_menu.entryconfig(wdg[MENU], label=f"{lbl} {nam}")
 
         # force widget to rescale
-        getattr(self, wdg["frm"]).event_generate("<Configure>")
+        getattr(self, wdg[FRAME]).event_generate("<Configure>")
 
         if nam == WDGSPECTRUM:
             # enable MON-SPAN messages if spectrum widget is visible
-            self.frm_spectrumview.enable_MONSPAN(wdg["visible"])
+            self.frm_spectrumview.enable_MONSPAN(wdg[VISIBLE])
         elif nam == WDGSYSMON:
             # enable MON-SYS messages if sysmon widget is visible
-            self.frm_sysmon.enable_MONSYS(wdg["visible"])
+            self.frm_sysmon.enable_MONSYS(wdg[VISIBLE])
 
         return col, row
 
@@ -312,7 +320,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         :param str widget: widget name
         """
 
-        self._widget_grid[widget]["visible"] = not self._widget_grid[widget]["visible"]
+        widget_state[widget][VISIBLE] = not widget_state[widget][VISIBLE]
         self._do_layout()
 
     def reset_widgets(self):
@@ -320,8 +328,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         Reset widgets to default layout.
         """
 
-        for _, wdg in self._widget_grid.items():
-            wdg["visible"] = wdg["default"]
+        for _, wdg in widget_state.items():
+            wdg[VISIBLE] = wdg[DEFAULT]
         self._do_layout()
 
     def reset_gnssstatus(self):
@@ -330,20 +338,6 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         self.gnss_status = GNSSStatus()
-
-    def _init_dialogs(self):
-        """
-        Initialise dictionary of dialog statuses.
-        """
-
-        self.dlg_threads = {
-            DLGTABOUT: {FRM: AboutDialog, THD: None, DLG: None},
-            DLGTUBX: {FRM: UBXConfigDialog, THD: None, DLG: None},
-            DLGTNTRIP: {FRM: NTRIPConfigDialog, THD: None, DLG: None},
-            DLGTSPARTN: {FRM: SPARTNConfigDialog, THD: None, DLG: None},
-            DLGTGPX: {FRM: GPXViewerDialog, THD: None, DLG: None},
-            # add any new dialogs here
-        }
 
     def _attach_events(self):
         """
@@ -369,7 +363,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         self.font_md2 = font.Font(size=14)
         self.font_lg = font.Font(size=18)
 
-    def set_connection(self, message, color="green"):
+    def set_connection(self, message, color=OKCOL):
         """
         Sets connection description in status bar.
 
@@ -380,7 +374,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         self.frm_status.set_connection(message, color=color)
 
-    def set_status(self, message, color="green"):
+    def set_status(self, message, color=OKCOL):
         """
         Sets text of status bar.
 
@@ -405,35 +399,161 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         Load configuration file menu option.
         """
 
-        filename, self.config = self.file_handler.load_config(None)
-        if self.config is None:
-            return  # user cancelled
-        if isinstance(self.config, str):  # load failed
-            self.set_status(f"{LOADCONFIGBAD} {self.config}", BADCOL)
+        # Warn if Streaming, NTRIP or SPARTN clients are running
+        if self.conn_status == DISCONNECTED and self.rtk_conn_status == DISCONNECTED:
+            self.set_status("", OKCOL)
         else:
-            self.set_status(f"{LOADCONFIGOK} {filename}", OKCOL)
-            self.frm_settings.config = self.config
-            self.app_config = self.config
+            self.set_status(DLGSTOPRTK, BADCOL)
+            return
+
+        (filename, config, configerr) = self.file_handler.load_config(None)
+        if configerr == "":  # load succeeded
+            self.saved_config = config
+            self.update_widgets()
+            self.update_NTRIP_handler()
+            self.update_SPARTN_handler()
+            for frm in (
+                self.frm_settings,
+                self.frm_settings.frm_serial,
+                self.frm_settings.frm_socketclient,
+                self.frm_settings.frm_socketserver,
+            ):
+                frm.reset()
             self._do_layout()
+            if self._nowidgets:
+                self.set_status(NOWDGSWARN.format(filename), BADCOL)
+            else:
+                self.set_status(LOADCONFIGOK.format(filename), OKCOL)
+        elif configerr == "cancelled":  # user cancelled
+            return
+        else:  # config error
+            self.set_status(LOADCONFIGBAD.format(filename), BADCOL)
 
     def save_config(self):
         """
         Save configuration file menu option.
+
+        Configuration is held in two places:
+        - app.config - widget visibility and CLI parameters
+        - frm_settings.config - current frame and protocol handler config
         """
 
-        # combine the various config sections into one dict
-        self.config = {
+        self.saved_config = {
+            **self.widget_config,
             **self.frm_settings.config,
-            **self.app_config,
         }
-        rcd = self.file_handler.save_config(self.config, None)
-        if rcd is None:
-            return
-        if isinstance(rcd, str):  # save failed
-            self.set_status(f"{SAVECONFIGBAD} {self.config}", BADCOL)
-            self.config = None
-        else:
+        err = self.file_handler.save_config(self.saved_config, None)
+        if err == "":
             self.set_status(SAVECONFIGOK, OKCOL)
+        else:  # save failed
+            self.set_status(SAVECONFIGBAD.format(err), BADCOL)
+
+    def update_widgets(self):
+        """
+        Update widget configuration (widget_state).
+
+        If no widgets are set as "visible" in the config file, enable
+        the status widget anyway to display a warning to this effect.
+        """
+
+        try:
+            self._nowidgets = True
+            for key, vals in widget_state.items():
+                vis = self.saved_config.get(key, False)
+                vals[VISIBLE] = vis
+                if vis:
+                    self._nowidgets = False
+            if self._nowidgets:
+                widget_state["Status"][VISIBLE] = "true"
+        except KeyError as err:
+            self.set_status(f"{CONFIGERR} - {err}", BADCOL)
+
+    def update_NTRIP_handler(self):
+        """
+        Initial configuration of NTRIP handler (pygnssutils.GNSSNTRIPClient).
+        """
+
+        try:
+            ntripsettings = {}
+            ntripsettings["server"] = self.saved_config.get("ntripclientserver_s", "")
+            ntripsettings["port"] = self.saved_config.get("ntripclientport_n", 2101)
+            ntripsettings["ipprot"] = (
+                AF_INET6
+                if self.saved_config.get("ntripclientprotocol_s") == "IPv6"
+                else AF_INET
+            )
+            ntripsettings["flowinfo"] = self.saved_config.get(
+                "ntripclientflowinfo_n", 0
+            )
+            ntripsettings["scopeid"] = self.saved_config.get("ntripclientscopeid_n", 0)
+            ntripsettings["mountpoint"] = self.saved_config.get(
+                "ntripclientmountpoint_s", ""
+            )
+            ntripsettings["sourcetable"] = []  # this is generated by the NTRIP caster
+            ntripsettings["version"] = self.saved_config.get(
+                "ntripclientversion_s", "2.0"
+            )
+            ntripsettings["ntripuser"] = self.saved_config.get(
+                "ntripclientuser_s", "anon"
+            )
+            ntripsettings["ntrippassword"] = self.saved_config.get(
+                "ntripclientpassword_s", "password"
+            )
+            ntripsettings["ggainterval"] = self.saved_config.get(
+                "ntripclientggainterval_n", -1
+            )
+            ntripsettings["ggamode"] = self.saved_config.get(
+                "ntripclientggamode_b", 0
+            )  # GGALIVE
+            ntripsettings["reflat"] = self.saved_config.get("ntripclientreflat_f", 0.0)
+            ntripsettings["reflon"] = self.saved_config.get("ntripclientreflon_f", 0.0)
+            ntripsettings["refalt"] = self.saved_config.get("ntripclientrefalt_f", 0.0)
+            ntripsettings["refsep"] = self.saved_config.get("ntripclientrefsep_f", 0.0)
+            self.ntrip_handler.settings = ntripsettings
+
+        except (KeyError, ValueError, TypeError, TclError) as err:
+            self.set_status(f"Error processing config data: {err}", BADCOL)
+
+    def update_SPARTN_handler(self):
+        """
+        Initial configuration of SPARTN handler (pygnssutils.GNSSMQTTClient).
+        """
+
+        print(f"DEBUG app update SPARTN {self.mqttclientid}")
+        try:
+            spartnsettings = {}
+            spartnsettings["server"] = self.saved_config.get(
+                "mqttclientserver_s", SPARTN_PPSERVER
+            )
+            spartnsettings["port"] = self.saved_config.get(
+                "mqttclientport_n", SPARTN_OUTPORT
+            )
+            spartnsettings["clientid"] = self.saved_config.get(
+                "mqttclientid_s", self.mqttclientid
+            )
+            spartnsettings["region"] = self.saved_config.get(
+                "mgttclientregion_s", self.mqttclientregion
+            )
+            spartnsettings["topic_ip"] = self.saved_config.get("mgttclienttopicip_b", 1)
+            spartnsettings["topic_mga"] = self.saved_config.get(
+                "mgttclienttopicmga_b", 1
+            )
+            spartnsettings["topic_key"] = self.saved_config.get(
+                "mgttclienttopickey_b", 1
+            )
+            spartnsettings["tlscrt"] = self.saved_config.get(
+                "mgttclienttlscrt_s",
+                path.join(Path.home(), f"device-{self.mqttclientid}-pp-cert.crt"),
+            )
+            spartnsettings["tlskey"] = self.saved_config.get(
+                "mgttclienttlskey_s",
+                path.join(Path.home(), f"device-{self.mqttclientid}-pp-key.pem"),
+            )
+            spartnsettings["output"] = self.spartn_inqueue
+            self.spartn_handler.settings = spartnsettings
+
+        except (KeyError, ValueError, TypeError, TclError) as err:
+            self.set_status(f"Error processing config data: {err}", BADCOL)
 
     def start_dialog(self, dlg: str):
         """
@@ -442,11 +562,11 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         :param str dlg: name of dialog
         """
 
-        if self.dlg_threads[dlg][THD] is None:
-            self.dlg_threads[dlg][THD] = Thread(
+        if dialog_state[dlg][THD] is None:
+            dialog_state[dlg][THD] = Thread(
                 target=self._dialog_thread, args=(dlg,), daemon=False
             )
-            self.dlg_threads[dlg][THD].start()
+            dialog_state[dlg][THD].start()
 
     def _dialog_thread(self, dlg: str):
         """
@@ -457,8 +577,9 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         :param str dlg: name of dialog
         """
 
-        frm = self.dlg_threads[dlg][FRM]
-        self.dlg_threads[dlg][DLG] = frm(self)
+        config = self.saved_config if dialog_state[dlg][CFG] else {}
+        cls = dialog_state[dlg][CLASS]
+        dialog_state[dlg][DLG] = cls(self, saved_config=config)
 
     def stop_dialog(self, dlg: str):
         """
@@ -467,8 +588,8 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         :param str dlg: name of dialog
         """
 
-        self.dlg_threads[dlg][THD] = None
-        self.dlg_threads[dlg][DLG] = None
+        dialog_state[dlg][THD] = None
+        dialog_state[dlg][DLG] = None
 
     def dialog(self, dlg: str) -> Toplevel:
         """
@@ -479,7 +600,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         :rtype: Toplevel
         """
 
-        return self.dlg_threads[dlg][DLG]
+        return dialog_state[dlg][DLG]
 
     def start_sockserver_thread(self):
         """
@@ -487,11 +608,11 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         """
 
         settings = self.frm_settings.config
-        host = settings["sockhost"]
-        port = int(settings["sockport"])
-        ntripmode = settings["sockmode"]
-        ntripuser = self._ntrip_user
-        ntrippassword = self._ntrip_password
+        host = settings["sockhost_s"]
+        port = int(settings["sockport_n"])
+        ntripmode = int(settings["sockmode_b"])
+        ntripuser = settings["ntripcasteruser_s"]
+        ntrippassword = settings["ntripcasterpassword_s"]
         self._socket_thread = Thread(
             target=self._sockserver_thread,
             args=(
@@ -560,7 +681,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         :param int clients: no of connected clients
         """
 
-        self.frm_settings.frm_server.clients = clients
+        self.frm_settings.frm_socketserver.clients = clients
 
     def on_exit(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -586,7 +707,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             if raw_data is not None and parsed_data is not None:
                 self.process_data(raw_data, parsed_data)
             # if socket server is running, output raw data to socket
-            if self.frm_settings.frm_server.socketserving:
+            if self.frm_settings.frm_socketserver.socketserving:
                 self.socket_outqueue.put(raw_data)
             self.gnss_inqueue.task_done()
         except Empty:
@@ -600,7 +721,9 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         :param event event: <<gnss_eof>> event
         """
 
-        self.frm_settings.frm_server.socketserving = False  # turn off socket server
+        self.frm_settings.frm_socketserver.socketserving = (
+            False  # turn off socket server
+        )
         self.conn_status = DISCONNECTED
         self.set_status(ENDOFFILE)
 
@@ -696,7 +819,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
 
         settings = self.frm_settings.config
 
-        protfilter = settings["protocol"]
+        protfilter = settings["protocol_n"]
         msgprot = protocol(raw_data)
         if isinstance(parsed_data, str):  # error message rather than parsed data
             marker = "WARNING  "
@@ -710,7 +833,7 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             self.rtcm_handler.process_data(raw_data, parsed_data)
 
         # update console if visible
-        if self._widget_grid["Console"]["visible"]:
+        if widget_state["Console"][VISIBLE]:
             if msgprot == 0 or msgprot & protfilter:
                 self.frm_console.update_console(raw_data, parsed_data, marker)
 
@@ -719,18 +842,18 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             seconds=GUI_UPDATE_INTERVAL
         ):
             self.frm_banner.update_frame()
-            for _, widget in self._widget_grid.items():
+            for _, widget in widget_state.items():
                 frm = getattr(self, widget["frm"])
-                if hasattr(frm, "update_frame") and widget["visible"]:
+                if hasattr(frm, "update_frame") and widget[VISIBLE]:
                     frm.update_frame()
             self._last_gui_update = datetime.now()
 
         # update GPX track file if enabled
-        if settings["recordtrack"]:
+        if settings["recordtrack_b"]:
             self.file_handler.update_gpx_track()
 
         # update log file if enabled
-        if settings["datalog"]:
+        if settings["datalog_b"]:
             self.file_handler.write_logfile(raw_data, parsed_data)
 
     def _check_update(self):
@@ -743,64 +866,37 @@ class App(Frame):  # pylint: disable=too-many-ancestors
             self.set_status(VERCHECK.format(latest), BADCOL)
 
     @property
-    def app_config(self) -> dict:
+    def widget_config(self) -> dict:
         """
-        Getter for application and widget configuration.
+        Getter for widget configuration.
 
         :return: configuration
         :rtype: dict
         """
 
-        widg_config = {key: vals["visible"] for key, vals in self._widget_grid.items()}
-        app_config = {
-            "mapupdateinterval": self._map_update_interval,
-            "userport": self._user_port,
-            "spartnport": self._spartn_user_port,
-            "defaultport": self._default_port,
-            "mqapikey": self._mqapikey,
-            "mqttclientid": self._mqttclientid,
-            "ntripuser": self._ntrip_user,
-            "ntrippassword": self._ntrip_password,
-            "colortags": self._colortags,
-            "ubxpresets": self._ubxpresets,
-        }
-        return dict(widg_config, **app_config)
-
-    @app_config.setter
-    def app_config(self, config):
-        """
-        Setter for application and widget configuration.
-
-        :param dict config: configuration as dict
-        """
-
-        self._map_update_interval = config.get("mapupdateinterval", MAP_UPDATE_INTERVAL)
-        self._user_port = config.get("userport", self._user_port)
-        self._spartn_user_port = config.get("spartnport", self._spartn_user_port)
-        self._default_port = config.get("defaultport", self._default_port)
-        self._mqapikey = config.get("mqapikey", self._mqapikey)
-        self._mqttclientid = config.get("mqttclientid", self._mqttclientid)
-        self._ntrip_user = config.get("ntripuser", self._ntrip_user)
-        self._ntrip_password = config.get("ntrippassword", self._ntrip_password)
-        self._colortags = config.get("colortags", self._colortags)
-        self._ubxpresets = config.get("ubxpresets", self._ubxpresets)
-
-        try:
-            for key, vals in self._widget_grid.items():
-                vals["visible"] = config[key]
-        except KeyError as err:
-            self.set_status(f"{CONFIGERR} - {err}", BADCOL)
+        return {key: vals[VISIBLE] for key, vals in widget_state.items()}
 
     @property
     def widgets(self) -> dict:
         """
-        Getter for widget grid.
+        Getter for widget state.
 
-        :return: widget grid
+        :return: widget state
         :rtype: dict
         """
 
-        return self._widget_grid
+        return widget_state
+
+    @property
+    def dialogs(self) -> dict:
+        """
+        Getter for dialog state.
+
+        :return: dialog state
+        :rtype: dict
+        """
+
+        return dialog_state
 
     @property
     def appmaster(self) -> Tk:
@@ -869,5 +965,5 @@ class App(Frame):  # pylint: disable=too-many-ancestors
         :param bool active: active flag
         """
 
-        if self.frm_settings.frm_server is not None:
-            self.frm_settings.frm_server.svin_countdown(dur, valid, active)
+        if self.frm_settings.frm_socketserver is not None:
+            self.frm_settings.frm_socketserver.svin_countdown(dur, valid, active)

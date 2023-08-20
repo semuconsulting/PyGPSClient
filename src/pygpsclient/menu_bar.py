@@ -1,4 +1,6 @@
 """
+menu_bar.py
+
 Menubar class for PyGPSClient application.
 
 This handles the menu bar.
@@ -24,7 +26,7 @@ from pygpsclient.strings import (
     MENUSAVE,
     MENUVIEW,
 )
-from pygpsclient.widgets import widget_grid
+from pygpsclient.widget_state import MENU, widget_state
 
 DIALOGS = (DLGTUBX, DLGTNTRIP, DLGTSPARTN, DLGTGPX)
 
@@ -67,8 +69,8 @@ class MenuBar(Menu):
         # Create a pull-down menu for view operations
         # Menu labels are set in app._grid_widgets() function
         self.view_menu = Menu(self, tearoff=False)
-        for wdg, wdict in widget_grid.items():
-            if wdict["menu"] is not None:
+        for wdg, wdict in widget_state.items():
+            if wdict[MENU] is not None:
                 self.view_menu.add_command(
                     underline=1, command=lambda i=wdg: self.__app.toggle_widget(i)
                 )
