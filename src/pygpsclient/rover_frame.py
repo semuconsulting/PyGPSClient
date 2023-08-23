@@ -50,7 +50,7 @@ class RoverFrame(Frame):
         self.width = kwargs.get("width", def_w)
         self.height = kwargs.get("height", def_h)
         self.scale = 1
-        self.range = None
+        self.range = int(min(self.width / 2, self.height / 2)) - INSET
         self.points = []
         self.lbl_font = font.Font(size=10)
         self._body()
@@ -121,8 +121,8 @@ class RoverFrame(Frame):
 
         width, height = self.get_size()
         self.canvas.delete("all")
-        if self.range is None:
-            self.range = int(min(width / 2, height / 2) - INSET)
+        # if self.range is None:
+        #     self.range = int(min(width / 2, height / 2)) - INSET
 
         self.canvas.create_line(0, height / 2, width, height / 2, fill=FGCOL)
         self.canvas.create_line(width / 2, 0, width / 2, height, fill=FGCOL)
