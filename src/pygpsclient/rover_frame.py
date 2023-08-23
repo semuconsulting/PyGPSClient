@@ -211,11 +211,12 @@ class RoverFrame(Frame):
 
         self.init_frame()
 
+        # plot status information
         ls = self.lbl_font.metrics("linespace")
         self.canvas.create_text(
             ls,
             ls,
-            text=f"hdg: {hdg}\nlen: {dis} cm",
+            text=f"Hdg {hdg}\nLen {dis} cm",
             fill=FGCOL,
             anchor="nw",
             font=self.lbl_font,
