@@ -25,6 +25,7 @@ SQRT2 = 0.7071067811865476
 MAXPOINTS = 100
 PNTCOL = "orange"
 TRKCOL = "darkorange3"
+ACCCOL = "darkorange4"
 TRKTOL = 5
 
 
@@ -186,15 +187,18 @@ class RoverFrame(Frame):
         center_x = self.width / 2
         center_y = self.height / 2
         self.range = int(min(center_x, center_y) - INSET)
-        hdg, dis = (
+        hdg, dis, acchdg, accdis = (
             self.__app.gnss_status.rel_pos_heading,
             self.__app.gnss_status.rel_pos_length,
+            self.__app.gnss_status.acc_heading,
+            self.__app.gnss_status.acc_length,
         )
         if len(self.__app.gnss_status.rel_pos_flags) >= 5:
-            fixok, diffsoln, valrp, carrsoln, moving = (
+            fixok, diffsoln, valrp, valhdg, carrsoln, moving = (
                 self.__app.gnss_status.rel_pos_flags[0],
                 self.__app.gnss_status.rel_pos_flags[1],
                 self.__app.gnss_status.rel_pos_flags[2],
+                self.__app.gnss_status.rel_pos_flags[7],
                 self.__app.gnss_status.rel_pos_flags[3],
                 self.__app.gnss_status.rel_pos_flags[4],
             )
@@ -216,14 +220,23 @@ class RoverFrame(Frame):
         self.canvas.create_text(
             ls,
             ls,
-            text=f"Hdg {hdg}\nLen {dis} cm",
-            fill=FGCOL,
+            text=f"Len {dis:.2f} ± {accdis:.2f} cm",
+            fill=PNTCOL,
+            anchor="nw",
+            font=self.lbl_font,
+        )
+        self.canvas.create_text(
+            ls,
+            ls * 2,
+            text=f"Hdg {hdg:.2f} ± {acchdg:.2f}",
+            fill=PNTCOL,
             anchor="nw",
             font=self.lbl_font,
         )
         fixok = "FIX OK" if fixok else "NO FIX"
         diffsoln = "DGPS" if diffsoln else "NO DGPS"
         valrp = "VALID RP" if valrp else "INVALID RP"
+        valhdg = "VALID HDG" if valhdg else "INVALID HDG"
         try:
             carrsoln = ["NO RTK", "RTK FLOAT", "RTK FIXED"][carrsoln]
         except IndexError:
@@ -232,7 +245,7 @@ class RoverFrame(Frame):
         self.canvas.create_text(
             ls,
             self.height - ls,
-            text=f"{fixok}\n{diffsoln}\n{valrp}\n{carrsoln}\n{moving}",
+            text=f"{fixok}\n{diffsoln}\n{valrp}\n{valhdg}\n{carrsoln}\n{moving}",
             fill=PNTCOL,
             anchor="sw",
             font=self.lbl_font,
@@ -245,6 +258,7 @@ class RoverFrame(Frame):
 
         # plot latest relative position
         x, y = self.get_point(hdg, dis, center_x, center_y)
+        self.canvas.create_circle(x, y, accdis / self.scale, outline=ACCCOL)
         self.canvas.create_line(center_x, center_y, x, y, fill=PNTCOL, width=3)
         self.canvas.create_circle(x, y, 3, fill=PNTCOL, outline=PNTCOL)
 

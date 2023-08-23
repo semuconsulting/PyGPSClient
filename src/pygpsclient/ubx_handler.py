@@ -369,14 +369,23 @@ class UBXHandler:
             e = data.relPosE + data.relPosHPE * 1e-2
             d = data.relPosD + data.relPosHPD * 1e-2
             relPosLength, relPosHeading = ned2vector(n, e, d)
+            n = data.accN * 1e-2
+            e = data.accE * 1e-2
+            d = data.accD * 1e-2
+            accLength, _ = ned2vector(n, e, d)
+            accHeading = accLength * relPosHeading / relPosLength  # ballpark
         else:
-            relPosLength, relPosHeading = (
+            relPosLength, relPosHeading, accLength, accHeading = (
                 data.relPosLength + data.relPosHPLength * 1e-2,
                 data.relPosHeading,
+                data.accLength * 1e-2,
+                data.accHeading,
             )
 
         self.__app.gnss_status.rel_pos_heading = relPosHeading
         self.__app.gnss_status.rel_pos_length = relPosLength
+        self.__app.gnss_status.acc_heading = accHeading
+        self.__app.gnss_status.acc_length = accLength
         self.__app.gnss_status.rel_pos_flags = [
             data.gnssFixOK,
             data.diffSoln,
