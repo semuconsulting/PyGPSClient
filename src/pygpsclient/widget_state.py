@@ -25,6 +25,7 @@ from pygpsclient.console_frame import ConsoleFrame
 from pygpsclient.globals import CLASS, FRAME
 from pygpsclient.graphview_frame import GraphviewFrame
 from pygpsclient.map_frame import MapviewFrame
+from pygpsclient.rover_frame import RoverFrame
 from pygpsclient.scatter_frame import ScatterViewFrame
 from pygpsclient.settings_frame import SettingsFrame
 from pygpsclient.skyview_frame import SkyviewFrame
@@ -46,6 +47,7 @@ WDGBANNER = "Banner"
 WDGCONSOLE = "Console"
 WDGLEVELS = "Levels"
 WDGMAP = "Map"
+WDGROVER = "Rover"
 WDGSATS = "Satellites"
 WDGSCATTER = "Scatter Plot"
 WDGSETTINGS = "Settings"
@@ -128,6 +130,13 @@ widget_state = {
         DEFAULT: False,
         CLASS: ScatterViewFrame,
         FRAME: "frm_scatterview",
+        VISIBLE: False,
+    },
+    WDGROVER: {
+        MENU: 9,
+        DEFAULT: False,
+        CLASS: RoverFrame,
+        FRAME: "frm_roverview",
         VISIBLE: False,
     },
     # add any new widgets here

@@ -44,6 +44,9 @@ class GNSSStatus:
         self.diff_corr = 0  # DGPS correction status True/False
         self.diff_age = 0  # DGPS correction age seconds
         self.diff_station = "N/A"  # DGPS station id
+        self.rel_pos_heading = 0.0  # rover relative position heading
+        self.rel_pos_length = 0.0  # rover relative position distance
+        self.rel_pos_flags = []  # rover relative position flags
         self.gsv_data = []  # list of satellite tuples (gnssId, svid, elev, azim, cno)
         self.spectrum_data = []  # list of spectrum data (spec, spn, res, ctr, pga)
         self.sysmon_data = {}  # dict of system monitor data (cpu and memory load, etc.)

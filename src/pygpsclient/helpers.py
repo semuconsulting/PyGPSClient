@@ -15,7 +15,7 @@ Created on 17 Apr 2021
 
 import os
 from datetime import datetime, timedelta
-from math import cos, pi, sin, trunc
+from math import atan, cos, pi, sin, sqrt, trunc
 from platform import system
 from time import strftime
 from tkinter import Button, Entry, Label, Toplevel, W, font
@@ -898,3 +898,26 @@ def adjust_dimensions(dim: int) -> int:
     if system() == "Darwin":
         return int(dim * 0.9)
     return int(dim)
+
+
+def ned2vector(n: float, e: float, d: float) -> tuple:
+    """
+    Convert N,E,D relative position to 2D heading and distance.
+
+    :param float n: north coordinate
+    :param float e: east coordinate
+    :param float d: down coordinate
+    :return: tuple of distance, heading
+    :rtype: tuple
+    """
+
+    dis = sqrt(n**2 + e**2 + d**2)
+    if n == 0 or e == 0:
+        hdg = 0
+    else:
+        hdg = atan(e / n) * 180 / pi
+        if hdg > 0:
+            hdg += 180
+        else:
+            hdg += 360
+    return dis, hdg

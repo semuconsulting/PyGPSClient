@@ -132,6 +132,14 @@ pygpsclient.ntrip\_client\_dialog module
    :undoc-members:
    :show-inheritance:
 
+pygpsclient.rover\_frame module
+-------------------------------
+
+.. automodule:: pygpsclient.rover_frame
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pygpsclient.rtcm3\_handler module
 ---------------------------------
 

@@ -18,7 +18,7 @@ Created on 30 Sep 2020
 from pyubx2 import UBXMessage, itow2utc
 
 from pygpsclient.globals import DLGTSPARTN, DLGTUBX, GLONASS_NMEA
-from pygpsclient.helpers import corrage2int, fix2desc, svid2gnssid
+from pygpsclient.helpers import corrage2int, fix2desc, ned2vector, svid2gnssid
 from pygpsclient.widget_state import VISIBLE, WDGSPECTRUM, WDGSYSMON
 
 
@@ -65,6 +65,8 @@ class UBXHandler:
             self._process_NAV_PVT(parsed_data)
         elif parsed_data.identity == "NAV-PVAT":
             self._process_NAV_PVAT(parsed_data)
+        elif parsed_data.identity == "NAV-RELPOSNED":
+            self._process_NAV_RELPOSNED(parsed_data)
         elif parsed_data.identity == "NAV-VELNED":
             self._process_NAV_VELNED(parsed_data)
         elif parsed_data.identity in ("NAV-SAT", "NAV2-SAT"):
@@ -349,6 +351,43 @@ class UBXHandler:
         self.__app.gnss_status.pdop = data.pDOP
         self.__app.gnss_status.hdop = data.hDOP
         self.__app.gnss_status.vdop = data.vDOP
+
+    def _process_NAV_RELPOSNED(self, data: UBXMessage):
+        """
+        Process NAV-RELPOSNED sentence - Relative position of rover.
+
+        Two version of this message:
+        - version 0 has no heading or length attributes, so these
+          must be derived from the NED values
+        - version 1 has heading and length attributes
+
+        :param UBXMessage data: NAV-RELPOSNED parsed message
+        """
+
+        if data.version == 0x00:
+            n = data.relPosN + data.relPosHPN * 1e-2
+            e = data.relPosE + data.relPosHPE * 1e-2
+            d = data.relPosD + data.relPosHPD * 1e-2
+            relPosLength, relPosHeading = ned2vector(n, e, d)
+        else:
+            relPosLength, relPosHeading = (
+                data.relPosLength + data.relPosHPLength * 1e-2,
+                data.relPosHeading,
+            )
+
+        self.__app.gnss_status.rel_pos_heading = relPosHeading
+        self.__app.gnss_status.rel_pos_length = relPosLength
+        self.__app.gnss_status.rel_pos_flags = [
+            data.gnssFixOK,
+            data.diffSoln,
+            data.relPosValid,
+            data.carrSoln,
+            data.isMoving,
+            data.refPosMiss,
+            data.refObsMiss,
+            data.relPosHeadingValid,
+            data.relPosNormalized,
+        ]
 
     def _process_HNR_PVT(self, data: UBXMessage):
         """
