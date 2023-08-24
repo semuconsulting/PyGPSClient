@@ -125,6 +125,7 @@ warning ![warning icon](https://github.com/semuconsulting/PyGPSClient/blob/maste
 **Note:**
 * The UBX protocol does not support synchronous command acknowledgement or unique confirmation IDs. Asynchronous command and poll acknowledgements and responses can take several seconds at high message transmission rates, or be discarded altogether if the device's transmit buffer is full (*txbuff-alloc error*). To ensure timely responses, try increasing the baud rate and/or temporarily reducing transmitted message rates using the configuration commands provided.
 * A warning icon (typically accompanied by an ACK-NAK response) is usually an indication that one or more of the commands sent is not supported by your receiver.
+* For presets that invoke a CFG-MSG command to set message rates, the port(s) to which the rate applies can be set via the `defaultport_s` configuration setting, which supports a comma-separated list of ports e.g. "USB", "USB,UART1" or "USB,I2C".
 
 ---
 ## <a name="ntripconfig">NTRIP Client Facilities</a>

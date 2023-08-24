@@ -33,10 +33,11 @@ from pygpsclient.globals import (
     ICON_PENDING,
     ICON_SEND,
     ICON_WARNING,
+    RCVR_CONNECTION,
     SAVED_CONFIG,
     UBX_PRESET,
 )
-from pygpsclient.helpers import ConfirmBox, setubxrate
+from pygpsclient.helpers import ConfirmBox
 from pygpsclient.strings import (
     DLGRESET,
     DLGRESETCONFIRM,
@@ -364,10 +365,9 @@ class UBX_PRESET_Frame(Frame):
         :param int msgrate: message rate (i.e. every nth position solution)
         """
 
-        for msgtype, msgid in UBX_MSGIDS.items():
+        for msgtype in UBX_MSGIDS:
             if msgtype[0:1] == b"\x21":
-                msg = setubxrate(self.__app, msgid, msgrate)
-                self.__container.record_command(msg)
+                self._do_cfgmsg(msgtype, msgrate)
 
     def _do_set_mon(self, msgrate):
         """
@@ -376,10 +376,9 @@ class UBX_PRESET_Frame(Frame):
         :param int msgrate: message rate (i.e. every nth position solution)
         """
 
-        for msgtype, msgid in UBX_MSGIDS.items():
+        for msgtype in UBX_MSGIDS:
             if msgtype[0:1] == b"\x0A":
-                msg = setubxrate(self.__app, msgid, msgrate)
-                self.__container.record_command(msg)
+                self._do_cfgmsg(msgtype, msgrate)
 
     def _do_set_rxm(self, msgrate):
         """
@@ -388,47 +387,39 @@ class UBX_PRESET_Frame(Frame):
         :param int msgrate: message rate (i.e. every nth position solution)
         """
 
-        for msgtype, msgid in UBX_MSGIDS.items():
+        for msgtype in UBX_MSGIDS:
             if msgtype[0:1] == b"\x02":
-                msg = setubxrate(self.__app, msgid, msgrate)
-                self.__container.record_command(msg)
+                self._do_cfgmsg(msgtype, msgrate)
 
     def _do_set_minnmea(self):
         """
         Turn on minimum set of NMEA messages (GGA & GSA & GSV).
         """
 
-        for msgtype, msgid in UBX_MSGIDS.items():
+        for msgtype in UBX_MSGIDS:
             if msgtype[0:1] == b"\xf0":  # standard NMEA
-                if msgid in ("GGA", "GSA"):
-                    msg = setubxrate(self.__app, msgid, 1)
-                    self.__container.record_command(msg)
-                elif msgid == "GSV":
-                    msg = setubxrate(self.__app, msgid, 4)
-                    self.__container.record_command(msg)
+                if msgtype in (b"\xf0\x00", b"\xf0\x02"):  # GGA, GSA
+                    self._do_cfgmsg(msgtype, 1)
+                elif msgtype == b"\xf0\x03":  # GSV
+                    self._do_cfgmsg(msgtype, 4)
                 else:
-                    msg = setubxrate(self.__app, msgid, 0)
-                    self.__container.record_command(msg)
+                    self._do_cfgmsg(msgtype, 0)
             if msgtype[0:1] == b"\xf1":  # proprietary NMEA
-                msg = setubxrate(self.__app, msgid, 0)
-                self.__container.record_command(msg)
+                self._do_cfgmsg(msgtype, 0)
 
     def _do_set_minNAV(self):
         """
         Turn on minimum set of UBX-NAV messages (DOP, PVT, & SAT).
         """
 
-        for msgtype, msgid in UBX_MSGIDS.items():
+        for msgtype in UBX_MSGIDS:
             if msgtype[0:1] == b"\x01":  # UBX-NAV
-                if msgid == "NAV-PVT":
-                    msg = setubxrate(self.__app, msgid, 1)
-                    self.__container.record_command(msg)
-                elif msgid in ("NAV-DOP", "NAV-SAT"):
-                    msg = setubxrate(self.__app, msgid, 4)
-                    self.__container.record_command(msg)
+                if msgtype == b"\x01\x07":  # NAV-PVT
+                    self._do_cfgmsg(msgtype, 1)
+                elif msgtype in (b"\x01\x04", b"\x01\x35"):  # NAV-DOP, NAV-SAT
+                    self._do_cfgmsg(msgtype, 4)
                 else:
-                    msg = setubxrate(self.__app, msgid, 0)
-                    self.__container.record_command(msg)
+                    self._do_cfgmsg(msgtype, 0)
 
     def _do_set_allnmea(self, msgrate):
         """
@@ -437,10 +428,9 @@ class UBX_PRESET_Frame(Frame):
         :param int msgrate: message rate (i.e. every nth position solution)
         """
 
-        for msgtype, msgid in UBX_MSGIDS.items():
+        for msgtype in UBX_MSGIDS:
             if msgtype[0:1] in (b"\xf0", b"\xf1"):
-                msg = setubxrate(self.__app, msgid, msgrate)
-                self.__container.record_command(msg)
+                self._do_cfgmsg(msgtype, msgrate)
 
     def _do_set_allNAV(self, msgrate):
         """
@@ -449,10 +439,47 @@ class UBX_PRESET_Frame(Frame):
         :param int msgrate: message rate (i.e. every nth position solution)
         """
 
-        for msgtype, msgid in UBX_MSGIDS.items():
-            if msgtype[0:1] == b"\x01":  # NAV
-                msg = setubxrate(self.__app, msgid, msgrate)
-                self.__container.record_command(msg)
+        for msgtype in UBX_MSGIDS:
+            if msgtype[0:1] == b"\x01":
+                self._do_cfgmsg(msgtype, msgrate)
+
+    def _do_cfgmsg(self, msgtype: str, msgrate: int):
+        """
+        Set rate for specified message type via CFG-MSG.
+
+        The receiver ports to which the rate applies are defined
+        in the `defaultport_s` configuration setting.
+
+        :param str msgtype: type of config message
+        :param int msgrate: message rate (i.e. every nth position solution)
+        """
+
+        msgclass = int.from_bytes(msgtype[0:1], "little", signed=False)
+        msgid = int.from_bytes(msgtype[1:2], "little", signed=False)
+
+        # select which receiver ports to apply rate to
+        rates = {}
+        prts = self.__app.frm_settings.config.get(
+            "defaultport_s",
+            self.__app.frm_settings.config.get("defaultport", RCVR_CONNECTION),
+        ).split(",")
+        for prt in prts:
+            rates[prt] = msgrate
+
+        # create CFG-MSG command
+        msg = UBXMessage(
+            "CFG",
+            "CFG-MSG",
+            SET,
+            msgClass=msgclass,
+            msgID=msgid,
+            rateDDC=rates.get("I2C", 0),
+            rateUART1=rates.get("UART1", 0),
+            rateUART2=rates.get("UART2", 0),
+            rateUSB=rates.get("USB", 0),
+            rateSPI=rates.get("SPI", 0),
+        )
+        self.__container.send_command(msg)
 
     def _do_factory_reset(self) -> bool:
         """
