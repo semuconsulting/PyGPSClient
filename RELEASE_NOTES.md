@@ -6,6 +6,10 @@ ENHANCEMENTS:
 
 1. New Rover widget which plots the relative 2D position, track and status information for the roving receiver antenna in a fixed or moving base / rover RTK configuration. Double-click to clear existing plot. (*GNSS rover receiver must be capable of outputting UBX NAV-RELPOSNED messages.*)
 
+FIXES:
+
+1. Fix issue where some preset commands were not being recorded in the UBX recorder facility.
+
 ### RELEASE v1.4.1
 
 ENHANCEMENTS:

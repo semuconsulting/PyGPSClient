@@ -348,10 +348,16 @@ class UBXConfigDialog(Toplevel):
 
     def send_command(self, msg: UBXMessage):
         """
-        Send command to receiver and record to memory
-        if in 'record' mode.
+        Send command to receiver.
         """
 
         self.__app.gnss_outqueue.put(msg.serialize())
+        self.record_command(msg)
+
+    def record_command(self, msg: UBXMessage):
+        """
+        Record command to memory if in 'record' mode.
+        """
+
         if self.recordmode:
             self._frm_recorder.update_record(msg)

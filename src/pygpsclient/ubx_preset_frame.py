@@ -366,7 +366,8 @@ class UBX_PRESET_Frame(Frame):
 
         for msgtype, msgid in UBX_MSGIDS.items():
             if msgtype[0:1] == b"\x21":
-                setubxrate(self.__app, msgid, msgrate)
+                msg = setubxrate(self.__app, msgid, msgrate)
+                self.__container.record_command(msg)
 
     def _do_set_mon(self, msgrate):
         """
@@ -377,7 +378,8 @@ class UBX_PRESET_Frame(Frame):
 
         for msgtype, msgid in UBX_MSGIDS.items():
             if msgtype[0:1] == b"\x0A":
-                setubxrate(self.__app, msgid, msgrate)
+                msg = setubxrate(self.__app, msgid, msgrate)
+                self.__container.record_command(msg)
 
     def _do_set_rxm(self, msgrate):
         """
@@ -388,7 +390,8 @@ class UBX_PRESET_Frame(Frame):
 
         for msgtype, msgid in UBX_MSGIDS.items():
             if msgtype[0:1] == b"\x02":
-                setubxrate(self.__app, msgid, msgrate)
+                msg = setubxrate(self.__app, msgid, msgrate)
+                self.__container.record_command(msg)
 
     def _do_set_minnmea(self):
         """
@@ -398,13 +401,17 @@ class UBX_PRESET_Frame(Frame):
         for msgtype, msgid in UBX_MSGIDS.items():
             if msgtype[0:1] == b"\xf0":  # standard NMEA
                 if msgid in ("GGA", "GSA"):
-                    setubxrate(self.__app, msgid, 1)
+                    msg = setubxrate(self.__app, msgid, 1)
+                    self.__container.record_command(msg)
                 elif msgid == "GSV":
-                    setubxrate(self.__app, msgid, 4)
+                    msg = setubxrate(self.__app, msgid, 4)
+                    self.__container.record_command(msg)
                 else:
-                    setubxrate(self.__app, msgid, 0)
+                    msg = setubxrate(self.__app, msgid, 0)
+                    self.__container.record_command(msg)
             if msgtype[0:1] == b"\xf1":  # proprietary NMEA
-                setubxrate(self.__app, msgid, 0)
+                msg = setubxrate(self.__app, msgid, 0)
+                self.__container.record_command(msg)
 
     def _do_set_minNAV(self):
         """
@@ -414,11 +421,14 @@ class UBX_PRESET_Frame(Frame):
         for msgtype, msgid in UBX_MSGIDS.items():
             if msgtype[0:1] == b"\x01":  # UBX-NAV
                 if msgid == "NAV-PVT":
-                    setubxrate(self.__app, msgid, 1)
+                    msg = setubxrate(self.__app, msgid, 1)
+                    self.__container.record_command(msg)
                 elif msgid in ("NAV-DOP", "NAV-SAT"):
-                    setubxrate(self.__app, msgid, 4)
+                    msg = setubxrate(self.__app, msgid, 4)
+                    self.__container.record_command(msg)
                 else:
-                    setubxrate(self.__app, msgid, 0)
+                    msg = setubxrate(self.__app, msgid, 0)
+                    self.__container.record_command(msg)
 
     def _do_set_allnmea(self, msgrate):
         """
@@ -429,7 +439,8 @@ class UBX_PRESET_Frame(Frame):
 
         for msgtype, msgid in UBX_MSGIDS.items():
             if msgtype[0:1] in (b"\xf0", b"\xf1"):
-                setubxrate(self.__app, msgid, msgrate)
+                msg = setubxrate(self.__app, msgid, msgrate)
+                self.__container.record_command(msg)
 
     def _do_set_allNAV(self, msgrate):
         """
@@ -440,7 +451,8 @@ class UBX_PRESET_Frame(Frame):
 
         for msgtype, msgid in UBX_MSGIDS.items():
             if msgtype[0:1] == b"\x01":  # NAV
-                setubxrate(self.__app, msgid, msgrate)
+                msg = setubxrate(self.__app, msgid, msgrate)
+                self.__container.record_command(msg)
 
     def _do_factory_reset(self) -> bool:
         """

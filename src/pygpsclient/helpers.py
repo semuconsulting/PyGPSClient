@@ -795,7 +795,7 @@ def sizefont(height: int, lines: int, minfont: int) -> tuple:
     return fnt, fh
 
 
-def setubxrate(app: object, mid: str, rate: int = 1):
+def setubxrate(app: object, mid: str, rate: int = 1) -> UBXMessage:
     """
     Set rate on specified UBX message on default port(s).
 
@@ -809,6 +809,8 @@ def setubxrate(app: object, mid: str, rate: int = 1):
     :param object application: reference to calling application
     :param str mid: message identity e.g. "MON-SPAN"
     :param int rate: message rate (0 = off)
+    :return: UBX command generated
+    :rtype: UBXMessage
     :raises: ValueError if unknown message identity
     """
 
@@ -841,6 +843,7 @@ def setubxrate(app: object, mid: str, rate: int = 1):
         rateSPI=rates.get("SPI", 0),
     )
     app.gnss_outqueue.put(msg.serialize())
+    return msg
 
 
 def val2sphp(val: float, scale: float) -> tuple:
