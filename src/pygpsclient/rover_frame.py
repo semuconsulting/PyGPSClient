@@ -18,6 +18,7 @@ from math import cos, pi, sin
 from tkinter import BOTH, YES, Frame, font
 
 from pygpsclient.globals import BGCOL, FGCOL, WIDGETU2
+from pygpsclient.helpers import setubxrate
 from pygpsclient.skyview_frame import Canvas
 
 INSET = 5
@@ -25,7 +26,7 @@ SQRT2 = 0.7071067811865476
 MAXPOINTS = 100
 PNTCOL = "orange"
 TRKCOL = "darkorange3"
-ACCCOL = "darkorange4"
+ACCCOL = "darkorange3"
 TRKTOL = 5
 
 
@@ -74,47 +75,6 @@ class RoverFrame(Frame):
         self.bind("<Configure>", self._on_resize)
         self.canvas.bind("<Double-Button-1>", self._on_clear)
 
-    def _rescale(self, scale):  # pylint: disable=unused-argument
-        """
-        Rescale widget.
-        """
-
-        self._on_resize(None)
-
-    def _on_resize(self, event):  # pylint: disable=unused-argument
-        """
-        Resize frame.
-
-        :param Event event: resize event
-        """
-
-        self.width, self.height = self.get_size()
-        self.init_frame()
-
-    def _on_clear(self, event):  # pylint: disable=unused-argument
-        """ "
-        Clear plot.
-
-        :param Event event: clear event
-        """
-
-        self.points = []
-        self.init_frame()
-
-    def get_size(self) -> tuple:
-        """
-        Get current canvas size.
-
-        :return: window size (width, height)
-        :rtype: tuple
-        """
-
-        self.update_idletasks()  # Make sure we know about resizing
-        width = self.canvas.winfo_width()
-        height = self.canvas.winfo_height()
-        self.lbl_font = font.Font(size=min(int(width / 25), 10))
-        return (width, height)
-
     def init_frame(self):
         """
         Initialize plot.
@@ -122,8 +82,6 @@ class RoverFrame(Frame):
 
         width, height = self.get_size()
         self.canvas.delete("all")
-        # if self.range is None:
-        #     self.range = int(min(width / 2, height / 2)) - INSET
 
         self.canvas.create_line(0, height / 2, width, height / 2, fill=FGCOL)
         self.canvas.create_line(width / 2, 0, width / 2, height, fill=FGCOL)
@@ -203,7 +161,7 @@ class RoverFrame(Frame):
                 self.__app.gnss_status.rel_pos_flags[4],
             )
         else:
-            fixok = diffsoln = valrp = carrsoln = moving = 0
+            fixok = diffsoln = valrp = valhdg = carrsoln = moving = 0
 
         self.store_track(hdg, dis)
 
@@ -310,3 +268,47 @@ class RoverFrame(Frame):
         self.points.append((hdg, dis))
         if numpt > mx:
             del self.points[nth - 1 :: nth]
+
+    def enable_messages(self, status: int):
+        """
+        Enable/disable UBX NAV-RELPOSNED message on
+        default port(s).
+
+        :param int status: 0 = off, 1 = on
+        """
+
+        setubxrate(self.__app, "NAV-RELPOSNED", status)
+
+    def _on_resize(self, event):  # pylint: disable=unused-argument
+        """
+        Resize frame.
+
+        :param Event event: resize event
+        """
+
+        self.width, self.height = self.get_size()
+        self.init_frame()
+
+    def _on_clear(self, event):  # pylint: disable=unused-argument
+        """ "
+        Clear plot.
+
+        :param Event event: clear event
+        """
+
+        self.points = []
+        self.init_frame()
+
+    def get_size(self) -> tuple:
+        """
+        Get current canvas size.
+
+        :return: window size (width, height)
+        :rtype: tuple
+        """
+
+        self.update_idletasks()  # Make sure we know about resizing
+        width = self.canvas.winfo_width()
+        height = self.canvas.winfo_height()
+        self.lbl_font = font.Font(size=min(int(width / 25), 10))
+        return (width, height)

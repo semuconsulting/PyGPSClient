@@ -97,9 +97,7 @@ from pygpsclient.widget_state import (
     VISIBLE,
     WDGBANNER,
     WDGSETTINGS,
-    WDGSPECTRUM,
     WDGSTATUS,
-    WDGSYSMON,
     widget_state,
 )
 
@@ -273,6 +271,7 @@ class App(Frame):
         """
 
         wdg = widget_state[nam]
+        frm = getattr(self, wdg[FRAME])
         if wdg[VISIBLE]:
             colspan = wdg.get(COLSPAN, colspan)
             rowspan = wdg.get(ROWSPAN, rowspan)
@@ -282,7 +281,7 @@ class App(Frame):
             # keep track of cumulative cols & rows
             ccol = wdg.get("col", col)
             crow = wdg.get("row", row)
-            getattr(self, wdg[FRAME]).grid(
+            frm.grid(
                 column=ccol,
                 row=crow,
                 columnspan=colspan,
@@ -294,7 +293,7 @@ class App(Frame):
             col += colspan
             lbl = HIDE
         else:
-            getattr(self, wdg[FRAME]).grid_forget()
+            frm.grid_forget()
             lbl = SHOW
 
         # update menu label (show/hide)
@@ -302,14 +301,11 @@ class App(Frame):
             self.menu.view_menu.entryconfig(wdg[MENU], label=f"{lbl} {nam}")
 
         # force widget to rescale
-        getattr(self, wdg[FRAME]).event_generate("<Configure>")
+        frm.event_generate("<Configure>")
 
-        if nam == WDGSPECTRUM:
-            # enable MON-SPAN messages if spectrum widget is visible
-            self.frm_spectrumview.enable_MONSPAN(wdg[VISIBLE])
-        elif nam == WDGSYSMON:
-            # enable MON-SYS messages if sysmon widget is visible
-            self.frm_sysmon.enable_MONSYS(wdg[VISIBLE])
+        # enable or disable any UBX messages required by widget
+        if hasattr(frm, "enable_messages"):
+            frm.enable_messages(wdg[VISIBLE])
 
         return col, row
 

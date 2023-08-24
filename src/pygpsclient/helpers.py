@@ -21,7 +21,7 @@ from time import strftime
 from tkinter import Button, Entry, Label, Toplevel, W, font
 
 from pynmeagps import haversine
-from pyubx2 import SET, UBXMessage, attsiz, atttyp
+from pyubx2 import SET, UBX_MSGIDS, UBXMessage, attsiz, atttyp
 from requests import get
 
 from pygpsclient.globals import FIXLOOKUP, GPSEPOCH0, MAX_SNR, RCVR_CONNECTION
@@ -795,36 +795,38 @@ def sizefont(height: int, lines: int, minfont: int) -> tuple:
     return fnt, fh
 
 
-def setubxrate(app: object, msgclass: int, msgid: int, rate: int = 1):
+def setubxrate(app: object, mid: str, rate: int = 1):
     """
     Set rate on specified UBX message on default port(s).
 
-    The port(s) this applies to are defined in the 'defaultport'
-    configuration setting as a string or list.
+    The port(s) this applies to are defined in the 'defaultport_s'
+    configuration setting as a comma-separated string.
 
     Rate is relative to navigation solution e.g.
     a rate of '4' means 'every 4th navigation solution'
     (higher = less frequent).
 
-    :param App app: calling application (PyGPSClient)
-    :param int msgclass: msgClass
-    :param int msgid: msgId
+    :param object application: reference to calling application
+    :param str mid: message identity e.g. "MON-SPAN"
     :param int rate: message rate (0 = off)
+    :raises: ValueError if unknown message identity
     """
-
-    if app is None:
-        return
 
     rates = {}
     prts = app.frm_settings.config.get(
         "defaultport_s", app.frm_settings.config.get("defaultport", RCVR_CONNECTION)
-    )
-    if isinstance(prts, str):
-        prts = [
-            prts,
-        ]
+    ).split(",")
     for prt in prts:
         rates[prt] = rate
+
+    msgclass = msgid = None
+    for msgtype, msgnam in UBX_MSGIDS.items():
+        if msgnam == mid:
+            msgclass = msgtype[0]
+            msgid = msgtype[1]
+            break
+    if msgclass is None or msgid is None:
+        raise ValueError(f"Message ID {mid} unknown")
 
     msg = UBXMessage(
         "CFG",

@@ -7,9 +7,11 @@ widgets in the main container frame.
 
 To add a new widget to PyGPSClient:
 1. Create a new frame class `widgetname_frame.py`. The frame class
-should implement `init_frame()` and `update_frame()` functions. 
-2. Add an entry to the foot of the widget_state dictionary.
-3. If the widget requires data not already in the `app.gnss_status`
+should implement `init_frame()` and `update_frame()` functions.
+2. If the widget requires certain UBX messages to be enabled,
+implement an `enable_messages(status)` function.
+3. Add an entry to the foot of the widget_state dictionary.
+4. If the widget requires data not already in the `app.gnss_status`
 data dictionary, add the requisite data items to the `GNSSStatus`
 class definition and update `ubx_handler` to populate them.
 

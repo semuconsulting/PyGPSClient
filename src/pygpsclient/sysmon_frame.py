@@ -123,7 +123,6 @@ class SysmonFrame(Frame):
 
         self.bind("<Configure>", self._on_resize)
         self._can_sysmon.bind("<Double-Button-1>", self._on_clear)
-        # self._mode.trace_add("write", self._on_mode)
 
     def init_chart(self):
         """
@@ -151,7 +150,7 @@ class SysmonFrame(Frame):
         self._monsys_status = DLGWAITMONSYS
         self.init_chart()
 
-    def enable_MONSYS(self, status: int):
+    def enable_messages(self, status: int):
         """
         Enable/disable UBX MON-SYS & MON-COMMS messages on
         default port(s).
@@ -161,8 +160,8 @@ class SysmonFrame(Frame):
         :param int status: 0 = off, 1 = on
         """
 
-        for mid in (0x39, 0x36):
-            setubxrate(self.__app, 0x0A, mid, status)
+        for msgid in ("MON-SYS", "MON-COMMS"):
+            setubxrate(self.__app, msgid, status)
         for msgid in ("ACK-ACK", "ACK-NAK"):
             self._set_pending(msgid, SYSMONVIEW)
         self._monsys_status = DLGWAITMONSYS

@@ -364,9 +364,9 @@ class UBX_PRESET_Frame(Frame):
         :param int msgrate: message rate (i.e. every nth position solution)
         """
 
-        for msgtype in UBX_MSGIDS:
+        for msgtype, msgid in UBX_MSGIDS.items():
             if msgtype[0:1] == b"\x21":
-                self._do_cfgmsg(msgtype, msgrate)
+                setubxrate(self.__app, msgid, msgrate)
 
     def _do_set_mon(self, msgrate):
         """
@@ -375,9 +375,9 @@ class UBX_PRESET_Frame(Frame):
         :param int msgrate: message rate (i.e. every nth position solution)
         """
 
-        for msgtype in UBX_MSGIDS:
+        for msgtype, msgid in UBX_MSGIDS.items():
             if msgtype[0:1] == b"\x0A":
-                self._do_cfgmsg(msgtype, msgrate)
+                setubxrate(self.__app, msgid, msgrate)
 
     def _do_set_rxm(self, msgrate):
         """
@@ -386,39 +386,39 @@ class UBX_PRESET_Frame(Frame):
         :param int msgrate: message rate (i.e. every nth position solution)
         """
 
-        for msgtype in UBX_MSGIDS:
+        for msgtype, msgid in UBX_MSGIDS.items():
             if msgtype[0:1] == b"\x02":
-                self._do_cfgmsg(msgtype, msgrate)
+                setubxrate(self.__app, msgid, msgrate)
 
     def _do_set_minnmea(self):
         """
         Turn on minimum set of NMEA messages (GGA & GSA & GSV).
         """
 
-        for msgtype in UBX_MSGIDS:
+        for msgtype, msgid in UBX_MSGIDS.items():
             if msgtype[0:1] == b"\xf0":  # standard NMEA
-                if msgtype in (b"\xf0\x00", b"\xf0\x02"):  # GGA, GSA
-                    self._do_cfgmsg(msgtype, 1)
-                elif msgtype == b"\xf0\x03":  # GSV
-                    self._do_cfgmsg(msgtype, 4)
+                if msgid in ("GGA", "GSA"):
+                    setubxrate(self.__app, msgid, 1)
+                elif msgid == "GSV":
+                    setubxrate(self.__app, msgid, 4)
                 else:
-                    self._do_cfgmsg(msgtype, 0)
+                    setubxrate(self.__app, msgid, 0)
             if msgtype[0:1] == b"\xf1":  # proprietary NMEA
-                self._do_cfgmsg(msgtype, 0)
+                setubxrate(self.__app, msgid, 0)
 
     def _do_set_minNAV(self):
         """
         Turn on minimum set of UBX-NAV messages (DOP, PVT, & SAT).
         """
 
-        for msgtype in UBX_MSGIDS:
+        for msgtype, msgid in UBX_MSGIDS.items():
             if msgtype[0:1] == b"\x01":  # UBX-NAV
-                if msgtype == b"\x01\x07":  # NAV-PVT
-                    self._do_cfgmsg(msgtype, 1)
-                elif msgtype in (b"\x01\x04", b"\x01\x35"):  # NAV-DOP, NAV-SAT
-                    self._do_cfgmsg(msgtype, 4)
+                if msgid == "NAV-PVT":
+                    setubxrate(self.__app, msgid, 1)
+                elif msgid in ("NAV-DOP", "NAV-SAT"):
+                    setubxrate(self.__app, msgid, 4)
                 else:
-                    self._do_cfgmsg(msgtype, 0)
+                    setubxrate(self.__app, msgid, 0)
 
     def _do_set_allnmea(self, msgrate):
         """
@@ -427,9 +427,9 @@ class UBX_PRESET_Frame(Frame):
         :param int msgrate: message rate (i.e. every nth position solution)
         """
 
-        for msgtype in UBX_MSGIDS:
+        for msgtype, msgid in UBX_MSGIDS.items():
             if msgtype[0:1] in (b"\xf0", b"\xf1"):
-                self._do_cfgmsg(msgtype, msgrate)
+                setubxrate(self.__app, msgid, msgrate)
 
     def _do_set_allNAV(self, msgrate):
         """
@@ -438,21 +438,9 @@ class UBX_PRESET_Frame(Frame):
         :param int msgrate: message rate (i.e. every nth position solution)
         """
 
-        for msgtype in UBX_MSGIDS:
-            if msgtype[0:1] == b"\x01":
-                self._do_cfgmsg(msgtype, msgrate)
-
-    def _do_cfgmsg(self, msgtype: str, msgrate: int):
-        """
-        Set rate for specified message type via CFG-MSG.
-
-        :param str msgtype: type of config message
-        :param int msgrate: message rate (i.e. every nth position solution)
-        """
-
-        msgClass = int.from_bytes(msgtype[0:1], "little", signed=False)
-        msgID = int.from_bytes(msgtype[1:2], "little", signed=False)
-        setubxrate(self.__app, msgClass, msgID, msgrate)
+        for msgtype, msgid in UBX_MSGIDS.items():
+            if msgtype[0:1] == b"\x01":  # NAV
+                setubxrate(self.__app, msgid, msgrate)
 
     def _do_factory_reset(self) -> bool:
         """
