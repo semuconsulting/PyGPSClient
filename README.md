@@ -93,7 +93,7 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 |![spectrum widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/spectrum_widget.png?raw=true)| Spectrum widget showing a spectrum analysis chart (*GNSS receiver must be capable of outputting UBX MON-SPAN messages*). Clicking anywhere in the spectrum chart will display the frequency and decibel reading at that point. Double-clicking anywhere in the chart will toggle the GNSS frequency band markers (L1, G2, etc.) on or off. |
 |![sysmon widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/sysmon_widget.png?raw=true)| System Monitor widget showing device cpu, memory and I/O utilisation (*GNSS receiver must be capable of outputting UBX MON-SYS and/or MON-COMMS messages*). Tick checkbox to toggle between actual (cumulative) I/O stats and pending I/O. |
 |![scatterplot widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/scatterplot_widget.png?raw=true)| Scatterplot widget showing variability in position reporting over time. Double-click to clear existing plot. |
-
+|![rover widget](/images/rover_widget.png) | Rover widget plots the relative 2D position, track and status information for the roving receiver in a fixed or moving base / rover RTK configuration. Double-click to clear existing plot. (*GNSS rover receiver must be capable of outputting UBX NAV-RELPOSNED messages.*) |
 ---
 ## <a name="ubxconfig">UBX Configuration Facilities</a>
 
@@ -125,6 +125,7 @@ warning ![warning icon](https://github.com/semuconsulting/PyGPSClient/blob/maste
 **Note:**
 * The UBX protocol does not support synchronous command acknowledgement or unique confirmation IDs. Asynchronous command and poll acknowledgements and responses can take several seconds at high message transmission rates, or be discarded altogether if the device's transmit buffer is full (*txbuff-alloc error*). To ensure timely responses, try increasing the baud rate and/or temporarily reducing transmitted message rates using the configuration commands provided.
 * A warning icon (typically accompanied by an ACK-NAK response) is usually an indication that one or more of the commands sent is not supported by your receiver.
+* For presets that invoke a CFG-MSG command to set message rates, the port(s) to which the rate applies can be set via the `defaultport_s` configuration setting, which supports a comma-separated list of ports e.g. "USB", "USB,UART1" or "USB,I2C".
 
 ---
 ## <a name="ntripconfig">NTRIP Client Facilities</a>

@@ -16,13 +16,15 @@ statistics and geographiclib libraries.
 :license: BSD 3-Clause
 """
 
-from math import cos, radians, sin, sqrt
+from math import cos, radians, sin
 from tkinter import BOTH, HORIZONTAL, NO, YES, Frame, IntVar, Scale, font
 
 from pynmeagps import bearing, haversine
 
 from pygpsclient.globals import BGCOL, FGCOL, WIDGETU2, Point
 from pygpsclient.skyview_frame import Canvas
+
+SQRT2 = 0.7071067811865476
 
 
 class ScatterViewFrame(Frame):
@@ -171,8 +173,8 @@ class ScatterViewFrame(Frame):
             distance = m_per_circle * (idx + 1)
             if len(str(distance)) > 4:
                 distance = round(distance, 3)
-            txt_x = width / 2 + sqrt(2) / 2 * maxr * rad
-            txt_y = height / 2 + sqrt(2) / 2 * maxr * rad
+            txt_x = width / 2 + SQRT2 * maxr * rad
+            txt_y = height / 2 + SQRT2 * maxr * rad
             self.canvas.create_text(
                 txt_x, txt_y, text=f"{distance}m", fill=self.fg_col, font=lbl_font
             )

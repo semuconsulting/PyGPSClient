@@ -143,6 +143,9 @@ class FileHandler:
             if ctype == "_t" and not isinstance(value, tuple):
                 err = f"Invalid tuple value for {key}: {valstr}"
                 break
+            if ctype == "_s" and not isinstance(value, str):
+                err = f"Invalid str value for {key}: {valstr}"
+                break
         return err
 
     def save_config(self, config: dict, filename: Path = CONFIGFILE) -> str:

@@ -219,18 +219,13 @@ SOCKSERVER_PORT = 50012
 SPARTN_EOF_EVENT = "<<spartn_eof>>"
 SPARTN_ERR_EVENT = "<<spartn_error>>"
 SPARTN_EVENT = "<<spartn_read>>"
-SPARTN_GNSS = 8
 SPARTN_KEYLEN = 16
-SPARTN_LBAND = 9
-SPARTN_MQTT = 10
 SPARTN_OUTPORT = 8883
 SPARTN_PPREGIONS = ("eu", "us", "kr", "au")
 SPARTN_PPSERVER = "pp.services.u-blox.com"
 SPARTN_PPSERVER = "pp.services.u-blox.com"
 SPARTN_SOURCE_IP = 0
 SPARTN_SOURCE_LB = 1
-SPECTRUMVIEW = 11
-SYSMONVIEW = 12
 THD = "thd"
 TIMEOUTS = (
     "0.1",
@@ -246,14 +241,6 @@ TIMEOUTS = (
 TOPIC_IP = "/pp/ip/{}"
 TOPIC_MGA = "/pp/ubx/mga"
 TOPIC_RXM = "/pp/ubx/0236/ip"
-UBX_CFGMSG = 3
-UBX_CFGOTHER = 7
-UBX_CFGPRT = 2
-UBX_CFGRATE = 6
-UBX_CFGVAL = 4
-UBX_MONHW = 1
-UBX_MONVER = 0
-UBX_PRESET = 5
 UBXPRESETS = "ubxpresets"
 UI = "Imperial mph"
 UIK = "Imperial knots"
@@ -264,6 +251,24 @@ WIDGETU2 = (350, 250)  # medium widget size
 WIDGETU3 = (950, 350)  # Console size
 WIDGETU4 = (600, 600)  # GPX Track viewer size
 XML_HDR = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+
+# UBX config widget signifiers - used to
+# identify which widget should receive the
+# data from a given POLL or ACK message:
+UBX_MONVER = 0
+UBX_MONHW = 1
+UBX_CFGPRT = 2
+UBX_CFGMSG = 3
+UBX_CFGVAL = 4
+UBX_PRESET = 5
+UBX_CFGRATE = 6
+UBX_CFGOTHER = 7
+SPARTN_GNSS = 8
+SPARTN_LBAND = 9
+SPARTN_MQTT = 10
+SPECTRUMVIEW = 11
+SYSMONVIEW = 12
+ROVERVIEW = 13
 
 # map of fix values to descriptions
 # the keys in this map are a concatenation of NMEA/UBX

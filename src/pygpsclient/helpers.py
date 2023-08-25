@@ -15,13 +15,13 @@ Created on 17 Apr 2021
 
 import os
 from datetime import datetime, timedelta
-from math import cos, pi, sin, trunc
+from math import atan, cos, pi, sin, sqrt, trunc
 from platform import system
 from time import strftime
 from tkinter import Button, Entry, Label, Toplevel, W, font
 
 from pynmeagps import haversine
-from pyubx2 import SET, UBXMessage, attsiz, atttyp
+from pyubx2 import SET, UBX_MSGIDS, UBXMessage, attsiz, atttyp
 from requests import get
 
 from pygpsclient.globals import FIXLOOKUP, GPSEPOCH0, MAX_SNR, RCVR_CONNECTION
@@ -795,36 +795,40 @@ def sizefont(height: int, lines: int, minfont: int) -> tuple:
     return fnt, fh
 
 
-def setubxrate(app: object, msgclass: int, msgid: int, rate: int = 1):
+def setubxrate(app: object, mid: str, rate: int = 1) -> UBXMessage:
     """
     Set rate on specified UBX message on default port(s).
 
-    The port(s) this applies to are defined in the 'defaultport'
-    configuration setting as a string or list.
+    The port(s) this applies to are defined in the 'defaultport_s'
+    configuration setting as a comma-separated string.
 
     Rate is relative to navigation solution e.g.
     a rate of '4' means 'every 4th navigation solution'
     (higher = less frequent).
 
-    :param App app: calling application (PyGPSClient)
-    :param int msgclass: msgClass
-    :param int msgid: msgId
+    :param object application: reference to calling application
+    :param str mid: message identity e.g. "MON-SPAN"
     :param int rate: message rate (0 = off)
+    :return: UBX command generated
+    :rtype: UBXMessage
+    :raises: ValueError if unknown message identity
     """
-
-    if app is None:
-        return
 
     rates = {}
     prts = app.frm_settings.config.get(
         "defaultport_s", app.frm_settings.config.get("defaultport", RCVR_CONNECTION)
-    )
-    if isinstance(prts, str):
-        prts = [
-            prts,
-        ]
+    ).split(",")
     for prt in prts:
         rates[prt] = rate
+
+    msgclass = msgid = None
+    for msgtype, msgnam in UBX_MSGIDS.items():
+        if msgnam == mid:
+            msgclass = msgtype[0]
+            msgid = msgtype[1]
+            break
+    if msgclass is None or msgid is None:
+        raise ValueError(f"Message ID {mid} unknown")
 
     msg = UBXMessage(
         "CFG",
@@ -839,6 +843,7 @@ def setubxrate(app: object, msgclass: int, msgid: int, rate: int = 1):
         rateSPI=rates.get("SPI", 0),
     )
     app.gnss_outqueue.put(msg.serialize())
+    return msg
 
 
 def val2sphp(val: float, scale: float) -> tuple:
@@ -898,3 +903,26 @@ def adjust_dimensions(dim: int) -> int:
     if system() == "Darwin":
         return int(dim * 0.9)
     return int(dim)
+
+
+def ned2vector(n: float, e: float, d: float) -> tuple:
+    """
+    Convert N,E,D relative position to 2D heading and distance.
+
+    :param float n: north coordinate
+    :param float e: east coordinate
+    :param float d: down coordinate
+    :return: tuple of distance, heading
+    :rtype: tuple
+    """
+
+    dis = sqrt(n**2 + e**2 + d**2)
+    if n == 0 or e == 0:
+        hdg = 0
+    else:
+        hdg = atan(e / n) * 180 / pi
+        if hdg > 0:
+            hdg += 180
+        else:
+            hdg += 360
+    return dis, hdg

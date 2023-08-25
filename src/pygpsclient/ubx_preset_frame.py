@@ -33,10 +33,11 @@ from pygpsclient.globals import (
     ICON_PENDING,
     ICON_SEND,
     ICON_WARNING,
+    RCVR_CONNECTION,
     SAVED_CONFIG,
     UBX_PRESET,
 )
-from pygpsclient.helpers import ConfirmBox, setubxrate
+from pygpsclient.helpers import ConfirmBox
 from pygpsclient.strings import (
     DLGRESET,
     DLGRESETCONFIRM,
@@ -446,13 +447,39 @@ class UBX_PRESET_Frame(Frame):
         """
         Set rate for specified message type via CFG-MSG.
 
+        The receiver ports to which the rate applies are defined
+        in the `defaultport_s` configuration setting.
+
         :param str msgtype: type of config message
         :param int msgrate: message rate (i.e. every nth position solution)
         """
 
-        msgClass = int.from_bytes(msgtype[0:1], "little", signed=False)
-        msgID = int.from_bytes(msgtype[1:2], "little", signed=False)
-        setubxrate(self.__app, msgClass, msgID, msgrate)
+        msgclass = int.from_bytes(msgtype[0:1], "little", signed=False)
+        msgid = int.from_bytes(msgtype[1:2], "little", signed=False)
+
+        # select which receiver ports to apply rate to
+        rates = {}
+        prts = self.__app.frm_settings.config.get(
+            "defaultport_s",
+            self.__app.frm_settings.config.get("defaultport", RCVR_CONNECTION),
+        ).split(",")
+        for prt in prts:
+            rates[prt] = msgrate
+
+        # create CFG-MSG command
+        msg = UBXMessage(
+            "CFG",
+            "CFG-MSG",
+            SET,
+            msgClass=msgclass,
+            msgID=msgid,
+            rateDDC=rates.get("I2C", 0),
+            rateUART1=rates.get("UART1", 0),
+            rateUART2=rates.get("UART2", 0),
+            rateUSB=rates.get("USB", 0),
+            rateSPI=rates.get("SPI", 0),
+        )
+        self.__container.send_command(msg)
 
     def _do_factory_reset(self) -> bool:
         """

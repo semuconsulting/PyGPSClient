@@ -41,6 +41,7 @@ from pygpsclient.helpers import (
     val2sphp,
     validURL,
     wnotow2date,
+    ned2vector,
 )
 from pygpsclient.mapquest import mapq_compress, mapq_decompress
 from pygpsclient.widget_state import widget_state, MENU, VISIBLE, DEFAULT, FRAME
@@ -377,6 +378,26 @@ class StaticTest(unittest.TestCase):
             self.assertIsInstance(wdict[FRAME], str),
             self.assertEqual(wdict["frm"][0:4], "frm_"),
             self.assertIsInstance(wdict[VISIBLE], bool),
+
+    def testned2vector(self):  # test ned2vector
+        relPosN = -879166 + 0 * 1e-2
+        relPosE = -6068417 + 3.9 * 1e-2
+        relPosD = 29273 + 2.4 * 1e-2
+        dis, hdg = ned2vector(relPosN, relPosE, relPosD)
+        self.assertEqual(int(dis), 6131841)
+        self.assertAlmostEqual(hdg, 261.7566, 4)
+        relPosN = 267987 + 5.1 * 1e-2
+        relPosE = -8849794 + 0 * 1e-2
+        relPosD = 58193 + 9 * 1e-2
+        dis, hdg = ned2vector(relPosN, relPosE, relPosD)
+        self.assertEqual(int(dis), 8854041)
+        self.assertAlmostEqual(hdg, 271.7345, 4)
+        relPosN = 0
+        relPosE = -8849794 + 0 * 1e-2
+        relPosD = 58193 + 9 * 1e-2
+        dis, hdg = ned2vector(relPosN, relPosE, relPosD)
+        self.assertEqual(int(dis), 8849985)
+        self.assertAlmostEqual(hdg, 0, 4)
 
     def testgetmpinfo(self):  # test get_mp_info
         EXPECTED_RESULT = {

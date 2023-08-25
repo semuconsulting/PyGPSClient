@@ -197,16 +197,15 @@ class SpectrumviewFrame(Frame):
         self._chartpos = None
         self.can_spectrumview.delete("all")
         self.update_frame()
-        self.enable_MONSPAN(self.winfo_ismapped())
 
-    def enable_MONSPAN(self, status: bool):
+    def enable_messages(self, status: bool):
         """
         Enable/disable UBX MON-SPAN message.
 
         :param bool status: 0 = off, 1 = on
         """
 
-        setubxrate(self.__app, 0x0A, 0x31, status)
+        setubxrate(self.__app, "MON-SPAN", status)
         for msgid in ("ACK-ACK", "ACK-NAK"):
             self._set_pending(msgid, SPECTRUMVIEW)
         self._monspan_status = DLGWAITMONSPAN
