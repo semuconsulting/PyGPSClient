@@ -330,7 +330,7 @@ Normally installs without any additional steps.
 
 **Linux (including Raspberry Pi OS):**
 
-*³* Some Linux distributions may not include the neceessary pip, tkinter or Pillow imaging libraries by default. They may need to be installed separately, e.g.:
+*³* Some Linux distributions may not include the necessary pip, tkinter or Pillow imaging libraries by default. They may need to be installed separately, e.g.:
 
 ```shell
 sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk
