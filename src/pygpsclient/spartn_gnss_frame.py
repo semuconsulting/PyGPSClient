@@ -89,6 +89,8 @@ RESERVED1 = b"\x00"
 CFGSET = "CFG-VALGET/SET"
 CFGPOLL = "CFG-VALGET"
 INPORTS = ("I2C", "UART1", "UART2", "USB", "SPI")
+RTK_FLOAT = 2
+RTK_FIXED = 3
 
 
 class SPARTNGNSSDialog(Frame):
@@ -326,6 +328,7 @@ class SPARTNGNSSDialog(Frame):
         """
 
         cfgdata = []
+        cfgdata.append(("CFG_NAVHPG_DGNSSMODE", RTK_FIXED))
         # select SPARTN source (L-band or IP)
         cfgdata.append(("CFG_SPARTN_USE_SOURCE", self._spartn_source.get()))
         # set DGNSS Timeout (default = 60, higher can be better with L-Band)

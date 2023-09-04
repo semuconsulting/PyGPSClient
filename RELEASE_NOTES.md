@@ -1,6 +1,16 @@
 # PyGPSClient Release Notes
 
-### RELEASE CANDIDATE v1.4.2
+### RELEASE v1.4.3
+
+ENHANCEMENTS:
+
+1. SPARTN MQTT configuration facilities enhanced to accommodate L-band as well as IP topics, including `/pp/frequencies/Lb`. As before, the utility will automatically upload the appropriate IP or L-band decryption keys and validity dates to the receiver (e.g. ZED-F9P) on receipt of an RXM-SPARTNKEY message (i.e. `/pp/ubx/0236/ip` or `/pp/ubx/0236/Lb` topic) from MQTT.
+1. **Note that** a standard PointPerfect L-Band subscription does NOT provide access to the `/pp/ip/*` (SPARTN data) topics, the assumption being that the necessary correction data will arrive via RXM-PMP messages from the L-band receiver (e.g. NEO-D9S). Uncheck the IP topic checkbox before connecting to an L-band MQTT source.
+1. Add support for MQTT SPARTN "jp" region.
+1. Other minor improvements in usability.
+1. Changes require `pygnssutils>=1.0.15`.
+
+### RELEASE v1.4.2
 
 ENHANCEMENTS:
 

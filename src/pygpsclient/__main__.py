@@ -67,6 +67,12 @@ def main():
         default=getenv("MQTTCLIENTREGION", "eu"),
     )
     arp.add_argument(
+        "--mqttclientmode",
+        required=False,
+        help="MQTT Client Mode (0 - IP, 1 - L-Band)",
+        default=getenv("MQTTCLIENTMODE", "0"),
+    )
+    arp.add_argument(
         "--ntripuser",
         required=False,
         help="NTRIP Caster authentication user",
