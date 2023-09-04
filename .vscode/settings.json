@@ -1,12 +1,9 @@
 {
     "python.testing.pytestEnabled": true,
     "python.testing.unittestEnabled": false,
-    "python.formatting.provider": "none",
     "editor.formatOnSave": true,
     // NB: for Windows, assumes symlink has been set python3<==>python
     "python.defaultInterpreterPath": "python3",
-    "python.linting.pylintEnabled": true,
-    "python.linting.enabled": true,
     "modulename": "pygpsclient",
     "distname": "pygpsclient",
     "moduleversion": "1.4.3",
