@@ -119,7 +119,6 @@ class SPARTNMQTTDialog(Frame):
 
         self._body()
         self._do_layout()
-        self._attach_events()
         self._reset()
 
     def _body(self):
@@ -264,21 +263,12 @@ class SPARTNMQTTDialog(Frame):
         self._btn_connect.grid(column=0, row=9, padx=3, pady=2, sticky=W)
         self._btn_disconnect.grid(column=2, row=9, padx=3, pady=2, sticky=W)
 
-    def _attach_events(self):
-        """
-        Bind events to variables.
-        """
-
-        # self._mqtt_source.trace_add("write", self._on_mqtt_source)
-
     def _reset(self):
         """
         Reset configuration widgets.
         """
 
         self._get_settings()
-        # self._mqtt_clientid.set(self._saved_config.get("mqttclientid_s", ""))
-        # self._mqtt_region.set(self._saved_config.get("mqttclientregion_s", "eu"))
         self._reset_keypaths(self._mqtt_clientid.get())
         self.__container.set_status(
             "",
@@ -310,9 +300,7 @@ class SPARTNMQTTDialog(Frame):
         self._mqtt_server.set(self._settings["server"])
         self._mqtt_port.set(self._settings["port"])
         self._mqtt_region.set(self._settings["region"])
-        self._mqtt_source.set(
-            self._settings.get("mode", 0)
-        )  # TODO add to GNSSMQTTclient
+        self._mqtt_source.set(self._settings.get("mode", 0))
         self._mqtt_clientid.set(self._settings["clientid"])
         self._mqtt_iptopic.set(self._settings["topic_ip"])
         self._mqtt_mgatopic.set(self._settings["topic_mga"])
