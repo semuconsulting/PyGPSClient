@@ -685,7 +685,7 @@ class SpartnLbandDialog(Frame):
             self._lbl_send.config(image=self._img_warn)
             self.__container.set_status(CONFIGBAD.format(CFGSET), "red")
         elif msg.identity == "RXM-PMP":
-            self._lbl_ebno.config(text=f"EBNO: {msg.ebno}")
+            self._lbl_ebno.config(text=f"Eb/N0: {msg.ebno} dB")
             self._lbl_fec.config(text=f"FEC Bits: {msg.fecBits}")
 
         self.update_idletasks()

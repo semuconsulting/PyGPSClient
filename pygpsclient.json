@@ -76,6 +76,7 @@
     "mqttclientport_n": 8883,
     "mqttclientid_s": "<<=== YOUR MQTT CLIENT ID ===>",
     "mgttclientregion_s": "eu",
+    "mgttclientmode_n": 0,
     "mgttclienttopicip_b": 1,
     "mgttclienttopicmga_b": 1,
     "mgttclienttopickey_b": 1,

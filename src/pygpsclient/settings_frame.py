@@ -801,6 +801,7 @@ class SettingsFrame(Frame):
                 "mqttclientport_n": spartnclient_settings["port"],
                 "mqttclientid_s": spartnclient_settings["clientid"],
                 "mgttclientregion_s": spartnclient_settings["region"],
+                "mgttclientmode_n": spartnclient_settings["mode"],
                 "mgttclienttopicip_b": spartnclient_settings["topic_ip"],
                 "mgttclienttopicmga_b": spartnclient_settings["topic_mga"],
                 "mgttclienttopickey_b": spartnclient_settings["topic_key"],

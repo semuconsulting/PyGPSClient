@@ -190,6 +190,7 @@ M2FT = 3.28084
 MAX_SNR = 60  # upper limit of graphview snr axis
 MAXLOGLINES = 10000  # maximum number of 'lines' per datalog file
 MQAPIKEY = "mqapikey"
+MQTT_PROTOCOL = 6
 MSGMODES = {
     "GET": GET,
     "SET": SET,
@@ -221,7 +222,7 @@ SPARTN_ERR_EVENT = "<<spartn_error>>"
 SPARTN_EVENT = "<<spartn_read>>"
 SPARTN_KEYLEN = 16
 SPARTN_OUTPORT = 8883
-SPARTN_PPREGIONS = ("eu", "us", "kr", "au")
+SPARTN_PPREGIONS = ("eu", "us", "jp", "kr", "au")
 SPARTN_PPSERVER = "pp.services.u-blox.com"
 SPARTN_PPSERVER = "pp.services.u-blox.com"
 SPARTN_SOURCE_IP = 0

@@ -29,7 +29,7 @@ from socket import AF_INET, AF_INET6
 from threading import Thread
 from tkinter import E, Frame, N, PhotoImage, S, TclError, Tk, Toplevel, W, font
 
-from pygnssutils import GNSSMQTTClient, GNSSNTRIPClient
+from pygnssutils import GNSSMQTTClient, GNSSNTRIPClient, MQTTMessage
 from pygnssutils.socket_server import ClientHandler, SocketServer
 from pyubx2 import NMEA_PROTOCOL, RTCM3_PROTOCOL, UBX_PROTOCOL, protocol
 from serial import SerialException, SerialTimeoutException
@@ -53,6 +53,7 @@ from pygpsclient.globals import (
     GNSS_EVENT,
     GUI_UPDATE_INTERVAL,
     ICON_APP,
+    MQTT_PROTOCOL,
     NOPORTS,
     NTRIP_EVENT,
     OKCOL,
@@ -129,6 +130,9 @@ class App(Frame):
         self.mqttclientid = kwargs.pop("mqttclientid", getenv("MQTTCLIENTID", ""))
         self.mqttclientregion = kwargs.pop(
             "mqttclientregion", getenv("MQTTCLIENTREGION", "eu")
+        )
+        self.mqttclientmode = int(
+            kwargs.pop("mqttclientmode", getenv("MQTTCLIENTMODE", "0"))
         )
         self.ntripcaster_user = kwargs.pop(
             "ntripuser", getenv("PYGPSCLIENT_USER", "anon")
@@ -529,6 +533,9 @@ class App(Frame):
             spartnsettings["region"] = self.saved_config.get(
                 "mgttclientregion_s", self.mqttclientregion
             )
+            spartnsettings["mode"] = self.saved_config.get(
+                "mgttclientmode_n", self.mqttclientmode
+            )
             spartnsettings["topic_ip"] = self.saved_config.get("mgttclienttopicip_b", 1)
             spartnsettings["topic_mga"] = self.saved_config.get(
                 "mgttclienttopicmga_b", 1
@@ -737,7 +744,9 @@ class App(Frame):
                     if self.conn_status == CONNECTED:
                         self.gnss_outqueue.put(raw_data)
                     self.process_data(raw_data, parsed_data, "NTRIP>>")
-                else:  # e.g. NMEA GGA sentence sent to NTRIP server
+                elif (
+                    protocol(raw_data) == NMEA_PROTOCOL
+                ):  # e.g. NMEA GGA sentence sent to NTRIP server
                     self.process_data(raw_data, parsed_data, "NTRIP<<")
             self.ntrip_inqueue.task_done()
         except Empty:
@@ -816,7 +825,9 @@ class App(Frame):
 
         protfilter = settings["protocol_n"]
         msgprot = protocol(raw_data)
-        if isinstance(parsed_data, str):  # error message rather than parsed data
+        if isinstance(parsed_data, MQTTMessage):
+            msgprot = MQTT_PROTOCOL
+        elif isinstance(parsed_data, str):
             marker = "WARNING  "
             msgprot = 0
 
@@ -826,6 +837,8 @@ class App(Frame):
             self.nmea_handler.process_data(raw_data, parsed_data)
         elif msgprot == RTCM3_PROTOCOL and msgprot & protfilter:
             self.rtcm_handler.process_data(raw_data, parsed_data)
+        elif msgprot == MQTT_PROTOCOL:
+            pass
 
         # update console if visible
         if widget_state["Console"][VISIBLE]:

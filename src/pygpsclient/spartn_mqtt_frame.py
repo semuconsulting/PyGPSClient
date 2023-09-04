@@ -30,6 +30,7 @@ from tkinter import (
     Frame,
     IntVar,
     Label,
+    Radiobutton,
     Spinbox,
     StringVar,
     W,
@@ -104,6 +105,7 @@ class SPARTNMQTTDialog(Frame):
         self._mqtt_port = IntVar()
         self._mqtt_port.set(SPARTN_OUTPORT)
         self._mqtt_region = StringVar()
+        self._mqtt_source = IntVar()
         self._mqtt_clientid = StringVar()
         self._mqtt_crt = StringVar()
         self._mqtt_pem = StringVar()
@@ -151,6 +153,10 @@ class SPARTNMQTTDialog(Frame):
             width=4,
             wrap=True,
         )
+        self._rad_ip = Radiobutton(self, text="IP", variable=self._mqtt_source, value=0)
+        self._rad_lb = Radiobutton(
+            self, text="L-Band", variable=self._mqtt_source, value=1
+        )
         self._lbl_mqttclientid = Label(self, text="Client ID")
         self._ent_mqttclientid = Entry(
             self,
@@ -167,12 +173,12 @@ class SPARTNMQTTDialog(Frame):
         )
         self._chk_mqtt_mgatopic = Checkbutton(
             self,
-            text="MGA",
+            text="Assist",
             variable=self._mqtt_mgatopic,
         )
         self._chk_mqtt_keytopic = Checkbutton(
             self,
-            text="SPARTNKEY",
+            text="Key",
             variable=self._mqtt_keytopic,
         )
         self._btn_opencrt = Button(
@@ -230,9 +236,9 @@ class SPARTNMQTTDialog(Frame):
         self._lbl_mqttport.grid(column=0, row=2, padx=3, pady=2, sticky=W)
         self._ent_mqttport.grid(column=1, row=2, padx=3, pady=2, sticky=W)
         self._lbl_mqttregion.grid(column=0, row=3, padx=3, pady=2, sticky=W)
-        self._spn_mqttregion.grid(
-            column=1, row=3, columnspan=5, padx=3, pady=2, sticky=W
-        )
+        self._spn_mqttregion.grid(column=1, row=3, padx=3, pady=2, sticky=W)
+        self._rad_ip.grid(column=2, row=3, padx=3, pady=2, sticky=W)
+        self._rad_lb.grid(column=3, row=3, padx=3, pady=2, sticky=W)
         self._lbl_mqttclientid.grid(column=0, row=4, padx=3, pady=2, sticky=W)
         self._ent_mqttclientid.grid(
             column=1, row=4, columnspan=5, padx=3, pady=2, sticky=W
@@ -263,8 +269,6 @@ class SPARTNMQTTDialog(Frame):
         """
 
         self._get_settings()
-        # self._mqtt_clientid.set(self._saved_config.get("mqttclientid_s", ""))
-        # self._mqtt_region.set(self._saved_config.get("mqttclientregion_s", "eu"))
         self._reset_keypaths(self._mqtt_clientid.get())
         self.__container.set_status(
             "",
@@ -296,6 +300,7 @@ class SPARTNMQTTDialog(Frame):
         self._mqtt_server.set(self._settings["server"])
         self._mqtt_port.set(self._settings["port"])
         self._mqtt_region.set(self._settings["region"])
+        self._mqtt_source.set(self._settings.get("mode", 0))
         self._mqtt_clientid.set(self._settings["clientid"])
         self._mqtt_iptopic.set(self._settings["topic_ip"])
         self._mqtt_mgatopic.set(self._settings["topic_mga"])
@@ -311,6 +316,7 @@ class SPARTNMQTTDialog(Frame):
         self._settings["server"] = self._mqtt_server.get()
         self._settings["port"] = self._mqtt_port.get()
         self._settings["region"] = self._mqtt_region.get()
+        self._settings["mode"] = self._mqtt_source.get()
         self._settings["clientid"] = self._mqtt_clientid.get()
         self._settings["topic_ip"] = self._mqtt_iptopic.get()
         self._settings["topic_mga"] = self._mqtt_mgatopic.get()
@@ -338,6 +344,8 @@ class SPARTNMQTTDialog(Frame):
             self._ent_mqttclientid,
             self._ent_mqttcrt,
             self._ent_mqttpem,
+            self._rad_ip,
+            self._rad_lb,
             self._chk_mqtt_iptopic,
             self._chk_mqtt_mgatopic,
             self._chk_mqtt_keytopic,
@@ -405,6 +413,7 @@ class SPARTNMQTTDialog(Frame):
                 port=self._settings["port"],
                 clientid=self._settings["clientid"],
                 region=self._settings["region"],
+                mode=self._settings["mode"],
                 topic_ip=self._settings["topic_ip"],
                 topic_mga=self._settings["topic_mga"],
                 topic_key=self._settings["topic_key"],

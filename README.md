@@ -27,7 +27,7 @@ PyGPSClient is a free, open-source, multi-platform graphical GNSS/GPS testing, d
 
 ![full app screenshot ubx](https://github.com/semuconsulting/PyGPSClient/blob/master/images/app.png?raw=true)
 
-*Screenshot showing mixed-protocol stream from u-blox ZED-F9P receiver, using PyGPSClient's [NTRIP Client](#ntripconfig) to achieve >= 3cm accuracy*
+*Screenshot showing mixed-protocol stream from u-blox ZED-F9P receiver, using PyGPSClient's [NTRIP Client](#ntripconfig) with a base station 26km to the west to achieve better than 2cm accuracy*
 
 The application can be installed using the standard `pip` Python package manager - see [installation instructions](#installation) below.
 
@@ -166,29 +166,34 @@ Below is a illustrative NTRIP DGPS data log, showing:
 
 ![spartn config widget screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/spartnconfig_widget.png?raw=true)
 
-The SPARTN Configuration utility allows users to receive and process SPARTN RTK Correction data from an IP or L-Band source to achieve cm level location accuracy. It provides three independent configuration sections, one for IP Correction (MQTT), one for L-Band Correction (e.g. D9S) and a third for the GNSS receiver (e.g. F9P). 
+The SPARTN Configuration utility allows users to receive and process SPARTN RTK Correction data from an IP or L-Band source to achieve cm level location accuracy. It provides three independent configuration sections, one for IP Correction (MQTT), one for L-Band Correction (e.g. NEO-D9S) and a third for the GNSS receiver (e.g. ZED-F9P). 
 
-**NB:** the SPARTN client utilises a new [`pyspartn`](https://github.com/semuconsulting/pyspartn) library. The `pyspartn.SPARTNReader` class will parse individual SPARTN messages from any binary stream containing *solely* SPARTN data e.g. an MQTT `/pp/ip` topic. The `pyspartn.SPARTNMessage` class is in Alpha and does not currently perform a full decode of SPARTN protocol messages; it basically decodes just enough information to identify message type/subtype, payload length and other key metadata.
+The facility can be accessed by clicking ![SPARTN Client button](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-antenna-3-24.png?raw=true) or selecting Menu..Options..SPARTN Configuration Dialog.
 
-The facility can be accessed by clicking ![SPARTN Client button](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-antenna-3-24.png?raw=true) or selecting Menu..Options..NTRIP Configuration Dialog.
+**FYI:** the SPARTN client utilises a new [`pyspartn`](https://github.com/semuconsulting/pyspartn) library. The `pyspartn.SPARTNReader` class will parse individual SPARTN messages from any binary stream containing *solely* SPARTN data e.g. an MQTT `/pp/ip` topic. The `pyspartn.SPARTNMessage` class is in Alpha and does not currently perform a full decode of all SPARTN protocol messages; it basically decodes just enough information to identify message type/subtype, payload length and other key metadata.
 
 **Pre-Requisites:**
 
 1. IP Correction (MQTT Client):
 
     - Internet access
-    - Subscription to relevant MQTT SPARTN location service e.g. u-blox / Thingstream PointPerfect, which should provide the following details:
-      - Server e.g. `pp.services.u-blox.com`
+    - Subscription to a suitable MQTT SPARTN location service e.g. u-blox / Thingstream PointPerfect IP or L-band, which should provide the following details:
+      - Server URL e.g. `pp.services.u-blox.com`
       - Client ID (which can be stored in the `"mqttclientid_s":` json configuration file setting or via environment variable `MQTTCLIENTID`)
       - Encryption certificate (`*.crt`) and key (`*.pem`) files. If these are placed in the user's HOME directory using the location service's standard naming convention, PyGPSClient will find them automatically.
-      - Region code e.g. `us`, `eu`
-      - A list of published topics. These typically include `/pp/ip/region` (binary SPARTN correction data for the selected region), `/pp/ubx/mga` (UBX MGA AssistNow ephemera data for each constellation) and `/pp/ubx/0236/ip` (UBX RXM-SPARTNKEY messages containing the decryption keys to be uploaded to the GNSS receiver).
+      - Region code - select from `us`, `eu`, `jp`, `kr` or `au`.
+	  - Source - select from either `IP` or `L-Band` (*NB: the 'L-Band' MQTT mode provides decryption keys, Assist Now data and L-Band frequency information, but the correction data itself arrives via the L-Band receiver below*).
+      - A list of published topics. These typically include:
+	  	- `/pp/ip/region` - binary SPARTN correction data (SPARTN-1X-HPAC* / OCB* / GAD*) for the selected region, for IP sources only.
+		- `/pp/ubx/mga` - UBX MGA AssistNow ephemera data for each constellation.
+		- `/pp/ubx/0236/ip` or `/pp/ubx/0236/Lb` - UBX RXM-SPARTNKEY messages containing the IP or L-band decryption keys to be uploaded to the GNSS receiver.
+		- `/pp/frequencies/Lb` - json message containing each region's L-band transmission frequency - currently `us` or `eu` (this is automatically enabled when `L-Band` is selected).
       - Python version <= 3.11. The [`paho-mqtt-python`](https://github.com/eclipse/paho.mqtt.python) library on which this function depends is not currently fully compatible with Python 3.12.beta releases.
 
 2. L-BAND Correction (D9* Receiver):
 
-    - SPARTN L-Band correction receiver e.g. u-blox NEO-D9S
-    - Suitable Inmarsat L-band antenna and good satellite reception on regional frequency (NB: standard GNSS antenna may not be suitable) 
+    - SPARTN L-Band correction receiver e.g. u-blox NEO-D9S.
+    - [Suitable Inmarsat L-band antenna](https://www.amazon.com/RTL-SDR-Blog-1525-1637-Inmarsat-Iridium/dp/B07WGWZS1D) and good satellite reception on regional frequency (NB: standard GNSS antenna may not be suitable).
     - Subscription to L-Band location service e.g. u-blox / Thingstream PointPerfect, which should provide the following details:
       - L-Band frequency
 	  - Search window
@@ -204,22 +209,21 @@ The facility can be accessed by clicking ![SPARTN Client button](https://github.
 
     - SPARTN-compatible GNSS receiver e.g. u-blox ZED-F9P
     - Subscription to either IP and/or L-Band location service(s) e.g. e.g. u-blox / Thingstream PointPerfect, which should provide the following details:
-      - Current and Next Encryption Keys in hexadecimal format
+      - Current and Next IP or L-band decryption Keys in hexadecimal format.
 	  - Valid From dates in YYYYMMDD format (keys normally valid for 4 week period).
 
 **Instructions:**
-
-The SPARTN client configuration can be loaded from a JSON file provided by the Location Service provider (e.g. u-blox / Thingstream) by clicking `Load Keys from JSON`. If the JSON file is valid, the Client ID, MQTT Server URL, Current and Next decryption keys and Valid from dates will be entered automatically.
 
 ### IP Correction Configuration (MQTT)
 
 1. Enter your MQTT Client ID (or set it up beforehand as *.json configuration setting `"mqttclientid_s":` or via environment variable `MQTTCLIENTID`).
 1. Select the path to the MQTT `*.crt` and `*.pem` files provided by the location service (PyGPSClient will use the user's HOME directory by default).
+1. Select the required region and subscription mode (`IP` or `L-Band`).
 1. Select the required topics:
-    - IP (required) - this is the raw SPARTN correction data.
-    - MGA (optional) - this is Assist Now data as a UBX MGA message.
-    - SPARTNKEY (optional, recommended) - this is the SPARTN encryption keys as a UBX RXM-SPARTNKEY message.
-1. To connect to the MQTT server, select the Server URL, Client ID, Region and Topics and click ![connect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/ethernet-1-24.png?raw=true). To disconnect, click ![disconnect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-media-control-50-24.png?raw=true).
+    - IP - this is the raw SPARTN correction data as SPARTN-1X-HPAC* / OCB* / GAD* messages (required for IP; must be unchecked for L-band).
+    - Assist - this is Assist Now data as UBX MGA-* messages.
+    - Key - this is the SPARTN IP or L-band decryption keys as a UBX RXM-SPARTNKEY message.
+1. To connect to the MQTT server, click ![connect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/ethernet-1-24.png?raw=true). To disconnect, click ![disconnect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-media-control-50-24.png?raw=true).
 
 ### L-Band Correction Configuration (D9*)
 
@@ -233,17 +237,17 @@ The SPARTN client configuration can be loaded from a JSON file provided by the L
 ### GNSS Receiver Configuration (F9*)
 
 1. Connect to the GNSS receiver first by clicking ![connect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/usbport-1-24.png?raw=true) on the main PyGPSClient settings panel.
-1. If you are subscribing to the MQTT SPARTNKEY (`/pp/ubx/0236/ip`) topic, the decryption key and validity date details will be entered automatically on receipt of a UBX RXM-SPARTNKEY message (which may take a few seconds after connecting). Alternatively, they can be uploaded from the service provider's JSON file, or entered manually as follows:
+1. If you are subscribing to the MQTT SPARTNKEY (`/pp/ubx/0236/ip` or `/pp/ubx/0236/Lb`) topic, the decryption key and validity date details will be entered automatically on receipt of a UBX RXM-SPARTNKEY message (which may take a few seconds after connecting). Alternatively, they can be uploaded from the service provider's JSON file, or entered manually as follows:
 1. Enter the current and next decryption keys in hexadecimal format e.g. `0102030405060708090a0b0c0d0e0f10`. The keys are normally 16 bytes long, or 32 hexadecimal characters.
 1. Enter the supplied Valid From dates in `YYYYMMDD` format. **NB:** These are *Valid From* dates rather than *Expiry* dates. If the location service provides Expiry dates, subtract 4 weeks from these to get the Valid From dates.
 1. Select 'DGPS Timeout', 'Upload keys', 'Configure receiver' and 'Disable NMEA' options as required.
+1. Select the SPARTN correction source - either `IP` or `L-Band`.
 1. To reduce traffic volumes, you can choose to disable NMEA messages from the receiver. A minimal set of UBX NAV messages will be enabled in their place.
 1. Click ![send button](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-arrow-12-24.png?raw=true) to upload the configuration. The utility will send the relevant configuration command(s) to the receiver and poll for an acknowledgement.
 
 
 Below is a illustrative SPARTN DGPS data log, showing:
-* Incoming UBX MGA (Assist-Now) messages; in this case, MGA-GAL-EPH (Assist-Now Galileo ephemera data).
-* Incoming SPARTN correction messages; in this case - SPARTN-1X-GAD (geographic area definition) and SPARTN-1X-HPAC (high-precision atmosphere correction). 
+* Incoming SPARTN correction messages (SPARTN-1X-HPAC* high-precision atmosphere corrections; SPARTN-OCB* orbit / clock / bias corrections; SPARTN-1X-GAD geographic area definitions). 
 * Outgoing UBX RXM-COR confirmation messages from receiver showing that the SPARTN data has been received and decrypted OK.
 
 ![spartn console screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/spartn_consolelog.png?raw=true)
@@ -308,7 +312,7 @@ In the following, `python3` & `pip` refer to the Python 3 executables. You may n
 the Python 3 scripts (bin) and site_packages directories are included in your PATH 
 (*most standard Python 3 installation packages will do this automatically if you select the 'Add to PATH' option during installation*).
 
-NB: if you're installing onto a 32-bit Linux platform (e.g. Raspberry Pi OS 32), there may be additional installation steps - see note*³* below.
+NB: if you're installing onto a 32-bit Linux platform (e.g. Raspberry Pi OS 32), there may be additional installation steps - see note*⁵* below.
 
 ### Platform Dependencies
 
@@ -378,6 +382,7 @@ python3 -m pip install --user --upgrade virtualenv
 python3 -m virtualenv env
 source env/bin/activate (or env\Scripts\activate on Windows)
 (env) python3 -m pip install --upgrade pygpsclient
+(env) ./env/bin/pygpsclient
 ...
 deactivate
 ```
