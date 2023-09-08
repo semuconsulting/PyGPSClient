@@ -201,6 +201,7 @@ NTRIP_EVENT = "<<ntrip_read>>"
 OKCOL = "green"
 POPUP_TRANSIENT = True  # whether pop-up config dialogs are always on top
 PORTIDS = ("0 I2C", "1 UART1", "2 UART2", "3 USB", "4 SPI")
+PUBLICIP_URL = "https://ipinfo.io/json"
 PYPI_URL = "https://pypi.org/pypi/PyGPSClient"
 QUITONERRORDEFAULT = 1
 RCVR_CONNECTION = "USB"  # default GNSS receiver connection port

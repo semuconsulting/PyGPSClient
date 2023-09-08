@@ -112,7 +112,7 @@ from pygpsclient.strings import (
 
 MAXLINES = ("200", "500", "1000", "2000", "100")
 MAPTYPES = ("world", "map", "sat")
-MINHEIGHT = 690
+MINHEIGHT = 715
 MINWIDTH = 365
 
 

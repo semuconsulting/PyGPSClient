@@ -57,6 +57,8 @@ from pygpsclient.helpers import (
     VALINT,
     VALNONBLANK,
     config_nmea,
+    lanip,
+    publicip,
     val2sphp,
     valid_entry,
 )
@@ -65,6 +67,8 @@ from pygpsclient.strings import (
     LBLCONFIGBASE,
     LBLDISNMEA,
     LBLDURATIONS,
+    LBLLANIP,
+    LBLPUBLICIP,
     LBLSERVERHOST,
     LBLSERVERMODE,
     LBLSERVERPORT,
@@ -188,6 +192,22 @@ class ServerConfigFrame(Frame):
             textvariable=self.sock_host,
             relief="sunken",
             width=12,
+        )
+        self._lbl_publicipl = Label(
+            self._frm_basic,
+            text=LBLPUBLICIP,
+        )
+        self._lbl_publicip = Label(
+            self._frm_basic,
+            text="N/A",
+        )
+        self._lbl_lanipl = Label(
+            self._frm_basic,
+            text=LBLLANIP,
+        )
+        self._lbl_lanip = Label(
+            self._frm_basic,
+            text="N/A",
         )
         self._lbl_sockport = Label(
             self._frm_basic,
@@ -332,14 +352,18 @@ class ServerConfigFrame(Frame):
         self._chk_socketserve.grid(
             column=0, row=0, columnspan=2, rowspan=2, padx=2, pady=1, sticky=W
         )
-        self._lbl_sockmode.grid(column=2, row=0, padx=2, pady=1, sticky=E)
+        self._lbl_sockmode.grid(column=2, row=0, padx=2, pady=1, sticky=W)
         self._spn_sockmode.grid(column=3, row=0, padx=2, pady=1, sticky=W)
-        self._lbl_sockhost.grid(column=2, row=1, padx=2, pady=1, sticky=E)
-        self._ent_sockhost.grid(column=3, row=1, padx=2, pady=1, sticky=W)
-        self._lbl_sockport.grid(column=2, row=2, padx=2, pady=1, sticky=E)
+        self._lbl_sockhost.grid(column=0, row=2, padx=2, pady=1, sticky=W)
+        self._ent_sockhost.grid(column=1, row=2, padx=2, pady=1, sticky=W)
+        self._lbl_sockport.grid(column=2, row=2, padx=2, pady=1, sticky=W)
         self._ent_sockport.grid(column=3, row=2, padx=2, pady=1, sticky=W)
-        self._lbl_clients.grid(column=0, row=2, padx=2, pady=1, sticky=E)
-        self._lbl_sockclients.grid(column=1, row=2, padx=2, pady=1, sticky=W)
+        self._lbl_publicipl.grid(column=0, row=3, padx=2, pady=1, sticky=W)
+        self._lbl_publicip.grid(column=1, row=3, padx=2, pady=1, sticky=W)
+        self._lbl_lanipl.grid(column=0, row=4, padx=2, pady=1, sticky=W)
+        self._lbl_lanip.grid(column=1, row=4, padx=2, pady=1, sticky=W)
+        self._lbl_clients.grid(column=2, row=3, rowspan=2, padx=2, pady=1, sticky=W)
+        self._lbl_sockclients.grid(column=3, row=3, rowspan=2, padx=2, pady=1, sticky=W)
         self._btn_toggle.grid_forget()
         self._frm_advanced.grid_forget()
         self._chk_set_basemode.grid(
@@ -375,6 +399,8 @@ class ServerConfigFrame(Frame):
         self.fixedalt.set(self._saved_config.get("ntripcasterfixedalt_f", 0))
         self.disable_nmea.set(self._saved_config.get("ntripcasterdisablenmea_b", 1))
         self.sock_host.set(self._saved_config.get("sockhost_s", "0.0.0.0"))
+        self._lbl_publicip.config(text=publicip())
+        self._lbl_lanip.config(text=lanip())
         self.sock_port.set(self._saved_config.get("sockport_n", SOCKSERVER_PORT))
         self.fixedlat.set(self._saved_config.get("ntripcasterfixedlat_f", 0))
         self.fixedlon.set(self._saved_config.get("ntripcasterfixedlon_f", 0))

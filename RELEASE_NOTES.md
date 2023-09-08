@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE v1.4.4
+
+ENHANCEMENTS:
+
+1. Add public IP address to socket server/NTRIP caster config panel for ease of reference.
+
 ### RELEASE v1.4.3
 
 ENHANCEMENTS:
