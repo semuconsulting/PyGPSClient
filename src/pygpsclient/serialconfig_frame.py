@@ -118,6 +118,7 @@ class SerialConfigFrame(Frame):
         self._xonxoff = IntVar()
         self._timeout = DoubleVar()
         self._msgmode_name = StringVar()
+        self._inactivity_timeout = IntVar()
         self._img_refresh = ImageTk.PhotoImage(Image.open(ICON_REFRESH))
         self._img_expand = ImageTk.PhotoImage(Image.open(ICON_EXPAND))
         self._img_contract = ImageTk.PhotoImage(Image.open(ICON_CONTRACT))
@@ -235,6 +236,15 @@ class SerialConfigFrame(Frame):
             relief="sunken",
             width=30,
         )
+        self._lbl_inactivity = Label(self._frm_advanced, text="Inactivity Timeout (s)")
+        self._spn_inactivity = Spinbox(
+            self._frm_advanced,
+            values=(0, 1, 5, 10, 30, 60, 300),
+            width=4,
+            state=READONLY,
+            wrap=True,
+            textvariable=self._inactivity_timeout,
+        )
 
     def _do_layout(self):
         """
@@ -269,6 +279,10 @@ class SerialConfigFrame(Frame):
             self._spn_msgmode_name.grid(column=3, row=2, sticky=W, padx=3, pady=2)
         self._lbl_userport.grid(column=0, row=3, sticky=W)
         self._ent_userport.grid(column=1, row=3, columnspan=3, sticky=W, padx=3, pady=2)
+        self._lbl_inactivity.grid(column=0, row=4, columnspan=2, sticky=W)
+        self._spn_inactivity.grid(
+            column=2, row=4, columnspan=3, sticky=W, padx=3, pady=2
+        )
 
     def _attach_events(self):
         """
@@ -291,6 +305,7 @@ class SerialConfigFrame(Frame):
         self._xonxoff.set(self._saved_config.get("xonxoff_b", False))
         self._timeout.set(self._saved_config.get("timeout_f", self._timeout_rng[0]))
         self._msgmode_name.set(MSGMODES[self._saved_config.get("msgmode_n", GET)])
+        self._inactivity_timeout.set(self._saved_config.get("inactivity_timeout_n", 0))
         self.user_defined_port.set(self._saved_config.get("userport_s", ""))
         self._on_refresh()
 
@@ -399,6 +414,7 @@ class SerialConfigFrame(Frame):
             self._lbl_msgmode_name,
             self._lbl_userport,
             self._ent_userport,
+            self._lbl_inactivity,
         ):
             widget.configure(state=(NORMAL if status == DISCONNECTED else DISABLED))
         for widget in (
@@ -408,6 +424,7 @@ class SerialConfigFrame(Frame):
             self._spn_parity_name,
             self._spn_timeout,
             self._spn_msgmode_name,
+            self._spn_inactivity,
         ):
             widget.configure(state=(READONLY if status == DISCONNECTED else DISABLED))
 
@@ -559,6 +576,17 @@ class SerialConfigFrame(Frame):
         """
 
         return self.user_defined_port.get()
+
+    @property
+    def inactivity_timeout(self) -> int:
+        """
+        Return inactivity timeout
+
+        :return: timeout in seconds
+        :rtype: int
+        """
+
+        return self._inactivity_timeout.get()
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """

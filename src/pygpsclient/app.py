@@ -51,6 +51,7 @@ from pygpsclient.globals import (
     GNSS_EOF_EVENT,
     GNSS_ERR_EVENT,
     GNSS_EVENT,
+    GNSS_TIMEOUT_EVENT,
     GUI_UPDATE_INTERVAL,
     ICON_APP,
     MQTT_PROTOCOL,
@@ -73,6 +74,7 @@ from pygpsclient.strings import (
     CONFIGERR,
     DLGSTOPRTK,
     ENDOFFILE,
+    INACTIVE_TIMEOUT,
     INTROTXTNOPORTS,
     LOADCONFIGBAD,
     LOADCONFIGNONE,
@@ -346,6 +348,7 @@ class App(Frame):
 
         self.__master.bind(GNSS_EVENT, self.on_gnss_read)
         self.__master.bind(GNSS_EOF_EVENT, self.on_gnss_eof)
+        self.__master.bind(GNSS_TIMEOUT_EVENT, self.on_gnss_timeout)
         self.__master.bind(GNSS_ERR_EVENT, self.on_stream_error)
         self.__master.bind(NTRIP_EVENT, self.on_ntrip_read)
         self.__master.bind(SPARTN_EVENT, self.on_spartn_read)
@@ -727,7 +730,21 @@ class App(Frame):
             False  # turn off socket server
         )
         self.conn_status = DISCONNECTED
-        self.set_status(ENDOFFILE)
+        self.set_status(ENDOFFILE, "red")
+
+    def on_gnss_timeout(self, event):  # pylint: disable=unused-argument
+        """
+        EVENT TRIGGERED
+        Action on <<sgnss_timeout>> event - stream inactivity timeout.
+
+        :param event event: <<gnss_timeout>> event
+        """
+
+        self.frm_settings.frm_socketserver.socketserving = (
+            False  # turn off socket server
+        )
+        self.conn_status = DISCONNECTED
+        self.set_status(INACTIVE_TIMEOUT, "red")
 
     def on_ntrip_read(self, event):  # pylint: disable=unused-argument
         """

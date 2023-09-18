@@ -101,6 +101,7 @@ GLONASS_NMEA = True  # use GLONASS NMEA SVID (65-96) rather than slot (1-24)
 GNSS_EOF_EVENT = "<<gnss_eof>>"
 GNSS_ERR_EVENT = "<<gnss_error>>"
 GNSS_EVENT = "<<gnss_read>>"
+GNSS_TIMEOUT_EVENT = "<<gnss_timeout>>"
 GNSS_LIST = {
     0: ("GPS", "royalblue"),
     1: ("SBA", "orange"),

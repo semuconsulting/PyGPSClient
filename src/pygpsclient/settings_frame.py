@@ -72,6 +72,7 @@ from pygpsclient.globals import (
     GNSS_EOF_EVENT,
     GNSS_ERR_EVENT,
     GNSS_EVENT,
+    GNSS_TIMEOUT_EVENT,
     ICON_CONN,
     ICON_DISCONN,
     ICON_EXIT,
@@ -535,12 +536,14 @@ class SettingsFrame(Frame):
         conndict = {
             "read_event": GNSS_EVENT,
             "eof_event": GNSS_EOF_EVENT,
+            "timeout_event": GNSS_TIMEOUT_EVENT,
             "error_event": GNSS_ERR_EVENT,
             "inqueue": self.__app.gnss_inqueue,
             "outqueue": self.__app.gnss_outqueue,
             "socket_inqueue": self.__app.socket_inqueue,
             "conntype": conntype,
             "msgmode": self.frm_serial.msgmode,
+            "inactivity_timeout": self.frm_serial.inactivity_timeout,
         }
 
         self.frm_socketserver.set_status(conntype)
@@ -759,6 +762,7 @@ class SettingsFrame(Frame):
                 "timeout_f": self.frm_serial.timeout,
                 "msgmode_n": self.frm_serial.msgmode,
                 "userport_s": self.frm_serial.userport,
+                "inactivity_timeout_n": self.frm_serial.inactivity_timeout,
                 # socket client settings from frm_socketclient
                 "sockclienthost_s": self.frm_socketclient.server.get(),
                 "sockclientport_n": self.frm_socketclient.port.get(),
