@@ -196,7 +196,7 @@ class NMEAHandler:
         now = time()
         if data.talker == "GA":
             gnss = 2  # Galileo
-        elif data.talker == "GB":
+        elif data.talker in ("GB", "BD"):
             gnss = 3  # Beidou (only available in MMEA 4.11)
         elif data.talker == "GL":
             gnss = 6  # GLONASS
