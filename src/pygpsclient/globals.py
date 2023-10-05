@@ -101,6 +101,7 @@ GLONASS_NMEA = True  # use GLONASS NMEA SVID (65-96) rather than slot (1-24)
 GNSS_EOF_EVENT = "<<gnss_eof>>"
 GNSS_ERR_EVENT = "<<gnss_error>>"
 GNSS_EVENT = "<<gnss_read>>"
+GNSS_TIMEOUT_EVENT = "<<gnss_timeout>>"
 GNSS_LIST = {
     0: ("GPS", "royalblue"),
     1: ("SBA", "orange"),
@@ -201,6 +202,7 @@ NTRIP_EVENT = "<<ntrip_read>>"
 OKCOL = "green"
 POPUP_TRANSIENT = True  # whether pop-up config dialogs are always on top
 PORTIDS = ("0 I2C", "1 UART1", "2 UART2", "3 USB", "4 SPI")
+PUBLICIP_URL = "https://ipinfo.io/json"
 PYPI_URL = "https://pypi.org/pypi/PyGPSClient"
 QUITONERRORDEFAULT = 1
 RCVR_CONNECTION = "USB"  # default GNSS receiver connection port

@@ -42,6 +42,8 @@ from pygpsclient.helpers import (
     validURL,
     wnotow2date,
     ned2vector,
+    publicip,
+    lanip,
 )
 from pygpsclient.mapquest import mapq_compress, mapq_decompress
 from pygpsclient.widget_state import widget_state, MENU, VISIBLE, DEFAULT, FRAME
@@ -443,6 +445,16 @@ class StaticTest(unittest.TestCase):
         self.assertEqual(res, EXPECTED_RESULT)
         res = get_mp_info([])
         self.assertEqual(res, None)
+
+    def testpublicip(self):
+        res = publicip()
+        # print(res)
+        self.assertRegex(res, r"^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}$")
+
+    def testlanip(self):
+        res = lanip()
+        # print(res)
+        self.assertRegex(res, r"^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}$")
 
 
 if __name__ == "__main__":

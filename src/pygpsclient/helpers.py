@@ -17,14 +17,22 @@ import os
 from datetime import datetime, timedelta
 from math import atan, cos, pi, sin, sqrt, trunc
 from platform import system
+from socket import AF_INET, SOCK_DGRAM, socket
 from time import strftime
 from tkinter import Button, Entry, Label, Toplevel, W, font
 
 from pynmeagps import haversine
 from pyubx2 import SET, UBX_MSGIDS, UBXMessage, attsiz, atttyp
-from requests import get
+from requests import ConnectionError as ConnError
+from requests import HTTPError, JSONDecodeError, get
 
-from pygpsclient.globals import FIXLOOKUP, GPSEPOCH0, MAX_SNR, RCVR_CONNECTION
+from pygpsclient.globals import (
+    FIXLOOKUP,
+    GPSEPOCH0,
+    MAX_SNR,
+    PUBLICIP_URL,
+    RCVR_CONNECTION,
+)
 from pygpsclient.strings import NA
 
 # validation type flags
@@ -926,3 +934,33 @@ def ned2vector(n: float, e: float, d: float) -> tuple:
         else:
             hdg += 360
     return dis, hdg
+
+
+def publicip() -> str:
+    """
+    Get public IP address from ipinfo REST API.
+
+    :return: Public IP address as string, or "N/A' if not available.
+    """
+
+    try:
+        response = get(PUBLICIP_URL, verify=True, timeout=3)
+        response.raise_for_status()
+        return response.json().get("ip", "N/A")
+    except (HTTPError, ConnError, JSONDecodeError):
+        return "N/A"
+
+
+def lanip() -> str:
+    """
+    Get LAN IP address via socket connection info.
+
+    :return: LAN IP address as string, or "N/A' if not available.
+    """
+
+    with socket(AF_INET, SOCK_DGRAM) as sck:
+        try:
+            sck.connect(("8.8.8.8", 80))
+            return sck.getsockname()[0]
+        except Exception:  # pylint: disable=broad-exception-caught
+            return "N/A"

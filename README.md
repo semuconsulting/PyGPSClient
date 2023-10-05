@@ -18,12 +18,10 @@
 PyGPSClient is a free, open-source, multi-platform graphical GNSS/GPS testing, diagnostic and UBX &copy; (u-blox &trade;) device configuration application written entirely in Python and tkinter. 
 * Runs on any platform which supports a Python 3 interpreter (>=3.8) and tkinter (>=8.6) GUI framework, including Windows, MacOS, Linux and Raspberry Pi OS.
 * Supports NMEA, UBX, RTCM3, NTRIP and SPARTN protocols.
-* Capable of reading from a variety of GNSS data streams: Serial (USB / UART), Socket (TCP / UDP), binary datalog file/terminal capture and u-center recording.
-* Configurable GUI with user-selectable and resizable widgets.
-* Supports data logging in parsed, binary and hexadecimal formats.
-* Supports track recording and display in GPX format.
+* Capable of reading from a variety of GNSS data streams: Serial (USB / UART), Socket (TCP / UDP), binary data stream (terminal or file capture) and u-center (*.ubx) recording.
+* Provides [NTRIP](#ntripconfig) and [SPARTN](#spartnconfig) client facilities.
 * Can serve as an [NTRIP base station](#basestation) with a compatible receiver (e.g. ZED-F9P).
-* While not intended to be a direct replacement, the application supports most of the UBX monitoring and configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool.
+* While not intended to be a direct replacement, the application supports most of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool (*only public-domain features are supported*).
 
 ![full app screenshot ubx](https://github.com/semuconsulting/PyGPSClient/blob/master/images/app.png?raw=true)
 
@@ -56,7 +54,7 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 ## <a name="instructions">Instructions</a>
 
 1. To connect to a GNSS receiver via USB or UART port, select the device from the listbox, set the appropriate serial connection parameters and click 
-![connect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/usbport-1-24.png?raw=true). The application will endeavour to pre-select a recognised GNSS/GPS device but this is platform and device dependent. Press the ![refresh](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-refresh-6-16.png?raw=true) button to refresh the list of connected devices at any point. `Rate bps` (baud rate) is typically the only setting that might need adjusting, but tweaking the `timeout` setting may improve performance on certain platforms. The `Msg Mode` parameter defaults to `GET` i.e., periodic or poll response messages *from* a receiver. If you wish to parse streams of command or poll messages being sent *to* a receiver, set the `Msg Mode` to `SET` or `POLL`. A default user-defined serial port can also be passed via the json configuration file setting `"userport_s":`, via environment variable `PYGPSCLIENT_USERPORT` or as a command line argument `--userport`.
+![connect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/usbport-1-24.png?raw=true). The application will endeavour to pre-select a recognised GNSS/GPS device but this is platform and device dependent. Press the ![refresh](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-refresh-6-16.png?raw=true) button to refresh the list of connected devices at any point. `Rate bps` (baud rate) is typically the only setting that might need adjusting, but tweaking the `timeout` setting may improve performance on certain platforms. The `Msg Mode` parameter defaults to `GET` i.e., periodic or poll response messages *from* a receiver. If you wish to parse streams of command or poll messages being sent *to* a receiver, set the `Msg Mode` to `SET` or `POLL`. A default user-defined serial port can also be passed via the json configuration file setting `"userport_s":`, via environment variable `PYGPSCLIENT_USERPORT` or as a command line argument `--userport`. An optional serial or socket stream inactivity timeout can also be set (in seconds; 0 = no timeout).
 1. To connect to a TCP or UDP socket, enter the server URL and port, select the protocol (defaults to TCP) and click 
 ![connect socket icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/ethernet-1-24.png?raw=true).
 1. To stream from a previously-saved <a name="filestream">binary datalog file</a>, click 
@@ -89,7 +87,7 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 |![skyview widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/skyview_widget.png?raw=true)| Skyview widget showing current satellite visibility and position (elevation / azimuth). Satellite icon borders are colour-coded to distinguish between different GNSS constellations. For consistency between NMEA and UBX data sources, will display GLONASS NMEA SVID (65-96) rather than slot (1-24). |
 |![graphview widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/graphview_widget.png?raw=true)| Graphview widget showing current satellite reception (carrier-to-noise ratio or cnr). Double-click to toggle legend. |
 |![static map](https://github.com/semuconsulting/PyGPSClient/blob/master/images/staticmap.png?raw=true)| Static Mercator world map showing current global location. |
-|![webmap widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/webmap_widget.png?raw=true)| Dynamic, scalable web map via MapQuest API (*requires an Internet connection and free [Mapquest API Key](#mapquestapi)*). Left Click +/- to zoom in or out. Right click +/- to zoom in or out to maximum extent. By default, the web map will automatically refresh every 60 seconds (*indicated by a small timer icon at the top left*). The default refresh rate can be amended by changing the `"mapupdateinterval":` value in your json configuration file, but **NB** the facility is not intended to be used for real-time navigation. Double-click anywhere in the map to immediately refresh. |
+|![webmap widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/webmap_widget.png?raw=true)| Dynamic, scalable web map via MapQuest API (*requires an Internet connection and free [Mapquest API Key](#mapquestapi)*). Left Click +/- to zoom in or out. Right click +/- to zoom in or out to maximum extent. By default, the web map will automatically refresh every 60 seconds (*indicated by a small timer icon at the top left*). The default refresh rate can be amended by changing the `"mapupdateinterval_n":` value in your json configuration file, but **NB** the facility is not intended to be used for real-time navigation. Double-click anywhere in the map to immediately refresh. |
 |![spectrum widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/spectrum_widget.png?raw=true)| Spectrum widget showing a spectrum analysis chart (*GNSS receiver must be capable of outputting UBX MON-SPAN messages*). Clicking anywhere in the spectrum chart will display the frequency and decibel reading at that point. Double-clicking anywhere in the chart will toggle the GNSS frequency band markers (L1, G2, etc.) on or off. |
 |![sysmon widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/sysmon_widget.png?raw=true)| System Monitor widget showing device cpu, memory and I/O utilisation (*GNSS receiver must be capable of outputting UBX MON-SYS and/or MON-COMMS messages*). Tick checkbox to toggle between actual (cumulative) I/O stats and pending I/O. |
 |![scatterplot widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/scatterplot_widget.png?raw=true)| Scatterplot widget showing variability in position reporting over time. Double-click to clear existing plot. |
@@ -180,7 +178,7 @@ The facility can be accessed by clicking ![SPARTN Client button](https://github.
     - Subscription to a suitable MQTT SPARTN location service e.g. u-blox / Thingstream PointPerfect IP or L-band, which should provide the following details:
       - Server URL e.g. `pp.services.u-blox.com`
       - Client ID (which can be stored in the `"mqttclientid_s":` json configuration file setting or via environment variable `MQTTCLIENTID`)
-      - Encryption certificate (`*.crt`) and key (`*.pem`) files. If these are placed in the user's HOME directory using the location service's standard naming convention, PyGPSClient will find them automatically.
+      - Encryption certificate (`*.crt`) and key (`*.pem`) files required to access the SPARTN service via an encrypted HTTPS connection. If these are placed in the user's HOME directory using the location service's standard naming convention, PyGPSClient will find them automatically.
       - Region code - select from `us`, `eu`, `jp`, `kr` or `au`.
 	  - Source - select from either `IP` or `L-Band` (*NB: the 'L-Band' MQTT mode provides decryption keys, Assist Now data and L-Band frequency information, but the correction data itself arrives via the L-Band receiver below*).
       - A list of published topics. These typically include:
@@ -195,7 +193,7 @@ The facility can be accessed by clicking ![SPARTN Client button](https://github.
     - SPARTN L-Band correction receiver e.g. u-blox NEO-D9S.
     - [Suitable Inmarsat L-band antenna](https://www.amazon.com/RTL-SDR-Blog-1525-1637-Inmarsat-Iridium/dp/B07WGWZS1D) and good satellite reception on regional frequency (NB: standard GNSS antenna may not be suitable).
     - Subscription to L-Band location service e.g. u-blox / Thingstream PointPerfect, which should provide the following details:
-      - L-Band frequency
+      - L-Band frequency (*also available via `/pp/frequencies/Lb` MQTT topic*)
 	  - Search window
 	  - Use Service ID?
 	  - Use Descrambling?
@@ -209,7 +207,7 @@ The facility can be accessed by clicking ![SPARTN Client button](https://github.
 
     - SPARTN-compatible GNSS receiver e.g. u-blox ZED-F9P
     - Subscription to either IP and/or L-Band location service(s) e.g. e.g. u-blox / Thingstream PointPerfect, which should provide the following details:
-      - Current and Next IP or L-band decryption Keys in hexadecimal format.
+      - Current and Next IP or L-band decryption Keys in hexadecimal format. These allow the receiver to decrypt the SPARTN message payloads.
 	  - Valid From dates in YYYYMMDD format (keys normally valid for 4 week period).
 
 **Instructions:**
@@ -220,7 +218,7 @@ The facility can be accessed by clicking ![SPARTN Client button](https://github.
 1. Select the path to the MQTT `*.crt` and `*.pem` files provided by the location service (PyGPSClient will use the user's HOME directory by default).
 1. Select the required region and subscription mode (`IP` or `L-Band`).
 1. Select the required topics:
-    - IP - this is the raw SPARTN correction data as SPARTN-1X-HPAC* / OCB* / GAD* messages (required for IP; must be unchecked for L-band).
+    - IP - this is the raw SPARTN correction data as SPARTN-1X-HPAC* / OCB* / GAD* messages (required for IP; must be unchecked for L-Band).
     - Assist - this is Assist Now data as UBX MGA-* messages.
     - Key - this is the SPARTN IP or L-band decryption keys as a UBX RXM-SPARTNKEY message.
 1. To connect to the MQTT server, click ![connect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/ethernet-1-24.png?raw=true). To disconnect, click ![disconnect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-media-control-50-24.png?raw=true).
@@ -231,7 +229,7 @@ The facility can be accessed by clicking ![SPARTN Client button](https://github.
 1. Select the required Output Port - this is the port used to connect the Correction receiver to the GNSS receiver e.g. UART2 or I2C.
 1. If both Correction and GNSS receivers are connected to the same PyGPSClient workstation (e.g. via separate USB ports), it is possible to run the utility in Output Port = 'Passthough' mode, whereby the output data from the Correction receiver (UBX `RXM-PMP` messages) will be automatically passed through to the GNSS receiver by PyGPSClient, without the need to connect the two externally.
 1. To enable INF-DEBUG messages, which give diagnostic information about current L-Band reception, click 'Enable Debug?'.
-1. To save the configuration to the device's persistent storage (Battery-backed RAM, Flash or EEPROM), click 'Save Config?'.
+1. To save the configuration to the device's persistent storage (Battery-backed RAM, Flash or EEPROM), click 'Save Config?'. This only has to be done once for a given region.
 1. Once connected, click ![send button](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-arrow-12-24.png?raw=true) to upload the configuration. The utility will send the relevant configuration command(s) to the Correction receiver and poll for an acknowledgement.
 
 ### GNSS Receiver Configuration (F9*)
@@ -258,12 +256,12 @@ The Socket Server / NTRIP Caster facility is capable of operating in either of t
 1. SOCKET SERVER - an open, unauthenticated TCP socket server available to any socket client including, for example, another instance of PyGPSClient or the [`gnssdump` CLI utility](https://github.com/semuconsulting/pygnssutils#gnssdump). In this mode it will broadcast the host's currently connected GNSS data stream (NMEA, UBX, RTCM3). The default port is 50012.
 2. NTRIP CASTER - a simple implementation of an authenticated NTRIP caster available to any NTRIP client including, for example, the PyGPSClient NTRIP Client facility or the [`gnssntripclient` CLI utility](https://github.com/semuconsulting/pygnssutils#gnssntripclient). Login credentials for the NTRIP caster are set via the `"ntripclientuser_s":` and `"ntripclientpassword_s":` settings in the *.json confirmation file (they can also be set via PyGPSClient command line arguments `--ntripuser`, `--ntrippassword`, or by setting environment variables `PYGPSCLIENT_USER`, `PYGPSCLIENT_PASSWORD`). Default settings are as follows: bind address: 0.0.0.0, port: 2101, mountpoint: pygnssutils, user: anon, password: password.
 
-By default, the server/caster binds to the host address '0.0.0.0' (IPv4) or '::' (IPv6) i.e. all available IP addresses on the host machine. This can be overridden via the settings panel or a host environment variable `PYGPSCLIENT_BINDADDRESS`. A label on the settings panel indicates the number of connected clients, and the server/caster status is indicated in the topmost banner: open with no clients: ![transmit icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-noclient-10-24.png?raw=true), open with clients: ![transmit icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-transmit-10-24.png?raw=true).
+By default, the server/caster binds to the host address '0.0.0.0' (IPv4) or '::' (IPv6) i.e. all available IP addresses on the host machine. This can be overridden via the settings panel or a host environment variable `PYGPSCLIENT_BINDADDRESS`. A label on the settings panel indicates the number of connected clients, and the server/caster status is indicated in the topmost banner: running with no clients: ![transmit icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-noclient-10-24.png?raw=true), running with clients: ![transmit icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-transmit-10-24.png?raw=true).
 
 **Pre-Requisites:**
 
 1. Running in NTRIP CASTER mode is predicated on the host being connected to an RTK-compatible GNSS receiver (e.g. u-blox ZED-F9P) **operating in Base Station mode** (either `FIXED` or `SURVEY_IN`) and outputting the requisite RTCM3 message types (1005, 1077, 1087, 1097, 1127 and 1230). 
-1. It may be necessary to add a firewall rule on the host and/or client machine to allow remote traffic on the specified address:port.
+1. It may be necessary to add a firewall rule and/or enable port-forwarding on the host machine or router to allow remote traffic on the specified address:port.
 
 **Instructions:**
 

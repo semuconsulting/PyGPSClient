@@ -1,5 +1,13 @@
 # PyGPSClient Release Notes
 
+### RELEASE v1.4.4
+
+ENHANCEMENTS:
+
+1. Add serial or socket stream inactivity timeout setting on serial config panel.
+1. Add public IP address to socket server/NTRIP caster config panel for ease of reference.
+1. Add support for legacy NMEA "BD" (Beidou) talker IDs in satellite and graphview widgets.
+
 ### RELEASE v1.4.3
 
 ENHANCEMENTS:

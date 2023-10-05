@@ -38,6 +38,7 @@
     "timeout_f": 0.1,
     "msgmode_n": 0,
     "userport_s": "<== YOUR USER_DEFINED SERIAL PORT ==>",
+    "inactivity_timeout_n": 0,
     "sockclienthost_s": "localhost",
     "sockclientport_n": 50010,
     "sockclientprotocol_s": "TCP IPv4",

@@ -117,6 +117,7 @@ class StreamHandler:
         """
 
         conntype = settings["conntype"]
+        inactivity_timeout = settings["inactivity_timeout"]
         try:
             if conntype == CONNECTED:
                 ser = settings["serial_settings"]
@@ -134,6 +135,7 @@ class StreamHandler:
                         stopevent,
                         stream,
                         settings,
+                        inactivity_timeout,
                     )
 
             elif conntype == CONNECTED_FILE:
@@ -143,6 +145,7 @@ class StreamHandler:
                         stopevent,
                         stream,
                         settings,
+                        inactivity_timeout,
                     )
 
             elif conntype == CONNECTED_SOCKET:
@@ -167,11 +170,15 @@ class StreamHandler:
                         stopevent,
                         stream,
                         settings,
+                        inactivity_timeout,
                     )
 
-        except (EOFError, TimeoutError):
+        except EOFError:
             stopevent.set()
             self.__master.event_generate(settings["eof_event"])
+        except TimeoutError:
+            stopevent.set()
+            self.__master.event_generate(settings["timeout_event"])
         except (
             IOError,
             SerialException,
@@ -191,6 +198,7 @@ class StreamHandler:
         stopevent: Event,
         stream: object,
         settings: dict,
+        inactivity: int,
     ):
         """
         THREADED PROCESS
@@ -202,6 +210,7 @@ class StreamHandler:
         :param Event stopevent: thread stop event
         :param object stream: serial data stream
         :param dict settings: settings dictionary
+        :param int inactivity: inactivity timeout (s)
         """
 
         conntype = settings["conntype"]
@@ -216,6 +225,7 @@ class StreamHandler:
         raw_data = None
         parsed_data = None
         lastread = datetime.now()
+        lastevent = datetime.now()
         while not stopevent.is_set():
             try:
                 if conntype in (CONNECTED, CONNECTED_SOCKET) or (
@@ -226,9 +236,14 @@ class StreamHandler:
                     if raw_data is not None:
                         settings["inqueue"].put((raw_data, parsed_data))
                         self.__master.event_generate(settings["read_event"])
-                    else:
+                        lastevent = datetime.now()
+                    else:  # timeout or eof
                         if conntype == CONNECTED_FILE:
                             raise EOFError
+                        elif inactivity and datetime.now() > lastevent + timedelta(
+                            seconds=inactivity
+                        ):
+                            raise TimeoutError
                     if conntype == CONNECTED_FILE:
                         lastread = datetime.now()
                         self.__master.update_idletasks()
