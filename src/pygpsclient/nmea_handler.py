@@ -173,7 +173,7 @@ class NMEAHandler:
 
         self.__app.gnss_status.pdop = data.PDOP
         self.__app.gnss_status.hdop = data.HDOP
-        self.__app.gnss_status.vvdop = data.VDOP
+        self.__app.gnss_status.vdop = data.VDOP
         # doesn't support RTK fix modes so ignored...
         # self.__app.gnss_status.fix = fix2desc("GSA", data.navMode)
 
