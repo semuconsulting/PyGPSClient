@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE CANDIDATE v1.4.5
+
+FIXES:
+
+1. Fix vdop typo in nmea_handler [#94](https://github.com/semuconsulting/PyGPSClient/issues/94)
+
 ### RELEASE v1.4.4
 
 ENHANCEMENTS:

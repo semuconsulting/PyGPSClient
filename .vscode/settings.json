@@ -6,7 +6,7 @@
     "python.defaultInterpreterPath": "python3",
     "modulename": "pygpsclient",
     "distname": "pygpsclient",
-    "moduleversion": "1.4.4",
+    "moduleversion": "1.4.5",
     "[python]": {
         "editor.defaultFormatter": "ms-python.black-formatter"
     },
