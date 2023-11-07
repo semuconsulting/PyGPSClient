@@ -240,7 +240,7 @@ class StreamHandler:
                     else:  # timeout or eof
                         if conntype == CONNECTED_FILE:
                             raise EOFError
-                        elif inactivity and datetime.now() > lastevent + timedelta(
+                        if inactivity and datetime.now() > lastevent + timedelta(
                             seconds=inactivity
                         ):
                             raise TimeoutError
