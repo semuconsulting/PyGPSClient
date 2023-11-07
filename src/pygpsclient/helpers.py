@@ -947,7 +947,7 @@ def publicip() -> str:
         response = get(PUBLICIP_URL, verify=True, timeout=3)
         response.raise_for_status()
         return response.json().get("ip", "N/A")
-    except (HTTPError, ConnError, JSONDecodeError):
+    except Exception:  # pylint: disable=broad-exception-caught
         return "N/A"
 
 
