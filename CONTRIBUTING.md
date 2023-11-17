@@ -15,28 +15,28 @@ Please help us keep our issue list small by adding fixes: #{$ISSUE_NO} to the co
 ## Coding conventions
 
 * This is open source software. Code should be as simple and transparent as possible. Favour clarity over brevity.
-* The code should be compatible with Python >= 3.8.
+* The code should be compatible with Python >= 3.8 and tkinter >= 8.6.
 * Avoid external library dependencies unless there's a compelling reason not to.
 * We use and recommend [Visual Studio Code](https://code.visualstudio.com/) with the [Python Extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python) for development and testing.
 * Code should be documented in accordance with [Sphinx](https://www.sphinx-doc.org/en/master/) docstring conventions.
-* Code should formatted using [black](https://pypi.org/project/black/) (>= 23.1.0).
-* We use and recommend [pylint](https://pypi.org/project/pylint/) (>=2.17.0) for code analysis.
-* We use and recommend [bandit](https://pypi.org/project/bandit/) (>=1.7) for security vulnerability analysis.
-* Commits should be [signed](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits).
+* Code should formatted using [black](https://pypi.org/project/black/) (>= 23.0.0).
+* We use and recommend [pylint](https://pypi.org/project/pylint/) (>= 3.0.0) for code analysis.
+* We use and recommend [bandit](https://pypi.org/project/bandit/) (>= 1.7.0) for security vulnerability analysis.
+* Commits must be [signed](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits).
 
 ## Testing
 
-While we endeavour to test on as wide a variety of u-blox devices as possible, as a volunteer project we only have a limited number of devices available. We particularly welcome testing contributions relating to specialised devices (e.g. high precision HP, real-time kinematics RTK, Automotive Dead-Reckoning ADR, etc.).
+While we endeavour to test on as wide a variety of u-blox devices and host platforms as possible, as a volunteer project we only have a limited number of devices available. We particularly welcome testing contributions relating to specialised devices (e.g. high precision HP, real-time kinematics RTK, Automotive Dead-Reckoning ADR, etc.).
 
-We use Python's native pytest framework for local unit testing, complemented by the GitHub Actions automated build and testing workflow.
+We use Python's native unittest framework for local unit testing, complemented by the GitHub Actions automated build and testing workflow.
 
-Please write pytest examples for new code you create and add them to the `/tests` folder following the naming convention `test_*.py`.
+Please write unittest examples for new code you create and add them to the `/tests` folder following the naming convention `test_*.py`.
 
-We test on the following platforms using a variety of u-blox devices (NEO-M6, NEO-M7, NEO-M8, NEO-M9, NEO-D9S, ZED-F9P, NEO-M10S):
+We test on the following host platforms using a variety of u-blox devices (NEO-M6, NEO-M7, NEO-M8, NEO-M9, NEO-D9S, ZED-F9P, ZED-F9R, NEO-M10S):
 
-* Windows 11
-* MacOS (Ventura)
-* Linux (Ubuntu Kinetic & Lunar)
+* Windows (10 & 11)
+* MacOS (Ventura & Sonoma)
+* Linux (Ubuntu 23.04 Lunar & 23.10 Mantic)
 * Raspberry Pi OS (Bullseye 32-bit & 64-bit)
 
 ## Submitting changes
