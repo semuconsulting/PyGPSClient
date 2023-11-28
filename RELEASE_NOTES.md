@@ -1,6 +1,10 @@
 # PyGPSClient Release Notes
 
-### RELEASE CANDIDATE v1.4.5
+### RELEASE CANDIDATE v1.4.6
+
+
+
+### RELEASE v1.4.5
 
 FIXES:
 
