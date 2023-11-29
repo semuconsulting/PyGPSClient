@@ -2,7 +2,7 @@
 
 ### RELEASE CANDIDATE v1.4.6
 
-
+1. Cater for older (pre NMEA 2.3) NMEA RMC message payloads - missing `posMode`` attribute.
 
 ### RELEASE v1.4.5
 

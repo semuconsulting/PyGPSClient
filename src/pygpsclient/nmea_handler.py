@@ -95,7 +95,8 @@ class NMEAHandler:
         self.__app.gnss_status.utc = data.time  # datetime.time
         self.__app.gnss_status.lat = data.lat
         self.__app.gnss_status.lon = data.lon
-        self.__app.gnss_status.fix = fix2desc("RMC", data.posMode)
+        if hasattr(data, "posMode"):  # NMEA >= 2.3
+            self.__app.gnss_status.fix = fix2desc("RMC", data.posMode)
         # only works for NMEA 4.10 and later...
         # if data.posMode in ["F", "R"]:
         #     self.__app.gnss_status.diff_corr = 1
