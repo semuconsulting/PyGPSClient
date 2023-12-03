@@ -2,7 +2,10 @@
 
 ### RELEASE CANDIDATE v1.4.6
 
-1. Cater for older (pre NMEA 2.3) NMEA RMC message payloads - missing `posMode`` attribute.
+ENHANCEMENTS:
+
+1. Cater for older (pre NMEA 2.3) NMEA RMC message payloads - missing `posMode` attribute.
+1. Minor improvements in skyview widget rendering to improve clarity
 
 ### RELEASE v1.4.5
 

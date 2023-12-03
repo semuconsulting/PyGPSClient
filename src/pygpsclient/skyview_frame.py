@@ -82,10 +82,10 @@ class SkyviewFrame(Frame):
         """
 
         w, h = self.width, self.height
-        axis_r = h / 18
+        axis_r = min(h, w) / 18
         resize_font = font.Font(size=min(int(w / 25), 8))
         self.can_satview.delete("all")
-        maxr = min((h / 2), (w / 2)) - (axis_r * 2)
+        maxr = min((h / 2), (w / 2)) - axis_r
         for r in (0.2, 0.4, 0.6, 0.8, 1):
             self.can_satview.create_circle(
                 w / 2, h / 2, maxr * r, outline=self.fg_col, width=1
@@ -112,8 +112,8 @@ class SkyviewFrame(Frame):
 
         data = self.__app.gnss_status.gsv_data
         w, h = self.width, self.height
-        axis_r = h / 18
-        maxr = min((h / 2), (w / 2)) - (axis_r * 2)
+        axis_r = min(h, w) / 18
+        maxr = min((h / 2), (w / 2)) - axis_r
         resize_font = font.Font(size=min(int(maxr / 10), 8))
         self.init_frame()
 
