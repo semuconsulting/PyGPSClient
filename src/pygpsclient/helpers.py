@@ -936,6 +936,26 @@ def ned2vector(n: float, e: float, d: float) -> tuple:
     return dis, hdg
 
 
+def isot2dt(tim: str) -> datetime:
+    """
+    Format datetime from ISO time element.
+
+    :param str tim: iso time from trackpoint
+    :return: datetime
+    :rtype: datetime
+    """
+
+    if tim[-1] == "Z":  # strip timezone label
+        tim = tim[0:-1]
+    if tim[-4] == ".":  # has milliseconds
+        tfm = "%Y-%m-%dT%H:%M:%S.%f"
+    elif tim[-7] == ".":  # has microseconds
+        tfm = "%Y-%m-%dT%H:%M:%S.%f"
+    else:
+        tfm = "%Y-%m-%dT%H:%M:%S"
+    return datetime.strptime(tim, tfm).timestamp()
+
+
 def publicip() -> str:
     """
     Get public IP address from ipinfo REST API.

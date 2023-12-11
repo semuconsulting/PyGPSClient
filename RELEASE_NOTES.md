@@ -7,6 +7,10 @@ ENHANCEMENTS:
 1. Cater for older (pre NMEA 2.3) NMEA RMC message payloads - missing `posMode` attribute.
 1. Minor improvements in skyview widget rendering to improve clarity
 
+FIXES:
+
+1. Fix GPX Track View facility handling of timestamps with microsecond elements.
+
 ### RELEASE v1.4.5
 
 FIXES:

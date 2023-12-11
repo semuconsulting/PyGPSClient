@@ -44,6 +44,7 @@ from pygpsclient.helpers import (
     ned2vector,
     publicip,
     lanip,
+    isot2dt,
 )
 from pygpsclient.mapquest import mapq_compress, mapq_decompress
 from pygpsclient.widget_state import widget_state, MENU, VISIBLE, DEFAULT, FRAME
@@ -329,7 +330,7 @@ class StaticTest(unittest.TestCase):
         encoded = mapq_compress(points, PREC)
         self.assertEqual(encoded, "gvw{dBjwmdCvkdnArqpAvho[fciQnibk@w`f_@wibiCf}dH")
         pnts = mapq_decompress(encoded, PREC)
-        print(pnts)
+        # print(pnts)
         for i, pnt in enumerate(pnts):
             self.assertAlmostEqual(pnt, points[i], PREC)
 
@@ -346,8 +347,8 @@ class StaticTest(unittest.TestCase):
         ]
         for i, b in enumerate(blist):
             res = bytes2unit(b)
-            print(res)
-            # self.assertEqual(res, bres[i])
+            # print(res)
+            self.assertEqual(res, bres[i])
 
     def testsecs2unit(self):  # test secs2unit
         slist = [123, 5365, 97467383, 103, 15234, 3]
@@ -455,6 +456,26 @@ class StaticTest(unittest.TestCase):
         res = lanip()
         # print(res)
         self.assertRegex(res, r"^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}$")
+
+    def testiso2dt(self):  # test secs2unit
+        tims = [
+            "2023-12-11T14:55:08.730000Z",
+            "2023-12-11T14:55:08.730000",
+            "2023-12-11T14:55:08.730Z",
+            "2023-12-11T14:55:08.730",
+            "2023-12-11T14:55:08",
+        ]
+        dts = [
+            "1702306508.73",
+            "1702306508.73",
+            "1702306508.73",
+            "1702306508.73",
+            "1702306508.0",
+        ]
+        for i, t in enumerate(tims):
+            res = isot2dt(t)
+            # print(res)
+            self.assertEqual(str(res), dts[i])
 
 
 if __name__ == "__main__":
