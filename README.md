@@ -460,10 +460,14 @@ python3 -m /path_to_folder/PyGPSClient-1.3.26/pygpsclient
 **Pre-Requisites:**
 
 To use the optional dynamic web-based mapview or GPX Track Viewer facilities, you need to request and install a 
-free [MapQuest API key](https://developer.mapquest.com/user/login/sign-up) (*no payment details required*).
-The free edition of this API allows for up to 15,000 transactions/month (roughly 500/day) on a non-commercial basis.
-For this reason, the map refresh rate is intentionally limited to 1/minute* to avoid exceeding the free transaction
-limit under normal use. **NB:** this facility is *not* intended to be used for real time navigational purposes.
+[MapQuest API key](https://developer.mapquest.com/user/login/sign-up).
+
+Note that, from January 15th 2024, MapQuest require payment card details for use of this API, but the
+first 15,000 transactions/month remain free. Usage above 15,000 transactions/month is charged at $.0045 per transaction. See
+[FAQ]((https://developer.mapquest.com/faq)) for further information.
+
+For this reason, the map refresh rate is intentionally limited to 1/minute* to avoid exceeding the free transaction limit under normal use. **NB:** this
+facility is *not* intended to be used for real time navigational purposes.
 
 **Instructions:**
 
