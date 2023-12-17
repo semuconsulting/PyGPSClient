@@ -9,6 +9,7 @@ ENHANCEMENTS:
 
 FIXES:
 
+1. Fix IP6 invalid args issue #98
 1. Fix GPX Track View facility handling of timestamps with microsecond elements.
 
 ### RELEASE v1.4.5
