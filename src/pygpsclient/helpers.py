@@ -23,8 +23,7 @@ from tkinter import Button, Entry, Label, Toplevel, W, font
 
 from pynmeagps import haversine
 from pyubx2 import SET, UBX_MSGIDS, UBXMessage, attsiz, atttyp
-from requests import ConnectionError as ConnError
-from requests import HTTPError, JSONDecodeError, get
+from requests import get
 
 from pygpsclient.globals import (
     FIXLOOKUP,

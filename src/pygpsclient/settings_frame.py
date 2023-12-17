@@ -767,8 +767,6 @@ class SettingsFrame(Frame):
                 "sockclienthost_s": self.frm_socketclient.server.get(),
                 "sockclientport_n": self.frm_socketclient.port.get(),
                 "sockclientprotocol_s": self.frm_socketclient.protocol.get(),
-                "sockclientflowinfo_n": self.frm_socketclient.flowinfo.get(),
-                "sockclientscopeid_n": self.frm_socketclient.scopeid.get(),
                 # socket server settings from frm_socketserver
                 "sockserver_b": self.frm_socketserver.socketserving,
                 "sockhost_s": self.frm_socketserver.sock_host.get(),
