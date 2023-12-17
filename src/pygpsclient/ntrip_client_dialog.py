@@ -551,8 +551,6 @@ class NTRIPConfigDialog(Toplevel):
         self._frm_socket.protocol.set(IP6 if ipprot == AF_INET6 else IP4)
         self._frm_socket.server.set(self._settings["server"])
         self._frm_socket.port.set(self._settings["port"])
-        # self._frm_socket.flowinfo.set(self._settings["flowinfo"])
-        # self._frm_socket.scopeid.set(self._settings["scopeid"])
         self._ntrip_mountpoint.set(self._settings["mountpoint"])
         self._ntrip_version.set(self._settings["version"])
         self._ntrip_user.set(self._settings["ntripuser"])
