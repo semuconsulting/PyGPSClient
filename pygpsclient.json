@@ -42,8 +42,6 @@
     "sockclienthost_s": "localhost",
     "sockclientport_n": 50010,
     "sockclientprotocol_s": "TCP IPv4",
-    "sockclientflowinfo_n": 0,
-    "sockclientscopeid_n": 0,
     "sockserver_b": 0,
     "sockhost_s": "0.0.0.0",
     "sockport_n": 50012,

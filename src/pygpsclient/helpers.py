@@ -23,8 +23,7 @@ from tkinter import Button, Entry, Label, Toplevel, W, font
 
 from pynmeagps import haversine
 from pyubx2 import SET, UBX_MSGIDS, UBXMessage, attsiz, atttyp
-from requests import ConnectionError as ConnError
-from requests import HTTPError, JSONDecodeError, get
+from requests import get
 
 from pygpsclient.globals import (
     FIXLOOKUP,
@@ -934,6 +933,26 @@ def ned2vector(n: float, e: float, d: float) -> tuple:
         else:
             hdg += 360
     return dis, hdg
+
+
+def isot2dt(tim: str) -> datetime:
+    """
+    Format datetime from ISO time element.
+
+    :param str tim: iso time from trackpoint
+    :return: datetime
+    :rtype: datetime
+    """
+
+    if tim[-1] == "Z":  # strip timezone label
+        tim = tim[0:-1]
+    if tim[-4] == ".":  # has milliseconds
+        tfm = "%Y-%m-%dT%H:%M:%S.%f"
+    elif tim[-7] == ".":  # has microseconds
+        tfm = "%Y-%m-%dT%H:%M:%S.%f"
+    else:
+        tfm = "%Y-%m-%dT%H:%M:%S"
+    return datetime.strptime(tim, tfm).timestamp()
 
 
 def publicip() -> str:

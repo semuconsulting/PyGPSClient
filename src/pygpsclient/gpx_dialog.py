@@ -59,7 +59,7 @@ from pygpsclient.globals import (
     UIK,
     UMK,
 )
-from pygpsclient.helpers import haversine
+from pygpsclient.helpers import haversine, isot2dt
 from pygpsclient.mapquest import GPXLIMIT, GPXMAPURL, MAPQTIMEOUT, mapq_compress
 from pygpsclient.strings import (
     DLGGPXERROR,
@@ -341,7 +341,7 @@ class GPXViewerDialog(Toplevel):
         for i, trkpt in enumerate(trkpts):
             lat = float(trkpt.attributes["lat"].value)
             lon = float(trkpt.attributes["lon"].value)
-            tim = self._get_time(trkpt.getElementsByTagName("time")[0].firstChild.data)
+            tim = isot2dt(trkpt.getElementsByTagName("time")[0].firstChild.data)
             if i == 0:
                 lat1, lon1, tim1 = lat, lon, tim
                 start = tim
@@ -377,23 +377,6 @@ class GPXViewerDialog(Toplevel):
         self._draw_map(self._track)
         self._draw_profile(self._track)
         self._format_metadata(self._metadata)
-
-    def _get_time(self, tim: str) -> datetime:
-        """
-        Format datetime from ISO time element.
-
-        :param str tim: iso time from trackpoint
-        :return: datetime
-        :rtype: datetime
-        """
-
-        if tim[-1] == "Z":  # strip timezone label
-            tim = tim[0:-1]
-        if tim[-4] == ".":  # has microseconds
-            tfm = "%Y-%m-%dT%H:%M:%S.%f"
-        else:
-            tfm = "%Y-%m-%dT%H:%M:%S"
-        return datetime.strptime(tim, tfm).timestamp()
 
     def _draw_map(self, track: list) -> ImageTk.PhotoImage:
         """
@@ -565,7 +548,8 @@ class GPXViewerDialog(Toplevel):
         )
 
         # plot trackpoint (X) axis grid
-        for n in range(0, maxx, int(maxx / 10)):
+        step = int(maxx / 10) if maxx > 10 else 1
+        for n in range(0, maxx, step):
             x1, y1 = self._get_point(maxe, maxx, 0, n)
             x2, y2 = self._get_point(maxe, maxx, maxe, n)
             self._canvas_profile.create_line(x1, y1 - 1, x1, y2, fill="grey")
