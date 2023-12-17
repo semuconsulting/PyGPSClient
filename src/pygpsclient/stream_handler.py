@@ -152,11 +152,9 @@ class StreamHandler:
                 soc = settings["socket_settings"]
                 server = soc.server.get()
                 port = int(soc.port.get())
-                flowinfo = int(soc.flowinfo.get())
-                scopeid = int(soc.scopeid.get())
                 if soc.protocol.get()[-4:] == "IPv6":
                     afam = socket.AF_INET6
-                    conn = (server, port, flowinfo, scopeid)
+                    conn = socket.getaddrinfo(server,port)[1][4]
                 else:  # IPv4
                     afam = socket.AF_INET
                     conn = (server, port)
