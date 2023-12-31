@@ -13,7 +13,7 @@ Created on 20 Sep 2020
 from platform import python_version
 from subprocess import CalledProcessError, run
 from sys import platform
-from tkinter import Button, Label, Toplevel
+from tkinter import Button, Label, Tcl, Toplevel
 from webbrowser import open_new_tab
 
 from PIL import Image, ImageTk
@@ -81,9 +81,10 @@ class AboutDialog:
             font=self.__app.font_sm,
             cursor="hand2",
         )
+        tkv = Tcl().call("info", "patchlevel")
         self._lbl_python_version = Label(
             self._dialog,
-            text=f"Python: {python_version()}",
+            text=f"Python: {python_version()}  Tk: {tkv}",
             font=self.__app.font_sm,
         )
         self._lbl_lib_versions = []
