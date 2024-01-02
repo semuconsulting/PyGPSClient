@@ -361,13 +361,16 @@ class UBXHandler:
           must be derived from the NED values
         - version 1 has heading and length attributes
 
+        NB: pyubx2 parses relPosHP values as mm, so total relPosN
+        in cm = relPosN + (relPosHPN * 1e-1), etc.
+
         :param UBXMessage data: NAV-RELPOSNED parsed message
         """
 
         if data.version == 0x00:
-            n = data.relPosN + data.relPosHPN * 1e-2
-            e = data.relPosE + data.relPosHPE * 1e-2
-            d = data.relPosD + data.relPosHPD * 1e-2
+            n = data.relPosN + data.relPosHPN * 1e-1
+            e = data.relPosE + data.relPosHPE * 1e-1
+            d = data.relPosD + data.relPosHPD * 1e-1
             relPosLength, relPosHeading = ned2vector(n, e, d)
             n = data.accN * 1e-2
             e = data.accE * 1e-2
@@ -376,7 +379,7 @@ class UBXHandler:
             accHeading = accLength * relPosHeading / relPosLength  # ballpark
         else:
             relPosLength, relPosHeading, accLength, accHeading = (
-                data.relPosLength + data.relPosHPLength * 1e-2,
+                data.relPosLength + data.relPosHPLength * 1e-1,
                 data.relPosHeading,
                 data.accLength * 1e-2,
                 data.accHeading,
