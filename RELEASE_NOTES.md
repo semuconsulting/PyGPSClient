@@ -1,6 +1,16 @@
 # PyGPSClient Release Notes
 
-### RELEASE CANDIDATE v1.4.6
+### RELEASE CANDIDATE v1.4.7
+
+ENHANCEMENTS:
+
+1. Add tkinter value to About dialog for reference.
+
+FIXES:
+
+1. Fix relPosLength calculation in rover_frame.py
+
+### RELEASE v1.4.6
 
 ENHANCEMENTS:
 
