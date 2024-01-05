@@ -9,6 +9,7 @@ ENHANCEMENTS:
 FIXES:
 
 1. Fix relPosLength calculation in rover_frame.py
+1. Fix typo in Scatterplot widget labels.
 
 ### RELEASE v1.4.6
 
