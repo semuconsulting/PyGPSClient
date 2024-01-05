@@ -142,8 +142,8 @@ class ScatterViewFrame(Frame):
             return
 
         height = lbl_font.metrics("linespace")
-        lat = f"Lon {self.mean.lat:14.10f}"
-        lon = f"Lat {self.mean.lon:15.10f}"
+        lat = f"Lat {self.mean.lat:14.10f}"
+        lon = f"Lon {self.mean.lon:15.10f}"
         self.canvas.create_text(
             5, 10, text=lat, fill=self.fg_col, font=lbl_font, anchor="w"
         )
