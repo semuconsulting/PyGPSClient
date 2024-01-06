@@ -22,8 +22,6 @@ from tkinter import BOTH, HORIZONTAL, NO, YES, Frame, IntVar, Scale, font
 from pynmeagps import bearing, haversine, planar
 
 from pygpsclient.globals import BGCOL, FGCOL, WIDGETU2, Point
-
-# from pygpsclient.helpers import planardist
 from pygpsclient.skyview_frame import Canvas
 
 PLANAR_THRESHOLD = 5  # scale factor in m below which planar approximation can be used
