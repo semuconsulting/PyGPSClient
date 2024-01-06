@@ -26,6 +26,8 @@ from pygpsclient.helpers import planardist
 from pygpsclient.skyview_frame import Canvas
 
 PLANAR_THRESHOLD = 5  # distance in m below which planar approximation can be used
+PLANAR = "Planar"
+HAVERSINE = "Great Circle"
 SQRT2 = 0.7071067811865476
 
 
@@ -56,6 +58,7 @@ class ScatterViewFrame(Frame):
         self.points = []
         self.one_meter = 1
         self.mean = None
+        self._calc = PLANAR
         self._body()
         self._attach_events()
 
@@ -143,8 +146,6 @@ class ScatterViewFrame(Frame):
         if self.mean is None:
             return
 
-        scale = self.scale_factors[self.scale.get()]
-        calc = "Planar" if scale <= PLANAR_THRESHOLD else "Great Circle"
         height = lbl_font.metrics("linespace")
         lat = f"Lat {self.mean.lat:14.10f}"
         lon = f"Lon {self.mean.lon:15.10f}"
@@ -155,7 +156,12 @@ class ScatterViewFrame(Frame):
             5, 10 + height, text=lon, fill=self.fg_col, font=lbl_font, anchor="w"
         )
         self.canvas.create_text(
-            5, 10 + height * 2, text=calc, fill=self.fg_col, font=lbl_font, anchor="w"
+            5,
+            10 + height * 2,
+            text=self._calc,
+            fill=self.fg_col,
+            font=lbl_font,
+            anchor="w",
         )
 
     def init_frame(self):
@@ -198,12 +204,14 @@ class ScatterViewFrame(Frame):
         """
 
         scale = self.scale_factors[self.scale.get()]
-        if scale <= PLANAR_THRESHOLD:  # use planar approximation (returns m)
+        if scale <= PLANAR_THRESHOLD:  # use planar approximation formula (returns m)
             distance = planardist(center.lat, center.lon, position.lat, position.lon)
-        else:  # use haversine great-circle (returns km)
+            self._calc = PLANAR
+        else:  # use haversine great circle formula (returns km)
             distance = (
                 haversine(center.lat, center.lon, position.lat, position.lon) * 1000
             )
+            self._calc = HAVERSINE
         distance *= self.one_meter  # adjust to scale
         angle = bearing(center.lat, center.lon, position.lat, position.lon)
         theta = radians(90 - angle)
