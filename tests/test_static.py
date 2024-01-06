@@ -35,7 +35,6 @@ from pygpsclient.helpers import (
     ms2mph,
     ned2vector,
     parse_rxmspartnkey,
-    planardist,
     pos2iso6709,
     publicip,
     secs2unit,
@@ -477,17 +476,6 @@ class StaticTest(unittest.TestCase):
             res = isot2dt(t)
             # print(res)
             self.assertEqual(str(res), dts[i])
-
-    def testplanardist(self):  # test planardist
-        res = planardist(53, 2, 53.000001, 2.000001)
-        # print(res)
-        self.assertAlmostEqual(res, 0.15113412625873954, 7)
-        res = planardist(53, 2, 53.00001, 2.00001)
-        # print(res)
-        self.assertAlmostEqual(res, 1.5113412648256797, 7)
-        res = planardist(53, 2, 53.0001, 2.0001)
-        # print(res)
-        self.assertAlmostEqual(res, 15.113412645895695, 7)
 
 
 if __name__ == "__main__":

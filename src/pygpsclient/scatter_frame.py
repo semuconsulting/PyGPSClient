@@ -1,7 +1,7 @@
 """
 scatter_frame.py
 
-Scatterplot frame class for PyGPS Application.
+Scatterplot frame class for PyGPSClient Application.
 
 This generates a scatterplot of positions, centered on the average
 position.
@@ -19,13 +19,14 @@ statistics and geographiclib libraries.
 from math import cos, radians, sin
 from tkinter import BOTH, HORIZONTAL, NO, YES, Frame, IntVar, Scale, font
 
-from pynmeagps import bearing, haversine
+from pynmeagps import bearing, haversine, planar
 
 from pygpsclient.globals import BGCOL, FGCOL, WIDGETU2, Point
-from pygpsclient.helpers import planardist
+
+# from pygpsclient.helpers import planardist
 from pygpsclient.skyview_frame import Canvas
 
-PLANAR_THRESHOLD = 5  # distance in m below which planar approximation can be used
+PLANAR_THRESHOLD = 5  # scale factor in m below which planar approximation can be used
 PLANAR = "Planar"
 HAVERSINE = "Great Circle"
 SQRT2 = 0.7071067811865476
@@ -199,13 +200,13 @@ class ScatterViewFrame(Frame):
         """
         Draw a Point on the scatterplot, given a center Point.
 
-        :param Point center: The cen ter of the plot
+        :param Point center: The center of the plot
         :param Point position: The point to draw
         """
 
         scale = self.scale_factors[self.scale.get()]
         if scale <= PLANAR_THRESHOLD:  # use planar approximation formula (returns m)
-            distance = planardist(center.lat, center.lon, position.lat, position.lon)
+            distance = planar(center.lat, center.lon, position.lat, position.lon)
             self._calc = PLANAR
         else:  # use haversine great circle formula (returns km)
             distance = (

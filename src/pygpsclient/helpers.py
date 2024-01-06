@@ -983,33 +983,3 @@ def lanip() -> str:
             return sck.getsockname()[0]
         except Exception:  # pylint: disable=broad-exception-caught
             return "N/A"
-
-
-def planardist(
-    lat1: float,
-    lon1: float,
-    lat2: float,
-    lon2: float,
-    radius: int = WGS84_SMAJ_AXIS,
-) -> float:
-    """
-    Calculate distance between two coordinates using planar
-    approximation.
-
-    NB suitable for coordinates less than around 50m apart. For
-    larger separations, use the haversine great circle formula.
-
-    :param float lat1: lat1
-    :param float lon1: lon1
-    :param float lat2: lat2
-    :param float lon2: lon2
-    :param float radius: radius in m (Earth = 6378137 m)
-    :return: planar distance in m
-    :rtype: float
-    """
-
-    x = (lon2 - lon1) * cos(lat1) * pi * radius / 180
-    y = (lat2 - lat1) * pi * radius / 180
-    dist = sqrt(x * x + y * y)
-
-    return dist
