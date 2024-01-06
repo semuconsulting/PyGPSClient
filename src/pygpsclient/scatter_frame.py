@@ -22,8 +22,10 @@ from tkinter import BOTH, HORIZONTAL, NO, YES, Frame, IntVar, Scale, font
 from pynmeagps import bearing, haversine
 
 from pygpsclient.globals import BGCOL, FGCOL, WIDGETU2, Point
+from pygpsclient.helpers import planardist
 from pygpsclient.skyview_frame import Canvas
 
+PLANAR_THRESHOLD = 5  # distance in m below which planar approximation can be used
 SQRT2 = 0.7071067811865476
 
 
@@ -141,6 +143,8 @@ class ScatterViewFrame(Frame):
         if self.mean is None:
             return
 
+        scale = self.scale_factors[self.scale.get()]
+        calc = "Planar" if scale <= PLANAR_THRESHOLD else "Great Circle"
         height = lbl_font.metrics("linespace")
         lat = f"Lat {self.mean.lat:14.10f}"
         lon = f"Lon {self.mean.lon:15.10f}"
@@ -149,6 +153,9 @@ class ScatterViewFrame(Frame):
         )
         self.canvas.create_text(
             5, 10 + height, text=lon, fill=self.fg_col, font=lbl_font, anchor="w"
+        )
+        self.canvas.create_text(
+            5, 10 + height * 2, text=calc, fill=self.fg_col, font=lbl_font, anchor="w"
         )
 
     def init_frame(self):
@@ -190,8 +197,14 @@ class ScatterViewFrame(Frame):
         :param Point position: The point to draw
         """
 
-        distance = haversine(center.lat, center.lon, position.lat, position.lon)  # km
-        distance *= self.one_meter * 1000  # convert to meters & adjust to scale
+        scale = self.scale_factors[self.scale.get()]
+        if scale <= PLANAR_THRESHOLD:  # use planar approximation (returns m)
+            distance = planardist(center.lat, center.lon, position.lat, position.lon)
+        else:  # use haversine great-circle (returns km)
+            distance = (
+                haversine(center.lat, center.lon, position.lat, position.lon) * 1000
+            )
+        distance *= self.one_meter  # adjust to scale
         angle = bearing(center.lat, center.lon, position.lat, position.lon)
         theta = radians(90 - angle)
         pos_x = distance * cos(theta)
@@ -245,6 +258,7 @@ class ScatterViewFrame(Frame):
 
         self.points.append(pos)
 
+        scale = self.scale_factors[self.scale.get()]
         middle = self._ave_pos()
         if self.mean is not None and self.mean != middle:
             self.mean = middle

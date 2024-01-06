@@ -25,14 +25,19 @@ from pygpsclient.helpers import (
     get_mp_info,
     haversine,
     hsv2rgb,
+    isot2dt,
     kmph2ms,
     knots2ms,
+    lanip,
     m2ft,
     ms2kmph,
     ms2knots,
     ms2mph,
+    ned2vector,
     parse_rxmspartnkey,
+    planardist,
     pos2iso6709,
+    publicip,
     secs2unit,
     snr2col,
     str2rgb,
@@ -41,13 +46,9 @@ from pygpsclient.helpers import (
     val2sphp,
     validURL,
     wnotow2date,
-    ned2vector,
-    publicip,
-    lanip,
-    isot2dt,
 )
 from pygpsclient.mapquest import mapq_compress, mapq_decompress
-from pygpsclient.widget_state import widget_state, MENU, VISIBLE, DEFAULT, FRAME
+from pygpsclient.widget_state import DEFAULT, FRAME, MENU, VISIBLE, widget_state
 
 
 class StaticTest(unittest.TestCase):
@@ -476,6 +477,17 @@ class StaticTest(unittest.TestCase):
             res = isot2dt(t)
             # print(res)
             self.assertEqual(str(res), dts[i])
+
+    def testplanardist(self):  # test planardist
+        res = planardist(53, 2, 53.000001, 2.000001)
+        # print(res)
+        self.assertAlmostEqual(res, 0.15113412625873954, 7)
+        res = planardist(53, 2, 53.00001, 2.00001)
+        # print(res)
+        self.assertAlmostEqual(res, 1.5113412648256797, 7)
+        res = planardist(53, 2, 53.0001, 2.0001)
+        # print(res)
+        self.assertAlmostEqual(res, 15.113412645895695, 7)
 
 
 if __name__ == "__main__":

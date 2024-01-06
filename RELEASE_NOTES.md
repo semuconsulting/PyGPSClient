@@ -5,6 +5,7 @@
 ENHANCEMENTS:
 
 1. Add tkinter value to About dialog for reference.
+1. Update Scatterplot widget to use planar approximation rather than haversine great circle formula at separations <= 50m
 
 FIXES:
 
