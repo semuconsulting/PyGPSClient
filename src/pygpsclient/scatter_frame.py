@@ -1,7 +1,7 @@
 """
 scatter_frame.py
 
-Scatterplot frame class for PyGPS Application.
+Scatterplot frame class for PyGPSClient Application.
 
 This generates a scatterplot of positions, centered on the average
 position.
@@ -19,11 +19,14 @@ statistics and geographiclib libraries.
 from math import cos, radians, sin
 from tkinter import BOTH, HORIZONTAL, NO, YES, Frame, IntVar, Scale, font
 
-from pynmeagps import bearing, haversine
+from pynmeagps import bearing, haversine, planar
 
 from pygpsclient.globals import BGCOL, FGCOL, WIDGETU2, Point
 from pygpsclient.skyview_frame import Canvas
 
+PLANAR_THRESHOLD = 5  # scale factor in m below which planar approximation can be used
+PLANAR = "Planar"
+HAVERSINE = "Great Circle"
 SQRT2 = 0.7071067811865476
 
 
@@ -54,6 +57,7 @@ class ScatterViewFrame(Frame):
         self.points = []
         self.one_meter = 1
         self.mean = None
+        self._calc = PLANAR
         self._body()
         self._attach_events()
 
@@ -142,13 +146,21 @@ class ScatterViewFrame(Frame):
             return
 
         height = lbl_font.metrics("linespace")
-        lat = f"Lon {self.mean.lat:14.10f}"
-        lon = f"Lat {self.mean.lon:15.10f}"
+        lat = f"Lat {self.mean.lat:14.10f}"
+        lon = f"Lon {self.mean.lon:15.10f}"
         self.canvas.create_text(
             5, 10, text=lat, fill=self.fg_col, font=lbl_font, anchor="w"
         )
         self.canvas.create_text(
             5, 10 + height, text=lon, fill=self.fg_col, font=lbl_font, anchor="w"
+        )
+        self.canvas.create_text(
+            5,
+            10 + height * 2,
+            text=self._calc,
+            fill=self.fg_col,
+            font=lbl_font,
+            anchor="w",
         )
 
     def init_frame(self):
@@ -186,12 +198,20 @@ class ScatterViewFrame(Frame):
         """
         Draw a Point on the scatterplot, given a center Point.
 
-        :param Point center: The cen ter of the plot
+        :param Point center: The center of the plot
         :param Point position: The point to draw
         """
 
-        distance = haversine(center.lat, center.lon, position.lat, position.lon)  # km
-        distance *= self.one_meter * 1000  # convert to meters & adjust to scale
+        scale = self.scale_factors[self.scale.get()]
+        if scale <= PLANAR_THRESHOLD:  # use planar approximation formula (returns m)
+            distance = planar(center.lat, center.lon, position.lat, position.lon)
+            self._calc = PLANAR
+        else:  # use haversine great circle formula (returns km)
+            distance = (
+                haversine(center.lat, center.lon, position.lat, position.lon) * 1000
+            )
+            self._calc = HAVERSINE
+        distance *= self.one_meter  # adjust to scale
         angle = bearing(center.lat, center.lon, position.lat, position.lon)
         theta = radians(90 - angle)
         pos_x = distance * cos(theta)

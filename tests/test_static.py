@@ -25,14 +25,18 @@ from pygpsclient.helpers import (
     get_mp_info,
     haversine,
     hsv2rgb,
+    isot2dt,
     kmph2ms,
     knots2ms,
+    lanip,
     m2ft,
     ms2kmph,
     ms2knots,
     ms2mph,
+    ned2vector,
     parse_rxmspartnkey,
     pos2iso6709,
+    publicip,
     secs2unit,
     snr2col,
     str2rgb,
@@ -41,13 +45,9 @@ from pygpsclient.helpers import (
     val2sphp,
     validURL,
     wnotow2date,
-    ned2vector,
-    publicip,
-    lanip,
-    isot2dt,
 )
 from pygpsclient.mapquest import mapq_compress, mapq_decompress
-from pygpsclient.widget_state import widget_state, MENU, VISIBLE, DEFAULT, FRAME
+from pygpsclient.widget_state import DEFAULT, FRAME, MENU, VISIBLE, widget_state
 
 
 class StaticTest(unittest.TestCase):

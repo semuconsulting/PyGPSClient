@@ -1,6 +1,18 @@
 # PyGPSClient Release Notes
 
-### RELEASE CANDIDATE v1.4.6
+### RELEASE CANDIDATE v1.4.7
+
+ENHANCEMENTS:
+
+1. Add tkinter value to About dialog for reference.
+1. Update Scatterplot widget to use planar approximation rather than haversine great circle formula at separations <= 50m
+
+FIXES:
+
+1. Fix relPosLength calculation in rover_frame.py
+1. Fix typo in Scatterplot widget labels.
+
+### RELEASE v1.4.6
 
 ENHANCEMENTS:
 
