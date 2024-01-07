@@ -21,7 +21,7 @@ from socket import AF_INET, SOCK_DGRAM, socket
 from time import strftime
 from tkinter import Button, Entry, Label, Toplevel, W, font
 
-from pynmeagps import WGS84_SMAJ_AXIS, haversine
+from pynmeagps import haversine
 from pyubx2 import SET, UBX_MSGIDS, UBXMessage, attsiz, atttyp
 from requests import get
 

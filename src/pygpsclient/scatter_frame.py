@@ -265,7 +265,6 @@ class ScatterViewFrame(Frame):
 
         self.points.append(pos)
 
-        scale = self.scale_factors[self.scale.get()]
         middle = self._ave_pos()
         if self.mean is not None and self.mean != middle:
             self.mean = middle
