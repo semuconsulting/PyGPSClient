@@ -1,6 +1,12 @@
 # PyGPSClient Release Notes
 
-### RELEASE CANDIDATE v1.4.7
+### RELEASE v1.4.8
+
+FIXES:
+
+1. Fix 'unhashable type' error when first displaying mountpoint data in NTRIP client panel
+
+### RELEASE v1.4.7
 
 ENHANCEMENTS:
 

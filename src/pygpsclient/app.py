@@ -756,7 +756,11 @@ class App(Frame):
 
         try:
             raw_data, parsed_data = self.ntrip_inqueue.get(False)
-            if raw_data is not None and parsed_data is not None:
+            if (
+                raw_data is not None
+                and parsed_data is not None
+                and isinstance(raw_data, bytes)
+            ):
                 if protocol(raw_data) == RTCM3_PROTOCOL:
                     if self.conn_status == CONNECTED:
                         self.gnss_outqueue.put(raw_data)
