@@ -185,7 +185,16 @@ class App(Frame):
             # update configs needed to instantiate widgets and protocol handlers
             self.update_widgets()
         else:  # load failed - invalid json or attribute types
-            self.saved_config = {}
+            self.saved_config = {
+                "userport_s": self.user_port,
+                "spartnport_s": self.spartn_user_port,
+                "mqapikey_s": self.mqapikey,
+                "mqttclientid_s": self.mqttclientid,
+                "mqttclientregion_s": self.mqttclientregion,
+                "mqttclientmode_n": self.mqttclientmode,
+                "ntripcasteruser_s": self.ntripcaster_user,
+                "ntripcasterpassword_s": self.ntripcaster_password,
+            }
 
         # update NTRIP and SPARTN client handlers with initial config
         self.update_NTRIP_handler()
