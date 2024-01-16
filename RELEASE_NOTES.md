@@ -4,6 +4,7 @@
 
 FIXES:
 
+1. Fix parsing of command line arguments (NB: config file will take precedence over command line args)
 1. Fix 'unhashable type' error when first displaying mountpoint data in NTRIP client panel
 
 ### RELEASE v1.4.7
