@@ -882,27 +882,15 @@ class SettingsFrame(Frame):
                     ),
                 ),
                 # Manually edited config settings
-                # (cater for older config file element names without suffices)
                 "mapupdateinterval_n": self.__app.saved_config.get(
-                    "mapupdateinterval_n",
-                    self.__app.saved_config.get(
-                        "mapupdateinterval", MAP_UPDATE_INTERVAL
-                    ),
+                    "mapupdateinterval_n", MAP_UPDATE_INTERVAL
                 ),
                 "defaultport_s": self.__app.saved_config.get(
-                    "defaultport_s",
-                    self.__app.saved_config.get("defaultport", RCVR_CONNECTION),
+                    "defaultport_s", RCVR_CONNECTION
                 ),
-                "mqapikey_s": self.__app.saved_config.get(
-                    "mqapikey_s",
-                    self.__app.saved_config.get("mqapikey", ""),
-                ),
-                "colortags_l": self.__app.saved_config.get(
-                    "colortags_l", self.__app.saved_config.get("colortags", [])
-                ),
-                "ubxpresets_l": self.__app.saved_config.get(
-                    "ubxpresets_l", self.__app.saved_config.get("ubxpresets", [])
-                ),
+                "mqapikey_s": self.__app.saved_config.get("mqapikey_s", ""),
+                "colortags_l": self.__app.saved_config.get("colortags_l", []),
+                "ubxpresets_l": self.__app.saved_config.get("ubxpresets_l", []),
             }
             return config
         except (KeyError, ValueError, TypeError, TclError) as err:
