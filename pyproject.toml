@@ -91,6 +91,7 @@ profile = "black"
 exclude_dirs = ["docs", "examples", "tests"]
 skips = [
     "B104",
+    "B105",
     "B318",
     "B404",
     "B408",
