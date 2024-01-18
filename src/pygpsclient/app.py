@@ -140,10 +140,10 @@ class App(Frame):
             kwargs.pop("mqttclientmode", getenv("MQTTCLIENTMODE", "0"))
         )
         ntripcaster_user = kwargs.pop(
-            "ntripuser", getenv("PYGPSCLIENT_USER", DEFAULT_USER)
+            "ntripcasteruser", getenv("NTRIPCASTER_USER", DEFAULT_USER)
         )
         ntripcaster_password = kwargs.pop(
-            "ntrippassword", getenv("PYGPSCLIENT_PASSWORD", DEFAULT_PASSWORD)
+            "ntripcasterpassword", getenv("NTRIPCASTER_PASSWORD", DEFAULT_PASSWORD)
         )
 
         Frame.__init__(self, self.__master, *args, **kwargs)

@@ -79,16 +79,16 @@ def main():
         default=getenv("MQTTCLIENTMODE", "0"),
     )
     arp.add_argument(
-        "--ntripuser",
+        "--ntripcasteruser",
         required=False,
         help="NTRIP Caster authentication user",
-        default=getenv("PYGPSCLIENT_USER", DEFAULT_USER),
+        default=getenv("NTRIPCASTER_USER", DEFAULT_USER),
     )
     arp.add_argument(
-        "--ntrippassword",
+        "--ntripcasterpassword",
         required=False,
         help="NTRIP Caster authentication password",
-        default=getenv("PYGPSCLIENT_PASSWORD", DEFAULT_PASSWORD),
+        default=getenv("NTRIPCASTER_PASSWORD", DEFAULT_PASSWORD),
     )
 
     kwargs = vars(arp.parse_args())
