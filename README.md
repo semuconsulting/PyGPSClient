@@ -389,7 +389,7 @@ To run the application, if the Python 3 scripts (bin) directory is in your PATH,
 pygpsclient
 ```
 
-`pygpsclient` also accepts optional command line arguments for a variety of configurable parameters. Type the following for help:
+`pygpsclient` also accepts optional command line arguments for a variety of configurable parameters. These will override any saved configuration file settings. Type the following for help:
 ```shell
 pygpsclient -h
 ```

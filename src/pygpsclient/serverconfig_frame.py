@@ -408,15 +408,13 @@ class ServerConfigFrame(Frame):
         self.user.set(
             self._saved_config.get(
                 "ntripcasteruser_s",
-                self._saved_config.get("ntripcasteruser", self.__app.ntripcaster_user),
+                self._saved_config.get("ntripcasteruser", "anon"),
             )
         )
         self.password.set(
             self._saved_config.get(
                 "ntripcasterpassword_s",
-                self._saved_config.get(
-                    "ntripcasterpassword", self.__app.ntripcaster_password
-                ),
+                self._saved_config.get("ntripcasterpassword", "password"),
             )
         )
         self.clients = 0

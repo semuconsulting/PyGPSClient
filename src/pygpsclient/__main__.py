@@ -24,14 +24,14 @@ def main():
     arp = ArgumentParser(
         epilog=EPILOG,
         formatter_class=ArgumentDefaultsHelpFormatter,
-        description="Config file will override other command line arguments",
+        description="Command line arguments will override configuration file",
     )
     arp.add_argument("-V", "--version", action="version", version="%(prog)s " + VERSION)
     arp.add_argument(
         "-C",
         "--config",
         required=False,
-        help="Fully-qualified path to config file",
+        help="Fully-qualified path to configuration file",
         default=CONFIGFILE,
     )
     arp.add_argument(

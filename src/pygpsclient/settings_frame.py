@@ -895,7 +895,7 @@ class SettingsFrame(Frame):
                 ),
                 "mqapikey_s": self.__app.saved_config.get(
                     "mqapikey_s",
-                    self.__app.saved_config.get("mqapikey", self.__app.mqapikey),
+                    self.__app.saved_config.get("mqapikey", ""),
                 ),
                 "colortags_l": self.__app.saved_config.get(
                     "colortags_l", self.__app.saved_config.get("colortags", [])
