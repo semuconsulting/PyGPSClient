@@ -44,6 +44,9 @@ from pygpsclient.globals import (
     CLASS,
     CONFIGFILE,
     CONNECTED,
+    DEFAULT_PASSWORD,
+    DEFAULT_REGION,
+    DEFAULT_USER,
     DISCONNECTED,
     DLG,
     DLGTNTRIP,
@@ -124,23 +127,23 @@ class App(Frame):
         # user-defined serial port can be passed as environment variable
         # or command line keyword argument
         self._configfile = kwargs.pop("config", CONFIGFILE)
-        self.user_port = kwargs.pop("userport", getenv("PYGPSCLIENT_USERPORT", ""))
-        self.spartn_user_port = kwargs.pop(
+        user_port = kwargs.pop("userport", getenv("PYGPSCLIENT_USERPORT", ""))
+        spartn_user_port = kwargs.pop(
             "spartnport", getenv("PYGPSCLIENT_SPARTNPORT", "")
         )
-        self.mqapikey = kwargs.pop("mqapikey", getenv("MQAPIKEY", ""))
-        self.mqttclientid = kwargs.pop("mqttclientid", getenv("MQTTCLIENTID", ""))
-        self.mqttclientregion = kwargs.pop(
-            "mqttclientregion", getenv("MQTTCLIENTREGION", "eu")
+        mqapikey = kwargs.pop("mqapikey", getenv("MQAPIKEY", ""))
+        mqttclientid = kwargs.pop("mqttclientid", getenv("MQTTCLIENTID", ""))
+        mqttclientregion = kwargs.pop(
+            "mqttclientregion", getenv("MQTTCLIENTREGION", DEFAULT_REGION)
         )
-        self.mqttclientmode = int(
+        mqttclientmode = int(
             kwargs.pop("mqttclientmode", getenv("MQTTCLIENTMODE", "0"))
         )
-        self.ntripcaster_user = kwargs.pop(
-            "ntripuser", getenv("PYGPSCLIENT_USER", "anon")
+        ntripcaster_user = kwargs.pop(
+            "ntripcasteruser", getenv("NTRIPCASTER_USER", DEFAULT_USER)
         )
-        self.ntripcaster_password = kwargs.pop(
-            "ntrippassword", getenv("PYGPSCLIENT_USER", "password")
+        ntripcaster_password = kwargs.pop(
+            "ntripcasterpassword", getenv("NTRIPCASTER_PASSWORD", DEFAULT_PASSWORD)
         )
 
         Frame.__init__(self, self.__master, *args, **kwargs)
@@ -168,7 +171,6 @@ class App(Frame):
         self.rtcm_handler = RTCM3Handler(self)
         self.ntrip_handler = GNSSNTRIPClient(self, verbosity=0)
         self.spartn_handler = GNSSMQTTClient(self, verbosity=0)
-        self.saved_config = {}
         self._conn_status = DISCONNECTED
         self._rtk_conn_status = DISCONNECTED
         self._socket_thread = None
@@ -179,13 +181,30 @@ class App(Frame):
         # Load configuration from file if it exists
         self._colortags = []
         self._ubxpresets = []
+        self.saved_config = {}
         (_, config, configerr) = self.file_handler.load_config(self._configfile)
         if configerr == "":  # load succeeded
             self.saved_config = config
             # update configs needed to instantiate widgets and protocol handlers
             self.update_widgets()
-        else:  # load failed - invalid json or attribute types
-            self.saved_config = {}
+
+        # temporarily override saved config with any command line arguments / env variables
+        if user_port != "":
+            self.saved_config["userport_s"] = user_port
+        if spartn_user_port != "":
+            self.saved_config["spartnport_s"] = spartn_user_port
+        if mqapikey != "":
+            self.saved_config["mqapikey_s"] = mqapikey
+        if mqttclientid != "":
+            self.saved_config["mqttclientid_s"] = mqttclientid
+        if mqttclientregion != DEFAULT_REGION:
+            self.saved_config["mqttclientregion_s"] = mqttclientregion
+        if mqttclientmode != 0:
+            self.saved_config["mqttclientmode_n"] = mqttclientmode
+        if ntripcaster_user != DEFAULT_USER:
+            self.saved_config["ntripcasteruser_s"] = ntripcaster_user
+        if ntripcaster_password != DEFAULT_PASSWORD:
+            self.saved_config["ntripcasterpassword_s"] = ntripcaster_password
 
         # update NTRIP and SPARTN client handlers with initial config
         self.update_NTRIP_handler()
@@ -497,10 +516,10 @@ class App(Frame):
                 "ntripclientversion_s", "2.0"
             )
             ntripsettings["ntripuser"] = self.saved_config.get(
-                "ntripclientuser_s", "anon"
+                "ntripclientuser_s", DEFAULT_USER
             )
             ntripsettings["ntrippassword"] = self.saved_config.get(
-                "ntripclientpassword_s", "password"
+                "ntripclientpassword_s", DEFAULT_PASSWORD
             )
             ntripsettings["ggainterval"] = self.saved_config.get(
                 "ntripclientggainterval_n", -1
@@ -530,15 +549,11 @@ class App(Frame):
             spartnsettings["port"] = self.saved_config.get(
                 "mqttclientport_n", SPARTN_OUTPORT
             )
-            spartnsettings["clientid"] = self.saved_config.get(
-                "mqttclientid_s", self.mqttclientid
-            )
+            spartnsettings["clientid"] = self.saved_config.get("mqttclientid_s", "")
             spartnsettings["region"] = self.saved_config.get(
-                "mgttclientregion_s", self.mqttclientregion
+                "mgttclientregion_s", DEFAULT_REGION
             )
-            spartnsettings["mode"] = self.saved_config.get(
-                "mgttclientmode_n", self.mqttclientmode
-            )
+            spartnsettings["mode"] = self.saved_config.get("mgttclientmode_n", 0)
             spartnsettings["topic_ip"] = self.saved_config.get("mgttclienttopicip_b", 1)
             spartnsettings["topic_mga"] = self.saved_config.get(
                 "mgttclienttopicmga_b", 1
@@ -548,11 +563,11 @@ class App(Frame):
             )
             spartnsettings["tlscrt"] = self.saved_config.get(
                 "mgttclienttlscrt_s",
-                path.join(Path.home(), f"device-{self.mqttclientid}-pp-cert.crt"),
+                path.join(Path.home(), "device-mqttclientid-pp-cert.crt"),
             )
             spartnsettings["tlskey"] = self.saved_config.get(
                 "mgttclienttlskey_s",
-                path.join(Path.home(), f"device-{self.mqttclientid}-pp-key.pem"),
+                path.join(Path.home(), "device-mqttclientid-pp-key.pem"),
             )
             spartnsettings["output"] = self.spartn_inqueue
             self.spartn_handler.settings = spartnsettings
@@ -756,7 +771,11 @@ class App(Frame):
 
         try:
             raw_data, parsed_data = self.ntrip_inqueue.get(False)
-            if raw_data is not None and parsed_data is not None:
+            if (
+                raw_data is not None
+                and parsed_data is not None
+                and isinstance(raw_data, bytes)
+            ):
                 if protocol(raw_data) == RTCM3_PROTOCOL:
                     if self.conn_status == CONNECTED:
                         self.gnss_outqueue.put(raw_data)

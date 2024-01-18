@@ -15,7 +15,13 @@ from tkinter import Tk
 
 from pygpsclient._version import __version__ as VERSION
 from pygpsclient.app import App
-from pygpsclient.globals import CONFIGFILE, EPILOG
+from pygpsclient.globals import (
+    CONFIGFILE,
+    DEFAULT_PASSWORD,
+    DEFAULT_REGION,
+    DEFAULT_USER,
+    EPILOG,
+)
 
 
 def main():
@@ -24,14 +30,14 @@ def main():
     arp = ArgumentParser(
         epilog=EPILOG,
         formatter_class=ArgumentDefaultsHelpFormatter,
-        description="Config file will override other command line arguments",
+        description="Command line arguments will override configuration file",
     )
     arp.add_argument("-V", "--version", action="version", version="%(prog)s " + VERSION)
     arp.add_argument(
         "-C",
         "--config",
         required=False,
-        help="Fully-qualified path to config file",
+        help="Fully-qualified path to configuration file",
         default=CONFIGFILE,
     )
     arp.add_argument(
@@ -64,7 +70,7 @@ def main():
         "--mqttclientregion",
         required=False,
         help="MQTT Client Region",
-        default=getenv("MQTTCLIENTREGION", "eu"),
+        default=getenv("MQTTCLIENTREGION", DEFAULT_REGION),
     )
     arp.add_argument(
         "--mqttclientmode",
@@ -73,16 +79,16 @@ def main():
         default=getenv("MQTTCLIENTMODE", "0"),
     )
     arp.add_argument(
-        "--ntripuser",
+        "--ntripcasteruser",
         required=False,
         help="NTRIP Caster authentication user",
-        default=getenv("PYGPSCLIENT_USER", "anon"),
+        default=getenv("NTRIPCASTER_USER", DEFAULT_USER),
     )
     arp.add_argument(
-        "--ntrippassword",
+        "--ntripcasterpassword",
         required=False,
         help="NTRIP Caster authentication password",
-        default=getenv("PYGPSCLIENT_PASSWORD", "password"),
+        default=getenv("NTRIPCASTER_PASSWORD", DEFAULT_PASSWORD),
     )
 
     kwargs = vars(arp.parse_args())

@@ -41,6 +41,8 @@ from PIL import Image, ImageTk
 from pyubx2 import UBXMessage, llh2ecef
 
 from pygpsclient.globals import (
+    DEFAULT_PASSWORD,
+    DEFAULT_USER,
     DISCONNECTED,
     ICON_CONTRACT,
     ICON_EXPAND,
@@ -406,18 +408,10 @@ class ServerConfigFrame(Frame):
         self.fixedlon.set(self._saved_config.get("ntripcasterfixedlon_f", 0))
         self.fixedalt.set(self._saved_config.get("ntripcasterfixedalt_f", 0))
         self.user.set(
-            self._saved_config.get(
-                "ntripcasteruser_s",
-                self._saved_config.get("ntripcasteruser", self.__app.ntripcaster_user),
-            )
+            self._saved_config.get("ntripcasteruser_s", DEFAULT_USER),
         )
         self.password.set(
-            self._saved_config.get(
-                "ntripcasterpassword_s",
-                self._saved_config.get(
-                    "ntripcasterpassword", self.__app.ntripcaster_password
-                ),
-            )
+            self._saved_config.get("ntripcasterpassword_s", DEFAULT_PASSWORD),
         )
         self.clients = 0
         self._sock_port_temp = self.sock_port.get()
