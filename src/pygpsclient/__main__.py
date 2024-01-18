@@ -15,7 +15,13 @@ from tkinter import Tk
 
 from pygpsclient._version import __version__ as VERSION
 from pygpsclient.app import App
-from pygpsclient.globals import CONFIGFILE, EPILOG
+from pygpsclient.globals import (
+    CONFIGFILE,
+    DEFAULT_PASSWORD,
+    DEFAULT_REGION,
+    DEFAULT_USER,
+    EPILOG,
+)
 
 
 def main():
@@ -64,7 +70,7 @@ def main():
         "--mqttclientregion",
         required=False,
         help="MQTT Client Region",
-        default=getenv("MQTTCLIENTREGION", "eu"),
+        default=getenv("MQTTCLIENTREGION", DEFAULT_REGION),
     )
     arp.add_argument(
         "--mqttclientmode",
@@ -76,13 +82,13 @@ def main():
         "--ntripuser",
         required=False,
         help="NTRIP Caster authentication user",
-        default=getenv("PYGPSCLIENT_USER", "anon"),
+        default=getenv("PYGPSCLIENT_USER", DEFAULT_USER),
     )
     arp.add_argument(
         "--ntrippassword",
         required=False,
         help="NTRIP Caster authentication password",
-        default=getenv("PYGPSCLIENT_PASSWORD", "password"),
+        default=getenv("PYGPSCLIENT_PASSWORD", DEFAULT_PASSWORD),
     )
 
     kwargs = vars(arp.parse_args())

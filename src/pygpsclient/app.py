@@ -44,6 +44,9 @@ from pygpsclient.globals import (
     CLASS,
     CONFIGFILE,
     CONNECTED,
+    DEFAULT_PASSWORD,
+    DEFAULT_REGION,
+    DEFAULT_USER,
     DISCONNECTED,
     DLG,
     DLGTNTRIP,
@@ -131,14 +134,16 @@ class App(Frame):
         mqapikey = kwargs.pop("mqapikey", getenv("MQAPIKEY", ""))
         mqttclientid = kwargs.pop("mqttclientid", getenv("MQTTCLIENTID", ""))
         mqttclientregion = kwargs.pop(
-            "mqttclientregion", getenv("MQTTCLIENTREGION", "eu")
+            "mqttclientregion", getenv("MQTTCLIENTREGION", DEFAULT_REGION)
         )
         mqttclientmode = int(
             kwargs.pop("mqttclientmode", getenv("MQTTCLIENTMODE", "0"))
         )
-        ntripcaster_user = kwargs.pop("ntripuser", getenv("PYGPSCLIENT_USER", "anon"))
+        ntripcaster_user = kwargs.pop(
+            "ntripuser", getenv("PYGPSCLIENT_USER", DEFAULT_USER)
+        )
         ntripcaster_password = kwargs.pop(
-            "ntrippassword", getenv("PYGPSCLIENT_USER", "password")
+            "ntrippassword", getenv("PYGPSCLIENT_PASSWORD", DEFAULT_PASSWORD)
         )
 
         Frame.__init__(self, self.__master, *args, **kwargs)
@@ -192,13 +197,13 @@ class App(Frame):
             self.saved_config["mqapikey_s"] = mqapikey
         if mqttclientid != "":
             self.saved_config["mqttclientid_s"] = mqttclientid
-        if mqttclientregion != "eu":
+        if mqttclientregion != DEFAULT_REGION:
             self.saved_config["mqttclientregion_s"] = mqttclientregion
         if mqttclientmode != 0:
             self.saved_config["mqttclientmode_n"] = mqttclientmode
-        if ntripcaster_user != "anon":
+        if ntripcaster_user != DEFAULT_USER:
             self.saved_config["ntripcasteruser_s"] = ntripcaster_user
-        if ntripcaster_password != "password":
+        if ntripcaster_password != DEFAULT_PASSWORD:
             self.saved_config["ntripcasterpassword_s"] = ntripcaster_password
 
         # update NTRIP and SPARTN client handlers with initial config
@@ -511,10 +516,10 @@ class App(Frame):
                 "ntripclientversion_s", "2.0"
             )
             ntripsettings["ntripuser"] = self.saved_config.get(
-                "ntripclientuser_s", "anon"
+                "ntripclientuser_s", DEFAULT_USER
             )
             ntripsettings["ntrippassword"] = self.saved_config.get(
-                "ntripclientpassword_s", "password"
+                "ntripclientpassword_s", DEFAULT_PASSWORD
             )
             ntripsettings["ggainterval"] = self.saved_config.get(
                 "ntripclientggainterval_n", -1
