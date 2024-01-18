@@ -28,6 +28,7 @@ PLANAR_THRESHOLD = 5  # scale factor in m below which planar approximation can b
 PLANAR = "Planar"
 HAVERSINE = "Great Circle"
 SQRT2 = 0.7071067811865476
+PNTCOL = "orange"
 
 
 class ScatterViewFrame(Frame):
@@ -50,7 +51,6 @@ class ScatterViewFrame(Frame):
 
         def_w, def_h = WIDGETU2
 
-        self.dot_col = "orange"
         self.width = kwargs.get("width", def_w)
         self.height = kwargs.get("height", def_h)
         self.fg_col = FGCOL
@@ -148,17 +148,15 @@ class ScatterViewFrame(Frame):
         height = lbl_font.metrics("linespace")
         lat = f"Lat {self.mean.lat:14.10f}"
         lon = f"Lon {self.mean.lon:15.10f}"
+        self.canvas.create_text(5, 10, text=lat, fill=PNTCOL, font=lbl_font, anchor="w")
         self.canvas.create_text(
-            5, 10, text=lat, fill=self.fg_col, font=lbl_font, anchor="w"
-        )
-        self.canvas.create_text(
-            5, 10 + height, text=lon, fill=self.fg_col, font=lbl_font, anchor="w"
+            5, 10 + height, text=lon, fill=PNTCOL, font=lbl_font, anchor="w"
         )
         self.canvas.create_text(
             5,
             10 + height * 2,
             text=self._calc,
-            fill=self.fg_col,
+            fill=PNTCOL,
             font=lbl_font,
             anchor="w",
         )
@@ -220,9 +218,7 @@ class ScatterViewFrame(Frame):
         center_y = self.height / 2
         pt_x = center_x + pos_x
         pt_y = center_y - pos_y
-        self.canvas.create_circle(
-            pt_x, pt_y, 2, fill=self.dot_col, outline=self.dot_col
-        )
+        self.canvas.create_circle(pt_x, pt_y, 2, fill=PNTCOL, outline=PNTCOL)
 
     def _ave_pos(self):
         """

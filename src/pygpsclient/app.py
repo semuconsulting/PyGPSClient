@@ -563,11 +563,11 @@ class App(Frame):
             )
             spartnsettings["tlscrt"] = self.saved_config.get(
                 "mgttclienttlscrt_s",
-                path.join(Path.home(), f"device-mqttclientid-pp-cert.crt"),
+                path.join(Path.home(), "device-mqttclientid-pp-cert.crt"),
             )
             spartnsettings["tlskey"] = self.saved_config.get(
                 "mgttclienttlskey_s",
-                path.join(Path.home(), f"device-mqttclientid-pp-key.pem"),
+                path.join(Path.home(), "device-mqttclientid-pp-key.pem"),
             )
             spartnsettings["output"] = self.spartn_inqueue
             self.spartn_handler.settings = spartnsettings
