@@ -1,6 +1,13 @@
 # PyGPSClient Release Notes
 
-### RELEASE CANDIDATE v1.4.7
+### RELEASE CANDIDATE v1.4.8
+
+FIXES:
+
+1. Fix parsing of command line arguments (NB: command line arguments and/or environment variables will now take temporary precedence over saved config file settings)
+1. Fix 'unhashable type' error when first displaying mountpoint data in NTRIP client panel
+
+### RELEASE v1.4.7
 
 ENHANCEMENTS:
 
@@ -374,7 +381,7 @@ ENHANCEMENTS:
 
 1. **New BETA Socket / NTRIP Server feature**. Capable of operating in two modes - either (a) as an open, unauthenticated TCP socket server, or (b) as an authenticated NTRIP server.
 3. In open socket server mode, the output socket stream can be accessed by any TCP socket client capable of parsing raw GNSS data, including another instance of PyGPSClient or `gnssdump` (the CLI utility installed with `pyubx2`) running on another machine (*assuming the traffic is permitted through any firewalls*).
-4. In NTRIP server mode, the socket stream can be accessed by any authenticated NTRIP client. The sourcetable contains a single entry corresponding to the PyGPSClient host. The server authentication credentials are set via two environment variables `PYGPSCLIENT_USER` and `PYGPSCLIENT_PASSWORD`.
+4. In NTRIP server mode, the socket stream can be accessed by any authenticated NTRIP client. The sourcetable contains a single entry corresponding to the PyGPSClient host. The server authentication credentials are set via two environment variables `NTRIPCASTER_USER` and `NTRIPCASTER_PASSWORD`.
 5. In either mode, the maximum number of clients is arbitrarily limited to 5. A label on the settings panel indicates the number of connected clients - this turns red when the maximum has been reached.
 6. The socket host address is `0.0.0.0` (i.e. binds to all available IP addresses on the host machine). The socket port defaults to `50010` but is configurable via the settings panel (`2101` is the convention for NTRIP servers but is not mandated). 
 7. The default configuration for the socket server is set in `globals.py` as `SOCKSERVER_HOST`, `SOCKSERVER_PORT` and `SOCKSERVER_MAX_CLIENTS`.
