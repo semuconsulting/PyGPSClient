@@ -9,6 +9,7 @@ Created on 10 Jan 2023
 :copyright: SEMU Consulting © 2023
 :license: BSD 3-Clause
 """
+
 # pylint: disable=unused-argument
 
 from datetime import datetime

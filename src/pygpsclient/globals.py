@@ -12,6 +12,7 @@ Created on 14 Sep 2020
 :license: BSD 3-Clause
 
 """
+
 # pylint: disable=line-too-long
 
 from collections import namedtuple

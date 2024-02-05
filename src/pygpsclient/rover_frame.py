@@ -12,6 +12,7 @@ Created on 22 Aug 2023
 :copyright: SEMU Consulting © 2022
 :license: BSD 3-Clause
 """
+
 # pylint: disable=invalid-name
 
 from math import cos, pi, sin
