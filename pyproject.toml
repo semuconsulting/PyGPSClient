@@ -52,10 +52,8 @@ classifiers = [
 dependencies = [
     "requests>=2.28.0",
     "Pillow>=9.0.0",
-    "pygnssutils>=1.0.17",
-    "pynmeagps>=1.0.33",
+    "pygnssutils>=1.0.18",
     "pyserial>=3.5",
-    "pyubx2>=1.2.37",
 ]
 
 [project.scripts]
