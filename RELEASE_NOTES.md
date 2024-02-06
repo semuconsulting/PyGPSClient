@@ -1,6 +1,12 @@
 # PyGPSClient Release Notes
 
-### RELEASE CANDIDATE v1.4.8
+### RELEASE CANDIDATE 1.4.9
+
+CHANGES:
+
+1. Update Rover widget for new pyubx2>=1.2.37 RELPOSNED payload definition.
+
+### RELEASE v1.4.8
 
 FIXES:
 

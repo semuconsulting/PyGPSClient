@@ -19,6 +19,7 @@ Created on 12 Sep 2020
 :copyright: SEMU Consulting © 2020
 :license: BSD 3-Clause
 """
+
 # pylint: disable=too-many-ancestors, no-member
 
 from datetime import datetime, timedelta

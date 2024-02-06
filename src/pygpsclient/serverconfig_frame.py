@@ -18,6 +18,7 @@ Created on 23 Jul 2023
 :copyright: SEMU Consulting © 2022
 :license: BSD 3-Clause
 """
+
 # pylint: disable=unused-argument
 
 from tkinter import (
