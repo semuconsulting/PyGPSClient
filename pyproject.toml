@@ -55,6 +55,7 @@ dependencies = [
     "pygnssutils>=1.0.17",
     "pynmeagps>=1.0.33",
     "pyserial>=3.5",
+    "pyubx2>=1.2.37",
 ]
 
 [project.scripts]
