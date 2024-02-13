@@ -164,6 +164,8 @@ class StreamHandler:
                     socktype = socket.SOCK_STREAM
                 with socket.socket(afam, socktype) as stream:
                     stream.connect(conn)
+                    if socktype == socket.SOCK_DGRAM:
+                        stream.send(b"") # send empty datagram to establish connection
                     self._readloop(
                         stopevent,
                         stream,
