@@ -1,6 +1,12 @@
 # PyGPSClient Release Notes
 
-### RELEASE CANDIDATE 1.4.9
+### RELEASE CANDIDATE 1.4.10
+
+CHANGES:
+
+1. Send empty datagram to UDP socket connections = thanks to @Williangalvani for contribution.
+
+### RELEASE 1.4.9
 
 CHANGES:
 
