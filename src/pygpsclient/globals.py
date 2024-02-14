@@ -20,7 +20,7 @@ from datetime import datetime
 from os import path
 from pathlib import Path
 
-from pyubx2 import GET, POLL, SET
+from pyubx2 import GET, POLL, SET, SETPOLL
 
 Point = namedtuple("Point", ["lat", "lon"])
 HOME = Path.home()
@@ -200,6 +200,7 @@ MSGMODES = {
     "GET": GET,
     "SET": SET,
     "POLL": POLL,
+    "SETPOLL": SETPOLL,
 }
 NOPORTS = 3
 NTRIP_EVENT = "<<ntrip_read>>"

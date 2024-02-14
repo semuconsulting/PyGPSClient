@@ -5,6 +5,7 @@
 CHANGES:
 
 1. Send empty datagram to UDP socket connections = thanks to @Williangalvani for contribution.
+1. Add support for SETPOLL msgmode (requires pyubx2>=1.2.38). This mode will automatically determine appropriate input mode (SET or POLL) for command or query UBX messages (NB: it will still be necessary to specify either output GET or input SETPOLL mode in the serial configuration panel when reading UBX data logs).
 
 ### RELEASE 1.4.9
 
