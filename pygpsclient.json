@@ -22,7 +22,7 @@
     "autoscroll_b": 1,
     "maxlines_n": 200,
     "consoleformat_s": "Parsed",
-    "maptype_s": "world",
+    "maptype_s": "static",
     "mapzoom_n": 10,
     "legend_b": 1,
     "unusedsat_b": 0,
@@ -101,6 +101,13 @@
     "lbandclientunqword_s": "16238547128276412563",
     "lbandclientoutport_s": "Passthrough",
     "lbandclientdebug_b": 0,
+    "usermappath_s": "/Users/myuser/Downloads/usermap.png",
+    "usermapcalibration_l": [
+        52.822323,
+        12.685944,
+        51.966582,
+        14.265608
+    ],
     "colortags_l": [
         [
             "ACK-ACK",

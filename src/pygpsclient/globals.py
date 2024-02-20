@@ -160,6 +160,7 @@ ICON_UNDO = path.join(DIRNAME, "resources/iconmonstr-undo-24.png")
 ICON_UNKNOWN = path.join(DIRNAME, "resources/clear-1-24.png")
 ICON_WARNING = path.join(DIRNAME, "resources/iconmonstr-warning-1-24.png")
 IMG_WORLD = path.join(DIRNAME, "resources/world.png")
+IMG_WORLD_CALIB = [90, -180, -90, 180]
 KM2M = 1000
 KM2MIL = 0.621371
 KM2NMIL = 0.5399568
