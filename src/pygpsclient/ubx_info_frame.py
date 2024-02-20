@@ -17,6 +17,7 @@ from pyubx2 import POLL, UBXMessage
 
 from pygpsclient.globals import (
     CONNECTED,
+    CONNECTED_SIMULATOR,
     ICON_CONFIRMED,
     ICON_PENDING,
     ICON_SEND,
@@ -119,7 +120,7 @@ class UBX_INFO_Frame(Frame):
         Reset panel to initial settings
         """
 
-        if self.__app.conn_status == CONNECTED:
+        if self.__app.conn_status in (CONNECTED, CONNECTED_SIMULATOR):
             self._do_poll_ver()
 
     def update_status(self, msg: UBXMessage):

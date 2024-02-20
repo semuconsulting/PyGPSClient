@@ -32,6 +32,7 @@ from datetime import datetime, timedelta
 from queue import Empty
 from threading import Event, Thread
 
+from pygnssutils import UBXSimulator
 from pynmeagps import NMEAMessageError, NMEAParseError
 from pyrtcm import RTCMMessageError, RTCMParseError
 from pyubx2 import (
@@ -48,9 +49,11 @@ from serial import Serial, SerialException, SerialTimeoutException
 from pygpsclient.globals import (
     CONNECTED,
     CONNECTED_FILE,
+    CONNECTED_SIMULATOR,
     CONNECTED_SOCKET,
     DEFAULT_BUFSIZE,
     FILEREAD_INTERVAL,
+    UBXSIMULATOR,
 )
 
 
@@ -118,9 +121,14 @@ class StreamHandler:
 
         conntype = settings["conntype"]
         inactivity_timeout = settings["inactivity_timeout"]
+        ser = settings["serial_settings"]
+
+        if conntype == CONNECTED and ser.port == UBXSIMULATOR:
+            conntype = CONNECTED_SIMULATOR
+
         try:
             if conntype == CONNECTED:
-                ser = settings["serial_settings"]
+                # ser = settings["serial_settings"]
                 with Serial(
                     ser.port,
                     ser.bpsrate,
@@ -164,6 +172,15 @@ class StreamHandler:
                     socktype = socket.SOCK_STREAM
                 with socket.socket(afam, socktype) as stream:
                     stream.connect(conn)
+                    self._readloop(
+                        stopevent,
+                        stream,
+                        settings,
+                        inactivity_timeout,
+                    )
+
+            elif conntype == CONNECTED_SIMULATOR:
+                with UBXSimulator() as stream:
                     self._readloop(
                         stopevent,
                         stream,
