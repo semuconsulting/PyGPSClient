@@ -101,12 +101,12 @@
     "lbandclientunqword_s": "16238547128276412563",
     "lbandclientoutport_s": "Passthrough",
     "lbandclientdebug_b": 0,
-    "usermappath_s": "/Users/myuser/Downloads/usermap.png",
+    "usermappath_s": "/home/myuser/Downloads/georef.tif",
     "usermapcalibration_l": [
-        52.822323,
-        12.685944,
-        51.966582,
-        14.265608
+        52.74293831586955,
+        12.901745002226773,
+        52.26311523400205,
+        13.993558544929849
     ],
     "colortags_l": [
         [

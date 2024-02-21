@@ -19,7 +19,7 @@ Created on 13 Sep 2020
 
 from http.client import responses
 from io import BytesIO
-from os import getenv, path
+from os import getenv
 from time import time
 from tkinter import NW, Canvas, E, Frame, N, S, W, font
 
@@ -218,7 +218,7 @@ class MapviewFrame(Frame):
             y = (mcalib[0] - lat) * plat
             self._can_mapview.create_image(x, y, image=self._marker, anchor=S)
         else:
-            self._can_mapview.create_text(w / 2, h / 2, text=OUTOFBOUNDS, fill="orange")
+            self._can_mapview.create_text(w / 2, h / 2, text=OUTOFBOUNDS, fill="red")
 
     def _draw_web_map(self, lat: float, lon: float, hacc: float, maptype: str = "map"):
         """

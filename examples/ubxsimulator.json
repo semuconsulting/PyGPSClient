@@ -4,8 +4,8 @@
 	"logfile": "/home/myuser/ubxsimulator.log",
 	"simVector": 1,
 	"global": {
-		"lat": 52.474957,
-		"lon": 13.403365,
+		"lat": 52.474297,
+		"lon": 13.403632,
 		"alt": 50.034,
 		"height": 47494,
 		"sep": 2.54,
