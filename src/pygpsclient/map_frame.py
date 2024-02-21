@@ -174,7 +174,9 @@ class MapviewFrame(Frame):
         mcalib = self.__app.frm_settings.config.get(
             "usermapcalibration_l", IMG_WORLD_CALIB
         )
-        if maptype == "static":
+        if maptype == "world":
+            self._draw_static_map(lat, lon, IMG_WORLD, IMG_WORLD_CALIB)
+        elif maptype == "custom":
             self._draw_static_map(lat, lon, mpath, mcalib)
         else:
             if hacc is None or hacc == "":
@@ -204,7 +206,7 @@ class MapviewFrame(Frame):
             else False
         )
 
-        self._lastmaptype = "static"
+        self._lastmaptype = "world" if mpath == IMG_WORLD else "custom"
         w, h = self.width, self.height
         self._can_mapview.delete("all")
         self._img = ImageTk.PhotoImage(Image.open(mpath).resize((w, h)))

@@ -22,7 +22,7 @@
     "autoscroll_b": 1,
     "maxlines_n": 200,
     "consoleformat_s": "Parsed",
-    "maptype_s": "static",
+    "maptype_s": "world",
     "mapzoom_n": 10,
     "legend_b": 1,
     "unusedsat_b": 0,
