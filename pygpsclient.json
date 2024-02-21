@@ -101,6 +101,13 @@
     "lbandclientunqword_s": "16238547128276412563",
     "lbandclientoutport_s": "Passthrough",
     "lbandclientdebug_b": 0,
+    "usermappath_s": "/Users/myuser/Downloads/usermap.png",
+    "usermapcalibration_l": [
+        52.822323,
+        12.685944,
+        51.966582,
+        14.265608
+    ],
     "colortags_l": [
         [
             "ACK-ACK",

@@ -83,6 +83,8 @@ from pygpsclient.globals import (
     ICON_SOCKET,
     ICON_SPARTNCONFIG,
     ICON_UBXCONFIG,
+    IMG_WORLD,
+    IMG_WORLD_CALIB,
     KNOWNGPS,
     MSGMODES,
     NOPORTS,
@@ -113,7 +115,7 @@ from pygpsclient.strings import (
 )
 
 MAXLINES = ("200", "500", "1000", "2000", "100")
-MAPTYPES = ("world", "map", "sat")
+MAPTYPES = ("world", "map", "sat", "custom")
 MINHEIGHT = 715
 MINWIDTH = 365
 
@@ -892,6 +894,12 @@ class SettingsFrame(Frame):
                 "mqapikey_s": self.__app.saved_config.get("mqapikey_s", ""),
                 "colortags_l": self.__app.saved_config.get("colortags_l", []),
                 "ubxpresets_l": self.__app.saved_config.get("ubxpresets_l", []),
+                "usermappath_s": self.__app.saved_config.get(
+                    "usermappath_s", IMG_WORLD
+                ),
+                "usermapcalibration_l": self.__app.saved_config.get(
+                    "usermapcalibration_l", IMG_WORLD_CALIB
+                ),
             }
             return config
         except (KeyError, ValueError, TypeError, TclError) as err:

@@ -19,7 +19,7 @@ Created on 13 Sep 2020
 
 from http.client import responses
 from io import BytesIO
-from os import getenv
+from os import getenv, path
 from time import time
 from tkinter import NW, Canvas, E, Frame, N, S, W, font
 
@@ -27,7 +27,7 @@ from PIL import Image, ImageTk
 from requests import ConnectionError as ConnError
 from requests import ConnectTimeout, RequestException, get
 
-from pygpsclient.globals import BGCOL, ICON_POS, IMG_WORLD, WIDGETU2
+from pygpsclient.globals import BGCOL, ICON_POS, IMG_WORLD, IMG_WORLD_CALIB, WIDGETU2
 from pygpsclient.mapquest import (
     MAP_UPDATE_INTERVAL,
     MAPQTIMEOUT,
@@ -36,7 +36,13 @@ from pygpsclient.mapquest import (
     MIN_UPDATE_INTERVAL,
     MIN_ZOOM,
 )
-from pygpsclient.strings import NOWEBMAPCONN, NOWEBMAPFIX, NOWEBMAPHTTP, NOWEBMAPKEY
+from pygpsclient.strings import (
+    NOWEBMAPCONN,
+    NOWEBMAPFIX,
+    NOWEBMAPHTTP,
+    NOWEBMAPKEY,
+    OUTOFBOUNDS,
+)
 
 ZOOMCOL = "red"
 ZOOMEND = "lightgray"
@@ -164,33 +170,55 @@ class MapviewFrame(Frame):
 
         maptype = self.__app.frm_settings.config.get("maptype_s", "world")
         if maptype == "world":
-            self._draw_static_map(lat, lon)
+            self._draw_static_map(lat, lon, IMG_WORLD, IMG_WORLD_CALIB)
+        elif maptype == "custom":
+            mpath = self.__app.frm_settings.config.get("usermappath_s", IMG_WORLD)
+            mcalib = self.__app.frm_settings.config.get(
+                "usermapcalibration_l", IMG_WORLD_CALIB
+            )
+            self._draw_static_map(lat, lon, mpath, mcalib)
         else:
             if hacc is None or hacc == "":
                 hacc = 0
             self._draw_web_map(lat, lon, hacc, maptype)
 
-    def _draw_static_map(self, lat: float, lon: float):
+    def _draw_static_map(
+        self,
+        lat: float,
+        lon: float,
+        mpath: str = IMG_WORLD,
+        mcalib: list = IMG_WORLD_CALIB,
+    ):
         """
         Draw fixed scale Mercator world map
 
         :param float lat: latitude
         :param float lon: longitude
+        :param str mpath: path to map image
+        :param list mcalib: map top left and bottom right calibration coordinates
         """
         # pylint: disable=no-member
 
-        OFFSET_X = 0
-        OFFSET_Y = 0
+        inbounds = (
+            True
+            if (mcalib[0] > lat > mcalib[2]) and (mcalib[1] < lon < mcalib[3])
+            else False
+        )
 
-        self._lastmaptype = "world"
+        self._lastmaptype = "world" if mpath == IMG_WORLD else "custom"
         w, h = self.width, self.height
         self._can_mapview.delete("all")
-        self._img = ImageTk.PhotoImage(Image.open(IMG_WORLD).resize((w, h)))
+        self._img = ImageTk.PhotoImage(Image.open(mpath).resize((w, h)))
         self._marker = ImageTk.PhotoImage(Image.open(ICON_POS))
         self._can_mapview.create_image(0, 0, image=self._img, anchor=NW)
-        x = (w / 2) + int((lon * (w / 360))) + OFFSET_X
-        y = (h / 2) - int((lat * (h / 180))) + OFFSET_Y
-        self._can_mapview.create_image(x, y, image=self._marker, anchor=S)
+        if inbounds:
+            plon = w / (mcalib[3] - mcalib[1])  # x pixels per degree lon
+            plat = h / (mcalib[0] - mcalib[2])  # y pixels per degree lat
+            x = (lon - mcalib[1]) * plon
+            y = (mcalib[0] - lat) * plat
+            self._can_mapview.create_image(x, y, image=self._marker, anchor=S)
+        else:
+            self._can_mapview.create_text(w / 2, h / 2, text=OUTOFBOUNDS, fill="orange")
 
     def _draw_web_map(self, lat: float, lon: float, hacc: float, maptype: str = "map"):
         """
