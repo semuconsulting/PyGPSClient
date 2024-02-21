@@ -27,14 +27,7 @@ from PIL import Image, ImageTk
 from requests import ConnectionError as ConnError
 from requests import ConnectTimeout, RequestException, get
 
-from pygpsclient.globals import (
-    BGCOL,
-    DIRNAME,
-    ICON_POS,
-    IMG_WORLD,
-    IMG_WORLD_CALIB,
-    WIDGETU2,
-)
+from pygpsclient.globals import BGCOL, ICON_POS, IMG_WORLD, IMG_WORLD_CALIB, WIDGETU2
 from pygpsclient.mapquest import (
     MAP_UPDATE_INTERVAL,
     MAPQTIMEOUT,
@@ -43,7 +36,13 @@ from pygpsclient.mapquest import (
     MIN_UPDATE_INTERVAL,
     MIN_ZOOM,
 )
-from pygpsclient.strings import NOWEBMAPCONN, NOWEBMAPFIX, NOWEBMAPHTTP, NOWEBMAPKEY
+from pygpsclient.strings import (
+    NOWEBMAPCONN,
+    NOWEBMAPFIX,
+    NOWEBMAPHTTP,
+    NOWEBMAPKEY,
+    OUTOFBOUNDS,
+)
 
 ZOOMCOL = "red"
 ZOOMEND = "lightgray"
@@ -169,14 +168,14 @@ class MapviewFrame(Frame):
             self._disp_error(NOWEBMAPFIX)
             return
 
-        maptype = self.__app.frm_settings.config.get("maptype_s", "static")
-        mpath = self.__app.frm_settings.config.get("usermappath_s", IMG_WORLD)
-        mcalib = self.__app.frm_settings.config.get(
-            "usermapcalibration_l", IMG_WORLD_CALIB
-        )
+        maptype = self.__app.frm_settings.config.get("maptype_s", "world")
         if maptype == "world":
             self._draw_static_map(lat, lon, IMG_WORLD, IMG_WORLD_CALIB)
         elif maptype == "custom":
+            mpath = self.__app.frm_settings.config.get("usermappath_s", IMG_WORLD)
+            mcalib = self.__app.frm_settings.config.get(
+                "usermapcalibration_l", IMG_WORLD_CALIB
+            )
             self._draw_static_map(lat, lon, mpath, mcalib)
         else:
             if hacc is None or hacc == "":
@@ -195,8 +194,8 @@ class MapviewFrame(Frame):
 
         :param float lat: latitude
         :param float lon: longitude
-        :param str mappath: path to map image
-        :param tuple mcalib: map top left and bottom right calibration coordinates
+        :param str mpath: path to map image
+        :param list mcalib: map top left and bottom right calibration coordinates
         """
         # pylint: disable=no-member
 
@@ -219,9 +218,7 @@ class MapviewFrame(Frame):
             y = (mcalib[0] - lat) * plat
             self._can_mapview.create_image(x, y, image=self._marker, anchor=S)
         else:
-            self._can_mapview.create_text(
-                w / 2, h / 2, text="OUT OF BOUNDS", fill="orange"
-            )
+            self._can_mapview.create_text(w / 2, h / 2, text=OUTOFBOUNDS, fill="orange")
 
     def _draw_web_map(self, lat: float, lon: float, hacc: float, maptype: str = "map"):
         """
