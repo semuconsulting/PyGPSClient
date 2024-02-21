@@ -30,6 +30,7 @@ from pyubx2 import UBXMessage
 
 from pygpsclient.globals import (
     CONNECTED,
+    CONNECTED_SIMULATOR,
     CONNECTED_SOCKET,
     DLGTUBX,
     ENABLE_CFG_OTHER,
@@ -237,7 +238,11 @@ class UBXConfigDialog(Toplevel):
         self._frm_config_port.reset()
         self._frm_config_dynamic.reset()
         self._frm_device_info.reset()
-        if self.__app.conn_status not in (CONNECTED, CONNECTED_SOCKET):
+        if self.__app.conn_status not in (
+            CONNECTED,
+            CONNECTED_SOCKET,
+            CONNECTED_SIMULATOR,
+        ):
             self.set_status("Device not connected", "red")
 
     def set_pending(self, msgid: int, ubxfrm: int):
