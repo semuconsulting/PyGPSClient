@@ -2,14 +2,10 @@
 georef.py
 
 Support utility for the PyGPSClient custom offline map facility
-(requires PyGPSClient>=1.4.10).
+(requires PyGPSClient>=1.4.10 and rasterio>=1.3.6).
 
 Generates the necessary PyGPSClient json configuration settings
 from a georeferenced raster image file e.g. geoTIFF:
-
-Requires the rasterio library:
-
-python3 -m pip install rasterio
 
 Usage:
 
