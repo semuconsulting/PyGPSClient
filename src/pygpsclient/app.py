@@ -146,6 +146,9 @@ class App(Frame):
         ntripcaster_password = kwargs.pop(
             "ntripcasterpassword", getenv("NTRIPCASTER_PASSWORD", DEFAULT_PASSWORD)
         )
+        self.ubxsimulator = (
+            kwargs.pop("ubxsimulator", getenv("UBXSIMULATOR", "0")) == "1"
+        )
 
         Frame.__init__(self, self.__master, *args, **kwargs)
 

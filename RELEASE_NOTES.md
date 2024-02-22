@@ -1,6 +1,18 @@
 # PyGPSClient Release Notes
 
-### RELEASE CANDIDATE 1.4.9
+### RELEASE CANDIDATE 1.4.10
+
+ENHANCEMENTS:
+
+1. Add basic custom offline map facility to map view widget. See README for details.
+1. Add support for SETPOLL msgmode (requires `pyubx2>=1.2.38`). This mode will automatically determine appropriate input mode (SET or POLL) for command or query UBX messages (NB: it will still be necessary to specify either output GET or input SETPOLL mode in the serial configuration panel when reading UBX data logs).
+1. Add support for experimental UBXSimulator (*basic UBX GNSS serial device simulator*) from `pygnssutils`. To invoke, set `userport_s` setting to "ubxsimulator" and configure required NMEA/UBX data stream in local "ubxsimulator.json" file - see Sphinx documentation and example json file for further details.
+
+FIXES:
+
+1. Send empty datagram to UDP socket connections = thanks to @Williangalvani for contribution.
+
+### RELEASE 1.4.9
 
 CHANGES:
 

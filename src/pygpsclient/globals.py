@@ -20,7 +20,7 @@ from datetime import datetime
 from os import path
 from pathlib import Path
 
-from pyubx2 import GET, POLL, SET
+from pyubx2 import GET, POLL, SET, SETPOLL
 
 Point = namedtuple("Point", ["lat", "lon"])
 HOME = Path.home()
@@ -48,6 +48,7 @@ CONFIGFILE = path.join(HOME, f"{CONFIGNAME}.json")
 CONNECTED = 1
 CONNECTED_FILE = 4
 CONNECTED_NTRIP = 8
+CONNECTED_SIMULATOR = 32
 CONNECTED_SOCKET = 2
 CONNECTED_SPARTNIP = 16
 CONNECTED_SPARTNLB = CONNECTED
@@ -160,6 +161,7 @@ ICON_UNDO = path.join(DIRNAME, "resources/iconmonstr-undo-24.png")
 ICON_UNKNOWN = path.join(DIRNAME, "resources/clear-1-24.png")
 ICON_WARNING = path.join(DIRNAME, "resources/iconmonstr-warning-1-24.png")
 IMG_WORLD = path.join(DIRNAME, "resources/world.png")
+IMG_WORLD_CALIB = [90, -180, -90, 180]
 KM2M = 1000
 KM2MIL = 0.621371
 KM2NMIL = 0.5399568
@@ -200,6 +202,7 @@ MSGMODES = {
     "GET": GET,
     "SET": SET,
     "POLL": POLL,
+    "SETPOLL": SETPOLL,
 }
 NOPORTS = 3
 NTRIP_EVENT = "<<ntrip_read>>"
@@ -249,6 +252,7 @@ TOPIC_IP = "/pp/ip/{}"
 TOPIC_MGA = "/pp/ubx/mga"
 TOPIC_RXM = "/pp/ubx/0236/ip"
 UBXPRESETS = "ubxpresets"
+UBXSIMULATOR = "ubxsimulator"
 UI = "Imperial mph"
 UIK = "Imperial knots"
 UMK = "Metric kmph"

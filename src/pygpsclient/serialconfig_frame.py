@@ -42,7 +42,7 @@ from tkinter import (
 )
 
 from PIL import Image, ImageTk
-from pyubx2 import GET, POLL, SET
+from pyubx2 import GET, POLL, SET, SETPOLL
 from serial import PARITY_EVEN, PARITY_MARK, PARITY_NONE, PARITY_ODD, PARITY_SPACE
 from serial.tools.list_ports import comports
 
@@ -61,6 +61,7 @@ MSGMODES = {
     GET: "GET",
     SET: "SET",
     POLL: "POLL",
+    SETPOLL: "SETPOLL",
 }
 MSGMODE_RNG = list(MSGMODES.values())
 NOPORTS = 3
@@ -222,7 +223,7 @@ class SerialConfigFrame(Frame):
         self._spn_msgmode_name = Spinbox(
             self._frm_advanced,
             values=self._msgmode_name_rng,
-            width=4,
+            width=7,
             state=READONLY,
             wrap=True,
             textvariable=self._msgmode_name,
@@ -555,7 +556,7 @@ class SerialConfigFrame(Frame):
         Return message parsing mode
         Default is GET i.e. input from receiver.
 
-        :return: message mode 0 = POLL 1 = SET, 2 = POLL
+        :return: message mode 0 = POLL 1 = SET, 2 = POLL, 3 = SETPOLL
         :rtype: int
         """
 
@@ -564,6 +565,8 @@ class SerialConfigFrame(Frame):
             return SET
         if self._msgmode_name.get() == MSGMODES[POLL]:
             return POLL
+        if self._msgmode_name.get() == MSGMODES[SETPOLL]:
+            return SETPOLL
         return GET
 
     @property
