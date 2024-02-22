@@ -7,9 +7,15 @@ Support utility for the PyGPSClient custom offline map facility
 Generates the necessary PyGPSClient json configuration settings
 from a georeferenced raster image file e.g. geoTIFF:
 
-python3 georef.py -I georef.tif
+Requires the rasterio library:
 
-"usermappath_s: "/home/myuser/Downloads/georef.tif,
+python3 -m pip install rasterio
+
+Usage:
+
+python3 georef.py -I /home/myuser/Downloads/georef.tif
+
+"usermappath_s": "/home/myuser/Downloads/georef.tif",
 "usermapcalibration_l": [53.580594705619774, -2.5136534501369447, 53.345954933075674, -1.8118214965117956],
 
 Created on 21 Feb 2024
