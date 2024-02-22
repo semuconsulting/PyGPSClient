@@ -9,7 +9,7 @@ from a georeferenced raster image file e.g. geoTIFF:
 
 python3 georef.py -I georef.tif
 
-"usermappath_s: "/home/myuser/Downloads/geotest.tif,
+"usermappath_s: "/home/myuser/Downloads/georef.tif,
 "usermapcalibration_l": [53.580594705619774, -2.5136534501369447, 53.345954933075674, -1.8118214965117956],
 
 Created on 21 Feb 2024
