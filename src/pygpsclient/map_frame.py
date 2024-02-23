@@ -3,7 +3,11 @@ map_frame.py
 
 Mapview frame class for PyGPSClient application.
 
-This handles a frame containing a location map downloaded via a MapQuest API.
+This handles a frame containing a location map which can be either:
+
+ - fixed offline map based on user-provided georeferenced image e.g. geoTIFF
+   (defaults to Mercator world image).
+ - dynamic online map or satellite image accessed via a MapQuest API.
 
 NOTE: The free MapQuest API key is subject to a limit of 15,000
 transactions / month, or roughly 500 / day, so the map updates are only
@@ -170,19 +174,19 @@ class MapviewFrame(Frame):
 
         maptype = self.__app.frm_settings.config.get("maptype_s", "world")
         if maptype == "world":
-            self._draw_static_map(lat, lon, IMG_WORLD, IMG_WORLD_CALIB)
+            self._draw_offline_map(lat, lon, IMG_WORLD, IMG_WORLD_CALIB)
         elif maptype == "custom":
             mpath = self.__app.frm_settings.config.get("usermappath_s", IMG_WORLD)
             mcalib = self.__app.frm_settings.config.get(
                 "usermapcalibration_l", IMG_WORLD_CALIB
             )
-            self._draw_static_map(lat, lon, mpath, mcalib)
+            self._draw_offline_map(lat, lon, mpath, mcalib)
         else:
             if hacc is None or hacc == "":
                 hacc = 0
-            self._draw_web_map(lat, lon, hacc, maptype)
+            self._draw_online_map(lat, lon, hacc, maptype)
 
-    def _draw_static_map(
+    def _draw_offline_map(
         self,
         lat: float,
         lon: float,
@@ -190,12 +194,15 @@ class MapviewFrame(Frame):
         mcalib: list = IMG_WORLD_CALIB,
     ):
         """
-        Draw fixed scale Mercator world map
+        Draw fixed offline map using optional user-provided georeferenced
+        image path and calibration bounding box.
+
+        Defaults to Mercator world image with bounding box [90, -180, -90, 180].
 
         :param float lat: latitude
         :param float lon: longitude
         :param str mpath: path to map image
-        :param list mcalib: map top left and bottom right calibration coordinates
+        :param list mcalib: [top left lat, top left lon, bottom right lat, bottom right lon]
         """
         # pylint: disable=no-member
 
@@ -220,9 +227,11 @@ class MapviewFrame(Frame):
         else:
             self._can_mapview.create_text(w / 2, h / 2, text=OUTOFBOUNDS, fill="red")
 
-    def _draw_web_map(self, lat: float, lon: float, hacc: float, maptype: str = "map"):
+    def _draw_online_map(
+        self, lat: float, lon: float, hacc: float, maptype: str = "map"
+    ):
         """
-        Draw scalable web map via MapQuest API
+        Draw scalable web map or satellite image via online MapQuest API.
 
         :param float lat: latitude
         :param float lon: longitude

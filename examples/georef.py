@@ -9,7 +9,7 @@ from a georeferenced raster image file e.g. geoTIFF:
 
 Usage:
 
-python3 georef.py -I /home/myuser/Downloads/georef.tif
+python3 georef.py -I georef.tif
 
 "usermappath_s": "/home/myuser/Downloads/georef.tif",
 "usermapcalibration_l": [53.580594705619774, -2.5136534501369447, 53.345954933075674, -1.8118214965117956],
@@ -20,6 +20,7 @@ Created on 21 Feb 2024
 """
 
 from argparse import ArgumentParser
+from os.path import abspath
 
 from rasterio import open as openraster
 from rasterio.warp import transform_bounds
@@ -29,7 +30,7 @@ def main(infile: str):
     """
     Generate config settings from georeferenced raster file.
 
-    :param str infile: fully qualified to raster file
+    :param str infile: path to raster file
     """
 
     ras = openraster(infile)
@@ -37,7 +38,7 @@ def main(infile: str):
         ras.crs.to_epsg(), 4326, *ras.bounds
     )
     print(
-        f'"usermappath_s": "{infile}",\n"usermapcalibration_l": {[latmax, lonmin, latmin, lonmax]},'
+        f'"usermappath_s": "{abspath(infile)}",\n"usermapcalibration_l": {[latmax, lonmin, latmin, lonmax]},'
     )
 
 
@@ -50,7 +51,7 @@ if __name__ == "__main__":
         "-I",
         "--infile",
         required=True,
-        help="fully-qualified path to georeferenced raster file",
+        help="path to georeferenced raster file",
     )
 
     kwargs = vars(arp.parse_args())
