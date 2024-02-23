@@ -1,6 +1,12 @@
 # PyGPSClient Release Notes
 
-### RELEASE CANDIDATE 1.4.10
+### RELEASE CANDIDATE 1.4.11
+
+ENHANCEMENTS:
+
+1. Enhance custom offline map facility to allow multiple maps to be defined in config file. If Map Type of 'custom' is selected, PyGPSClient will automatically display custom map corresponding to current location or, if there is none, the default Mercator world map. Maps do not need to be contiguous. See README and example json configuration file for details.
+
+### RELEASE 1.4.10
 
 ENHANCEMENTS:
 

@@ -4,18 +4,18 @@
 	"logfile": "/home/myuser/ubxsimulator.log",
 	"simVector": 1,
 	"global": {
-		"lat": 52.474297,
-		"lon": 13.403632,
+		"lat": 52.477311,
+		"lon": 13.391426,
 		"alt": 50.034,
 		"height": 47494,
 		"sep": 2.54,
 		"hMSL": 50034,
 		"NS": "N",
 		"EW": "E",
-		"gSpeed": 134110,
-		"headMot": 125,
-		"spd": 260.6930,
-		"cog": 125
+		"gSpeed": 100000,
+		"headMot": 126,
+		"spd": 194.3844,
+		"cog": 126
 	},
 	"ubxmessages": [
 		{

@@ -5,8 +5,8 @@ Mapview frame class for PyGPSClient application.
 
 This handles a frame containing a location map which can be either:
 
- - fixed offline map based on user-provided georeferenced image e.g. geoTIFF
-   (defaults to Mercator world image).
+ - one or more fixed offline maps based on user-provided georeferenced
+   images e.g. geoTIFF (defaults to Mercator world image).
  - dynamic online map or satellite image accessed via a MapQuest API.
 
 NOTE: The free MapQuest API key is subject to a limit of 15,000
@@ -173,14 +173,8 @@ class MapviewFrame(Frame):
             return
 
         maptype = self.__app.frm_settings.config.get("maptype_s", "world")
-        if maptype == "world":
-            self._draw_offline_map(lat, lon, IMG_WORLD, IMG_WORLD_CALIB)
-        elif maptype == "custom":
-            mpath = self.__app.frm_settings.config.get("usermappath_s", IMG_WORLD)
-            mcalib = self.__app.frm_settings.config.get(
-                "usermapcalibration_l", IMG_WORLD_CALIB
-            )
-            self._draw_offline_map(lat, lon, mpath, mcalib)
+        if maptype in ("world", "custom"):
+            self._draw_offline_map(lat, lon, maptype)
         else:
             if hacc is None or hacc == "":
                 hacc = 0
@@ -190,42 +184,46 @@ class MapviewFrame(Frame):
         self,
         lat: float,
         lon: float,
-        mpath: str = IMG_WORLD,
-        mcalib: list = IMG_WORLD_CALIB,
+        maptype: str = "world",
     ):
         """
         Draw fixed offline map using optional user-provided georeferenced
-        image path and calibration bounding box.
+        image path(s) and calibration bounding box(es).
 
-        Defaults to Mercator world image with bounding box [90, -180, -90, 180].
+        Defaults to Mercator world image with bounding box [90, -180, -90, 180]
+        if location is not within bounds of any custom map.
 
         :param float lat: latitude
         :param float lon: longitude
-        :param str mpath: path to map image
-        :param list mcalib: [top left lat, top left lon, bottom right lat, bottom right lon]
+        :param str maptype: "world" or "custom"
         """
         # pylint: disable=no-member
 
-        inbounds = (
-            True
-            if (mcalib[0] > lat > mcalib[2]) and (mcalib[1] < lon < mcalib[3])
-            else False
-        )
+        mpath = IMG_WORLD
+        mcalib = IMG_WORLD_CALIB
+        if maptype == "custom":
+            usermaps = self.__app.frm_settings.config.get("usermaps_l", [])
+            for map in usermaps:
+                try:
+                    path, bounds = map
+                    if (bounds[0] > lat > bounds[2]) and (bounds[1] < lon < bounds[3]):
+                        mpath = path
+                        mcalib = bounds
+                        break
+                except (ValueError, IndexError):
+                    break
 
-        self._lastmaptype = "world" if mpath == IMG_WORLD else "custom"
+        self._lastmaptype = maptype
         w, h = self.width, self.height
         self._can_mapview.delete("all")
         self._img = ImageTk.PhotoImage(Image.open(mpath).resize((w, h)))
         self._marker = ImageTk.PhotoImage(Image.open(ICON_POS))
         self._can_mapview.create_image(0, 0, image=self._img, anchor=NW)
-        if inbounds:
-            plon = w / (mcalib[3] - mcalib[1])  # x pixels per degree lon
-            plat = h / (mcalib[0] - mcalib[2])  # y pixels per degree lat
-            x = (lon - mcalib[1]) * plon
-            y = (mcalib[0] - lat) * plat
-            self._can_mapview.create_image(x, y, image=self._marker, anchor=S)
-        else:
-            self._can_mapview.create_text(w / 2, h / 2, text=OUTOFBOUNDS, fill="red")
+        plon = w / (mcalib[3] - mcalib[1])  # x pixels per degree lon
+        plat = h / (mcalib[0] - mcalib[2])  # y pixels per degree lat
+        x = (lon - mcalib[1]) * plon
+        y = (mcalib[0] - lat) * plat
+        self._can_mapview.create_image(x, y, image=self._marker, anchor=S)
 
     def _draw_online_map(
         self, lat: float, lon: float, hacc: float, maptype: str = "map"
