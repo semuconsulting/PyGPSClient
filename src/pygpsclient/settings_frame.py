@@ -894,11 +894,8 @@ class SettingsFrame(Frame):
                 "mqapikey_s": self.__app.saved_config.get("mqapikey_s", ""),
                 "colortags_l": self.__app.saved_config.get("colortags_l", []),
                 "ubxpresets_l": self.__app.saved_config.get("ubxpresets_l", []),
-                "usermappath_s": self.__app.saved_config.get(
-                    "usermappath_s", IMG_WORLD
-                ),
-                "usermapcalibration_l": self.__app.saved_config.get(
-                    "usermapcalibration_l", IMG_WORLD_CALIB
+                "usermaps_l": self.__app.saved_config.get(
+                    "usermaps_l", [[IMG_WORLD, IMG_WORLD_CALIB]]
                 ),
             }
             return config
