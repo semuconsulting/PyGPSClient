@@ -5,8 +5,8 @@ Mapview frame class for PyGPSClient application.
 
 This handles a frame containing a location map which can be either:
 
- - fixed offline map based on user-provided georeferenced image e.g. geoTIFF
-   (defaults to Mercator world image).
+ - one or more fixed offline maps based on user-provided georeferenced
+   images e.g. geoTIFF (defaults to Mercator world image).
  - dynamic online map or satellite image accessed via a MapQuest API.
 
 NOTE: The free MapQuest API key is subject to a limit of 15,000
@@ -190,7 +190,8 @@ class MapviewFrame(Frame):
         Draw fixed offline map using optional user-provided georeferenced
         image path(s) and calibration bounding box(es).
 
-        Defaults to Mercator world image with bounding box [90, -180, -90, 180].
+        Defaults to Mercator world image with bounding box [90, -180, -90, 180]
+        if location is not within bounds of any custom map.
 
         :param float lat: latitude
         :param float lon: longitude
