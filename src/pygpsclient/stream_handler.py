@@ -120,7 +120,7 @@ class StreamHandler:
         """
 
         conntype = settings["conntype"]
-        inactivity_timeout = settings["inactivity_timeout"]
+        inactivity_timeout = settings.get("inactivity_timeout", 0)
         ser = settings["serial_settings"]
 
         if conntype == CONNECTED and ser.port == UBXSIMULATOR:
