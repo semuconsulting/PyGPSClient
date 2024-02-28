@@ -40,13 +40,7 @@ from pygpsclient.mapquest import (
     MIN_UPDATE_INTERVAL,
     MIN_ZOOM,
 )
-from pygpsclient.strings import (
-    NOWEBMAPCONN,
-    NOWEBMAPFIX,
-    NOWEBMAPHTTP,
-    NOWEBMAPKEY,
-    OUTOFBOUNDS,
-)
+from pygpsclient.strings import NOWEBMAPCONN, NOWEBMAPFIX, NOWEBMAPHTTP, NOWEBMAPKEY
 
 ZOOMCOL = "red"
 ZOOMEND = "lightgray"
@@ -203,9 +197,9 @@ class MapviewFrame(Frame):
         mcalib = IMG_WORLD_CALIB
         if maptype == "custom":
             usermaps = self.__app.frm_settings.config.get("usermaps_l", [])
-            for map in usermaps:
+            for mp in usermaps:
                 try:
-                    path, bounds = map
+                    path, bounds = mp
                     if (bounds[0] > lat > bounds[2]) and (bounds[1] < lon < bounds[3]):
                         mpath = path
                         mcalib = bounds
