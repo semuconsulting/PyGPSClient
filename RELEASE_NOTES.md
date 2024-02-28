@@ -4,6 +4,7 @@
 
 FIXES:
 
+1. Fix stream handler KeyError Fixes [#120](https://github.com/semuconsulting/PyGPSClient/issues/120).
 
 ### RELEASE 1.4.11
 
