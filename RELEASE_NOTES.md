@@ -1,6 +1,11 @@
 # PyGPSClient Release Notes
 
-### RELEASE CANDIDATE 1.4.11
+### RELEASE CANDIDATE 1.4.12
+
+FIXES:
+
+
+### RELEASE 1.4.11
 
 ENHANCEMENTS:
 
