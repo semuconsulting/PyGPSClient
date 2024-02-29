@@ -1,6 +1,14 @@
 # PyGPSClient Release Notes
 
-### RELEASE CANDIDATE 1.4.11
+### RELEASE CANDIDATE 1.4.12
+
+FIXES:
+
+1. Fix stream handler KeyError Fixes [#120](https://github.com/semuconsulting/PyGPSClient/issues/120).
+1. Fix socket stream KeyError Fixes [#119](https://github.com/semuconsulting/PyGPSClient/issues/119).
+1. Fix map_frame pylint warnings.
+
+### RELEASE 1.4.11
 
 ENHANCEMENTS:
 
