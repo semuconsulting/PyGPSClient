@@ -48,6 +48,7 @@ def main(infiles: str):
     files = infiles.split(",")
     print('"usermaps_l": [')
     for i, fl in enumerate(files):
+        fl = fl.strip()
         ras = openraster(fl)
         lonmin, latmin, lonmax, latmax = transform_bounds(
             ras.crs.to_epsg(), 4326, *ras.bounds
