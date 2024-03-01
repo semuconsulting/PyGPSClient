@@ -40,7 +40,13 @@ from pygpsclient.mapquest import (
     MIN_UPDATE_INTERVAL,
     MIN_ZOOM,
 )
-from pygpsclient.strings import NOWEBMAPCONN, NOWEBMAPFIX, NOWEBMAPHTTP, NOWEBMAPKEY
+from pygpsclient.strings import (
+    NOWEBMAPCONN,
+    NOWEBMAPFIX,
+    NOWEBMAPHTTP,
+    NOWEBMAPKEY,
+    OUTOFBOUNDS,
+)
 
 ZOOMCOL = "red"
 ZOOMEND = "lightgray"
@@ -195,6 +201,7 @@ class MapviewFrame(Frame):
 
         mpath = IMG_WORLD
         mcalib = IMG_WORLD_CALIB
+        inbounds = False
         if maptype == "custom":
             usermaps = self.__app.frm_settings.config.get("usermaps_l", [])
             for mp in usermaps:
@@ -203,6 +210,7 @@ class MapviewFrame(Frame):
                     if (bounds[0] > lat > bounds[2]) and (bounds[1] < lon < bounds[3]):
                         mpath = path
                         mcalib = bounds
+                        inbounds = True
                         break
                 except (ValueError, IndexError):
                     break
@@ -218,6 +226,8 @@ class MapviewFrame(Frame):
         x = (lon - mcalib[1]) * plon
         y = (mcalib[0] - lat) * plat
         self._can_mapview.create_image(x, y, image=self._marker, anchor=S)
+        if maptype == "custom" and not inbounds:
+            self._can_mapview.create_text(w / 2, h / 2, text=OUTOFBOUNDS, fill="orange")
 
     def _draw_online_map(
         self, lat: float, lon: float, hacc: float, maptype: str = "map"
