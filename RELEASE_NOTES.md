@@ -1,6 +1,12 @@
 # PyGPSClient Release Notes
 
-### RELEASE CANDIDATE 1.4.12
+### RELEASE CANDIDATE 1.4.13
+
+ENHANCEMENTS:
+
+1. Minor enhancements to custom offline map handling.
+
+### RELEASE 1.4.12
 
 FIXES:
 
