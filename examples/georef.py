@@ -26,6 +26,18 @@ python3 georef.py -I mymap01.tif,mymap02.tif,mymap03.tif
    ]
 ]
 
+To create a suitable geo-referenced map image, you can use the free open source QGIS
+software:
+
+1. Download and install the latest version of QGIS for your platform (https://qgis.org).
+2. Open the QGIS application. From the top menu bar, select Project...New.
+3. From the source browser, select XYZ Tiles...OpenStreetMap.
+4. Zoom into the area you wish to create a map image for.
+5. From the top menu bar, select Project...Import/Export...Export Map to image.
+6. From the pop-up Save Map as Image dialog, click Save and enter the required file name and format (TIF is recommended).
+
+NB: While Open Street Map is free to use, it is subject to copyright - see https://www.openstreetmap.org/copyright.
+
 Created on 21 Feb 2024
 
 @author: semuadmin
