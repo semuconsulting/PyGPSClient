@@ -145,7 +145,9 @@ ICON_NOTRANSMIT = path.join(DIRNAME, "resources/iconmonstr-notransmit-10-24.png"
 ICON_NTRIPCONFIG = path.join(DIRNAME, "resources/iconmonstr-antenna-4-24.png")
 ICON_PENDING = path.join(DIRNAME, "resources/iconmonstr-time-6-24.png")
 ICON_PLAY = path.join(DIRNAME, "resources/iconmonstr-media-control-48-24.png")
-ICON_POS = path.join(DIRNAME, "resources/iconmonstr-location-1-24.png")
+ICON_POS = path.join(
+    DIRNAME, "resources/iconmonstr-plus-lined-24.png"
+)  # "resources/iconmonstr-location-1-24.png")
 ICON_RECORD = path.join(DIRNAME, "resources/iconmonstr-record-24.png")
 ICON_REDRAW = path.join(DIRNAME, "resources/iconmonstr-refresh-lined-24.png")
 ICON_REFRESH = path.join(DIRNAME, "resources/iconmonstr-refresh-6-16.png")

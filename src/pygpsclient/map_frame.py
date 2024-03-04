@@ -25,9 +25,9 @@ from http.client import responses
 from io import BytesIO
 from os import getenv
 from time import time
-from tkinter import NW, Canvas, E, Frame, N, S, W, font
+from tkinter import CENTER, NW, Canvas, E, Frame, N, S, W, font
 
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, UnidentifiedImageError
 from requests import ConnectionError as ConnError
 from requests import ConnectTimeout, RequestException, get
 
@@ -36,11 +36,15 @@ from pygpsclient.mapquest import (
     MAP_UPDATE_INTERVAL,
     MAPQTIMEOUT,
     MAPURL,
+    MARKERURL,
     MAX_ZOOM,
     MIN_UPDATE_INTERVAL,
     MIN_ZOOM,
 )
 from pygpsclient.strings import (
+    MAPCONFIGERR,
+    MAPOPENERR,
+    NOCONN,
     NOWEBMAPCONN,
     NOWEBMAPFIX,
     NOWEBMAPHTTP,
@@ -50,6 +54,10 @@ from pygpsclient.strings import (
 
 ZOOMCOL = "red"
 ZOOMEND = "lightgray"
+WORLD = "world"
+CUSTOM = "custom"
+MAP = "map"
+SAT = "sat"
 
 
 class MapviewFrame(Frame):
@@ -82,6 +90,8 @@ class MapviewFrame(Frame):
         self._resize_font_width = self._resize_font.measure("+")
         self._zoom = int((MAX_ZOOM - MIN_ZOOM) / 2)
         self._lastmaptype = ""
+        self._lastmappath = ""
+        self._mapimage = None
         self._body()
         self._attach_events()
 
@@ -172,19 +182,17 @@ class MapviewFrame(Frame):
             self._disp_error(NOWEBMAPFIX)
             return
 
-        maptype = self.__app.frm_settings.config.get("maptype_s", "world")
-        if maptype in ("world", "custom"):
+        maptype = self.__app.frm_settings.config.get("maptype_s", WORLD)
+        if maptype in (WORLD, CUSTOM):
             self._draw_offline_map(lat, lon, maptype)
         else:
-            if hacc is None or hacc == "":
-                hacc = 0
-            self._draw_online_map(lat, lon, hacc, maptype)
+            self._draw_online_map(lat, lon, maptype, hacc)
 
     def _draw_offline_map(
         self,
         lat: float,
         lon: float,
-        maptype: str = "world",
+        maptype: str = WORLD,
     ):
         """
         Draw fixed offline map using optional user-provided georeferenced
@@ -199,58 +207,70 @@ class MapviewFrame(Frame):
         """
         # pylint: disable=no-member
 
-        mpath = IMG_WORLD
-        mcalib = IMG_WORLD_CALIB
-        inbounds = False
-        if maptype == "custom":
+        w, h = self.width, self.height
+        self._lastmaptype = maptype
+        bounds = IMG_WORLD_CALIB
+        err = ""
+
+        if maptype == CUSTOM:
+            err = OUTOFBOUNDS
             usermaps = self.__app.frm_settings.config.get("usermaps_l", [])
             for mp in usermaps:
                 try:
-                    path, bounds = mp
+                    mpath, bounds = mp
                     if (bounds[0] > lat > bounds[2]) and (bounds[1] < lon < bounds[3]):
-                        mpath = path
-                        mcalib = bounds
-                        inbounds = True
+                        if self._lastmappath != mpath:
+                            self._mapimage = Image.open(mpath)
+                            self._lastmappath = mpath
+                        err = ""
                         break
                 except (ValueError, IndexError):
+                    err = MAPCONFIGERR
+                    break
+                except (FileNotFoundError, UnidentifiedImageError):
+                    err = MAPOPENERR.format(mpath.split("/")[-1])
                     break
 
-        self._lastmaptype = maptype
-        w, h = self.width, self.height
+        if maptype == WORLD or err != "":
+            if self._lastmappath != IMG_WORLD:
+                self._mapimage = Image.open(IMG_WORLD)
+                self._lastmappath = IMG_WORLD
+            bounds = IMG_WORLD_CALIB
+
         self._can_mapview.delete("all")
-        self._img = ImageTk.PhotoImage(Image.open(mpath).resize((w, h)))
-        self._marker = ImageTk.PhotoImage(Image.open(ICON_POS))
+        self._img = ImageTk.PhotoImage(self._mapimage.resize((w, h)))
         self._can_mapview.create_image(0, 0, image=self._img, anchor=NW)
-        plon = w / (mcalib[3] - mcalib[1])  # x pixels per degree lon
-        plat = h / (mcalib[0] - mcalib[2])  # y pixels per degree lat
-        x = (lon - mcalib[1]) * plon
-        y = (mcalib[0] - lat) * plat
-        self._can_mapview.create_image(x, y, image=self._marker, anchor=S)
-        if maptype == "custom" and not inbounds:
-            self._can_mapview.create_text(w / 2, h / 2, text=OUTOFBOUNDS, fill="orange")
+        plon = w / (bounds[3] - bounds[1])  # x pixels per degree lon
+        plat = h / (bounds[0] - bounds[2])  # y pixels per degree lat
+        x = (lon - bounds[1]) * plon
+        y = (bounds[0] - lat) * plat
+        self._marker = ImageTk.PhotoImage(Image.open(ICON_POS))
+        self._can_mapview.create_image(x, y, image=self._marker, anchor=CENTER)
+        if err != "":
+            self._can_mapview.create_text(w / 2, h / 2, text=err, fill="orange")
 
     def _draw_online_map(
-        self, lat: float, lon: float, hacc: float, maptype: str = "map"
+        self, lat: float, lon: float, maptype: str = MAP, hacc: float = 0
     ):
         """
         Draw scalable web map or satellite image via online MapQuest API.
 
         :param float lat: latitude
         :param float lon: longitude
-        :param float hacc: horizontal accuracy
         :param str maptype: "map" or "sat"
+        :param float hacc: horizontal accuracy
         """
 
-        sc = "NO CONNECTION"
+        sc = NOCONN
         msg = ""
+        hacc = hacc if isinstance(hacc, (float, int)) else 0
 
         if maptype != self._lastmaptype:
             self._lastmaptype = maptype
             self.reset_map_refresh()
 
         mqapikey = self.__app.frm_settings.config.get(
-            "mqapikey_s",
-            self.__app.frm_settings.config.get("mqapikey", getenv("mqapikey", "")),
+            "mqapikey_s", getenv("MQAPIKEY", "")
         )
         if mqapikey == "":
             self._disp_error(NOWEBMAPKEY)
@@ -364,6 +384,7 @@ class MapviewFrame(Frame):
             mqapikey,
             lat,
             lon,
+            MARKERURL,
             zoom,
             w,
             h,
