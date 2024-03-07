@@ -4,6 +4,7 @@
 
 ENHANCEMENTS:
 
+1. Add RF Band data from MON-RF to UBX info panel.
 1. Minor enhancements to custom offline map handling.
 
 ### RELEASE 1.4.12

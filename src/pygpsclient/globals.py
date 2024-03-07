@@ -282,6 +282,7 @@ SPARTN_MQTT = 10
 SPECTRUMVIEW = 11
 SYSMONVIEW = 12
 ROVERVIEW = 13
+UBX_MONRF = 14
 
 # map of fix values to descriptions
 # the keys in this map are a concatenation of NMEA/UBX

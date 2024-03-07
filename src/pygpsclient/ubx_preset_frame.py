@@ -137,7 +137,7 @@ class UBX_PRESET_Frame(Frame):
             self,
             border=2,
             relief="sunken",
-            height=11,
+            height=15,
             width=34,
             justify=LEFT,
             exportselection=False,

@@ -43,6 +43,7 @@ from pygpsclient.globals import (
     UBX_CFGRATE,
     UBX_CFGVAL,
     UBX_MONHW,
+    UBX_MONRF,
     UBX_MONVER,
     UBX_PRESET,
 )
@@ -267,7 +268,7 @@ class UBXConfigDialog(Toplevel):
         ubxfrm = self._pending_confs.get(msg.identity, None)
 
         if ubxfrm is not None:
-            if ubxfrm in (UBX_MONVER, UBX_MONHW):
+            if ubxfrm in (UBX_MONVER, UBX_MONHW, UBX_MONRF):
                 self._frm_device_info.update_status(msg)
             elif ubxfrm == UBX_CFGPRT:
                 self._frm_config_port.update_status(msg)

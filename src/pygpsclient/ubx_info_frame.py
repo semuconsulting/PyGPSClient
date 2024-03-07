@@ -23,6 +23,7 @@ from pygpsclient.globals import (
     ICON_SEND,
     ICON_WARNING,
     UBX_MONHW,
+    UBX_MONRF,
     UBX_MONVER,
 )
 
@@ -75,6 +76,8 @@ class UBX_INFO_Frame(Frame):
         self._lbl_romver = Label(self)
         self._lbl_gnssl = Label(self, text="GNSS/AS")
         self._lbl_gnss = Label(self)
+        self._lbl_bandsl = Label(self, text="RF Bands")
+        self._lbl_bands = Label(self)
         self._lbl_ant_statusl = Label(self, text="Ant. Status")
         self._lbl_ant_status = Label(self)
         self._lbl_ant_powerl = Label(self, text="Ant. Power")
@@ -95,10 +98,12 @@ class UBX_INFO_Frame(Frame):
         self._lbl_romver.grid(column=4, row=1, columnspan=2, padx=2, sticky=W)
         self._lbl_gnssl.grid(column=0, row=2, columnspan=1, padx=2, sticky=W)
         self._lbl_gnss.grid(column=1, row=2, columnspan=4, padx=2, sticky=W)
-        self._lbl_ant_statusl.grid(column=0, row=3, columnspan=1, padx=2, sticky=W)
-        self._lbl_ant_status.grid(column=1, row=3, columnspan=2, padx=2, sticky=W)
-        self._lbl_ant_powerl.grid(column=3, row=3, columnspan=1, padx=2, sticky=W)
-        self._lbl_ant_power.grid(column=4, row=3, columnspan=2, padx=2, sticky=W)
+        self._lbl_bandsl.grid(column=0, row=3, columnspan=1, padx=2, sticky=W)
+        self._lbl_bands.grid(column=1, row=3, columnspan=4, padx=2, sticky=W)
+        self._lbl_ant_statusl.grid(column=0, row=4, columnspan=1, padx=2, sticky=W)
+        self._lbl_ant_status.grid(column=1, row=4, columnspan=2, padx=2, sticky=W)
+        self._lbl_ant_powerl.grid(column=3, row=4, columnspan=1, padx=2, sticky=W)
+        self._lbl_ant_power.grid(column=4, row=4, columnspan=2, padx=2, sticky=W)
 
         (cols, rows) = self.grid_size()
         for i in range(cols):
@@ -168,6 +173,18 @@ class UBX_INFO_Frame(Frame):
             self._lbl_romver.config(text=protocol)
             self._lbl_gnss.config(text=gnss_supported)
 
+        # MON-RF information (for supported L-Bands)
+        bands = "N/A"
+        if msg.identity == "MON-RF":
+            bands = ""
+            blocks = msg.nBlocks
+            for i in range(blocks):
+                rf = getattr(msg, f"blockId_{i+1:02}")
+                bands += (
+                    f'{"L2/L5" if rf == 1 else "L1"}{", " if i < blocks - 1 else ""}'
+                )
+        self._lbl_bands.config(text=bands)
+
         # MON-HW information (for antenna status)
         if msg.identity == "MON-HW":
             ant_status = getattr(msg, "aStatus", 1)
@@ -179,14 +196,15 @@ class UBX_INFO_Frame(Frame):
 
     def _do_poll_ver(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
-        Poll MON-VER & MON-HW
+        Poll MON-VER & MON-HW & MON-RF
         """
 
-        for msgtype in ("MON-VER", "MON-HW"):
+        for msgtype in ("MON-VER", "MON-RF", "MON-HW"):
             msg = UBXMessage(msgtype[0:3], msgtype, POLL)
             self.__app.gnss_outqueue.put(msg.serialize())
             self.__container.set_status(
                 f"{msgtype} POLL message sent",
             )
         self.__container.set_pending("MON-VER", UBX_MONVER)
+        self.__container.set_pending("MON-RF", UBX_MONRF)
         self.__container.set_pending("MON-HW", UBX_MONHW)
