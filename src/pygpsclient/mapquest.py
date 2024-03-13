@@ -16,8 +16,6 @@ Created on 04 May 2023
 
 """
 
-from pygpsclient.globals import ICON_POS
-
 MAPQURL = "https://www.mapquestapi.com/staticmap/v5/map?key={}"
 MARKERURL = "marker-sm-616161-ff4444"
 MAPURL = (

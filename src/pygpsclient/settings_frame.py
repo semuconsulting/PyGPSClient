@@ -83,8 +83,6 @@ from pygpsclient.globals import (
     ICON_SOCKET,
     ICON_SPARTNCONFIG,
     ICON_UBXCONFIG,
-    IMG_WORLD,
-    IMG_WORLD_CALIB,
     KNOWNGPS,
     MSGMODES,
     NOPORTS,
