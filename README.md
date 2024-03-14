@@ -488,8 +488,8 @@ that this is a User variable rather than a System/Global variable.
 The UBX Configuration Dialog includes the facility to send user-defined UBX configuration messages or message sequences to the receiver. These can be set up by adding
 appropriate comma-delimited message descriptions and payload definitions to the `"ubxpresets_l":` list in your json configuration file (see example provided). The message definition comprises a free-format text description (*avoid embedded commas*) 
 followed by one or more [pyubx2 UBXMessage constructors](https://pypi.org/project/pyubx2/), i.e. 
-1. message class as a string e.g. `CFG` (must be a valid class from pyubx2.UBX_CLASSES)
-2. message id as a string e.g. `CFG-MSG` (must be a valid id from pyubx2.UBX_MSGIDS)
+1. message class as a string e.g. `CFG` (must be a valid class from [pyubx2.UBX_CLASSES](https://github.com/semuconsulting/pyubx2/blob/master/src/pyubx2/ubxtypes_core.py#L89))
+2. message id as a string e.g. `CFG-MSG` (must be a valid id from [pyubx2.UBX_MSGIDS](https://github.com/semuconsulting/pyubx2/blob/master/src/pyubx2/ubxtypes_core.py#L121))
 3. payload as a hexadecimal string e.g. `f004010100010100` (leave blank for null payloads e.g. most POLL messages)
 4. mode as an integer (`1` = SET, `2` = POLL)
 
