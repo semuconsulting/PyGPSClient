@@ -46,7 +46,7 @@ Sphinx API Documentation in HTML format is available at [https://www.semuconsult
 
 Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/semuconsulting/PyGPSClient/blob/master/CONTRIBUTING.md).
 
-[Bug reports](https://github.com/semuconsulting/PyGPSClient/blob/master/.github/ISSUE_TEMPLATE/bug_report.md) and [Feature requests](https://github.com/semuconsulting/PyGPSClient/blob/master/.github/ISSUE_TEMPLATE/feature_request.md) - please use the templates provided. For general queries and advice, post a message to one of the [PyGPSClient Discussions](https://github.com/semuconsulting/PyGPSClient/discussions) channels.
+For [Bug reports](https://github.com/semuconsulting/PyGPSClient/blob/master/.github/ISSUE_TEMPLATE/bug_report.md), please use the template provided. For feature requests and general queries and advice, post a message to one of the [PyGPSClient Discussions](https://github.com/semuconsulting/PyGPSClient/discussions) channels in the first instance.
 
 This is an independent project and we have no affiliation whatsoever with u-blox.
 
