@@ -32,6 +32,8 @@ from tkinter import E, Frame, N, PhotoImage, S, TclError, Tk, Toplevel, W, font
 
 from pygnssutils import GNSSMQTTClient, GNSSNTRIPClient, MQTTMessage
 from pygnssutils.socket_server import ClientHandler, SocketServer
+from pyrtcm import RTCMMessage
+from pyspartn import SPARTNMessage
 from pyubx2 import NMEA_PROTOCOL, RTCM3_PROTOCOL, UBX_PROTOCOL, protocol
 from serial import SerialException, SerialTimeoutException
 
@@ -780,7 +782,7 @@ class App(Frame):
                 and parsed_data is not None
                 and isinstance(raw_data, bytes)
             ):
-                if protocol(raw_data) == RTCM3_PROTOCOL:
+                if type(parsed_data) in (RTCMMessage, SPARTNMessage):
                     if self.conn_status == CONNECTED:
                         self.gnss_outqueue.put(raw_data)
                     self.process_data(raw_data, parsed_data, "NTRIP>>")
