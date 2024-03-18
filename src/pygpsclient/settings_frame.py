@@ -767,6 +767,7 @@ class SettingsFrame(Frame):
                 # socket client settings from frm_socketclient
                 "sockclienthost_s": self.frm_socketclient.server.get(),
                 "sockclientport_n": self.frm_socketclient.port.get(),
+                "sockclienthttps_b": self.frm_socketclient.https.get(),
                 "sockclientprotocol_s": self.frm_socketclient.protocol.get(),
                 # socket server settings from frm_socketserver
                 "sockserver_b": self.frm_socketserver.socketserving,
@@ -786,11 +787,13 @@ class SettingsFrame(Frame):
                 # NTRIP client settings from pygnssutils.GNSSNTRIPClient
                 "ntripclientserver_s": ntripclient_settings["server"],
                 "ntripclientport_n": ntripclient_settings["port"],
+                "ntripclienthttps_b": ntripclient_settings["https"],
                 "ntripclientprotocol_s": ntripprot,
                 "ntripclientflowinfo_n": ntripclient_settings["flowinfo"],
                 "ntripclientscopeid_n": ntripclient_settings["scopeid"],
                 "ntripclientmountpoint_s": ntripclient_settings["mountpoint"],
                 "ntripclientversion_s": ntripclient_settings["version"],
+                "ntripclientdatatype_s": ntripclient_settings["datatype"],
                 "ntripclientuser_s": ntripclient_settings["ntripuser"],
                 "ntripclientpassword_s": ntripclient_settings["ntrippassword"],
                 "ntripclientggainterval_n": ggaint,

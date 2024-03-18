@@ -5,6 +5,7 @@
 ENHANCEMENTS:
 
 1. Add support for SSL (port 443) connections in NTRIP client (requires pygnssutils>=1.0.21).
+1. Add support for PointPerfect NTRIP SPARTN service.
 1. Add RF Band data from MON-RF to UBX info panel.
 1. Minor enhancements to custom offline map handling.
 

@@ -87,6 +87,9 @@ NTRIP_VERSIONS = ("2.0", "1.0")
 KM2MILES = 0.6213712
 IP4 = "IPv4"
 IP6 = "IPv6"
+RTCM = "RTCM"
+SPARTN = "SPARTN"
+NTRIP_SPARTN = "ppntrip.services.u-blox.com"
 
 
 class NTRIPConfigDialog(Toplevel):
@@ -127,6 +130,8 @@ class NTRIPConfigDialog(Toplevel):
             UBX_CFGRATE: (),
         }
         self._status = StringVar()
+        self._ntrip_datatype = StringVar()
+        self._ntrip_https = IntVar()
         self._ntrip_version = StringVar()
         self._ntrip_mountpoint = StringVar()
         self._ntrip_mpdist = StringVar()
@@ -163,12 +168,14 @@ class NTRIPConfigDialog(Toplevel):
             ),
             "sockclientflowinfo_n": self._saved_config.get("ntripclientflowinfo_n", 0),
             "sockclientscopeid_n": self._saved_config.get("ntripclientscopeid_n", 0),
+            "sockclienthttps_b": self._saved_config.get("ntripclienthttps_b", 0),
             "protocols_l": [IP4, IP6],
         }
         self._frm_socket = SocketConfigFrame(
             self.__app,
             self._frm_container,
             saved_config=saved_ntrip_config,
+            server_callback=self._on_server,
         )
         self._frm_status = Frame(self._frm_container, borderwidth=2, relief="groove")
         self._lbl_status = Label(
@@ -190,6 +197,7 @@ class NTRIPConfigDialog(Toplevel):
             relief="sunken",
             width=15,
         )
+
         self._lbl_mpdist = Label(
             self._frm_container,
             textvariable=self._ntrip_mpdist,
@@ -217,6 +225,15 @@ class NTRIPConfigDialog(Toplevel):
             width=4,
             wrap=True,
             textvariable=self._ntrip_version,
+            state=READONLY,
+        )
+        self._lbl_datatype = Label(self._frm_container, text="Data Type")
+        self._spn_datatype = Spinbox(
+            self._frm_container,
+            values=("RTCM", "SPARTN"),
+            width=8,
+            wrap=True,
+            textvariable=self._ntrip_datatype,
             state=READONLY,
         )
         self._lbl_user = Label(self._frm_container, text=LBLNTRIPUSER)
@@ -340,9 +357,9 @@ class NTRIPConfigDialog(Toplevel):
         self._scr_sourcetablev.grid(column=4, row=5, rowspan=4, sticky=(N, S))
         self._scr_sourcetableh.grid(column=1, columnspan=3, row=9, sticky=(E, W))
         self._lbl_ntripversion.grid(column=0, row=10, padx=3, pady=3, sticky=W)
-        self._spn_ntripversion.grid(
-            column=1, row=10, padx=3, pady=3, rowspan=2, sticky=W
-        )
+        self._spn_ntripversion.grid(column=1, row=10, padx=3, pady=3, sticky=W)
+        self._lbl_datatype.grid(column=0, row=11, padx=3, pady=3, sticky=W)
+        self._spn_datatype.grid(column=1, row=11, padx=3, pady=3, sticky=W)
         self._lbl_user.grid(column=0, row=12, padx=3, pady=3, sticky=W)
         self._ent_user.grid(column=1, row=12, columnspan=3, padx=3, pady=3, sticky=W)
         self._lbl_password.grid(column=0, row=13, padx=3, pady=3, sticky=W)
@@ -445,6 +462,7 @@ class NTRIPConfigDialog(Toplevel):
             for ctl in (
                 self._spn_ntripversion,
                 self._spn_ntripggaint,
+                self._spn_datatype,
             ):
                 ctl.config(state=(DISABLED if connected else READONLY))
 
@@ -521,6 +539,21 @@ class NTRIPConfigDialog(Toplevel):
         except (IndexError, KeyError):  # not yet populated
             pass
 
+    def _on_server(self, var, index, mode):  # pylint: disable=unused-argument
+        """
+        Callback when server URL changed.
+
+        :param event event: write event
+        """
+
+        try:
+            if self._frm_socket.server.get() == NTRIP_SPARTN:
+                self._ntrip_datatype.set(SPARTN)
+            else:
+                self._ntrip_datatype.set(RTCM)
+        except TclError:
+            pass
+
     def on_exit(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
         Handle Exit button press.
@@ -551,8 +584,10 @@ class NTRIPConfigDialog(Toplevel):
         self._frm_socket.protocol.set(IP6 if ipprot == AF_INET6 else IP4)
         self._frm_socket.server.set(self._settings["server"])
         self._frm_socket.port.set(self._settings["port"])
+        self._frm_socket.https.set(self._settings["https"])
         self._ntrip_mountpoint.set(self._settings["mountpoint"])
         self._ntrip_version.set(self._settings["version"])
+        self._ntrip_datatype.set(self._settings["datatype"])
         self._ntrip_user.set(self._settings["ntripuser"])
         self._ntrip_password.set(self._settings["ntrippassword"])
         ggaint = self._settings["ggainterval"]
@@ -576,11 +611,13 @@ class NTRIPConfigDialog(Toplevel):
 
         self._settings["server"] = self._frm_socket.server.get()
         self._settings["port"] = self._frm_socket.port.get()
+        self._settings["https"] = self._frm_socket.https.get()
         self._settings["ipprot"] = (
             AF_INET6 if self._frm_socket.protocol.get() == IP6 else AF_INET
         )
         self._settings["mountpoint"] = self._ntrip_mountpoint.get()
         self._settings["version"] = self._ntrip_version.get()
+        self._settings["datatype"] = self._ntrip_datatype.get()
         self._settings["ntripuser"] = self._ntrip_user.get()
         self._settings["ntrippassword"] = self._ntrip_password.get()
         ggaint = self._ntrip_gga_interval.get()
@@ -616,10 +653,12 @@ class NTRIPConfigDialog(Toplevel):
                 ipprot=IP6 if self._settings["ipprot"] == AF_INET6 else IP4,
                 server=self._settings["server"],
                 port=self._settings["port"],
+                https=self._settings["https"],
                 flowinfo=self._settings["flowinfo"],
                 scopeid=self._settings["scopeid"],
                 mountpoint=self._settings["mountpoint"],
                 version=self._settings["version"],
+                datatype=self._settings["datatype"],
                 ntripuser=self._settings["ntripuser"],
                 ntrippassword=self._settings["ntrippassword"],
                 ggainterval=self._settings["ggainterval"],
