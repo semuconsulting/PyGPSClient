@@ -230,7 +230,7 @@ class NTRIPConfigDialog(Toplevel):
         self._lbl_datatype = Label(self._frm_container, text="Data Type")
         self._spn_datatype = Spinbox(
             self._frm_container,
-            values=("RTCM", "SPARTN"),
+            values=(RTCM, SPARTN),
             width=8,
             wrap=True,
             textvariable=self._ntrip_datatype,
