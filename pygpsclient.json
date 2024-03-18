@@ -16,6 +16,7 @@
     "nmeaprot_b": 1,
     "ubxprot_b": 1,
     "rtcmprot_b": 1,
+    "spartnprot_b": 1,
     "degreesformat_s": "DD.D",
     "colortag_b": 0,
     "units_s": "MM",

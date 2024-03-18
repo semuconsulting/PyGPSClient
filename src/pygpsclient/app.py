@@ -32,9 +32,10 @@ from tkinter import E, Frame, N, PhotoImage, S, TclError, Tk, Toplevel, W, font
 
 from pygnssutils import GNSSMQTTClient, GNSSNTRIPClient, MQTTMessage
 from pygnssutils.socket_server import ClientHandler, SocketServer
+from pynmeagps import NMEAMessage
 from pyrtcm import RTCMMessage
 from pyspartn import SPARTNMessage
-from pyubx2 import NMEA_PROTOCOL, RTCM3_PROTOCOL, UBX_PROTOCOL, protocol
+from pyubx2 import NMEA_PROTOCOL, RTCM3_PROTOCOL, UBX_PROTOCOL, UBXMessage
 from serial import SerialException, SerialTimeoutException
 
 from pygpsclient._version import __version__ as VERSION
@@ -68,6 +69,7 @@ from pygpsclient.globals import (
     SPARTN_EVENT,
     SPARTN_OUTPORT,
     SPARTN_PPSERVER,
+    SPARTN_PROTOCOL,
     THD,
 )
 from pygpsclient.gnss_status import GNSSStatus
@@ -786,13 +788,12 @@ class App(Frame):
                 and parsed_data is not None
                 and isinstance(raw_data, bytes)
             ):
-                if type(parsed_data) in (RTCMMessage, SPARTNMessage):
+                if isinstance(parsed_data, (RTCMMessage, SPARTNMessage)):
                     if self.conn_status == CONNECTED:
                         self.gnss_outqueue.put(raw_data)
                     self.process_data(raw_data, parsed_data, "NTRIP>>")
-                elif (
-                    protocol(raw_data) == NMEA_PROTOCOL
-                ):  # e.g. NMEA GGA sentence sent to NTRIP server
+                elif isinstance(parsed_data, NMEAMessage):
+                    # i.e. NMEA GGA sentence sent to NTRIP server
                     self.process_data(raw_data, parsed_data, "NTRIP<<")
             self.ntrip_inqueue.task_done()
         except Empty:
@@ -870,8 +871,15 @@ class App(Frame):
         settings = self.frm_settings.config
 
         protfilter = settings["protocol_n"]
-        msgprot = protocol(raw_data)
-        if isinstance(parsed_data, MQTTMessage):
+        if isinstance(parsed_data, NMEAMessage):
+            msgprot = NMEA_PROTOCOL
+        elif isinstance(parsed_data, UBXMessage):
+            msgprot = UBX_PROTOCOL
+        elif isinstance(parsed_data, RTCMMessage):
+            msgprot = RTCM3_PROTOCOL
+        elif isinstance(parsed_data, SPARTNMessage):
+            msgprot = SPARTN_PROTOCOL
+        elif isinstance(parsed_data, MQTTMessage):
             msgprot = MQTT_PROTOCOL
         elif isinstance(parsed_data, str):
             marker = "WARNING  "
@@ -883,6 +891,8 @@ class App(Frame):
             self.nmea_handler.process_data(raw_data, parsed_data)
         elif msgprot == RTCM3_PROTOCOL and msgprot & protfilter:
             self.rtcm_handler.process_data(raw_data, parsed_data)
+        elif msgprot == SPARTN_PROTOCOL and msgprot & protfilter:
+            pass
         elif msgprot == MQTT_PROTOCOL:
             pass
 
