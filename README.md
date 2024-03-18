@@ -141,16 +141,18 @@ The NTRIP Configuration utility allows users to receive and process NTRIP RTK Co
 - URL of NTRIP caster
 - Login credentials for the NTRIP caster (where required)
 - Name of local MOUNTPOINT (if not using PyGPSClient's automatic mountpoint locator)
+- Data type (normally RTCM but some services output data in SPARTN format)
 
 **Instructions:**
 
-1. Enter the required NTRIP server URL (or IP address) and port (defaults to 2101). For services which require authorisation, enter your login username and password.
+1. Enter the required NTRIP server URL (or IP address), port (defaults to 2101) and HTTPS flag (defaults to 'yes' for ports 443/2102, 'no' for all else). For services which require authorisation, enter your login username and password.
+1. Select the Data Type (defaults to RTCM, but can be set to SPARTN).
 1. To retrieve the sourcetable, leave the mountpoint field blank and click connect (*response may take a few seconds*). The required mountpoint may then be selected from the list, or entered manually. Where possible, `PyGPSClient` will automatically identify the closest mountpoint to the current location.
 1. For NTRIP services which require client position data via NMEA GGA sentences, select the appropriate sentence transmission interval in seconds. The default is 'None' (no GGA sentences sent). A value of 10 or 60 seconds is typical.
 1. If GGA sentence transmission is enabled, GGA sentences can either be populated from live navigation data (*assuming a receiver is connected and outputting valid position data*) or from fixed reference settings entered in the NTRIP configuration panel (latitude, longitude, elevation and geoid separation - all four reference settings must be provided).
 1. To connect to the NTRIP server, click ![connect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-media-control-48-24.png?raw=true). To disconnect, click ![disconnect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-media-control-50-24.png?raw=true).
 1. If NTRIP data is being successfully received, the banner '**dgps:**' status indicator should change to 'YES' and indicate the age and reference station of the correction data (where available) ![dgps status](https://github.com/semuconsulting/PyGPSClient/blob/master/images/dgps_status.png?raw=true). Note that DGPS status is typically maintained for up to 60 seconds after loss of correction signal.
-1. Some NTRIP services may output RTCM3 correction messages at a high rate, flooding the GUI console display. To suppress these messages in the console, de-select the 'RTCM' option in 'Protocols Shown' - the RTCM3 messages will continue to be processed in the background.
+1. Some NTRIP services may output RTCM3 or SPARTN correction messages at a high rate, flooding the GUI console display. To suppress these messages in the console, de-select the 'RTCM' or'SPARTN' options in 'Protocols Shown' - the RTCM3 or SPARTN messages will continue to be processed in the background.
 
 Below is a illustrative NTRIP DGPS data log, showing:
 * Outgoing NMEA GPGGA (client position) sentence.
