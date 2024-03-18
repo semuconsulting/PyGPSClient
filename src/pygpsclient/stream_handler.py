@@ -28,10 +28,12 @@ Created on 16 Sep 2020
 """
 
 import socket
+import ssl
 from datetime import datetime, timedelta
 from queue import Empty
 from threading import Event, Thread
 
+from certifi import where as findcacerts
 from pygnssutils import UBXSimulator
 from pynmeagps import NMEAMessageError, NMEAParseError
 from pyrtcm import RTCMMessageError, RTCMParseError
@@ -159,6 +161,7 @@ class StreamHandler:
                 soc = settings["socket_settings"]
                 server = soc.server.get()
                 port = int(soc.port.get())
+                https = int(soc.https.get())
                 if soc.protocol.get()[-4:] == "IPv6":
                     afam = socket.AF_INET6
                     conn = socket.getaddrinfo(server, port)[1][4]
@@ -170,6 +173,10 @@ class StreamHandler:
                 else:  # TCP
                     socktype = socket.SOCK_STREAM
                 with socket.socket(afam, socktype) as stream:
+                    if https:
+                        context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+                        context.load_verify_locations(findcacerts())
+                        stream = context.wrap_socket(stream, server_hostname=server)
                     stream.connect(conn)
                     if socktype == socket.SOCK_DGRAM:
                         stream.send(b"")  # send empty datagram to establish connection
