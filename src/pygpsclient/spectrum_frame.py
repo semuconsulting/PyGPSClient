@@ -304,8 +304,8 @@ class SpectrumviewFrame(Frame):
             col = RF_LIST[i % len(RF_LIST)]
 
             # draw legend for this RF block
-            x1, y1 = self._get_point(self._minhz + ((i + 0.3) * 1e8), self._maxdb - 15)
-            x2, y2 = self._get_point(self._minhz + ((i + 0.7) * 1e8), self._maxdb - 15)
+            x1, y1 = (50 * (i + 1) + (i * self._fonth), self._fonth * 2)
+            x2, y2 = (50 + 50 * (i + 1) + (i * self._fonth), self._fonth * 2)
             self.can_spectrumview.create_line(
                 x1,
                 y1,

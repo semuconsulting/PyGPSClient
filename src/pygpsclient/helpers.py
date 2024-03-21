@@ -22,7 +22,7 @@ from time import strftime
 from tkinter import Button, Entry, Label, Toplevel, W, font
 
 from pynmeagps import haversine
-from pyubx2 import SET, UBX_MSGIDS, UBXMessage, attsiz, atttyp
+from pyubx2 import SET, SET_LAYER_RAM, TXN_NONE, UBX_MSGIDS, UBXMessage, attsiz, atttyp
 from requests import get
 
 from pygpsclient.globals import (
@@ -31,6 +31,7 @@ from pygpsclient.globals import (
     MAX_SNR,
     PUBLICIP_URL,
     RCVR_CONNECTION,
+    ROMVER_NEW,
 )
 from pygpsclient.strings import NA
 
@@ -800,12 +801,14 @@ def sizefont(height: int, lines: int, minfont: int) -> tuple:
     return fnt, fh
 
 
-def setubxrate(app: object, mid: str, rate: int = 1) -> UBXMessage:
+def setubxrate(app: object, mid: str, rate: int = 1, prot: str = "UBX") -> UBXMessage:
     """
     Set rate on specified UBX message on default port(s).
 
+    Uses either CFG-MSG or CFG-VALSET command, depending on device ROM version.
+
     The port(s) this applies to are defined in the 'defaultport_s'
-    configuration setting as a comma-separated string.
+    configuration setting as a comma-separated string e.g. "USB,UART1".
 
     Rate is relative to navigation solution e.g.
     a rate of '4' means 'every 4th navigation solution'
@@ -814,40 +817,61 @@ def setubxrate(app: object, mid: str, rate: int = 1) -> UBXMessage:
     :param object application: reference to calling application
     :param str mid: message identity e.g. "MON-SPAN"
     :param int rate: message rate (0 = off)
-    :return: UBX command generated
+    :param str prot: message protocol ("UBX", "NMEA_ID", "PUBX_ID", "RTCM_3X_TYPE")
+    :return: UBX set rate command
     :rtype: UBXMessage
     :raises: ValueError if unknown message identity
     """
 
     rates = {}
-    prts = app.frm_settings.config.get(
-        "defaultport_s", app.frm_settings.config.get("defaultport", RCVR_CONNECTION)
-    ).split(",")
-    for prt in prts:
-        rates[prt] = rate
-
-    msgclass = msgid = None
-    for msgtype, msgnam in UBX_MSGIDS.items():
-        if msgnam == mid:
-            msgclass = msgtype[0]
-            msgid = msgtype[1]
-            break
-    if msgclass is None or msgid is None:
-        raise ValueError(f"Message ID {mid} unknown")
-
-    msg = UBXMessage(
-        "CFG",
-        "CFG-MSG",
-        SET,
-        msgClass=msgclass,
-        msgID=msgid,
-        rateDDC=rates.get("I2C", 0),
-        rateUART1=rates.get("UART1", 0),
-        rateUART2=rates.get("UART2", 0),
-        rateUSB=rates.get("USB", 0),
-        rateSPI=rates.get("SPI", 0),
+    msg = None
+    # select which receiver ports to apply rate to
+    prts = (
+        app.frm_settings.config.get("defaultport_s", RCVR_CONNECTION).upper().split(",")
     )
-    app.gnss_outqueue.put(msg.serialize())
+
+    # check device ROM version for configuration support
+    romver = app.gnss_status.version_data.get("romversion", NA).replace(NA, "")
+    if romver >= ROMVER_NEW:
+
+        # new style message rate configuration using CFG-VALSET & configuration database keys:
+        prot = prot + "_" if prot != "RTCM_3X_TYPE" else prot
+        mid = mid.replace("-", "_")
+        for prt in prts:
+            if prt != "":
+                cfgdata = [(f"CFG_MSGOUT_{prot}{mid}_{prt}", rate)]
+                msg = UBXMessage.config_set(SET_LAYER_RAM, TXN_NONE, cfgdata)
+                app.gnss_outqueue.put(msg.serialize())
+
+    else:
+
+        # old style message rate configuration usng CFG-MSG:
+        for prt in prts:
+            rates[prt] = rate
+
+        msgclass = msgid = None
+        for msgtype, msgnam in UBX_MSGIDS.items():
+            if msgnam == mid:
+                msgclass = msgtype[0]
+                msgid = msgtype[1]
+                break
+        if msgclass is None or msgid is None:
+            raise ValueError(f"Message ID {mid} unknown")
+
+        msg = UBXMessage(
+            "CFG",
+            "CFG-MSG",
+            SET,
+            msgClass=msgclass,
+            msgID=msgid,
+            rateDDC=rates.get("I2C", 0),
+            rateUART1=rates.get("UART1", 0),
+            rateUART2=rates.get("UART2", 0),
+            rateUSB=rates.get("USB", 0),
+            rateSPI=rates.get("SPI", 0),
+        )
+        app.gnss_outqueue.put(msg.serialize())
+
     return msg
 
 

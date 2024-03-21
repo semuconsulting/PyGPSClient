@@ -15,8 +15,10 @@ from tkinter import (
     LEFT,
     VERTICAL,
     Button,
+    Checkbutton,
     E,
     Frame,
+    IntVar,
     Label,
     Listbox,
     N,
@@ -122,6 +124,12 @@ class UBX_PRESET_Frame(Frame):
         self._img_warn = ImageTk.PhotoImage(Image.open(ICON_WARNING))
         self._preset_command = None
         self._configfile = None
+        self._port_usb = IntVar()
+        self._port_uart1 = IntVar()
+        self._port_uart2 = IntVar()
+        self._port_i2c = IntVar()
+        self._port_spi = IntVar()
+        self._ports = self.__app.frm_settings.defaultports.upper()
         self._body()
         self._do_layout()
         self._attach_events()
@@ -137,7 +145,7 @@ class UBX_PRESET_Frame(Frame):
             self,
             border=2,
             relief="sunken",
-            height=15,
+            height=12,
             width=34,
             justify=LEFT,
             exportselection=False,
@@ -155,6 +163,11 @@ class UBX_PRESET_Frame(Frame):
             width=50,
             command=self._on_send_preset,
         )
+        self._chk_usb = Checkbutton(self, text="USB", variable=self._port_usb)
+        self._chk_uart1 = Checkbutton(self, text="UART1", variable=self._port_uart1)
+        self._chk_uart2 = Checkbutton(self, text="UART2", variable=self._port_uart2)
+        self._chk_i2c = Checkbutton(self, text="I2C", variable=self._port_i2c)
+        self._chk_spi = Checkbutton(self, text="SPI", variable=self._port_spi)
 
     def _do_layout(self):
         """
@@ -167,12 +180,13 @@ class UBX_PRESET_Frame(Frame):
         )
         self._scr_presetv.grid(column=2, row=1, rowspan=12, sticky=(N, S, E))
         self._scr_preseth.grid(column=0, row=13, columnspan=3, sticky=(W, E))
-        self._btn_send_command.grid(
-            column=3, row=1, rowspan=6, ipadx=3, ipady=3, sticky=(E)
-        )
-        self._lbl_send_command.grid(
-            column=4, row=1, rowspan=6, ipadx=3, ipady=3, sticky=(E)
-        )
+        self._btn_send_command.grid(column=3, row=1, ipadx=3, ipady=3, sticky=E)
+        self._lbl_send_command.grid(column=4, row=1, ipadx=3, ipady=3, sticky=E)
+        self._chk_usb.grid(column=3, row=2, columnspan=2, sticky=W)
+        self._chk_uart1.grid(column=3, row=3, columnspan=2, sticky=W)
+        self._chk_uart2.grid(column=3, row=4, columnspan=2, sticky=W)
+        self._chk_i2c.grid(column=3, row=5, columnspan=2, sticky=W)
+        self._chk_spi.grid(column=3, row=6, columnspan=2, sticky=W)
 
         (cols, rows) = self.grid_size()
         for i in range(cols):
@@ -187,12 +201,21 @@ class UBX_PRESET_Frame(Frame):
         """
 
         self._lbx_preset.bind("<<ListboxSelect>>", self._on_select_preset)
+        for prt in ("usb", "uart1", "uart2", "i2c", "spi"):
+            getattr(self, f"_port_{prt}").trace_add(
+                ("write", "unset"), self._on_select_port
+            )
 
     def reset(self):
         """
         Reset panel - Load user-defined presets if there are any.
         """
 
+        self._port_usb.set("USB" in self._ports)
+        self._port_uart1.set("UART1" in self._ports)
+        self._port_uart2.set("UART2" in self._ports)
+        self._port_i2c.set("I2C" in self._ports)
+        self._port_spi.set("SPI" in self._ports)
         idx = 0
         for pst in PRESET_COMMMANDS:
             self._lbx_preset.insert(idx, pst)
@@ -201,6 +224,18 @@ class UBX_PRESET_Frame(Frame):
         for upst in self._saved_config:
             self._lbx_preset.insert(idx, "USER " + upst)
             idx += 1
+
+    def _on_select_port(self, var, index, mode):  # pylint: disable=unused-argument
+        """
+        Port has been selected.
+        """
+
+        ports = ""
+        for prt in ("usb", "uart1", "uart2", "i2c", "spi"):
+            if getattr(self, f"_port_{prt}").get():
+                ports += prt.upper() + ","
+        ports = ports.strip(",")
+        self.__app.frm_settings.defaultports = ports
 
     def _on_select_preset(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -459,10 +494,11 @@ class UBX_PRESET_Frame(Frame):
 
         # select which receiver ports to apply rate to
         rates = {}
-        prts = self.__app.frm_settings.config.get(
-            "defaultport_s",
-            self.__app.frm_settings.config.get("defaultport", RCVR_CONNECTION),
-        ).split(",")
+        prts = (
+            self.__app.frm_settings.config.get("defaultport_s", RCVR_CONNECTION)
+            .upper()
+            .split(",")
+        )
         for prt in prts:
             rates[prt] = msgrate
 

@@ -345,10 +345,12 @@ class SPARTNGNSSDialog(Frame):
             if self._disable_nmea.get():
                 cfgdata.append((f"CFG_{port}OUTPROT_NMEA", 0))
                 cfgdata.append((f"CFG_MSGOUT_UBX_NAV_PVT_{port}", 1))
+                cfgdata.append((f"CFG_MSGOUT_UBX_NAV_DOP_{port}", 1))
                 cfgdata.append((f"CFG_MSGOUT_UBX_NAV_SAT_{port}", 4))
             else:
                 cfgdata.append((f"CFG_{port}OUTPROT_NMEA", 1))
                 # cfgdata.append((f"CFG_MSGOUT_UBX_NAV_PVT_{port}", 0))
+                # cfgdata.append((f"CFG_MSGOUT_UBX_NAV_DOP_{port}", 0))
                 # cfgdata.append((f"CFG_MSGOUT_UBX_NAV_SAT_{port}", 0))
 
         msg = UBXMessage.config_set(SET_LAYER_RAM, TXN_NONE, cfgdata)

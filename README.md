@@ -114,7 +114,7 @@ The UBX Configuration Dialog currently provides the following UBX configuration 
 1. Message Rate panel (CFG-MSG) sets message rates per port for UBX and NMEA messages. Message rate is relative to navigation solution frequency e.g. a message rate of '4' means 'every 4th navigation solution' (higher = less frequent).
 1. Generic configuration panel (CFG-*) providing structured updates for a range of legacy CFG- configuration commands for pre-Generation 9+ devices. Note: 'X' (byte) type attributes can be entered as integers or hexadecimal strings e.g. 522125312 or 0x1f1f0000.
 1. Configuration Interface widget (CFG-VALSET, CFG-VALDEL and CFG-VALGET) queries and sets configuration for [Generation 9+ devices](https://github.com/semuconsulting/pyubx2#configinterface) e.g. NEO-M9, ZED-F9P, etc.
-1. Preset Commands widget supports a variety of preset and user-defined commands - see [user defined presets](#userdefined)
+1. Preset Commands widget supports a variety of preset and user-defined commands - see [user defined presets](#userdefined). The port checkboxes (USB, UART1, etc.) determine which device port(s) any preset message rate commands apply to (_assuming the selected ports are physically implemented on the device_). The selected port(s) may be saved as configuration parameter `defaultport_s` e.g. "USB,UART1".
 
 An icon to the right of each 'SEND' 
 ![send icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-arrow-12-24.png?raw=true) button indicates the confirmation status of the configuration command; 
@@ -125,7 +125,6 @@ warning ![warning icon](https://github.com/semuconsulting/PyGPSClient/blob/maste
 **Note:**
 * The UBX protocol does not support synchronous command acknowledgement or unique confirmation IDs. Asynchronous command and poll acknowledgements and responses can take several seconds at high message transmission rates, or be discarded altogether if the device's transmit buffer is full (*txbuff-alloc error*). To ensure timely responses, try increasing the baud rate and/or temporarily reducing transmitted message rates using the configuration commands provided.
 * A warning icon (typically accompanied by an ACK-NAK response) is usually an indication that one or more of the commands sent is not supported by your receiver.
-* For presets that invoke a CFG-MSG command to set message rates, the port(s) to which the rate applies can be set via the `defaultport_s` configuration setting, which supports a comma-separated list of ports e.g. "USB", "USB,UART1" or "USB,I2C".
 
 ---
 ## <a name="ntripconfig">NTRIP Client Facilities</a>

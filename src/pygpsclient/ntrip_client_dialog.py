@@ -667,6 +667,9 @@ class NTRIPConfigDialog(Toplevel):
                 reflon=self._settings["reflon"],
                 refalt=self._settings["refalt"],
                 refsep=self._settings["refsep"],
+                spartndecode=self._settings["spartndecode"],
+                spartnkey=self._settings["spartnkey"],
+                spartnbasedate=self._settings["spartnbasedate"],
                 output=self.__app.ntrip_inqueue,
             )
             self.set_controls(True)

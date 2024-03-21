@@ -35,7 +35,7 @@ from pygnssutils.socket_server import ClientHandler, SocketServer
 from pynmeagps import NMEAMessage
 from pyrtcm import RTCMMessage
 from pyspartn import SPARTNMessage
-from pyubx2 import NMEA_PROTOCOL, RTCM3_PROTOCOL, UBX_PROTOCOL, UBXMessage
+from pyubx2 import NMEA_PROTOCOL, POLL, RTCM3_PROTOCOL, UBX_PROTOCOL, UBXMessage
 from serial import SerialException, SerialTimeoutException
 
 from pygpsclient._version import __version__ as VERSION
@@ -48,6 +48,9 @@ from pygpsclient.globals import (
     CLASS,
     CONFIGFILE,
     CONNECTED,
+    CONNECTED_NTRIP,
+    CONNECTED_SPARTNIP,
+    CONNECTED_SPARTNLB,
     DEFAULT_PASSWORD,
     DEFAULT_REGION,
     DEFAULT_USER,
@@ -336,20 +339,23 @@ class App(Frame):
         # force widget to rescale
         frm.event_generate("<Configure>")
 
-        # enable or disable any UBX messages required by widget
-        if hasattr(frm, "enable_messages"):
-            frm.enable_messages(wdg[VISIBLE])
-
         return col, row
 
     def toggle_widget(self, widget: str):
         """
-        Toggle widget visibility.
+        Toggle widget visibility and enable or disable any
+        UBX messages required by widget.
 
         :param str widget: widget name
         """
 
-        widget_state[widget][VISIBLE] = not widget_state[widget][VISIBLE]
+        wdg = widget_state[widget]
+        wdg[VISIBLE] = not wdg[VISIBLE]
+
+        frm = getattr(self, wdg[FRAME])
+        if hasattr(frm, "enable_messages"):
+            frm.enable_messages(wdg[VISIBLE])
+
         self._do_layout()
 
     def reset_widgets(self):
@@ -543,6 +549,13 @@ class App(Frame):
             ntripsettings["reflon"] = self.saved_config.get("ntripclientreflon_f", 0.0)
             ntripsettings["refalt"] = self.saved_config.get("ntripclientrefalt_f", 0.0)
             ntripsettings["refsep"] = self.saved_config.get("ntripclientrefsep_f", 0.0)
+            ntripsettings["spartndecode"] = self.saved_config.get("spartndecode_b", 0)
+            ntripsettings["spartnkey"] = self.saved_config.get(
+                "spartnkey_s", "0123456789abcdef"
+            )
+            ntripsettings["spartnbasedate"] = self.saved_config.get(
+                "spartnbasedate_s", str(datetime.now())
+            )
             self.ntrip_handler.settings = ntripsettings
 
         except (KeyError, ValueError, TypeError, TclError) as err:
@@ -582,6 +595,13 @@ class App(Frame):
                 path.join(Path.home(), "device-mqttclientid-pp-key.pem"),
             )
             spartnsettings["output"] = self.spartn_inqueue
+            spartnsettings["spartndecode"] = self.saved_config.get("spartndecode_b", 0)
+            spartnsettings["spartnkey"] = self.saved_config.get(
+                "spartnkey_s", "0123456789abcdef"
+            )
+            spartnsettings["spartnbasedate"] = self.saved_config.get(
+                "spartnbasedate_s", str(datetime.now())[:10]
+            )
             self.spartn_handler.settings = spartnsettings
 
         except (KeyError, ValueError, TypeError, TclError) as err:
@@ -788,13 +808,17 @@ class App(Frame):
                 and parsed_data is not None
                 and isinstance(raw_data, bytes)
             ):
+                if self._rtk_conn_status == CONNECTED_NTRIP:
+                    source = "NTRIP"
+                else:
+                    source = "OTHER"
                 if isinstance(parsed_data, (RTCMMessage, SPARTNMessage)):
                     if self.conn_status == CONNECTED:
                         self.gnss_outqueue.put(raw_data)
-                    self.process_data(raw_data, parsed_data, "NTRIP>>")
+                    self.process_data(raw_data, parsed_data, source + ">>")
                 elif isinstance(parsed_data, NMEAMessage):
                     # i.e. NMEA GGA sentence sent to NTRIP server
-                    self.process_data(raw_data, parsed_data, "NTRIP<<")
+                    self.process_data(raw_data, parsed_data, source + "<<")
             self.ntrip_inqueue.task_done()
         except Empty:
             pass
@@ -814,7 +838,17 @@ class App(Frame):
             if raw_data is not None and parsed_data is not None:
                 if self.conn_status == CONNECTED:
                     self.gnss_outqueue.put(raw_data)
-                self.process_data(raw_data, parsed_data, "SPARTN>>")
+                if self._rtk_conn_status == CONNECTED_SPARTNLB:
+                    source = "LBAND"
+                elif self._rtk_conn_status == CONNECTED_SPARTNIP:
+                    source = "MQTT"
+                else:
+                    source = "OTHER"
+                self.process_data(
+                    raw_data,
+                    parsed_data,
+                    source + ">>",
+                )
             self.spartn_inqueue.task_done()
 
         except Empty:
@@ -928,6 +962,17 @@ class App(Frame):
         latest = check_latest("PyGPSClient")
         if latest not in (VERSION, "N/A"):
             self.set_status(VERCHECK.format(latest), BADCOL)
+
+    def poll_version(self):
+        """
+        Poll MON-VER for device hardware & firmware version.
+        """
+
+        msg = UBXMessage("MON", "MON-VER", POLL)
+        self.gnss_outqueue.put(msg.serialize())
+        self.set_status(
+            "MON-VER POLL message sent",
+        )
 
     @property
     def widget_config(self) -> dict:

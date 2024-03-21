@@ -13,7 +13,7 @@ Created on 22 Dec 2020
 from tkinter import Frame, Label, W
 
 from PIL import Image, ImageTk
-from pyubx2 import POLL, UBXMessage
+from pyubx2 import UBXMessage
 
 from pygpsclient.globals import (
     CONNECTED,
@@ -22,13 +22,9 @@ from pygpsclient.globals import (
     ICON_PENDING,
     ICON_SEND,
     ICON_WARNING,
-    UBX_MONHW,
-    UBX_MONRF,
     UBX_MONVER,
 )
-
-ANTSTATUS = ("INIT", "DONTKNOW", "OK", "SHORT", "OPEN")
-ANTPOWER = ("OFF", "ON", "DONTKNOW")
+from pygpsclient.strings import NA
 
 
 class UBX_INFO_Frame(Frame):
@@ -76,12 +72,6 @@ class UBX_INFO_Frame(Frame):
         self._lbl_romver = Label(self)
         self._lbl_gnssl = Label(self, text="GNSS/AS")
         self._lbl_gnss = Label(self)
-        self._lbl_bandsl = Label(self, text="RF Bands")
-        self._lbl_bands = Label(self)
-        self._lbl_ant_statusl = Label(self, text="Ant. Status")
-        self._lbl_ant_status = Label(self)
-        self._lbl_ant_powerl = Label(self, text="Ant. Power")
-        self._lbl_ant_power = Label(self)
 
     def _do_layout(self):
         """
@@ -98,12 +88,6 @@ class UBX_INFO_Frame(Frame):
         self._lbl_romver.grid(column=4, row=1, columnspan=2, padx=2, sticky=W)
         self._lbl_gnssl.grid(column=0, row=2, columnspan=1, padx=2, sticky=W)
         self._lbl_gnss.grid(column=1, row=2, columnspan=4, padx=2, sticky=W)
-        self._lbl_bandsl.grid(column=0, row=3, columnspan=1, padx=2, sticky=W)
-        self._lbl_bands.grid(column=1, row=3, columnspan=4, padx=2, sticky=W)
-        self._lbl_ant_statusl.grid(column=0, row=4, columnspan=1, padx=2, sticky=W)
-        self._lbl_ant_status.grid(column=1, row=4, columnspan=2, padx=2, sticky=W)
-        self._lbl_ant_powerl.grid(column=3, row=4, columnspan=1, padx=2, sticky=W)
-        self._lbl_ant_power.grid(column=4, row=4, columnspan=2, padx=2, sticky=W)
 
         (cols, rows) = self.grid_size()
         for i in range(cols):
@@ -128,6 +112,14 @@ class UBX_INFO_Frame(Frame):
         if self.__app.conn_status in (CONNECTED, CONNECTED_SIMULATOR):
             self._do_poll_ver()
 
+    def _do_poll_ver(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Poll MON-VER
+        """
+
+        self.__app.poll_version()
+        self.__container.set_pending("MON-VER", UBX_MONVER)
+
     def update_status(self, msg: UBXMessage):
         """
         Update pending confirmation status.
@@ -135,76 +127,19 @@ class UBX_INFO_Frame(Frame):
         :param UBXMessage msg: UBX config message
         """
 
-        # MON-VER information (for firmware version)
-        if msg.identity == "MON-VER":
-            exts = []
-            fw_version = b"n/a"
-            protocol = b"n/a"
-            gnss_supported = b""
-            model = b""
-            sw_version = getattr(msg, "swVersion", b"n/a")
-            sw_version = sw_version.replace(b"\x00", b"")
-            sw_version = sw_version.replace(b"ROM CORE", b"ROM")
-            sw_version = sw_version.replace(b"EXT CORE", b"Flash")
-            hw_version = getattr(msg, "hwVersion", b"n/a")
-            hw_version = hw_version.replace(b"\x00", b"")
-
-            for i in range(9):
-                idx = f"_{i+1:02d}"
-                ext = getattr(msg, "extension" + idx, b"")
-                ext = ext.replace(b"\x00", b"")
-                exts.append(ext)
-                if b"FWVER=" in exts[i]:
-                    fw_version = exts[i].replace(b"FWVER=", b"")
-                if b"PROTVER=" in exts[i]:
-                    protocol = exts[i].replace(b"PROTVER=", b"")
-                if b"PROTVER " in exts[i]:
-                    protocol = exts[i].replace(b"PROTVER ", b"")
-                if b"MOD=" in exts[i]:
-                    model = exts[i].replace(b"MOD=", b"")
-                    hw_version = model + b" " + hw_version
-                for gnss in (b"GPS", b"GLO", b"GAL", b"BDS", b"SBAS", b"IMES", b"QZSS"):
-                    if gnss in exts[i]:
-                        gnss_supported = gnss_supported + gnss + b" "
-
-            self._lbl_swver.config(text=sw_version)
-            self._lbl_hwver.config(text=hw_version)
-            self._lbl_fwver.config(text=fw_version)
-            self._lbl_romver.config(text=protocol)
-            self._lbl_gnss.config(text=gnss_supported)
-
-        # MON-RF information (for supported L-Bands)
-        bands = "N/A"
-        if msg.identity == "MON-RF":
-            bands = ""
-            blocks = msg.nBlocks
-            for i in range(blocks):
-                rf = getattr(msg, f"blockId_{i+1:02}")
-                bands += (
-                    f'{"L2/L5" if rf == 1 else "L1"}{", " if i < blocks - 1 else ""}'
-                )
-        self._lbl_bands.config(text=bands)
-
-        # MON-HW information (for antenna status)
-        if msg.identity == "MON-HW":
-            ant_status = getattr(msg, "aStatus", 1)
-            ant_power = getattr(msg, "aPower", 2)
-            self._lbl_ant_status.config(text=ANTSTATUS[ant_status])
-            self._lbl_ant_power.config(text=ANTPOWER[ant_power])
+        # MON-VER information (for software versions)
+        self._lbl_swver.config(
+            text=self.__app.gnss_status.version_data.get("swversion", NA)
+        )
+        self._lbl_hwver.config(
+            text=self.__app.gnss_status.version_data.get("hwversion", NA)
+        )
+        self._lbl_fwver.config(
+            text=self.__app.gnss_status.version_data.get("fwversion", NA)
+        )
+        self._lbl_romver.config(
+            text=self.__app.gnss_status.version_data.get("romversion", NA)
+        )
+        self._lbl_gnss.config(text=self.__app.gnss_status.version_data.get("gnss", NA))
 
         self.__container.set_status(f"{msg.identity} GET message received", "green")
-
-    def _do_poll_ver(self, *args, **kwargs):  # pylint: disable=unused-argument
-        """
-        Poll MON-VER & MON-HW & MON-RF
-        """
-
-        for msgtype in ("MON-VER", "MON-RF", "MON-HW"):
-            msg = UBXMessage(msgtype[0:3], msgtype, POLL)
-            self.__app.gnss_outqueue.put(msg.serialize())
-            self.__container.set_status(
-                f"{msgtype} POLL message sent",
-            )
-        self.__container.set_pending("MON-VER", UBX_MONVER)
-        self.__container.set_pending("MON-RF", UBX_MONRF)
-        self.__container.set_pending("MON-HW", UBX_MONHW)

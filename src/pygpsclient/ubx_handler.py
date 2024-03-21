@@ -17,8 +17,9 @@ Created on 30 Sep 2020
 
 from pyubx2 import UBXMessage, itow2utc
 
-from pygpsclient.globals import DLGTSPARTN, DLGTUBX, GLONASS_NMEA
+from pygpsclient.globals import DLGTSPARTN, DLGTUBX, GLONASS_NMEA, UTF8
 from pygpsclient.helpers import corrage2int, fix2desc, ned2vector, svid2gnssid
+from pygpsclient.strings import NA
 from pygpsclient.widget_state import VISIBLE, WDGSPECTRUM, WDGSYSMON
 
 
@@ -57,7 +58,7 @@ class UBXHandler:
 
         if parsed_data.identity[0:3] in ("ACK", "CFG"):
             self._process_ACK(parsed_data)
-        elif parsed_data.identity in ("MON-VER", "MON-HW", "MON-RF"):
+        elif parsed_data.identity == "MON-VER":
             self._process_MONVER(parsed_data)
         elif parsed_data.identity in ("NAV-POSLLH", "NAV-HPPOSLLH"):
             self._process_NAV_POSLLH(parsed_data)
@@ -120,10 +121,56 @@ class UBXHandler:
 
     def _process_MONVER(self, msg: UBXMessage):
         """
-        Process MON-VER & MON-HW & MON-RF sentences.
+        Process MON-VER sentences.
 
-        :param UBXMessage msg: UBX config message
+        :param UBXMessage msg: UBX MON-VER config message
         """
+
+        exts = []
+        fw_version = NA
+        rom_version = NA
+        gnss_supported = ""
+        model = ""
+        sw_version = getattr(msg, "swVersion", b"N/A")
+        sw_version = sw_version.replace(b"\x00", b"").decode(UTF8)
+        sw_version = sw_version.replace("ROM CORE", "ROM")
+        sw_version = sw_version.replace("EXT CORE", "Flash")
+        hw_version = getattr(msg, "hwVersion", b"N/A")
+        hw_version = hw_version.replace(b"\x00", b"").decode(UTF8)
+
+        for i in range(9):
+            ext = getattr(msg, f"extension_{i+1:02d}", b"")
+            ext = ext.replace(b"\x00", b"").decode(UTF8)
+            exts.append(ext)
+            if "FWVER=" in exts[i]:
+                fw_version = exts[i].replace("FWVER=", "")
+            if "PROTVER=" in exts[i]:
+                rom_version = exts[i].replace("PROTVER=", "")
+            if "PROTVER " in exts[i]:
+                rom_version = exts[i].replace("PROTVER ", "")
+            if "MOD=" in exts[i]:
+                model = exts[i].replace("MOD=", "")
+                hw_version = f"{model} {hw_version}"
+            for gnss in (
+                "GPS",
+                "GLO",
+                "GAL",
+                "BDS",
+                "SBAS",
+                "IMES",
+                "QZSS",
+                "NAVIC",
+            ):
+                if gnss in exts[i]:
+                    gnss_supported = gnss_supported + gnss + " "
+
+        verdata = {}
+        verdata["swversion"] = sw_version
+        verdata["hwversion"] = hw_version
+        verdata["fwversion"] = fw_version
+        verdata["romversion"] = rom_version
+        verdata["gnss"] = gnss_supported
+        self.__app.gnss_status.version_data = verdata
 
         if self.__app.dialog(DLGTUBX) is not None:
             self.__app.dialog(DLGTUBX).update_pending(msg)
