@@ -83,14 +83,13 @@ from pygpsclient.globals import (
     ICON_SOCKET,
     ICON_SPARTNCONFIG,
     ICON_UBXCONFIG,
-    IMG_WORLD,
-    IMG_WORLD_CALIB,
     KNOWNGPS,
     MSGMODES,
     NOPORTS,
     RCVR_CONNECTION,
     READONLY,
     SOCK_NTRIP,
+    SPARTN_PROTOCOL,
     TIMEOUTS,
     UI,
     UIK,
@@ -116,7 +115,7 @@ from pygpsclient.strings import (
 
 MAXLINES = ("200", "500", "1000", "2000", "100")
 MAPTYPES = ("world", "map", "sat", "custom")
-MINHEIGHT = 715
+MINHEIGHT = 750
 MINWIDTH = 365
 
 
@@ -144,6 +143,7 @@ class SettingsFrame(Frame):
         self._prot_nmea = IntVar()
         self._prot_ubx = IntVar()
         self._prot_rtcm3 = IntVar()
+        self._prot_spartn = IntVar()
         self._autoscroll = IntVar()
         self._maxlines = IntVar()
         self.maptype = StringVar()
@@ -309,6 +309,11 @@ class SettingsFrame(Frame):
             text="RTCM",
             variable=self._prot_rtcm3,
         )
+        self._chk_spartn = Checkbutton(
+            self._frm_options,
+            text="SPARTN",
+            variable=self._prot_spartn,
+        )
         self._lbl_consoledisplay = Label(self._frm_options, text=LBLDATADISP)
         self._spn_conformat = Spinbox(
             self._frm_options,
@@ -383,10 +388,6 @@ class SettingsFrame(Frame):
             variable=self._record_track,
             command=lambda: self._on_record_track(),
         )
-        # socket server configuration
-        self.frm_socketserver = ServerConfigFrame(
-            self.__app, self._frm_container, saved_config=self.__app.saved_config
-        )
         # configuration panel buttons
         self._lbl_ubxconfig = Label(
             self._frm_options,
@@ -417,6 +418,10 @@ class SettingsFrame(Frame):
             width=45,
             image=self._img_spartnconfig,
             command=lambda: self._on_spartn_config(),
+        )
+        # socket server configuration
+        self.frm_socketserver = ServerConfigFrame(
+            self.__app, self._frm_container, saved_config=self.__app.saved_config
         )
 
     def _do_layout(self):
@@ -453,46 +458,44 @@ class SettingsFrame(Frame):
             column=0, row=7, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
 
-        self._frm_options.grid(column=0, row=8, columnspan=5, sticky=(W, E))
+        self._frm_options.grid(column=0, row=8, columnspan=4, sticky=(W, E))
         self._lbl_protocol.grid(column=0, row=0, padx=2, pady=2, sticky=W)
         self._chk_nmea.grid(column=1, row=0, padx=0, pady=0, sticky=W)
         self._chk_ubx.grid(column=2, row=0, padx=0, pady=0, sticky=W)
-        self._chk_rtcm.grid(column=3, row=0, padx=0, pady=0, sticky=W)
-        self._lbl_consoledisplay.grid(column=0, row=1, padx=2, pady=2, sticky=W)
+        self._chk_rtcm.grid(column=1, row=1, padx=0, pady=0, sticky=W)
+        self._chk_spartn.grid(column=2, row=1, padx=0, pady=0, sticky=W)
+        self._lbl_consoledisplay.grid(column=0, row=2, padx=2, pady=2, sticky=W)
         self._spn_conformat.grid(
-            column=1, row=1, columnspan=2, padx=1, pady=2, sticky=W
+            column=1, row=2, columnspan=2, padx=1, pady=2, sticky=W
         )
-        self._chk_tags.grid(column=3, row=1, padx=1, pady=2, sticky=W)
-        self._lbl_format.grid(column=0, row=2, padx=2, pady=2, sticky=W)
-        self._spn_format.grid(column=1, row=2, padx=2, pady=2, sticky=W)
-        self._spn_units.grid(column=2, row=2, columnspan=2, padx=2, pady=2, sticky=W)
-        self._chk_scroll.grid(column=0, row=4, padx=2, pady=2, sticky=W)
-        self._spn_maxlines.grid(column=1, row=4, columnspan=3, padx=2, pady=2, sticky=W)
-        self._lbl_maptype.grid(column=0, row=5, padx=2, pady=2, sticky=W)
-        self.spn_maptype.grid(column=1, row=5, padx=2, pady=2, sticky=W)
+        self._chk_tags.grid(column=3, row=2, padx=1, pady=2, sticky=W)
+        self._lbl_format.grid(column=0, row=3, padx=2, pady=2, sticky=W)
+        self._spn_format.grid(column=1, row=3, padx=2, pady=2, sticky=W)
+        self._spn_units.grid(column=2, row=3, columnspan=2, padx=2, pady=2, sticky=W)
+        self._chk_scroll.grid(column=0, row=5, padx=2, pady=2, sticky=W)
+        self._spn_maxlines.grid(column=1, row=5, columnspan=3, padx=2, pady=2, sticky=W)
+        self._lbl_maptype.grid(column=0, row=6, padx=2, pady=2, sticky=W)
+        self.spn_maptype.grid(column=1, row=6, padx=2, pady=2, sticky=W)
         self._chk_unusedsat.grid(
-            column=0, row=6, columnspan=2, padx=2, pady=2, sticky=W
+            column=0, row=7, columnspan=2, padx=2, pady=2, sticky=W
         )
-        self._chk_datalog.grid(column=0, row=7, padx=2, pady=2, sticky=W)
-        self._spn_datalog.grid(column=1, row=7, columnspan=3, padx=2, pady=2, sticky=W)
+        self._chk_datalog.grid(column=0, row=8, padx=2, pady=2, sticky=W)
+        self._spn_datalog.grid(column=1, row=8, columnspan=3, padx=2, pady=2, sticky=W)
         self._chk_recordtrack.grid(
-            column=0, row=8, columnspan=2, padx=2, pady=2, sticky=W
+            column=0, row=9, columnspan=2, padx=2, pady=2, sticky=W
         )
-        ttk.Separator(self._frm_options).grid(
+        self._btn_ubxconfig.grid(column=0, row=10)
+        self._lbl_ubxconfig.grid(column=0, row=11)
+        self._btn_ntripconfig.grid(column=1, row=10)
+        self._lbl_ntripconfig.grid(column=1, row=11)
+        self._btn_spartnconfig.grid(column=2, row=10)
+        self._lbl_spartnconfig.grid(column=2, row=11)
+        ttk.Separator(self._frm_container).grid(
             column=0, row=9, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
         self.frm_socketserver.grid(
             column=0, row=10, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
-        ttk.Separator(self._frm_options).grid(
-            column=0, row=11, columnspan=4, padx=2, pady=2, sticky=(W, E)
-        )
-        self._btn_ubxconfig.grid(column=0, row=13)
-        self._lbl_ubxconfig.grid(column=0, row=14)
-        self._btn_ntripconfig.grid(column=1, row=13)
-        self._lbl_ntripconfig.grid(column=1, row=14)
-        self._btn_spartnconfig.grid(column=2, row=13)
-        self._lbl_spartnconfig.grid(column=2, row=14)
 
     def reset(self):
         """
@@ -503,6 +506,7 @@ class SettingsFrame(Frame):
         self._prot_nmea.set(self.__app.saved_config.get("nmeaprot_b", 1))
         self._prot_ubx.set(self.__app.saved_config.get("ubxprot_b", 1))
         self._prot_rtcm3.set(self.__app.saved_config.get("rtcmprot_b", 1))
+        self._prot_spartn.set(self.__app.saved_config.get("spartnprot_b", 1))
         self._degrees_format.set(self.__app.saved_config.get("degreesformat_s", DDD))
         self._colortag.set(self.__app.saved_config.get("colortag_b", 0))
         self._units.set(self.__app.saved_config.get("units_s", UMM))
@@ -721,6 +725,7 @@ class SettingsFrame(Frame):
                 (ubt.NMEA_PROTOCOL * self._prot_nmea.get())
                 + (ubt.UBX_PROTOCOL * self._prot_ubx.get())
                 + (ubt.RTCM3_PROTOCOL * self._prot_rtcm3.get())
+                + (SPARTN_PROTOCOL * self._prot_spartn.get())
             )
             sockmode = 1 if self.frm_socketserver.sock_mode.get() == SOCK_NTRIP else 0
 
@@ -742,6 +747,7 @@ class SettingsFrame(Frame):
                 "nmeaprot_b": self._prot_nmea.get(),
                 "ubxprot_b": self._prot_ubx.get(),
                 "rtcmprot_b": self._prot_rtcm3.get(),
+                "spartnprot_b": self._prot_spartn.get(),
                 "degreesformat_s": self._degrees_format.get(),
                 "colortag_b": self._colortag.get(),
                 "units_s": self._units.get(),
@@ -769,6 +775,7 @@ class SettingsFrame(Frame):
                 # socket client settings from frm_socketclient
                 "sockclienthost_s": self.frm_socketclient.server.get(),
                 "sockclientport_n": self.frm_socketclient.port.get(),
+                "sockclienthttps_b": self.frm_socketclient.https.get(),
                 "sockclientprotocol_s": self.frm_socketclient.protocol.get(),
                 # socket server settings from frm_socketserver
                 "sockserver_b": self.frm_socketserver.socketserving,
@@ -788,11 +795,13 @@ class SettingsFrame(Frame):
                 # NTRIP client settings from pygnssutils.GNSSNTRIPClient
                 "ntripclientserver_s": ntripclient_settings["server"],
                 "ntripclientport_n": ntripclient_settings["port"],
+                "ntripclienthttps_b": ntripclient_settings["https"],
                 "ntripclientprotocol_s": ntripprot,
                 "ntripclientflowinfo_n": ntripclient_settings["flowinfo"],
                 "ntripclientscopeid_n": ntripclient_settings["scopeid"],
                 "ntripclientmountpoint_s": ntripclient_settings["mountpoint"],
                 "ntripclientversion_s": ntripclient_settings["version"],
+                "ntripclientdatatype_s": ntripclient_settings["datatype"],
                 "ntripclientuser_s": ntripclient_settings["ntripuser"],
                 "ntripclientpassword_s": ntripclient_settings["ntrippassword"],
                 "ntripclientggainterval_n": ggaint,
@@ -894,9 +903,7 @@ class SettingsFrame(Frame):
                 "mqapikey_s": self.__app.saved_config.get("mqapikey_s", ""),
                 "colortags_l": self.__app.saved_config.get("colortags_l", []),
                 "ubxpresets_l": self.__app.saved_config.get("ubxpresets_l", []),
-                "usermaps_l": self.__app.saved_config.get(
-                    "usermaps_l", [[IMG_WORLD, IMG_WORLD_CALIB]]
-                ),
+                "usermaps_l": self.__app.saved_config.get("usermaps_l", []),
             }
             return config
         except (KeyError, ValueError, TypeError, TclError) as err:

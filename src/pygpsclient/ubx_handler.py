@@ -57,7 +57,7 @@ class UBXHandler:
 
         if parsed_data.identity[0:3] in ("ACK", "CFG"):
             self._process_ACK(parsed_data)
-        elif parsed_data.identity in ("MON-VER", "MON-HW"):
+        elif parsed_data.identity in ("MON-VER", "MON-HW", "MON-RF"):
             self._process_MONVER(parsed_data)
         elif parsed_data.identity in ("NAV-POSLLH", "NAV-HPPOSLLH"):
             self._process_NAV_POSLLH(parsed_data)
@@ -120,7 +120,7 @@ class UBXHandler:
 
     def _process_MONVER(self, msg: UBXMessage):
         """
-        Process MON-VER & MON-HW sentences.
+        Process MON-VER & MON-HW & MON-RF sentences.
 
         :param UBXMessage msg: UBX config message
         """

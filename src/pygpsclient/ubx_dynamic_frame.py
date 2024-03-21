@@ -129,7 +129,7 @@ class UBX_Dynamic_Frame(Frame):
             self,
             border=2,
             relief="sunken",
-            height=11,
+            height=15,
             justify=LEFT,
             exportselection=False,
         )

@@ -64,6 +64,7 @@ DDD = "DD.D"
 DEFAULT_BUFSIZE = 4096
 DEFAULT_PASSWORD = "password"  # nosec
 DEFAULT_PORT = 50010
+DEFAULT_TLS_PORTS = (443, 2102)
 DEFAULT_REGION = "eu"
 DEFAULT_SERVER = "localhost"
 DEFAULT_USER = "anon"
@@ -145,7 +146,9 @@ ICON_NOTRANSMIT = path.join(DIRNAME, "resources/iconmonstr-notransmit-10-24.png"
 ICON_NTRIPCONFIG = path.join(DIRNAME, "resources/iconmonstr-antenna-4-24.png")
 ICON_PENDING = path.join(DIRNAME, "resources/iconmonstr-time-6-24.png")
 ICON_PLAY = path.join(DIRNAME, "resources/iconmonstr-media-control-48-24.png")
-ICON_POS = path.join(DIRNAME, "resources/iconmonstr-location-1-24.png")
+ICON_POS = path.join(
+    DIRNAME, "resources/iconmonstr-plus-lined-24.png"
+)  # "resources/iconmonstr-location-1-24.png")
 ICON_RECORD = path.join(DIRNAME, "resources/iconmonstr-record-24.png")
 ICON_REDRAW = path.join(DIRNAME, "resources/iconmonstr-refresh-lined-24.png")
 ICON_REFRESH = path.join(DIRNAME, "resources/iconmonstr-refresh-6-16.png")
@@ -197,7 +200,7 @@ M2FT = 3.28084
 MAX_SNR = 60  # upper limit of graphview snr axis
 MAXLOGLINES = 10000  # maximum number of 'lines' per datalog file
 MQAPIKEY = "mqapikey"
-MQTT_PROTOCOL = 6
+MQTT_PROTOCOL = 16
 MSGMODES = {
     "GET": GET,
     "SET": SET,
@@ -234,6 +237,7 @@ SPARTN_OUTPORT = 8883
 SPARTN_PPREGIONS = ("eu", "us", "jp", "kr", "au")
 SPARTN_PPSERVER = "pp.services.u-blox.com"
 SPARTN_PPSERVER = "pp.services.u-blox.com"
+SPARTN_PROTOCOL = 8
 SPARTN_SOURCE_IP = 0
 SPARTN_SOURCE_LB = 1
 THD = "thd"
@@ -280,6 +284,7 @@ SPARTN_MQTT = 10
 SPECTRUMVIEW = 11
 SYSMONVIEW = 12
 ROVERVIEW = 13
+UBX_MONRF = 14
 
 # map of fix values to descriptions
 # the keys in this map are a concatenation of NMEA/UBX

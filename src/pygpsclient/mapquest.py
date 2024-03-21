@@ -17,9 +17,11 @@ Created on 04 May 2023
 """
 
 MAPQURL = "https://www.mapquestapi.com/staticmap/v5/map?key={}"
+MARKERURL = "marker-sm-616161-ff4444"
 MAPURL = (
     MAPQURL
-    + "&locations={},{}&zoom={}&size={},{}&defaultMarker=marker-sm-616161-ff4444"
+    + "&locations={},{}|{}"
+    + "&zoom={}&size={},{}"
     + "&shape=radius:{}|weight:1|fill:ccffff50|border:88888850|{},{}&scalebar={}&type={}"
 )
 GPXMAPURL = (

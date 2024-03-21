@@ -19,6 +19,7 @@ Created on 27 Apr 2022
 from tkinter import (
     DISABLED,
     NORMAL,
+    Checkbutton,
     E,
     Entry,
     Frame,
@@ -26,6 +27,7 @@ from tkinter import (
     Label,
     Spinbox,
     StringVar,
+    TclError,
     W,
 )
 
@@ -34,6 +36,7 @@ from PIL import Image, ImageTk
 from pygpsclient.globals import (
     DEFAULT_PORT,
     DEFAULT_SERVER,
+    DEFAULT_TLS_PORTS,
     ICON_CONTRACT,
     ICON_EXPAND,
     SAVED_CONFIG,
@@ -67,6 +70,7 @@ class SocketConfigFrame(Frame):
         """
 
         self._saved_config = kwargs.pop(SAVED_CONFIG, {})
+        self._server_callback = kwargs.pop("server_callback", None)
         Frame.__init__(self, container, *args, **kwargs)
 
         self.__app = app
@@ -75,6 +79,7 @@ class SocketConfigFrame(Frame):
         self.status = DISCONNECTED
         self.server = StringVar()
         self.port = IntVar()
+        self.https = IntVar()
         self.protocol = StringVar()
         self._protocol_range = self._saved_config.get("protocols_l", PROTOCOLS)
         self._img_expand = ImageTk.PhotoImage(Image.open(ICON_EXPAND))
@@ -82,8 +87,8 @@ class SocketConfigFrame(Frame):
 
         self._body()
         self._do_layout()
-        self._attach_events()
         self.reset()
+        self._attach_events()
 
     def _body(self):
         """
@@ -115,6 +120,11 @@ class SocketConfigFrame(Frame):
             state=READONLY,
             wrap=True,
         )
+        self._lbl_https = Label(self._frm_basic, text="HTTPS?")
+        self._chk_https = Checkbutton(
+            self._frm_basic,
+            variable=self.https,
+        )
 
     def _do_layout(self):
         """
@@ -130,6 +140,8 @@ class SocketConfigFrame(Frame):
         self.ent_port.grid(column=1, row=1, padx=2, pady=2, sticky=W)
         self._lbl_protocol.grid(column=3, row=1, padx=2, pady=2, sticky=W)
         self._spn_protocol.grid(column=4, row=1, padx=2, pady=2, sticky=W)
+        self._lbl_https.grid(column=0, row=2, padx=2, pady=2, sticky=W)
+        self._chk_https.grid(column=1, row=2, padx=2, pady=2, sticky=W)
 
     def _attach_events(self):
         """
@@ -137,6 +149,9 @@ class SocketConfigFrame(Frame):
         """
 
         self.bind("<Configure>", self._on_resize)
+        self.port.trace_add("write", callback=self._on_port)
+        if self._server_callback is not None:
+            self.server.trace_add("write", callback=self._server_callback)
 
     def reset(self):
         """
@@ -147,6 +162,11 @@ class SocketConfigFrame(Frame):
         self.port.set(self._saved_config.get("sockclientport_n", DEFAULT_PORT))
         self.protocol.set(
             self._saved_config.get("sockclientprotocol_s", self._protocol_range[0])
+        )
+        self.https.set(
+            self._saved_config.get(
+                "sockclienthttps_b", 1 if self.port.get() in DEFAULT_TLS_PORTS else 0
+            )
         )
 
     def valid_settings(self) -> bool:
@@ -177,6 +197,8 @@ class SocketConfigFrame(Frame):
             self._lbl_port,
             self.ent_port,
             self._lbl_protocol,
+            self._lbl_https,
+            self._chk_https,
         ):
             widget.configure(state=(NORMAL if status == DISCONNECTED else DISABLED))
         for widget in (self._spn_protocol,):
@@ -190,3 +212,18 @@ class SocketConfigFrame(Frame):
         """
 
         self.__app.frm_settings.on_expand()
+
+    def _on_port(self, var, index, mode):  # pylint: disable=unused-argument
+        """
+        Callback when port changed.
+
+        :param event event: write event
+        """
+
+        try:
+            if self.port.get() in DEFAULT_TLS_PORTS:
+                self.https.set(1)
+            else:
+                self.https.set(0)
+        except TclError:
+            pass
