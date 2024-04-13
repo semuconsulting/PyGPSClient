@@ -19,6 +19,7 @@ Created on 12 Sep 2020
 
 # pylint: disable=unnecessary-lambda
 
+from datetime import datetime
 from socket import AF_INET6
 from tkinter import (
     ALL,
@@ -157,6 +158,9 @@ class SettingsFrame(Frame):
         self._show_unusedsat = IntVar()
         self.show_legend = IntVar()
         self._colortag = IntVar()
+        self.defaultports = self.__app.saved_config.get(
+            "defaultport_s", RCVR_CONNECTION
+        )
         self._validsettings = True
         self._trackpath = None
         self._img_conn = ImageTk.PhotoImage(Image.open(ICON_CONN))
@@ -560,6 +564,8 @@ class SettingsFrame(Frame):
                 return
             connstr = f"{frm.port}:{frm.port_desc} @ {frm.bpsrate}"
             conndict = dict(conndict, **{"serial_settings": frm})
+            # poll for device software version on connection
+            self.__app.poll_version()
         elif conntype == CONNECTED_SOCKET:
             frm = self.frm_socketclient
             if not frm.valid_settings():
@@ -894,12 +900,17 @@ class SettingsFrame(Frame):
                     ),
                 ),
                 # Manually edited config settings
+                "spartndecode_b": self.__app.saved_config.get("spartndecode_b", 0),
+                "spartnkey_s": self.__app.saved_config.get(
+                    "spartnkey_s", "0123456789abcdef"
+                ),
+                "spartnbasedate_s": self.__app.saved_config.get(
+                    "spartnbasedate_s", str(datetime.now())
+                ),
                 "mapupdateinterval_n": self.__app.saved_config.get(
                     "mapupdateinterval_n", MAP_UPDATE_INTERVAL
                 ),
-                "defaultport_s": self.__app.saved_config.get(
-                    "defaultport_s", RCVR_CONNECTION
-                ),
+                "defaultport_s": self.defaultports,
                 "mqapikey_s": self.__app.saved_config.get("mqapikey_s", ""),
                 "colortags_l": self.__app.saved_config.get("colortags_l", []),
                 "ubxpresets_l": self.__app.saved_config.get("ubxpresets_l", []),

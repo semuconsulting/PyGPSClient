@@ -7,7 +7,7 @@ name = "pygpsclient"
 authors = [{ name = "semuadmin", email = "semuadmin@semuconsulting.com" }]
 maintainers = [{ name = "semuadmin", email = "semuadmin@semuconsulting.com" }]
 description = "GNSS Diagnostic and UBX Configuration GUI Application"
-version = "1.4.13"
+version = "1.4.14"
 license = { file = "LICENSE" }
 keywords = [
     "PyGPSClient",
@@ -52,7 +52,7 @@ classifiers = [
 dependencies = [
     "requests>=2.28.0",
     "Pillow>=9.0.0",
-    "pygnssutils>=1.0.22",
+    "pygnssutils>=1.0.24",
     "pyserial>=3.5",
 ]
 

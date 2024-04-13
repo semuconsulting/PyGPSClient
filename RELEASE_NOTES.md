@@ -1,6 +1,16 @@
 # PyGPSClient Release Notes
 
-### RELEASE CANDIDATE 1.4.13
+### RELEASE CANDIDATE 1.4.14
+
+ENHANCEMENTS:
+
+1. Add default port checkboxes to UBX Preset config panel (these govern which port(s) any message rate commands apply to). The selection can be saved as configuration parameter `defaultport_s`.
+
+FIXES:
+
+1. Update ubxsetrate helper method to use CFG-VALSET command for newer (UBX protocol >= 23.01) devices, and the CFG-MSG command for older devices. This fixes an error ([Discussion #125](https://github.com/semuconsulting/PyGPSClient/discussions/125)) where the spectrum, system monitor and rover plot widgets would not display data for M10 and F10 UBX devices.
+
+### RELEASE 1.4.13
 
 ENHANCEMENTS:
 
