@@ -34,10 +34,10 @@ Please write unittest examples for new code you create and add them to the `/tes
 
 We test on the following host platforms using a variety of u-blox devices (NEO-M6, NEO-M7, NEO-M8, NEO-M9, NEO-D9S, ZED-F9P, ZED-F9R, NEO-M10S):
 
-* Windows (10 & 11)
+* Windows 11
 * MacOS (Ventura & Sonoma, Intel and Apple Silicon)
-* Linux (Ubuntu 23.04 Lunar & 23.10 Mantic)
-* Raspberry Pi OS (Bullseye 32-bit & 64-bit)
+* Linux (Ubuntu 22.04 LTS Jammy & 23.10 Mantic)
+* Raspberry Pi OS (Bookworm 32-bit & 64-bit)
 
 ## Submitting changes
 

@@ -130,7 +130,7 @@ GPX_NS = " ".join(
 )
 GPX_TRACK_INTERVAL = 1  # minimum GPS track update interval (seconds)
 GUI_UPDATE_INTERVAL = 0.5  # minimum GUI widget update interval (seconds)
-ICON_APP = path.join(DIRNAME, "resources/iconmonstr-location-27-32.png")
+ICON_APP128 = path.join(DIRNAME, "resources/app-128.png")
 ICON_BLANK = path.join(DIRNAME, "resources/blank-1-24.png")
 ICON_CONFIRMED = path.join(DIRNAME, "resources/iconmonstr-check-mark-8-24.png")
 ICON_CONN = path.join(DIRNAME, "resources/iconmonstr-media-control-48-24.png")
@@ -146,9 +146,7 @@ ICON_NOTRANSMIT = path.join(DIRNAME, "resources/iconmonstr-notransmit-10-24.png"
 ICON_NTRIPCONFIG = path.join(DIRNAME, "resources/iconmonstr-antenna-4-24.png")
 ICON_PENDING = path.join(DIRNAME, "resources/iconmonstr-time-6-24.png")
 ICON_PLAY = path.join(DIRNAME, "resources/iconmonstr-media-control-48-24.png")
-ICON_POS = path.join(
-    DIRNAME, "resources/iconmonstr-plus-lined-24.png"
-)  # "resources/iconmonstr-location-1-24.png")
+ICON_POS = path.join(DIRNAME, "resources/iconmonstr-plus-lined-24.png")
 ICON_RECORD = path.join(DIRNAME, "resources/iconmonstr-record-24.png")
 ICON_REDRAW = path.join(DIRNAME, "resources/iconmonstr-refresh-lined-24.png")
 ICON_REFRESH = path.join(DIRNAME, "resources/iconmonstr-refresh-6-16.png")

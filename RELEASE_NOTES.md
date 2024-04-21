@@ -1,6 +1,12 @@
 # PyGPSClient Release Notes
 
-### RELEASE CANDIDATE 1.4.14
+### RELEASE 1.4.15
+
+ENHANCEMENTS:
+
+1. Update application icon.
+
+### RELEASE 1.4.14
 
 ENHANCEMENTS:
 
