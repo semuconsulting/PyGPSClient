@@ -1,6 +1,13 @@
 # PyGPSClient Release Notes
 
-### RELEASE CANDIDATE 1.4.14
+### RELEASE 1.4.15
+
+ENHANCEMENTS:
+
+1. Updated functionality in pygnssutils and pyspartn libraries (see respective libraries for details).
+1. Update application icon.
+
+### RELEASE 1.4.14
 
 ENHANCEMENTS:
 

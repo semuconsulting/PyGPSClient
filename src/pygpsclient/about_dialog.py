@@ -24,7 +24,7 @@ from pyspartn import version as SPARTNVERSION
 from pyubx2 import version as UBXVERSION
 
 from pygpsclient._version import __version__ as VERSION
-from pygpsclient.globals import DLGTABOUT, GITHUB_URL, ICON_APP, ICON_EXIT
+from pygpsclient.globals import DLGTABOUT, GITHUB_URL, ICON_APP128, ICON_EXIT
 from pygpsclient.helpers import check_latest
 from pygpsclient.strings import ABOUTTXT, COPYRIGHTTXT, DLGABOUT
 
@@ -58,7 +58,7 @@ class AboutDialog:
             f"+{self.__master.winfo_rootx() + 50}+{self.__master.winfo_rooty() + 50}"
         )
         self._dialog.attributes("-topmost", "true")
-        self._img_icon = ImageTk.PhotoImage(Image.open(ICON_APP))
+        self._img_icon = ImageTk.PhotoImage(Image.open(ICON_APP128).resize((64, 64)))
         self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
         self._updates = []
 

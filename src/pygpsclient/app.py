@@ -63,7 +63,7 @@ from pygpsclient.globals import (
     GNSS_EVENT,
     GNSS_TIMEOUT_EVENT,
     GUI_UPDATE_INTERVAL,
-    ICON_APP,
+    ICON_APP128,
     MQTT_PROTOCOL,
     NOPORTS,
     NTRIP_EVENT,
@@ -161,7 +161,7 @@ class App(Frame):
 
         self.__master.protocol("WM_DELETE_WINDOW", self.on_exit)
         self.__master.title(TITLE)
-        self.__master.iconphoto(True, PhotoImage(file=ICON_APP))
+        self.__master.iconphoto(True, PhotoImage(file=ICON_APP128))
         self.gnss_status = GNSSStatus()  # holds latest GNSS readings
         self._last_gui_update = datetime.now()
         self._nowidgets = True
