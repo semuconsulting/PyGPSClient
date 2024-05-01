@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.4.16
+
+FIXES:
+
+1. Fix handling of encrypted SPARTN payloads from MQTT or NTRIP sources.
+
 ### RELEASE 1.4.15
 
 ENHANCEMENTS:

@@ -19,7 +19,6 @@ Created on 12 Sep 2020
 
 # pylint: disable=unnecessary-lambda
 
-from datetime import datetime
 from socket import AF_INET6
 from tkinter import (
     ALL,
@@ -901,12 +900,7 @@ class SettingsFrame(Frame):
                 ),
                 # Manually edited config settings
                 "spartndecode_b": self.__app.saved_config.get("spartndecode_b", 0),
-                "spartnkey_s": self.__app.saved_config.get(
-                    "spartnkey_s", "0123456789abcdef"
-                ),
-                "spartnbasedate_s": self.__app.saved_config.get(
-                    "spartnbasedate_s", str(datetime.now())
-                ),
+                "spartnkey_s": self.__app.saved_config.get("spartnkey_s", ""),
                 "mapupdateinterval_n": self.__app.saved_config.get(
                     "mapupdateinterval_n", MAP_UPDATE_INTERVAL
                 ),

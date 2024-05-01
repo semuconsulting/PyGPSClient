@@ -22,7 +22,7 @@ Created on 12 Sep 2020
 
 # pylint: disable=too-many-ancestors, no-member
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from os import getenv, path
 from pathlib import Path
 from queue import Empty, Queue
@@ -34,7 +34,7 @@ from pygnssutils import GNSSMQTTClient, GNSSNTRIPClient, MQTTMessage
 from pygnssutils.socket_server import ClientHandler, SocketServer
 from pynmeagps import NMEAMessage
 from pyrtcm import RTCMMessage
-from pyspartn import SPARTNMessage
+from pyspartn import SPARTNMessage, date2timetag
 from pyubx2 import NMEA_PROTOCOL, POLL, RTCM3_PROTOCOL, UBX_PROTOCOL, UBXMessage
 from serial import SerialException, SerialTimeoutException
 
@@ -147,6 +147,7 @@ class App(Frame):
         mqttclientmode = int(
             kwargs.pop("mqttclientmode", getenv("MQTTCLIENTMODE", "0"))
         )
+        spartnkey = kwargs.pop("spartnkey", getenv("MQTTKEY", ""))
         ntripcaster_user = kwargs.pop(
             "ntripcasteruser", getenv("NTRIPCASTER_USER", DEFAULT_USER)
         )
@@ -208,6 +209,8 @@ class App(Frame):
             self.saved_config["mqapikey_s"] = mqapikey
         if mqttclientid != "":
             self.saved_config["mqttclientid_s"] = mqttclientid
+        if spartnkey != "":
+            self.saved_config["spartnkey_s"] = spartnkey
         if mqttclientregion != DEFAULT_REGION:
             self.saved_config["mqttclientregion_s"] = mqttclientregion
         if mqttclientmode != 0:
@@ -551,10 +554,13 @@ class App(Frame):
             ntripsettings["refsep"] = self.saved_config.get("ntripclientrefsep_f", 0.0)
             ntripsettings["spartndecode"] = self.saved_config.get("spartndecode_b", 0)
             ntripsettings["spartnkey"] = self.saved_config.get(
-                "spartnkey_s", "0123456789abcdef"
+                "spartnkey_s", getenv("MQTTKEY", "")
             )
+            if ntripsettings["spartnkey"] == "":
+                ntripsettings["spartndecode"] = 0
+            # if basedate is provided in config file, it must be an integer gnssTimetag
             ntripsettings["spartnbasedate"] = self.saved_config.get(
-                "spartnbasedate_s", str(datetime.now())
+                "spartnbasedate_i", date2timetag(datetime.now(timezone.utc))
             )
             self.ntrip_handler.settings = ntripsettings
 
@@ -597,10 +603,13 @@ class App(Frame):
             spartnsettings["output"] = self.spartn_inqueue
             spartnsettings["spartndecode"] = self.saved_config.get("spartndecode_b", 0)
             spartnsettings["spartnkey"] = self.saved_config.get(
-                "spartnkey_s", "0123456789abcdef"
+                "spartnkey_s", getenv("MQTTKEY", "")
             )
+            if spartnsettings["spartnkey"] == "":
+                spartnsettings["spartndecode"] = 0
+            # if basedate is provided in config file, it must be an integer gnssTimetag
             spartnsettings["spartnbasedate"] = self.saved_config.get(
-                "spartnbasedate_s", str(datetime.now())[:10]
+                "spartnbasedate_i", date2timetag(datetime.now(timezone.utc))
             )
             self.spartn_handler.settings = spartnsettings
 
