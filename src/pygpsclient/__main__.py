@@ -90,6 +90,12 @@ def main():
         help="NTRIP Caster authentication password",
         default=getenv("NTRIPCASTER_PASSWORD", DEFAULT_PASSWORD),
     )
+    arp.add_argument(
+        "--spartnkey",
+        required=False,
+        help="SPARTN message decryption key",
+        default=getenv("MQTTKEY", ""),
+    )
 
     kwargs = vars(arp.parse_args())
 

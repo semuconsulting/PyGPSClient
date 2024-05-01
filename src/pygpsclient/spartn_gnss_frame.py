@@ -478,6 +478,8 @@ class SPARTNGNSSDialog(Frame):
                 self._spartn_valdate1.set(keydata[0][1].strftime("%Y%m%d"))
                 self._spartn_key2.set(keydata[1][0])
                 self._spartn_valdate2.set(keydata[1][1].strftime("%Y%m%d"))
+                # save latest key in configuration settings
+                self.__app.saved_config["spartnkey_s"] = self._spartn_key1.get()
                 col = "green"
             else:
                 col = "red"
