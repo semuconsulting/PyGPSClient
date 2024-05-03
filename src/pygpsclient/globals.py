@@ -186,6 +186,7 @@ KNOWNGPS = (
     "u-blox",
     "U-Blox",
     "ublox",
+    "USB Serial",
     "USB to UART",
     "USB UART",
     "USB_to_UART",
