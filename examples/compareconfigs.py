@@ -47,8 +47,8 @@ def parse_line(line: str) -> UBXMessage:
     Any messages other than CFG-MSG, CFG-PRT or CFG-VALGET are discarded.
     The CFG-VALGET messages are converted into CFG-VALSET.
 
-    :param UBXMessage parsed: parsed config line
-    :return: parsed line as UBXMessage
+    :param str parsed: config line
+    :return: parsed config line as UBXMessage
     :rtype: UBXMessage
     """
 
@@ -140,7 +140,7 @@ def main(**kwargs):
         n += 1
         parse_file(cfgdict, file.strip(), n)
 
-    lbl = "differences in" if onlydiffs else "alls"
+    lbl = "differences in" if onlydiffs else "all"
     print(
         f"\n{n} files processed, list of {lbl} config keys and their values follows:\n"
     )
