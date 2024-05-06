@@ -11,6 +11,8 @@ Outputs dictionary of config keys and their values for each file e.g.
 
 - CFG_RATE_MEAS (None): {1: '1000', 2: '1000'} signifies both files have same value
 - CFG_RATE_MEAS (DIFFS!): {1: '1000', 2: '100'} signifies differences between files
+- CFG_RATE_MEAS (DIFFS!): {1: '1000'} signifies the value was missing from the second
+  or subsequent file(s)
 
 By default, only differences are listed. Set 'onlydiffs=0' to list all config keys.
 
@@ -109,9 +111,9 @@ def parse_file(cfgdict: dict, filename: str, fileno: int):
 
     # pylint: disable=broad-exception-caught
 
+    i = 0
     try:
         with open(filename, "r", encoding="utf-8") as infile:
-            i = 0
             for line in infile:
                 parsed = parse_line(line)
                 if parsed is not None:
@@ -135,27 +137,28 @@ def main(**kwargs):
     onlydiffs = int(kwargs.get("onlydiffs", 1))
 
     cfgdict = {}
-    n = 0
-    for file in infiles:
-        n += 1
-        parse_file(cfgdict, file.strip(), n)
-
-    lbl = "differences in" if onlydiffs else "all"
-    print(
-        f"\n{n} files processed, list of {lbl} config keys and their values follows:\n"
-    )
-
+    fcount = 0
     dcount = 0
     kcount = 0
+
+    for file in infiles:
+        fcount += 1
+        parse_file(cfgdict, file.strip(), fcount)
+
+    print(
+        f"\n{fcount} files processed, list of {"differences in" if onlydiffs else "all"}",
+        "config keys and their values follows:\n"
+    )
+
     for key, vals in dict(sorted(cfgdict.items())).items():
         kcount += 1
         totalvals = len(vals.values())  # check if config appears in all files
         uniquevals = len(set(vals.values()))  # check if all values are the same
-        diff = None if (totalvals == n and uniquevals == 1) else "DIFFS!"
-        if diff is not None:
+        diff = totalvals != fcount or uniquevals != 1
+        if diff:
             dcount += 1
-        if (onlydiffs and diff is not None) or not onlydiffs:
-            print(f"{key} ({diff}): {vals}")
+        if (onlydiffs and diff) or not onlydiffs:
+            print(f"{key} ({"DIFFS!" if diff else None}): {vals}")
 
     print(f"\nTotal config keys: {kcount}. Total differences: {dcount}.")
 
