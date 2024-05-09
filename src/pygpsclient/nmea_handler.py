@@ -186,12 +186,15 @@ class NMEAHandler:
         Modern receivers can send multiple batches corresponding to different
         GNSS constellations (GPS 1-32, SBAS 33-64, GLONASS 65-96 etc.).
 
+        This function collates all received GSV data into a single gsv_data array,
+        removing any signals that have not been seen for more than a specified
+        number of seconds (set in SAT_EXPIRY). This array is then used to
+        populate the graphview and skyview widgets.
+
         :param pynmeagps.NMEAMessage data: parsed GSV sentence
         """
-        # pylint: disable=consider-using-dict-items
 
-        settings = self.__app.frm_settings.config
-        show_unused = settings["unusedsat_b"]
+        show_unused = self.__app.frm_settings.config["unusedsat_b"]
         self.gsv_data = []
         gsv_dict = {}
         now = time()
@@ -206,63 +209,28 @@ class NMEAHandler:
         else:
             gnss = 0  # GPS, SBAS, QZSS
 
-        try:
-            if data.svid_01 != "":
-                svid = data.svid_01
+        for i in range(4):
+            idx = f"_{i:02d}"
+            svid = getattr(data, "svid" + idx, "")
+            if svid != "":
                 key = f"{gnss}-{svid}"
                 gsv_dict[key] = (
                     gnss,
                     svid,
-                    data.elv_01,
-                    data.az_01,
-                    str(data.cno_01),
+                    getattr(data, "elv" + idx),
+                    getattr(data, "az" + idx),
+                    str(getattr(data, "cno" + idx)),
                     now,
                 )
-            if data.svid_02 != "":
-                svid = data.svid_02
-                key = f"{gnss}-{svid}"
-                gsv_dict[key] = (
-                    gnss,
-                    svid,
-                    data.elv_02,
-                    data.az_02,
-                    str(data.cno_02),
-                    now,
-                )
-            if data.svid_03 != "":
-                svid = data.svid_03
-                key = f"{gnss}-{svid}"
-                gsv_dict[key] = (
-                    gnss,
-                    svid,
-                    data.elv_03,
-                    data.az_03,
-                    str(data.cno_03),
-                    now,
-                )
-            if data.svid_04 != "":
-                svid = data.svid_04
-                key = f"{gnss}-{svid}"
-                gsv_dict[key] = (
-                    gnss,
-                    svid,
-                    data.elv_04,
-                    data.az_04,
-                    str(data.cno_04),
-                    now,
-                )
-        except AttributeError:
-            pass
 
         for key in gsv_dict:
             self.gsv_log[key] = gsv_dict[key]
 
-        for key in self.gsv_log:
-            gnssId, svid, elev, azim, snr, lastupdate = self.gsv_log[key]
-            if snr in ("", "0", 0) and not show_unused:  # omit unused sats
+        for key, (gnssId, svid, elev, azim, cno, lastupdate) in self.gsv_log.items():
+            if cno in ("", "0", 0) and not show_unused:  # omit unused sats
                 continue
             if now - lastupdate < SAT_EXPIRY:  # expire passed sats
-                self.gsv_data.append((gnssId, svid, elev, azim, snr))
+                self.gsv_data.append((gnssId, svid, elev, azim, cno))
 
         self.__app.gnss_status.siv = len(self.gsv_data)
         self.__app.gnss_status.gsv_data = self.gsv_data
