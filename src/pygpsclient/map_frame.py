@@ -146,6 +146,7 @@ class MapviewFrame(Frame):
         w, h = self.width, self.height
         fw, fh = self._resize_font_width, self._resize_font_height
         # zoom out (-) if not already at min
+        zinc = 0
         if w > event.x > w - 2 - fw and h > event.y > h - fh:
             if self._zoom > MIN_ZOOM:
                 zinc = -1 if event.num == 1 else MIN_ZOOM - self._zoom

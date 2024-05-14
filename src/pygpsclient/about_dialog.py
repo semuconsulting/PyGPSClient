@@ -13,7 +13,7 @@ Created on 20 Sep 2020
 from platform import python_version
 from subprocess import CalledProcessError, run
 from sys import platform
-from tkinter import Button, E, Frame, Label, Tcl, Toplevel, W
+from tkinter import Button, Frame, Label, Tcl, Toplevel
 from webbrowser import open_new_tab
 
 from PIL import Image, ImageTk

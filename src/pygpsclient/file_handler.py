@@ -200,6 +200,8 @@ class FileHandler:
         Open logfile.
         """
 
+        # pylint: disable=consider-using-with
+
         self._lines = 0
         _, self._logname = set_filename(self._logpath, "data", "log")
         self._logfile = open(self._logname, "a+b")
@@ -331,6 +333,8 @@ class FileHandler:
         """
         Open track file and create GPX track header tags.
         """
+
+        # pylint: disable=consider-using-with
 
         _, self._trackname = set_filename(self._trackpath, "track", "gpx")
         self._trackfile = open(self._trackname, "a", encoding="utf-8")

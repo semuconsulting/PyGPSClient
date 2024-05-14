@@ -223,8 +223,8 @@ class NMEAHandler:
                     now,
                 )
 
-        for key in gsv_dict:
-            self.gsv_log[key] = gsv_dict[key]
+        for key, value in gsv_dict.items():
+            self.gsv_log[key] = value
 
         for key, (gnssId, svid, elev, azim, cno, lastupdate) in self.gsv_log.items():
             if cno in ("", "0", 0) and not show_unused:  # omit unused sats
