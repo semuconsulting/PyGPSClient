@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.4.17
+
+CHANGES:
+
+1. Internal performance streamlining - no functional changes.
+
 ### RELEASE 1.4.16
 
 FIXES:
