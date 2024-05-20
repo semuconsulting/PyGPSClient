@@ -925,7 +925,7 @@ class App(Frame):
         elif isinstance(parsed_data, MQTTMessage):
             msgprot = MQTT_PROTOCOL
         elif isinstance(parsed_data, str):
-            marker = "WARNING  "
+            marker = "WARNING>>"
 
         if msgprot == UBX_PROTOCOL and msgprot & protfilter:
             self.ubx_handler.process_data(raw_data, parsed_data)

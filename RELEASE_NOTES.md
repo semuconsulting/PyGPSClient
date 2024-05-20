@@ -4,6 +4,7 @@
 
 CHANGES:
 
+1. Improved logging of data stream errors to console.
 1. Internal performance streamlining - no functional changes.
 
 ### RELEASE 1.4.16

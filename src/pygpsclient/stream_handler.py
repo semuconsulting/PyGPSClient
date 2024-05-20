@@ -38,7 +38,7 @@ from pygnssutils import UBXSimulator
 from pynmeagps import NMEAMessageError, NMEAParseError
 from pyrtcm import RTCMMessageError, RTCMParseError
 from pyubx2 import (
-    ERR_IGNORE,
+    ERR_LOG,
     NMEA_PROTOCOL,
     RTCM3_PROTOCOL,
     UBX_PROTOCOL,
@@ -236,13 +236,25 @@ class StreamHandler:
         :param int inactivity: inactivity timeout (s)
         """
 
+        def _errorhandler(err: Exception):
+            """
+            Stream error handler.
+
+            :param Exception err: error
+            """
+
+            parsed_data = f"Error parsing data stream {err}"
+            settings["inqueue"].put((raw_data, parsed_data))
+            self.__master.event_generate(settings["read_event"])
+
         conntype = settings["conntype"]
         ubr = UBXReader(
             stream,
             protfilter=NMEA_PROTOCOL | UBX_PROTOCOL | RTCM3_PROTOCOL,
-            quitonerror=ERR_IGNORE,
+            quitonerror=ERR_LOG,
             bufsize=DEFAULT_BUFSIZE,
             msgmode=settings["msgmode"],
+            errorhandler=_errorhandler,
         )
 
         raw_data = None
