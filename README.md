@@ -328,7 +328,7 @@ NB: if you're installing onto a 32-bit Linux platform (e.g. Raspberry Pi OS 32),
 
 Normally installs without any additional steps.
 
-**MacOS 11 or later:**
+**MacOS 12 or later:**
 
 *²* The version of Python supplied with most Apple MacOS platforms includes a [deprecated version of tkinter](https://www.python.org/download/mac/tcltk/) (8.5). Use an official [Python.org](https://www.python.org/downloads/) installation package instead.
 
@@ -346,7 +346,7 @@ sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk libjpeg-
 sudo apt install tk-dev
 ```
 
-*⁵* On some 32-bit Linux platforms (e.g. Raspberry Pi OS 32), it may be necessary to [install Rust compiler support](https://www.rust-lang.org/tools/install) and some [additional build dependencies](https://cryptography.io/en/latest/installation/) in order to install the `cryptography` library which PyGPSClient depends on to decrypt SPARTN messages (see [Discussion](https://github.com/semuconsulting/PyGPSClient/discussions/83) and also [pyspartn cryptography installation notes](https://github.com/semuconsulting/pyspartn/tree/main/cryptography_installation#readme)):
+*⁵* On some 32-bit Linux platforms (e.g. Raspberry Pi OS 32), it may be necessary to [install Rust compiler support](https://www.rust-lang.org/tools/install) and some [additional build dependencies](https://cryptography.io/en/latest/installation/) in order to install the `cryptography` library which PyGPSClient depends on to decrypt SPARTN messages (see  [pyspartn cryptography installation notes](https://github.com/semuconsulting/pyspartn/tree/main/cryptography_installation#readme)):
 
 ```shell
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
@@ -416,7 +416,7 @@ Shell: /bin/zsh
 /Library/Frameworks/Python.framework/Versions/3.12/bin/pygpsclient
 ```
 
-To assign an icon to this application, right-click on the `PyGPSClient` entry in the Applications folder, select "Get Info" and drag-and-drop the pygpsclient.ico image file from the site-packages folder (e.g. "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.11/site-packages/pygpsclient/resources/pygpsclient.ico") to the default application icon at the top left.
+To assign an icon to this application, right-click on the `PyGPSClient` entry in the Applications folder, select "Get Info" and drag-and-drop the pygpsclient.ico image file from the site-packages folder (e.g. "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/pygpsclient/resources/pygpsclient.ico") to the default application icon at the top left.
 
 ---
 ## <a name="mapquestapi">MapQuest API Key</a>
