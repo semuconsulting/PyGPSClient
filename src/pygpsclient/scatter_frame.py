@@ -37,7 +37,6 @@ from pynmeagps import bearing, haversine, planar
 from pygpsclient.globals import BGCOL, FGCOL, WIDGETU2, Point
 from pygpsclient.skyview_frame import Canvas
 
-# PLANAR_THRESHOLD = 5  # scale factor in m below which planar approximation can be used
 PLANAR = "Planar"
 HAVERSINE = "Great Circle"
 MODES = (PLANAR, HAVERSINE)
@@ -223,8 +222,6 @@ class ScatterViewFrame(Frame):
         :param Point position: The point to draw
         """
 
-        # scale = self.scale_factors[self.scale.get()]
-        # if scale <= PLANAR_THRESHOLD:  # use planar approximation formula (returns m)
         if self.mode.get() == PLANAR:  # use planar approximation formula (returns m)
             distance = planar(center.lat, center.lon, position.lat, position.lon)
         else:  # use haversine great circle formula (returns km)
