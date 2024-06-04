@@ -17,16 +17,30 @@ statistics and geographiclib libraries.
 """
 
 from math import cos, radians, sin
-from tkinter import BOTH, HORIZONTAL, NO, YES, Frame, IntVar, Scale, font
+from tkinter import (
+    BOTH,
+    HORIZONTAL,
+    LEFT,
+    NO,
+    YES,
+    Frame,
+    IntVar,
+    Scale,
+    Spinbox,
+    StringVar,
+    X,
+    font,
+)
 
 from pynmeagps import bearing, haversine, planar
 
 from pygpsclient.globals import BGCOL, FGCOL, WIDGETU2, Point
 from pygpsclient.skyview_frame import Canvas
 
-PLANAR_THRESHOLD = 5  # scale factor in m below which planar approximation can be used
+# PLANAR_THRESHOLD = 5  # scale factor in m below which planar approximation can be used
 PLANAR = "Planar"
 HAVERSINE = "Great Circle"
+MODES = (PLANAR, HAVERSINE)
 SQRT2 = 0.7071067811865476
 PNTCOL = "orange"
 
@@ -53,11 +67,14 @@ class ScatterViewFrame(Frame):
 
         self.width = kwargs.get("width", def_w)
         self.height = kwargs.get("height", def_h)
-        self.fg_col = FGCOL
         self.points = []
         self.one_meter = 1
         self.mean = None
-        self._calc = PLANAR
+        self.scale = IntVar()
+        self.scale.set(6)
+        self.scale_factors = (100, 50, 25, 20, 15, 10, 5, 1, 0.1)
+        self.mode = StringVar()
+        self.mode.set(PLANAR)
         self._body()
         self._attach_events()
 
@@ -67,15 +84,21 @@ class ScatterViewFrame(Frame):
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
         self.canvas = Canvas(self, width=self.width, height=self.height, bg=BGCOL)
-        self.scale_factors = (100, 50, 25, 20, 15, 10, 5, 1, 0.1)
-        self.scale = IntVar()
-        self.scale.set(6)
+        self.spn_mode = Spinbox(
+            self,
+            values=MODES,
+            width=9,
+            wrap=True,
+            fg=PNTCOL,
+            bg=BGCOL,
+            textvariable=self.mode,
+            command=self._remode,
+        )
         self.scale_widget = Scale(
             self,
             from_=0,
             to=len(self.scale_factors) - 1,
             orient=HORIZONTAL,
-            relief="sunken",
             bg=FGCOL,
             troughcolor=BGCOL,
             variable=self.scale,
@@ -83,7 +106,8 @@ class ScatterViewFrame(Frame):
             command=self._rescale,
         )
         self.canvas.pack(fill=BOTH, expand=YES)
-        self.scale_widget.pack(fill="x", expand=NO)
+        self.spn_mode.pack(side=LEFT, expand=NO)
+        self.scale_widget.pack(side=LEFT, fill=X, expand=YES)
 
     def _attach_events(self):
         """
@@ -92,6 +116,13 @@ class ScatterViewFrame(Frame):
 
         self.bind("<Configure>", self._on_resize)
         self.canvas.bind("<Double-Button-1>", self._on_clear)
+
+    def _remode(self):
+        """
+        Remode widget.
+        """
+
+        self._on_resize(None)
 
     def _rescale(self, scale):  # pylint: disable=unused-argument
         """
@@ -152,14 +183,6 @@ class ScatterViewFrame(Frame):
         self.canvas.create_text(
             5, 10 + height, text=lon, fill=PNTCOL, font=lbl_font, anchor="w"
         )
-        self.canvas.create_text(
-            5,
-            10 + height * 2,
-            text=self._calc,
-            fill=PNTCOL,
-            font=lbl_font,
-            anchor="w",
-        )
 
     def init_frame(self):
         """
@@ -172,13 +195,13 @@ class ScatterViewFrame(Frame):
 
         lbl_font = font.Font(size=min(int(width / 25), 10))
         m_per_circle = scale
-        self.canvas.create_line(0, height / 2, width, height / 2, fill=self.fg_col)
-        self.canvas.create_line(width / 2, 0, width / 2, height, fill=self.fg_col)
+        self.canvas.create_line(0, height / 2, width, height / 2, fill=FGCOL)
+        self.canvas.create_line(width / 2, 0, width / 2, height, fill=FGCOL)
 
         maxr = min((height / 2), (width / 2))
         for idx, rad in enumerate(((0.25, 0.5, 0.75, 1))):
             self.canvas.create_circle(
-                width / 2, height / 2, maxr * rad, outline=self.fg_col, width=1
+                width / 2, height / 2, maxr * rad, outline=FGCOL, width=1
             )
             distance = m_per_circle * (idx + 1)
             if len(str(distance)) > 4:
@@ -186,7 +209,7 @@ class ScatterViewFrame(Frame):
             txt_x = width / 2 + SQRT2 * maxr * rad
             txt_y = height / 2 + SQRT2 * maxr * rad
             self.canvas.create_text(
-                txt_x, txt_y, text=f"{distance}m", fill=self.fg_col, font=lbl_font
+                txt_x, txt_y, text=f"{distance}m", fill=FGCOL, font=lbl_font
             )
 
         self.one_meter = (maxr * 0.25) / m_per_circle
@@ -200,15 +223,14 @@ class ScatterViewFrame(Frame):
         :param Point position: The point to draw
         """
 
-        scale = self.scale_factors[self.scale.get()]
-        if scale <= PLANAR_THRESHOLD:  # use planar approximation formula (returns m)
+        # scale = self.scale_factors[self.scale.get()]
+        # if scale <= PLANAR_THRESHOLD:  # use planar approximation formula (returns m)
+        if self.mode.get() == PLANAR:  # use planar approximation formula (returns m)
             distance = planar(center.lat, center.lon, position.lat, position.lon)
-            self._calc = PLANAR
         else:  # use haversine great circle formula (returns km)
             distance = (
                 haversine(center.lat, center.lon, position.lat, position.lon) * 1000
             )
-            self._calc = HAVERSINE
         distance *= self.one_meter  # adjust to scale
         angle = bearing(center.lat, center.lon, position.lat, position.lon)
         theta = radians(90 - angle)
@@ -230,8 +252,7 @@ class ScatterViewFrame(Frame):
         num = len(self.points)
         ave_lat = sum(p.lat for p in self.points) / num
         ave_lon = sum(p.lon for p in self.points) / num
-        ave_pos = Point(ave_lat, ave_lon)
-        return ave_pos
+        return Point(ave_lat, ave_lon)
 
     def redraw(self):
         """
