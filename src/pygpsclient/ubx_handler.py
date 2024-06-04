@@ -265,7 +265,10 @@ class UBXHandler:
         if data.carrSoln > 0:
             self.__app.gnss_status.fix = fix2desc("NAV-PVT", data.carrSoln + 5)
 
-        self.__app.gnss_status.diff_corr = data.difSoln
+        if hasattr(data, "difSoln"):  # for pyubx2 <= 1.2.42
+            self.__app.gnss_status.diff_corr = data.difSoln
+        elif hasattr(data, "diffSoln"):
+            self.__app.gnss_status.diff_corr = data.diffSoln
         if data.lastCorrectionAge != 0:
             self.__app.gnss_status.diff_age = corrage2int(data.lastCorrectionAge)
 

@@ -92,7 +92,7 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 |![webmap widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/webmap_widget.png?raw=true)| Map Type = 'map' or 'sat': Dynamic, online web map or satellite image via MapQuest API (*requires an Internet connection and free [Mapquest API Key](#mapquestapi)*). Left Click +/- to zoom in or out. Right click +/- to zoom in or out to maximum extent. By default, the web map will automatically refresh every 60 seconds (*indicated by a small timer icon at the top left*). The default refresh rate can be amended by changing the `"mapupdateinterval_n":` value in your json configuration file, but **NB** the facility is not intended to be used for real-time navigation. Double-click anywhere in the map to immediately refresh. |
 |![spectrum widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/spectrum_widget.png?raw=true)| Spectrum widget showing a spectrum analysis chart (*GNSS receiver must be capable of outputting UBX MON-SPAN messages*). Clicking anywhere in the spectrum chart will display the frequency and decibel reading at that point. Double-clicking anywhere in the chart will toggle the GNSS frequency band markers (L1, G2, etc.) on or off. **NB:** Some receivers (e.g. NEO-F10N) will not output the requisite MON-SPAN messages unless the port baud rate is at least 57,600. |
 |![sysmon widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/sysmon_widget.png?raw=true)| System Monitor widget showing device cpu, memory and I/O utilisation (*GNSS receiver must be capable of outputting UBX MON-SYS and/or MON-COMMS messages*). Tick checkbox to toggle between actual (cumulative) I/O stats and pending I/O. |
-|![scatterplot widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/scatterplot_widget.png?raw=true)| Scatterplot widget showing variability in position reporting over time. Uses a haversine great circle formula at scales greater than 50m, and a planar approximation formula for smaller scales. Double-click to clear existing plot. |
+|![scatterplot widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/scatterplot_widget.png?raw=true)| Scatterplot widget showing variability in position reporting over time. Select from either Planar or Great Circle (haversine) distance approximation mode. Double-click to clear existing plot. |
 |![rover widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/rover_widget.png?raw=true) | Rover widget plots the relative 2D position, track and status information for the roving receiver in a fixed or moving base / rover RTK configuration. Double-click to clear existing plot. (*GNSS rover receiver must be capable of outputting UBX NAV-RELPOSNED messages.*) |
 ---
 ## <a name="ubxconfig">UBX Configuration Facilities</a>
@@ -308,7 +308,7 @@ The GPX Track Viewer can display any valid GPX file containing trackpoints (`<tr
 ## <a name="installation">Installation</a>
 
 In the following, `python3` & `pip` refer to the Python 3 executables. You may need to type 
-`python` or `pip3`, depending on your particular environment. It is recommended that 
+`python` or `pip3`, depending on your particular environment. It is strongly recommended that 
 the Python 3 scripts (bin) and site_packages directories are included in your PATH 
 (*most standard Python 3 installation packages will do this automatically if you select the 'Add to PATH' option during installation*).
 
@@ -328,7 +328,7 @@ NB: if you're installing onto a 32-bit Linux platform (e.g. Raspberry Pi OS 32),
 
 Normally installs without any additional steps.
 
-**MacOS 11 or later:**
+**MacOS 12 or later:**
 
 *²* The version of Python supplied with most Apple MacOS platforms includes a [deprecated version of tkinter](https://www.python.org/download/mac/tcltk/) (8.5). Use an official [Python.org](https://www.python.org/downloads/) installation package instead.
 
@@ -346,7 +346,7 @@ sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk libjpeg-
 sudo apt install tk-dev
 ```
 
-*⁵* On some 32-bit Linux platforms (e.g. Raspberry Pi OS 32), it may be necessary to [install Rust compiler support](https://www.rust-lang.org/tools/install) and some [additional build dependencies](https://cryptography.io/en/latest/installation/) in order to install the `cryptography` library which PyGPSClient depends on to decrypt SPARTN messages (see [Discussion](https://github.com/semuconsulting/PyGPSClient/discussions/83) and also [pyspartn cryptography installation notes](https://github.com/semuconsulting/pyspartn/tree/main/cryptography_installation#readme)):
+*⁵* On some 32-bit Linux platforms (e.g. Raspberry Pi OS 32), it may be necessary to [install Rust compiler support](https://www.rust-lang.org/tools/install) and some [additional build dependencies](https://cryptography.io/en/latest/installation/) in order to install the `cryptography` library which PyGPSClient depends on to decrypt SPARTN messages (see  [pyspartn cryptography installation notes](https://github.com/semuconsulting/pyspartn/tree/main/cryptography_installation#readme)):
 
 ```shell
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
@@ -362,14 +362,13 @@ To access the serial port on most Linux platforms, you will need to be a member 
 usermod -a -G tty myuser
 ```
 
-### 1. Install using pip
+### Install using pip
 
 ![Python version](https://img.shields.io/pypi/pyversions/PyGPSClient.svg?style=flat)
 [![PyPI version](https://img.shields.io/pypi/v/PyGPSClient.svg?style=flat)](https://pypi.org/project/PyGPSClient/)
 ![PyPI downloads](https://img.shields.io/pypi/dm/PyGPSClient.svg?style=flat)
 
-The easiest way to install the latest version of `PyGPSClient` is with
-[pip](http://pypi.python.org/pypi/pip/):
+The easiest way to install the latest version of `PyGPSClient` is with [pip](http://pypi.python.org/pypi/pip/):
 
 ```shell
 python3 -m pip install --upgrade pygpsclient
@@ -397,24 +396,7 @@ pygpsclient
 pygpsclient -h
 ```
 
-If desired, you can add a shortcut to this command to your desktop or favourites menu.
-
-Alternatively, if the Python 3 site_packages are in your PATH, you can type (all lowercase): 
-```shell
-python3 -m pygpsclient
-```
-
-**NB:** If the Python 3 scripts (bin) or site_packages directories are *not* in your PATH, you will need to add the fully-qualified path to `pygpsclient` in the commands above.
-
-**Tip:** to find the site_packages location, type:
-```shell
-python3 -m pip show pygpsclient
-``` 
-and look for the `Location:` entry in the response, e.g.
-
-- Linux: `Location: /home/username/.local/lib/python3.11/site-packages`
-- MacOS: `Location: /Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages`
-- Windows: `Location: c:\users\username\appdata\roaming\python\python311\lib\site-packages`
+**NB:** If the Python 3 scripts (bin) directories is *not* in your PATH, you will need to add the fully-qualified path to `pygpsclient` in the command above.
 
 **Tip:** To create an application launcher for Linux distributions like Ubuntu, create a text file named `pygpsclient.desktop` with the following content (*edited for your particular environment*) and copy this to the `/home/user/.local/share/applications` folder, e.g.
 
@@ -423,7 +405,7 @@ and look for the `Location:` entry in the response, e.g.
 Type=Application
 Terminal=false
 Name=PyGPSClient
-Icon=/home/user/.local/lib/python3.11/site-packages/pygpsclient/resources/pygpsclient.ico
+Icon=/home/user/.local/lib/python3.12/site-packages/pygpsclient/resources/pygpsclient.ico
 Exec=/home/user/.local/bin/pygpsclient
 ```
 
@@ -431,31 +413,10 @@ Exec=/home/user/.local/bin/pygpsclient
 
 Shell: /bin/zsh
 ```
-/Library/Frameworks/Python.framework/Versions/3.11/bin/pygpsclient
+/Library/Frameworks/Python.framework/Versions/3.12/bin/pygpsclient
 ```
 
-To assign an icon to this application, right-click on the `PyGPSClient` entry in the Applications folder, select "Get Info" and drag-and-drop the pygpsclient.ico image file from the site-packages folder (e.g. "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/pygpsclient/resources/pygpsclient.ico") to the default application icon at the top left.
-
-
-### 2. Manual installation
-
-The following Python libraries are required (these will be installed automatically if using pip to install PyGPSClient):
-
-```shell
-python3 -m pip install --upgrade Pillow pygnssutils pyserial pyspartn requests 
-```
-
-To install PyGPSClient manually, download and unzip this repository and run:
-
-```shell
-python3 -m /path_to_folder/foldername/pygpsclient
-```
-
-e.g. if you downloaded and unzipped to a folder named `PyGPSClient-1.3.26`, run: 
-
-```shell
-python3 -m /path_to_folder/PyGPSClient-1.3.26/pygpsclient
-```
+To assign an icon to this application, right-click on the `PyGPSClient` entry in the Applications folder, select "Get Info" and drag-and-drop the pygpsclient.ico image file from the site-packages folder (e.g. "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/pygpsclient/resources/pygpsclient.ico") to the default application icon at the top left.
 
 ---
 ## <a name="mapquestapi">MapQuest API Key</a>

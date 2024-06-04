@@ -912,7 +912,7 @@ class App(Frame):
         """
 
         settings = self.frm_settings.config
-
+        msgprot = 0
         protfilter = settings["protocol_n"]
         if isinstance(parsed_data, NMEAMessage):
             msgprot = NMEA_PROTOCOL
@@ -925,8 +925,7 @@ class App(Frame):
         elif isinstance(parsed_data, MQTTMessage):
             msgprot = MQTT_PROTOCOL
         elif isinstance(parsed_data, str):
-            marker = "WARNING  "
-            msgprot = 0
+            marker = "WARNING>>"
 
         if msgprot == UBX_PROTOCOL and msgprot & protfilter:
             self.ubx_handler.process_data(raw_data, parsed_data)

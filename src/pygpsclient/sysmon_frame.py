@@ -16,7 +16,7 @@ Created on 30 Apr 2023
 
 from tkinter import Canvas, E, Frame, IntVar, N, Radiobutton, S, W
 
-from pyubx2 import UBXMessage
+from pyubx2 import BOOTTYPE, UBXMessage
 
 from pygpsclient.globals import BGCOL, FGCOL, SYSMONVIEW, WIDGETU2
 from pygpsclient.helpers import bytes2unit, hsv2rgb, secs2unit, setubxrate, sizefont
@@ -27,19 +27,6 @@ MAXTEMP = 100  # °C
 XOFFSET = 10
 SPACING = 5
 DASH = (5, 2)
-BOOTTYPES = {
-    0: "Unknown",
-    1: "Cold Start",
-    2: "Watchdog",
-    3: "Hardware reset",
-    4: "Hardware backup",
-    5: "Software backup",
-    6: "Software reset",
-    7: "VIO fail",
-    8: "VDD_X fail",
-    9: "VDD_RF fail",
-    10: "V_CORE_HIGH fail",
-}
 PORTIDS = {
     0x0000: "I2C",  # 0 I2C
     0x0100: "UART1",  # 256 UART1
@@ -218,7 +205,7 @@ class SysmonFrame(Frame):
         self._monsys_status = ACTIVE
         self._waits = 0
         try:
-            bootType = BOOTTYPES[sysdata.get("bootType", 0)]
+            bootType = BOOTTYPE[sysdata.get("bootType", 0)]
             cpuLoad = sysdata.get("cpuLoad", NA)
             cpuLoadMax = sysdata.get("cpuLoadMax", NA)
             memUsage = sysdata.get("memUsage", NA)

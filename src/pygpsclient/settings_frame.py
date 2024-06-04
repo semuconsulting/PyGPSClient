@@ -543,6 +543,7 @@ class SettingsFrame(Frame):
         :param int conntype: connection type
         """
 
+        connstr = ""
         conndict = {
             "read_event": GNSS_EVENT,
             "eof_event": GNSS_EOF_EVENT,

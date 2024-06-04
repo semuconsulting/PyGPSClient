@@ -431,6 +431,7 @@ class UBX_Recorder_Frame(Frame):
         lcs = len(self._cmds_stored)
         lst = f". Last command: {self._cmds_stored[-1].identity}" if lcs > 0 else ""
         self._lbl_status.config(text=f"Commands in memory: {lcs}{lst}")
+        pimg = rimg = None
 
         if self._rec_status == STOP:
             pimg = self._img_play

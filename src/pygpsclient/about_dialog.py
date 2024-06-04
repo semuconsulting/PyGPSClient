@@ -13,7 +13,7 @@ Created on 20 Sep 2020
 from platform import python_version
 from subprocess import CalledProcessError, run
 from sys import platform
-from tkinter import Button, Label, Tcl, Toplevel
+from tkinter import Button, Frame, Label, Tcl, Toplevel
 from webbrowser import open_new_tab
 
 from PIL import Image, ImageTk
@@ -24,7 +24,13 @@ from pyspartn import version as SPARTNVERSION
 from pyubx2 import version as UBXVERSION
 
 from pygpsclient._version import __version__ as VERSION
-from pygpsclient.globals import DLGTABOUT, GITHUB_URL, ICON_APP128, ICON_EXIT
+from pygpsclient.globals import (
+    DLGTABOUT,
+    GITHUB_URL,
+    ICON_APP128,
+    ICON_EXIT,
+    ICON_GITHUB,
+)
 from pygpsclient.helpers import check_latest
 from pygpsclient.strings import ABOUTTXT, COPYRIGHTTXT, DLGABOUT
 
@@ -59,6 +65,7 @@ class AboutDialog:
         )
         self._dialog.attributes("-topmost", "true")
         self._img_icon = ImageTk.PhotoImage(Image.open(ICON_APP128).resize((64, 64)))
+        self._img_github = ImageTk.PhotoImage(Image.open(ICON_GITHUB).resize((32, 32)))
         self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
         self._updates = []
 
@@ -71,19 +78,19 @@ class AboutDialog:
         Set up widgets.
         """
 
-        self._lbl_title = Label(self._dialog, text=DLGABOUT)
+        self._frm_container = Frame(self._dialog, borderwidth=2, relief="groove")
+        self._lbl_title = Label(self._frm_container, text=DLGABOUT)
         self._lbl_title.config(font=self.__app.font_md2)
-        self._lbl_icon = Label(self._dialog, image=self._img_icon)
+        self._lbl_icon = Label(self._frm_container, image=self._img_icon)
         self._lbl_desc = Label(
-            self._dialog,
+            self._frm_container,
             text=ABOUTTXT,
-            wraplength=300,
+            wraplength=350,
             font=self.__app.font_sm,
-            cursor="hand2",
         )
         tkv = Tcl().call("info", "patchlevel")
         self._lbl_python_version = Label(
-            self._dialog,
+            self._frm_container,
             text=f"Python: {python_version()}  Tk: {tkv}",
             font=self.__app.font_sm,
         )
@@ -91,26 +98,37 @@ class AboutDialog:
         for nam, ver in LIBVERSIONS.items():
             self._lbl_lib_versions.append(
                 Label(
-                    self._dialog,
+                    self._frm_container,
                     text=f"{nam}: {ver}",
                     font=self.__app.font_sm,
                 )
             )
         self._btn_checkupdate = Button(
-            self._dialog,
+            self._frm_container,
             text="Check for updates",
             width=12,
             font=self.__app.font_sm,
             cursor="hand2",
         )
-        self._lbl_copyright = Label(
-            self._dialog,
-            text=COPYRIGHTTXT,
-            font=self.__app.font_sm,
+        self._lbl_giticon = Label(
+            self._frm_container,
+            image=self._img_github,
             cursor="hand2",
         )
+        self._lbl_github = Label(
+            self._frm_container,
+            text=GITHUB_URL,
+            font=self.__app.font_sm,
+            fg="blue",
+            cursor="hand2",
+        )
+        self._lbl_copyright = Label(
+            self._frm_container,
+            text=COPYRIGHTTXT,
+            font=self.__app.font_sm,
+        )
         self._btn_ok = Button(
-            self._dialog,
+            self._frm_container,
             image=self._img_exit,
             width=55,
             command=self._ok_press,
@@ -122,18 +140,21 @@ class AboutDialog:
         Arrange widgets in dialog.
         """
 
-        self._lbl_title.grid(column=0, row=0, padx=5, pady=3)
-        self._lbl_icon.grid(column=0, row=1, padx=5, pady=3)
-        self._lbl_desc.grid(column=0, row=2, padx=15, pady=3)
-        self._lbl_python_version.grid(column=0, row=3, padx=5, pady=3)
+        self._frm_container.grid(column=0, row=0, padx=5, pady=5, ipadx=5, ipady=5)
+        self._lbl_title.grid(column=0, row=0, padx=3, pady=3)
+        self._lbl_icon.grid(column=0, row=1, padx=3, pady=3)
+        self._lbl_desc.grid(column=0, row=2, padx=3, pady=3)
+        self._lbl_python_version.grid(column=0, row=3, padx=3, pady=3)
         i = 0
         for i, _ in enumerate(LIBVERSIONS):
-            self._lbl_lib_versions[i].grid(column=0, row=4 + i, padx=5, pady=1)
+            self._lbl_lib_versions[i].grid(column=0, row=4 + i, padx=2, pady=2)
         self._btn_checkupdate.grid(
-            column=0, row=5 + i, ipadx=3, ipady=3, padx=5, pady=3
+            column=0, row=5 + i, ipadx=3, ipady=3, padx=3, pady=3
         )
-        self._lbl_copyright.grid(column=0, row=6 + i, padx=15, pady=3)
-        self._btn_ok.grid(column=0, row=7 + i, ipadx=3, ipady=3, padx=5, pady=3)
+        self._lbl_giticon.grid(column=0, row=6 + i, padx=(3, 1), pady=3)
+        self._lbl_github.grid(column=0, row=7 + i, padx=(1, 3), pady=3)
+        self._lbl_copyright.grid(column=0, row=8 + i, padx=3, pady=3)
+        self._btn_ok.grid(column=0, row=9 + i, ipadx=3, ipady=3, padx=5, pady=3)
 
     def _attach_events(self):
         """
@@ -141,10 +162,18 @@ class AboutDialog:
         """
 
         self._btn_checkupdate.bind("<Button>", self._check_for_update)
-        self._lbl_desc.bind("<Button-1>", lambda e: open_new_tab(GITHUB_URL))
-        self._lbl_copyright.bind("<Button-1>", lambda e: open_new_tab(GITHUB_URL))
+        self._lbl_giticon.bind("<Button>", self._on_github)
+        self._lbl_github.bind("<Button>", self._on_github)
         self._btn_ok.bind("<Return>", self._ok_press)
         self._btn_ok.focus_set()
+
+    def _on_github(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Close dialog and go to GitHub.
+        """
+
+        open_new_tab(GITHUB_URL)
+        self._ok_press()
 
     def _ok_press(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -164,6 +193,7 @@ class AboutDialog:
             latest = check_latest(nam)
             txt = f"{nam}: {current}"
             if latest == current:
+                txt += ". ✓"
                 col = "green"
             elif latest == "N/A":
                 txt += ". Info not available!"

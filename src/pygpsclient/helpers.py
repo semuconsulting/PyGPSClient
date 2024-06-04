@@ -338,6 +338,7 @@ def hsv2rgb(h: float, s: float, v: float) -> str:
     :rtype: str
     """
 
+    r = g = b = 0
     v = int(v * 255)
     if s == 0.0:
         return rgb2str(v, v, v)
