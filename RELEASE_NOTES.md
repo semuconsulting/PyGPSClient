@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.4.18
+
+FIXES:
+
+1. Fix PUBX03 proprietary NMEA sentence handling - Fixes [#136](https://github.com/semuconsulting/PyGPSClient/issues/136)
+
 ### RELEASE 1.4.17
 
 CHANGES:
