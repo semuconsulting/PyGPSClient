@@ -302,8 +302,8 @@ class NMEAHandler:
             gsv_dict[key] = (
                 gnss,
                 svid,
-                getattr(data, f"azi_{i+1:02}"),
                 getattr(data, f"ele_{i+1:02}"),
+                getattr(data, f"azi_{i+1:02}"),
                 str(getattr(data, f"cno_{i+1:02}")),
                 now,
             )
