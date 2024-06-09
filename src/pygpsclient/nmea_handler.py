@@ -260,7 +260,7 @@ class NMEAHandler:
 
     def _process_UBX00(self, data: NMEAMessage):
         """
-        Process UXB00 sentence - Lat/Long position data.
+        Process UBX00 sentence - Lat/Long position data.
 
         :param pynmeagps.NMEAMessage data: parsed UBX,00 sentence
         """
@@ -278,7 +278,7 @@ class NMEAHandler:
 
     def _process_UBX03(self, data: NMEAMessage):
         """
-        Process UXB03 sentence - NMEA Satellite Status.
+        Process UBX03 sentence - NMEA Satellite Status.
 
         NB: this message appears to use the legacy NMEA 2.n
         SVID numbering scheme. This may conflict with GSV
@@ -302,8 +302,8 @@ class NMEAHandler:
             gsv_dict[key] = (
                 gnss,
                 svid,
-                getattr(data, f"azi_{i+1:02}"),
                 getattr(data, f"ele_{i+1:02}"),
+                getattr(data, f"azi_{i+1:02}"),
                 str(getattr(data, f"cno_{i+1:02}")),
                 now,
             )
@@ -312,7 +312,7 @@ class NMEAHandler:
             self.gsv_log[key] = gsv_dict[key]
 
         for key in self.gsv_log:
-            gnssId, svid, elev, azim, snr, lastupdate = self.gsv_log[key]
+            gnssId, svid, azim, elev, azim, snr, lastupdate = self.gsv_log[key]
             if snr in ("", "0", 0) and not show_unused:  # omit unused sats
                 continue
             if now - lastupdate < SAT_EXPIRY:  # expire passed sats
