@@ -297,9 +297,9 @@ class NMEAHandler:
             svid = getattr(data, f"svid_{i+1:02}")
             gnss = svid2gnssid(svid)
             # fudge to make PUBX03 svid numbering consistent with GSV
-            if gnss == 2:  # Galileo
+            if gnss == 2 and svid > 210:  # Galileo
                 svid -= 210
-            if gnss == 3:  # Beidou
+            if gnss == 3 and svid > 32:  # Beidou
                 svid -= 32
             key = f"{gnss}-{svid}"
             gsv_dict[key] = (
