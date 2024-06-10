@@ -294,10 +294,13 @@ class NMEAHandler:
         gsv_dict = {}
         now = time()
         for i in range(data.numSv):
-            # status = getattr(data, f"status_{i+1:02}")
-            # if status == "U" or show_unused:
             svid = getattr(data, f"svid_{i+1:02}")
             gnss = svid2gnssid(svid)
+            # fudge to make PUBX03 svid numbering consistent with GSV
+            if gnss == 2:  # Galileo
+                svid -= 210
+            if gnss == 3:  # Beidou
+                svid -= 32
             key = f"{gnss}-{svid}"
             gsv_dict[key] = (
                 gnss,
