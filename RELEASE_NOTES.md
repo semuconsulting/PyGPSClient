@@ -1,5 +1,12 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.4.18
+
+FIXES:
+
+1. Fix PUBX03 NMEA handling for Sky View - Fixes [#138](https://github.com/semuconsulting/PyGPSClient/issues/138)
+1. Make PUBX03 SVID numbering consistent with GSV
+
 ### RELEASE 1.4.17
 
 CHANGES:
