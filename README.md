@@ -51,6 +51,149 @@ For [Bug reports](https://github.com/semuconsulting/PyGPSClient/blob/master/.git
 This is an independent project and we have no affiliation whatsoever with u-blox.
 
 ---
+## <a name="installation">Installation</a>
+
+In the following, `python3` & `pip` refer to the Python 3 executables. You may need to type `python` or `pip3`, depending on your particular environment. **It is strongly recommended that** the Python 3 `/bin` (`\Scripts` on Windows) and site_packages directories are included in your PATH (*most standard Python 3 installation packages will do this automatically if you select the 'Add to PATH' option during installation*).
+
+NB: if you're installing onto a 32-bit Linux platform (e.g. Raspberry Pi OS 32), there may be additional installation steps - see note*⁵* below.
+
+### Platform Dependencies
+
+- Python >= 3.8*¹*
+- Tk (tkinter) >= 8.6*²*
+- Screen resolution >= 800 x 600; Ideally >= 1920 x 1080, though the main application window is resizeable and reconfigurable.
+
+**All platforms**
+
+*¹* It is highly recommended to use the latest official [Python.org](https://www.python.org/downloads/) installation package for your platform, rather than any pre-installed version.
+
+**Windows 10 or later:**
+
+Normally installs without any additional steps.
+
+**MacOS 12 or later:**
+
+*²* The version of Python supplied with most Apple MacOS platforms includes a [deprecated version of tkinter](https://www.python.org/download/mac/tcltk/) (8.5). Use an official [Python.org](https://www.python.org/downloads/) installation package instead.
+
+**Linux (including Raspberry Pi OS):**
+
+*³* Some Linux distributions may not include the necessary pip, tkinter or Pillow imaging libraries by default. They may need to be installed separately, e.g.:
+
+```shell
+sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk libjpeg-dev zlib1g-dev
+```
+
+*⁴* If you're compiling the latest version of Python 3 from source, you may also need to install tk-dev (or a similarly named package e.g. tk-devel) first. Refer to http://wiki.python.org/moin/TkInter for further details:
+
+```shell
+sudo apt install tk-dev
+```
+
+*⁵* On some 32-bit Linux platforms (e.g. Raspberry Pi OS 32), it may be necessary to [install Rust compiler support](https://www.rust-lang.org/tools/install) and some [additional build dependencies](https://cryptography.io/en/latest/installation/) in order to install the `cryptography` library which PyGPSClient depends on to decrypt SPARTN messages (see  [pyspartn cryptography installation notes](https://github.com/semuconsulting/pyspartn/tree/main/cryptography_installation#readme)):
+
+```shell
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+sudo apt-get install build-essential libssl-dev libffi-dev python3-dev pkg-config
+```
+
+### User Privileges
+
+To access the serial port on most Linux platforms, you will need to be a member of the 
+`tty` and/or `dialout` groups. Other than this, no special privileges are required.
+
+```shell
+usermod -a -G tty myuser
+```
+
+### Install using pip
+
+![Python version](https://img.shields.io/pypi/pyversions/PyGPSClient.svg?style=flat)
+[![PyPI version](https://img.shields.io/pypi/v/PyGPSClient.svg?style=flat)](https://pypi.org/project/PyGPSClient/)
+![PyPI downloads](https://img.shields.io/pypi/dm/PyGPSClient.svg?style=flat)
+
+The easiest way to install the latest version of `PyGPSClient` is with [pip](http://pypi.python.org/pypi/pip/):
+
+```shell
+python3 -m pip install --upgrade pygpsclient
+```
+
+If required, `PyGPSClient` can also be installed into a virtual environment, e.g.:
+
+```shell
+python3 -m pip install --user --upgrade virtualenv
+python3 -m virtualenv env
+source env/bin/activate (or env\Scripts\activate on Windows)
+python3 -m pip install --upgrade pygpsclient
+./env/bin/pygpsclient
+...
+deactivate
+```
+
+The pip installation process places an executable file `pygpsclient` in the Python binaries folder (`..\bin` on Linux & MacOS, `../Scripts` on Windows). The location of this file depends on your specific Python configuration but is typically:
+
+1. Windows: `C:\Users\myuser\AppData\Roaming\Python\Python3**\Scripts\pygpsclient.exe`
+2. MacOS: `/Library/Frameworks/Python.framework/Versions/3.**/bin/pygpsclient`
+3. Linux: `/home/myuser/.local/bin/pygpsclient`
+4. Virtualenv: `env/bin/pygpsclient` (or `env\Scripts\pygpsclient.exe` on Windows)
+
+where `**` signifies the Python version e.g. `3.12`.
+
+The PyGPSClient application may be started by double-clicking on this executable file from your file manager or, if the binaries folder is in your PATH, by opening a terminal and typing (all lowercase):
+
+```shell
+pygpsclient
+```
+
+`pygpsclient` also accepts optional command line arguments for a variety of configurable parameters. These will override any saved configuration file settings. Type the following for help:
+```shell
+pygpsclient -h
+```
+
+**NB:** If the Python 3 binaries folder is *not* in your PATH, you will need to add the fully-qualified path to the `pygpsclient` executable in the command above.
+
+### Creating A Desktop Application Launcher
+
+The pip installation process does not automatically create an desktop application launcher, but this can be done manually:
+
+**Windows:**
+
+To create an application launcher for Windows, create a new Shortcut named `PyGPSClient` with the following properties (*adapted for your particular environment*):
+
+- Target type: Application
+- Target location: Scripts
+- Target: `C:\Users\myuser\AppData\Roaming\Python\Python3**\Scripts\pygpsclient.exe`
+- Start in: `C:\Users\myuser`
+- Run: Minimized
+
+and place this in the `C:\Users\myuser\AppData\Roaming\Microsoft\Windows\Start Menu\Programs` directory (*you may need Administrator privileges to do this*). To assign an icon to this shortcut, select Change Icon.. and Browse to the pygpsclient.ico file in the site_packages folder (e.g.`C:\Users\myuser\AppData\Roaming\Python\Python3**\site-packages\pygpsclient\resources\pygpsclient.ico`)
+
+**MacOS:**
+
+To create an application launcher for MacOS, use MacOS's Automator tool to create a "Run Shell Script" application and save this as `PyGPSClient.app`, e.g.
+
+Shell: /bin/zsh
+```
+/Library/Frameworks/Python.framework/Versions/3.**/bin/pygpsclient
+```
+
+To assign an icon to this shortcut, right-click on the `PyGPSClient` entry in the Applications folder, select "Get Info" and drag-and-drop the pygpsclient.ico image file from the site-packages folder (e.g. `/Library/Frameworks/Python.framework/Versions/3.**/lib/python3.**/site-packages/pygpsclient/resources/pygpsclient.ico`) to the default application icon at the top left of the "Get Info" panel.
+
+**Linux:**
+
+To create an application launcher for Linux distributions like Ubuntu, create a text file named `pygpsclient.desktop` with the following content (*adapted for your particular environment*) and copy this to the `/home/myuser/.local/share/applications` folder, e.g.
+
+```
+[Desktop Entry]
+Type=Application
+Terminal=false
+Name=PyGPSClient
+Icon=/home/myuser/.local/lib/python3.**/site-packages/pygpsclient/resources/pygpsclient.ico
+Exec=/home/myuser/.local/bin/pygpsclient
+```
+
+You will need to logout and login for the launcher to take effect.
+
+---
 ## <a name="instructions">Instructions</a>
 
 1. To connect to a GNSS receiver via USB or UART port, select the device from the listbox, set the appropriate serial connection parameters and click 
@@ -303,120 +446,6 @@ By default, the server/caster binds to the host address '0.0.0.0' (IPv4) or '::'
 *GPX Track Viewer screenshot*
 
 The GPX Track Viewer can display any valid GPX file containing trackpoints (`<trkpt>..</trkpt>` elements). The map display requires a free [MapQuest API key](#mapquestapi). The Y axis scales will reflect the current choice of units (metric or imperial). Click ![refresh icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-refresh-lined-24.png?raw=true) to refresh the display after any changes (e.g. resizing, zooming or change of units).
-
----
-## <a name="installation">Installation</a>
-
-In the following, `python3` & `pip` refer to the Python 3 executables. You may need to type 
-`python` or `pip3`, depending on your particular environment. It is strongly recommended that 
-the Python 3 scripts (bin) and site_packages directories are included in your PATH 
-(*most standard Python 3 installation packages will do this automatically if you select the 'Add to PATH' option during installation*).
-
-NB: if you're installing onto a 32-bit Linux platform (e.g. Raspberry Pi OS 32), there may be additional installation steps - see note*⁵* below.
-
-### Platform Dependencies
-
-- Python >= 3.8*¹*
-- Tk (tkinter) >= 8.6*²*
-- Screen resolution >= 800 x 600; Ideally >= 1920 x 1080, though the main application window is resizeable and reconfigurable.
-
-**All platforms**
-
-*¹* It is highly recommended to use the latest official [Python.org](https://www.python.org/downloads/) installation package for your platform, rather than any pre-installed version.
-
-**Windows 10 or later:**
-
-Normally installs without any additional steps.
-
-**MacOS 12 or later:**
-
-*²* The version of Python supplied with most Apple MacOS platforms includes a [deprecated version of tkinter](https://www.python.org/download/mac/tcltk/) (8.5). Use an official [Python.org](https://www.python.org/downloads/) installation package instead.
-
-**Linux (including Raspberry Pi OS):**
-
-*³* Some Linux distributions may not include the necessary pip, tkinter or Pillow imaging libraries by default. They may need to be installed separately, e.g.:
-
-```shell
-sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk libjpeg-dev zlib1g-dev
-```
-
-*⁴* If you're compiling the latest version of Python 3 from source, you may also need to install tk-dev (or a similarly named package e.g. tk-devel) first. Refer to http://wiki.python.org/moin/TkInter for further details:
-
-```shell
-sudo apt install tk-dev
-```
-
-*⁵* On some 32-bit Linux platforms (e.g. Raspberry Pi OS 32), it may be necessary to [install Rust compiler support](https://www.rust-lang.org/tools/install) and some [additional build dependencies](https://cryptography.io/en/latest/installation/) in order to install the `cryptography` library which PyGPSClient depends on to decrypt SPARTN messages (see  [pyspartn cryptography installation notes](https://github.com/semuconsulting/pyspartn/tree/main/cryptography_installation#readme)):
-
-```shell
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-sudo apt-get install build-essential libssl-dev libffi-dev python3-dev pkg-config
-```
-
-### User Privileges
-
-To access the serial port on most Linux platforms, you will need to be a member of the 
-`tty` and/or `dialout` groups. Other than this, no special privileges are required.
-
-```shell
-usermod -a -G tty myuser
-```
-
-### Install using pip
-
-![Python version](https://img.shields.io/pypi/pyversions/PyGPSClient.svg?style=flat)
-[![PyPI version](https://img.shields.io/pypi/v/PyGPSClient.svg?style=flat)](https://pypi.org/project/PyGPSClient/)
-![PyPI downloads](https://img.shields.io/pypi/dm/PyGPSClient.svg?style=flat)
-
-The easiest way to install the latest version of `PyGPSClient` is with [pip](http://pypi.python.org/pypi/pip/):
-
-```shell
-python3 -m pip install --upgrade pygpsclient
-```
-
-If required, `PyGPSClient` can also be installed into a virtual environment, e.g.:
-
-```shell
-python3 -m pip install --user --upgrade virtualenv
-python3 -m virtualenv env
-source env/bin/activate (or env\Scripts\activate on Windows)
-(env) python3 -m pip install --upgrade pygpsclient
-(env) ./env/bin/pygpsclient
-...
-deactivate
-```
-
-To run the application, if the Python 3 scripts (bin) directory is in your PATH, simply type (all lowercase): 
-```shell
-pygpsclient
-```
-
-`pygpsclient` also accepts optional command line arguments for a variety of configurable parameters. These will override any saved configuration file settings. Type the following for help:
-```shell
-pygpsclient -h
-```
-
-**NB:** If the Python 3 scripts (bin) directories is *not* in your PATH, you will need to add the fully-qualified path to `pygpsclient` in the command above.
-
-**Tip:** To create an application launcher for Linux distributions like Ubuntu, create a text file named `pygpsclient.desktop` with the following content (*edited for your particular environment*) and copy this to the `/home/user/.local/share/applications` folder, e.g.
-
-```
-[Desktop Entry]
-Type=Application
-Terminal=false
-Name=PyGPSClient
-Icon=/home/user/.local/lib/python3.12/site-packages/pygpsclient/resources/pygpsclient.ico
-Exec=/home/user/.local/bin/pygpsclient
-```
-
-**Tip:** To create an application launcher for MacOS, use MacOS's Automator tool to create a "Run Shell Script" application and save this as `PyGPSClient.app`, e.g.
-
-Shell: /bin/zsh
-```
-/Library/Frameworks/Python.framework/Versions/3.12/bin/pygpsclient
-```
-
-To assign an icon to this application, right-click on the `PyGPSClient` entry in the Applications folder, select "Get Info" and drag-and-drop the pygpsclient.ico image file from the site-packages folder (e.g. "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/pygpsclient/resources/pygpsclient.ico") to the default application icon at the top left.
 
 ---
 ## <a name="mapquestapi">MapQuest API Key</a>
