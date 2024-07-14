@@ -53,7 +53,7 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 ---
 ## <a name="installation">Installation</a>
 
-In the following, `python3` & `pip` refer to the Python 3 executables. You may need to type `python` or `pip3`, depending on your particular environment. **It is strongly recommended that** the Python 3 `/bin` (`\Scripts` on Windows) and site_packages directories are included in your PATH (*most standard Python 3 installation packages will do this automatically if you select the 'Add to PATH' option during installation*).
+In the following, `python3` & `pip` refer to the Python 3 executables. You may need to type `python` or `pip3`, depending on your particular environment. **It is strongly recommended that** the Python 3 binaries (`..\bin` on Linux & MacOS, `../Scripts` on Windows) and site_packages directories are included in your PATH (*most standard Python 3 installation packages will do this automatically if you select the 'Add to PATH' option during installation*).
 
 NB: if you're installing onto a 32-bit Linux platform (e.g. Raspberry Pi OS 32), there may be additional installation steps - see note*⁵* below.
 
@@ -153,7 +153,7 @@ pygpsclient -h
 
 ### Creating A Desktop Application Launcher
 
-The pip installation process does not automatically create an desktop application launcher, but this can be done manually:
+The pip installation process does not automatically create a desktop application launcher, but this can be done manually:
 
 **Windows:**
 
@@ -180,7 +180,7 @@ To assign an icon to this shortcut, right-click on the `PyGPSClient` entry in th
 
 **Linux:**
 
-To create an application launcher for Linux distributions like Ubuntu, create a text file named `pygpsclient.desktop` with the following content (*adapted for your particular environment*) and copy this to the `/home/myuser/.local/share/applications` folder, e.g.
+To create an application launcher for most Linux distributions, create a text file named `pygpsclient.desktop` with the following content (*adapted for your particular environment*) and copy this to the `/home/myuser/.local/share/applications` folder, e.g.
 
 ```
 [Desktop Entry]
