@@ -53,7 +53,7 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 ---
 ## <a name="installation">Installation</a>
 
-In the following, `python3` & `pip` refer to the Python 3 executables. You may need to type `python` or `pip3`, depending on your particular environment (*on Windows it's generally `python`*). **It is strongly recommended that** the Python 3 binaries (`..\bin` on Linux & MacOS, `../Scripts` on Windows) and site_packages directories are included in your PATH (*most standard Python 3 installation packages will do this automatically if you select the 'Add to PATH' option during installation*).
+In the following, `python3` & `pip` refer to the Python 3 executables. You may need to substitute `python` for `python3`, depending on your particular environment (*on Windows it's generally `python`*). **It is strongly recommended that** the Python 3 [binaries](#binaries) and site_packages directories are included in your PATH (*most standard Python 3 installation packages will do this automatically if you select the 'Add to PATH' option during installation*).
 
 NB: if you're installing onto a 32-bit Linux platform (e.g. Raspberry Pi OS 32), there may be additional installation steps - see note*⁵* below.
 
@@ -128,7 +128,7 @@ python3 -m pip install --upgrade pygpsclient
 deactivate
 ```
 
-The pip installation process places an executable file `pygpsclient` in the Python binaries folder (`..\bin` on Linux & MacOS, `../Scripts` on Windows). **Tip:** The location of this folder can usually be found by executing one of the following commands (*you may need to substitute `python` for `python3` on Windows*):
+The pip installation process places an executable file `pygpsclient` in the Python binaries folder (`..\bin` on Linux & MacOS, `../Scripts` on Windows). <a name="binaries">**Tip:**</a> The location of the relevant binaries folder can usually be found by executing one of the following commands:
 
 Global installation:
 ```shell
