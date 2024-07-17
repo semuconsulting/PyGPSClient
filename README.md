@@ -128,9 +128,14 @@ python3 -m pip install --upgrade pygpsclient
 deactivate
 ```
 
-The pip installation process places an executable file `pygpsclient` in the Python binaries folder (`..\bin` on Linux & MacOS, `../Scripts` on Windows). The location of this folder
-can usually be found by executing the following command (*you may need to substitute `python` for `python3` on Windows*):
+The pip installation process places an executable file `pygpsclient` in the Python binaries folder (`..\bin` on Linux & MacOS, `../Scripts` on Windows). **Tip:** The location of this folder can usually be found by executing one of the following commands (*you may need to substitute `python` for `python3` on Windows*):
 
+Global installation:
+```shell
+python3 -c "import os,sysconfig;print(sysconfig.get_path('scripts'))"
+```
+
+User installation:
 ```shell
 python3 -c "import os,sysconfig;print(sysconfig.get_path('scripts',f'{os.name}_user'))"
 ```
@@ -143,8 +148,6 @@ Typically:
 4. Virtualenv: `env/bin/pygpsclient` (or `env\Scripts\pygpsclient.exe` on Windows)
 
 where `**` signifies the Python version e.g. `3.12`.
-
-**Tip:** The location of the binaries folder can usually be found by 
 
 The PyGPSClient application may be started by double-clicking on this executable file from your file manager or, if the binaries folder is in your PATH, by opening a terminal and typing (all lowercase):
 
