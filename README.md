@@ -53,7 +53,7 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 ---
 ## <a name="installation">Installation</a>
 
-In the following, `python3` & `pip` refer to the Python 3 executables. You may need to type `python` or `pip3`, depending on your particular environment. **It is strongly recommended that** the Python 3 binaries (`..\bin` on Linux & MacOS, `../Scripts` on Windows) and site_packages directories are included in your PATH (*most standard Python 3 installation packages will do this automatically if you select the 'Add to PATH' option during installation*).
+In the following, `python3` & `pip` refer to the Python 3 executables. You may need to type `python` or `pip3`, depending on your particular environment (*on Windows it's generally `python`*). **It is strongly recommended that** the Python 3 binaries (`..\bin` on Linux & MacOS, `../Scripts` on Windows) and site_packages directories are included in your PATH (*most standard Python 3 installation packages will do this automatically if you select the 'Add to PATH' option during installation*).
 
 NB: if you're installing onto a 32-bit Linux platform (e.g. Raspberry Pi OS 32), there may be additional installation steps - see note*⁵* below.
 
@@ -128,7 +128,14 @@ python3 -m pip install --upgrade pygpsclient
 deactivate
 ```
 
-The pip installation process places an executable file `pygpsclient` in the Python binaries folder (`..\bin` on Linux & MacOS, `../Scripts` on Windows). The location of this file depends on your specific Python configuration but is typically:
+The pip installation process places an executable file `pygpsclient` in the Python binaries folder (`..\bin` on Linux & MacOS, `../Scripts` on Windows). The location of this folder
+can usually be found by executing the following command (*you may need to substitute `python` for `python3` on Windows*):
+
+```shell
+python3 -c "import os,sysconfig;print(sysconfig.get_path('scripts',f'{os.name}_user'))"
+```
+
+Typically:
 
 1. Windows: `C:\Users\myuser\AppData\Roaming\Python\Python3**\Scripts\pygpsclient.exe`
 2. MacOS: `/Library/Frameworks/Python.framework/Versions/3.**/bin/pygpsclient`
@@ -136,6 +143,8 @@ The pip installation process places an executable file `pygpsclient` in the Pyth
 4. Virtualenv: `env/bin/pygpsclient` (or `env\Scripts\pygpsclient.exe` on Windows)
 
 where `**` signifies the Python version e.g. `3.12`.
+
+**Tip:** The location of the binaries folder can usually be found by 
 
 The PyGPSClient application may be started by double-clicking on this executable file from your file manager or, if the binaries folder is in your PATH, by opening a terminal and typing (all lowercase):
 
