@@ -124,7 +124,6 @@ python3 -m pip install --user --upgrade virtualenv
 python3 -m virtualenv env
 source env/bin/activate (or env\Scripts\activate on Windows)
 python3 -m pip install --upgrade pygpsclient
-./env/bin/pygpsclient
 ...
 deactivate
 ```
