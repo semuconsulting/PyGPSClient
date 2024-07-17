@@ -128,7 +128,9 @@ python3 -m pip install --upgrade pygpsclient
 deactivate
 ```
 
-The pip installation process places an executable file `pygpsclient` in the Python binaries folder (`..\bin` on Linux & MacOS, `../Scripts` on Windows). <a name="binaries">**Tip:**</a> The location of the relevant binaries folder can usually be found by executing one of the following commands:
+The pip installation process places an executable file `pygpsclient` in the Python binaries folder (`../bin` on Linux & MacOS, `..\Scripts` on Windows).
+
+<a name="binaries">**Tip:**</a> The location of the relevant binaries folder can usually be found by executing one of the following commands:
 
 Global installation:
 ```shell
