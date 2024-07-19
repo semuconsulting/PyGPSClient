@@ -59,7 +59,7 @@ NB: if you're installing onto a 32-bit Linux platform (e.g. Raspberry Pi OS 32),
 
 ### Platform Dependencies
 
-- Python >= 3.8*¹*
+- Python 3.8 - 3.12*¹* (3.13 prerelease not currently supported due to build issue with `cffi` library dependency)
 - Tk (tkinter) >= 8.6*²*
 - Screen resolution >= 800 x 600; Ideally >= 1920 x 1080, though the main application window is resizeable and reconfigurable.
 
