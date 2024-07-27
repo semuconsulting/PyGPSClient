@@ -196,6 +196,7 @@ KNOWNGPS = (
 KPH2KNT = 0.5399568
 KPH2MPH = 0.621371
 KPH2MPS = 0.2777776918389111005
+LICENSE_URL = "https://github.com/semuconsulting/PyGPSClient/blob/master/LICENSE"
 M2FT = 3.28084
 MAX_SNR = 60  # upper limit of graphview snr axis
 MAXLOGLINES = 10000  # maximum number of 'lines' per datalog file
