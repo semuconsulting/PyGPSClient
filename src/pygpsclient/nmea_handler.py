@@ -16,6 +16,7 @@ Created on 30 Sep 2020
 :license: BSD 3-Clause
 """
 
+import logging
 from time import time
 
 from pynmeagps import NMEAMessage
@@ -38,6 +39,7 @@ class NMEAHandler:
 
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
+        self.logger = logging.getLogger(__name__)
 
         self._raw_data = None
         self._parsed_data = None
@@ -58,7 +60,7 @@ class NMEAHandler:
         try:
             if raw_data is None:
                 return
-
+            # self.logger.debug(f"data received {parsed_data.identity}")
             if parsed_data.msgID == "RMC":  # Recommended minimum data for GPS
                 self._process_RMC(parsed_data)
             elif parsed_data.msgID == "GGA":  # GPS Fix Data

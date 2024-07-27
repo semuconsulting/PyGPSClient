@@ -18,6 +18,7 @@ Created on 16 Sep 2020
 """
 
 import json
+import logging
 from datetime import datetime, timedelta
 from pathlib import Path
 from tkinter import filedialog
@@ -25,8 +26,8 @@ from tkinter import filedialog
 from pyubx2 import hextable
 
 from pygpsclient.globals import (
+    APPNAME,
     CONFIGFILE,
-    CONFIGNAME,
     FORMAT_BINARY,
     FORMAT_BOTH,
     FORMAT_HEXSTR,
@@ -57,6 +58,7 @@ class FileHandler:
 
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
+        self.logger = logging.getLogger(__name__)
         self._in_filepath = None
         self._in_filename = None
         self._logpath = None
@@ -164,7 +166,7 @@ class FileHandler:
                 filename = filedialog.asksaveasfilename(
                     title=CONFIGTITLE,
                     initialdir=HOME,
-                    initialfile=f"{CONFIGNAME}.json",
+                    initialfile=f"{APPNAME}.json",
                     filetypes=(
                         ("config files", "*.json"),
                         ("all files", "*.*"),

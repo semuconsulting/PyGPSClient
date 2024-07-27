@@ -25,6 +25,7 @@ from pyubx2 import GET, POLL, SET, SETPOLL
 Point = namedtuple("Point", ["lat", "lon"])
 HOME = Path.home()
 
+APPNAME = __name__.split(".", 1)[0]  # i.e. "pygpsclient"
 BADCOL = "red"
 BGCOL = "gray24"  # default widget background color
 BPSRATES = (
@@ -43,8 +44,7 @@ CFG = "cfg"
 CHECK_FOR_UPDATES = False
 CLASS = "cls"
 COLORTAGS = "colortags"
-CONFIGNAME = "pygpsclient"
-CONFIGFILE = path.join(HOME, f"{CONFIGNAME}.json")
+CONFIGFILE = path.join(HOME, f"{APPNAME}.json")
 CONNECTED = 1
 CONNECTED_FILE = 4
 CONNECTED_NTRIP = 8

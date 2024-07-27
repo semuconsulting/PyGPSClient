@@ -13,6 +13,15 @@ PyGPSClient - Main tkinter application class.
 - Maintains central dictionary of current key navigation data as
   `gnss_status`, for use by user-selectable widgets.
 
+Global logging configuration is defined in __main__.py. To enable module
+logging, this and other subsidiary modules can use:
+
+```self.logger = logging.getLogger(__name__)```
+
+To override individual module loglevel, use e.g.
+
+```self.logger.setLevel(INFO)```
+
 Created on 12 Sep 2020
 
 :author: semuadmin
@@ -22,6 +31,7 @@ Created on 12 Sep 2020
 
 # pylint: disable=too-many-ancestors, no-member
 
+import logging
 from datetime import datetime, timedelta, timezone
 from os import getenv, path
 from pathlib import Path
@@ -131,6 +141,7 @@ class App(Frame):
         """
 
         self.__master = master
+        self.logger = logging.getLogger(__name__)
 
         # user-defined serial port can be passed as environment variable
         # or command line keyword argument
@@ -911,6 +922,7 @@ class App(Frame):
         :param str marker: string prepended to console entries e.g. "NTRIP>>"
         """
 
+        # self.logger.debug(f"data received {parsed_data.identity}")
         settings = self.frm_settings.config
         msgprot = 0
         protfilter = settings["protocol_n"]
