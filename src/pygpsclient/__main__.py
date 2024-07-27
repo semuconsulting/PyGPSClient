@@ -116,7 +116,7 @@ def main():
         ),
         type=int,
         choices=[VERBOSITY_LOW, VERBOSITY_MEDIUM, VERBOSITY_HIGH, VERBOSITY_DEBUG],
-        default=VERBOSITY_MEDIUM,
+        default=VERBOSITY_LOW,
     )
     ap.add_argument(
         "--logtofile",
@@ -127,15 +127,11 @@ def main():
     )
     kwargs = vars(ap.parse_args())
 
+    # set up global logging configuration
     logger = logging.getLogger(APPNAME)
-    # This sets logger configuration globally.
-    # Subsidiary modules can use:
-    # `self.logger = logging.getLogger(__name__)`
-    # as __name__ expands to "APPNAME.module_name"
     set_logging(
-        logger, kwargs.pop("verbosity", VERBOSITY_MEDIUM), kwargs.pop("logtofile", "")
+        logger, kwargs.get("verbosity", VERBOSITY_LOW), kwargs.get("logtofile", "")
     )
-    # To override individual module loglevel, use e.g. `self.logger.setLevel(INFO)`
 
     root = Tk()
     App(root, **kwargs)

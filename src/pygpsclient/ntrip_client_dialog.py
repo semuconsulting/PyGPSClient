@@ -649,6 +649,7 @@ class NTRIPConfigDialog(Toplevel):
 
         if self._valid_settings():
             self._set_settings()
+            # verbosity and logtofile set in App.__init__()
             self.__app.ntrip_handler.run(
                 ipprot=IP6 if self._settings["ipprot"] == AF_INET6 else IP4,
                 server=self._settings["server"],
