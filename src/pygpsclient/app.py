@@ -752,9 +752,8 @@ class App(Frame):
                 ClientHandler,
                 ntripuser=ntripuser,
                 ntrippassword=ntrippassword,
-                # logging not yet implemented in SocketServer
-                # verbosity=self.verbosity,
-                # logtofile=self.logtofile,
+                verbosity=self.verbosity,
+                logtofile=self.logtofile,
             ) as self._socket_server:
                 self._socket_server.serve_forever()
         except OSError as err:
