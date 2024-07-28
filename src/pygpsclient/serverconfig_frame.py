@@ -15,7 +15,7 @@ Application icons from https://iconmonstr.com/license/.
 Created on 23 Jul 2023
 
 :author: semuadmin
-:copyright: SEMU Consulting © 2022
+:copyright: 2020 SEMU Consulting
 :license: BSD 3-Clause
 """
 

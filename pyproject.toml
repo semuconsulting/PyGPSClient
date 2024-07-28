@@ -116,7 +116,6 @@ disable = """
     deprecated-pragma,
     use-symbolic-message-instead,
     too-many-instance-attributes,
-    too-many-branches,
     unused-private-member,
     too-few-public-methods,
     too-many-public-methods,

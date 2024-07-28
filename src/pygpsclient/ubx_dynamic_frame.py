@@ -18,7 +18,7 @@ POLL responses.
 Created on 17 Aug 2022
 
 :author: semuadmin
-:copyright: SEMU Consulting © 2022
+:copyright: 2020 SEMU Consulting
 :license: BSD 3-Clause
 """
 

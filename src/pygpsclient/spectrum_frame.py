@@ -9,7 +9,7 @@ a MON-SPAN message.
 Created on 23 Dec 2022
 
 :author: semuadmin
-:copyright: SEMU Consulting © 2022
+:copyright: 2020 SEMU Consulting
 :license: BSD 3-Clause
 """
 

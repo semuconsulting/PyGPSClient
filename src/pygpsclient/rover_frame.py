@@ -9,7 +9,7 @@ fixed or moving base RTK configuration.
 Created on 22 Aug 2023
 
 :author: semuadmin
-:copyright: SEMU Consulting © 2022
+:copyright: 2020 SEMU Consulting
 :license: BSD 3-Clause
 """
 

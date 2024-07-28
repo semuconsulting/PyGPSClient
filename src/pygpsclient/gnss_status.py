@@ -8,11 +8,11 @@ Container for the latest readings from the GNSS receiver.
 Created on 07 Apr 2022
 
 :author: semuadmin
-:copyright: SEMU Consulting © 2022
+:copyright: 2020 SEMU Consulting
 :license: BSD 3-Clause
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 
 class GNSSStatus:
@@ -26,7 +26,7 @@ class GNSSStatus:
         Constructor.
         """
 
-        self.utc = datetime.utcnow().time().replace(microsecond=0)  # UTC time
+        self.utc = datetime.now(UTC).time().replace(microsecond=0)  # UTC time
         self.lat = 0.0  # latitude as decimal
         self.lon = 0.0  # longitude as decimal
         self.alt = 0.0  # height above sea level m

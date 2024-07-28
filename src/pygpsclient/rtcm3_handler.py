@@ -8,7 +8,7 @@ Parses individual RTCM3 sentences (using pyrtcm library).
 Created on 10 Apr 2022
 
 :author: semuadmin
-:copyright: SEMU Consulting © 2022
+:copyright: 2020 SEMU Consulting
 :license: BSD 3-Clause
 """
 
