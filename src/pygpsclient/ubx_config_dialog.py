@@ -32,7 +32,6 @@ from pygpsclient.globals import (
     CONNECTED,
     CONNECTED_SIMULATOR,
     CONNECTED_SOCKET,
-    DLGTUBX,
     ENABLE_CFG_OTHER,
     ICON_EXIT,
     POPUP_TRANSIENT,
@@ -47,7 +46,7 @@ from pygpsclient.globals import (
     UBX_MONVER,
     UBX_PRESET,
 )
-from pygpsclient.strings import DLGUBXCONFIG
+from pygpsclient.strings import DLGTUBX, DLGUBXCONFIG
 from pygpsclient.ubx_cfgval_frame import UBX_CFGVAL_Frame
 from pygpsclient.ubx_dynamic_frame import UBX_Dynamic_Frame
 from pygpsclient.ubx_info_frame import UBX_INFO_Frame

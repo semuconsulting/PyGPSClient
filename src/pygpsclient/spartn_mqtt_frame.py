@@ -408,6 +408,7 @@ class SPARTNMQTTDialog(Frame):
                 self.__container.set_pending(RXMMSG, SPARTN_GNSS)
 
             self._set_settings()
+            # verbosity and logtofile set in App.__init__()
             self.__app.spartn_handler.start(
                 server=self._settings["server"],
                 port=self._settings["port"],

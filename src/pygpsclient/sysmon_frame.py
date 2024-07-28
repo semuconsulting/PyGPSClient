@@ -10,7 +10,7 @@ types.
 Created on 30 Apr 2023
 
 :author: semuadmin
-:copyright: SEMU Consulting © 2022
+:copyright: 2020 SEMU Consulting
 :license: BSD 3-Clause
 """
 

@@ -24,15 +24,9 @@ from pyspartn import version as SPARTNVERSION
 from pyubx2 import version as UBXVERSION
 
 from pygpsclient._version import __version__ as VERSION
-from pygpsclient.globals import (
-    DLGTABOUT,
-    GITHUB_URL,
-    ICON_APP128,
-    ICON_EXIT,
-    ICON_GITHUB,
-)
+from pygpsclient.globals import ICON_APP128, ICON_EXIT, ICON_GITHUB, LICENSE_URL
 from pygpsclient.helpers import check_latest
-from pygpsclient.strings import ABOUTTXT, COPYRIGHTTXT, DLGABOUT
+from pygpsclient.strings import ABOUTTXT, COPYRIGHTTXT, DLGABOUT, DLGTABOUT, GITHUB_URL
 
 LIBVERSIONS = {
     "PyGPSClient": VERSION,
@@ -126,6 +120,7 @@ class AboutDialog:
             self._frm_container,
             text=COPYRIGHTTXT,
             font=self.__app.font_sm,
+            cursor="hand2",
         )
         self._btn_ok = Button(
             self._frm_container,
@@ -164,6 +159,7 @@ class AboutDialog:
         self._btn_checkupdate.bind("<Button>", self._check_for_update)
         self._lbl_giticon.bind("<Button>", self._on_github)
         self._lbl_github.bind("<Button>", self._on_github)
+        self._lbl_copyright.bind("<Button>", self._on_license)
         self._btn_ok.bind("<Return>", self._ok_press)
         self._btn_ok.focus_set()
 
@@ -173,6 +169,14 @@ class AboutDialog:
         """
 
         open_new_tab(GITHUB_URL)
+        self._ok_press()
+
+    def _on_license(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Close dialog and go to GitHub LICENSE file.
+        """
+
+        open_new_tab(LICENSE_URL)
         self._ok_press()
 
     def _ok_press(self, *args, **kwargs):  # pylint: disable=unused-argument

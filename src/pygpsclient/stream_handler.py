@@ -27,6 +27,7 @@ Created on 16 Sep 2020
 :license: BSD 3-Clause
 """
 
+import logging
 import socket
 import ssl
 from datetime import datetime, timedelta
@@ -74,6 +75,7 @@ class StreamHandler:
 
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
+        self.logger = logging.getLogger(__name__)
 
         self._stream_thread = None
         self._stopevent = Event()

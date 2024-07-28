@@ -15,11 +15,13 @@ Created on 30 Sep 2020
 :license: BSD 3-Clause
 """
 
+import logging
+
 from pyubx2 import UBXMessage, itow2utc
 
-from pygpsclient.globals import DLGTSPARTN, DLGTUBX, GLONASS_NMEA, UTF8
+from pygpsclient.globals import GLONASS_NMEA, UTF8
 from pygpsclient.helpers import corrage2int, fix2desc, ned2vector, svid2gnssid
-from pygpsclient.strings import NA
+from pygpsclient.strings import DLGTSPARTN, DLGTUBX, NA
 from pygpsclient.widget_state import VISIBLE, WDGSPECTRUM, WDGSYSMON
 
 
@@ -37,6 +39,7 @@ class UBXHandler:
 
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
+        self.logger = logging.getLogger(__name__)
 
         self._cdb = 0
         self._raw_data = None
@@ -55,7 +58,7 @@ class UBXHandler:
 
         if raw_data is None:
             return
-
+        # self.logger.debug(f"data received {parsed_data.identity}")
         if parsed_data.identity[0:3] in ("ACK", "CFG"):
             self._process_ACK(parsed_data)
         elif parsed_data.identity == "MON-VER":

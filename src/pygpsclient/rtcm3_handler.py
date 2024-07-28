@@ -8,9 +8,11 @@ Parses individual RTCM3 sentences (using pyrtcm library).
 Created on 10 Apr 2022
 
 :author: semuadmin
-:copyright: SEMU Consulting © 2022
+:copyright: 2020 SEMU Consulting
 :license: BSD 3-Clause
 """
+
+import logging
 
 
 class RTCM3Handler:
@@ -27,6 +29,7 @@ class RTCM3Handler:
 
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
+        self.logger = logging.getLogger(__name__)
 
         self._raw_data = None
         self._parsed_data = None

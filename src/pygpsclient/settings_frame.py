@@ -60,10 +60,6 @@ from pygpsclient.globals import (
     CONNECTED_SOCKET,
     DDD,
     DISCONNECTED,
-    DLG,
-    DLGTNTRIP,
-    DLGTSPARTN,
-    DLGTUBX,
     DMM,
     DMS,
     ECEF,
@@ -102,6 +98,10 @@ from pygpsclient.serialconfig_frame import SerialConfigFrame
 from pygpsclient.serverconfig_frame import ServerConfigFrame
 from pygpsclient.socketconfig_frame import SocketConfigFrame
 from pygpsclient.strings import (
+    DLG,
+    DLGTNTRIP,
+    DLGTSPARTN,
+    DLGTUBX,
     LBLDATADISP,
     LBLDATALOG,
     LBLDEGFORMAT,

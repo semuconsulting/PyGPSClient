@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.4.19
+
+CHANGES:
+
+1. Add modular logging facility. Logging configuration is defined globally in `__main__.py`, with global log level and destination set via the CLI `--verbosity` and `--logtofile` arguments. Subsidiary modules can use `self.logger = logging.setLogger(__name__)` and individual module log levels can be overridden using e.g. `self.logger.setLevel(DEBUG)`.
+
 ### RELEASE 1.4.18
 
 FIXES:

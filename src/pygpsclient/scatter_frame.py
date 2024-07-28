@@ -16,6 +16,7 @@ statistics and geographiclib libraries.
 :license: BSD 3-Clause
 """
 
+from collections import namedtuple
 from math import cos, radians, sin
 from tkinter import (
     BOTH,
@@ -34,7 +35,7 @@ from tkinter import (
 
 from pynmeagps import bearing, haversine, planar
 
-from pygpsclient.globals import BGCOL, FGCOL, WIDGETU2, Point
+from pygpsclient.globals import BGCOL, FGCOL, WIDGETU2
 from pygpsclient.skyview_frame import Canvas
 
 PLANAR = "Planar"
@@ -42,6 +43,8 @@ HAVERSINE = "Great Circle"
 MODES = (PLANAR, HAVERSINE)
 SQRT2 = 0.7071067811865476
 PNTCOL = "orange"
+
+Point = namedtuple("Point", ["lat", "lon"])
 
 
 class ScatterViewFrame(Frame):

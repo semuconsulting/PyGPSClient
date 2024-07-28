@@ -55,8 +55,6 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 
 In the following, `python3` & `pip` refer to the Python 3 executables. You may need to substitute `python` for `python3`, depending on your particular environment (*on Windows it's generally `python`*). **It is strongly recommended that** the Python 3 [binaries](#binaries) and site_packages directories are included in your PATH (*most standard Python 3 installation packages will do this automatically if you select the 'Add to PATH' option during installation*).
 
-NB: if you're installing onto a 32-bit Linux platform (e.g. Raspberry Pi OS 32), there may be additional installation steps - see note*⁶* below.
-
 ### Platform Dependencies
 
 - Python 3.8 - 3.13*¹ ²*
@@ -67,7 +65,7 @@ NB: if you're installing onto a 32-bit Linux platform (e.g. Raspberry Pi OS 32),
 
 *¹* It is highly recommended to use the latest official [Python.org](https://www.python.org/downloads/) installation package for your platform, rather than any pre-installed version.
 
-*²* At time of writing, Python>=3.13.0b4 (pre-release) requires a pre-release version of the `cffi` library (which is a dependency of `cryptography`):
+*²* At time of writing, Python >= 3.13.0b4 (pre-release) requires a pre-release version of the `cffi` library (which is a dependency of `cryptography`):
 ```shell
 python3.13 -m pip install --pre cffi==1.17.0rc1
 ```

@@ -13,6 +13,15 @@ PyGPSClient - Main tkinter application class.
 - Maintains central dictionary of current key navigation data as
   `gnss_status`, for use by user-selectable widgets.
 
+Global logging configuration is defined in __main__.py. To enable module
+logging, this and other subsidiary modules can use:
+
+```self.logger = logging.getLogger(__name__)```
+
+To override individual module loglevel, use e.g.
+
+```self.logger.setLevel(INFO)```
+
 Created on 12 Sep 2020
 
 :author: semuadmin
@@ -22,6 +31,7 @@ Created on 12 Sep 2020
 
 # pylint: disable=too-many-ancestors, no-member
 
+import logging
 from datetime import datetime, timedelta, timezone
 from os import getenv, path
 from pathlib import Path
@@ -30,7 +40,7 @@ from socket import AF_INET, AF_INET6
 from threading import Thread
 from tkinter import E, Frame, N, PhotoImage, S, TclError, Tk, Toplevel, W, font
 
-from pygnssutils import GNSSMQTTClient, GNSSNTRIPClient, MQTTMessage
+from pygnssutils import VERBOSITY_CRITICAL, GNSSMQTTClient, GNSSNTRIPClient, MQTTMessage
 from pygnssutils.socket_server import ClientHandler, SocketServer
 from pynmeagps import NMEAMessage
 from pyrtcm import RTCMMessage
@@ -55,8 +65,6 @@ from pygpsclient.globals import (
     DEFAULT_REGION,
     DEFAULT_USER,
     DISCONNECTED,
-    DLG,
-    DLGTNTRIP,
     FRAME,
     GNSS_EOF_EVENT,
     GNSS_ERR_EVENT,
@@ -71,7 +79,7 @@ from pygpsclient.globals import (
     SOCKSERVER_MAX_CLIENTS,
     SPARTN_EVENT,
     SPARTN_OUTPORT,
-    SPARTN_PPSERVER,
+    SPARTN_PPSERVER_URL,
     SPARTN_PROTOCOL,
     THD,
 )
@@ -83,7 +91,9 @@ from pygpsclient.rtcm3_handler import RTCM3Handler
 from pygpsclient.stream_handler import StreamHandler
 from pygpsclient.strings import (
     CONFIGERR,
+    DLG,
     DLGSTOPRTK,
+    DLGTNTRIP,
     ENDOFFILE,
     INACTIVE_TIMEOUT,
     INTROTXTNOPORTS,
@@ -131,6 +141,10 @@ class App(Frame):
         """
 
         self.__master = master
+        self.logger = logging.getLogger(__name__)
+        # self.logger.setLevel(logging.DEBUG)
+        self.verbosity = kwargs.pop("verbosity", VERBOSITY_CRITICAL)
+        self.logtofile = kwargs.pop("logtofile", "")
 
         # user-defined serial port can be passed as environment variable
         # or command line keyword argument
@@ -181,8 +195,16 @@ class App(Frame):
         self.nmea_handler = NMEAHandler(self)
         self.ubx_handler = UBXHandler(self)
         self.rtcm_handler = RTCM3Handler(self)
-        self.ntrip_handler = GNSSNTRIPClient(self, verbosity=0)
-        self.spartn_handler = GNSSMQTTClient(self, verbosity=0)
+        self.ntrip_handler = GNSSNTRIPClient(
+            self,
+            verbosity=self.verbosity,
+            logtofile=self.logtofile,
+        )
+        self.spartn_handler = GNSSMQTTClient(
+            self,
+            verbosity=self.verbosity,
+            logtofile=self.logtofile,
+        )
         self._conn_status = DISCONNECTED
         self._rtk_conn_status = DISCONNECTED
         self._socket_thread = None
@@ -575,7 +597,7 @@ class App(Frame):
         try:
             spartnsettings = {}
             spartnsettings["server"] = self.saved_config.get(
-                "mqttclientserver_s", SPARTN_PPSERVER
+                "mqttclientserver_s", SPARTN_PPSERVER_URL
             )
             spartnsettings["port"] = self.saved_config.get(
                 "mqttclientport_n", SPARTN_OUTPORT
@@ -730,6 +752,8 @@ class App(Frame):
                 ClientHandler,
                 ntripuser=ntripuser,
                 ntrippassword=ntrippassword,
+                verbosity=self.verbosity,
+                logtofile=self.logtofile,
             ) as self._socket_server:
                 self._socket_server.serve_forever()
         except OSError as err:
@@ -911,6 +935,7 @@ class App(Frame):
         :param str marker: string prepended to console entries e.g. "NTRIP>>"
         """
 
+        # self.logger.debug(f"data received {parsed_data.identity}")
         settings = self.frm_settings.config
         msgprot = 0
         protfilter = settings["protocol_n"]
@@ -967,9 +992,9 @@ class App(Frame):
         Check for updated version.
         """
 
-        latest = check_latest("PyGPSClient")
+        latest = check_latest(TITLE)
         if latest not in (VERSION, "N/A"):
-            self.set_status(VERCHECK.format(latest), BADCOL)
+            self.set_status(f"{VERCHECK} {latest}", BADCOL)
 
     def poll_version(self):
         """

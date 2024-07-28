@@ -12,24 +12,25 @@ Created on 12 Sep 2020
 
 # pylint: disable=line-too-long
 
+from pygpsclient.globals import GITHUB_URL, MAPAPI_URL
+
 TITLE = "PyGPSClient"
+COPYRIGHT = "\u00A9 2020 SEMU Consulting\nBSD 3-Clause License"
+COPYRIGHTTXT = f"{COPYRIGHT}. All Rights Reserved"
+EPILOG = f"{COPYRIGHT} - {GITHUB_URL}"
 
-COPYRIGHTTXT = "\u00A9 SEMU Consulting 2020\nBSD-2 License. All Rights Reserved"
-
-INTROTXT = "Welcome to PyGPSClient!"
-INTROTXTNOPORTS = "Welcome to PyGPSClient!"
+INTROTXT = f"Welcome to {TITLE}!"
+INTROTXTNOPORTS = INTROTXT
 
 HELPTXT = "Help..About - display About dialog."
 
 ABOUTTXT = (
-    "PyGPSClient is a free, open-source GNSS/GPS diagnostic and configuration "
-    + "application written entirely in Python and tkinter. "
-    + "It supports NMEA, UBX, RTCM3, NTRIP & SPARTN protocols. "
-    + "Instructions and source code are available on GitHub at the link below."
+    f"{TITLE} is a free, open-source GNSS/GPS diagnostic and configuration "
+    "application written entirely in Python and tkinter. "
+    "It supports NMEA, UBX, RTCM3, NTRIP & SPARTN protocols. "
+    "Instructions and source code are available on GitHub at the link below."
 )
 NA = "N/A"
-
-MAPAPIURL = "https://developer.mapquest.com/user/login/sign-up"
 
 # Message text
 BADJSONERROR = "ERROR! Invalid metadata file"
@@ -54,7 +55,7 @@ NOWEBMAP = "Unable to display map."
 NOWEBMAPCONN = NOWEBMAP + "\nCheck internet connection."
 NOWEBMAPFIX = NOWEBMAP + "\nNo satellite fix."
 NOWEBMAPHTTP = NOWEBMAP + "\nBad HTTP response: {}.\nCheck MQAPIKEY.\n"
-NOWEBMAPKEY = NOWEBMAP + f"\nMQAPIKEY not found or invalid.\n\n{MAPAPIURL}"
+NOWEBMAPKEY = NOWEBMAP + f"\nMQAPIKEY not found or invalid.\n\n{MAPAPI_URL}"
 NULLSEND = "Nothing to send"
 OUTOFBOUNDS = "No custom map available"
 OPENFILEERROR = "ERROR! File could not be opened"
@@ -68,7 +69,7 @@ SETINITTXT = "Settings initialised"
 STOPDATA = "Serial reader process stopped"
 UBXPOLL = "Polling current UBX configuration..."
 VALERROR = "ERROR! Please correct highlighted entries"
-VERCHECK = "Newer version of PyGPSClient available: {}"
+VERCHECK = f"Newer version of {TITLE} available:"
 WAITNMEADATA = "Waiting for data..."
 WAITUBXDATA = "Waiting for data..."
 NOWDGSWARN = "WARNING! No widgets are enabled in config file {} - display will be blank"
@@ -145,7 +146,8 @@ LBLUDPORT = "USER-DEFINED PORT"
 LBLDISNMEA = "Disable NMEA"
 
 # Dialog text
-DLGABOUT = "PyGPSClient"
+DLG = "dlg"
+DLGABOUT = TITLE
 DLGENABLEMONSPAN = "Enable or poll MON-SPAN message"
 DLGENABLEMONSYS = "Enable or poll MON-SYS/COMMS messages"
 DLGGPXERROR = "GPX PARSING ERROR!"
@@ -153,7 +155,7 @@ DLGGPXLOAD = "LOADING GPX TRACK ..."
 DLGGPXNULL = "NO TRACKPOINTS IN GPX FILE!"
 DLGGPXPROMPT = "CLICK FOLDER ICON TO LOAD GPX FILE"
 DLGGPXVIEWER = "GPX Track Viewer"
-DLGHOWTO = "How To Use PyGPSCLient"
+DLGHOWTO = f"How To Use {TITLE}"
 DLGJSONERR = "ERROR! {}"
 DLGJSONOK = "Keys loaded from {}"
 DLGNOMONSPAN = "This receiver does not appear to\nsupport the MON-SPAN messages"
@@ -171,6 +173,11 @@ DLGUBXCONFIG = "UBX Configuration"
 DLGWAITMONSPAN = "Waiting for MON-SPAN message..."
 DLGWAITMONSYS = "Waiting for MON-SYS/COMMS messages..."
 DLGSTOPRTK = "WARNING! Stop all active connections before loading configuration"
+DLGTABOUT = "About"
+DLGTGPX = "GPX Track Viewer"
+DLGTNTRIP = "NTRIP Configuration"
+DLGTSPARTN = "SPARTN Configuration"
+DLGTUBX = "UBX Configuration"
 
 # UBX Preset Command Descriptions
 PSTALLINFOFF = "CFG-INF - Turn OFF all non-error INF msgs"

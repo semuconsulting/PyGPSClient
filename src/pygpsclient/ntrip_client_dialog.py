@@ -14,7 +14,7 @@ the threaded NTRIP handler itself, NOT in this frame.
 Created on 2 Apr 2022
 
 :author: semuadmin
-:copyright: SEMU Consulting © 2022
+:copyright: 2020 SEMU Consulting
 :license: BSD 3-Clause
 """
 
@@ -51,7 +51,6 @@ from pygnssutils.helpers import find_mp_distance
 from pygpsclient.globals import (
     CONNECTED_NTRIP,
     DISCONNECTED,
-    DLGTNTRIP,
     GGA_INTERVALS,
     ICON_CONN,
     ICON_DISCONN,
@@ -73,6 +72,7 @@ from pygpsclient.helpers import MAXALT, VALFLOAT, get_mp_info, valid_entry
 from pygpsclient.socketconfig_frame import SocketConfigFrame
 from pygpsclient.strings import (
     DLGNTRIPCONFIG,
+    DLGTNTRIP,
     LBLGGAFIXED,
     LBLGGALIVE,
     LBLNTRIPGGAINT,
@@ -649,6 +649,7 @@ class NTRIPConfigDialog(Toplevel):
 
         if self._valid_settings():
             self._set_settings()
+            # verbosity and logtofile set in App.__init__()
             self.__app.ntrip_handler.run(
                 ipprot=IP6 if self._settings["ipprot"] == AF_INET6 else IP4,
                 server=self._settings["server"],
