@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.4.20
+
+CHANGES:
+
+1. Minor improvements to settings frame appearance.
+
 ### RELEASE 1.4.19
 
 CHANGES:
