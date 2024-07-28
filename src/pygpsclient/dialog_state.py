@@ -12,20 +12,11 @@ Created on 16 Aug 2023
 """
 
 from pygpsclient.about_dialog import AboutDialog
-from pygpsclient.globals import (
-    CFG,
-    CLASS,
-    DLG,
-    DLGTABOUT,
-    DLGTGPX,
-    DLGTNTRIP,
-    DLGTSPARTN,
-    DLGTUBX,
-    THD,
-)
+from pygpsclient.globals import CFG, CLASS, THD
 from pygpsclient.gpx_dialog import GPXViewerDialog
 from pygpsclient.ntrip_client_dialog import NTRIPConfigDialog
 from pygpsclient.spartn_dialog import SPARTNConfigDialog
+from pygpsclient.strings import DLG, DLGTABOUT, DLGTGPX, DLGTNTRIP, DLGTSPARTN, DLGTUBX
 from pygpsclient.ubx_config_dialog import UBXConfigDialog
 
 dialog_state = {

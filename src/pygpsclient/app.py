@@ -65,8 +65,6 @@ from pygpsclient.globals import (
     DEFAULT_REGION,
     DEFAULT_USER,
     DISCONNECTED,
-    DLG,
-    DLGTNTRIP,
     FRAME,
     GNSS_EOF_EVENT,
     GNSS_ERR_EVENT,
@@ -81,7 +79,7 @@ from pygpsclient.globals import (
     SOCKSERVER_MAX_CLIENTS,
     SPARTN_EVENT,
     SPARTN_OUTPORT,
-    SPARTN_PPSERVER,
+    SPARTN_PPSERVER_URL,
     SPARTN_PROTOCOL,
     THD,
 )
@@ -93,7 +91,9 @@ from pygpsclient.rtcm3_handler import RTCM3Handler
 from pygpsclient.stream_handler import StreamHandler
 from pygpsclient.strings import (
     CONFIGERR,
+    DLG,
     DLGSTOPRTK,
+    DLGTNTRIP,
     ENDOFFILE,
     INACTIVE_TIMEOUT,
     INTROTXTNOPORTS,
@@ -597,7 +597,7 @@ class App(Frame):
         try:
             spartnsettings = {}
             spartnsettings["server"] = self.saved_config.get(
-                "mqttclientserver_s", SPARTN_PPSERVER
+                "mqttclientserver_s", SPARTN_PPSERVER_URL
             )
             spartnsettings["port"] = self.saved_config.get(
                 "mqttclientport_n", SPARTN_OUTPORT
@@ -992,9 +992,9 @@ class App(Frame):
         Check for updated version.
         """
 
-        latest = check_latest("PyGPSClient")
+        latest = check_latest(TITLE)
         if latest not in (VERSION, "N/A"):
-            self.set_status(VERCHECK.format(latest), BADCOL)
+            self.set_status(f"{VERCHECK} {latest}", BADCOL)
 
     def poll_version(self):
         """

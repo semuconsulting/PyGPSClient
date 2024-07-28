@@ -33,7 +33,6 @@ from pygpsclient.globals import (
     FORMAT_HEXSTR,
     FORMAT_HEXTAB,
     FORMAT_PARSED,
-    GITHUB_URL,
     GPX_NS,
     GPX_TRACK_INTERVAL,
     HOME,
@@ -41,7 +40,7 @@ from pygpsclient.globals import (
     XML_HDR,
 )
 from pygpsclient.helpers import set_filename
-from pygpsclient.strings import CONFIGTITLE, READTITLE, SAVETITLE
+from pygpsclient.strings import CONFIGTITLE, GITHUB_URL, READTITLE, SAVETITLE
 
 
 class FileHandler:

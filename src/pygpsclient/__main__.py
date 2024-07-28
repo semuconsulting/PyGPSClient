@@ -31,8 +31,8 @@ from pygpsclient.globals import (
     DEFAULT_PASSWORD,
     DEFAULT_REGION,
     DEFAULT_USER,
-    EPILOG,
 )
+from pygpsclient.strings import EPILOG
 
 
 def main():

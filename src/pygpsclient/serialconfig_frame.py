@@ -57,13 +57,13 @@ CONNECTED = 1
 CONNECTED_FILE = 2
 DATABITS_RNG = (8, 5, 6, 7)
 DISCONNECTED = 0
-MSGMODES = {
+MSGMODED = {
     GET: "GET",
     SET: "SET",
     POLL: "POLL",
     SETPOLL: "SETPOLL",
 }
-MSGMODE_RNG = list(MSGMODES.values())
+MSGMODE_RNG = list(MSGMODED.values())
 NOPORTS = 3
 PARITIES = {
     PARITY_NONE: "None",
@@ -305,7 +305,7 @@ class SerialConfigFrame(Frame):
         self._rtscts.set(self._saved_config.get("rtscts_b", False))
         self._xonxoff.set(self._saved_config.get("xonxoff_b", False))
         self._timeout.set(self._saved_config.get("timeout_f", self._timeout_rng[0]))
-        self._msgmode_name.set(MSGMODES[self._saved_config.get("msgmode_n", GET)])
+        self._msgmode_name.set(MSGMODED[self._saved_config.get("msgmode_n", GET)])
         self._inactivity_timeout.set(self._saved_config.get("inactivity_timeout_n", 0))
         self.user_defined_port.set(self._saved_config.get("userport_s", ""))
         self._on_refresh()
@@ -560,12 +560,12 @@ class SerialConfigFrame(Frame):
         :rtype: int
         """
 
-        # return MSGMODES[self._msgmode.get()]
-        if self._msgmode_name.get() == MSGMODES[SET]:
+        # return MSGMODED[self._msgmode.get()]
+        if self._msgmode_name.get() == MSGMODED[SET]:
             return SET
-        if self._msgmode_name.get() == MSGMODES[POLL]:
+        if self._msgmode_name.get() == MSGMODED[POLL]:
             return POLL
-        if self._msgmode_name.get() == MSGMODES[SETPOLL]:
+        if self._msgmode_name.get() == MSGMODED[SETPOLL]:
             return SETPOLL
         return GET
 

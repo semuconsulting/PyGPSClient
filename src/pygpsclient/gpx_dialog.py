@@ -42,7 +42,6 @@ from requests import ConnectTimeout, HTTPError, RequestException, get
 
 from pygpsclient.globals import (
     BGCOL,
-    DLGTGPX,
     HOME,
     ICON_EXIT,
     ICON_LOAD,
@@ -68,6 +67,7 @@ from pygpsclient.strings import (
     DLGGPXNULL,
     DLGGPXPROMPT,
     DLGGPXVIEWER,
+    DLGTGPX,
     READTITLE,
 )
 

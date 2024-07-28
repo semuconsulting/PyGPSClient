@@ -14,8 +14,12 @@ Created on 12 Sep 2020
 
 from tkinter import Menu
 
-from pygpsclient.globals import DLGTABOUT, DLGTGPX, DLGTNTRIP, DLGTSPARTN, DLGTUBX
 from pygpsclient.strings import (
+    DLGTABOUT,
+    DLGTGPX,
+    DLGTNTRIP,
+    DLGTSPARTN,
+    DLGTUBX,
     MENUABOUT,
     MENUEXIT,
     MENUFILE,

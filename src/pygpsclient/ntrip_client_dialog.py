@@ -51,7 +51,6 @@ from pygnssutils.helpers import find_mp_distance
 from pygpsclient.globals import (
     CONNECTED_NTRIP,
     DISCONNECTED,
-    DLGTNTRIP,
     GGA_INTERVALS,
     ICON_CONN,
     ICON_DISCONN,
@@ -73,6 +72,7 @@ from pygpsclient.helpers import MAXALT, VALFLOAT, get_mp_info, valid_entry
 from pygpsclient.socketconfig_frame import SocketConfigFrame
 from pygpsclient.strings import (
     DLGNTRIPCONFIG,
+    DLGTNTRIP,
     LBLGGAFIXED,
     LBLGGALIVE,
     LBLNTRIPGGAINT,

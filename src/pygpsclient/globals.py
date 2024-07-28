@@ -15,16 +15,13 @@ Created on 14 Sep 2020
 
 # pylint: disable=line-too-long
 
-from collections import namedtuple
 from datetime import datetime
 from os import path
 from pathlib import Path
 
 from pyubx2 import GET, POLL, SET, SETPOLL
 
-Point = namedtuple("Point", ["lat", "lon"])
 HOME = Path.home()
-
 APPNAME = __name__.split(".", 1)[0]  # i.e. "pygpsclient"
 BADCOL = "red"
 BGCOL = "gray24"  # default widget background color
@@ -70,17 +67,10 @@ DEFAULT_SERVER = "localhost"
 DEFAULT_USER = "anon"
 DIRNAME = path.dirname(__file__)
 DISCONNECTED = 0
-DLG = "dlg"
-DLGTABOUT = "About"
-DLGTGPX = "GPX Track Viewer"
-DLGTNTRIP = "NTRIP Configuration"
-DLGTSPARTN = "SPARTN Configuration"
-DLGTUBX = "UBX Configuration"
 DMM = "DM.M"
 DMS = "D.M.S"
 ECEF = "ECEF"
 ENABLE_CFG_OTHER = True  # enable CFG=* Other Configuration command panel
-EPILOG = "© 2022 SEMU Consulting BSD 3-Clause license - https://github.com/semuconsulting/pygpsclient/"
 ERRCOL = "pink"  # default invalid data entry field background color
 ERROR = "ERR!"
 FGCOL = "white"  # default widget foreground color
@@ -119,14 +109,12 @@ GNSS_LIST = {
     7: ("NAV", "grey60"),
 }
 GPSEPOCH0 = datetime(1980, 1, 6)  # for Wno and Tow calculations
-GPX_NS = " ".join(
-    (
-        'xmlns="http://www.topografix.com/GPX/1/1"',
-        'creator="PyGPSClient" version="1.1"',
-        'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"',
-        'xsi:schemaLocation="http://www.topografix.com/GPX/1/1',
-        'http://www.topografix.com/GPX/1/1/gpx.xsd"',
-    )
+GPX_NS = (
+    'xmlns="http://www.topografix.com/GPX/1/1" '
+    'creator="PyGPSClient" version="1.1" '
+    'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
+    'xsi:schemaLocation="http://www.topografix.com/GPX/1/1 '
+    'http://www.topografix.com/GPX/1/1/gpx.xsd"'
 )
 GPX_TRACK_INTERVAL = 1  # minimum GPS track update interval (seconds)
 GUI_UPDATE_INTERVAL = 0.5  # minimum GUI widget update interval (seconds)
@@ -198,6 +186,7 @@ KPH2MPH = 0.621371
 KPH2MPS = 0.2777776918389111005
 LICENSE_URL = "https://github.com/semuconsulting/PyGPSClient/blob/master/LICENSE"
 M2FT = 3.28084
+MAPAPI_URL = "https://developer.mapquest.com/user/login/sign-up"
 MAX_SNR = 60  # upper limit of graphview snr axis
 MAXLOGLINES = 10000  # maximum number of 'lines' per datalog file
 MQAPIKEY = "mqapikey"
@@ -237,8 +226,7 @@ SPARTN_EVENT = "<<spartn_read>>"
 SPARTN_KEYLEN = 16
 SPARTN_OUTPORT = 8883
 SPARTN_PPREGIONS = ("eu", "us", "jp", "kr", "au")
-SPARTN_PPSERVER = "pp.services.u-blox.com"
-SPARTN_PPSERVER = "pp.services.u-blox.com"
+SPARTN_PPSERVER_URL = "pp.services.u-blox.com"
 SPARTN_PROTOCOL = 8
 SPARTN_SOURCE_IP = 0
 SPARTN_SOURCE_LB = 1

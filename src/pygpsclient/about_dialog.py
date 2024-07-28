@@ -24,16 +24,9 @@ from pyspartn import version as SPARTNVERSION
 from pyubx2 import version as UBXVERSION
 
 from pygpsclient._version import __version__ as VERSION
-from pygpsclient.globals import (
-    DLGTABOUT,
-    GITHUB_URL,
-    ICON_APP128,
-    ICON_EXIT,
-    ICON_GITHUB,
-    LICENSE_URL,
-)
+from pygpsclient.globals import ICON_APP128, ICON_EXIT, ICON_GITHUB, LICENSE_URL
 from pygpsclient.helpers import check_latest
-from pygpsclient.strings import ABOUTTXT, COPYRIGHTTXT, DLGABOUT
+from pygpsclient.strings import ABOUTTXT, COPYRIGHTTXT, DLGABOUT, DLGTABOUT, GITHUB_URL
 
 LIBVERSIONS = {
     "PyGPSClient": VERSION,

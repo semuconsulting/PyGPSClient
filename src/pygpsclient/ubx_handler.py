@@ -19,9 +19,9 @@ import logging
 
 from pyubx2 import UBXMessage, itow2utc
 
-from pygpsclient.globals import DLGTSPARTN, DLGTUBX, GLONASS_NMEA, UTF8
+from pygpsclient.globals import GLONASS_NMEA, UTF8
 from pygpsclient.helpers import corrage2int, fix2desc, ned2vector, svid2gnssid
-from pygpsclient.strings import NA
+from pygpsclient.strings import DLGTSPARTN, DLGTUBX, NA
 from pygpsclient.widget_state import VISIBLE, WDGSPECTRUM, WDGSYSMON
 
 

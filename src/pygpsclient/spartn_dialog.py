@@ -21,7 +21,6 @@ from pyubx2 import UBXMessage
 from pygpsclient.globals import (
     CONNECTED_SPARTNIP,
     CONNECTED_SPARTNLB,
-    DLGTSPARTN,
     ICON_BLANK,
     ICON_CONFIRMED,
     ICON_EXIT,
@@ -36,7 +35,7 @@ from pygpsclient.globals import (
 from pygpsclient.spartn_gnss_frame import SPARTNGNSSDialog
 from pygpsclient.spartn_lband_frame import SpartnLbandDialog
 from pygpsclient.spartn_mqtt_frame import SPARTNMQTTDialog
-from pygpsclient.strings import DLGSPARTNCONFIG
+from pygpsclient.strings import DLGSPARTNCONFIG, DLGTSPARTN
 
 RXMMSG = "RXM-SPARTN-KEY"
 CFGSET = "CFG-VALGET/SET"
