@@ -40,7 +40,7 @@ from socket import AF_INET, AF_INET6
 from threading import Thread
 from tkinter import E, Frame, N, PhotoImage, S, TclError, Tk, Toplevel, W, font
 
-from pygnssutils import VERBOSITY_LOW, GNSSMQTTClient, GNSSNTRIPClient, MQTTMessage
+from pygnssutils import VERBOSITY_CRITICAL, GNSSMQTTClient, GNSSNTRIPClient, MQTTMessage
 from pygnssutils.socket_server import ClientHandler, SocketServer
 from pynmeagps import NMEAMessage
 from pyrtcm import RTCMMessage
@@ -143,7 +143,7 @@ class App(Frame):
         self.__master = master
         self.logger = logging.getLogger(__name__)
         # self.logger.setLevel(logging.DEBUG)
-        self.verbosity = kwargs.pop("verbosity", VERBOSITY_LOW)
+        self.verbosity = kwargs.pop("verbosity", VERBOSITY_CRITICAL)
         self.logtofile = kwargs.pop("logtofile", "")
 
         # user-defined serial port can be passed as environment variable

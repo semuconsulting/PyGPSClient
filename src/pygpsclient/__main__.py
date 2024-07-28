@@ -15,6 +15,7 @@ from os import getenv
 from tkinter import Tk
 
 from pygnssutils import (
+    VERBOSITY_CRITICAL,
     VERBOSITY_DEBUG,
     VERBOSITY_HIGH,
     VERBOSITY_LOW,
@@ -110,13 +111,21 @@ def main():
         "--verbosity",
         required=False,
         help=(
-            f"Log message verbosity {VERBOSITY_LOW} = low (error, critical), "
+            f"Log message verbosity "
+            f"{VERBOSITY_CRITICAL} = critical, "
+            f"{VERBOSITY_LOW} = low (error), "
             f"{VERBOSITY_MEDIUM} = medium (warning), "
             f"{VERBOSITY_HIGH} = high (info), {VERBOSITY_DEBUG} = debug"
         ),
         type=int,
-        choices=[VERBOSITY_LOW, VERBOSITY_MEDIUM, VERBOSITY_HIGH, VERBOSITY_DEBUG],
-        default=VERBOSITY_LOW,
+        choices=[
+            VERBOSITY_LOW,
+            VERBOSITY_MEDIUM,
+            VERBOSITY_HIGH,
+            VERBOSITY_DEBUG,
+            VERBOSITY_CRITICAL,
+        ],
+        default=VERBOSITY_CRITICAL,
     )
     ap.add_argument(
         "--logtofile",
@@ -130,7 +139,7 @@ def main():
     # set up global logging configuration
     logger = logging.getLogger(APPNAME)
     set_logging(
-        logger, kwargs.get("verbosity", VERBOSITY_LOW), kwargs.get("logtofile", "")
+        logger, kwargs.get("verbosity", VERBOSITY_CRITICAL), kwargs.get("logtofile", "")
     )
 
     root = Tk()
