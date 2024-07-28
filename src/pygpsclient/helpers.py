@@ -8,7 +8,7 @@ Collection of helper methods.
 Created on 17 Apr 2021
 
 :author: semuadmin
-:copyright: SEMU Consulting © 2021
+:copyright: 2020 SEMU Consulting
 :license: BSD 3-Clause
 
 """

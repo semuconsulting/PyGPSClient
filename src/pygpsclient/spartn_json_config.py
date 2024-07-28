@@ -10,7 +10,7 @@ JSON file normally named "device-{Client ID}-ucenter-config.json"
 Created on 12 Feb 2023
 
 :author: semuadmin
-:copyright: SEMU Consulting © 2023
+:copyright: 2020 SEMU Consulting
 :license: BSD 3-Clause
 """
 

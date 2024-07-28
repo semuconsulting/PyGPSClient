@@ -12,7 +12,7 @@ Facilitates copying configuration from one device to another.
 Created on 9 Jan 2023
 
 :author: semuadmin
-:copyright: SEMU Consulting © 2023
+:copyright: 2020 SEMU Consulting
 :license: BSD 3-Clause
 """
 

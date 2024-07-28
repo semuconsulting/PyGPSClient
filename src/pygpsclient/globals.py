@@ -8,7 +8,7 @@ Collection of global constants
 Created on 14 Sep 2020
 
 :author: semuadmin
-:copyright: SEMU Consulting © 2020
+:copyright: 2020 SEMU Consulting
 :license: BSD 3-Clause
 
 """

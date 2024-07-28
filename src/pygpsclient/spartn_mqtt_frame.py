@@ -14,7 +14,7 @@ held in the threaded SPARTN handler itself, NOT in this frame.
 Created on 26 Jan 2023
 
 :author: semuadmin
-:copyright: SEMU Consulting © 2023
+:copyright: 2020 SEMU Consulting
 :license: BSD 3-Clause
 """
 

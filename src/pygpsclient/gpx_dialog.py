@@ -6,7 +6,7 @@ This is the pop-up dialog for the GPX Viewer function.
 Created on 10 Jan 2023
 
 :author: semuadmin
-:copyright: SEMU Consulting © 2023
+:copyright: 2020 SEMU Consulting
 :license: BSD 3-Clause
 """
 

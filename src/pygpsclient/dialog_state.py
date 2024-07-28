@@ -7,7 +7,7 @@ maintain the state of the various threaded dialogs.
 Created on 16 Aug 2023
 
 :author: semuadmin
-:copyright: SEMU Consulting © 2020
+:copyright: 2020 SEMU Consulting
 :license: BSD 3-Clause
 """
 

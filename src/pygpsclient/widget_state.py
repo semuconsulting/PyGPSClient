@@ -18,7 +18,7 @@ class definition and update `ubx_handler` to populate them.
 Created on 30 Apr 2023
 
 :author: semuadmin
-:copyright: SEMU Consulting © 2020
+:copyright: 2020 SEMU Consulting
 :license: BSD 3-Clause
 """
 

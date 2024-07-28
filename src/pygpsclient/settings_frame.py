@@ -13,7 +13,7 @@ Settings frame class for PyGPSClient application.
 Created on 12 Sep 2020
 
 :author: semuadmin
-:copyright: SEMU Consulting © 2020
+:copyright: 2020 SEMU Consulting
 :license: BSD 3-Clause
 """
 

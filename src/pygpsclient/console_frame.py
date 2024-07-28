@@ -8,7 +8,7 @@ This handles a scrollable text box into which the serial data is printed.
 Created on 12 Sep 2020
 
 :author: semuadmin
-:copyright: SEMU Consulting © 2020
+:copyright: 2020 SEMU Consulting
 :license: BSD 3-Clause
 """
 
