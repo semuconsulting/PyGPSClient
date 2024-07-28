@@ -12,7 +12,7 @@ Created on 07 Apr 2022
 :license: BSD 3-Clause
 """
 
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 
 class GNSSStatus:
@@ -26,7 +26,7 @@ class GNSSStatus:
         Constructor.
         """
 
-        self.utc = datetime.now(UTC).time().replace(microsecond=0)  # UTC time
+        self.utc = datetime.now(timezone.utc).time().replace(microsecond=0)  # UTC time
         self.lat = 0.0  # latitude as decimal
         self.lon = 0.0  # longitude as decimal
         self.alt = 0.0  # height above sea level m
