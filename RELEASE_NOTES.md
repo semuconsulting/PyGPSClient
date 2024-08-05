@@ -2,6 +2,10 @@
 
 ### RELEASE 1.4.20
 
+FIXES:
+
+1. Fixes typo in ubx_handler which affects NAV2-STATUS messages [#142](https://github.com/semuconsulting/PyGPSClient/issues/142)
+
 CHANGES:
 
 1. Minor improvements to settings frame appearance.
