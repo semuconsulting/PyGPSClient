@@ -8,9 +8,9 @@ Created on 12 Sep 2020
 :license: BSD 3-Clause
 """
 
-import logging
 import sys
 from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
+from logging import getLogger
 from os import getenv
 from tkinter import Tk
 
@@ -137,10 +137,12 @@ def main():
     kwargs = vars(ap.parse_args())
 
     # set up global logging configuration
-    logger = logging.getLogger(APPNAME)
-    set_logging(
-        logger, kwargs.get("verbosity", VERBOSITY_CRITICAL), kwargs.get("logtofile", "")
-    )
+    verbosity = int(kwargs.pop("verbosity", VERBOSITY_CRITICAL))
+    logtofile = kwargs.pop("logtofile", "")
+    logger = getLogger(APPNAME)  # "pygpsclient"
+    logger_utils = getLogger("pygnssutils")
+    for logr in (logger, logger_utils):
+        set_logging(logr, verbosity, logtofile)
 
     root = Tk()
     App(root, **kwargs)

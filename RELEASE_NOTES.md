@@ -9,6 +9,7 @@ FIXES:
 CHANGES:
 
 1. Minor improvements to settings frame appearance.
+1. Add support for logging in underlying `pygnssutils` utilities (`gnssntripclient`, `gnssmqttclient`, `gnssserver`)
 
 ### RELEASE 1.4.19
 
