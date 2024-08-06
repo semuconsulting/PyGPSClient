@@ -931,7 +931,7 @@ def adjust_dimensions(dim: int) -> int:
     if system() == "Windows":
         return int(dim * 0.95)
     if system() == "Darwin":
-        return int(dim * 0.9)
+        return int(dim * 0.93)
     return int(dim)
 
 

@@ -141,7 +141,7 @@ class SerialConfigFrame(Frame):
             self._frm_basic,
             border=2,
             relief="sunken",
-            width=32,
+            width=38,
             height=5,
             justify=LEFT,
             exportselection=False,
@@ -255,14 +255,14 @@ class SerialConfigFrame(Frame):
         self._frm_basic.grid(column=0, row=0, columnspan=4, sticky=(W, E))
         self._lbl_port.grid(column=0, row=0, sticky=W)
         self._lbx_port.grid(
-            column=1, row=0, columnspan=2, sticky=(W, E), padx=3, pady=2
+            column=1, row=0, columnspan=3, sticky=(W, E), padx=3, pady=2
         )
-        self._scr_portv.grid(column=3, row=0, sticky=(N, S))
-        self._scr_porth.grid(column=1, row=1, columnspan=2, sticky=(E, W))
+        self._scr_portv.grid(column=4, row=0, sticky=(N, S))
+        self._scr_porth.grid(column=1, row=1, columnspan=3, sticky=(E, W))
         self._lbl_bpsrate.grid(column=0, row=2, sticky=W)
         self._spn_bpsrate.grid(column=1, row=2, sticky=W, padx=3, pady=2)
-        self._btn_refresh.grid(column=2, row=2, sticky=E)
-        self._btn_toggle.grid(column=3, row=2, sticky=E)
+        self._btn_refresh.grid(column=3, row=2, sticky=E)
+        self._btn_toggle.grid(column=4, row=2, sticky=E)
 
         self._frm_advanced.grid_forget()
         self._lbl_databits.grid(column=0, row=0, sticky=W)

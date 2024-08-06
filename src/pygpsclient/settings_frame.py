@@ -116,7 +116,7 @@ from pygpsclient.strings import (
 MAXLINES = ("200", "500", "1000", "2000", "100")
 MAPTYPES = ("world", "map", "sat", "custom")
 MINHEIGHT = 750
-MINWIDTH = 365
+MINWIDTH = 390
 
 
 class SettingsFrame(Frame):

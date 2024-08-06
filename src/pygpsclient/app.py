@@ -143,8 +143,6 @@ class App(Frame):
         self.__master = master
         self.logger = logging.getLogger(__name__)
         # self.logger.setLevel(logging.DEBUG)
-        self.verbosity = kwargs.pop("verbosity", VERBOSITY_CRITICAL)
-        self.logtofile = kwargs.pop("logtofile", "")
 
         # user-defined serial port can be passed as environment variable
         # or command line keyword argument
@@ -195,16 +193,8 @@ class App(Frame):
         self.nmea_handler = NMEAHandler(self)
         self.ubx_handler = UBXHandler(self)
         self.rtcm_handler = RTCM3Handler(self)
-        self.ntrip_handler = GNSSNTRIPClient(
-            self,
-            verbosity=self.verbosity,
-            logtofile=self.logtofile,
-        )
-        self.spartn_handler = GNSSMQTTClient(
-            self,
-            verbosity=self.verbosity,
-            logtofile=self.logtofile,
-        )
+        self.ntrip_handler = GNSSNTRIPClient(self)
+        self.spartn_handler = GNSSMQTTClient(self)
         self._conn_status = DISCONNECTED
         self._rtk_conn_status = DISCONNECTED
         self._socket_thread = None
@@ -752,8 +742,6 @@ class App(Frame):
                 ClientHandler,
                 ntripuser=ntripuser,
                 ntrippassword=ntrippassword,
-                verbosity=self.verbosity,
-                logtofile=self.logtofile,
             ) as self._socket_server:
                 self._socket_server.serve_forever()
         except OSError as err:
