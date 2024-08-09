@@ -10,6 +10,7 @@ CHANGES:
 
 1. Minor improvements to settings frame appearance.
 1. Add support for logging in underlying `pygnssutils` utilities (`gnssntripclient`, `gnssmqttclient`, `gnssserver`)
+1. App `get_coordinates()` method now returns additional coordinate and fix data as tuple.
 
 ### RELEASE 1.4.19
 

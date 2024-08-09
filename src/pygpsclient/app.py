@@ -40,7 +40,7 @@ from socket import AF_INET, AF_INET6
 from threading import Thread
 from tkinter import E, Frame, N, PhotoImage, S, TclError, Tk, Toplevel, W, font
 
-from pygnssutils import VERBOSITY_CRITICAL, GNSSMQTTClient, GNSSNTRIPClient, MQTTMessage
+from pygnssutils import GNSSMQTTClient, GNSSNTRIPClient, MQTTMessage
 from pygnssutils.socket_server import ClientHandler, SocketServer
 from pynmeagps import NMEAMessage
 from pyrtcm import RTCMMessage
@@ -900,9 +900,9 @@ class App(Frame):
 
     def get_coordinates(self) -> tuple:
         """
-        Get current coordinates.
+        Get current coordinates and fix data.
 
-        :return: tuple (conn_status, lat, lon, alt, sep)
+        :return: tuple of coords and fix data
         :rtype: tuple
         """
 
@@ -912,6 +912,11 @@ class App(Frame):
             self.gnss_status.lon,
             self.gnss_status.alt,
             self.gnss_status.sep,
+            self.gnss_status.siv,
+            self.gnss_status.fix,
+            self.gnss_status.hdop,
+            self.gnss_status.diff_age,
+            self.gnss_status.diff_station,
         )
 
     def process_data(self, raw_data: bytes, parsed_data: object, marker: str = ""):

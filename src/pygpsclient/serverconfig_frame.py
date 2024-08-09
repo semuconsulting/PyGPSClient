@@ -653,7 +653,8 @@ class ServerConfigFrame(Frame):
         lon = self._fixed_lon_temp
         alt = self._fixed_alt_temp
         if lat in ("", "0", 0) and lon in ("", "0", 0) and alt in ("", "0", 0):
-            _, lat, lon, alt, _ = self.__app.get_coordinates()  # live position
+            # live position
+            _, lat, lon, alt, _, _, _, _, _, _ = self.__app.get_coordinates()
 
         try:
             if posmode == POS_ECEF:
