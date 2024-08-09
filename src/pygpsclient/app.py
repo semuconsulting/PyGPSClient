@@ -912,7 +912,7 @@ class App(Frame):
             self.gnss_status.lon,
             self.gnss_status.alt,
             self.gnss_status.sep,
-            self.gnss_status.siv,
+            self.gnss_status.sip,
             self.gnss_status.fix,
             self.gnss_status.hdop,
             self.gnss_status.diff_age,
