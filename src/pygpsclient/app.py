@@ -898,26 +898,26 @@ class App(Frame):
         if self.dialog(DLGTNTRIP) is not None:
             self.dialog(DLGTNTRIP).set_controls(status, msgt)
 
-    def get_coordinates(self) -> tuple:
+    def get_coordinates(self) -> dict:
         """
         Get current coordinates and fix data.
 
-        :return: tuple of coords and fix data
-        :rtype: tuple
+        :return: dict of coords and fix data
+        :rtype: dict
         """
 
-        return (
-            self._conn_status,
-            self.gnss_status.lat,
-            self.gnss_status.lon,
-            self.gnss_status.alt,
-            self.gnss_status.sep,
-            self.gnss_status.sip,
-            self.gnss_status.fix,
-            self.gnss_status.hdop,
-            self.gnss_status.diff_age,
-            self.gnss_status.diff_station,
-        )
+        return {
+            "connection": self._conn_status,
+            "lat": self.gnss_status.lat,
+            "lon": self.gnss_status.lon,
+            "alt": self.gnss_status.alt,
+            "sep": self.gnss_status.sep,
+            "sip": self.gnss_status.sip,
+            "fix": self.gnss_status.fix,
+            "hdop": self.gnss_status.hdop,
+            "diffage": self.gnss_status.diff_age,
+            "diffstation": self.gnss_status.diff_station,
+        }
 
     def process_data(self, raw_data: bytes, parsed_data: object, marker: str = ""):
         """
