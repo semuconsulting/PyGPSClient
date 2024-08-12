@@ -735,7 +735,7 @@ class NTRIPConfigDialog(Toplevel):
 
         try:
             if self._settings.get("ggamode", 0) == 0:  # live position
-                _, lat, lon, _, _ = self.__app.get_coordinates()
+                _, lat, lon, _, _, _, _, _, _, _ = self.__app.get_coordinates()
             else:  # fixed reference
                 lat = float(self._settings["reflat"])
                 lon = float(self._settings["reflon"])

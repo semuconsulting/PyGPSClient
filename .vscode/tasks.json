@@ -26,9 +26,9 @@
             "args": [
                 "-m",
                 "pygpsclient",
-                "--ntripuser",
+                "--ntripcasteruser",
                 "semuadmin",
-                "--ntrippassword",
+                "--ntripcasterpassword",
                 "testpassword"
             ],
             "options": {

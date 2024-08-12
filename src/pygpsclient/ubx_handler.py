@@ -75,7 +75,7 @@ class UBXHandler:
             self._process_NAV_VELNED(parsed_data)
         elif parsed_data.identity in ("NAV-SAT", "NAV2-SAT"):
             self._process_NAV_SAT(parsed_data)
-        elif parsed_data.identity in ("NAV-STATUS", "NAV2-STATUS)"):
+        elif parsed_data.identity in ("NAV-STATUS", "NAV2-STATUS"):
             self._process_NAV_STATUS(parsed_data)
         elif parsed_data.identity == "NAV-SVIN":
             self._process_NAV_SVIN(parsed_data)

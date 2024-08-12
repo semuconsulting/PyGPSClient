@@ -233,6 +233,7 @@ class ServerConfigFrame(Frame):
             image=self._img_expand,
             width=28,
             height=22,
+            state=DISABLED,
         )
         self._frm_advanced = Frame(self)
         self._lbl_user = Label(
@@ -367,7 +368,7 @@ class ServerConfigFrame(Frame):
         self._lbl_lanip.grid(column=1, row=4, padx=2, pady=1, sticky=W)
         self._lbl_clients.grid(column=2, row=3, rowspan=2, padx=2, pady=1, sticky=W)
         self._lbl_sockclients.grid(column=3, row=3, rowspan=2, padx=2, pady=1, sticky=W)
-        self._btn_toggle.grid_forget()
+        self._btn_toggle.grid(column=4, row=0, sticky=E)
         self._frm_advanced.grid_forget()
         self._chk_set_basemode.grid(
             column=0, row=0, columnspan=2, padx=2, pady=2, sticky=W
@@ -538,11 +539,11 @@ class ServerConfigFrame(Frame):
 
         if self.sock_mode.get() == SOCK_NTRIP:
             self.sock_port.set(SOCKSERVER_NTRIP_PORT)
-            self._btn_toggle.grid(column=4, row=0, sticky=E)
+            self._btn_toggle.config(state=NORMAL)
             self._show_advanced = True
         else:
             self.sock_port.set(self._sock_port_temp)
-            self._btn_toggle.grid_forget()
+            self._btn_toggle.config(state=DISABLED)
             self._show_advanced = False
         self._set_advanced()
 
@@ -652,7 +653,8 @@ class ServerConfigFrame(Frame):
         lon = self._fixed_lon_temp
         alt = self._fixed_alt_temp
         if lat in ("", "0", 0) and lon in ("", "0", 0) and alt in ("", "0", 0):
-            _, lat, lon, alt, _ = self.__app.get_coordinates()  # live position
+            # live position
+            _, lat, lon, alt, _, _, _, _, _, _ = self.__app.get_coordinates()
 
         try:
             if posmode == POS_ECEF:
