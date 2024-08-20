@@ -18,6 +18,7 @@ Created on 2 Apr 2022
 :license: BSD 3-Clause
 """
 
+from logging import getLogger
 from socket import AF_INET, AF_INET6
 from tkinter import (
     DISABLED,
@@ -107,6 +108,7 @@ class NTRIPConfigDialog(Toplevel):
         """
 
         self.__app = app  # Reference to main application class
+        self.logger = getLogger(__name__)
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self._saved_config = kwargs.pop(SAVED_CONFIG, {})
 
@@ -521,6 +523,7 @@ class NTRIPConfigDialog(Toplevel):
             srt = w.get(index)  # sourcetable entry
             name = srt[0]
             info = get_mp_info(srt)
+            # self.logger.debug(f"MP info: {name} {info}")
             notes = (
                 ""
                 if info is None

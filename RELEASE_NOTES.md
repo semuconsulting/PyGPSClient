@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.4.21
+
+FIXES:
+
+1. Fix issue with mountpoint selection sometimes not showing information in NTRIP configuration dialog.
+
 ### RELEASE 1.4.20
 
 FIXES:
