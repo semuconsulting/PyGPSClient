@@ -6,6 +6,7 @@ CHANGES:
 
 1. Add support for chunked transfer-encoded NTRIP datastreams (requires `pygnssutils>=1.1.0`).
 1. Add sponsorship link to About dialog.
+1. Add "Enable UBX, Suppress NMEA' preset in UBX Configuration Dialog (enables UBX NAV-PVT, NAV-SAT and NAV-DOP and disables all NMEA messages).
 
 FIXES:
 

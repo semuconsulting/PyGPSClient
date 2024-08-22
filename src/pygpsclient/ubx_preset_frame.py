@@ -66,11 +66,13 @@ from pygpsclient.strings import (
     PSTPOLLPORT,
     PSTRESET,
     PSTSAVE,
+    PSTUSEUBX,
 )
 
 PRESET_COMMMANDS = [
     PSTRESET,
     PSTSAVE,
+    PSTUSEUBX,
     PSTMINNMEAON,
     PSTALLNMEAON,
     PSTALLNMEAOFF,
@@ -257,6 +259,9 @@ class UBX_PRESET_Frame(Frame):
                 status = self._do_factory_reset()
             elif self._preset_command == PSTSAVE:
                 status = self._do_store_config()
+            elif self._preset_command == PSTUSEUBX:
+                self._do_set_allnmea(0)
+                self._do_set_minNAV()
             elif self._preset_command == PSTMINNMEAON:
                 self._do_set_minnmea()
             elif self._preset_command == PSTALLNMEAON:

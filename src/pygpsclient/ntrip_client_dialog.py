@@ -738,7 +738,7 @@ class NTRIPConfigDialog(Toplevel):
 
         try:
             # if self._settings.get("ggamode", 0) == 0:  # live position
-            if self._ntrip_gga_mode.get() == 0: # live position
+            if self._ntrip_gga_mode.get() == 0:  # live position
                 status = self.__app.get_coordinates()
                 lat, lon = status["lat"], status["lon"]
             else:  # fixed reference
