@@ -29,7 +29,9 @@
                 "--ntripcasteruser",
                 "semuadmin",
                 "--ntripcasterpassword",
-                "testpassword"
+                "testpassword",
+                "--verbosity",
+                "2"
             ],
             "options": {
                 "cwd": "src"
