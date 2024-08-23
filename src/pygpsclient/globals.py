@@ -151,6 +151,7 @@ ICON_UNDO = path.join(DIRNAME, "resources/iconmonstr-undo-24.png")
 ICON_UNKNOWN = path.join(DIRNAME, "resources/clear-1-24.png")
 ICON_WARNING = path.join(DIRNAME, "resources/iconmonstr-warning-1-24.png")
 IMG_WORLD = path.join(DIRNAME, "resources/world.png")
+ICON_SPONSOR = path.join(DIRNAME, "resources/bmc-full-logo-no-background.png")
 IMG_WORLD_CALIB = [90, -180, -90, 180]
 KM2M = 1000
 KM2MIL = 0.621371
@@ -230,6 +231,7 @@ SPARTN_PPSERVER_URL = "pp.services.u-blox.com"
 SPARTN_PROTOCOL = 8
 SPARTN_SOURCE_IP = 0
 SPARTN_SOURCE_LB = 1
+SPONSOR_URL = "https://buymeacoffee.com/semuconsulting"
 THD = "thd"
 TIMEOUTS = (
     "0.1",

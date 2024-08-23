@@ -66,11 +66,15 @@ from pygpsclient.strings import (
     PSTPOLLPORT,
     PSTRESET,
     PSTSAVE,
+    PSTUSENMEA,
+    PSTUSEUBX,
 )
 
 PRESET_COMMMANDS = [
     PSTRESET,
     PSTSAVE,
+    PSTUSEUBX,
+    PSTUSENMEA,
     PSTMINNMEAON,
     PSTALLNMEAON,
     PSTALLNMEAOFF,
@@ -257,6 +261,12 @@ class UBX_PRESET_Frame(Frame):
                 status = self._do_factory_reset()
             elif self._preset_command == PSTSAVE:
                 status = self._do_store_config()
+            elif self._preset_command == PSTUSEUBX:
+                self._do_set_allnmea(0)
+                self._do_set_minNAV()
+            elif self._preset_command == PSTUSENMEA:
+                self._do_set_allNAV(0)
+                self._do_set_minnmea()
             elif self._preset_command == PSTMINNMEAON:
                 self._do_set_minnmea()
             elif self._preset_command == PSTALLNMEAON:
@@ -433,7 +443,7 @@ class UBX_PRESET_Frame(Frame):
 
         for msgtype in UBX_MSGIDS:
             if msgtype[0:1] == b"\xf0":  # standard NMEA
-                if msgtype in (b"\xf0\x00", b"\xf0\x02"):  # GGA, GSA
+                if msgtype in (b"\xf0\x00", b"\xf0\x02", b"\xf0\x04"):  # GGA, GSA, RMC
                     self._do_cfgmsg(msgtype, 1)
                 elif msgtype == b"\xf0\x03":  # GSV
                     self._do_cfgmsg(msgtype, 4)

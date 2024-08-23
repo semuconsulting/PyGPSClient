@@ -179,7 +179,7 @@ class RoverFrame(Frame):
         self.canvas.create_text(
             ls,
             ls,
-            text=f"Len {dis:.2f} ± {accdis:.2f} cm",
+            text=f"Len {dis:,.2f} ± {accdis:.2f} cm",
             fill=PNTCOL,
             anchor="nw",
             font=self.lbl_font,

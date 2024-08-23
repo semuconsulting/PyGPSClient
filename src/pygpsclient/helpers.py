@@ -433,26 +433,25 @@ def get_mp_info(srt: list) -> dict:
     """
 
     try:
-        info = {
+        return {
             "name": srt[0],
             "identifier": srt[1],
             "format": srt[2],
             "messages": srt[3],
-            "carrier": CARRIERS[srt[4]],
+            "carrier": CARRIERS.get(srt[4], srt[4]),
             "navs": srt[5],
             "network": srt[6],
             "country": srt[7],
             "lat": srt[8],
             "lon": srt[9],
-            "gga": NMEA[srt[10]],
-            "solution": SOLUTIONS[srt[11]],
+            "gga": NMEA.get(srt[10], srt[10]),
+            "solution": SOLUTIONS.get(srt[11], srt[11]),
             "generator": srt[12],
             "encrypt": srt[13],
-            "auth": AUTHS[srt[14]],
+            "auth": AUTHS.get(srt[14], srt[14]),
             "fee": srt[15],
             "bitrate": srt[16],
         }
-        return info
     except IndexError:
         return None
 

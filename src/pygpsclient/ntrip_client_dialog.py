@@ -18,6 +18,7 @@ Created on 2 Apr 2022
 :license: BSD 3-Clause
 """
 
+from logging import getLogger
 from socket import AF_INET, AF_INET6
 from tkinter import (
     DISABLED,
@@ -107,6 +108,7 @@ class NTRIPConfigDialog(Toplevel):
         """
 
         self.__app = app  # Reference to main application class
+        self.logger = getLogger(__name__)
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self._saved_config = kwargs.pop(SAVED_CONFIG, {})
 
@@ -521,6 +523,7 @@ class NTRIPConfigDialog(Toplevel):
             srt = w.get(index)  # sourcetable entry
             name = srt[0]
             info = get_mp_info(srt)
+            # self.logger.debug(f"MP info: {name} {info}")
             notes = (
                 ""
                 if info is None
@@ -734,8 +737,10 @@ class NTRIPConfigDialog(Toplevel):
         """
 
         try:
-            if self._settings.get("ggamode", 0) == 0:  # live position
-                _, lat, lon, _, _, _, _, _, _, _ = self.__app.get_coordinates()
+            # if self._settings.get("ggamode", 0) == 0:  # live position
+            if self._ntrip_gga_mode.get() == 0:  # live position
+                status = self.__app.get_coordinates()
+                lat, lon = status["lat"], status["lon"]
             else:  # fixed reference
                 lat = float(self._settings["reflat"])
                 lon = float(self._settings["reflon"])

@@ -13,7 +13,7 @@ Created on 20 Sep 2020
 from platform import python_version
 from subprocess import CalledProcessError, run
 from sys import platform
-from tkinter import Button, Frame, Label, Tcl, Toplevel
+from tkinter import Button, E, Frame, Label, Tcl, Toplevel, W
 from webbrowser import open_new_tab
 
 from PIL import Image, ImageTk
@@ -24,7 +24,14 @@ from pyspartn import version as SPARTNVERSION
 from pyubx2 import version as UBXVERSION
 
 from pygpsclient._version import __version__ as VERSION
-from pygpsclient.globals import ICON_APP128, ICON_EXIT, ICON_GITHUB, LICENSE_URL
+from pygpsclient.globals import (
+    ICON_APP128,
+    ICON_EXIT,
+    ICON_GITHUB,
+    ICON_SPONSOR,
+    LICENSE_URL,
+    SPONSOR_URL,
+)
 from pygpsclient.helpers import check_latest
 from pygpsclient.strings import ABOUTTXT, COPYRIGHTTXT, DLGABOUT, DLGTABOUT, GITHUB_URL
 
@@ -61,6 +68,7 @@ class AboutDialog:
         self._img_icon = ImageTk.PhotoImage(Image.open(ICON_APP128).resize((64, 64)))
         self._img_github = ImageTk.PhotoImage(Image.open(ICON_GITHUB).resize((32, 32)))
         self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
+        self._img_sponsor = ImageTk.PhotoImage(Image.open(ICON_SPONSOR))
         self._updates = []
 
         self._body()
@@ -109,6 +117,11 @@ class AboutDialog:
             image=self._img_github,
             cursor="hand2",
         )
+        self._lbl_sponsoricon = Label(
+            self._frm_container,
+            image=self._img_sponsor,
+            cursor="hand2",
+        )
         self._lbl_github = Label(
             self._frm_container,
             text=GITHUB_URL,
@@ -136,20 +149,25 @@ class AboutDialog:
         """
 
         self._frm_container.grid(column=0, row=0, padx=5, pady=5, ipadx=5, ipady=5)
-        self._lbl_title.grid(column=0, row=0, padx=3, pady=3)
-        self._lbl_icon.grid(column=0, row=1, padx=3, pady=3)
-        self._lbl_desc.grid(column=0, row=2, padx=3, pady=3)
-        self._lbl_python_version.grid(column=0, row=3, padx=3, pady=3)
+        self._lbl_title.grid(column=0, row=0, columnspan=2, padx=3, pady=3)
+        self._lbl_icon.grid(column=0, row=1, columnspan=2, padx=3, pady=3)
+        self._lbl_desc.grid(column=0, row=2, columnspan=2, padx=3, pady=3)
+        self._lbl_python_version.grid(column=0, row=3, columnspan=2, padx=3, pady=3)
         i = 0
         for i, _ in enumerate(LIBVERSIONS):
-            self._lbl_lib_versions[i].grid(column=0, row=4 + i, padx=2, pady=2)
+            self._lbl_lib_versions[i].grid(
+                column=0, row=4 + i, columnspan=2, padx=2, pady=2
+            )
         self._btn_checkupdate.grid(
-            column=0, row=5 + i, ipadx=3, ipady=3, padx=3, pady=3
+            column=0, row=5 + i, ipadx=3, ipady=3, columnspan=2, padx=3, pady=3
         )
-        self._lbl_giticon.grid(column=0, row=6 + i, padx=(3, 1), pady=3)
-        self._lbl_github.grid(column=0, row=7 + i, padx=(1, 3), pady=3)
-        self._lbl_copyright.grid(column=0, row=8 + i, padx=3, pady=3)
-        self._btn_ok.grid(column=0, row=9 + i, ipadx=3, ipady=3, padx=5, pady=3)
+        self._lbl_giticon.grid(column=0, row=6 + i, padx=(3, 1), pady=3, sticky=E)
+        self._lbl_sponsoricon.grid(column=1, row=6 + i, padx=(3, 1), pady=3, sticky=W)
+        self._lbl_github.grid(column=0, row=7 + i, columnspan=2, padx=(1, 3), pady=3)
+        self._lbl_copyright.grid(column=0, row=8 + i, columnspan=2, padx=3, pady=3)
+        self._btn_ok.grid(
+            column=0, row=9 + i, ipadx=3, ipady=3, columnspan=2, padx=5, pady=3
+        )
 
     def _attach_events(self):
         """
@@ -159,6 +177,7 @@ class AboutDialog:
         self._btn_checkupdate.bind("<Button>", self._check_for_update)
         self._lbl_giticon.bind("<Button>", self._on_github)
         self._lbl_github.bind("<Button>", self._on_github)
+        self._lbl_sponsoricon.bind("<Button>", self._on_sponsor)
         self._lbl_copyright.bind("<Button>", self._on_license)
         self._btn_ok.bind("<Return>", self._ok_press)
         self._btn_ok.focus_set()
@@ -169,6 +188,14 @@ class AboutDialog:
         """
 
         open_new_tab(GITHUB_URL)
+        self._ok_press()
+
+    def _on_sponsor(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Close dialog and go to Sponsor website.
+        """
+
+        open_new_tab(SPONSOR_URL)
         self._ok_press()
 
     def _on_license(self, *args, **kwargs):  # pylint: disable=unused-argument

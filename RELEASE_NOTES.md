@@ -1,5 +1,18 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.4.21
+
+CHANGES:
+
+1. Add support for chunked transfer-encoded NTRIP datastreams (requires `pygnssutils>=1.1.0`).
+1. Add sponsorship link to About dialog.
+1. Add "Enable UBX, Suppress NMEA' preset in UBX Configuration Dialog (enables UBX NAV-PVT, NAV-SAT and NAV-DOP and disables all NMEA messages).
+
+FIXES:
+
+1. Fix issue with mountpoint selection sometimes not showing information in NTRIP configuration dialog.
+1. Fix issue with live coordinates not being presented properly in FIXED NTRIP caster dialog.
+
 ### RELEASE 1.4.20
 
 FIXES:
