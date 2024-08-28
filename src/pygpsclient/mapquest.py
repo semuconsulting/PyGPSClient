@@ -66,7 +66,7 @@ def mapq_decompress(encoded: str, precision: int = 6) -> list:
 
     :param str encoded: polygon encoded as string
     :param int precision: no decimal places precision (6)
-    :return: polygon as list of points
+    :return: polygon as list of point tuples (lat,lon)
     :rtype: list
     """
 
@@ -109,7 +109,7 @@ def mapq_compress(points: list, precision: int = 6) -> str:
     """
     Compress polygon for MapQuest API.
 
-    :param str points: polygon as list of points
+    :param list points: polygon as list of point tuples (lat, lon)
     :param int precision: no decimal places precision (6)
     :return: polygon encoded as string
     :rtype: string
