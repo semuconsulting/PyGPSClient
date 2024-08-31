@@ -302,8 +302,6 @@ The NTRIP Configuration utility allows users to receive and process NTRIP RTK Co
 - Name of local MOUNTPOINT (if not using PyGPSClient's automatic mountpoint locator)
 - Data type (normally RTCM but some services output data in SPARTN format)
 
-**NB:** see [KNOWN ISSUES](#chunkingissue) for an issue affecting some casters in NTRIP 2.0 mode (e.g. euref-ip.net, igs-ip.net). Use NTRIP 1.0 instead with these casters.
-
 **Instructions:**
 
 1. Enter the required NTRIP server URL (or IP address), port (defaults to 2101) and HTTPS flag (defaults to 'yes' for ports 443/2102, 'no' for all else). For services which require authorisation, enter your login username and password.
@@ -554,7 +552,7 @@ For further details, refer to the `pygnssutils` homepage at [https://github.com/
 --
 ## <a name="knownissues">Known Issues</a>
 
-1. <a name="chunkingissue">NTRIP Client</a>: PyGPSClient's NTRIP Client (based on `pygnssutils.gnssntripclient`) doesn't currently support `Transfer-Encoding: chunked` in NTRIP 2.0 mode, as used by some casters (e.g. euref-ip.net, igs-ip.net). This issue manifests itself as missing RTCM data and an inability to achieve an RTK fix. A fix is in hand, but as a temporary workaround, use NTRIP 1.0 instead as this doesn't implement chunked encoding.
+None
 
 ---
 ## <a name="license">License</a>
