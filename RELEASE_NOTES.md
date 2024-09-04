@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.4.22
+
+CHANGES:
+
+1. Add preset commands for SEC message types.
+
 ### RELEASE 1.4.21
 
 CHANGES:

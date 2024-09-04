@@ -5,5 +5,5 @@
     "python3.8InterpreterPath": "/Library/Frameworks/Python.framework/Versions/3.8/bin/python3.8",
     "modulename": "pygpsclient",
     "distname": "pygpsclient",
-    "moduleversion": "1.4.21",
+    "moduleversion": "1.4.22",
 }
