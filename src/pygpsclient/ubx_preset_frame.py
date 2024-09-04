@@ -56,6 +56,8 @@ from pygpsclient.strings import (
     PSTALLNMEAON,
     PSTALLRXMOFF,
     PSTALLRXMON,
+    PSTALLSECOFF,
+    PSTALLSECON,
     PSTALLUBXOFF,
     PSTALLUBXON,
     PSTMINNMEAON,
@@ -89,6 +91,8 @@ PRESET_COMMMANDS = [
     PSTALLMONOFF,
     PSTALLRXMON,
     PSTALLRXMOFF,
+    PSTALLSECOFF,
+    PSTALLSECON,
     PSTPOLLPORT,
     PSTPOLLINFO,
     PSTPOLLALLCFG,
@@ -295,6 +299,10 @@ class UBX_PRESET_Frame(Frame):
                 self._do_set_rxm(4)
             elif self._preset_command == PSTALLRXMOFF:
                 self._do_set_rxm(0)
+            elif self._preset_command == PSTALLSECON:
+                self._do_set_sec(1)
+            elif self._preset_command == PSTALLSECOFF:
+                self._do_set_sec(0)
             elif self._preset_command == PSTPOLLPORT:
                 self._do_poll_prt()
             elif self._preset_command == PSTPOLLINFO:
@@ -434,6 +442,17 @@ class UBX_PRESET_Frame(Frame):
 
         for msgtype in UBX_MSGIDS:
             if msgtype[0:1] == b"\x02":
+                self._do_cfgmsg(msgtype, msgrate)
+
+    def _do_set_sec(self, msgrate):
+        """
+        Turn on all device security messages SEC.
+
+        :param int msgrate: message rate (i.e. every nth position solution)
+        """
+
+        for msgtype in UBX_MSGIDS:
+            if msgtype[0:1] == b"\x27":
                 self._do_cfgmsg(msgtype, msgrate)
 
     def _do_set_minnmea(self):
