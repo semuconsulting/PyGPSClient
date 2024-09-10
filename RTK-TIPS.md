@@ -43,7 +43,7 @@ If you're relatively new to GNSS and RTK techniques and terminology, you may wan
 
 ### 5. Ensure you are using a reliable, local RTK data source
 
-- In the present context this generally means NTRIP (via the public internet) or SPARTN (via NTRIP, MQTT or IP (L-Band) channels). NTRIP casters traditionally output data in RTCM format, but there are now proprietary services offering SPARTN format instead.
+- In the present context this generally means NTRIP (via the public internet) or SPARTN (via NTRIP, MQTT (IP) or L-Band channels). NTRIP casters traditionally output data in RTCM format, but there are now proprietary services offering SPARTN format instead.
 - Ideally, an NTRIP source ('mountpoint') should be no further than 15 or 20km from your antenna location, such that its correction data is [representative of local atmospheric conditions](https://www.semuconsulting.com/gnsswiki/#ION).
 - **NB:** While free public domain NTRIP resources exist and can often give perfectly satisfactory results, there is no guarantee as to the quality of the correction data available. Some public domain CORS are essentially amateurs working out of their back yards.  The best results *for your location* may be obtained from proprietary or subscription services which use specialised, carefully calibrated equipment in optimal locations - but it's always worth trying public domain resources first.
 
