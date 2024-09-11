@@ -65,6 +65,8 @@ If you're relatively new to GNSS and RTK techniques and terminology, you may wan
 - If, having enabled RXM-COR or RXM-RTCM message types, you see none in the console, this may mean the RTK correction data is not making its way through to your receiver. This could be due to a configuration or connection error of some kind e.g.
   - Ensure that your F9P is configured to allow incoming RTCM3 data on the designated port - this is the default setting, but it may have been overwritten.
   - If the NTRIP caster requires NMEA GGA position data (signified by a '1' in the 11th position of the sourcetable - the one after Longitude), ensure you have this enabled in the NTRIP client configuration panel.
+  
+    ![sourcetable gga marker](/images/sourcetable_ggamarker.png?raw=true)
   - If the RTK data is encrypted (as with Thingstream SPARTN MQTT or L-Band services), ensure that the latest decryption keys have been uploaded to the receiver via an RXM-SPARTN-KEY message. SPARTN decryption keys are typically only valid for a 4 week period and need to be refreshed regularly.
   - If using an internet RTK service (NTRIP or MQTT), ensure you have active internet connectivity and that the service's IP port (typically 2101, 2102, 443 or 8883) is not being blocked by a firewall.
 
