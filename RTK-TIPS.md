@@ -24,17 +24,20 @@ If you're relatively new to GNSS and RTK techniques and terminology, you may wan
 - The receiver should be capable of receiving GNSS transmissions on both the L1 and L2 (or L5) frequencies (*refer to the [wiki](https://www.semuconsulting.com/gnsswiki/#Signal) to understand why this is beneficial to positional accuracy*).
 - The receiver should ideally be reasonably robust, as the best results are likely to be obtained outdoors. If you're using an F9P breakout board, you may want to enclose it in a water-resistant case.
 
-### 2. Use a good L-Band antenna and cable
+### 2. Use a suitable L-Band antenna and cable
 
-- A GNSS antenna must be capable of receiving a clear signal on the key GNSS L-Band frequencies - specifically the L1, L2 and (ideally) L5 frequencies. Depending on your local circumstances, a simple passive antenna may suffice, or you may benefit from a calibrated active antenna (*provided your receiver supports this - check whether an active antenna requires a DC bias voltage from the receiver*).
-- Ensure that the cable is a high-quality coaxial cable with minimum attenuation in the L-Band spectrum - RG58 as a bare minimum, ideally RF240 or RF400 for longer runs (> 10m).
+- A GNSS antenna must be capable of receiving a clear signal on the key GNSS L-Band frequencies - specifically the L1, L2 and (ideally) L5 frequencies. Depending on your local environment and intended application, a multi-band active patch antenna like the u-blox [ANN-MB-00](https://www.sparkfun.com/products/15192) may suffice, or you may benefit from a "UFO" style multi-band [surveying antenna](https://www.sparkfun.com/products/21801). 
+- If weight is at a premium - e.g. for aerial applications - a [helical antenna](https://www.sparkfun.com/products/23847) may be more suitable, albeit with some loss of performance.
+- Active GNSS antennae typically incorporate low noise amplifiers (LNA) to boost gain, along with bandpass or 'saw' filters to remove extraneous noise and frequencies which are not required for GNSS reception. **Note, however**, that such filters may render the antenna unsuitable for other RTK applications e.g. reception of L-Band SPARTN data using a [u-blox NEO-D9S](https://www.u-blox.com/en/product/neo-d9s-series) receiver, for which a [broad-spectrum active patch antenna](https://www.amazon.com/RTL-SDR-Blog-1525-1637-Inmarsat-Iridium/dp/B07WGWZS1D), or even a passive directional antenna, may be more suitable.
+- Ensure that the antenna cable is a high-quality coaxial cable with minimum attenuation in the L-Band spectrum - [RG58](https://www.sparkfun.com/products/21281) as a bare minimum, preferably [RF240](https://www.connextech.co.uk/8m-rf240-low-loss-cable-assembly-1441-p.asp) or [RF400](https://www.connextech.co.uk/10m-rf400-very-low-loss-cable-assembly-1433-p.asp) for longer runs (> 10m).
 - If possible, use a GNSS receiver/breakout board and antenna which support robust TNC, BNC or SMA connectors rather than the much smaller U.FL type, which is not designed for repeated insertion and has limited cable length.
 
-### 3. Use a good ground plane
+### 3. Use a suitable ground plane
 
-- In essence, a good ground plane under the antenna improves signal strength and reduces noise and interference. The science behind ground planes is beyond the scope of this article, but they can be as simple as a heavy ferrous saucepan lid, a (steel) car roof, or a [small steel plate](https://www.sparkfun.com/products/17519) designed to be mounted on a camera or surveying tripod.
-
-- Refer to [Importance of Ground Planes](https://novotech.com/pages/ground-plane) for a more in-depth discussion.
+- Popular active patch antennae like the u-blox [ANN-MB-00](https://www.sparkfun.com/products/15192) are designed to be used with an external ground plane - typically a (steel) car roof or a [small steel plate](https://www.sparkfun.com/products/17519) suitable for mounting on a tripod. At a push, a heavy ferrous saucepan lid may suffice.
+- The science behind ground planes is beyond the scope of this article but, in essence, a good ground plane under the antenna improves signal strength and reduces noise and interference. Refer to [Importance of Ground Planes](https://novotech.com/pages/ground-plane) for a more in-depth discussion.
+- Specialised [surveying antennae](https://www.sparkfun.com/products/21801) of the "UFO" type normally have a built-in ground plane.
+- Helical antennae do not generally require a ground plane.
 
 ### 4. Ensure you have the best possible view of the sky
 
@@ -89,7 +92,7 @@ If you're relatively new to GNSS and RTK techniques and terminology, you may wan
 ---
 ## <a name="example">Illustrated Example</a>
 
-The following screen shot illustrates an RTK fix obtained using a [SparkFun GPS-RTK-SMA](https://www.sparkfun.com/products/16481) GNSS module and [u-blox ANN-MB-00-00](https://www.sparkfun.com/products/15192) antenna mounted on a steel car roof (approximately 1.5m high with a base altitude of 66m) at a location with more-or-less 360° unrestricted visibility of the sky, around late afternoon in good weather conditions. The RTK source was an [euref-ip.net](https://www.euref.eu/euref-services) NTRIP 2.0 reference station (mountpoint) situated some 28km to the west. The source had been active for approximately 60 seconds prior to the screenshot being taken.
+The following screen shot illustrates an RTK fix obtained using a [SparkFun GPS-RTK-SMA](https://www.sparkfun.com/products/16481) GNSS module and [u-blox ANN-MB-00](https://www.sparkfun.com/products/15192) antenna mounted on a steel car roof (approximately 1.5m high with a base altitude of 66m) at a location with more-or-less 360° unrestricted visibility of the sky, around late afternoon in good weather conditions. The RTK source was an [euref-ip.net](https://www.euref.eu/euref-services) NTRIP 2.0 reference station (mountpoint) situated some 28km to the west. The source had been active for approximately 60 seconds prior to the screenshot being taken.
 
 - The incoming RTCM data may be seen in the console with the tag `NTRIP>>`.
 - The UBX NAV-PVT messages are reporting `diffSoln=1` ("differential corrections were applied"), `carrSoln=2` ("carrier phase range solution with fixed
@@ -116,7 +119,7 @@ The *indicated* horizontal accuracy (`hacc`) is 1.4cm but *note [caveats](#cavea
 | ARP        | Antenna Reference Point | The identifier for a specific RTK data source |
 | BNC        | Bayonet Neill–Concelman | A standard bayonet antenna connector type |
 | CN₀        | Carrier to noise ratio | A measure of GNSS signal strength |
-| CORS       | Continously Operating Reference Station | A term denoting an RTK correction source e.g. NTRIP server |
+| CORS       | Continuously Operating Reference Station | A term denoting an RTK correction source e.g. NTRIP server |
 | DGPS/DGNSS | Differential GPS/GNSS | https://en.wikipedia.org/wiki/Differential_GPS |
 | DOP        | Dilution of Precision | A measure of the effect of the geometric distribution of visible GNSS satellites on positional accuracy |
 | HACC       | Horizontal Accuracy | A statistical estimate of horizontal positional accuracy based on a number of factors |
