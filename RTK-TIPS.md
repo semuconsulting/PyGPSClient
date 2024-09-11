@@ -38,8 +38,13 @@ If you're relatively new to GNSS and RTK techniques and terminology, you may wan
 
 ### 4. Ensure you have the best possible view of the sky
 
-- Needless to say, you need to have good unrestricted visibility of the sky (ideally 360°) to obtain the most accurate results. This is indicated by the various Dilution of Precision (DOP) values (`pDOP`, `vDOP`, `hDOP`). Ideally the indicated pDOP should be <= 1.0.
+- Needless to say, you need to have good unrestricted visibility of the sky (ideally 360°) with the broadest possible satellite coverage to obtain the most accurate results. This is indicated by the various Dilution of Precision (DOP) values (`pDOP`, `vDOP`, `hDOP`). Ideally the indicated pDOP should be <= 1.0.
 - You should be able to receive signals from *at least* 10 satellites with a signal strength (CN₀) of 45dB or better.
+
+| **Poor Satellite Coverage**  | **Good Satellite Coverage** |
+|:----------------------------:|:---------------------------:|
+| ![poor sats](https://github.com/semuconsulting/PyGPSClient/blob/master/images/poor_sats.png?raw=true) |![good sats](https://github.com/semuconsulting/PyGPSClient/blob/master/images/good_sats.png?raw=true) |
+| | |
 
 ### 5. Ensure you are using a reliable, local RTK data source
 
@@ -57,7 +62,11 @@ If you're relatively new to GNSS and RTK techniques and terminology, you may wan
   - After a short period (typically a minute or so), the reported horizontal and vertical accuracy values ('hAcc' and 'vAcc') will start to fall to < 1m levels - **BUT NOTE [CAVEATS](#caveats) BELOW**.
 
 - If you're using an F9P or similar, useful additional diagnostics can be obtained by enabling UBX RXM-COR (or, for RTCM only, RXM-RTCM) Receiver Management message types (this can be done using PYGPSClient's UBX CFG-MSG or CFG-VALSET [configuration facilities](https://github.com/semuconsulting/PyGPSClient?tab=readme-ov-file#ubxconfig)). For example, the RXM-COR message includes two data attributes `errStatus` and `msgUsed`; `errStatus=1, msgUsed=2` signifies that valid RTK correction data has been received successfully and has been applied to the receiver's navigation solution. Refer to the [F9P Interface Manual](https://www.u-blox.com/sites/default/files/documents/u-blox-F9-HPG-1.50_InterfaceDescription_UBXDOC-963802114-12815.pdf) for further details on the meaning of the various UBX NAV and RXM message types and data attributes.
-- If, having enabled RXM-COR or RXM-RTCM message types, you see none in the console, this may mean the RTK correction data is not making its way through to your receiver. This could be due to a configuration or connection error of some kind (*e.g. ensure that your F9P is configured to allow incoming RTCM3 data on the designated port - this is the default setting, but it may have been overwritten*).
+- If, having enabled RXM-COR or RXM-RTCM message types, you see none in the console, this may mean the RTK correction data is not making its way through to your receiver. This could be due to a configuration or connection error of some kind e.g.
+  - Ensure that your F9P is configured to allow incoming RTCM3 data on the designated port - this is the default setting, but it may have been overwritten.
+  - If the NTRIP caster requires NMEA GGA position data (signified by a '1' in the 11th position of the sourcetable - the one after Longitude), ensure you have this enabled in the NTRIP client configuration panel.
+  - If the RTK data is encrypted (as with Thingstream SPARTN MQTT or L-Band services), ensure that the latest decryption keys have been uploaded to the receiver via an RXM-SPARTN-KEY message. SPARTN decryption keys are typically only valid for a 4 week period and need to be refreshed regularly.
+  - If using an internet RTK service (NTRIP or MQTT), ensure you have active internet connectivity and that the service's IP port (typically 2101, 2102, 443 or 8883) is not being blocked by a firewall.
 
 ### 7. "FLOAT" vs "FIXED"
 
@@ -83,6 +92,8 @@ The following screen shot illustrates an RTK fix obtained using a [SparkFun GPS-
 - The incoming RTCM data may be seen in the console with the tag `NTRIP>>`.
 - The UBX NAV-PVT messages are reporting `diffSoln=1` ("differential corrections were applied"), `carrSoln=2` ("carrier phase range solution with fixed
 ambiguities" i.e. 'RTK-FIXED') and `lastCorrectionAge=3` ("Age between 2 and 5 seconds").
+- The UBX RXM-COR messages are reporting `errStatus=1` ("Error-free"),`msgUsed=2` ("Used") and `msgInputHandle=1` ("Receiver has input handling support for this
+message").
 - The 'Satellites' widget indicates broad sky visibility, with plenty of satellites with strong signals visible at or near the horizon.
 - The 'Levels' widget indicates that we are receiving at least 15 satellites with a CN₀ of 45dB or better.
 - The 'Spectrum' widget indicates that the receiver has good reception on both L1 and L2 frequencies.
