@@ -28,7 +28,7 @@ If you're relatively new to GNSS and RTK techniques and terminology, you may wan
 
 - A GNSS antenna must be capable of receiving a clear signal on the key GNSS L-Band frequencies - specifically the L1, L2 and (ideally) L5 frequencies. Depending on your local circumstances, a simple passive antenna may suffice, or you may benefit from a calibrated active antenna (*provided your receiver supports this - check whether an active antenna requires a DC bias voltage from the receiver*).
 - Ensure that the cable is a high-quality coaxial cable with minimum attenuation in the L-Band spectrum - RG58 as a bare minimum, ideally RF240 or RF400 for longer runs (> 10m).
-- If possible, use a GNSS receiver/breakout board and antenna which support robust BNC or SMA connectors rather than the much smaller U.FL type, which is not designed for repeated insertion and has limited cable length.
+- If possible, use a GNSS receiver/breakout board and antenna which support robust TNC, BNC or SMA connectors rather than the much smaller U.FL type, which is not designed for repeated insertion and has limited cable length.
 
 ### 3. Use a good ground plane
 
@@ -114,7 +114,7 @@ The *indicated* horizontal accuracy (`hacc`) is 1.4cm but *note [caveats](#cavea
 | ---------- | ------------------- | -------------------- |
 | **Term**   | **Definition**      | **Comments**         |
 | ARP        | Antenna Reference Point | The identifier for a specific RTK data source |
-| BNC        | Bayonet Neill–Concelman | A standard antenna connector type |
+| BNC        | Bayonet Neill–Concelman | A standard bayonet antenna connector type |
 | CN₀        | Carrier to noise ratio | A measure of GNSS signal strength |
 | CORS       | Continously Operating Reference Station | A term denoting an RTK correction source e.g. NTRIP server |
 | DGPS/DGNSS | Differential GPS/GNSS | https://en.wikipedia.org/wiki/Differential_GPS |
@@ -135,8 +135,9 @@ The *indicated* horizontal accuracy (`hacc`) is 1.4cm but *note [caveats](#cavea
 | RTK        | Real-time kinematics | https://en.wikipedia.org/wiki/Real-time_kinematic_positioning |
 | SIP        | Satellites in Position | The number of satellites actually used in the receiver's navigation solution |
 | SIV        | Satellites in View | The number of satellites the receiver can see |
-| SMA        | Subminiature version A | A standard miniature antenna connector type |
+| SMA        | Subminiature version A | A standard miniature threaded antenna connector type |
 | SPARTN     | Secure Position Augmentation for Real Time Navigation | An open-source RTK DGPS protocol published by u-blox |
+| TNC        | Threaded Neill-Concelman | A standard threaded antenna connector type commonly used in surveying equipment |
 | UERE       | User equivalent range errors | Collective term for a [range of errors](https://www.semuconsulting.com/gnsswiki/#Errors) which must be compensated for in GNSS pseudorange calculations, sometimes referred to as pseudorange 'residuals' |
 | U.FL       | Ultra-fine Fluorinated | An ultra-miniature antenna connector type common in hobbyist equipment |
 | URA        | User range error | See UERE |
