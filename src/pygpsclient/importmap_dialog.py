@@ -39,7 +39,7 @@ try:
     from rasterio.warp import transform_bounds  # pylint: disable=import-error
 
     HASRASTERIO = True
-except ModuleNotFoundError:
+except (ImportError, ModuleNotFoundError):
     HASRASTERIO = False
 
 from pygpsclient.globals import (
@@ -274,7 +274,7 @@ class ImportMapDialog(Toplevel):
             return
 
         if lonmax + 180 <= lonmin + 180 or latmax + 90 >= latmin + 90:
-            self._show_status("ERROR: bounds max must greater than min")
+            self._show_status("ERROR: bottom right bounds must be SE of top left")
         else:
             usermaps = self.__app.saved_config.get("usermaps_l", [])
             usermaps.append([self._custommap, [latmin, lonmin, latmax, lonmax]])
