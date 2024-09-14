@@ -17,6 +17,7 @@ from tkinter import Menu
 from pygpsclient.strings import (
     DLGTABOUT,
     DLGTGPX,
+    DLGTIMPORTMAP,
     DLGTNTRIP,
     DLGTSPARTN,
     DLGTUBX,
@@ -32,7 +33,7 @@ from pygpsclient.strings import (
 )
 from pygpsclient.widget_state import MENU, widget_state
 
-DIALOGS = (DLGTUBX, DLGTNTRIP, DLGTSPARTN, DLGTGPX)
+DIALOGS = (DLGTUBX, DLGTNTRIP, DLGTSPARTN, DLGTGPX, DLGTIMPORTMAP)
 
 
 class MenuBar(Menu):

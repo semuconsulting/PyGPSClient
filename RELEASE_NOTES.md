@@ -2,8 +2,9 @@
 
 ### RELEASE 1.4.22
 
-CHANGES:
+ENHANCEMENTS:
 
+1. Add guided custom offline map import facility to Menu..Options..Import Custom Map. If the Python `rasterio` library is installed, the map bounding box can be automatically extracted from any georeferenced image (e.g. GeoTIFF - the default custom map image format). If the image is not georeferenced, or if `rasterio` is not installed, the bounding box must be entered manually. Invoke 'File..Save Configuration' to save the imported custom map settings to disk. **NB**: the `rasterio` library is *not* a mandatatory dependency for PyGPSClient and is not automatically installed with PyGPSClient.
 1. Add preset commands for SEC message types.
 
 ### RELEASE 1.4.21

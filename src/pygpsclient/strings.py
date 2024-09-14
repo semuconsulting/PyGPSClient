@@ -178,6 +178,7 @@ DLGTGPX = "GPX Track Viewer"
 DLGTNTRIP = "NTRIP Configuration"
 DLGTSPARTN = "SPARTN Configuration"
 DLGTUBX = "UBX Configuration"
+DLGTIMPORTMAP = "Import Custom Map"
 
 # UBX Preset Command Descriptions
 PSTALLINFOFF = "CFG-INF - Turn OFF all non-error INF msgs"

@@ -215,7 +215,8 @@ class MapviewFrame(Frame):
 
         if maptype == CUSTOM:
             err = OUTOFBOUNDS
-            usermaps = self.__app.frm_settings.config.get("usermaps_l", [])
+            # usermaps = self.__app.frm_settings.config.get("usermaps_l", [])
+            usermaps = self.__app.saved_config.get("usermaps_l", [])
             for mp in usermaps:
                 try:
                     mpath, bounds = mp
