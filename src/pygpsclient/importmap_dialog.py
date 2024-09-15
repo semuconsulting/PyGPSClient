@@ -118,15 +118,15 @@ class ImportMapDialog(Toplevel):
             command=self._on_import,
         )
         self._lbl_tl = Label(self._frm_controls, text="Top Left:")
-        self._lbl_lontl = Label(self._frm_controls, text="Longitude")
-        self._ent_lontl = Entry(self._frm_controls, width=10, textvariable=self._lontl)
         self._lbl_lattl = Label(self._frm_controls, text="Latitude")
         self._ent_lattl = Entry(self._frm_controls, width=10, textvariable=self._lattl)
+        self._lbl_lontl = Label(self._frm_controls, text="Longitude")
+        self._ent_lontl = Entry(self._frm_controls, width=10, textvariable=self._lontl)
         self._lbl_br = Label(self._frm_controls, text="Bottom Right:")
-        self._lbl_lonbr = Label(self._frm_controls, text="Longitude")
-        self._ent_lonbr = Entry(self._frm_controls, width=10, textvariable=self._lonbr)
         self._lbl_latbr = Label(self._frm_controls, text="Latitude")
         self._ent_latbr = Entry(self._frm_controls, width=10, textvariable=self._latbr)
+        self._lbl_lonbr = Label(self._frm_controls, text="Longitude")
+        self._ent_lonbr = Entry(self._frm_controls, width=10, textvariable=self._lonbr)
         self._btn_exit = Button(
             self._frm_controls,
             image=self._img_exit,
@@ -148,15 +148,15 @@ class ImportMapDialog(Toplevel):
         self._btn_exit.grid(column=4, row=0, padx=3, pady=3, sticky=E)
 
         self._lbl_tl.grid(column=0, row=1, padx=3, pady=3, sticky=W)
-        self._lbl_lontl.grid(column=1, row=1, padx=3, pady=3, sticky=E)
-        self._ent_lontl.grid(column=2, row=1, padx=3, pady=3)
-        self._lbl_lattl.grid(column=3, row=1, padx=3, pady=3, sticky=E)
-        self._ent_lattl.grid(column=4, row=1, padx=3, pady=3)
+        self._lbl_lattl.grid(column=1, row=1, padx=3, pady=3, sticky=E)
+        self._ent_lattl.grid(column=2, row=1, padx=3, pady=3)
+        self._lbl_lontl.grid(column=3, row=1, padx=3, pady=3, sticky=E)
+        self._ent_lontl.grid(column=4, row=1, padx=3, pady=3)
         self._lbl_br.grid(column=0, row=2, padx=3, pady=3, sticky=W)
-        self._lbl_lonbr.grid(column=1, row=2, padx=3, pady=3, sticky=E)
-        self._ent_lonbr.grid(column=2, row=2, padx=3, pady=3)
-        self._lbl_latbr.grid(column=3, row=2, padx=3, pady=3, sticky=E)
-        self._ent_latbr.grid(column=4, row=2, padx=3, pady=3)
+        self._lbl_latbr.grid(column=1, row=2, padx=3, pady=3, sticky=E)
+        self._ent_latbr.grid(column=2, row=2, padx=3, pady=3)
+        self._lbl_lonbr.grid(column=3, row=2, padx=3, pady=3, sticky=E)
+        self._ent_lonbr.grid(column=4, row=2, padx=3, pady=3)
         self._lbl_status.grid(
             column=0, row=3, columnspan=5, padx=3, pady=3, sticky=(W, E)
         )
@@ -181,7 +181,7 @@ class ImportMapDialog(Toplevel):
         self._btn_import.config(state=DISABLED)
         if not HASRASTERIO:
             self._show_status(
-                "WARNING: rasterio library is not installed - bounds must be entered manually"
+                "Warning: rasterio library is not installed - bounds must be entered manually"
             )
         else:
             self._show_status()
@@ -202,7 +202,6 @@ class ImportMapDialog(Toplevel):
         :rtype: tuple
         """
 
-        # self.update_idletasks()  # Make sure we know about any resizing
         return (self.winfo_width(), self.winfo_height())
 
     def _on_resize(self, event):
@@ -233,53 +232,17 @@ class ImportMapDialog(Toplevel):
             return None  # User cancelled
         return custommap
 
-    def _draw_map(self, mappath="") -> ImageTk.PhotoImage:
-        """
-        Display selected custom map image.
-
-        :param str mappath: fully qualified path to map file
-        """
-
-        if mappath != "":
-            self._mapimg = ImageTk.PhotoImage(
-                Image.open(mappath).resize((self.width, self.mheight)),
-                Image.Resampling.BILINEAR,
-            )
-            self._canvas_map.create_image(0, 0, image=self._mapimg, anchor=NW)
-
     def _on_load(self):
         """
         Load custom map from file.
         """
 
+        self._show_status()
         self._custommap = self._open_mapfile()
         if self._custommap is not None:
             self._get_bounds(self._custommap)
             self._draw_map(self._custommap)
             self._btn_import.config(state=NORMAL)
-            self._show_status()
-
-    def _on_import(self):
-        """
-        Validate bounds and import custom file into saved config.
-        """
-
-        try:
-            lonmin = float(self._lontl.get())
-            lonmax = float(self._lonbr.get())
-            latmin = float(self._lattl.get())
-            latmax = float(self._latbr.get())
-        except ValueError:
-            self._show_status("ERROR: invalid bounds")
-            return
-
-        if lonmax + 180 <= lonmin + 180 or latmax + 90 >= latmin + 90:
-            self._show_status("ERROR: bottom right bounds must be SE of top left")
-        else:
-            usermaps = self.__app.saved_config.get("usermaps_l", [])
-            usermaps.append([self._custommap, [latmin, lonmin, latmax, lonmax]])
-            self.__app.saved_config["usermaps_l"] = usermaps
-            self._show_status("Custom map imported", "blue")
 
     def _get_bounds(self, mappath) -> tuple:
         """
@@ -297,13 +260,49 @@ class ImportMapDialog(Toplevel):
                 )
             except Exception:  # pylint: disable=broad-exception-caught
                 self._show_status(
-                    "WARNING: image is not georeferenced - bounds must be entered manually"
+                    "Warning: image is not georeferenced - bounds must be entered manually"
                 )
 
         self._lontl.set(round(lonmin, 8))
         self._lattl.set(round(latmax, 8))
         self._lonbr.set(round(lonmax, 8))
         self._latbr.set(round(latmin, 8))
+
+    def _draw_map(self, mappath="") -> ImageTk.PhotoImage:
+        """
+        Display selected custom map image.
+
+        :param str mappath: fully qualified path to map file
+        """
+
+        if mappath != "":
+            self._mapimg = ImageTk.PhotoImage(
+                Image.open(mappath).resize((self.width, self.mheight)),
+                Image.Resampling.BILINEAR,
+            )
+            self._canvas_map.create_image(0, 0, image=self._mapimg, anchor=NW)
+
+    def _on_import(self):
+        """
+        Validate bounds and import custom file into saved config.
+        """
+
+        try:
+            lonmin = float(self._lontl.get())
+            lonmax = float(self._lonbr.get())
+            latmin = float(self._lattl.get())
+            latmax = float(self._latbr.get())
+        except ValueError:
+            self._show_status("Error: invalid bounds")
+            return
+
+        if lonmax + 180 <= lonmin + 180 or latmax + 90 >= latmin + 90:
+            self._show_status("Error: bottom right bounds must be SE of top left")
+        else:
+            usermaps = self.__app.saved_config.get("usermaps_l", [])
+            usermaps.append([self._custommap, [latmin, lonmin, latmax, lonmax]])
+            self.__app.saved_config["usermaps_l"] = usermaps
+            self._show_status("Custom map imported", "blue")
 
     def _show_status(self, msg: str = "", col: str = "red"):
         """
@@ -314,11 +313,4 @@ class ImportMapDialog(Toplevel):
         """
 
         self._lbl_status.config(text=msg, fg=col)
-
-    @property
-    def mapimage(self) -> ImageTk.PhotoImage:
-        """
-        Getter for image of map.
-        """
-
-        return self._mapimg
+        self.update_idletasks()
