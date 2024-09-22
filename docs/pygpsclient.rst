@@ -92,6 +92,14 @@ pygpsclient.helpers module
    :undoc-members:
    :show-inheritance:
 
+pygpsclient.importmap\_dialog module
+------------------------------------
+
+.. automodule:: pygpsclient.importmap_dialog
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pygpsclient.map\_frame module
 -----------------------------
 

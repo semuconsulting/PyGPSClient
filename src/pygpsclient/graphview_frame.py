@@ -97,6 +97,15 @@ class GraphviewFrame(Frame):
         self.can_graphview.create_line(
             w - AXIS_XR + 2, 5, w - AXIS_XR + 2, h - AXIS_Y, fill=FGCOL
         )
+        self.can_graphview.create_text(
+            AXIS_XR,
+            5,
+            text="CN₀ dB",
+            angle=90,
+            fill=FGCOL,
+            anchor="e",
+            font=resize_font,
+        )
         for i in range(ticks, 0, -1):
             y = (h - AXIS_Y) * i / ticks
             self.can_graphview.create_line(AXIS_XL, y, w - AXIS_XR + 2, y, fill=FGCOL)
