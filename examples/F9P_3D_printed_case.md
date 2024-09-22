@@ -1,4 +1,4 @@
-## Simple enclosure for Sparkfun SparkFun GPS-RTK-SMA ZED-F9P Breakout 
+## Simple enclosure for SparkFun GPS-RTK-SMA ZED-F9P Breakout 
 
 https://www.thingiverse.com/thing:6774791
 
