@@ -17,7 +17,7 @@
 [Author Information](#author)
 
 PyGPSClient is a free, open-source, multi-platform graphical GNSS/GPS testing, diagnostic and UBX &copy; (u-blox &trade;) device configuration application written entirely in Python and tkinter. 
-* Runs on any platform which supports a Python 3 interpreter (>=3.8) and tkinter (>=8.6) GUI framework, including Windows, MacOS, Linux and Raspberry Pi OS.
+* Runs on any platform which supports a Python 3 interpreter (>=3.9) and tkinter (>=8.6) GUI framework, including Windows, MacOS, Linux and Raspberry Pi OS.
 * Supports NMEA, UBX, RTCM3, NTRIP and SPARTN protocols.
 * Capable of reading from a variety of GNSS data streams: Serial (USB / UART), Socket (TCP / UDP), binary data stream (terminal or file capture) and u-center (*.ubx) recording.
 * Provides [NTRIP](#ntripconfig) and [SPARTN](#spartnconfig) client facilities.
@@ -58,18 +58,13 @@ In the following, `python3` & `pip` refer to the Python 3 executables. You may n
 
 ### Platform Dependencies
 
-- Python 3.8 - 3.13*¹ ²*
+- Python 3.9 - 3.13*¹*
 - Tk (tkinter) >= 8.6*³*
 - Screen resolution >= 800 x 600; Ideally >= 1920 x 1080, though the main application window is resizeable and reconfigurable.
 
 **All platforms**
 
 *¹* It is highly recommended to use the latest official [Python.org](https://www.python.org/downloads/) installation package for your platform, rather than any pre-installed version.
-
-*²* At time of writing, Python >= 3.13.0b4 (pre-release) requires a pre-release version of the `cffi` library (which is a dependency of `cryptography`):
-```shell
-python3.13 -m pip install --pre cffi==1.17.0rc1
-```
 
 - To enable automatic bounds detection in the Import Custom Map facility, the `rasterio` library must be installed:
 ```shell
