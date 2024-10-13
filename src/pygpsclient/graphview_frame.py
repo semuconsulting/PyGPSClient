@@ -167,7 +167,7 @@ class GraphviewFrame(Frame):
         offset = AXIS_XL + 2
         colwidth = (w - AXIS_XL - AXIS_XR + 1) / siv
         resize_font = font.Font(size=min(int(colwidth / 2), 10))
-        for d in sorted(data):  # sort by ascending gnssid, svid
+        for d in sorted(data.values()):  # sort by ascending gnssid, svid
             gnssId, prn, _, _, snr = d
             if snr in ("", "0", 0):
                 snr = 1  # show 'place marker' in graph
