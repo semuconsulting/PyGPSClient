@@ -210,7 +210,7 @@ class NMEAHandler:
         else:
             gnss = 0  # GPS, SBAS, QZSS
 
-        for i in range(5):
+        for i in range(4):
             idx = f"_{i+1:02d}"
             svid = getattr(data, "svid" + idx, "")
             if svid != "":
