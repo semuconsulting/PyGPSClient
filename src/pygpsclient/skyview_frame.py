@@ -117,7 +117,7 @@ class SkyviewFrame(Frame):
         resize_font = font.Font(size=min(int(maxr / 10), 8))
         self.init_frame()
 
-        for d in sorted(data, key=itemgetter(4)):  # sort by ascending snr
+        for d in sorted(data.values(), key=itemgetter(4)):  # sort by ascending snr
             try:
                 gnssId, prn, ele, azi, snr = d
                 ele = int(ele)

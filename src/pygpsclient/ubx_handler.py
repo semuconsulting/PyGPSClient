@@ -44,9 +44,8 @@ class UBXHandler:
         self._cdb = 0
         self._raw_data = None
         self._parsed_data = None
-        self.gsv_data = (
-            []
-        )  # Holds array of current satellites in view from NMEA GSV or UBX NAV-SVINFO sentences
+        # Holds array of current satellites in view from NMEA GSV or UBX NAV-SVINFO sentences
+        self.gsv_data = {}
 
     def process_data(self, raw_data: bytes, parsed_data: object):
         """
@@ -314,7 +313,7 @@ class UBXHandler:
 
         settings = self.__app.frm_settings.config
         show_unused = settings["unusedsat_b"]
-        self.gsv_data = []
+        self.gsv_data = {}
         num_siv = int(data.numSvs)
 
         for i in range(num_siv):
@@ -329,7 +328,7 @@ class UBXHandler:
             cno = getattr(data, "cno" + idx)
             if cno == 0 and not show_unused:  # omit unused sats
                 continue
-            self.gsv_data.append((gnssId, svid, elev, azim, cno))
+            self.gsv_data[f"{gnssId}-{svid}"] = (gnssId, svid, elev, azim, cno)
 
         self.__app.gnss_status.siv = len(self.gsv_data)
         self.__app.gnss_status.gsv_data = self.gsv_data
@@ -379,7 +378,7 @@ class UBXHandler:
             cno = getattr(data, "cno" + idx)
             if cno == 0 and not show_unused:  # omit unused sats
                 continue
-            self.gsv_data.append((gnssId, svid, elev, azim, cno))
+            self.gsv_data[f"{gnssId}-{svid}"] = (gnssId, svid, elev, azim, cno)
 
         self.__app.gnss_status.gsv_data = self.gsv_data
 

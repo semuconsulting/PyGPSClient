@@ -49,7 +49,7 @@ class GNSSStatus:
         self.acc_heading = 0.0  # rover relative position heading accuracy
         self.acc_length = 0.0  # rover relative position distance accuracy
         self.rel_pos_flags = []  # rover relative position flags
-        self.gsv_data = []  # list of satellite tuples (gnssId, svid, elev, azim, cno)
+        self.gsv_data = {}  # list of satellite tuples (gnssId, svid, elev, azim, cno)
         self.version_data = {}  # dict of hardware, firmware and software versions
         self.sysmon_data = {}  # dict of system monitor data (cpu and memory load, etc.)
         self.spectrum_data = []  # list of spectrum data (spec, spn, res, ctr, pga)
