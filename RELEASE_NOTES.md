@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.4.24
+
+FIXES:
+
+1. Fix NMEA GSV SV range handling - was omitting certain SVIDs.
+
 ### RELEASE 1.4.23
 
 CHANGES:
