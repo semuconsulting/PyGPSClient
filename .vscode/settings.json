@@ -4,6 +4,6 @@
     "editor.formatOnSave": true,
     "modulename": "pygpsclient",
     "distname": "pygpsclient",
-    "moduleversion": "1.4.22",
+    "moduleversion": "1.4.23",
     "python.defaultInterpreterPath": "python3",
 }
