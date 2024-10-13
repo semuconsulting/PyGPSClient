@@ -43,9 +43,8 @@ class NMEAHandler:
 
         self._raw_data = None
         self._parsed_data = None
-        self.gsv_data = (
-            []
-        )  # Holds array of current satellites in view from NMEA GSV sentences
+        # Holds array of current satellites in view from NMEA GSV sentences
+        self.gsv_data = {}
         self.gsv_log = {}  # Holds cumulative log of all satellites seen
 
     def process_data(self, raw_data: bytes, parsed_data: object):
@@ -197,7 +196,7 @@ class NMEAHandler:
         """
 
         show_unused = self.__app.frm_settings.config["unusedsat_b"]
-        self.gsv_data = []
+        self.gsv_data = {}
         gsv_dict = {}
         now = time()
         if data.talker == "GA":
@@ -211,8 +210,8 @@ class NMEAHandler:
         else:
             gnss = 0  # GPS, SBAS, QZSS
 
-        for i in range(4):
-            idx = f"_{i:02d}"
+        for i in range(5):
+            idx = f"_{i+1:02d}"
             svid = getattr(data, "svid" + idx, "")
             if svid != "":
                 key = f"{gnss}-{svid}"
@@ -232,7 +231,7 @@ class NMEAHandler:
             if cno in ("", "0", 0) and not show_unused:  # omit unused sats
                 continue
             if now - lastupdate < SAT_EXPIRY:  # expire passed sats
-                self.gsv_data.append((gnssId, svid, elev, azim, cno))
+                self.gsv_data[key] = (gnssId, svid, elev, azim, cno)
 
         self.__app.gnss_status.siv = len(self.gsv_data)
         self.__app.gnss_status.gsv_data = self.gsv_data
@@ -292,36 +291,22 @@ class NMEAHandler:
 
         settings = self.__app.frm_settings.config
         show_unused = settings["unusedsat_b"]
-        self.gsv_data = []
-        gsv_dict = {}
-        now = time()
+        self.gsv_data = {}
         for i in range(data.numSv):
-            svid = getattr(data, f"svid_{i+1:02}")
+            idx = f"_{i+1:02d}"
+            svid = getattr(data, "svid" + idx)
             gnss = svid2gnssid(svid)
+            elev = getattr(data, "ele" + idx)
+            azim = getattr(data, "azi" + idx)
+            cno = str(getattr(data, "cno" + idx))
             # fudge to make PUBX03 svid numbering consistent with GSV
             if gnss == 2 and svid > 210:  # Galileo
                 svid -= 210
             if gnss == 3 and svid > 32:  # Beidou
                 svid -= 32
-            key = f"{gnss}-{svid}"
-            gsv_dict[key] = (
-                gnss,
-                svid,
-                getattr(data, f"ele_{i+1:02}"),
-                getattr(data, f"azi_{i+1:02}"),
-                str(getattr(data, f"cno_{i+1:02}")),
-                now,
-            )
-
-        for key in gsv_dict:
-            self.gsv_log[key] = gsv_dict[key]
-
-        for key in self.gsv_log:
-            gnssId, svid, elev, azim, snr, lastupdate = self.gsv_log[key]
-            if snr in ("", "0", 0) and not show_unused:  # omit unused sats
+            if cno in ("", "0", 0) and not show_unused:  # omit unused sats
                 continue
-            if now - lastupdate < SAT_EXPIRY:  # expire passed sats
-                self.gsv_data.append((gnssId, svid, elev, azim, snr))
+            self.gsv_data[f"{gnss}-{svid}"] = (gnss, svid, elev, azim, cno)
 
         self.__app.gnss_status.siv = len(self.gsv_data)
         self.__app.gnss_status.gsv_data = self.gsv_data
