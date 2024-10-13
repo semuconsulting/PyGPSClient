@@ -1,5 +1,13 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.4.23
+
+CHANGES:
+
+1. Update minimum pgnssutils version to 1.1.4 - includes fix for https://github.com/semuconsulting/pygnssutils/issues/93.
+1. Drop active support for Python 3.8 - now End of Life as at October 2024.
+1. Add active support for Python 3.13 - now General Release as at October 2024.
+
 ### RELEASE 1.4.22
 
 ENHANCEMENTS:
