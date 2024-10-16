@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.4.25
+
+FIXES:
+
+1. Minor improvements to datalogging and track recording.
+
 ### RELEASE 1.4.24
 
 FIXES:

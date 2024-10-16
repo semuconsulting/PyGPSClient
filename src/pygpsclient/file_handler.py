@@ -255,6 +255,7 @@ class FileHandler:
                 datum = (str(datum) + "\r").encode("utf-8")
             try:
                 self._logfile.write(datum)
+                self._logfile.flush()
                 self._lines += 1
             except ValueError:
                 pass
@@ -401,6 +402,7 @@ class FileHandler:
 
         try:
             self._trackfile.write(trkpnt)
+            self._trackfile.flush()
         except (IOError, ValueError):
             pass
 
