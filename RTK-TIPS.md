@@ -76,8 +76,8 @@ If you're relatively new to GNSS and RTK techniques and terminology, you may wan
 ### 7. "FLOAT" vs "FIXED"
 
 - It is important to understand that these RTK status values are based, in essence, on a statistical analysis (using the principles of [Kalman Filtering](https://en.wikipedia.org/wiki/Kalman_filter)) of the [various errors](https://www.semuconsulting.com/gnsswiki/#Errors) ('residuals') which affect the calculation of carrier phase pseudorange, and hence the accuracy of the navigation solution.
-- The receiver's firmware applies a complex proprietary algorithm to determine if this statistical analysis is within a certain tolerance. If it is, the receiver will report an 'RTK-FIXED' status. If it is outside the designated tolerance, the receiver may report an 'RTK-FLOAT' status. This doesn't *necessarily* mean that the solution is less accurate - it just means that the *confidence* level is lower than 'FIXED'. An 'RTK-FLOAT' status will therefore generally yield a lower accuracy estimation (`hAcc`, `vAcc`) than 'RTK-FIXED'.
-- Both are essentially a measure of confidence in the carrier phase pseudorange calculation and hence navigation solution. 
+- The receiver's firmware applies a complex proprietary algorithm to determine if this statistical analysis is within a certain tolerance. If it is, the receiver will report an 'RTK-FIXED' status. If it is outside the designated tolerance, the receiver may report an 'RTK-FLOAT' status. This doesn't *necessarily* mean that the solution is less accurate - it just means that the *confidence* level is lower than 'FIXED'.
+- An 'RTK-FLOAT' status will therefore generally yield a lower accuracy estimation (`hAcc`, `vAcc`) than 'RTK-FIXED'.
 
 ### <a name="caveats">8. Some caveats on "hAcc" and "vAcc"</a>
 
@@ -88,6 +88,7 @@ If you're relatively new to GNSS and RTK techniques and terminology, you may wan
   - Geometric distribution of the satellites (`dop`)
   - Pseudorange residuals ([UERE](https://en.wikipedia.org/wiki/Error_analysis_for_the_Global_Positioning_System))
 - In the case of the u-blox ZED-F9P receiver, the analysis itself is proprietary and is performed within the F9P's firmware, rather than in client software.
+- Ultimately, the only *definitive* way of establishing the accuracy of an RTK (or PPK) navigation solution is to compare it with a known fixed reference point whose 3D coordinates have been independently established via high precision surveying techniques.
 
 ---
 ## <a name="example">Illustrated Example</a>
