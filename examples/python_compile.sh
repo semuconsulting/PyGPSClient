@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# bash shell script to compile and install specified Python 3 version with
-# tkinter support on Debian Linux platforms e.g. Ubuntu (Jammy or later).
+# bash shell script to compile and install specified Python 3 version
+# on Debian Linux platforms e.g. Ubuntu or Raspberry Pi OS.
 #
 # Remember to run chmod +x python_compile.sh to make this script executable.
 #
@@ -12,6 +12,8 @@
 # Build instructions:
 # https://devguide.python.org/getting-started/setup-building/index.html#install-dependencies
 # https://docs.python.org/3/using/unix.html#building-python
+#
+# Created by semuadmin on 20 Sep 2020.
 # 
 # exit on error
 set -e
@@ -48,5 +50,5 @@ sudo make install
 python3 -V
 else
 sudo make altinstall
-python${ID%.*} -V
+python${PYVER%.*} -V
 fi
