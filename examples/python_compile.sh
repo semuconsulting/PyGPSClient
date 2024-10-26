@@ -29,7 +29,18 @@ wget https://www.python.org/ftp/python/${PYVER}/Python-${PYVER}.tgz
 tar zvxf Python-${PYVER}.tgz
 
 # enable the Debian source repos
-sudo sed -i -e 's/#deb-src/deb-src/g' /etc/apt/sources.list
+SRCDEB="/etc/apt/sources.list"
+SRCUBU="/etc/apt/sources.list.d/ubuntu.sources"
+# Debian, including Raspberry Pi OS:
+if test -f $SRCDEB
+then
+sudo sed -i -e 's/#deb-src/deb-src/g' $SRCDEB
+fi
+# Ubuntu, including 24.04 LTS:
+if test -f $SRCUBU
+then
+sudo sed -i 's/^Types: deb$/Types: deb deb-src/' $SRCUBU 
+fi
 
 # install build dependencies
 sudo apt update
