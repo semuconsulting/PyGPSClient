@@ -107,6 +107,7 @@
     "lbandclientdebug_b": 0,
     "spartndecode_b": 0,
     "scattermode_s": "Planar",
+    "scattercenter_s": "Dynamic",
     "scatterscale_n": 6,
     "scatterlat_f": 37.23345133,
     "scatterlon_f": -115.81513477,

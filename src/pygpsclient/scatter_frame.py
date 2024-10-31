@@ -21,7 +21,6 @@ statistics and geographiclib libraries.
 
 from collections import namedtuple
 from math import cos, radians, sin
-from random import randrange
 from tkinter import (
     HORIZONTAL,
     E,
@@ -45,9 +44,12 @@ from pygpsclient.skyview_frame import Canvas
 PLANAR = "Planar"
 HAVERSINE = "Great Circle"
 MODES = (PLANAR, HAVERSINE)
-SQRT2 = 0.7071067811865476
+CTRDYN = "Dynamic"
+CTRFIX = "Fixed"
+CRTS = (CTRDYN, CTRFIX)
 PNTCOL = "orange"
 FIXCOL = "green2"
+SQRT2 = 0.7071067811865476
 
 Point = namedtuple("Point", ["lat", "lon"])
 
@@ -78,6 +80,8 @@ class ScatterViewFrame(Frame):
         self.points = []
         self.one_meter = 1.0
         self.mean = None
+        self.mode = StringVar()
+        self.center = StringVar()
         self.scale = IntVar()
         self.reflat = StringVar()
         self.reflon = StringVar()
@@ -85,10 +89,10 @@ class ScatterViewFrame(Frame):
         reflon = config.get("scatterlon_f", 0.0)
         self.reflat.set("Reference Lat" if reflat == 0.0 else reflat)
         self.reflon.set("Reference Lon" if reflon == 0.0 else reflon)
-        self.scale.set(config.get("scatterscale_n", 6))
-        self.scale_factors = (100, 50, 25, 10, 5, 1, 0.1, 0.05, 0.025, 0.01)
-        self.mode = StringVar()
+        self.scale.set(config.get("scatterscale_n", 7))
+        self.scale_factors = (100, 50, 25, 10, 5, 1, 0.5, 0.1, 0.05, 0.025, 0.01)
         self.mode.set(config.get("scattermode_s", PLANAR))
+        self.mode.set(config.get("scattercenter_s", CTRDYN))
         self._body()
         self._attach_events()
 
@@ -109,7 +113,16 @@ class ScatterViewFrame(Frame):
             fg=PNTCOL,
             bg=BGCOL,
             textvariable=self.mode,
-            command=self._remode,
+            command=self._on_remode,
+        )
+        self.spn_center = Spinbox(
+            self,
+            values=CRTS,
+            width=9,
+            wrap=True,
+            fg=PNTCOL,
+            bg=BGCOL,
+            textvariable=self.center,
         )
         self.scale_widget = Scale(
             self,
@@ -120,7 +133,7 @@ class ScatterViewFrame(Frame):
             troughcolor=BGCOL,
             variable=self.scale,
             showvalue=False,
-            command=self._rescale,
+            command=self._on_rescale,
         )
         self.ent_reflat = Entry(
             self,
@@ -136,7 +149,8 @@ class ScatterViewFrame(Frame):
         )
         self.canvas.grid(column=0, row=0, columnspan=4, sticky=(N, S, E, W))
         self.spn_mode.grid(column=0, row=1, sticky=(W, E))
-        self.scale_widget.grid(column=1, row=1, columnspan=3, sticky=(W, E))
+        self.spn_center.grid(column=1, row=1, sticky=(W, E))
+        self.scale_widget.grid(column=2, row=1, columnspan=2, sticky=(W, E))
         self.ent_reflat.grid(column=0, row=2, columnspan=2, sticky=(W, E))
         self.ent_reflon.grid(column=2, row=2, columnspan=2, sticky=(W, E))
 
@@ -147,15 +161,32 @@ class ScatterViewFrame(Frame):
 
         self.bind("<Configure>", self._on_resize)
         self.canvas.bind("<Double-Button-1>", self._on_clear)
+        self.canvas.bind("<MouseWheel>", self._on_zoom)
 
-    def _remode(self):
+    def _on_zoom(self, event):
         """
-        Remode widget.
+        Adjust scale using mousewheel.
+
+        :param event: mousewheel event
+        """
+
+        sl = len(self.scale_factors) - 1
+        sc = self.scale.get()
+        if event.delta > 0:
+            if sc < sl:
+                self.scale.set(sc + 1)
+        elif event.delta < 0:
+            if sc > 0:
+                self.scale.set(sc - 1)
+
+    def _on_remode(self):
+        """
+        Adjust distance approximation mode (haversine/planar)
         """
 
         self._on_resize(None)
 
-    def _rescale(self, scale):  # pylint: disable=unused-argument
+    def _on_rescale(self, scale):  # pylint: disable=unused-argument
         """
         Rescale widget.
         """
@@ -292,15 +323,15 @@ class ScatterViewFrame(Frame):
         if not self.points:
             return
 
-        ref = False  # centered on average position
-        try:
-            middle = Point(float(self.reflat.get()), float(self.reflon.get()))
-            ref = True  # centered on fixed reference position
-        except ValueError:
-            middle = self._ave_pos()
+        middle = self._ave_pos()
+        if self.center.get() == CTRFIX:
+            try:
+                middle = Point(float(self.reflat.get()), float(self.reflon.get()))
+            except ValueError:
+                self.center.set(CTRDYN)
         for pnt in self.points:
             self.draw_point(middle, pnt)
-        if ref:
+        if self.center.get() == CTRFIX:
             self.draw_point(middle, middle, FIXCOL)
 
     def update_frame(self):

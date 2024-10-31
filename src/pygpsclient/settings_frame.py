@@ -911,6 +911,9 @@ class SettingsFrame(Frame):
                 "ubxpresets_l": self.__app.saved_config.get("ubxpresets_l", []),
                 "usermaps_l": self.__app.saved_config.get("usermaps_l", []),
                 "scattermode_s": self.__app.saved_config.get("scattermode_s", "Planar"),
+                "scattercenter_s": self.__app.saved_config.get(
+                    "scattercenter_s", "Dynamic"
+                ),
                 "scatterscale_n": self.__app.saved_config.get("scatterscale_n", 6),
                 "scatterlat_f": self.__app.saved_config.get("scatterlat_f", 0.0),
                 "scatterlon_f": self.__app.saved_config.get("scatterlon_f", 0.0),
