@@ -3,33 +3,37 @@ scatter_frame.py
 
 Scatterplot frame class for PyGPSClient Application.
 
-This generates a scatterplot of positions, centered on the average
-position.
+This generates a scatterplot of positions, centered on either
+the cumulative average position or a fixed reference position.
+
+The fixed reference position can be stored in the json
+configuration file as `scatterlat_f`/`scatterlon_f`.
 
 Created 23 March 2023
 
 Amended by semuadmin on 4 April 2023 to eliminate dependency on
 statistics and geographiclib libraries.
 
-:author: Nathan Michaels
+:author: Nathan Michaels, semuadmin
 :copyright: Qualinx B.V.
 :license: BSD 3-Clause
 """
 
 from collections import namedtuple
 from math import cos, radians, sin
+from random import randrange
 from tkinter import (
-    BOTH,
     HORIZONTAL,
-    LEFT,
-    NO,
-    YES,
+    E,
+    Entry,
     Frame,
     IntVar,
+    N,
+    S,
     Scale,
     Spinbox,
     StringVar,
-    X,
+    W,
     font,
 )
 
@@ -43,6 +47,7 @@ HAVERSINE = "Great Circle"
 MODES = (PLANAR, HAVERSINE)
 SQRT2 = 0.7071067811865476
 PNTCOL = "orange"
+FIXCOL = "green2"
 
 Point = namedtuple("Point", ["lat", "lon"])
 
@@ -62,6 +67,7 @@ class ScatterViewFrame(Frame):
         """
         self.__app = app
         self.__master = self.__app.appmaster
+        config = self.__app.saved_config
 
         Frame.__init__(self, self.__master, *args, **kwargs)
 
@@ -73,18 +79,25 @@ class ScatterViewFrame(Frame):
         self.one_meter = 1
         self.mean = None
         self.scale = IntVar()
-        self.scale.set(6)
-        self.scale_factors = (100, 50, 25, 20, 15, 10, 5, 1, 0.1)
+        self.reflat = StringVar()
+        self.reflon = StringVar()
+        self.reflat.set(config.get("scatterlat_f", "Reference Lat"))
+        self.reflon.set(config.get("scatterlon_f", "Reference Lon"))
+        self.scale.set(config.get("scatterscale_n", 6))
+        self.scale_factors = (100, 50, 25, 10, 5, 1, 0.1, 0.05, 0.025, 0.01)
         self.mode = StringVar()
-        self.mode.set(PLANAR)
+        self.mode.set(config.get("scattermode_s", PLANAR))
         self._body()
         self._attach_events()
 
     def _body(self):
         """Set up frame and widgets."""
 
-        self.grid_columnconfigure(0, weight=1)
+        for i in range(4):
+            self.grid_columnconfigure(i, weight=1, uniform="ent")
         self.grid_rowconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=0)
+        self.grid_rowconfigure(2, weight=0)
         self.canvas = Canvas(self, width=self.width, height=self.height, bg=BGCOL)
         self.spn_mode = Spinbox(
             self,
@@ -107,9 +120,23 @@ class ScatterViewFrame(Frame):
             showvalue=False,
             command=self._rescale,
         )
-        self.canvas.pack(fill=BOTH, expand=YES)
-        self.spn_mode.pack(side=LEFT, expand=NO)
-        self.scale_widget.pack(side=LEFT, fill=X, expand=YES)
+        self.ent_reflat = Entry(
+            self,
+            textvariable=self.reflat,
+            fg=FIXCOL,
+            bg=BGCOL,
+        )
+        self.ent_reflon = Entry(
+            self,
+            textvariable=self.reflon,
+            fg=FIXCOL,
+            bg=BGCOL,
+        )
+        self.canvas.grid(column=0, row=0, columnspan=4, sticky=(N, S, E, W))
+        self.spn_mode.grid(column=0, row=1)
+        self.scale_widget.grid(column=1, row=1, columnspan=3, sticky=(W, E))
+        self.ent_reflat.grid(column=0, row=2, columnspan=2, sticky=(W, E))
+        self.ent_reflon.grid(column=2, row=2, columnspan=2, sticky=(W, E))
 
     def _attach_events(self):
         """
@@ -217,12 +244,13 @@ class ScatterViewFrame(Frame):
         self.one_meter = (maxr * 0.25) / m_per_circle
         self._draw_mean(lbl_font)
 
-    def draw_point(self, center: Point, position: Point):
+    def draw_point(self, center: Point, position: Point, color: str = PNTCOL):
         """
         Draw a Point on the scatterplot, given a center Point.
 
         :param Point center: The center of the plot
         :param Point position: The point to draw
+        :param str color: point color as string e.g. "orange"
         """
 
         if self.mode.get() == PLANAR:  # use planar approximation formula (returns m)
@@ -240,7 +268,7 @@ class ScatterViewFrame(Frame):
         center_y = self.height / 2
         pt_x = center_x + pos_x
         pt_y = center_y - pos_y
-        self.canvas.create_circle(pt_x, pt_y, 2, fill=PNTCOL, outline=PNTCOL)
+        self.canvas.create_circle(pt_x, pt_y, 2, fill=color, outline=color)
 
     def _ave_pos(self):
         """
@@ -258,16 +286,26 @@ class ScatterViewFrame(Frame):
         """
         Redraw all the points on the scatter plot.
         """
+
         if not self.points:
             return
-        middle = self._ave_pos()
+
+        ref = False  # centered on average position
+        try:
+            middle = Point(float(self.reflat.get()), float(self.reflon.get()))
+            ref = True  # centered on fixed reference position
+        except ValueError:
+            middle = self._ave_pos()
         for pnt in self.points:
             self.draw_point(middle, pnt)
+        if ref:
+            self.draw_point(middle, middle, FIXCOL)
 
     def update_frame(self):
         """
         Collect scatterplot data and update the plot.
         """
+
         lat, lon = self.__app.gnss_status.lat, self.__app.gnss_status.lon
         try:
             lat = float(lat)

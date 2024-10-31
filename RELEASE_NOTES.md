@@ -2,8 +2,9 @@
 
 ### RELEASE 1.4.25
 
-FIXES:
+ENHANCEMENTS:
 
+1. Enhance scatterplot widget to extend zoom range to 0.01m and add optional fixed reference position. Delivers #160 and #161.
 1. Minor improvements to datalogging and track recording.
 
 ### RELEASE 1.4.24
