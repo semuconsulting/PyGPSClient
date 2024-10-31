@@ -76,13 +76,15 @@ class ScatterViewFrame(Frame):
         self.width = kwargs.get("width", def_w)
         self.height = kwargs.get("height", def_h)
         self.points = []
-        self.one_meter = 1
+        self.one_meter = 1.0
         self.mean = None
         self.scale = IntVar()
         self.reflat = StringVar()
         self.reflon = StringVar()
-        self.reflat.set(config.get("scatterlat_f", "Reference Lat"))
-        self.reflon.set(config.get("scatterlon_f", "Reference Lon"))
+        reflat = config.get("scatterlat_f", 0.0)
+        reflon = config.get("scatterlon_f", 0.0)
+        self.reflat.set("Reference Lat" if reflat == 0.0 else reflat)
+        self.reflon.set("Reference Lon" if reflon == 0.0 else reflon)
         self.scale.set(config.get("scatterscale_n", 6))
         self.scale_factors = (100, 50, 25, 10, 5, 1, 0.1, 0.05, 0.025, 0.01)
         self.mode = StringVar()
