@@ -29,7 +29,7 @@ If you're relatively new to GNSS and RTK techniques and terminology, you may wan
 - A GNSS antenna must be capable of receiving a clear signal on the key GNSS L-Band frequencies - specifically the L1, L2 and (ideally) L5 frequencies. Depending on your local environment and intended application, a multi-band active patch antenna like the u-blox [ANN-MB-00](https://www.sparkfun.com/products/15192) may suffice, or you may benefit from a "UFO" style multi-band [surveying antenna](https://www.sparkfun.com/products/21801). 
 - If weight is at a premium - e.g. for aerial applications - a [helical antenna](https://www.sparkfun.com/products/23847) may be more suitable, albeit with some loss of performance.
 - Active GNSS antennae typically incorporate low noise amplifiers (LNA) to boost gain, along with bandpass or 'saw' filters to remove extraneous noise and frequencies which are not required for GNSS reception. **Note, however**, that such filters may render the antenna unsuitable for other RTK applications e.g. reception of L-Band SPARTN data using a [u-blox NEO-D9S](https://www.u-blox.com/en/product/neo-d9s-series) receiver, for which a [broad-spectrum active patch antenna](https://www.amazon.com/RTL-SDR-Blog-1525-1637-Inmarsat-Iridium/dp/B07WGWZS1D), or even a passive directional antenna, may be more suitable.
-- Ensure that the antenna cable is a high-quality coaxial cable with minimum attenuation in the L-Band spectrum - [RG58](https://www.sparkfun.com/products/21281) as a bare minimum, preferably [RF240](https://www.connextech.co.uk/8m-rf240-low-loss-cable-assembly-1441-p.asp) or [RF400](https://www.connextech.co.uk/10m-rf400-very-low-loss-cable-assembly-1433-p.asp) for longer runs (> 10m).
+- Ensure that the antenna cable is a high-quality coaxial cable with minimum attenuation in the L-Band spectrum - [RG58](https://www.sparkfun.com/products/21281) as a bare minimum, preferably [RF240](https://www.connextech.co.uk/8m-rf240-low-loss-cable-assembly-1441-p.asp) or [RF400](https://www.connextech.co.uk/10m-rf400-very-low-loss-cable-assembly-1433-p.asp) for longer runs (> 3m).
 - If possible, use a GNSS receiver/breakout board and antenna which support robust TNC, BNC or SMA connectors rather than the much smaller U.FL type, which is not designed for repeated insertion and has limited cable length.
 
 ### 3. Use a suitable ground plane
@@ -76,18 +76,20 @@ If you're relatively new to GNSS and RTK techniques and terminology, you may wan
 ### 7. "FLOAT" vs "FIXED"
 
 - It is important to understand that these RTK status values are based, in essence, on a statistical analysis (using the principles of [Kalman Filtering](https://en.wikipedia.org/wiki/Kalman_filter)) of the [various errors](https://www.semuconsulting.com/gnsswiki/#Errors) ('residuals') which affect the calculation of carrier phase pseudorange, and hence the accuracy of the navigation solution.
-- The receiver's firmware applies a complex proprietary algorithm to determine if this statistical analysis is within a certain tolerance. If it is, the receiver will report an 'RTK-FIXED' status. If it is outside the designated tolerance, the receiver may report an 'RTK-FLOAT' status. This doesn't *necessarily* mean that the solution is less accurate - it just means that the *confidence* level is lower than 'FIXED'. An 'RTK-FLOAT' status will therefore generally yield a lower accuracy estimation (`hAcc`, `vAcc`) than 'RTK-FIXED'.
-- Both are essentially a measure of confidence in the carrier phase pseudorange calculation and hence navigation solution. 
+- The receiver's firmware applies a complex proprietary algorithm to determine if this statistical analysis is within a certain tolerance. If it is, the receiver will report an 'RTK-FIXED' status. If it is outside the designated tolerance, the receiver may report an 'RTK-FLOAT' status. This doesn't *necessarily* mean that the solution is less accurate - it just means that the *confidence* level is lower than 'FIXED'.
+- An 'RTK-FLOAT' status will therefore generally yield a lower accuracy estimate (`hAcc`, `vAcc`) than 'RTK-FIXED'. 
 
 ### <a name="caveats">8. Some caveats on "hAcc" and "vAcc"</a>
 
 - **NB:** `hAcc` and `vAcc` values are *not* available from the default cohort of NMEA messages output by most GNSS receivers (including the F9P). In order to receive these values, you will need to enable either proprietary NMEA sentences like u-blox's UBX00, or UBX messages like NAV-PVT.
-- Much is made of reported horizontal (hAcc) and vertical (vAcc) accuracy figures. Note, however, that these are **merely estimates** based on a statistical analysis of:
+- Much is made of reported horizontal (hAcc) and vertical (vAcc) accuracy figures, but they are **merely estimates** based on a statistical analysis of:
   - Number of satellites (`sip`)
   - Signal strengths (`CN₀`)
   - Geometric distribution of the satellites (`dop`)
   - Pseudorange residuals ([UERE](https://en.wikipedia.org/wiki/Error_analysis_for_the_Global_Positioning_System))
 - In the case of the u-blox ZED-F9P receiver, the analysis itself is proprietary and is performed within the F9P's firmware, rather than in client software.
+- Ultimately, the only definitive way of establishing the accuracy of an RTK (or PPK) navigation solution is to compare it with a known fixed reference point whose 3D coordinates have been independently established via high precision surveying techniques.
+- Note that the 7th and 8th decimal places of a decimal lat/lon coordinate are equivalent to about 1.1cm and 1.1mm respectively, which represents the practical limit of any RTK or PPK GNSS application - anything more than this would be spurious.
 
 ---
 ## <a name="example">Illustrated Example</a>
@@ -120,7 +122,7 @@ The *indicated* horizontal accuracy (`hacc`) is 1.4cm but *note [caveats](#cavea
 | BNC        | Bayonet Neill–Concelman | A standard bayonet antenna connector type |
 | CN₀        | Carrier to noise ratio | A measure of GNSS signal strength |
 | CORS       | Continuously Operating Reference Station | A term denoting an RTK correction source e.g. NTRIP server |
-| DGPS/DGNSS | Differential GPS/GNSS | https://en.wikipedia.org/wiki/Differential_GPS |
+| DGPS/DGNSS | Differential GPS/GNSS | A [high resolution positioning technique](https://en.wikipedia.org/wiki/Differential_GPS) that enhances the positional data available from GNSS systems by reference to a network of fixed position, ground-based (or "virtual") reference stations |
 | DOP        | Dilution of Precision | A measure of the effect of the geometric distribution of visible GNSS satellites on positional accuracy |
 | HACC       | Horizontal Accuracy | A statistical estimate of horizontal positional accuracy based on a number of factors |
 | L1         | | Original GPS C/A carrier frequency 1575.42 MHz |
@@ -129,13 +131,14 @@ The *indicated* horizontal accuracy (`hacc`) is 1.4cm but *note [caveats](#cavea
 | L-Band     | | A radio frequency band covering the spectrum 1 GHz to 2 GHz |
 | LNA        | Low-noise Amplifier | A signal booster built into some active GNSS antennae |
 | NTRIP      | Networked Transport of RTCM via Internet Protocol | A proprietary RTK DGPS protocol published by the RTCM | 
-| PPK        | Post-processing kinematics | [Benefits of using PPK](https://www.advancednavigation.com/tech-articles/benefits-of-using-post-processing-kinematic-ppk-software-in-gnss-based-and-inertial-navigation-solutions/) |
+| PPK        | Post-processing kinematics | A [high resolution surveying technique](https://www.advancednavigation.com/tech-articles/benefits-of-using-post-processing-kinematic-ppk-software-in-gnss-based-and-inertial-navigation-solutions/), similar in principal to RTK but with corrections being applied retrospectively to a set of captured raw GNSS navigation and observation data, typically converted to RINEX format |
 | RF         | Radio Frequency | In the context of GNSS this generally refers to the L-Band |
 | RF240      | | A higher quality solid-core RF coaxial cable specification which offers reduced attenuation over longer distances than RG58 |
 | RG58       | | A common specification of stranded-core RF coaxial cable suitable for short cable runs |
 | RINEX      | Receiver Independent Exchange Format | A proprietary vendor-agnostic GNSS data protocol published by the RTCM and commonly used for PPK |
 | RTCM       | Radio Technical Commission for Maritime Services | The not-for-profit body which publishes the NTRIP, RTCM3 and RINEX protocols |
-| RTK        | Real-time kinematics | https://en.wikipedia.org/wiki/Real-time_kinematic_positioning |
+| RTK        | Real-time kinematics | A real-time [high resolution surveying technique](https://en.wikipedia.org/wiki/Real-time_kinematic_positioning) which corrects for [common errors](https://www.semuconsulting.com/gnsswiki/#Errors) in GNSS positional data using measurements of the phase of the signal's carrier wave in addition to the information content of the signal. It relies on a single reference station or interpolated virtual station to provide real-time corrections, providing up to centimetre-level accuracy.
+| RTN        | Real-time Network | A real-time [high resolution surveying technique](https://water.usgs.gov/osw/gps/real-time_network.html), similar in principle to RTK but using a computed or "virtual" reference station rather than a physical reference station | 
 | SIP        | Satellites in Position | The number of satellites actually used in the receiver's navigation solution |
 | SIV        | Satellites in View | The number of satellites the receiver can see |
 | SMA        | Subminiature version A | A standard miniature threaded antenna connector type |
