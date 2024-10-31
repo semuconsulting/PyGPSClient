@@ -135,7 +135,7 @@ class ScatterViewFrame(Frame):
             bg=BGCOL,
         )
         self.canvas.grid(column=0, row=0, columnspan=4, sticky=(N, S, E, W))
-        self.spn_mode.grid(column=0, row=1)
+        self.spn_mode.grid(column=0, row=1, sticky=(W, E))
         self.scale_widget.grid(column=1, row=1, columnspan=3, sticky=(W, E))
         self.ent_reflat.grid(column=0, row=2, columnspan=2, sticky=(W, E))
         self.ent_reflon.grid(column=2, row=2, columnspan=2, sticky=(W, E))
