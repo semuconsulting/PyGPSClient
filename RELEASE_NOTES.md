@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.4.26
+
+ENHANCEMENTS:
+
+1. Enhance scatterplot widget dynamic/fixed display options.
+
 ### RELEASE 1.4.25
 
 ENHANCEMENTS:

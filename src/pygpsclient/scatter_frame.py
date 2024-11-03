@@ -324,15 +324,17 @@ class ScatterViewFrame(Frame):
             return
 
         middle = self._ave_pos()
-        if self.center.get() == CTRFIX:
-            try:
-                middle = Point(float(self.reflat.get()), float(self.reflon.get()))
-            except ValueError:
-                self.center.set(CTRDYN)
+        fixed = None
+        try:
+            fixed = Point(float(self.reflat.get()), float(self.reflon.get()))
+            if self.center.get() == CTRFIX:
+                middle = fixed
+        except ValueError:
+            self.center.set(CTRDYN)
         for pnt in self.points:
             self.draw_point(middle, pnt)
-        if self.center.get() == CTRFIX:
-            self.draw_point(middle, middle, FIXCOL)
+        if fixed is not None:
+            self.draw_point(middle, fixed, FIXCOL)
 
     def update_frame(self):
         """
