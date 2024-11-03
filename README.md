@@ -332,9 +332,9 @@ The SPARTN Configuration utility allows users to receive and process SPARTN RTK 
 
 The facility can be accessed by clicking ![SPARTN Client button](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-antenna-3-24.png?raw=true) or selecting Menu..Options..SPARTN Configuration Dialog.
 
-**FYI:** the SPARTN client utilises a new [`pyspartn`](https://github.com/semuconsulting/pyspartn) library. The `pyspartn.SPARTNReader` class will parse individual SPARTN messages from any binary stream containing *solely* SPARTN data e.g. an MQTT `/pp/ip` topic. The `pyspartn.SPARTNMessage` class is in Alpha and does not currently perform a full decode of all SPARTN protocol messages; it basically decodes just enough information to identify message type/subtype, payload length and other key metadata.
-
 **Pre-Requisites:**
+
+**NB:** SPARTN data from proprietary subscription services like Thingstream PointPerfect (MQTT or L-Band) is encrypted. While it is not necessary for PyGPSClient to decrypt the data prior to sending it to the GNSS receiver (*the receiver's own firmware will perform the necessary decryption provided the relevant keys have been uploaded*), if you wish to see the decrypted data in the PyGPSClient console it will be necessary to provide current decryption keys via the `spartndecode_b` and `spartnkey_s` settings in the json configuration file. Note that these keys are typically only valid for a 4 week period and will require regular updating. See [pyspartn Encrypted Payloads](https://github.com/semuconsulting/pyspartn#encrypted-payloads) for further details.
 
 1. IP Correction (MQTT Client):
 
