@@ -162,14 +162,15 @@ The *indicated* horizontal accuracy (`hacc`) is 1.4cm but *note [caveats](#cavea
 ## <a name="references">References and Further Reading</a>
 
 1. [GNSS Positioning - A Reviser](https://www.semuconsulting.com/gnsswiki/)
+1. [Differential GPS](https://en.wikipedia.org/wiki/Differential_GPS)
+1. [Real-time kinematic positioning](https://en.wikipedia.org/wiki/Real-time_kinematic_positioning)
+1. [GNSS Pseudorange Estimation - the 'Integer Ambiguity' Problem](https://www.youtube.com/watch?v=2gJrUlEhQ0Q&ab_channel=semuadmin)
+1. [RTK Fundamentals](https://gssc.esa.int/navipedia/index.php/RTK_Fundamentals)
+1. [Error analysis for the Global Positioning System](https://en.wikipedia.org/wiki/Error_analysis_for_the_Global_Positioning_System)
 1. [u-blox GNSS Antennas Paper](https://www.ardusimple.com/wp-content/uploads/2022/04/GNSS-Antennas_AppNote_UBX-15030289.pdf)
 1. [GPS Antenna and Coaxial Cable Specifications](https://www.gps-repeaters.com/blog/gps-repeater-antenna-and-coaxial-cable-specification/)
 1. [Importance of Ground Planes](https://novotech.com/pages/ground-plane)
 1. [Ardusimple GNSS Antenna Installation Guide](https://www.ardusimple.com/gps-gnss-antenna-installation-guide/)
-1. [Differential GPS](https://en.wikipedia.org/wiki/Differential_GPS)
-1. [Real-time kinematic positioning](https://en.wikipedia.org/wiki/Real-time_kinematic_positioning)
-1. [RTK Fundamentals](https://gssc.esa.int/navipedia/index.php/RTK_Fundamentals)
-1. [Error analysis for the Global Positioning System](https://en.wikipedia.org/wiki/Error_analysis_for_the_Global_Positioning_System)
 1. [RTCM DGNSS standards](https://rtcm.myshopify.com/collections/differential-global-navigation-satellite-dgnss-standards)
 1. [International Terrestial Reference Frame System](https://itrf.ign.fr/en/homepage)
 
