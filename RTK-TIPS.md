@@ -164,7 +164,7 @@ The *indicated* horizontal accuracy (`hacc`) is 1.4cm but *note [caveats](#cavea
 1. [GNSS Positioning - A Reviser](https://www.semuconsulting.com/gnsswiki/)
 1. [Differential GPS](https://en.wikipedia.org/wiki/Differential_GPS)
 1. [Real-time kinematic positioning](https://en.wikipedia.org/wiki/Real-time_kinematic_positioning)
-1. [GNSS Pseudorange Estimation - the 'Integer Ambiguity' Problem](https://www.youtube.com/watch?v=2gJrUlEhQ0Q&ab_channel=semuadmin)
+1. [GNSS Pseudorange Estimation - the 'Integer Ambiguity' Problem](https://www.youtube.com/watch?v=G0bV6iTZ1UU&ab_channel=semuadmin)
 1. [RTK Fundamentals](https://gssc.esa.int/navipedia/index.php/RTK_Fundamentals)
 1. [Error analysis for the Global Positioning System](https://en.wikipedia.org/wiki/Error_analysis_for_the_Global_Positioning_System)
 1. [u-blox GNSS Antennas Paper](https://www.ardusimple.com/wp-content/uploads/2022/04/GNSS-Antennas_AppNote_UBX-15030289.pdf)
