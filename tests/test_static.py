@@ -5,6 +5,7 @@ Static method tests for pygpsclient.helpers
 
 @author: semuadmin
 """
+
 # pylint: disable=missing-docstring
 
 import unittest
@@ -12,6 +13,7 @@ from datetime import datetime
 
 from pyubx2 import UBXReader
 
+from pygpsclient.globals import Point, Area
 from pygpsclient.helpers import (
     bitsval,
     bytes2unit,
@@ -45,6 +47,8 @@ from pygpsclient.helpers import (
     val2sphp,
     validURL,
     wnotow2date,
+    get_point_at_vector,
+    in_bounds,
 )
 from pygpsclient.mapquest import mapq_compress, mapq_decompress
 from pygpsclient.widget_state import DEFAULT, FRAME, MENU, VISIBLE, widget_state
@@ -476,6 +480,20 @@ class StaticTest(unittest.TestCase):
             res = isot2dt(t)
             # print(res)
             self.assertEqual(str(res), dts[i])
+
+    def testgetpointatvector(self):
+        res = get_point_at_vector(Point(51.23, -2.41), 23.65, 123.45)
+        self.assertAlmostEqual(res.lat, 51.22988289442865, 4)
+        self.assertAlmostEqual(res.lon, -2.4097169220939443, 4)
+        res = get_point_at_vector(Point(-12.645, 34.867), 145.1745, 56.27846)
+        self.assertAlmostEqual(res.lat, -12.644276003524272, 4)
+        self.assertAlmostEqual(res.lon, 34.868111659923926, 4)
+
+    def testinbounds(self):
+        res = in_bounds(Area(51.23, -2.41, 51.45, -2.13), Point(23.65, 45.123))
+        self.assertEqual(res, False)
+        res = in_bounds(Area(51.23, -2.41, 51.45, -2.13), Point(51.24, -2.39))
+        self.assertEqual(res, True)
 
 
 if __name__ == "__main__":

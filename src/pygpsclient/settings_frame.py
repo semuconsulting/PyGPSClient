@@ -910,9 +910,11 @@ class SettingsFrame(Frame):
                 "colortags_l": self.__app.saved_config.get("colortags_l", []),
                 "ubxpresets_l": self.__app.saved_config.get("ubxpresets_l", []),
                 "usermaps_l": self.__app.saved_config.get("usermaps_l", []),
-                "scattermode_s": self.__app.saved_config.get("scattermode_s", "Planar"),
+                "scatterautorange_b": self.__app.saved_config.get(
+                    "scatterautorange_b", 0
+                ),
                 "scattercenter_s": self.__app.saved_config.get(
-                    "scattercenter_s", "Dynamic"
+                    "scattercenter_s", "Average"
                 ),
                 "scatterscale_n": self.__app.saved_config.get("scatterscale_n", 6),
                 "scatterlat_f": self.__app.saved_config.get("scatterlat_f", 0.0),

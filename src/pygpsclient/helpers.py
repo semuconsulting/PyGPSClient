@@ -15,13 +15,13 @@ Created on 17 Apr 2021
 
 import os
 from datetime import datetime, timedelta
-from math import atan, cos, pi, sin, sqrt, trunc
+from math import asin, atan, atan2, cos, degrees, pi, radians, sin, sqrt, trunc
 from platform import system
 from socket import AF_INET, SOCK_DGRAM, socket
 from time import strftime
 from tkinter import Button, Entry, Label, Toplevel, W, font
 
-from pynmeagps import haversine
+from pynmeagps import WGS84_SMAJ_AXIS, haversine
 from pyubx2 import SET, SET_LAYER_RAM, TXN_NONE, UBX_MSGIDS, UBXMessage, attsiz, atttyp
 from requests import get
 
@@ -32,6 +32,8 @@ from pygpsclient.globals import (
     PUBLICIP_URL,
     RCVR_CONNECTION,
     ROMVER_NEW,
+    Area,
+    Point,
 )
 from pygpsclient.strings import NA
 
@@ -1005,3 +1007,54 @@ def lanip() -> str:
             return sck.getsockname()[0]
         except Exception:  # pylint: disable=broad-exception-caught
             return "N/A"
+
+
+def get_point_at_vector(
+    start: Point,
+    dist: float,
+    bearing: float,
+    radius: float = WGS84_SMAJ_AXIS,
+) -> Point:
+    """
+    Get new point at vector from start position.
+
+    :param Point start: starting position
+    :param float dist: vector distance
+    :param float bearing: vector bearing (true)
+    :param float radius: optional radius of sphere, defaults to mean radius of earth
+    :return: new position as lat/lon
+    :rtype: Point
+    """
+
+    phi1 = radians(start.lat)
+    lambda1 = radians(start.lon)
+    br = radians(bearing)
+    phi2 = asin(
+        sin(phi1) * cos(dist / radius) + cos(phi1) * sin(dist / radius) * cos(br)
+    )
+    lambda2 = lambda1 + atan2(
+        sin(br) * sin(dist / radius) * cos(phi1),
+        cos(dist / radius) - sin(phi1) * sin(phi2),
+    )
+    return Point(degrees(phi2), degrees(lambda2))
+
+
+def in_bounds(bounds: Area, point: Point) -> bool:
+    """
+    Check if given point is within canvas bounding box.
+
+    :param Area bounds: bounding box
+    :param Point point: point
+    :return: true/false
+    :rtype: bool
+    """
+
+    if bounds is None:
+        return False
+
+    return (
+        point.lat >= bounds.lat1
+        and point.lat <= bounds.lat2
+        and point.lon >= bounds.lon1
+        and point.lon <= bounds.lon2
+    )
