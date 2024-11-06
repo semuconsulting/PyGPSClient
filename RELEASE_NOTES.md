@@ -1,5 +1,10 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.4.27
+
+ENHANCEMENTS:
+
+
 ### RELEASE 1.4.26
 
 ENHANCEMENTS:
