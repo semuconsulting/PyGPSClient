@@ -443,7 +443,7 @@ class BannerFrame(Frame):
                 elif pos_format == DMM:
                     lat, lon = latlon2dmm(lat, lon)
                 else:
-                    deg_f = ".8f"
+                    deg_f = ".9f"
                 if units in (UI, UIK):
                     alt = m2ft(alt)
                 self._lat.set(f"{lat:{deg_f}}")

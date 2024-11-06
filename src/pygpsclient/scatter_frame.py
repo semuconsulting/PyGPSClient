@@ -11,18 +11,18 @@ configuration file as `scatterlat_f`/`scatterlon_f`.
 
 Created 23 March 2023
 
-Amended by semuadmin on 4 April 2023 to eliminate dependency on
-statistics and geographiclib libraries.
+Completely rewritten by semuadmin 5 Nov 2024 to use bounding
+box rather than polar coordinations, and allow right-click
+fixed reference selection.
 
 :author: Nathan Michaels, semuadmin
-:copyright: Qualinx B.V.
+:copyright: 2024 SEMU Consulting
 :license: BSD 3-Clause
 """
 
-from collections import namedtuple
-from math import cos, radians, sin
 from tkinter import (
     HORIZONTAL,
+    Checkbutton,
     E,
     Entry,
     Frame,
@@ -36,22 +36,24 @@ from tkinter import (
     font,
 )
 
-from pynmeagps import bearing, haversine, planar
+try:
+    from statistics import pstdev
 
-from pygpsclient.globals import BGCOL, FGCOL, WIDGETU2
+    HASSTATS = True
+except (ImportError, ModuleNotFoundError):
+    HASSTATS = False
+
+from pygpsclient.globals import BGCOL, FGCOL, SQRT2, WIDGETU2, Area, Point
+from pygpsclient.helpers import get_point_at_vector, in_bounds
 from pygpsclient.skyview_frame import Canvas
 
-PLANAR = "Planar"
-HAVERSINE = "Great Circle"
-MODES = (PLANAR, HAVERSINE)
-CTRDYN = "Dynamic"
+MAXPOINTS = 100000  # equivalent to roughly 24 hours of data or 4.5MB
+CTRAVG = "Average"
 CTRFIX = "Fixed"
-CRTS = (CTRDYN, CTRFIX)
+CRTS = (CTRAVG, CTRFIX)
 PNTCOL = "orange"
 FIXCOL = "green2"
-SQRT2 = 0.7071067811865476
-
-Point = namedtuple("Point", ["lat", "lon"])
+AVG = "avg"
 
 
 class ScatterViewFrame(Frame):
@@ -77,22 +79,49 @@ class ScatterViewFrame(Frame):
 
         self.width = kwargs.get("width", def_w)
         self.height = kwargs.get("height", def_h)
-        self.points = []
-        self.one_meter = 1.0
-        self.mean = None
-        self.mode = StringVar()
-        self.center = StringVar()
-        self.scale = IntVar()
-        self.reflat = StringVar()
-        self.reflon = StringVar()
+        self._lbl_font = font.Font(size=max(int(self.height / 40), 10))
+        self._points = []
+        self._center = None
+        self._average = None
+        self._stddev = None
+        self._fixed = None
+        self._bounds = None
+        self._lastbounds = Area(0, 0, 0, 0)
+        self._range = 0.0
+        self._autorange = IntVar()
+        self._centermode = StringVar()
+        self._scale = IntVar()
+        self._reflat = StringVar()
+        self._reflon = StringVar()
         reflat = config.get("scatterlat_f", 0.0)
         reflon = config.get("scatterlon_f", 0.0)
-        self.reflat.set("Reference Lat" if reflat == 0.0 else reflat)
-        self.reflon.set("Reference Lon" if reflon == 0.0 else reflon)
-        self.scale.set(config.get("scatterscale_n", 7))
-        self.scale_factors = (100, 50, 25, 10, 5, 1, 0.5, 0.1, 0.05, 0.025, 0.01)
-        self.mode.set(config.get("scattermode_s", PLANAR))
-        self.mode.set(config.get("scattercenter_s", CTRDYN))
+        self._reflat.set("Reference Lat" if reflat == 0.0 else reflat)
+        self._reflon.set("Reference Lon" if reflon == 0.0 else reflon)
+        self._scale_factors = (
+            5000,
+            2000,
+            1000,
+            500,
+            200,
+            100,
+            50,
+            20,
+            10,
+            5,
+            2,
+            1,
+            0.5,
+            0.2,
+            0.1,
+            0.05,
+            0.02,
+            0.01,
+        )  # scale factors represent plot radius in meters
+        self._autorange.set(config.get("scatterautorange_b", 1))
+        self._scale.set(config.get("scatterscale_n", 9))
+        self._centermode.set(config.get("scattercenter_s", CTRAVG))
+        if self._centermode.get() != CTRFIX:
+            self._centermode.set(CTRAVG)
         self._body()
         self._attach_events()
 
@@ -105,54 +134,50 @@ class ScatterViewFrame(Frame):
         self.grid_rowconfigure(1, weight=0)
         self.grid_rowconfigure(2, weight=0)
         self.canvas = Canvas(self, width=self.width, height=self.height, bg=BGCOL)
-        self.spn_mode = Spinbox(
+        self._chk_autorange = Checkbutton(
             self,
-            values=MODES,
-            width=9,
-            wrap=True,
+            text="Autorange",
             fg=PNTCOL,
             bg=BGCOL,
-            textvariable=self.mode,
-            command=self._on_remode,
+            variable=self._autorange,
         )
-        self.spn_center = Spinbox(
+        self._spn_center = Spinbox(
             self,
             values=CRTS,
             width=9,
             wrap=True,
             fg=PNTCOL,
             bg=BGCOL,
-            textvariable=self.center,
+            textvariable=self._centermode,
         )
-        self.scale_widget = Scale(
+        self._scl_range = Scale(
             self,
             from_=0,
-            to=len(self.scale_factors) - 1,
+            to=len(self._scale_factors) - 1,
             orient=HORIZONTAL,
             bg=FGCOL,
             troughcolor=BGCOL,
-            variable=self.scale,
+            variable=self._scale,
             showvalue=False,
-            command=self._on_rescale,
         )
-        self.ent_reflat = Entry(
+        self._ent_reflat = Entry(
             self,
-            textvariable=self.reflat,
+            textvariable=self._reflat,
             fg=FIXCOL,
             bg=BGCOL,
         )
-        self.ent_reflon = Entry(
+        self._ent_reflon = Entry(
             self,
-            textvariable=self.reflon,
+            textvariable=self._reflon,
             fg=FIXCOL,
             bg=BGCOL,
         )
         self.canvas.grid(column=0, row=0, columnspan=4, sticky=(N, S, E, W))
-        self.spn_mode.grid(column=0, row=1, sticky=(W, E))
-        self.spn_center.grid(column=1, row=1, sticky=(W, E))
-        self.scale_widget.grid(column=2, row=1, columnspan=2, sticky=(W, E))
-        self.ent_reflat.grid(column=0, row=2, columnspan=2, sticky=(W, E))
-        self.ent_reflon.grid(column=2, row=2, columnspan=2, sticky=(W, E))
+        self._chk_autorange.grid(column=0, row=1, sticky=(W, E))
+        self._spn_center.grid(column=1, row=1, sticky=(W, E))
+        self._scl_range.grid(column=2, row=1, columnspan=2, sticky=(W, E))
+        self._ent_reflat.grid(column=0, row=2, columnspan=2, sticky=(W, E))
+        self._ent_reflon.grid(column=2, row=2, columnspan=2, sticky=(W, E))
 
     def _attach_events(self):
         """
@@ -161,7 +186,10 @@ class ScatterViewFrame(Frame):
 
         self.bind("<Configure>", self._on_resize)
         self.canvas.bind("<Double-Button-1>", self._on_clear)
+        self.canvas.bind("<Button-2>", self._on_recenter)  # mac
+        self.canvas.bind("<Button-3>", self._on_recenter)  # win
         self.canvas.bind("<MouseWheel>", self._on_zoom)
+        self._scale.trace_add("write", self._on_rescale)
 
     def _on_zoom(self, event):
         """
@@ -170,23 +198,16 @@ class ScatterViewFrame(Frame):
         :param event: mousewheel event
         """
 
-        sl = len(self.scale_factors) - 1
-        sc = self.scale.get()
+        sl = len(self._scale_factors) - 1
+        sc = self._scale.get()
         if event.delta > 0:
             if sc < sl:
-                self.scale.set(sc + 1)
+                self._scale.set(sc + 1)
         elif event.delta < 0:
             if sc > 0:
-                self.scale.set(sc - 1)
+                self._scale.set(sc - 1)
 
-    def _on_remode(self):
-        """
-        Adjust distance approximation mode (haversine/planar)
-        """
-
-        self._on_resize(None)
-
-    def _on_rescale(self, scale):  # pylint: disable=unused-argument
+    def _on_rescale(self, var, index, mode):  # pylint: disable=unused-argument
         """
         Rescale widget.
         """
@@ -201,140 +222,224 @@ class ScatterViewFrame(Frame):
         """
 
         self.width, self.height = self.get_size()
-        self.init_frame()
-        self.redraw()
+        self._init_frame()
+        self._redraw()
+
+    def _on_recenter(self, event):
+        """
+        Right click centers on cursor.
+
+        :param Event event: right click event
+        """
+
+        pos = self._xy2ll((event.x, event.y))
+        self._reflat.set(round(pos.lat, 9))
+        self._reflon.set(round(pos.lon, 9))
+        try:
+            self._fixed = Point(float(self._reflat.get()), float(self._reflon.get()))
+        except ValueError:
+            pass
 
     def _on_clear(self, event):  # pylint: disable=unused-argument
         """ "
         Clear plot.
 
-        :param Event event: clear event
+        :param Event event: double-click event
         """
 
-        self.points = []
-        self.init_frame()
+        self._points = []
+        self._init_frame()
 
-    def get_size(self) -> tuple:
-        """
-        Get current canvas size.
-
-        :return: window size (width, height)
-        :rtype: tuple
-        """
-
-        self.update_idletasks()  # Make sure we know about resizing
-        width = self.canvas.winfo_width()
-        height = self.canvas.winfo_height()
-        return (width, height)
-
-    def _draw_mean(self, lbl_font: font):
-        """
-        Draw the mean position in the corner of the plot. Uses
-        self.mean as the position to draw.
-
-        :param font lbl_font: Font to use.
-        """
-
-        if self.mean is None:
-            return
-
-        height = lbl_font.metrics("linespace")
-        lat = f"Lat {self.mean.lat:14.10f}"
-        lon = f"Lon {self.mean.lon:15.10f}"
-        self.canvas.create_text(5, 10, text=lat, fill=PNTCOL, font=lbl_font, anchor="w")
-        self.canvas.create_text(
-            5, 10 + height, text=lon, fill=PNTCOL, font=lbl_font, anchor="w"
-        )
-
-    def init_frame(self):
+    def _init_frame(self):
         """
         Initialize scatter plot.
         """
 
-        scale = self.scale_factors[self.scale.get()]
         width, height = self.get_size()
         self.canvas.delete("all")
-
-        lbl_font = font.Font(size=min(int(width / 25), 10))
-        m_per_circle = scale
         self.canvas.create_line(0, height / 2, width, height / 2, fill=FGCOL)
         self.canvas.create_line(width / 2, 0, width / 2, height, fill=FGCOL)
 
-        maxr = min((height / 2), (width / 2))
-        for idx, rad in enumerate(((0.25, 0.5, 0.75, 1))):
+        if self._bounds is None:
+            return
+
+        maxr = min(height / 2, width / 2)
+        for i in range(1, 5):
             self.canvas.create_circle(
-                width / 2, height / 2, maxr * rad, outline=FGCOL, width=1
+                width / 2, height / 2, maxr * i / 4, outline=FGCOL, width=1
             )
-            distance = m_per_circle * (idx + 1)
-            if len(str(distance)) > 4:
-                distance = round(distance, 3)
-            txt_x = width / 2 + SQRT2 * maxr * rad
-            txt_y = height / 2 + SQRT2 * maxr * rad
+            rng, unt = self.get_range_label()
+            if rng >= 100:
+                dp = 0
+            elif rng >= 10:
+                dp = 1
+            elif rng >= 1:
+                dp = 2
+            else:
+                dp = 3
+            dist = f"{rng * i/4:.{dp}f}{unt}"
+            txt_x = width / 2 + SQRT2 * maxr * i / 4
+            txt_y = height / 2 + SQRT2 * maxr * i / 4
             self.canvas.create_text(
-                txt_x, txt_y, text=f"{distance}m", fill=FGCOL, font=lbl_font
+                txt_x, txt_y, text=dist, fill=FGCOL, font=self._lbl_font
+            )
+            for x, y, t in (
+                (width / 2, 5, "N"),
+                (width / 2, height - 5, "S"),
+                (5, height / 2, "W"),
+                (width - 5, height / 2, "E"),
+            ):
+                self.canvas.create_text(
+                    x, y, text=t, fill=FGCOL, font=self._lbl_font, anchor=t.lower()
+                )
+
+    def _draw_average(self, lbl_font: font):
+        """
+        Draw the average position in the corner of the plot.
+
+        :param font lbl_font: Font to use.
+        """
+
+        if self._average is None:
+            return
+
+        self.canvas.delete(AVG)
+
+        fh = self._lbl_font.metrics("linespace")
+        avg = f"Avg: {self._average.lat:.9f}, {self._average.lon:.9f}"
+        self.canvas.create_text(
+            5, 5, text=avg, fill=PNTCOL, font=lbl_font, anchor="nw", tags=AVG
+        )
+        if self._stddev is not None:
+            std = f"Std: {self._stddev.lat:.3e}, {self._stddev.lon:.3e}"
+            self.canvas.create_text(
+                5, 5 + fh, text=std, fill=PNTCOL, font=lbl_font, anchor="nw", tags=AVG
             )
 
-        self.one_meter = (maxr * 0.25) / m_per_circle
-        self._draw_mean(lbl_font)
-
-    def draw_point(self, center: Point, position: Point, color: str = PNTCOL):
+    def _draw_point(self, position: Point, color: str = PNTCOL, size: int = 2):
         """
-        Draw a Point on the scatterplot, given a center Point.
+        Draw a point on the scatterplot.
 
-        :param Point center: The center of the plot
         :param Point position: The point to draw
         :param str color: point color as string e.g. "orange"
+        :param int size: size of circle (2)
         """
 
-        if self.mode.get() == PLANAR:  # use planar approximation formula (returns m)
-            distance = planar(center.lat, center.lon, position.lat, position.lon)
-        else:  # use haversine great circle formula (returns km)
-            distance = (
-                haversine(center.lat, center.lon, position.lat, position.lon) * 1000
-            )
-        distance *= self.one_meter  # adjust to scale
-        angle = bearing(center.lat, center.lon, position.lat, position.lon)
-        theta = radians(90 - angle)
-        pos_x = distance * cos(theta)
-        pos_y = distance * sin(theta)
-        center_x = self.width / 2
-        center_y = self.height / 2
-        pt_x = center_x + pos_x
-        pt_y = center_y - pos_y
-        self.canvas.create_circle(pt_x, pt_y, 2, fill=color, outline=color)
+        if not in_bounds(self._bounds, position):
+            return
 
-    def _ave_pos(self):
+        x, y = self._ll2xy(position)
+        self.canvas.create_circle(x, y, size, fill=color, outline=color)
+
+    def _ll2xy(self, position: Point) -> tuple:
+        """
+        Convert lat/lon to canvas x/y.
+
+        :param Point coordinate: lat/lon
+        :return: x,y canvas coordinates
+        :rtype: tuple
+        """
+
+        cw, ch = self.get_size()
+        lw = self._bounds.lon2 - self._bounds.lon1
+        lh = self._bounds.lat2 - self._bounds.lat1
+        lwp = lw / cw  # # units longitude per x pixel
+        lhp = lh / ch  # units latitude per y pixel
+
+        x = (position.lon - self._bounds.lon1) / lwp
+        y = ch - (position.lat - self._bounds.lat1) / lhp
+        return x, y
+
+    def _xy2ll(self, xy: tuple) -> Point:
+        """
+        Convert canvas x/y to lat/lon.
+
+        :param tuple xy: canvas x/y coordinate
+        :return: lat/lon
+        :rtype: Point
+        """
+
+        cw, ch = self.get_size()
+        lw = self._bounds.lon2 - self._bounds.lon1
+        lh = self._bounds.lat2 - self._bounds.lat1
+        cwp = cw / lw  # x pixels per unit longitude
+        chp = ch / lh  # y pixels per unit latitude
+        x, y = xy
+        lon = self._bounds.lon1 + x / cwp
+        lat = self._bounds.lat1 + (ch - y) / chp
+        return Point(lat, lon)
+
+    def _set_average(self):
         """
         Calculate the mean position of all the lat/lon pairs visible
         on the scatter plot. Note that this will make for some very
         weird results near poles.
         """
 
-        num = len(self.points)
-        ave_lat = sum(p.lat for p in self.points) / num
-        ave_lon = sum(p.lon for p in self.points) / num
-        return Point(ave_lat, ave_lon)
+        num = len(self._points)
+        ave_lat = sum(p.lat for p in self._points) / num
+        ave_lon = sum(p.lon for p in self._points) / num
+        self._average = Point(ave_lat, ave_lon)
+        if HASSTATS:
+            self._stddev = Point(
+                pstdev(p.lat for p in self._points), pstdev(p.lon for p in self._points)
+            )
 
-    def redraw(self):
+    def _set_bounds(self, center: Point):
+        """
+        Set bounding box of canvas baed on center point and
+        plot range.
+
+        :param Point center: centre of bounding box
+        """
+
+        cw, ch = self.get_size()
+        disth = self._scale_factors[self._scale.get()]
+        distw = self._scale_factors[self._scale.get()] * cw / ch
+        t = get_point_at_vector(center, disth, 0)
+        r = get_point_at_vector(center, distw, 90)
+        b = get_point_at_vector(center, disth, 180)
+        l = get_point_at_vector(center, distw, 270)
+        self._bounds = Area(b.lat, l.lon, t.lat, r.lon)
+        self._range = disth
+
+        if self._bounds != self._lastbounds:
+            self._init_frame()
+            self._lastbounds = self._bounds
+
+    def get_range_label(self) -> tuple:
+        """
+        Set range value and units according to magnitude.
+
+        :return: range, units
+        :rtype: tuple
+        """
+
+        if self._range >= 1000:
+            rng = self._range / 1000
+            unt = "km"
+        elif self._range >= 1:
+            rng = self._range
+            unt = "m"
+        else:
+            rng = self._range * 100
+            unt = "cm"
+        return rng, unt
+
+    def _redraw(self):
         """
         Redraw all the points on the scatter plot.
         """
 
-        if not self.points:
+        if not self._points:
             return
 
-        middle = self._ave_pos()
-        fixed = None
-        try:
-            fixed = Point(float(self.reflat.get()), float(self.reflon.get()))
-            if self.center.get() == CTRFIX:
-                middle = fixed
-        except ValueError:
-            self.center.set(CTRDYN)
-        for pnt in self.points:
-            self.draw_point(middle, pnt)
-        if fixed is not None:
-            self.draw_point(middle, fixed, FIXCOL)
+        for pnt in self._points:
+            self._draw_point(pnt)
+        if self._fixed is not None:
+            self._draw_point(self._fixed, FIXCOL, 3)
+
+        self._draw_average(self._lbl_font)
 
     def update_frame(self):
         """
@@ -350,17 +455,58 @@ class ScatterViewFrame(Frame):
         pos = Point(lat, lon)
         if self.__app.gnss_status.fix == "NO FIX":
             return  # Don't plot when we don't have a fix.
-        if self.points and pos == self.points[-1]:
+        if self._points and pos == self._points[-1]:
             return  # Don't repeat exactly the last point.
 
-        self.points.append(pos)
+        self._points.append(pos)
+        if len(self._points) > MAXPOINTS:
+            self._points.pop(0)
 
-        middle = self._ave_pos()
-        if self.mean is not None and self.mean != middle:
-            self.mean = middle
-            self.init_frame()
-            self.redraw()
-        else:
-            self.mean = middle
-            self.draw_point(middle, pos)
-            self.redraw()
+        self._set_average()
+
+        middle = self._average
+        try:
+            self._fixed = Point(float(self._reflat.get()), float(self._reflon.get()))
+            if self._centermode.get() == CTRFIX:
+                middle = self._fixed
+        except ValueError:
+            self._fixed = None
+            self._centermode.set(CTRAVG)
+
+        self._set_bounds(middle)
+        if self._autorange.get():
+            self._do_autorange(middle)
+
+        self._redraw()
+
+    def _do_autorange(self, middle: Point):
+        """
+        Adjust range until all points in bounds.
+
+        :param Point middle: center point of plot
+        """
+
+        out = True
+        while out and self._scale.get() > 0:
+            out = False
+            for pt in self._points:
+                if not in_bounds(self._bounds, pt):
+                    out = True
+                    break
+            if out:
+                self._scale.set(self._scale.get() - 1)
+                self._set_bounds(middle)
+
+    def get_size(self) -> tuple:
+        """
+        Get current canvas size.
+
+        :return: window size (width, height)
+        :rtype: tuple
+        """
+
+        self.update_idletasks()  # Make sure we know about resizing
+        width = self.canvas.winfo_width()
+        height = self.canvas.winfo_height()
+        self._lbl_font = font.Font(size=max(int(height / 40), 10))
+        return (width, height)

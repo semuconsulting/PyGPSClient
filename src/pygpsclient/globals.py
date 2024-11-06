@@ -15,11 +15,15 @@ Created on 14 Sep 2020
 
 # pylint: disable=line-too-long
 
+from collections import namedtuple
 from datetime import datetime
 from os import path
 from pathlib import Path
 
 from pyubx2 import GET, POLL, SET, SETPOLL
+
+Point = namedtuple("Point", ["lat", "lon"])
+Area = namedtuple("Area", ["lat1", "lon1", "lat2", "lon2"])
 
 HOME = Path.home()
 APPNAME = __name__.split(".", 1)[0]  # i.e. "pygpsclient"
@@ -232,6 +236,7 @@ SPARTN_PROTOCOL = 8
 SPARTN_SOURCE_IP = 0
 SPARTN_SOURCE_LB = 1
 SPONSOR_URL = "https://buymeacoffee.com/semuconsulting"
+SQRT2 = 0.7071067811865476  # square root of 2
 THD = "thd"
 TIMEOUTS = (
     "0.1",
