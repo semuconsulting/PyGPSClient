@@ -4,6 +4,7 @@
 
 ENHANCEMENTS:
 
+1. Further enhancements to scatterplot widget; add autorange, right-click to set fixed ref position, standard deviation in addition to average lat/lon, improved font scaling
 
 ### RELEASE 1.4.26
 

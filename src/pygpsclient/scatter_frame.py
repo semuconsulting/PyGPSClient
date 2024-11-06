@@ -37,23 +37,31 @@ from tkinter import (
 )
 
 try:
-    from statistics import pstdev
+    from statistics import fmean, stdev
 
     HASSTATS = True
 except (ImportError, ModuleNotFoundError):
     HASSTATS = False
 
-from pygpsclient.globals import BGCOL, FGCOL, SQRT2, WIDGETU2, Area, Point
+from random import randrange
+
+from pygpsclient.globals import BGCOL, FGCOL, SQRT2, WIDGETU1, Area, Point
 from pygpsclient.helpers import get_point_at_vector, in_bounds
 from pygpsclient.skyview_frame import Canvas
 
-MAXPOINTS = 100000  # equivalent to roughly 24 hours of data or 4.5MB
+AVG = "avg"
 CTRAVG = "Average"
 CTRFIX = "Fixed"
 CRTS = (CTRAVG, CTRFIX)
-PNTCOL = "orange"
+INTS = (1, 2, 5, 10, 20, 50, 100)
 FIXCOL = "green2"
-AVG = "avg"
+PNTCOL = "orange"
+PNTTOPCOL = "red"
+CULLMID = True  # whether to cull random points from middle of array
+FIXINAUTO = False  # whether to include fixed ref point in autorange
+MAXPOINTS = 2000
+PNT = "pnt"
+STDINT = 10  # standard deviation calculation interval
 
 
 class ScatterViewFrame(Frame):
@@ -75,20 +83,25 @@ class ScatterViewFrame(Frame):
 
         Frame.__init__(self, self.__master, *args, **kwargs)
 
-        def_w, def_h = WIDGETU2
+        def_w, def_h = WIDGETU1
 
         self.width = kwargs.get("width", def_w)
         self.height = kwargs.get("height", def_h)
         self._lbl_font = font.Font(size=max(int(self.height / 40), 10))
         self._points = []
-        self._center = None
         self._average = None
         self._stddev = None
         self._fixed = None
         self._bounds = None
+        self._minlat = 100
+        self._minlon = 200
+        self._maxlat = -100
+        self._maxlon = -200
+        self._updcount = -1
         self._lastbounds = Area(0, 0, 0, 0)
         self._range = 0.0
         self._autorange = IntVar()
+        self._interval = IntVar()
         self._centermode = StringVar()
         self._scale = IntVar()
         self._reflat = StringVar()
@@ -128,12 +141,26 @@ class ScatterViewFrame(Frame):
     def _body(self):
         """Set up frame and widgets."""
 
-        for i in range(4):
+        for i in range(3):
             self.grid_columnconfigure(i, weight=1, uniform="ent")
         self.grid_rowconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=0)
         self.grid_rowconfigure(2, weight=0)
         self.canvas = Canvas(self, width=self.width, height=self.height, bg=BGCOL)
+        self._ent_reflat = Entry(
+            self,
+            width=12,
+            textvariable=self._reflat,
+            fg=FIXCOL,
+            bg=BGCOL,
+        )
+        self._ent_reflon = Entry(
+            self,
+            width=12,
+            textvariable=self._reflon,
+            fg=FIXCOL,
+            bg=BGCOL,
+        )
         self._chk_autorange = Checkbutton(
             self,
             text="Autorange",
@@ -144,11 +171,20 @@ class ScatterViewFrame(Frame):
         self._spn_center = Spinbox(
             self,
             values=CRTS,
-            width=9,
+            width=8,
             wrap=True,
             fg=PNTCOL,
             bg=BGCOL,
             textvariable=self._centermode,
+        )
+        self._spn_interval = Spinbox(
+            self,
+            values=INTS,
+            width=5,
+            wrap=True,
+            fg=PNTCOL,
+            bg=BGCOL,
+            textvariable=self._interval,
         )
         self._scl_range = Scale(
             self,
@@ -160,24 +196,13 @@ class ScatterViewFrame(Frame):
             variable=self._scale,
             showvalue=False,
         )
-        self._ent_reflat = Entry(
-            self,
-            textvariable=self._reflat,
-            fg=FIXCOL,
-            bg=BGCOL,
-        )
-        self._ent_reflon = Entry(
-            self,
-            textvariable=self._reflon,
-            fg=FIXCOL,
-            bg=BGCOL,
-        )
-        self.canvas.grid(column=0, row=0, columnspan=4, sticky=(N, S, E, W))
-        self._chk_autorange.grid(column=0, row=1, sticky=(W, E))
-        self._spn_center.grid(column=1, row=1, sticky=(W, E))
-        self._scl_range.grid(column=2, row=1, columnspan=2, sticky=(W, E))
-        self._ent_reflat.grid(column=0, row=2, columnspan=2, sticky=(W, E))
-        self._ent_reflon.grid(column=2, row=2, columnspan=2, sticky=(W, E))
+        self.canvas.grid(column=0, row=0, columnspan=3, sticky=(N, S, E, W))
+        self._ent_reflat.grid(column=0, row=1, sticky=(W, E))
+        self._ent_reflon.grid(column=1, row=1, sticky=(W, E))
+        self._spn_center.grid(column=2, row=1, sticky=(W, E))
+        self._chk_autorange.grid(column=0, row=2, sticky=(W, E))
+        self._spn_interval.grid(column=1, row=2, sticky=(W, E))
+        self._scl_range.grid(column=2, row=2, sticky=(W, E))
 
     def _attach_events(self):
         """
@@ -190,6 +215,11 @@ class ScatterViewFrame(Frame):
         self.canvas.bind("<Button-3>", self._on_recenter)  # win
         self.canvas.bind("<MouseWheel>", self._on_zoom)
         self._scale.trace_add("write", self._on_rescale)
+        self._autorange.trace_add("write", self._on_save_settings)
+        self._centermode.trace_add("write", self._on_save_settings)
+        self._interval.trace_add("write", self._on_save_settings)
+        self._reflat.trace_add("write", self._on_save_settings)
+        self._reflon.trace_add("write", self._on_save_settings)
 
     def _on_zoom(self, event):
         """
@@ -212,6 +242,7 @@ class ScatterViewFrame(Frame):
         Rescale widget.
         """
 
+        self._on_save_settings(var, index, mode)
         self._on_resize(None)
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
@@ -248,7 +279,28 @@ class ScatterViewFrame(Frame):
         """
 
         self._points = []
+        self._minlat = 100
+        self._minlon = 200
+        self._maxlat = -100
+        self._maxlon = -200
+        self._updcount = -1
         self._init_frame()
+
+    def _on_save_settings(self, var, index, mode):  # pylint: disable=unused-argument)
+        """
+        Save current settings to saved app config dict.
+        """
+
+        self.__app.saved_config["scatterautorange_b"] = self._autorange.get()
+        self.__app.saved_config["scattercenter_s"] = self._centermode.get()
+        self.__app.saved_config["scatterinterval_n"] = self._interval.get()
+        self.__app.saved_config["scatterscale_n"] = self._scale.get()
+        try:
+            self.__app.saved_config["scatterlat_f"] = float(self._reflat.get())
+            self.__app.saved_config["scatterlon_f"] = float(self._reflon.get())
+        except ValueError:
+            self.__app.saved_config["scatterlat_f"] = 0.0
+            self.__app.saved_config["scatterlon_f"] = 0.0
 
     def _init_frame(self):
         """
@@ -283,19 +335,20 @@ class ScatterViewFrame(Frame):
             self.canvas.create_text(
                 txt_x, txt_y, text=dist, fill=FGCOL, font=self._lbl_font
             )
-            for x, y, t in (
-                (width / 2, 5, "N"),
-                (width / 2, height - 5, "S"),
-                (5, height / 2, "W"),
-                (width - 5, height / 2, "E"),
-            ):
-                self.canvas.create_text(
-                    x, y, text=t, fill=FGCOL, font=self._lbl_font, anchor=t.lower()
-                )
 
-    def _draw_average(self, lbl_font: font):
+        for x, y, t in (
+            (width / 2, 5, "N"),
+            (width / 2, height - 5, "S"),
+            (5, height / 2, "W"),
+            (width - 5, height / 2, "E"),
+        ):
+            self.canvas.create_text(
+                x, y, text=t, fill=FGCOL, font=self._lbl_font, anchor=t.lower()
+            )
+
+    def _draw_stats(self, lbl_font: font):
         """
-        Draw the average position in the corner of the plot.
+        Draw the stats in the corner of the plot.
 
         :param font lbl_font: Font to use.
         """
@@ -304,17 +357,24 @@ class ScatterViewFrame(Frame):
             return
 
         self.canvas.delete(AVG)
-
+        y = 5
         fh = self._lbl_font.metrics("linespace")
         avg = f"Avg: {self._average.lat:.9f}, {self._average.lon:.9f}"
         self.canvas.create_text(
-            5, 5, text=avg, fill=PNTCOL, font=lbl_font, anchor="nw", tags=AVG
+            5, y, text=avg, fill=PNTCOL, font=lbl_font, anchor="nw", tags=AVG
         )
+        y += fh
         if self._stddev is not None:
             std = f"Std: {self._stddev.lat:.3e}, {self._stddev.lon:.3e}"
             self.canvas.create_text(
-                5, 5 + fh, text=std, fill=PNTCOL, font=lbl_font, anchor="nw", tags=AVG
+                5, y, text=std, fill=PNTCOL, font=lbl_font, anchor="nw", tags=AVG
             )
+            y += fh
+        np = len(self._points)
+        pts = f"Pts: {np} {'!' if np >= MAXPOINTS else ''}"
+        self.canvas.create_text(
+            5, y, text=pts, fill=PNTCOL, font=lbl_font, anchor="nw", tags=AVG
+        )
 
     def _draw_point(self, position: Point, color: str = PNTCOL, size: int = 2):
         """
@@ -329,7 +389,7 @@ class ScatterViewFrame(Frame):
             return
 
         x, y = self._ll2xy(position)
-        self.canvas.create_circle(x, y, size, fill=color, outline=color)
+        self.canvas.create_circle(x, y, size, fill=color, outline=color, tags=PNT)
 
     def _ll2xy(self, position: Point) -> tuple:
         """
@@ -371,19 +431,25 @@ class ScatterViewFrame(Frame):
 
     def _set_average(self):
         """
-        Calculate the mean position of all the lat/lon pairs visible
-        on the scatter plot. Note that this will make for some very
-        weird results near poles.
+        Calculate the mean and standard deviation of all the lat/lon
+        pairs visible on the scatter plot. Note that this will make
+        for some weird results near poles.
         """
 
-        num = len(self._points)
-        ave_lat = sum(p.lat for p in self._points) / num
-        ave_lon = sum(p.lon for p in self._points) / num
+        lp = len(self._points)
+        if HASSTATS and lp > 1:
+            ave_lat = fmean(p.lat for p in self._points)
+            ave_lon = fmean(p.lon for p in self._points)
+            if not lp % STDINT:
+                self._stddev = Point(
+                    stdev(p.lat for p in self._points),
+                    stdev(p.lon for p in self._points),
+                )
+        else:
+            ave_lat = sum(p.lat for p in self._points) / lp
+            ave_lon = sum(p.lon for p in self._points) / lp
+
         self._average = Point(ave_lat, ave_lon)
-        if HASSTATS:
-            self._stddev = Point(
-                pstdev(p.lat for p in self._points), pstdev(p.lon for p in self._points)
-            )
 
     def _set_bounds(self, center: Point):
         """
@@ -434,17 +500,26 @@ class ScatterViewFrame(Frame):
         if not self._points:
             return
 
-        for pnt in self._points:
-            self._draw_point(pnt)
+        self.canvas.delete(PNT)
+        lp = len(self._points) - 1
+        for i, pnt in enumerate(self._points):
+            if i == lp:
+                break
+            self._draw_point(pnt, PNTCOL)
         if self._fixed is not None:
             self._draw_point(self._fixed, FIXCOL, 3)
+        self._draw_point(self._points[-1], PNTTOPCOL)
 
-        self._draw_average(self._lbl_font)
+        self._draw_stats(self._lbl_font)
 
     def update_frame(self):
         """
         Collect scatterplot data and update the plot.
         """
+
+        self._updcount = (self._updcount + 1) % self._interval.get()
+        if self._updcount:  # plot at every nth update
+            return
 
         lat, lon = self.__app.gnss_status.lat, self.__app.gnss_status.lon
         try:
@@ -452,18 +527,21 @@ class ScatterViewFrame(Frame):
             lon = float(lon)
         except ValueError:
             return  # Invalid values for lat/lon get ignored.
+
+        if lat == 0.0 and lon == 0.0:  # assume no fix
+            return
         pos = Point(lat, lon)
-        if self.__app.gnss_status.fix == "NO FIX":
-            return  # Don't plot when we don't have a fix.
+
         if self._points and pos == self._points[-1]:
             return  # Don't repeat exactly the last point.
 
         self._points.append(pos)
         if len(self._points) > MAXPOINTS:
-            self._points.pop(0)
+            self._cull_points()
 
         self._set_average()
 
+        # set plot bounds based on range and center point
         middle = self._average
         try:
             self._fixed = Point(float(self._reflat.get()), float(self._reflon.get()))
@@ -472,12 +550,27 @@ class ScatterViewFrame(Frame):
         except ValueError:
             self._fixed = None
             self._centermode.set(CTRAVG)
-
         self._set_bounds(middle)
+
+        # update plotted point bounds
+        self._minlat = min(lat, self._minlat)
+        self._maxlat = max(lat, self._maxlat)
+        self._minlon = min(lon, self._minlon)
+        self._maxlon = max(lon, self._maxlon)
         if self._autorange.get():
             self._do_autorange(middle)
 
         self._redraw()
+
+    def _cull_points(self):
+        """
+        Limit number of points in in-memory array.
+        """
+
+        if CULLMID:  # cull randomly from middle
+            self._points.pop(randrange(1, len(self._points) - 100))
+        else:  # cull from start
+            self._points.pop(0)
 
     def _do_autorange(self, middle: Point):
         """
@@ -489,10 +582,16 @@ class ScatterViewFrame(Frame):
         out = True
         while out and self._scale.get() > 0:
             out = False
-            for pt in self._points:
-                if not in_bounds(self._bounds, pt):
+
+            # include fixed reference point in autorange
+            if FIXINAUTO and not out and self._fixed is not None:
+                if not in_bounds(self._bounds, self._fixed):
                     out = True
-                    break
+            if not out:
+                if not in_bounds(
+                    self._bounds, Point(self._minlat, self._minlon)
+                ) or not in_bounds(self._bounds, Point(self._maxlat, self._maxlon)):
+                    out = True
             if out:
                 self._scale.set(self._scale.get() - 1)
                 self._set_bounds(middle)

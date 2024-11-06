@@ -90,11 +90,12 @@ profile = "black"
 exclude_dirs = ["docs", "examples", "tests"]
 skips = [
     "B104",
+    "B311",
     "B318",
     "B404",
     "B408",
     "B603",
-] # bind 0.0.0.0; minidom; subroutine
+] # bind 0.0.0.0; randrange; minidom; subroutine
 
 [tool.pylint]
 jobs = 0

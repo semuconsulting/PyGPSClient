@@ -154,10 +154,10 @@ class ConsoleFrame(Frame):
             # i.e. delete the first line
             con.delete("1.0", "2.0")
 
-        # con.update_idletasks()
         if autoscroll:
             con.see("end")
         con.configure(state="disabled")
+        self.update_idletasks()
 
     def _tag_line(self, line, tags):
         """

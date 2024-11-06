@@ -108,6 +108,7 @@
     "spartndecode_b": 0,
     "scatterautorange_b": 0,
     "scattercenter_s": "Average",
+    "scatterinterval_n": 1,
     "scatterscale_n": 6,
     "scatterlat_f": 37.23345133,
     "scatterlon_f": -115.81513477,

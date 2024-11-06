@@ -899,6 +899,15 @@ class SettingsFrame(Frame):
                         0,
                     ),
                 ),
+                "scatterautorange_b": self.__app.saved_config.get(
+                    "scatterautorange_b", 0
+                ),
+                "scattercenter_s": self.__app.saved_config.get(
+                    "scattercenter_s", "Average"
+                ),
+                "scatterscale_n": self.__app.saved_config.get("scatterscale_n", 6),
+                "scatterlat_f": self.__app.saved_config.get("scatterlat_f", 0.0),
+                "scatterlon_f": self.__app.saved_config.get("scatterlon_f", 0.0),
                 # Manually edited config settings
                 "spartndecode_b": self.__app.saved_config.get("spartndecode_b", 0),
                 "spartnkey_s": self.__app.saved_config.get("spartnkey_s", ""),
@@ -910,15 +919,6 @@ class SettingsFrame(Frame):
                 "colortags_l": self.__app.saved_config.get("colortags_l", []),
                 "ubxpresets_l": self.__app.saved_config.get("ubxpresets_l", []),
                 "usermaps_l": self.__app.saved_config.get("usermaps_l", []),
-                "scatterautorange_b": self.__app.saved_config.get(
-                    "scatterautorange_b", 0
-                ),
-                "scattercenter_s": self.__app.saved_config.get(
-                    "scattercenter_s", "Average"
-                ),
-                "scatterscale_n": self.__app.saved_config.get("scatterscale_n", 6),
-                "scatterlat_f": self.__app.saved_config.get("scatterlat_f", 0.0),
-                "scatterlon_f": self.__app.saved_config.get("scatterlon_f", 0.0),
             }
             return config
         except (KeyError, ValueError, TypeError, TclError) as err:
