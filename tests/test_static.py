@@ -13,7 +13,7 @@ from datetime import datetime
 
 from pyubx2 import UBXReader
 
-from pygpsclient.globals import Point, Area
+from pygpsclient.globals import Area, Point
 from pygpsclient.helpers import (
     bitsval,
     bytes2unit,
@@ -25,8 +25,10 @@ from pygpsclient.helpers import (
     ft2m,
     get_mp_distance,
     get_mp_info,
+    get_point_at_vector,
     haversine,
     hsv2rgb,
+    in_bounds,
     isot2dt,
     kmph2ms,
     knots2ms,
@@ -39,6 +41,7 @@ from pygpsclient.helpers import (
     parse_rxmspartnkey,
     pos2iso6709,
     publicip,
+    reorder_range,
     secs2unit,
     snr2col,
     str2rgb,
@@ -47,8 +50,6 @@ from pygpsclient.helpers import (
     val2sphp,
     validURL,
     wnotow2date,
-    get_point_at_vector,
-    in_bounds,
 )
 from pygpsclient.mapquest import mapq_compress, mapq_decompress
 from pygpsclient.widget_state import DEFAULT, FRAME, MENU, VISIBLE, widget_state
@@ -494,6 +495,16 @@ class StaticTest(unittest.TestCase):
         self.assertEqual(res, False)
         res = in_bounds(Area(51.23, -2.41, 51.45, -2.13), Point(51.24, -2.39))
         self.assertEqual(res, True)
+
+    def testreorderrange(self):
+        rng1 = (1, 2, 5, 10, 20, 50, 100)
+        res1 = (5, 10, 20, 50, 100, 1, 2)
+        rng2 = ("apples", "oranges", "pears")
+        res2 = ("pears", "apples", "oranges")
+        self.assertEqual(reorder_range(rng1, 5), res1)
+        self.assertEqual(reorder_range(rng2, "pears"), res2)
+        self.assertEqual(reorder_range(rng1, 44), rng1)
+        self.assertEqual(reorder_range(rng2, "limes"), rng2)
 
 
 if __name__ == "__main__":

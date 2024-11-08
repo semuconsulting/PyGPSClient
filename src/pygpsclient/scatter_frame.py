@@ -46,7 +46,7 @@ except (ImportError, ModuleNotFoundError):
 from random import randrange
 
 from pygpsclient.globals import BGCOL, FGCOL, SQRT2, WIDGETU1, Area, Point
-from pygpsclient.helpers import get_point_at_vector, in_bounds
+from pygpsclient.helpers import get_point_at_vector, in_bounds, reorder_range
 from pygpsclient.skyview_frame import Canvas
 
 AVG = "avg"
@@ -132,6 +132,7 @@ class ScatterViewFrame(Frame):
         )  # scale factors represent plot radius in meters
         self._autorange.set(config.get("scatterautorange_b", 1))
         self._scale.set(config.get("scatterscale_n", 9))
+        self._interval.set(config.get("scatterinterval_n", 1))
         self._centermode.set(config.get("scattercenter_s", CTRAVG))
         if self._centermode.get() != CTRFIX:
             self._centermode.set(CTRAVG)
@@ -168,23 +169,29 @@ class ScatterViewFrame(Frame):
             bg=BGCOL,
             variable=self._autorange,
         )
+        crng = reorder_range(CRTS, self._centermode.get())
         self._spn_center = Spinbox(
             self,
-            values=CRTS,
+            values=crng,
             width=8,
             wrap=True,
             fg=PNTCOL,
             bg=BGCOL,
+            readonlybackground=BGCOL,
             textvariable=self._centermode,
+            state="readonly",
         )
+        irng = reorder_range(INTS, self._interval.get())
         self._spn_interval = Spinbox(
             self,
-            values=INTS,
+            values=irng,
             width=5,
             wrap=True,
             fg=PNTCOL,
             bg=BGCOL,
+            readonlybackground=BGCOL,
             textvariable=self._interval,
+            state="readonly",
         )
         self._scl_range = Scale(
             self,

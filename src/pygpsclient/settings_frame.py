@@ -505,7 +505,6 @@ class SettingsFrame(Frame):
         Reset settings to defaults.
         """
 
-        # self.config = self._saved_config
         self._prot_nmea.set(self.__app.saved_config.get("nmeaprot_b", 1))
         self._prot_ubx.set(self.__app.saved_config.get("ubxprot_b", 1))
         self._prot_rtcm3.set(self.__app.saved_config.get("rtcmprot_b", 1))
@@ -904,6 +903,9 @@ class SettingsFrame(Frame):
                 ),
                 "scattercenter_s": self.__app.saved_config.get(
                     "scattercenter_s", "Average"
+                ),
+                "scatterinterval_n": self.__app.saved_config.get(
+                    "scatterinterval_n", 1
                 ),
                 "scatterscale_n": self.__app.saved_config.get("scatterscale_n", 6),
                 "scatterlat_f": self.__app.saved_config.get("scatterlat_f", 0.0),

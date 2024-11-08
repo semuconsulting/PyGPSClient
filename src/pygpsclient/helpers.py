@@ -1058,3 +1058,23 @@ def in_bounds(bounds: Area, point: Point) -> bool:
         and point.lon >= bounds.lon1
         and point.lon <= bounds.lon2
     )
+
+
+def reorder_range(range: tuple, default) -> tuple:
+    """
+    Reorder range so default is first value (e.g. for
+    spinbox objects).
+
+    :param tuple range: range
+    :param object default: starting value
+    :return: range starting with default
+    :rtype: tuple
+    """
+
+    drange = range
+    lr = len(range)
+    for i, val in enumerate(range):
+        if val == default:
+            drange = range[i:lr] + range[0:i]
+            break
+    return drange
