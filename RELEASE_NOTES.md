@@ -4,7 +4,8 @@
 
 ENHANCEMENTS:
 
-1. Further enhancements to scatterplot widget; add autorange, right-click to set fixed ref position, standard deviation in addition to average lat/lon, improved font scaling
+1. Further enhancements to scatterplot widget; add autorange, update interval, right-click to set fixed ref position, standard deviation in addition to average lat/lon, improved font scaling
+1. Add Height Above Ellipsoid (HAE) to banner. 'sep' = HAE - hMSL.
 
 ### RELEASE 1.4.26
 
