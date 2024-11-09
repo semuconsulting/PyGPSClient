@@ -76,7 +76,15 @@ If you're relatively new to GNSS and RTK techniques and terminology, you may wan
   |                |                          |  |
 
 - 8dp (± 1.1 mm) represents the practical limit for RTK and PPK techniques - further decimal places are likely to be spurious (*though internal computations may retain them e.g. to avoid cumulative rounding errors*).
-- **NB** The highest precision message types/modes are generally **NOT** enabled by default - they will need to be enabled via the UBX Configuration panel. Always use the highest precision available for your receiver.
+- **NB** The highest precision message types/modes are generally **NOT** enabled by default - they will need to be enabled via the [UBX Configuration panel](https://github.com/semuconsulting/PyGPSClient?tab=readme-ov-file#ubxconfig). Always use the highest precision available for your receiver. For the ZED-F9P and other 9th generation u-blox receivers...
+  - NMEA high precision mode can be enabled by setting CFG_NMEA_HIGHPREC = 1
+  - UBX NAV-HPPOSLLH can be enabled by setting CFG_UBX_MSGOUT_HPPOSLLH_xxxxx = 1, where xxxxx represents the port ('USB', 'UART1', 'I2C', etc.)
+  - A broad indication of available precision can be obtained from the scatterplot widget set to a range of 10 cm or less. If the points appear to be aligned to a coarse grid, this suggests relatively low precision. If the points appear to be scattered more or less randomly, this suggests higher precision.
+
+    | **lower precision** | **higher precision** |
+    |:-----------------:|:------------------:|
+    | ![low precision](https://github.com/semuconsulting/PyGPSClient/blob/master/images/low_precision.png?raw=true) | ![high precision](https://github.com/semuconsulting/PyGPSClient/blob/master/images/high_precision.png?raw=true) |
+    | | |
 
 ### 8. Check your receiver is successfully receiving and processing RTK data
 

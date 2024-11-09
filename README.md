@@ -87,7 +87,7 @@ Normally installs without any additional steps.
 sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk libjpeg-dev zlib1g-dev
 ```
 
-*⁵* If you're compiling the latest version of Python 3 from source, you may also need to install tk-dev (or a similarly named package e.g. tk-devel) first. Refer to http://wiki.python.org/moin/TkInter for further details:
+*⁵* If you're [compiling the latest version of Python 3 from source](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/python_compile.sh), you may also need to install tk-dev (or a similarly named package e.g. tk-devel) first. Refer to http://wiki.python.org/moin/TkInter for further details:
 
 ```shell
 sudo apt install tk-dev
