@@ -61,7 +61,24 @@ If you're relatively new to GNSS and RTK techniques and terminology, you may wan
 - Ideally, an NTRIP source ('mountpoint') should be no further than 30km from your antenna location, such that its correction data is [representative of local atmospheric conditions](https://www.semuconsulting.com/gnsswiki/#ION).
 - **NB:** While free public domain NTRIP resources exist and can often give perfectly satisfactory results, there is no guarantee as to the quality of the correction data available. Some public domain CORS are essentially amateurs working out of their back yards.  The best results *for your location* may be obtained from proprietary or subscription services which use specialised, carefully calibrated equipment in optimal locations with ITRF or local plate-fixed datums - but it's always worth trying public domain resources first.
 
-### 7. Check your receiver is successfully receiving and processing RTK data
+### 7. Use the highest precision message type(s) available
+
+- If using a UBX receiver like the ZED-F9P, different NMEA or UBX navigation message types will yield different levels of precision.
+
+  | lat/lon decimal places | approx precision | example message type |
+  |----------------| -------------------------|----------|
+  |      3         |        110  m            |          |
+  |      4         |        11  m             |          |
+  |      5         |        1.1  m            |          |
+  |      6         |        11 cm             | NMEA GGA, GNS in standard precision mode (5dp minutes) |
+  |      7         |        1.1 cm            | UBX NAV-PVT, NAV-POSLLH |
+  |      8         |        1.1 mm            | UBX NAV-HPPOSLLH, NMEA GGA, GNS in high precision mode (7dp minutes) |
+  |                |                          |  |
+
+- 8dp (± 1.1 mm) represents the practical limit for RTK and PPK techniques - further decimal places are likely to be spurious (*though internal computations may retain them e.g. to avoid cumulative rounding errors*).
+- **NB** The highest precision message types/modes are generally **NOT** enabled by default - they will need to be enabled via the UBX Configuration panel. Always use the highest precision available for your receiver.
+
+### 8. Check your receiver is successfully receiving and processing RTK data
 
 - If you're using a UBX receiver like the F9P, you may find it easier to configure it to output UBX messages rather than the default NMEA, as the former are more concise and offer more comprehensive and consistent RTK status information.
 - Successful receipt and processing of RTK correction data is generally indicated as follows:
@@ -81,13 +98,13 @@ If you're relatively new to GNSS and RTK techniques and terminology, you may wan
   - If using an internet RTK service (NTRIP or MQTT), ensure you have active internet connectivity and that the service's IP port (typically 2101, 2102, 443 or 8883) is not being blocked by a firewall.
   - Ensure that your F9P is configured to allow incoming RTCM3 data on the designated port - this is the default setting, but it may have been overwritten.
 
-### 8. "FLOAT" vs "FIXED"
+### 9. "FLOAT" vs "FIXED"
 
 - It is important to understand that these RTK status values are based, in essence, on a statistical analysis (using the principles of [Kalman Filtering](https://en.wikipedia.org/wiki/Kalman_filter)) of the [various errors](https://www.semuconsulting.com/gnsswiki/#Errors) ('residuals') which affect the calculation of carrier phase pseudorange, and hence the accuracy of the navigation solution.
 - The receiver's firmware applies a complex proprietary algorithm to determine if this statistical analysis is within a certain tolerance. If it is, the receiver will report an 'RTK-FIXED' status. If it is outside the designated tolerance, the receiver may report an 'RTK-FLOAT' status. This doesn't *necessarily* mean that the solution is less accurate - it just means that the *confidence* level is lower than 'FIXED'.
 - An 'RTK-FLOAT' status will therefore generally yield a lower accuracy estimation (`hAcc`, `vAcc`) than 'RTK-FIXED'.
 
-### <a name="caveats">9. Some caveats on "hAcc" and "vAcc"</a>
+### <a name="caveats">19. Some caveats on "hAcc" and "vAcc"</a>
 
 - **NB:** `hAcc` and `vAcc` values are *not* available from the default cohort of NMEA messages output by most GNSS receivers (including the F9P). In order to receive these values, you will need to enable either proprietary NMEA sentences like u-blox's UBX00, or UBX messages like NAV-PVT.
 - Much is made of reported horizontal (hAcc) and vertical (vAcc) accuracy figures, but they are **merely estimates** based on a statistical analysis of:
@@ -97,7 +114,6 @@ If you're relatively new to GNSS and RTK techniques and terminology, you may wan
   - Pseudorange residuals ([UERE](https://en.wikipedia.org/wiki/Error_analysis_for_the_Global_Positioning_System))
 - In the case of the F9P receiver, the analysis itself is proprietary and is performed within the F9P's firmware, rather than in client software.
 - Ultimately, the only *definitive* way of establishing the accuracy of an RTK (or PPK) navigation solution is to compare it with a known fixed reference point whose 3D coordinates have been independently verified via high precision surveying techniques.
-- Note that the 7th and 8th decimal places of a decimal lat/lon coordinate are equivalent to about 1.1cm and 1.1mm respectively, which represents the practical limit of any RTK or PPK GNSS application - anything more than this would be spurious.
 
 ---
 ## <a name="example">Illustrated Example</a>
