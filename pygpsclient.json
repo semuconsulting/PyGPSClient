@@ -176,16 +176,8 @@
     ],
     "colortags_l": [
         [
-            "NMEA",
-            "green"
-        ],
-        [
-            "UBX",
-            "orange"
-        ],
-        [
-            "RTCM",
-            "lightblue1"
+            "txbuf alloc",
+            "red"
         ],
         [
             "UNKNOWN PROTOCOL",
@@ -200,24 +192,12 @@
             "red"
         ],
         [
-            "NTRIP>>",
-            "#9f30c1"
+            "carrSoln=2",
+            "green"
         ],
         [
-            "NTRIP<<",
-            "#9f30c1"
-        ],
-        [
-            "MQTT>>",
-            "#a53570"
-        ],
-        [
-            "L-BAND>>",
-            "#a53570"
-        ],
-        [
-            "SPARTN>>",
-            "#a53570"
+            "carrSoln=1",
+            "deepskyblue"
         ]
     ]
 }

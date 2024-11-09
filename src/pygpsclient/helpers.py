@@ -1060,21 +1060,21 @@ def in_bounds(bounds: Area, point: Point) -> bool:
     )
 
 
-def reorder_range(range: tuple, default) -> tuple:
+def reorder_range(valuerange: tuple, default) -> tuple:
     """
     Reorder range so default is first value (e.g. for
     spinbox objects).
 
-    :param tuple range: range
+    :param tuple valuerange: range
     :param object default: starting value
     :return: range starting with default
     :rtype: tuple
     """
 
-    drange = range
-    lr = len(range)
-    for i, val in enumerate(range):
+    drange = valuerange
+    lr = len(valuerange)
+    for i, val in enumerate(valuerange):
         if val == default:
-            drange = range[i:lr] + range[0:i]
+            drange = valuerange[i:lr] + valuerange[0:i]
             break
     return drange

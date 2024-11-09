@@ -97,8 +97,9 @@ class ConsoleFrame(Frame):
         """
 
         self.bind("<Configure>", self._on_resize)
+        self.txt_console.bind("<Double-Button-1>", self._on_clipboard)
 
-    def update_console(self, raw_data: bytes, parsed_data: object, marker: str = ""):
+    def update_console(self, consoledata: list):
         """
         Print the latest data stream to the console in raw (NMEA) or
         parsed (key,value pair) format.
@@ -106,35 +107,37 @@ class ConsoleFrame(Frame):
         'maxlines' defines the maximum number of scrollable lines that are
         retained in the text box on a FIFO basis.
 
-        :param bytes raw_data: raw data from input stream
-        :param object parsed_data: parsed data from input stream
-        :param str marker: information string to prepend to parsed data display
-
+        :param list consoledata: list of tuples (raw, parsed, marker) \
+            accumulated since last console update
         """
 
+        con = self.txt_console
         consoleformat = self.__app.frm_settings.config.get(
             "consoleformat_s", FORMAT_PARSED
         )
         colortagging = self.__app.frm_settings.config.get("colortag_b", 0)
-        maxlines = self.__app.frm_settings.config.get("maxlines_n", 200)
+        maxlines = self.__app.frm_settings.config.get("maxlines_n", 100)
         autoscroll = self.__app.frm_settings.config.get("autoscroll_b", 1)
         self._halt = ""
-        self.txt_console.configure(font=FONT_FIXED)
-        if consoleformat == FORMAT_BINARY:
-            data = str(raw_data).strip("\n")
-        elif consoleformat == FORMAT_HEXSTR:
-            data = str(raw_data.hex())
-        elif consoleformat == FORMAT_HEXTAB:
-            data = hextable(raw_data)
-        elif consoleformat == FORMAT_BOTH:
-            data = f"{marker}{parsed_data}\n{hextable(raw_data)}"
-        else:
-            self.txt_console.configure(font=FONT_TEXT)
-            data = f"{marker}{parsed_data}"
+        con.configure(font=FONT_FIXED)
 
-        con = self.txt_console
+        consolestr = ""
+        for raw_data, parsed_data, marker in consoledata:
+            if consoleformat == FORMAT_BINARY:
+                data = str(raw_data).strip("\n")
+            elif consoleformat == FORMAT_HEXSTR:
+                data = str(raw_data.hex())
+            elif consoleformat == FORMAT_HEXTAB:
+                data = hextable(raw_data)
+            elif consoleformat == FORMAT_BOTH:
+                data = f"{marker}{parsed_data}\n{hextable(raw_data)}"
+            else:
+                con.configure(font=FONT_TEXT)
+                data = f"{marker}{parsed_data}"
+            consolestr += data + "\n"
+
         con.configure(state="normal")
-        con.insert(END, data + "\n")
+        con.insert(END, consolestr)
 
         # format of this list of tuples is (tag, highlight color)
         if colortagging:
@@ -146,8 +149,7 @@ class ConsoleFrame(Frame):
                 self.__app.stream_handler.stop_read_thread()
                 self.__app.set_status(f"Halted on user tag match: {self._halt}", "red")
 
-        idx = float(con.index("end"))  # Lazy but it works
-        if idx > maxlines:
+        while self.numlines > maxlines:
             # Remember these tcl indices look like floats but they're not!
             # ("1.0:, "2.0") signifies "from the first character in
             # line 1 (inclusive) to the first character in line 2 (exclusive)"
@@ -185,6 +187,28 @@ class ConsoleFrame(Frame):
                     color = "red"
                 con.tag_add(count, f"{last}.{start}", f"{last}.{end}")
                 con.tag_config(count, foreground=color)
+
+    @property
+    def numlines(self) -> int:
+        """
+        Get number of lines in console.
+
+        :return: nmber of lines
+        :type: int
+        """
+
+        return int(self.txt_console.index(END).split(".", 1)[0])
+
+    def _on_clipboard(self, event):  # pylint: disable=unused-argument
+        """
+        Copy console content to clipboard.
+
+        :param event event: double click event
+        """
+
+        self.__master.clipboard_clear()
+        self.__master.clipboard_append(self.txt_console.get("1.0", END))
+        self.__master.update()
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """
