@@ -106,8 +106,9 @@
     "lbandclientoutport_s": "Passthrough",
     "lbandclientdebug_b": 0,
     "spartndecode_b": 0,
-    "scattermode_s": "Planar",
-    "scattercenter_s": "Dynamic",
+    "scatterautorange_b": 0,
+    "scattercenter_s": "Average",
+    "scatterinterval_n": 1,
     "scatterscale_n": 6,
     "scatterlat_f": 37.23345133,
     "scatterlon_f": -115.81513477,
@@ -175,16 +176,8 @@
     ],
     "colortags_l": [
         [
-            "NMEA",
-            "green"
-        ],
-        [
-            "UBX",
-            "orange"
-        ],
-        [
-            "RTCM",
-            "lightblue1"
+            "txbuf alloc",
+            "red"
         ],
         [
             "UNKNOWN PROTOCOL",
@@ -199,24 +192,12 @@
             "red"
         ],
         [
-            "NTRIP>>",
-            "#9f30c1"
+            "carrSoln=2",
+            "green"
         ],
         [
-            "NTRIP<<",
-            "#9f30c1"
-        ],
-        [
-            "MQTT>>",
-            "#a53570"
-        ],
-        [
-            "L-BAND>>",
-            "#a53570"
-        ],
-        [
-            "SPARTN>>",
-            "#a53570"
+            "carrSoln=1",
+            "deepskyblue"
         ]
     ]
 }

@@ -5,6 +5,7 @@ Static method tests for pygpsclient.helpers
 
 @author: semuadmin
 """
+
 # pylint: disable=missing-docstring
 
 import unittest
@@ -12,6 +13,7 @@ from datetime import datetime
 
 from pyubx2 import UBXReader
 
+from pygpsclient.globals import Area, Point
 from pygpsclient.helpers import (
     bitsval,
     bytes2unit,
@@ -23,8 +25,10 @@ from pygpsclient.helpers import (
     ft2m,
     get_mp_distance,
     get_mp_info,
+    get_point_at_vector,
     haversine,
     hsv2rgb,
+    in_bounds,
     isot2dt,
     kmph2ms,
     knots2ms,
@@ -37,6 +41,7 @@ from pygpsclient.helpers import (
     parse_rxmspartnkey,
     pos2iso6709,
     publicip,
+    reorder_range,
     secs2unit,
     snr2col,
     str2rgb,
@@ -476,6 +481,30 @@ class StaticTest(unittest.TestCase):
             res = isot2dt(t)
             # print(res)
             self.assertEqual(str(res), dts[i])
+
+    def testgetpointatvector(self):
+        res = get_point_at_vector(Point(51.23, -2.41), 23.65, 123.45)
+        self.assertAlmostEqual(res.lat, 51.22988289442865, 4)
+        self.assertAlmostEqual(res.lon, -2.4097169220939443, 4)
+        res = get_point_at_vector(Point(-12.645, 34.867), 145.1745, 56.27846)
+        self.assertAlmostEqual(res.lat, -12.644276003524272, 4)
+        self.assertAlmostEqual(res.lon, 34.868111659923926, 4)
+
+    def testinbounds(self):
+        res = in_bounds(Area(51.23, -2.41, 51.45, -2.13), Point(23.65, 45.123))
+        self.assertEqual(res, False)
+        res = in_bounds(Area(51.23, -2.41, 51.45, -2.13), Point(51.24, -2.39))
+        self.assertEqual(res, True)
+
+    def testreorderrange(self):
+        rng1 = (1, 2, 5, 10, 20, 50, 100)
+        res1 = (5, 10, 20, 50, 100, 1, 2)
+        rng2 = ("apples", "oranges", "pears")
+        res2 = ("pears", "apples", "oranges")
+        self.assertEqual(reorder_range(rng1, 5), res1)
+        self.assertEqual(reorder_range(rng2, "pears"), res2)
+        self.assertEqual(reorder_range(rng1, 44), rng1)
+        self.assertEqual(reorder_range(rng2, "limes"), rng2)
 
 
 if __name__ == "__main__":

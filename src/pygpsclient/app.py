@@ -201,6 +201,7 @@ class App(Frame):
         self._socket_server = None
         self._colcount = 0
         self._rowcount = 0
+        self._consoledata = []
 
         # Load configuration from file if it exists
         self._colortags = []
@@ -956,15 +957,17 @@ class App(Frame):
         elif msgprot == MQTT_PROTOCOL:
             pass
 
-        # update console if visible
-        if widget_state["Console"][VISIBLE]:
-            if msgprot == 0 or msgprot & protfilter:
-                self.frm_console.update_console(raw_data, parsed_data, marker)
+        # update consoledata if console is visible and protocol not filtered
+        if widget_state["Console"][VISIBLE] and (msgprot == 0 or msgprot & protfilter):
+            self._consoledata.append((raw_data, parsed_data, marker))
 
         # periodically update widgets if visible
         if datetime.now() > self._last_gui_update + timedelta(
             seconds=GUI_UPDATE_INTERVAL
         ):
+            if widget_state["Console"][VISIBLE]:
+                self.frm_console.update_console(self._consoledata)
+                self._consoledata = []
             self.frm_banner.update_frame()
             for _, widget in widget_state.items():
                 frm = getattr(self, widget["frm"])

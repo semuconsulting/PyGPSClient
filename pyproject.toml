@@ -7,7 +7,7 @@ name = "pygpsclient"
 authors = [{ name = "semuadmin", email = "semuadmin@semuconsulting.com" }]
 maintainers = [{ name = "semuadmin", email = "semuadmin@semuconsulting.com" }]
 description = "GNSS Diagnostic and UBX Configuration GUI Application"
-version = "1.4.26"
+version = "1.4.27"
 license = { file = "LICENSE" }
 keywords = [
     "PyGPSClient",
@@ -52,7 +52,7 @@ classifiers = [
 dependencies = [
     "requests>=2.28.0",
     "Pillow>=9.0.0",
-    "pygnssutils>=1.1.6",
+    "pygnssutils>=1.1.7",
     "pyserial>=3.5",
 ]
 
@@ -90,11 +90,12 @@ profile = "black"
 exclude_dirs = ["docs", "examples", "tests"]
 skips = [
     "B104",
+    "B311",
     "B318",
     "B404",
     "B408",
     "B603",
-] # bind 0.0.0.0; minidom; subroutine
+] # bind 0.0.0.0; randrange; minidom; subroutine
 
 [tool.pylint]
 jobs = 0

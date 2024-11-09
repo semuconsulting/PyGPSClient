@@ -1,5 +1,13 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.4.27
+
+ENHANCEMENTS:
+
+1. Further enhancements to scatterplot widget; add autorange, update interval, right-click to set fixed ref position, standard deviation in addition to average lat/lon, improved font scaling
+1. Add Height Above Ellipsoid (HAE) to banner. 'sep' = HAE - hMSL.
+1. Add double-click to copy contents of console to clipboard.
+
 ### RELEASE 1.4.26
 
 ENHANCEMENTS:

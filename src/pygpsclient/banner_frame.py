@@ -75,6 +75,7 @@ class BannerFrame(Frame):
         self._lat = StringVar()
         self._lon = StringVar()
         self._alt = StringVar()
+        self._hae = StringVar()
         self._speed = StringVar()
         self._alt_u = StringVar()
         self._speed_u = StringVar()
@@ -137,7 +138,10 @@ class BannerFrame(Frame):
             self._frm_basic, text="lon:", bg=self._bgcol, fg=self._fgcol, anchor=N
         )
         self._lbl_lalt = Label(
-            self._frm_basic, text="alt:", bg=self._bgcol, fg=self._fgcol, anchor=N
+            self._frm_basic, text="hmsl:", bg=self._bgcol, fg=self._fgcol, anchor=N
+        )
+        self._lbl_lhae = Label(
+            self._frm_basic, text="hae:", bg=self._bgcol, fg=self._fgcol, anchor=N
         )
         self._lbl_lspd = Label(
             self._frm_basic, text="speed:", bg=self._bgcol, fg=self._fgcol, anchor=N
@@ -197,6 +201,9 @@ class BannerFrame(Frame):
         )
         self._lbl_alt = Label(
             self._frm_basic, textvariable=self._alt, bg=self._bgcol, fg="orange"
+        )
+        self._lbl_hae = Label(
+            self._frm_basic, textvariable=self._hae, bg=self._bgcol, fg="orange"
         )
         self._lbl_spd = Label(
             self._frm_basic, textvariable=self._speed, bg=self._bgcol, fg="deepskyblue"
@@ -283,14 +290,16 @@ class BannerFrame(Frame):
         self._lbl_lon.grid(column=6, row=0, pady=3, sticky=W)
         self._lbl_lalt.grid(column=7, row=0, pady=3, sticky=W)
         self._lbl_alt.grid(column=8, row=0, pady=3, sticky=W)
-        self._lbl_lalt_u.grid(column=9, row=0, pady=0, sticky=W)
-        self._lbl_lspd.grid(column=10, row=0, pady=3, sticky=W)
-        self._lbl_spd.grid(column=11, row=0, pady=3, sticky=W)
-        self._lbl_lspd_u.grid(column=12, row=0, pady=0, sticky=W)
-        self._lbl_ltrk.grid(column=13, row=0, pady=3, sticky=W)
-        self._lbl_trk.grid(column=14, row=0, pady=3, sticky=W)
-        self._lbl_lfix.grid(column=15, row=0, pady=3, sticky=W)
-        self._lbl_fix.grid(column=16, row=0, pady=3, sticky=W)
+        self._lbl_lhae.grid(column=9, row=0, pady=3, sticky=W)
+        self._lbl_hae.grid(column=10, row=0, pady=3, sticky=W)
+        self._lbl_lalt_u.grid(column=11, row=0, pady=0, sticky=W)
+        self._lbl_lspd.grid(column=12, row=0, pady=3, sticky=W)
+        self._lbl_spd.grid(column=13, row=0, pady=3, sticky=W)
+        self._lbl_lspd_u.grid(column=14, row=0, pady=0, sticky=W)
+        self._lbl_ltrk.grid(column=15, row=0, pady=3, sticky=W)
+        self._lbl_trk.grid(column=16, row=0, pady=3, sticky=W)
+        self._lbl_lfix.grid(column=17, row=0, pady=3, sticky=W)
+        self._lbl_fix.grid(column=18, row=0, pady=3, sticky=W)
 
         self._lbl_lsiv.grid(column=0, row=0, pady=3, sticky=W)
         self._lbl_siv.grid(column=1, row=0, pady=3, sticky=W)
@@ -421,9 +430,11 @@ class BannerFrame(Frame):
         lat = self.__app.gnss_status.lat
         lon = self.__app.gnss_status.lon
         alt = self.__app.gnss_status.alt  # hMSL
+        hae = self.__app.gnss_status.sep + alt
         self._lbl_llat.config(text="lat:")
         self._lbl_llon.config(text="lon:")
-        self._lbl_lalt.config(text="alt:")
+        self._lbl_lalt.config(text="hmsl:")
+        self._lbl_lhae.config(text="hae:")
         alt_u = "ft" if units in (UI, UIK) else "m"
 
         try:
@@ -443,17 +454,20 @@ class BannerFrame(Frame):
                 elif pos_format == DMM:
                     lat, lon = latlon2dmm(lat, lon)
                 else:
-                    deg_f = ".8f"
+                    deg_f = ".9f"
                 if units in (UI, UIK):
                     alt = m2ft(alt)
+                    hae = m2ft(hae)
                 self._lat.set(f"{lat:{deg_f}}")
                 self._lon.set(f"{lon:{deg_f}}")
             self._alt.set(f"{alt:.4f}")
+            self._hae.set(f"{hae:.4f}")
             self._alt_u.set(f"{alt_u:<2}")
         except (TypeError, ValueError):
             self._lat.set("N/A            ")
             self._lon.set("N/A            ")
             self._alt.set("N/A  ")
+            self._hae.set("N/A  ")
             self._alt_u.set("  ")
 
     def _update_track(self, units):

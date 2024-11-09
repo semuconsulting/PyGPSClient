@@ -505,7 +505,6 @@ class SettingsFrame(Frame):
         Reset settings to defaults.
         """
 
-        # self.config = self._saved_config
         self._prot_nmea.set(self.__app.saved_config.get("nmeaprot_b", 1))
         self._prot_ubx.set(self.__app.saved_config.get("ubxprot_b", 1))
         self._prot_rtcm3.set(self.__app.saved_config.get("rtcmprot_b", 1))
@@ -899,6 +898,18 @@ class SettingsFrame(Frame):
                         0,
                     ),
                 ),
+                "scatterautorange_b": self.__app.saved_config.get(
+                    "scatterautorange_b", 0
+                ),
+                "scattercenter_s": self.__app.saved_config.get(
+                    "scattercenter_s", "Average"
+                ),
+                "scatterinterval_n": self.__app.saved_config.get(
+                    "scatterinterval_n", 1
+                ),
+                "scatterscale_n": self.__app.saved_config.get("scatterscale_n", 6),
+                "scatterlat_f": self.__app.saved_config.get("scatterlat_f", 0.0),
+                "scatterlon_f": self.__app.saved_config.get("scatterlon_f", 0.0),
                 # Manually edited config settings
                 "spartndecode_b": self.__app.saved_config.get("spartndecode_b", 0),
                 "spartnkey_s": self.__app.saved_config.get("spartnkey_s", ""),
@@ -910,13 +921,6 @@ class SettingsFrame(Frame):
                 "colortags_l": self.__app.saved_config.get("colortags_l", []),
                 "ubxpresets_l": self.__app.saved_config.get("ubxpresets_l", []),
                 "usermaps_l": self.__app.saved_config.get("usermaps_l", []),
-                "scattermode_s": self.__app.saved_config.get("scattermode_s", "Planar"),
-                "scattercenter_s": self.__app.saved_config.get(
-                    "scattercenter_s", "Dynamic"
-                ),
-                "scatterscale_n": self.__app.saved_config.get("scatterscale_n", 6),
-                "scatterlat_f": self.__app.saved_config.get("scatterlat_f", 0.0),
-                "scatterlon_f": self.__app.saved_config.get("scatterlon_f", 0.0),
             }
             return config
         except (KeyError, ValueError, TypeError, TclError) as err:
