@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.5.0
+
+ENHANCEMENTS:
+
+1. Enhance console color tagging.
+
 ### RELEASE 1.4.27
 
 ENHANCEMENTS:
