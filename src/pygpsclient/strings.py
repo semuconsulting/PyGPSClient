@@ -73,6 +73,7 @@ VERCHECK = f"Newer version of {TITLE} available:"
 WAITNMEADATA = "Waiting for data..."
 WAITUBXDATA = "Waiting for data..."
 NOWDGSWARN = "WARNING! No widgets are enabled in config file {} - display will be blank"
+HALTTAGWARN = "HALTED ON USER TAG MATCH: {}"
 
 # Menu text
 MENUABOUT = "About"
