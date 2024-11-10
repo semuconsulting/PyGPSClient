@@ -5,6 +5,11 @@ Console frame class for PyGPSClient application.
 
 This handles a scrollable text box into which the serial data is printed.
 
+*** Remember that tcl indices look like floats but they're not! ***
+("1.0:, "2.0") signifies "from the first character in
+line 1 (inclusive) to the first character in line 2 (exclusive)"
+i.e. the first line
+
 Created on 12 Sep 2020
 
 :author: semuadmin
@@ -18,6 +23,7 @@ from pyubx2 import hextable
 
 from pygpsclient.globals import (
     BGCOL,
+    DISCONNECTED,
     FGCOL,
     FONT_FIXED,
     FONT_TEXT,
@@ -27,6 +33,9 @@ from pygpsclient.globals import (
     FORMAT_HEXTAB,
     FORMAT_PARSED,
 )
+from pygpsclient.strings import HALTTAGWARN
+
+HALT = "HALT"
 
 
 class ConsoleFrame(Frame):
@@ -49,6 +58,9 @@ class ConsoleFrame(Frame):
         Frame.__init__(self, self.__master, *args, **kwargs)
 
         self.width, self.height = self.get_size()
+        self._colortags = self.__app.frm_settings.config.get(
+            "colortags_l", self.__app.frm_settings.config.get("colortags", [])
+        )
         self._body()
         self._do_layout()
         self._attach_events()
@@ -79,8 +91,16 @@ class ConsoleFrame(Frame):
         )
         self.sblogh.config(command=self.txt_console.xview)
         self.sblogv.config(command=self.txt_console.yview)
-        # Making the textbox read only and fixed width font
+
+        # making the textbox read only and fixed width font
         self.txt_console.configure(font=FONT_FIXED, state="disabled")
+
+        # set up color tagging
+        for match, color in self._colortags:
+            if color == HALT:
+                color = "red"
+                match = HALT
+            self.txt_console.tag_config(match, foreground=color)
 
     def _do_layout(self):
         """
@@ -98,6 +118,7 @@ class ConsoleFrame(Frame):
 
         self.bind("<Configure>", self._on_resize)
         self.txt_console.bind("<Double-Button-1>", self._on_clipboard)
+        # self.txt_console.tag_bind(HALT, "<1>", self._on_halt) # doesn't seem to work on MacOS
 
     def update_console(self, consoledata: list):
         """
@@ -136,57 +157,45 @@ class ConsoleFrame(Frame):
                 data = f"{marker}{parsed_data}"
             consolestr += data + "\n"
 
+        numlinesbefore = self.numlines
         con.configure(state="normal")
         con.insert(END, consolestr)
 
-        # format of this list of tuples is (tag, highlight color)
         if colortagging:
-            colortags = self.__app.frm_settings.config.get(
-                "colortags_l", self.__app.frm_settings.config.get("colortags", [])
-            )
-            self._tag_line(data, colortags)
+            self._tag_line(con, numlinesbefore, self.numlines)
             if self._halt != "":
-                self.__app.stream_handler.stop_read_thread()
-                self.__app.set_status(f"Halted on user tag match: {self._halt}", "red")
+                self._on_halt(None)
 
         while self.numlines > maxlines:
-            # Remember these tcl indices look like floats but they're not!
-            # ("1.0:, "2.0") signifies "from the first character in
-            # line 1 (inclusive) to the first character in line 2 (exclusive)"
-            # i.e. delete the first line
-            con.delete("1.0", "2.0")
+            con.delete("1.0", "2.0")  # delete top line
 
         if autoscroll:
             con.see("end")
         con.configure(state="disabled")
         self.update_idletasks()
 
-    def _tag_line(self, line, tags):
+    def _tag_line(self, con, startline: int, endline: int):
         """
         Highlights any occurrence of tags in line - each tag
         must be a tuple of (search term, highlight color)
 
-        :param str line: line in console
-        :param tuple tags: (search term, highlight color)
+        :param object con: console textbox
+        :param int startline: starting line
+        :param int endline: ending line
+        :param str string: string in console
 
         """
 
-        con = self.txt_console
-        idx = con.index("end-1c")
-        last = int(idx[0 : idx.find(".")]) - 1
-
-        for count, tag in enumerate(tags):
-            match, color = tag
-            start = line.find(match)
-            end = start + len(match)
-
-            if start != -1:  # If search string found in line
-                # "HALT" tag terminates stream
-                if color == "HALT":
-                    self._halt = match
-                    color = "red"
-                con.tag_add(count, f"{last}.{start}", f"{last}.{end}")
-                con.tag_config(count, foreground=color)
+        for lineidx in range(startline - 1, endline):
+            for match, color in self._colortags:
+                line = con.get(f"{lineidx}.0", END)
+                start = line.find(match)
+                end = start + len(match)
+                if start != -1:  # If search string found in line
+                    if color.upper() == HALT:  # "HALT" tag terminates stream
+                        self._halt = match
+                        match = HALT
+                    con.tag_add(match, f"{lineidx}.{start}", f"{lineidx}.{end}")
 
     @property
     def numlines(self) -> int:
@@ -197,7 +206,18 @@ class ConsoleFrame(Frame):
         :type: int
         """
 
-        return int(self.txt_console.index(END).split(".", 1)[0])
+        return int(self.txt_console.index("end-1c").split(".", 1)[0])
+
+    def _on_halt(self, event):  # pylint: disable=unused-argument
+        """
+        Halt streaming.
+
+        :param event event: HALT event
+        """
+
+        self.__app.stream_handler.stop_read_thread()
+        self.__app.set_status(HALTTAGWARN.format(self._halt), "red")
+        self.__app.conn_status = DISCONNECTED
 
     def _on_clipboard(self, event):  # pylint: disable=unused-argument
         """
