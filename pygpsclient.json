@@ -176,6 +176,26 @@
     ],
     "colortags_l": [
         [
+            "NMEA",
+            "lightblue1"
+        ],
+        [
+            "UBX",
+            "green3"
+        ],
+        [
+            "RTCM",
+            "coral1"
+        ],
+        [
+            "SPARTN",
+            "maroon1"
+        ],
+        [
+            "NTRIP",
+            "#9f30c1"
+        ],
+        [
             "txbuf alloc",
             "red"
         ],
@@ -185,10 +205,6 @@
         ],
         [
             "ERROR",
-            "red"
-        ],
-        [
-            "WARNING",
             "red"
         ],
         [

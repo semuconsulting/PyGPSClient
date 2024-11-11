@@ -75,16 +75,17 @@ If you're relatively new to GNSS and RTK techniques and terminology, you may wan
   |      8         |        1.1 mm            | UBX NAV-HPPOSLLH, NMEA GGA, GNS in high precision mode (7dp minutes) |
   |                |                          |  |
 
-- 8dp (± 1.1 mm) represents the practical limit for RTK and PPK techniques - further decimal places are likely to be spurious (*though internal computations may retain them e.g. to avoid cumulative rounding errors*).
-- **NB** The highest precision message types/modes are generally **NOT** enabled by default - they will need to be enabled via PyGPSClient's [UBX Configuration panel](https://github.com/semuconsulting/PyGPSClient?tab=readme-ov-file#ubxconfig). Always use the highest precision available for your receiver. For the ZED-F9P and other 9th generation u-blox receivers...
+- 8dp (± 1.1 mm) represents the practical limit for RTK and PPK techniques - further decimal places are likely to be spurious (*though internal computations may retain them to avoid cumulative rounding errors*).
+- **NB** For the ZED-F9P and other u-blox receivers, the highest precision message types/modes are generally **NOT** enabled by default - they will need to be enabled via PyGPSClient's [UBX Configuration panel](https://github.com/semuconsulting/PyGPSClient?tab=readme-ov-file#ubxconfig):
   - NMEA high precision mode can be enabled by setting CFG_NMEA_HIGHPREC = 1
   - UBX NAV-HPPOSLLH can be enabled by setting CFG_UBX_MSGOUT_NAV_HPPOSLLH_xxxxx = 1, where xxxxx represents the port ('USB', 'UART1', 'I2C', etc.)
-  - A broad indication of available precision can be obtained from the scatterplot widget set to a range of 10 cm or less. If the points appear to be aligned to a coarse grid, this suggests relatively low precision. If the points appear to be scattered more or less randomly, this suggests higher precision.
+  - If required, these settings can be persisted using PyGPSClient's "Save configuration to non-volatile memory" preset
+- A broad indication of available precision can be obtained from the scatterplot widget set to a range of 10 cm or less. If the points appear to be aligned to a coarse grid, this suggests relatively low precision. If the points appear to be scattered more or less randomly, this suggests higher precision.
 
-    | **Lower Precision** | **Higher Precision** |
-    |:-----------------:|:------------------:|
-    | ![low precision](https://github.com/semuconsulting/PyGPSClient/blob/master/images/low_precision.png?raw=true) | ![high precision](https://github.com/semuconsulting/PyGPSClient/blob/master/images/high_precision.png?raw=true) |
-    | | |
+  | **Lower Precision** | **Higher Precision** |
+  |:-----------------:|:------------------:|
+  | ![low precision](https://github.com/semuconsulting/PyGPSClient/blob/master/images/low_precision.png?raw=true) | ![high precision](https://github.com/semuconsulting/PyGPSClient/blob/master/images/high_precision.png?raw=true) |
+  | | |
 
 ### 8. Check your receiver is successfully receiving and processing RTK data
 
@@ -151,37 +152,40 @@ The *indicated* horizontal accuracy (`hacc`) is 1.4cm but *note [caveats](#cavea
 |            |                     |                      |
 | ---------- | ------------------- | -------------------- |
 | **Term**   | **Definition**      | **Comments**         |
-| ARP        | Antenna Reference Point | The identifier for a specific RTK data source |
-| BNC        | Bayonet Neill–Concelman | A standard bayonet antenna connector type |
-| CN₀        | Carrier to noise ratio | A measure of GNSS signal strength |
-| CORS       | Continuously Operating Reference Station | A term denoting an RTK correction source e.g. NTRIP server |
-| DGPS/DGNSS | Differential GPS/GNSS | A [high resolution positioning technique](https://en.wikipedia.org/wiki/Differential_GPS) that enhances the positional data available from GNSS systems by reference to a network of fixed position, ground-based (or "virtual") reference stations |
-| DOP        | Dilution of Precision | A measure of the effect of the geometric distribution of visible GNSS satellites on positional accuracy |
-| HACC       | Horizontal Accuracy | A statistical estimate of horizontal positional accuracy based on a number of factors |
-| ITRF       | International Terrestrial Reference Frame | A [reference frame](https://itrf.ign.fr/en/homepage) which takes into account tectonic plate movement and gravitational/magnetic displacements, necessary for mm level accuracy. The “earth-fixed” ITRF is typically not regarded as a “datum” – rather it is the international standard reference framework to which national geocentric datums are aligned |
-| L1         | | Original GPS C/A carrier frequency 1575.42 MHz |
-| L2         | | Original GPS P(Y) carrier frequency 1227.60 MHz |
-| L5         | | A more modern GNSS carrier frequency 1176.45 MHz |
-| L-Band     | | A radio frequency band covering the spectrum 1 GHz to 2 GHz |
-| LNA        | Low-noise Amplifier | A signal booster built into some active GNSS antennae |
-| NTRIP      | Networked Transport of RTCM via Internet Protocol | A proprietary RTK DGPS protocol published by the RTCM | 
-| PPK        | Post-processing kinematics | A [high resolution surveying technique](https://www.advancednavigation.com/tech-articles/benefits-of-using-post-processing-kinematic-ppk-software-in-gnss-based-and-inertial-navigation-solutions/), similar in principal to RTK but with corrections being applied retrospectively to a set of captured raw GNSS navigation and observation data, typically converted to RINEX format |
-| RF         | Radio Frequency | In the context of GNSS this generally refers to the L-Band |
-| RF240      | | A higher quality solid-core RF coaxial cable specification which offers reduced attenuation over longer distances than RG58 |
-| RG58       | | A common specification of stranded-core RF coaxial cable suitable for short cable runs |
-| RINEX      | Receiver Independent Exchange Format | A proprietary vendor-agnostic GNSS data protocol published by the RTCM and commonly used for PPK |
-| RTCM       | Radio Technical Commission for Maritime Services | The not-for-profit body which publishes the NTRIP, RTCM3 and RINEX protocols |
+| ARP        | Antenna Reference Point | The identifier for a specific RTK data source. |
+| BNC        | Bayonet Neill–Concelman | A standard bayonet antenna connector type. |
+| CN₀        | Carrier to noise ratio | A measure of GNSS signal strength. |
+| CORS       | Continuously Operating Reference Station | A term denoting an RTK correction source e.g. NTRIP server. |
+| DGPS/DGNSS | Differential GPS/GNSS | A [high resolution positioning technique](https://en.wikipedia.org/wiki/Differential_GPS) that enhances the positional data available from GNSS systems by reference to a network of fixed position, ground-based (or "virtual") reference stations. |
+| DOP        | Dilution of Precision | A measure of the effect of the geometric distribution of visible GNSS satellites on positional accuracy. |
+| geoid      | | A more advanced reference surface than the [ellipsoid](https://support.virtual-surveyor.com/support/solutions/articles/1000261349-the-difference-between-ellipsoidal-geoid-and-orthometric-elevations-), often used to approximate the shape of the Earth and to measure elevations. Any point on the geoid is subject to the same level of gravity and the earth's geoid is set at the mean sea level.
+| HACC       | Horizontal Accuracy | A statistical estimate of horizontal positional accuracy based on a number of factors. |
+| HAE        | Height Above [Ellipsoid](https://support.virtual-surveyor.com/support/solutions/articles/1000261349-the-difference-between-ellipsoidal-geoid-and-orthometric-elevations-) | Vertical height above the nominal ellipsoidal approximation of the earth's surface.
+| HMSL       | Height Above Mean Sea Level | Vertical height above the geoid, aka 'Orthometric Height'. The difference between HAE and HMSL is often referred to as the 'separation'. |
+| ITRF       | International Terrestrial Reference Frame | A [reference frame](https://itrf.ign.fr/en/homepage) which takes into account tectonic plate movement and gravitational/magnetic displacements, necessary for mm level accuracy. The “earth-fixed” ITRF is typically not regarded as a “datum” – rather it is the international standard reference framework to which national geocentric datums are aligned. |
+| L1         | | Original GPS C/A carrier frequency 1575.42 MHz. |
+| L2         | | Original GPS P(Y) carrier frequency 1227.60 MHz. |
+| L5         | | A more modern GNSS carrier frequency 1176.45 MHz. |
+| L-Band     | | A radio frequency band covering the spectrum 1 GHz to 2 GHz. |
+| LNA        | Low-noise Amplifier | A signal booster built into some active GNSS antennae. |
+| NTRIP      | Networked Transport of RTCM via Internet Protocol | A proprietary RTK DGPS protocol published by the RTCM. | 
+| PPK        | Post-processing kinematics | A [high resolution surveying technique](https://www.advancednavigation.com/tech-articles/benefits-of-using-post-processing-kinematic-ppk-software-in-gnss-based-and-inertial-navigation-solutions/), similar in principal to RTK but with corrections being applied retrospectively to a set of captured raw GNSS navigation and observation data, typically converted to RINEX format. |
+| RF         | Radio Frequency | In the context of GNSS this generally refers to the L-Band. |
+| RF240      | | A higher quality solid-core RF coaxial cable specification which offers reduced attenuation over longer distances than RG58. |
+| RG58       | | A common specification of stranded-core RF coaxial cable suitable for short cable runs. |
+| RINEX      | Receiver Independent Exchange Format | A proprietary vendor-agnostic GNSS data protocol published by the RTCM and commonly used for PPK. |
+| RTCM       | Radio Technical Commission for Maritime Services | The not-for-profit body which publishes the NTRIP, RTCM3 and RINEX protocols. |
 | RTK        | Real-time kinematics | A real-time [high resolution surveying technique](https://en.wikipedia.org/wiki/Real-time_kinematic_positioning) which corrects for [common errors](https://www.semuconsulting.com/gnsswiki/#Errors) in GNSS positional data using measurements of the phase of the signal's carrier wave in addition to the information content of the signal. It relies on a single reference station or interpolated virtual station to provide real-time corrections, providing up to centimeter-level accuracy.
-| RTN        | Real-time Network | A real-time [high resolution surveying technique](https://water.usgs.gov/osw/gps/real-time_network.html), similar in principle to RTK but using a computed or "virtual" reference station rather than a physical reference station | 
-| SIP        | Satellites in Position | The number of satellites actually used in the receiver's navigation solution |
-| SIV        | Satellites in View | The number of satellites the receiver can see |
-| SMA        | Subminiature version A | A standard miniature threaded antenna connector type |
-| SPARTN     | Secure Position Augmentation for Real Time Navigation | An open-source RTK DGPS protocol published by u-blox |
-| TNC        | Threaded Neill-Concelman | A standard threaded antenna connector type commonly used in surveying equipment |
-| UERE       | User equivalent range errors | Collective term for a [range of errors](https://www.semuconsulting.com/gnsswiki/#Errors) which must be compensated for in GNSS pseudorange calculations, sometimes referred to as pseudorange 'residuals' |
-| U.FL       | Ultra-fine Fluorinated | An ultra-miniature antenna connector type common in hobbyist equipment |
-| URA        | User range error | See UERE |
-| VACC       | Vertical Accuracy | A statistical estimate of vertical positional accuracy based on a number of factors |
+| RTN        | Real-time Network | A real-time [high resolution surveying technique](https://water.usgs.gov/osw/gps/real-time_network.html), similar in principle to RTK but using a computed or "virtual" reference station rather than a physical reference station. | 
+| SIP        | Satellites in Position | The number of satellites actually used in the receiver's navigation solution. |
+| SIV        | Satellites in View | The number of satellites the receiver can see. |
+| SMA        | Subminiature version A | A standard miniature threaded antenna connector type. |
+| SPARTN     | Secure Position Augmentation for Real Time Navigation | An open-source RTK DGPS protocol published by u-blox. |
+| TNC        | Threaded Neill-Concelman | A standard threaded antenna connector type commonly used in surveying equipment. |
+| UERE       | User equivalent range errors | Collective term for a [range of errors](https://www.semuconsulting.com/gnsswiki/#Errors) which must be compensated for in GNSS pseudorange calculations, sometimes referred to as pseudorange 'residuals'. |
+| U.FL       | Ultra-fine Fluorinated | An ultra-miniature antenna connector type common in hobbyist equipment. |
+| URA        | User range error | See UERE. |
+| VACC       | Vertical Accuracy | A statistical estimate of vertical positional accuracy based on a number of factors. |
 
 ---
 ## <a name="references">References and Further Reading</a>
