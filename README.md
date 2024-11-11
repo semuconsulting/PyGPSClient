@@ -41,7 +41,7 @@ The application can be installed using the standard `pip` Python package manager
 ![Contributors](https://img.shields.io/github/contributors/semuconsulting/PyGPSClient.svg)
 ![Open Issues](https://img.shields.io/github/issues-raw/semuconsulting/PyGPSClient)
 
-The PyGPSClient home page is at [PyGPSClient](https://github.com/semuconsulting/PyGPSClient). For a general overview of GNSS, DGPS, RTK, NTRIP and SPARTN technologies and terminology, refer to [GNSS Positioning - A Reviser](https://www.semuconsulting.com/gnsswiki/). For practical tips on RTK, refer to [RTK-TIPS](https://github.com/semuconsulting/PyGPSClient/blob/master/RTK-TIPS.md).
+The PyGPSClient home page is at [PyGPSClient](https://github.com/semuconsulting/PyGPSClient). For a general overview of GNSS, DGPS, RTK, NTRIP and SPARTN technologies and terminology, refer to [GNSS Positioning - A Reviser](https://www.semuconsulting.com/gnsswiki/). For practical tips on RTK, refer to [Achieving cm Level GNSS Accuracy using RTK](https://www.semuconsulting.com/gnsswiki/rtktips/).
 
 Sphinx API Documentation in HTML format is available at [https://www.semuconsulting.com/pygpsclient](https://www.semuconsulting.com/pygpsclient).
 
