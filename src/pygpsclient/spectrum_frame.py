@@ -58,7 +58,18 @@ RF_LIST = {
     4: "dodgerblue",
     5: "darkorange",
 }
+RF_LIST_SNAPSHOT = {
+    0: "gray75",
+    1: "gray60",
+    2: "gray65",
+    3: "gray50",
+    4: "gray55",
+    5: "gray40",
+}
 ACTIVE = ""
+MODEINIT = "init"
+MODELIVE = "live"
+MODESNAP = "snap"
 
 
 class SpectrumviewFrame(Frame):
@@ -91,6 +102,7 @@ class SpectrumviewFrame(Frame):
         self._pending_confs = {}
         self._showrf = True
         self._chartpos = None
+        self._spectrum_snapshot = []
         self._body()
         self._set_fontsize()
         self._attach_events()
@@ -114,7 +126,9 @@ class SpectrumviewFrame(Frame):
 
         self.bind("<Configure>", self._on_resize)
         self.can_spectrumview.bind("<Button-1>", self._on_click)
-        self.can_spectrumview.bind("<Double-Button-1>", self._toggle_rf)
+        self.can_spectrumview.bind("<Double-Button-1>", self._on_toggle_rf)
+        self.can_spectrumview.bind("<Button-2>", self._on_snapshot)
+        self.can_spectrumview.bind("<Double-Button-2>", self._on_clear_snapshot)
 
     def init_frame(self):
         """
@@ -129,7 +143,7 @@ class SpectrumviewFrame(Frame):
             x1, y1 = self._get_point(self._minhz, db)
             x2, y2 = self._get_point(self._maxhz, db)
             self.can_spectrumview.create_line(
-                x1, y1, x2 + 1, y1, fill=TICK_COL if i else FGCOL
+                x1, y1, x2 + 1, y1, fill=TICK_COL if i else FGCOL, tags=MODEINIT
             )
             self.can_spectrumview.create_text(
                 x1,
@@ -139,6 +153,7 @@ class SpectrumviewFrame(Frame):
                 fill=FGCOL,
                 font=self._font,
                 anchor="s",
+                tags=MODEINIT,
             )
             i += 1
 
@@ -148,7 +163,7 @@ class SpectrumviewFrame(Frame):
             x1, y1 = self._get_point(hz, self._mindb)
             x2, y2 = self._get_point(hz, self._maxdb)
             self.can_spectrumview.create_line(
-                x1, y1 - 1, x1, y2, fill=TICK_COL if i else FGCOL
+                x1, y1 - 1, x1, y2, fill=TICK_COL if i else FGCOL, tags=MODEINIT
             )
             self.can_spectrumview.create_text(
                 x1,
@@ -157,17 +172,13 @@ class SpectrumviewFrame(Frame):
                 fill=FGCOL,
                 font=self._font,
                 anchor="n",
+                tags=MODEINIT,
             )
             i += 1
 
         x, y = self._get_point(self._maxhz, self._mindb)
         self.can_spectrumview.create_text(
-            x,
-            y,
-            text="GHz",
-            fill=FGCOL,
-            font=self._font,
-            anchor="se",
+            x, y, text="GHz", fill=FGCOL, font=self._font, anchor="se", tags=MODEINIT
         )
         x, y = self._get_point(self._minhz + self._fonth, self._maxdb - 5)
         self.can_spectrumview.create_text(
@@ -178,6 +189,7 @@ class SpectrumviewFrame(Frame):
             angle=90,
             font=self._font,
             anchor="ne",
+            tags=MODEINIT,
         )
 
         # display 'enable MON-SPAN' warning
@@ -186,6 +198,7 @@ class SpectrumviewFrame(Frame):
             self.height / 2,
             text=self._monspan_status,
             fill="orange",
+            tags=MODEINIT,
         )
 
     def reset(self):
@@ -260,52 +273,90 @@ class SpectrumviewFrame(Frame):
         if len(rfblocks) == 0:
             return
         self._monspan_status = ACTIVE
+        self._update_plot(rfblocks)
+
+        if self._spectrum_snapshot != []:
+            self._update_plot(self._spectrum_snapshot, MODESNAP, RF_LIST_SNAPSHOT)
+
+    def _update_plot(
+        self, rfblocks: list, mode: str = MODELIVE, colors: dict = RF_LIST
+    ):
+        """
+        Update spectrum plot with live or snapshot rf block data.
+
+        :param list rfblocks: array of spectrum rf blocks
+        :param dict colors: dictionary of color for each rf block
+        :param str mode: plot mode ("live" or "snap"shot)
+        """
 
         specxy, self._minhz, self._maxhz, self._mindb, self._maxdb = self._get_limits(
             rfblocks
         )
-        self.init_frame()
-
-        # plot frequency band markers
-        if self._showrf:
-            for nam, frq in RF_BANDS.items():
-                if self._minhz < frq < self._maxhz:
-                    x1, y1 = self._get_point(frq, self._maxdb)
-                    x2, y2 = self._get_point(frq, self._mindb)
-                    yoff, col = {
-                        "L": (self._fonth, GNSS_LIST[0][1]),  # GPS
-                        "G": (self._fonth * 2, GNSS_LIST[6][1]),  # GLONASS
-                        "E": (self._fonth * 3, GNSS_LIST[2][1]),  # Galileo
-                        "S": (self._fonth * 3, GNSS_LIST[2][1]),  # Galileo SAR
-                        "B": (self._fonth * 4, GNSS_LIST[3][1]),  # Beidou
-                    }[nam[0:1]]
-                    if nam not in (
-                        "E1",
-                        "E5a",
-                        "E5b",
-                        "B2a",
-                        "B2",
-                        "B1",
-                    ):  # same freq as other bands
-                        self.can_spectrumview.create_line(
-                            x1, y1, x1, y2, fill=col, dash=(5, 2), width=OL_WID
+        if mode == MODESNAP:
+            self.can_spectrumview.delete(MODESNAP)
+        else:
+            self.init_frame()
+            # plot frequency band markers
+            if self._showrf:
+                for nam, frq in RF_BANDS.items():
+                    if self._minhz < frq < self._maxhz:
+                        x1, y1 = self._get_point(frq, self._maxdb)
+                        x2, y2 = self._get_point(frq, self._mindb)
+                        yoff, col = {
+                            "L": (self._fonth, GNSS_LIST[0][1]),  # GPS
+                            "G": (self._fonth * 2, GNSS_LIST[6][1]),  # GLONASS
+                            "E": (self._fonth * 3, GNSS_LIST[2][1]),  # Galileo
+                            "S": (self._fonth * 3, GNSS_LIST[2][1]),  # Galileo SAR
+                            "B": (self._fonth * 4, GNSS_LIST[3][1]),  # Beidou
+                        }[nam[0:1]]
+                        if nam not in (
+                            "E1",
+                            "E5a",
+                            "E5b",
+                            "B2a",
+                            "B2",
+                            "B1",
+                        ):  # same freq as other bands
+                            self.can_spectrumview.create_line(
+                                x1,
+                                y1,
+                                x1,
+                                y2,
+                                fill=col,
+                                dash=(5, 2),
+                                width=OL_WID,
+                                tags=mode,
+                            )
+                        self.can_spectrumview.create_text(
+                            x2 + 2,
+                            y2 - yoff - 1,
+                            text=nam,
+                            fill=col,
+                            anchor="nw",
+                            font=self._font,
+                            tags=mode,
                         )
-                    self.can_spectrumview.create_text(
-                        x2 + 2,
-                        y2 - yoff - 1,
-                        text=nam,
-                        fill=col,
-                        anchor="nw",
-                        font=self._font,
-                    )
 
         # for each RF block in MON-SPAN message
         for i, rfblock in enumerate(specxy):
-            col = RF_LIST[i % len(RF_LIST)]
+            col = colors[i % len(colors)]
 
             # draw legend for this RF block
             x1, y1 = (50 * (i + 1) + (i * self._fonth), self._fonth * 2)
             x2, y2 = (50 + 50 * (i + 1) + (i * self._fonth), self._fonth * 2)
+            if mode == MODESNAP:
+                y1 += self._fonth
+                y2 += self._fonth
+            else:
+                self.can_spectrumview.create_text(
+                    (x1 + x2) / 2,
+                    y1,
+                    text=f"RF {i + 1}",
+                    fill=FGCOL,
+                    font=self._font,
+                    anchor="s",
+                    tags=mode,
+                )
             self.can_spectrumview.create_line(
                 x1,
                 y1,
@@ -313,14 +364,7 @@ class SpectrumviewFrame(Frame):
                 y1,
                 fill=col,
                 width=OL_WID,
-            )
-            self.can_spectrumview.create_text(
-                (x1 + x2) / 2,
-                y1,
-                text=f"RF {i + 1}",
-                fill=FGCOL,
-                font=self._font,
-                anchor="s",
+                tags=mode,
             )
 
             # plot spectrum for this RF block
@@ -331,7 +375,7 @@ class SpectrumviewFrame(Frame):
                 x2, y2 = self._get_point(hz, db)
                 if n:
                     self.can_spectrumview.create_line(
-                        x1, y1, x2, y2, fill=col, width=OL_WID
+                        x1, y1, x2, y2, fill=col, width=OL_WID, tags=mode
                     )
 
         # display any flagged chart position
@@ -344,9 +388,8 @@ class SpectrumviewFrame(Frame):
                 fill=FGCOL,
                 font=self._font,
                 anchor="center",
+                tags=mode,
             )
-
-        # self.can_spectrumview.update_idletasks()
 
     def _get_point(self, hz: float, db: float) -> tuple:
         """
@@ -449,13 +492,28 @@ class SpectrumviewFrame(Frame):
         hz, db = self._get_hzdb(event.x, event.y)
         self._chartpos = (event.x, event.y, hz, db)
 
-    def _toggle_rf(self, event):  # pylint: disable=unused-argument
+    def _on_toggle_rf(self, event):  # pylint: disable=unused-argument
         """
         Toggle RF band markers on/off.
         """
 
         self._showrf = not self._showrf
         self._chartpos = None
+
+    def _on_snapshot(self, event):  # pylint: disable=unused-argument
+        """
+        Capture snapshot of current spectrum.
+        """
+
+        self._spectrum_snapshot = self.__app.gnss_status.spectrum_data
+
+    def _on_clear_snapshot(self, event):  # pylint: disable=unused-argument
+        """
+        Clear snapshot of current spectrum.
+        """
+
+        self._spectrum_snapshot = []
+        self.can_spectrumview.delete("snap")
 
     def get_size(self):
         """

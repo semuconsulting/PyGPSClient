@@ -42,6 +42,7 @@ from pyubx2 import (
     ERR_LOG,
     NMEA_PROTOCOL,
     RTCM3_PROTOCOL,
+    SPARTN_PROTOCOL,
     UBX_PROTOCOL,
     UBXMessageError,
     UBXParseError,
@@ -252,7 +253,7 @@ class StreamHandler:
         conntype = settings["conntype"]
         ubr = UBXReader(
             stream,
-            protfilter=NMEA_PROTOCOL | UBX_PROTOCOL | RTCM3_PROTOCOL,
+            protfilter=NMEA_PROTOCOL | UBX_PROTOCOL | RTCM3_PROTOCOL | SPARTN_PROTOCOL,
             quitonerror=ERR_LOG,
             bufsize=DEFAULT_BUFSIZE,
             msgmode=settings["msgmode"],

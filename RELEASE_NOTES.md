@@ -4,7 +4,9 @@
 
 ENHANCEMENTS:
 
+1. Add snapshot facilty to spectrum widget. Right-click anywhere in spectrum plot to capture current spectrum data, which will then be superimposed on the live spectrum data in a different color. Double-right-click to clear the snapshot. Intention is to help compare RF reception at different times and/or with different antenna configurations.
 1. Enhance console color tagging.
+
 
 ### RELEASE 1.4.27
 
