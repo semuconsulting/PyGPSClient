@@ -103,7 +103,7 @@ GNSS_ERR_EVENT = "<<gnss_error>>"
 GNSS_EVENT = "<<gnss_read>>"
 GNSS_TIMEOUT_EVENT = "<<gnss_timeout>>"
 GNSS_LIST = {
-    0: ("GPS", "royalblue"),
+    0: ("GPS", "cornflowerblue"),
     1: ("SBA", "orange"),
     2: ("GAL", "green4"),
     3: ("BEI", "mediumpurple2"),
@@ -165,20 +165,13 @@ KNOWNGPS = (
     "FT230",
     "FT232",
     "garmin",
-    "Garmin",
     "gnss",
-    "GNSS",
     "gps",
-    "GPS",
     "magellan",
-    "Magellan",
+    "septentrio",
     "sirf",
-    "Sirf",
-    "SiRF",
     "trimble",
-    "Trimble",
     "u-blox",
-    "U-Blox",
     "ublox",
     "USB Serial",
     "USB to UART",
@@ -205,6 +198,7 @@ MSGMODES = {
 NOPORTS = 3
 NTRIP_EVENT = "<<ntrip_read>>"
 OKCOL = "green"
+PNTCOL = "orange"
 POPUP_TRANSIENT = True  # whether pop-up config dialogs are always on top
 PORTIDS = ("0 I2C", "1 UART1", "2 UART2", "3 USB", "4 SPI")
 PUBLICIP_URL = "https://ipinfo.io/json"

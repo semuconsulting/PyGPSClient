@@ -767,6 +767,7 @@ class SettingsFrame(Frame):
                 "datalog_b": self._datalog.get(),
                 "recordtrack_b": self._record_track.get(),
                 # serial port settings from frm_serial
+                "serialport_s": self.frm_serial.port,
                 "bpsrate_n": self.frm_serial.bpsrate,
                 "databits_n": self.frm_serial.databits,
                 "stopbits_f": self.frm_serial.stopbits,

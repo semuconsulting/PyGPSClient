@@ -13,12 +13,11 @@ Created on 23 Dec 2022
 :license: BSD 3-Clause
 """
 
-from math import ceil
-from tkinter import BOTH, YES, Canvas, Frame, font
+from tkinter import Canvas, Checkbutton, E, Frame, IntVar, N, S, W, font
 
 from pyubx2 import UBXMessage
 
-from pygpsclient.globals import BGCOL, FGCOL, GNSS_LIST, SPECTRUMVIEW, WIDGETU2
+from pygpsclient.globals import BGCOL, FGCOL, GNSS_LIST, PNTCOL, SPECTRUMVIEW, WIDGETU2
 from pygpsclient.helpers import setubxrate
 from pygpsclient.strings import DLGENABLEMONSPAN, DLGNOMONSPAN, DLGWAITMONSPAN
 
@@ -26,8 +25,8 @@ from pygpsclient.strings import DLGENABLEMONSPAN, DLGNOMONSPAN, DLGWAITMONSPAN
 RESFONT = 24  # font size relative to widget size
 MINFONT = 7  # minimum font size
 OL_WID = 1
-MIN_DB = 20
-MAX_DB = 180
+MIN_DB = 0
+MAX_DB = 200
 MIN_HZ = 1130000000
 MAX_HZ = 1650000000
 TICK_DB = 20  # 20 dB divisions
@@ -38,7 +37,6 @@ RF_BANDS = {
     "B3": 1268520000,
     "B2": 1202025000,
     "B2a": 1176450000,
-    "SAR": 1544500000,
     "E6": 1278750000,
     "E5b": 1202025000,
     "E5a": 1176450000,
@@ -103,6 +101,7 @@ class SpectrumviewFrame(Frame):
         self._showrf = True
         self._chartpos = None
         self._spectrum_snapshot = []
+        self._pgaoffset = IntVar()
         self._body()
         self._set_fontsize()
         self._attach_events()
@@ -114,10 +113,21 @@ class SpectrumviewFrame(Frame):
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=0)
         self.can_spectrumview = Canvas(
             self, width=self.width, height=self.height, bg=BGCOL
         )
-        self.can_spectrumview.pack(fill=BOTH, expand=YES)
+        self.chk_pgaoffset = Checkbutton(
+            self,
+            text="PGA Offset",
+            fg=PNTCOL,
+            bg=BGCOL,
+            variable=self._pgaoffset,
+            anchor=W,
+        )
+        # self.can_spectrumview.pack(fill=BOTH, expand=YES)
+        self.can_spectrumview.grid(column=0, row=0, columnspan=3, sticky=(N, S, E, W))
+        self.chk_pgaoffset.grid(column=0, row=1, sticky=(W, E))
 
     def _attach_events(self):
         """
@@ -208,6 +218,7 @@ class SpectrumviewFrame(Frame):
 
         self.__app.gnss_status.spectrum_data = []
         self._chartpos = None
+        self._pgaoffset.set(0)
         self.can_spectrumview.delete("all")
         self.update_frame()
 
@@ -289,9 +300,12 @@ class SpectrumviewFrame(Frame):
         :param str mode: plot mode ("live" or "snap"shot)
         """
 
-        specxy, self._minhz, self._maxhz, self._mindb, self._maxdb = self._get_limits(
-            rfblocks
-        )
+        self._mindb = MIN_DB
+        self._maxdb = MAX_DB
+        if self._pgaoffset.get():
+            self._maxdb += 40
+
+        specxy, self._minhz, self._maxhz = self._get_limits(rfblocks)
         if mode == MODESNAP:
             self.can_spectrumview.delete(MODESNAP)
         else:
@@ -448,20 +462,17 @@ class SpectrumviewFrame(Frame):
 
         minhz = 999 * 1e9
         maxhz = 0
-        mindb = 0
-        maxdb = 0
         specxy = []
 
         # for each RF block in MON-SPAN message
         for i, rfblock in enumerate(rfblocks):
-            (spec, spn, res, ctr, _) = rfblock
+            (spec, spn, res, ctr, pga) = rfblock
             minhz = int(min(minhz, ctr - res * (spn / res) / 2))
             maxhz = int(max(maxhz, ctr + res * (spn / res) / 2))
             spanhz = []
             for i, db in enumerate(spec):
-                # db -= pga  # compensate for programmable gain
-                mindb = min(mindb, db)
-                maxdb = max(maxdb, db)
+                if self._pgaoffset.get():
+                    db += pga  # compensate for programmable gain
                 hz = int(minhz + (res * i))
                 spanhz.append((hz, db))
             specxy.append(spanhz)
@@ -469,9 +480,7 @@ class SpectrumviewFrame(Frame):
         return (
             specxy,
             int(minhz - TICK_GHZ / 2),
-            maxhz,
-            MIN_DB,
-            (ceil((maxdb + 10) / 10) * 10) + TICK_DB,
+            int(maxhz + TICK_GHZ / 2),
         )
 
     def _on_resize(self, event):  # pylint: disable=unused-argument

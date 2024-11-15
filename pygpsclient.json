@@ -12,6 +12,7 @@
     "mapupdateinterval_n": 60,
     "defaultport_s": "USB",
     "mqapikey_s": "<======= YOUR MQ API KEY ======>",
+    "serialport_s": "/dev/ttyACM0",
     "protocol_n": 7,
     "nmeaprot_b": 1,
     "ubxprot_b": 1,

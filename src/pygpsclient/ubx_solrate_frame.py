@@ -77,7 +77,7 @@ class UBX_RATE_Frame(Frame):
         self._lbl_ubx_measint = Label(self, text="Solution Interval (ms)")
         self._spn_ubx_measint = Spinbox(
             self,
-            values=(25, 50, 100, 200, 500, 1000, 2000, 5000, 10000),
+            values=(25, 50, 100, 200, 250, 500, 1000, 2000, 5000, 10000),
             width=6,
             state=READONLY,
             wrap=True,

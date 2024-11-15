@@ -45,7 +45,7 @@ except (ImportError, ModuleNotFoundError):
 
 from random import randrange
 
-from pygpsclient.globals import BGCOL, FGCOL, SQRT2, WIDGETU1, Area, Point
+from pygpsclient.globals import BGCOL, FGCOL, PNTCOL, SQRT2, WIDGETU1, Area, Point
 from pygpsclient.helpers import get_point_at_vector, in_bounds, reorder_range
 from pygpsclient.skyview_frame import Canvas
 
@@ -55,7 +55,6 @@ CTRFIX = "Fixed"
 CRTS = (CTRAVG, CTRFIX)
 INTS = (1, 2, 5, 10, 20, 50, 100)
 FIXCOL = "green2"
-PNTCOL = "orange"
 PNTTOPCOL = "red"
 CULLMID = True  # whether to cull random points from middle of array
 FIXINAUTO = False  # whether to include fixed ref point in autorange
