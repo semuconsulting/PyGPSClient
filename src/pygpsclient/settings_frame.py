@@ -85,6 +85,8 @@ from pygpsclient.globals import (
     RCVR_CONNECTION,
     READONLY,
     SOCK_NTRIP,
+    SPARTN_BASEDATE_CURRENT,
+    SPARTN_DEFAULT_KEY,
     SPARTN_PROTOCOL,
     TIMEOUTS,
     UI,
@@ -913,7 +915,12 @@ class SettingsFrame(Frame):
                 "scatterlon_f": self.__app.saved_config.get("scatterlon_f", 0.0),
                 # Manually edited config settings
                 "spartndecode_b": self.__app.saved_config.get("spartndecode_b", 0),
-                "spartnkey_s": self.__app.saved_config.get("spartnkey_s", ""),
+                "spartnkey_s": self.__app.saved_config.get(
+                    "spartnkey_s", SPARTN_DEFAULT_KEY
+                ),
+                "spartnbasedate_n": self.__app.saved_config.get(
+                    "spartnbasedate_n", SPARTN_BASEDATE_CURRENT
+                ),
                 "mapupdateinterval_n": self.__app.saved_config.get(
                     "mapupdateinterval_n", MAP_UPDATE_INTERVAL
                 ),

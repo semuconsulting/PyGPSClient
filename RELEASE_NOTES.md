@@ -9,7 +9,9 @@ ENHANCEMENTS:
    - Add pgaoffset option. If selected, adds receiver PGA (programmable gain amplifier) gain to spectrum db axis.
    - vertical (db) axis range is now fixed - fixes previous vertical axis 'jumping'.
 1. Enhance console color tagging.
+1. Add baseline (where available) to banner dgps display.
 1. Selected receiver serial port now included in saved json configuration file (NB: obviously won't work if the saved device is no longer available on the same port).
+1. Minor interval enhancments to SPARTM data stream handling to reflect pyspartn>=1.05
 
 
 ### RELEASE 1.4.27

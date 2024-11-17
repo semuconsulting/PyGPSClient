@@ -107,6 +107,8 @@
     "lbandclientoutport_s": "Passthrough",
     "lbandclientdebug_b": 0,
     "spartndecode_b": 0,
+    "spartnkey_s": "abcd1234abcd1234abcd1234abcd1234",
+    "spartnbasedate_n": -1,
     "scatterautorange_b": 0,
     "scattercenter_s": "Average",
     "scatterinterval_n": 1,

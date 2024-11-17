@@ -51,6 +51,7 @@ from pygpsclient.helpers import m2ft, ms2kmph, ms2knots, ms2mph
 
 DGPSYES = "YES"
 DGPSNO = "N/A"
+M2MILES = 5280
 
 
 class BannerFrame(Frame):
@@ -224,13 +225,13 @@ class BannerFrame(Frame):
             self._frm_advanced,
             textvariable=self._dop,
             bg=self._bgcol,
-            fg="mediumpurple2",
+            fg="mediumpurple1",
         )
         self._lbl_diffcorr = Label(
             self._frm_advanced,
             textvariable=self._diffcorr,
             bg=self._bgcol,
-            fg="mediumpurple2",
+            fg="hotpink",
         )
 
         self.option_add("*Font", self.__app.font_sm)
@@ -252,7 +253,7 @@ class BannerFrame(Frame):
             self._frm_advanced,
             textvariable=self._hvdop,
             bg=self._bgcol,
-            fg="mediumpurple2",
+            fg="mediumpurple1",
         )
         self._lbl_hvacc = Label(
             self._frm_advanced,
@@ -271,7 +272,7 @@ class BannerFrame(Frame):
             self._frm_advanced,
             textvariable=self._diffstat,
             bg=self._bgcol,
-            fg="mediumpurple2",
+            fg="hotpink",
         )
 
     def _do_layout(self):
@@ -406,7 +407,7 @@ class BannerFrame(Frame):
         self._update_fix()
         self._update_siv()
         self._update_dop(units)
-        self._update_dgps()
+        self._update_dgps(units)
 
     def _update_time(self):
         """
@@ -415,9 +416,9 @@ class BannerFrame(Frame):
 
         tim = self.__app.gnss_status.utc
         if tim in (None, ""):
-            self._time.set("N/A")
+            self._time.set(f"{'N/A': <15}")
         else:
-            self._time.set(tim)
+            self._time.set(f"{tim:%H:%M:%S.%f}")
 
     def _update_pos(self, pos_format, units):
         """
@@ -546,12 +547,34 @@ class BannerFrame(Frame):
                 + f"vacc {self.__app.gnss_status.vacc:.3f}"
             )
 
-    def _update_dgps(self):
+    def _update_dgps(self, units):
         """
         Update DGPS status.
+
+        :param str units: distance units as string (UMM, UMK, UI, UIK)
         """
 
         self._diffcorr.set(DGPSYES if self.__app.gnss_status.diff_corr else DGPSNO)
+        baseline = self.__app.gnss_status.rel_pos_length
+        bl = "N/A"
+        bl_u = ""
+        if isinstance(baseline, (int, float)):
+            if baseline > 0.0:
+                if units in (UI, UIK):
+                    bl = m2ft(baseline / 100)  # cm to ft
+                    if bl > M2MILES:
+                        bl_u = "miles"
+                        bl = bl / M2MILES  # cm to miles
+                    else:
+                        bl_u = "ft"
+                else:
+                    if baseline > 100000:
+                        bl_u = "km"
+                        bl = baseline / 100000  # cm to km
+                    else:
+                        bl_u = "m"
+                        bl = baseline / 100  # cm to m
+
         if self.__app.gnss_status.diff_corr:
             age = self.__app.gnss_status.diff_age
             station = self.__app.gnss_status.diff_station
@@ -561,7 +584,12 @@ class BannerFrame(Frame):
                 age = f"{age} s"
             if station in [None, "", 0]:
                 station = "N/A"
-            self._diffstat.set(f"age {age}\nstation {station}")
+            if bl == "N/A":
+                self._diffstat.set(f"age {age}\nstation {station} baseline {bl}")
+            else:
+                self._diffstat.set(
+                    f"age {age}\nstation {station} baseline {bl:.2f} {bl_u}"
+                )
         else:
             self._diffstat.set("")
 
