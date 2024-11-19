@@ -40,6 +40,7 @@ from pygpsclient.mapquest import (
     MAX_ZOOM,
     MIN_UPDATE_INTERVAL,
     MIN_ZOOM,
+    format_url,
 )
 from pygpsclient.strings import (
     MAPCONFIGERR,
@@ -295,7 +296,9 @@ class MapviewFrame(Frame):
             return
         self._last_map_update = now
 
-        url = self._format_url(mqapikey, maptype, lat, lon, hacc)
+        url = format_url(
+            self.width, self.height, self._zoom, mqapikey, maptype, lat, lon, hacc
+        )
 
         try:
             response = get(url, timeout=MAPQTIMEOUT)
@@ -358,43 +361,6 @@ class MapviewFrame(Frame):
             font=self._resize_font,
             fill=ZOOMCOL if self._zoom > MIN_ZOOM else ZOOMEND,
             anchor="s",
-        )
-
-    def _format_url(
-        self, mqapikey: str, maptype: str, lat: float, lon: float, hacc: float
-    ):
-        """
-        Formats URL for web map download.
-
-        :param str mqapikey: MapQuest API key
-        :param str maptype: "map" or "sat"
-        :param float lat: latitude
-        :param float lon: longitude
-        :param float hacc: horizontal accuracy
-        :return: formatted MapQuest URL
-        :rtype: str
-        """
-
-        w, h = self.width, self.height
-        radius = str(hacc / 1000)  # km
-        zoom = self._zoom
-        # seems to be bug in MapQuest API which causes error
-        # if scalebar displayed at maximum zoom
-        scalebar = "true" if zoom < 20 else "false"
-
-        return MAPURL.format(
-            mqapikey,
-            lat,
-            lon,
-            MARKERURL,
-            zoom,
-            w,
-            h,
-            radius,
-            lat,
-            lon,
-            scalebar,
-            maptype,
         )
 
     def _disp_error(self, msg):

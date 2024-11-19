@@ -38,6 +38,52 @@ MAX_ZOOM = 20
 MIN_ZOOM = 1
 
 
+def format_url(
+    width: int,
+    height: int,
+    zoom: float,
+    mqapikey: str,
+    maptype: str,
+    lat: float,
+    lon: float,
+    hacc: float,
+):
+    """
+    Formats URL for web map download.
+
+    :param int width: width of canvas
+    :param int height: height of canvas
+    :param float zoom: zoom factor
+    :param str mqapikey: MapQuest API key
+    :param str maptype: "map" or "sat"
+    :param float lat: latitude
+    :param float lon: longitude
+    :param float hacc: horizontal accuracy
+    :return: formatted MapQuest URL
+    :rtype: str
+    """
+
+    radius = str(hacc / 1000)  # km
+    # seems to be bug in MapQuest API which causes error
+    # if scalebar displayed at maximum zoom
+    scalebar = "true" if zoom < 20 else "false"
+
+    return MAPURL.format(
+        mqapikey,
+        lat,
+        lon,
+        MARKERURL,
+        zoom,
+        width,
+        height,
+        radius,
+        lat,
+        lon,
+        scalebar,
+        maptype,
+    )
+
+
 def mapq_encode(num: int) -> str:
     """
     Encode number representing character.
