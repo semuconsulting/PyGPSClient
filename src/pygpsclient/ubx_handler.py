@@ -366,7 +366,7 @@ class UBXHandler:
 
         settings = self.__app.frm_settings.config
         show_unused = settings["unusedsat_b"]
-        self.gsv_data = []
+        self.gsv_data = {}
         num_siv = int(data.numCh)
 
         for i in range(num_siv):
