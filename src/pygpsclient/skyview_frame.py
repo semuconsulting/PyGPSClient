@@ -13,7 +13,7 @@ Created on 13 Sep 2020
 """
 
 from operator import itemgetter
-from tkinter import BOTH, YES, Canvas, Frame, font
+from tkinter import ALL, BOTH, YES, Canvas, Frame, font
 
 from pygpsclient.globals import BGCOL, FGCOL, GNSS_LIST, WIDGETU1
 from pygpsclient.helpers import cel2cart, col2contrast, snr2col
@@ -84,7 +84,7 @@ class SkyviewFrame(Frame):
         w, h = self.width, self.height
         axis_r = min(h, w) / 18
         resize_font = font.Font(size=min(int(w / 25), 8))
-        self.can_satview.delete("all")
+        self.can_satview.delete(ALL)
         maxr = min((h / 2), (w / 2)) - axis_r
         for r in (0.2, 0.4, 0.6, 0.8, 1):
             self.can_satview.create_circle(

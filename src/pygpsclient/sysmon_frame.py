@@ -14,7 +14,7 @@ Created on 30 Apr 2023
 :license: BSD 3-Clause
 """
 
-from tkinter import Canvas, E, Frame, IntVar, N, Radiobutton, S, W
+from tkinter import ALL, Canvas, E, Frame, IntVar, N, Radiobutton, S, W
 
 from pyubx2 import BOOTTYPE, UBXMessage
 
@@ -116,7 +116,7 @@ class SysmonFrame(Frame):
         Initialise sysmon chart.
         """
 
-        self._can_sysmon.delete("all")
+        self._can_sysmon.delete(ALL)
         self._can_sysmon.create_text(
             self.width / 2,
             self.height / 2,

@@ -13,6 +13,7 @@ Created on 14 Sep 2024
 # pylint: disable=unused-argument
 
 from tkinter import (
+    ALL,
     BOTH,
     DISABLED,
     NORMAL,
@@ -177,7 +178,7 @@ class ImportMapDialog(Toplevel):
         Reset application.
         """
 
-        self._canvas_map.delete("all")
+        self._canvas_map.delete(ALL)
         self._btn_import.config(state=DISABLED)
         if not HASRASTERIO:
             self._show_status(

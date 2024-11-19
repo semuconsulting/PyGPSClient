@@ -23,6 +23,7 @@ Created on 17 Aug 2022
 """
 
 from tkinter import (
+    ALL,
     END,
     LEFT,
     VERTICAL,
@@ -223,7 +224,7 @@ class UBX_Dynamic_Frame(Frame):
         """
 
         self._can_container.configure(
-            scrollregion=self._can_container.bbox("all"),
+            scrollregion=self._can_container.bbox(ALL),
             width=SCROLLX,
             height=SCROLLY,
         )

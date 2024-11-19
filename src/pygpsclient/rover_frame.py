@@ -16,7 +16,7 @@ Created on 22 Aug 2023
 # pylint: disable=invalid-name
 
 from math import cos, pi, sin
-from tkinter import BOTH, YES, Frame, font
+from tkinter import ALL, BOTH, YES, Frame, font
 
 from pygpsclient.globals import BGCOL, FGCOL, WIDGETU2
 from pygpsclient.helpers import setubxrate
@@ -82,7 +82,7 @@ class RoverFrame(Frame):
         """
 
         width, height = self.get_size()
-        self.canvas.delete("all")
+        self.canvas.delete(ALL)
 
         self.canvas.create_line(0, height / 2, width, height / 2, fill=FGCOL)
         self.canvas.create_line(width / 2, 0, width / 2, height, fill=FGCOL)

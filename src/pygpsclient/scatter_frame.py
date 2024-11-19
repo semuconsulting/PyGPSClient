@@ -21,6 +21,7 @@ fixed reference selection.
 """
 
 from tkinter import (
+    ALL,
     HORIZONTAL,
     Checkbutton,
     E,
@@ -314,7 +315,7 @@ class ScatterViewFrame(Frame):
         """
 
         width, height = self.get_size()
-        self.canvas.delete("all")
+        self.canvas.delete(ALL)
         self.canvas.create_line(0, height / 2, width, height / 2, fill=FGCOL)
         self.canvas.create_line(width / 2, 0, width / 2, height, fill=FGCOL)
 

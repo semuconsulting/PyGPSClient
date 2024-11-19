@@ -25,7 +25,7 @@ from http.client import responses
 from io import BytesIO
 from os import getenv
 from time import time
-from tkinter import CENTER, NW, Canvas, E, Frame, N, S, W, font
+from tkinter import ALL, CENTER, NW, Canvas, E, Frame, N, S, W, font
 
 from PIL import Image, ImageTk, UnidentifiedImageError
 from requests import ConnectionError as ConnError
@@ -239,7 +239,7 @@ class MapviewFrame(Frame):
                 self._lastmappath = IMG_WORLD
             bounds = IMG_WORLD_CALIB
 
-        self._can_mapview.delete("all")
+        self._can_mapview.delete(ALL)
         self._img = ImageTk.PhotoImage(self._mapimage.resize((w, h)))
         self._can_mapview.create_image(0, 0, image=self._img, anchor=NW)
         plon = w / (bounds[3] - bounds[1])  # x pixels per degree lon
@@ -304,7 +304,7 @@ class MapviewFrame(Frame):
             if sc == "OK":
                 img_data = response.content
                 self._img = ImageTk.PhotoImage(Image.open(BytesIO(img_data)))
-                self._can_mapview.delete("all")
+                self._can_mapview.delete(ALL)
                 self._can_mapview.create_image(0, 0, image=self._img, anchor=NW)
                 self._draw_zoom()
                 self._can_mapview.update_idletasks()
@@ -407,7 +407,7 @@ class MapviewFrame(Frame):
         w, h = self.width, self.height
         resize_font = font.Font(size=min(int(w / 20), 14))
 
-        self._can_mapview.delete("all")
+        self._can_mapview.delete(ALL)
         self._can_mapview.create_text(
             w / 2,
             h / 2,

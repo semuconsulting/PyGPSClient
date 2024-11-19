@@ -16,6 +16,7 @@ from datetime import datetime
 from http.client import responses
 from io import BytesIO
 from tkinter import (
+    ALL,
     BOTH,
     NW,
     YES,
@@ -241,8 +242,8 @@ class GPXViewerDialog(Toplevel):
         Reset application.
         """
 
-        self._canvas_map.delete("all")
-        self._canvas_profile.delete("all")
+        self._canvas_map.delete(ALL)
+        self._canvas_profile.delete(ALL)
         for i in range(MD_LINES):
             self._info[i].set("")
 
@@ -466,7 +467,7 @@ class GPXViewerDialog(Toplevel):
         _, _, ele_u, ele_c, spd_u, spd_c = self._get_units()
 
         mid = int(len(track) / 2)
-        self._canvas_profile.delete("all")
+        self._canvas_profile.delete(ALL)
         # find maximum extents for x and y axes
         _, _, tim1, _, _ = self._track[0]  # start point, labelled 1
         _, _, timm, _, _ = self._track[mid]  # mid point

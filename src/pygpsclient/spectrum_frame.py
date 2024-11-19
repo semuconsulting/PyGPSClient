@@ -13,7 +13,7 @@ Created on 23 Dec 2022
 :license: BSD 3-Clause
 """
 
-from tkinter import Canvas, Checkbutton, E, Frame, IntVar, N, S, W, font
+from tkinter import ALL, Canvas, Checkbutton, E, Frame, IntVar, N, S, W, font
 
 from pyubx2 import UBXMessage
 
@@ -145,7 +145,7 @@ class SpectrumviewFrame(Frame):
         Initialise spectrum chart.
         """
 
-        self.can_spectrumview.delete("all")
+        self.can_spectrumview.delete(ALL)
 
         # plot y (dB) axis grid
         i = 0
@@ -219,7 +219,7 @@ class SpectrumviewFrame(Frame):
         self.__app.gnss_status.spectrum_data = []
         self._chartpos = None
         self._pgaoffset.set(0)
-        self.can_spectrumview.delete("all")
+        self.can_spectrumview.delete(ALL)
         self.update_frame()
 
     def enable_messages(self, status: bool):
@@ -289,9 +289,7 @@ class SpectrumviewFrame(Frame):
         if self._spectrum_snapshot != []:
             self._update_plot(self._spectrum_snapshot, MODESNAP, RF_LIST_SNAPSHOT)
 
-    def _update_plot(
-        self, rfblocks: list, mode: str = MODELIVE, colors: dict = RF_LIST
-    ):
+    def _update_plot(self, rfblocks: list, mode: str = MODELIVE, colors: dict = None):
         """
         Update spectrum plot with live or snapshot rf block data.
 
@@ -299,6 +297,9 @@ class SpectrumviewFrame(Frame):
         :param dict colors: dictionary of color for each rf block
         :param str mode: plot mode ("live" or "snap"shot)
         """
+
+        if colors is None:
+            colors = RF_LIST
 
         self._mindb = MIN_DB
         self._maxdb = MAX_DB
