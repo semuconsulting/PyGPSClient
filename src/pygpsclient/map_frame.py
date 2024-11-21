@@ -37,13 +37,12 @@ from pygpsclient.globals import (
     IMG_WORLD,
     IMG_WORLD_CALIB,
     WIDGETU2,
+    Area,
     Point,
 )
 from pygpsclient.mapquest import (
     MAP_UPDATE_INTERVAL,
     MAPQTIMEOUT,
-    MAPURL,
-    MARKERURL,
     MAX_ZOOM,
     MIN_UPDATE_INTERVAL,
     MIN_ZOOM,
@@ -100,6 +99,7 @@ class MapviewFrame(Frame):
         self._lastmaptype = ""
         self._lastmappath = ""
         self._mapimage = None
+        self._bounds = None
         self._body()
         self._attach_events()
 
@@ -197,6 +197,25 @@ class MapviewFrame(Frame):
         else:
             self._draw_online_map(lat, lon, maptype, hacc)
 
+    def _ll2xy(self, position: Point) -> tuple:
+        """
+        Convert lat/lon to canvas x/y.
+
+        :param Point coordinate: lat/lon
+        :return: x,y canvas coordinates
+        :rtype: tuple
+        """
+
+        cw, ch = self.get_size()
+        lw = self._bounds.lon2 - self._bounds.lon1
+        lh = self._bounds.lat2 - self._bounds.lat1
+        lwp = lw / cw  # # units longitude per x pixel
+        lhp = lh / ch  # units latitude per y pixel
+
+        x = (position.lon - self._bounds.lon1) / lwp
+        y = ch - (position.lat - self._bounds.lat1) / lhp
+        return x, y
+
     def _draw_offline_map(
         self,
         lat: float,
@@ -223,12 +242,12 @@ class MapviewFrame(Frame):
 
         if maptype == CUSTOM:
             err = OUTOFBOUNDS
-            # usermaps = self.__app.frm_settings.config.get("usermaps_l", [])
             usermaps = self.__app.saved_config.get("usermaps_l", [])
             for mp in usermaps:
                 try:
                     mpath, bounds = mp
-                    if (bounds[0] > lat > bounds[2]) and (bounds[1] < lon < bounds[3]):
+                    # usermaps is maxlat, minlon, minlat, maxlon
+                    if (bounds[2] < lat < bounds[0]) and (bounds[1] < lon < bounds[3]):
                         if self._lastmappath != mpath:
                             self._mapimage = Image.open(mpath)
                             self._lastmappath = mpath
@@ -247,13 +266,12 @@ class MapviewFrame(Frame):
                 self._lastmappath = IMG_WORLD
             bounds = IMG_WORLD_CALIB
 
+        # Area is minlat, minlon, maxlat, maxlon
+        self._bounds = Area(bounds[2], bounds[1], bounds[0], bounds[3])
         self._can_mapview.delete(ALL)
         self._img = ImageTk.PhotoImage(self._mapimage.resize((w, h)))
         self._can_mapview.create_image(0, 0, image=self._img, anchor=NW)
-        plon = w / (bounds[3] - bounds[1])  # x pixels per degree lon
-        plat = h / (bounds[0] - bounds[2])  # y pixels per degree lat
-        x = (lon - bounds[1]) * plon
-        y = (bounds[0] - lat) * plat
+        x, y = self._ll2xy(Point(lat, lon))
         self._marker = ImageTk.PhotoImage(Image.open(ICON_POS))
         self._can_mapview.create_image(x, y, image=self._marker, anchor=CENTER)
         if err != "":

@@ -56,6 +56,7 @@ from pygpsclient.globals import (
     M2FT,
     POPUP_TRANSIENT,
     READONLY,
+    RPTDELAY,
     UI,
     UIK,
     UMK,
@@ -156,6 +157,8 @@ class GPXViewerDialog(Toplevel):
             to=20,
             width=5,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             textvariable=self._zoom,
             state=READONLY,
         )
@@ -165,6 +168,8 @@ class GPXViewerDialog(Toplevel):
             values=("map", "sat"),
             width=5,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             textvariable=self._maptype,
             state=READONLY,
         )

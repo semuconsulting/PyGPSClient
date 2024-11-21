@@ -6,6 +6,7 @@ MapQuest API Constants and Methods.
 MapQuest polygon compression and decompression routines
 adapted from the original javascript examples:
 
+https://developer.mapquest.com/documentation/api/static-map/
 https://developer.mapquest.com/documentation/common/encode-decode/
 
 Created on 04 May 2023
@@ -32,10 +33,10 @@ MAPURLBB = (
 )  # bounding box without location
 MAPURLTRK = (
     MAPQURL
-    + "&locations={},{}||{},{}&zoom={}&size={},{}&type={}&scalebar={}|bottom"
-    + "&defaultMarker=marker-num&shape=weight:2|border:{}|{}"
+    + "&locations={},{}||{},{}&zoom={}&size={},{}&defaultMarker=marker-num"
+    + "&shape=weight:2|border:{}|{}&scalebar={}|bottom&type={}"
 )  # bounding box to track
-GPXLIMIT = 500  # max number of track points supported by MapQuest API
+POINTLIMIT = 500  # max number of shape points supported by MapQuest API
 MAPQTIMEOUT = 5
 # how frequently the mapquest api is called to update the web map (seconds)
 MAP_UPDATE_INTERVAL = 60
@@ -60,7 +61,7 @@ def compress_track(track: tuple, precision: int = 6) -> str:
     points = []
     stp = 1
     rng = len(track)
-    while rng / stp > GPXLIMIT:
+    while rng / stp > POINTLIMIT:
         stp += 1
     for i, p in enumerate(track):
         if i % stp == 0:
@@ -115,10 +116,10 @@ def format_mapquest_request(
             zoom,
             width,
             height,
-            maptype,
-            scalebar,
             TRKCOL,
             f"cmp6|enc:{comp}",
+            scalebar,
+            maptype,
         )
 
     # set bounds to specified bbox extent
