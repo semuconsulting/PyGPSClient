@@ -59,9 +59,10 @@ from pygpsclient.globals import (
     UI,
     UIK,
     UMK,
+    Point,
 )
 from pygpsclient.helpers import haversine, isot2dt
-from pygpsclient.mapquest import GPXLIMIT, GPXMAPURL, MAPQTIMEOUT, mapq_compress
+from pygpsclient.mapquest import MAPQTIMEOUT, format_mapquest_request
 from pygpsclient.strings import (
     DLGGPXERROR,
     DLGGPXLOAD,
@@ -393,43 +394,16 @@ class GPXViewerDialog(Toplevel):
         mqapikey = self.__app.frm_settings.config.get(
             "mqapikey_s", self.__app.frm_settings.config.get("mqapikey", "")
         )
-        lat1, lon1, _, _, _ = self._track[0]  # start point, labelled 1
-        lat2, lon2, _, _, _ = self._track[-1]  # end point, labelled 2
-        points = []
 
-        # if the number of trackpoints exceeds the MapQuest API limit,
-        # increase step count until the number is within limits
-        stp = 1
-        rng = len(track)
-        while rng / stp > GPXLIMIT:
-            stp += 1
-        for i, (lat, lon, _, _, _) in enumerate(track):
-            if i % stp == 0:
-                points.append(lat)
-                points.append(lon)
-
-        # compress polygon for MapQuest API
-        comp = mapq_compress(points, 6)
-        tstr = f"cmp6|enc:{comp}"
-        # seems to be bug in MapQuest API which causes error
-        # if scalebar displayed at maximum zoom
-        scalebar = "true" if self._zoom.get() < 20 else "false"
-        maptype = self._maptype.get()  # "map" or "sat"
-
+        locations = [Point(lat, lon) for lat, lon, _, _, _ in track]
         try:
-            url = GPXMAPURL.format(
+            url = format_mapquest_request(
                 mqapikey,
-                lat1,
-                lon1,
-                lat2,
-                lon2,
-                self._zoom.get(),
+                self._maptype.get(),
                 self.width,
                 self.mheight,
-                "ff00ff",
-                tstr,
-                scalebar,
-                maptype,
+                self._zoom.get(),
+                locations,
             )
             response = get(url, timeout=MAPQTIMEOUT)
             response.raise_for_status()  # raise Exception on HTTP error

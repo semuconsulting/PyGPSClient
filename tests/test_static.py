@@ -51,7 +51,7 @@ from pygpsclient.helpers import (
     validURL,
     wnotow2date,
 )
-from pygpsclient.mapquest import mapq_compress, mapq_decompress
+from pygpsclient.mapquest import mapq_compress, mapq_decompress, compress_track
 from pygpsclient.widget_state import DEFAULT, FRAME, MENU, VISIBLE, widget_state
 
 
@@ -338,6 +338,17 @@ class StaticTest(unittest.TestCase):
         # print(pnts)
         for i, pnt in enumerate(pnts):
             self.assertAlmostEqual(pnt, points[i], PREC)
+
+    def testcompresstrack(self):
+        points = [
+            Point(53.4245, -2.18663),
+            Point(52.1274, -2.2284),
+            Point(51.6603, -2.5285),
+            Point(50.9377, -2.0006),
+            Point(53.2004, -2.1511),
+        ]
+        encoded = compress_track(points)
+        self.assertEqual(encoded, "gvw{dBjwmdCvkdnArqpAvho[fciQnibk@w`f_@wibiCf}dH")
 
     def testbytes2unit(self):  # test bytes2unit
         blist = [123, 5365, 97467383, 1982864663735305, 15234, 3, 0]

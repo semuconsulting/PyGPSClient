@@ -31,7 +31,14 @@ from PIL import Image, ImageTk, UnidentifiedImageError
 from requests import ConnectionError as ConnError
 from requests import ConnectTimeout, RequestException, get
 
-from pygpsclient.globals import BGCOL, ICON_POS, IMG_WORLD, IMG_WORLD_CALIB, WIDGETU2
+from pygpsclient.globals import (
+    BGCOL,
+    ICON_POS,
+    IMG_WORLD,
+    IMG_WORLD_CALIB,
+    WIDGETU2,
+    Point,
+)
 from pygpsclient.mapquest import (
     MAP_UPDATE_INTERVAL,
     MAPQTIMEOUT,
@@ -40,7 +47,7 @@ from pygpsclient.mapquest import (
     MAX_ZOOM,
     MIN_UPDATE_INTERVAL,
     MIN_ZOOM,
-    format_url,
+    format_mapquest_request,
 )
 from pygpsclient.strings import (
     MAPCONFIGERR,
@@ -296,8 +303,15 @@ class MapviewFrame(Frame):
             return
         self._last_map_update = now
 
-        url = format_url(
-            self.width, self.height, self._zoom, mqapikey, maptype, lat, lon, hacc
+        url = format_mapquest_request(
+            mqapikey,
+            maptype,
+            self.width,
+            self.height,
+            self._zoom,
+            (Point(lat, lon),),  # must be tuple
+            None,  # bbox
+            hacc,
         )
 
         try:
