@@ -12,6 +12,7 @@ Created on 10 Jan 2023
 
 # pylint: disable=unused-argument
 
+import logging
 from datetime import datetime
 from http.client import responses
 from io import BytesIO
@@ -36,6 +37,7 @@ from tkinter import (
     font,
 )
 from xml.dom import minidom
+from xml.parsers import expat
 
 from PIL import Image, ImageTk
 from requests import ConnectionError as ConnError
@@ -91,6 +93,7 @@ class GPXViewerDialog(Toplevel):
         """Constructor."""
 
         self.__app = app
+        self.logger = logging.getLogger(__name__)
         # self.__master = self.__app.appmaster  # link to root Tk window
         Toplevel.__init__(self, app)
         if POPUP_TRANSIENT:
@@ -327,9 +330,8 @@ class GPXViewerDialog(Toplevel):
                 parser = minidom.parse(gpx)
                 trkpts = parser.getElementsByTagName("trkpt")
                 self._process_track(trkpts)
-            except (TypeError, AttributeError) as err:
-                self._do_mapalert(DLGGPXERROR)
-                raise (err) from err
+            except (TypeError, AttributeError, expat.ExpatError) as err:
+                self._do_mapalert(f"{DLGGPXERROR}\n{repr(err)}")
 
     def _process_track(self, trkpts: list):
         """
