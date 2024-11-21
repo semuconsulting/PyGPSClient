@@ -84,6 +84,7 @@ from pygpsclient.globals import (
     NOPORTS,
     RCVR_CONNECTION,
     READONLY,
+    RPTDELAY,
     SOCK_NTRIP,
     SPARTN_BASEDATE_CURRENT,
     SPARTN_DEFAULT_KEY,
@@ -326,6 +327,8 @@ class SettingsFrame(Frame):
             width=10,
             state=READONLY,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             textvariable=self._console_format,
         )
         self._chk_tags = Checkbutton(
@@ -340,6 +343,8 @@ class SettingsFrame(Frame):
             width=6,
             state=READONLY,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             textvariable=self._degrees_format,
         )
         self._spn_units = Spinbox(
@@ -348,6 +353,8 @@ class SettingsFrame(Frame):
             width=13,
             state=READONLY,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             textvariable=self._units,
         )
         self._chk_scroll = Checkbutton(
@@ -358,6 +365,8 @@ class SettingsFrame(Frame):
             values=MAXLINES,
             width=6,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             textvariable=self._maxlines,
             state=READONLY,
         )
@@ -367,6 +376,8 @@ class SettingsFrame(Frame):
             values=MAPTYPES,
             width=6,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             textvariable=self.maptype,
             state=READONLY,
         )
@@ -384,6 +395,8 @@ class SettingsFrame(Frame):
             values=(FORMATS),
             width=20,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             textvariable=self._logformat,
             state=READONLY,
         )

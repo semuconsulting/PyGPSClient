@@ -55,6 +55,7 @@ from pygpsclient.globals import (
     ICON_SOCKET,
     ICON_WARNING,
     READONLY,
+    RPTDELAY,
     RXMMSG,
     SAVED_CONFIG,
     SPARTN_GNSS,
@@ -152,6 +153,8 @@ class SPARTNMQTTDialog(Frame):
             state=READONLY,
             width=4,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
         )
         self._rad_ip = Radiobutton(self, text="IP", variable=self._mqtt_source, value=0)
         self._rad_lb = Radiobutton(

@@ -39,6 +39,7 @@ from pygpsclient.globals import (
     DEFAULT_TLS_PORTS,
     ICON_CONTRACT,
     ICON_EXPAND,
+    RPTDELAY,
     SAVED_CONFIG,
 )
 from pygpsclient.helpers import MAXPORT, VALINT, VALURL, valid_entry
@@ -119,6 +120,8 @@ class SocketConfigFrame(Frame):
             width=12,
             state=READONLY,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
         )
         self._lbl_https = Label(self._frm_basic, text="HTTPS?")
         self._chk_https = Checkbutton(

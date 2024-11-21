@@ -46,7 +46,16 @@ except (ImportError, ModuleNotFoundError):
 
 from random import randrange
 
-from pygpsclient.globals import BGCOL, FGCOL, PNTCOL, SQRT2, WIDGETU1, Area, Point
+from pygpsclient.globals import (
+    BGCOL,
+    FGCOL,
+    PNTCOL,
+    RPTDELAY,
+    SQRT2,
+    WIDGETU1,
+    Area,
+    Point,
+)
 from pygpsclient.helpers import get_point_at_vector, in_bounds, reorder_range
 from pygpsclient.skyview_frame import Canvas
 
@@ -175,6 +184,8 @@ class ScatterViewFrame(Frame):
             values=crng,
             width=8,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             fg=PNTCOL,
             bg=BGCOL,
             readonlybackground=BGCOL,
@@ -187,6 +198,8 @@ class ScatterViewFrame(Frame):
             values=irng,
             width=5,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             fg=PNTCOL,
             bg=BGCOL,
             readonlybackground=BGCOL,

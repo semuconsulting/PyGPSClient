@@ -24,6 +24,7 @@ from .globals import (
     ICON_WARNING,
     PORTIDS,
     READONLY,
+    RPTDELAY,
     UBX_CFGPRT,
 )
 from .strings import LBLCFGPRT
@@ -83,6 +84,8 @@ class UBX_PORT_Frame(Frame):
             width=8,
             state=READONLY,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             textvariable=self._portid,
             command=lambda: self._on_select_portid(),  # pylint: disable=unnecessary-lambda
         )
@@ -93,6 +96,8 @@ class UBX_PORT_Frame(Frame):
             width=6,
             state=READONLY,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             textvariable=self._bpsrate,
         )
         self._lbl_inprot = Label(self, text="Input")

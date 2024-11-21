@@ -23,6 +23,7 @@ from pathlib import Path
 from pyubx2 import GET, POLL, SET, SETPOLL
 
 Point = namedtuple("Point", ["lat", "lon"])
+# Area convention is minlat, minlon, maxlat, maxlon
 Area = namedtuple("Area", ["lat1", "lon1", "lat2", "lon2"])
 
 HOME = Path.home()
@@ -168,6 +169,7 @@ KNOWNGPS = (
     "gnss",
     "gps",
     "magellan",
+    "navstar",
     "septentrio",
     "sirf",
     "trimble",
@@ -207,6 +209,7 @@ QUITONERRORDEFAULT = 1
 RCVR_CONNECTION = "USB,UART1"  # default GNSS receiver connection port(s)
 ROMVER_NEW = "23.01"  # min device ROM version using configuration database
 READONLY = "readonly"
+RPTDELAY = 500  # repeat delay for spinboxes
 RXMMSG = "RXM-SPARTN-KEY"
 SAT_EXPIRY = 10  # how long passed satellites are kept in the sky and graph view
 SAVED_CONFIG = "saved_config"

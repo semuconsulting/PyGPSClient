@@ -22,6 +22,7 @@ from .globals import (
     ICON_SEND,
     ICON_WARNING,
     READONLY,
+    RPTDELAY,
     UBX_CFGRATE,
 )
 from .strings import LBLCFGRATE
@@ -91,6 +92,8 @@ class UBX_RATE_Frame(Frame):
             width=4,
             state=READONLY,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             textvariable=self._navrate,
         )
         self._lbl_ubx_timeref = Label(self, text="Time Reference")
@@ -100,6 +103,8 @@ class UBX_RATE_Frame(Frame):
             width=5,
             state=READONLY,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             textvariable=self._timeref,
         )
         self._lbl_send_command = Label(self, image=self._img_pending)

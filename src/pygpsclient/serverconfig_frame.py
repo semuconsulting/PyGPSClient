@@ -48,6 +48,7 @@ from pygpsclient.globals import (
     ICON_CONTRACT,
     ICON_EXPAND,
     READONLY,
+    RPTDELAY,
     SAVED_CONFIG,
     SOCK_NTRIP,
     SOCKMODES,
@@ -194,6 +195,8 @@ class ServerConfigFrame(Frame):
             width=14,
             state=READONLY,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             textvariable=self.sock_mode,
         )
         self._lbl_sockhost = Label(
@@ -277,6 +280,8 @@ class ServerConfigFrame(Frame):
             width=10,
             state=READONLY,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             textvariable=self.base_mode,
         )
         self._lbl_acclimit = Label(
@@ -289,6 +294,8 @@ class ServerConfigFrame(Frame):
             width=5,
             state=READONLY,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             textvariable=self.acclimit,
         )
         self._lbl_duration = Label(
@@ -306,6 +313,8 @@ class ServerConfigFrame(Frame):
             width=5,
             state=READONLY,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             textvariable=self.duration,
         )
         self._lbl_elapsed = Label(
@@ -324,6 +333,8 @@ class ServerConfigFrame(Frame):
             width=6,
             state=READONLY,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             textvariable=self.pos_mode,
         )
         self._lbl_fixedlat = Label(

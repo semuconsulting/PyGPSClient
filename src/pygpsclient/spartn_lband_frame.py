@@ -56,6 +56,7 @@ from pygpsclient.globals import (
     MSGMODES,
     NOPORTS,
     READONLY,
+    RPTDELAY,
     SAVED_CONFIG,
     SPARTN_EOF_EVENT,
     SPARTN_ERR_EVENT,
@@ -252,6 +253,8 @@ class SpartnLbandDialog(Frame):
             state=READONLY,
             width=5,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
         )
         self._chk_descrm = Checkbutton(
             self,
@@ -287,6 +290,8 @@ class SpartnLbandDialog(Frame):
             state=READONLY,
             width=10,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
         )
         self._lbl_ebno = Label(self, text="")
         self._lbl_fec = Label(self, text="")
