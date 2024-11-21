@@ -94,7 +94,7 @@ AXIS_Y = 15  # y axis bottom offset
 ELEAX_COL = "green4"  # color of elevation plot axis
 ELE_COL = "palegreen3"  # color of elevation plot
 SPD_COL = "blue"  # color of speed plot
-TRK_COL = "purple"
+TRK_COL = "magenta"  # color of track
 MD_LINES = 2  # number of lines of metadata
 
 
@@ -505,7 +505,7 @@ class GPXViewerDialog(Toplevel):
             if i:
                 x2, y2 = self._ll2xy(Point(lat, lon))
                 self._can_mapview.create_line(
-                    x1, y1, x2, y2, fill=TRK_COL, width=4, tags="track"
+                    x1, y1, x2, y2, fill=TRK_COL, width=3, tags="track"
                 )
                 x1, y1 = x2, y2
             else:
