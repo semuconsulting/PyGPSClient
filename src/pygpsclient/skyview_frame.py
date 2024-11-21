@@ -21,21 +21,6 @@ from pygpsclient.helpers import cel2cart, col2contrast, snr2col
 OL_WID = 2
 
 
-def _create_circle(self, x, y, r, **kwargs):
-    """
-    Helper method to simplify drawing circles on canvas
-
-    :param int x: x coordinate
-    :param int y: y coordinate
-    :param int r: radius
-    """
-
-    return self.create_oval(x - r, y - r, x + r, y + r, **kwargs)
-
-
-Canvas.create_circle = _create_circle
-
-
 class SkyviewFrame(Frame):
     """
     Skyview frame class.

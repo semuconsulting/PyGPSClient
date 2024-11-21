@@ -10,7 +10,6 @@ Created on 14 Sep 2020
 :author: semuadmin
 :copyright: 2020 SEMU Consulting
 :license: BSD 3-Clause
-
 """
 
 # pylint: disable=line-too-long
@@ -19,12 +18,28 @@ from collections import namedtuple
 from datetime import datetime
 from os import path
 from pathlib import Path
+from tkinter import Canvas
 
 from pyubx2 import GET, POLL, SET, SETPOLL
 
 Point = namedtuple("Point", ["lat", "lon"])
 # Area convention is minlat, minlon, maxlat, maxlon
 Area = namedtuple("Area", ["lat1", "lon1", "lat2", "lon2"])
+
+
+def create_circle(self, x, y, r, **kwargs):
+    """
+    Helper method to simplify drawing circles on canvas
+
+    :param int x: x coordinate
+    :param int y: y coordinate
+    :param int r: radius
+    """
+
+    return self.create_oval(x - r, y - r, x + r, y + r, **kwargs)
+
+
+Canvas.create_circle = create_circle
 
 HOME = Path.home()
 APPNAME = __name__.split(".", 1)[0]  # i.e. "pygpsclient"
@@ -130,6 +145,7 @@ ICON_CONN = path.join(DIRNAME, "resources/iconmonstr-media-control-48-24.png")
 ICON_CONTRACT = path.join(DIRNAME, "resources/iconmonstr-triangle-1-16.png")
 ICON_DELETE = path.join(DIRNAME, "resources/iconmonstr-trash-can-filled-24.png")
 ICON_DISCONN = path.join(DIRNAME, "resources/iconmonstr-media-control-50-24.png")
+ICON_END = path.join(DIRNAME, "resources/marker_end.png")
 ICON_EXIT = path.join(DIRNAME, "resources/iconmonstr-door-6-24.png")
 ICON_EXPAND = path.join(DIRNAME, "resources/iconmonstr-arrow-80-16.png")
 ICON_GITHUB = path.join(DIRNAME, "resources/github-256.png")
@@ -149,6 +165,7 @@ ICON_SEND = path.join(DIRNAME, "resources/iconmonstr-arrow-12-24.png")
 ICON_SERIAL = path.join(DIRNAME, "resources/usbport-1-24.png")
 ICON_SOCKET = path.join(DIRNAME, "resources/ethernet-1-24.png")
 ICON_SPARTNCONFIG = path.join(DIRNAME, "resources/iconmonstr-antenna-3-24.png")
+ICON_START = path.join(DIRNAME, "resources/marker_start.png")
 ICON_STOP = path.join(DIRNAME, "resources/iconmonstr-stop-1-24.png")
 ICON_TRANSMIT = path.join(DIRNAME, "resources/iconmonstr-transmit-10-24.png")
 ICON_UBXCONFIG = path.join(DIRNAME, "resources/iconmonstr-gear-2-24.png")
@@ -187,6 +204,10 @@ KPH2MPS = 0.2777776918389111005
 LICENSE_URL = "https://github.com/semuconsulting/PyGPSClient/blob/master/LICENSE"
 M2FT = 3.28084
 MAPAPI_URL = "https://developer.mapquest.com/user/login/sign-up"
+CUSTOM = "custom"
+MAP = "map"
+SAT = "sat"
+WORLD = "world"
 MAX_SNR = 60  # upper limit of graphview snr axis
 MAXLOGLINES = 10000  # maximum number of 'lines' per datalog file
 MQAPIKEY = "mqapikey"

@@ -58,6 +58,7 @@ from pygpsclient.globals import (
     CONNECTED,
     CONNECTED_FILE,
     CONNECTED_SOCKET,
+    CUSTOM,
     DDD,
     DISCONNECTED,
     DMM,
@@ -80,11 +81,13 @@ from pygpsclient.globals import (
     ICON_SPARTNCONFIG,
     ICON_UBXCONFIG,
     KNOWNGPS,
+    MAP,
     MSGMODES,
     NOPORTS,
     RCVR_CONNECTION,
     READONLY,
     RPTDELAY,
+    SAT,
     SOCK_NTRIP,
     SPARTN_BASEDATE_CURRENT,
     SPARTN_DEFAULT_KEY,
@@ -94,6 +97,7 @@ from pygpsclient.globals import (
     UIK,
     UMK,
     UMM,
+    WORLD,
 )
 from pygpsclient.helpers import adjust_dimensions
 from pygpsclient.mapquest import MAP_UPDATE_INTERVAL
@@ -117,7 +121,7 @@ from pygpsclient.strings import (
 )
 
 MAXLINES = ("200", "500", "1000", "2000", "100")
-MAPTYPES = ("world", "map", "sat", "custom")
+MAPTYPES = (WORLD, MAP, SAT, CUSTOM)
 MINHEIGHT = 750
 MINWIDTH = 390
 

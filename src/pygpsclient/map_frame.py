@@ -33,10 +33,13 @@ from requests import ConnectTimeout, RequestException, get
 
 from pygpsclient.globals import (
     BGCOL,
+    CUSTOM,
     ICON_POS,
     IMG_WORLD,
     IMG_WORLD_CALIB,
+    MAP,
     WIDGETU2,
+    WORLD,
     Area,
     Point,
 )
@@ -61,10 +64,6 @@ from pygpsclient.strings import (
 
 ZOOMCOL = "red"
 ZOOMEND = "lightgray"
-WORLD = "world"
-CUSTOM = "custom"
-MAP = "map"
-SAT = "sat"
 
 
 class MapviewFrame(Frame):
@@ -247,7 +246,9 @@ class MapviewFrame(Frame):
                 try:
                     mpath, bounds = mp
                     # usermaps is maxlat, minlon, minlat, maxlon
-                    if (bounds[2] < lat < bounds[0]) and (bounds[1] < lon < bounds[3]):
+                    if (bounds[2] <= lat <= bounds[0]) and (
+                        bounds[1] <= lon <= bounds[3]
+                    ):
                         if self._lastmappath != mpath:
                             self._mapimage = Image.open(mpath)
                             self._lastmappath = mpath
