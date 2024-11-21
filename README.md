@@ -477,7 +477,7 @@ By default, the server/caster binds to the host address '0.0.0.0' (IPv4) or '::'
 
 *GPX Track Viewer screenshot*
 
-The GPX Track Viewer can display any valid GPX file containing trackpoints (`<trkpt>..</trkpt>` elements) against either an ["custom" offline map image](#custommap), or an online Mapquest "map" or "sat" iview. The "map" and "sat" options require a free [MapQuest API key](#mapquestapi). The Y axis scales will reflect the current choice of units (metric or imperial). Click ![refresh icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-refresh-lined-24.png?raw=true) to refresh the display after any changes (e.g. resizing, zooming or change of units). Zoom will not be functional using a custom offline map.
+The GPX Track Viewer can display any valid GPX file containing trackpoints (`<trkpt>..</trkpt>` elements) against either an ["custom" offline map image](#custommap), or an online MapQuest "map" or "sat" view. The "map" and "sat" options require a free [MapQuest API key](#mapquestapi). The Y axis scales will reflect the current choice of units (metric or imperial). Click ![refresh icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-refresh-lined-24.png?raw=true) to refresh the display after any changes (e.g. resizing, zooming or change of units). In "custom" view, zoom is not functional, and left mouse click will show the position at the mouse cursor.
 
 ---
 ## <a name="mapquestapi">MapQuest API Key</a>

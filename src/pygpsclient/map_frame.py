@@ -25,7 +25,7 @@ from http.client import responses
 from io import BytesIO
 from os import getenv
 from time import time
-from tkinter import ALL, CENTER, NW, Canvas, E, Frame, N, S, W, font
+from tkinter import ALL, CENTER, NW, Canvas, E, Frame, N, S, StringVar, W, font
 
 from PIL import Image, ImageTk, UnidentifiedImageError
 from requests import ConnectionError as ConnError
@@ -43,6 +43,7 @@ from pygpsclient.globals import (
     Area,
     Point,
 )
+from pygpsclient.helpers import ll2xy, xy2ll
 from pygpsclient.mapquest import (
     MAP_UPDATE_INTERVAL,
     MAPQTIMEOUT,
@@ -64,6 +65,7 @@ from pygpsclient.strings import (
 
 ZOOMCOL = "red"
 ZOOMEND = "lightgray"
+POSCOL = "red"
 
 
 class MapviewFrame(Frame):
@@ -99,6 +101,8 @@ class MapviewFrame(Frame):
         self._lastmappath = ""
         self._mapimage = None
         self._bounds = None
+        self._pos = None
+        self._maptype = StringVar()
         self._body()
         self._attach_events()
 
@@ -118,6 +122,7 @@ class MapviewFrame(Frame):
         """
 
         self.bind("<Configure>", self._on_resize)
+        self._maptype.trace_add("write", self.on_maptype)
         self._can_mapview.bind("<Double-Button-1>", self.on_refresh)  # double-click
         self._can_mapview.bind("<Button-1>", self.on_zoom)  # left-click
         self._can_mapview.bind("<Button-2>", self.on_zoom)  # right click Posix
@@ -129,6 +134,16 @@ class MapviewFrame(Frame):
         """
 
         self._zoom = self.__app.frm_settings.config.get("mapzoom", 10)
+
+    def on_maptype(self, var, index, mode):
+        """
+        Set maptype event binding.
+        """
+
+        if self._maptype.get() == CUSTOM:
+            self._can_mapview.bind("<Button-1>", self.on_click)
+        else:
+            self._can_mapview.bind("<Button-1>", self.on_zoom)
 
     def on_refresh(self, event):  # pylint: disable=unused-argument
         """
@@ -169,6 +184,29 @@ class MapviewFrame(Frame):
             self.__app.frm_settings.mapzoom.set(self._zoom)
             self.on_refresh(event)
 
+    def on_click(self, event):
+        """
+        Mouse click shows position in custom view.
+
+        :param event: event
+        """
+
+        w, h = self.get_size()
+        self._can_mapview.delete("pos")
+        x, y = event.x, event.y
+        self._pos = xy2ll(w, h, self._bounds, (x, y))
+        self._can_mapview.create_circle(
+            x, y, 2, outline=POSCOL, fill=POSCOL, tags="pos"
+        )
+        self._can_mapview.create_text(
+            x,
+            y - 3,
+            text=f"{self._pos.lat:.08f},{self._pos.lon:.08f}",
+            anchor=S,
+            fill=POSCOL,
+            tags="pos",
+        )
+
     def update_frame(self):
         """
         Draw map and mark current known position and horizontal accuracy (where available).
@@ -190,30 +228,11 @@ class MapviewFrame(Frame):
             self._disp_error(NOWEBMAPFIX)
             return
 
-        maptype = self.__app.frm_settings.config.get("maptype_s", WORLD)
-        if maptype in (WORLD, CUSTOM):
-            self._draw_offline_map(lat, lon, maptype)
+        self._maptype.set(self.__app.frm_settings.config.get("maptype_s", WORLD))
+        if self._maptype.get() in (WORLD, CUSTOM):
+            self._draw_offline_map(lat, lon, self._maptype.get())
         else:
-            self._draw_online_map(lat, lon, maptype, hacc)
-
-    def _ll2xy(self, position: Point) -> tuple:
-        """
-        Convert lat/lon to canvas x/y.
-
-        :param Point coordinate: lat/lon
-        :return: x,y canvas coordinates
-        :rtype: tuple
-        """
-
-        cw, ch = self.get_size()
-        lw = self._bounds.lon2 - self._bounds.lon1
-        lh = self._bounds.lat2 - self._bounds.lat1
-        lwp = lw / cw  # # units longitude per x pixel
-        lhp = lh / ch  # units latitude per y pixel
-
-        x = (position.lon - self._bounds.lon1) / lwp
-        y = ch - (position.lat - self._bounds.lat1) / lhp
-        return x, y
+            self._draw_online_map(lat, lon, self._maptype.get(), hacc)
 
     def _draw_offline_map(
         self,
@@ -272,9 +291,24 @@ class MapviewFrame(Frame):
         self._can_mapview.delete(ALL)
         self._img = ImageTk.PhotoImage(self._mapimage.resize((w, h)))
         self._can_mapview.create_image(0, 0, image=self._img, anchor=NW)
-        x, y = self._ll2xy(Point(lat, lon))
+        x, y = ll2xy(w, h, self._bounds, Point(lat, lon))
         self._marker = ImageTk.PhotoImage(Image.open(ICON_POS))
         self._can_mapview.create_image(x, y, image=self._marker, anchor=CENTER)
+
+        if self._pos is not None:
+            (x, y) = ll2xy(w, h, self._bounds, self._pos)
+            self._can_mapview.create_circle(
+                x, y, 2, outline=POSCOL, fill=POSCOL, tags="pos"
+            )
+            self._can_mapview.create_text(
+                x,
+                y - 3,
+                text=f"{self._pos.lat:.08f},{self._pos.lon:.08f}",
+                anchor=S,
+                fill=POSCOL,
+                tags="pos",
+            )
+
         if err != "":
             self._can_mapview.create_text(w / 2, h / 2, text=err, fill="orange")
 

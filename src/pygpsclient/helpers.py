@@ -1078,3 +1078,41 @@ def reorder_range(valuerange: tuple, default) -> tuple:
             drange = valuerange[i:lr] + valuerange[0:i]
             break
     return drange
+
+
+def ll2xy(width: int, height: int, bounds: Area, position: Point) -> tuple:
+    """
+    Convert lat/lon to canvas x/y.
+
+    :param Point coordinate: lat/lon
+    :return: x,y canvas coordinates
+    :rtype: tuple
+    """
+
+    lw = bounds.lon2 - bounds.lon1
+    lh = bounds.lat2 - bounds.lat1
+    lwp = lw / width  # # units longitude per x pixel
+    lhp = lh / height  # units latitude per y pixel
+
+    x = (position.lon - bounds.lon1) / lwp
+    y = height - (position.lat - bounds.lat1) / lhp
+    return x, y
+
+
+def xy2ll(width: int, height: int, bounds: Area, xy: tuple) -> Point:
+    """
+    Convert canvas x/y to lat/lon.
+
+    :param tuple xy: canvas x/y coordinate
+    :return: lat/lon
+    :rtype: Point
+    """
+
+    lw = bounds.lon2 - bounds.lon1
+    lh = bounds.lat2 - bounds.lat1
+    cwp = width / lw  # x pixels per unit longitude
+    chp = height / lh  # y pixels per unit latitude
+    x, y = xy
+    lon = bounds.lon1 + x / cwp
+    lat = bounds.lat1 + (height - y) / chp
+    return Point(lat, lon)

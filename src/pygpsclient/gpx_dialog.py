@@ -72,7 +72,7 @@ from pygpsclient.globals import (
     Area,
     Point,
 )
-from pygpsclient.helpers import haversine, isot2dt
+from pygpsclient.helpers import haversine, isot2dt, ll2xy, xy2ll
 from pygpsclient.mapquest import MAPQTIMEOUT, format_mapquest_request
 from pygpsclient.strings import (
     DLGGPXERROR,
@@ -294,6 +294,24 @@ class GPXViewerDialog(Toplevel):
         self._draw_profile(self._track)
         self._format_metadata(self._metadata)
 
+    def _on_click(self, event):
+
+        w, h = self.mwidth, self.mheight
+        self._can_mapview.delete("pos")
+        x, y = event.x, event.y
+        pos = xy2ll(w, h, self._bounds, (x, y))
+        self._can_mapview.create_circle(
+            x, y, 2, outline=TRK_COL, fill=TRK_COL, tags="pos"
+        )
+        self._can_mapview.create_text(
+            x,
+            y - 3,
+            text=f"{pos.lat:.08f},{pos.lon:.08f}",
+            anchor=S,
+            fill=TRK_COL,
+            tags="pos",
+        )
+
     def _on_maptype(self, var, index, mode):
         """
         Disable zoom when using custom offline map.
@@ -305,8 +323,10 @@ class GPXViewerDialog(Toplevel):
 
         if self._maptype.get() == CUSTOM:
             self._spn_zoom.configure(stat=DISABLED)
+            self._can_mapview.bind("<Button-1>", self._on_click)  # left-click
         else:
             self._spn_zoom.configure(stat=READONLY)
+            self._can_mapview.unbind("<Button-1>")
 
     def get_size(self):
         """
@@ -435,25 +455,6 @@ class GPXViewerDialog(Toplevel):
         self._draw_profile(self._track)
         self._format_metadata(self._metadata)
 
-    def _ll2xy(self, position: Point) -> tuple:
-        """
-        Convert lat/lon to canvas x/y.
-
-        :param Point coordinate: lat/lon
-        :return: x,y canvas coordinates
-        :rtype: tuple
-        """
-
-        cw, ch = self.mwidth, self.mheight
-        lw = self._bounds.lon2 - self._bounds.lon1
-        lh = self._bounds.lat2 - self._bounds.lat1
-        lwp = lw / cw  # # units longitude per x pixel
-        lhp = lh / ch  # units latitude per y pixel
-
-        x = (position.lon - self._bounds.lon1) / lwp
-        y = ch - (position.lat - self._bounds.lat1) / lhp
-        return x, y
-
     def _draw_offline_map(self, track: list):
         """
         Draw fixed offline map using optional user-provided georeferenced
@@ -479,7 +480,7 @@ class GPXViewerDialog(Toplevel):
                     and bounds[1] <= self._bounds.lon1
                     and bounds[3] >= self._bounds.lon2
                 ):
-                    self._mapimage = Image.open(mpath)
+                    self._mapimg = Image.open(mpath)
                     # Area is minlat, minlon, maxlat, maxlon
                     self._bounds = Area(bounds[2], bounds[1], bounds[0], bounds[3])
                     err = ""
@@ -493,7 +494,7 @@ class GPXViewerDialog(Toplevel):
 
         self._can_mapview.delete(ALL)
         if err == "":
-            self._mapimg = ImageTk.PhotoImage(self._mapimage.resize((w, h)))
+            self._mapimg = ImageTk.PhotoImage(self._mapimg.resize((w, h)))
             self._can_mapview.create_image(
                 0, 0, image=self._mapimg, anchor=NW, tags="image"
             )
@@ -503,13 +504,13 @@ class GPXViewerDialog(Toplevel):
         # draw track with start and end icons
         for i, (lat, lon, _, _, _) in enumerate(track):
             if i:
-                x2, y2 = self._ll2xy(Point(lat, lon))
+                x2, y2 = ll2xy(w, h, self._bounds, Point(lat, lon))
                 self._can_mapview.create_line(
                     x1, y1, x2, y2, fill=TRK_COL, width=3, tags="track"
                 )
                 x1, y1 = x2, y2
             else:
-                x1, y1 = self._ll2xy(Point(lat, lon))
+                x1, y1 = ll2xy(w, h, self._bounds, Point(lat, lon))
                 self._can_mapview.create_image(
                     x1, y1, image=self._img_start, anchor=S, tags="track"
                 )

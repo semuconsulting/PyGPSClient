@@ -50,6 +50,8 @@ from pygpsclient.helpers import (
     val2sphp,
     validURL,
     wnotow2date,
+    ll2xy,
+    xy2ll,
 )
 from pygpsclient.mapquest import mapq_compress, mapq_decompress, compress_track
 from pygpsclient.widget_state import DEFAULT, FRAME, MENU, VISIBLE, widget_state
@@ -506,6 +508,24 @@ class StaticTest(unittest.TestCase):
         self.assertEqual(res, False)
         res = in_bounds(Area(51.23, -2.41, 51.45, -2.13), Point(51.24, -2.39))
         self.assertEqual(res, True)
+
+    def testll2xy(self):
+        bounds = Area(53, -2, 54, -1)
+        (x, y) = ll2xy(600, 400, bounds, Point(53.5, -1.5))
+        self.assertEqual(x, 300, 5)
+        self.assertEqual(y, 200, 5)
+        (x, y) = ll2xy(600, 400, bounds, Point(53.52345, -1.81264))
+        self.assertAlmostEqual(x, 112.416, 5)
+        self.assertAlmostEqual(y, 190.620, 5)
+
+    def testxy2ll(self):
+        bounds = Area(53, -2, 54, -1)
+        pos = xy2ll(600, 400, bounds, (300, 200))
+        self.assertEqual(pos.lat, 53.5, 5)
+        self.assertEqual(pos.lon, -1.5, 5)
+        pos = xy2ll(600, 400, bounds, (112.416, 190.620))
+        self.assertAlmostEqual(pos.lat, 53.52345, 5)
+        self.assertAlmostEqual(pos.lon, -1.81264, 5)
 
     def testreorderrange(self):
         rng1 = (1, 2, 5, 10, 20, 50, 100)
