@@ -25,6 +25,7 @@
     "maxlines_n": 200,
     "consoleformat_s": "Parsed",
     "maptype_s": "world",
+    "showtrack_b": 0,
     "mapzoom_n": 10,
     "legend_b": 1,
     "unusedsat_b": 0,

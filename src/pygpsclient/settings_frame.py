@@ -114,6 +114,7 @@ from pygpsclient.strings import (
     LBLDEGFORMAT,
     LBLNTRIPCONFIG,
     LBLPROTDISP,
+    LBLSHOWTRACK,
     LBLSHOWUNUSED,
     LBLSPARTNCONFIG,
     LBLTRACKRECORD,
@@ -154,6 +155,7 @@ class SettingsFrame(Frame):
         self._autoscroll = IntVar()
         self._maxlines = IntVar()
         self.maptype = StringVar()
+        self.showtrack = IntVar()
         self.mapzoom = IntVar()
         self._units = StringVar()
         self._degrees_format = StringVar()
@@ -385,6 +387,9 @@ class SettingsFrame(Frame):
             textvariable=self.maptype,
             state=READONLY,
         )
+        self._chk_showtrack = Checkbutton(
+            self._frm_options, text=LBLSHOWTRACK, variable=self.showtrack
+        )
         self._chk_unusedsat = Checkbutton(
             self._frm_options, text=LBLSHOWUNUSED, variable=self._show_unusedsat
         )
@@ -497,6 +502,7 @@ class SettingsFrame(Frame):
         self._chk_scroll.grid(column=0, row=5, padx=2, pady=2, sticky=W)
         self._spn_maxlines.grid(column=1, row=5, columnspan=3, padx=2, pady=2, sticky=W)
         self._lbl_maptype.grid(column=0, row=6, padx=2, pady=2, sticky=W)
+        self._chk_showtrack.grid(column=2, row=6, padx=2, pady=2, sticky=W)
         self.spn_maptype.grid(column=1, row=6, padx=2, pady=2, sticky=W)
         self._chk_unusedsat.grid(
             column=0, row=7, columnspan=2, padx=2, pady=2, sticky=W
@@ -537,6 +543,7 @@ class SettingsFrame(Frame):
             self.__app.saved_config.get("consoleformat_s", FORMAT_PARSED)
         )
         self.maptype.set(self.__app.saved_config.get("maptype_s", MAPTYPES[0]))
+        self.showtrack.set(self.__app.saved_config.get("showtrack_b", 0))
         self.mapzoom.set(self.__app.saved_config.get("mapzoom_n", 10))
         self.show_legend.set(self.__app.saved_config.get("legend_b", 1))
         self._show_unusedsat.set(self.__app.saved_config.get("unusedsat_b", 0))
@@ -779,6 +786,7 @@ class SettingsFrame(Frame):
                 "maxlines_n": self._maxlines.get(),
                 "consoleformat_s": self._console_format.get(),
                 "maptype_s": self.maptype.get(),
+                "showtrack_b": self.showtrack.get(),
                 "mapzoom_n": self.mapzoom.get(),
                 "legend_b": self.show_legend.get(),
                 "unusedsat_b": self._show_unusedsat.get(),

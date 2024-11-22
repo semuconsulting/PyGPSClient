@@ -33,12 +33,14 @@ from pygpsclient.helpers import (
     kmph2ms,
     knots2ms,
     lanip,
+    limittrack,
     m2ft,
     ms2kmph,
     ms2knots,
     ms2mph,
     ned2vector,
     parse_rxmspartnkey,
+    points2area,
     pos2iso6709,
     publicip,
     reorder_range,
@@ -527,6 +529,21 @@ class StaticTest(unittest.TestCase):
         self.assertAlmostEqual(pos.lat, 53.52345, 5)
         self.assertAlmostEqual(pos.lon, -1.81264, 5)
 
+    def testpoints2area(self):
+        points = (53, -2, 54, -1)
+        res = points2area(points)
+        self.assertEqual(res, Area(53, -2, 54, -1))
+        points = (54, -2, 53, -1)
+        res = points2area(points)
+        self.assertEqual(res, Area(53, -2, 54, -1))
+        points = (53, -1, 54, -2)
+        res = points2area(points)
+        self.assertEqual(res, Area(53, -2, 54, -1))
+        points = (53, -2, 54)
+        with self.assertRaises(ValueError) as context:
+            res = points2area(points)
+            self.assertTrue("Exactly 4 points required" in str(context.exception))
+
     def testreorderrange(self):
         rng1 = (1, 2, 5, 10, 20, 50, 100)
         res1 = (5, 10, 20, 50, 100, 1, 2)
@@ -536,6 +553,26 @@ class StaticTest(unittest.TestCase):
         self.assertEqual(reorder_range(rng2, "pears"), res2)
         self.assertEqual(reorder_range(rng1, 44), rng1)
         self.assertEqual(reorder_range(rng2, "limes"), rng2)
+
+    def testlimittrack(self):
+        EXPECTED_RESULT = [
+            Point(lat=0, lon=0),
+            Point(lat=2, lon=4),
+            Point(lat=4, lon=8),
+            Point(lat=6, lon=12),
+            Point(lat=8, lon=16),
+            Point(lat=10, lon=20),
+            Point(lat=12, lon=24),
+            Point(lat=14, lon=28),
+            Point(lat=16, lon=32),
+            Point(lat=18, lon=36),
+        ]
+        track = []
+        for i in range(20):
+            track.append(Point(i, i * 2))
+        res = limittrack(track, 15)
+        self.assertEqual(res, EXPECTED_RESULT)
+        self.assertEqual(len(res), 10)
 
 
 if __name__ == "__main__":

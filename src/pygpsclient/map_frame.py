@@ -34,16 +34,17 @@ from requests import ConnectTimeout, RequestException, get
 from pygpsclient.globals import (
     BGCOL,
     CUSTOM,
+    ICON_END,
     ICON_POS,
+    ICON_START,
     IMG_WORLD,
     IMG_WORLD_CALIB,
     MAP,
     WIDGETU2,
     WORLD,
-    Area,
     Point,
 )
-from pygpsclient.helpers import ll2xy, xy2ll
+from pygpsclient.helpers import limittrack, ll2xy, points2area, xy2ll
 from pygpsclient.mapquest import (
     MAP_UPDATE_INTERVAL,
     MAPQTIMEOUT,
@@ -66,6 +67,7 @@ from pygpsclient.strings import (
 ZOOMCOL = "red"
 ZOOMEND = "lightgray"
 POSCOL = "red"
+TRK_COL = "magenta"  # color of track
 
 
 class MapviewFrame(Frame):
@@ -93,6 +95,9 @@ class MapviewFrame(Frame):
         self._img = None
         self._marker = None
         self._last_map_update = 0
+        self._marker = ImageTk.PhotoImage(Image.open(ICON_POS))
+        self._img_start = ImageTk.PhotoImage(Image.open(ICON_START))
+        self._img_end = ImageTk.PhotoImage(Image.open(ICON_END))
         self._resize_font = font.Font(size=min(int(self.height / 5), 30))
         self._resize_font_height = self._resize_font.metrics("linespace")
         self._resize_font_width = self._resize_font.measure("+")
@@ -102,6 +107,7 @@ class MapviewFrame(Frame):
         self._mapimage = None
         self._bounds = None
         self._pos = None
+        self._track = []
         self._maptype = StringVar()
         self._body()
         self._attach_events()
@@ -124,9 +130,7 @@ class MapviewFrame(Frame):
         self.bind("<Configure>", self._on_resize)
         self._maptype.trace_add("write", self.on_maptype)
         self._can_mapview.bind("<Double-Button-1>", self.on_refresh)  # double-click
-        self._can_mapview.bind("<Button-1>", self.on_zoom)  # left-click
-        self._can_mapview.bind("<Button-2>", self.on_zoom)  # right click Posix
-        self._can_mapview.bind("<Button-3>", self.on_zoom)  # right-click Windows
+        # self._can_mapview.bind("<Button-1>", self.on_zoom)  # left-click
 
     def init_frame(self):
         """
@@ -141,9 +145,13 @@ class MapviewFrame(Frame):
         """
 
         if self._maptype.get() == CUSTOM:
-            self._can_mapview.bind("<Button-1>", self.on_click)
+            self._can_mapview.unbind("<Button-1>")
+            self._can_mapview.bind("<Button-2>", self.on_mark)
+            self._can_mapview.bind("<Button-3>", self.on_mark)
         else:
             self._can_mapview.bind("<Button-1>", self.on_zoom)
+            self._can_mapview.bind("<Button-2>", self.on_zoom)  # right click Posix
+            self._can_mapview.bind("<Button-3>", self.on_zoom)  # right-click Windows
 
     def on_refresh(self, event):  # pylint: disable=unused-argument
         """
@@ -153,6 +161,7 @@ class MapviewFrame(Frame):
         """
 
         self._last_map_update = 0
+        self._pos = None
 
     def on_zoom(self, event):  # pylint: disable=unused-argument
         """
@@ -184,11 +193,11 @@ class MapviewFrame(Frame):
             self.__app.frm_settings.mapzoom.set(self._zoom)
             self.on_refresh(event)
 
-    def on_click(self, event):
+    def on_mark(self, event):
         """
         Mouse click shows position in custom view.
 
-        :param event: event
+        :param event: right click event
         """
 
         w, h = self.get_size()
@@ -229,6 +238,12 @@ class MapviewFrame(Frame):
             return
 
         self._maptype.set(self.__app.frm_settings.config.get("maptype_s", WORLD))
+        # record track if Show Track checkbox ticked
+        if self.__app.frm_settings.config.get("showtrack_b", 0):
+            self._track.append(Point(lat, lon))
+        else:
+            self._track = [Point(lat, lon)]
+        self._track = limittrack(self._track)  # limit size of track list
         if self._maptype.get() in (WORLD, CUSTOM):
             self._draw_offline_map(lat, lon, self._maptype.get())
         else:
@@ -264,9 +279,9 @@ class MapviewFrame(Frame):
             for mp in usermaps:
                 try:
                     mpath, bounds = mp
-                    # usermaps is maxlat, minlon, minlat, maxlon
-                    if (bounds[2] <= lat <= bounds[0]) and (
-                        bounds[1] <= lon <= bounds[3]
+                    bounds = points2area((bounds[0], bounds[1], bounds[2], bounds[3]))
+                    if (bounds.lat1 <= lat <= bounds.lat2) and (
+                        bounds.lon1 <= lon <= bounds.lon2
                     ):
                         if self._lastmappath != mpath:
                             self._mapimage = Image.open(mpath)
@@ -287,14 +302,36 @@ class MapviewFrame(Frame):
             bounds = IMG_WORLD_CALIB
 
         # Area is minlat, minlon, maxlat, maxlon
-        self._bounds = Area(bounds[2], bounds[1], bounds[0], bounds[3])
+        self._bounds = bounds
         self._can_mapview.delete(ALL)
         self._img = ImageTk.PhotoImage(self._mapimage.resize((w, h)))
         self._can_mapview.create_image(0, 0, image=self._img, anchor=NW)
-        x, y = ll2xy(w, h, self._bounds, Point(lat, lon))
-        self._marker = ImageTk.PhotoImage(Image.open(ICON_POS))
-        self._can_mapview.create_image(x, y, image=self._marker, anchor=CENTER)
 
+        # draw track
+        for i, pnt in enumerate(self._track):
+            x, y = ll2xy(w, h, self._bounds, pnt)
+            if i:
+                x2, y2 = x, y
+                self._can_mapview.create_line(
+                    x1, y1, x2, y2, fill=TRK_COL, width=3, tags="track"
+                )
+                x1, y1 = x2, y2
+            else:
+                x1, y1 = x, y
+                xstart, ystart = x, y
+        if i:
+            self._can_mapview.create_image(
+                xstart, ystart, image=self._img_start, anchor=S, tags="track"
+            )
+            self._can_mapview.create_image(
+                x2, y2, image=self._img_end, anchor=S, tags="track"
+            )
+        else:
+            self._can_mapview.create_image(
+                xstart, ystart, image=self._marker, anchor=CENTER, tags="track"
+            )
+
+        # mark any selected point
         if self._pos is not None:
             (x, y) = ll2xy(w, h, self._bounds, self._pos)
             self._can_mapview.create_circle(
@@ -362,7 +399,8 @@ class MapviewFrame(Frame):
             self.width,
             self.height,
             self._zoom,
-            (Point(lat, lon),),  # must be tuple
+            self._track,
+            # (Point(lat, lon),),  # must be tuple
             None,  # bbox
             hacc,
         )

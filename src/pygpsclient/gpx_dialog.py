@@ -72,7 +72,7 @@ from pygpsclient.globals import (
     Area,
     Point,
 )
-from pygpsclient.helpers import haversine, isot2dt, ll2xy, xy2ll
+from pygpsclient.helpers import haversine, isot2dt, ll2xy, points2area, xy2ll
 from pygpsclient.mapquest import MAPQTIMEOUT, format_mapquest_request
 from pygpsclient.strings import (
     DLGGPXERROR,
@@ -294,7 +294,12 @@ class GPXViewerDialog(Toplevel):
         self._draw_profile(self._track)
         self._format_metadata(self._metadata)
 
-    def _on_click(self, event):
+    def _on_mark(self, event):
+        """
+        Mark point on map.
+
+        :param event: right click event
+        """
 
         w, h = self.mwidth, self.mheight
         self._can_mapview.delete("pos")
@@ -323,10 +328,12 @@ class GPXViewerDialog(Toplevel):
 
         if self._maptype.get() == CUSTOM:
             self._spn_zoom.configure(stat=DISABLED)
-            self._can_mapview.bind("<Button-1>", self._on_click)  # left-click
+            self._can_mapview.bind("<Button-2>", self._on_mark)
+            self._can_mapview.bind("<Button-3>", self._on_mark)
         else:
             self._spn_zoom.configure(stat=READONLY)
-            self._can_mapview.unbind("<Button-1>")
+            self._can_mapview.unbind("<Button-2>")
+            self._can_mapview.unbind("<Button-3>")
 
     def get_size(self):
         """
@@ -473,16 +480,16 @@ class GPXViewerDialog(Toplevel):
         for mp in usermaps:
             try:
                 mpath, bounds = mp
-                # usermaps is maxlat, minlon, minlat, maxlon
+                bounds = points2area((bounds[0], bounds[1], bounds[2], bounds[3]))
                 if (
-                    bounds[2] <= self._bounds.lat2
-                    and bounds[0] >= self._bounds.lat1
-                    and bounds[1] <= self._bounds.lon1
-                    and bounds[3] >= self._bounds.lon2
+                    bounds.lat1 <= self._bounds.lat1
+                    and bounds.lat2 >= self._bounds.lat2
+                    and bounds.lon1 <= self._bounds.lon1
+                    and bounds.lon2 >= self._bounds.lon2
                 ):
                     self._mapimg = Image.open(mpath)
                     # Area is minlat, minlon, maxlat, maxlon
-                    self._bounds = Area(bounds[2], bounds[1], bounds[0], bounds[3])
+                    self._bounds = bounds
                     err = ""
                     break
             except (ValueError, IndexError):
@@ -503,20 +510,22 @@ class GPXViewerDialog(Toplevel):
 
         # draw track with start and end icons
         for i, (lat, lon, _, _, _) in enumerate(track):
+            x, y = ll2xy(w, h, self._bounds, Point(lat, lon))
             if i:
-                x2, y2 = ll2xy(w, h, self._bounds, Point(lat, lon))
+                x2, y2 = x, y
                 self._can_mapview.create_line(
                     x1, y1, x2, y2, fill=TRK_COL, width=3, tags="track"
                 )
                 x1, y1 = x2, y2
             else:
-                x1, y1 = ll2xy(w, h, self._bounds, Point(lat, lon))
+                x1, y1 = x, y
                 self._can_mapview.create_image(
                     x1, y1, image=self._img_start, anchor=S, tags="track"
                 )
-        self._can_mapview.create_image(
-            x2, y2, image=self._img_end, anchor=S, tags="track"
-        )
+        if i:
+            self._can_mapview.create_image(
+                x2, y2, image=self._img_end, anchor=S, tags="track"
+            )
 
     def _draw_online_map(self, track: list):
         """

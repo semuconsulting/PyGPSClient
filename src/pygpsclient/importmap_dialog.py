@@ -310,7 +310,7 @@ class ImportMapDialog(Toplevel):
         else:
             usermaps = self.__app.saved_config.get("usermaps_l", [])
             # usermaps stores area as top left, bottom right
-            usermaps.append([self._custommap, [latmax, lonmin, latmin, lonmax]])
+            usermaps.append([self._custommap, [latmin, lonmin, latmax, lonmax]])
             self.__app.saved_config["usermaps_l"] = usermaps
             self._show_status("Custom map imported", "blue")
 
