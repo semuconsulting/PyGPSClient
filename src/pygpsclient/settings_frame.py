@@ -599,7 +599,14 @@ class SettingsFrame(Frame):
             connstr = f"{frm.server.get()}:{frm.port.get()}"
             conndict = dict(conndict, **{"socket_settings": frm})
         elif conntype == CONNECTED_FILE:
-            self.infilepath = self.__app.file_handler.open_infile()
+            self.infilepath = self.__app.file_handler.open_file(
+                "datalog",
+                (
+                    ("datalog files", "*.log"),
+                    ("u-center logs", "*.ubx"),
+                    ("all files", "*.*"),
+                ),
+            )
             if self.infilepath is None:
                 return
             connstr = f"{self.infilepath}"

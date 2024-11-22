@@ -12,7 +12,6 @@ Created on 14 Sep 2024
 
 # pylint: disable=unused-argument
 
-from pathlib import Path
 from tkinter import (
     ALL,
     BOTH,
@@ -31,7 +30,6 @@ from tkinter import (
     StringVar,
     Toplevel,
     W,
-    filedialog,
 )
 
 from PIL import Image, ImageTk
@@ -52,7 +50,7 @@ from pygpsclient.globals import (
     ICON_SEND,
     POPUP_TRANSIENT,
 )
-from pygpsclient.strings import DLGTIMPORTMAP, READTITLE
+from pygpsclient.strings import DLGTIMPORTMAP
 
 # profile chart parameters:
 AXIS_XL = 35  # x axis left offset
@@ -230,19 +228,10 @@ class ImportMapDialog(Toplevel):
         Open custom map file.
         """
 
-        custommap = filedialog.askopenfilename(
-            parent=self,
-            title=READTITLE,
-            initialdir=self._initdir,
-            filetypes=(
-                ("geotif files", "*.tif"),
-                ("all files", "*.*"),
-            ),
+        return self.__app.file_handler.open_file(
+            "tif",
+            (("GeoTiff files", "*.tif"), ("all files", "*.*")),
         )
-        if custommap in ((), ""):
-            return None  # User cancelled
-        self._initdir = Path(custommap).parent  # remember last directory
-        return custommap
 
     def _on_load(self):
         """

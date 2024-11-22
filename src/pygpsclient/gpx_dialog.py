@@ -16,7 +16,6 @@ import logging
 from datetime import datetime
 from http.client import responses
 from io import BytesIO
-from pathlib import Path
 from tkinter import (
     ALL,
     BOTH,
@@ -35,7 +34,6 @@ from tkinter import (
     StringVar,
     Toplevel,
     W,
-    filedialog,
     font,
 )
 from xml.dom import minidom
@@ -85,7 +83,6 @@ from pygpsclient.strings import (
     MAPCONFIGERR,
     MAPOPENERR,
     OUTOFBOUNDS,
-    READTITLE,
 )
 
 # profile chart parameters:
@@ -365,19 +362,10 @@ class GPXViewerDialog(Toplevel):
         Open gpx file.
         """
 
-        gpxfile = filedialog.askopenfilename(
-            parent=self,
-            title=READTITLE,
-            initialdir=self._initdir,
-            filetypes=(
-                ("gpx files", "*.gpx"),
-                ("all files", "*.*"),
-            ),
+        return self.__app.file_handler.open_file(
+            "gpx",
+            (("gpx files", "*.gpx"), ("all files", "*.*")),
         )
-        if gpxfile in ((), ""):
-            return None  # User cancelled
-        self._initdir = Path(gpxfile).parent  # remember last directory
-        return gpxfile
 
     def _on_load(self):
         """

@@ -48,7 +48,7 @@ from pygpsclient.globals import (
     ICON_UNDO,
 )
 from pygpsclient.helpers import set_filename
-from pygpsclient.strings import LBLCFGRECORD, READTITLE, SAVETITLE
+from pygpsclient.strings import LBLCFGRECORD, SAVETITLE
 
 STOP = 0
 PLAY = 1
@@ -204,20 +204,14 @@ class UBX_Recorder_Frame(Frame):
         Open configuration file.
         """
 
-        self._configfile = filedialog.askopenfilename(
-            parent=self.__container,
-            title=READTITLE,
-            initialdir=HOME,
-            defaultextension="ubx",
-            filetypes=(
+        return self.__app.file_handler.open_file(
+            "ubx",
+            (
                 ("ubx config files", "*.ubx"),
                 ("u-center config files", "*.txt"),
                 ("all files", "*.*"),
             ),
         )
-        if self._configfile in ((), ""):
-            return None  # User cancelled
-        return self._configfile
 
     def _on_load(self):
         """

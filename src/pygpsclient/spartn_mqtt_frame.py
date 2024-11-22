@@ -383,7 +383,13 @@ class SPARTNMQTTDialog(Frame):
         :param str ext: file extension ("crt" or "pem")
         """
 
-        spfile = self.__app.file_handler.open_spartnfile(ext)
+        spfile = self.__app.file_handler.open_file(
+            "spartncert",
+            (
+                ("spartn files", f"*.{ext}"),
+                ("all files", "*.*"),
+            ),
+        )
         if ext == "crt":
             self._mqtt_crt.set(spfile)
         elif ext == "pem":
