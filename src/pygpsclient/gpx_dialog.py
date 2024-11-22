@@ -16,6 +16,7 @@ import logging
 from datetime import datetime
 from http.client import responses
 from io import BytesIO
+from pathlib import Path
 from tkinter import (
     ALL,
     BOTH,
@@ -135,6 +136,7 @@ class GPXViewerDialog(Toplevel):
         self._gpxfile = None
         self._metadata = {}
         self._bounds = None
+        self._initdir = HOME
 
         self._body()
         self._do_layout()
@@ -366,7 +368,7 @@ class GPXViewerDialog(Toplevel):
         gpxfile = filedialog.askopenfilename(
             parent=self,
             title=READTITLE,
-            initialdir=HOME,
+            initialdir=self._initdir,
             filetypes=(
                 ("gpx files", "*.gpx"),
                 ("all files", "*.*"),
@@ -374,6 +376,7 @@ class GPXViewerDialog(Toplevel):
         )
         if gpxfile in ((), ""):
             return None  # User cancelled
+        self._initdir = Path(gpxfile).parent  # remember last directory
         return gpxfile
 
     def _on_load(self):
@@ -509,6 +512,7 @@ class GPXViewerDialog(Toplevel):
             self._do_mapalert(err)
 
         # draw track with start and end icons
+        i = 0
         for i, (lat, lon, _, _, _) in enumerate(track):
             x, y = ll2xy(w, h, self._bounds, Point(lat, lon))
             if i:
@@ -577,7 +581,9 @@ class GPXViewerDialog(Toplevel):
         y = self.pheight - AXIS_Y - ((self.pheight - AXIS_Y) * ele / maxy)
         return int(x), int(y)
 
-    def _draw_profile(self, track: list):
+    def _draw_profile(
+        self, track: list
+    ):  # pylint: disable = too-many-branches, too-many-statements
         """
         Plot elevation profile with auto-ranged axes.
         :param list track: list of lat/lon points

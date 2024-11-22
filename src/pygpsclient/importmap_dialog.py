@@ -12,6 +12,7 @@ Created on 14 Sep 2024
 
 # pylint: disable=unused-argument
 
+from pathlib import Path
 from tkinter import (
     ALL,
     BOTH,
@@ -89,6 +90,7 @@ class ImportMapDialog(Toplevel):
         self._latmax = StringVar()
         self._mapimg = None
         self._thmbimg = None
+        self._initdir = HOME
         self._custommap = ""
 
         self._body()
@@ -231,7 +233,7 @@ class ImportMapDialog(Toplevel):
         custommap = filedialog.askopenfilename(
             parent=self,
             title=READTITLE,
-            initialdir=HOME,
+            initialdir=self._initdir,
             filetypes=(
                 ("geotif files", "*.tif"),
                 ("all files", "*.*"),
@@ -239,6 +241,7 @@ class ImportMapDialog(Toplevel):
         )
         if custommap in ((), ""):
             return None  # User cancelled
+        self._initdir = Path(custommap).parent  # remember last directory
         return custommap
 
     def _on_load(self):

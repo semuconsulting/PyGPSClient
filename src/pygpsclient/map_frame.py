@@ -139,7 +139,7 @@ class MapviewFrame(Frame):
 
         self._zoom = self.__app.frm_settings.config.get("mapzoom", 10)
 
-    def on_maptype(self, var, index, mode):
+    def on_maptype(self, var, index, mode):  # pylint: disable=unused-argument
         """
         Set maptype event binding.
         """
@@ -240,7 +240,13 @@ class MapviewFrame(Frame):
         self._maptype.set(self.__app.frm_settings.config.get("maptype_s", WORLD))
         # record track if Show Track checkbox ticked
         if self.__app.frm_settings.config.get("showtrack_b", 0):
-            self._track.append(Point(lat, lon))
+            if len(self._track) > 0:  # only record if different from previous
+                if round(self._track[-1].lat, 8) != round(lat, 8) or round(
+                    self._track[-1].lon, 8
+                ) != round(lon, 8):
+                    self._track.append(Point(lat, lon))
+            else:
+                self._track.append(Point(lat, lon))
         else:
             self._track = [Point(lat, lon)]
         self._track = limittrack(self._track)  # limit size of track list
@@ -254,7 +260,7 @@ class MapviewFrame(Frame):
         lat: float,
         lon: float,
         maptype: str = WORLD,
-    ):
+    ):  # pylint: disable = too-many-branches, too-many-statements, no-member
         """
         Draw fixed offline map using optional user-provided georeferenced
         image path(s) and calibration bounding box(es).
@@ -266,7 +272,6 @@ class MapviewFrame(Frame):
         :param float lon: longitude
         :param str maptype: "world" or "custom"
         """
-        # pylint: disable=no-member
 
         w, h = self.width, self.height
         self._lastmaptype = maptype
@@ -308,6 +313,7 @@ class MapviewFrame(Frame):
         self._can_mapview.create_image(0, 0, image=self._img, anchor=NW)
 
         # draw track
+        i = 0
         for i, pnt in enumerate(self._track):
             x, y = ll2xy(w, h, self._bounds, pnt)
             if i:
@@ -351,7 +357,7 @@ class MapviewFrame(Frame):
 
     def _draw_online_map(
         self, lat: float, lon: float, maptype: str = MAP, hacc: float = 0
-    ):
+    ):  # pylint: disable=unused-argument
         """
         Draw scalable web map or satellite image via online MapQuest API.
 

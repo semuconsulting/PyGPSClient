@@ -46,12 +46,13 @@ MIN_ZOOM = 1
 TRKCOL = "ff00ff"
 
 
-def compress_track(track: tuple, precision: int = 6) -> str:
+def compress_track(track: tuple, precision: int = 6, limit: int = POINTLIMIT) -> str:
     """
     Convert track to compressed Mapquest format.
 
     :param tuple track: tuple of Points
     :param int precision: no decimal places precision (6)
+    :param int limit: max no of points (500)
     :return: compressed track
     :rtype: str
     """
@@ -61,7 +62,7 @@ def compress_track(track: tuple, precision: int = 6) -> str:
     points = []
     stp = 1
     rng = len(track)
-    while rng / stp > POINTLIMIT:
+    while rng / stp > limit:
         stp += 1
     for i, p in enumerate(track):
         if i % stp == 0:

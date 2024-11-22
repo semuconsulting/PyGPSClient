@@ -34,6 +34,7 @@ from pygpsclient.helpers import (
     knots2ms,
     lanip,
     limittrack,
+    ll2xy,
     m2ft,
     ms2kmph,
     ms2knots,
@@ -52,10 +53,14 @@ from pygpsclient.helpers import (
     val2sphp,
     validURL,
     wnotow2date,
-    ll2xy,
     xy2ll,
 )
-from pygpsclient.mapquest import mapq_compress, mapq_decompress, compress_track
+from pygpsclient.mapquest import (
+    compress_track,
+    mapq_compress,
+    mapq_decompress,
+    format_mapquest_request,
+)
 from pygpsclient.widget_state import DEFAULT, FRAME, MENU, VISIBLE, widget_state
 
 
@@ -353,6 +358,8 @@ class StaticTest(unittest.TestCase):
         ]
         encoded = compress_track(points)
         self.assertEqual(encoded, "gvw{dBjwmdCvkdnArqpAvho[fciQnibk@w`f_@wibiCf}dH")
+        encoded = compress_track(points, limit=3)
+        self.assertEqual(encoded, "gvw{dBjwmdCnutjBzuzSg__}Aob`V")
 
     def testbytes2unit(self):  # test bytes2unit
         blist = [123, 5365, 97467383, 1982864663735305, 15234, 3, 0]
@@ -573,6 +580,42 @@ class StaticTest(unittest.TestCase):
         res = limittrack(track, 15)
         self.assertEqual(res, EXPECTED_RESULT)
         self.assertEqual(len(res), 10)
+        res = limittrack(track, 100)
+        self.assertEqual(len(res), 20)
+
+    def testformat_mapquest_request(self):
+        EXPECTED_RESULT1 = "https://www.mapquestapi.com/staticmap/v5/map?key=abcdefghijklmnop&locations=45,34|marker-sm-616161-ff4444&zoom=3&size=600,400&type=map&scalebar=true&shape=radius:0.005345|weight:1|fill:ccffff50|border:88888850|45,34"
+        EXPECTED_RESULT2 = "https://www.mapquestapi.com/staticmap/v5/map?key=abcdefghijklmnop&locations=45,34|marker-sm-616161-ff4444&zoom=3&size=600,400&type=map&scalebar=true&boundingBox=40,30,50,40"
+        EXPECTED_RESULT3 = "https://www.mapquestapi.com/staticmap/v5/map?key=abcdefghijklmnop&locations=45,34||46,35&zoom=3&size=600,400&defaultMarker=marker-num&shape=weight:2|border:ff00ff|cmp6|enc:_sqytA_gez_A_seK_}hQ_oyo@_evi@&scalebar=true|bottom&type=map"
+        res = format_mapquest_request(
+            "abcdefghijklmnop", "map", 600, 400, 3, (Point(45, 34),), None, 5.345
+        )
+        # print(res)
+        self.assertEqual(res, EXPECTED_RESULT1)
+        res = format_mapquest_request(
+            "abcdefghijklmnop",
+            "map",
+            600,
+            400,
+            3,
+            (Point(45, 34),),
+            Area(40, 30, 50, 40),
+            5.345,
+        )
+        # print(res)
+        self.assertEqual(res, EXPECTED_RESULT2)
+        res = format_mapquest_request(
+            "abcdefghijklmnop",
+            "map",
+            600,
+            400,
+            3,
+            (Point(45, 34), Point(45.2, 34.3), Point(46, 35)),
+            None,
+            5.345,
+        )
+        # print(res)
+        self.assertEqual(res, EXPECTED_RESULT3)
 
 
 if __name__ == "__main__":
