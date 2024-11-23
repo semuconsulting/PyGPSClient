@@ -25,21 +25,33 @@ from http.client import responses
 from io import BytesIO
 from os import getenv
 from time import time
-from tkinter import CENTER, NW, Canvas, E, Frame, N, S, W, font
+from tkinter import ALL, CENTER, NW, Canvas, E, Frame, N, S, StringVar, W, font
 
 from PIL import Image, ImageTk, UnidentifiedImageError
 from requests import ConnectionError as ConnError
 from requests import ConnectTimeout, RequestException, get
 
-from pygpsclient.globals import BGCOL, ICON_POS, IMG_WORLD, IMG_WORLD_CALIB, WIDGETU2
+from pygpsclient.globals import (
+    BGCOL,
+    CUSTOM,
+    ICON_END,
+    ICON_POS,
+    ICON_START,
+    IMG_WORLD,
+    IMG_WORLD_CALIB,
+    MAP,
+    WIDGETU2,
+    WORLD,
+    Point,
+)
+from pygpsclient.helpers import limittrack, ll2xy, points2area, xy2ll
 from pygpsclient.mapquest import (
     MAP_UPDATE_INTERVAL,
     MAPQTIMEOUT,
-    MAPURL,
-    MARKERURL,
     MAX_ZOOM,
     MIN_UPDATE_INTERVAL,
     MIN_ZOOM,
+    format_mapquest_request,
 )
 from pygpsclient.strings import (
     MAPCONFIGERR,
@@ -54,10 +66,8 @@ from pygpsclient.strings import (
 
 ZOOMCOL = "red"
 ZOOMEND = "lightgray"
-WORLD = "world"
-CUSTOM = "custom"
-MAP = "map"
-SAT = "sat"
+POSCOL = "red"
+TRK_COL = "magenta"  # color of track
 
 
 class MapviewFrame(Frame):
@@ -85,6 +95,9 @@ class MapviewFrame(Frame):
         self._img = None
         self._marker = None
         self._last_map_update = 0
+        self._marker = ImageTk.PhotoImage(Image.open(ICON_POS))
+        self._img_start = ImageTk.PhotoImage(Image.open(ICON_START))
+        self._img_end = ImageTk.PhotoImage(Image.open(ICON_END))
         self._resize_font = font.Font(size=min(int(self.height / 5), 30))
         self._resize_font_height = self._resize_font.metrics("linespace")
         self._resize_font_width = self._resize_font.measure("+")
@@ -92,6 +105,10 @@ class MapviewFrame(Frame):
         self._lastmaptype = ""
         self._lastmappath = ""
         self._mapimage = None
+        self._bounds = None
+        self._pos = None
+        self._track = []
+        self._maptype = StringVar()
         self._body()
         self._attach_events()
 
@@ -111,10 +128,9 @@ class MapviewFrame(Frame):
         """
 
         self.bind("<Configure>", self._on_resize)
+        self._maptype.trace_add("write", self.on_maptype)
         self._can_mapview.bind("<Double-Button-1>", self.on_refresh)  # double-click
-        self._can_mapview.bind("<Button-1>", self.on_zoom)  # left-click
-        self._can_mapview.bind("<Button-2>", self.on_zoom)  # right click Posix
-        self._can_mapview.bind("<Button-3>", self.on_zoom)  # right-click Windows
+        # self._can_mapview.bind("<Button-1>", self.on_zoom)  # left-click
 
     def init_frame(self):
         """
@@ -122,6 +138,20 @@ class MapviewFrame(Frame):
         """
 
         self._zoom = self.__app.frm_settings.config.get("mapzoom", 10)
+
+    def on_maptype(self, var, index, mode):  # pylint: disable=unused-argument
+        """
+        Set maptype event binding.
+        """
+
+        if self._maptype.get() == CUSTOM:
+            self._can_mapview.unbind("<Button-1>")
+            self._can_mapview.bind("<Button-2>", self.on_mark)
+            self._can_mapview.bind("<Button-3>", self.on_mark)
+        else:
+            self._can_mapview.bind("<Button-1>", self.on_zoom)
+            self._can_mapview.bind("<Button-2>", self.on_zoom)  # right click Posix
+            self._can_mapview.bind("<Button-3>", self.on_zoom)  # right-click Windows
 
     def on_refresh(self, event):  # pylint: disable=unused-argument
         """
@@ -131,6 +161,7 @@ class MapviewFrame(Frame):
         """
 
         self._last_map_update = 0
+        self._pos = None
 
     def on_zoom(self, event):  # pylint: disable=unused-argument
         """
@@ -162,6 +193,29 @@ class MapviewFrame(Frame):
             self.__app.frm_settings.mapzoom.set(self._zoom)
             self.on_refresh(event)
 
+    def on_mark(self, event):
+        """
+        Mouse click shows position in custom view.
+
+        :param event: right click event
+        """
+
+        w, h = self.get_size()
+        self._can_mapview.delete("pos")
+        x, y = event.x, event.y
+        self._pos = xy2ll(w, h, self._bounds, (x, y))
+        self._can_mapview.create_circle(
+            x, y, 2, outline=POSCOL, fill=POSCOL, tags="pos"
+        )
+        self._can_mapview.create_text(
+            x,
+            y - 3,
+            text=f"{self._pos.lat:.08f},{self._pos.lon:.08f}",
+            anchor=S,
+            fill=POSCOL,
+            tags="pos",
+        )
+
     def update_frame(self):
         """
         Draw map and mark current known position and horizontal accuracy (where available).
@@ -183,18 +237,30 @@ class MapviewFrame(Frame):
             self._disp_error(NOWEBMAPFIX)
             return
 
-        maptype = self.__app.frm_settings.config.get("maptype_s", WORLD)
-        if maptype in (WORLD, CUSTOM):
-            self._draw_offline_map(lat, lon, maptype)
+        self._maptype.set(self.__app.frm_settings.config.get("maptype_s", WORLD))
+        # record track if Show Track checkbox ticked
+        if self.__app.frm_settings.config.get("showtrack_b", 0):
+            if len(self._track) > 0:  # only record if different from previous
+                if round(self._track[-1].lat, 8) != round(lat, 8) or round(
+                    self._track[-1].lon, 8
+                ) != round(lon, 8):
+                    self._track.append(Point(lat, lon))
+            else:
+                self._track.append(Point(lat, lon))
         else:
-            self._draw_online_map(lat, lon, maptype, hacc)
+            self._track = [Point(lat, lon)]
+        self._track = limittrack(self._track)  # limit size of track list
+        if self._maptype.get() in (WORLD, CUSTOM):
+            self._draw_offline_map(lat, lon, self._maptype.get())
+        else:
+            self._draw_online_map(lat, lon, self._maptype.get(), hacc)
 
     def _draw_offline_map(
         self,
         lat: float,
         lon: float,
         maptype: str = WORLD,
-    ):
+    ):  # pylint: disable = too-many-branches, too-many-statements, no-member
         """
         Draw fixed offline map using optional user-provided georeferenced
         image path(s) and calibration bounding box(es).
@@ -206,7 +272,6 @@ class MapviewFrame(Frame):
         :param float lon: longitude
         :param str maptype: "world" or "custom"
         """
-        # pylint: disable=no-member
 
         w, h = self.width, self.height
         self._lastmaptype = maptype
@@ -215,12 +280,14 @@ class MapviewFrame(Frame):
 
         if maptype == CUSTOM:
             err = OUTOFBOUNDS
-            # usermaps = self.__app.frm_settings.config.get("usermaps_l", [])
             usermaps = self.__app.saved_config.get("usermaps_l", [])
             for mp in usermaps:
                 try:
                     mpath, bounds = mp
-                    if (bounds[0] > lat > bounds[2]) and (bounds[1] < lon < bounds[3]):
+                    bounds = points2area((bounds[0], bounds[1], bounds[2], bounds[3]))
+                    if (bounds.lat1 <= lat <= bounds.lat2) and (
+                        bounds.lon1 <= lon <= bounds.lon2
+                    ):
                         if self._lastmappath != mpath:
                             self._mapimage = Image.open(mpath)
                             self._lastmappath = mpath
@@ -239,21 +306,58 @@ class MapviewFrame(Frame):
                 self._lastmappath = IMG_WORLD
             bounds = IMG_WORLD_CALIB
 
-        self._can_mapview.delete("all")
+        # Area is minlat, minlon, maxlat, maxlon
+        self._bounds = bounds
+        self._can_mapview.delete(ALL)
         self._img = ImageTk.PhotoImage(self._mapimage.resize((w, h)))
         self._can_mapview.create_image(0, 0, image=self._img, anchor=NW)
-        plon = w / (bounds[3] - bounds[1])  # x pixels per degree lon
-        plat = h / (bounds[0] - bounds[2])  # y pixels per degree lat
-        x = (lon - bounds[1]) * plon
-        y = (bounds[0] - lat) * plat
-        self._marker = ImageTk.PhotoImage(Image.open(ICON_POS))
-        self._can_mapview.create_image(x, y, image=self._marker, anchor=CENTER)
+
+        # draw track
+        i = 0
+        for i, pnt in enumerate(self._track):
+            x, y = ll2xy(w, h, self._bounds, pnt)
+            if i:
+                x2, y2 = x, y
+                self._can_mapview.create_line(
+                    x1, y1, x2, y2, fill=TRK_COL, width=3, tags="track"
+                )
+                x1, y1 = x2, y2
+            else:
+                x1, y1 = x, y
+                xstart, ystart = x, y
+        if i:
+            self._can_mapview.create_image(
+                xstart, ystart, image=self._img_start, anchor=S, tags="track"
+            )
+            self._can_mapview.create_image(
+                x2, y2, image=self._img_end, anchor=S, tags="track"
+            )
+        else:
+            self._can_mapview.create_image(
+                xstart, ystart, image=self._marker, anchor=CENTER, tags="track"
+            )
+
+        # mark any selected point
+        if self._pos is not None:
+            (x, y) = ll2xy(w, h, self._bounds, self._pos)
+            self._can_mapview.create_circle(
+                x, y, 2, outline=POSCOL, fill=POSCOL, tags="pos"
+            )
+            self._can_mapview.create_text(
+                x,
+                y - 3,
+                text=f"{self._pos.lat:.08f},{self._pos.lon:.08f}",
+                anchor=S,
+                fill=POSCOL,
+                tags="pos",
+            )
+
         if err != "":
             self._can_mapview.create_text(w / 2, h / 2, text=err, fill="orange")
 
     def _draw_online_map(
         self, lat: float, lon: float, maptype: str = MAP, hacc: float = 0
-    ):
+    ):  # pylint: disable=unused-argument
         """
         Draw scalable web map or satellite image via online MapQuest API.
 
@@ -295,7 +399,17 @@ class MapviewFrame(Frame):
             return
         self._last_map_update = now
 
-        url = self._format_url(mqapikey, maptype, lat, lon, hacc)
+        url = format_mapquest_request(
+            mqapikey,
+            maptype,
+            self.width,
+            self.height,
+            self._zoom,
+            self._track,
+            # (Point(lat, lon),),  # must be tuple
+            None,  # bbox
+            hacc,
+        )
 
         try:
             response = get(url, timeout=MAPQTIMEOUT)
@@ -304,7 +418,7 @@ class MapviewFrame(Frame):
             if sc == "OK":
                 img_data = response.content
                 self._img = ImageTk.PhotoImage(Image.open(BytesIO(img_data)))
-                self._can_mapview.delete("all")
+                self._can_mapview.delete(ALL)
                 self._can_mapview.create_image(0, 0, image=self._img, anchor=NW)
                 self._draw_zoom()
                 self._can_mapview.update_idletasks()
@@ -360,43 +474,6 @@ class MapviewFrame(Frame):
             anchor="s",
         )
 
-    def _format_url(
-        self, mqapikey: str, maptype: str, lat: float, lon: float, hacc: float
-    ):
-        """
-        Formats URL for web map download.
-
-        :param str mqapikey: MapQuest API key
-        :param str maptype: "map" or "sat"
-        :param float lat: latitude
-        :param float lon: longitude
-        :param float hacc: horizontal accuracy
-        :return: formatted MapQuest URL
-        :rtype: str
-        """
-
-        w, h = self.width, self.height
-        radius = str(hacc / 1000)  # km
-        zoom = self._zoom
-        # seems to be bug in MapQuest API which causes error
-        # if scalebar displayed at maximum zoom
-        scalebar = "true" if zoom < 20 else "false"
-
-        return MAPURL.format(
-            mqapikey,
-            lat,
-            lon,
-            MARKERURL,
-            zoom,
-            w,
-            h,
-            radius,
-            lat,
-            lon,
-            scalebar,
-            maptype,
-        )
-
     def _disp_error(self, msg):
         """
         Display error message in webmap widget.
@@ -407,7 +484,7 @@ class MapviewFrame(Frame):
         w, h = self.width, self.height
         resize_font = font.Font(size=min(int(w / 20), 14))
 
-        self._can_mapview.delete("all")
+        self._can_mapview.delete(ALL)
         self._can_mapview.create_text(
             w / 2,
             h / 2,

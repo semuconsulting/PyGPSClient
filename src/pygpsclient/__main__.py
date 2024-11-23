@@ -31,6 +31,9 @@ from pygpsclient.globals import (
     DEFAULT_PASSWORD,
     DEFAULT_REGION,
     DEFAULT_USER,
+    SPARTN_BASEDATE_CURRENT,
+    SPARTN_BASEDATE_DATASTREAM,
+    SPARTN_DEFAULT_KEY,
 )
 from pygpsclient.strings import EPILOG
 
@@ -88,6 +91,7 @@ def main():
         required=False,
         help="MQTT Client Mode (0 - IP, 1 - L-Band)",
         default=getenv("MQTTCLIENTMODE", "0"),
+        type=int,
     )
     ap.add_argument(
         "--ntripcasteruser",
@@ -105,7 +109,15 @@ def main():
         "--spartnkey",
         required=False,
         help="SPARTN message decryption key",
-        default=getenv("MQTTKEY", ""),
+        default=getenv("MQTTKEY", SPARTN_DEFAULT_KEY),
+    )
+    ap.add_argument(
+        "--spartnbasedate",
+        required=False,
+        help=f"SPARTN message decryption timetag ({SPARTN_BASEDATE_CURRENT} = \
+            current datetime, {SPARTN_BASEDATE_DATASTREAM} = use timetags from data stream)",
+        default=SPARTN_BASEDATE_CURRENT,
+        type=int,
     )
     ap.add_argument(
         "--verbosity",

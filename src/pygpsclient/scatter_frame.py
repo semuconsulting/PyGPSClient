@@ -21,6 +21,7 @@ fixed reference selection.
 """
 
 from tkinter import (
+    ALL,
     HORIZONTAL,
     Checkbutton,
     E,
@@ -45,8 +46,23 @@ except (ImportError, ModuleNotFoundError):
 
 from random import randrange
 
-from pygpsclient.globals import BGCOL, FGCOL, SQRT2, WIDGETU1, Area, Point
-from pygpsclient.helpers import get_point_at_vector, in_bounds, reorder_range
+from pygpsclient.globals import (
+    BGCOL,
+    FGCOL,
+    PNTCOL,
+    RPTDELAY,
+    SQRT2,
+    WIDGETU1,
+    Area,
+    Point,
+)
+from pygpsclient.helpers import (
+    get_point_at_vector,
+    in_bounds,
+    ll2xy,
+    reorder_range,
+    xy2ll,
+)
 from pygpsclient.skyview_frame import Canvas
 
 AVG = "avg"
@@ -55,7 +71,6 @@ CTRFIX = "Fixed"
 CRTS = (CTRAVG, CTRFIX)
 INTS = (1, 2, 5, 10, 20, 50, 100)
 FIXCOL = "green2"
-PNTCOL = "orange"
 PNTTOPCOL = "red"
 CULLMID = True  # whether to cull random points from middle of array
 FIXINAUTO = False  # whether to include fixed ref point in autorange
@@ -175,6 +190,8 @@ class ScatterViewFrame(Frame):
             values=crng,
             width=8,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             fg=PNTCOL,
             bg=BGCOL,
             readonlybackground=BGCOL,
@@ -187,6 +204,8 @@ class ScatterViewFrame(Frame):
             values=irng,
             width=5,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             fg=PNTCOL,
             bg=BGCOL,
             readonlybackground=BGCOL,
@@ -270,7 +289,8 @@ class ScatterViewFrame(Frame):
         :param Event event: right click event
         """
 
-        pos = self._xy2ll((event.x, event.y))
+        w, h = self.get_size()
+        pos = xy2ll(w, h, self._bounds, (event.x, event.y))
         self._reflat.set(round(pos.lat, 9))
         self._reflon.set(round(pos.lon, 9))
         try:
@@ -315,7 +335,7 @@ class ScatterViewFrame(Frame):
         """
 
         width, height = self.get_size()
-        self.canvas.delete("all")
+        self.canvas.delete(ALL)
         self.canvas.create_line(0, height / 2, width, height / 2, fill=FGCOL)
         self.canvas.create_line(width / 2, 0, width / 2, height, fill=FGCOL)
 
@@ -395,46 +415,9 @@ class ScatterViewFrame(Frame):
         if not in_bounds(self._bounds, position):
             return
 
-        x, y = self._ll2xy(position)
+        w, h = self.get_size()
+        x, y = ll2xy(w, h, self._bounds, position)
         self.canvas.create_circle(x, y, size, fill=color, outline=color, tags=PNT)
-
-    def _ll2xy(self, position: Point) -> tuple:
-        """
-        Convert lat/lon to canvas x/y.
-
-        :param Point coordinate: lat/lon
-        :return: x,y canvas coordinates
-        :rtype: tuple
-        """
-
-        cw, ch = self.get_size()
-        lw = self._bounds.lon2 - self._bounds.lon1
-        lh = self._bounds.lat2 - self._bounds.lat1
-        lwp = lw / cw  # # units longitude per x pixel
-        lhp = lh / ch  # units latitude per y pixel
-
-        x = (position.lon - self._bounds.lon1) / lwp
-        y = ch - (position.lat - self._bounds.lat1) / lhp
-        return x, y
-
-    def _xy2ll(self, xy: tuple) -> Point:
-        """
-        Convert canvas x/y to lat/lon.
-
-        :param tuple xy: canvas x/y coordinate
-        :return: lat/lon
-        :rtype: Point
-        """
-
-        cw, ch = self.get_size()
-        lw = self._bounds.lon2 - self._bounds.lon1
-        lh = self._bounds.lat2 - self._bounds.lat1
-        cwp = cw / lw  # x pixels per unit longitude
-        chp = ch / lh  # y pixels per unit latitude
-        x, y = xy
-        lon = self._bounds.lon1 + x / cwp
-        lat = self._bounds.lat1 + (ch - y) / chp
-        return Point(lat, lon)
 
     def _set_average(self):
         """

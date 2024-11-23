@@ -1,5 +1,24 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.5.0
+
+FIXES:
+
+1. Fix NAV-SVINFO TypeError in ubx_hnadler.
+
+ENHANCEMENTS:
+
+1. Enhancements to spectrum widget:
+   - Add snapshot facilty. Right-click anywhere in spectrum plot to capture current spectrum data, which will then be superimposed on the live spectrum data in a different color. Double-right-click to clear the snapshot. Intention is to help compare RF reception at different times and/or with different antenna configurations.
+   - Add pgaoffset option. If selected, adds receiver PGA (programmable gain amplifier) gain to spectrum db axis.
+   - vertical (db) axis range is now fixed - fixes previous vertical axis 'jumping'.
+1. Enhance console color tagging.
+1. Add baseline (where available) to banner dgps display.
+1. Selected receiver serial port now included in saved json configuration file (NB: obviously won't work if the saved device is no longer available on the same port).
+1. Minor interval enhancments to SPARTM data stream handling to reflect pyspartn>=1.05
+
+
+
 ### RELEASE 1.4.27
 
 ENHANCEMENTS:

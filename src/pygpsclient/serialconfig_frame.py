@@ -46,8 +46,14 @@ from pyubx2 import GET, POLL, SET, SETPOLL
 from serial import PARITY_EVEN, PARITY_MARK, PARITY_NONE, PARITY_ODD, PARITY_SPACE
 from serial.tools.list_ports import comports
 
-from pygpsclient.globals import ICON_CONTRACT, ICON_EXPAND, ICON_REFRESH, SAVED_CONFIG
-from pygpsclient.strings import LBLUDPORT
+from pygpsclient.globals import (
+    ICON_CONTRACT,
+    ICON_EXPAND,
+    ICON_REFRESH,
+    RPTDELAY,
+    SAVED_CONFIG,
+)
+from pygpsclient.strings import LBLSPORT, LBLUDPORT
 
 ADVOFF = "\u25bc"
 ADVON = "\u25b2"
@@ -159,6 +165,8 @@ class SerialConfigFrame(Frame):
             width=8,
             state=READONLY,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             textvariable=self._bpsrate,
         )
         self._btn_refresh = Button(
@@ -184,6 +192,8 @@ class SerialConfigFrame(Frame):
             width=3,
             state=READONLY,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             textvariable=self._databits,
         )
         self._lbl_stopbits = Label(self._frm_advanced, text="Stop Bits")
@@ -193,6 +203,8 @@ class SerialConfigFrame(Frame):
             width=3,
             state=READONLY,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             textvariable=self._stopbits,
         )
         self._lbl_parity_name = Label(self._frm_advanced, text="Parity")
@@ -202,6 +214,8 @@ class SerialConfigFrame(Frame):
             width=6,
             state=READONLY,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             textvariable=self._parity_name,
         )
         self._chk_rts = Checkbutton(
@@ -217,6 +231,8 @@ class SerialConfigFrame(Frame):
             width=4,
             state=READONLY,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             textvariable=self._timeout,
         )
         self._lbl_msgmode_name = Label(self._frm_advanced, text="Msg Mode")
@@ -244,6 +260,8 @@ class SerialConfigFrame(Frame):
             width=4,
             state=READONLY,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             textvariable=self._inactivity_timeout,
         )
 
@@ -298,6 +316,7 @@ class SerialConfigFrame(Frame):
         Reset settings to defaults (first value in range).
         """
 
+        self._port.set(self._saved_config.get("serialport_s", ""))
         self._bpsrate.set(self._saved_config.get("bpsrate_n", self._bpsrate_rng[0]))
         self._databits.set(self._saved_config.get("databits_n", self._databits_rng[0]))
         self._stopbits.set(self._saved_config.get("stopbits_f", self._stopbits_rng[0]))
@@ -336,8 +355,12 @@ class SerialConfigFrame(Frame):
         self._ports = sorted(comports())
         init_idx = 0
         recognised = False
-        if self.user_defined_port.get() != "":
-            self._ports.insert(0, (self.user_defined_port.get(), LBLUDPORT, None))
+        pnames = [p[0] for p in self._ports]
+        userp = self.user_defined_port.get()
+        if self._port.get() != "" and self._port.get() not in pnames:
+            self._ports.insert(0, (self._port.get(), LBLSPORT, None))
+        if userp != "" and userp not in pnames:
+            self._ports.insert(0, (userp, LBLUDPORT, None))
 
         if len(self._ports) > 0:
             # default to first item in list
@@ -351,7 +374,7 @@ class SerialConfigFrame(Frame):
                 # default selection to recognised GNSS device if possible
                 if not recognised:
                     for dev in self._preselect:
-                        if dev in desc:
+                        if dev.lower() in desc.lower():
                             init_idx = idx
                             self._port.set(port)
                             self._port_desc.set(desc)

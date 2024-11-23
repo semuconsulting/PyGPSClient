@@ -55,6 +55,7 @@ from pygpsclient.globals import (
     ICON_SOCKET,
     ICON_WARNING,
     READONLY,
+    RPTDELAY,
     RXMMSG,
     SAVED_CONFIG,
     SPARTN_GNSS,
@@ -152,6 +153,8 @@ class SPARTNMQTTDialog(Frame):
             state=READONLY,
             width=4,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
         )
         self._rad_ip = Radiobutton(self, text="IP", variable=self._mqtt_source, value=0)
         self._rad_lb = Radiobutton(
@@ -185,7 +188,7 @@ class SPARTNMQTTDialog(Frame):
             self,
             width=45,
             image=self._img_load,
-            command=lambda: self._get_spartnkeys("crt"),
+            command=lambda: self._get_spartncerts("crt"),
         )
         self._lbl_mqttcrt = Label(self, text="CRT File")
         self._ent_mqttcrt = Entry(
@@ -199,7 +202,7 @@ class SPARTNMQTTDialog(Frame):
             self,
             width=45,
             image=self._img_load,
-            command=lambda: self._get_spartnkeys("pem"),
+            command=lambda: self._get_spartncerts("pem"),
         )
         self._lbl_mqttpem = Label(self, text="PEM File")
         self._ent_mqttpem = Entry(
@@ -373,14 +376,20 @@ class SPARTNMQTTDialog(Frame):
         valid = valid & valid_entry(self._ent_mqttpem, VALLEN, 1, 254)
         return valid
 
-    def _get_spartnkeys(self, ext: str):
+    def _get_spartncerts(self, ext: str):
         """
-        Get SPARTN key (*.pem) and cert (*.crt) files
+        Get SPARTN TLS key (*.pem) and cert (*.crt) files
 
         :param str ext: file extension ("crt" or "pem")
         """
 
-        spfile = self.__app.file_handler.open_spartnfile(ext)
+        spfile = self.__app.file_handler.open_file(
+            "spartncert",
+            (
+                ("spartn files", f"*.{ext}"),
+                ("all files", "*.*"),
+            ),
+        )
         if ext == "crt":
             self._mqtt_crt.set(spfile)
         elif ext == "pem":

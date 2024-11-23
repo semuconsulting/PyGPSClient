@@ -58,6 +58,7 @@ from pygpsclient.globals import (
     CONNECTED,
     CONNECTED_FILE,
     CONNECTED_SOCKET,
+    CUSTOM,
     DDD,
     DISCONNECTED,
     DMM,
@@ -80,17 +81,23 @@ from pygpsclient.globals import (
     ICON_SPARTNCONFIG,
     ICON_UBXCONFIG,
     KNOWNGPS,
+    MAP,
     MSGMODES,
     NOPORTS,
     RCVR_CONNECTION,
     READONLY,
+    RPTDELAY,
+    SAT,
     SOCK_NTRIP,
+    SPARTN_BASEDATE_CURRENT,
+    SPARTN_DEFAULT_KEY,
     SPARTN_PROTOCOL,
     TIMEOUTS,
     UI,
     UIK,
     UMK,
     UMM,
+    WORLD,
 )
 from pygpsclient.helpers import adjust_dimensions
 from pygpsclient.mapquest import MAP_UPDATE_INTERVAL
@@ -107,6 +114,7 @@ from pygpsclient.strings import (
     LBLDEGFORMAT,
     LBLNTRIPCONFIG,
     LBLPROTDISP,
+    LBLSHOWTRACK,
     LBLSHOWUNUSED,
     LBLSPARTNCONFIG,
     LBLTRACKRECORD,
@@ -114,7 +122,7 @@ from pygpsclient.strings import (
 )
 
 MAXLINES = ("200", "500", "1000", "2000", "100")
-MAPTYPES = ("world", "map", "sat", "custom")
+MAPTYPES = (WORLD, MAP, SAT, CUSTOM)
 MINHEIGHT = 750
 MINWIDTH = 390
 
@@ -147,6 +155,7 @@ class SettingsFrame(Frame):
         self._autoscroll = IntVar()
         self._maxlines = IntVar()
         self.maptype = StringVar()
+        self.showtrack = IntVar()
         self.mapzoom = IntVar()
         self._units = StringVar()
         self._degrees_format = StringVar()
@@ -324,6 +333,8 @@ class SettingsFrame(Frame):
             width=10,
             state=READONLY,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             textvariable=self._console_format,
         )
         self._chk_tags = Checkbutton(
@@ -338,6 +349,8 @@ class SettingsFrame(Frame):
             width=6,
             state=READONLY,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             textvariable=self._degrees_format,
         )
         self._spn_units = Spinbox(
@@ -346,6 +359,8 @@ class SettingsFrame(Frame):
             width=13,
             state=READONLY,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             textvariable=self._units,
         )
         self._chk_scroll = Checkbutton(
@@ -356,6 +371,8 @@ class SettingsFrame(Frame):
             values=MAXLINES,
             width=6,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             textvariable=self._maxlines,
             state=READONLY,
         )
@@ -365,8 +382,13 @@ class SettingsFrame(Frame):
             values=MAPTYPES,
             width=6,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             textvariable=self.maptype,
             state=READONLY,
+        )
+        self._chk_showtrack = Checkbutton(
+            self._frm_options, text=LBLSHOWTRACK, variable=self.showtrack
         )
         self._chk_unusedsat = Checkbutton(
             self._frm_options, text=LBLSHOWUNUSED, variable=self._show_unusedsat
@@ -382,6 +404,8 @@ class SettingsFrame(Frame):
             values=(FORMATS),
             width=20,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             textvariable=self._logformat,
             state=READONLY,
         )
@@ -478,6 +502,7 @@ class SettingsFrame(Frame):
         self._chk_scroll.grid(column=0, row=5, padx=2, pady=2, sticky=W)
         self._spn_maxlines.grid(column=1, row=5, columnspan=3, padx=2, pady=2, sticky=W)
         self._lbl_maptype.grid(column=0, row=6, padx=2, pady=2, sticky=W)
+        self._chk_showtrack.grid(column=2, row=6, padx=2, pady=2, sticky=W)
         self.spn_maptype.grid(column=1, row=6, padx=2, pady=2, sticky=W)
         self._chk_unusedsat.grid(
             column=0, row=7, columnspan=2, padx=2, pady=2, sticky=W
@@ -518,6 +543,7 @@ class SettingsFrame(Frame):
             self.__app.saved_config.get("consoleformat_s", FORMAT_PARSED)
         )
         self.maptype.set(self.__app.saved_config.get("maptype_s", MAPTYPES[0]))
+        self.showtrack.set(self.__app.saved_config.get("showtrack_b", 0))
         self.mapzoom.set(self.__app.saved_config.get("mapzoom_n", 10))
         self.show_legend.set(self.__app.saved_config.get("legend_b", 1))
         self._show_unusedsat.set(self.__app.saved_config.get("unusedsat_b", 0))
@@ -573,7 +599,14 @@ class SettingsFrame(Frame):
             connstr = f"{frm.server.get()}:{frm.port.get()}"
             conndict = dict(conndict, **{"socket_settings": frm})
         elif conntype == CONNECTED_FILE:
-            self.infilepath = self.__app.file_handler.open_infile()
+            self.infilepath = self.__app.file_handler.open_file(
+                "datalog",
+                (
+                    ("datalog files", "*.log"),
+                    ("u-center logs", "*.ubx"),
+                    ("all files", "*.*"),
+                ),
+            )
             if self.infilepath is None:
                 return
             connstr = f"{self.infilepath}"
@@ -760,6 +793,7 @@ class SettingsFrame(Frame):
                 "maxlines_n": self._maxlines.get(),
                 "consoleformat_s": self._console_format.get(),
                 "maptype_s": self.maptype.get(),
+                "showtrack_b": self.showtrack.get(),
                 "mapzoom_n": self.mapzoom.get(),
                 "legend_b": self.show_legend.get(),
                 "unusedsat_b": self._show_unusedsat.get(),
@@ -767,6 +801,7 @@ class SettingsFrame(Frame):
                 "datalog_b": self._datalog.get(),
                 "recordtrack_b": self._record_track.get(),
                 # serial port settings from frm_serial
+                "serialport_s": self.frm_serial.port,
                 "bpsrate_n": self.frm_serial.bpsrate,
                 "databits_n": self.frm_serial.databits,
                 "stopbits_f": self.frm_serial.stopbits,
@@ -912,7 +947,12 @@ class SettingsFrame(Frame):
                 "scatterlon_f": self.__app.saved_config.get("scatterlon_f", 0.0),
                 # Manually edited config settings
                 "spartndecode_b": self.__app.saved_config.get("spartndecode_b", 0),
-                "spartnkey_s": self.__app.saved_config.get("spartnkey_s", ""),
+                "spartnkey_s": self.__app.saved_config.get(
+                    "spartnkey_s", SPARTN_DEFAULT_KEY
+                ),
+                "spartnbasedate_n": self.__app.saved_config.get(
+                    "spartnbasedate_n", SPARTN_BASEDATE_CURRENT
+                ),
                 "mapupdateinterval_n": self.__app.saved_config.get(
                     "mapupdateinterval_n", MAP_UPDATE_INTERVAL
                 ),

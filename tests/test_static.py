@@ -33,12 +33,15 @@ from pygpsclient.helpers import (
     kmph2ms,
     knots2ms,
     lanip,
+    limittrack,
+    ll2xy,
     m2ft,
     ms2kmph,
     ms2knots,
     ms2mph,
     ned2vector,
     parse_rxmspartnkey,
+    points2area,
     pos2iso6709,
     publicip,
     reorder_range,
@@ -50,8 +53,14 @@ from pygpsclient.helpers import (
     val2sphp,
     validURL,
     wnotow2date,
+    xy2ll,
 )
-from pygpsclient.mapquest import mapq_compress, mapq_decompress
+from pygpsclient.mapquest import (
+    compress_track,
+    mapq_compress,
+    mapq_decompress,
+    format_mapquest_request,
+)
 from pygpsclient.widget_state import DEFAULT, FRAME, MENU, VISIBLE, widget_state
 
 
@@ -339,6 +348,19 @@ class StaticTest(unittest.TestCase):
         for i, pnt in enumerate(pnts):
             self.assertAlmostEqual(pnt, points[i], PREC)
 
+    def testcompresstrack(self):
+        points = [
+            Point(53.4245, -2.18663),
+            Point(52.1274, -2.2284),
+            Point(51.6603, -2.5285),
+            Point(50.9377, -2.0006),
+            Point(53.2004, -2.1511),
+        ]
+        encoded = compress_track(points)
+        self.assertEqual(encoded, "gvw{dBjwmdCvkdnArqpAvho[fciQnibk@w`f_@wibiCf}dH")
+        encoded = compress_track(points, limit=3)
+        self.assertEqual(encoded, "gvw{dBjwmdCnutjBzuzSg__}Aob`V")
+
     def testbytes2unit(self):  # test bytes2unit
         blist = [123, 5365, 97467383, 1982864663735305, 15234, 3, 0]
         bres = [
@@ -496,6 +518,39 @@ class StaticTest(unittest.TestCase):
         res = in_bounds(Area(51.23, -2.41, 51.45, -2.13), Point(51.24, -2.39))
         self.assertEqual(res, True)
 
+    def testll2xy(self):
+        bounds = Area(53, -2, 54, -1)
+        (x, y) = ll2xy(600, 400, bounds, Point(53.5, -1.5))
+        self.assertEqual(x, 300, 5)
+        self.assertEqual(y, 200, 5)
+        (x, y) = ll2xy(600, 400, bounds, Point(53.52345, -1.81264))
+        self.assertAlmostEqual(x, 112.416, 5)
+        self.assertAlmostEqual(y, 190.620, 5)
+
+    def testxy2ll(self):
+        bounds = Area(53, -2, 54, -1)
+        pos = xy2ll(600, 400, bounds, (300, 200))
+        self.assertEqual(pos.lat, 53.5, 5)
+        self.assertEqual(pos.lon, -1.5, 5)
+        pos = xy2ll(600, 400, bounds, (112.416, 190.620))
+        self.assertAlmostEqual(pos.lat, 53.52345, 5)
+        self.assertAlmostEqual(pos.lon, -1.81264, 5)
+
+    def testpoints2area(self):
+        points = (53, -2, 54, -1)
+        res = points2area(points)
+        self.assertEqual(res, Area(53, -2, 54, -1))
+        points = (54, -2, 53, -1)
+        res = points2area(points)
+        self.assertEqual(res, Area(53, -2, 54, -1))
+        points = (53, -1, 54, -2)
+        res = points2area(points)
+        self.assertEqual(res, Area(53, -2, 54, -1))
+        points = (53, -2, 54)
+        with self.assertRaises(ValueError) as context:
+            res = points2area(points)
+            self.assertTrue("Exactly 4 points required" in str(context.exception))
+
     def testreorderrange(self):
         rng1 = (1, 2, 5, 10, 20, 50, 100)
         res1 = (5, 10, 20, 50, 100, 1, 2)
@@ -505,6 +560,62 @@ class StaticTest(unittest.TestCase):
         self.assertEqual(reorder_range(rng2, "pears"), res2)
         self.assertEqual(reorder_range(rng1, 44), rng1)
         self.assertEqual(reorder_range(rng2, "limes"), rng2)
+
+    def testlimittrack(self):
+        EXPECTED_RESULT = [
+            Point(lat=0, lon=0),
+            Point(lat=2, lon=4),
+            Point(lat=4, lon=8),
+            Point(lat=6, lon=12),
+            Point(lat=8, lon=16),
+            Point(lat=10, lon=20),
+            Point(lat=12, lon=24),
+            Point(lat=14, lon=28),
+            Point(lat=16, lon=32),
+            Point(lat=18, lon=36),
+        ]
+        track = []
+        for i in range(20):
+            track.append(Point(i, i * 2))
+        res = limittrack(track, 15)
+        self.assertEqual(res, EXPECTED_RESULT)
+        self.assertEqual(len(res), 10)
+        res = limittrack(track, 100)
+        self.assertEqual(len(res), 20)
+
+    def testformat_mapquest_request(self):
+        EXPECTED_RESULT1 = "https://www.mapquestapi.com/staticmap/v5/map?key=abcdefghijklmnop&locations=45,34|marker-sm-616161-ff4444&zoom=3&size=600,400&type=map&scalebar=true&shape=radius:0.005345|weight:1|fill:ccffff50|border:88888850|45,34"
+        EXPECTED_RESULT2 = "https://www.mapquestapi.com/staticmap/v5/map?key=abcdefghijklmnop&locations=45,34|marker-sm-616161-ff4444&zoom=3&size=600,400&type=map&scalebar=true&boundingBox=40,30,50,40"
+        EXPECTED_RESULT3 = "https://www.mapquestapi.com/staticmap/v5/map?key=abcdefghijklmnop&locations=45,34||46,35&zoom=3&size=600,400&defaultMarker=marker-num&shape=weight:2|border:ff00ff|cmp6|enc:_sqytA_gez_A_seK_}hQ_oyo@_evi@&scalebar=true|bottom&type=map"
+        res = format_mapquest_request(
+            "abcdefghijklmnop", "map", 600, 400, 3, (Point(45, 34),), None, 5.345
+        )
+        # print(res)
+        self.assertEqual(res, EXPECTED_RESULT1)
+        res = format_mapquest_request(
+            "abcdefghijklmnop",
+            "map",
+            600,
+            400,
+            3,
+            (Point(45, 34),),
+            Area(40, 30, 50, 40),
+            5.345,
+        )
+        # print(res)
+        self.assertEqual(res, EXPECTED_RESULT2)
+        res = format_mapquest_request(
+            "abcdefghijklmnop",
+            "map",
+            600,
+            400,
+            3,
+            (Point(45, 34), Point(45.2, 34.3), Point(46, 35)),
+            None,
+            5.345,
+        )
+        # print(res)
+        self.assertEqual(res, EXPECTED_RESULT3)
 
 
 if __name__ == "__main__":

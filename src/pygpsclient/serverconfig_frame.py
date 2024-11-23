@@ -48,6 +48,7 @@ from pygpsclient.globals import (
     ICON_CONTRACT,
     ICON_EXPAND,
     READONLY,
+    RPTDELAY,
     SAVED_CONFIG,
     SOCK_NTRIP,
     SOCKMODES,
@@ -96,6 +97,16 @@ ACCURACIES = (
     50,
     30,
     20,
+)
+RTCMTYPES = (
+    "1006",
+    "1077",
+    "1087",
+    "1097",
+    "1127",
+    "1230",
+    "4072_0",
+    "4072_1",
 )
 BASE_DISABLED = "DISABLED"
 BASE_FIXED = "FIXED"
@@ -184,6 +195,8 @@ class ServerConfigFrame(Frame):
             width=14,
             state=READONLY,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             textvariable=self.sock_mode,
         )
         self._lbl_sockhost = Label(
@@ -267,6 +280,8 @@ class ServerConfigFrame(Frame):
             width=10,
             state=READONLY,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             textvariable=self.base_mode,
         )
         self._lbl_acclimit = Label(
@@ -279,6 +294,8 @@ class ServerConfigFrame(Frame):
             width=5,
             state=READONLY,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             textvariable=self.acclimit,
         )
         self._lbl_duration = Label(
@@ -296,6 +313,8 @@ class ServerConfigFrame(Frame):
             width=5,
             state=READONLY,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             textvariable=self.duration,
         )
         self._lbl_elapsed = Label(
@@ -314,6 +333,8 @@ class ServerConfigFrame(Frame):
             width=6,
             state=READONLY,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             textvariable=self.pos_mode,
         )
         self._lbl_fixedlat = Label(
@@ -723,16 +744,8 @@ class ServerConfigFrame(Frame):
         layers = 1  # 1 = RAM, 2 = BBR, 4 = Flash (can be OR'd)
         transaction = 0
         cfg_data = []
-        for rtcm_type in (
-            "1005",
-            "1077",
-            "1087",
-            "1097",
-            "1127",
-            "1230",
-            "4072_0",
-            "4072_1",
-        ):
+        for rtcm_type in RTCMTYPES:
+
             cfg = f"CFG_MSGOUT_RTCM_3X_TYPE{rtcm_type}_{port_type}"
             cfg_data.append([cfg, rate])
 

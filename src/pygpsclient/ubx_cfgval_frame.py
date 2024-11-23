@@ -41,6 +41,7 @@ from pygpsclient.globals import (
     ICON_SEND,
     ICON_WARNING,
     READONLY,
+    RPTDELAY,
     UBX_CFGVAL,
 )
 
@@ -169,6 +170,8 @@ class UBX_CFGVAL_Frame(Frame):
             wrap=True,
             width=8,
             state=READONLY,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
         )
         self._lbl_val = Label(self, text="Value")
         self._ent_val = Entry(

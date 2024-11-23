@@ -12,7 +12,7 @@ Created on 14 Sep 2020
 :license: BSD 3-Clause
 """
 
-from tkinter import BOTH, YES, Canvas, Frame, font
+from tkinter import ALL, BOTH, YES, Canvas, Frame, font
 
 from pygpsclient.globals import BGCOL, FGCOL, GNSS_LIST, MAX_SNR, WIDGETU2
 from pygpsclient.helpers import snr2col
@@ -92,7 +92,7 @@ class GraphviewFrame(Frame):
         w, h = self.width, self.height
         resize_font = font.Font(size=min(int(h / 25), 10))
         ticks = int(MAX_SNR / 10)
-        self.can_graphview.delete("all")
+        self.can_graphview.delete(ALL)
         self.can_graphview.create_line(AXIS_XL, 5, AXIS_XL, h - AXIS_Y, fill=FGCOL)
         self.can_graphview.create_line(
             w - AXIS_XR + 2, 5, w - AXIS_XR + 2, h - AXIS_Y, fill=FGCOL

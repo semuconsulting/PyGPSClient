@@ -40,7 +40,9 @@ from pygpsclient.globals import (
     XML_HDR,
 )
 from pygpsclient.helpers import set_filename
-from pygpsclient.strings import CONFIGTITLE, GITHUB_URL, READTITLE, SAVETITLE
+from pygpsclient.strings import CONFIGTITLE, GITHUB_URL, SAVETITLE
+
+DEFEXT = ("all files", "*.*")
 
 
 class FileHandler:
@@ -62,13 +64,13 @@ class FileHandler:
         self._in_filename = None
         self._logpath = None
         self._logname = None
-        self._infile = None
         self._logfile = None
         self._trackpath = None
         self._trackname = None
         self._trackfile = None
         self._configpath = None
         self._configfile = None
+        self._initdir = {}
         self._lines = 0
         self._last_track_update = datetime.fromordinal(1)
 
@@ -79,6 +81,26 @@ class FileHandler:
 
         self.close_logfile()
         self.close_trackfile()
+
+    def open_file(self, mode: str, exts: tuple = DEFEXT) -> str:
+        """
+        Generic routine to open specified file type.
+
+        :param str mode: type of file e.g. "config", "gpxtrack" etc.
+        :param tuple exts: tuple of file types ("description", "ext")
+        :return: fully qualified path to file, or None if user cancelled
+        :rtype: str
+        """
+
+        fil = filedialog.askopenfilename(
+            title=f"Open {mode.upper()} File",
+            initialdir=self._initdir.get(mode, HOME),
+            filetypes=exts,
+        )
+        if fil in ((), ""):
+            return None  # User cancelled
+        self._initdir[mode] = Path(fil).parent  # remember last directory
+        return fil
 
     def load_config(self, filename: Path = CONFIGFILE) -> tuple:
         """
@@ -92,15 +114,14 @@ class FileHandler:
 
         try:
             if filename is None:
-                filename = filedialog.askopenfilename(
-                    title=CONFIGTITLE,
-                    initialdir=HOME,
-                    filetypes=(
+                filename = self.open_file(
+                    "config",
+                    (
                         ("config files", "*.json"),
                         ("all files", "*.*"),
                     ),
                 )
-                if filename in ((), ""):
+                if filename is None:
                     return (None, None, "cancelled")  # User cancelled
 
             with open(filename, "r", encoding="utf-8") as jsonfile:
@@ -207,27 +228,6 @@ class FileHandler:
         _, self._logname = set_filename(self._logpath, "data", "log")
         self._logfile = open(self._logname, "a+b")
 
-    def open_infile(self) -> Path:
-        """
-        Open input file for streaming.
-
-        :return: input ile path
-        :rtype: str
-        """
-
-        self._in_filepath = filedialog.askopenfilename(
-            title=READTITLE,
-            initialdir=HOME,
-            filetypes=(
-                ("datalog files", "*.log"),
-                ("u-center logs", "*.ubx"),
-                ("all files", "*.*"),
-            ),
-        )
-        if self._in_filepath in ((), ""):
-            return None  # User cancelled
-        return self._in_filepath
-
     def write_logfile(self, raw_data, parsed_data):
         """
         Append data to log file. Data will be converted to bytes.
@@ -274,47 +274,6 @@ class FileHandler:
                 self._logfile.close()
         except IOError:
             pass
-
-    def open_spartnfile(self, ext: str) -> Path:
-        """
-        Open spartn key / cert files.
-
-        :param str ext: file extension "crt" or "pem"
-        :return: spartn file path
-        :rtype: str
-        """
-
-        filepath = filedialog.askopenfilename(
-            title=READTITLE,
-            initialdir=HOME,
-            filetypes=(
-                ("spartn files", f"*.{ext}"),
-                ("all files", "*.*"),
-            ),
-        )
-        if filepath in ((), ""):
-            return None  # User cancelled
-        return filepath
-
-    def open_spartnjson(self) -> Path:
-        """
-        Open JSON SPARTN config file.
-
-        :return: json file path
-        :rtype: str
-        """
-
-        filepath = filedialog.askopenfilename(
-            title=READTITLE,
-            initialdir=HOME,
-            filetypes=(
-                ("json files", "*.json"),
-                ("all files", "*.*"),
-            ),
-        )
-        if filepath in ((), ""):
-            return None  # User cancelled
-        return filepath
 
     def set_trackfile_path(self) -> Path:
         """

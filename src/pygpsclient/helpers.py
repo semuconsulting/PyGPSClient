@@ -56,6 +56,7 @@ NMEA = {"0": "No GGA", "1": "GGA"}
 AUTHS = {"N": "None", "B": "Basic", "D": "Digest"}
 CARRIERS = {"0": "No", "1": "L1", "2": "L1,L2"}
 SOLUTIONS = {"0": "Single", "1": "Network"}
+POINTLIMIT = 500  # max number of shape points supported by MapQuest API
 
 
 class ConfirmBox(Toplevel):
@@ -1078,3 +1079,93 @@ def reorder_range(valuerange: tuple, default) -> tuple:
             drange = valuerange[i:lr] + valuerange[0:i]
             break
     return drange
+
+
+def ll2xy(width: int, height: int, bounds: Area, position: Point) -> tuple:
+    """
+    Convert lat/lon to canvas x/y.
+
+    :param int width: canvas width
+    :param int height: canvas height
+    :param Area bounds: lat/lon bounds of canvas
+    :param Point coordinate: lat/lon
+    :return: x,y canvas coordinates
+    :rtype: tuple
+    """
+
+    lw = bounds.lon2 - bounds.lon1
+    lh = bounds.lat2 - bounds.lat1
+    x = (position.lon - bounds.lon1) / (lw / width)
+    y = height - (position.lat - bounds.lat1) / (lh / height)
+    return x, y
+
+
+def xy2ll(width: int, height: int, bounds: Area, xy: tuple) -> Point:
+    """
+    Convert canvas x/y to lat/lon.
+
+    :param int width: canvas width
+    :param int height: canvas height
+    :param Area bounds: lat/lon bounds of canvas
+    :param tuple xy: canvas x/y coordinate
+    :return: lat/lon
+    :rtype: Point
+    """
+
+    lw = bounds.lon2 - bounds.lon1
+    lh = bounds.lat2 - bounds.lat1
+    x, y = xy
+    lon = bounds.lon1 + x / (width / lw)
+    lat = bounds.lat1 + (height - y) / (height / lh)
+    return Point(lat, lon)
+
+
+def points2area(points: tuple) -> Area:
+    """
+    Convert 4 points to Area.
+
+    Points in order (minlat, minlon, maxlat, maxlon)
+
+    :param tuple points: tuple of points
+    :raises TypeError: if less than 4 points provided
+    :return: area
+    :rtype Area
+    """
+
+    if len(points) != 4:
+        raise ValueError("Exactly 4 points required")
+
+    if points[2] < points[0]:
+        minlat = points[2]
+        maxlat = points[0]
+    else:
+        minlat = points[0]
+        maxlat = points[2]
+    if points[3] < points[1]:
+        minlon = points[3]
+        maxlon = points[1]
+    else:
+        minlon = points[1]
+        maxlon = points[3]
+
+    return Area(minlat, minlon, maxlat, maxlon)
+
+
+def limittrack(track: list, limit: int = POINTLIMIT) -> list:
+    """
+    Limit number of points in track.
+
+    :param list track: list of Points
+    :param int limit: max points
+    :return: limited list of Points
+    """
+
+    points = []
+    stp = 1
+    rng = len(track)
+    while rng / stp > limit:
+        stp += 1
+    for i, p in enumerate(track):
+        if i % stp == 0:
+            points.append(p)
+    return points

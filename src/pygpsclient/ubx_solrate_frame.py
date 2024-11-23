@@ -22,6 +22,7 @@ from .globals import (
     ICON_SEND,
     ICON_WARNING,
     READONLY,
+    RPTDELAY,
     UBX_CFGRATE,
 )
 from .strings import LBLCFGRATE
@@ -77,7 +78,7 @@ class UBX_RATE_Frame(Frame):
         self._lbl_ubx_measint = Label(self, text="Solution Interval (ms)")
         self._spn_ubx_measint = Spinbox(
             self,
-            values=(25, 50, 100, 200, 500, 1000, 2000, 5000, 10000),
+            values=(25, 50, 100, 200, 250, 500, 1000, 2000, 5000, 10000),
             width=6,
             state=READONLY,
             wrap=True,
@@ -91,6 +92,8 @@ class UBX_RATE_Frame(Frame):
             width=4,
             state=READONLY,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             textvariable=self._navrate,
         )
         self._lbl_ubx_timeref = Label(self, text="Time Reference")
@@ -100,6 +103,8 @@ class UBX_RATE_Frame(Frame):
             width=5,
             state=READONLY,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             textvariable=self._timeref,
         )
         self._lbl_send_command = Label(self, image=self._img_pending)

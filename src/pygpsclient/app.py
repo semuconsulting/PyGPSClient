@@ -77,6 +77,8 @@ from pygpsclient.globals import (
     NTRIP_EVENT,
     OKCOL,
     SOCKSERVER_MAX_CLIENTS,
+    SPARTN_BASEDATE_CURRENT,
+    SPARTN_DEFAULT_KEY,
     SPARTN_EVENT,
     SPARTN_OUTPORT,
     SPARTN_PPSERVER_URL,
@@ -159,7 +161,8 @@ class App(Frame):
         mqttclientmode = int(
             kwargs.pop("mqttclientmode", getenv("MQTTCLIENTMODE", "0"))
         )
-        spartnkey = kwargs.pop("spartnkey", getenv("MQTTKEY", ""))
+        spartnkey = kwargs.pop("spartnkey", getenv("MQTTKEY", SPARTN_DEFAULT_KEY))
+        spartnbasedate = kwargs.pop("spartnbasedate", SPARTN_BASEDATE_CURRENT)
         ntripcaster_user = kwargs.pop(
             "ntripcasteruser", getenv("NTRIPCASTER_USER", DEFAULT_USER)
         )
@@ -222,8 +225,10 @@ class App(Frame):
             self.saved_config["mqapikey_s"] = mqapikey
         if mqttclientid != "":
             self.saved_config["mqttclientid_s"] = mqttclientid
-        if spartnkey != "":
+        if spartnkey != SPARTN_DEFAULT_KEY:
             self.saved_config["spartnkey_s"] = spartnkey
+        if spartnbasedate != SPARTN_BASEDATE_CURRENT:
+            self.saved_config["spartnbasedate_n"] = spartnkey
         if mqttclientregion != DEFAULT_REGION:
             self.saved_config["mqttclientregion_s"] = mqttclientregion
         if mqttclientmode != 0:
@@ -573,7 +578,7 @@ class App(Frame):
                 ntripsettings["spartndecode"] = 0
             # if basedate is provided in config file, it must be an integer gnssTimetag
             ntripsettings["spartnbasedate"] = self.saved_config.get(
-                "spartnbasedate_i", date2timetag(datetime.now(timezone.utc))
+                "spartnbasedate_n", date2timetag(datetime.now(timezone.utc))
             )
             self.ntrip_handler.settings = ntripsettings
 
@@ -616,15 +621,19 @@ class App(Frame):
             spartnsettings["output"] = self.spartn_inqueue
             spartnsettings["spartndecode"] = self.saved_config.get("spartndecode_b", 0)
             spartnsettings["spartnkey"] = self.saved_config.get(
-                "spartnkey_s", getenv("MQTTKEY", "")
+                "spartnkey_s", getenv("MQTTKEY", SPARTN_DEFAULT_KEY)
             )
             if spartnsettings["spartnkey"] == "":
                 spartnsettings["spartndecode"] = 0
             # if basedate is provided in config file, it must be an integer gnssTimetag
-            spartnsettings["spartnbasedate"] = self.saved_config.get(
-                "spartnbasedate_i", date2timetag(datetime.now(timezone.utc))
+            basedate = self.saved_config.get(
+                "spartnbasedate_n", SPARTN_BASEDATE_CURRENT
             )
+            if basedate == SPARTN_BASEDATE_CURRENT:
+                basedate = date2timetag(datetime.now(timezone.utc))
+            spartnsettings["spartnbasedate"] = basedate
             self.spartn_handler.settings = spartnsettings
+            self.logger.debug(f"{self.spartn_handler.settings=}")
 
         except (KeyError, ValueError, TypeError, TclError) as err:
             self.set_status(f"Error processing config data: {err}", BADCOL)

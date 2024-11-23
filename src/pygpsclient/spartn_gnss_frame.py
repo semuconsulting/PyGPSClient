@@ -47,6 +47,7 @@ from pygpsclient.globals import (
     ICON_SEND,
     ICON_WARNING,
     READONLY,
+    RPTDELAY,
     RXMMSG,
     SPARTN_GNSS,
     SPARTN_KEYLEN,
@@ -201,6 +202,8 @@ class SPARTNGNSSDialog(Frame):
             width=4,
             state=READONLY,
             wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
             textvariable=self._dgnssto,
         )
         self._lbl_loadjson = Label(
@@ -498,7 +501,9 @@ class SPARTNGNSSDialog(Frame):
         """
         # pylint: disable=unused-variable
 
-        jsonfile = self.__app.file_handler.open_spartnjson()
+        jsonfile = self.__app.file_handler.open_file(
+            "spartnjson", (("json files", "*.json"), ("all files", "*.*"))
+        )
         if jsonfile is None:
             return
 

@@ -14,6 +14,9 @@ Created on 10 Apr 2022
 
 import logging
 
+from pynmeagps import ecef2llh, haversine
+from pyrtcm import RTCMMessage
+
 
 class RTCM3Handler:
     """
@@ -47,10 +50,27 @@ class RTCM3Handler:
             if raw_data is None:
                 return
 
-            # if parsed_data.identity == "1005":
-            #     self._process_1005(parsed_data)
-            # etc...
+            if parsed_data.identity in ("1005", "1006"):
+                self._process_1005(parsed_data)
 
         except ValueError:
             # self.__app.set_status(RTCMVALERROR.format(err), "red")
+            pass
+
+    def _process_1005(self, parsed: RTCMMessage):
+        """
+        Process 1005/1006 ARP information message.
+
+        :param RTCMMessage parsed: 1005/1006 message
+        """
+
+        try:
+            self.__app.gnss_status.diff_station = parsed.DF003
+            lat1 = self.__app.gnss_status.lat
+            lon1 = self.__app.gnss_status.lon
+            lat2, lon2, _ = ecef2llh(parsed.DF025, parsed.DF026, parsed.DF027)
+            self.__app.gnss_status.rel_pos_length = (
+                haversine(lat1, lon1, lat2, lon2) * 100000
+            )  # km to cm
+        except (AttributeError, ValueError) as err:
             pass
