@@ -13,7 +13,7 @@ from datetime import datetime
 
 from pyubx2 import UBXReader
 
-from pygpsclient.globals import Area, Point
+from pygpsclient.globals import Area, Point, AreaXY
 from pygpsclient.helpers import (
     bitsval,
     bytes2unit,
@@ -22,7 +22,10 @@ from pygpsclient.helpers import (
     corrage2int,
     date2wnotow,
     fix2desc,
+    data2xy,
+    xy2data,
     ft2m,
+    get_grid,
     get_mp_distance,
     get_mp_info,
     get_point_at_vector,
@@ -50,6 +53,7 @@ from pygpsclient.helpers import (
     str2rgb,
     stringvar2val,
     svid2gnssid,
+    time2str,
     val2sphp,
     validURL,
     wnotow2date,
@@ -61,7 +65,13 @@ from pygpsclient.mapquest import (
     mapq_decompress,
     format_mapquest_request,
 )
-from pygpsclient.widget_state import DEFAULT, FRAME, MENU, VISIBLE, widget_state
+from pygpsclient.widget_state import (
+    DEFAULT,
+    FRAME,
+    MENU,
+    VISIBLE,
+    widget_state,
+)
 
 
 class StaticTest(unittest.TestCase):
@@ -403,8 +413,8 @@ class StaticTest(unittest.TestCase):
         NoneType = type(None)
         for wdg, wdict in widget_state.items():
             self.assertIsInstance(wdg, str),
-            self.assertIsInstance(wdict[MENU], (int, NoneType)),
-            self.assertIsInstance(wdict[DEFAULT], bool),
+            self.assertIsInstance(wdict.get(MENU, True), bool),
+            self.assertIsInstance(wdict.get(DEFAULT, False), bool),
             self.assertIsInstance(wdict[FRAME], str),
             self.assertEqual(wdict["frm"][0:4], "frm_"),
             self.assertIsInstance(wdict[VISIBLE], bool),
@@ -536,6 +546,30 @@ class StaticTest(unittest.TestCase):
         self.assertAlmostEqual(pos.lat, 53.52345, 5)
         self.assertAlmostEqual(pos.lon, -1.81264, 5)
 
+    def testdata2xy(self):
+        bounds = AreaXY(-2, 53, -1, 54)
+        x, y = data2xy(600, 400, bounds, -1.5, 53.5)
+        self.assertEqual(x, 300, 5)
+        self.assertEqual(y, 200, 5)
+        x, y = data2xy(600, 400, bounds, -1.81264, 53.52345)
+        self.assertAlmostEqual(x, 112.416, 5)
+        self.assertAlmostEqual(y, 190.620, 5)
+        x, y = data2xy(600, 400, bounds, -1.81264, 53.52345, 7, 5)
+        self.assertAlmostEqual(x, 119.416, 5)
+        self.assertAlmostEqual(y, 195.620, 5)
+
+    def testxy2data(self):
+        bounds = AreaXY(-2, 53, -1, 54)
+        dx, dy = xy2data(600, 400, bounds, 300, 200)
+        self.assertEqual(dx, -1.5, 5)
+        self.assertEqual(dy, 53.5, 5)
+        dx, dy = xy2data(600, 400, bounds, 112.416, 190.620)
+        self.assertAlmostEqual(dx, -1.81264, 5)
+        self.assertAlmostEqual(dy, 53.52345, 5)
+        dx, dy = xy2data(600, 400, bounds, 119.416, 195.620, 7, 5)
+        self.assertAlmostEqual(dx, -1.81264, 5)
+        self.assertAlmostEqual(dy, 53.52345, 5)
+
     def testpoints2area(self):
         points = (53, -2, 54, -1)
         res = points2area(points)
@@ -616,6 +650,61 @@ class StaticTest(unittest.TestCase):
         )
         # print(res)
         self.assertEqual(res, EXPECTED_RESULT3)
+
+    def testgetgrid(self):
+        res = get_grid(7)
+        self.assertEqual(res, (0.0, 0.1667, 0.3333, 0.5, 0.6667, 0.8333, 1.0))
+        res = get_grid()
+        self.assertEqual(
+            res,
+            (0.0, 0.1111, 0.2222, 0.3333, 0.4444, 0.5556, 0.6667, 0.7778, 0.8889, 1.0),
+        )
+        res = get_grid(13)
+        self.assertEqual(
+            res,
+            (
+                0.0,
+                0.0833,
+                0.1667,
+                0.25,
+                0.3333,
+                0.4167,
+                0.5,
+                0.5833,
+                0.6667,
+                0.75,
+                0.8333,
+                0.9167,
+                1.0,
+            ),
+        )
+        res = get_grid(13, 0, 100, False)
+        self.assertEqual(
+            res,
+            (
+                0.0,
+                7.6923,
+                15.3846,
+                23.0769,
+                30.7692,
+                38.4615,
+                46.1538,
+                53.8462,
+                61.5385,
+                69.2308,
+                76.9231,
+                84.6154,
+                92.3077,
+            ),
+        )
+
+    def testtime2str(self):
+        res = time2str(1732547672)
+        self.assertEqual(res, "15:14:32")
+        res = time2str(1732547874.264534,"%H:%M:%S.%f")
+        self.assertEqual(res, "15:17:54.264534")
+        res = time2str(1732461337.123412, "%a, %d %b %Y %H:%M:%S +0000")
+        self.assertEqual(res, "Sun, 24 Nov 2024 15:15:37 +0000")
 
 
 if __name__ == "__main__":

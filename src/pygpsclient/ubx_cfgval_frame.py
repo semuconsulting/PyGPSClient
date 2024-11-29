@@ -104,9 +104,9 @@ class UBX_CFGVAL_Frame(Frame):
         """
 
         self._lbl_configdb = Label(
-            self, text="CFG-VALSET/DEL/GET Configuration Interface", anchor="w"
+            self, text="CFG-VALSET/DEL/GET Configuration Interface", anchor=W
         )
-        self._lbl_cat = Label(self, text="Category", anchor="w")
+        self._lbl_cat = Label(self, text="Category", anchor=W)
         self._lbx_cat = Listbox(
             self,
             border=2,
@@ -121,7 +121,7 @@ class UBX_CFGVAL_Frame(Frame):
         self._lbx_cat.config(xscrollcommand=self._scr_cath.set)
         self._scr_catv.config(command=self._lbx_cat.yview)
         self._scr_cath.config(command=self._lbx_cat.xview)
-        self._lbl_parm = Label(self, text="Keyname", anchor="w")
+        self._lbl_parm = Label(self, text="Keyname", anchor=W)
         self._lbx_parm = Listbox(
             self,
             border=2,

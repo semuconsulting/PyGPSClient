@@ -9,6 +9,7 @@
     "Spectrum": false,
     "System Monitor": false,
     "Scatter Plot": false,
+    "checkforupdate_b": 0,
     "mapupdateinterval_n": 60,
     "defaultport_s": "USB",
     "mqapikey_s": "<======= YOUR MQ API KEY ======>",
@@ -110,12 +111,48 @@
     "spartndecode_b": 0,
     "spartnkey_s": "abcd1234abcd1234abcd1234abcd1234",
     "spartnbasedate_n": -1,
-    "scatterautorange_b": 0,
-    "scattercenter_s": "Average",
-    "scatterinterval_n": 1,
-    "scatterscale_n": 6,
-    "scatterlat_f": 37.23345133,
-    "scatterlon_f": -115.81513477,
+    "scattersettings_d": {
+        "maxpoints_n": 2000,
+        "scatterautorange_b": 1,
+        "scattercenter_s": "Average",
+        "scatterinterval_n": 1,
+        "scatterscale_n": 12,
+        "scatterlat_f": 37.23345,
+        "scatterlon_f": -115.81513
+    },
+    "chartsettings_d": {
+        "numchn_n": 4,
+        "timrng_n": "240",
+        "maxpoints_n": "2000",
+        "0": {
+            "id_s": "NAV-PVT",
+            "name_s": "hAcc",
+            "scale_f": "100",
+            "miny_f": "0",
+            "maxy_f": "1"
+        },
+        "1": {
+            "id_s": "NAV-PVT",
+            "name_s": "pDOP",
+            "scale_f": "1",
+            "miny_f": "0",
+            "maxy_f": "10"
+        },
+        "2": {
+            "id_s": "NAV-PVT",
+            "name_s": "numSV",
+            "scale_f": "1",
+            "miny_f": "0",
+            "maxy_f": "50"
+        },
+        "3": {
+            "id_s": "NAV-PVT",
+            "name_s": "carrSoln",
+            "scale_f": "1",
+            "miny_f": "0",
+            "maxy_f": "5"
+        }
+    },
     "ubxpresets_l": [
         "Force HOT Reset (!!! Will require reconnection !!!), CFG, CFG-RST, 00000000, 1",
         "Force WARM Reset (!!! Will require reconnection !!!), CFG, CFG-RST, 00010000, 1",

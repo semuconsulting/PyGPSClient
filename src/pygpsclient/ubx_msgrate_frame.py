@@ -87,7 +87,7 @@ class UBX_MSGRATE_Frame(Frame):
         """
 
         MAX_RATE = 0xFF
-        self._lbl_cfg_msg = Label(self, text=LBLCFGMSG, anchor="w")
+        self._lbl_cfg_msg = Label(self, text=LBLCFGMSG, anchor=W)
         self._lbx_cfg_msg = Listbox(
             self,
             border=2,

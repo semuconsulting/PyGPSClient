@@ -23,6 +23,7 @@ fixed reference selection.
 from tkinter import (
     ALL,
     HORIZONTAL,
+    NW,
     Checkbutton,
     E,
     Entry,
@@ -34,7 +35,6 @@ from tkinter import (
     Spinbox,
     StringVar,
     W,
-    font,
 )
 
 try:
@@ -57,10 +57,12 @@ from pygpsclient.globals import (
     Point,
 )
 from pygpsclient.helpers import (
+    fontheight,
     get_point_at_vector,
     in_bounds,
     ll2xy,
     reorder_range,
+    scale_font,
     xy2ll,
 )
 from pygpsclient.skyview_frame import Canvas
@@ -94,7 +96,7 @@ class ScatterViewFrame(Frame):
         """
         self.__app = app
         self.__master = self.__app.appmaster
-        config = self.__app.saved_config
+        config = self.__app.saved_config.get("scattersettings_d", {})
 
         Frame.__init__(self, self.__master, *args, **kwargs)
 
@@ -102,7 +104,8 @@ class ScatterViewFrame(Frame):
 
         self.width = kwargs.get("width", def_w)
         self.height = kwargs.get("height", def_h)
-        self._lbl_font = font.Font(size=max(int(self.height / 40), 10))
+        self._font = self.__app.font_sm
+        self._fonth = fontheight(self._font)
         self._points = []
         self._average = None
         self._stddev = None
@@ -121,6 +124,7 @@ class ScatterViewFrame(Frame):
         self._scale = IntVar()
         self._reflat = StringVar()
         self._reflon = StringVar()
+        self._maxpoints = config.get("maxpoints_n", MAXPOINTS)
         reflat = config.get("scatterlat_f", 0.0)
         reflon = config.get("scatterlon_f", 0.0)
         self._reflat.set("Reference Lat" if reflat == 0.0 else reflat)
@@ -271,17 +275,6 @@ class ScatterViewFrame(Frame):
         self._on_save_settings(var, index, mode)
         self._on_resize(None)
 
-    def _on_resize(self, event):  # pylint: disable=unused-argument
-        """
-        Resize frame.
-
-        :param Event event: resize event
-        """
-
-        self.width, self.height = self.get_size()
-        self._init_frame()
-        self._redraw()
-
     def _on_recenter(self, event):
         """
         Right click centers on cursor.
@@ -313,21 +306,25 @@ class ScatterViewFrame(Frame):
         self._updcount = -1
         self._init_frame()
 
-    def _on_save_settings(self, var, index, mode):  # pylint: disable=unused-argument)
+    def _on_save_settings(self, var, index, mode):  # pylint: disable=unused-argument
         """
         Save current settings to saved app config dict.
         """
 
-        self.__app.saved_config["scatterautorange_b"] = self._autorange.get()
-        self.__app.saved_config["scattercenter_s"] = self._centermode.get()
-        self.__app.saved_config["scatterinterval_n"] = self._interval.get()
-        self.__app.saved_config["scatterscale_n"] = self._scale.get()
+        sst = {}
+        sst["maxpoints_n"] = self._maxpoints
+        sst["scatterautorange_b"] = self._autorange.get()
+        sst["scattercenter_s"] = self._centermode.get()
+        sst["scatterinterval_n"] = self._interval.get()
+        sst["scatterscale_n"] = self._scale.get()
         try:
-            self.__app.saved_config["scatterlat_f"] = float(self._reflat.get())
-            self.__app.saved_config["scatterlon_f"] = float(self._reflon.get())
+            sst["scatterlat_f"] = float(self._reflat.get())
+            sst["scatterlon_f"] = float(self._reflon.get())
         except ValueError:
-            self.__app.saved_config["scatterlat_f"] = 0.0
-            self.__app.saved_config["scatterlon_f"] = 0.0
+            sst["scatterlat_f"] = 0.0
+            sst["scatterlon_f"] = 0.0
+
+        self.__app.saved_config["scattersettings_d"] = sst
 
     def _init_frame(self):
         """
@@ -360,20 +357,20 @@ class ScatterViewFrame(Frame):
             txt_x = width / 2 + SQRT2 * maxr * i / 4
             txt_y = height / 2 + SQRT2 * maxr * i / 4
             self.canvas.create_text(
-                txt_x, txt_y, text=dist, fill=FGCOL, font=self._lbl_font
+                txt_x, txt_y, text=dist, fill=FGCOL, font=self._font
             )
 
-        for x, y, t in (
-            (width / 2, 5, "N"),
-            (width / 2, height - 5, "S"),
-            (5, height / 2, "W"),
-            (width - 5, height / 2, "E"),
+        for x, y, anc in (
+            (width / 2, 5, N),
+            (width / 2, height - 5, S),
+            (5, height / 2, W),
+            (width - 5, height / 2, E),
         ):
             self.canvas.create_text(
-                x, y, text=t, fill=FGCOL, font=self._lbl_font, anchor=t.lower()
+                x, y, text=anc.upper(), fill=FGCOL, font=self._font, anchor=anc
             )
 
-    def _draw_stats(self, lbl_font: font):
+    def _draw_stats(self, lbl_font: object):
         """
         Draw the stats in the corner of the plot.
 
@@ -385,22 +382,22 @@ class ScatterViewFrame(Frame):
 
         self.canvas.delete(AVG)
         y = 5
-        fh = self._lbl_font.metrics("linespace")
+        fh = self._fonth
         avg = f"Avg: {self._average.lat:.9f}, {self._average.lon:.9f}"
         self.canvas.create_text(
-            5, y, text=avg, fill=PNTCOL, font=lbl_font, anchor="nw", tags=AVG
+            5, y, text=avg, fill=PNTCOL, font=lbl_font, anchor=NW, tags=AVG
         )
         y += fh
         if self._stddev is not None:
             std = f"Std: {self._stddev.lat:.3e}, {self._stddev.lon:.3e}"
             self.canvas.create_text(
-                5, y, text=std, fill=PNTCOL, font=lbl_font, anchor="nw", tags=AVG
+                5, y, text=std, fill=PNTCOL, font=lbl_font, anchor=NW, tags=AVG
             )
             y += fh
         np = len(self._points)
-        pts = f"Pts: {np} {'!' if np >= MAXPOINTS else ''}"
+        pts = f"Pts: {np} {'!' if np >= self._maxpoints else ''}"
         self.canvas.create_text(
-            5, y, text=pts, fill=PNTCOL, font=lbl_font, anchor="nw", tags=AVG
+            5, y, text=pts, fill=PNTCOL, font=lbl_font, anchor=NW, tags=AVG
         )
 
     def _draw_point(self, position: Point, color: str = PNTCOL, size: int = 2):
@@ -500,7 +497,7 @@ class ScatterViewFrame(Frame):
             self._draw_point(self._fixed, FIXCOL, 3)
         self._draw_point(self._points[-1], PNTTOPCOL)
 
-        self._draw_stats(self._lbl_font)
+        self._draw_stats(self._font)
 
     def update_frame(self):
         """
@@ -526,7 +523,7 @@ class ScatterViewFrame(Frame):
             return  # Don't repeat exactly the last point.
 
         self._points.append(pos)
-        if len(self._points) > MAXPOINTS:
+        if len(self._points) > self._maxpoints:
             self._cull_points()
 
         self._set_average()
@@ -586,6 +583,18 @@ class ScatterViewFrame(Frame):
                 self._scale.set(self._scale.get() - 1)
                 self._set_bounds(middle)
 
+    def _on_resize(self, event):  # pylint: disable=unused-argument
+        """
+        Resize frame.
+
+        :param Event event: resize event
+        """
+
+        self.width, self.height = self.get_size()
+        self._font, self._fonth = scale_font(self.width, 10, 25, 20)
+        self._init_frame()
+        self._redraw()
+
     def get_size(self) -> tuple:
         """
         Get current canvas size.
@@ -595,7 +604,4 @@ class ScatterViewFrame(Frame):
         """
 
         self.update_idletasks()  # Make sure we know about resizing
-        width = self.canvas.winfo_width()
-        height = self.canvas.winfo_height()
-        self._lbl_font = font.Font(size=max(int(height / 40), 10))
-        return (width, height)
+        return self.canvas.winfo_width(), self.canvas.winfo_height()

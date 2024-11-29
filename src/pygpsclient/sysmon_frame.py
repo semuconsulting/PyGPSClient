@@ -14,17 +14,24 @@ Created on 30 Apr 2023
 :license: BSD 3-Clause
 """
 
-from tkinter import ALL, Canvas, E, Frame, IntVar, N, Radiobutton, S, W
+from tkinter import ALL, NW, Canvas, E, Frame, IntVar, N, Radiobutton, S, W
 
 from pyubx2 import BOOTTYPE, UBXMessage
 
-from pygpsclient.globals import BGCOL, FGCOL, SYSMONVIEW, WIDGETU2
-from pygpsclient.helpers import bytes2unit, hsv2rgb, secs2unit, setubxrate, sizefont
+from pygpsclient.globals import BGCOL, FGCOL, PNTCOL, SYSMONVIEW, WIDGETU2
+from pygpsclient.helpers import (
+    bytes2unit,
+    fontheight,
+    hsv2rgb,
+    scale_font,
+    secs2unit,
+    setubxrate,
+)
 from pygpsclient.strings import DLGENABLEMONSYS, DLGNOMONSYS, DLGWAITMONSYS, NA
 
 MINFONT = 6  # minimum font size
 MAXTEMP = 100  # °C
-XOFFSET = 10
+INSET = 4
 SPACING = 5
 DASH = (5, 2)
 PORTIDS = {
@@ -69,9 +76,11 @@ class SysmonFrame(Frame):
         self._maxtemp = 0
         self._waits = 0
         self._mode = IntVar()
+        self._mode.set(0)
+        self._font = self.__app.font_sm
+        self._fonth = fontheight(self._font)
         self._body()
         self._attach_events()
-        self._set_fontsize()
 
     def _body(self):
         """
@@ -85,16 +94,18 @@ class SysmonFrame(Frame):
             text="Actual I/O",
             variable=self._mode,
             value=0,
-            fg=FGCOL,
+            fg=PNTCOL,
             bg=BGCOL,
+            # selectcolor=BGCOL,
         )
         self._rad_pending = Radiobutton(
             self._frm_status,
             text="Pending I/O",
             variable=self._mode,
             value=1,
-            fg=FGCOL,
+            fg=PNTCOL,
             bg=BGCOL,
+            # selectcolor=BGCOL,
         )
         self._can_sysmon.grid(column=0, row=0, padx=0, pady=0, sticky=(N, S, W, E))
         self._frm_status.grid(column=0, row=1, padx=2, pady=2, sticky=(W, E))
@@ -225,13 +236,13 @@ class SysmonFrame(Frame):
 
             self.init_chart()
             y = self._fonth
-            y = self._chart_parm(XOFFSET, y, cpuLoadMax, cpuLoad, "CPU", "%")
-            y = self._chart_parm(XOFFSET, y, memUsageMax, memUsage, "Memory", "%")
-            y = self._chart_parm(XOFFSET, y, ioUsageMax, ioUsage, "I/O", "%")
+            y = self._chart_parm(INSET, y, cpuLoadMax, cpuLoad, "CPU", "%")
+            y = self._chart_parm(INSET, y, memUsageMax, memUsage, "Memory", "%")
+            y = self._chart_parm(INSET, y, ioUsageMax, ioUsage, "I/O", "%")
             for port, pdata in sorted(commsdata.items()):
-                y = self._chart_io(XOFFSET, y, port, pdata)
+                y = self._chart_io(INSET, y, port, pdata)
             y += SPACING
-            y = self._chart_parm(XOFFSET, y, self._maxtemp, tempValueP, "Temp", "°C")
+            y = self._chart_parm(INSET, y, self._maxtemp, tempValueP, "Temp", "°C")
 
             rtm, rtmu = secs2unit(runTime)
             rtf = "" if rtmu == "secs" else ",.02f"
@@ -241,11 +252,11 @@ class SysmonFrame(Frame):
                 + f"Notices: {noticeCount}, Warnings: {warnCount}, Errors: {errorCount}"
             )
             self._can_sysmon.create_text(
-                XOFFSET,
+                INSET,
                 y,
                 text=txt,
                 fill=FGCOL,
-                anchor="nw",
+                anchor=NW,
                 font=self._font,
             )
         except KeyError:  # invalid sysmon-data or comms-data
@@ -272,7 +283,7 @@ class SysmonFrame(Frame):
             y,
             text=f"{lbl}: {val} {unit}",
             fill=FGCOL,
-            anchor="w",
+            anchor=W,
             font=self._font,
         )
         y += self._fonth
@@ -326,7 +337,7 @@ class SysmonFrame(Frame):
             y,
             text=txt,
             fill=FGCOL,
-            anchor="w",
+            anchor=W,
             font=self._font,
         )
         self._can_sysmon.create_text(  # port
@@ -334,7 +345,7 @@ class SysmonFrame(Frame):
             y,
             text="⇄",
             fill=FGCOL,
-            anchor="e",
+            anchor=E,
             font=self._font,
         )
         p = -1
@@ -380,6 +391,7 @@ class SysmonFrame(Frame):
         """
 
         self.width, self.height = self.get_size()
+        self._font, self._fonth = scale_font(self.width, 10, 35, 20)
 
     def get_size(self):
         """
@@ -390,14 +402,4 @@ class SysmonFrame(Frame):
         """
 
         self.update_idletasks()  # Make sure we know about any resizing
-        width = self._can_sysmon.winfo_width()
-        height = self._can_sysmon.winfo_height()
-        self._set_fontsize()
-        return (width, height)
-
-    def _set_fontsize(self):
-        """
-        Set font size to accommodate specified number of lines on canvas.
-        """
-
-        self._font, self._fonth = sizefont(self.height, MAXLINES, MINFONT)
+        return self._can_sysmon.winfo_width(), self._can_sysmon.winfo_height()

@@ -1,5 +1,20 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.5.1
+
+1. Add new user-selectable and configurable "Chart" widget:
+   - The Chart widget broadly emulates a multi-channel "oscilloscope", allowing the user to plot designated numeric data attribute values over time. By default, the number of channels is set to 4, but this can be manually edited by the user via the json configuration file setting `chartsettings_d["numchn_n"]`.
+   - Any numeric attribute from any incoming NMEA, UBX, RTCM or SPARTN message can be plotted.
+   - For each channel, user must specify the parsed data attribute name e.g. "hAcc" or "numSV".
+   - User can optionally specify a message identity e.g. "GNGGA" or "NAV-PVT", in which case only the attribute from that message identity will be plotted.
+   - Nested group attributes must include the full group index e.g. "cno_04". Alternatively, one of three wildcard characters '*', '+' or '-' can be appended, representing the average, minimum or maximum of the nested group values e.g. "cno\*" = (cno_01 + cno_02 + ... + cno_0n) / n ; "cno+" = max(cno_01, cno_02, ..., cno_0n).
+   - X (time) and Y (value) axes are fully configurable.
+   - Double-right-click will save the current chart data to the clipboard in CSV format.
+   - The maximum number of datapoints per channel is configurable, though **NB** the practical maximum will be dependent on available platform memory and performance. 100,000 datapoints per channel is roughly equivalent to 3 MB in-memory data.
+   - Chart settings will be saved to the json configuration file when "Save Configuration" is invoked.
+   - Principally intended to provide a real-time view of incoming data trends over relatively short periods (minutes or hours).  *Analyses of much long time-series data (days or weeks) can probably be done more efficiently by saving a binary log of the incoming data and processing the data offline through a standard Python graphing tool like `matplotlib`*.
+1. Add Check (for updates) on startup option to About dialog (NB: check requires internet connectivity)
+
 ### RELEASE 1.5.0
 
 FIXES:

@@ -13,10 +13,10 @@ Created on 13 Sep 2020
 """
 
 from operator import itemgetter
-from tkinter import ALL, BOTH, YES, Canvas, Frame, font
+from tkinter import ALL, BOTH, YES, Canvas, Frame
 
 from pygpsclient.globals import BGCOL, FGCOL, GNSS_LIST, WIDGETU1
-from pygpsclient.helpers import cel2cart, col2contrast, snr2col
+from pygpsclient.helpers import cel2cart, col2contrast, fontheight, scale_font, snr2col
 
 OL_WID = 2
 
@@ -45,9 +45,10 @@ class SkyviewFrame(Frame):
         self.height = kwargs.get("height", def_h)
         self.bg_col = BGCOL
         self.fg_col = FGCOL
+        self._font = self.__app.font_vsm
+        self._fonth = fontheight(self._font)
         self._body()
-
-        self.bind("<Configure>", self._on_resize)
+        self._attach_events()
 
     def _body(self):
         """
@@ -61,6 +62,13 @@ class SkyviewFrame(Frame):
         )
         self.can_satview.pack(fill=BOTH, expand=YES)
 
+    def _attach_events(self):
+        """
+        Bind events to frame.
+        """
+
+        self.bind("<Configure>", self._on_resize)
+
     def init_frame(self):
         """
         Initialise satellite view
@@ -68,7 +76,6 @@ class SkyviewFrame(Frame):
 
         w, h = self.width, self.height
         axis_r = min(h, w) / 18
-        resize_font = font.Font(size=min(int(w / 25), 8))
         self.can_satview.delete(ALL)
         maxr = min((h / 2), (w / 2)) - axis_r
         for r in (0.2, 0.4, 0.6, 0.8, 1):
@@ -78,16 +85,16 @@ class SkyviewFrame(Frame):
         self.can_satview.create_line(w / 2, 0, w / 2, h, fill=self.fg_col)
         self.can_satview.create_line(0, h / 2, w, h / 2, fill=self.fg_col)
         self.can_satview.create_text(
-            w - axis_r, h / 2, text="90\u00b0\n E", fill=self.fg_col, font=resize_font
+            w - axis_r, h / 2, text="90\u00b0\n E", fill=self.fg_col, font=self._font
         )
         self.can_satview.create_text(
-            axis_r, h / 2, text="270\u00b0\n W", fill=self.fg_col, font=resize_font
+            axis_r, h / 2, text="270\u00b0\n W", fill=self.fg_col, font=self._font
         )
         self.can_satview.create_text(
-            w / 2, axis_r, text="0\u00b0 N", fill=self.fg_col, font=resize_font
+            w / 2, axis_r, text="0\u00b0 N", fill=self.fg_col, font=self._font
         )
         self.can_satview.create_text(
-            w / 2, h - axis_r, text="180\u00b0 S", fill=self.fg_col, font=resize_font
+            w / 2, h - axis_r, text="180\u00b0 S", fill=self.fg_col, font=self._font
         )
 
     def update_frame(self):
@@ -99,7 +106,6 @@ class SkyviewFrame(Frame):
         w, h = self.width, self.height
         axis_r = min(h, w) / 18
         maxr = min((h / 2), (w / 2)) - axis_r
-        resize_font = font.Font(size=min(int(maxr / 10), 8))
         self.init_frame()
 
         for d in sorted(data.values(), key=itemgetter(4)):  # sort by ascending snr
@@ -130,7 +136,7 @@ class SkyviewFrame(Frame):
                     y + (h / 2),
                     text=prn,
                     fill=col2contrast(bg_col),
-                    font=resize_font,
+                    font=self._font,
                 )
             except ValueError:
                 pass
@@ -145,6 +151,7 @@ class SkyviewFrame(Frame):
         """
 
         self.width, self.height = self.get_size()
+        self._font, self._fonth = scale_font(self.width, 10, 25, 20)
 
     def get_size(self):
         """
@@ -155,6 +162,4 @@ class SkyviewFrame(Frame):
         """
 
         self.update_idletasks()  # Make sure we know about any resizing
-        width = self.can_satview.winfo_width()
-        height = self.can_satview.winfo_height()
-        return (width, height)
+        return self.can_satview.winfo_width(), self.can_satview.winfo_height()

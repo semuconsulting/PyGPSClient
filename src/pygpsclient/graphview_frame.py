@@ -12,10 +12,18 @@ Created on 14 Sep 2020
 :license: BSD 3-Clause
 """
 
-from tkinter import ALL, BOTH, YES, Canvas, Frame, font
+from tkinter import ALL, BOTH, YES, Canvas, E, Frame
 
-from pygpsclient.globals import BGCOL, FGCOL, GNSS_LIST, MAX_SNR, WIDGETU2
-from pygpsclient.helpers import snr2col
+from pygpsclient.globals import (
+    AXISCOL,
+    BGCOL,
+    FGCOL,
+    GNSS_LIST,
+    GRIDCOL,
+    MAX_SNR,
+    WIDGETU2,
+)
+from pygpsclient.helpers import fontheight, scale_font, snr2col
 
 # Relative offsets of graph axes and legend
 AXIS_XL = 19
@@ -49,10 +57,10 @@ class GraphviewFrame(Frame):
         def_w, def_h = WIDGETU2
         self.width = kwargs.get("width", def_w)
         self.height = kwargs.get("height", def_h)
+        self._font = self.__app.font_vsm
+        self._fonth = fontheight(self._font)
         self._body()
         self._attach_events()
-
-        self.bind("<Configure>", self._on_resize)
 
     def _body(self):
         """
@@ -71,6 +79,7 @@ class GraphviewFrame(Frame):
         Bind events to frame.
         """
 
+        self.bind("<Configure>", self._on_resize)
         self.can_graphview.bind("<Double-Button-1>", self._on_legend)
 
     def _on_legend(self, event):  # pylint: disable=unused-argument
@@ -90,12 +99,24 @@ class GraphviewFrame(Frame):
         """
 
         w, h = self.width, self.height
-        resize_font = font.Font(size=min(int(h / 25), 10))
         ticks = int(MAX_SNR / 10)
         self.can_graphview.delete(ALL)
-        self.can_graphview.create_line(AXIS_XL, 5, AXIS_XL, h - AXIS_Y, fill=FGCOL)
+        for i in range(ticks, 0, -1):
+            y = (h - AXIS_Y) * i / ticks
+            self.can_graphview.create_line(
+                AXIS_XL, y, w - AXIS_XR + 2, y, fill=AXISCOL if i == ticks else GRIDCOL
+            )
+            self.can_graphview.create_text(
+                10,
+                y,
+                text=str(MAX_SNR - (i * 10)),
+                angle=90,
+                fill=FGCOL,
+                font=self._font,
+            )
+        self.can_graphview.create_line(AXIS_XL, 5, AXIS_XL, h - AXIS_Y, fill=AXISCOL)
         self.can_graphview.create_line(
-            w - AXIS_XR + 2, 5, w - AXIS_XR + 2, h - AXIS_Y, fill=FGCOL
+            w - AXIS_XR + 2, 5, w - AXIS_XR + 2, h - AXIS_Y, fill=AXISCOL
         )
         self.can_graphview.create_text(
             AXIS_XR,
@@ -103,20 +124,9 @@ class GraphviewFrame(Frame):
             text="CN₀ dB",
             angle=90,
             fill=FGCOL,
-            anchor="e",
-            font=resize_font,
+            anchor=E,
+            font=self._font,
         )
-        for i in range(ticks, 0, -1):
-            y = (h - AXIS_Y) * i / ticks
-            self.can_graphview.create_line(AXIS_XL, y, w - AXIS_XR + 2, y, fill=FGCOL)
-            self.can_graphview.create_text(
-                10,
-                y,
-                text=str(MAX_SNR - (i * 10)),
-                angle=90,
-                fill=FGCOL,
-                font=resize_font,
-            )
 
         if self.__app.frm_settings.config.get("legend_b", 1):
             self._draw_legend()
@@ -128,7 +138,6 @@ class GraphviewFrame(Frame):
 
         w = self.width / 10
         h = self.height / 15
-        resize_font = font.Font(size=min(int(self.height / 30), 10))
 
         for i, (_, (gnssName, gnssCol)) in enumerate(GNSS_LIST.items()):
             x = LEG_XOFF + w * i
@@ -146,7 +155,7 @@ class GraphviewFrame(Frame):
                 LEG_YOFF + h / 2,
                 text=gnssName,
                 fill=FGCOL,
-                font=resize_font,
+                font=self._font,
             )
 
     def update_frame(self):
@@ -166,7 +175,8 @@ class GraphviewFrame(Frame):
 
         offset = AXIS_XL + 2
         colwidth = (w - AXIS_XL - AXIS_XR + 1) / siv
-        resize_font = font.Font(size=min(int(colwidth / 2), 10))
+        # scale x axis label according to siv
+        svfont, _ = scale_font(self.width, 6, siv, 14)
         for d in sorted(data.values()):  # sort by ascending gnssid, svid
             gnssId, prn, _, _, snr = d
             if snr in ("", "0", 0):
@@ -190,7 +200,7 @@ class GraphviewFrame(Frame):
                 h - 10,
                 text=prn,
                 fill=FGCOL,
-                font=resize_font,
+                font=svfont,
                 angle=35,
             )
             offset += colwidth
@@ -205,6 +215,7 @@ class GraphviewFrame(Frame):
         """
 
         self.width, self.height = self.get_size()
+        self._font, self._fonth = scale_font(self.width, 8, 25, 16)
 
     def get_size(self):
         """
@@ -215,6 +226,4 @@ class GraphviewFrame(Frame):
         """
 
         self.update_idletasks()  # Make sure we know about any resizing
-        width = self.can_graphview.winfo_width()
-        height = self.can_graphview.winfo_height()
-        return (width, height)
+        return self.can_graphview.winfo_width(), self.can_graphview.winfo_height()

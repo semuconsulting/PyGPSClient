@@ -25,7 +25,7 @@ from http.client import responses
 from io import BytesIO
 from os import getenv
 from time import time
-from tkinter import ALL, CENTER, NW, Canvas, E, Frame, N, S, StringVar, W, font
+from tkinter import ALL, CENTER, NW, Canvas, E, Frame, N, S, StringVar, W
 
 from PIL import Image, ImageTk, UnidentifiedImageError
 from requests import ConnectionError as ConnError
@@ -44,7 +44,14 @@ from pygpsclient.globals import (
     WORLD,
     Point,
 )
-from pygpsclient.helpers import limittrack, ll2xy, points2area, xy2ll
+from pygpsclient.helpers import (
+    fontheight,
+    limittrack,
+    ll2xy,
+    points2area,
+    scale_font,
+    xy2ll,
+)
 from pygpsclient.mapquest import (
     MAP_UPDATE_INTERVAL,
     MAPQTIMEOUT,
@@ -68,6 +75,7 @@ ZOOMCOL = "red"
 ZOOMEND = "lightgray"
 POSCOL = "red"
 TRK_COL = "magenta"  # color of track
+INSET = 4
 
 
 class MapviewFrame(Frame):
@@ -98,9 +106,6 @@ class MapviewFrame(Frame):
         self._marker = ImageTk.PhotoImage(Image.open(ICON_POS))
         self._img_start = ImageTk.PhotoImage(Image.open(ICON_START))
         self._img_end = ImageTk.PhotoImage(Image.open(ICON_END))
-        self._resize_font = font.Font(size=min(int(self.height / 5), 30))
-        self._resize_font_height = self._resize_font.metrics("linespace")
-        self._resize_font_width = self._resize_font.measure("+")
         self._zoom = int((MAX_ZOOM - MIN_ZOOM) / 2)
         self._lastmaptype = ""
         self._lastmappath = ""
@@ -109,6 +114,8 @@ class MapviewFrame(Frame):
         self._pos = None
         self._track = []
         self._maptype = StringVar()
+        self._font = self.__app.font_sm
+        self._fonth = fontheight(self._font)
         self._body()
         self._attach_events()
 
@@ -175,15 +182,18 @@ class MapviewFrame(Frame):
 
         refresh = False
         w, h = self.width, self.height
-        fw, fh = self._resize_font_width, self._resize_font_height
+        _, zfh = scale_font(self.width, 16, 10, 20)
         # zoom out (-) if not already at min
         zinc = 0
-        if w > event.x > w - 2 - fw and h > event.y > h - fh:
+        if w > event.x > w - INSET - zfh and h > event.y > h - INSET - zfh:
             if self._zoom > MIN_ZOOM:
                 zinc = -1 if event.num == 1 else MIN_ZOOM - self._zoom
                 refresh = True
         # zoom in (+) if not already at max
-        elif w > event.x > w - 2 - fw and h - fh > event.y > h - fh * 2:
+        elif (
+            w > event.x > w - INSET - zfh
+            and h - INSET - zfh * 2 > event.y > h - INSET - zfh * 3
+        ):
             if self._zoom < MAX_ZOOM:
                 zinc = 1 if event.num == 1 else MAX_ZOOM - self._zoom
                 refresh = True
@@ -448,30 +458,32 @@ class MapviewFrame(Frame):
         """
 
         w, h = self.width, self.height
-        fw, fh = self._resize_font_width, self._resize_font_height
+        zfnt, zfh = scale_font(self.width, 16, 10, 20)
+        x = w - INSET - zfh / 2
+        y = h - INSET
         self._can_mapview.create_text(
-            w - 2 - fw / 2,
-            h - 2 - fh,
+            x,
+            y - zfh * 2,
             text="+",
-            font=self._resize_font,
+            font=zfnt,
             fill=ZOOMCOL if self._zoom < MAX_ZOOM else ZOOMEND,
-            anchor="s",
+            anchor=S,
         )
         self._can_mapview.create_text(
-            w - 2 - fw / 2,
-            h - 2 - fh / 1.2,
+            x,
+            y - zfh,
             text=self._zoom,
             fill=ZOOMCOL,
-            font=font.Font(size=8),
-            # anchor="e",
+            font=zfnt,
+            anchor=S,
         )
         self._can_mapview.create_text(
-            w - 2 - fw / 2,
-            h - 2,
-            text="−",
-            font=self._resize_font,
+            x,
+            y,
+            text="\u2212",
+            font=zfnt,
             fill=ZOOMCOL if self._zoom > MIN_ZOOM else ZOOMEND,
-            anchor="s",
+            anchor=S,
         )
 
     def _disp_error(self, msg):
@@ -482,7 +494,6 @@ class MapviewFrame(Frame):
         """
 
         w, h = self.width, self.height
-        resize_font = font.Font(size=min(int(w / 20), 14))
 
         self._can_mapview.delete(ALL)
         self._can_mapview.create_text(
@@ -490,8 +501,8 @@ class MapviewFrame(Frame):
             h / 2,
             text=msg,
             fill="orange",
-            font=resize_font,
-            anchor="s",
+            font=self._font,
+            anchor=S,
         )
 
     def reset_map_refresh(self):
@@ -509,9 +520,7 @@ class MapviewFrame(Frame):
         """
 
         self.width, self.height = self.get_size()
-        self._resize_font = font.Font(size=min(int(self.height / 5), 30))
-        self._resize_font_height = self._resize_font.metrics("linespace")
-        self._resize_font_width = self._resize_font.measure("+")
+        self._font, self._fonth = scale_font(self.width, 10, 25, 20)
 
     def get_size(self):
         """
@@ -522,6 +531,4 @@ class MapviewFrame(Frame):
         """
 
         self.update_idletasks()  # Make sure we know about any resizing
-        width = self._can_mapview.winfo_width()
-        height = self._can_mapview.winfo_height()
-        return (width, height)
+        return self._can_mapview.winfo_width(), self._can_mapview.winfo_height()

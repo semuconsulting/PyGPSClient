@@ -16,10 +16,10 @@ Created on 17 Apr 2021
 import os
 from datetime import datetime, timedelta
 from math import asin, atan, atan2, cos, degrees, pi, radians, sin, sqrt, trunc
-from platform import system
 from socket import AF_INET, SOCK_DGRAM, socket
 from time import strftime
-from tkinter import Button, Entry, Label, Toplevel, W, font
+from tkinter import Entry
+from tkinter.font import Font
 
 from pynmeagps import WGS84_SMAJ_AXIS, haversine
 from pyubx2 import SET, SET_LAYER_RAM, TXN_NONE, UBX_MSGIDS, UBXMessage, attsiz, atttyp
@@ -32,7 +32,9 @@ from pygpsclient.globals import (
     PUBLICIP_URL,
     RCVR_CONNECTION,
     ROMVER_NEW,
+    TIME0,
     Area,
+    AreaXY,
     Point,
 )
 from pygpsclient.strings import NA
@@ -57,86 +59,6 @@ AUTHS = {"N": "None", "B": "Basic", "D": "Digest"}
 CARRIERS = {"0": "No", "1": "L1", "2": "L1,L2"}
 SOLUTIONS = {"0": "Single", "1": "Network"}
 POINTLIMIT = 500  # max number of shape points supported by MapQuest API
-
-
-class ConfirmBox(Toplevel):
-    """
-    Confirm action dialog class.
-    Provides better consistency across different OS platforms
-    than using messagebox.askyesno()
-
-    Returns True if OK, False if Cancel
-    """
-
-    def __init__(self, parent, title, prompt):
-        """
-        Constructor
-
-        :param parent: parent dialog
-        :param string title: title
-        :param string prompt: prompt to be displayed
-        """
-
-        self.__master = parent
-        Toplevel.__init__(self, parent)
-        self.title(title)  # pylint: disable=E1102
-        self.resizable(False, False)
-        Label(self, text=prompt, anchor=W).grid(
-            row=0, column=0, columnspan=2, padx=3, pady=5
-        )
-        Button(self, command=self._on_ok, text="OK", width=8).grid(
-            row=1, column=0, padx=3, pady=3
-        )
-        Button(self, command=self._on_cancel, text="Cancel", width=8).grid(
-            row=1, column=1, padx=3, pady=3
-        )
-        self.lift()  # Put on top of
-        self.grab_set()  # Make modal
-        self._rc = False
-
-        self._centre()
-
-    def _on_ok(self, event=None):  # pylint: disable=unused-argument
-        """
-        OK button handler
-        """
-
-        self._rc = True
-        self.destroy()
-
-    def _on_cancel(self, event=None):  # pylint: disable=unused-argument
-        """
-        Cancel button handler
-        """
-
-        self._rc = False
-        self.destroy()
-
-    def _centre(self):
-        """
-        Centre dialog in parent
-        """
-
-        # self.update_idletasks()
-        dw = self.winfo_width()
-        dh = self.winfo_height()
-        mx = self.__master.winfo_x()
-        my = self.__master.winfo_y()
-        mw = self.__master.winfo_width()
-        mh = self.__master.winfo_height()
-        self.geometry(f"+{int(mx + (mw/2 - dw/2))}+{int(my + (mh/2 - dh/2))}")
-
-    def show(self):
-        """
-        Show dialog
-
-        :return: True (OK) or False (Cancel)
-        :rtype: bool
-        """
-
-        self.wm_deiconify()
-        self.wait_window()
-        return self._rc
 
 
 def cel2cart(elevation: float, azimuth: float) -> tuple:
@@ -784,24 +706,50 @@ def secs2unit(secs: int) -> tuple:
     return val, SECSUNITS[i]
 
 
-def sizefont(height: int, lines: int, minfont: int) -> tuple:
+def fontwidth(fnt: Font, txt: str = "W") -> int:
     """
-    Set font size according to number of text lines on widget
-    of given height.
+    Get font width.
 
-    :param int maxlines: max no of lines of text
-    :param int minfont: min font size
-    :returns: tuple of (font, fontheight)
+    :param Font fnt:font
+    :param txt: reference text ("W")
+    :return: font width in pixels
+    :rtype: int
+    """
+
+    return Font.measure(fnt, txt)
+
+
+def fontheight(fnt: Font) -> int:
+    """
+    Get font height.
+
+    :param Font fnt: font
+    :return: font height in pixels
+    :rtype: int
+    """
+
+    return Font.metrics(fnt, "linespace")
+
+
+def scale_font(
+    width: int, basesize: int, txtwidth: int, maxsize: int = 0, fnt: Font = None
+) -> tuple:
+    """
+    Scale font size to widget width.
+
+    :param int width: widget width
+    :param int bassiz: base font size
+    :param int txtwidth: reference text width
+    :param int maxsiz: max font size
+    :param Font fnt: default font
+    :return: tuple of scaled font, font height
     :rtype: tuple
     """
 
-    fh = 0
-    fs = minfont
-    while fh * lines < height:
-        fnt = font.Font(size=fs)
-        fh = fnt.metrics("linespace")
-        fs += 1
-    return fnt, fh
+    fnt = Font(size=12) if fnt is None else fnt
+    fs = basesize * width / fontwidth(fnt, "W" * txtwidth)
+    fnt = Font(size=int(min(fs, maxsize))) if maxsize else Font(size=int(fs))
+    return fnt, fontheight(fnt)
 
 
 def setubxrate(app: object, mid: str, rate: int = 1, prot: str = "UBX") -> UBXMessage:
@@ -919,22 +867,6 @@ def config_nmea(state: int, port_type: str = "USB") -> UBXMessage:
     cfg_data.append((f"CFG_MSGOUT_UBX_NAV_SAT_{port_type}", state * 4))
 
     return UBXMessage.config_set(layers, transaction, cfg_data)
-
-
-def adjust_dimensions(dim: int) -> int:
-    """
-    Adjust display dimensions for different operating systems.
-
-    :param int dim: dimension
-    :return: adjusted dimension
-    :rtype: int
-    """
-
-    if system() == "Windows":
-        return int(dim * 0.95)
-    if system() == "Darwin":
-        return int(dim * 0.93)
-    return int(dim)
 
 
 def ned2vector(n: float, e: float, d: float) -> tuple:
@@ -1120,6 +1052,74 @@ def xy2ll(width: int, height: int, bounds: Area, xy: tuple) -> Point:
     return Point(lat, lon)
 
 
+def data2xy(
+    width: int,
+    height: int,
+    bounds: AreaXY,
+    xdata: float,
+    ydata: float,
+    xoffset: float = 0,
+    yoffset: float = 0,
+) -> tuple:
+    """
+    Convert datapoint x,y to canvas x,y. Y is vertical axis.
+
+    :param int width: canvas width
+    :param int height: canvas height
+    :param AreaXY bounds: x,y bounds of data
+    :param float xdata: datapoint x
+    :param float ydata: datapoint y
+    :param float xoffset: canvas x offset
+    :param float yoffset: canvas y offset
+    :return: x,y canvas coordinates
+    :rtype: tuple
+    """
+    # pylint: disable=too-many-arguments, too-many-positional-arguments
+
+    try:
+        lw = bounds.x2 - bounds.x1
+        lh = bounds.y2 - bounds.y1
+        x = (xdata - bounds.x1) / (lw / width)
+        y = height - (ydata - bounds.y1) / (lh / height)
+    except ZeroDivisionError:
+        return 0, 0
+    return x + xoffset, y + yoffset
+
+
+def xy2data(
+    width: int,
+    height: int,
+    bounds: AreaXY,
+    x: int,
+    y: int,
+    xoffset: int = 0,
+    yoffset: int = 0,
+) -> tuple:
+    """
+    Convert canvas x,y to datapoint x,y. Y is vertical axis.
+
+    :param int width: canvas width
+    :param int height: canvas height
+    :param AreaXY bounds: x,y bounds of data
+    :param int x: canvas x coordinate
+    :param int y: canvas y coordinate
+    :param float xoffset: canvas x offset
+    :param float yoffset: canvas y offset
+    :return: xdata, ydata
+    :rtype: tuple
+    """
+    # pylint: disable=too-many-arguments, too-many-positional-arguments
+
+    try:
+        lw = bounds.x2 - bounds.x1
+        lh = bounds.y2 - bounds.y1
+        datax = bounds.x1 + (x - xoffset) / (width / lw)
+        datay = bounds.y1 + (height - (y - yoffset)) / (height / lh)
+    except ZeroDivisionError:
+        return 0, 0
+    return datax, datay
+
+
 def points2area(points: tuple) -> Area:
     """
     Convert 4 points to Area.
@@ -1135,18 +1135,10 @@ def points2area(points: tuple) -> Area:
     if len(points) != 4:
         raise ValueError("Exactly 4 points required")
 
-    if points[2] < points[0]:
-        minlat = points[2]
-        maxlat = points[0]
-    else:
-        minlat = points[0]
-        maxlat = points[2]
-    if points[3] < points[1]:
-        minlon = points[3]
-        maxlon = points[1]
-    else:
-        minlon = points[1]
-        maxlon = points[3]
+    minlat = min(points[0], points[2])
+    maxlat = max(points[0], points[2])
+    minlon = min(points[1], points[3])
+    maxlon = max(points[1], points[3])
 
     return Area(minlat, minlon, maxlat, maxlon)
 
@@ -1169,3 +1161,51 @@ def limittrack(track: list, limit: int = POINTLIMIT) -> list:
         if i % stp == 0:
             points.append(p)
     return points
+
+
+def get_grid(
+    num: int = 10, start: int = 0, stop: int = 1, endpoint: bool = True
+) -> tuple:
+    """
+    Generate linear grid steps for graphing widgets.
+
+    :param int num: number of increments (10)
+    :param int start: start point (0)
+    :param int stop: end point (1)
+    :param bool endpoint: include endpoint (True)
+    :return: linear grid increments
+    :rtype: tuple
+    """
+
+    def linspace(start, stop, num, endpoint):
+        """Generator for linear grid"""
+        num = int(num)
+        start = start * 1.0
+        stop = stop * 1.0
+
+        if num == 1:
+            yield round(stop, 4)
+            return
+        if endpoint:
+            step = (stop - start) / (num - 1)
+        else:
+            step = (stop - start) / num
+
+        for i in range(num):
+            yield round(start + step * i, 4)
+
+    return tuple(linspace(start, stop, num, endpoint))
+
+
+def time2str(tim: float, sformat: str = "%H:%M:%S") -> str:
+    """
+    Convert time float to formatted string.
+
+    :param float tim: time as float (seconds since 1970-01-01-00:00:00)
+    :param str sformat: string format ("%H:%M:%S")
+    :return: formated time string
+    :rtype: str
+    """
+
+    dt = TIME0 + timedelta(seconds=tim)
+    return dt.strftime(sformat)

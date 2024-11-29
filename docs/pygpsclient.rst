@@ -28,6 +28,22 @@ pygpsclient.banner\_frame module
    :undoc-members:
    :show-inheritance:
 
+pygpsclient.chart\_frame module
+-------------------------------
+
+.. automodule:: pygpsclient.chart_frame
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pygpsclient.confirm\_box module
+-------------------------------
+
+.. automodule:: pygpsclient.confirm_box
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pygpsclient.console\_frame module
 ---------------------------------
 
