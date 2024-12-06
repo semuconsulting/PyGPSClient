@@ -25,6 +25,8 @@ from pyubx2 import GET, POLL, SET, SETPOLL
 Point = namedtuple("Point", ["lat", "lon"])
 # Area convention is minlat, minlon, maxlat, maxlon
 Area = namedtuple("Area", ["lat1", "lon1", "lat2", "lon2"])
+PointXY = namedtuple("Point", ["x", "y"])
+AreaXY = namedtuple("Area", ["x1", "y1", "x2", "y2"])
 
 
 def create_circle(self, x, y, r, **kwargs):
@@ -43,6 +45,7 @@ Canvas.create_circle = create_circle
 
 HOME = Path.home()
 APPNAME = __name__.split(".", 1)[0]  # i.e. "pygpsclient"
+AXISCOL = "white"
 BADCOL = "red"
 BGCOL = "gray24"  # default widget background color
 BPSRATES = (
@@ -58,7 +61,6 @@ BPSRATES = (
     4800,
 )
 CFG = "cfg"
-CHECK_FOR_UPDATES = False
 CLASS = "cls"
 COLORTAGS = "colortags"
 CONFIGFILE = path.join(HOME, f"{APPNAME}.json")
@@ -137,6 +139,7 @@ GPX_NS = (
     'http://www.topografix.com/GPX/1/1/gpx.xsd"'
 )
 GPX_TRACK_INTERVAL = 1  # minimum GPS track update interval (seconds)
+GRIDCOL = "grey40"
 GUI_UPDATE_INTERVAL = 0.5  # minimum GUI widget update interval (seconds)
 ICON_APP128 = path.join(DIRNAME, "resources/app-128.png")
 ICON_BLANK = path.join(DIRNAME, "resources/blank-1-24.png")
@@ -259,6 +262,7 @@ SPARTN_SOURCE_LB = 1
 SPONSOR_URL = "https://buymeacoffee.com/semuconsulting"
 SQRT2 = 0.7071067811865476  # square root of 2
 THD = "thd"
+TIME0 = datetime(1970, 1, 1)  # basedate for time()
 TIMEOUTS = (
     "0.1",
     "0.2",
@@ -280,10 +284,11 @@ UIK = "Imperial knots"
 UMK = "Metric kmph"
 UMM = "Metric m/s"
 UTF8 = "utf-8"
-WIDGETU1 = (250, 250)  # small widget size
-WIDGETU2 = (350, 250)  # medium widget size
-WIDGETU3 = (950, 350)  # Console size
-WIDGETU4 = (600, 600)  # GPX Track viewer size
+WIDGETU1 = (200, 200)  # small widget size
+WIDGETU2 = (300, 200)  # medium widget size
+WIDGETU3 = (800, 200)  # Console size
+WIDGETU4 = (500, 500)  # GPX Track viewer size
+WIDGETU6 = (400, 200)  # Chart size
 XML_HDR = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
 
 # UBX config widget signifiers - used to

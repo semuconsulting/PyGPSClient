@@ -26,6 +26,7 @@ from tkinter import (
     ALL,
     END,
     LEFT,
+    NW,
     VERTICAL,
     Button,
     Canvas,
@@ -125,7 +126,7 @@ class UBX_Dynamic_Frame(Frame):
         Set up frame and widgets.
         """
 
-        self._lbl_cfg_dyn = Label(self, text=LBLCFGGENERIC, anchor="w")
+        self._lbl_cfg_dyn = Label(self, text=LBLCFGGENERIC, anchor=W)
         self._lbx_cfg_cmd = Listbox(
             self,
             border=2,
@@ -146,7 +147,7 @@ class UBX_Dynamic_Frame(Frame):
             command=self._on_send_cfg,
             font=self.__app.font_md,
         )
-        self._lbl_command = Label(self, text="", anchor="w")
+        self._lbl_command = Label(self, text="", anchor=W)
         self._frm_container = Frame(self)
         self._can_container = Canvas(self._frm_container)
         self._frm_attrs = Frame(self._can_container)
@@ -160,7 +161,7 @@ class UBX_Dynamic_Frame(Frame):
             yscrollcommand=self._scr_container_ver.set,
             xscrollcommand=self._scr_container_hor.set,
         )
-        self._can_container.create_window(0, 0, window=self._frm_attrs, anchor="nw")
+        self._can_container.create_window(0, 0, window=self._frm_attrs, anchor=NW)
 
     def _do_layout(self):
         """
@@ -274,13 +275,13 @@ class UBX_Dynamic_Frame(Frame):
         wdgs = self._frm_attrs.grid_slaves()
         for wdg in wdgs:
             wdg.destroy()
-        Label(self._frm_attrs, text="Attribute", width=12, anchor="w").grid(
+        Label(self._frm_attrs, text="Attribute", width=12, anchor=W).grid(
             column=0, row=0, padx=3, sticky=(W)
         )
-        Label(self._frm_attrs, text="Value", width=20, anchor="w").grid(
+        Label(self._frm_attrs, text="Value", width=20, anchor=W).grid(
             column=1, row=0, padx=3, sticky=(W)
         )
-        Label(self._frm_attrs, text="Type", width=5, anchor="w").grid(
+        Label(self._frm_attrs, text="Type", width=5, anchor=W).grid(
             column=2, row=0, padx=3, sticky=(W)
         )
 

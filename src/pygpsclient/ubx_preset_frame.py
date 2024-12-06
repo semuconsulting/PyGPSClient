@@ -30,6 +30,7 @@ from tkinter import (
 from PIL import Image, ImageTk
 from pyubx2 import POLL, SET, UBX_MSGIDS, UBX_PAYLOADS_POLL, UBXMessage
 
+from pygpsclient.confirm_box import ConfirmBox
 from pygpsclient.globals import (
     ICON_CONFIRMED,
     ICON_PENDING,
@@ -39,7 +40,6 @@ from pygpsclient.globals import (
     SAVED_CONFIG,
     UBX_PRESET,
 )
-from pygpsclient.helpers import ConfirmBox
 from pygpsclient.strings import (
     DLGRESET,
     DLGRESETCONFIRM,
@@ -148,7 +148,7 @@ class UBX_PRESET_Frame(Frame):
         Set up frame and widgets.
         """
 
-        self._lbl_presets = Label(self, text=LBLPRESET, anchor="w")
+        self._lbl_presets = Label(self, text=LBLPRESET, anchor=W)
         self._lbx_preset = Listbox(
             self,
             border=2,

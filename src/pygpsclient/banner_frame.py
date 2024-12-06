@@ -12,8 +12,7 @@ Created on 13 Sep 2020
 :license: BSD 3-Clause
 """
 
-from platform import system
-from tkinter import SUNKEN, Button, E, Frame, Label, N, S, StringVar, W, font
+from tkinter import SUNKEN, Button, E, Frame, Label, N, S, StringVar, W
 
 from PIL import Image, ImageTk
 from pynmeagps.nmeahelpers import latlon2dmm, latlon2dms, llh2ecef
@@ -47,7 +46,7 @@ from pygpsclient.globals import (
     UIK,
     UMK,
 )
-from pygpsclient.helpers import m2ft, ms2kmph, ms2knots, ms2mph
+from pygpsclient.helpers import m2ft, ms2kmph, ms2knots, ms2mph, scale_font
 
 DGPSYES = "YES"
 DGPSNO = "N/A"
@@ -599,23 +598,14 @@ class BannerFrame(Frame):
         """
 
         w = self.width
-        # Cater for slightly different font behaviour on Linux
-        if system() in ("Windows", "Darwin"):
-            val = 55
-            lbl = 75
-            sup = 85
-        else:
-            val = 75  # 70
-            lbl = 90  # 85
-            sup = 100  # 95
-
-        sz = min(int(w / val), 18)
+        txt = 100
         for ctl in (
             self._lbl_status_preset,
             self._lbl_time,
             self._lbl_lat,
             self._lbl_lon,
             self._lbl_alt,
+            self._lbl_hae,
             self._lbl_spd,
             self._lbl_trk,
             self._lbl_pdop,
@@ -624,14 +614,15 @@ class BannerFrame(Frame):
             self._lbl_siv,
             self._lbl_diffcorr,
         ):
-            ctl.config(font=font.Font(size=sz))
+            fnt, _ = scale_font(w, 16, txt)
+            ctl.config(font=fnt)
 
-        sz = min(int(w / lbl), 14)
         for ctl in (
             self._lbl_ltime,
             self._lbl_llat,
             self._lbl_llon,
             self._lbl_lalt,
+            self._lbl_lhae,
             self._lbl_lspd,
             self._lbl_ltrk,
             self._lbl_lpdop,
@@ -641,9 +632,9 @@ class BannerFrame(Frame):
             self._lbl_lacc,
             self._lbl_ldgps,
         ):
-            ctl.config(font=font.Font(size=sz))
+            fnt, _ = scale_font(w, 12, txt)
+            ctl.config(font=fnt)
 
-        sz = min(int(w / sup), 12)
         for ctl in (
             self._lbl_lalt_u,
             self._lbl_lspd_u,
@@ -651,7 +642,8 @@ class BannerFrame(Frame):
             self._lbl_hvacc,
             self._lbl_diffstat,
         ):
-            ctl.config(font=font.Font(size=sz))
+            fnt, _ = scale_font(w, 10, txt)
+            ctl.config(font=fnt)
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """
@@ -672,6 +664,4 @@ class BannerFrame(Frame):
         """
 
         self.update_idletasks()  # Make sure we know about any resizing
-        width = self.winfo_width()
-        height = self.winfo_height()
-        return (width, height)
+        return self.winfo_width(), self.winfo_height()

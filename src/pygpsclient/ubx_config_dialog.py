@@ -99,9 +99,7 @@ class UBXConfigDialog(Toplevel):
 
         self._frm_container = Frame(self, borderwidth=2, relief="groove")
         self._frm_status = Frame(self._frm_container, borderwidth=2, relief="groove")
-        self._lbl_status = Label(
-            self._frm_status, textvariable=self._status, anchor="w"
-        )
+        self._lbl_status = Label(self._frm_status, textvariable=self._status, anchor=W)
         self._btn_exit = Button(
             self._frm_status,
             image=self._img_exit,
@@ -317,7 +315,7 @@ class UBXConfigDialog(Toplevel):
         """
 
         self.__master.update_idletasks()  # Make sure we know about any resizing
-        return (self.winfo_width(), self.winfo_height())
+        return self.winfo_width(), self.winfo_height()
 
     @property
     def container(self):

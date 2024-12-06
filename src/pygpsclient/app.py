@@ -54,7 +54,6 @@ from pygpsclient.file_handler import FileHandler
 from pygpsclient.globals import (
     BADCOL,
     CFG,
-    CHECK_FOR_UPDATES,
     CLASS,
     CONFIGFILE,
     CONNECTED,
@@ -111,19 +110,20 @@ from pygpsclient.strings import (
 )
 from pygpsclient.ubx_handler import UBXHandler
 from pygpsclient.widget_state import (
+    COL,
     COLSPAN,
     DEFAULT,
     HIDE,
     MAXCOLSPAN,
     MAXROWSPAN,
     MENU,
+    ROW,
     ROWSPAN,
     SHOW,
     STICKY,
     VISIBLE,
-    WDGBANNER,
-    WDGSETTINGS,
-    WDGSTATUS,
+    WDGCHART,
+    WDGCONSOLE,
     widget_state,
 )
 
@@ -271,7 +271,7 @@ class App(Frame):
             self.set_status(INTROTXTNOPORTS, BADCOL)
 
         # Check for more recent version (if enabled)
-        if CHECK_FOR_UPDATES:
+        if self.saved_config.get("checkforupdate_b", False):
             self._check_update()
 
     def _body(self):
@@ -283,10 +283,12 @@ class App(Frame):
         self.menu = MenuBar(self)
         self.__master.config(menu=self.menu)
 
-        # dynamically instantiate widgets defined in widgets_grid
+        # instantiate widgets
         for value in widget_state.values():
-            _ = setattr(
-                self, value[FRAME], value[CLASS](self, borderwidth=2, relief="groove")
+            setattr(
+                self,
+                value[FRAME],
+                value[CLASS](self, borderwidth=2, relief="groove"),
             )
 
     def _do_layout(self):
@@ -295,97 +297,124 @@ class App(Frame):
         widget visibility and menu label (show/hide).
         """
 
-        col = mcol = 0
-        row = mrow = 1
-        for i, nam in enumerate(widget_state):
-            if i > 2:  # only position dynamic widgets
-                col, row = self._grid_widget(nam, col, row)
-            mcol = max(col, mcol)
-            mrow = max(row, mrow)
+        col = 0
+        row = 1
+        maxcol = 0
+        maxrow = 0
+        men = 0
+        for name in widget_state:
+            col, row, maxcol, maxrow, men = self._widget_grid(
+                name, col, row, maxcol, maxrow, men
+            )
 
+        # ensure widgets expand to size of container (needed
+        # when not using 'pack' grid management)
+        # weight = 0 means fixed, non-expandable
+        # weight > 0 means expandable
         for col in range(MAXCOLSPAN + 1):
-            self.__master.grid_columnconfigure(col, weight=0 if col > mcol - 1 else 1)
-        for row in range(1, MAXROWSPAN + 2):
-            self.__master.grid_rowconfigure(row, weight=0 if row > mrow else 1)
+            self.__master.grid_columnconfigure(col, weight=0)
+        for row in range(MAXROWSPAN + 2):
+            self.__master.grid_rowconfigure(row, weight=0)
+        # print(f"{maxcol=} {maxrow=}")
+        for col in range(maxcol):
+            self.__master.grid_columnconfigure(col, weight=5)
+        for row in range(1, maxrow + 1):
+            self.__master.grid_rowconfigure(row, weight=5)
 
-        self._grid_widget(WDGSETTINGS, mcol, 1, 1, mrow)  # always on top
-        self._grid_widget(WDGBANNER, 0, 0, mcol + 1, 1)  # always on right
-        self._grid_widget(WDGSTATUS, 0, mrow + 1, mcol + 1, 1)  # always on bottom
-
-    def _grid_widget(
-        self, nam: str, col: int, row: int, colspan: int = 1, rowspan: int = 1
+    def _widget_grid(
+        self, name: str, col: int, row: int, maxcol: int, maxrow: int, men: int
     ) -> tuple:
         """
-        Arrange individual widget and update menu label (show/hide).
+        Arrange widgets and update menu label (show/hide).
 
-        :param str nam: name of widget
-        :param int col: column
+        Widgets with explicit COL settings will be placed in fixed
+        positions; widgets with no COL setting will be arranged
+        dynamically.
+
+        :param str name: name of widget
+        :param int col: col
         :param int row: row
-        :param int colspan: optional columnspan
-        :param int rowspan: optional rowspan
-        :return: next available (col, row)
+        :param int maxcol: max cols
+        :param int maxrow: max rows
+        :param int men: menu position
+        :return: max row & col
         :rtype: tuple
         """
 
-        wdg = widget_state[nam]
+        wdg = widget_state[name]
+        dynamic = wdg.get(COL, None) is None
         frm = getattr(self, wdg[FRAME])
         if wdg[VISIBLE]:
-            colspan = wdg.get(COLSPAN, colspan)
-            rowspan = wdg.get(ROWSPAN, rowspan)
-            if col >= MAXCOLSPAN and nam != WDGSETTINGS:
-                col = 0
-                row += rowspan
-            # keep track of cumulative cols & rows
-            ccol = wdg.get("col", col)
-            crow = wdg.get("row", row)
+            self.widget_enable_messages(name)
+            fcol = wdg.get(COL, col)
+            frow = wdg.get(ROW, row)
+            colspan = wdg.get(COLSPAN, 1)
+            rowspan = wdg.get(ROWSPAN, 1)
+            if dynamic and fcol + colspan > MAXCOLSPAN:
+                fcol = 0
+                frow += 1
             frm.grid(
-                column=ccol,
-                row=crow,
+                column=fcol,
+                row=frow,
                 columnspan=colspan,
                 rowspan=rowspan,
                 padx=2,
                 pady=2,
                 sticky=wdg.get(STICKY, (N, S, W, E)),
             )
-            col += colspan
             lbl = HIDE
+            if dynamic:
+                col += colspan
+                if col >= MAXCOLSPAN:
+                    col = 0
+                    row += rowspan
+                maxcol = max(maxcol, fcol + colspan)
+                maxrow = max(maxrow, frow)
         else:
             frm.grid_forget()
             lbl = SHOW
 
         # update menu label (show/hide)
-        if wdg[MENU] is not None:
-            self.menu.view_menu.entryconfig(wdg[MENU], label=f"{lbl} {nam}")
+        if wdg.get(MENU, True):
+            self.menu.view_menu.entryconfig(men, label=f"{lbl} {name}")
+            men += 1
 
         # force widget to rescale
         frm.event_generate("<Configure>")
 
-        return col, row
+        return col, row, maxcol, maxrow, men
 
-    def toggle_widget(self, widget: str):
+    def widget_toggle(self, name: str):
         """
         Toggle widget visibility and enable or disable any
         UBX messages required by widget.
 
-        :param str widget: widget name
+        :param str name: widget name
         """
 
-        wdg = widget_state[widget]
+        wdg = widget_state[name]
         wdg[VISIBLE] = not wdg[VISIBLE]
+        self._do_layout()
 
+    def widget_enable_messages(self, name: str):
+        """
+        Enable any NMEA, UBX or RTCM messages required by widget.
+
+        :param str name: widget name
+        """
+
+        wdg = widget_state[name]
         frm = getattr(self, wdg[FRAME])
         if hasattr(frm, "enable_messages"):
             frm.enable_messages(wdg[VISIBLE])
 
-        self._do_layout()
-
-    def reset_widgets(self):
+    def widget_reset(self):
         """
         Reset widgets to default layout.
         """
 
         for _, wdg in widget_state.items():
-            wdg[VISIBLE] = wdg[DEFAULT]
+            wdg[VISIBLE] = wdg.get(DEFAULT, False)
         self._do_layout()
 
     def reset_gnssstatus(self):
@@ -515,6 +544,11 @@ class App(Frame):
 
         try:
             self._nowidgets = True
+            for key, vals in widget_state.items():
+                vis = self.saved_config.get(key, False)
+                vals[VISIBLE] = vis
+                if vis:
+                    self._nowidgets = False
             for key, vals in widget_state.items():
                 vis = self.saved_config.get(key, False)
                 vals[VISIBLE] = vis
@@ -966,20 +1000,24 @@ class App(Frame):
         elif msgprot == MQTT_PROTOCOL:
             pass
 
+        # update chart data if chart is visible
+        if widget_state[WDGCHART][VISIBLE]:
+            getattr(self, widget_state[WDGCHART][FRAME]).update_data(parsed_data)
+
         # update consoledata if console is visible and protocol not filtered
-        if widget_state["Console"][VISIBLE] and (msgprot == 0 or msgprot & protfilter):
+        if widget_state[WDGCONSOLE][VISIBLE] and (msgprot == 0 or msgprot & protfilter):
             self._consoledata.append((raw_data, parsed_data, marker))
 
         # periodically update widgets if visible
         if datetime.now() > self._last_gui_update + timedelta(
             seconds=GUI_UPDATE_INTERVAL
         ):
-            if widget_state["Console"][VISIBLE]:
+            if widget_state[WDGCONSOLE][VISIBLE]:
                 self.frm_console.update_console(self._consoledata)
                 self._consoledata = []
             self.frm_banner.update_frame()
             for _, widget in widget_state.items():
-                frm = getattr(self, widget["frm"])
+                frm = getattr(self, widget[FRAME])
                 if hasattr(frm, "update_frame") and widget[VISIBLE]:
                     frm.update_frame()
             self._last_gui_update = datetime.now()

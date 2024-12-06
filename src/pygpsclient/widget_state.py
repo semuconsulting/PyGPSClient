@@ -22,7 +22,10 @@ Created on 30 Apr 2023
 :license: BSD 3-Clause
 """
 
+from tkinter import E, N, S, W
+
 from pygpsclient.banner_frame import BannerFrame
+from pygpsclient.chart_frame import ChartviewFrame
 from pygpsclient.console_frame import ConsoleFrame
 from pygpsclient.globals import CLASS, FRAME
 from pygpsclient.graphview_frame import GraphviewFrame
@@ -35,12 +38,15 @@ from pygpsclient.spectrum_frame import SpectrumviewFrame
 from pygpsclient.status_frame import StatusFrame
 from pygpsclient.sysmon_frame import SysmonFrame
 
+COL = "COL"
 COLSPAN = "colspan"
 DEFAULT = "def"
 HIDE = "Hide"
 MAXCOLSPAN = 4  # max no of widget columns
 MAXROWSPAN = 4  # max no of widget rows
 MENU = "men"
+RESET = "rst"
+ROW = "row"
 ROWSPAN = "rowspan"
 SHOW = "Show"
 STICKY = "sty"
@@ -56,36 +62,45 @@ WDGSETTINGS = "Settings"
 WDGSPECTRUM = "Spectrum"
 WDGSTATUS = "Status"
 WDGSYSMON = "System Monitor"
+WDGCHART = "Chart Plot"
 
 widget_state = {
-    # these have a fixed relative position
+    # these widgets have fixed positions
     WDGBANNER: {  # always on top
-        MENU: None,
         DEFAULT: True,
+        MENU: False,
         CLASS: BannerFrame,
         FRAME: "frm_banner",
         VISIBLE: True,
+        STICKY: (N, W, E, S),
+        COL: 0,
+        ROW: 0,
+        COLSPAN: 6,
     },
     WDGSETTINGS: {  # always on right
-        MENU: 0,
         DEFAULT: True,
         CLASS: SettingsFrame,
         FRAME: "frm_settings",
         VISIBLE: True,
-        STICKY: ("n", "w", "e"),
+        STICKY: (N, W, E, S),
+        COL: 5,
+        ROW: 1,
+        ROWSPAN: 4,
     },
     WDGSTATUS: {  # always on bottom
-        MENU: 1,
         DEFAULT: True,
+        MENU: False,
         CLASS: StatusFrame,
         FRAME: "frm_status",
         VISIBLE: True,
-        STICKY: ("w", "e"),
+        STICKY: (S, W, E),
+        COL: 0,
+        ROW: 5,
+        COLSPAN: 6,
     },
-    # dynamic relative position - these self-organise
-    # depending on which has been selected
+    # these widgets rearrange dynamically according to
+    # which has been selected to be visible
     WDGCONSOLE: {
-        MENU: 2,
         DEFAULT: True,
         CLASS: ConsoleFrame,
         FRAME: "frm_console",
@@ -93,52 +108,50 @@ widget_state = {
         COLSPAN: MAXCOLSPAN,
     },
     WDGSATS: {
-        MENU: 3,
         DEFAULT: True,
         CLASS: SkyviewFrame,
         FRAME: "frm_satview",
         VISIBLE: True,
     },
     WDGLEVELS: {
-        MENU: 4,
         DEFAULT: True,
         CLASS: GraphviewFrame,
         FRAME: "frm_graphview",
         VISIBLE: True,
     },
     WDGMAP: {
-        MENU: 5,
         DEFAULT: True,
         CLASS: MapviewFrame,
         FRAME: "frm_mapview",
         VISIBLE: True,
+        RESET: True,
     },
     WDGSPECTRUM: {
-        MENU: 6,
-        DEFAULT: False,
         CLASS: SpectrumviewFrame,
         FRAME: "frm_spectrumview",
         VISIBLE: False,
-    },
-    WDGSYSMON: {
-        MENU: 7,
-        DEFAULT: False,
-        CLASS: SysmonFrame,
-        FRAME: "frm_sysmon",
-        VISIBLE: False,
+        RESET: True,
     },
     WDGSCATTER: {
-        MENU: 8,
-        DEFAULT: False,
         CLASS: ScatterViewFrame,
         FRAME: "frm_scatterview",
         VISIBLE: False,
     },
     WDGROVER: {
-        MENU: 9,
         DEFAULT: False,
         CLASS: RoverFrame,
         FRAME: "frm_roverview",
+        VISIBLE: False,
+    },
+    WDGCHART: {
+        CLASS: ChartviewFrame,
+        FRAME: "frm_chartview",
+        VISIBLE: False,
+        COLSPAN: 2,
+    },
+    WDGSYSMON: {
+        CLASS: SysmonFrame,
+        FRAME: "frm_sysmon",
         VISIBLE: False,
     },
     # add any new widgets here

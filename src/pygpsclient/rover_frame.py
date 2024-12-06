@@ -16,13 +16,13 @@ Created on 22 Aug 2023
 # pylint: disable=invalid-name
 
 from math import cos, pi, sin
-from tkinter import ALL, BOTH, YES, Frame, font
+from tkinter import ALL, BOTH, NW, SW, YES, E, Frame, N, S, W
 
 from pygpsclient.globals import BGCOL, FGCOL, WIDGETU2
-from pygpsclient.helpers import setubxrate
+from pygpsclient.helpers import fontheight, scale_font, setubxrate
 from pygpsclient.skyview_frame import Canvas
 
-INSET = 5
+INSET = 4  # avoid edges
 SQRT2 = 0.7071067811865476
 MAXPOINTS = 100
 PNTCOL = "orange"
@@ -55,7 +55,8 @@ class RoverFrame(Frame):
         self.scale = 1
         self.range = int(min(self.width / 2, self.height / 2)) - INSET
         self.points = []
-        self.lbl_font = font.Font(size=10)
+        self._font = self.__app.font_sm
+        self._fonth = fontheight(self._font)
         self._body()
         self._attach_events()
 
@@ -86,33 +87,33 @@ class RoverFrame(Frame):
 
         self.canvas.create_line(0, height / 2, width, height / 2, fill=FGCOL)
         self.canvas.create_line(width / 2, 0, width / 2, height, fill=FGCOL)
-        ls = self.lbl_font.metrics("linespace")
+        fh = self._fonth
         self.canvas.create_text(
-            width - ls,
+            width - fh,
             height / 2,
             text="90\u00b0\n E",
             fill=FGCOL,
-            font=self.lbl_font,
-            anchor="e",
+            font=self._font,
+            anchor=E,
         )
         self.canvas.create_text(
-            ls,
+            fh,
             height / 2,
             text="270\u00b0\n W",
             fill=FGCOL,
-            font=self.lbl_font,
-            anchor="w",
+            font=self._font,
+            anchor=W,
         )
         self.canvas.create_text(
-            width / 2, ls, text="0\u00b0 N", fill=FGCOL, font=self.lbl_font, anchor="n"
+            width / 2, fh, text="0\u00b0 N", fill=FGCOL, font=self._font, anchor=N
         )
         self.canvas.create_text(
             width / 2,
-            height - ls,
+            height - fh,
             text="180\u00b0 S",
             fill=FGCOL,
-            font=self.lbl_font,
-            anchor="s",
+            font=self._font,
+            anchor=S,
         )
 
         for rds in range(self.range, 10, int(self.range / -4)):
@@ -135,7 +136,7 @@ class RoverFrame(Frame):
                 txt_y,
                 text=f"{rds*self.scale/mul:.0f} {unt}",
                 fill=FGCOL,
-                font=self.lbl_font,
+                font=self._font,
             )
 
     def update_frame(self):
@@ -175,22 +176,22 @@ class RoverFrame(Frame):
         self.init_frame()
 
         # plot status information
-        ls = self.lbl_font.metrics("linespace")
+        fh = self._fonth
         self.canvas.create_text(
-            ls,
-            ls,
+            INSET,
+            INSET,
             text=f"Len {dis:,.2f} ± {accdis:.2f} cm",
             fill=PNTCOL,
-            anchor="nw",
-            font=self.lbl_font,
+            anchor=NW,
+            font=self._font,
         )
         self.canvas.create_text(
-            ls,
-            ls * 2,
+            INSET,
+            INSET + fh,
             text=f"Hdg {hdg:.2f} ± {acchdg:.2f}",
             fill=PNTCOL,
-            anchor="nw",
-            font=self.lbl_font,
+            anchor=NW,
+            font=self._font,
         )
         fixok = "FIX OK" if fixok else "NO FIX"
         diffsoln = "DGPS" if diffsoln else "NO DGPS"
@@ -202,12 +203,12 @@ class RoverFrame(Frame):
             carrsoln = "NO RTK"
         moving = "MOVING" if moving else "STATIC"
         self.canvas.create_text(
-            ls,
-            self.height - ls,
+            INSET,
+            self.height - INSET,
             text=f"{fixok}\n{diffsoln}\n{valrp}\n{valhdg}\n{carrsoln}\n{moving}",
             fill=PNTCOL,
-            anchor="sw",
-            font=self.lbl_font,
+            anchor=SW,
+            font=self._font,
         )
 
         # plot historical relative position track
@@ -288,6 +289,7 @@ class RoverFrame(Frame):
         """
 
         self.width, self.height = self.get_size()
+        self._font, self._fonth = scale_font(self.width, 10, 30, 20)
         self.init_frame()
 
     def _on_clear(self, event):  # pylint: disable=unused-argument
@@ -309,7 +311,4 @@ class RoverFrame(Frame):
         """
 
         self.update_idletasks()  # Make sure we know about resizing
-        width = self.canvas.winfo_width()
-        height = self.canvas.winfo_height()
-        self.lbl_font = font.Font(size=min(int(width / 25), 10))
-        return (width, height)
+        return self.canvas.winfo_width(), self.canvas.winfo_height()

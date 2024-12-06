@@ -17,7 +17,7 @@ Created on 12 Sep 2020
 :license: BSD 3-Clause
 """
 
-from tkinter import END, HORIZONTAL, VERTICAL, E, Frame, N, S, Scrollbar, Text, W
+from tkinter import END, HORIZONTAL, NONE, VERTICAL, E, Frame, N, S, Scrollbar, Text, W
 
 from pyubx2 import hextable
 
@@ -32,10 +32,12 @@ from pygpsclient.globals import (
     FORMAT_HEXSTR,
     FORMAT_HEXTAB,
     FORMAT_PARSED,
+    WIDGETU3,
 )
 from pygpsclient.strings import HALTTAGWARN
 
 HALT = "HALT"
+CONSOLELINES = 20
 
 
 class ConsoleFrame(Frame):
@@ -57,7 +59,9 @@ class ConsoleFrame(Frame):
 
         Frame.__init__(self, self.__master, *args, **kwargs)
 
-        self.width, self.height = self.get_size()
+        def_w, def_h = WIDGETU3
+        self.width = kwargs.get("width", def_w)
+        self.height = kwargs.get("height", def_h)
         self._colortags = self.__app.frm_settings.config.get(
             "colortags_l", self.__app.frm_settings.config.get("colortags", [])
         )
@@ -74,10 +78,10 @@ class ConsoleFrame(Frame):
         self.option_add("*Font", self.__app.font_sm)
         self._console_fg = FGCOL
         self._console_bg = BGCOL
-        self.width, self.height = self.get_size()
-
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=0)
+        self.grid_rowconfigure(1, weight=0)
         self.sblogv = Scrollbar(self, orient=VERTICAL)
         self.sblogh = Scrollbar(self, orient=HORIZONTAL)
         self.txt_console = Text(
@@ -86,8 +90,8 @@ class ConsoleFrame(Frame):
             fg=self._console_fg,
             yscrollcommand=self.sblogv.set,
             xscrollcommand=self.sblogh.set,
-            wrap="none",
-            height=20,
+            wrap=NONE,
+            height=15,
         )
         self.sblogh.config(command=self.txt_console.xview)
         self.sblogv.config(command=self.txt_console.yview)
@@ -118,6 +122,8 @@ class ConsoleFrame(Frame):
 
         self.bind("<Configure>", self._on_resize)
         self.txt_console.bind("<Double-Button-1>", self._on_clipboard)
+        self.txt_console.bind("<Double-Button-2>", self._on_clipboard)
+        self.txt_console.bind("<Double-Button-3>", self._on_clipboard)
         # self.txt_console.tag_bind(HALT, "<1>", self._on_halt) # doesn't seem to work on MacOS
 
     def update_console(self, consoledata: list):
@@ -248,4 +254,4 @@ class ConsoleFrame(Frame):
         """
 
         self.update_idletasks()  # Make sure we know about any resizing
-        return (self.winfo_width(), self.winfo_height())
+        return self.winfo_width(), self.winfo_height()

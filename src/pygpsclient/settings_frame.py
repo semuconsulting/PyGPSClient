@@ -19,6 +19,7 @@ Created on 12 Sep 2020
 
 # pylint: disable=unnecessary-lambda
 
+from platform import system
 from socket import AF_INET6
 from tkinter import (
     ALL,
@@ -28,6 +29,7 @@ from tkinter import (
     HORIZONTAL,
     LEFT,
     NORMAL,
+    NW,
     RIGHT,
     VERTICAL,
     Button,
@@ -99,7 +101,7 @@ from pygpsclient.globals import (
     UMM,
     WORLD,
 )
-from pygpsclient.helpers import adjust_dimensions
+from pygpsclient.helpers import fontheight, fontwidth
 from pygpsclient.mapquest import MAP_UPDATE_INTERVAL
 from pygpsclient.serialconfig_frame import SerialConfigFrame
 from pygpsclient.serverconfig_frame import ServerConfigFrame
@@ -123,8 +125,18 @@ from pygpsclient.strings import (
 
 MAXLINES = ("200", "500", "1000", "2000", "100")
 MAPTYPES = (WORLD, MAP, SAT, CUSTOM)
-MINHEIGHT = 750
-MINWIDTH = 390
+# initial dimensions adjusted for different widget
+# rendering on different platforms
+if system() == "Linux":  # Wayland
+    MINHEIGHT = 28
+    MINWIDTH = 28
+elif system() == "Darwin":  # MacOS
+
+    MINHEIGHT = 38
+    MINWIDTH = 30
+else:  # Windows and others
+    MINHEIGHT = 35
+    MINWIDTH = 26
 
 
 class SettingsFrame(Frame):
@@ -194,7 +206,8 @@ class SettingsFrame(Frame):
         function which invokes the on_expand() method here.
         """
 
-        dimw, dimh = [adjust_dimensions(x) for x in (MINWIDTH, MINHEIGHT)]
+        dimw = fontwidth(self.__app.font_md) * MINWIDTH
+        dimh = fontheight(self.__app.font_md) * MINHEIGHT
         self._frm_main = Frame(self)
         self._frm_main.pack(fill=BOTH, expand=1)
         self_frm_scrollx = Frame(self._frm_main)
@@ -212,9 +225,7 @@ class SettingsFrame(Frame):
         y_scrollbar.pack(side=RIGHT, fill=Y)
         self._can_container.configure(xscrollcommand=x_scrollbar.set)
         self._can_container.configure(yscrollcommand=y_scrollbar.set)
-        self._can_container.create_window(
-            (0, 0), window=self._frm_container, anchor="nw"
-        )
+        self._can_container.create_window((0, 0), window=self._frm_container, anchor=NW)
         self._can_container.bind(
             "<Configure>",
             lambda e: self._can_container.config(
@@ -933,19 +944,22 @@ class SettingsFrame(Frame):
                         0,
                     ),
                 ),
-                "scatterautorange_b": self.__app.saved_config.get(
-                    "scatterautorange_b", 0
+                "scattersettings_d": self.__app.saved_config.get(
+                    "scattersettings_d",
+                    {
+                        "scatterautorange_b": 0,
+                        "scattercenter_s": "Average",
+                        "scatterinterval_n": 1,
+                        "scatterscale_n": 6,
+                        "scatterlat_f": 0.0,
+                        "scatterlon_f": 0.0,
+                    },
                 ),
-                "scattercenter_s": self.__app.saved_config.get(
-                    "scattercenter_s", "Average"
+                "chartsettings_d": self.__app.saved_config.get(
+                    "chartsettings_d", {"numchn": 4, "timrng": 60}
                 ),
-                "scatterinterval_n": self.__app.saved_config.get(
-                    "scatterinterval_n", 1
-                ),
-                "scatterscale_n": self.__app.saved_config.get("scatterscale_n", 6),
-                "scatterlat_f": self.__app.saved_config.get("scatterlat_f", 0.0),
-                "scatterlon_f": self.__app.saved_config.get("scatterlon_f", 0.0),
                 # Manually edited config settings
+                "checkforupdate_b": self.__app.saved_config.get("checkforupdate_b", 0),
                 "spartndecode_b": self.__app.saved_config.get("spartndecode_b", 0),
                 "spartnkey_s": self.__app.saved_config.get(
                     "spartnkey_s", SPARTN_DEFAULT_KEY

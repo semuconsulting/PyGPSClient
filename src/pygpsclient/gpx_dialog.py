@@ -19,6 +19,7 @@ from io import BytesIO
 from tkinter import (
     ALL,
     BOTH,
+    CENTER,
     DISABLED,
     NW,
     YES,
@@ -160,7 +161,7 @@ class GPXViewerDialog(Toplevel):
         self._lbl_info = []
         for i in range(MD_LINES):
             self._lbl_info.append(
-                Label(self._frm_info, textvariable=self._info[i], anchor="w")
+                Label(self._frm_info, textvariable=self._info[i], anchor=W)
             )
         self._btn_load = Button(
             self._frm_controls,
@@ -342,8 +343,8 @@ class GPXViewerDialog(Toplevel):
         :rtype: tuple
         """
 
-        # self.update_idletasks()  # Make sure we know about any resizing
-        return (self.winfo_width(), self.winfo_height())
+        self.update_idletasks()  # Make sure we know about any resizing
+        return self.winfo_width(), self.winfo_height()
 
     def _on_resize(self, event):
         """
@@ -628,7 +629,7 @@ class GPXViewerDialog(Toplevel):
             x2, y2 = self._get_point(maxe, maxx, ele, maxx)
             self._can_profile.create_line(x1, y1, x2 + 1, y1, fill="grey")
             self._can_profile.create_text(
-                x1 - 2, y1, text=f"{ele}", fill=ELEAX_COL, font=fnt, anchor="e"
+                x1 - 2, y1, text=f"{ele}", fill=ELEAX_COL, font=fnt, anchor=E
             )
         self._can_profile.create_text(
             AXIS_XL - 2,
@@ -636,7 +637,7 @@ class GPXViewerDialog(Toplevel):
             text=ele_u,
             fill=ELEAX_COL,
             font=fnt,
-            anchor="e",
+            anchor=E,
         )
 
         # plot speed (yR) axis grid
@@ -651,7 +652,7 @@ class GPXViewerDialog(Toplevel):
                 text=f"{spd}",
                 fill=SPD_COL,
                 font=fnt,
-                anchor="w",
+                anchor=W,
             )
         self._can_profile.create_text(
             self.width - AXIS_XR + 1,
@@ -659,7 +660,7 @@ class GPXViewerDialog(Toplevel):
             text=spd_u,
             fill=SPD_COL,
             font=fnt,
-            anchor="w",
+            anchor=W,
         )
 
         # plot trackpoint (X) axis grid
@@ -669,9 +670,9 @@ class GPXViewerDialog(Toplevel):
             x2, y2 = self._get_point(maxe, maxx, maxe, n)
             self._can_profile.create_line(x1, y1 - 1, x1, y2, fill="grey")
             for xtick in (
-                (tim1, 0, "w"),
-                (timm, maxx / 2, "center"),
-                (tim2, maxx, "e"),
+                (tim1, 0, W),
+                (timm, maxx / 2, CENTER),
+                (tim2, maxx, E),
             ):
                 x, y = self._get_point(maxe, maxx, 0, xtick[1])
                 self._can_profile.create_text(

@@ -76,7 +76,7 @@ class UBX_PORT_Frame(Frame):
         Set up frame and widgets.
         """
 
-        self._lbl_cfg_port = Label(self, text=LBLCFGPRT, anchor="w")
+        self._lbl_cfg_port = Label(self, text=LBLCFGPRT, anchor=W)
         self._lbl_ubx_portid = Label(self, text="Port ID")
         self._spn_ubx_portid = Spinbox(
             self,

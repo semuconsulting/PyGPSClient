@@ -75,14 +75,14 @@ class MenuBar(Menu):
         # Menu labels are set in app._grid_widgets() function
         self.view_menu = Menu(self, tearoff=False)
         for wdg, wdict in widget_state.items():
-            if wdict[MENU] is not None:
+            if wdict.get(MENU, True):
                 self.view_menu.add_command(
-                    underline=1, command=lambda i=wdg: self.__app.toggle_widget(i)
+                    underline=1, command=lambda i=wdg: self.__app.widget_toggle(i)
                 )
         self.view_menu.add_command(
             underline=1,
             label=MENURESET,
-            command=lambda: self.__app.reset_widgets(),  # pylint: disable=unnecessary-lambda
+            command=lambda: self.__app.widget_reset(),  # pylint: disable=unnecessary-lambda
         )
         self.add_cascade(menu=self.view_menu, label=MENUVIEW)
 

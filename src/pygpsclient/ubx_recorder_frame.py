@@ -106,7 +106,7 @@ class UBX_Recorder_Frame(Frame):
         Set up frame and widgets.
         """
 
-        self._lbl_recorder = Label(self, text=LBLCFGRECORD, anchor="w")
+        self._lbl_recorder = Label(self, text=LBLCFGRECORD, anchor=W)
 
         self._btn_load = Button(
             self,

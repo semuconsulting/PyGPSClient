@@ -181,9 +181,7 @@ class NTRIPConfigDialog(Toplevel):
             server_callback=self._on_server,
         )
         self._frm_status = Frame(self._frm_container, borderwidth=2, relief="groove")
-        self._lbl_status = Label(
-            self._frm_status, textvariable=self._status, anchor="w"
-        )
+        self._lbl_status = Label(self._frm_status, textvariable=self._status, anchor=W)
         self._btn_exit = Button(
             self._frm_status,
             image=self._img_exit,
@@ -205,7 +203,7 @@ class NTRIPConfigDialog(Toplevel):
             self._frm_container,
             textvariable=self._ntrip_mpdist,
             width=30,
-            anchor="w",
+            anchor=W,
         )
         self._lbl_sourcetable = Label(self._frm_container, text=LBLNTRIPSTR)
         self._lbx_sourcetable = Listbox(

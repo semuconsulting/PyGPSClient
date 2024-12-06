@@ -74,7 +74,7 @@ class UBX_RATE_Frame(Frame):
         Set up frame and widgets.
         """
 
-        self._lbl_cfg_rate = Label(self, text=LBLCFGRATE, anchor="w")
+        self._lbl_cfg_rate = Label(self, text=LBLCFGRATE, anchor=W)
         self._lbl_ubx_measint = Label(self, text="Solution Interval (ms)")
         self._spn_ubx_measint = Spinbox(
             self,

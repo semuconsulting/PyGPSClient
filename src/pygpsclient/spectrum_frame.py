@@ -13,12 +13,21 @@ Created on 23 Dec 2022
 :license: BSD 3-Clause
 """
 
-from tkinter import ALL, Canvas, Checkbutton, E, Frame, IntVar, N, S, W, font
+from tkinter import ALL, NW, Canvas, Checkbutton, E, Frame, IntVar, N, S, W
 
 from pyubx2 import UBXMessage
 
-from pygpsclient.globals import BGCOL, FGCOL, GNSS_LIST, PNTCOL, SPECTRUMVIEW, WIDGETU2
-from pygpsclient.helpers import setubxrate
+from pygpsclient.globals import (
+    BGCOL,
+    FGCOL,
+    GNSS_LIST,
+    GRIDCOL,
+    PNTCOL,
+    SPECTRUMVIEW,
+    WIDGETU2,
+    AreaXY,
+)
+from pygpsclient.helpers import data2xy, fontheight, scale_font, setubxrate, xy2data
 from pygpsclient.strings import DLGENABLEMONSPAN, DLGNOMONSPAN, DLGWAITMONSPAN
 
 # Graph dimensions
@@ -31,7 +40,6 @@ MIN_HZ = 1130000000
 MAX_HZ = 1650000000
 TICK_DB = 20  # 20 dB divisions
 TICK_GHZ = 40000000  # 40 MHz divisions
-TICK_COL = "grey"
 RF_BANDS = {
     "B1": 1575420000,
     "B3": 1268520000,
@@ -102,8 +110,9 @@ class SpectrumviewFrame(Frame):
         self._chartpos = None
         self._spectrum_snapshot = []
         self._pgaoffset = IntVar()
+        self._font = self.__app.font_sm
+        self._fonth = fontheight(self._font)
         self._body()
-        self._set_fontsize()
         self._attach_events()
 
     def _body(self):
@@ -145,15 +154,24 @@ class SpectrumviewFrame(Frame):
         Initialise spectrum chart.
         """
 
+        offset = self._fonth + 4
+        w = self.width - offset * 2
+        h = self.height - offset
+        bounds = AreaXY(self._minhz, self._mindb, self._maxhz, self._maxdb)
         self.can_spectrumview.delete(ALL)
 
         # plot y (dB) axis grid
         i = 0
         for db in range(self._mindb, self._maxdb, TICK_DB):
-            x1, y1 = self._get_point(self._minhz, db)
-            x2, y2 = self._get_point(self._maxhz, db)
+            x1, y1 = data2xy(w, h, bounds, self._minhz, db, offset)
+            x2, y2 = data2xy(w, h, bounds, self._maxhz, db, offset)
             self.can_spectrumview.create_line(
-                x1, y1, x2 + 1, y1, fill=TICK_COL if i else FGCOL, tags=MODEINIT
+                x1,
+                y1,
+                x2 + 1,
+                y1,
+                fill=GRIDCOL if i else FGCOL,
+                tags=MODEINIT,
             )
             self.can_spectrumview.create_text(
                 x1,
@@ -162,7 +180,7 @@ class SpectrumviewFrame(Frame):
                 angle=90,
                 fill=FGCOL,
                 font=self._font,
-                anchor="s",
+                anchor=S,
                 tags=MODEINIT,
             )
             i += 1
@@ -170,10 +188,15 @@ class SpectrumviewFrame(Frame):
         # plot x (Hz) axis grid
         i = 0
         for hz in range(self._minhz, self._maxhz, TICK_GHZ):
-            x1, y1 = self._get_point(hz, self._mindb)
-            x2, y2 = self._get_point(hz, self._maxdb)
+            x1, y1 = data2xy(w, h, bounds, hz, self._mindb, offset)
+            x2, y2 = data2xy(w, h, bounds, hz, self._maxdb, offset)
             self.can_spectrumview.create_line(
-                x1, y1 - 1, x1, y2, fill=TICK_COL if i else FGCOL, tags=MODEINIT
+                x1,
+                y1 - 1,
+                x1,
+                y2,
+                fill=GRIDCOL if i else FGCOL,
+                tags=MODEINIT,
             )
             self.can_spectrumview.create_text(
                 x1,
@@ -181,16 +204,22 @@ class SpectrumviewFrame(Frame):
                 text=f"{hz / 1e9:.2f}",  # GHz
                 fill=FGCOL,
                 font=self._font,
-                anchor="n",
+                anchor=N,
                 tags=MODEINIT,
             )
             i += 1
 
-        x, y = self._get_point(self._maxhz, self._mindb)
+        x, y = data2xy(w, h, bounds, self._maxhz, self._mindb, offset)
         self.can_spectrumview.create_text(
-            x, y, text="GHz", fill=FGCOL, font=self._font, anchor="se", tags=MODEINIT
+            x,
+            y,
+            text="GHz",
+            fill=FGCOL,
+            font=self._font,
+            anchor="se",
+            tags=MODEINIT,
         )
-        x, y = self._get_point(self._minhz + self._fonth, self._maxdb - 5)
+        x, y = data2xy(w, h, bounds, self._minhz + self._fonth, self._maxdb - 5, offset)
         self.can_spectrumview.create_text(
             x,
             y,
@@ -263,7 +292,7 @@ class SpectrumviewFrame(Frame):
                 h / 2,
                 text=DLGNOMONSPAN,
                 fill="orange",
-                anchor="s",
+                anchor=S,
             )
             self._pending_confs.pop("ACK-NAK")
             self._monspan_status = DLGNOMONSPAN
@@ -298,6 +327,10 @@ class SpectrumviewFrame(Frame):
         :param str mode: plot mode ("live" or "snap"shot)
         """
 
+        offset = self._fonth + 4
+        w = self.width - offset * 2
+        h = self.height - offset
+
         if colors is None:
             colors = RF_LIST
 
@@ -307,50 +340,14 @@ class SpectrumviewFrame(Frame):
             self._maxdb += 40
 
         specxy, self._minhz, self._maxhz = self._get_limits(rfblocks)
+        bounds = AreaXY(self._minhz, self._mindb, self._maxhz, self._maxdb)
         if mode == MODESNAP:
             self.can_spectrumview.delete(MODESNAP)
         else:
             self.init_frame()
             # plot frequency band markers
             if self._showrf:
-                for nam, frq in RF_BANDS.items():
-                    if self._minhz < frq < self._maxhz:
-                        x1, y1 = self._get_point(frq, self._maxdb)
-                        x2, y2 = self._get_point(frq, self._mindb)
-                        yoff, col = {
-                            "L": (self._fonth, GNSS_LIST[0][1]),  # GPS
-                            "G": (self._fonth * 2, GNSS_LIST[6][1]),  # GLONASS
-                            "E": (self._fonth * 3, GNSS_LIST[2][1]),  # Galileo
-                            "S": (self._fonth * 3, GNSS_LIST[2][1]),  # Galileo SAR
-                            "B": (self._fonth * 4, GNSS_LIST[3][1]),  # Beidou
-                        }[nam[0:1]]
-                        if nam not in (
-                            "E1",
-                            "E5a",
-                            "E5b",
-                            "B2a",
-                            "B2",
-                            "B1",
-                        ):  # same freq as other bands
-                            self.can_spectrumview.create_line(
-                                x1,
-                                y1,
-                                x1,
-                                y2,
-                                fill=col,
-                                dash=(5, 2),
-                                width=OL_WID,
-                                tags=mode,
-                            )
-                        self.can_spectrumview.create_text(
-                            x2 + 2,
-                            y2 - yoff - 1,
-                            text=nam,
-                            fill=col,
-                            anchor="nw",
-                            font=self._font,
-                            tags=mode,
-                        )
+                self._plot_rf_markers(w, h, bounds, offset, mode)
 
         # for each RF block in MON-SPAN message
         for i, rfblock in enumerate(specxy):
@@ -369,7 +366,7 @@ class SpectrumviewFrame(Frame):
                     text=f"RF {i + 1}",
                     fill=FGCOL,
                     font=self._font,
-                    anchor="s",
+                    anchor=S,
                     tags=mode,
                 )
             self.can_spectrumview.create_line(
@@ -387,10 +384,16 @@ class SpectrumviewFrame(Frame):
             y2 = self.height - 5
             for n, (hz, db) in enumerate(rfblock):
                 x1, y1 = x2, y2
-                x2, y2 = self._get_point(hz, db)
+                x2, y2 = data2xy(w, h, bounds, hz, db, offset)
                 if n:
                     self.can_spectrumview.create_line(
-                        x1, y1, x2, y2, fill=col, width=OL_WID, tags=mode
+                        x1,
+                        y1,
+                        x2,
+                        y2,
+                        fill=col,
+                        width=OL_WID,
+                        tags=mode,
                     )
 
         # display any flagged chart position
@@ -406,49 +409,55 @@ class SpectrumviewFrame(Frame):
                 tags=mode,
             )
 
-    def _get_point(self, hz: float, db: float) -> tuple:
+    def _plot_rf_markers(self, w: int, h: int, bounds: AreaXY, offset: int, mode: int):
         """
-        Convert (hz,db) values to canvas pixel coordinates (x,y).
+        Plot RF band markers
 
-        :param hz float: hz (x) value
-        :param db float: db (y) value
-        :return: (x, y) coordinates
-        :rtype: tuple
+        :param int w: plots width
+        :param int h: plot height
+        :param AreaXY bounds: data bounds
+        :param offset: _description_
         """
+        # pylint: disable=too-many-arguments, too-many-positional-arguments
 
-        offset = self._fonth + 4
-        val_db = db - self._mindb
-        range_db = self._maxdb - self._mindb
-        range_x = self.width - offset * 2
-        val_hz = hz - self._minhz
-        range_hz = self._maxhz - self._minhz
-        range_y = self.height - self._fonth
-
-        x = offset + (val_hz * range_x / range_hz)
-        y = self.height - offset - (val_db * range_y / range_db)
-        return (int(x), int(y))
-
-    def _get_hzdb(self, x: int, y: int) -> tuple:
-        """
-        Get frequency & level corresponding to cursor x,y position.
-
-        :param x int: cursor x position
-        :param y int: cursor y position
-        :return: (Ghz, dB) values
-        :rtype: tuple
-        """
-
-        offset = self._fonth + 4
-        val_x = x - offset
-        range_x = self.width - offset * 2
-        range_db = self._maxdb - self._mindb
-        val_y = y - self.height + offset
-        range_y = self._fonth - self.height
-        range_hz = self._maxhz - self._minhz
-
-        hz = self._minhz + (val_x * range_hz / range_x)
-        db = self._mindb + (val_y * range_db / range_y)
-        return (hz / 1e9, db)
+        for nam, frq in RF_BANDS.items():
+            if self._minhz < frq < self._maxhz:
+                x1, y1 = data2xy(w, h, bounds, frq, self._maxdb, offset)
+                x2, y2 = data2xy(w, h, bounds, frq, self._mindb, offset)
+                yoff, col = {
+                    "L": (self._fonth, GNSS_LIST[0][1]),  # GPS
+                    "G": (self._fonth * 2, GNSS_LIST[6][1]),  # GLONASS
+                    "E": (self._fonth * 3, GNSS_LIST[2][1]),  # Galileo
+                    "S": (self._fonth * 3, GNSS_LIST[2][1]),  # Galileo SAR
+                    "B": (self._fonth * 4, GNSS_LIST[3][1]),  # Beidou
+                }[nam[0:1]]
+                if nam not in (
+                    "E1",
+                    "E5a",
+                    "E5b",
+                    "B2a",
+                    "B2",
+                    "B1",
+                ):  # same freq as other bands
+                    self.can_spectrumview.create_line(
+                        x1,
+                        y1,
+                        x1,
+                        y2,
+                        fill=col,
+                        dash=(5, 2),
+                        width=OL_WID,
+                        tags=mode,
+                    )
+                self.can_spectrumview.create_text(
+                    x2 + 2,
+                    y2 - yoff - 1,
+                    text=nam,
+                    fill=col,
+                    anchor=NW,
+                    font=self._font,
+                    tags=mode,
+                )
 
     def _get_limits(self, rfblocks: list) -> tuple:
         """
@@ -484,23 +493,17 @@ class SpectrumviewFrame(Frame):
             int(maxhz + TICK_GHZ / 2),
         )
 
-    def _on_resize(self, event):  # pylint: disable=unused-argument
-        """
-        Resize frame.
-
-        :param event event: resize event
-        """
-
-        self.width, self.height = self.get_size()
-        self._chartpos = None
-
     def _on_click(self, event):
         """
         Save flagged chart position.
         """
 
-        hz, db = self._get_hzdb(event.x, event.y)
-        self._chartpos = (event.x, event.y, hz, db)
+        offset = self._fonth + 4
+        w = self.width - offset * 2
+        h = self.height - offset
+        bounds = AreaXY(self._minhz, self._mindb, self._maxhz, self._maxdb)
+        hz, db = xy2data(w, h, bounds, event.x - offset, event.y)
+        self._chartpos = (event.x, event.y, hz / 1e9, db)
 
     def _on_toggle_rf(self, event):  # pylint: disable=unused-argument
         """
@@ -525,6 +528,17 @@ class SpectrumviewFrame(Frame):
         self._spectrum_snapshot = []
         self.can_spectrumview.delete("snap")
 
+    def _on_resize(self, event):  # pylint: disable=unused-argument
+        """
+        Resize frame.
+
+        :param event event: resize event
+        """
+
+        self.width, self.height = self.get_size()
+        self._font, self._fonth = scale_font(self.width, 8, 25, 20)
+        self._chartpos = None
+
     def get_size(self):
         """
         Get current canvas size.
@@ -534,16 +548,4 @@ class SpectrumviewFrame(Frame):
         """
 
         self.update_idletasks()  # Make sure we know about any resizing
-        width = self.can_spectrumview.winfo_width()
-        height = self.can_spectrumview.winfo_height()
-        self._set_fontsize()
-        return (width, height)
-
-    def _set_fontsize(self):
-        """
-        Set font size and line spacing
-        """
-
-        dim = min(self.width, self.height)
-        self._font = font.Font(size=max(int(dim * RESFONT / 1000), MINFONT))
-        self._fonth = self._font.metrics("linespace")
+        return self.can_spectrumview.winfo_width(), self.can_spectrumview.winfo_height()

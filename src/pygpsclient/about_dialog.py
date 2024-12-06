@@ -13,7 +13,7 @@ Created on 20 Sep 2020
 from platform import python_version
 from subprocess import CalledProcessError, run
 from sys import platform
-from tkinter import Button, E, Frame, Label, Tcl, Toplevel, W
+from tkinter import Button, Checkbutton, E, Frame, IntVar, Label, Tcl, Toplevel, W
 from webbrowser import open_new_tab
 
 from PIL import Image, ImageTk
@@ -69,6 +69,9 @@ class AboutDialog:
         self._img_github = ImageTk.PhotoImage(Image.open(ICON_GITHUB).resize((32, 32)))
         self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
         self._img_sponsor = ImageTk.PhotoImage(Image.open(ICON_SPONSOR))
+        self._checkonstartup = IntVar()
+        cfu = self.__app.saved_config.get("checkforupdate_b", False)
+        self._checkonstartup.set(cfu)
         self._updates = []
 
         self._body()
@@ -111,6 +114,11 @@ class AboutDialog:
             width=12,
             font=self.__app.font_sm,
             cursor="hand2",
+        )
+        self._chk_checkupdate = Checkbutton(
+            self._frm_container,
+            text="Check on startup",
+            variable=self._checkonstartup,
         )
         self._lbl_giticon = Label(
             self._frm_container,
@@ -159,7 +167,10 @@ class AboutDialog:
                 column=0, row=4 + i, columnspan=2, padx=2, pady=2
             )
         self._btn_checkupdate.grid(
-            column=0, row=5 + i, ipadx=3, ipady=3, columnspan=2, padx=3, pady=3
+            column=0, row=5 + i, ipadx=3, ipady=3, padx=3, pady=3
+        )
+        self._chk_checkupdate.grid(
+            column=1, row=5 + i, ipadx=3, ipady=3, padx=3, pady=3
         )
         self._lbl_giticon.grid(column=0, row=6 + i, padx=(3, 1), pady=3, sticky=E)
         self._lbl_sponsoricon.grid(column=1, row=6 + i, padx=(3, 1), pady=3, sticky=W)
@@ -181,6 +192,7 @@ class AboutDialog:
         self._lbl_copyright.bind("<Button>", self._on_license)
         self._btn_ok.bind("<Return>", self._ok_press)
         self._btn_ok.focus_set()
+        self._checkonstartup.trace_add("write", self._on_save_settings)
 
     def _on_github(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -272,3 +284,10 @@ class AboutDialog:
 
         self._btn_checkupdate.config(text="RESTART APP", fg="green")
         self._btn_checkupdate.bind("<Button>", self.__app.on_exit)
+
+    def _on_save_settings(self, var, index, mode):  # pylint: disable=unused-argument
+        """
+        Save current settings to saved app config dict.
+        """
+
+        self.__app.saved_config["checkforupdate_b"] = self._checkonstartup.get()
