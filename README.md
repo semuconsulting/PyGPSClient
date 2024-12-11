@@ -80,11 +80,6 @@ In the following, `python3` & `pip` refer to the Python 3 executables. You may n
 
 *¹* It is highly recommended to use the latest official [Python.org](https://www.python.org/downloads/) installation package for your platform, rather than any pre-installed version.
 
-- To enable automatic bounds detection in the Import Custom Map facility, the `rasterio` library must be installed:
-```shell
-python3 -m pip install rasterio
-```
-
 **Windows 10 or later:**
 
 Normally installs without any additional steps.
@@ -113,6 +108,22 @@ sudo apt install tk-dev
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 sudo apt-get install build-essential libssl-dev libffi-dev python3-dev pkg-config
 ```
+
+**Import Custom Map dependency - rasterio**
+
+To enable automatic extent detection in the Import Custom Map facility, the `rasterio` Python library must be installed. This in turn requires the [GDAL (Geospatial Data Abstration Layer)](https://gdal.org/en/stable/) library:
+
+```shell
+python3 -m pip install rasterio
+```
+
+... or on some Linux distributions:
+
+```shell
+sudo apt install python3-rasterio
+```
+
+*FYI* GDAL can also be installed as part of a [QGIS](https://qgis.org/download/) installation.
 
 ### User Privileges
 
