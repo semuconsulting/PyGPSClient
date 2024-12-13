@@ -1,5 +1,9 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.5.2
+
+1. Add support for pyubxutils.
+
 ### RELEASE 1.5.1
 
 1. Add new user-selectable and configurable "Chart" widget:

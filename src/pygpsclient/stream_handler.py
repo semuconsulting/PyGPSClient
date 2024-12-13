@@ -35,7 +35,6 @@ from queue import Empty
 from threading import Event, Thread
 
 from certifi import where as findcacerts
-from pygnssutils import UBXSimulator
 from pynmeagps import NMEAMessageError, NMEAParseError
 from pyrtcm import RTCMMessageError, RTCMParseError
 from pyubx2 import (
@@ -47,6 +46,7 @@ from pyubx2 import (
     UBXParseError,
     UBXReader,
 )
+from pyubxutils import UBXSimulator
 from serial import Serial, SerialException, SerialTimeoutException
 
 from pygpsclient.globals import (
