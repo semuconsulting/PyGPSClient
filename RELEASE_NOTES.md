@@ -3,6 +3,7 @@
 ### RELEASE 1.5.2
 
 1. Add support for pyubxutils.
+1. Minor updates to vscode task configurations.
 
 ### RELEASE 1.5.1
 

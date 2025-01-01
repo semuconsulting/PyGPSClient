@@ -153,10 +153,6 @@
             "type": "process",
             "command": "sphinx-apidoc",
             "args": [
-                "--doc-project=${config:modulename}",
-                "--doc-author=semuadmin",
-                "--doc-version=${config:moduleversion}",
-                "--doc-release=${config:moduleversion}",
                 "--ext-autodoc",
                 "--ext-viewcode",
                 "--templatedir=docs",
@@ -205,29 +201,32 @@
         },
         {
             "label": "Install Wheel",
-            "type": "process",
+            "type": "shell",
             "command": "${config:python.defaultInterpreterPath}",
             "args": [
                 "-m",
                 "pip",
                 "install",
-                "${workspaceFolder}/dist/${config:distname}-${config:moduleversion}-py3-none-any.whl",
                 "--user",
-                "--force-reinstall"
+                "--force-reinstall",
+                "*.whl"
             ],
+            "options": {
+                "cwd": "dist"
+            },
             "problemMatcher": []
         },
         {
             "label": "Install Locally",
-            "type": "process",
+            "type": "shell",
             "command": "${config:python.defaultInterpreterPath}",
             "args": [
                 "-m",
                 "pip",
                 "install",
-                "${workspaceFolder}/dist/${config:distname}-${config:moduleversion}-py3-none-any.whl",
                 "--user",
-                "--force-reinstall"
+                "--force-reinstall",
+                "*.whl"
             ],
             "dependsOrder": "sequence",
             "dependsOn": [
@@ -240,6 +239,9 @@
                 "Build",
                 "Sphinx HTML"
             ],
+            "options": {
+                "cwd": "dist"
+            },
             "problemMatcher": []
         }
     ]
