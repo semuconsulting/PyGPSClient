@@ -813,9 +813,9 @@ class SettingsFrame(Frame):
                 "unusedsat_b": self._show_unusedsat.get(),
                 "datalog_b": self._datalog.get(),
                 "logformat_s": self._logformat.get(),
-                "logpath_s": self.logpath,
+                "logpath_s": str(self.logpath),
                 "recordtrack_b": self._record_track.get(),
-                "trackpath_s": self.trackpath,
+                "trackpath_s": str(self.trackpath),
                 # serial port settings from frm_serial
                 "serialport_s": self.frm_serial.port,
                 "bpsrate_n": self.frm_serial.bpsrate,
