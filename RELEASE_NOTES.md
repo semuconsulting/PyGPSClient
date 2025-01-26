@@ -2,6 +2,7 @@
 
 ### RELEASE 1.5.2
 
+1. Fix logpath setting in config file - Fixes [#171](https://github.com/semuconsulting/PyGPSClient/issues/171)
 1. Add support for pyubxutils.
 1. Minor updates to vscode task configurations.
 
