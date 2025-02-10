@@ -15,7 +15,7 @@ Created on 12 Sep 2020
 from pygpsclient.globals import GITHUB_URL, MAPAPI_URL
 
 TITLE = "PyGPSClient"
-COPYRIGHT = "\u00A9 2020 SEMU Consulting\nBSD 3-Clause License"
+COPYRIGHT = "\u00a9 2020 SEMU Consulting\nBSD 3-Clause License"
 COPYRIGHTTXT = f"{COPYRIGHT}. All Rights Reserved"
 EPILOG = f"{COPYRIGHT} - {GITHUB_URL}"
 
