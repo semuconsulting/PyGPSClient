@@ -430,7 +430,7 @@ class UBX_PRESET_Frame(Frame):
         """
 
         for msgtype in UBX_MSGIDS:
-            if msgtype[0:1] == b"\x0A":
+            if msgtype[0:1] == b"\x0a":
                 self._do_cfgmsg(msgtype, msgrate)
 
     def _do_set_rxm(self, msgrate):

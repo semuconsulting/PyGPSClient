@@ -202,16 +202,17 @@ class FileHandler:
         except (OSError, json.JSONDecodeError) as err:
             return str(err)
 
-    def set_logfile_path(self) -> Path:
+    def set_logfile_path(self, initdir=HOME) -> Path:
         """
         Set file path.
 
+        :param str initdir: initial directory (HOME)
         :return: file path
         :rtype: str
         """
 
         self._logpath = filedialog.askdirectory(
-            title=SAVETITLE, initialdir=HOME, mustexist=True
+            title=SAVETITLE, initialdir=initdir, mustexist=True
         )
         if self._logpath in ((), ""):
             return None  # User cancelled
@@ -224,6 +225,7 @@ class FileHandler:
 
         # pylint: disable=consider-using-with
 
+        self._logpath = self.__app.frm_settings.config.get("logpath_s", HOME)
         self._lines = 0
         _, self._logname = set_filename(self._logpath, "data", "log")
         self._logfile = open(self._logname, "a+b")
@@ -236,7 +238,7 @@ class FileHandler:
         """
 
         if self._logfile is None:
-            return
+            self.open_logfile()
 
         settings = self.__app.frm_settings.config
         lfm = settings["logformat_s"]
@@ -275,16 +277,17 @@ class FileHandler:
         except IOError:
             pass
 
-    def set_trackfile_path(self) -> Path:
+    def set_trackfile_path(self, initdir=HOME) -> Path:
         """
         Set track directory.
 
+        :param str initdir: initial directory (HOME)
         :return: file path
         :rtype: str
         """
 
         self._trackpath = filedialog.askdirectory(
-            title=SAVETITLE, initialdir=HOME, mustexist=True
+            title=SAVETITLE, initialdir=initdir, mustexist=True
         )
         if self._trackpath in ((), ""):
             return None  # User cancelled

@@ -6,7 +6,7 @@
     "configurations": [
         {
             "name": "Python: Module",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "pygpsclient"
         }

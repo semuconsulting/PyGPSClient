@@ -73,6 +73,7 @@ from pygpsclient.globals import (
     GNSS_ERR_EVENT,
     GNSS_EVENT,
     GNSS_TIMEOUT_EVENT,
+    HOME,
     ICON_CONN,
     ICON_DISCONN,
     ICON_EXIT,
@@ -159,7 +160,8 @@ class SettingsFrame(Frame):
         Frame.__init__(self, self.__master, *args, **kwargs)
 
         self.infilepath = None
-        self.outfilepath = None
+        self.logpath = HOME
+        self.trackpath = HOME
         self._prot_nmea = IntVar()
         self._prot_ubx = IntVar()
         self._prot_rtcm3 = IntVar()
@@ -182,7 +184,6 @@ class SettingsFrame(Frame):
             "defaultport_s", RCVR_CONNECTION
         )
         self._validsettings = True
-        self._trackpath = None
         self._img_conn = ImageTk.PhotoImage(Image.open(ICON_CONN))
         self._img_serial = ImageTk.PhotoImage(Image.open(ICON_SERIAL))
         self._img_socket = ImageTk.PhotoImage(Image.open(ICON_SOCKET))
@@ -560,7 +561,9 @@ class SettingsFrame(Frame):
         self._show_unusedsat.set(self.__app.saved_config.get("unusedsat_b", 0))
         self._logformat.set(self.__app.saved_config.get("logformat_s", FORMAT_BINARY))
         self._datalog.set(self.__app.saved_config.get("datalog_b", 0))
+        self.logpath = self.__app.saved_config.get("logpath_s", HOME)
         self._record_track.set(self.__app.saved_config.get("recordtrack_b", 0))
+        self.trackpath = self.__app.saved_config.get("trackpath_s", HOME)
         self.clients = 0
 
     def _reset_frames(self):
@@ -670,14 +673,14 @@ class SettingsFrame(Frame):
         """
 
         if self._datalog.get() == 1:
-            self.outfilepath = self.__app.file_handler.set_logfile_path()
-            if self.outfilepath is not None:
-                self.__app.set_status("Data logging enabled: " + self.outfilepath)
+            self.logpath = self.__app.file_handler.set_logfile_path(self.logpath)
+            if self.logpath is not None:
+                self.__app.set_status("Data logging enabled: " + self.logpath)
                 self.__app.file_handler.open_logfile()
             else:
+                self.logpath = ""
                 self._datalog.set(False)
         else:
-            self.outfilepath = None
             self._datalog.set(False)
             self.__app.file_handler.close_logfile()
             self.__app.set_status("Data logging disabled")
@@ -688,14 +691,14 @@ class SettingsFrame(Frame):
         """
 
         if self._record_track.get() == 1:
-            self._trackpath = self.__app.file_handler.set_trackfile_path()
-            if self._trackpath is not None:
-                self.__app.set_status("Track recording enabled: " + self._trackpath)
+            self.trackpath = self.__app.file_handler.set_trackfile_path(self.trackpath)
+            if self.trackpath is not None:
+                self.__app.set_status("Track recording enabled: " + self.trackpath)
                 self.__app.file_handler.open_trackfile()
             else:
+                self.trackpath = ""
                 self._record_track.set(False)
         else:
-            self._trackpath = None
             self._record_track.set(False)
             self.__app.file_handler.close_trackfile()
             self.__app.set_status("Track recording disabled")
@@ -808,9 +811,11 @@ class SettingsFrame(Frame):
                 "mapzoom_n": self.mapzoom.get(),
                 "legend_b": self.show_legend.get(),
                 "unusedsat_b": self._show_unusedsat.get(),
-                "logformat_s": self._logformat.get(),
                 "datalog_b": self._datalog.get(),
+                "logformat_s": self._logformat.get(),
+                "logpath_s": str(self.logpath),
                 "recordtrack_b": self._record_track.get(),
+                "trackpath_s": str(self.trackpath),
                 # serial port settings from frm_serial
                 "serialport_s": self.frm_serial.port,
                 "bpsrate_n": self.frm_serial.bpsrate,

@@ -1,7 +1,7 @@
 """
 spartn_json_config.py
 
-Utility class to load SPARTN decryption configuration from 
+Utility class to load SPARTN decryption configuration from
 JSON file provided by ThingStream PointPerfect location service.
 Requires paid subscription.
 

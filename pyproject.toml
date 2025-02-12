@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta:__legacy__"
 
 [project]
 name = "pygpsclient"
+dynamic = ["version"]
 authors = [{ name = "semuadmin", email = "semuadmin@semuconsulting.com" }]
 maintainers = [{ name = "semuadmin", email = "semuadmin@semuconsulting.com" }]
 description = "GNSS Diagnostic and UBX Configuration GUI Application"
-version = "1.5.1"
 license = { file = "LICENSE" }
 keywords = [
     "PyGPSClient",
@@ -53,6 +53,7 @@ dependencies = [
     "requests>=2.28.0",
     "Pillow>=9.0.0",
     "pygnssutils>=1.1.9",
+    "pyubxutils>=1.0.2",
     "pyserial>=3.5",
 ]
 
@@ -78,6 +79,9 @@ test = [
     "Sphinx",
     "sphinx-rtd-theme",
 ]
+
+[tool.setuptools.dynamic]
+version = { attr = "pygpsclient._version.__version__" }
 
 [tool.black]
 target-version = ['py39']
