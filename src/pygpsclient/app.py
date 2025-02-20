@@ -841,6 +841,7 @@ class App(Frame):
         self.frm_settings.frm_socketserver.socketserving = (
             False  # turn off socket server
         )
+        self._refresh_widgets()
         self.conn_status = DISCONNECTED
         self.set_status(ENDOFFILE, "red")
 
@@ -855,8 +856,20 @@ class App(Frame):
         self.frm_settings.frm_socketserver.socketserving = (
             False  # turn off socket server
         )
+        self._refresh_widgets()
         self.conn_status = DISCONNECTED
         self.set_status(INACTIVE_TIMEOUT, "red")
+
+    def on_stream_error(self, event):  # pylint: disable=unused-argument
+        """
+        EVENT TRIGGERED
+        Action on "<<gnss_error>>" event - connection streaming error.
+
+        :param event event: <<gnss_error>> event
+        """
+
+        self._refresh_widgets()
+        self.conn_status = DISCONNECTED
 
     def on_ntrip_read(self, event):  # pylint: disable=unused-argument
         """
@@ -920,16 +933,6 @@ class App(Frame):
             pass
         except (SerialException, SerialTimeoutException) as err:
             self.set_status(f"Error sending to device {err}", BADCOL)
-
-    def on_stream_error(self, event):  # pylint: disable=unused-argument
-        """
-        EVENT TRIGGERED
-        Action on "<<gnss_error>>" event - connection streaming error.
-
-        :param event event: <<gnss_error>> event
-        """
-
-        self.conn_status = DISCONNECTED
 
     def update_ntrip_status(self, status: bool, msgt: tuple = None):
         """
@@ -1012,14 +1015,7 @@ class App(Frame):
         if datetime.now() > self._last_gui_update + timedelta(
             seconds=GUI_UPDATE_INTERVAL
         ):
-            if widget_state[WDGCONSOLE][VISIBLE]:
-                self.frm_console.update_console(self._consoledata)
-                self._consoledata = []
-            self.frm_banner.update_frame()
-            for _, widget in widget_state.items():
-                frm = getattr(self, widget[FRAME])
-                if hasattr(frm, "update_frame") and widget[VISIBLE]:
-                    frm.update_frame()
+            self._refresh_widgets()
             self._last_gui_update = datetime.now()
 
         # update GPX track file if enabled
@@ -1029,6 +1025,20 @@ class App(Frame):
         # update log file if enabled
         if settings["datalog_b"]:
             self.file_handler.write_logfile(raw_data, parsed_data)
+
+    def _refresh_widgets(self):
+        """
+        Refresh visible widgets.
+        """
+
+        if widget_state[WDGCONSOLE][VISIBLE]:
+            self.frm_console.update_console(self._consoledata)
+            self._consoledata = []
+        self.frm_banner.update_frame()
+        for _, widget in widget_state.items():
+            frm = getattr(self, widget[FRAME])
+            if hasattr(frm, "update_frame") and widget[VISIBLE]:
+                frm.update_frame()
 
     def _check_update(self):
         """

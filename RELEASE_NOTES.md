@@ -1,5 +1,9 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.5.3
+
+1. Fix issue with displaying final content of file in console after EOF condition.
+
 ### RELEASE 1.5.2
 
 1. Fix logpath setting in config file - Fixes [#171](https://github.com/semuconsulting/PyGPSClient/issues/171)
