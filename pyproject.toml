@@ -67,7 +67,14 @@ repository = "https://github.com/semuconsulting/PyGPSClient"
 changelog = "https://github.com/semuconsulting/PyGPSClient/blob/master/RELEASE_NOTES.md"
 
 [project.optional-dependencies]
-deploy = ["build", "pip", "setuptools>=66.0.0", "wheel"]
+deploy = [
+    "build",
+    "packaging>=24.2",
+    "pip",
+    "setuptools>=66.0.0",
+    "twine>=6.1.0",
+    "wheel",
+]
 test = [
     "bandit",
     "black",
