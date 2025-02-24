@@ -30,6 +30,8 @@ PyGPSClient is a free, open-source, multi-platform graphical GNSS/GPS testing, d
 
 The application can be installed using the standard `pip` Python package manager - see [installation instructions](#installation) below.
 
+This is an independent project and we have no affiliation whatsoever with u-blox.
+
 ---
 ## <a name="currentstatus">Current Status</a>
 
@@ -48,8 +50,6 @@ Sphinx API Documentation in HTML format is available at [https://www.semuconsult
 Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/semuconsulting/PyGPSClient/blob/master/CONTRIBUTING.md).
 
 For [Bug reports](https://github.com/semuconsulting/PyGPSClient/blob/master/.github/ISSUE_TEMPLATE/bug_report.md), please use the template provided. For feature requests and general queries and advice, post a message to one of the [PyGPSClient Discussions](https://github.com/semuconsulting/PyGPSClient/discussions) channels in the first instance.
-
-This is an independent project and we have no affiliation whatsoever with u-blox.
 
 ---
 ## <a name="installation">Installation</a>
