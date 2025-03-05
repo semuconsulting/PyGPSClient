@@ -68,17 +68,18 @@ pygpsclient
 
 ## The Longer Version
 
-In the following, `python3` & `pip` refer to the Python 3 executables. You may need to substitute `python` for `python3`, depending on your particular environment (*on Windows it's generally `python`*). **It is strongly recommended that** the Python 3 [binaries](#binaries) and site_packages directories are included in your PATH (*most standard Python 3 installation packages will do this automatically if you select the 'Add to PATH' option during installation*).
+In the following, `python3` & `pip` refer to the Python 3 executables. You may need to substitute `python` for `python3`, depending on your particular environment (*on Windows it's generally `python`*). 
 
 ### Platform Dependencies
 
-- Python 3.9 - 3.13*¹*
-- Tk (tkinter) >= 8.6*³*
+- Python 3.9 - 3.13
+- Tk (tkinter) >= 8.6*¹*
 - Screen resolution >= 800 x 600; Ideally >= 1920 x 1080, though the main application window is resizeable and reconfigurable.
 
 **All platforms**
 
-*¹* It is highly recommended to use the latest official [Python.org](https://www.python.org/downloads/) installation package for your platform, rather than any pre-installed version.
+- **NB** It is highly recommended to use the latest official [Python.org](https://www.python.org/downloads/) installation package for your platform, rather than any pre-installed version.
+- **NB** It is highly recommended that the Python 3 [binaries](#binaries) and site_packages directories are included in your PATH (*most standard Python 3 installation packages will do this automatically if you select the 'Add to PATH' option during installation*).
 
 **Windows 10 or later:**
 
@@ -86,23 +87,23 @@ Normally installs without any additional steps.
 
 **MacOS 12 or later:**
 
-*³* The version of Python supplied with most Apple MacOS platforms includes a [deprecated version of tkinter](https://www.python.org/download/mac/tcltk/) (8.5). Use an official [Python.org](https://www.python.org/downloads/) installation package instead.
+*¹* The version of Python supplied with some Apple MacOS platforms includes a [deprecated version of tkinter](https://www.python.org/download/mac/tcltk/) (8.5). Use an official [Python.org](https://www.python.org/downloads/) installation package instead.
 
 **Linux (including Raspberry Pi OS):**
 
-*⁴* Some Linux distributions may not include the necessary pip, tkinter or Pillow imaging libraries by default. They may need to be installed separately, e.g.:
+Some Linux distributions may not include the necessary pip, tkinter or Pillow imaging libraries by default. They may need to be installed separately, e.g.:
 
 ```shell
 sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk libjpeg-dev zlib1g-dev
 ```
 
-*⁵* If you're [compiling the latest version of Python 3 from source](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/python_compile.sh), you may also need to install tk-dev (or a similarly named package e.g. tk-devel) first. Refer to http://wiki.python.org/moin/TkInter for further details:
+If you're [compiling the latest version of Python 3 from source](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/python_compile.sh), you may also need to install tk-dev (or a similarly named package e.g. tk-devel) first. Refer to http://wiki.python.org/moin/TkInter for further details:
 
 ```shell
 sudo apt install tk-dev
 ```
 
-*⁶* On some 32-bit Linux platforms (e.g. Raspberry Pi OS 32), it may be necessary to [install Rust compiler support](https://www.rust-lang.org/tools/install) and some [additional build dependencies](https://cryptography.io/en/latest/installation/) in order to install the `cryptography` library which PyGPSClient depends on to decrypt SPARTN messages (see  [pyspartn cryptography installation notes](https://github.com/semuconsulting/pyspartn/tree/main/cryptography_installation#readme)):
+On some 32-bit Linux platforms (e.g. Raspberry Pi OS 32), it may be necessary to [install Rust compiler support](https://www.rust-lang.org/tools/install) and some [additional build dependencies](https://cryptography.io/en/latest/installation/) in order to install the `cryptography` library which PyGPSClient depends on to decrypt SPARTN messages (see  [pyspartn cryptography installation notes](https://github.com/semuconsulting/pyspartn/tree/main/cryptography_installation#readme)):
 
 ```shell
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
@@ -157,7 +158,18 @@ python3 -m pip install --upgrade pygpsclient
 deactivate
 ```
 
-The pip installation process places an executable file `pygpsclient` in the Python binaries folder (`../bin` on Linux & MacOS, `..\Scripts` on Windows).
+The pip installation process places an executable file `pygpsclient` in the Python binaries folder (`../bin` on Linux & MacOS, `..\Scripts` on Windows). The PyGPSClient application may be started by double-clicking on this executable file from your file manager or, if the binaries folder is in your PATH, by opening a terminal and typing (all lowercase):
+
+```shell
+pygpsclient
+```
+
+`pygpsclient` also accepts optional command line arguments for a variety of configurable parameters. These will override any saved configuration file settings. Type the following for help:
+```shell
+pygpsclient -h
+```
+
+**NB:** If the Python 3 binaries folder is *not* in your PATH, you will need to add the fully-qualified path to the `pygpsclient` executable in the command above.
 
 <a name="binaries">**Tip:**</a> The location of the relevant binaries folder can usually be found by executing one of the following commands:
 
@@ -180,18 +192,6 @@ Typically:
 
 where `**` signifies the Python version e.g. `3.12`.
 
-The PyGPSClient application may be started by double-clicking on this executable file from your file manager or, if the binaries folder is in your PATH, by opening a terminal and typing (all lowercase):
-
-```shell
-pygpsclient
-```
-
-`pygpsclient` also accepts optional command line arguments for a variety of configurable parameters. These will override any saved configuration file settings. Type the following for help:
-```shell
-pygpsclient -h
-```
-
-**NB:** If the Python 3 binaries folder is *not* in your PATH, you will need to add the fully-qualified path to the `pygpsclient` executable in the command above.
 
 ### Creating A Desktop Application Launcher
 
