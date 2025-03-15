@@ -10,6 +10,7 @@ Created on 20 Sep 2020
 :license: BSD 3-Clause
 """
 
+import logging
 from platform import python_version
 from subprocess import CalledProcessError, run
 from sys import platform
@@ -59,6 +60,7 @@ class AboutDialog:
 
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
+        self.logger = logging.getLogger(__name__)
         self._dialog = Toplevel()
         self._dialog.title = DLGABOUT
         self._dialog.geometry(
@@ -265,19 +267,17 @@ class AboutDialog:
             "pip",
             "install",
             "--upgrade",
-            # "--user",
-            # "--force-reinstall",
         ]
+
         for pkg in self._updates:
             cmd.append(pkg)
 
+        result = None
         try:
-            run(
-                cmd,
-                check=True,
-                capture_output=True,
-            )
-        except CalledProcessError as err:
+            result = run(cmd, check=True, capture_output=True)
+            self.logger.debug(result.stdout)
+        except CalledProcessError:
+            self.logger.error(result.stdout)
             self._btn_checkupdate.config(text="UPDATE FAILED", fg="red")
             self._btn_checkupdate.bind("<Button>", self._check_for_update)
             return
