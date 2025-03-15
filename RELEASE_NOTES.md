@@ -1,5 +1,9 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.5.4
+
+1. Fix issue with GUI update facility not working for virtual environments.
+
 ### RELEASE 1.5.3
 
 1. Fix issue with displaying final content of file in console after EOF condition.
