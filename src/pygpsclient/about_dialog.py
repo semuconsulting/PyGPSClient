@@ -265,8 +265,8 @@ class AboutDialog:
             "pip",
             "install",
             "--upgrade",
-            "--user",
-            "--force-reinstall",
+            # "--user",
+            # "--force-reinstall",
         ]
         for pkg in self._updates:
             cmd.append(pkg)
@@ -277,7 +277,7 @@ class AboutDialog:
                 check=True,
                 capture_output=True,
             )
-        except CalledProcessError:
+        except CalledProcessError as err:
             self._btn_checkupdate.config(text="UPDATE FAILED", fg="red")
             self._btn_checkupdate.bind("<Button>", self._check_for_update)
             return
