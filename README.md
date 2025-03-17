@@ -143,7 +143,7 @@ usermod -a -G tty myuser
 [![PyPI version](https://img.shields.io/pypi/v/PyGPSClient.svg?style=flat)](https://pypi.org/project/PyGPSClient/)
 ![PyPI downloads](https://img.shields.io/pypi/dm/PyGPSClient.svg?style=flat)
 
-The easiest way to install the latest version of `PyGPSClient` is with [pip](http://pypi.python.org/pypi/pip/):
+The recommended way to install the latest version of `PyGPSClient` is with [pip](http://pypi.python.org/pypi/pip/):
 
 ```shell
 python3 -m pip install --upgrade pygpsclient
