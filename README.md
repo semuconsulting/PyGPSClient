@@ -66,6 +66,8 @@ and then run it by typing:
 pygpsclient
 ```
 
+**NB** If you get `error: externally-managed-environment`, refer to the longer installation guidelines for **virtual environments** using [pip](#pip) or [pipx](#pipx) below.
+
 ## The Longer Version
 
 In the following, `python3` & `pip` refer to the Python 3 executables. You may need to substitute `python` for `python3`, depending on your particular environment (*on Windows it's generally `python`*). 
@@ -135,33 +137,50 @@ To access the serial port on most Linux platforms, you will need to be a member 
 usermod -a -G tty myuser
 ```
 
-### Install using pip
+### <a name="pip">Install using pip</a>
 
 ![Python version](https://img.shields.io/pypi/pyversions/PyGPSClient.svg?style=flat)
 [![PyPI version](https://img.shields.io/pypi/v/PyGPSClient.svg?style=flat)](https://pypi.org/project/PyGPSClient/)
 ![PyPI downloads](https://img.shields.io/pypi/dm/PyGPSClient.svg?style=flat)
 
-The easiest way to install the latest version of `PyGPSClient` is with [pip](http://pypi.python.org/pypi/pip/):
+The recommended way to install the latest version of `PyGPSClient` is with [pip](http://pypi.python.org/pypi/pip/):
 
 ```shell
 python3 -m pip install --upgrade pygpsclient
 ```
 
-If required, `PyGPSClient` can also be installed into a virtual environment, e.g.:
-
+If required, `PyGPSClient` can also be installed and run in a [virtual environment](https://www.geeksforgeeks.org/python-virtual-environment/) - this may be necessary if you have an `externally-managed-environment`, e.g.:
 ```shell
 python3 -m venv env
+source env/bin/activate # (or env\Scripts\activate on Windows)
+python3 -m pip install --upgrade pygpsclient
+pygpsclient
+```
+
+To deactivate the virtual environment:
+
+```shell
+deactivate
+```
+
+To reactivate and run from the virtual environment:
+```shell
+source env/bin/activate # (or env\Scripts\activate on Windows)
+pygpsclient
+```
+
+To upgrade PyGPSClient to the latest version from the virtual environment:
+```shell
 source env/bin/activate # (or env\Scripts\activate on Windows)
 python3 -m pip install --upgrade pygpsclient
 ```
 
 The pip installation process places an executable file `pygpsclient` in the Python binaries folder (`../bin` on Linux & MacOS, `..\Scripts` on Windows). The PyGPSClient application may be started by double-clicking on this executable file from your file manager or, if the binaries folder is in your PATH, by opening a terminal and typing (all lowercase):
-
 ```shell
 pygpsclient
-```
+````
 
-`pygpsclient` also accepts optional command line arguments for a variety of configurable parameters. These will override any saved configuration file settings. Type the following for help:
+`pygpsclient` accepts optional command line arguments for a variety of configurable parameters. These will override any saved configuration file settings. Type the following for help:
 ```shell
 pygpsclient -h
 ```
@@ -185,10 +204,20 @@ Typically:
 1. Windows: `C:\Users\myuser\AppData\Roaming\Python\Python3**\Scripts\pygpsclient.exe`
 2. MacOS: `/Library/Frameworks/Python.framework/Versions/3.**/bin/pygpsclient`
 3. Linux: `/home/myuser/.local/bin/pygpsclient`
-4. Virtual Env: `env/bin/pygpsclient` (or `env\Scripts\pygpsclient.exe` on Windows)
+4. Virtual Env: `$ENV/bin/pygpsclient` (or `$ENV\Scripts\pygpsclient.exe` on Windows), where `$ENV` is the full path to your virtual environment.
 
 where `**` signifies the Python version e.g. `3.12`.
 
+### <a name="pipx">Install using pipx</a>
+
+You can also use [pipx](https://pipx.pypa.io/latest/installation/) (_if available_) to install `pygpsclient` into a virtual environment - use the `pipx ensurepath` command to add the relevant Python binaries folder to your PATH.
+
+```shell
+pipx ensurepath
+pipx install pygpsclient
+```
+
+`pipx` will typically create a virtual environment in the user's local shared folder e.g. `/home/user/.local/share/pipx/venvs/pygpsclient`.
 
 ### Creating A Desktop Application Launcher
 

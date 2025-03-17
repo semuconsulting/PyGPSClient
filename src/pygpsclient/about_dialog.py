@@ -10,9 +10,12 @@ Created on 20 Sep 2020
 :license: BSD 3-Clause
 """
 
+import logging
+from inspect import currentframe, getfile
+from os import path
 from platform import python_version
 from subprocess import CalledProcessError, run
-from sys import platform
+from sys import executable
 from tkinter import Button, Checkbutton, E, Frame, IntVar, Label, Tcl, Toplevel, W
 from webbrowser import open_new_tab
 
@@ -50,7 +53,7 @@ class AboutDialog:
     About dialog box class
     """
 
-    def __init__(self, app, **kwargs):
+    def __init__(self, app, **kwargs):  # pylint: disable=unused-argument
         """
         Initialise Toplevel dialog
 
@@ -59,6 +62,7 @@ class AboutDialog:
 
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
+        self.logger = logging.getLogger(__name__)
         self._dialog = Toplevel()
         self._dialog.title = DLGABOUT
         self._dialog.geometry(
@@ -258,26 +262,30 @@ class AboutDialog:
 
         self._btn_checkupdate.config(text="UPDATING...", fg="blue")
         self._dialog.update_idletasks()
-        pyc = "python" if platform == "win32" else "python3"
-        cmd = [
-            pyc,
-            "-m",
-            "pip",
-            "install",
-            "--upgrade",
-            "--user",
-            "--force-reinstall",
-        ]
-        for pkg in self._updates:
-            cmd.append(pkg)
+        pth = path.dirname(path.abspath(getfile(currentframe())))
+        if "pipx" in pth:  # installed into venv using pipx
+            cmd = [
+                "pipx",
+                "upgrade",
+                "pygpsclient",
+            ]
+        else:  # installed using pip
+            cmd = [
+                executable,  # i.e. python3 or python
+                "-m",
+                "pip",
+                "install",
+                "--upgrade",
+            ]
+            for pkg in self._updates:
+                cmd.append(pkg)
 
+        result = None
         try:
-            run(
-                cmd,
-                check=True,
-                capture_output=True,
-            )
+            result = run(cmd, check=True, capture_output=True)
+            self.logger.debug(result.stdout)
         except CalledProcessError:
+            self.logger.error(result.stdout)
             self._btn_checkupdate.config(text="UPDATE FAILED", fg="red")
             self._btn_checkupdate.bind("<Button>", self._check_for_update)
             return
