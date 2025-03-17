@@ -204,7 +204,7 @@ Typically:
 1. Windows: `C:\Users\myuser\AppData\Roaming\Python\Python3**\Scripts\pygpsclient.exe`
 2. MacOS: `/Library/Frameworks/Python.framework/Versions/3.**/bin/pygpsclient`
 3. Linux: `/home/myuser/.local/bin/pygpsclient`
-4. Virtual Env: `env/bin/pygpsclient` (or `env\Scripts\pygpsclient.exe` on Windows)
+4. Virtual Env: `$ENV/bin/pygpsclient` (or `$ENV\Scripts\pygpsclient.exe` on Windows), where `$ENV` is the full path to your virtual environment.
 
 where `**` signifies the Python version e.g. `3.12`.
 
