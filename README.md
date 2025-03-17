@@ -150,12 +150,9 @@ python3 -m pip install --upgrade pygpsclient
 If required, `PyGPSClient` can also be installed into a virtual environment, e.g.:
 
 ```shell
-python3 -m pip install --user --upgrade virtualenv
-python3 -m virtualenv env
-source env/bin/activate (or env\Scripts\activate on Windows)
+python3 -m venv env
+source env/bin/activate # (or env\Scripts\activate on Windows)
 python3 -m pip install --upgrade pygpsclient
-...
-deactivate
 ```
 
 The pip installation process places an executable file `pygpsclient` in the Python binaries folder (`../bin` on Linux & MacOS, `..\Scripts` on Windows). The PyGPSClient application may be started by double-clicking on this executable file from your file manager or, if the binaries folder is in your PATH, by opening a terminal and typing (all lowercase):
@@ -188,7 +185,7 @@ Typically:
 1. Windows: `C:\Users\myuser\AppData\Roaming\Python\Python3**\Scripts\pygpsclient.exe`
 2. MacOS: `/Library/Frameworks/Python.framework/Versions/3.**/bin/pygpsclient`
 3. Linux: `/home/myuser/.local/bin/pygpsclient`
-4. Virtualenv: `env/bin/pygpsclient` (or `env\Scripts\pygpsclient.exe` on Windows)
+4. Virtual Env: `env/bin/pygpsclient` (or `env\Scripts\pygpsclient.exe` on Windows)
 
 where `**` signifies the Python version e.g. `3.12`.
 
