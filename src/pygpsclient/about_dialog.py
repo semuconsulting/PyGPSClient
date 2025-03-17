@@ -11,9 +11,11 @@ Created on 20 Sep 2020
 """
 
 import logging
+from inspect import currentframe, getfile
+from os import path
 from platform import python_version
 from subprocess import CalledProcessError, run
-from sys import platform
+from sys import executable
 from tkinter import Button, Checkbutton, E, Frame, IntVar, Label, Tcl, Toplevel, W
 from webbrowser import open_new_tab
 
@@ -51,7 +53,7 @@ class AboutDialog:
     About dialog box class
     """
 
-    def __init__(self, app, **kwargs):
+    def __init__(self, app, **kwargs):  # pylint: disable=unused-argument
         """
         Initialise Toplevel dialog
 
@@ -260,17 +262,23 @@ class AboutDialog:
 
         self._btn_checkupdate.config(text="UPDATING...", fg="blue")
         self._dialog.update_idletasks()
-        pyc = "python" if platform == "win32" else "python3"
-        cmd = [
-            pyc,
-            "-m",
-            "pip",
-            "install",
-            "--upgrade",
-        ]
-
-        for pkg in self._updates:
-            cmd.append(pkg)
+        pth = path.dirname(path.abspath(getfile(currentframe())))
+        if "pipx" in pth:  # installed into venv using pipx
+            cmd = [
+                "pipx",
+                "upgrade",
+                "pygpsclient",
+            ]
+        else:  # installed using pip
+            cmd = [
+                executable,  # i.e. python3 or python
+                "-m",
+                "pip",
+                "install",
+                "--upgrade",
+            ]
+            for pkg in self._updates:
+                cmd.append(pkg)
 
         result = None
         try:
