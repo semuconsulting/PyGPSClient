@@ -1,7 +1,7 @@
 """
-ubx_info_frame.py
+hardware_info_frame.py
 
-UBX Configuration frame for MON-VER and MON-HW messages
+Hardware Information Dialog for NMEA and UBX Configuration panels.
 
 Created on 22 Dec 2020
 
@@ -13,6 +13,7 @@ Created on 22 Dec 2020
 from tkinter import Frame, Label, W
 
 from PIL import Image, ImageTk
+from pynmeagps import POLL, NMEAMessage
 from pyubx2 import UBXMessage
 
 from pygpsclient.globals import (
@@ -22,14 +23,15 @@ from pygpsclient.globals import (
     ICON_PENDING,
     ICON_SEND,
     ICON_WARNING,
+    NMEA_MONHW,
     UBX_MONVER,
 )
 from pygpsclient.strings import NA
 
 
-class UBX_INFO_Frame(Frame):
+class Hardware_Info_Frame(Frame):
     """
-    UBX hardware & firmware information panel.
+    Hardware & firmware information panel.
     """
 
     def __init__(self, app, container, *args, **kwargs):
@@ -45,6 +47,7 @@ class UBX_INFO_Frame(Frame):
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.__container = container
+        self._protocol = kwargs.pop("protocol", "UBX")
 
         Frame.__init__(self, self.__container.container, *args, **kwargs)
 
@@ -62,10 +65,10 @@ class UBX_INFO_Frame(Frame):
         Set up frame and widgets.
         """
 
-        self._lbl_swverl = Label(self, text="Software")
-        self._lbl_swver = Label(self)
         self._lbl_hwverl = Label(self, text="Hardware")
         self._lbl_hwver = Label(self)
+        self._lbl_swverl = Label(self, text="Software")
+        self._lbl_swver = Label(self)
         self._lbl_fwverl = Label(self, text="Firmware")
         self._lbl_fwver = Label(self)
         self._lbl_romverl = Label(self, text="Protocol")
@@ -78,10 +81,10 @@ class UBX_INFO_Frame(Frame):
         Layout widgets.
         """
 
-        self._lbl_swverl.grid(column=0, row=0, padx=2, sticky=W)
-        self._lbl_swver.grid(column=1, row=0, columnspan=2, padx=2, sticky=W)
-        self._lbl_hwverl.grid(column=3, row=0, padx=2, sticky=W)
-        self._lbl_hwver.grid(column=4, row=0, columnspan=2, padx=2, sticky=W)
+        self._lbl_hwverl.grid(column=0, row=0, padx=2, sticky=W)
+        self._lbl_hwver.grid(column=1, row=0, columnspan=2, padx=2, sticky=W)
+        self._lbl_swverl.grid(column=3, row=0, padx=2, sticky=W)
+        self._lbl_swver.grid(column=4, row=0, columnspan=2, padx=2, sticky=W)
         self._lbl_fwverl.grid(column=0, row=1, padx=2, sticky=W)
         self._lbl_fwver.grid(column=1, row=1, columnspan=2, padx=2, sticky=W)
         self._lbl_romverl.grid(column=3, row=1, padx=2, sticky=W)
@@ -114,20 +117,31 @@ class UBX_INFO_Frame(Frame):
 
     def _do_poll_ver(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
-        Poll MON-VER
+        Poll Hardware Version and await response.
         """
 
-        self.__app.poll_version()
-        self.__container.set_pending("MON-VER", UBX_MONVER)
+        if self._protocol == "NMEA":
+            msg = NMEAMessage("P", "QTMVERNO", POLL)
+            pendmsg = "PQTMVERNO"
+            penddlg = NMEA_MONHW
+        else:
+            msg = UBXMessage("MON", "MON-VER", POLL)
+            pendmsg = "MON-VER"
+            penddlg = UBX_MONVER
 
-    def update_status(self, msg: UBXMessage):
+        self.__app.gnss_outqueue.put(msg.serialize())
+        self.__app.set_status(
+            f"{msg.identity} POLL message sent",
+        )
+        self.__container.set_pending(pendmsg, penddlg)
+
+    def update_status(self, msg: object):
         """
         Update pending confirmation status.
 
-        :param UBXMessage msg: UBX config message
+        :param object msg: UBX or NMEA config message
         """
 
-        # MON-VER information (for software versions)
         self._lbl_swver.config(
             text=self.__app.gnss_status.version_data.get("swversion", NA)
         )

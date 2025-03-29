@@ -45,7 +45,7 @@ from pygpsclient.strings import (
     DLGRESETCONFIRM,
     DLGSAVE,
     DLGSAVECONFIRM,
-    LBLPRESET,
+    LBLUBXPRESET,
     PSTALLINFOFF,
     PSTALLINFON,
     PSTALLLOGOFF,
@@ -148,7 +148,7 @@ class UBX_PRESET_Frame(Frame):
         Set up frame and widgets.
         """
 
-        self._lbl_presets = Label(self, text=LBLPRESET, anchor=W)
+        self._lbl_presets = Label(self, text=LBLUBXPRESET, anchor=W)
         self._lbx_preset = Listbox(
             self,
             border=2,

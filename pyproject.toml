@@ -9,6 +9,7 @@ authors = [{ name = "semuadmin", email = "semuadmin@semuconsulting.com" }]
 maintainers = [{ name = "semuadmin", email = "semuadmin@semuconsulting.com" }]
 description = "GNSS Diagnostic and UBX Configuration GUI Application"
 license = { file = "LICENSE" }
+#license-files = ["LICENSE"]
 keywords = [
     "PyGPSClient",
     "GNSS",
@@ -28,7 +29,6 @@ keywords = [
 readme = "README.md"
 requires-python = ">=3.9"
 classifiers = [
-    "License :: OSI Approved :: BSD License",
     "Operating System :: OS Independent",
     "Development Status :: 5 - Production/Stable",
     "Environment :: MacOS X",
@@ -55,6 +55,7 @@ dependencies = [
     "pygnssutils>=1.1.9",
     "pyubxutils>=1.0.2",
     "pyserial>=3.5",
+    "pynmeagps>=1.0.48",
 ]
 
 [project.scripts]

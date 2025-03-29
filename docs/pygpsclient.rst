@@ -100,6 +100,14 @@ pygpsclient.graphview\_frame module
    :show-inheritance:
    :undoc-members:
 
+pygpsclient.hardware\_info\_frame module
+----------------------------------------
+
+.. automodule:: pygpsclient.hardware_info_frame
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 pygpsclient.helpers module
 --------------------------
 
@@ -140,10 +148,26 @@ pygpsclient.menu\_bar module
    :show-inheritance:
    :undoc-members:
 
+pygpsclient.nmea\_config\_dialog module
+---------------------------------------
+
+.. automodule:: pygpsclient.nmea_config_dialog
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 pygpsclient.nmea\_handler module
 --------------------------------
 
 .. automodule:: pygpsclient.nmea_handler
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+pygpsclient.nmea\_preset\_frame module
+--------------------------------------
+
+.. automodule:: pygpsclient.nmea_preset_frame
    :members:
    :show-inheritance:
    :undoc-members:
@@ -328,14 +352,6 @@ pygpsclient.ubx\_handler module
 -------------------------------
 
 .. automodule:: pygpsclient.ubx_handler
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-pygpsclient.ubx\_info\_frame module
------------------------------------
-
-.. automodule:: pygpsclient.ubx_info_frame
    :members:
    :show-inheritance:
    :undoc-members:

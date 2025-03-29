@@ -20,9 +20,11 @@ import logging
 from time import time
 
 from pynmeagps import NMEAMessage
+from pyubx2 import itow2utc
 
 from pygpsclient.globals import SAT_EXPIRY
 from pygpsclient.helpers import fix2desc, kmph2ms, knots2ms, svid2gnssid
+from pygpsclient.strings import DLGTNMEA
 
 
 class NMEAHandler:
@@ -82,6 +84,12 @@ class NMEAHandler:
             # proprietary GPS Lat/Lon & Acc
             elif parsed_data.msgID == "UBX" and parsed_data.msgId == "03":
                 self._process_UBX03(parsed_data)
+            elif parsed_data.msgID == "QTMVERNO":  # LG290P hardware version
+                self._process_QTMVERNO(parsed_data)
+            elif parsed_data.msgID == "QTMPVT":  # LG290P pos, vel, trk
+                self._process_QTMPVT(parsed_data)
+            elif parsed_data.msgID[0:3] == "QTM" and hasattr(parsed_data, "status"):
+                self._process_QTMACK(parsed_data)
 
         except ValueError:
             pass
@@ -310,3 +318,49 @@ class NMEAHandler:
 
         self.__app.gnss_status.siv = len(self.gsv_data)
         self.__app.gnss_status.gsv_data = self.gsv_data
+
+    def _process_QTMVERNO(self, data: NMEAMessage):
+        """
+        Process QTMVERNO sentence - Quectel Hardware Version.
+
+        :param pynmeagps.NMEAMessage data: parsed QTMVERNO sentence
+        """
+
+        verdata = {}
+        verdata["swversion"] = "N/A"
+        verdata["hwversion"] = data.verstr
+        verdata["fwversion"] = f"{data.builddate}-{data.buildtime}"
+        verdata["romversion"] = "N/A"
+        self.__app.gnss_status.version_data = verdata
+
+        if self.__app.dialog(DLGTNMEA) is not None:
+            self.__app.dialog(DLGTNMEA).update_pending(data)
+
+    def _process_QTMPVT(self, data: NMEAMessage):
+        """
+        Process QTMPVT sentence - Quectel PVT.
+
+        :param pynmeagps.NMEAMessage data: parsed QTMPVT sentence
+        """
+
+        self.__app.gnss_status.utc = itow2utc(data.tow)
+        self.__app.gnss_status.lat = data.lat
+        self.__app.gnss_status.lon = data.lon
+        self.__app.gnss_status.speed = data.spd
+        self.__app.gnss_status.track = data.hdg
+        self.__app.gnss_status.hdop = data.hdop
+        self.__app.gnss_status.pdop = data.pdop
+        self.__app.gnss_status.sep = data.sep
+        self.__app.gnss_status.alt = data.alt
+        self.__app.gnss_status.sip = data.numsv
+        self.__app.gnss_status.fix = ["NO FIX", "NO FIX", "2D", "3D"][data.fixtype]
+
+    def _process_QTMACK(self, data: NMEAMessage):
+        """
+        Process QTM acknowledgement.
+
+        :param pynmeagps.NMEAMessage data: parsed QTM*acknowledgement
+        """
+
+        if self.__app.dialog(DLGTNMEA) is not None:
+            self.__app.dialog(DLGTNMEA).update_pending(data)

@@ -22,6 +22,7 @@ Created on 17 Aug 2022
 :license: BSD 3-Clause
 """
 
+import logging
 from tkinter import (
     ALL,
     END,
@@ -43,6 +44,7 @@ from tkinter import (
 )
 
 from PIL import Image, ImageTk
+from pynmeagps import IN, NMEA_PAYLOADS_POLL_PROP, NMEA_PAYLOADS_SET_PROP, NMEAMessage
 from pyubx2 import (
     POLL,
     SET,
@@ -58,16 +60,17 @@ from pyubx2 import (
     atttyp,
 )
 
-from .globals import (
+from pygpsclient.globals import (
     ICON_CONFIRMED,
     ICON_PENDING,
     ICON_SEND,
     ICON_UNKNOWN,
     ICON_WARNING,
+    NMEA_CFGOTHER,
     UBX_CFGOTHER,
 )
-from .helpers import stringvar2val
-from .strings import LBLCFGGENERIC
+from pygpsclient.helpers import stringvar2val
+from pygpsclient.strings import LBLCFGGENERIC, LBLCFGGENERICNMEA
 
 # dimensions of scrollable attribute window
 SCROLLX = 300
@@ -85,6 +88,25 @@ CFG_EXCLUDED = (
     "CFG-VALDEL",  # handled via existing CFG-VALGET/SET/DEL panel
     "CFG-VALSET",  # handled via existing CFG-VALGET/SET/DEL panel
 )
+# alternative POLL dictionary names for where POLL command
+# doesn't correspond to SET
+ALT_POLL_NAMES = {
+    "QTMCFGGEOFENCE_DIS": "QTMCFGGEOFENCE",
+    "QTMCFGGEOFENCE_POLY": "QTMCFGGEOFENCE",
+    "QTMCFGPPS_DIS": "QTMCFGPPS",
+    "QTMCFGUART_CURRBAUD": "QTMCFGUART_CURR",
+    "QTMCFGUART_BAUD": "QTMCFGUART",
+}
+# default attribute values for POLLS
+NMEA_POLL_VALS = {
+    "index": 1,
+    "porttype": 1,
+    "portid": 1,
+    "systemid": 1,
+    "signalid": 1,
+    "status": "R",
+}
+UBX_POLL_VALS = {"portID": 0}
 
 
 class UBX_Dynamic_Frame(Frame):
@@ -105,6 +127,8 @@ class UBX_Dynamic_Frame(Frame):
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.__container = container
+        self.logger = logging.getLogger(__name__)
+        self._protocol = kwargs.pop("protocol", "UBX")
 
         Frame.__init__(self, self.__container.container, *args, **kwargs)
 
@@ -126,7 +150,11 @@ class UBX_Dynamic_Frame(Frame):
         Set up frame and widgets.
         """
 
-        self._lbl_cfg_dyn = Label(self, text=LBLCFGGENERIC, anchor=W)
+        self._lbl_cfg_dyn = Label(
+            self,
+            text=LBLCFGGENERICNMEA if self._protocol == "NMEA" else LBLCFGGENERIC,
+            anchor=W,
+        )
         self._lbx_cfg_cmd = Listbox(
             self,
             border=2,
@@ -212,9 +240,14 @@ class UBX_Dynamic_Frame(Frame):
         """
 
         self._lbx_cfg_cmd.delete(0, END)
-        for i, cmd in enumerate(UBX_PAYLOADS_SET):
-            if cmd[0:3] == "CFG" and cmd not in CFG_EXCLUDED:
-                self._lbx_cfg_cmd.insert(i, cmd)
+        if self._protocol == "NMEA":
+            for i, cmd in enumerate(NMEA_PAYLOADS_SET_PROP):
+                if cmd[0:3] == "QTM" and cmd not in CFG_EXCLUDED:
+                    self._lbx_cfg_cmd.insert(i, cmd)
+        else:
+            for i, cmd in enumerate(UBX_PAYLOADS_SET):
+                if cmd[0:3] == "CFG" and cmd not in CFG_EXCLUDED:
+                    self._lbx_cfg_cmd.insert(i, cmd)
 
         self._clear_widgets()
         self._lbl_send_command.config(image=self._img_unknown)
@@ -242,28 +275,50 @@ class UBX_Dynamic_Frame(Frame):
         self._lbl_command.config(text=self._cfg_id)
 
         self._clear_widgets()
-        self._add_widgets(None, UBX_PAYLOADS_SET[self._cfg_id], 1, 0)
+        if self._protocol == "NMEA":
+            self._add_widgets(None, NMEA_PAYLOADS_SET_PROP[self._cfg_id], 1, 0)
+        else:
+            self._add_widgets(None, UBX_PAYLOADS_SET[self._cfg_id], 1, 0)
         self.update()
 
-    def update_status(self, msg: UBXMessage):
+    def update_status(self, msg: object):
         """
-        UBXHandler module receives CFG SET/POLL response and forwards it
+        UBXHandler or NMEAHandler module receives CFG SET/POLL response and forwards it
         on to this module; confirmation status updated accordingly.
 
-        :param UBXMessage msg: UBX config message
+        :param object msg: UBXMessage or NMEAMessage response
         """
 
-        if msg.identity == self._cfg_id:
+        cfg_id = (
+            "P" + self._cfg_id.rsplit("_", 1)[0]
+            if self._protocol == "NMEA"
+            else self._cfg_id
+        )
+        if (
+            msg.identity == cfg_id
+        ):  # if this message identity matches the expected response
             self._lbl_send_command.config(image=self._img_confirmed)
             self.__container.set_status(f"{msg.identity} GET message received", "green")
             self._clear_widgets()
-            self._add_widgets(msg, UBX_PAYLOADS_SET[self._cfg_id], 1, 0)
+            if self._protocol == "NMEA":
+                status = getattr(msg, "status", "OK")
+                if status == "OK":
+                    self._lbl_send_command.config(image=self._img_confirmed)
+                    self.__container.set_status(
+                        f"{cfg_id} message acknowledged", "green"
+                    )
+                    self._add_widgets(msg, NMEA_PAYLOADS_SET_PROP[self._cfg_id], 1, 0)
+                elif status == "ERROR":
+                    self._lbl_send_command.config(image=self._img_warn)
+                    self.__container.set_status(f"{cfg_id} message rejected", "red")
+            else:  # UBX
+                self._add_widgets(msg, UBX_PAYLOADS_SET[self._cfg_id], 1, 0)
             self.update()
-        elif msg.identity == "ACK-NAK":
-            self.__container.set_status(f"{self._cfg_id} message rejected", "red")
+        elif msg.identity == "ACK-NAK":  # UBX
+            self.__container.set_status(f"{cfg_id} message rejected", "red")
             self._lbl_send_command.config(image=self._img_warn)
-        elif msg.identity == "ACK-ACK":
-            self.__container.set_status(f"{self._cfg_id} message acknowledged", "green")
+        elif msg.identity == "ACK-ACK":  # UBX
+            self.__container.set_status(f"{cfg_id} message acknowledged", "green")
             self._lbl_send_command.config(image=self._img_confirmed)
 
     def _clear_widgets(self):
@@ -372,7 +427,7 @@ class UBX_Dynamic_Frame(Frame):
 
     def _add_widgets_single(
         self,
-        msg: UBXMessage,
+        msg: object,
         nam: str,
         att: object,
         row: int,
@@ -384,7 +439,7 @@ class UBX_Dynamic_Frame(Frame):
         If a CFG POLL response is available, the Entry widget is
         prepopulated with the current value.
 
-        :param UBXMessage msg: response to CFG POLL (if available)
+        :param object msg: response to CFG POLL (if available)
         :param str nam: attribute name e.g. "lat"
         :param object att: attribute type e.g. "U004"
         :param int row: current row in frame
@@ -393,8 +448,8 @@ class UBX_Dynamic_Frame(Frame):
         :rtype: int
         """
 
-        if nam[0:8] == "reserved":  # ignore reserved attributes
-            return row
+        # if nam[0:8] == "reserved":  # ignore reserved attributes
+        #     return row
 
         if index > 0:  # if part of group, add index suffix e.g. '_02'
             nam += f"_{index:02d}"
@@ -437,17 +492,28 @@ class UBX_Dynamic_Frame(Frame):
                 val = ent.get()
                 vals[nam] = stringvar2val(val, att)
 
-            # create UBXMessage using these keyword arguments
-            msg = UBXMessage("CFG", self._cfg_id, SET, **vals)
+            if self._protocol == "NMEA":
+                # create NMEAMessage using these keyword arguments
+                # strip off any variant suffix from cfg_id
+                # e.g. "QTMCFGUART_CURR" -> "QTMCFGUART"
+                msg = NMEAMessage("P", self._cfg_id.rsplit("_", 1)[0], SET, **vals)
+                penddlg = NMEA_CFGOTHER
+                pendcfg = ("P" + self._cfg_id,)
+            else:
+                # create UBXMessage using these keyword arguments
+                msg = UBXMessage("CFG", self._cfg_id, SET, **vals)
+                penddlg = UBX_CFGOTHER
+                pendcfg = ("ACK-ACK", "ACK-NAK")
 
             # send message, update status and await response
             self.__container.send_command(msg)
+            self.logger.debug(f"command {msg.serialize()}")
             self._lbl_send_command.config(image=self._img_pending)
             self.__container.set_status(
                 f"{self._cfg_id} SET message sent",
             )
-            for msgid in ("ACK-ACK", "ACK-NAK"):
-                self.__container.set_pending(msgid, UBX_CFGOTHER)
+            for msgid in pendcfg:
+                self.__container.set_pending(msgid, penddlg)
 
         except ValueError as err:
             self.__container.set_status(
@@ -457,20 +523,43 @@ class UBX_Dynamic_Frame(Frame):
 
     def _do_poll_cfg(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
-        Send CFG POLL request (if supported).
+        Send CFG POLL request (if supported) and set pending response status.
         """
 
-        if self._cfg_id in UBX_PAYLOADS_POLL:  # CFG is POLLable
-            msg = UBXMessage("CFG", self._cfg_id, POLL)
+        msg = penddlg = pendcfg = None
+        # Some NMEA SET commands don't exist as POLLs
+        cfg_id = ALT_POLL_NAMES.get(self._cfg_id, self._cfg_id)
+        if self._protocol == "NMEA":
+            if cfg_id in NMEA_PAYLOADS_POLL_PROP:  # CFG is POLLable
+                # strip off any variant suffix from cfg_id
+                # e.g. "QTMCFGUART_CURR" -> "QTMCFGUART"
+                # set any POLL arguments to their default values
+                # e.g. portid = 1
+                dic = NMEA_PAYLOADS_POLL_PROP[cfg_id]
+                vals = {}
+                for attn in dic:
+                    if attn in NMEA_POLL_VALS:
+                        vals[attn] = NMEA_POLL_VALS[attn]
+                msg = NMEAMessage("P", cfg_id.rsplit("_", 1)[0], POLL, **vals)
+                penddlg = NMEA_CFGOTHER
+                pendcfg = (msg.identity,)
+        else:  # UBX
+            if cfg_id in UBX_PAYLOADS_POLL:  # CFG is POLLable
+                msg = UBXMessage("CFG", cfg_id, POLL)
+                penddlg = UBX_CFGOTHER
+                pendcfg = (msg.identity, "ACK-NAK")
+
+        if msg is not None:
             self.__container.send_command(msg)
+            self.logger.debug(f"poll {msg.serialize()}")
             self.__container.set_status(
-                f"{self._cfg_id} POLL message sent",
+                f"{cfg_id} POLL message sent",
             )
             self._lbl_send_command.config(image=self._img_pending)
-            for msgid in (self._cfg_id, "ACK-NAK"):
-                self.__container.set_pending(msgid, UBX_CFGOTHER)
+            for msgid in pendcfg:
+                self.__container.set_pending(msgid, penddlg)
         else:  # CFG cannot be POLLed
             self.__container.set_status(
-                f"{self._cfg_id} No POLL available",
+                f"{cfg_id} No POLL available",
             )
             self._lbl_send_command.config(image=self._img_unknown)
