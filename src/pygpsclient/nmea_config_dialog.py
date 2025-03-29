@@ -1,22 +1,14 @@
 """
-ubx_config_dialog.py
+nmea_config_dialog.py
 
-UBX configuration container dialog
+NMEA configuration container dialog
 
 This is the pop-up dialog containing the various
-UBX configuration command frames.
+proprietary NMEA configuration command frames.
 
 Supply initial settings via `config` keyword argument.
 
-NB: Individual UBX configuration commands do not have uniquely
-identifiable synchronous or asynchronous responses (e.g. unique
-txn ID). The way we keep tabs on confirmation status is to
-maintain a list of all commands sent and the responses they're
-expecting. When we receive a response, we check against the list
-of awaited responses of the same type and flag the first one we
-find as 'confirmed'.
-
-Created on 19 Sep 2020
+Created on 22 Mar 2025
 
 :author: semuadmin
 :copyright: 2020 SEMU Consulting
@@ -26,40 +18,28 @@ Created on 19 Sep 2020
 from tkinter import Button, E, Frame, Label, N, S, StringVar, Toplevel, W
 
 from PIL import Image, ImageTk
-from pyubx2 import UBXMessage
+from pynmeagps import NMEAMessage
 
 from pygpsclient.dynamic_config_frame import Dynamic_Config_Frame
 from pygpsclient.globals import (
     CONNECTED,
     CONNECTED_SIMULATOR,
     CONNECTED_SOCKET,
-    ENABLE_CFG_OTHER,
     ICON_EXIT,
+    NMEA_CFGOTHER,
+    NMEA_MONHW,
+    NMEA_PRESET,
     POPUP_TRANSIENT,
     SAVED_CONFIG,
-    UBX_CFGMSG,
-    UBX_CFGOTHER,
-    UBX_CFGPRT,
-    UBX_CFGRATE,
-    UBX_CFGVAL,
-    UBX_MONHW,
-    UBX_MONRF,
-    UBX_MONVER,
-    UBX_PRESET,
 )
 from pygpsclient.hardware_info_frame import Hardware_Info_Frame
-from pygpsclient.strings import DLGTUBX, DLGUBXCONFIG
-from pygpsclient.ubx_cfgval_frame import UBX_CFGVAL_Frame
-from pygpsclient.ubx_msgrate_frame import UBX_MSGRATE_Frame
-from pygpsclient.ubx_port_frame import UBX_PORT_Frame
-from pygpsclient.ubx_preset_frame import UBX_PRESET_Frame
-from pygpsclient.ubx_recorder_frame import UBX_Recorder_Frame
-from pygpsclient.ubx_solrate_frame import UBX_RATE_Frame
+from pygpsclient.nmea_preset_frame import NMEA_PRESET_Frame
+from pygpsclient.strings import DLGNMEACONFIG, DLGTNMEA
 
 
-class UBXConfigDialog(Toplevel):
+class NMEAConfigDialog(Toplevel):
     """,
-    UBXConfigDialog class.
+    NMEAConfigDialog class.
     """
 
     def __init__(self, app, *args, **kwargs):  # pylint: disable=unused-argument
@@ -79,14 +59,13 @@ class UBXConfigDialog(Toplevel):
         if POPUP_TRANSIENT:
             self.transient(self.__app)
         self.resizable(True, True)  # allow for MacOS resize glitches
-        self.title(DLGUBXCONFIG)  # pylint: disable=E1102
+        self.title(DLGNMEACONFIG)  # pylint: disable=E1102
         self.protocol("WM_DELETE_WINDOW", self.on_exit)
         self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
         self._cfg_msg_command = None
         self._pending_confs = {}
         self._status = StringVar()
         self._status_cfgmsg = StringVar()
-        self._recordmode = False
 
         self._body()
         self._do_layout()
@@ -110,35 +89,18 @@ class UBXConfigDialog(Toplevel):
         )
         # add configuration widgets
         self._frm_device_info = Hardware_Info_Frame(
-            self.__app, self, borderwidth=2, relief="groove", protocol="UBX"
-        )
-        self._frm_recorder = UBX_Recorder_Frame(
-            self.__app, self, borderwidth=2, relief="groove"
-        )
-        self._frm_config_port = UBX_PORT_Frame(
-            self.__app, self, borderwidth=2, relief="groove"
-        )
-        self._frm_config_rate = UBX_RATE_Frame(
-            self.__app, self, borderwidth=2, relief="groove"
-        )
-        self._frm_config_msg = UBX_MSGRATE_Frame(
-            self.__app, self, borderwidth=2, relief="groove"
+            self.__app, self, borderwidth=2, relief="groove", protocol="NMEA"
         )
         self._frm_config_dynamic = Dynamic_Config_Frame(
-            self.__app, self, borderwidth=2, relief="groove", protocol="UBX"
+            self.__app, self, borderwidth=2, relief="groove", protocol="NMEA"
         )
-        self._frm_configdb = UBX_CFGVAL_Frame(
-            self.__app, self, borderwidth=2, relief="groove"
-        )
-        self._frm_preset = UBX_PRESET_Frame(
+        self._frm_preset = NMEA_PRESET_Frame(
             self.__app,
             self,
             borderwidth=2,
             relief="groove",
             # cater for old and new config file element names...
-            saved_config=self._saved_config.get(
-                "ubxpresets_l", self._saved_config.get("ubxpresets", [])
-            ),
+            saved_config=self._saved_config.get("nmeapresets_l", []),
         )
 
     def _do_layout(self):
@@ -147,8 +109,8 @@ class UBXConfigDialog(Toplevel):
         """
 
         # top of grid
-        col = 0
-        row = 0
+        col = colsp = 0
+        row = rowsp = 0
         self._frm_container.grid(
             column=col,
             row=row,
@@ -161,13 +123,7 @@ class UBXConfigDialog(Toplevel):
             sticky=(N, S, W, E),
         )
         # left column of grid
-        for frm in (
-            self._frm_device_info,
-            self._frm_recorder,
-            self._frm_config_port,
-            self._frm_config_rate,
-            self._frm_config_msg,
-        ):
+        for frm in (self._frm_device_info, self._frm_preset):
             (colsp, rowsp) = frm.grid_size()
             frm.grid(
                 column=col,
@@ -178,25 +134,10 @@ class UBXConfigDialog(Toplevel):
             )
             row += rowsp
         maxrow = row
-        # middle column of grid
-        if ENABLE_CFG_OTHER:
-            row = 0
-            col += colsp
-            for frm in (self._frm_config_dynamic,):
-                (colsp, rowsp) = frm.grid_size()
-                frm.grid(
-                    column=col,
-                    row=row,
-                    columnspan=colsp,
-                    rowspan=rowsp,
-                    sticky=(N, S, W, E),
-                )
-                row += rowsp
-            maxrow = max(maxrow, row)
         # right column of grid
         row = 0
         col += colsp
-        for frm in (self._frm_configdb, self._frm_preset):
+        for frm in (self._frm_config_dynamic,):
             (colsp, rowsp) = frm.grid_size()
             frm.grid(
                 column=col,
@@ -231,8 +172,6 @@ class UBXConfigDialog(Toplevel):
         Reset configuration widgets.
         """
 
-        self._frm_config_rate.reset()
-        self._frm_config_port.reset()
         self._frm_config_dynamic.reset()
         self._frm_device_info.reset()
         if self.__app.conn_status not in (
@@ -244,44 +183,36 @@ class UBXConfigDialog(Toplevel):
 
     def set_pending(self, msgid: int, ubxfrm: int):
         """
-        Set pending confirmation flag for UBX configuration frame to
+        Set pending confirmation flag for NMEA configuration frame to
         signify that it's waiting for a confirmation message.
 
-        :param int msgid: UBX message identity
+        :param int msgid: NMEA message identity
         :param int ubxfrm: integer representing UBX configuration frame (0-6)
         """
 
         self._pending_confs[msgid] = ubxfrm
 
-    def update_pending(self, msg: UBXMessage):
+    def update_pending(self, msg: NMEAMessage):
         """
-        Receives polled confirmation message from the ubx_handler and
-        updates whichever UBX config frame is waiting for this confirmation.
+        Receives polled confirmation message from the nmea_handler and
+        updates whichever NMEA config frame is waiting for this confirmation.
 
-        :param UBXMessage msg: UBX config message
+        :param NMEAMessage msg: NMEA config message
         """
 
-        ubxfrm = self._pending_confs.get(msg.identity, None)
+        nmeafrm = self._pending_confs.get(msg.identity, None)
 
-        if ubxfrm is not None:
-            if ubxfrm in (UBX_MONVER, UBX_MONHW, UBX_MONRF):
+        if nmeafrm is not None:
+            if nmeafrm == NMEA_MONHW:
                 self._frm_device_info.update_status(msg)
-            elif ubxfrm == UBX_CFGPRT:
-                self._frm_config_port.update_status(msg)
-            elif ubxfrm == UBX_CFGRATE:
-                self._frm_config_rate.update_status(msg)
-            elif ubxfrm == UBX_CFGMSG:
-                self._frm_config_msg.update_status(msg)
-            elif ubxfrm == UBX_CFGVAL:
-                self._frm_configdb.update_status(msg)
-            elif ubxfrm == UBX_PRESET:
+            elif nmeafrm == NMEA_PRESET:
                 self._frm_preset.update_status(msg)
-            elif ubxfrm == UBX_CFGOTHER:
+            elif nmeafrm == NMEA_CFGOTHER:
                 self._frm_config_dynamic.update_status(msg)
 
             # reset all confirmation flags for this frame
             for msgid in (msg.identity, "ACK-ACK", "ACK-NAK"):
-                if self._pending_confs.get(msgid, None) == ubxfrm:
+                if self._pending_confs.get(msgid, None) == nmeafrm:
                     self._pending_confs.pop(msgid)
 
     def set_status(self, message: str, color: str = ""):
@@ -302,7 +233,7 @@ class UBXConfigDialog(Toplevel):
         Handle Exit button press.
         """
 
-        self.__app.stop_dialog(DLGTUBX)
+        self.__app.stop_dialog(DLGTNMEA)
         self.destroy()
 
     def get_size(self):
@@ -327,39 +258,9 @@ class UBXConfigDialog(Toplevel):
 
         return self._frm_container
 
-    @property
-    def recordmode(self) -> bool:
-        """
-        Getter for recording status.
-
-        :return: recording yes/no
-        :rtype: bool
-        """
-
-        return self._recordmode
-
-    @recordmode.setter
-    def recordmode(self, recordmode: bool):
-        """
-        Setter for record mode.
-
-        :param bool recordmode: recording yes/no
-        """
-
-        self._recordmode = recordmode
-
-    def send_command(self, msg: UBXMessage):
+    def send_command(self, msg: NMEAMessage):
         """
         Send command to receiver.
         """
 
         self.__app.gnss_outqueue.put(msg.serialize())
-        self.record_command(msg)
-
-    def record_command(self, msg: UBXMessage):
-        """
-        Record command to memory if in 'record' mode.
-        """
-
-        if self.recordmode:
-            self._frm_recorder.update_record(msg)

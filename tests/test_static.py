@@ -11,7 +11,8 @@ Static method tests for pygpsclient.helpers
 import unittest
 from datetime import datetime
 
-from pyubx2 import UBXReader
+from pyubx2 import UBXMessage, UBXReader
+from pynmeagps import NMEAMessage, SET
 
 from pygpsclient.globals import Area, Point, AreaXY
 from pygpsclient.helpers import (
@@ -58,6 +59,8 @@ from pygpsclient.helpers import (
     validURL,
     wnotow2date,
     xy2ll,
+    nmea2preset,
+    ubx2preset,
 )
 from pygpsclient.mapquest import (
     compress_track,
@@ -701,10 +704,52 @@ class StaticTest(unittest.TestCase):
     def testtime2str(self):
         res = time2str(1732547672)
         self.assertEqual(res, "15:14:32")
-        res = time2str(1732547874.264534,"%H:%M:%S.%f")
+        res = time2str(1732547874.264534, "%H:%M:%S.%f")
         self.assertEqual(res, "15:17:54.264534")
         res = time2str(1732461337.123412, "%a, %d %b %Y %H:%M:%S +0000")
         self.assertEqual(res, "Sun, 24 Nov 2024 15:15:37 +0000")
+
+    def testneam2preset(self):
+        msg = NMEAMessage("P", "QTMHOT", SET)
+        self.assertEqual(nmea2preset(msg), "PQTMHOT SET; P; QTMHOT; ; 1")
+        msg = NMEAMessage(
+            "P",
+            "QTMCFGGEOFENCE",
+            SET,
+            index=0,
+            geofencemode=1,
+            shape=0,
+            lat0=31.451248,
+            lon0=117.451245,
+            radiuslat1=100.5,
+        )
+        self.assertEqual(
+            nmea2preset(msg, "Configure Geofence (Circle)"),
+            "Configure Geofence (Circle); P; QTMCFGGEOFENCE; W,0,1,0,0,31.451248,117.451245,100.5; 1",
+        )
+
+    def testubx2preset(self):
+        msg = UBXMessage(
+            "CFG",
+            "CFG-GNSS",
+            SET,
+            parsebitfield=False,
+            numTrkChHw=2,
+            numTrkChUse=4,
+            numConfigBlocks=2,
+            gnssId_01=0,
+            resTrkCh_01=4,
+            maxTrkCh_01=32,
+            flags_01=b"\x01\x00\x04\x00",
+            gnssId_02=6,
+            resTrkCh_02=3,
+            maxTrkCh_02=24,
+            flags_02=b"\x00\x00\x40\x00",
+        )
+        self.assertEqual(
+            ubx2preset(msg, "Configure GNSS"),
+            "Configure GNSS, CFG, CFG-GNSS, 0002040200042000010004000603180000004000, 1",
+        )
 
 
 if __name__ == "__main__":

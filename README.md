@@ -5,6 +5,7 @@
 [Installation](#installation) |
 [Instructions](#instructions) |
 [UBX Configuration](#ubxconfig) |
+[NMEA Configuration](#nmeaconfig) |
 [NTRIP Client](#ntripconfig) |
 [SPARTN Client](#spartnconfig) |
 [Socket Server / NTRIP Caster](#socketserver) |
@@ -23,6 +24,7 @@ PyGPSClient is a free, open-source, multi-platform graphical GNSS/GPS testing, d
 * Provides [NTRIP](#ntripconfig) and [SPARTN](#spartnconfig) client facilities.
 * Can serve as an [NTRIP base station](#basestation) with a compatible receiver (e.g. ZED-F9P).
 * While not intended to be a direct replacement, the application supports most of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool (*only public-domain features are supported*).
+* Also supports proprietary NMEA configuration functionality for Quectel LG290P and compatible devices.
 
 ![full app screenshot ubx](https://github.com/semuconsulting/PyGPSClient/blob/master/images/app.png?raw=true)
 
@@ -286,6 +288,8 @@ You will need to logout and login for the launcher to take effect.
 1. [Socket Server / NTRIP Caster](#socketserver) facility with two modes of operation: (a) open, unauthenticated Socket Server or (b) NTRIP Caster (mountpoint = `pygnssutils`).
 1. [UBX Configuration Dialog](#ubxconfig), with the ability to send a variety of UBX CFG configuration commands to u-blox GNSS devices. This includes the facility to add **user-defined commands or command sequences** - see instructions under [user-defined presets](#userdefined) below. To display the UBX Configuration Dialog (*only functional when connected to a UBX GNSS device via serial port*), click
 ![gear icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-gear-2-24.png?raw=true), or go to Menu..Options..UBX Configuration Dialog.
+1. [NMEA Configuration Dialog](#nmeaconfig), with the ability to send a variety of NMEA PQTM* configuration commands to Quectel LG290P GNSS devices. This includes the facility to add **user-defined commands or command sequences** - see instructions under [user-defined presets](#userdefined) below. To display the NMEA Configuration Dialog (*only functional when connected to a compatible GNSS device via serial port*), click
+![gear icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-gear-2-24-brown.png?raw=true), or go to Menu..Options..NMEA Configuration Dialog.
 1. [NTRIP Client](#ntripconfig) facility with the ability to connect to a specified NTRIP caster, parse the incoming RTCM3 or SPARTN data and feed this data to a compatible GNSS receiver (*requires an Internet connection and access to an NTRIP caster and local mountpoint*). To display the NTRIP Client Configuration Dialog, click
 ![ntrip icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-antenna-4-24.png?raw=true), or go to Menu..Options..NTRIP Configuration Dialog.
 1. [SPARTN Client](#spartnconfig) facility with the ability to configure an IP or L-Band SPARTN Correction source and SPARTN-compatible GNSS receiver (e.g. ZED-F9P) and pass the incoming correction data to the GNSS receiver (*requires an Internet connection and access to a SPARTN location service*). To display the SPARTN Client Configuration Dialog, click ![spartn icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-antenna-3-24.png?raw=true), or go to Menu..Options..SPARTN Configuration Dialog.
@@ -326,7 +330,7 @@ The UBX Configuration Dialog currently provides the following UBX configuration 
 1. Solution Rate panel (CFG-RATE) sets navigation solution interval in ms (e.g. 1000 = 1/second) and measurement ratio (ratio between the number of measurements and the number of navigation solutions, e.g. 5 = five measurements per navigation solution).
 1. For each of the panels above, clicking anywhere in the panel background will refresh the displayed information with the current configuration.
 1. Message Rate panel (CFG-MSG) sets message rates per port for UBX and NMEA messages. Message rate is relative to navigation solution frequency e.g. a message rate of '4' means 'every 4th navigation solution' (higher = less frequent).
-1. Generic configuration panel (CFG-*) providing structured updates for a range of legacy CFG- configuration commands for pre-Generation 9+ devices. Note: 'X' (byte) type attributes can be entered as integers or hexadecimal strings e.g. 522125312 or 0x1f1f0000.
+1. Dynamic configuration panel providing structured updates for a range of legacy CFG-* configuration commands for pre-Generation 9+ devices. Note: 'X' (byte) type attributes can be entered as integers or hexadecimal strings e.g. 522125312 or 0x1f1f0000.
 1. Configuration Interface widget (CFG-VALSET, CFG-VALDEL and CFG-VALGET) queries and sets configuration for [Generation 9+ devices](https://github.com/semuconsulting/pyubx2#configinterface) e.g. NEO-M9, ZED-F9P, etc.
 1. Preset Commands widget supports a variety of preset and user-defined commands - see [user defined presets](#userdefined). The port checkboxes (USB, UART1, etc.) determine which device port(s) any preset message rate commands apply to (_assuming the selected ports are physically implemented on the device_). The selected port(s) may be saved as configuration parameter `defaultport_s` e.g. "USB,UART1".
 
@@ -339,6 +343,27 @@ warning ![warning icon](https://github.com/semuconsulting/PyGPSClient/blob/maste
 **Note:**
 * The UBX protocol does not support synchronous command acknowledgement or unique confirmation IDs. Asynchronous command and poll acknowledgements and responses can take several seconds at high message transmission rates, or be discarded altogether if the device's transmit buffer is full (*txbuff-alloc error*). To ensure timely responses, try increasing the baud rate and/or temporarily reducing transmitted message rates using the configuration commands provided.
 * A warning icon (typically accompanied by an ACK-NAK response) is usually an indication that one or more of the commands sent is not supported by your receiver.
+---
+## <a name="nmeaconfig">NMEA Configuration Facilities</a>
+
+![nmeaconfig widget screenshot](/images/nmeaconfig_widget.png?raw=true)
+
+**Pre-Requisites:**
+
+- Receiver capable of being configured via proprietary NMEA sentences, connected to the workstation via USB or UART port. At time of writing, the only supported GNSS receiver type is the Quectel LG290P, via PQTM* sentences, but additional types may be supported in the underlying NMEA parser library [pynmeagps](https://github.com/semuconsulting/pynmeagps) in later releases.
+
+**Instructions:**
+
+The NMEA Configuration Dialog currently provides the following NMEA configuration panels:
+1. Version panel shows current device hardware/firmware versions (*via PQTMVERNO polls*).
+1. Dynamic configuration panel providing structured updates for supported receivers e.g. the Quectel LG290P via PQTM* sentences.
+1. Preset Commands widget supports a variety of preset and user-defined commands - see [user defined presets](#userdefined).
+
+An icon to the right of each 'SEND' 
+![send icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-arrow-12-24.png?raw=true) button indicates the confirmation status of the configuration command; 
+(pending i.e. awaiting confirmation ![pending icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-time-6-24.png?raw=true), 
+confirmed ![confirmed icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-check-mark-8-24.png?raw=true) or 
+warning ![warning icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-warning-1-24.png?raw=true)).
 
 ---
 ## <a name="ntripconfig">NTRIP Client Facilities</a>
@@ -547,45 +572,31 @@ that this is a User variable rather than a System/Global variable.
 ---
 ## <a name="userdefined">User Defined Presets</a>
 
-The UBX Configuration Dialog includes the facility to send user-defined UBX configuration messages or message sequences to the receiver. These can be set up by adding
-appropriate comma-delimited message descriptions and payload definitions to the `"ubxpresets_l":` list in your json configuration file (see example provided). The message definition comprises a free-format text description (*avoid embedded commas*) 
-followed by one or more [pyubx2 UBXMessage constructors](https://pypi.org/project/pyubx2/), i.e. 
-1. message class as a string e.g. `CFG` (must be a valid class from [pyubx2.UBX_CLASSES](https://github.com/semuconsulting/pyubx2/blob/master/src/pyubx2/ubxtypes_core.py#L89))
-2. message id as a string e.g. `CFG-MSG` (must be a valid id from [pyubx2.UBX_MSGIDS](https://github.com/semuconsulting/pyubx2/blob/master/src/pyubx2/ubxtypes_core.py#L121))
-3. payload as a hexadecimal string e.g. `f004010100010100` (leave blank for null payloads e.g. most POLL messages)
-4. mode as an integer (`1` = SET, `2` = POLL)
+The UBX and NMEA Configuration Dialogs include the facility to send user-defined configuration messages or message sequences to a compatible receiver. These can be set up by adding
+appropriate comma- or semicolon-delimited message descriptions and payload definitions to the `"ubxpresets_l":`or `"nmeapresets_l":` lists in your json configuration file (see [example provided](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient.json#L158)). The message definition comprises a free-format text description (*avoid embedded commas or semi-colons*) followed by one or more pyubx2 (UBX) or pynmeagps (NMEA) message constructors, e,g. 
 
-(payload as hex string can be obtained from a `UBXMessage` created using the [pyubx2 library](https://pypi.org/project/pyubx2/) thus: ```msg.payload.hex()```)
+- UBX - `<description>, <message class>, <message id>, <payload as hexadecimal string>, <msgmode>`
+- NMEA - `<description>; <talker>; <message id>; <payload as comma-separated string>; <msgmode>`
 
-Multiple commands can be concatenated on a single line. Illustrative examples are shown below:
+The `pygpsclient.ubx2preset()` and `pygpsclient.nmea2preset()` helper functions may be used to convert a `UBXMessage` or `NMEAMessage` object into a preset string suitable for copying and pasting into the `"ubxpresents_l":` or `"nmeapresets_l":` JSON configuration sections:
 
+```python
+from pygpsclient import ubx2preset, nmea2preset
+from pyubx2 import UBXMessage
+from pynmeagps import NMEAMessage, SET
+
+ubx = UBXMessage("CFG", "CFG-MSG", SET, msgClass=0x01, msgID=0x03, rateUART1=1)
+print(ubx2preset(ubx, "Configure NAV-STATUS Message Rate on ZED-F9P"))
+
+nmea = NMEAMessage("P", "QTMCFGUART", SET, baudrate=460800)
+print(nmea2preset(nmea, "Configure UART baud rate on LG290P"))
 ```
-	"ubxpresets_l": [
-		"Force HOT Reset (!!! Will require reconnection !!!), CFG, CFG-RST, 00000000, 1",
-		"Force WARM Reset (!!! Will require reconnection !!!), CFG, CFG-RST, 00010000, 1",
-		"Force COLD Reset (!!! Will require reconnection !!!), CFG, CFG-RST, ffff0000, 1",
-		"Stop GNSS, CFG, CFG-RST, 00000800, 1",
-		"Start GNSS, CFG, CFG-RST, 00000900, 1",
-		"Enable NMEA UBX00 & UBX03 sentences, CFG, CFG-MSG, f100010100010100, 1, CFG, CFG-MSG, f103010100010100, 1",
-		"Poll NEO-9 UART1/2 baud rates, CFG, CFG-VALGET, 000000000100524001005340, 2",
-		"Poll NEO-9 Message Rates, CFG, CFG-VALGET, 00000000ffff9120, 2, CFG, CFG-VALGET, 00004000ffff9120, 2, CFG, CFG-VALGET, 00008000ffff9120, 2",
-		"Set ZED-F9P RTCM3 MSGOUT Basestation, CFG, CFG-VALSET, 00010000c002912001cf02912001d4029120011b03912001d902912001060391200101039120018403912001, 1",
-		"Set ZED-F9P to Survey-In Timing Mode Basestation, CFG, CFG-VALSET, 0001000001000320011100034070110100100003405a0000008b00912001, 1",
-		"Poll Receiver Software Version, MON, MON-VER, , 2",
-		"Poll Datum, CFG, CFG-DAT, , 2",
-		"Poll GNSS config, CFG, CFG-GNSS, , 2",
-		"Poll NMEA config, CFG, CFG-NMEA, , 2",
-		"Poll Satellite-based Augmentation, CFG, CFG-SBAS, , 2",
-		"Poll Receiver Management, CFG, CFG-RXM, , 2",
-		"Poll RXM-SPARTN-KEY, RXM, RXM-SPARTN-KEY, , 2",
-		"Poll RXM-COR, RXM, RXM-COR, , 2",
-		"Poll Navigation Mode, CFG, CFG-NAV5, , 2",
-		"Poll Expert Navigation mode, CFG, CFG-NAVX5, , 2",
-		"Poll Geofencing, CFG, CFG-GEOFENCE, , 2",
-		"Poll Timepulse, CFG, CFG-TP5, , 2",
-		"Set NEO-M8T Timepulse to 8 MHz, CFG, CFG-TP5, 000100003200000000127a0000127a003200000032000000000000006f000000, 1",
-	]
 ```
+Configure NAV-STATUS Message Rate on ZED-F9P, CFG, CFG-MSG, 0103000100000000, 1
+Configure UART baud rate on LG290P; P; QTMCFGUART; W,460800; 1
+```
+
+Multiple commands can be concatenated on a single line. Illustrative examples are shown in the sample [pygpsclient.json](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient.json#L158) file.
 
 ---
 ## <a name="cli">Command Line Utilities</a>

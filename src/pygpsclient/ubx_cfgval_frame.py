@@ -111,7 +111,7 @@ class UBX_CFGVAL_Frame(Frame):
             self,
             border=2,
             relief="sunken",
-            height=5,
+            height=12,
             justify=LEFT,
             exportselection=False,
         )
@@ -126,7 +126,7 @@ class UBX_CFGVAL_Frame(Frame):
             self,
             border=2,
             relief="sunken",
-            height=5,
+            height=12,
             justify=LEFT,
             exportselection=False,
         )
