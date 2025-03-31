@@ -38,6 +38,7 @@ from pyubx2 import (
 )
 
 from pygpsclient.globals import (
+    ERRCOL,
     HOME,
     ICON_DELETE,
     ICON_LOAD,
@@ -469,7 +470,7 @@ class UBX_Recorder_Frame(Frame):
         """
 
         try:
-            cols = [("white", "red"), ("red", "white")]
+            cols = [("white", ERRCOL), (ERRCOL, "white")]
             i = 0
             while not stop.is_set():
                 i = not i

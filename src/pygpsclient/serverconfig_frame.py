@@ -45,6 +45,7 @@ from pygpsclient.globals import (
     DEFAULT_PASSWORD,
     DEFAULT_USER,
     DISCONNECTED,
+    ERRCOL,
     ICON_CONTRACT,
     ICON_EXPAND,
     INFOCOL,
@@ -475,7 +476,7 @@ class ServerConfigFrame(Frame):
             if valid:
                 self.__app.set_status("", INFOCOL)
             else:
-                self.__app.set_status("ERROR - invalid entry", "red")
+                self.__app.set_status("ERROR - invalid entry", ERRCOL)
                 self._socket_serve.set(0)
                 return
             # start server

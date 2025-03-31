@@ -15,17 +15,19 @@ from tkinter import Button, E, Frame, IntVar, Label, Spinbox, StringVar, W
 from PIL import Image, ImageTk
 from pyubx2 import POLL, SET, UBXMessage
 
-from .globals import (
+from pygpsclient.globals import (
     CONNECTED,
+    ERRCOL,
     ICON_CONFIRMED,
     ICON_PENDING,
     ICON_SEND,
     ICON_WARNING,
+    OKCOL,
     READONLY,
     RPTDELAY,
     UBX_CFGRATE,
 )
-from .strings import LBLCFGRATE
+from pygpsclient.strings import LBLCFGRATE
 
 TIMEREFS = {
     0: "UTC",
@@ -176,10 +178,10 @@ class UBX_RATE_Frame(Frame):
             self._navrate.set(msg.navRate)
             self._timeref.set(TIMEREFS[msg.timeRef])
             self._lbl_send_command.config(image=self._img_confirmed)
-            self.__container.set_status("CFG-RATE GET message received", "green")
+            self.__container.set_status("CFG-RATE GET message received", OKCOL)
 
         elif msg.identity == "ACK-NAK":
-            self.__container.set_status("CFG-RATE POLL message rejected", "red")
+            self.__container.set_status("CFG-RATE POLL message rejected", ERRCOL)
             self._lbl_send_command.config(image=self._img_warn)
 
     def _on_send_rate(self, *args, **kwargs):  # pylint: disable=unused-argument

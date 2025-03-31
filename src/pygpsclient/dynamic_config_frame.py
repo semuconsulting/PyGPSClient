@@ -54,12 +54,16 @@ from pyubx2 import (
 )
 
 from pygpsclient.globals import (
+    ERRCOL,
     ICON_CONFIRMED,
     ICON_PENDING,
+    ICON_REDRAW,
     ICON_SEND,
     ICON_UNKNOWN,
     ICON_WARNING,
+    INFOCOL,
     NMEA_CFGOTHER,
+    OKCOL,
     UBX_CFGOTHER,
 )
 from pygpsclient.helpers import stringvar2val
@@ -69,6 +73,7 @@ from pygpsclient.strings import LBLCFGGENERIC, LBLCFGGENERICNMEA
 SCROLLX = 300
 SCROLLY = 300
 NMEA = "NMEA"
+UBX = "UBX"
 ACK = "ACK-ACK"
 NAK = "ACK-NAK"
 
@@ -76,25 +81,24 @@ NAK = "ACK-NAK"
 CFG_EXCLUDED = (
     "CFG-DAT-NUM",  # deprecated
     "CFG-GEOFENCE",  # 'variable by size' groups not yet implemented - use pyubx2
-    "CFG-MSG",  # handled via existing CFG-MSG panel
     "CFG-NMEAv0",  # deprecated
     "CFG-NMEAvX",  # deprecated
-    "CFG-PRT",  # handled via existing CFG-PRT panel
-    "CFG-RATE",  # handled via existing CFG-RATE panel
     "CFG-RINV",  # 'variable by size' groups not yet implemented - use pyubx2
     "CFG-VALDEL",  # handled via existing CFG-VALGET/SET/DEL panel
     "CFG-VALSET",  # handled via existing CFG-VALGET/SET/DEL panel
 )
 # alternative POLL dictionary names for where POLL command
-# doesn't correspond to SET
+# doesn't correspond to SET (fudge for Quectel)
 ALT_POLL_NAMES = {
     "QTMCFGGEOFENCE_DIS": "QTMCFGGEOFENCE",
     "QTMCFGGEOFENCE_POLY": "QTMCFGGEOFENCE",
     "QTMCFGPPS_DIS": "QTMCFGPPS",
+    "QTMCFGSAT_LOW": "QTMCFGSAT",
+    "QTMCFGSAT_MASKHIGH": "QTMCFGSAT",
     "QTMCFGUART_CURRBAUD": "QTMCFGUART_CURR",
     "QTMCFGUART_BAUD": "QTMCFGUART",
 }
-# default attribute values for POLLS
+# default argument values for POLLS
 NMEA_POLL_VALS = {
     "geofenceindex": 0,
     "index": 1,
@@ -107,7 +111,12 @@ NMEA_POLL_VALS = {
     "status": "R",
     "systemid": 1,
 }
-UBX_POLL_VALS = {"portID": 0}
+UBX_POLL_VALS = {
+    "msgClass": 0x01,
+    "msgID": 0x07,
+    "portID": 0,
+    "protocolID": 0,
+}
 
 
 class Dynamic_Config_Frame(Frame):
@@ -138,6 +147,7 @@ class Dynamic_Config_Frame(Frame):
         self._img_confirmed = ImageTk.PhotoImage(Image.open(ICON_CONFIRMED))
         self._img_warn = ImageTk.PhotoImage(Image.open(ICON_WARNING))
         self._img_unknown = ImageTk.PhotoImage(Image.open(ICON_UNKNOWN))
+        self._img_refresh = ImageTk.PhotoImage(Image.open(ICON_REDRAW))
         self._cfg_id = ""  # identity of selected CFG command
         self._cfg_atts = {}  # this holds the attributes of the selected CFG command
         self._expected_response = None
@@ -177,6 +187,13 @@ class Dynamic_Config_Frame(Frame):
             command=self._on_set_cfg,
             font=self.__app.font_md,
         )
+        self._btn_refresh = Button(
+            self,
+            image=self._img_refresh,
+            width=50,
+            command=self._on_refresh,
+            font=self.__app.font_md,
+        )
         self._lbl_command = Label(self, text="", anchor=W)
         self._frm_container = Frame(self)
         self._can_container = Canvas(self._frm_container)
@@ -203,12 +220,9 @@ class Dynamic_Config_Frame(Frame):
             column=0, row=1, columnspan=2, rowspan=6, padx=3, pady=3, sticky=(W, E)
         )
         self._scr_cfg_cmd.grid(column=1, row=1, rowspan=6, sticky=(N, S, E))
-        self._btn_send_command.grid(
-            column=3, row=1, rowspan=3, ipadx=3, ipady=3, sticky=W
-        )
-        self._lbl_send_command.grid(
-            column=3, row=4, rowspan=3, ipadx=3, ipady=3, sticky=W
-        )
+        self._btn_send_command.grid(column=3, row=1, ipadx=3, ipady=3, sticky=W)
+        self._lbl_send_command.grid(column=3, row=2, ipadx=3, ipady=3, sticky=W)
+        self._btn_refresh.grid(column=3, row=3, ipadx=3, ipady=3, sticky=W)
         self._lbl_command.grid(column=0, row=7, columnspan=4, padx=3, sticky=(W, E))
         self._frm_container.grid(
             column=0, row=8, columnspan=4, rowspan=15, padx=3, sticky=(N, S, W, E)
@@ -265,6 +279,13 @@ class Dynamic_Config_Frame(Frame):
             height=SCROLLY,
         )
 
+    def _on_refresh(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Handle refresh button.
+        """
+
+        self._do_poll_cfg()
+
     def _on_select_cfg(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
         Handle configuration command selection. Look up payload dictionary of command,
@@ -289,6 +310,10 @@ class Dynamic_Config_Frame(Frame):
         """
         Populate CFG SET message from Entry fields on panel and send to device.
         """
+
+        if self._cfg_id in ("", None):
+            self.__container.set_status("Select command", ERRCOL)
+            return
 
         nam = ""
         ent = StringVar().set("")
@@ -328,43 +353,45 @@ class Dynamic_Config_Frame(Frame):
         except ValueError as err:
             self.__container.set_status(
                 f"INVALID! {nam}, {att}: {err}",
-                "red",
+                ERRCOL,
             )
 
     def _do_poll_cfg(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
-        Send CFG POLL request (if supported) and set pending response status.
+        Send configuration POLL request (if supported) and set pending response status.
+
+        Some POLL requests require arguments (e.g. portid or msgname) - these
+        will be taken from the relevant Entry field or, if null, from a
+        table of default values.
         """
+
+        if self._cfg_id in ("", None):
+            self.__container.set_status("Select command", ERRCOL)
+            return
 
         msg = penddlg = pendcfg = None
         # use alternate names for some NMEA PQTM POLL commands
         cfg_id = ALT_POLL_NAMES.get(self._cfg_id, self._cfg_id)
+        # set any POLL arguments to specified or default values
+        # e.g. portid = "1", msgname="RMC"
+        args = self._do_poll_args(cfg_id)
         if self._protocol == NMEA:
             if cfg_id in NMEA_PAYLOADS_POLL_PROP:  # CFG is POLLable
                 # strip off any variant suffix from cfg_id
                 # e.g. "QTMCFGUART_CURR" -> "QTMCFGUART"
-                # set any POLL arguments to their default values
-                # e.g. portid = 1
-                dic = NMEA_PAYLOADS_POLL_PROP[cfg_id]
-                vals = {}
-                for attn in dic:
-                    if attn in NMEA_POLL_VALS:
-                        vals[attn] = NMEA_POLL_VALS[attn]
-                msg = NMEAMessage("P", cfg_id.rsplit("_", 1)[0], POLL, **vals)
+                msg = NMEAMessage("P", cfg_id.rsplit("_", 1)[0], POLL, **args)
                 penddlg = NMEA_CFGOTHER
                 pendcfg = (msg.identity,)
         else:  # UBX
             if cfg_id in UBX_PAYLOADS_POLL:  # CFG is POLLable
-                msg = UBXMessage("CFG", cfg_id, POLL)
+                msg = UBXMessage("CFG", cfg_id, POLL, **args)
                 penddlg = UBX_CFGOTHER
                 pendcfg = (msg.identity, NAK)
 
         if msg is not None:
             self.__container.send_command(msg)
             # self.logger.debug(f"poll {msg.serialize()}")
-            self.__container.set_status(
-                f"{cfg_id} POLL message sent",
-            )
+            self.__container.set_status(f"{cfg_id} POLL message sent", INFOCOL)
             self._lbl_send_command.config(image=self._img_pending)
             for msgid in pendcfg:
                 self.__container.set_pending(msgid, penddlg)
@@ -374,6 +401,47 @@ class Dynamic_Config_Frame(Frame):
                 f"{cfg_id} No POLL available",
             )
             self._lbl_send_command.config(image=self._img_unknown)
+
+    def _do_poll_args(self, cfg_id: str) -> dict:
+        """
+        Set any poll arguments to default or entered values.
+
+        :param str cfg_id: config command name
+        :return: dictionary of poll arguments
+        :rtype: dict
+        """
+
+        args = {}
+        try:
+            if self._protocol == NMEA:
+                dic = NMEA_PAYLOADS_POLL_PROP[cfg_id]
+                for attn in dic:
+                    pval = self._cfg_atts.get(attn, None)
+                    if pval is not None:
+                        pval = pval[0].get()
+                    if pval != "" and attn != "status":
+                        val = pval
+                    else:
+                        val = NMEA_POLL_VALS.get(attn, "")
+                        self._cfg_atts[attn][0].set(val)
+                    args[attn] = val
+            else:  # UBX
+                dic = UBX_PAYLOADS_POLL[cfg_id]
+                for attn in dic:
+                    pval = self._cfg_atts.get(attn, None)
+                    if pval is not None:
+                        pval = pval[0].get()
+                    if pval != "":
+                        val = pval
+                        if val.isnumeric():
+                            val = int(val)
+                    else:
+                        val = UBX_POLL_VALS.get(attn, "")
+                        self._cfg_atts[attn][0].set(val)
+                    args[attn] = val
+        except KeyError:
+            pass
+        return args
 
     def update_status(self, msg: object):
         """
@@ -408,10 +476,10 @@ class Dynamic_Config_Frame(Frame):
                     self._update_widgets(msg)
 
             if ok:
-                self.__container.set_status(f"{cfg_id} message acknowledged", "green")
+                self.__container.set_status(f"{cfg_id} message acknowledged", OKCOL)
                 self._lbl_send_command.config(image=self._img_confirmed)
             else:
-                self.__container.set_status(f"{cfg_id} message rejected", "red")
+                self.__container.set_status(f"{cfg_id} message rejected", ERRCOL)
                 self._lbl_send_command.config(image=self._img_warn)
             self.update()
 
@@ -464,18 +532,17 @@ class Dynamic_Config_Frame(Frame):
                     else:
                         nr = 1
                     for idx in range(nr):
-                        row = self._add_widgets_group(nam, att, row, idx + 1)
+                        row = self._add_widgets_group(att, row, idx + 1)
             else:  # single attribute
                 row = self._add_widgets_single(nam, att, row, index)
 
         return row
 
-    def _add_widgets_group(self, nam: str, att: object, row: int, index: int) -> int:
+    def _add_widgets_group(self, att: object, row: int, index: int) -> int:
         """
         Add widgets for group header label.
 
-        :param UBXMessage msg: response to CFG POLL (if available)
-        :param str nam: attribute name
+        :param object msg: UBXMessage or NMEAMessage response to CFG POLL (if available)
         :param object att: attribute type
         :param int row: current row in frame
         :param int index: grouped item index
@@ -522,16 +589,37 @@ class Dynamic_Config_Frame(Frame):
             nam += f"_{index:02d}"
         if isinstance(att, list):  # (type, scale factor)
             att = att[0]
-
         self._cfg_atts[nam] = (StringVar(), att)
         Label(self._frm_attrs, text=nam).grid(column=0, row=row, sticky=E)
-        Entry(
-            self._frm_attrs, textvariable=self._cfg_atts[nam][0], relief="sunken"
-        ).grid(column=1, row=row, sticky=W)
+        ent = Entry(
+            self._frm_attrs,
+            textvariable=self._cfg_atts[nam][0],
+            relief="sunken",
+            highlightthickness=2,
+        )
+        ent.grid(column=1, row=row, sticky=W)
+        # check if poll argument
+        self._check_pollarg(nam, ent)
         Label(self._frm_attrs, text=att).grid(column=2, row=row, sticky=W)
         row += 1
 
         return row
+
+    def _check_pollarg(self, nam: str, wdg: Entry):
+        """
+        Highlight this Entry widget if it represents a POLL argument.
+
+        :param str nam: attribute name e.g. "portid"
+        :param Entry wdg: Entry widget
+        """
+
+        cfg = self._cfg_id.split("_")[0]
+        if (
+            self._protocol == NMEA
+            and (cfg[:3] == "QTM" and nam != "status")  # ignore Quectel status
+            and nam in NMEA_PAYLOADS_POLL_PROP.get(cfg, {})
+        ) or (self._protocol == UBX and nam in UBX_PAYLOADS_POLL.get(cfg, {})):
+            wdg.configure(highlightbackground=INFOCOL, highlightcolor=INFOCOL)
 
     def _update_widgets(self, msg: object):
         """

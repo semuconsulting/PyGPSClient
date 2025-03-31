@@ -29,15 +29,21 @@ from tkinter import (
 from PIL import Image, ImageTk
 from pynmeagps import NMEAMessage
 
+from pygpsclient.confirm_box import ConfirmBox
 from pygpsclient.globals import (
+    ERRCOL,
     ICON_CONFIRMED,
     ICON_PENDING,
     ICON_SEND,
     ICON_WARNING,
     NMEA_PRESET,
+    OKCOL,
     SAVED_CONFIG,
 )
 from pygpsclient.strings import (
+    CONFIRM,
+    DLGACTION,
+    DLGACTIONCONFIRM,
     LBLNMEAPRESET,
 )
 
@@ -91,7 +97,7 @@ class NMEA_PRESET_Frame(Frame):
             self,
             border=2,
             relief="sunken",
-            height=38,
+            height=35,
             width=55,
             justify=LEFT,
             exportselection=False,
@@ -163,10 +169,21 @@ class NMEA_PRESET_Frame(Frame):
         Preset command send button has been clicked.
         """
 
-        status = CONFIRMED
+        if self._preset_command in ("", None):
+            self.__container.set_status("Select preset", ERRCOL)
+            return
+
         confids = []
         try:
-            confids = self._do_user_defined(self._preset_command)
+            if CONFIRM in self._preset_command:
+                if ConfirmBox(self, DLGACTION, DLGACTIONCONFIRM).show():
+                    confids = self._do_user_defined(self._preset_command)
+                    status = CONFIRMED
+                else:
+                    status = CANCELLED
+            else:
+                confids = self._do_user_defined(self._preset_command)
+                status = CONFIRMED
 
             if status == CONFIRMED:
                 self._lbl_send_command.config(image=self._img_pending)
@@ -185,7 +202,7 @@ class NMEA_PRESET_Frame(Frame):
                 )
 
         except Exception as err:  # pylint: disable=broad-except
-            self.__container.set_status(f"Error {err}", "red")
+            self.__container.set_status(f"Error {err}", ERRCOL)
             self._lbl_send_command.config(image=self._img_warn)
 
     def _do_user_defined(self, command: str) -> list:
@@ -218,7 +235,7 @@ class NMEA_PRESET_Frame(Frame):
                 # self.logger.debug(f"{str(msg)=} - {msg.serialize()=} {confids=}")
                 self.__container.send_command(msg)
         except Exception as err:  # pylint: disable=broad-except
-            self.__app.set_status(f"Error {err}", "red")
+            self.__app.set_status(f"Error {err}", ERRCOL)
             self._lbl_send_command.config(image=self._img_warn)
 
         return confids
@@ -233,7 +250,7 @@ class NMEA_PRESET_Frame(Frame):
         status = getattr(msg, "status", "OK")
         if status == "OK":
             self._lbl_send_command.config(image=self._img_confirmed)
-            self.__container.set_status("Preset command(s) acknowledged", "green")
+            self.__container.set_status("Preset command(s) acknowledged", OKCOL)
         elif status == "ERROR":
             self._lbl_send_command.config(image=self._img_warn)
-            self.__container.set_status("Preset command(s) rejected", "red")
+            self.__container.set_status("Preset command(s) rejected", ERRCOL)

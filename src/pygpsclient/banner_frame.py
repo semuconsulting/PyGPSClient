@@ -29,6 +29,7 @@ from pygpsclient.globals import (
     DMM,
     DMS,
     ECEF,
+    ERRCOL,
     FGCOL,
     ICON_BLANK,
     ICON_CONN,
@@ -511,7 +512,7 @@ class BannerFrame(Frame):
         elif fix in ("2D", "DR"):
             self._lbl_fix.config(fg="orange")
         else:
-            self._lbl_fix.config(fg="red")
+            self._lbl_fix.config(fg=ERRCOL)
         self._fix.set(fix)
 
     def _update_siv(self):

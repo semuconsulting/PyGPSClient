@@ -34,6 +34,7 @@ from requests import ConnectTimeout, RequestException, get
 from pygpsclient.globals import (
     BGCOL,
     CUSTOM,
+    ERRCOL,
     ICON_END,
     ICON_POS,
     ICON_START,
@@ -71,9 +72,9 @@ from pygpsclient.strings import (
     OUTOFBOUNDS,
 )
 
-ZOOMCOL = "red"
+ZOOMCOL = ERRCOL
 ZOOMEND = "lightgray"
-POSCOL = "red"
+POSCOL = ERRCOL
 TRK_COL = "magenta"  # color of track
 INSET = 4
 

@@ -330,7 +330,7 @@ The UBX Configuration Dialog currently provides the following UBX configuration 
 1. Solution Rate panel (CFG-RATE) sets navigation solution interval in ms (e.g. 1000 = 1/second) and measurement ratio (ratio between the number of measurements and the number of navigation solutions, e.g. 5 = five measurements per navigation solution).
 1. For each of the panels above, clicking anywhere in the panel background will refresh the displayed information with the current configuration.
 1. Message Rate panel (CFG-MSG) sets message rates per port for UBX and NMEA messages. Message rate is relative to navigation solution frequency e.g. a message rate of '4' means 'every 4th navigation solution' (higher = less frequent).
-1. Dynamic configuration panel providing structured updates for a range of legacy CFG-* configuration commands for pre-Generation 9+ devices. Note: 'X' (byte) type attributes can be entered as integers or hexadecimal strings e.g. 522125312 or 0x1f1f0000.
+1. Dynamic configuration panel providing structured updates for a range of legacy CFG-* configuration commands for pre-Generation 9+ devices. Note: 'X' (byte) type attributes can be entered as integers or hexadecimal strings e.g. 522125312 or 0x1f1f0000. Once a command is selected, the configuration is polled and the current values displayed. The user can then amend these values as required and send the updated configuration. Some polls require input arguments (e.g. portID) - these are highlighted and will be set at default values initially (e.g. portID = 0), but can be amended by the user and re-polled using the ![refresh](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-refresh-lined-24.png?raw=true) button.
 1. Configuration Interface widget (CFG-VALSET, CFG-VALDEL and CFG-VALGET) queries and sets configuration for [Generation 9+ devices](https://github.com/semuconsulting/pyubx2#configinterface) e.g. NEO-M9, ZED-F9P, etc.
 1. Preset Commands widget supports a variety of preset and user-defined commands - see [user defined presets](#userdefined). The port checkboxes (USB, UART1, etc.) determine which device port(s) any preset message rate commands apply to (_assuming the selected ports are physically implemented on the device_). The selected port(s) may be saved as configuration parameter `defaultport_s` e.g. "USB,UART1".
 
@@ -346,7 +346,7 @@ warning ![warning icon](https://github.com/semuconsulting/PyGPSClient/blob/maste
 ---
 ## <a name="nmeaconfig">NMEA Configuration Facilities</a>
 
-![nmeaconfig widget screenshot](/images/nmeaconfig_widget.png?raw=true)
+![nmeaconfig widget screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/nmeaconfig_widget.png?raw=true)
 
 **Pre-Requisites:**
 
@@ -356,7 +356,7 @@ warning ![warning icon](https://github.com/semuconsulting/PyGPSClient/blob/maste
 
 The NMEA Configuration Dialog currently provides the following NMEA configuration panels:
 1. Version panel shows current device hardware/firmware versions (*via PQTMVERNO polls*).
-1. Dynamic configuration panel providing structured updates for supported receivers e.g. the Quectel LG290P via PQTM* sentences.
+1. Dynamic configuration panel providing structured updates for supported receivers e.g. the Quectel LG290P via PQTM* sentences. Once a command is selected, the configuration is polled and the current values displayed. The user can then amend these values as required and send the updated configuration. Some polls require input arguments (e.g. portid or msgname) - these are highlighted and will be set at default values initially (e.g. portid = 1), but can be amended by the user and re-polled using the ![refresh](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-refresh-lined-24.png?raw=true) button.
 1. Preset Commands widget supports a variety of preset and user-defined commands - see [user defined presets](#userdefined).
 
 An icon to the right of each 'SEND' 
@@ -364,6 +364,8 @@ An icon to the right of each 'SEND'
 (pending i.e. awaiting confirmation ![pending icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-time-6-24.png?raw=true), 
 confirmed ![confirmed icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-check-mark-8-24.png?raw=true) or 
 warning ![warning icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-warning-1-24.png?raw=true)).
+
+**NB:** Several Quectel LG290P commands require a Hot Restart (PQTMHOT) before taking effect, including PQTMCFGCNST (Enable/Disable Constellations), PQTMCFGFIX (Configure Fix Rate), PQTMCFGSAT (Configure Satellite Masks) and PQTMCFGSIGNAL (Configure Signal Masks). This is a Quectel protocol constraint, not a PyGPSClient issue.
 
 ---
 ## <a name="ntripconfig">NTRIP Client Facilities</a>
@@ -577,6 +579,8 @@ appropriate comma- or semicolon-delimited message descriptions and payload defin
 
 - UBX - `<description>, <message class>, <message id>, <payload as hexadecimal string>, <msgmode>`
 - NMEA - `<description>; <talker>; <message id>; <payload as comma-separated string>; <msgmode>`
+
+If the command description contains the term `CONFIRM`, a pop-up confirmation box will appear before the command is actioned.
 
 The `pygpsclient.ubx2preset()` and `pygpsclient.nmea2preset()` helper functions may be used to convert a `UBXMessage` or `NMEAMessage` object into a preset string suitable for copying and pasting into the `"ubxpresents_l":` or `"nmeapresets_l":` JSON configuration sections:
 

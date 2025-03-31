@@ -33,10 +33,12 @@ from pyubx2 import POLL, SET, UBX_MSGIDS, UBXMessage
 from pyubx2.ubxhelpers import key_from_val
 
 from pygpsclient.globals import (
+    ERRCOL,
     ICON_CONFIRMED,
     ICON_PENDING,
     ICON_SEND,
     ICON_WARNING,
+    OKCOL,
     READONLY,
     RPTDELAY,
     UBX_CFGMSG,
@@ -159,7 +161,7 @@ class UBX_MSGRATE_Frame(Frame):
             self,
             image=self._img_send,
             width=50,
-            fg="green",
+            fg=OKCOL,
             command=self._on_send_cfg_msg,
             font=self.__app.font_md,
         )
@@ -224,7 +226,7 @@ class UBX_MSGRATE_Frame(Frame):
         """
 
         if msg.identity == "CFG-MSG":
-            self.__container.set_status("CFG-MSG GET message received", "green")
+            self.__container.set_status("CFG-MSG GET message received", OKCOL)
             self._ddc_rate.set(msg.rateDDC)
             self._uart1_rate.set(msg.rateUART1)
             self._uart2_rate.set(msg.rateUART2)
@@ -233,7 +235,7 @@ class UBX_MSGRATE_Frame(Frame):
             self._lbl_send_command.config(image=self._img_confirmed)
 
         elif msg.identity == "ACK-NAK":
-            self.__container.set_status("CFG-MSG POLL message rejected", "red")
+            self.__container.set_status("CFG-MSG POLL message rejected", ERRCOL)
             self._lbl_send_command.config(image=self._img_warn)
 
     def _on_select_cfg_msg(self, *args, **kwargs):  # pylint: disable=unused-argument
@@ -275,7 +277,7 @@ class UBX_MSGRATE_Frame(Frame):
         )
         self.__container.send_command(msg)
         self._lbl_send_command.config(image=self._img_pending)
-        self.__container.set_status("CFG-MSG SET message sent", "green")
+        self.__container.set_status("CFG-MSG SET message sent", OKCOL)
         for msgid in ("ACK-ACK", "ACK-NAK"):
             self.__container.set_pending(msgid, UBX_CFGMSG)
 

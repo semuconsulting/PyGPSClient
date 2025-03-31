@@ -15,19 +15,21 @@ from tkinter import Button, Checkbutton, E, Frame, IntVar, Label, Spinbox, Strin
 from PIL import Image, ImageTk
 from pyubx2 import POLL, SET, UBXMessage
 
-from .globals import (
+from pygpsclient.globals import (
     BPSRATES,
     CONNECTED,
+    ERRCOL,
     ICON_CONFIRMED,
     ICON_PENDING,
     ICON_SEND,
     ICON_WARNING,
+    OKCOL,
     PORTIDS,
     READONLY,
     RPTDELAY,
     UBX_CFGPRT,
 )
-from .strings import LBLCFGPRT
+from pygpsclient.strings import LBLCFGPRT
 
 
 class UBX_PORT_Frame(Frame):
@@ -200,10 +202,10 @@ class UBX_PORT_Frame(Frame):
             self._outprot_nmea.set(msg.outNMEA)
             self._outprot_rtcm3.set(msg.outRTCM3)
             self._lbl_send_command.config(image=self._img_confirmed)
-            self.__container.set_status("CFG-PRT GET message received", "green")
+            self.__container.set_status("CFG-PRT GET message received", OKCOL)
 
         elif msg.identity == "ACK-NAK":
-            self.__container.set_status("CFG-PRT POLL message rejected", "red")
+            self.__container.set_status("CFG-PRT POLL message rejected", ERRCOL)
             self._lbl_send_command.config(image=self._img_warn)
 
     def _on_select_portid(self):

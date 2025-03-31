@@ -55,6 +55,7 @@ from pygpsclient.globals import (
     CONNECTED_SIMULATOR,
     CONNECTED_SOCKET,
     DEFAULT_BUFSIZE,
+    ERRCOL,
     FILEREAD_INTERVAL,
     UBXSIMULATOR,
 )
@@ -216,7 +217,7 @@ class StreamHandler:
                 stopevent.set()
                 self.__master.event_generate(settings["error_event"])
                 if hasattr(caller, "set_status"):
-                    caller.set_status(str(err), "red")
+                    caller.set_status(str(err), ERRCOL)
 
     def _readloop(
         self,

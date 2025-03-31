@@ -47,6 +47,7 @@ from requests import ConnectTimeout, HTTPError, RequestException, get
 from pygpsclient.globals import (
     BGCOL,
     CUSTOM,
+    ERRCOL,
     HOME,
     ICON_END,
     ICON_EXIT,
@@ -529,6 +530,9 @@ class GPXViewerDialog(Toplevel):
         """
         # pylint: disable=unused-variable
 
+        if track in ({}, None):
+            return
+
         mqapikey = self.__app.frm_settings.config.get(
             "mqapikey_s", self.__app.frm_settings.config.get("mqapikey", "")
         )
@@ -578,6 +582,9 @@ class GPXViewerDialog(Toplevel):
         Plot elevation profile with auto-ranged axes.
         :param list track: list of lat/lon points
         """
+
+        if track in ({}, None):
+            return
 
         _, _, ele_u, ele_c, spd_u, spd_c = self._get_units()
 
@@ -690,6 +697,9 @@ class GPXViewerDialog(Toplevel):
         Format metadata as string.
         """
 
+        if metadata in ({}, None):
+            return
+
         dst_u, dst_c, ele_u, ele_c, spd_u, spd_c = self._get_units()
 
         elapsed = self._metadata["elapsed"] / 3600  # h
@@ -764,12 +774,12 @@ class GPXViewerDialog(Toplevel):
         Display alert on map canvas.
         """
 
-        self._reset()
+        # self._reset()
         self._can_mapview.create_text(
             self.width / 2,
             self.mheight / 2,
             text=msg,
-            fill="orange",
+            fill=ERRCOL,
             tags="alert",
         )
         self.update_idletasks()

@@ -36,10 +36,12 @@ from pyubx2 import UBX_CONFIG_DATABASE, UBXMessage
 from pyubx2.ubxhelpers import attsiz, atttyp, cfgname2key
 
 from pygpsclient.globals import (
+    ERRCOL,
     ICON_CONFIRMED,
     ICON_PENDING,
     ICON_SEND,
     ICON_WARNING,
+    OKCOL,
     READONLY,
     RPTDELAY,
     UBX_CFGVAL,
@@ -375,7 +377,7 @@ class UBX_CFGVAL_Frame(Frame):
                     "INVALID ENTRY - must conform to parameter "
                     f"type {att} ({typ}) and size {atts} bytes"
                 ),
-                "red",
+                ERRCOL,
             )
 
         return valid_entry
@@ -442,12 +444,12 @@ class UBX_CFGVAL_Frame(Frame):
                 if isinstance(val, bytes):
                     val = val.hex()
                 self._cfgval.set(val)
-            self.__container.set_status("CFG-VALGET GET message received", "green")
+            self.__container.set_status("CFG-VALGET GET message received", OKCOL)
 
         elif msg.identity == "ACK-ACK":
             self._lbl_send_command.config(image=self._img_confirmed)
-            self.__container.set_status("CFG-VAL command acknowledged", "green")
+            self.__container.set_status("CFG-VAL command acknowledged", OKCOL)
 
         elif msg.identity == "ACK-NAK":
             self._lbl_send_command.config(image=self._img_warn)
-            self.__container.set_status("CFG-VAL command rejected", "red")
+            self.__container.set_status("CFG-VAL command rejected", ERRCOL)

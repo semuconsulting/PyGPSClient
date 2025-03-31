@@ -712,24 +712,23 @@ class StaticTest(unittest.TestCase):
     def testneam2preset(self):
         msg = NMEAMessage("P", "QTMHOT", SET)
         self.assertEqual(nmea2preset(msg), "PQTMHOT SET; P; QTMHOT; ; 1")
-        msg = NMEAMessage(
-            "P",
-            "QTMCFGGEOFENCE",
-            SET,
-            index=0,
-            geofencemode=1,
-            shape=0,
-            lat0=31.451248,
-            lon0=117.451245,
-            radiuslat1=100.5,
+        msg1 = NMEAMessage(
+            "P", "QTMCFGUART", SET, portid=1, baudrate=115200, databit=8, stopbit=1
+        )
+        msg2 = NMEAMessage(
+            "P", "QTMCFGUART", SET, portid=2, baudrate=460800, databit=8, stopbit=1
         )
         self.assertEqual(
-            nmea2preset(msg, "Configure Geofence (Circle)"),
-            "Configure Geofence (Circle); P; QTMCFGGEOFENCE; W,0,1,0,0,31.451248,117.451245,100.5; 1",
+            nmea2preset(msg1, "Configure UART Port"),
+            "Configure UART Port; P; QTMCFGUART; W,1,115200,8,0,1,0; 1",
+        )
+        self.assertEqual(
+            nmea2preset((msg1, msg2), "Configure UART Ports"),
+            "Configure UART Ports; P; QTMCFGUART; W,1,115200,8,0,1,0; 1; P; QTMCFGUART; W,2,460800,8,0,1,0; 1",
         )
 
     def testubx2preset(self):
-        msg = UBXMessage(
+        msg1 = UBXMessage(
             "CFG",
             "CFG-GNSS",
             SET,
@@ -746,9 +745,30 @@ class StaticTest(unittest.TestCase):
             maxTrkCh_02=24,
             flags_02=b"\x00\x00\x40\x00",
         )
+        msg2 = UBXMessage(
+            "CFG",
+            "CFG-GNSS",
+            SET,
+            parsebitfield=False,
+            numTrkChHw=2,
+            numTrkChUse=4,
+            numConfigBlocks=2,
+            gnssId_01=0,
+            resTrkCh_01=4,
+            maxTrkCh_01=32,
+            flags_01=b"\x01\x00\x04\x00",
+            gnssId_02=5,
+            resTrkCh_02=3,
+            maxTrkCh_02=24,
+            flags_02=b"\x00\x00\x40\x00",
+        )
         self.assertEqual(
-            ubx2preset(msg, "Configure GNSS"),
+            ubx2preset(msg1, "Configure GNSS"),
             "Configure GNSS, CFG, CFG-GNSS, 0002040200042000010004000603180000004000, 1",
+        )
+        self.assertEqual(
+            ubx2preset((msg1, msg2), "Configure GNSS"),
+            "Configure GNSS, CFG, CFG-GNSS, 0002040200042000010004000603180000004000, 1, CFG, CFG-GNSS, 0002040200042000010004000503180000004000, 1",
         )
 
 

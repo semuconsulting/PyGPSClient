@@ -44,6 +44,7 @@ except (ImportError, ModuleNotFoundError):
 
 from pygpsclient.globals import (
     BGCOL,
+    ERRCOL,
     HOME,
     ICON_EXIT,
     ICON_LOAD,
@@ -306,7 +307,7 @@ class ImportMapDialog(Toplevel):
             self.__app.saved_config["usermaps_l"] = usermaps
             self._show_status("Custom map imported", INFOCOL)
 
-    def _show_status(self, msg: str = "", col: str = "red"):
+    def _show_status(self, msg: str = "", col: str = ERRCOL):
         """
         Show error message in status label
 

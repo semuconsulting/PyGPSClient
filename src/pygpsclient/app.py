@@ -52,7 +52,6 @@ from pygpsclient._version import __version__ as VERSION
 from pygpsclient.dialog_state import dialog_state
 from pygpsclient.file_handler import FileHandler
 from pygpsclient.globals import (
-    BADCOL,
     CFG,
     CLASS,
     CONFIGFILE,
@@ -64,6 +63,7 @@ from pygpsclient.globals import (
     DEFAULT_REGION,
     DEFAULT_USER,
     DISCONNECTED,
+    ERRCOL,
     FRAME,
     GNSS_EOF_EVENT,
     GNSS_ERR_EVENT,
@@ -250,15 +250,15 @@ class App(Frame):
         # display config load status once status frame has been instantiated
         if configerr == "":
             if self._nowidgets:  # if all widgets have been disabled in config
-                self.set_status(NOWDGSWARN.format(self._configfile), BADCOL)
+                self.set_status(NOWDGSWARN.format(self._configfile), ERRCOL)
             else:
                 self.set_status(LOADCONFIGOK.format(self._configfile), OKCOL)
         else:
             if "No such file or directory" in configerr:
-                self.set_status(LOADCONFIGNONE.format(self._configfile), BADCOL)
+                self.set_status(LOADCONFIGNONE.format(self._configfile), ERRCOL)
             else:
                 self.set_status(
-                    LOADCONFIGBAD.format(self._configfile, configerr), BADCOL
+                    LOADCONFIGBAD.format(self._configfile, configerr), ERRCOL
                 )
 
         # initialise widgets
@@ -269,7 +269,7 @@ class App(Frame):
 
         self.frm_banner.update_conn_status(DISCONNECTED)
         if self.frm_settings.frm_serial.status == NOPORTS:
-            self.set_status(INTROTXTNOPORTS, BADCOL)
+            self.set_status(INTROTXTNOPORTS, ERRCOL)
 
         # Check for more recent version (if enabled)
         if self.saved_config.get("checkforupdate_b", False):
@@ -491,7 +491,7 @@ class App(Frame):
         if self.conn_status == DISCONNECTED and self.rtk_conn_status == DISCONNECTED:
             self.set_status("", OKCOL)
         else:
-            self.set_status(DLGSTOPRTK, BADCOL)
+            self.set_status(DLGSTOPRTK, ERRCOL)
             return
 
         (filename, config, configerr) = self.file_handler.load_config(None)
@@ -509,13 +509,13 @@ class App(Frame):
                 frm.reset()
             self._do_layout()
             if self._nowidgets:
-                self.set_status(NOWDGSWARN.format(filename), BADCOL)
+                self.set_status(NOWDGSWARN.format(filename), ERRCOL)
             else:
                 self.set_status(LOADCONFIGOK.format(filename), OKCOL)
         elif configerr == "cancelled":  # user cancelled
             return
         else:  # config error
-            self.set_status(LOADCONFIGBAD.format(filename), BADCOL)
+            self.set_status(LOADCONFIGBAD.format(filename), ERRCOL)
 
     def save_config(self):
         """
@@ -534,7 +534,7 @@ class App(Frame):
         if err == "":
             self.set_status(SAVECONFIGOK, OKCOL)
         else:  # save failed
-            self.set_status(SAVECONFIGBAD.format(err), BADCOL)
+            self.set_status(SAVECONFIGBAD.format(err), ERRCOL)
 
     def update_widgets(self):
         """
@@ -559,7 +559,7 @@ class App(Frame):
             if self._nowidgets:
                 widget_state["Status"][VISIBLE] = "true"
         except KeyError as err:
-            self.set_status(f"{CONFIGERR} - {err}", BADCOL)
+            self.set_status(f"{CONFIGERR} - {err}", ERRCOL)
 
     def update_NTRIP_handler(self):
         """
@@ -619,7 +619,7 @@ class App(Frame):
             self.ntrip_handler.settings = ntripsettings
 
         except (KeyError, ValueError, TypeError, TclError) as err:
-            self.set_status(f"Error processing config data: {err}", BADCOL)
+            self.set_status(f"Error processing config data: {err}", ERRCOL)
 
     def update_SPARTN_handler(self):
         """
@@ -672,7 +672,7 @@ class App(Frame):
             self.logger.debug(f"{self.spartn_handler.settings=}")
 
         except (KeyError, ValueError, TypeError, TclError) as err:
-            self.set_status(f"Error processing config data: {err}", BADCOL)
+            self.set_status(f"Error processing config data: {err}", ERRCOL)
 
     def start_dialog(self, dlg: str):
         """
@@ -791,7 +791,7 @@ class App(Frame):
             ) as self._socket_server:
                 self._socket_server.serve_forever()
         except OSError as err:
-            self.set_status(f"Error starting socket server {err}", BADCOL)
+            self.set_status(f"Error starting socket server {err}", ERRCOL)
 
     def update_clients(self, clients: int):
         """
@@ -845,7 +845,7 @@ class App(Frame):
         )
         self._refresh_widgets()
         self.conn_status = DISCONNECTED
-        self.set_status(ENDOFFILE, "red")
+        self.set_status(ENDOFFILE, ERRCOL)
 
     def on_gnss_timeout(self, event):  # pylint: disable=unused-argument
         """
@@ -860,7 +860,7 @@ class App(Frame):
         )
         self._refresh_widgets()
         self.conn_status = DISCONNECTED
-        self.set_status(INACTIVE_TIMEOUT, "red")
+        self.set_status(INACTIVE_TIMEOUT, ERRCOL)
 
     def on_stream_error(self, event):  # pylint: disable=unused-argument
         """
@@ -903,7 +903,7 @@ class App(Frame):
         except Empty:
             pass
         except (SerialException, SerialTimeoutException) as err:
-            self.set_status(f"Error sending to device {err}", BADCOL)
+            self.set_status(f"Error sending to device {err}", ERRCOL)
 
     def on_spartn_read(self, event):  # pylint: disable=unused-argument
         """
@@ -934,7 +934,7 @@ class App(Frame):
         except Empty:
             pass
         except (SerialException, SerialTimeoutException) as err:
-            self.set_status(f"Error sending to device {err}", BADCOL)
+            self.set_status(f"Error sending to device {err}", ERRCOL)
 
     def update_ntrip_status(self, status: bool, msgt: tuple = None):
         """
@@ -1049,7 +1049,7 @@ class App(Frame):
 
         latest = check_latest(TITLE)
         if latest not in (VERSION, "N/A"):
-            self.set_status(f"{VERCHECK} {latest}", BADCOL)
+            self.set_status(f"{VERCHECK} {latest}", ERRCOL)
 
     def poll_version(self, protocol: str = "UBX"):
         """

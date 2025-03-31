@@ -24,6 +24,7 @@ from pyubx2 import hextable
 from pygpsclient.globals import (
     BGCOL,
     DISCONNECTED,
+    ERRCOL,
     FGCOL,
     FONT_FIXED,
     FONT_TEXT,
@@ -102,7 +103,7 @@ class ConsoleFrame(Frame):
         # set up color tagging
         for match, color in self._colortags:
             if color == HALT:
-                color = "red"
+                color = ERRCOL
                 match = HALT
             self.txt_console.tag_config(match, foreground=color)
 
@@ -222,7 +223,7 @@ class ConsoleFrame(Frame):
         """
 
         self.__app.stream_handler.stop_read_thread()
-        self.__app.set_status(HALTTAGWARN.format(self._halt), "red")
+        self.__app.set_status(HALTTAGWARN.format(self._halt), ERRCOL)
         self.__app.conn_status = DISCONNECTED
 
     def _on_clipboard(self, event):  # pylint: disable=unused-argument

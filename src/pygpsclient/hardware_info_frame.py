@@ -24,6 +24,7 @@ from pygpsclient.globals import (
     ICON_SEND,
     ICON_WARNING,
     NMEA_MONHW,
+    OKCOL,
     UBX_MONVER,
 )
 from pygpsclient.strings import NA
@@ -156,4 +157,4 @@ class Hardware_Info_Frame(Frame):
         )
         self._lbl_gnss.config(text=self.__app.gnss_status.version_data.get("gnss", NA))
 
-        self.__container.set_status(f"{msg.identity} GET message received", "green")
+        self.__container.set_status(f"{msg.identity} GET message received", OKCOL)

@@ -25,6 +25,7 @@ from pygpsclient.globals import (
     CONNECTED,
     CONNECTED_SIMULATOR,
     CONNECTED_SOCKET,
+    ERRCOL,
     ICON_EXIT,
     NMEA_CFGOTHER,
     NMEA_MONHW,
@@ -83,7 +84,7 @@ class NMEAConfigDialog(Toplevel):
             self._frm_status,
             image=self._img_exit,
             width=50,
-            fg="red",
+            fg=ERRCOL,
             command=self.on_exit,
             font=self.__app.font_md,
         )
@@ -179,7 +180,7 @@ class NMEAConfigDialog(Toplevel):
             CONNECTED_SOCKET,
             CONNECTED_SIMULATOR,
         ):
-            self.set_status("Device not connected", "red")
+            self.set_status("Device not connected", ERRCOL)
 
     def set_pending(self, msgid: int, ubxfrm: int):
         """

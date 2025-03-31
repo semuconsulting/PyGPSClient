@@ -188,7 +188,7 @@ class NTRIPConfigDialog(Toplevel):
             self._frm_status,
             image=self._img_exit,
             width=55,
-            fg="red",
+            fg=ERRCOL,
             command=self.on_exit,
             font=self.__app.font_md,
         )
