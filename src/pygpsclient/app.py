@@ -71,6 +71,7 @@ from pygpsclient.globals import (
     GNSS_TIMEOUT_EVENT,
     GUI_UPDATE_INTERVAL,
     ICON_APP128,
+    INFOCOL,
     MQTT_PROTOCOL,
     NOPORTS,
     NTRIP_EVENT,
@@ -469,6 +470,7 @@ class App(Frame):
 
         """
 
+        color = INFOCOL if color == "blue" else color
         self.frm_status.set_status(message, color)
 
     def set_event(self, evt: str):
@@ -1049,15 +1051,20 @@ class App(Frame):
         if latest not in (VERSION, "N/A"):
             self.set_status(f"{VERCHECK} {latest}", BADCOL)
 
-    def poll_version(self):
+    def poll_version(self, protocol: str = "UBX"):
         """
-        Poll MON-VER for device hardware & firmware version.
+        Poll hardware information message for device hardware & firmware version.
+
+        :param str protocol: protocol (UBX)
         """
 
-        msg = UBXMessage("MON", "MON-VER", POLL)
+        if protocol == "NMEA":
+            msg = NMEAMessage("P", "QTMVERNO", POLL)
+        else:
+            msg = UBXMessage("MON", "MON-VER", POLL)
         self.gnss_outqueue.put(msg.serialize())
         self.set_status(
-            "MON-VER POLL message sent",
+            f"{msg.identity} POLL message sent",
         )
 
     @property

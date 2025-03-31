@@ -9,5 +9,6 @@ Created on 27 Sep 2020
 # pylint: disable=invalid-name
 
 from pygpsclient._version import __version__
+from pygpsclient.helpers import nmea2preset, ubx2preset
 
 version = __version__

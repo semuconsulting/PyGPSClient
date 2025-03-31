@@ -48,6 +48,7 @@ from pygpsclient.globals import (
     ICON_EXIT,
     ICON_LOAD,
     ICON_SEND,
+    INFOCOL,
     POPUP_TRANSIENT,
 )
 from pygpsclient.strings import DLGTIMPORTMAP
@@ -58,7 +59,7 @@ AXIS_XR = 35  # x axis right offset
 AXIS_Y = 15  # y axis bottom offset
 ELEAX_COL = "green4"  # color of elevation plot axis
 ELE_COL = "palegreen3"  # color of elevation plot
-SPD_COL = "blue"  # color of speed plot
+SPD_COL = INFOCOL  # color of speed plot
 MD_LINES = 2  # number of lines of metadata
 
 
@@ -303,7 +304,7 @@ class ImportMapDialog(Toplevel):
             usermaps = self.__app.saved_config.get("usermaps_l", [])
             usermaps.append([self._custommap, [latmin, lonmin, latmax, lonmax]])
             self.__app.saved_config["usermaps_l"] = usermaps
-            self._show_status("Custom map imported", "blue")
+            self._show_status("Custom map imported", INFOCOL)
 
     def _show_status(self, msg: str = "", col: str = "red"):
         """

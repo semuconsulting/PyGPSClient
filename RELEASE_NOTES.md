@@ -1,5 +1,10 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.5.5
+
+1. Add new NMEA Configuration panel, complementing and (partly) mirroring the existing UBX Configuration panel. The NMEA configuration panel supports GNSS receivers which can be configured via proprietary NMEA sentences. Currently the only supported receiver is the Quectel LG290P (or other command-compatible Quectel receivers). See [README](https://github.com/semuconsulting/PyGPSClient?tab=readme-ov-file#nmeaconfig) for details. User-defined preset NMEA commands may be added via the `nmeapresets_l` section of the PyGPSClient *.json configuration file.
+1. Two new helper functions added `ubx2preset()` and `nmea2preset()`, to assist users in converting `UBXMessage` or `NMEAMessage` objects into strings which can be copied-and-pasted into the relevant sections of the *.json configuration file (`ubxpresets_l` and `nmeapresets_l`). See [README](https://github.com/semuconsulting/PyGPSClient?tab=readme-ov-file#userdefined) for details.
+
 ### RELEASE 1.5.4
 
 1. Fix issue with GUI update facility not working for virtual environments.

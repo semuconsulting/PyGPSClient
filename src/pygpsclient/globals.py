@@ -154,6 +154,7 @@ ICON_EXPAND = path.join(DIRNAME, "resources/iconmonstr-arrow-80-16.png")
 ICON_GITHUB = path.join(DIRNAME, "resources/github-256.png")
 ICON_LOAD = path.join(DIRNAME, "resources/iconmonstr-folder-18-24.png")
 ICON_LOGREAD = path.join(DIRNAME, "resources/binary-1-24.png")
+ICON_NMEACONFIG = path.join(DIRNAME, "resources/iconmonstr-gear-2-24-brown.png")
 ICON_NOCLIENT = path.join(DIRNAME, "resources/iconmonstr-noclient-10-24.png")
 ICON_NOTRANSMIT = path.join(DIRNAME, "resources/iconmonstr-notransmit-10-24.png")
 ICON_NTRIPCONFIG = path.join(DIRNAME, "resources/iconmonstr-antenna-4-24.png")
@@ -178,6 +179,7 @@ ICON_WARNING = path.join(DIRNAME, "resources/iconmonstr-warning-1-24.png")
 IMG_WORLD = path.join(DIRNAME, "resources/world.png")
 ICON_SPONSOR = path.join(DIRNAME, "resources/bmc-full-logo-no-background.png")
 IMG_WORLD_CALIB = Area(-90, -180, 90, 180)
+INFOCOL = "steelblue2"
 KM2M = 1000
 KM2MIL = 0.621371
 KM2NMIL = 0.5399568
@@ -291,8 +293,8 @@ WIDGETU4 = (500, 500)  # GPX Track viewer size
 WIDGETU6 = (400, 200)  # Chart size
 XML_HDR = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
 
-# UBX config widget signifiers - used to
-# identify which widget should receive the
+# UBX & NMEA config widget signifiers - used
+# to identify which widget should receive the
 # data from a given POLL or ACK message:
 UBX_MONVER = 0
 UBX_MONHW = 1
@@ -309,6 +311,9 @@ SPECTRUMVIEW = 11
 SYSMONVIEW = 12
 ROVERVIEW = 13
 UBX_MONRF = 14
+NMEA_MONHW = 15
+NMEA_PRESET = 16
+NMEA_CFGOTHER = 17
 
 # map of fix values to descriptions
 # the keys in this map are a concatenation of NMEA/UBX
