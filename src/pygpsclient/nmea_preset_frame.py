@@ -91,7 +91,7 @@ class NMEA_PRESET_Frame(Frame):
             self,
             border=2,
             relief="sunken",
-            height=30,
+            height=38,
             width=55,
             justify=LEFT,
             exportselection=False,
@@ -121,8 +121,10 @@ class NMEA_PRESET_Frame(Frame):
         )
         self._scr_presetv.grid(column=2, row=1, rowspan=20, sticky=(N, S, E))
         self._scr_preseth.grid(column=0, row=21, columnspan=3, sticky=(W, E))
-        self._btn_send_command.grid(column=3, row=1, ipadx=3, ipady=3, sticky=E)
-        self._lbl_send_command.grid(column=4, row=1, ipadx=3, ipady=3, sticky=E)
+        self._btn_send_command.grid(column=3, row=1, padx=3, ipadx=3, ipady=3, sticky=E)
+        self._lbl_send_command.grid(
+            column=3, row=2, padx=3, ipadx=3, ipady=3, sticky=(W, E)
+        )
 
         (cols, rows) = self.grid_size()
         for i in range(cols):
@@ -213,7 +215,7 @@ class NMEA_PRESET_Frame(Frame):
                     payload = f"{payload}".split(",")
                     msg = NMEAMessage(talker, msg_id, mode, payload=payload)
                 confids.append(msg.identity)
-                self.logger.debug(f"{str(msg)=} - {msg.serialize()=} {confids=}")
+                # self.logger.debug(f"{str(msg)=} - {msg.serialize()=} {confids=}")
                 self.__container.send_command(msg)
         except Exception as err:  # pylint: disable=broad-except
             self.__app.set_status(f"Error {err}", "red")
