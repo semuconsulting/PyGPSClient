@@ -32,6 +32,7 @@ from pygpsclient.globals import (
     ICON_EXIT,
     ICON_GITHUB,
     ICON_SPONSOR,
+    INFOCOL,
     LICENSE_URL,
     SPONSOR_URL,
 )
@@ -138,7 +139,7 @@ class AboutDialog:
             self._frm_container,
             text=GITHUB_URL,
             font=self.__app.font_sm,
-            fg="blue",
+            fg=INFOCOL,
             cursor="hand2",
         )
         self._lbl_copyright = Label(
@@ -252,7 +253,7 @@ class AboutDialog:
             self._lbl_lib_versions[i].config(text=txt, fg=col)
 
         if len(self._updates) > 0:
-            self._btn_checkupdate.config(text="UPDATE", fg="blue")
+            self._btn_checkupdate.config(text="UPDATE", fg=INFOCOL)
             self._btn_checkupdate.bind("<Button>", self._do_update)
 
     def _do_update(self, *args, **kwargs):  # pylint: disable=unused-argument
@@ -260,7 +261,7 @@ class AboutDialog:
         Run python update.
         """
 
-        self._btn_checkupdate.config(text="UPDATING...", fg="blue")
+        self._btn_checkupdate.config(text="UPDATING...", fg=INFOCOL)
         self._dialog.update_idletasks()
         pth = path.dirname(path.abspath(getfile(currentframe())))
         if "pipx" in pth:  # installed into venv using pipx

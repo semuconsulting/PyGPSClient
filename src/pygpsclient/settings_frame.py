@@ -78,6 +78,7 @@ from pygpsclient.globals import (
     ICON_DISCONN,
     ICON_EXIT,
     ICON_LOGREAD,
+    ICON_NMEACONFIG,
     ICON_NTRIPCONFIG,
     ICON_SERIAL,
     ICON_SOCKET,
@@ -109,12 +110,14 @@ from pygpsclient.serverconfig_frame import ServerConfigFrame
 from pygpsclient.socketconfig_frame import SocketConfigFrame
 from pygpsclient.strings import (
     DLG,
+    DLGTNMEA,
     DLGTNTRIP,
     DLGTSPARTN,
     DLGTUBX,
     LBLDATADISP,
     LBLDATALOG,
     LBLDEGFORMAT,
+    LBLNMEACONFIG,
     LBLNTRIPCONFIG,
     LBLPROTDISP,
     LBLSHOWTRACK,
@@ -190,6 +193,7 @@ class SettingsFrame(Frame):
         self._img_disconn = ImageTk.PhotoImage(Image.open(ICON_DISCONN))
         self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
         self._img_ubxconfig = ImageTk.PhotoImage(Image.open(ICON_UBXCONFIG))
+        self._img_nmeaconfig = ImageTk.PhotoImage(Image.open(ICON_NMEACONFIG))
         self._img_ntripconfig = ImageTk.PhotoImage(Image.open(ICON_NTRIPCONFIG))
         self._img_spartnconfig = ImageTk.PhotoImage(Image.open(ICON_SPARTNCONFIG))
         self._img_dataread = ImageTk.PhotoImage(Image.open(ICON_LOGREAD))
@@ -438,6 +442,16 @@ class SettingsFrame(Frame):
             image=self._img_ubxconfig,
             command=lambda: self._on_ubx_config(),
         )
+        self._lbl_nmeaconfig = Label(
+            self._frm_options,
+            text=LBLNMEACONFIG,
+        )
+        self._btn_nmeaconfig = Button(
+            self._frm_options,
+            width=45,
+            image=self._img_nmeaconfig,
+            command=lambda: self._on_nmea_config(),
+        )
         self._lbl_ntripconfig = Label(
             self._frm_options,
             text=LBLNTRIPCONFIG,
@@ -526,10 +540,12 @@ class SettingsFrame(Frame):
         )
         self._btn_ubxconfig.grid(column=0, row=10)
         self._lbl_ubxconfig.grid(column=0, row=11)
-        self._btn_ntripconfig.grid(column=1, row=10)
-        self._lbl_ntripconfig.grid(column=1, row=11)
-        self._btn_spartnconfig.grid(column=2, row=10)
-        self._lbl_spartnconfig.grid(column=2, row=11)
+        self._btn_nmeaconfig.grid(column=1, row=10)
+        self._lbl_nmeaconfig.grid(column=1, row=11)
+        self._btn_ntripconfig.grid(column=2, row=10)
+        self._lbl_ntripconfig.grid(column=2, row=11)
+        self._btn_spartnconfig.grid(column=3, row=10)
+        self._lbl_spartnconfig.grid(column=3, row=11)
         ttk.Separator(self._frm_container).grid(
             column=0, row=9, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
@@ -645,6 +661,13 @@ class SettingsFrame(Frame):
         """
 
         self.__app.start_dialog(DLGTUBX)
+
+    def _on_nmea_config(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Open NMEA configuration dialog panel.
+        """
+
+        self.__app.start_dialog(DLGTNMEA)
 
     def _on_ntrip_config(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -979,6 +1002,7 @@ class SettingsFrame(Frame):
                 "mqapikey_s": self.__app.saved_config.get("mqapikey_s", ""),
                 "colortags_l": self.__app.saved_config.get("colortags_l", []),
                 "ubxpresets_l": self.__app.saved_config.get("ubxpresets_l", []),
+                "nmeapresets_l": self.__app.saved_config.get("nmeapresets_l", []),
                 "usermaps_l": self.__app.saved_config.get("usermaps_l", []),
             }
             return config
