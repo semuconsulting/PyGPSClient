@@ -47,6 +47,7 @@ from pygpsclient.globals import (
     DISCONNECTED,
     ICON_CONTRACT,
     ICON_EXPAND,
+    INFOCOL,
     READONLY,
     RPTDELAY,
     SAVED_CONFIG,
@@ -472,7 +473,7 @@ class ServerConfigFrame(Frame):
             valid = valid & valid_entry(self._ent_fixedlon, VALFLOAT)
             valid = valid & valid_entry(self._ent_fixedalt, VALFLOAT)
             if valid:
-                self.__app.set_status("", "blue")
+                self.__app.set_status("", INFOCOL)
             else:
                 self.__app.set_status("ERROR - invalid entry", "red")
                 self._socket_serve.set(0)

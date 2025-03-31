@@ -54,6 +54,7 @@ from pygpsclient.globals import (
     ICON_REDRAW,
     ICON_START,
     IMG_WORLD_CALIB,
+    INFOCOL,
     KM2M,
     KM2MIL,
     KM2NMIL,
@@ -92,7 +93,7 @@ AXIS_XR = 35  # x axis right offset
 AXIS_Y = 15  # y axis bottom offset
 ELEAX_COL = "green4"  # color of elevation plot axis
 ELE_COL = "palegreen3"  # color of elevation plot
-SPD_COL = "blue"  # color of speed plot
+SPD_COL = INFOCOL  # color of speed plot
 TRK_COL = "magenta"  # color of track
 MD_LINES = 2  # number of lines of metadata
 

@@ -71,8 +71,6 @@ SCROLLY = 300
 NMEA = "NMEA"
 ACK = "ACK-ACK"
 NAK = "ACK-NAK"
-POLL_RESPONSE = "P"
-SET_RESPONSE = "S"
 
 # following CFG types excluded from selection...
 CFG_EXCLUDED = (
@@ -325,7 +323,7 @@ class Dynamic_Config_Frame(Frame):
             )
             for msgid in pendcfg:
                 self.__container.set_pending(msgid, penddlg)
-            self._expected_response = SET_RESPONSE
+            self._expected_response = SET
 
         except ValueError as err:
             self.__container.set_status(
@@ -370,7 +368,7 @@ class Dynamic_Config_Frame(Frame):
             self._lbl_send_command.config(image=self._img_pending)
             for msgid in pendcfg:
                 self.__container.set_pending(msgid, penddlg)
-            self._expected_response = POLL_RESPONSE
+            self._expected_response = POLL
         else:  # CFG cannot be POLLed
             self.__container.set_status(
                 f"{cfg_id} No POLL available",
@@ -401,12 +399,12 @@ class Dynamic_Config_Frame(Frame):
             if self._protocol == NMEA:
                 if getattr(msg, "status", "OK") == "OK":
                     ok = True
-                    if self._expected_response == POLL_RESPONSE:
+                    if self._expected_response == POLL:
                         self._update_widgets(msg)
             else:  # UBX
                 if msg.identity != NAK:
                     ok = True
-                if msg.identity == cfg_id and self._expected_response == POLL_RESPONSE:
+                if msg.identity == cfg_id and self._expected_response == POLL:
                     self._update_widgets(msg)
 
             if ok:

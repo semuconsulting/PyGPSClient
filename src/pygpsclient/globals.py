@@ -179,6 +179,7 @@ ICON_WARNING = path.join(DIRNAME, "resources/iconmonstr-warning-1-24.png")
 IMG_WORLD = path.join(DIRNAME, "resources/world.png")
 ICON_SPONSOR = path.join(DIRNAME, "resources/bmc-full-logo-no-background.png")
 IMG_WORLD_CALIB = Area(-90, -180, 90, 180)
+INFOCOL = "steelblue2"
 KM2M = 1000
 KM2MIL = 0.621371
 KM2NMIL = 0.5399568

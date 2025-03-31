@@ -71,6 +71,7 @@ from pygpsclient.globals import (
     GNSS_TIMEOUT_EVENT,
     GUI_UPDATE_INTERVAL,
     ICON_APP128,
+    INFOCOL,
     MQTT_PROTOCOL,
     NOPORTS,
     NTRIP_EVENT,
@@ -469,6 +470,7 @@ class App(Frame):
 
         """
 
+        color = INFOCOL if color == "blue" else color
         self.frm_status.set_status(message, color)
 
     def set_event(self, evt: str):

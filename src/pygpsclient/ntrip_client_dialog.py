@@ -52,10 +52,12 @@ from pygnssutils.helpers import find_mp_distance
 from pygpsclient.globals import (
     CONNECTED_NTRIP,
     DISCONNECTED,
+    ERRCOL,
     GGA_INTERVALS,
     ICON_CONN,
     ICON_DISCONN,
     ICON_EXIT,
+    INFOCOL,
     POPUP_TRANSIENT,
     READONLY,
     RPTDELAY,
@@ -457,7 +459,7 @@ class NTRIPConfigDialog(Toplevel):
                     else "Disconnected"
                 )
             if msgt is None:
-                self.set_status(msg, "blue")
+                self.set_status(msg, INFOCOL)
             else:
                 msg, col = msgt
                 self.set_status(msg, col)
@@ -510,6 +512,7 @@ class NTRIPConfigDialog(Toplevel):
         :param str color: rgb color of text
         """
 
+        color = INFOCOL if color == "blue" else color
         message = f"{message[:78]}.." if len(message) > 80 else message
         if color != "":
             self._lbl_status.config(fg=color)
@@ -708,7 +711,7 @@ class NTRIPConfigDialog(Toplevel):
             valid = valid & valid_entry(self._ent_sep, VALFLOAT, -MAXALT, MAXALT)
 
         if not valid:
-            self.set_status("ERROR - invalid settings", "red")
+            self.set_status("ERROR - invalid settings", ERRCOL)
 
         return valid
 
