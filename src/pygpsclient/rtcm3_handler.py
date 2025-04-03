@@ -54,7 +54,7 @@ class RTCM3Handler:
                 self._process_1005(parsed_data)
 
         except ValueError:
-            # self.__app.set_status(RTCMVALERROR.format(err), "red")
+            # self.__app.set_status(RTCMVALERROR.format(err), ERRCOL)
             pass
 
     def _process_1005(self, parsed: RTCMMessage):
@@ -72,5 +72,5 @@ class RTCM3Handler:
             self.__app.gnss_status.rel_pos_length = (
                 haversine(lat1, lon1, lat2, lon2) * 100000
             )  # km to cm
-        except (AttributeError, ValueError) as err:
+        except (AttributeError, ValueError):
             pass

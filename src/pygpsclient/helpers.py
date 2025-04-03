@@ -21,7 +21,7 @@ from time import strftime
 from tkinter import Entry
 from tkinter.font import Font
 
-from pynmeagps import WGS84_SMAJ_AXIS, NMEAMessage, haversine
+from pynmeagps import WGS84_SMAJ_AXIS, haversine
 from pyubx2 import (
     SET,
     SET_LAYER_RAM,
@@ -35,6 +35,7 @@ from pyubx2 import (
 from requests import get
 
 from pygpsclient.globals import (
+    ERRCOL,
     FIXLOOKUP,
     GPSEPOCH0,
     MAX_SNR,
@@ -538,7 +539,7 @@ def valid_entry(entry: Entry, valmode: int, low=MINFLOAT, high=MAXFLOAT) -> bool
         entry.configure(highlightthickness=0)
     else:
         entry.configure(
-            highlightthickness=2, highlightbackground="red", highlightcolor="red"
+            highlightthickness=2, highlightbackground=ERRCOL, highlightcolor=ERRCOL
         )
     return valid
 
@@ -1224,9 +1225,9 @@ def time2str(tim: float, sformat: str = "%H:%M:%S") -> str:
     return dt.strftime(sformat)
 
 
-def ubx2preset(msg: UBXMessage, desc: str = "") -> str:
+def ubx2preset(msgs: tuple, desc: str = "") -> str:
     """
-    Convert UBXMessage to format suitable for adding to user-defined
+    Convert one or more UBXMessages to format suitable for adding to user-defined
     preset list `ubxpresets_l` in PyGPSClient *.json configuration files.
 
     The format is:
@@ -1234,22 +1235,30 @@ def ubx2preset(msg: UBXMessage, desc: str = "") -> str:
 
     e.g. "Set NMEA High Precision Mode, CFG, CFG-VALSET, 000100000600931001, 1"
 
-    :param UBXMessage msg: message
+    :param tuple msgs: UBXMessage or tuple of UBXmessages
     :param str desc: preset description
     :return: preset string
     :rtype: str
     """
 
-    desc = f"{msg.identity} {['GET','SET','POLL'][msg.msgmode]}" if desc == "" else desc
-    return (
-        f"{desc}, {UBX_CLASSES[msg.msg_cls]}, {UBX_MSGIDS[msg.msg_cls + msg.msg_id]}, "
-        f"{msg.payload.hex()}, {msg.msgmode}"
+    if not isinstance(msgs, tuple):
+        msgs = (msgs,)
+    preset = (
+        f"{msgs[0].identity} {['GET','SET','POLL'][msgs[0].msgmode]}"
+        if desc == ""
+        else desc
     )
+    for msg in msgs:
+        preset += (
+            f", {UBX_CLASSES[msg.msg_cls]}, {UBX_MSGIDS[msg.msg_cls + msg.msg_id]}, "
+            f"{msg.payload.hex()}, {msg.msgmode}"
+        )
+    return preset
 
 
-def nmea2preset(msg: NMEAMessage, desc: str = "") -> str:
+def nmea2preset(msgs: tuple, desc: str = "") -> str:
     """
-    Convert NMEAMessage to format suitable for adding to user-defined
+    Convert one or more NMEAMessages to format suitable for adding to user-defined
     preset list `nmeapresets_l` in PyGPSClient *.json configuration files.
 
     The format is:
@@ -1257,11 +1266,19 @@ def nmea2preset(msg: NMEAMessage, desc: str = "") -> str:
 
     e.g. "Configure Signals; P; QTMCFGSIGNAL; W,7,3,F,3F,7,1; 1"
 
-    :param NMEAMessage msg: message
+    :param tuple msgs: NMEAmessage or tuple of NMEAmessages
     :param str desc: preset description
     :return: preset string
     :rtype: str
     """
 
-    desc = f"{msg.identity} {['GET','SET','POLL'][msg.msgmode]}" if desc == "" else desc
-    return f"{desc}; {msg.talker}; {msg.msgID}; {','.join(msg.payload)}; {msg.msgmode}"
+    if not isinstance(msgs, tuple):
+        msgs = (msgs,)
+    preset = (
+        f"{msgs[0].identity} {['GET','SET','POLL'][msgs[0].msgmode]}"
+        if desc == ""
+        else desc
+    )
+    for msg in msgs:
+        preset += f"; {msg.talker}; {msg.msgID}; {','.join(msg.payload)}; {msg.msgmode}"
+    return preset

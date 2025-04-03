@@ -55,7 +55,6 @@ from pyubx2 import ubxtypes_core as ubt
 from serial import PARITY_NONE
 
 from pygpsclient.globals import (
-    BADCOL,
     BPSRATES,
     CONNECTED,
     CONNECTED_FILE,
@@ -66,6 +65,7 @@ from pygpsclient.globals import (
     DMM,
     DMS,
     ECEF,
+    ERRCOL,
     FORMAT_BINARY,
     FORMAT_PARSED,
     FORMATS,
@@ -88,6 +88,7 @@ from pygpsclient.globals import (
     MAP,
     MSGMODES,
     NOPORTS,
+    OKCOL,
     RCVR_CONNECTION,
     READONLY,
     RPTDELAY,
@@ -624,7 +625,7 @@ class SettingsFrame(Frame):
         elif conntype == CONNECTED_SOCKET:
             frm = self.frm_socketclient
             if not frm.valid_settings():
-                self.__app.set_status("ERROR - invalid settings", "red")
+                self.__app.set_status("ERROR - invalid settings", ERRCOL)
                 return
             connstr = f"{frm.server.get()}:{frm.port.get()}"
             conndict = dict(conndict, **{"socket_settings": frm})
@@ -649,7 +650,7 @@ class SettingsFrame(Frame):
         else:
             return
 
-        self.__app.set_connection(connstr, "green")
+        self.__app.set_connection(connstr, OKCOL)
         self.__app.set_status("")
         self.__app.conn_status = conntype
         self._reset_frames()
@@ -1007,5 +1008,5 @@ class SettingsFrame(Frame):
             }
             return config
         except (KeyError, ValueError, TypeError, TclError) as err:
-            self.__app.set_status(f"Error processing config data: {err}", BADCOL)
+            self.__app.set_status(f"Error processing config data: {err}", ERRCOL)
             return {}

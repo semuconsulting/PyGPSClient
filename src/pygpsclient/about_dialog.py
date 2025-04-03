@@ -28,12 +28,14 @@ from pyubx2 import version as UBXVERSION
 
 from pygpsclient._version import __version__ as VERSION
 from pygpsclient.globals import (
+    ERRCOL,
     ICON_APP128,
     ICON_EXIT,
     ICON_GITHUB,
     ICON_SPONSOR,
     INFOCOL,
     LICENSE_URL,
+    OKCOL,
     SPONSOR_URL,
 )
 from pygpsclient.helpers import check_latest
@@ -242,14 +244,14 @@ class AboutDialog:
             txt = f"{nam}: {current}"
             if latest == current:
                 txt += ". ✓"
-                col = "green"
+                col = OKCOL
             elif latest == "N/A":
                 txt += ". Info not available!"
-                col = "red"
+                col = ERRCOL
             else:
                 self._updates.append(nam)
                 txt += f". Latest version is {latest}"
-                col = "red"
+                col = ERRCOL
             self._lbl_lib_versions[i].config(text=txt, fg=col)
 
         if len(self._updates) > 0:
@@ -287,11 +289,11 @@ class AboutDialog:
             self.logger.debug(result.stdout)
         except CalledProcessError:
             self.logger.error(result.stdout)
-            self._btn_checkupdate.config(text="UPDATE FAILED", fg="red")
+            self._btn_checkupdate.config(text="UPDATE FAILED", fg=ERRCOL)
             self._btn_checkupdate.bind("<Button>", self._check_for_update)
             return
 
-        self._btn_checkupdate.config(text="RESTART APP", fg="green")
+        self._btn_checkupdate.config(text="RESTART APP", fg=OKCOL)
         self._btn_checkupdate.bind("<Button>", self.__app.on_exit)
 
     def _on_save_settings(self, var, index, mode):  # pylint: disable=unused-argument

@@ -46,7 +46,6 @@ Canvas.create_circle = create_circle
 HOME = Path.home()
 APPNAME = __name__.split(".", 1)[0]  # i.e. "pygpsclient"
 AXISCOL = "white"
-BADCOL = "red"
 BGCOL = "gray24"  # default widget background color
 BPSRATES = (
     9600,
@@ -93,7 +92,7 @@ DMM = "DM.M"
 DMS = "D.M.S"
 ECEF = "ECEF"
 ENABLE_CFG_OTHER = True  # enable CFG=* Other Configuration command panel
-ERRCOL = "pink"  # default invalid data entry field background color
+ERRCOL = "salmon"  # default invalid data entry field background color
 ERROR = "ERR!"
 FGCOL = "white"  # default widget foreground color
 FILEREAD_INTERVAL = 0.02  # delay between successive datalog file reads (seconds)

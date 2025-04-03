@@ -156,9 +156,9 @@
         }
     },
     "ubxpresets_l": [
-        "Force HOT Reset (!!! Will require reconnection !!!), CFG, CFG-RST, 00000000, 1",
-        "Force WARM Reset (!!! Will require reconnection !!!), CFG, CFG-RST, 00010000, 1",
-        "Force COLD Reset (!!! Will require reconnection !!!), CFG, CFG-RST, ffff0000, 1",
+        "Force HOT Reset (!!! Will require reconnection !!!) CONFIRM, CFG, CFG-RST, 00000000, 1",
+        "Force WARM Reset (!!! Will require reconnection !!!) CONFIRM, CFG, CFG-RST, 00010000, 1",
+        "Force COLD Reset (!!! Will require reconnection !!!) CONFIRM, CFG, CFG-RST, ffff0000, 1",
         "Stop GNSS, CFG, CFG-RST, 00000800, 1",
         "Start GNSS, CFG, CFG-RST, 00000900, 1",
         "Set NMEA High Precision Mode, CFG, CFG-VALSET, 000100000600931001, 1",
@@ -190,8 +190,8 @@
         "Set UBX GNSS to ALL, CFG, CFG-GNSS, 0020200700081000010001010101030001000101020408000000010103081000000001010400080000000103050003000100010506080E0001000101, 1",
     ],
     "nmeapresets_l": [
-        "RESTORE FACTORY DEFAULTS; P; QTMRESTOREPAR; ; 1",
-        "Save configuration to non-volatile memory; P; QTMSAVEPAR; ; 1",
+        "RESTORE FACTORY DEFAULTS CONFIRM; P; QTMRESTOREPAR; ; 1",
+        "Save configuration to non-volatile memory CONFIRM; P; QTMSAVEPAR; ; 1",
         "Hot restart; P; QTMHOT; ; 1",
         "Warm restart; P; QTMWARM; ; 1",
         "Cold restart; P; QTMCOLD; ; 1",

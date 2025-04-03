@@ -1,5 +1,12 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.5.6
+
+1. Enhancements to Dynamic Configuration Panel to allow POLL arguments to be entered for those poll commands that require them.
+1. Enhancements to Preset Command Configuration Panel to allow user to specify CONFIRM option.
+1. Improved error handling in Preset and Dynamic Configuration panels.
+1. Minor improvements to color choices to improve contrast in Dark Mode.
+
 ### RELEASE 1.5.5
 
 1. Add new NMEA Configuration panel, complementing and (partly) mirroring the existing UBX Configuration panel. The NMEA configuration panel supports GNSS receivers which can be configured via proprietary NMEA sentences. Currently the only supported receiver is the Quectel LG290P (or other command-compatible Quectel receivers). See [README](https://github.com/semuconsulting/PyGPSClient?tab=readme-ov-file#nmeaconfig) for details. User-defined preset NMEA commands may be added via the `nmeapresets_l` section of the PyGPSClient *.json configuration file.

@@ -44,6 +44,7 @@ from pygpsclient.globals import (
     CONNECTED_SPARTNIP,
     CONNECTED_SPARTNLB,
     DISCONNECTED,
+    ERRCOL,
     ICON_BLANK,
     ICON_CONFIRMED,
     ICON_DISCONN,
@@ -54,6 +55,7 @@ from pygpsclient.globals import (
     ICON_SERIAL,
     ICON_SOCKET,
     ICON_WARNING,
+    OKCOL,
     READONLY,
     RPTDELAY,
     RXMMSG,
@@ -403,7 +405,7 @@ class SPARTNMQTTDialog(Frame):
         if self.__app.rtk_conn_status == CONNECTED_SPARTNLB:
             self.__container.set_status(
                 DLGSPARTNWARN.format("L-Band", "IP"),
-                "red",
+                ERRCOL,
             )
             return
 
@@ -434,11 +436,11 @@ class SPARTNMQTTDialog(Frame):
             self.set_controls(CONNECTED_SPARTNIP)
             self.__container.set_status(
                 MQTTCONN.format(server),
-                "green",
+                OKCOL,
             )
             self.__app.rtk_conn_status = CONNECTED_SPARTNIP
         else:
-            self.__container.set_status("ERROR! Invalid Settings", "red")
+            self.__container.set_status("ERROR! Invalid Settings", ERRCOL)
 
     def on_disconnect(self, msg: str = ""):
         """
@@ -453,7 +455,7 @@ class SPARTNMQTTDialog(Frame):
             self.__app.rtk_conn_status = DISCONNECTED
             self.__container.set_status(
                 msg,
-                "red",
+                ERRCOL,
             )
         self.set_controls(DISCONNECTED)
 

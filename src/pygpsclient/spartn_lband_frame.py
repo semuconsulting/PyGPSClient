@@ -43,6 +43,7 @@ from pygpsclient.globals import (
     CONNECTED_SPARTNIP,
     CONNECTED_SPARTNLB,
     DISCONNECTED,
+    ERRCOL,
     ICON_BLANK,
     ICON_CONFIRMED,
     ICON_DISCONN,
@@ -55,6 +56,7 @@ from pygpsclient.globals import (
     KNOWNGPS,
     MSGMODES,
     NOPORTS,
+    OKCOL,
     READONLY,
     RPTDELAY,
     SAVED_CONFIG,
@@ -463,7 +465,7 @@ class SpartnLbandDialog(Frame):
         valid = valid & valid_entry(self._ent_unqword, VALINT, 0, U8MAX)  # U8
 
         if not valid:
-            self.__container.set_status("ERROR - invalid settings", "red")
+            self.__container.set_status("ERROR - invalid settings", ERRCOL)
 
         return valid
 
@@ -476,7 +478,7 @@ class SpartnLbandDialog(Frame):
         if self.__app.rtk_conn_status == CONNECTED_SPARTNIP:
             self.__container.set_status(
                 DLGSPARTNWARN.format("IP", "L-Band"),
-                "red",
+                ERRCOL,
             )
             return
 
@@ -499,7 +501,7 @@ class SpartnLbandDialog(Frame):
         self.__app.rtk_conn_status = CONNECTED_SPARTNLB
         self.__app.spartn_stream_handler.start_read_thread(self.__container, conndict)
         self.__container.set_status(
-            f"Connected to {frm.port}:{frm.port_desc} @ {frm.bpsrate}", "green"
+            f"Connected to {frm.port}:{frm.port_desc} @ {frm.bpsrate}", OKCOL
         )
         self.set_controls(CONNECTED_SPARTNLB)
 
@@ -519,7 +521,7 @@ class SpartnLbandDialog(Frame):
                 self.__app.rtk_conn_status = DISCONNECTED
                 self.__container.set_status(
                     msg,
-                    "red",
+                    ERRCOL,
                 )
             self.set_controls(DISCONNECTED)
 
@@ -628,7 +630,7 @@ class SpartnLbandDialog(Frame):
 
         msg = self._format_cfgcorr()
         self._send_command(msg)
-        self.__container.set_status(f"{CFGSET} command sent", "green")
+        self.__container.set_status(f"{CFGSET} command sent", OKCOL)
         self._lbl_send.config(image=self._img_pending)
 
         # save config to persistent memory
@@ -681,14 +683,14 @@ class SpartnLbandDialog(Frame):
                 self._spartn_prescrm.set(msg.CFG_PMP_USE_PRESCRAMBLING)
             if hasattr(msg, "CFG_PMP_UNIQUE_WORD"):
                 self._spartn_unqword.set(msg.CFG_PMP_UNIQUE_WORD)
-            self.__container.set_status(f"{CFGPOLL} received", "green")
+            self.__container.set_status(f"{CFGPOLL} received", OKCOL)
             self._lbl_send.config(image=self._img_confirmed)
         elif msg.identity == "ACK-ACK":
             self._lbl_send.config(image=self._img_confirmed)
-            self.__container.set_status(CONFIGOK.format(CFGSET), "green")
+            self.__container.set_status(CONFIGOK.format(CFGSET), OKCOL)
         elif msg.identity == "ACK-NAK":
             self._lbl_send.config(image=self._img_warn)
-            self.__container.set_status(CONFIGBAD.format(CFGSET), "red")
+            self.__container.set_status(CONFIGBAD.format(CFGSET), ERRCOL)
         elif msg.identity == "RXM-PMP":
             self._lbl_ebno.config(text=f"Eb/N0: {msg.ebno} dB")
             self._lbl_fec.config(text=f"FEC Bits: {msg.fecBits}")

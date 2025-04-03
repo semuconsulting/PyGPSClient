@@ -32,19 +32,20 @@ from pyubx2 import POLL, SET, UBX_MSGIDS, UBX_PAYLOADS_POLL, UBXMessage
 
 from pygpsclient.confirm_box import ConfirmBox
 from pygpsclient.globals import (
+    ERRCOL,
     ICON_CONFIRMED,
     ICON_PENDING,
     ICON_SEND,
     ICON_WARNING,
+    OKCOL,
     RCVR_CONNECTION,
     SAVED_CONFIG,
     UBX_PRESET,
 )
 from pygpsclient.strings import (
-    DLGRESET,
-    DLGRESETCONFIRM,
-    DLGSAVE,
-    DLGSAVECONFIRM,
+    CONFIRM,
+    DLGACTION,
+    DLGACTIONCONFIRM,
     LBLUBXPRESET,
     PSTALLINFOFF,
     PSTALLINFON,
@@ -258,6 +259,10 @@ class UBX_PRESET_Frame(Frame):
         Preset command send button has been clicked.
         """
 
+        if self._preset_command in ("", None):
+            self.__container.set_status("Select preset", ERRCOL)
+            return
+
         status = CONFIRMED
         confids = ("MON-VER", "ACK-ACK")
         try:
@@ -313,7 +318,15 @@ class UBX_PRESET_Frame(Frame):
                 self._do_poll_all_NAV()
             else:
                 confids = ("MON-VER", "ACK-ACK", "ACK-NAK")
-                self._do_user_defined(self._preset_command)
+                if CONFIRM in self._preset_command:
+                    if ConfirmBox(self, DLGACTION, DLGACTIONCONFIRM).show():
+                        self._do_user_defined(self._preset_command)
+                        status = CONFIRMED
+                    else:
+                        status = CANCELLED
+                else:
+                    self._do_user_defined(self._preset_command)
+                    status = CONFIRMED
 
             if status == CONFIRMED:
                 self._lbl_send_command.config(image=self._img_pending)
@@ -332,7 +345,7 @@ class UBX_PRESET_Frame(Frame):
                 )
 
         except Exception as err:  # pylint: disable=broad-except
-            self.__container.set_status(f"Error {err}", "red")
+            self.__container.set_status(f"Error {err}", ERRCOL)
             self._lbl_send_command.config(image=self._img_warn)
 
     def _do_poll_all_CFG(self):
@@ -555,7 +568,7 @@ class UBX_PRESET_Frame(Frame):
         :rtype: bool
         """
 
-        if ConfirmBox(self, DLGRESET, DLGRESETCONFIRM).show():
+        if ConfirmBox(self, DLGACTION, DLGACTIONCONFIRM).show():
             msg = UBXMessage(
                 "CFG",
                 "CFG-CFG",
@@ -581,7 +594,7 @@ class UBX_PRESET_Frame(Frame):
         :rtype: bool
         """
 
-        if ConfirmBox(self, DLGSAVE, DLGSAVECONFIRM).show():
+        if ConfirmBox(self, DLGACTION, DLGACTIONCONFIRM).show():
             msg = UBXMessage(
                 "CFG",
                 "CFG-CFG",
@@ -623,7 +636,7 @@ class UBX_PRESET_Frame(Frame):
                     msg = UBXMessage(ubx_class, ubx_id, mode)
                 self.__container.send_command(msg)
         except Exception as err:  # pylint: disable=broad-except
-            self.__app.set_status(f"Error {err}", "red")
+            self.__app.set_status(f"Error {err}", ERRCOL)
             self._lbl_send_command.config(image=self._img_warn)
 
     def update_status(self, msg: UBXMessage):
@@ -635,7 +648,7 @@ class UBX_PRESET_Frame(Frame):
 
         if msg.identity in ("ACK-ACK", "MON-VER"):
             self._lbl_send_command.config(image=self._img_confirmed)
-            self.__container.set_status("Preset command(s) acknowledged", "green")
+            self.__container.set_status("Preset command(s) acknowledged", OKCOL)
         elif msg.identity == "ACK-NAK":
             self._lbl_send_command.config(image=self._img_warn)
-            self.__container.set_status("Preset command(s) rejected", "red")
+            self.__container.set_status("Preset command(s) rejected", ERRCOL)

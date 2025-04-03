@@ -39,6 +39,7 @@ from pyubx2 import POLL, SET, SET_LAYER_RAM, TXN_NONE, U1, U2, U4, UBXMessage, v
 
 from pygpsclient.globals import (
     CONNECTED,
+    ERRCOL,
     ICON_BLANK,
     ICON_CONFIRMED,
     ICON_DISCONN,
@@ -46,6 +47,7 @@ from pygpsclient.globals import (
     ICON_PENDING,
     ICON_SEND,
     ICON_WARNING,
+    OKCOL,
     READONLY,
     RPTDELAY,
     RXMMSG,
@@ -234,7 +236,7 @@ class SPARTNGNSSDialog(Frame):
             self,
             image=self._img_send,
             width=45,
-            fg="green",
+            fg=OKCOL,
             command=self._on_send_gnss_config,
             font=self.__app.font_md,
         )
@@ -321,7 +323,7 @@ class SPARTNGNSSDialog(Frame):
         valid = valid & valid_entry(self._ent_valdate2, VALDMY)
 
         if not valid:
-            self.__container.set_status("ERROR - invalid settings", "red")
+            self.__container.set_status("ERROR - invalid settings", ERRCOL)
 
         return valid
 
@@ -404,7 +406,7 @@ class SPARTNGNSSDialog(Frame):
             return
 
         if self.__app.conn_status != CONNECTED:
-            self.__container.set_status(NOTCONN, "red")
+            self.__container.set_status(NOTCONN, ERRCOL)
             # return
 
         if self._send_f9p_config.get():
@@ -423,15 +425,13 @@ class SPARTNGNSSDialog(Frame):
         else:
             msgk = ""
         if msgk == "" and msgc == "":
-            self.__container.set_status(NULLSEND, "red")
+            self.__container.set_status(NULLSEND, ERRCOL)
             return
         if msgk != "" and msgc != "":
             msga = " and "
         else:
             msga = ""
-        self.__container.set_status(
-            f"{(msgk + msga + msgc).capitalize()} sent", "green"
-        )
+        self.__container.set_status(f"{(msgk + msga + msgc).capitalize()} sent", OKCOL)
         self._lbl_send_command.config(image=self._img_pending)
         for msgid in ("RXM-SPARTNKEY", "CFG-VALGET", "ACK-ACK", "ACK-NAK"):
             self.__container.set_pending(msgid, SPARTN_GNSS)
@@ -483,16 +483,16 @@ class SPARTNGNSSDialog(Frame):
                 self._spartn_valdate2.set(keydata[1][1].strftime("%Y%m%d"))
                 # save latest key in configuration settings
                 self.__app.saved_config["spartnkey_s"] = self._spartn_key1.get()
-                col = "green"
+                col = OKCOL
             else:
-                col = "red"
+                col = ERRCOL
             self.__container.set_status(CONFIGRXM.format(RXMMSG, msg.numKeys), col)
         elif msg.identity == "ACK-ACK":
             self._lbl_send_command.config(image=self._img_confirmed)
-            self.__container.set_status(CONFIGOK.format(CFGSET), "green")
+            self.__container.set_status(CONFIGOK.format(CFGSET), OKCOL)
         elif msg.identity == "ACK-NAK":
             self._lbl_send_command.config(image=self._img_warn)
-            self.__container.set_status(CONFIGBAD.format(CFGSET), "red")
+            self.__container.set_status(CONFIGBAD.format(CFGSET), ERRCOL)
         self.update_idletasks()
 
     def _on_load_json(self):
@@ -519,6 +519,6 @@ class SPARTNGNSSDialog(Frame):
             (key, start, _) = spc.next_key
             self._spartn_key2.set(key)
             self._spartn_valdate2.set(start.strftime("%Y%m%d"))
-            self.__container.set_status(DLGJSONOK.format(jsonfile), "green")
+            self.__container.set_status(DLGJSONOK.format(jsonfile), OKCOL)
         except Exception as err:  # pylint: disable=broad-exception-caught
-            self.__container.set_status(DLGJSONERR.format(err), "red")
+            self.__container.set_status(DLGJSONERR.format(err), ERRCOL)

@@ -21,6 +21,7 @@ from pyubx2 import UBXMessage
 from pygpsclient.globals import (
     CONNECTED_SPARTNIP,
     CONNECTED_SPARTNLB,
+    ERRCOL,
     ICON_BLANK,
     ICON_CONFIRMED,
     ICON_EXIT,
@@ -91,7 +92,7 @@ class SPARTNConfigDialog(Toplevel):
             self._frm_status,
             image=self._img_exit,
             width=55,
-            fg="red",
+            fg=ERRCOL,
             command=self.on_exit,
             font=self.__app.font_md,
         )
