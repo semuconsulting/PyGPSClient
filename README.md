@@ -221,6 +221,15 @@ pipx install pygpsclient
 
 `pipx` will typically create a virtual environment in the user's local shared folder e.g. `/home/user/.local/share/pipx/venvs/pygpsclient`.
 
+### Install Using Installation Script - 64-bit Debian Linux Only
+
+An example [installation shell script](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/pygpsclient_debian_install.sh) is available for use on most vanilla 64-bit Raspberry Pi and Debian environments with Python>=3.9. To run this installation script, download it to your Raspberry Pi or other Debian workstation and - from the download folder - type:
+
+```shell
+chmod +x pygpsclient_debian_install.sh
+./pygpsclient_debian_install.sh
+```
+
 ### Creating A Desktop Application Launcher
 
 The pip installation process does not automatically create a desktop application launcher, but this can be done manually:

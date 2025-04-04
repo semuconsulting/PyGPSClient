@@ -3,7 +3,7 @@
 # bash shell script to install PyGPSClient on Raspberry Pi and
 # other similar Debian Linux environments
 #
-# Should work for most vanilla Debian environments with Python>=3.9
+# Should work for most vanilla 64-bit Debian environments with Python>=3.9
 # but is probably not 100% foolproof - use at own risk
 #
 # NB: NOT for use on Windows or MacOS!
