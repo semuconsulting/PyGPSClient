@@ -50,8 +50,8 @@ Exec=/home/$USER/pygpsclient/bin/pygpsclient
 EOF
 
 echo "Adding directory to PATH..."
-BASHPROF=/home/$USER/.bashrc
-ZSHPROF=/home/$USER/.profile
+BASHPROF=/home/$USER/.profile
+ZSHPROF=/home/$USER/.zprofile
 if test -f $BASHPROF
 then
 sed -i '$aexport PATH="/home/$USER/pygpsclient/bin:$PATH"' $BASHPROF
