@@ -95,6 +95,8 @@ Normally installs without any additional steps.
 
 **Linux (including Raspberry Pi OS):**
 
+(See also [Installation Script](#installscript) below)
+
 Some Linux distributions may not include the necessary pip, tkinter or Pillow imaging libraries by default. They may need to be installed separately, e.g.:
 
 ```shell
@@ -221,9 +223,9 @@ pipx install pygpsclient
 
 `pipx` will typically create a virtual environment in the user's local shared folder e.g. `/home/user/.local/share/pipx/venvs/pygpsclient`.
 
-### Install Using Installation Script - 64-bit Debian Linux Only
+### <a name="installscript">Install Using Installation Script - 64-bit Debian-based Linux Only</a>
 
-An example [installation shell script](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/pygpsclient_debian_install.sh) is available for use on most vanilla 64-bit Raspberry Pi and Debian environments with Python>=3.9. To run this installation script, download it to your Raspberry Pi or other Debian workstation and - from the download folder - type:
+An example [installation shell script](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/pygpsclient_debian_install.sh) is available for use on most vanilla 64-bit Debian-based environments with Python>=3.9, including Raspberry Pi and Ubuntu. To run this installation script, download it to your Raspberry Pi or other Debian-based workstation and - from the download folder - type:
 
 ```shell
 chmod +x pygpsclient_debian_install.sh
