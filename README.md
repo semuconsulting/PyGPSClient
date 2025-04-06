@@ -155,8 +155,8 @@ python3 -m pip install --upgrade pygpsclient
 
 If required, `PyGPSClient` can also be installed and run in a [virtual environment](https://www.geeksforgeeks.org/python-virtual-environment/) - this may be necessary if you have an `externally-managed-environment`, e.g.:
 ```shell
-python3 -m venv env
-source env/bin/activate # (or env\Scripts\activate on Windows)
+python3 -m venv pygpsclient
+source pygpsclient/bin/activate # (or pygpsclient\Scripts\activate on Windows)
 python3 -m pip install --upgrade pygpsclient
 pygpsclient
 ```
@@ -169,13 +169,13 @@ deactivate
 
 To reactivate and run from the virtual environment:
 ```shell
-source env/bin/activate # (or env\Scripts\activate on Windows)
+source pygpsclient/bin/activate # (or pygpsclient\Scripts\activate on Windows)
 pygpsclient
 ```
 
 To upgrade PyGPSClient to the latest version from the virtual environment:
 ```shell
-source env/bin/activate # (or env\Scripts\activate on Windows)
+source pygpsclient/bin/activate # (or pygpsclient\Scripts\activate on Windows)
 python3 -m pip install --upgrade pygpsclient
 ```
 
@@ -212,6 +212,8 @@ Typically:
 
 where `**` signifies the Python version e.g. `3.12`.
 
+**NB** The pip installation process does not automatically create a desktop application launcher, but this can be done manually - see [APPLAUNCH](https://github.com/semuconsulting/PyGPSClient/blob/master/APPLAUNCH.md).
+
 ### <a name="pipx">Install using pipx</a>
 
 You can also use [pipx](https://pipx.pypa.io/latest/installation/) (_if available_) to install `pygpsclient` into a virtual environment - use the `pipx ensurepath` command to add the relevant Python binaries folder to your PATH.
@@ -231,48 +233,6 @@ An example [installation shell script](https://github.com/semuconsulting/PyGPSCl
 chmod +x pygpsclient_debian_install.sh
 ./pygpsclient_debian_install.sh
 ```
-
-### Creating A Desktop Application Launcher
-
-The pip installation process does not automatically create a desktop application launcher, but this can be done manually:
-
-**Windows:**
-
-To create an application launcher for Windows, create a new Shortcut named `PyGPSClient` with the following properties (*adapted for your particular environment*):
-
-- Target type: Application
-- Target location: Scripts
-- Target: `C:\Users\myuser\AppData\Roaming\Python\Python3**\Scripts\pygpsclient.exe`
-- Start in: `C:\Users\myuser`
-- Run: Minimized
-
-and place this in the `C:\Users\myuser\AppData\Roaming\Microsoft\Windows\Start Menu\Programs` directory (*you may need Administrator privileges to do this*). To assign an icon to this shortcut, select Change Icon.. and Browse to the pygpsclient.ico file in the site_packages folder (e.g.`C:\Users\myuser\AppData\Roaming\Python\Python3**\site-packages\pygpsclient\resources\pygpsclient.ico`)
-
-**MacOS:**
-
-To create an application launcher for MacOS, use MacOS's Automator tool to create a "Run Shell Script" application and save this as `PyGPSClient.app`, e.g.
-
-Shell: /bin/zsh
-```
-/Library/Frameworks/Python.framework/Versions/3.**/bin/pygpsclient
-```
-
-To assign an icon to this shortcut, right-click on the `PyGPSClient` entry in the Applications folder, select "Get Info" and drag-and-drop the pygpsclient.ico image file from the site-packages folder (e.g. `/Library/Frameworks/Python.framework/Versions/3.**/lib/python3.**/site-packages/pygpsclient/resources/pygpsclient.ico`) to the default application icon at the top left of the "Get Info" panel.
-
-**Linux:**
-
-To create an application launcher for most Linux distributions, create a text file named `pygpsclient.desktop` with the following content (*adapted for your particular environment*) and copy this to the `/home/myuser/.local/share/applications` folder, e.g.
-
-```
-[Desktop Entry]
-Type=Application
-Terminal=false
-Name=PyGPSClient
-Icon=/home/myuser/.local/lib/python3.**/site-packages/pygpsclient/resources/pygpsclient.ico
-Exec=/home/myuser/.local/bin/pygpsclient
-```
-
-You will need to logout and login for the launcher to take effect.
 
 ---
 ## <a name="instructions">Instructions</a>
