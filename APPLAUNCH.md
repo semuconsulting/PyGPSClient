@@ -11,11 +11,11 @@ To create an application launcher for Windows, create a new Shortcut named `PyGP
 
 - Target type: Application
 - Target location: Scripts
-- Target: `C:\Users\myuser\AppData\Roaming\Python\Python311\Scripts\pygpsclient.exe`
+- Target: `C:\Users\myuser\pygpsclient\Scripts\pygpsclient.exe`
 - Start in: `C:\Users\myuser`
 - Run: Minimized
 
-and place this in the `C:\Users\myuser\AppData\Roaming\Microsoft\Windows\Start Menu\Programs` directory (*you may need Administrator privileges to do this*). To assign an icon to this shortcut, select Change Icon.. and Browse to the pygpsclient.ico file in the site_packages folder (e.g.`C:\Users\myuser\AppData\Roaming\Python\Python311\site-packages\pygpsclient\resources\pygpsclient.ico`)
+and place this in the `C:\Users\myuser\AppData\Roaming\Microsoft\Windows\Start Menu\Programs` directory (*you may need Administrator privileges to do this*). To assign an icon to this shortcut, select Change Icon.. and Browse to the pygpsclient.ico file in the site_packages folder (e.g.`C:\Users\myuser\pygpsclient\Lib\site-packages\pygpsclient\resources\pygpsclient.ico`)
 
 ## MacOS
 
