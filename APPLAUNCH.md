@@ -26,7 +26,7 @@ Shell: /bin/zsh
 /Users/myuser/pygpsclient/bin/pygpsclient
 ```
 
-To assign an icon to this shortcut, right-click on the `PyGPSClient` entry in the Applications folder, select "Get Info" and drag-and-drop the pygpsclient.ico image file from the site-packages folder (e.g. `/Users/myuser/pygpsclient/lib/python3.11/lib/python3.11/site-packages/pygpsclient/resources/pygpsclient.ico`) to the default application icon at the top left of the "Get Info" panel.
+To assign an icon to this shortcut, right-click on the `PyGPSClient` entry in the Applications folder, select "Get Info" and drag-and-drop the pygpsclient.ico image file from the site-packages folder (e.g. `/Users/myuser/pygpsclient/lib/python3.11/site-packages/pygpsclient/resources/pygpsclient.ico`) to the default application icon at the top left of the "Get Info" panel.
 
 ## Linux
 
