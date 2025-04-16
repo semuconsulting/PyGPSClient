@@ -393,9 +393,9 @@ The facility can be accessed by clicking ![SPARTN Client button](https://github.
     - Subscription to a suitable MQTT SPARTN location service e.g. u-blox / Thingstream PointPerfect IP or L-band, which should provide the following details:
       - Server URL e.g. `pp.services.u-blox.com`
       - Client ID (which can be stored in the `"mqttclientid_s":` json configuration file setting or via environment variable `MQTTCLIENTID`)
-      - Encryption certificate (`*.crt`) and key (`*.pem`) files required to access the SPARTN service via an encrypted HTTPS connection. If these are placed in the user's HOME directory using the location service's standard naming convention, PyGPSClient will find them automatically.
+      - Client Certificate (`*.crt`) and Client Key (`*.pem`) files required to access the SPARTN service via an encrypted HTTPS connection. These files can be downloaded from the Thingstream..PointPerfect..Location Things..Credentials web page. If these are placed in the user's HOME directory using the location service's standard naming convention, PyGPSClient will find them automatically.
       - Region code - select from `us`, `eu`, `jp`, `kr` or `au`.
-	  - Source - select from either `IP` or `L-Band` (*NB: the 'L-Band' MQTT mode provides decryption keys, Assist Now data and L-Band frequency information, but the correction data itself arrives via the L-Band receiver below*).
+	  - Source - select from either `IP` or `L-Band` (*NB: the 'L-Band' MQTT mode provides decryption keys, Assist Now (ephemerides) data and L-Band frequency information, but the correction data itself arrives via the L-Band receiver below*).
       - A list of published topics. These typically include:
 	  	- `/pp/ip/region` - binary SPARTN correction data (SPARTN-1X-HPAC* / OCB* / GAD*) for the selected region, for IP sources only.
 		- `/pp/ubx/mga` - UBX MGA AssistNow ephemera data for each constellation.
