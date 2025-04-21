@@ -32,7 +32,6 @@ from pygpsclient.globals import (
     FORMAT_BOTH,
     FORMAT_HEXSTR,
     FORMAT_HEXTAB,
-    FORMAT_PARSED,
     WIDGETU3,
 )
 from pygpsclient.strings import HALTTAGWARN
@@ -63,9 +62,7 @@ class ConsoleFrame(Frame):
         def_w, def_h = WIDGETU3
         self.width = kwargs.get("width", def_w)
         self.height = kwargs.get("height", def_h)
-        self._colortags = self.__app.frm_settings.config.get(
-            "colortags_l", self.__app.frm_settings.config.get("colortags", [])
-        )
+        self._colortags = self.__app.configuration.get("colortags_l")
         self._body()
         self._do_layout()
         self._attach_events()
@@ -140,12 +137,10 @@ class ConsoleFrame(Frame):
         """
 
         con = self.txt_console
-        consoleformat = self.__app.frm_settings.config.get(
-            "consoleformat_s", FORMAT_PARSED
-        )
-        colortagging = self.__app.frm_settings.config.get("colortag_b", 0)
-        maxlines = self.__app.frm_settings.config.get("maxlines_n", 100)
-        autoscroll = self.__app.frm_settings.config.get("autoscroll_b", 1)
+        consoleformat = self.__app.configuration.get("consoleformat_s")
+        colortagging = self.__app.configuration.get("colortag_b")
+        maxlines = self.__app.configuration.get("maxlines_n")
+        autoscroll = self.__app.configuration.get("autoscroll_b")
         self._halt = ""
         con.configure(font=FONT_FIXED)
 

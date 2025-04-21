@@ -40,7 +40,6 @@ from pygpsclient.globals import (
     GPSEPOCH0,
     MAX_SNR,
     PUBLICIP_URL,
-    RCVR_CONNECTION,
     ROMVER_NEW,
     TIME0,
     Area,
@@ -791,9 +790,7 @@ def setubxrate(app: object, mid: str, rate: int = 1, prot: str = "UBX") -> UBXMe
     rates = {}
     msg = None
     # select which receiver ports to apply rate to
-    prts = (
-        app.frm_settings.config.get("defaultport_s", RCVR_CONNECTION).upper().split(",")
-    )
+    prts = app.configuration.get("defaultport_s").split(",")
 
     # check device ROM version for configuration support
     romver = app.gnss_status.version_data.get("romversion", NA).replace(NA, "")

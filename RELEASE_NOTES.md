@@ -1,5 +1,17 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.5.7
+
+FIXES:
+
+1. Fixes some typos in MQTT configuration settings (mqtt rather than mgtt) **NB:** recommend saving a new json configuration file for this version.
+
+ENHANCEMENTS:
+
+1. Refactor configuration settings - new `Configuration` class in `configuration.py`.
+1. Streamline command line argument handling.
+1. Add 'Decode SPARTN in console' checkbox to SPARTN config dialog.
+
 ### RELEASE 1.5.6
 
 1. Enhancements to Dynamic Configuration Panel to allow POLL arguments to be entered for those poll commands that require them.

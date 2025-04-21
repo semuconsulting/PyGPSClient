@@ -302,9 +302,9 @@ class ImportMapDialog(Toplevel):
         if lonmax + 180 <= lonmin + 180 or latmax + 90 <= latmin + 90:
             self._show_status("Error: minimum must be less than maximum")
         else:
-            usermaps = self.__app.saved_config.get("usermaps_l", [])
+            usermaps = self.__app.configuration.get("usermaps_l")
             usermaps.append([self._custommap, [latmin, lonmin, latmax, lonmax]])
-            self.__app.saved_config["usermaps_l"] = usermaps
+            self.__app.configuration.set("usermaps_l", usermaps)
             self._show_status("Custom map imported", INFOCOL)
 
     def _show_status(self, msg: str = "", col: str = ERRCOL):

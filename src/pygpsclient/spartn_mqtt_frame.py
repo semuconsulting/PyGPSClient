@@ -18,6 +18,7 @@ Created on 26 Jan 2023
 :license: BSD 3-Clause
 """
 
+from datetime import datetime, timezone
 from os import path
 from pathlib import Path
 from tkinter import (
@@ -33,11 +34,13 @@ from tkinter import (
     Radiobutton,
     Spinbox,
     StringVar,
+    TclError,
     W,
     ttk,
 )
 
 from PIL import Image, ImageTk
+from pyspartn import date2timetag
 from pyubx2 import UBXMessage
 
 from pygpsclient.globals import (
@@ -59,7 +62,7 @@ from pygpsclient.globals import (
     READONLY,
     RPTDELAY,
     RXMMSG,
-    SAVED_CONFIG,
+    SPARTN_BASEDATE_CURRENT,
     SPARTN_GNSS,
     SPARTN_OUTPORT,
     SPARTN_PPREGIONS,
@@ -88,7 +91,6 @@ class SPARTNMQTTDialog(Frame):
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.__container = container  # container frame
-        self._saved_config = kwargs.pop(SAVED_CONFIG, {})
 
         Frame.__init__(self, self.__container.container, *args, **kwargs)
 
@@ -115,6 +117,7 @@ class SPARTNMQTTDialog(Frame):
         self._mqtt_iptopic = IntVar()
         self._mqtt_mgatopic = IntVar()
         self._mqtt_keytopic = IntVar()
+        self._spartndecode = IntVar()
         self._settings = {}
         # spartn_inqueue is read by app and passed to GNSS receiver
         self._output = self.__app.spartn_inqueue
@@ -123,6 +126,7 @@ class SPARTNMQTTDialog(Frame):
         self._body()
         self._do_layout()
         self._reset()
+        self._attach_events()
 
     def _body(self):
         """
@@ -214,6 +218,12 @@ class SPARTNMQTTDialog(Frame):
             relief="sunken",
             width=32,
         )
+        self._lbl_spartndecode = Label(self, text="Decode SPARTN in console")
+        self._chk_spartndecode = Checkbutton(
+            self,
+            text="",
+            variable=self._spartndecode,
+        )
         self._btn_connect = Button(
             self,
             width=45,
@@ -262,11 +272,33 @@ class SPARTNMQTTDialog(Frame):
             column=1, row=7, columnspan=4, padx=3, pady=2, sticky=(W, E)
         )
         self._btn_openpem.grid(column=5, row=7, padx=3, pady=2, sticky=E)
+        self._lbl_spartndecode.grid(column=0, row=8, columnspan=2, sticky=W)
+        self._chk_spartndecode.grid(column=2, row=8, sticky=W)
         ttk.Separator(self).grid(
-            column=0, row=8, columnspan=6, padx=2, pady=3, sticky=(W, E)
+            column=0, row=9, columnspan=6, padx=2, pady=3, sticky=(W, E)
         )
-        self._btn_connect.grid(column=0, row=9, padx=3, pady=2, sticky=W)
-        self._btn_disconnect.grid(column=2, row=9, padx=3, pady=2, sticky=W)
+        self._btn_connect.grid(column=0, row=10, padx=3, pady=2, sticky=W)
+        self._btn_disconnect.grid(column=2, row=10, padx=3, pady=2, sticky=W)
+
+    def _attach_events(self):
+        """
+        Set up event listeners.
+        """
+
+        for setting in (
+            self._mqtt_server,
+            self._mqtt_port,
+            self._mqtt_region,
+            self._mqtt_source,
+            self._mqtt_clientid,
+            self._mqtt_crt,
+            self._mqtt_pem,
+            self._mqtt_iptopic,
+            self._mqtt_mgatopic,
+            self._mqtt_keytopic,
+            self._spartndecode,
+        ):
+            setting.trace_add("write", self._on_update_config)
 
     def _reset(self):
         """
@@ -295,23 +327,72 @@ class SPARTNMQTTDialog(Frame):
         self._mqtt_crt.set(spartn_crt)
         self._mqtt_pem.set(spartn_pem)
 
+    def _on_update_config(self, var, index, mode):  # pylint: disable=unused-argument
+        """
+        Update in-memory configuration if setting is changed.
+        """
+
+        self.update()
+        cfg = self.__app.configuration
+        try:
+            cfg.set("mqttclientserver_s", self._mqtt_server.get())
+            cfg.set("mqttclientport_n", int(self._mqtt_port.get()))
+            cfg.set("mqttclientregion_s", self._mqtt_region.get())
+            cfg.set("mqttclientmode_n", int(self._mqtt_source.get()))
+            cfg.set("mqttclientid_s", self._mqtt_clientid.get())
+            cfg.set("mqttclienttlscrt_s", self._mqtt_crt.get())
+            cfg.set("mqttclienttlskey_s", self._mqtt_pem.get())
+            cfg.set("mqttclienttopicip_b", int(self._mqtt_iptopic.get()))
+            cfg.set("mqttclienttopicmga_b", int(self._mqtt_mgatopic.get()))
+            cfg.set("mqttclienttopickey_b", int(self._mqtt_keytopic.get()))
+            cfg.set("spartndecode_b", int(self._spartndecode.get()))
+        except (ValueError, TclError):
+            pass
+
     def _get_settings(self):
         """
         Get settings from SPARTN handler.
         """
 
         self._connected = self.__app.spartn_handler.connected
-        self._settings = self.__app.spartn_handler.settings
+        if self._connected:
+            # get settings from running instance
+            self._settings = self.__app.spartn_handler.settings
+        else:
+            # get settings from saved configuration
+            cfg = self.__app.configuration
+            self._settings = {}
+            self._settings["server"] = cfg.get("mqttclientserver_s")
+            self._settings["port"] = cfg.get("mqttclientport_n")
+            self._settings["clientid"] = cfg.get("mqttclientid_s")
+            self._settings["region"] = cfg.get("mqttclientregion_s")
+            self._settings["mode"] = cfg.get("mqttclientmode_n")
+            self._settings["topic_ip"] = cfg.get("mqttclienttopicip_b")
+            self._settings["topic_mga"] = cfg.get("mqttclienttopicmga_b")
+            self._settings["topic_key"] = cfg.get("mqttclienttopickey_b")
+            self._settings["tlscrt"] = cfg.get("mqttclienttlscrt_s")
+            self._settings["tlskey"] = cfg.get("mqttclienttlskey_s")
+            self._settings["spartndecode"] = cfg.get("spartndecode_b")
+            self._settings["spartnkey"] = cfg.get("spartnkey_s")
+            if self._settings["spartnkey"] == "":
+                self._settings["spartndecode"] = 0
+            # if basedate is provided in config file, it must be an integer gnssTimetag
+            basedate = cfg.get("spartnbasedate_n")
+            if basedate == SPARTN_BASEDATE_CURRENT:
+                basedate = date2timetag(datetime.now(timezone.utc))
+            self._settings["spartnbasedate"] = basedate
+
         self._mqtt_server.set(self._settings["server"])
         self._mqtt_port.set(self._settings["port"])
         self._mqtt_region.set(self._settings["region"])
-        self._mqtt_source.set(self._settings.get("mode", 0))
+        self._mqtt_source.set(self._settings.get("mode"))
         self._mqtt_clientid.set(self._settings["clientid"])
         self._mqtt_iptopic.set(self._settings["topic_ip"])
         self._mqtt_mgatopic.set(self._settings["topic_mga"])
         self._mqtt_keytopic.set(self._settings["topic_key"])
         self._mqtt_crt.set(self._settings["tlscrt"])
         self._mqtt_pem.set(self._settings["tlskey"])
+        self._spartndecode.set(self._settings["spartndecode"])
 
     def _set_settings(self):
         """

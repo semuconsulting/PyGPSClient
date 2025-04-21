@@ -225,7 +225,7 @@ class FileHandler:
 
         # pylint: disable=consider-using-with
 
-        self._logpath = self.__app.frm_settings.config.get("logpath_s", HOME)
+        self._logpath = self.__app.configuration.get("logpath_s")
         self._lines = 0
         _, self._logname = set_filename(self._logpath, "data", "log")
         self._logfile = open(self._logname, "a+b")
@@ -240,8 +240,7 @@ class FileHandler:
         if self._logfile is None:
             self.open_logfile()
 
-        settings = self.__app.frm_settings.config
-        lfm = settings["logformat_s"]
+        lfm = self.__app.configuration.get("logformat_s")
         data = []
         if lfm in (FORMAT_PARSED, FORMAT_BOTH):
             data.append(parsed_data)

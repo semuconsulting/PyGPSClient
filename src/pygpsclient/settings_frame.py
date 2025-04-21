@@ -20,7 +20,6 @@ Created on 12 Sep 2020
 # pylint: disable=unnecessary-lambda
 
 from platform import system
-from socket import AF_INET6
 from tkinter import (
     ALL,
     BOTH,
@@ -50,9 +49,7 @@ from tkinter import (
 )
 
 from PIL import Image, ImageTk
-from pyubx2 import GET
-from pyubx2 import ubxtypes_core as ubt
-from serial import PARITY_NONE
+from pyubx2 import NMEA_PROTOCOL, RTCM3_PROTOCOL, UBX_PROTOCOL
 
 from pygpsclient.globals import (
     BPSRATES,
@@ -66,9 +63,8 @@ from pygpsclient.globals import (
     DMS,
     ECEF,
     ERRCOL,
-    FORMAT_BINARY,
-    FORMAT_PARSED,
     FORMATS,
+    GNSS,
     GNSS_EOF_EVENT,
     GNSS_ERR_EVENT,
     GNSS_EVENT,
@@ -89,13 +85,9 @@ from pygpsclient.globals import (
     MSGMODES,
     NOPORTS,
     OKCOL,
-    RCVR_CONNECTION,
     READONLY,
     RPTDELAY,
     SAT,
-    SOCK_NTRIP,
-    SPARTN_BASEDATE_CURRENT,
-    SPARTN_DEFAULT_KEY,
     SPARTN_PROTOCOL,
     TIMEOUTS,
     UI,
@@ -105,12 +97,10 @@ from pygpsclient.globals import (
     WORLD,
 )
 from pygpsclient.helpers import fontheight, fontwidth
-from pygpsclient.mapquest import MAP_UPDATE_INTERVAL
 from pygpsclient.serialconfig_frame import SerialConfigFrame
 from pygpsclient.serverconfig_frame import ServerConfigFrame
 from pygpsclient.socketconfig_frame import SocketConfigFrame
 from pygpsclient.strings import (
-    DLG,
     DLGTNMEA,
     DLGTNTRIP,
     DLGTSPARTN,
@@ -184,9 +174,7 @@ class SettingsFrame(Frame):
         self._show_unusedsat = IntVar()
         self.show_legend = IntVar()
         self._colortag = IntVar()
-        self.defaultports = self.__app.saved_config.get(
-            "defaultport_s", RCVR_CONNECTION
-        )
+        self.defaultports = self.__app.configuration.get("defaultport_s")
         self._validsettings = True
         self._img_conn = ImageTk.PhotoImage(Image.open(ICON_CONN))
         self._img_serial = ImageTk.PhotoImage(Image.open(ICON_SERIAL))
@@ -203,6 +191,7 @@ class SettingsFrame(Frame):
         self._body()
         self._do_layout()
         self.reset()
+        self._attach_events()
 
     def _container(self):
         """
@@ -261,16 +250,18 @@ class SettingsFrame(Frame):
         self.frm_serial = SerialConfigFrame(
             self.__app,
             self._frm_container,
+            GNSS,
             preselect=KNOWNGPS,
             timeouts=TIMEOUTS,
             bpsrates=BPSRATES,
             msgmodes=list(MSGMODES.keys()),
-            saved_config=self.__app.saved_config,
         )
 
         # socket client configuration panel
         self.frm_socketclient = SocketConfigFrame(
-            self.__app, self._frm_container, saved_config=self.__app.saved_config
+            self.__app,
+            self._frm_container,
+            GNSS,
         )
 
         # connection buttons
@@ -475,7 +466,8 @@ class SettingsFrame(Frame):
         )
         # socket server configuration
         self.frm_socketserver = ServerConfigFrame(
-            self.__app, self._frm_container, saved_config=self.__app.saved_config
+            self.__app,
+            self._frm_container,
         )
 
     def _do_layout(self):
@@ -556,32 +548,58 @@ class SettingsFrame(Frame):
 
     def reset(self):
         """
-        Reset settings to defaults.
+        Reset settings to saved configuration.
         """
 
-        self._prot_nmea.set(self.__app.saved_config.get("nmeaprot_b", 1))
-        self._prot_ubx.set(self.__app.saved_config.get("ubxprot_b", 1))
-        self._prot_rtcm3.set(self.__app.saved_config.get("rtcmprot_b", 1))
-        self._prot_spartn.set(self.__app.saved_config.get("spartnprot_b", 1))
-        self._degrees_format.set(self.__app.saved_config.get("degreesformat_s", DDD))
-        self._colortag.set(self.__app.saved_config.get("colortag_b", 0))
-        self._units.set(self.__app.saved_config.get("units_s", UMM))
-        self._autoscroll.set(self.__app.saved_config.get("autoscroll_b", 1))
-        self._maxlines.set(self.__app.saved_config.get("maxlines_n", MAXLINES[0]))
-        self._console_format.set(
-            self.__app.saved_config.get("consoleformat_s", FORMAT_PARSED)
-        )
-        self.maptype.set(self.__app.saved_config.get("maptype_s", MAPTYPES[0]))
-        self.showtrack.set(self.__app.saved_config.get("showtrack_b", 0))
-        self.mapzoom.set(self.__app.saved_config.get("mapzoom_n", 10))
-        self.show_legend.set(self.__app.saved_config.get("legend_b", 1))
-        self._show_unusedsat.set(self.__app.saved_config.get("unusedsat_b", 0))
-        self._logformat.set(self.__app.saved_config.get("logformat_s", FORMAT_BINARY))
-        self._datalog.set(self.__app.saved_config.get("datalog_b", 0))
-        self.logpath = self.__app.saved_config.get("logpath_s", HOME)
-        self._record_track.set(self.__app.saved_config.get("recordtrack_b", 0))
-        self.trackpath = self.__app.saved_config.get("trackpath_s", HOME)
+        cfg = self.__app.configuration
+        self._prot_nmea.set(cfg.get("nmeaprot_b"))
+        self._prot_ubx.set(cfg.get("ubxprot_b"))
+        self._prot_rtcm3.set(cfg.get("rtcmprot_b"))
+        self._prot_spartn.set(cfg.get("spartnprot_b"))
+        self._degrees_format.set(cfg.get("degreesformat_s"))
+        self._colortag.set(cfg.get("colortag_b"))
+        self._units.set(cfg.get("units_s"))
+        self._autoscroll.set(cfg.get("autoscroll_b"))
+        self._maxlines.set(cfg.get("maxlines_n"))
+        self._console_format.set(cfg.get("consoleformat_s"))
+        self.maptype.set(cfg.get("maptype_s"))
+        self.showtrack.set(cfg.get("showtrack_b"))
+        self.mapzoom.set(cfg.get("mapzoom_n"))
+        self.show_legend.set(cfg.get("legend_b"))
+        self._show_unusedsat.set(cfg.get("unusedsat_b"))
+        self._logformat.set(cfg.get("logformat_s"))
+        self._datalog.set(cfg.get("datalog_b"))
+        self.logpath = cfg.get("logpath_s")
+        self._record_track.set(cfg.get("recordtrack_b"))
+        self.trackpath = cfg.get("trackpath_s")
         self.clients = 0
+
+    def _attach_events(self):
+        """
+        Bind events to settings dialog.
+        """
+
+        for setting in (
+            self._prot_nmea,
+            self._prot_ubx,
+            self._prot_rtcm3,
+            self._prot_spartn,
+            self._autoscroll,
+            self._maxlines,
+            self.maptype,
+            self.showtrack,
+            self.mapzoom,
+            self._units,
+            self._degrees_format,
+            self._console_format,
+            self._datalog,
+            self._logformat,
+            self._record_track,
+            self._show_unusedsat,
+            self.show_legend,
+            self._colortag,
+        ):
+            setting.trace_add("write", self._on_update_config)
 
     def _reset_frames(self):
         """
@@ -591,6 +609,44 @@ class SettingsFrame(Frame):
         self.__app.frm_mapview.reset_map_refresh()
         self.__app.frm_spectrumview.reset()
         self.__app.reset_gnssstatus()
+
+    def _on_update_config(self, var, index, mode):  # pylint: disable=unused-argument
+        """
+        Update in-memory configuration if setting is changed.
+        """
+
+        try:
+            self.update()
+            cfg = self.__app.configuration
+            cfg.set(
+                "protocol_n",
+                NMEA_PROTOCOL * int(self._prot_nmea.get())
+                + UBX_PROTOCOL * int(self._prot_ubx.get())
+                + RTCM3_PROTOCOL * int(self._prot_rtcm3.get())
+                + SPARTN_PROTOCOL * int(self._prot_spartn.get()),
+            )
+            cfg.set("nmeaprot_b", int(self._prot_nmea.get()))
+            cfg.set("ubxprot_b", int(self._prot_ubx.get()))
+            cfg.set("rtcmprot_b", int(self._prot_rtcm3.get()))
+            cfg.set("spartnprot_b", int(self._prot_spartn.get()))
+            cfg.set("degreesformat_s", self._degrees_format.get())
+            cfg.set("colortag_b", int(self._colortag.get()))
+            cfg.set("units_s", self._units.get())
+            cfg.set("autoscroll_b", int(self._autoscroll.get()))
+            cfg.set("maxlines_n", int(self._maxlines.get()))
+            cfg.set("consoleformat_s", self._console_format.get())
+            cfg.set("maptype_s", self.maptype.get())
+            cfg.set("showtrack_b", int(self.showtrack.get()))
+            cfg.set("mapzoom_n", int(self.mapzoom.get()))
+            cfg.set("legend_b", int(self.show_legend.get()))
+            cfg.set("unusedsat_b", int(self._show_unusedsat.get()))
+            cfg.set("datalog_b", int(self._datalog.get()))
+            cfg.set("logformat_s", self._logformat.get())
+            cfg.set("logpath_s", self.logpath)
+            cfg.set("recordtrack_b", int(self._record_track.get()))
+            cfg.set("trackpath_s", int(self.trackpath))
+        except (ValueError, TclError):
+            pass
 
     def _on_connect(self, conntype: int):
         """
@@ -784,229 +840,3 @@ class SettingsFrame(Frame):
 
         self.update_idletasks()  # Make sure we know about any resizing
         return (self.winfo_width(), self.winfo_height())
-
-    @property
-    def config(self) -> dict:
-        """
-        Getter for current configuration settings from all frames and
-        protocol handlers. Use the output from this function to save
-        configuration settings to a *.json config file.
-
-        :return: settings as dictionary
-        :rtype: dict
-        """
-
-        try:
-            protocol = (
-                (ubt.NMEA_PROTOCOL * self._prot_nmea.get())
-                + (ubt.UBX_PROTOCOL * self._prot_ubx.get())
-                + (ubt.RTCM3_PROTOCOL * self._prot_rtcm3.get())
-                + (SPARTN_PROTOCOL * self._prot_spartn.get())
-            )
-            sockmode = 1 if self.frm_socketserver.sock_mode.get() == SOCK_NTRIP else 0
-
-            ntripclient_settings = self.__app.ntrip_handler.settings
-            spartnclient_settings = self.__app.spartn_handler.settings
-            # get SPARTN L-Band settings if (and ONLY if) dialog is open
-            lband_dlg = self.__app.dialogs[DLGTSPARTN][DLG]
-            lband_settings = (
-                {} if lband_dlg is None else lband_dlg.frm_corrlband.settings
-            )
-            ntripprot = "IPv6" if ntripclient_settings["ipprot"] == AF_INET6 else "IPv4"
-            ggaint = ntripclient_settings["ggainterval"]
-            if ggaint == "None":
-                ggaint = -1
-
-            config = {
-                # main settings from frm_settings
-                "protocol_n": protocol,
-                "nmeaprot_b": self._prot_nmea.get(),
-                "ubxprot_b": self._prot_ubx.get(),
-                "rtcmprot_b": self._prot_rtcm3.get(),
-                "spartnprot_b": self._prot_spartn.get(),
-                "degreesformat_s": self._degrees_format.get(),
-                "colortag_b": self._colortag.get(),
-                "units_s": self._units.get(),
-                "autoscroll_b": self._autoscroll.get(),
-                "maxlines_n": self._maxlines.get(),
-                "consoleformat_s": self._console_format.get(),
-                "maptype_s": self.maptype.get(),
-                "showtrack_b": self.showtrack.get(),
-                "mapzoom_n": self.mapzoom.get(),
-                "legend_b": self.show_legend.get(),
-                "unusedsat_b": self._show_unusedsat.get(),
-                "datalog_b": self._datalog.get(),
-                "logformat_s": self._logformat.get(),
-                "logpath_s": str(self.logpath),
-                "recordtrack_b": self._record_track.get(),
-                "trackpath_s": str(self.trackpath),
-                # serial port settings from frm_serial
-                "serialport_s": self.frm_serial.port,
-                "bpsrate_n": self.frm_serial.bpsrate,
-                "databits_n": self.frm_serial.databits,
-                "stopbits_f": self.frm_serial.stopbits,
-                "parity_s": self.frm_serial.parity,
-                "rtscts_b": self.frm_serial.rtscts,
-                "xonxoff_b": self.frm_serial.xonxoff,
-                "timeout_f": self.frm_serial.timeout,
-                "msgmode_n": self.frm_serial.msgmode,
-                "userport_s": self.frm_serial.userport,
-                "inactivity_timeout_n": self.frm_serial.inactivity_timeout,
-                # socket client settings from frm_socketclient
-                "sockclienthost_s": self.frm_socketclient.server.get(),
-                "sockclientport_n": self.frm_socketclient.port.get(),
-                "sockclienthttps_b": self.frm_socketclient.https.get(),
-                "sockclientprotocol_s": self.frm_socketclient.protocol.get(),
-                # socket server settings from frm_socketserver
-                "sockserver_b": self.frm_socketserver.socketserving,
-                "sockhost_s": self.frm_socketserver.sock_host.get(),
-                "sockport_n": self.frm_socketserver.sock_port.get(),
-                "sockmode_b": sockmode,
-                "ntripcasterbasemode_s": self.frm_socketserver.base_mode.get(),
-                "ntripcasteracclimit_f": self.frm_socketserver.acclimit.get(),
-                "ntripcasterduration_n": self.frm_socketserver.duration.get(),
-                "ntripcasterposmode_s": self.frm_socketserver.pos_mode.get(),
-                "ntripcasterfixedlat_f": self.frm_socketserver.fixedlat.get(),
-                "ntripcasterfixedlon_f": self.frm_socketserver.fixedlon.get(),
-                "ntripcasterfixedalt_f": self.frm_socketserver.fixedalt.get(),
-                "ntripcasterdisablenmea_b": self.frm_socketserver.disable_nmea.get(),
-                "ntripcasteruser_s": self.frm_socketserver.user.get(),
-                "ntripcasterpassword_s": self.frm_socketserver.password.get(),
-                # NTRIP client settings from pygnssutils.GNSSNTRIPClient
-                "ntripclientserver_s": ntripclient_settings["server"],
-                "ntripclientport_n": ntripclient_settings["port"],
-                "ntripclienthttps_b": ntripclient_settings["https"],
-                "ntripclientprotocol_s": ntripprot,
-                "ntripclientflowinfo_n": ntripclient_settings["flowinfo"],
-                "ntripclientscopeid_n": ntripclient_settings["scopeid"],
-                "ntripclientmountpoint_s": ntripclient_settings["mountpoint"],
-                "ntripclientversion_s": ntripclient_settings["version"],
-                "ntripclientdatatype_s": ntripclient_settings["datatype"],
-                "ntripclientuser_s": ntripclient_settings["ntripuser"],
-                "ntripclientpassword_s": ntripclient_settings["ntrippassword"],
-                "ntripclientggainterval_n": ggaint,
-                "ntripclientggamode_b": ntripclient_settings["ggamode"],
-                "ntripclientreflat_f": ntripclient_settings["reflat"],
-                "ntripclientreflon_f": ntripclient_settings["reflon"],
-                "ntripclientrefalt_f": ntripclient_settings["refalt"],
-                "ntripclientrefsep_f": ntripclient_settings["refsep"],
-                # SPARTN MQTT (IP) client settings from pygnssutils.GNSSMQTTClient
-                "mqttclientserver_s": spartnclient_settings["server"],
-                "mqttclientport_n": spartnclient_settings["port"],
-                "mqttclientid_s": spartnclient_settings["clientid"],
-                "mgttclientregion_s": spartnclient_settings["region"],
-                "mgttclientmode_n": spartnclient_settings["mode"],
-                "mgttclienttopicip_b": spartnclient_settings["topic_ip"],
-                "mgttclienttopicmga_b": spartnclient_settings["topic_mga"],
-                "mgttclienttopickey_b": spartnclient_settings["topic_key"],
-                "mgttclienttlscrt_s": spartnclient_settings["tlscrt"],
-                "mgttclienttlskey_s": spartnclient_settings["tlskey"],
-                # SPARTN L-Band client settings from SpartnLbandDialog if open
-                "lbandclientbpsrate_n": lband_settings.get(
-                    "bpsrate", self.__app.saved_config.get("lbandclientbpsrate_n", 9600)
-                ),
-                "lbandclientdatabits_n": lband_settings.get(
-                    "databits", self.__app.saved_config.get("lbandclientdatabits_n", 8)
-                ),
-                "lbandclientstopbits_f": lband_settings.get(
-                    "stopbits",
-                    self.__app.saved_config.get("lbandclientstopbits_f", 1.0),
-                ),
-                "lbandclientparity_s": lband_settings.get(
-                    "parity",
-                    self.__app.saved_config.get("lbandclientparity_s", PARITY_NONE),
-                ),
-                "lbandclientrtscts_b": lband_settings.get(
-                    "rtscts", self.__app.saved_config.get("lbandclientrtscts_b", 0)
-                ),
-                "lbandclientxonxoff_b": lband_settings.get(
-                    "xonxoff", self.__app.saved_config.get("lbandclientxonxoff_b", 0)
-                ),
-                "lbandclienttimeout_f": lband_settings.get(
-                    "timeout", self.__app.saved_config.get("lbandclienttimeout_f", 0.1)
-                ),
-                "lbandclientmsgmode_n": lband_settings.get(
-                    "msgmode", self.__app.saved_config.get("lbandclientmsgmode_n", GET)
-                ),
-                "spartnport_s": lband_settings.get(
-                    "userport", self.__app.saved_config.get("spartnport_s", "")
-                ),
-                "lbandclientfreq_n": lband_settings.get(
-                    "freq", self.__app.saved_config.get("lbandclientfreq_n", 1556290000)
-                ),
-                "lbandclientschwin_n": lband_settings.get(
-                    "schwin", self.__app.saved_config.get("lbandclientschwin_n", 2200)
-                ),
-                "lbandclientsid_n": lband_settings.get(
-                    "sid", self.__app.saved_config.get("lbandclientsid_n", 21845)
-                ),
-                "lbandclientdrat_n": lband_settings.get(
-                    "drat", self.__app.saved_config.get("lbandclientdrat_n", 2400)
-                ),
-                "lbandclientusesid_b": lband_settings.get(
-                    "usesid", self.__app.saved_config.get("lbandclientusesid_b", 0)
-                ),
-                "lbandclientdescrm_b": lband_settings.get(
-                    "descrm", self.__app.saved_config.get("lbandclientdescrm_b", 1)
-                ),
-                "lbandclientprescrm_b": lband_settings.get(
-                    "prescrm", self.__app.saved_config.get("lbandclientprescrm_b", 0)
-                ),
-                "lbandclientdescrminit_n": lband_settings.get(
-                    "descrminit",
-                    self.__app.saved_config.get("lbandclientdescrminit_n", 26969),
-                ),
-                "lbandclientunqword_s": lband_settings.get(
-                    "unqword",
-                    self.__app.saved_config.get(
-                        "lbandclientunqword_s", "16238547128276412563"
-                    ),
-                ),
-                "lbandclientoutport_s": lband_settings.get(
-                    "outport",
-                    self.__app.saved_config.get("lbandclient_outport_s", "Passthrough"),
-                ),
-                "lbandclientdebug_b": lband_settings.get(
-                    "debug",
-                    self.__app.saved_config.get(
-                        "lbandclientdebug_b",
-                        0,
-                    ),
-                ),
-                "scattersettings_d": self.__app.saved_config.get(
-                    "scattersettings_d",
-                    {
-                        "scatterautorange_b": 0,
-                        "scattercenter_s": "Average",
-                        "scatterinterval_n": 1,
-                        "scatterscale_n": 6,
-                        "scatterlat_f": 0.0,
-                        "scatterlon_f": 0.0,
-                    },
-                ),
-                "chartsettings_d": self.__app.saved_config.get(
-                    "chartsettings_d", {"numchn": 4, "timrng": 60}
-                ),
-                # Manually edited config settings
-                "checkforupdate_b": self.__app.saved_config.get("checkforupdate_b", 0),
-                "spartndecode_b": self.__app.saved_config.get("spartndecode_b", 0),
-                "spartnkey_s": self.__app.saved_config.get(
-                    "spartnkey_s", SPARTN_DEFAULT_KEY
-                ),
-                "spartnbasedate_n": self.__app.saved_config.get(
-                    "spartnbasedate_n", SPARTN_BASEDATE_CURRENT
-                ),
-                "mapupdateinterval_n": self.__app.saved_config.get(
-                    "mapupdateinterval_n", MAP_UPDATE_INTERVAL
-                ),
-                "defaultport_s": self.defaultports,
-                "mqapikey_s": self.__app.saved_config.get("mqapikey_s", ""),
-                "colortags_l": self.__app.saved_config.get("colortags_l", []),
-                "ubxpresets_l": self.__app.saved_config.get("ubxpresets_l", []),
-                "nmeapresets_l": self.__app.saved_config.get("nmeapresets_l", []),
-                "usermaps_l": self.__app.saved_config.get("usermaps_l", []),
-            }
-            return config
-        except (KeyError, ValueError, TypeError, TclError) as err:
-            self.__app.set_status(f"Error processing config data: {err}", ERRCOL)
-            return {}

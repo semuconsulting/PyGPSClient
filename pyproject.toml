@@ -8,8 +8,7 @@ dynamic = ["version"]
 authors = [{ name = "semuadmin", email = "semuadmin@semuconsulting.com" }]
 maintainers = [{ name = "semuadmin", email = "semuadmin@semuconsulting.com" }]
 description = "GNSS Diagnostic and UBX Configuration GUI Application"
-license = { file = "LICENSE" }
-#license-files = ["LICENSE"]
+license-files = ["LICENSE"]
 keywords = [
     "PyGPSClient",
     "GNSS",
@@ -52,7 +51,7 @@ classifiers = [
 dependencies = [
     "requests>=2.28.0",
     "Pillow>=9.0.0",
-    "pygnssutils>=1.1.11",
+    "pygnssutils>=1.1.12",
     "pyubxutils>=1.0.2",
     "pyserial>=3.5",
 ]

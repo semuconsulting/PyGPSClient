@@ -1,15 +1,13 @@
 """
 nmea_client_dialog.py
 
-NTRIP client container dialog
+NTRIP client configuration dialog.
 
-This is the pop-up dialog containing the various
-NTRIP client configuration functions.
-
-NB: The initial configuration for the NTRIP client
-(pygnssutils.GNSSNTRIPClient) is set in app.update_NTRIP_handler().
+Initial settings are from the saved configuration.
 Once started, the persisted state for the NTRIP client is held in
 the threaded NTRIP handler itself, NOT in this frame.
+
+The dialog may be closed while the NTRIP client is running.
 
 Created on 2 Apr 2022
 
@@ -58,10 +56,10 @@ from pygpsclient.globals import (
     ICON_DISCONN,
     ICON_EXIT,
     INFOCOL,
+    NTRIP,
     POPUP_TRANSIENT,
     READONLY,
     RPTDELAY,
-    SAVED_CONFIG,
     UBX_CFGMSG,
     UBX_CFGPRT,
     UBX_CFGRATE,
@@ -94,6 +92,8 @@ IP6 = "IPv6"
 RTCM = "RTCM"
 SPARTN = "SPARTN"
 NTRIP_SPARTN = "ppntrip.services.u-blox.com"
+TCPIPV4 = "IPv4"
+TCPIPV6 = "IPv6"
 
 
 class NTRIPConfigDialog(Toplevel):
@@ -113,7 +113,6 @@ class NTRIPConfigDialog(Toplevel):
         self.__app = app  # Reference to main application class
         self.logger = getLogger(__name__)
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
-        self._saved_config = kwargs.pop(SAVED_CONFIG, {})
 
         Toplevel.__init__(self, app)
         if POPUP_TRANSIENT:
@@ -154,8 +153,8 @@ class NTRIPConfigDialog(Toplevel):
 
         self._body()
         self._do_layout()
-        self._attach_events()
         self._reset()
+        self._attach_events()
 
     def _body(self):
         """
@@ -164,22 +163,11 @@ class NTRIPConfigDialog(Toplevel):
         # pylint: disable=unnecessary-lambda
 
         self._frm_container = Frame(self, borderwidth=2, relief="groove")
-        # use NTRIP config settings in frm_socket
-        saved_ntrip_config = {
-            "sockclienthost_s": self._saved_config.get("ntripclienthost_s", ""),
-            "sockclientport_n": self._saved_config.get("ntripclientport_n", 2101),
-            "sockclientprotocol_s": self._saved_config.get(
-                "ntripclientprotocol_s", "IPv4"
-            ),
-            "sockclientflowinfo_n": self._saved_config.get("ntripclientflowinfo_n", 0),
-            "sockclientscopeid_n": self._saved_config.get("ntripclientscopeid_n", 0),
-            "sockclienthttps_b": self._saved_config.get("ntripclienthttps_b", 0),
-            "protocols_l": [IP4, IP6],
-        }
         self._frm_socket = SocketConfigFrame(
             self.__app,
             self._frm_container,
-            saved_config=saved_ntrip_config,
+            NTRIP,
+            protocols=[TCPIPV4, TCPIPV6],
             server_callback=self._on_server,
         )
         self._frm_status = Frame(self._frm_container, borderwidth=2, relief="groove")
@@ -422,6 +410,23 @@ class NTRIPConfigDialog(Toplevel):
 
         self._lbx_sourcetable.bind("<<ListboxSelect>>", self._on_select_mp)
 
+        for setting in (
+            self._ntrip_datatype,
+            self._ntrip_https,
+            self._ntrip_version,
+            self._ntrip_mountpoint,
+            self._ntrip_mpdist,
+            self._ntrip_user,
+            self._ntrip_password,
+            self._ntrip_gga_interval,
+            self._ntrip_gga_mode,
+            self._ntrip_gga_lat,
+            self._ntrip_gga_lon,
+            self._ntrip_gga_alt,
+            self._ntrip_gga_sep,
+        ):
+            setting.trace_add("write", self._on_update_config)
+
     def _reset(self):
         """
         Reset configuration widgets.
@@ -429,6 +434,31 @@ class NTRIPConfigDialog(Toplevel):
 
         self._get_settings()
         self.set_controls(self._connected)
+
+    def _on_update_config(self, var, index, mode):  # pylint: disable=unused-argument
+        """
+        Update in-memory configuration if setting is changed.
+        """
+
+        try:
+            self.update()
+            cfg = self.__app.configuration
+            cfg.set("ntripclientdatatype_s", self._ntrip_datatype.get())
+            cfg.set("ntripclienthttps_b", int(self._ntrip_https.get()))
+            cfg.set("ntripclientversion_s", self._ntrip_version.get())
+            cfg.set("ntripclientmountpoint_s", self._ntrip_mountpoint.get())
+            cfg.set("ntripclientuser_s", self._ntrip_user.get())
+            cfg.set("ntripclientpassword_s", self._ntrip_password.get())
+            ggaint = self._ntrip_gga_interval.get()
+            ggaint = NOGGA if ggaint == "None" else int(ggaint)
+            cfg.set("ntripclientggainterval_n", ggaint)
+            cfg.set("ntripclientggamode_b", self._ntrip_gga_mode.get())
+            cfg.set("ntripclientreflat_f", float(self._ntrip_gga_lat.get()))
+            cfg.set("ntripclientreflon_f", float(self._ntrip_gga_lon.get()))
+            cfg.set("ntripclientrefalt_f", float(self._ntrip_gga_alt.get()))
+            cfg.set("ntripclientrefsep_f", float(self._ntrip_gga_sep.get()))
+        except (ValueError, TclError):
+            pass
 
     def set_controls(self, connected: bool, msgt: tuple = None):
         """
@@ -586,12 +616,46 @@ class NTRIPConfigDialog(Toplevel):
 
     def _get_settings(self):
         """
-        Get settings from the NTRIP handler (pygnssutils.GNSSNTRIPClient).
+        Get settings from saved configuration or from the running instance of
+        the NTRIP handler (pygnssutils.GNSSNTRIPClient).
         """
 
         self._connected = self.__app.ntrip_handler.connected
-        self._settings = self.__app.ntrip_handler.settings
-        ipprot = self._settings.get("ipprot", AF_INET)
+        if self._connected:
+            # get settings from running instance
+            self._settings = self.__app.ntrip_handler.settings
+        else:
+            # get settings from saved configuration
+            cfg = self.__app.configuration
+            self._settings = {}
+            self._settings["server"] = cfg.get("ntripclientserver_s")
+            self._settings["port"] = cfg.get("ntripclientport_n")
+            self._settings["https"] = cfg.get("ntripclienthttps_b")
+            self._settings["ipprot"] = (
+                AF_INET6 if cfg.get("ntripclientprotocol_s") == IP6 else AF_INET
+            )
+            self._settings["flowinfo"] = cfg.get("ntripclientflowinfo_n")
+            self._settings["scopeid"] = cfg.get("ntripclientscopeid_n")
+            self._settings["mountpoint"] = cfg.get("ntripclientmountpoint_s")
+            self._settings["sourcetable"] = []  # this is generated by the NTRIP caster
+            self._settings["version"] = cfg.get("ntripclientversion_s")
+            self._settings["datatype"] = cfg.get("ntripclientdatatype_s")
+            self._settings["ntripuser"] = cfg.get("ntripclientuser_s")
+            self._settings["ntrippassword"] = cfg.get("ntripclientpassword_s")
+            self._settings["ggainterval"] = cfg.get("ntripclientggainterval_n")
+            self._settings["ggamode"] = cfg.get("ntripclientggamode_b")
+            self._settings["reflat"] = cfg.get("ntripclientreflat_f")
+            self._settings["reflon"] = cfg.get("ntripclientreflon_f")
+            self._settings["refalt"] = cfg.get("ntripclientrefalt_f")
+            self._settings["refsep"] = cfg.get("ntripclientrefsep_f")
+            self._settings["spartndecode"] = cfg.get("spartndecode_b")
+            self._settings["spartnkey"] = cfg.get("spartnkey_s")
+            if self._settings["spartnkey"] == "":
+                self._settings["spartndecode"] = 0
+            # if basedate is provided in config file, it must be an integer gnssTimetag
+            self._settings["spartnbasedate"] = cfg.get("spartnbasedate_n")
+
+        ipprot = self._settings.get("ipprot")
         self._frm_socket.protocol.set(IP6 if ipprot == AF_INET6 else IP4)
         self._frm_socket.server.set(self._settings["server"])
         self._frm_socket.port.set(self._settings["port"])
@@ -722,13 +786,12 @@ class NTRIPConfigDialog(Toplevel):
         :param float dist: distance to mountpoint km
         """
 
-        settings = self.__app.frm_settings.config
         if name in (None, ""):
             return
         dist_l = "Distance n/a"
         dist_u = "km"
         if isinstance(dist, float):
-            units = settings["units_s"]
+            units = self.__app.configuration.get("units_s")
             if units in (UI, UIK):
                 dist *= KM2MILES
                 dist_u = "miles"

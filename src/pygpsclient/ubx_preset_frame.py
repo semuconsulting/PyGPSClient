@@ -38,8 +38,6 @@ from pygpsclient.globals import (
     ICON_SEND,
     ICON_WARNING,
     OKCOL,
-    RCVR_CONNECTION,
-    SAVED_CONFIG,
     UBX_PRESET,
 )
 from pygpsclient.strings import (
@@ -122,8 +120,6 @@ class UBX_PRESET_Frame(Frame):
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.__container = container
-        # saved_config just contains user presets...
-        self._saved_config = kwargs.pop(SAVED_CONFIG, [])
 
         Frame.__init__(self, self.__container.container, *args, **kwargs)
 
@@ -230,7 +226,7 @@ class UBX_PRESET_Frame(Frame):
             self._lbx_preset.insert(idx, pst)
             idx += 1
 
-        for upst in self._saved_config:
+        for upst in self.__app.configuration.get("ubxpresets_l"):
             self._lbx_preset.insert(idx, "USER " + upst)
             idx += 1
 
@@ -244,7 +240,7 @@ class UBX_PRESET_Frame(Frame):
             if getattr(self, f"_port_{prt}").get():
                 ports += prt.upper() + ","
         ports = ports.strip(",")
-        self.__app.frm_settings.defaultports = ports
+        self.__app.configuration.set("defaultport_s", ports)
 
     def _on_select_preset(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -536,11 +532,7 @@ class UBX_PRESET_Frame(Frame):
 
         # select which receiver ports to apply rate to
         rates = {}
-        prts = (
-            self.__app.frm_settings.config.get("defaultport_s", RCVR_CONNECTION)
-            .upper()
-            .split(",")
-        )
+        prts = self.__app.configuration.get("defaultport_s").upper().split(",")
         for prt in prts:
             rates[prt] = msgrate
 

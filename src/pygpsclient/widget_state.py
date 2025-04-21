@@ -1,8 +1,8 @@
 """
 widget_state.py
 
-Global constants, strings and dictionaries used to
-maintain the state of the various user-selectable
+Class holding global constants, strings and dictionaries
+used to maintain the state of the various user-selectable
 widgets in the main container frame.
 
 To add a new widget to PyGPSClient:
@@ -10,7 +10,7 @@ To add a new widget to PyGPSClient:
 should implement `init_frame()` and `update_frame()` functions.
 2. If the widget requires certain UBX messages to be enabled,
 implement an `enable_messages(status)` function.
-3. Add an entry to the foot of the widget_state dictionary.
+3. Add an entry to the foot of the self.__app.widget_state.state dictionary.
 4. If the widget requires data not already in the `app.gnss_status`
 data dictionary, add the requisite data items to the `GNSSStatus`
 class definition and update `ubx_handler` to populate them.
@@ -64,95 +64,106 @@ WDGSTATUS = "Status"
 WDGSYSMON = "System Monitor"
 WDGCHART = "Chart Plot"
 
-widget_state = {
-    # these widgets have fixed positions
-    WDGBANNER: {  # always on top
-        DEFAULT: True,
-        MENU: False,
-        CLASS: BannerFrame,
-        FRAME: "frm_banner",
-        VISIBLE: True,
-        STICKY: (N, W, E, S),
-        COL: 0,
-        ROW: 0,
-        COLSPAN: 6,
-    },
-    WDGSETTINGS: {  # always on right
-        DEFAULT: True,
-        CLASS: SettingsFrame,
-        FRAME: "frm_settings",
-        VISIBLE: True,
-        STICKY: (N, W, E, S),
-        COL: 5,
-        ROW: 1,
-        ROWSPAN: 4,
-    },
-    WDGSTATUS: {  # always on bottom
-        DEFAULT: True,
-        MENU: False,
-        CLASS: StatusFrame,
-        FRAME: "frm_status",
-        VISIBLE: True,
-        STICKY: (S, W, E),
-        COL: 0,
-        ROW: 5,
-        COLSPAN: 6,
-    },
-    # these widgets rearrange dynamically according to
-    # which has been selected to be visible
-    WDGCONSOLE: {
-        DEFAULT: True,
-        CLASS: ConsoleFrame,
-        FRAME: "frm_console",
-        VISIBLE: True,
-        COLSPAN: MAXCOLSPAN,
-    },
-    WDGSATS: {
-        DEFAULT: True,
-        CLASS: SkyviewFrame,
-        FRAME: "frm_satview",
-        VISIBLE: True,
-    },
-    WDGLEVELS: {
-        DEFAULT: True,
-        CLASS: GraphviewFrame,
-        FRAME: "frm_graphview",
-        VISIBLE: True,
-    },
-    WDGMAP: {
-        DEFAULT: True,
-        CLASS: MapviewFrame,
-        FRAME: "frm_mapview",
-        VISIBLE: True,
-        RESET: True,
-    },
-    WDGSPECTRUM: {
-        CLASS: SpectrumviewFrame,
-        FRAME: "frm_spectrumview",
-        VISIBLE: False,
-        RESET: True,
-    },
-    WDGSCATTER: {
-        CLASS: ScatterViewFrame,
-        FRAME: "frm_scatterview",
-        VISIBLE: False,
-    },
-    WDGROVER: {
-        DEFAULT: False,
-        CLASS: RoverFrame,
-        FRAME: "frm_roverview",
-        VISIBLE: False,
-    },
-    WDGCHART: {
-        CLASS: ChartviewFrame,
-        FRAME: "frm_chartview",
-        VISIBLE: False,
-        COLSPAN: 2,
-    },
-    WDGSYSMON: {
-        CLASS: SysmonFrame,
-        FRAME: "frm_sysmon",
-        VISIBLE: False,
-    },
-    # add any new widgets here
-}
+
+class WidgetState:
+    """
+    Class holding current state of all PyGPSClient widgets.
+    """
+
+    def __init__(self):
+        """
+        Constructor.
+        """
+
+        self.state = {
+            # these widgets have fixed positions
+            WDGBANNER: {  # always on top
+                DEFAULT: True,
+                MENU: False,
+                CLASS: BannerFrame,
+                FRAME: "frm_banner",
+                VISIBLE: True,
+                STICKY: (N, W, E, S),
+                COL: 0,
+                ROW: 0,
+                COLSPAN: 6,
+            },
+            WDGSETTINGS: {  # always on right
+                DEFAULT: True,
+                CLASS: SettingsFrame,
+                FRAME: "frm_settings",
+                VISIBLE: True,
+                STICKY: (N, W, E, S),
+                COL: 5,
+                ROW: 1,
+                ROWSPAN: 4,
+            },
+            WDGSTATUS: {  # always on bottom
+                DEFAULT: True,
+                MENU: False,
+                CLASS: StatusFrame,
+                FRAME: "frm_status",
+                VISIBLE: True,
+                STICKY: (S, W, E),
+                COL: 0,
+                ROW: 5,
+                COLSPAN: 6,
+            },
+            # these widgets rearrange dynamically according to
+            # which has been selected to be visible
+            WDGCONSOLE: {
+                DEFAULT: True,
+                CLASS: ConsoleFrame,
+                FRAME: "frm_console",
+                VISIBLE: True,
+                COLSPAN: MAXCOLSPAN,
+            },
+            WDGSATS: {
+                DEFAULT: True,
+                CLASS: SkyviewFrame,
+                FRAME: "frm_satview",
+                VISIBLE: True,
+            },
+            WDGLEVELS: {
+                DEFAULT: True,
+                CLASS: GraphviewFrame,
+                FRAME: "frm_graphview",
+                VISIBLE: True,
+            },
+            WDGMAP: {
+                DEFAULT: True,
+                CLASS: MapviewFrame,
+                FRAME: "frm_mapview",
+                VISIBLE: True,
+                RESET: True,
+            },
+            WDGSPECTRUM: {
+                CLASS: SpectrumviewFrame,
+                FRAME: "frm_spectrumview",
+                VISIBLE: False,
+                RESET: True,
+            },
+            WDGSCATTER: {
+                CLASS: ScatterViewFrame,
+                FRAME: "frm_scatterview",
+                VISIBLE: False,
+            },
+            WDGROVER: {
+                DEFAULT: False,
+                CLASS: RoverFrame,
+                FRAME: "frm_roverview",
+                VISIBLE: False,
+            },
+            WDGCHART: {
+                CLASS: ChartviewFrame,
+                FRAME: "frm_chartview",
+                VISIBLE: False,
+                COLSPAN: 2,
+            },
+            WDGSYSMON: {
+                CLASS: SysmonFrame,
+                FRAME: "frm_sysmon",
+                VISIBLE: False,
+            },
+            # add any new widgets here
+        }

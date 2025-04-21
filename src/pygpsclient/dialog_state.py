@@ -1,8 +1,8 @@
 """
 dialog_state.py
 
-Global constants, strings and dictionaries used to
-maintain the state of the various threaded dialogs.
+Class holding global constants, strings and dictionaries
+used to maintain the state of the various threaded dialogs.
 
 Created on 16 Aug 2023
 
@@ -30,13 +30,24 @@ from pygpsclient.strings import (
 )
 from pygpsclient.ubx_config_dialog import UBXConfigDialog
 
-dialog_state = {
-    DLGTABOUT: {CLASS: AboutDialog, THD: None, DLG: None, CFG: False},
-    DLGTUBX: {CLASS: UBXConfigDialog, THD: None, DLG: None, CFG: True},
-    DLGTNMEA: {CLASS: NMEAConfigDialog, THD: None, DLG: None, CFG: True},
-    DLGTNTRIP: {CLASS: NTRIPConfigDialog, THD: None, DLG: None, CFG: True},
-    DLGTSPARTN: {CLASS: SPARTNConfigDialog, THD: None, DLG: None, CFG: True},
-    DLGTGPX: {CLASS: GPXViewerDialog, THD: None, DLG: None, CFG: True},
-    DLGTIMPORTMAP: {CLASS: ImportMapDialog, THD: None, DLG: None, CFG: True},
-    # add any new dialogs here
-}
+
+class DialogState:
+    """
+    Class holding current state of PyGPSClient dialogs.
+    """
+
+    def __init__(self):
+        """
+        Constructor.
+        """
+
+        self.state = {
+            DLGTABOUT: {CLASS: AboutDialog, THD: None, DLG: None, CFG: False},
+            DLGTUBX: {CLASS: UBXConfigDialog, THD: None, DLG: None, CFG: True},
+            DLGTNMEA: {CLASS: NMEAConfigDialog, THD: None, DLG: None, CFG: True},
+            DLGTNTRIP: {CLASS: NTRIPConfigDialog, THD: None, DLG: None, CFG: True},
+            DLGTSPARTN: {CLASS: SPARTNConfigDialog, THD: None, DLG: None, CFG: True},
+            DLGTGPX: {CLASS: GPXViewerDialog, THD: None, DLG: None, CFG: True},
+            DLGTIMPORTMAP: {CLASS: ImportMapDialog, THD: None, DLG: None, CFG: True},
+            # add any new dialogs here
+        }

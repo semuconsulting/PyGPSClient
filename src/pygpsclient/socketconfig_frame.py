@@ -5,8 +5,6 @@ Generic socket configuration Frame subclass
 for use in tkinter applications which require a
 socket configuration facility.
 
-Supply initial settings via `saved-config` keyword argument.
-
 Application icons from https://iconmonstr.com/license/.
 
 Created on 27 Apr 2022
@@ -34,13 +32,11 @@ from tkinter import (
 from PIL import Image, ImageTk
 
 from pygpsclient.globals import (
-    DEFAULT_PORT,
-    DEFAULT_SERVER,
     DEFAULT_TLS_PORTS,
     ICON_CONTRACT,
     ICON_EXPAND,
+    NTRIP,
     RPTDELAY,
-    SAVED_CONFIG,
 )
 from pygpsclient.helpers import MAXPORT, VALINT, VALURL, valid_entry
 
@@ -61,28 +57,30 @@ class SocketConfigFrame(Frame):
     Socket configuration frame class.
     """
 
-    def __init__(self, app, container, *args, **kwargs):
+    def __init__(self, app, container, context, *args, **kwargs):
         """
         Constructor.
 
         :param tkinter.Frame container: reference to container frame
         :param args: optional args to pass to Frame parent class
+        :param str context: serial port context (GNSS or LBAND)
         :param kwargs: optional kwargs for value ranges, or to pass to Frame parent class
         """
 
-        self._saved_config = kwargs.pop(SAVED_CONFIG, {})
         self._server_callback = kwargs.pop("server_callback", None)
+        self._protocol_range = kwargs.pop("protocols", PROTOCOLS)
         Frame.__init__(self, container, *args, **kwargs)
 
         self.__app = app
         self._container = container
+        self._context = context
         self._show_advanced = False
         self.status = DISCONNECTED
         self.server = StringVar()
         self.port = IntVar()
         self.https = IntVar()
         self.protocol = StringVar()
-        self._protocol_range = self._saved_config.get("protocols_l", PROTOCOLS)
+
         self._img_expand = ImageTk.PhotoImage(Image.open(ICON_EXPAND))
         self._img_contract = ImageTk.PhotoImage(Image.open(ICON_CONTRACT))
 
@@ -152,25 +150,71 @@ class SocketConfigFrame(Frame):
         """
 
         self.bind("<Configure>", self._on_resize)
-        self.port.trace_add("write", callback=self._on_port)
+        self.server.trace_add("write", callback=self._on_update_server)
+        self.port.trace_add("write", callback=self._on_update_port)
+        for setting in (self.https, self.protocol):
+            setting.trace_add("write", callback=self._on_update_config)
+
+    def _on_update_server(self, var, index, mode):  # pylint: disable=unused-argument
+        """
+        Server updated.
+        """
+
         if self._server_callback is not None:
-            self.server.trace_add("write", callback=self._server_callback)
+            self._server_callback(var, index, mode)
+        self._on_update_config(None, None, "write")
+
+    def _on_update_port(self, var, index, mode):  # pylint: disable=unused-argument
+        """
+        Port updated.
+        """
+
+        try:
+            if self.port.get() in DEFAULT_TLS_PORTS:
+                self.https.set(1)
+            else:
+                self.https.set(0)
+            self._on_update_config(None, None, "write")
+        except TclError:
+            pass
+
+    def _on_update_config(self, var, index, mode):  # pylint: disable=unused-argument
+        """
+        Update in-memory configuration if setting is changed.
+        """
+
+        self.update()
+        cfg = self.__app.configuration
+        try:
+            if self._context == NTRIP:
+                cfg.set("ntripclientserver_s", self.server.get())
+                cfg.set("ntripclientport_n", int(self.port.get()))
+                cfg.set("ntripclienthttps_b", int(self.https.get()))
+                cfg.set("ntripclientprotocol_s", self.protocol.get())
+            else:  # GNSS
+                cfg.set("sockclienthost_s", self.server.get())
+                cfg.set("sockclientport_n", int(self.port.get()))
+                cfg.set("sockclienthttps_b", int(self.https.get()))
+                cfg.set("sockclientprotocol_s", self.protocol.get())
+        except (ValueError, TclError):
+            pass
 
     def reset(self):
         """
-        Reset settings to defaults (first value in range).
+        Reset settings to saved configuration.
         """
 
-        self.server.set(self._saved_config.get("sockclienthost_s", DEFAULT_SERVER))
-        self.port.set(self._saved_config.get("sockclientport_n", DEFAULT_PORT))
-        self.protocol.set(
-            self._saved_config.get("sockclientprotocol_s", self._protocol_range[0])
-        )
-        self.https.set(
-            self._saved_config.get(
-                "sockclienthttps_b", 1 if self.port.get() in DEFAULT_TLS_PORTS else 0
-            )
-        )
+        cfg = self.__app.configuration
+        if self._context == NTRIP:
+            self.server.set(cfg.get("ntripclientserver_s"))
+            self.port.set(cfg.get("ntripclientport_n"))
+            self.https.set(cfg.get("ntripclienthttps_b"))
+            self.protocol.set(cfg.get("ntripclientprotocol_s"))
+        else:  # GNSS
+            self.server.set(cfg.get("sockclienthost_s"))
+            self.port.set(cfg.get("sockclientport_n"))
+            self.https.set(cfg.get("sockclienthttps_b"))
+            self.protocol.set(cfg.get("sockclientprotocol_s"))
 
     def valid_settings(self) -> bool:
         """
@@ -215,18 +259,3 @@ class SocketConfigFrame(Frame):
         """
 
         self.__app.frm_settings.on_expand()
-
-    def _on_port(self, var, index, mode):  # pylint: disable=unused-argument
-        """
-        Callback when port changed.
-
-        :param event event: write event
-        """
-
-        try:
-            if self.port.get() in DEFAULT_TLS_PORTS:
-                self.https.set(1)
-            else:
-                self.https.set(0)
-        except TclError:
-            pass

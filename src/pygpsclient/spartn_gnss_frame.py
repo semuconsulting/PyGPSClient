@@ -17,7 +17,7 @@ Created on 26 Jan 2023
 :license: BSD 3-Clause
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from tkinter import (
     NORMAL,
     Button,
@@ -35,6 +35,7 @@ from tkinter import (
 )
 
 from PIL import Image, ImageTk
+from pyspartn import date2timetag
 from pyubx2 import POLL, SET, SET_LAYER_RAM, TXN_NONE, U1, U2, U4, UBXMessage, val2bytes
 
 from pygpsclient.globals import (
@@ -142,6 +143,7 @@ class SPARTNGNSSDialog(Frame):
         self._body()
         self._do_layout()
         self._reset()
+        self._attach_events()
 
     def _body(self):
         """
@@ -297,6 +299,24 @@ class SPARTNGNSSDialog(Frame):
         self._disable_nmea.set(0)
 
         self._poll_config()
+
+    def _attach_events(self):
+        """
+        Set up event listeners.
+        """
+
+        self._spartn_key1.trace_add("write", self._on_update_config)
+
+    def _on_update_config(self, var, index, mode):  # pylint: disable=unused-argument
+        """
+        Update in-memory configuration if setting is changed.
+        """
+
+        self.update()
+        self.__app.configuration.set("spartnkey_s", self._spartn_key1.get())
+        self.__app.configuration.set(
+            "spartnbasedate_n", date2timetag(datetime.now(timezone.utc))
+        )
 
     def _valid_gnss_settings(self) -> bool:
         """
@@ -482,7 +502,7 @@ class SPARTNGNSSDialog(Frame):
                 self._spartn_key2.set(keydata[1][0])
                 self._spartn_valdate2.set(keydata[1][1].strftime("%Y%m%d"))
                 # save latest key in configuration settings
-                self.__app.saved_config["spartnkey_s"] = self._spartn_key1.get()
+                self.__app.configuration.set("spartnkey_s", self._spartn_key1.get())
                 col = OKCOL
             else:
                 col = ERRCOL

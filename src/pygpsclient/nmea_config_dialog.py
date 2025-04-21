@@ -31,7 +31,6 @@ from pygpsclient.globals import (
     NMEA_MONHW,
     NMEA_PRESET,
     POPUP_TRANSIENT,
-    SAVED_CONFIG,
 )
 from pygpsclient.hardware_info_frame import Hardware_Info_Frame
 from pygpsclient.nmea_preset_frame import NMEA_PRESET_Frame
@@ -54,7 +53,6 @@ class NMEAConfigDialog(Toplevel):
 
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
-        self._saved_config = kwargs.pop(SAVED_CONFIG, {})
 
         Toplevel.__init__(self, app)
         if POPUP_TRANSIENT:
@@ -100,8 +98,6 @@ class NMEAConfigDialog(Toplevel):
             self,
             borderwidth=2,
             relief="groove",
-            # cater for old and new config file element names...
-            saved_config=self._saved_config.get("nmeapresets_l", []),
         )
 
     def _do_layout(self):

@@ -36,6 +36,14 @@ pygpsclient.chart\_frame module
    :show-inheritance:
    :undoc-members:
 
+pygpsclient.configuration module
+--------------------------------
+
+.. automodule:: pygpsclient.configuration
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 pygpsclient.confirm\_box module
 -------------------------------
 

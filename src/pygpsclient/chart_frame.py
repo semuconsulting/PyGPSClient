@@ -35,6 +35,7 @@ from tkinter import (
     S,
     Spinbox,
     StringVar,
+    TclError,
     W,
 )
 
@@ -125,7 +126,7 @@ class ChartviewFrame(Frame):
 
         Frame.__init__(self, self.__master, *args, **kwargs)
 
-        self.chartsettings = self.__app.saved_config.get("chartsettings_d", {})
+        self.chartsettings = self.__app.configuration.get("chartsettings_d")
         def_w, def_h = WIDGETU6
         self.width = kwargs.get("width", def_w)
         self.height = kwargs.get("height", def_h)
@@ -164,9 +165,8 @@ class ChartviewFrame(Frame):
             self._data_maxy[chn] = StringVar()
         self._body()
         self._do_layout()
-        # self._set_fontsize()
-        self._attach_events()
         self.reset()
+        self._attach_events()
 
     def _body(self):
         """
@@ -342,14 +342,35 @@ class ChartviewFrame(Frame):
         self._can_chartview.bind("<Double-Button-1>", self._on_clear)
         self._can_chartview.bind("<Double-Button-2>", self._on_clipboard)
         self._can_chartview.bind("<Double-Button-3>", self._on_clipboard)
-        self._timrange.trace_add("write", self._on_save_settings)
-        self._maxpoints.trace_add("write", self._on_save_settings)
+        self._timrange.trace_add("write", self._on_update_config)
+        self._maxpoints.trace_add("write", self._on_update_config)
         for chn in range(self._num_chans):
-            self._data_id[chn].trace_add("write", self._on_save_settings)
-            self._data_name[chn].trace_add("write", self._on_save_settings)
-            self._data_scale[chn].trace_add("write", self._on_save_settings)
-            self._data_miny[chn].trace_add("write", self._on_save_settings)
-            self._data_maxy[chn].trace_add("write", self._on_save_settings)
+            self._data_id[chn].trace_add("write", self._on_update_config)
+            self._data_name[chn].trace_add("write", self._on_update_config)
+            self._data_scale[chn].trace_add("write", self._on_update_config)
+            self._data_miny[chn].trace_add("write", self._on_update_config)
+            self._data_maxy[chn].trace_add("write", self._on_update_config)
+
+    def _on_update_config(self, var, index, mode):  # pylint: disable=unused-argument
+        """
+        Update in-memory configuration if setting is changed.
+        """
+
+        try:
+            cst = {}
+            cst["numchn_n"] = int(self._num_chans)
+            cst["timrng_n"] = int(self._timrange.get())
+            cst["maxpoints_n"] = int(self._maxpoints.get())
+            for chn in range(self._num_chans):
+                cst[chn] = {}
+                cst[chn]["id_s"] = self._data_id[chn].get()
+                cst[chn]["name_s"] = self._data_name[chn].get()
+                cst[chn]["scale_f"] = float(self._data_scale[chn].get())
+                cst[chn]["miny_f"] = float(self._data_miny[chn].get())
+                cst[chn]["maxy_f"] = float(self._data_maxy[chn].get())
+            self.__app.configuration.set("chartsettings_d", cst)
+        except (ValueError, TclError):
+            pass
 
     def reset(self):
         """
@@ -701,25 +722,6 @@ class ChartviewFrame(Frame):
             font=self._font,
             anchor=S,
         )
-
-    def _on_save_settings(self, var, index, mode):  # pylint: disable=unused-argument
-        """
-        Save current settings to saved app config dict.
-        """
-
-        cst = {}
-        cst["numchn_n"] = self._num_chans
-        cst["timrng_n"] = self._timrange.get()
-        cst["maxpoints_n"] = self._maxpoints.get()
-        for chn in range(self._num_chans):
-            cst[chn] = {}
-            cst[chn]["id_s"] = self._data_id[chn].get()
-            cst[chn]["name_s"] = self._data_name[chn].get()
-            cst[chn]["scale_f"] = self._data_scale[chn].get()
-            cst[chn]["miny_f"] = self._data_miny[chn].get()
-            cst[chn]["maxy_f"] = self._data_maxy[chn].get()
-
-        self.__app.saved_config["chartsettings_d"] = cst
 
     def _on_clipboard(self, event):  # pylint: disable=unused-argument
         """
