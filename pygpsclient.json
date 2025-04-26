@@ -88,6 +88,7 @@
     "mqttclienttopicip_b": 1,
     "mqttclienttopicmga_b": 1,
     "mqttclienttopickey_b": 1,
+    "mqttclienttopicfreq_b": 0,
     "mqttclienttlscrt_s": "<=== FULLY QUALIFIED PATH TO MQTT CRT FILE ===>",
     "mqttclienttlskey_s": "<=== FULLY QUALIFIED PATH TO MQTT KEY FILE ===>",
     "lbandclientbpsrate_n": 9600,
@@ -280,6 +281,14 @@
         [
             "NTRIP",
             "#9f30c1"
+        ],
+        [
+            "MQTT",
+            "#a53570"
+        ],
+        [
+            "LBAND",
+            "#a53570"
         ],
         [
             "txbuf alloc",

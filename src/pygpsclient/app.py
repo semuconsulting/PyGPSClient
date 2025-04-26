@@ -823,7 +823,7 @@ class App(Frame):
 
         # update consoledata if console is visible and protocol not filtered
         if self.widget_state.state[WDGCONSOLE][VISIBLE] and (
-            msgprot == 0 or msgprot & protfilter
+            msgprot in (0, MQTT_PROTOCOL) or msgprot & protfilter
         ):
             self._consoledata.append((raw_data, parsed_data, marker))
 
