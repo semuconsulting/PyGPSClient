@@ -89,8 +89,8 @@ class GraphviewFrame(Frame):
         :param event: event
         """
 
-        self.__app.frm_settings.show_legend.set(
-            not self.__app.frm_settings.show_legend.get()
+        self.__app.configuration.set(
+            "legend_b", not self.__app.configuration.get("legend_b")
         )
 
     def init_frame(self):
@@ -128,7 +128,7 @@ class GraphviewFrame(Frame):
             font=self._font,
         )
 
-        if self.__app.frm_settings.config.get("legend_b", 1):
+        if self.__app.configuration.get("legend_b"):
             self._draw_legend()
 
     def _draw_legend(self):

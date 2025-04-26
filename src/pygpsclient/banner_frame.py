@@ -397,9 +397,8 @@ class BannerFrame(Frame):
         Sets text of banner from GNSSStatus object.
         """
 
-        settings = self.__app.frm_settings.config
-        deg_format = settings["degreesformat_s"]
-        units = settings["units_s"]
+        deg_format = self.__app.configuration.get("degreesformat_s")
+        units = self.__app.configuration.get("units_s")
 
         self._update_time()
         self._update_pos(deg_format, units)

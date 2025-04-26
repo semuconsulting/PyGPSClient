@@ -21,7 +21,7 @@
     "spartnprot_b": 1,
     "degreesformat_s": "DD.D",
     "colortag_b": 0,
-    "units_s": "MM",
+    "units_s": "Metric m/s",
     "autoscroll_b": 1,
     "maxlines_n": 200,
     "consoleformat_s": "Parsed",
@@ -83,13 +83,14 @@
     "mqttclientserver_s": "",
     "mqttclientport_n": 8883,
     "mqttclientid_s": "<<=== YOUR MQTT CLIENT ID ===>",
-    "mgttclientregion_s": "eu",
-    "mgttclientmode_n": 0,
-    "mgttclienttopicip_b": 1,
-    "mgttclienttopicmga_b": 1,
-    "mgttclienttopickey_b": 1,
-    "mgttclienttlscrt_s": "<=== FULLY QUALIFIED PATH TO MQTT CRT FILE ===>",
-    "mgttclienttlskey_s": "<=== FULLY QUALIFIED PATH TO MQTT KEY FILE ===>",
+    "mqttclientregion_s": "eu",
+    "mqttclientmode_n": 0,
+    "mqttclienttopicip_b": 1,
+    "mqttclienttopicmga_b": 1,
+    "mqttclienttopickey_b": 1,
+    "mqttclienttopicfreq_b": 0,
+    "mqttclienttlscrt_s": "<=== FULLY QUALIFIED PATH TO MQTT CRT FILE ===>",
+    "mqttclienttlskey_s": "<=== FULLY QUALIFIED PATH TO MQTT KEY FILE ===>",
     "lbandclientbpsrate_n": 9600,
     "lbandclientdatabits_n": 8,
     "lbandclientstopbits_f": 1.0,
@@ -280,6 +281,14 @@
         [
             "NTRIP",
             "#9f30c1"
+        ],
+        [
+            "MQTT",
+            "#a53570"
+        ],
+        [
+            "LBAND",
+            "#a53570"
         ],
         [
             "txbuf alloc",

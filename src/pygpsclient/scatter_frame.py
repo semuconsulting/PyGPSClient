@@ -34,6 +34,7 @@ from tkinter import (
     Scale,
     Spinbox,
     StringVar,
+    TclError,
     W,
 )
 
@@ -96,7 +97,6 @@ class ScatterViewFrame(Frame):
         """
         self.__app = app
         self.__master = self.__app.appmaster
-        config = self.__app.saved_config.get("scattersettings_d", {})
 
         Frame.__init__(self, self.__master, *args, **kwargs)
 
@@ -106,6 +106,7 @@ class ScatterViewFrame(Frame):
         self.height = kwargs.get("height", def_h)
         self._font = self.__app.font_sm
         self._fonth = fontheight(self._font)
+        self._maxpoints = 0
         self._points = []
         self._average = None
         self._stddev = None
@@ -124,11 +125,6 @@ class ScatterViewFrame(Frame):
         self._scale = IntVar()
         self._reflat = StringVar()
         self._reflon = StringVar()
-        self._maxpoints = config.get("maxpoints_n", MAXPOINTS)
-        reflat = config.get("scatterlat_f", 0.0)
-        reflon = config.get("scatterlon_f", 0.0)
-        self._reflat.set("Reference Lat" if reflat == 0.0 else reflat)
-        self._reflon.set("Reference Lon" if reflon == 0.0 else reflon)
         self._scale_factors = (
             5000,
             2000,
@@ -149,13 +145,9 @@ class ScatterViewFrame(Frame):
             0.02,
             0.01,
         )  # scale factors represent plot radius in meters
-        self._autorange.set(config.get("scatterautorange_b", 1))
-        self._scale.set(config.get("scatterscale_n", 9))
-        self._interval.set(config.get("scatterinterval_n", 1))
-        self._centermode.set(config.get("scattercenter_s", CTRAVG))
-        if self._centermode.get() != CTRFIX:
-            self._centermode.set(CTRAVG)
+
         self._body()
+        self.reset()
         self._attach_events()
 
     def _body(self):
@@ -234,6 +226,24 @@ class ScatterViewFrame(Frame):
         self._spn_interval.grid(column=1, row=2, sticky=(W, E))
         self._scl_range.grid(column=2, row=2, sticky=(W, E))
 
+    def reset(self):
+        """
+        Reset settings to saved configuration.
+        """
+
+        self._maxpoints = MAXPOINTS
+        cfg = self.__app.configuration.get("scattersettings_d")
+        reflat = cfg.get("scatterlat_f")
+        reflon = cfg.get("scatterlon_f")
+        self._reflat.set("Reference Lat" if reflat == 0.0 else reflat)
+        self._reflon.set("Reference Lon" if reflon == 0.0 else reflon)
+        self._autorange.set(cfg.get("scatterautorange_b"))
+        self._scale.set(cfg.get("scatterscale_n"))
+        self._interval.set(cfg.get("scatterinterval_n"))
+        self._centermode.set(cfg.get("scattercenter_s"))
+        if self._centermode.get() != CTRFIX:
+            self._centermode.set(CTRAVG)
+
     def _attach_events(self):
         """
         Bind events to frame.
@@ -245,11 +255,14 @@ class ScatterViewFrame(Frame):
         self.canvas.bind("<Button-3>", self._on_recenter)  # win
         self.canvas.bind("<MouseWheel>", self._on_zoom)
         self._scale.trace_add("write", self._on_rescale)
-        self._autorange.trace_add("write", self._on_save_settings)
-        self._centermode.trace_add("write", self._on_save_settings)
-        self._interval.trace_add("write", self._on_save_settings)
-        self._reflat.trace_add("write", self._on_save_settings)
-        self._reflon.trace_add("write", self._on_save_settings)
+        for setting in (
+            self._autorange,
+            self._interval,
+            self._centermode,
+            self._reflat,
+            self._reflon,
+        ):
+            setting.trace_add("write", self._on_update_config)
 
     def _on_zoom(self, event):
         """
@@ -272,7 +285,7 @@ class ScatterViewFrame(Frame):
         Rescale widget.
         """
 
-        self._on_save_settings(var, index, mode)
+        self._on_update_config(var, index, mode)
         self._on_resize(None)
 
     def _on_recenter(self, event):
@@ -306,25 +319,24 @@ class ScatterViewFrame(Frame):
         self._updcount = -1
         self._init_frame()
 
-    def _on_save_settings(self, var, index, mode):  # pylint: disable=unused-argument
+    def _on_update_config(self, var, index, mode):  # pylint: disable=unused-argument
         """
-        Save current settings to saved app config dict.
+        Update in-memory configuration if setting is changed.
         """
 
-        sst = {}
-        sst["maxpoints_n"] = self._maxpoints
-        sst["scatterautorange_b"] = self._autorange.get()
-        sst["scattercenter_s"] = self._centermode.get()
-        sst["scatterinterval_n"] = self._interval.get()
-        sst["scatterscale_n"] = self._scale.get()
         try:
+            self.update()
+            sst = {}
+            sst["maxpoints_n"] = int(self._maxpoints)
+            sst["scatterautorange_b"] = int(self._autorange.get())
+            sst["scattercenter_s"] = self._centermode.get()
+            sst["scatterinterval_n"] = int(self._interval.get())
+            sst["scatterscale_n"] = int(self._scale.get())
             sst["scatterlat_f"] = float(self._reflat.get())
             sst["scatterlon_f"] = float(self._reflon.get())
-        except ValueError:
-            sst["scatterlat_f"] = 0.0
-            sst["scatterlon_f"] = 0.0
-
-        self.__app.saved_config["scattersettings_d"] = sst
+            self.__app.configuration.set("scattersettings_d", sst)
+        except (ValueError, TclError):
+            pass
 
     def _init_frame(self):
         """

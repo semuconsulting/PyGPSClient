@@ -115,7 +115,7 @@ class UBXHandler:
 
         # if Spectrumview or Sysmon widgets are active, send ACKSs there
         if msg.identity in ("ACK-ACK", "ACK-NAK"):
-            wdgs = self.__app.widgets
+            wdgs = self.__app.widget_state.state
             for wdg in (WDGSYSMON, WDGSPECTRUM):
                 if wdgs[wdg][VISIBLE]:
                     if msg.clsID == 6 and msg.msgID == 1:  # CFG-MSG
@@ -311,8 +311,7 @@ class UBXHandler:
         :param UBXMessage data: NAV-SAT parsed message
         """
 
-        settings = self.__app.frm_settings.config
-        show_unused = settings["unusedsat_b"]
+        show_unused = self.__app.configuration.get("unusedsat_b")
         self.gsv_data = {}
         num_siv = int(data.numSvs)
 
@@ -364,8 +363,7 @@ class UBXHandler:
         :param UBXMessage data: NAV-SVINFO parsed message
         """
 
-        settings = self.__app.frm_settings.config
-        show_unused = settings["unusedsat_b"]
+        show_unused = self.__app.configuration.get("unusedsat_b")
         self.gsv_data = {}
         num_siv = int(data.numCh)
 

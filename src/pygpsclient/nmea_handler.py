@@ -203,7 +203,7 @@ class NMEAHandler:
         :param pynmeagps.NMEAMessage data: parsed GSV sentence
         """
 
-        show_unused = self.__app.frm_settings.config["unusedsat_b"]
+        show_unused = self.__app.configuration.get("unusedsat_b")
         self.gsv_data = {}
         gsv_dict = {}
         now = time()
@@ -297,8 +297,7 @@ class NMEAHandler:
         """
         # pylint: disable=consider-using-dict-items
 
-        settings = self.__app.frm_settings.config
-        show_unused = settings["unusedsat_b"]
+        show_unused = self.__app.configuration.get("unusedsat_b")
         self.gsv_data = {}
         for i in range(data.numSv):
             idx = f"_{i+1:02d}"

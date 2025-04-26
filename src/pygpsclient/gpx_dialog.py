@@ -470,7 +470,7 @@ class GPXViewerDialog(Toplevel):
         err = ""
 
         err = OUTOFBOUNDS
-        usermaps = self.__app.saved_config.get("usermaps_l", [])
+        usermaps = self.__app.configuration.get("usermaps_l")
         for mp in usermaps:
             try:
                 mpath, bounds = mp
@@ -533,9 +533,7 @@ class GPXViewerDialog(Toplevel):
         if track in ({}, None):
             return
 
-        mqapikey = self.__app.frm_settings.config.get(
-            "mqapikey_s", self.__app.frm_settings.config.get("mqapikey", "")
-        )
+        mqapikey = self.__app.configuration.get("mqapikey_s")
         locations = [Point(lat, lon) for lat, lon, _, _, _ in track]
         try:
             url = format_mapquest_request(
@@ -735,8 +733,7 @@ class GPXViewerDialog(Toplevel):
         :rtype: tuple
         """
 
-        settings = self.__app.frm_settings.config
-        units = settings["units_s"]
+        units = self.__app.configuration.get("units_s")
 
         if units == UI:
             dst_u = "miles"

@@ -5,8 +5,6 @@ Generic serial port configuration Frame subclass
 for use in tkinter applications which require a
 serial port configuration facility.
 
-Supply initial settings via `saved-config` keyword argument.
-
 Exposes the serial port settings as properties.
 
 Application icons from https://iconmonstr.com/license/.
@@ -38,6 +36,7 @@ from tkinter import (
     Scrollbar,
     Spinbox,
     StringVar,
+    TclError,
     W,
 )
 
@@ -50,8 +49,8 @@ from pygpsclient.globals import (
     ICON_CONTRACT,
     ICON_EXPAND,
     ICON_REFRESH,
+    LBAND,
     RPTDELAY,
-    SAVED_CONFIG,
 )
 from pygpsclient.strings import LBLSPORT, LBLUDPORT
 
@@ -89,11 +88,13 @@ class SerialConfigFrame(Frame):
     Serial port configuration frame class.
     """
 
-    def __init__(self, app, container, *args, **kwargs):
+    def __init__(self, app, container, context, *args, **kwargs):
         """
         Constructor.
 
+        :param Frame app: reference to main tkinter application
         :param tkinter.Frame container: reference to container frame
+        :param str context: serial port context (GNSS or LBAND)
         :param args: optional args to pass to Frame parent class
         :param kwargs: optional kwargs for value ranges, or to pass to Frame parent class
         """
@@ -105,7 +106,7 @@ class SerialConfigFrame(Frame):
         self._timeout_rng = kwargs.pop("timeouts", TIMEOUT_RNG)
         self._msgmode_name_rng = kwargs.pop("msgmodes", MSGMODE_RNG)
         self._preselect = kwargs.pop("preselect", ())
-        self._saved_config = kwargs.pop(SAVED_CONFIG, {})
+        self._context = context
 
         Frame.__init__(self, container, *args, **kwargs)
 
@@ -115,7 +116,7 @@ class SerialConfigFrame(Frame):
         self._ports = ()
         self._port = StringVar()
         self.user_defined_port = StringVar()
-        self.user_defined_port.set(self._saved_config.get("userport_s", ""))
+        self.user_defined_port.set(self.__app.configuration.get("userport_s"))
         self._port_desc = StringVar()
         self._bpsrate = IntVar()
         self._databits = IntVar()
@@ -132,9 +133,8 @@ class SerialConfigFrame(Frame):
 
         self._body()
         self._do_layout()
-        # self._get_ports()
-        self._attach_events()
         self.reset()
+        self._attach_events()
 
     def _body(self):
         """
@@ -311,23 +311,87 @@ class SerialConfigFrame(Frame):
         self.bind("<Configure>", self._on_resize)
         self._lbx_port.bind("<<ListboxSelect>>", self._on_select_port)
 
+        for setting in (
+            self._port,
+            self.user_defined_port,
+            self._bpsrate,
+            self._databits,
+            self._stopbits,
+            self._parity_name,
+            self._rtscts,
+            self._xonxoff,
+            self._timeout,
+            self._msgmode_name,
+            self._inactivity_timeout,
+        ):
+            setting.trace_add("write", self._on_update_config)
+
     def reset(self):
         """
-        Reset settings to defaults (first value in range).
+        Reset settings to saved configuration.
         """
 
-        self._port.set(self._saved_config.get("serialport_s", ""))
-        self._bpsrate.set(self._saved_config.get("bpsrate_n", self._bpsrate_rng[0]))
-        self._databits.set(self._saved_config.get("databits_n", self._databits_rng[0]))
-        self._stopbits.set(self._saved_config.get("stopbits_f", self._stopbits_rng[0]))
-        self._parity_name.set(PARITIES[self._saved_config.get("parity_s", PARITY_NONE)])
-        self._rtscts.set(self._saved_config.get("rtscts_b", False))
-        self._xonxoff.set(self._saved_config.get("xonxoff_b", False))
-        self._timeout.set(self._saved_config.get("timeout_f", self._timeout_rng[0]))
-        self._msgmode_name.set(MSGMODED[self._saved_config.get("msgmode_n", GET)])
-        self._inactivity_timeout.set(self._saved_config.get("inactivity_timeout_n", 0))
-        self.user_defined_port.set(self._saved_config.get("userport_s", ""))
+        cfg = self.__app.configuration
+        if self._context == LBAND:
+            self._port.set(cfg.get("lbandclientserialport_s"))
+            self._bpsrate.set(cfg.get("lbandclientbpsrate_n"))
+            self._databits.set(cfg.get("lbandclientdatabits_n"))
+            self._stopbits.set(cfg.get("lbandclientstopbits_f"))
+            self._parity_name.set(PARITIES[cfg.get("lbandclientparity_s")])
+            self._rtscts.set(cfg.get("lbandclientrtscts_b"))
+            self._xonxoff.set(cfg.get("lbandclientxonxoff_b"))
+            self._timeout.set(cfg.get("lbandclienttimeout_f"))
+            self._msgmode_name.set(MSGMODED[cfg.get("lbandclientmsgmode_n")])
+            self._inactivity_timeout.set(cfg.get("lbandclientinactivity_timeout_n"))
+            self.user_defined_port.set(cfg.get("spartnport_s"))
+        else:  # GNSS
+            self._port.set(cfg.get("serialport_s"))
+            self._bpsrate.set(cfg.get("bpsrate_n"))
+            self._databits.set(cfg.get("databits_n"))
+            self._stopbits.set(cfg.get("stopbits_f"))
+            self._parity_name.set(PARITIES[cfg.get("parity_s")])
+            self._rtscts.set(cfg.get("rtscts_b"))
+            self._xonxoff.set(cfg.get("xonxoff_b"))
+            self._timeout.set(cfg.get("timeout_f"))
+            self._msgmode_name.set(MSGMODED[cfg.get("msgmode_n")])
+            self._inactivity_timeout.set(cfg.get("inactivity_timeout_n"))
+            self.user_defined_port.set(cfg.get("userport_s"))
         self._on_refresh()
+
+    def _on_update_config(self, var, index, mode):  # pylint: disable=unused-argument
+        """
+        Update in-memory configuration if setting is changed.
+        """
+
+        try:
+            self.update()
+            cfg = self.__app.configuration
+            if self._context == LBAND:
+                cfg.set("lbandclientserialport_s", self.port)
+                cfg.set("spartnport_s", self.userport)
+                cfg.set("lbandclientbpsrate_n", int(self.bpsrate))
+                cfg.set("lbandclientdatabits_n", int(self.databits))
+                cfg.set("lbandclientstopbits_f", float(self.stopbits))
+                cfg.set("lbandclientparity_s", self.parity)
+                cfg.set("lbandclientrtscts_b", int(self.rtscts))
+                cfg.set("lbandclientxonxoff_b", int(self.xonxoff))
+                cfg.set("lbandclienttimeout_f", float(self.timeout))
+                cfg.set("lbandclientmsgmode_n", int(self.msgmode))
+                cfg.set("lbandclientinactivity_timeout_n", int(self.inactivity_timeout))
+            else:  # GNSS
+                cfg.set("serialport_s", self.port)
+                cfg.set("userport_s", self.userport)
+                cfg.set("bpsrate_n", int(self.bpsrate))
+                cfg.set("databits_n", int(self.databits))
+                cfg.set("stopbits_f", float(self.stopbits))
+                cfg.set("parity_s", self.parity)
+                cfg.set("rtscts_b", int(self.rtscts))
+                cfg.set("xonxoff_b", int(self.xonxoff))
+                cfg.set("timeout_f", float(self.timeout))
+                cfg.set("msgmode_n", int(self.msgmode))
+                cfg.set("inactivity_timeout_n", int(self.inactivity_timeout))
+        except (ValueError, TclError):
+            pass
 
     def _on_refresh(self):
         """
@@ -583,7 +647,6 @@ class SerialConfigFrame(Frame):
         :rtype: int
         """
 
-        # return MSGMODED[self._msgmode.get()]
         if self._msgmode_name.get() == MSGMODED[SET]:
             return SET
         if self._msgmode_name.get() == MSGMODED[POLL]:

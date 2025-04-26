@@ -34,6 +34,7 @@ from tkinter import (
     Label,
     Spinbox,
     StringVar,
+    TclError,
     W,
 )
 from tkinter.ttk import Progressbar
@@ -42,8 +43,6 @@ from PIL import Image, ImageTk
 from pyubx2 import UBXMessage, llh2ecef
 
 from pygpsclient.globals import (
-    DEFAULT_PASSWORD,
-    DEFAULT_USER,
     DISCONNECTED,
     ERRCOL,
     ICON_CONTRACT,
@@ -51,7 +50,6 @@ from pygpsclient.globals import (
     INFOCOL,
     READONLY,
     RPTDELAY,
-    SAVED_CONFIG,
     SOCK_NTRIP,
     SOCKMODES,
     SOCKSERVER_NTRIP_PORT,
@@ -141,7 +139,6 @@ class ServerConfigFrame(Frame):
         :param kwargs: optional kwargs for value ranges, or to pass to Frame parent class
         """
 
-        self._saved_config = kwargs.pop(SAVED_CONFIG, {})
         Frame.__init__(self, container, *args, **kwargs)
 
         self.__app = app
@@ -172,8 +169,8 @@ class ServerConfigFrame(Frame):
 
         self._body()
         self._do_layout()
-        self._attach_events()
         self.reset()
+        self._attach_events()
 
     def _body(self):
         """
@@ -248,7 +245,7 @@ class ServerConfigFrame(Frame):
             image=self._img_expand,
             width=28,
             height=22,
-            state=DISABLED,
+            # state=DISABLED,
         )
         self._frm_advanced = Frame(self)
         self._lbl_user = Label(
@@ -398,6 +395,37 @@ class ServerConfigFrame(Frame):
         )
         self._spn_basemode.grid(column=2, row=0, columnspan=2, padx=2, pady=2, sticky=W)
 
+    def reset(self):
+        """
+        Reset settings to defaults.
+        """
+
+        cfg = self.__app.configuration
+        self._socket_serve.set(cfg.get("sockserver_b"))
+        self.sock_mode.set(SOCKMODES[cfg.get("sockmode_b")])
+        self._on_toggle_advanced()
+        self.base_mode.set(cfg.get("ntripcasterbasemode_s"))
+        self._on_basemode(None, None, "write")
+        self.acclimit.set(cfg.get("ntripcasteracclimit_f"))
+        self.duration.set(cfg.get("ntripcasterduration_n"))
+        self.pos_mode.set(cfg.get("ntripcasterposmode_s"))
+        self._on_posmode(None, None, "write")
+        self.fixedlat.set(cfg.get("ntripcasterfixedlat_f"))
+        self.fixedlon.set(cfg.get("ntripcasterfixedlon_f"))
+        self.fixedalt.set(cfg.get("ntripcasterfixedalt_f"))
+        self.disable_nmea.set(cfg.get("ntripcasterdisablenmea_b"))
+        self.sock_host.set(cfg.get("sockhost_s"))
+        self._lbl_publicip.config(text=publicip())
+        self._lbl_lanip.config(text=lanip())
+        self.sock_port.set(cfg.get("sockport_n"))
+        self.user.set(cfg.get("ntripcasteruser_s"))
+        self.password.set(cfg.get("ntripcasterpassword_s"))
+        self.clients = 0
+        self._sock_port_temp = self.sock_port.get()
+        self._fixed_lat_temp = self.fixedlat.get()
+        self._fixed_lon_temp = self.fixedlon.get()
+        self._fixed_alt_temp = self.fixedalt.get()
+
     def _attach_events(self):
         """
         Bind events to variables.
@@ -410,39 +438,43 @@ class ServerConfigFrame(Frame):
         self.base_mode.trace_add(tracemode, self._on_basemode)
         self.pos_mode.trace_add(tracemode, self._on_posmode)
 
-    def reset(self):
+        for setting in (
+            self.sock_port,
+            self.sock_host,
+            self._set_basemode,
+            self.acclimit,
+            self.duration,
+            self.fixedlat,
+            self.fixedlon,
+            self.fixedalt,
+            self.disable_nmea,
+            self.user,
+            self.password,
+        ):
+            setting.trace_add("write", self._on_update_config)
+
+    def _on_update_config(self, var, index, mode):  # pylint: disable=unused-argument
         """
-        Reset settings to defaults.
+        Update in-memory configuration if setting is changed.
         """
 
-        self.base_mode.set(self._saved_config.get("ntripcasterbasemode_s", BASE_SVIN))
-        self.acclimit.set(
-            self._saved_config.get("ntripcasteracclimit_f", ACCURACIES[0])
-        )
-        self.duration.set(self._saved_config.get("ntripcasterduration_n", DURATIONS[0]))
-        self.pos_mode.set(self._saved_config.get("ntripcasterposmode_s", POS_LLH))
-        self.fixedlat.set(self._saved_config.get("ntripcasterfixedlat_f", 0))
-        self.fixedlon.set(self._saved_config.get("ntripcasterfixedlon_f", 0))
-        self.fixedalt.set(self._saved_config.get("ntripcasterfixedalt_f", 0))
-        self.disable_nmea.set(self._saved_config.get("ntripcasterdisablenmea_b", 1))
-        self.sock_host.set(self._saved_config.get("sockhost_s", "0.0.0.0"))
-        self._lbl_publicip.config(text=publicip())
-        self._lbl_lanip.config(text=lanip())
-        self.sock_port.set(self._saved_config.get("sockport_n", SOCKSERVER_PORT))
-        self.fixedlat.set(self._saved_config.get("ntripcasterfixedlat_f", 0))
-        self.fixedlon.set(self._saved_config.get("ntripcasterfixedlon_f", 0))
-        self.fixedalt.set(self._saved_config.get("ntripcasterfixedalt_f", 0))
-        self.user.set(
-            self._saved_config.get("ntripcasteruser_s", DEFAULT_USER),
-        )
-        self.password.set(
-            self._saved_config.get("ntripcasterpassword_s", DEFAULT_PASSWORD),
-        )
-        self.clients = 0
-        self._sock_port_temp = self.sock_port.get()
-        self._fixed_lat_temp = self.fixedlat.get()
-        self._fixed_lon_temp = self.fixedlon.get()
-        self._fixed_alt_temp = self.fixedalt.get()
+        try:
+            self.update()
+            cfg = self.__app.configuration
+            cfg.set("ntripcasteracclimit_f", float(self.acclimit.get()))
+            cfg.set("ntripcasterduration_n", int(self.duration.get()))
+            cfg.set("ntripcasterfixedlat_f", float(self.fixedlat.get()))
+            cfg.set("ntripcasterfixedlon_f", float(self.fixedlon.get()))
+            cfg.set("ntripcasterfixedalt_f", float(self.fixedalt.get()))
+            cfg.set("ntripcasterdisablenmea_b", self.disable_nmea.get())
+            cfg.set("sockhost_s", self.sock_host.get())
+            cfg.set("sockport_n", int(self.sock_port.get()))
+            cfg.set("ntripcasteruser_s", self.user.get())
+            cfg.set("ntripcasterpassword_s", self.password.get())
+            # self.sockserve, self.sock_mode, self.base_mode & self.pos_mode
+            # are updated in their respective routines below
+        except (ValueError, TclError):
+            pass
 
     def set_status(self, status: int):
         """
@@ -530,6 +562,7 @@ class ServerConfigFrame(Frame):
             and self._set_basemode.get()
         ):
             self._config_rcvr()
+        self.__app.configuration.set("sockserver_b", int(self._socket_serve.get()))
 
     def _on_toggle_advanced(self):
         """
@@ -564,11 +597,14 @@ class ServerConfigFrame(Frame):
             self.sock_port.set(SOCKSERVER_NTRIP_PORT)
             self._btn_toggle.config(state=NORMAL)
             self._show_advanced = True
+            sockmode = 1
         else:
             self.sock_port.set(self._sock_port_temp)
             self._btn_toggle.config(state=DISABLED)
             self._show_advanced = False
+            sockmode = 0
         self._set_advanced()
+        self.__app.configuration.set("sockmode_b", sockmode)
 
     def _on_basemode(self, var, index, mode):
         """
@@ -577,75 +613,85 @@ class ServerConfigFrame(Frame):
         """
 
         if self.base_mode.get() == BASE_SVIN:
-            self._lbl_acclimit.grid(column=0, row=1, padx=2, pady=1, sticky=E)
-            self._spn_acclimit.grid(column=1, row=1, padx=2, pady=1, sticky=W)
-            self._chk_disablenmea.grid(column=2, row=1, padx=2, pady=1, sticky=W)
-            self._lbl_duration.grid(column=0, row=2, padx=2, pady=1, sticky=E)
-            self._spn_duration.grid(column=1, row=2, padx=2, pady=1, sticky=W)
-            self._lbl_elapsed.grid(
-                column=2, row=2, columnspan=2, padx=2, pady=1, sticky=W
-            )
-            self._lbl_user.grid(column=0, row=3, padx=2, pady=1, sticky=E)
-            self._ent_user.grid(column=1, row=3, columnspan=2, padx=2, pady=1, sticky=W)
-            self._lbl_password.grid(column=0, row=4, padx=2, pady=1, sticky=E)
-            self._ent_password.grid(
-                column=1, row=4, columnspan=2, padx=2, pady=1, sticky=W
-            )
-            self._pgb_elapsed.grid_forget()
-            self._spn_posmode.grid_forget()
-            self._lbl_fixedlat.grid_forget()
-            self._ent_fixedlat.grid_forget()
-            self._lbl_fixedlon.grid_forget()
-            self._ent_fixedlon.grid_forget()
-            self._lbl_fixedalt.grid_forget()
-            self._ent_fixedalt.grid_forget()
+            self._on_basemode_svin()
         elif self.base_mode.get() == BASE_FIXED:
-            self._lbl_acclimit.grid(column=0, row=1, padx=2, pady=1, sticky=E)
-            self._spn_acclimit.grid(column=1, row=1, padx=2, pady=1, sticky=W)
-            self._chk_disablenmea.grid(column=2, row=1, padx=2, pady=1, sticky=W)
-            self._spn_posmode.grid(column=0, row=2, rowspan=3, padx=2, pady=1, sticky=E)
-            self._lbl_fixedlat.grid(column=1, row=2, padx=2, pady=1, sticky=E)
-            self._ent_fixedlat.grid(
-                column=2, row=2, columnspan=3, padx=2, pady=1, sticky=W
-            )
-            self._lbl_fixedlon.grid(column=1, row=3, padx=2, pady=1, sticky=E)
-            self._ent_fixedlon.grid(
-                column=2, row=3, columnspan=3, padx=2, pady=1, sticky=W
-            )
-            self._lbl_fixedalt.grid(column=1, row=4, padx=2, pady=1, sticky=E)
-            self._ent_fixedalt.grid(
-                column=2, row=4, columnspan=3, padx=2, pady=1, sticky=W
-            )
-            self._lbl_user.grid(column=0, row=5, padx=2, pady=1, sticky=E)
-            self._ent_user.grid(column=1, row=5, columnspan=2, padx=2, pady=1, sticky=W)
-            self._lbl_password.grid(column=0, row=6, padx=2, pady=1, sticky=E)
-            self._ent_password.grid(
-                column=1, row=6, columnspan=2, padx=2, pady=1, sticky=W
-            )
-            self._lbl_duration.grid_forget()
-            self._spn_duration.grid_forget()
-            self._pgb_elapsed.grid_forget()
-            self._lbl_elapsed.grid_forget()
-            self._set_coords(self.pos_mode.get())
+            self._on_basemode_fixed()
         else:  # Disabled
-            self._chk_disablenmea.grid(column=0, row=1, padx=2, pady=1, sticky=W)
-            self._lbl_acclimit.grid_forget()
-            self._spn_acclimit.grid_forget()
-            self._spn_posmode.grid_forget()
-            self._lbl_fixedlat.grid_forget()
-            self._ent_fixedlat.grid_forget()
-            self._lbl_fixedlon.grid_forget()
-            self._ent_fixedlon.grid_forget()
-            self._lbl_fixedalt.grid_forget()
-            self._ent_fixedalt.grid_forget()
-            self._lbl_duration.grid_forget()
-            self._spn_duration.grid_forget()
-            self._pgb_elapsed.grid_forget()
-            self._lbl_elapsed.grid_forget()
-            self._lbl_user.grid_forget()
-            self._ent_user.grid_forget()
-            self._lbl_password.grid_forget()
-            self._ent_password.grid_forget()
+            self._on_basemode_disabled()
+        self.__app.configuration.set("ntripcasterbasemode_s", self.base_mode.get())
+
+    def _on_basemode_svin(self):
+        """
+        Set SURVEY-IN base mode.
+        """
+
+        self._lbl_acclimit.grid(column=0, row=1, padx=2, pady=1, sticky=E)
+        self._spn_acclimit.grid(column=1, row=1, padx=2, pady=1, sticky=W)
+        self._chk_disablenmea.grid(column=2, row=1, padx=2, pady=1, sticky=W)
+        self._lbl_duration.grid(column=0, row=2, padx=2, pady=1, sticky=E)
+        self._spn_duration.grid(column=1, row=2, padx=2, pady=1, sticky=W)
+        self._lbl_elapsed.grid(column=2, row=2, columnspan=2, padx=2, pady=1, sticky=W)
+        self._lbl_user.grid(column=0, row=3, padx=2, pady=1, sticky=E)
+        self._ent_user.grid(column=1, row=3, columnspan=2, padx=2, pady=1, sticky=W)
+        self._lbl_password.grid(column=0, row=4, padx=2, pady=1, sticky=E)
+        self._ent_password.grid(column=1, row=4, columnspan=2, padx=2, pady=1, sticky=W)
+        self._pgb_elapsed.grid_forget()
+        self._spn_posmode.grid_forget()
+        self._lbl_fixedlat.grid_forget()
+        self._ent_fixedlat.grid_forget()
+        self._lbl_fixedlon.grid_forget()
+        self._ent_fixedlon.grid_forget()
+        self._lbl_fixedalt.grid_forget()
+        self._ent_fixedalt.grid_forget()
+
+    def _on_basemode_fixed(self):
+        """
+        Set FIXED base mode.
+        """
+
+        self._lbl_acclimit.grid(column=0, row=1, padx=2, pady=1, sticky=E)
+        self._spn_acclimit.grid(column=1, row=1, padx=2, pady=1, sticky=W)
+        self._chk_disablenmea.grid(column=2, row=1, padx=2, pady=1, sticky=W)
+        self._spn_posmode.grid(column=0, row=2, rowspan=3, padx=2, pady=1, sticky=E)
+        self._lbl_fixedlat.grid(column=1, row=2, padx=2, pady=1, sticky=E)
+        self._ent_fixedlat.grid(column=2, row=2, columnspan=3, padx=2, pady=1, sticky=W)
+        self._lbl_fixedlon.grid(column=1, row=3, padx=2, pady=1, sticky=E)
+        self._ent_fixedlon.grid(column=2, row=3, columnspan=3, padx=2, pady=1, sticky=W)
+        self._lbl_fixedalt.grid(column=1, row=4, padx=2, pady=1, sticky=E)
+        self._ent_fixedalt.grid(column=2, row=4, columnspan=3, padx=2, pady=1, sticky=W)
+        self._lbl_user.grid(column=0, row=5, padx=2, pady=1, sticky=E)
+        self._ent_user.grid(column=1, row=5, columnspan=2, padx=2, pady=1, sticky=W)
+        self._lbl_password.grid(column=0, row=6, padx=2, pady=1, sticky=E)
+        self._ent_password.grid(column=1, row=6, columnspan=2, padx=2, pady=1, sticky=W)
+        self._lbl_duration.grid_forget()
+        self._spn_duration.grid_forget()
+        self._pgb_elapsed.grid_forget()
+        self._lbl_elapsed.grid_forget()
+        self._set_coords(self.pos_mode.get())
+
+    def _on_basemode_disabled(self):
+        """
+        Set DISABLED base mode.
+        """
+
+        self._chk_disablenmea.grid(column=0, row=1, padx=2, pady=1, sticky=W)
+        self._lbl_acclimit.grid_forget()
+        self._spn_acclimit.grid_forget()
+        self._spn_posmode.grid_forget()
+        self._lbl_fixedlat.grid_forget()
+        self._ent_fixedlat.grid_forget()
+        self._lbl_fixedlon.grid_forget()
+        self._ent_fixedlon.grid_forget()
+        self._lbl_fixedalt.grid_forget()
+        self._ent_fixedalt.grid_forget()
+        self._lbl_duration.grid_forget()
+        self._spn_duration.grid_forget()
+        self._pgb_elapsed.grid_forget()
+        self._lbl_elapsed.grid_forget()
+        self._lbl_user.grid_forget()
+        self._ent_user.grid_forget()
+        self._lbl_password.grid_forget()
+        self._ent_password.grid_forget()
 
     def _on_posmode(self, var, index, mode):
         """
@@ -662,6 +708,7 @@ class ServerConfigFrame(Frame):
         self._lbl_fixedlon.config(text=lbls[1])
         self._lbl_fixedalt.config(text=lbls[2])
         self._set_coords(self.pos_mode.get())
+        self.__app.configuration.set("ntripcasterposmode_s", self.pos_mode.get())
 
     def _set_coords(self, posmode: str):
         """

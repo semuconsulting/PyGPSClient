@@ -73,8 +73,26 @@ from pygpsclient.widget_state import (
     FRAME,
     MENU,
     VISIBLE,
-    widget_state,
+    WidgetState,
 )
+from pygpsclient.configuration import Configuration
+
+
+class DummyFileHandler:
+
+    def load_config(self, filename):
+        if filename == "bad.json":
+            return filename, {"xcheckforupdate_b": 0}, ""
+        return filename, {"checkforupdate_b": 0}, ""
+
+
+class DummyApp:  # Dummy App class
+
+    def __init__(self):
+
+        self.appmaster = "appmaster"
+        self.widget_state = WidgetState()
+        self.file_handler = DummyFileHandler()
 
 
 class StaticTest(unittest.TestCase):
@@ -413,8 +431,9 @@ class StaticTest(unittest.TestCase):
             self.assertEqual(res, sres[i])
 
     def testwidgetgrid(self):  # ensure widgets.py is correctly defined
+        app = DummyApp()
         NoneType = type(None)
-        for wdg, wdict in widget_state.items():
+        for wdg, wdict in app.widget_state.state.items():
             self.assertIsInstance(wdg, str),
             self.assertIsInstance(wdict.get(MENU, True), bool),
             self.assertIsInstance(wdict.get(DEFAULT, False), bool),
@@ -770,6 +789,33 @@ class StaticTest(unittest.TestCase):
             ubx2preset((msg1, msg2), "Configure GNSS"),
             "Configure GNSS, CFG, CFG-GNSS, 0002040200042000010004000603180000004000, 1, CFG, CFG-GNSS, 0002040200042000010004000503180000004000, 1",
         )
+
+    def testconfiguration(self):
+
+        cfg = Configuration(DummyApp())
+        self.assertEqual(cfg.get("bpsrate_n"), 9600)
+        self.assertEqual(cfg.get("lbandclientdrat_n"), 2400)
+        self.assertEqual(cfg.get("userport_s"), "")
+        self.assertEqual(cfg.get("spartnport_s"), "")
+        self.assertEqual(len(cfg.settings), 125)
+        kwargs = {"userport": "/dev/ttyACM0", "spartnport": "/dev/ttyACM1"}
+        cfg.loadcli(**kwargs)
+        self.assertEqual(cfg.get("userport_s"), "/dev/ttyACM0")
+        self.assertEqual(cfg.get("spartnport_s"), "/dev/ttyACM1")
+        cfg.set("userport_s", "/dev/ttyACM2")
+        cfg.set("spartnport_s", "/dev/ttyACM3")
+        self.assertEqual(cfg.get("userport_s"), "/dev/ttyACM2")
+        self.assertEqual(cfg.get("spartnport_s"), "/dev/ttyACM3")
+
+    def testloadfile(self):
+
+        cfg = Configuration(DummyApp())
+        res = cfg.loadfile("bad.json")
+        self.assertEqual(
+            res, ("bad.json", f'Unrecognised setting "xcheckforupdate_b": 0')
+        )
+        res = cfg.loadfile("good.json")
+        self.assertEqual(res, ("good.json", ""))
 
 
 if __name__ == "__main__":

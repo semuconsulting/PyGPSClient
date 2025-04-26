@@ -23,7 +23,6 @@ Created on 13 Sep 2020
 
 from http.client import responses
 from io import BytesIO
-from os import getenv
 from time import time
 from tkinter import ALL, CENTER, NW, Canvas, E, Frame, N, S, StringVar, W
 
@@ -54,7 +53,6 @@ from pygpsclient.helpers import (
     xy2ll,
 )
 from pygpsclient.mapquest import (
-    MAP_UPDATE_INTERVAL,
     MAPQTIMEOUT,
     MAX_ZOOM,
     MIN_UPDATE_INTERVAL,
@@ -145,7 +143,7 @@ class MapviewFrame(Frame):
         Initialise map.
         """
 
-        self._zoom = self.__app.frm_settings.config.get("mapzoom", 10)
+        self._zoom = self.__app.configuration.get("mapzoom_n")
 
     def on_maptype(self, var, index, mode):  # pylint: disable=unused-argument
         """
@@ -201,7 +199,7 @@ class MapviewFrame(Frame):
 
         if refresh:
             self._zoom += zinc
-            self.__app.frm_settings.mapzoom.set(self._zoom)
+            self.__app.configuration.set("mapzoom_n", self._zoom)
             self.on_refresh(event)
 
     def on_mark(self, event):
@@ -248,9 +246,9 @@ class MapviewFrame(Frame):
             self._disp_error(NOWEBMAPFIX)
             return
 
-        self._maptype.set(self.__app.frm_settings.config.get("maptype_s", WORLD))
+        self._maptype.set(self.__app.configuration.get("maptype_s"))
         # record track if Show Track checkbox ticked
-        if self.__app.frm_settings.config.get("showtrack_b", 0):
+        if self.__app.configuration.get("showtrack_b"):
             if len(self._track) > 0:  # only record if different from previous
                 if round(self._track[-1].lat, 8) != round(lat, 8) or round(
                     self._track[-1].lon, 8
@@ -291,7 +289,7 @@ class MapviewFrame(Frame):
 
         if maptype == CUSTOM:
             err = OUTOFBOUNDS
-            usermaps = self.__app.saved_config.get("usermaps_l", [])
+            usermaps = self.__app.configuration.get("usermaps_l")
             for mp in usermaps:
                 try:
                     mpath, bounds = mp
@@ -386,19 +384,12 @@ class MapviewFrame(Frame):
             self._lastmaptype = maptype
             self.reset_map_refresh()
 
-        mqapikey = self.__app.frm_settings.config.get(
-            "mqapikey_s", getenv("MQAPIKEY", "")
-        )
+        mqapikey = self.__app.configuration.get("mqapikey_s")
         if mqapikey == "":
             self._disp_error(NOWEBMAPKEY)
             return
         map_update_interval = max(
-            self.__app.frm_settings.config.get(
-                "mapupdateinterval_n",
-                self.__app.frm_settings.config.get(
-                    "mapupdateinterval", MAP_UPDATE_INTERVAL
-                ),
-            ),
+            self.__app.configuration.get("mapupdateinterval_n"),
             MIN_UPDATE_INTERVAL,
         )
 

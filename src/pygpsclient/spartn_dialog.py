@@ -1,10 +1,13 @@
 """
 spartn_dialog.py
 
-SPARTN configuration dialog
+SPARTN client configuration dialog.
 
-This is the pop-up dialog containing the various
-SPARTN configuration functions.
+Initial settings are from the saved configuration.
+Once started, the persisted state for the SPARTN client is held in
+the threaded SPARTN handler itself, NOT in this frame.
+
+The dialog may be closed while the SPARTN client is running.
 
 Created on 26 Jan 2023
 
@@ -28,7 +31,6 @@ from pygpsclient.globals import (
     ICON_PENDING,
     ICON_WARNING,
     POPUP_TRANSIENT,
-    SAVED_CONFIG,
     SPARTN_GNSS,
     SPARTN_LBAND,
     SPARTN_MQTT,
@@ -59,7 +61,6 @@ class SPARTNConfigDialog(Toplevel):
 
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
-        self._saved_config = kwargs.pop(SAVED_CONFIG, {})
 
         Toplevel.__init__(self, app)
         if POPUP_TRANSIENT:
@@ -102,14 +103,12 @@ class SPARTNConfigDialog(Toplevel):
             self,
             borderwidth=2,
             relief="groove",
-            saved_config=self._saved_config,
         )
         self.frm_corrlband = SpartnLbandDialog(
             self.__app,
             self,
             borderwidth=2,
             relief="groove",
-            saved_config=self._saved_config,
         )
         self.frm_gnss = SPARTNGNSSDialog(
             self.__app, self, borderwidth=2, relief="groove"

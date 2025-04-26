@@ -38,7 +38,6 @@ from pygpsclient.globals import (
     ICON_WARNING,
     NMEA_PRESET,
     OKCOL,
-    SAVED_CONFIG,
 )
 from pygpsclient.strings import (
     CONFIRM,
@@ -71,8 +70,6 @@ class NMEA_PRESET_Frame(Frame):
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.logger = logging.getLogger(__name__)
         self.__container = container
-        # saved_config just contains user presets...
-        self._saved_config = kwargs.pop(SAVED_CONFIG, [])
 
         Frame.__init__(self, self.__container.container, *args, **kwargs)
 
@@ -152,7 +149,7 @@ class NMEA_PRESET_Frame(Frame):
         """
 
         idx = 0
-        for upst in self._saved_config:
+        for upst in self.__app.configuration.get("nmeapresets_l"):
             self._lbx_preset.insert(idx, "USER " + upst)
             idx += 1
 

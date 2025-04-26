@@ -9,9 +9,8 @@ Created on 12 Sep 2020
 """
 
 import sys
-from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
+from argparse import SUPPRESS, ArgumentDefaultsHelpFormatter, ArgumentParser
 from logging import getLogger
-from os import getenv
 from tkinter import Tk
 
 from pygnssutils import (
@@ -28,12 +27,8 @@ from pygpsclient.app import App
 from pygpsclient.globals import (
     APPNAME,
     CONFIGFILE,
-    DEFAULT_PASSWORD,
-    DEFAULT_REGION,
-    DEFAULT_USER,
     SPARTN_BASEDATE_CURRENT,
     SPARTN_BASEDATE_DATASTREAM,
-    SPARTN_DEFAULT_KEY,
 )
 from pygpsclient.strings import EPILOG
 
@@ -50,84 +45,72 @@ def main():
     ap.add_argument(
         "-C",
         "--config",
-        required=False,
         help="Fully-qualified path to configuration file",
         default=CONFIGFILE,
     )
     ap.add_argument(
         "-U",
         "--userport",
-        required=False,
         help="User-defined GNSS receiver port",
-        default=getenv("PYGPSCLIENT_USERPORT", ""),
+        default=SUPPRESS,
     )
     ap.add_argument(
         "-S",
         "--spartnport",
-        required=False,
         help="User-defined SPARTN receiver port",
-        default=getenv("PYGPSCLIENT_SPARTNPORT", ""),
+        default=SUPPRESS,
     )
     ap.add_argument(
         "--mqapikey",
-        required=False,
         help="MapQuest API Key",
-        default=getenv("MQAPIKEY", ""),
+        default=SUPPRESS,
     )
     ap.add_argument(
         "--mqttclientid",
-        required=False,
         help="MQTT Client ID",
-        default=getenv("MQTTCLIENTID", ""),
+        default=SUPPRESS,
     )
     ap.add_argument(
         "--mqttclientregion",
-        required=False,
         help="MQTT Client Region",
-        default=getenv("MQTTCLIENTREGION", DEFAULT_REGION),
+        default=SUPPRESS,
     )
     ap.add_argument(
         "--mqttclientmode",
-        required=False,
         help="MQTT Client Mode (0 - IP, 1 - L-Band)",
-        default=getenv("MQTTCLIENTMODE", "0"),
-        type=int,
+        default=SUPPRESS,
     )
     ap.add_argument(
         "--ntripcasteruser",
-        required=False,
         help="NTRIP Caster authentication user",
-        default=getenv("NTRIPCASTER_USER", DEFAULT_USER),
+        default=SUPPRESS,
     )
     ap.add_argument(
         "--ntripcasterpassword",
-        required=False,
         help="NTRIP Caster authentication password",
-        default=getenv("NTRIPCASTER_PASSWORD", DEFAULT_PASSWORD),
+        default=SUPPRESS,
     )
     ap.add_argument(
         "--spartnkey",
-        required=False,
         help="SPARTN message decryption key",
-        default=getenv("MQTTKEY", SPARTN_DEFAULT_KEY),
+        default=SUPPRESS,
     )
     ap.add_argument(
         "--spartnbasedate",
-        required=False,
         help=f"SPARTN message decryption timetag ({SPARTN_BASEDATE_CURRENT} = \
             current datetime, {SPARTN_BASEDATE_DATASTREAM} = use timetags from data stream)",
-        default=SPARTN_BASEDATE_CURRENT,
         type=int,
+        default=SUPPRESS,
     )
     ap.add_argument(
         "--verbosity",
-        required=False,
         help=(
             f"Log message verbosity "
             f"{VERBOSITY_CRITICAL} = critical, "
             f"{VERBOSITY_LOW} = low (error), "
             f"{VERBOSITY_MEDIUM} = medium (warning), "
-            f"{VERBOSITY_HIGH} = high (info), {VERBOSITY_DEBUG} = debug"
+            f"{VERBOSITY_HIGH} = high (info), {VERBOSITY_DEBUG} = debug, "
+            f"default = {VERBOSITY_CRITICAL}"
         ),
         type=int,
         choices=[
@@ -141,9 +124,7 @@ def main():
     )
     ap.add_argument(
         "--logtofile",
-        required=False,
         help="fully qualified log file name, or '' for no log file",
-        type=str,
         default="",
     )
     kwargs = vars(ap.parse_args())
