@@ -89,7 +89,9 @@ In the following, `python3` & `pip` refer to the Python 3 executables. You may n
 
 Normally installs without any additional steps.
 
-**MacOS 12 or later:**
+**MacOS 13 or later:**
+
+(See also [Installation Script](#installscript) below)
 
 *¹* The version of Python supplied with some Apple MacOS platforms includes a [deprecated version of tkinter](https://www.python.org/download/mac/tcltk/) (8.5). Use an official [Python.org](https://www.python.org/downloads/) installation package instead. 
 
@@ -227,7 +229,7 @@ pipx install pygpsclient
 
 `pipx` will typically create a virtual environment in the user's local shared folder e.g. `/home/user/.local/share/pipx/venvs/pygpsclient`.
 
-### <a name="installscript">Install Using Installation Script - 64-bit Debian-based Linux Only</a>
+### <a name="installscript">Install Using Installation Script - MacOS & 64-bit Debian-based Linux Only</a>
 
 An example [installation shell script](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/pygpsclient_debian_install.sh) is available for use on most vanilla 64-bit Debian-based environments with Python>=3.9, including Raspberry Pi and Ubuntu. To run this installation script, download it to your Raspberry Pi or other Debian-based workstation and - from the download folder - type:
 
@@ -235,6 +237,14 @@ An example [installation shell script](https://github.com/semuconsulting/PyGPSCl
 chmod +x pygpsclient_debian_install.sh
 ./pygpsclient_debian_install.sh
 ```
+
+A similar [installation shell script](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/pygpsclient_macos_install.sh) is available for MacOS 13 or later running a ZSH shell (*Homebrew or MacPorts are NOT required*). This will also install the latest official version of Python 3 with tkinter 8.6. Download the script to your Mac and - from the download folder - type:
+
+```shell
+./pygpsclient_macos_install.sh
+```
+
+In both cases you will be prompted to enter your sudo (admin) password.
 
 ---
 ## <a name="instructions">Instructions</a>
