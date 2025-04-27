@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.5.8
+
+ENHANCEMENTS:
+
+1. RTCM3 messages types 1002 (GPS L1 observables) & 1010 (GLONASS L1 observables) added to NTRIP Caster configuration.
+
 ### RELEASE 1.5.7
 
 FIXES:

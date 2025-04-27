@@ -40,6 +40,7 @@ from tkinter import (
 from tkinter.ttk import Progressbar
 
 from PIL import Image, ImageTk
+from pygnssutils import RTCMTYPES
 from pyubx2 import UBXMessage, llh2ecef
 
 from pygpsclient.globals import (
@@ -98,16 +99,7 @@ ACCURACIES = (
     30,
     20,
 )
-RTCMTYPES = (
-    "1006",
-    "1077",
-    "1087",
-    "1097",
-    "1127",
-    "1230",
-    "4072_0",
-    "4072_1",
-)
+
 BASE_DISABLED = "DISABLED"
 BASE_FIXED = "FIXED"
 BASE_SVIN = "SURVEY IN"
@@ -793,10 +785,10 @@ class ServerConfigFrame(Frame):
         layers = 1  # 1 = RAM, 2 = BBR, 4 = Flash (can be OR'd)
         transaction = 0
         cfg_data = []
-        for rtcm_type in RTCMTYPES:
+        for rtcm_type, mrate in RTCMTYPES.items():
 
             cfg = f"CFG_MSGOUT_RTCM_3X_TYPE{rtcm_type}_{port_type}"
-            cfg_data.append([cfg, rate])
+            cfg_data.append([cfg, mrate if rate else 0])
 
         # NAV-SVIN only output in SURVEY-IN mode
         rate = rate if self.base_mode.get() == BASE_SVIN else 0

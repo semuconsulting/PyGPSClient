@@ -91,7 +91,9 @@ Normally installs without any additional steps.
 
 **MacOS 12 or later:**
 
-*¹* The version of Python supplied with some Apple MacOS platforms includes a [deprecated version of tkinter](https://www.python.org/download/mac/tcltk/) (8.5). Use an official [Python.org](https://www.python.org/downloads/) installation package instead.
+*¹* The version of Python supplied with some Apple MacOS platforms includes a [deprecated version of tkinter](https://www.python.org/download/mac/tcltk/) (8.5). Use an official [Python.org](https://www.python.org/downloads/) installation package instead. 
+
+**NB:** PyGPSClient does *NOT* require Homebrew or MacPorts to be installed on MacOS.
 
 **Linux (including Raspberry Pi OS):**
 
