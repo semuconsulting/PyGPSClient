@@ -216,6 +216,7 @@ CUSTOM = "custom"
 MAP = "map"
 SAT = "sat"
 WORLD = "world"
+LG290P = "Quectel LG290P"
 MAX_SNR = 60  # upper limit of graphview snr axis
 MAXLOGLINES = 10000  # maximum number of 'lines' per datalog file
 MQAPIKEY = "mqapikey"
@@ -296,6 +297,7 @@ WIDGETU3 = (800, 200)  # Console size
 WIDGETU4 = (500, 500)  # GPX Track viewer size
 WIDGETU6 = (400, 200)  # Chart size
 XML_HDR = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+ZED_F9 = "u-blox ZED-F9/X20"
 
 # UBX & NMEA config widget signifiers - used
 # to identify which widget should receive the

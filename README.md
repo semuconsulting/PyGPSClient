@@ -22,7 +22,7 @@ PyGPSClient is a free, open-source, multi-platform graphical GNSS/GPS testing, d
 * Supports NMEA, UBX, RTCM3, NTRIP and SPARTN protocols.
 * Capable of reading from a variety of GNSS data streams: Serial (USB / UART), Socket (TCP / UDP), binary data stream (terminal or file capture) and u-center (*.ubx) recording.
 * Provides [NTRIP](#ntripconfig) and [SPARTN](#spartnconfig) client facilities.
-* Can serve as an [NTRIP base station](#basestation) with a compatible receiver (e.g. ZED-F9P).
+* Can serve as an [NTRIP base station](#basestation) with an RTK-compatible receiver (e.g. u-blox ZED-F9P or Quectel LG290P).
 * While not intended to be a direct replacement, the application supports most of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool (*only public-domain features are supported*).
 * Also supports proprietary NMEA configuration functionality for Quectel LG290P and compatible devices.
 
@@ -488,7 +488,7 @@ By default, the server/caster binds to the host address '0.0.0.0' (IPv4) or '::'
 
 **Pre-Requisites:**
 
-1. Running in NTRIP CASTER mode is predicated on the host being connected to an RTK-compatible GNSS receiver (e.g. u-blox ZED-F9P) **operating in Base Station mode** (either `FIXED` or `SURVEY_IN`) and outputting the requisite RTCM3 message types (1005, 1077, 1087, 1097, 1127 and 1230). 
+1. Running in NTRIP CASTER mode is predicated on the host being connected to an RTK-compatible GNSS receiver (e.g. u-blox ZED-F9P or Quectel LG290P) **operating in Base Station mode** (either `FIXED` or `SURVEY_IN`) and outputting the requisite RTCM3 message types (1005, 1077, 1087, 1097, 1127 and 1230). 
 1. It may be necessary to add a firewall rule and/or enable port-forwarding on the host machine or router to allow remote traffic on the specified address:port.
 
 **Instructions:**
@@ -502,7 +502,8 @@ By default, the server/caster binds to the host address '0.0.0.0' (IPv4) or '::'
 **NTRIP CASTER MODE**
 
 1. Select NTRIP CASTER mode and (if necessary) enter the host IP address and port.
-1. An additional expandable panel is made available to allow the user to configure a connected RTK-compatible u-blox receiver (e.g. ZED-F9P) to operate in either `FIXED` or `SURVEY-IN` Base Station mode (*NB: parameters can only be amended while the caster is stopped*). If 'Configure Base Station' is checked, the selected configuration will be applied to the connected receiver once the caster is activated. 
+1. An additional expandable panel is made available to allow the user to configure a connected RTK-compatible receiver (e.g. u-blox ZED-F9P or Quectel LG290P) to operate in either `FIXED` or `SURVEY-IN` Base Station mode (*NB: parameters can only be amended while the caster is stopped*). If 'Configure Base Station' is checked, the selected configuration will be applied to the connected receiver once the caster is activated.
+1. Select the receiver type (currently u-blox ZED-F9* and Quectel LG290P receivers are supported).
 1. NMEA messages can be suppressed by checking 'Disable NMEA'. A minimum set of UBX messages will be output in their place.
 1. NTRIP client login credentials are set via the user and password fields. 
 1. Check the Socket Server/NTRIP Caster checkbox to activate the caster.

@@ -90,6 +90,8 @@ class NMEAHandler:
                 self._process_QTMPVT(parsed_data)
             elif parsed_data.msgID[0:3] == "QTM" and hasattr(parsed_data, "status"):
                 self._process_QTMACK(parsed_data)
+            elif parsed_data.msgID == "QTMSVINSTATUS":  # LG290P SVIN status
+                self._process_QTMSVINSTATUS(parsed_data)
 
         except ValueError:
             pass
@@ -363,3 +365,14 @@ class NMEAHandler:
 
         if self.__app.dialog(DLGTNMEA) is not None:
             self.__app.dialog(DLGTNMEA).update_pending(data)
+
+    def _process_QTMSVINSTATUS(self, data: NMEAMessage):
+        """
+        Process QTMSVINSTATUS sentence - Survey In Status.
+
+        :param NMEAMessage data:QTMSVINSTATUS parsed message
+        """
+
+        valid = 1 if data.valid == 2 else 0
+        active = data.valid == 1
+        self.__app.svin_countdown(data.obs, valid, active)

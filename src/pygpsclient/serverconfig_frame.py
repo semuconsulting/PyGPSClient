@@ -21,6 +21,7 @@ Created on 23 Jul 2023
 
 # pylint: disable=unused-argument
 
+# import logging
 from tkinter import (
     DISABLED,
     NORMAL,
@@ -41,7 +42,8 @@ from tkinter.ttk import Progressbar
 
 from PIL import Image, ImageTk
 from pygnssutils import RTCMTYPES
-from pyubx2 import UBXMessage, llh2ecef
+from pynmeagps import SET, NMEAMessage, llh2ecef
+from pyubx2 import UBXMessage
 
 from pygpsclient.globals import (
     DISCONNECTED,
@@ -49,12 +51,14 @@ from pygpsclient.globals import (
     ICON_CONTRACT,
     ICON_EXPAND,
     INFOCOL,
+    LG290P,
     READONLY,
     RPTDELAY,
     SOCK_NTRIP,
     SOCKMODES,
     SOCKSERVER_NTRIP_PORT,
     SOCKSERVER_PORT,
+    ZED_F9,
 )
 from pygpsclient.helpers import (
     MAXPORT,
@@ -81,23 +85,23 @@ from pygpsclient.strings import (
 )
 
 ACCURACIES = (
-    10,
-    5,
-    3,
-    2,
-    1,
-    10000,
-    5000,
-    3000,
-    2000,
-    1000,
-    500,
-    300,
-    200,
-    100,
-    50,
-    30,
-    20,
+    10.0,
+    5.0,
+    3.0,
+    2.0,
+    1.0,
+    10000.0,
+    5000.0,
+    3000.0,
+    2000.0,
+    1000.0,
+    500.0,
+    300.0,
+    200.0,
+    100.0,
+    50.0,
+    30.0,
+    20.0,
 )
 
 BASE_DISABLED = "DISABLED"
@@ -132,6 +136,7 @@ class ServerConfigFrame(Frame):
         """
 
         Frame.__init__(self, container, *args, **kwargs)
+        # self.logger = logging.getLogger(__name__)
 
         self.__app = app
         self._container = container
@@ -142,6 +147,7 @@ class ServerConfigFrame(Frame):
         self.sock_mode = StringVar()
         self._sock_clients = StringVar()
         self._set_basemode = IntVar()
+        self.receiver_type = StringVar()
         self.base_mode = StringVar()
         self.acclimit = IntVar()
         self.duration = IntVar()
@@ -265,6 +271,20 @@ class ServerConfigFrame(Frame):
             text=LBLCONFIGBASE,
             variable=self._set_basemode,
         )
+        self._spn_rcvrtype = Spinbox(
+            self._frm_advanced,
+            values=(ZED_F9, LG290P),
+            width=14,
+            state=READONLY,
+            wrap=True,
+            repeatdelay=RPTDELAY,
+            repeatinterval=RPTDELAY,
+            textvariable=self.receiver_type,
+        )
+        self._lbl_basemode = Label(
+            self._frm_advanced,
+            text="Mode",
+        )
         self._spn_basemode = Spinbox(
             self._frm_advanced,
             values=BASEMODES,
@@ -282,7 +302,7 @@ class ServerConfigFrame(Frame):
         self._spn_acclimit = Spinbox(
             self._frm_advanced,
             values=ACCURACIES,
-            width=5,
+            width=7,
             state=READONLY,
             wrap=True,
             repeatdelay=RPTDELAY,
@@ -385,7 +405,9 @@ class ServerConfigFrame(Frame):
         self._chk_set_basemode.grid(
             column=0, row=0, columnspan=2, padx=2, pady=2, sticky=W
         )
-        self._spn_basemode.grid(column=2, row=0, columnspan=2, padx=2, pady=2, sticky=W)
+        self._spn_rcvrtype.grid(column=2, row=0, columnspan=2, padx=2, pady=1, sticky=W)
+        self._lbl_basemode.grid(column=0, row=1, padx=2, pady=1, sticky=E)
+        self._spn_basemode.grid(column=1, row=1, padx=2, pady=1, sticky=W)
 
     def reset(self):
         """
@@ -398,6 +420,7 @@ class ServerConfigFrame(Frame):
         self._on_toggle_advanced()
         self.base_mode.set(cfg.get("ntripcasterbasemode_s"))
         self._on_basemode(None, None, "write")
+        self.receiver_type.set(cfg.get("ntripcasterrcvrtype_s"))
         self.acclimit.set(cfg.get("ntripcasteracclimit_f"))
         self.duration.set(cfg.get("ntripcasterduration_n"))
         self.pos_mode.set(cfg.get("ntripcasterposmode_s"))
@@ -434,6 +457,7 @@ class ServerConfigFrame(Frame):
             self.sock_port,
             self.sock_host,
             self._set_basemode,
+            self.receiver_type,
             self.acclimit,
             self.duration,
             self.fixedlat,
@@ -453,6 +477,7 @@ class ServerConfigFrame(Frame):
         try:
             self.update()
             cfg = self.__app.configuration
+            cfg.set("ntripcasterrcvrtype_s", self.receiver_type.get())
             cfg.set("ntripcasteracclimit_f", float(self.acclimit.get()))
             cfg.set("ntripcasterduration_n", int(self.duration.get()))
             cfg.set("ntripcasterfixedlat_f", float(self.fixedlat.get()))
@@ -521,6 +546,8 @@ class ServerConfigFrame(Frame):
             self._ent_sockport,
             self._spn_sockmode,
             self._chk_set_basemode,
+            self._spn_rcvrtype,
+            self._lbl_basemode,
             self._spn_basemode,
             self._lbl_acclimit,
             self._spn_acclimit,
@@ -617,16 +644,16 @@ class ServerConfigFrame(Frame):
         Set SURVEY-IN base mode.
         """
 
-        self._lbl_acclimit.grid(column=0, row=1, padx=2, pady=1, sticky=E)
-        self._spn_acclimit.grid(column=1, row=1, padx=2, pady=1, sticky=W)
-        self._chk_disablenmea.grid(column=2, row=1, padx=2, pady=1, sticky=W)
-        self._lbl_duration.grid(column=0, row=2, padx=2, pady=1, sticky=E)
-        self._spn_duration.grid(column=1, row=2, padx=2, pady=1, sticky=W)
-        self._lbl_elapsed.grid(column=2, row=2, columnspan=2, padx=2, pady=1, sticky=W)
-        self._lbl_user.grid(column=0, row=3, padx=2, pady=1, sticky=E)
-        self._ent_user.grid(column=1, row=3, columnspan=2, padx=2, pady=1, sticky=W)
-        self._lbl_password.grid(column=0, row=4, padx=2, pady=1, sticky=E)
-        self._ent_password.grid(column=1, row=4, columnspan=2, padx=2, pady=1, sticky=W)
+        self._lbl_acclimit.grid(column=0, row=2, padx=2, pady=1, sticky=E)
+        self._spn_acclimit.grid(column=1, row=2, padx=2, pady=1, sticky=W)
+        self._chk_disablenmea.grid(column=3, row=1, padx=2, pady=1, sticky=W)
+        self._lbl_duration.grid(column=0, row=3, padx=2, pady=1, sticky=E)
+        self._spn_duration.grid(column=1, row=3, padx=2, pady=1, sticky=W)
+        self._lbl_elapsed.grid(column=2, row=3, columnspan=2, padx=2, pady=1, sticky=W)
+        self._lbl_user.grid(column=0, row=4, padx=2, pady=1, sticky=E)
+        self._ent_user.grid(column=1, row=4, columnspan=2, padx=2, pady=1, sticky=W)
+        self._lbl_password.grid(column=0, row=5, padx=2, pady=1, sticky=E)
+        self._ent_password.grid(column=1, row=5, columnspan=2, padx=2, pady=1, sticky=W)
         self._pgb_elapsed.grid_forget()
         self._spn_posmode.grid_forget()
         self._lbl_fixedlat.grid_forget()
@@ -641,20 +668,20 @@ class ServerConfigFrame(Frame):
         Set FIXED base mode.
         """
 
-        self._lbl_acclimit.grid(column=0, row=1, padx=2, pady=1, sticky=E)
-        self._spn_acclimit.grid(column=1, row=1, padx=2, pady=1, sticky=W)
-        self._chk_disablenmea.grid(column=2, row=1, padx=2, pady=1, sticky=W)
-        self._spn_posmode.grid(column=0, row=2, rowspan=3, padx=2, pady=1, sticky=E)
-        self._lbl_fixedlat.grid(column=1, row=2, padx=2, pady=1, sticky=E)
-        self._ent_fixedlat.grid(column=2, row=2, columnspan=3, padx=2, pady=1, sticky=W)
-        self._lbl_fixedlon.grid(column=1, row=3, padx=2, pady=1, sticky=E)
-        self._ent_fixedlon.grid(column=2, row=3, columnspan=3, padx=2, pady=1, sticky=W)
-        self._lbl_fixedalt.grid(column=1, row=4, padx=2, pady=1, sticky=E)
-        self._ent_fixedalt.grid(column=2, row=4, columnspan=3, padx=2, pady=1, sticky=W)
-        self._lbl_user.grid(column=0, row=5, padx=2, pady=1, sticky=E)
-        self._ent_user.grid(column=1, row=5, columnspan=2, padx=2, pady=1, sticky=W)
-        self._lbl_password.grid(column=0, row=6, padx=2, pady=1, sticky=E)
-        self._ent_password.grid(column=1, row=6, columnspan=2, padx=2, pady=1, sticky=W)
+        self._lbl_acclimit.grid(column=0, row=2, padx=2, pady=1, sticky=E)
+        self._spn_acclimit.grid(column=1, row=2, padx=2, pady=1, sticky=W)
+        self._chk_disablenmea.grid(column=3, row=1, padx=2, pady=1, sticky=W)
+        self._spn_posmode.grid(column=0, row=3, rowspan=3, padx=2, pady=1, sticky=E)
+        self._lbl_fixedlat.grid(column=1, row=3, padx=2, pady=1, sticky=E)
+        self._ent_fixedlat.grid(column=2, row=3, columnspan=3, padx=2, pady=1, sticky=W)
+        self._lbl_fixedlon.grid(column=1, row=4, padx=2, pady=1, sticky=E)
+        self._ent_fixedlon.grid(column=2, row=4, columnspan=3, padx=2, pady=1, sticky=W)
+        self._lbl_fixedalt.grid(column=1, row=5, padx=2, pady=1, sticky=E)
+        self._ent_fixedalt.grid(column=2, row=5, columnspan=3, padx=2, pady=1, sticky=W)
+        self._lbl_user.grid(column=0, row=6, padx=2, pady=1, sticky=E)
+        self._ent_user.grid(column=1, row=6, columnspan=2, padx=2, pady=1, sticky=W)
+        self._lbl_password.grid(column=0, row=7, padx=2, pady=1, sticky=E)
+        self._ent_password.grid(column=1, row=7, columnspan=2, padx=2, pady=1, sticky=W)
         self._lbl_duration.grid_forget()
         self._spn_duration.grid_forget()
         self._pgb_elapsed.grid_forget()
@@ -666,7 +693,7 @@ class ServerConfigFrame(Frame):
         Set DISABLED base mode.
         """
 
-        self._chk_disablenmea.grid(column=0, row=1, padx=2, pady=1, sticky=W)
+        self._chk_disablenmea.grid(column=3, row=1, padx=2, pady=1, sticky=W)
         self._lbl_acclimit.grid_forget()
         self._spn_acclimit.grid_forget()
         self._spn_posmode.grid_forget()
@@ -754,25 +781,32 @@ class ServerConfigFrame(Frame):
 
         # set base station timing mode
         if self.base_mode.get() == BASE_SVIN:
-            msg = self._config_svin(self.acclimit.get(), self.duration.get())
+            msgs = self._config_svin(self.acclimit.get(), self.duration.get())
         elif self.base_mode.get() == BASE_FIXED:
-            msg = self._config_fixed(
+            msgs = self._config_fixed(
                 self.acclimit.get(),
                 self.fixedlat.get(),
                 self.fixedlon.get(),
                 self.fixedalt.get(),
             )
         else:  # DISABLED
-            msg = self._config_disable()
-        self.__app.gnss_outqueue.put(msg.serialize())
+            msgs = self._config_disable()
+        if not isinstance(msgs, list):
+            msgs = [
+                msgs,
+            ]
+        for msg in msgs:
+            # self.logger.debug(f"Base Config Message: {msg}")
+            self.__app.gnss_outqueue.put(msg.serialize())
 
         # set RTCM and UBX NAV-SVIN message output rate
-        rate = 0 if self.base_mode.get() == BASE_DISABLED else 1
-        for port in ("USB", "UART1"):
-            msg = self._config_msg_rates(rate, port)
-            self.__app.gnss_outqueue.put(msg.serialize())
-            msg = config_nmea(self.disable_nmea.get(), port)
-            self.__app.gnss_outqueue.put(msg.serialize())
+        if self.receiver_type.get() == ZED_F9:
+            rate = 0 if self.base_mode.get() == BASE_DISABLED else 1
+            for port in ("USB", "UART1"):
+                msg = self._config_msg_rates(rate, port)
+                self.__app.gnss_outqueue.put(msg.serialize())
+                msg = config_nmea(self.disable_nmea.get(), port)
+                self.__app.gnss_outqueue.put(msg.serialize())
 
     def _config_msg_rates(self, rate: int, port_type: str) -> UBXMessage:
         """
@@ -797,9 +831,24 @@ class ServerConfigFrame(Frame):
 
         return UBXMessage.config_set(layers, transaction, cfg_data)
 
-    def _config_disable(self):
+    def _config_disable(self) -> object:
         """
         Disable base station mode.
+
+        :return: UBXMessage or NMEAMessage(s)
+        :rtype: UBXMessage or NMEAMessage(s)
+        """
+
+        if self.receiver_type.get() == LG290P:
+            return self._config_disable_quectel()
+        return self._config_disable_ublox()
+
+    def _config_disable_ublox(self) -> UBXMessage:
+        """
+        Disable base station mode for u-blox receivers.
+
+        :return: UBXMessage
+        :rtype: UBXMessage
         """
 
         layers = 1
@@ -810,12 +859,42 @@ class ServerConfigFrame(Frame):
 
         return UBXMessage.config_set(layers, transaction, cfg_data)
 
-    def _config_svin(self, acc_limit: int, svin_min_dur: int) -> UBXMessage:
+    def _config_disable_quectel(self) -> NMEAMessage:
+        """
+        Disable base station mode for Quectel receivers.
+
+        :return: NMEAMessage(s)
+        :rtype: NMEAMessage(s)
+        """
+
+        msgs = []
+        msgs.append(NMEAMessage("P", "QTMCFGRCVRMODE", SET, rcvrmode=1))
+        msgs.append(NMEAMessage("P", "QTMSAVEPAR", SET))
+        msgs.append(NMEAMessage("P", "QTMSRR", SET))
+        return msgs
+
+    def _config_svin(self, acc_limit: int, svin_min_dur: int) -> object:
         """
         Configure Survey-In mode with specied accuracy limit.
 
         :param int acc_limit: accuracy limit in cm
         :param int svin_min_dur: survey minimimum duration
+        :return: UBXMessage or NMEAMessage(s)
+        :rtype: UBXMessage or NMEAMessage(s)
+        """
+
+        if self.receiver_type.get() == LG290P:
+            return self._config_svin_quectel(acc_limit, svin_min_dur)
+        return self._config_svin_ublox(acc_limit, svin_min_dur)
+
+    def _config_svin_ublox(self, acc_limit: int, svin_min_dur: int) -> UBXMessage:
+        """
+        Configure Survey-In mode with specified accuracy limit for u-blox receivers.
+
+        :param int acc_limit: accuracy limit in cm
+        :param int svin_min_dur: survey minimimum duration
+        :return: UBXMessage
+        :rtype: UBXMessage
         """
 
         layers = 1
@@ -829,9 +908,54 @@ class ServerConfigFrame(Frame):
 
         return UBXMessage.config_set(layers, transaction, cfg_data)
 
+    def _config_svin_quectel(self, acc_limit: int, svin_min_dur: int) -> NMEAMessage:
+        """
+        Configure Survey-In mode with specified accuracy limit for Quectel receivers.
+
+        :param int acc_limit: accuracy limit in cm
+        :param int svin_min_dur: survey minimimum duration
+        :return: NMEAMessage(s)
+        :rtype: NMEAMessage(s)
+        """
+
+        msgs = []
+        msgs.append(NMEAMessage("P", "QTMCFGRCVRMODE", SET, rcvrmode=2))
+        msgs.append(
+            NMEAMessage(
+                "P",
+                "QTMCFGRTCM",
+                SET,
+                msmtype=7,  # MSM 7 types e.g. 1077
+                msmmode=0,
+                msmelevthd=-90,
+                reserved1="07",
+                reserved2="06",
+                ephmode=1,
+                ephinterval=0,
+            )
+        )
+        msgs.append(
+            NMEAMessage(
+                "P",
+                "QTMCFGSVIN",
+                SET,
+                svinmode=1,
+                cfgcnt=svin_min_dur,
+                acclimit=acc_limit / 100,  # m
+            )
+        )
+        msgs.append(NMEAMessage("P", "QTMSAVEPAR", SET))
+        msgs.append(NMEAMessage("P", "QTMSRR", SET))
+        msgs.append(
+            NMEAMessage(
+                "P", "QTMCFGMSGRATE", SET, msgname="PQTMSVINSTATUS", rate=1, msgver=1
+            )
+        )
+        return msgs
+
     def _config_fixed(
         self, acc_limit: int, lat: float, lon: float, height: float
-    ) -> UBXMessage:
+    ) -> object:
         """
         Configure Fixed mode with specified coordinates.
 
@@ -839,6 +963,26 @@ class ServerConfigFrame(Frame):
         :param float lat: lat or X in m
         :param float lat: lon or Y in m
         :param float lat: height or Z in m
+        :return: UBXMessage or NMEAMessage(s)
+        :rtype: UBXMessage or NMEAMessage(s)
+        """
+
+        if self.receiver_type.get() == LG290P:
+            return self._config_fixed_quectel(acc_limit, lat, lon, height)
+        return self._config_fixed_ublox(acc_limit, lat, lon, height)
+
+    def _config_fixed_ublox(
+        self, acc_limit: int, lat: float, lon: float, height: float
+    ) -> UBXMessage:
+        """
+        Configure Fixed mode with specified coordinates for u-blox receivers.
+
+        :param int acc_limit: accuracy limit in cm
+        :param float lat: lat or X in m
+        :param float lat: lon or Y in m
+        :param float lat: height or Z in m
+        :return: UBXMessage
+        :rtype: UBXMessage
         """
 
         layers = 1
@@ -877,9 +1021,63 @@ class ServerConfigFrame(Frame):
 
         return UBXMessage.config_set(layers, transaction, cfg_data)
 
+    def _config_fixed_quectel(
+        self, acc_limit: int, lat: float, lon: float, height: float
+    ) -> NMEAMessage:
+        """
+        Configure Fixed mode with specified coordinates for Quectel receivers.
+
+        :param int acc_limit: accuracy limit in cm
+        :param float lat: lat or X in m
+        :param float lat: lon or Y in m
+        :param float lat: height or Z in m
+        :return: NMEAMessage(s)
+        :rtype: NMEAMessage(s)
+        """
+
+        if self._spn_posmode.get() == POS_LLH:
+            ecef_x, ecef_y, ecef_z = llh2ecef(lat, lon, height)
+        else:  # POS_ECEF
+            ecef_x, ecef_y, ecef_z = lat, lon, height
+
+        msgs = []
+        msgs.append(NMEAMessage("P", "QTMCFGRCVRMODE", SET, rcvrmode=2))
+        msgs.append(
+            NMEAMessage(
+                "P",
+                "QTMCFGRTCM",
+                SET,
+                msmtype=7,  # MSM 7 types e.g. 1077
+                msmmode=0,
+                msmelevthd=-90,
+                reserved1="07",
+                reserved2="06",
+                ephmode=1,
+                ephinterval=0,
+            )
+        )
+        msgs.append(
+            NMEAMessage(
+                "P",
+                "QTMCFGSVIN",
+                SET,
+                svinmode=2,
+                cfgcnt=0,
+                acclimit=acc_limit / 100,  # m
+                ecefx=ecef_x,
+                ecefy=ecef_y,
+                ecefz=ecef_z,
+            )
+        )
+        msgs.append(NMEAMessage("P", "QTMSAVEPAR", SET))
+        msgs.append(NMEAMessage("P", "QTMSRR", SET))
+        return msgs
+
     def svin_countdown(self, ela: int, valid: bool, active: bool):
         """
         Display countdown of remaining survey-in duration.
+        Invoked from ubx_handler or nmea_handler on receipt of SVIN status
+        message from receiver.
 
         :param int ela: elapsed time
         :param bool valid: SVIN validity status

@@ -4,6 +4,7 @@
 
 ENHANCEMENTS:
 
+1. Add receiver type option to NTRIP Caster mode - can now utilise either u-blox ZED-F9* or Quectel LG290P as Base Station receiver.
 1. RTCM3 messages types 1002 (GPS L1 observables) & 1010 (GLONASS L1 observables) added to NTRIP Caster configuration.
 
 ### RELEASE 1.5.7

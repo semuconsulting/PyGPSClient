@@ -37,6 +37,7 @@ from pygpsclient.globals import (
     SPARTN_PPSERVER_URL,
     UMM,
     WORLD,
+    ZED_F9,
 )
 from pygpsclient.mapquest import MAP_UPDATE_INTERVAL
 from pygpsclient.spartn_lband_frame import D9S_PP_EU as D9S_PP
@@ -121,7 +122,8 @@ class Configuration:
             "sockport_n": SOCKSERVER_PORT,
             "sockmode_b": 0,
             "ntripcasterbasemode_s": "SURVEY IN",
-            "ntripcasteracclimit_f": 10,
+            "ntripcasterrcvrtype_s": ZED_F9,
+            "ntripcasteracclimit_f": 100.0,
             "ntripcasterduration_n": 60,
             "ntripcasterposmode_s": "LLH",
             "ntripcasterfixedlat_f": 0.0,
