@@ -99,6 +99,8 @@ Normally installs without any additional steps.
 
 **NB:** PyGPSClient does *NOT* require Homebrew or MacPorts to be installed on MacOS.
 
+**NB:** PyGPSClient does *NOT* require Homebrew or MacPorts to be installed on MacOS.
+
 **Linux (including Raspberry Pi OS):**
 
 (See also [Installation Script](#installscript) below)

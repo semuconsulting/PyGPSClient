@@ -89,7 +89,6 @@
     "mqttclienttopicip_b": 1,
     "mqttclienttopicmga_b": 1,
     "mqttclienttopickey_b": 1,
-    "mqttclienttopicfreq_b": 0,
     "mqttclienttlscrt_s": "<=== FULLY QUALIFIED PATH TO MQTT CRT FILE ===>",
     "mqttclienttlskey_s": "<=== FULLY QUALIFIED PATH TO MQTT KEY FILE ===>",
     "lbandclientbpsrate_n": 9600,
