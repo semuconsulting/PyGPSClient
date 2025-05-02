@@ -12,6 +12,7 @@
 [GPX Track Viewer](#gpxviewer) |
 [Mapquest API Key](#mapquestapi) |
 [User-defined Presets](#userdefined) |
+[TTY Commands](#ttycommands) |
 [CLI Utilities](#cli) |
 [Known Issues](#knownissues) |
 [License](#license) |
@@ -96,8 +97,6 @@ Normally installs without any additional steps.
 (See also [Installation Script](#installscript) below)
 
 *¹* The version of Python supplied with some Apple MacOS platforms includes a [deprecated version of tkinter](https://www.python.org/download/mac/tcltk/) (8.5). Use an official [Python.org](https://www.python.org/downloads/) installation package instead. 
-
-**NB:** PyGPSClient does *NOT* require Homebrew or MacPorts to be installed on MacOS.
 
 **NB:** PyGPSClient does *NOT* require Homebrew or MacPorts to be installed on MacOS.
 
@@ -262,7 +261,9 @@ In both cases you will be prompted to enter your sudo (admin) password.
 ![connect-file icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/binary-1-24.png?raw=true) and select the file type (`*.log, *.ubx, *.*`) and path. PyGPSClient datalog files will be named e.g. `pygpsdata-20220427114802.log`, but any binary dump of an GNSS receiver output is acceptable, including `*.ubx` files produced by u-center.
 1. To disconnect from the data stream, click
 ![disconnect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-media-control-50-24.png?raw=true).
-1. Protocols Shown - Select which protocols to display; NMEA, UBX and/or RTCM3 (NB: this only changes the displayed protocols - to change the actual protocols output by the receiver, use the [UBX Configuration Dialog](#ubxconfig)).
+1. Protocols Shown - Select which protocols to display; NMEA, UBX, RTCM3, SPARTN or TTY (NB: this only changes the displayed protocols - to change the actual protocols output by the receiver, use the [UBX Configuration Dialog](#ubxconfig)). Enabling TTY (terminal) mode will disable all other protocols and display the raw binary stream input at the console.
+1. Console Display - Select console display format (Parsed, Binary, Hex Tabular, Hex String, Parsed+Hex Tabular - see Console Widget below).
+1. Tags - enable color tags in console (see Console Widget below).
 1. Position Format and Units - Change the displayed position (D.DD / D.M.S / D.M.MM / ECEF) and unit (metric/imperial) formats.
 1. Map Type - Select from "world", "map", "sat" or "custom". "map" and "sat" types require an Internet connection and free [Mapquest API Key](#mapquestapi). "custom" offline map images can be imported and georeferenced using the [Menu..Options..Import Custom Map](#custommap) facility.
 1. Show Track - Tick to show track in map view. Map track will only be recorded while this checkbox is ticked.
@@ -299,6 +300,7 @@ In both cases you will be prompted to enter your sudo (admin) password.
 |![scatterplot widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/scatterplot_widget.png?raw=true)| Scatterplot widget showing variability in position reporting over time. (Optional) Enter fixed reference position. Select Average to center plot on dynamic average position (*displayed at top left*), or Fixed to center on fixed reference position (*if entered*). Check Autorange to set plot range automatically. Set the update interval (e.g. 4 = every 4th navigation solution). Use the range slider or mouse wheel to adjust plot range. Right-click to set fixed reference point to the current mouse cursor position. Double-click to clear the existing data. Settings may be saved to a json configuration file. |
 |![rover widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/rover_widget.png?raw=true) | Rover widget plots the relative 2D position, track and status information for the roving receiver in a fixed or moving base / rover RTK configuration. Can also display relative position of NTRIP mountpoint and receiver in a static RTK configuration. Double-click to clear existing plot. (*GNSS rover receiver must be capable of outputting UBX NAV-RELPOSNED messages.*) |
 |![chart view](https://github.com/semuconsulting/PyGPSClient/blob/master/images/chart_widget.png?raw=true) | Chart widget acts as a multi-channel "plotter", allowing the user to plot a series of named numeric data attributes from any NMEA, UBX, RTCM or SPARTN data source, with configurable y (value) and x (time) axes. By default, the number of channels is set to 4, but this can be manually edited by the user via the json configuration file setting `chartsettings_d["numchn_n"]`. For each channel, user can select: (*optional*) identity of message source e.g. `NAV-PVT`; attribute name e.g. `hAcc`; scaling factor (divisor) e.g. 1000; y axis range e.g. 0 - 5. Wildcards are available for attribute groups - "\*" (average of group values), "+" (maximum of group values), "-" (minimum of group values) e.g. `cno*` will plot the average `cno` value for a group of satellites. Double-click to clear the existing data. Double-right-click to save the current chart data to the clipboard in CSV format. Settings may be saved to a json configuration file. |
+|![IMU widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/imu_widget.png?raw=true) |  IMU (Inertial Management Unit) Monitor widget showing current orientation/attitude (roll, pitch, yaw) and status of IMU from a specified NMEA or UBX message source. Enter the identity of the UBX or NMEA message source (e.g. ESF-ALG, HNR-ATT, NAV-ATT, NAV-PVAT, GPFMI). Select range in degrees (from ±1 to ±180 degrees). Settings may be saved to a json configuration file. |
 ---
 ## <a name="ubxconfig">UBX Configuration Facilities</a>
 
@@ -589,6 +591,17 @@ Configure UART baud rate on LG290P; P; QTMCFGUART; W,460800; 1
 ```
 
 Multiple commands can be concatenated on a single line. Illustrative examples are shown in the sample [pygpsclient.json](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient.json#L158) file.
+
+---
+## <a name="ttycommands">TTY Commands and Presets</a>
+
+![ttydialog screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/tty_dialog.png?raw=true)
+
+The TTY Commands dialog provides a facility to send user-defined ASCII TTY commands (e.g. `AT+` style commands) to the connected serial device. Commands can be entered manually or selected from a list of user-defined presets. The dialog can be accessed via menu bar Options...TTY Commands. If the CRLF? checkbox is ticked, a CRLF (`b"\x0d\x0a"`) terminator will be added to the command string. If the Echo? checkbox is ticked, outgoing TTY commands will be echoed on the console with the marker `"TTY<<"`.
+
+Preset commands can be set up by adding appropriate semicolon-delimited message descriptions and payload definitions to the `"ttypresets_l":` list in your json configuration file (see [example provided](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient.json#L243)). The message definition comprises a free-format text description (*avoid embedded semi-colons*) followed by one or more ASCII TTY commands, e,g. 
+
+- `<description>; <tty command>`
 
 ---
 ## <a name="cli">Command Line Utilities</a>

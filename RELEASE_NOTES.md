@@ -2,9 +2,15 @@
 
 ### RELEASE 1.5.8
 
+FIXES:
+
+1. Fix issue where datalog path was not being updated if datalogging was enabled at runtime.
+
 ENHANCEMENTS:
 
-1. Add receiver type option to NTRIP Caster mode - can now utilise either u-blox ZED-F9* or Quectel LG290P as Base Station receiver.
+1. Add receiver type option to NTRIP Caster mode - can now utilise either u-blox ZED-F9* or Quectel LG290P as Base Station receiver. NOTE THAT due to quirks in the LG290P firmware, setting Base Station mode with RTCM MSM 7 messages requires two successive restarts - you may see `WARNING - connection error` in the console during those restarts.
+1. Add new IMU Monitor widget, capable of displaying IMU orientation (roll, pitch, yaw) and status from a variety of NMEA or UBX IMU data sources (e.g. ESF-ALG, HNR-ATT, NAV-ATT, NAV-PVAT, GPFMI).
+1. Add TTY Command Dialog, allowing user to enter/select ASCII TTY commands to the connected serial device. Access via menu bar Options...TTY Commands.
 1. RTCM3 messages types 1002 (GPS L1 observables) & 1010 (GLONASS L1 observables) added to NTRIP Caster configuration.
 
 ### RELEASE 1.5.7

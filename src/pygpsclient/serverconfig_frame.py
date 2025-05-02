@@ -6,9 +6,7 @@ Supports two modes of operation - Socket Server and NTRIP Caster.
 
 If running in NTRIP Caster mode, two base station modes are available -
 Survey-In and Fixed. The panel provides methods to configure RTK-compatible
-receiver (e.g. ZED-F9P) to operate in either of these base station modes.
-
-Supply initial settings via `saved-config` keyword argument.
+receiver (e.g. ZED-F9P or LG290P) to operate in either of these base station modes.
 
 Application icons from https://iconmonstr.com/license/.
 
@@ -54,6 +52,7 @@ from pygpsclient.globals import (
     LG290P,
     READONLY,
     RPTDELAY,
+    SERVERCONFIG,
     SOCK_NTRIP,
     SOCKMODES,
     SOCKSERVER_NTRIP_PORT,
@@ -114,6 +113,7 @@ LLH = 1
 MAXSVIN = 15
 POS_ECEF = "ECEF"
 POS_LLH = "LLH"
+PQTMVER = "PQTMVER"
 POSMODES = (POS_LLH, POS_ECEF)
 TMODE_DISABLED = 0
 TMODE_FIXED = 2
@@ -164,6 +164,8 @@ class ServerConfigFrame(Frame):
         self._fixed_lat_temp = 0
         self._fixed_lon_temp = 0
         self._fixed_alt_temp = 0
+        self._pending_confs = {}
+        self._quectel_restart = 0  # keep track of Quectel receiver restarts
 
         self._body()
         self._do_layout()
@@ -514,6 +516,7 @@ class ServerConfigFrame(Frame):
         Start or stop socket server.
         """
 
+        self._quectel_restart = 0
         if self._socket_serve.get():
             # validate entries
             valid = True
@@ -781,32 +784,36 @@ class ServerConfigFrame(Frame):
 
         # set base station timing mode
         if self.base_mode.get() == BASE_SVIN:
-            msgs = self._config_svin(self.acclimit.get(), self.duration.get())
+            cmds = self._config_svin(self.acclimit.get(), self.duration.get())
         elif self.base_mode.get() == BASE_FIXED:
-            msgs = self._config_fixed(
+            cmds = self._config_fixed(
                 self.acclimit.get(),
                 self.fixedlat.get(),
                 self.fixedlon.get(),
                 self.fixedalt.get(),
             )
         else:  # DISABLED
-            msgs = self._config_disable()
-        if not isinstance(msgs, list):
-            msgs = [
-                msgs,
+            cmds = self._config_disable()
+        if not isinstance(cmds, list):
+            cmds = [
+                cmds,
             ]
-        for msg in msgs:
+        for cmd in cmds:
             # self.logger.debug(f"Base Config Message: {msg}")
-            self.__app.gnss_outqueue.put(msg.serialize())
+            self.__app.gnss_outqueue.put(cmd.serialize())
 
-        # set RTCM and UBX NAV-SVIN message output rate
         if self.receiver_type.get() == ZED_F9:
+            # set RTCM and UBX NAV-SVIN message output rate
             rate = 0 if self.base_mode.get() == BASE_DISABLED else 1
             for port in ("USB", "UART1"):
                 msg = self._config_msg_rates(rate, port)
                 self.__app.gnss_outqueue.put(msg.serialize())
                 msg = config_nmea(self.disable_nmea.get(), port)
                 self.__app.gnss_outqueue.put(msg.serialize())
+        else:  # LG290P
+            # poll for confirmation that rcvr has restarted,
+            # then resend configuration commands a 2nd time
+            self._pending_confs[PQTMVER] = SERVERCONFIG
 
     def _config_msg_rates(self, rate: int, port_type: str) -> UBXMessage:
         """
@@ -863,6 +870,9 @@ class ServerConfigFrame(Frame):
         """
         Disable base station mode for Quectel receivers.
 
+        NB: A 'feature' of Quectel firmware is that some command sequences
+        require multiple restarts before taking effect.
+
         :return: NMEAMessage(s)
         :rtype: NMEAMessage(s)
         """
@@ -912,6 +922,9 @@ class ServerConfigFrame(Frame):
         """
         Configure Survey-In mode with specified accuracy limit for Quectel receivers.
 
+        NB: A 'feature' of Quectel firmware is that some command sequences
+        require multiple restarts before taking effect.
+
         :param int acc_limit: accuracy limit in cm
         :param int svin_min_dur: survey minimimum duration
         :return: NMEAMessage(s)
@@ -946,11 +959,6 @@ class ServerConfigFrame(Frame):
         )
         msgs.append(NMEAMessage("P", "QTMSAVEPAR", SET))
         msgs.append(NMEAMessage("P", "QTMSRR", SET))
-        msgs.append(
-            NMEAMessage(
-                "P", "QTMCFGMSGRATE", SET, msgname="PQTMSVINSTATUS", rate=1, msgver=1
-            )
-        )
         return msgs
 
     def _config_fixed(
@@ -1027,6 +1035,9 @@ class ServerConfigFrame(Frame):
         """
         Configure Fixed mode with specified coordinates for Quectel receivers.
 
+        NB: A 'feature' of Quectel firmware is that some command sequences
+        require multiple restarts before taking effect.
+
         :param int acc_limit: accuracy limit in cm
         :param float lat: lat or X in m
         :param float lat: lon or Y in m
@@ -1072,6 +1083,28 @@ class ServerConfigFrame(Frame):
         msgs.append(NMEAMessage("P", "QTMSAVEPAR", SET))
         msgs.append(NMEAMessage("P", "QTMSRR", SET))
         return msgs
+
+    def _on_quectel_restart(self):
+        """
+        Action(s) when Quectel receiver has restarted.
+        """
+
+        self._quectel_restart += 1
+        if self.base_mode.get() in (BASE_SVIN, BASE_FIXED):
+            # if first restart, send config commands a 2nd time
+            if self._quectel_restart == 1:
+                self._config_rcvr()
+            # if second restart and survey-in mode, enable SVIN status message
+            if self.base_mode.get() == BASE_SVIN and self._quectel_restart == 2:
+                cmd = NMEAMessage(
+                    "P",
+                    "QTMCFGMSGRATE",
+                    SET,
+                    msgname="PQTMSVINSTATUS",
+                    rate=1,
+                    msgver=1,
+                )
+                self.__app.gnss_outqueue.put(cmd.serialize())
 
     def svin_countdown(self, ela: int, valid: bool, active: bool):
         """
@@ -1130,3 +1163,17 @@ class ServerConfigFrame(Frame):
         """
 
         self.__app.frm_settings.on_expand()
+
+    def update_pending(self, msg: object):
+        """
+        Receives polled confirmation (PQTMVER) message from the nmea
+        handler and updates status.
+
+        :param NMEAMessage msg: NMEA PQTMVER message
+        """
+
+        frm = self._pending_confs.get(msg.identity, None)
+        if frm == SERVERCONFIG:
+            # reset all confirmation flags for this frame
+            self._pending_confs.pop(PQTMVER)
+            self._on_quectel_restart()

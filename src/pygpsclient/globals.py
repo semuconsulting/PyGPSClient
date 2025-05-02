@@ -284,6 +284,8 @@ TIMEOUTS = (
 TOPIC_IP = "/pp/ip/{}"
 TOPIC_MGA = "/pp/ubx/mga"
 TOPIC_RXM = "/pp/ubx/0236/ip"
+TTY_EVENT = "<<tty_read>>"
+TTYMARKER = "TTY<<"
 UBXPRESETS = "ubxpresets"
 UBXSIMULATOR = "ubxsimulator"
 UI = "Imperial mph"
@@ -320,6 +322,7 @@ UBX_MONRF = 14
 NMEA_MONHW = 15
 NMEA_PRESET = 16
 NMEA_CFGOTHER = 17
+SERVERCONFIG = 18
 
 # map of fix values to descriptions
 # the keys in this map are a concatenation of NMEA/UBX

@@ -147,9 +147,9 @@ class ConsoleFrame(Frame):
         consolestr = ""
         for raw_data, parsed_data, marker in consoledata:
             if consoleformat == FORMAT_BINARY:
-                data = str(raw_data).strip("\n")
+                data = f"{marker}{raw_data}".strip("\n")
             elif consoleformat == FORMAT_HEXSTR:
-                data = str(raw_data.hex())
+                data = f"{marker}{raw_data.hex()}"
             elif consoleformat == FORMAT_HEXTAB:
                 data = hextable(raw_data)
             elif consoleformat == FORMAT_BOTH:

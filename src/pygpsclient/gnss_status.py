@@ -54,3 +54,4 @@ class GNSSStatus:
         self.sysmon_data = {}  # dict of system monitor data (cpu and memory load, etc.)
         self.spectrum_data = []  # list of spectrum data (spec, spn, res, ctr, pga)
         self.comms_data = {}  # dict of comms port utilisation (tx and rx loads)
+        self.imu_data = {}  # dict of imu data (roll, pitch, yaw, status)
