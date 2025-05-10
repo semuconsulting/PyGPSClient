@@ -24,6 +24,7 @@ from tkinter import (
     ALL,
     HORIZONTAL,
     NW,
+    Canvas,
     Checkbutton,
     E,
     Entry,
@@ -66,7 +67,6 @@ from pygpsclient.helpers import (
     scale_font,
     xy2ll,
 )
-from pygpsclient.skyview_frame import Canvas
 
 AVG = "avg"
 CTRAVG = "Average"

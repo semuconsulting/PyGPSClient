@@ -60,8 +60,16 @@ class UBXHandler:
         # self.logger.debug(f"data received {parsed_data.identity}")
         if parsed_data.identity[0:3] in ("ACK", "CFG"):
             self._process_ACK(parsed_data)
-        elif parsed_data.identity == "MON-VER":
-            self._process_MONVER(parsed_data)
+        elif parsed_data.identity == "ESF-ALG":
+            self._process_ESF_ALG(parsed_data)
+        elif parsed_data.identity == "HNR-ATT":
+            self._process_HNR_ATT(parsed_data)
+        elif parsed_data.identity == "HNR-PVT":
+            self._process_HNR_PVT(parsed_data)
+        elif parsed_data.identity == "NAV-ATT":
+            self._process_NAV_ATT(parsed_data)
+        elif parsed_data.identity in ("NAV-DOP", "NAV2-DOP"):
+            self._process_NAV_DOP(parsed_data)
         elif parsed_data.identity in ("NAV-POSLLH", "NAV-HPPOSLLH"):
             self._process_NAV_POSLLH(parsed_data)
         elif parsed_data.identity in ("NAV-PVT", "NAV2-PVT"):
@@ -70,8 +78,6 @@ class UBXHandler:
             self._process_NAV_PVAT(parsed_data)
         elif parsed_data.identity == "NAV-RELPOSNED":
             self._process_NAV_RELPOSNED(parsed_data)
-        elif parsed_data.identity == "NAV-VELNED":
-            self._process_NAV_VELNED(parsed_data)
         elif parsed_data.identity in ("NAV-SAT", "NAV2-SAT"):
             self._process_NAV_SAT(parsed_data)
         elif parsed_data.identity in ("NAV-STATUS", "NAV2-STATUS"):
@@ -82,18 +88,18 @@ class UBXHandler:
             self._process_NAV_SVINFO(parsed_data)
         elif parsed_data.identity == "NAV-SOL":
             self._process_NAV_SOL(parsed_data)
-        elif parsed_data.identity in ("NAV-DOP", "NAV2-DOP"):
-            self._process_NAV_DOP(parsed_data)
-        elif parsed_data.identity == "HNR-PVT":
-            self._process_HNR_PVT(parsed_data)
-        elif parsed_data.identity == "RXM-RTCM":
-            self._process_RXM_RTCM(parsed_data)
+        elif parsed_data.identity == "NAV-VELNED":
+            self._process_NAV_VELNED(parsed_data)
+        elif parsed_data.identity == "MON-COMMS":
+            self._process_MON_COMMS(parsed_data)
         elif parsed_data.identity == "MON-SPAN":
             self._process_MON_SPAN(parsed_data)
         elif parsed_data.identity == "MON-SYS":
             self._process_MON_SYS(parsed_data)
-        elif parsed_data.identity == "MON-COMMS":
-            self._process_MON_COMMS(parsed_data)
+        elif parsed_data.identity == "MON-VER":
+            self._process_MONVER(parsed_data)
+        elif parsed_data.identity == "RXM-RTCM":
+            self._process_RXM_RTCM(parsed_data)
         elif parsed_data.identity == "RXM-PMP":
             self._process_RXM_PMP(parsed_data)
         elif parsed_data.identity == "RXM-SPARTN-KEY":
@@ -288,6 +294,14 @@ class UBXHandler:
         self.__app.gnss_status.speed = data.gSpeed / 1000  # m/s
         self.__app.gnss_status.sip = data.numSV
         self.__app.gnss_status.sep = (data.height - data.hMSL) / 1000  # meters
+        ims = self.__app.gnss_status.imu_data
+        ims["source"] = data.identity
+        ims["roll"] = data.vehRoll
+        ims["pitch"] = data.vehPitch
+        ims["yaw"] = data.vehHeading
+        ims["status"] = (
+            (data.vehRollValid << 3) + (data.vehPitchValid << 2) + data.vehHeadingValid
+        )
 
     def _process_NAV_VELNED(self, data: UBXMessage):
         """
@@ -520,3 +534,45 @@ class UBXHandler:
 
         if self.__app.dialog(DLGTSPARTN) is not None:
             self.__app.dialog(DLGTSPARTN).update_pending(data)
+
+    def _process_ESF_ALG(self, data: UBXMessage):
+        """
+        Process ESF-ALG sentence - External Sensor Fusion IMU Alignment.
+
+        :param UBXMessage data: ESF-ALG message
+        """
+
+        ims = self.__app.gnss_status.imu_data
+        ims["source"] = data.identity
+        ims["roll"] = data.roll
+        ims["pitch"] = data.pitch
+        ims["yaw"] = data.yaw
+        ims["status"] = data.status
+
+    def _process_NAV_ATT(self, data: UBXMessage):
+        """
+        Process NAV_ATT sentence - Navigation Attitude.
+
+        :param UBXMessage data: NAV_ATT message
+        """
+
+        ims = self.__app.gnss_status.imu_data
+        ims["source"] = data.identity
+        ims["roll"] = data.roll
+        ims["pitch"] = data.pitch
+        ims["yaw"] = data.heading
+        ims["status"] = ""
+
+    def _process_HNR_ATT(self, data: UBXMessage):
+        """
+        Process HNR_ATT sentence - High Rate Navigation Attitude..
+
+        :param UBXMessage data: HNR_ATT message
+        """
+
+        ims = self.__app.gnss_status.imu_data
+        ims["source"] = data.identity
+        ims["roll"] = data.roll
+        ims["pitch"] = data.pitch
+        ims["yaw"] = data.heading
+        ims["status"] = ""

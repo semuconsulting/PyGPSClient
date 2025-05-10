@@ -26,8 +26,10 @@ from pygpsclient.strings import (
     DLGTNMEA,
     DLGTNTRIP,
     DLGTSPARTN,
+    DLGTTTY,
     DLGTUBX,
 )
+from pygpsclient.tty_preset_dialog import TTYPresetDialog
 from pygpsclient.ubx_config_dialog import UBXConfigDialog
 
 
@@ -49,5 +51,6 @@ class DialogState:
             DLGTSPARTN: {CLASS: SPARTNConfigDialog, THD: None, DLG: None, CFG: True},
             DLGTGPX: {CLASS: GPXViewerDialog, THD: None, DLG: None, CFG: True},
             DLGTIMPORTMAP: {CLASS: ImportMapDialog, THD: None, DLG: None, CFG: True},
+            DLGTTTY: {CLASS: TTYPresetDialog, THD: None, DLG: None, CFG: True},
             # add any new dialogs here
         }

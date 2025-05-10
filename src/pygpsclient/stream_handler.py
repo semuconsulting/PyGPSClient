@@ -80,6 +80,7 @@ class StreamHandler:
 
         self._stream_thread = None
         self._stopevent = Event()
+        self._ttyevent = Event()
 
     def start_read_thread(self, caller: object, settings: dict):
         """
@@ -90,11 +91,16 @@ class StreamHandler:
         """
 
         self._stopevent.clear()
+        if self.__app.configuration.get("ttyprot_b"):
+            self._ttyevent.set()
+        else:
+            self._ttyevent.clear()
         self._stream_thread = Thread(
             target=self._read_thread,
             args=(
                 caller,
                 self._stopevent,
+                self._ttyevent,
                 settings,
             ),
             daemon=True,
@@ -109,10 +115,23 @@ class StreamHandler:
         self._stopevent.set()
         self._stream_thread = None
 
+    def ttymode(self, enabled: bool):
+        """
+        Set TTY mode event status.
+
+        :param bool enabled: TTY mode status
+        """
+
+        if enabled:
+            self._ttyevent.set()
+        else:
+            self._ttyevent.clear()
+
     def _read_thread(
         self,
         caller,
         stopevent: Event,
+        ttyevent: Event,
         settings: dict,
     ):
         """
@@ -121,6 +140,7 @@ class StreamHandler:
 
         :param caller owner: calling object
         :param Event stopevent: thread stop event
+        :param Event ttyevent: tty mode event
         :param dict settings: settings dictionary
         """
 
@@ -145,6 +165,7 @@ class StreamHandler:
                 ) as stream:
                     self._readloop(
                         stopevent,
+                        ttyevent,
                         stream,
                         settings,
                         inactivity_timeout,
@@ -155,6 +176,7 @@ class StreamHandler:
                 with open(in_filepath, "rb") as stream:
                     self._readloop(
                         stopevent,
+                        ttyevent,
                         stream,
                         settings,
                         inactivity_timeout,
@@ -185,6 +207,7 @@ class StreamHandler:
                         stream.send(b"")  # send empty datagram to establish connection
                     self._readloop(
                         stopevent,
+                        ttyevent,
                         stream,
                         settings,
                         inactivity_timeout,
@@ -194,6 +217,7 @@ class StreamHandler:
                 with UBXSimulator() as stream:
                     self._readloop(
                         stopevent,
+                        ttyevent,
                         stream,
                         settings,
                         inactivity_timeout,
@@ -222,6 +246,7 @@ class StreamHandler:
     def _readloop(
         self,
         stopevent: Event,
+        ttyevent: Event,
         stream: object,
         settings: dict,
         inactivity: int,
@@ -234,9 +259,11 @@ class StreamHandler:
         prevent thrashing.
 
         :param Event stopevent: thread stop event
+        :param Event ttyevent: thread tty event
         :param object stream: serial data stream
         :param dict settings: settings dictionary
         :param int inactivity: inactivity timeout (s)
+        :param Event ttyevent: TTY mode event
         """
 
         def _errorhandler(err: Exception):
@@ -251,6 +278,8 @@ class StreamHandler:
             self.__master.event_generate(settings["read_event"])
 
         conntype = settings["conntype"]
+
+        # Parsed mode (NMEA, UBX,RTCM3)
         ubr = UBXReader(
             stream,
             protfilter=NMEA_PROTOCOL | UBX_PROTOCOL | RTCM3_PROTOCOL,
@@ -270,7 +299,17 @@ class StreamHandler:
                     conntype == CONNECTED_FILE
                     and datetime.now() > lastread + timedelta(seconds=FILEREAD_INTERVAL)
                 ):
-                    raw_data, parsed_data = ubr.read()
+                    if ttyevent.is_set():  # TTY mode (ASCII data)
+                        raw_data = stream.readline()
+                        if raw_data == b"":
+                            raw_data = None
+                            parsed_data = None
+                        else:
+                            parsed_data = raw_data.decode(
+                                "ascii", errors="backslashreplace"
+                            )
+                    else:  # Parsed mode (NMEA, UBX, RTCM3)
+                        raw_data, parsed_data = ubr.read()
                     if raw_data is not None:
                         settings["inqueue"].put((raw_data, parsed_data))
                         self.__master.event_generate(settings["read_event"])
@@ -305,7 +344,5 @@ class StreamHandler:
                 RTCMMessageError,
                 RTCMParseError,
             ) as err:
-                parsed_data = f"Error parsing data stream {err}"
-                settings["inqueue"].put((raw_data, parsed_data))
-                self.__master.event_generate(settings["read_event"])
+                _errorhandler(err)
                 continue

@@ -96,7 +96,7 @@ D9S_FACTORY = {
     "descrm": 1,
     "prescrm": 1,
     "descrminit": 23560,
-    "unqword": 16238547128276412563,
+    "unqword": "16238547128276412563",
 }
 D9S_PP_US = {
     "name": "D9S PointPerfect US",
@@ -108,7 +108,7 @@ D9S_PP_US = {
     "descrm": 1,
     "prescrm": 0,
     "descrminit": 26969,
-    "unqword": 16238547128276412563,
+    "unqword": "16238547128276412563",
 }
 D9S_PP_EU = {
     "name": "D9S PointPerfect EU",
@@ -120,7 +120,7 @@ D9S_PP_EU = {
     "descrm": 1,
     "prescrm": 0,
     "descrminit": 26969,
-    "unqword": 16238547128276412563,
+    "unqword": "16238547128276412563",
 }
 # D9S default configuration
 D9S_CONFIG = D9S_PP_US  # D9S_FACTORY

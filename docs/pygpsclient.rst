@@ -140,6 +140,14 @@ pygpsclient.importmap\_dialog module
    :show-inheritance:
    :undoc-members:
 
+pygpsclient.imu\_frame module
+-----------------------------
+
+.. automodule:: pygpsclient.imu_frame
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 pygpsclient.map\_frame module
 -----------------------------
 
@@ -336,6 +344,14 @@ pygpsclient.sysmon\_frame module
 --------------------------------
 
 .. automodule:: pygpsclient.sysmon_frame
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+pygpsclient.tty\_preset\_dialog module
+--------------------------------------
+
+.. automodule:: pygpsclient.tty_preset_dialog
    :members:
    :show-inheritance:
    :undoc-members:

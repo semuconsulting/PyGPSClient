@@ -29,6 +29,7 @@ from pygpsclient.chart_frame import ChartviewFrame
 from pygpsclient.console_frame import ConsoleFrame
 from pygpsclient.globals import CLASS, FRAME
 from pygpsclient.graphview_frame import GraphviewFrame
+from pygpsclient.imu_frame import IMUFrame
 from pygpsclient.map_frame import MapviewFrame
 from pygpsclient.rover_frame import RoverFrame
 from pygpsclient.scatter_frame import ScatterViewFrame
@@ -63,6 +64,7 @@ WDGSPECTRUM = "Spectrum"
 WDGSTATUS = "Status"
 WDGSYSMON = "System Monitor"
 WDGCHART = "Chart Plot"
+WDGIMUMON = "IMU Monitor"
 
 
 class WidgetState:
@@ -163,6 +165,11 @@ class WidgetState:
             WDGSYSMON: {
                 CLASS: SysmonFrame,
                 FRAME: "frm_sysmon",
+                VISIBLE: False,
+            },
+            WDGIMUMON: {
+                CLASS: IMUFrame,
+                FRAME: "frm_imumon",
                 VISIBLE: False,
             },
             # add any new widgets here

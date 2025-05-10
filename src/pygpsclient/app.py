@@ -75,6 +75,8 @@ from pygpsclient.globals import (
     SPARTN_EVENT,
     SPARTN_PROTOCOL,
     THD,
+    TTY_EVENT,
+    TTYMARKER,
 )
 from pygpsclient.gnss_status import GNSSStatus
 from pygpsclient.helpers import check_latest
@@ -374,6 +376,7 @@ class App(Frame):
         self.__master.bind(GNSS_ERR_EVENT, self.on_stream_error)
         self.__master.bind(NTRIP_EVENT, self.on_ntrip_read)
         self.__master.bind(SPARTN_EVENT, self.on_spartn_read)
+        self.__master.bind(TTY_EVENT, self.on_tty_read)
         self.__master.bind_all("<Control-q>", self.on_exit)
 
     def _set_default_fonts(self):
@@ -747,6 +750,22 @@ class App(Frame):
         except (SerialException, SerialTimeoutException) as err:
             self.set_status(f"Error sending to device {err}", ERRCOL)
 
+    def on_tty_read(self, event):  # pylint: disable=unused-argument
+        """
+        EVENT TRIGGERED
+        Action on <<tty_read>> event - data available on TTY queue.
+
+        :param event event: read event
+        """
+
+        try:
+            raw_data, parsed_data = self.gnss_inqueue.get(False)
+            if raw_data is not None:
+                self.process_data(raw_data, parsed_data, TTYMARKER)
+            self.gnss_inqueue.task_done()
+        except Empty:
+            pass
+
     def update_ntrip_status(self, status: bool, msgt: tuple = None):
         """
         Update NTRIP configuration dialog connection status.
@@ -802,7 +821,8 @@ class App(Frame):
         elif isinstance(parsed_data, MQTTMessage):
             msgprot = MQTT_PROTOCOL
         elif isinstance(parsed_data, str):
-            marker = "WARNING>>"
+            if not self.configuration.get("ttyprot_b"):
+                marker = "WARNING>>"
 
         if msgprot == UBX_PROTOCOL and msgprot & protfilter:
             self.ubx_handler.process_data(raw_data, parsed_data)

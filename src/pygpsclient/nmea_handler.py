@@ -17,6 +17,7 @@ Created on 30 Sep 2020
 """
 
 import logging
+from math import degrees
 from time import time
 
 from pynmeagps import NMEAMessage
@@ -86,10 +87,16 @@ class NMEAHandler:
                 self._process_UBX03(parsed_data)
             elif parsed_data.msgID == "QTMVERNO":  # LG290P hardware version
                 self._process_QTMVERNO(parsed_data)
+            elif parsed_data.msgID == "QTMVER":  # LG290P hardware version
+                self._process_QTMVER(parsed_data)
             elif parsed_data.msgID == "QTMPVT":  # LG290P pos, vel, trk
                 self._process_QTMPVT(parsed_data)
             elif parsed_data.msgID[0:3] == "QTM" and hasattr(parsed_data, "status"):
                 self._process_QTMACK(parsed_data)
+            elif parsed_data.msgID == "QTMSVINSTATUS":  # LG290P SVIN status
+                self._process_QTMSVINSTATUS(parsed_data)
+            elif parsed_data.msgID == "FMI":  # Feyman IM19 IMU status
+                self._process_FMI(parsed_data)
 
         except ValueError:
             pass
@@ -335,6 +342,20 @@ class NMEAHandler:
         if self.__app.dialog(DLGTNMEA) is not None:
             self.__app.dialog(DLGTNMEA).update_pending(data)
 
+    def _process_QTMVER(self, data: NMEAMessage):
+        """
+        Process QTMVER sentence - Quectel Hardware Version.
+        This gets sent whenever receiver is restarted.
+
+        :param pynmeagps.NMEAMessage data: parsed QTMVER sentence
+        """
+
+        self._process_QTMVERNO(data)
+
+        # notify socket server frame that receiver has restarted...
+        if self.__app.frm_settings.frm_socketserver is not None:
+            self.__app.frm_settings.frm_socketserver.update_pending(data)
+
     def _process_QTMPVT(self, data: NMEAMessage):
         """
         Process QTMPVT sentence - Quectel PVT.
@@ -363,3 +384,39 @@ class NMEAHandler:
 
         if self.__app.dialog(DLGTNMEA) is not None:
             self.__app.dialog(DLGTNMEA).update_pending(data)
+
+    def _process_QTMSVINSTATUS(self, data: NMEAMessage):
+        """
+        Process QTMSVINSTATUS sentence - Survey In Status.
+
+        :param NMEAMessage data:QTMSVINSTATUS parsed message
+        """
+
+        valid = 1 if data.valid == 2 else 0
+        active = data.valid == 1
+        self.__app.svin_countdown(data.obs, valid, active)
+
+    def _process_FMI(self, data: NMEAMessage):
+        """
+        Process GMFMI sentence - Feyman IM19 IMU status.
+
+        Roll, Pitch and Yaw are in radians.
+
+        :param NMEAMessage data: GPFMI message
+        """
+
+        try:  # cater for pynmeagps<1.0.50
+            self.__app.gnss_status.utc = data.time  # datetime.time
+            self.__app.gnss_status.lat = data.lat
+            self.__app.gnss_status.lon = data.lon
+            self.__app.gnss_status.alt = data.alt
+            self.__app.gnss_status.sip = data.numSV
+            self.__app.gnss_status.diff_age = data.diffAge
+            ims = self.__app.gnss_status.imu_data
+            ims["source"] = data.identity
+            ims["roll"] = round(degrees(data.roll), 4)
+            ims["pitch"] = round(degrees(data.pitch), 4)
+            ims["yaw"] = round(degrees(data.yaw), 4)
+            ims["status"] = data.status
+        except (KeyError, AttributeError):
+            pass
