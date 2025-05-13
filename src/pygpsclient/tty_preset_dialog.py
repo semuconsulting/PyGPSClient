@@ -38,6 +38,7 @@ from pygpsclient.confirm_box import ConfirmBox
 from pygpsclient.globals import (
     CRLF,
     ERRCOL,
+    ICON_BLANK,
     ICON_CONFIRMED,
     ICON_EXIT,
     ICON_PENDING,
@@ -82,12 +83,13 @@ class TTYPresetDialog(Toplevel):
         self.resizable(True, True)
         self.title(DLGTTTY)  # pylint: disable=E1102
         self.protocol("WM_DELETE_WINDOW", self.on_exit)
+        self._img_none = ImageTk.PhotoImage(Image.open(ICON_BLANK))
         self._img_send = ImageTk.PhotoImage(Image.open(ICON_SEND))
         self._img_pending = ImageTk.PhotoImage(Image.open(ICON_PENDING))
         self._img_confirmed = ImageTk.PhotoImage(Image.open(ICON_CONFIRMED))
         self._img_warn = ImageTk.PhotoImage(Image.open(ICON_WARNING))
         self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
-        self._preset_command = None
+        self._confirm = False
         self._command = StringVar()
         self._crlf = IntVar()
         self._echo = IntVar()
@@ -114,12 +116,12 @@ class TTYPresetDialog(Toplevel):
         )
         self._chk_crlf = Checkbutton(
             self._frm_container,
-            text="CRLF?",
+            text="CRLF",
             variable=self._crlf,
         )
         self._chk_echo = Checkbutton(
             self._frm_container,
-            text="Echo?",
+            text="Echo",
             variable=self._echo,
         )
         self._lbl_presets = Label(
@@ -231,7 +233,7 @@ class TTYPresetDialog(Toplevel):
         Command has been updated.
         """
 
-        self._lbl_send_command.config(image=self._img_pending)
+        self._lbl_send_command.config(image=self._img_none)
 
     def _on_update_settings(self, var, index, mode):  # pylint: disable=unused-argument
         """
@@ -250,6 +252,7 @@ class TTYPresetDialog(Toplevel):
             self.set_status("", INFOCOL)
             idx = self._lbx_preset.curselection()
             preset = self._lbx_preset.get(idx).split(";", 1)
+            self._confirm = CONFIRM in preset[0]
             self._command.set(preset[1])
         except IndexError:
             self.set_status("Invalid preset format", ERRCOL)
@@ -259,28 +262,28 @@ class TTYPresetDialog(Toplevel):
         Preset command send button has been clicked.
         """
 
-        self._preset_command = self._ent_command.get()
-        if self._preset_command in ("", None):
+        if self._command.get() in ("", None):
             self.set_status("Enter or select command", ERRCOL)
             return
 
         try:
-            if CONFIRM in self._preset_command:
+            if self._confirm:
                 if ConfirmBox(self, DLGACTION, DLGACTIONCONFIRM).show():
-                    self._parse_command(self._preset_command)
+                    self._parse_command(self._command.get())
                     status = CONFIRMED
                 else:
                     status = CANCELLED
             else:
-                self._parse_command(self._preset_command)
+                self._parse_command(self._command.get())
                 status = CONFIRMED
             if status == CONFIRMED:
-                self._lbl_send_command.config(image=self._img_confirmed)
+                self._lbl_send_command.config(image=self._img_pending)
                 self.set_status("Command(s) sent")
             elif status == CANCELLED:
                 self.set_status("Command(s) cancelled")
             elif status == NOMINAL:
                 self.set_status("Command(s) sent, no results")
+            self._confirm = False
 
         except Exception as err:  # pylint: disable=broad-except
             self.set_status(f"Error {err}", ERRCOL)
@@ -299,7 +302,7 @@ class TTYPresetDialog(Toplevel):
 
         try:
             for cmd in command.split(";"):
-                cmd = cmd.strip().encode()
+                cmd = cmd.strip().encode("ascii", errors="backslashreplace")
                 if self._crlf.get():
                     cmd += CRLF
                 self.__app.gnss_outqueue.put(cmd)
@@ -320,11 +323,11 @@ class TTYPresetDialog(Toplevel):
         :param bytes msg: ASCII config message
         """
 
-        status = getattr(msg, "status", "OK")
-        if status == "OK":
+        msgstr = msg.decode("ascii", errors="backslashreplace")
+        if "OK" in msgstr.upper():
             self._lbl_send_command.config(image=self._img_confirmed)
             self.set_status("Preset command(s) acknowledged", OKCOL)
-        elif status == "ERROR":
+        elif "ERROR" in msgstr.upper():
             self._lbl_send_command.config(image=self._img_warn)
             self.set_status("Preset command(s) rejected", ERRCOL)
 

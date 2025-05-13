@@ -59,6 +59,7 @@ from pygpsclient.globals import (
     FILEREAD_INTERVAL,
     UBXSIMULATOR,
 )
+from pygpsclient.strings import DLGTTTY
 
 
 class StreamHandler:
@@ -308,6 +309,7 @@ class StreamHandler:
                             parsed_data = raw_data.decode(
                                 "ascii", errors="backslashreplace"
                             )
+                            self._update_tty_status(raw_data, parsed_data)
                     else:  # Parsed mode (NMEA, UBX, RTCM3)
                         raw_data, parsed_data = ubr.read()
                     if raw_data is not None:
@@ -346,3 +348,15 @@ class StreamHandler:
             ) as err:
                 _errorhandler(err)
                 continue
+
+    def _update_tty_status(self, raw_data: bytes, parsed_data: str):
+        """
+        Update TTY pending status if TTY dialog is open
+
+        :param bytes raw_data: raw data
+        :param str parsed_data: parsed data
+        """
+
+        if "OK" in parsed_data.upper() or "ERROR" in parsed_data.upper():
+            if self.__app.dialog(DLGTTTY) is not None:
+                self.__app.dialog(DLGTTTY).update_status(raw_data)

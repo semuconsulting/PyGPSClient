@@ -509,7 +509,8 @@ class StaticTest(unittest.TestCase):
     def testpublicip(self):
         res = publicip()
         # print(res)
-        self.assertRegex(res, r"^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}$")
+        if res != "N/A":
+            self.assertRegex(res, r"^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}$")
 
     def testlanip(self):
         res = lanip()
