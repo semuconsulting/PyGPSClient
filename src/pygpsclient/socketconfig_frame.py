@@ -86,8 +86,8 @@ class SocketConfigFrame(Frame):
 
         self._body()
         self._do_layout()
-        self.reset()
         self._attach_events()
+        self.reset()
 
     def _body(self):
         """
@@ -146,14 +146,32 @@ class SocketConfigFrame(Frame):
 
     def _attach_events(self):
         """
-        Bind events to variables.
+        Bind events to frame.
         """
 
         self.bind("<Configure>", self._on_resize)
-        self.server.trace_add("write", callback=self._on_update_server)
-        self.port.trace_add("write", callback=self._on_update_port)
-        for setting in (self.https, self.protocol):
-            setting.trace_add("write", callback=self._on_update_config)
+
+    def _bind_events(self, add: bool = True):
+        """
+        Add or remove event bindings to/from widgets.
+
+        :param bool add: add or remove binding
+        """
+
+        tracemode = "write"
+        if add:
+            self.server.trace_add(tracemode, self._on_update_server)
+            self.port.trace_add(tracemode, self._on_update_port)
+            for setting in (self.https, self.protocol):
+                setting.trace_add(tracemode, callback=self._on_update_config)
+        else:
+            if len(self.server.trace_info()) > 0:
+                self.server.trace_remove(tracemode, self.server.trace_info()[0][1])
+            if len(self.port.trace_info()) > 0:
+                self.port.trace_remove(tracemode, self.port.trace_info()[0][1])
+            for setting in (self.https, self.protocol):
+                if len(setting.trace_info()) > 0:
+                    setting.trace_remove(tracemode, setting.trace_info()[0][1])
 
     def _on_update_server(self, var, index, mode):  # pylint: disable=unused-argument
         """
@@ -204,6 +222,7 @@ class SocketConfigFrame(Frame):
         Reset settings to saved configuration.
         """
 
+        self._bind_events(False)
         cfg = self.__app.configuration
         if self._context == NTRIP:
             self.server.set(cfg.get("ntripclientserver_s"))
@@ -215,6 +234,7 @@ class SocketConfigFrame(Frame):
             self.port.set(cfg.get("sockclientport_n"))
             self.https.set(cfg.get("sockclienthttps_b"))
             self.protocol.set(cfg.get("sockclientprotocol_s"))
+        self._bind_events(True)
 
     def valid_settings(self) -> bool:
         """

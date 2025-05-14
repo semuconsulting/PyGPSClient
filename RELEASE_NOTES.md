@@ -6,6 +6,7 @@ FIXES:
 
 1. Fix incorrect default value for "lbandclientunqword_s" - Fixes [#189](https://github.com/semuconsulting/PyGPSClient/issues/189)
 1. Fix issue where datalog path was not being updated if datalogging was enabled at runtime.
+1. Fix issue where settings frame was not updated after reloading configuration file at runtime.
 
 ENHANCEMENTS:
 

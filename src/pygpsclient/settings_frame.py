@@ -194,7 +194,6 @@ class SettingsFrame(Frame):
         self._body()
         self._do_layout()
         self.reset()
-        self._attach_events()
 
     def _container(self):
         """
@@ -560,6 +559,7 @@ class SettingsFrame(Frame):
         Reset settings to saved configuration.
         """
 
+        self._bind_events(False)
         cfg = self.__app.configuration
         self._prot_nmea.set(cfg.get("nmeaprot_b"))
         self._prot_ubx.set(cfg.get("ubxprot_b"))
@@ -583,13 +583,23 @@ class SettingsFrame(Frame):
         self._record_track.set(cfg.get("recordtrack_b"))
         self.trackpath = cfg.get("trackpath_s")
         self.clients = 0
+        self._bind_events(True)
 
-    def _attach_events(self):
+    def _bind_events(self, add: bool = True):
         """
-        Bind events to settings dialog.
+        Add or remove event bindings to/from widgets.
+
+        :param bool add: add or remove binding
         """
 
-        self._prot_tty.trace_add("write", self._on_update_tty)
+        tracemode = "write"
+        if add:
+            self._prot_tty.trace_add(tracemode, self._on_update_tty)
+        else:
+            if len(self._prot_tty.trace_info()) > 0:
+                self._prot_tty.trace_remove(
+                    tracemode, self._prot_tty.trace_info()[0][1]
+                )
         for setting in (
             self._prot_nmea,
             self._prot_ubx,
@@ -610,7 +620,11 @@ class SettingsFrame(Frame):
             self.show_legend,
             self._colortag,
         ):
-            setting.trace_add("write", self._on_update_config)
+            if add:
+                setting.trace_add(tracemode, self._on_update_config)
+            else:
+                if len(setting.trace_info()) > 0:
+                    setting.trace_remove(tracemode, setting.trace_info()[0][1])
 
     def _reset_frames(self):
         """

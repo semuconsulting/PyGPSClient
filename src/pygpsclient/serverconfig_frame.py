@@ -169,8 +169,8 @@ class ServerConfigFrame(Frame):
 
         self._body()
         self._do_layout()
-        self.reset()
         self._attach_events()
+        self.reset()
 
     def _body(self):
         """
@@ -416,6 +416,7 @@ class ServerConfigFrame(Frame):
         Reset settings to defaults.
         """
 
+        self._bind_events(False)
         cfg = self.__app.configuration
         self._socket_serve.set(cfg.get("sockserver_b"))
         self.sock_mode.set(SOCKMODES[cfg.get("sockmode_b")])
@@ -442,6 +443,7 @@ class ServerConfigFrame(Frame):
         self._fixed_lat_temp = self.fixedlat.get()
         self._fixed_lon_temp = self.fixedlon.get()
         self._fixed_alt_temp = self.fixedalt.get()
+        self._bind_events(True)
 
     def _attach_events(self):
         """
@@ -449,12 +451,31 @@ class ServerConfigFrame(Frame):
         """
 
         self.bind("<Configure>", self._on_resize)
-        tracemode = ("write", "unset")
-        self._socket_serve.trace_add(tracemode, self._on_socket_serve)
-        self.sock_mode.trace_add(tracemode, self._on_sockmode)
-        self.base_mode.trace_add(tracemode, self._on_basemode)
-        self.pos_mode.trace_add(tracemode, self._on_posmode)
 
+    def _bind_events(self, add: bool = True):
+        """
+        Add or remove event bindings to/from widgets.
+
+        :param bool add: add or remove binding
+        """
+
+        tracemode = ("write", "unset")
+        if add:
+            self._socket_serve.trace_add(tracemode, self._on_socket_serve)
+            self.sock_mode.trace_add(tracemode, self._on_sockmode)
+            self.base_mode.trace_add(tracemode, self._on_basemode)
+            self.pos_mode.trace_add(tracemode, self._on_posmode)
+        else:
+            for setting in (
+                self._socket_serve,
+                self.sock_mode,
+                self.base_mode,
+                self.pos_mode,
+            ):
+                if len(setting.trace_info()) > 0:
+                    setting.trace_remove(tracemode, setting.trace_info()[0][1])
+
+        tracemode = "write"
         for setting in (
             self.sock_port,
             self.sock_host,
@@ -469,7 +490,11 @@ class ServerConfigFrame(Frame):
             self.user,
             self.password,
         ):
-            setting.trace_add("write", self._on_update_config)
+            if add:
+                setting.trace_add(tracemode, self._on_update_config)
+            else:
+                if len(setting.trace_info()) > 0:
+                    setting.trace_remove(tracemode, setting.trace_info()[0][1])
 
     def _on_update_config(self, var, index, mode):  # pylint: disable=unused-argument
         """
