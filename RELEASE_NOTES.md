@@ -13,6 +13,7 @@ ENHANCEMENTS:
 1. Add new IMU Monitor widget, capable of displaying IMU orientation (roll, pitch, yaw) and status from a variety of NMEA or UBX IMU data sources (e.g. ESF-ALG, HNR-ATT, NAV-ATT, NAV-PVAT, GPFMI).
 1. Add TTY Command Dialog, allowing user to enter/select ASCII TTY commands to the connected serial device. Access via menu bar Options...TTY Commands.
 1. RTCM3 messages types 1002 (GPS L1 observables) & 1010 (GLONASS L1 observables) added to NTRIP Caster configuration.
+1. Make GUI update interval configurable via configuration setting "guiupdateinterval_f" - default is 0.5 seconds. NB: PyGPSClient may struggle on slower platforms (e.g. Raspberry Pi) if the GUI update interval is less than 0.2 seconds, though much lower intervals (<= 0.1 secs) can be accommodated on high-spec platforms.
 
 ### RELEASE 1.5.7
 

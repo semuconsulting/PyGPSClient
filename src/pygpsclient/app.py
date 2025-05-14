@@ -849,7 +849,7 @@ class App(Frame):
 
         # periodically update widgets if visible
         if datetime.now() > self._last_gui_update + timedelta(
-            seconds=GUI_UPDATE_INTERVAL
+            seconds=self.configuration.get("guiupdateinterval_f")
         ):
             self._refresh_widgets()
             self._last_gui_update = datetime.now()

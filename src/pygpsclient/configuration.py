@@ -23,6 +23,7 @@ from pygpsclient.globals import (
     DEFAULT_USER,
     FORMAT_BINARY,
     FORMAT_PARSED,
+    GUI_UPDATE_INTERVAL,
     MQTTIPMODE,
     PASSTHRU,
     RCVR_CONNECTION,
@@ -75,6 +76,7 @@ class Configuration:
             # main settings from frm_settings
             **self.widget_config,
             "checkforupdate_b": 0,
+            "guiupdateinterval_f": GUI_UPDATE_INTERVAL,  # GUI widget update interval in seconds
             "mapupdateinterval_n": MAP_UPDATE_INTERVAL,
             "defaultport_s": RCVR_CONNECTION,
             "protocol_n": 15,
