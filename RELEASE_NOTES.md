@@ -1,5 +1,21 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.5.8
+
+FIXES:
+
+1. Fix incorrect default value for "lbandclientunqword_s" - Fixes [#189](https://github.com/semuconsulting/PyGPSClient/issues/189)
+1. Fix issue where datalog path was not being updated if datalogging was enabled at runtime.
+1. Fix issue where settings frame was not updated after reloading configuration file at runtime.
+
+ENHANCEMENTS:
+
+1. Add receiver type option to NTRIP Caster mode - can now utilise either u-blox ZED-F9* or Quectel LG290P as Base Station receiver. NOTE THAT due to quirks in the LG290P firmware, setting Base Station mode with RTCM MSM 7 messages requires two successive restarts - you may see `WARNING - connection error` in the console during those restarts.
+1. Add new IMU Monitor widget, capable of displaying IMU orientation (roll, pitch, yaw) and status from a variety of NMEA or UBX IMU data sources (e.g. ESF-ALG, HNR-ATT, NAV-ATT, NAV-PVAT, GPFMI).
+1. Add TTY Command Dialog, allowing user to enter/select ASCII TTY commands to the connected serial device. Access via menu bar Options...TTY Commands.
+1. RTCM3 messages types 1002 (GPS L1 observables) & 1010 (GLONASS L1 observables) added to NTRIP Caster configuration.
+1. Make GUI update interval configurable via configuration setting "guiupdateinterval_f" - default is 0.5 seconds. NB: PyGPSClient may struggle on slower platforms (e.g. Raspberry Pi) if the GUI update interval is less than 0.2 seconds, though much lower intervals (<= 0.1 secs) can be accommodated on high-spec platforms.
+
 ### RELEASE 1.5.7
 
 FIXES:

@@ -51,9 +51,10 @@ classifiers = [
 dependencies = [
     "requests>=2.28.0",
     "Pillow>=9.0.0",
-    "pygnssutils>=1.1.12",
-    "pyubxutils>=1.0.2",
+    "pygnssutils>=1.1.13",
+    "pyubx2>=1.2.52",
     "pyserial>=3.5",
+    "pyubxutils>=1.0.3",
 ]
 
 [project.scripts]

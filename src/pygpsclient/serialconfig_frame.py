@@ -133,8 +133,8 @@ class SerialConfigFrame(Frame):
 
         self._body()
         self._do_layout()
-        self.reset()
         self._attach_events()
+        self.reset()
 
     def _body(self):
         """
@@ -305,12 +305,20 @@ class SerialConfigFrame(Frame):
 
     def _attach_events(self):
         """
-        Bind events to widgets.
+        Bind events to frame.
         """
 
         self.bind("<Configure>", self._on_resize)
         self._lbx_port.bind("<<ListboxSelect>>", self._on_select_port)
 
+    def _bind_events(self, add: bool = True):
+        """
+        Add or remove event bindings to/from widgets.
+
+        :param bool add: add or remove binding
+        """
+
+        tracemode = "write"
         for setting in (
             self._port,
             self.user_defined_port,
@@ -324,13 +332,18 @@ class SerialConfigFrame(Frame):
             self._msgmode_name,
             self._inactivity_timeout,
         ):
-            setting.trace_add("write", self._on_update_config)
+            if add:
+                setting.trace_add(tracemode, self._on_update_config)
+            else:
+                if len(setting.trace_info()) > 0:
+                    setting.trace_remove(tracemode, setting.trace_info()[0][1])
 
     def reset(self):
         """
         Reset settings to saved configuration.
         """
 
+        self._bind_events(False)
         cfg = self.__app.configuration
         if self._context == LBAND:
             self._port.set(cfg.get("lbandclientserialport_s"))
@@ -357,6 +370,7 @@ class SerialConfigFrame(Frame):
             self._inactivity_timeout.set(cfg.get("inactivity_timeout_n"))
             self.user_defined_port.set(cfg.get("userport_s"))
         self._on_refresh()
+        self._bind_events(True)
 
     def _on_update_config(self, var, index, mode):  # pylint: disable=unused-argument
         """

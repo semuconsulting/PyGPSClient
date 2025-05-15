@@ -509,7 +509,8 @@ class StaticTest(unittest.TestCase):
     def testpublicip(self):
         res = publicip()
         # print(res)
-        self.assertRegex(res, r"^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}$")
+        if res != "N/A":
+            self.assertRegex(res, r"^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}$")
 
     def testlanip(self):
         res = lanip()
@@ -797,7 +798,7 @@ class StaticTest(unittest.TestCase):
         self.assertEqual(cfg.get("lbandclientdrat_n"), 2400)
         self.assertEqual(cfg.get("userport_s"), "")
         self.assertEqual(cfg.get("spartnport_s"), "")
-        self.assertEqual(len(cfg.settings), 125)
+        self.assertEqual(len(cfg.settings), 133)
         kwargs = {"userport": "/dev/ttyACM0", "spartnport": "/dev/ttyACM1"}
         cfg.loadcli(**kwargs)
         self.assertEqual(cfg.get("userport_s"), "/dev/ttyACM0")

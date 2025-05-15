@@ -10,6 +10,7 @@ Created on 22 Dec 2020
 :license: BSD 3-Clause
 """
 
+import logging
 from tkinter import (
     HORIZONTAL,
     LEFT,
@@ -119,6 +120,7 @@ class UBX_PRESET_Frame(Frame):
 
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
+        self.logger = logging.getLogger(__name__)
         self.__container = container
 
         Frame.__init__(self, self.__container.container, *args, **kwargs)

@@ -12,6 +12,7 @@
 [GPX Track Viewer](#gpxviewer) |
 [Mapquest API Key](#mapquestapi) |
 [User-defined Presets](#userdefined) |
+[TTY Commands](#ttycommands) |
 [CLI Utilities](#cli) |
 [Known Issues](#knownissues) |
 [License](#license) |
@@ -19,10 +20,10 @@
 
 PyGPSClient is a free, open-source, multi-platform graphical GNSS/GPS testing, diagnostic and UBX &copy; (u-blox &trade;) device configuration application written entirely in Python and tkinter. 
 * Runs on any platform which supports a Python 3 interpreter (>=3.9) and tkinter (>=8.6) GUI framework, including Windows, MacOS, Linux and Raspberry Pi OS.
-* Supports NMEA, UBX, RTCM3, NTRIP and SPARTN protocols.
+* Supports NMEA, UBX, RTCM3, NTRIP, SPARTN and TTY (ASCII) protocols.
 * Capable of reading from a variety of GNSS data streams: Serial (USB / UART), Socket (TCP / UDP), binary data stream (terminal or file capture) and u-center (*.ubx) recording.
 * Provides [NTRIP](#ntripconfig) and [SPARTN](#spartnconfig) client facilities.
-* Can serve as an [NTRIP base station](#basestation) with a compatible receiver (e.g. ZED-F9P).
+* Can serve as an [NTRIP base station](#basestation) with an RTK-compatible receiver (e.g. u-blox ZED-F9P or Quectel LG290P).
 * While not intended to be a direct replacement, the application supports most of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool (*only public-domain features are supported*).
 * Also supports proprietary NMEA configuration functionality for Quectel LG290P and compatible devices.
 
@@ -45,9 +46,11 @@ This is an independent project and we have no affiliation whatsoever with u-blox
 ![Contributors](https://img.shields.io/github/contributors/semuconsulting/PyGPSClient.svg)
 ![Open Issues](https://img.shields.io/github/issues-raw/semuconsulting/PyGPSClient)
 
-The PyGPSClient home page is at [PyGPSClient](https://github.com/semuconsulting/PyGPSClient). For a general overview of GNSS, DGPS, RTK, NTRIP and SPARTN technologies and terminology, refer to [GNSS Positioning - A Reviser](https://www.semuconsulting.com/gnsswiki/) and [Glossary of GNSS Terms and Abbreviations](https://www.semuconsulting.com/gnsswiki/glossary/). For practical tips on RTK, refer to [Achieving cm Level GNSS Accuracy using RTK](https://www.semuconsulting.com/gnsswiki/rtktips/).
-
-Sphinx API Documentation in HTML format is available at [https://www.semuconsulting.com/pygpsclient](https://www.semuconsulting.com/pygpsclient).
+The PyGPSClient home page is at [PyGPSClient](https://github.com/semuconsulting/PyGPSClient). The following references may be useful:
+1. [Glossary of GNSS Terms and Abbreviations](https://www.semuconsulting.com/gnsswiki/glossary/).
+1. [GNSS Positioning - A Reviser](https://www.semuconsulting.com/gnsswiki/) - a general overview of GNSS, OSR, SSR, RTK, NTRIP and SPARTN positioning and error correction technologies and terminology.
+1. [Achieving cm Level GNSS Accuracy using RTK](https://www.semuconsulting.com/gnsswiki/rtktips/) - practical tips on high precision RTK using PyGPSClient.
+1. [Sphinx API Documentation](https://www.semuconsulting.com/pygpsclient) in HTML format.
 
 Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/semuconsulting/PyGPSClient/blob/master/CONTRIBUTING.md).
 
@@ -89,9 +92,11 @@ In the following, `python3` & `pip` refer to the Python 3 executables. You may n
 
 Normally installs without any additional steps.
 
-**MacOS 12 or later:**
+**MacOS 13 or later:**
 
-*¹* The version of Python supplied with some Apple MacOS platforms includes a [deprecated version of tkinter](https://www.python.org/download/mac/tcltk/) (8.5). Use an official [Python.org](https://www.python.org/downloads/) installation package instead.
+(See also [Installation Script](#installscript) below)
+
+*¹* The version of Python supplied with some Apple MacOS platforms includes a [deprecated version of tkinter](https://www.python.org/download/mac/tcltk/) (8.5). Use an official [Python.org](https://www.python.org/downloads/) installation package instead. 
 
 **NB:** PyGPSClient does *NOT* require Homebrew or MacPorts to be installed on MacOS.
 
@@ -227,7 +232,7 @@ pipx install pygpsclient
 
 `pipx` will typically create a virtual environment in the user's local shared folder e.g. `/home/user/.local/share/pipx/venvs/pygpsclient`.
 
-### <a name="installscript">Install Using Installation Script - 64-bit Debian-based Linux Only</a>
+### <a name="installscript">Install Using Installation Script - MacOS & 64-bit Debian-based Linux Only</a>
 
 An example [installation shell script](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/pygpsclient_debian_install.sh) is available for use on most vanilla 64-bit Debian-based environments with Python>=3.9, including Raspberry Pi and Ubuntu. To run this installation script, download it to your Raspberry Pi or other Debian-based workstation and - from the download folder - type:
 
@@ -235,6 +240,14 @@ An example [installation shell script](https://github.com/semuconsulting/PyGPSCl
 chmod +x pygpsclient_debian_install.sh
 ./pygpsclient_debian_install.sh
 ```
+
+A similar [installation shell script](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/pygpsclient_macos_install.sh) is available for MacOS 13 or later running a ZSH shell (*Homebrew or MacPorts are NOT required*). This will also install the latest official version of Python 3 with tkinter 8.6. Download the script to your Mac and - from the download folder - type:
+
+```shell
+./pygpsclient_macos_install.sh
+```
+
+In both cases you will be prompted to enter your sudo (admin) password.
 
 ---
 ## <a name="instructions">Instructions</a>
@@ -248,7 +261,9 @@ chmod +x pygpsclient_debian_install.sh
 ![connect-file icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/binary-1-24.png?raw=true) and select the file type (`*.log, *.ubx, *.*`) and path. PyGPSClient datalog files will be named e.g. `pygpsdata-20220427114802.log`, but any binary dump of an GNSS receiver output is acceptable, including `*.ubx` files produced by u-center.
 1. To disconnect from the data stream, click
 ![disconnect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-media-control-50-24.png?raw=true).
-1. Protocols Shown - Select which protocols to display; NMEA, UBX and/or RTCM3 (NB: this only changes the displayed protocols - to change the actual protocols output by the receiver, use the [UBX Configuration Dialog](#ubxconfig)).
+1. Protocols Shown - Select which protocols to display; NMEA, UBX, RTCM3, SPARTN or TTY (NB: this only changes the displayed protocols - to change the actual protocols output by the receiver, use the [UBX Configuration Dialog](#ubxconfig)). Enabling TTY (terminal) mode will disable all other protocols and display the raw binary stream input at the console.
+1. Console Display - Select console display format (Parsed, Binary, Hex Tabular, Hex String, Parsed+Hex Tabular - see Console Widget below).
+1. Tags - enable color tags in console (see Console Widget below).
 1. Position Format and Units - Change the displayed position (D.DD / D.M.S / D.M.MM / ECEF) and unit (metric/imperial) formats.
 1. Map Type - Select from "world", "map", "sat" or "custom". "map" and "sat" types require an Internet connection and free [Mapquest API Key](#mapquestapi). "custom" offline map images can be imported and georeferenced using the [Menu..Options..Import Custom Map](#custommap) facility.
 1. Show Track - Tick to show track in map view. Map track will only be recorded while this checkbox is ticked.
@@ -269,6 +284,7 @@ chmod +x pygpsclient_debian_install.sh
 1. [GPX Track Viewer](#gpxviewer) utility with elevation and speed profiles and track metadata (*requires an Internet connection and free 
 [MapQuest API Key](https://developer.mapquest.com/user/login/sign-up)*). To display the GPX Track viewer, go to Menu..Options..GPX Track Viewer.
 
+FYI: By default, the GUI refresh interval is 0.5 seconds. This can be configured via the `guiupdateinterval_f` setting in the json configuration file. NB: PyGPSClient may become unresponsive on slower platforms (e.g. Raspberry Pi) if the GUI update interval is less than 0.1 seconds, though much lower intervals (<= 0.1 secs) can be accommodated on more powerful platforms.
 
 | User-selectable 'widgets' | To show or hide the various widgets, go to Menu..View and click on the relevant hide/show option. |
 |---------------------------|---------------------------------------------------------------------------------------------------|
@@ -285,6 +301,8 @@ chmod +x pygpsclient_debian_install.sh
 |![scatterplot widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/scatterplot_widget.png?raw=true)| Scatterplot widget showing variability in position reporting over time. (Optional) Enter fixed reference position. Select Average to center plot on dynamic average position (*displayed at top left*), or Fixed to center on fixed reference position (*if entered*). Check Autorange to set plot range automatically. Set the update interval (e.g. 4 = every 4th navigation solution). Use the range slider or mouse wheel to adjust plot range. Right-click to set fixed reference point to the current mouse cursor position. Double-click to clear the existing data. Settings may be saved to a json configuration file. |
 |![rover widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/rover_widget.png?raw=true) | Rover widget plots the relative 2D position, track and status information for the roving receiver in a fixed or moving base / rover RTK configuration. Can also display relative position of NTRIP mountpoint and receiver in a static RTK configuration. Double-click to clear existing plot. (*GNSS rover receiver must be capable of outputting UBX NAV-RELPOSNED messages.*) |
 |![chart view](https://github.com/semuconsulting/PyGPSClient/blob/master/images/chart_widget.png?raw=true) | Chart widget acts as a multi-channel "plotter", allowing the user to plot a series of named numeric data attributes from any NMEA, UBX, RTCM or SPARTN data source, with configurable y (value) and x (time) axes. By default, the number of channels is set to 4, but this can be manually edited by the user via the json configuration file setting `chartsettings_d["numchn_n"]`. For each channel, user can select: (*optional*) identity of message source e.g. `NAV-PVT`; attribute name e.g. `hAcc`; scaling factor (divisor) e.g. 1000; y axis range e.g. 0 - 5. Wildcards are available for attribute groups - "\*" (average of group values), "+" (maximum of group values), "-" (minimum of group values) e.g. `cno*` will plot the average `cno` value for a group of satellites. Double-click to clear the existing data. Double-right-click to save the current chart data to the clipboard in CSV format. Settings may be saved to a json configuration file. |
+|![IMU widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/imu_widget.png?raw=true) |  IMU (Inertial Management Unit) Monitor widget showing current orientation/attitude (roll, pitch, yaw) and status of IMU from a specified NMEA or UBX message source. Enter the identity of the UBX or NMEA message source (e.g. ESF-ALG, HNR-ATT, NAV-ATT, NAV-PVAT, GPFMI). Select range in degrees (from ±1 to ±180 degrees). Settings may be saved to a json configuration file. |
+
 ---
 ## <a name="ubxconfig">UBX Configuration Facilities</a>
 
@@ -476,7 +494,7 @@ By default, the server/caster binds to the host address '0.0.0.0' (IPv4) or '::'
 
 **Pre-Requisites:**
 
-1. Running in NTRIP CASTER mode is predicated on the host being connected to an RTK-compatible GNSS receiver (e.g. u-blox ZED-F9P) **operating in Base Station mode** (either `FIXED` or `SURVEY_IN`) and outputting the requisite RTCM3 message types (1005, 1077, 1087, 1097, 1127 and 1230). 
+1. Running in NTRIP CASTER mode is predicated on the host being connected to an RTK-compatible GNSS receiver (e.g. u-blox ZED-F9P or Quectel LG290P) **operating in Base Station mode** (either `FIXED` or `SURVEY_IN`) and outputting the requisite RTCM3 message types (1005, 1077, 1087, 1097, 1127 and 1230). 
 1. It may be necessary to add a firewall rule and/or enable port-forwarding on the host machine or router to allow remote traffic on the specified address:port.
 
 **Instructions:**
@@ -490,7 +508,8 @@ By default, the server/caster binds to the host address '0.0.0.0' (IPv4) or '::'
 **NTRIP CASTER MODE**
 
 1. Select NTRIP CASTER mode and (if necessary) enter the host IP address and port.
-1. An additional expandable panel is made available to allow the user to configure a connected RTK-compatible u-blox receiver (e.g. ZED-F9P) to operate in either `FIXED` or `SURVEY-IN` Base Station mode (*NB: parameters can only be amended while the caster is stopped*). If 'Configure Base Station' is checked, the selected configuration will be applied to the connected receiver once the caster is activated. 
+1. An additional expandable panel is made available to allow the user to configure a connected RTK-compatible receiver (e.g. u-blox ZED-F9P or Quectel LG290P) to operate in either `FIXED` or `SURVEY-IN` Base Station mode (*NB: parameters can only be amended while the caster is stopped*). If 'Configure Base Station' is checked, the selected configuration will be applied to the connected receiver once the caster is activated.
+1. Select the receiver type (currently u-blox ZED-F9* and Quectel LG290P receivers are supported).
 1. NMEA messages can be suppressed by checking 'Disable NMEA'. A minimum set of UBX messages will be output in their place.
 1. NTRIP client login credentials are set via the user and password fields. 
 1. Check the Socket Server/NTRIP Caster checkbox to activate the caster.
@@ -574,6 +593,17 @@ Configure UART baud rate on LG290P; P; QTMCFGUART; W,460800; 1
 ```
 
 Multiple commands can be concatenated on a single line. Illustrative examples are shown in the sample [pygpsclient.json](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient.json#L158) file.
+
+---
+## <a name="ttycommands">TTY Commands and Presets</a>
+
+![ttydialog screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/tty_dialog.png?raw=true)
+
+The TTY Commands dialog provides a facility to send user-defined ASCII TTY commands (e.g. `AT+` style commands) to the connected serial device. Commands can be entered manually or selected from a list of user-defined presets. The dialog can be accessed via menu bar Options...TTY Commands. If the CRLF checkbox is ticked, a CRLF (`b"\x0d\x0a"`) terminator will be added to the command string. If the Echo checkbox is ticked, outgoing TTY commands will be echoed on the console with the marker `"TTY<<"`.
+
+Preset commands can be set up by adding appropriate semicolon-delimited message descriptions and payload definitions to the `"ttypresets_l":` list in your json configuration file (see [example provided](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient.json#L246)). The message definition comprises a free-format text description (*avoid embedded semi-colons*) followed by one or more ASCII TTY commands, e,g. 
+
+- `<description>; <tty command>`
 
 ---
 ## <a name="cli">Command Line Utilities</a>

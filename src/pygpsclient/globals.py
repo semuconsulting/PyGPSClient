@@ -216,6 +216,7 @@ CUSTOM = "custom"
 MAP = "map"
 SAT = "sat"
 WORLD = "world"
+LG290P = "Quectel LG290P"
 MAX_SNR = 60  # upper limit of graphview snr axis
 MAXLOGLINES = 10000  # maximum number of 'lines' per datalog file
 MQAPIKEY = "mqapikey"
@@ -283,6 +284,8 @@ TIMEOUTS = (
 TOPIC_IP = "/pp/ip/{}"
 TOPIC_MGA = "/pp/ubx/mga"
 TOPIC_RXM = "/pp/ubx/0236/ip"
+TTY_EVENT = "<<tty_read>>"
+TTYMARKER = "TTY<<"
 UBXPRESETS = "ubxpresets"
 UBXSIMULATOR = "ubxsimulator"
 UI = "Imperial mph"
@@ -296,6 +299,7 @@ WIDGETU3 = (800, 200)  # Console size
 WIDGETU4 = (500, 500)  # GPX Track viewer size
 WIDGETU6 = (400, 200)  # Chart size
 XML_HDR = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+ZED_F9 = "u-blox ZED-F9/X20"
 
 # UBX & NMEA config widget signifiers - used
 # to identify which widget should receive the
@@ -318,6 +322,7 @@ UBX_MONRF = 14
 NMEA_MONHW = 15
 NMEA_PRESET = 16
 NMEA_CFGOTHER = 17
+SERVERCONFIG = 18
 
 # map of fix values to descriptions
 # the keys in this map are a concatenation of NMEA/UBX

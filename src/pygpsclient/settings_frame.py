@@ -63,6 +63,8 @@ from pygpsclient.globals import (
     DMS,
     ECEF,
     ERRCOL,
+    FORMAT_BINARY,
+    FORMAT_PARSED,
     FORMATS,
     GNSS,
     GNSS_EOF_EVENT,
@@ -160,6 +162,7 @@ class SettingsFrame(Frame):
         self._prot_ubx = IntVar()
         self._prot_rtcm3 = IntVar()
         self._prot_spartn = IntVar()
+        self._prot_tty = IntVar()
         self._autoscroll = IntVar()
         self._maxlines = IntVar()
         self.maptype = StringVar()
@@ -191,7 +194,6 @@ class SettingsFrame(Frame):
         self._body()
         self._do_layout()
         self.reset()
-        self._attach_events()
 
     def _container(self):
         """
@@ -333,6 +335,11 @@ class SettingsFrame(Frame):
             self._frm_options,
             text="SPARTN",
             variable=self._prot_spartn,
+        )
+        self._chk_tty = Checkbutton(
+            self._frm_options,
+            text="TTY",
+            variable=self._prot_tty,
         )
         self._lbl_consoledisplay = Label(self._frm_options, text=LBLDATADISP)
         self._spn_conformat = Spinbox(
@@ -510,6 +517,7 @@ class SettingsFrame(Frame):
         self._chk_ubx.grid(column=2, row=0, padx=0, pady=0, sticky=W)
         self._chk_rtcm.grid(column=1, row=1, padx=0, pady=0, sticky=W)
         self._chk_spartn.grid(column=2, row=1, padx=0, pady=0, sticky=W)
+        self._chk_tty.grid(column=3, row=0, padx=0, pady=0, sticky=W)
         self._lbl_consoledisplay.grid(column=0, row=2, padx=2, pady=2, sticky=W)
         self._spn_conformat.grid(
             column=1, row=2, columnspan=2, padx=1, pady=2, sticky=W
@@ -551,11 +559,13 @@ class SettingsFrame(Frame):
         Reset settings to saved configuration.
         """
 
+        self._bind_events(False)
         cfg = self.__app.configuration
         self._prot_nmea.set(cfg.get("nmeaprot_b"))
         self._prot_ubx.set(cfg.get("ubxprot_b"))
         self._prot_rtcm3.set(cfg.get("rtcmprot_b"))
         self._prot_spartn.set(cfg.get("spartnprot_b"))
+        self._prot_tty.set(cfg.get("ttyprot_b"))
         self._degrees_format.set(cfg.get("degreesformat_s"))
         self._colortag.set(cfg.get("colortag_b"))
         self._units.set(cfg.get("units_s"))
@@ -573,12 +583,23 @@ class SettingsFrame(Frame):
         self._record_track.set(cfg.get("recordtrack_b"))
         self.trackpath = cfg.get("trackpath_s")
         self.clients = 0
+        self._bind_events(True)
 
-    def _attach_events(self):
+    def _bind_events(self, add: bool = True):
         """
-        Bind events to settings dialog.
+        Add or remove event bindings to/from widgets.
+
+        :param bool add: add or remove binding
         """
 
+        tracemode = "write"
+        if add:
+            self._prot_tty.trace_add(tracemode, self._on_update_tty)
+        else:
+            if len(self._prot_tty.trace_info()) > 0:
+                self._prot_tty.trace_remove(
+                    tracemode, self._prot_tty.trace_info()[0][1]
+                )
         for setting in (
             self._prot_nmea,
             self._prot_ubx,
@@ -599,7 +620,11 @@ class SettingsFrame(Frame):
             self.show_legend,
             self._colortag,
         ):
-            setting.trace_add("write", self._on_update_config)
+            if add:
+                setting.trace_add(tracemode, self._on_update_config)
+            else:
+                if len(setting.trace_info()) > 0:
+                    setting.trace_remove(tracemode, setting.trace_info()[0][1])
 
     def _reset_frames(self):
         """
@@ -609,6 +634,27 @@ class SettingsFrame(Frame):
         self.__app.frm_mapview.reset_map_refresh()
         self.__app.frm_spectrumview.reset()
         self.__app.reset_gnssstatus()
+
+    def _on_update_tty(self, var, index, mode):  # pylint: disable=unused-argument
+        """
+        TTY mode has been updated.
+        """
+
+        try:
+            tty = self._prot_tty.get()
+            self.update()
+            for wdg in (
+                self._prot_nmea,
+                self._prot_ubx,
+                self._prot_rtcm3,
+                self._prot_spartn,
+            ):
+                wdg.set(not tty)
+            self._console_format.set(FORMAT_BINARY if tty else FORMAT_PARSED)
+            self.__app.configuration.set("ttyprot_b", tty)
+            self.__app.stream_handler.ttymode(tty)
+        except (ValueError, TclError):
+            pass
 
     def _on_update_config(self, var, index, mode):  # pylint: disable=unused-argument
         """
@@ -755,12 +801,15 @@ class SettingsFrame(Frame):
         if self._datalog.get() == 1:
             self.logpath = self.__app.file_handler.set_logfile_path(self.logpath)
             if self.logpath is not None:
+                self.__app.configuration.set("datalog_b", 1)
+                self.__app.configuration.set("logpath_s", self.logpath)
                 self.__app.set_status("Data logging enabled: " + self.logpath)
                 self.__app.file_handler.open_logfile()
             else:
                 self.logpath = ""
                 self._datalog.set(False)
         else:
+            self.__app.configuration.set("datalog_b", 0)
             self._datalog.set(False)
             self.__app.file_handler.close_logfile()
             self.__app.set_status("Data logging disabled")

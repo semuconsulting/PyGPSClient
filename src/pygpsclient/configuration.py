@@ -23,6 +23,7 @@ from pygpsclient.globals import (
     DEFAULT_USER,
     FORMAT_BINARY,
     FORMAT_PARSED,
+    GUI_UPDATE_INTERVAL,
     MQTTIPMODE,
     PASSTHRU,
     RCVR_CONNECTION,
@@ -37,6 +38,7 @@ from pygpsclient.globals import (
     SPARTN_PPSERVER_URL,
     UMM,
     WORLD,
+    ZED_F9,
 )
 from pygpsclient.mapquest import MAP_UPDATE_INTERVAL
 from pygpsclient.spartn_lband_frame import D9S_PP_EU as D9S_PP
@@ -74,6 +76,7 @@ class Configuration:
             # main settings from frm_settings
             **self.widget_config,
             "checkforupdate_b": 0,
+            "guiupdateinterval_f": GUI_UPDATE_INTERVAL,  # GUI widget update interval in seconds
             "mapupdateinterval_n": MAP_UPDATE_INTERVAL,
             "defaultport_s": RCVR_CONNECTION,
             "protocol_n": 15,
@@ -81,6 +84,9 @@ class Configuration:
             "ubxprot_b": 1,
             "rtcmprot_b": 1,
             "spartnprot_b": 1,
+            "ttyprot_b": 0,
+            "ttycrlf_b": 1,
+            "ttyecho_b": 0,
             "degreesformat_s": DDD,
             "colortag_b": 0,
             "units_s": UMM,
@@ -121,7 +127,8 @@ class Configuration:
             "sockport_n": SOCKSERVER_PORT,
             "sockmode_b": 0,
             "ntripcasterbasemode_s": "SURVEY IN",
-            "ntripcasteracclimit_f": 10,
+            "ntripcasterrcvrtype_s": ZED_F9,
+            "ntripcasteracclimit_f": 100.0,
             "ntripcasterduration_n": 60,
             "ntripcasterposmode_s": "LLH",
             "ntripcasterfixedlat_f": 0.0,
@@ -194,9 +201,15 @@ class Configuration:
                 "scatterlat_f": 0.0,
                 "scatterlon_f": 0.0,
             },
+            "imusettings_d": {
+                "source_s": "ESF-ALG",
+                "range_n": 180,
+                "option_s": "N/A",
+            },
             "chartsettings_d": {"numchn": 4, "timrng": 240},
             "ubxpresets_l": [],
             "nmeapresets_l": [],
+            "ttypresets_l": [],
             "usermaps_l": [],
             "colortags_l": [],
         }
