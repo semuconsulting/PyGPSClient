@@ -326,10 +326,10 @@ class TTYPresetDialog(Toplevel):
         msgstr = msg.decode("ascii", errors="backslashreplace")
         if "OK" in msgstr.upper():
             self._lbl_send_command.config(image=self._img_confirmed)
-            self.set_status("Preset command(s) acknowledged", OKCOL)
+            self.set_status("Command(s) acknowledged", OKCOL)
         elif "ERROR" in msgstr.upper():
             self._lbl_send_command.config(image=self._img_warn)
-            self.set_status("Preset command(s) rejected", ERRCOL)
+            self.set_status("Command(s) rejected", ERRCOL)
 
     def set_status(self, msg: str, col: str = INFOCOL):
         """

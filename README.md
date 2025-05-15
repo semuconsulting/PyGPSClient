@@ -20,7 +20,7 @@
 
 PyGPSClient is a free, open-source, multi-platform graphical GNSS/GPS testing, diagnostic and UBX &copy; (u-blox &trade;) device configuration application written entirely in Python and tkinter. 
 * Runs on any platform which supports a Python 3 interpreter (>=3.9) and tkinter (>=8.6) GUI framework, including Windows, MacOS, Linux and Raspberry Pi OS.
-* Supports NMEA, UBX, RTCM3, NTRIP and SPARTN protocols.
+* Supports NMEA, UBX, RTCM3, NTRIP, SPARTN and TTY (ASCII) protocols.
 * Capable of reading from a variety of GNSS data streams: Serial (USB / UART), Socket (TCP / UDP), binary data stream (terminal or file capture) and u-center (*.ubx) recording.
 * Provides [NTRIP](#ntripconfig) and [SPARTN](#spartnconfig) client facilities.
 * Can serve as an [NTRIP base station](#basestation) with an RTK-compatible receiver (e.g. u-blox ZED-F9P or Quectel LG290P).
@@ -284,6 +284,7 @@ In both cases you will be prompted to enter your sudo (admin) password.
 1. [GPX Track Viewer](#gpxviewer) utility with elevation and speed profiles and track metadata (*requires an Internet connection and free 
 [MapQuest API Key](https://developer.mapquest.com/user/login/sign-up)*). To display the GPX Track viewer, go to Menu..Options..GPX Track Viewer.
 
+FYI: By default, the GUI refresh interval is 0.5 seconds. This can be configured via the `guiupdateinterval_f` setting in the json configuration file. NB: PyGPSClient may become unresponsive on slower platforms (e.g. Raspberry Pi) if the GUI update interval is less than 0.1 seconds, though much lower intervals (<= 0.1 secs) can be accommodated on more powerful platforms.
 
 | User-selectable 'widgets' | To show or hide the various widgets, go to Menu..View and click on the relevant hide/show option. |
 |---------------------------|---------------------------------------------------------------------------------------------------|
@@ -301,6 +302,7 @@ In both cases you will be prompted to enter your sudo (admin) password.
 |![rover widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/rover_widget.png?raw=true) | Rover widget plots the relative 2D position, track and status information for the roving receiver in a fixed or moving base / rover RTK configuration. Can also display relative position of NTRIP mountpoint and receiver in a static RTK configuration. Double-click to clear existing plot. (*GNSS rover receiver must be capable of outputting UBX NAV-RELPOSNED messages.*) |
 |![chart view](https://github.com/semuconsulting/PyGPSClient/blob/master/images/chart_widget.png?raw=true) | Chart widget acts as a multi-channel "plotter", allowing the user to plot a series of named numeric data attributes from any NMEA, UBX, RTCM or SPARTN data source, with configurable y (value) and x (time) axes. By default, the number of channels is set to 4, but this can be manually edited by the user via the json configuration file setting `chartsettings_d["numchn_n"]`. For each channel, user can select: (*optional*) identity of message source e.g. `NAV-PVT`; attribute name e.g. `hAcc`; scaling factor (divisor) e.g. 1000; y axis range e.g. 0 - 5. Wildcards are available for attribute groups - "\*" (average of group values), "+" (maximum of group values), "-" (minimum of group values) e.g. `cno*` will plot the average `cno` value for a group of satellites. Double-click to clear the existing data. Double-right-click to save the current chart data to the clipboard in CSV format. Settings may be saved to a json configuration file. |
 |![IMU widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/imu_widget.png?raw=true) |  IMU (Inertial Management Unit) Monitor widget showing current orientation/attitude (roll, pitch, yaw) and status of IMU from a specified NMEA or UBX message source. Enter the identity of the UBX or NMEA message source (e.g. ESF-ALG, HNR-ATT, NAV-ATT, NAV-PVAT, GPFMI). Select range in degrees (from ±1 to ±180 degrees). Settings may be saved to a json configuration file. |
+
 ---
 ## <a name="ubxconfig">UBX Configuration Facilities</a>
 
@@ -597,9 +599,9 @@ Multiple commands can be concatenated on a single line. Illustrative examples ar
 
 ![ttydialog screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/tty_dialog.png?raw=true)
 
-The TTY Commands dialog provides a facility to send user-defined ASCII TTY commands (e.g. `AT+` style commands) to the connected serial device. Commands can be entered manually or selected from a list of user-defined presets. The dialog can be accessed via menu bar Options...TTY Commands. If the CRLF? checkbox is ticked, a CRLF (`b"\x0d\x0a"`) terminator will be added to the command string. If the Echo? checkbox is ticked, outgoing TTY commands will be echoed on the console with the marker `"TTY<<"`.
+The TTY Commands dialog provides a facility to send user-defined ASCII TTY commands (e.g. `AT+` style commands) to the connected serial device. Commands can be entered manually or selected from a list of user-defined presets. The dialog can be accessed via menu bar Options...TTY Commands. If the CRLF checkbox is ticked, a CRLF (`b"\x0d\x0a"`) terminator will be added to the command string. If the Echo checkbox is ticked, outgoing TTY commands will be echoed on the console with the marker `"TTY<<"`.
 
-Preset commands can be set up by adding appropriate semicolon-delimited message descriptions and payload definitions to the `"ttypresets_l":` list in your json configuration file (see [example provided](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient.json#L243)). The message definition comprises a free-format text description (*avoid embedded semi-colons*) followed by one or more ASCII TTY commands, e,g. 
+Preset commands can be set up by adding appropriate semicolon-delimited message descriptions and payload definitions to the `"ttypresets_l":` list in your json configuration file (see [example provided](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient.json#L246)). The message definition comprises a free-format text description (*avoid embedded semi-colons*) followed by one or more ASCII TTY commands, e,g. 
 
 - `<description>; <tty command>`
 

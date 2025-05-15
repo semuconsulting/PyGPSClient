@@ -10,6 +10,7 @@
     "System Monitor": false,
     "Scatter Plot": false,
     "checkforupdate_b": 0,
+    "guiupdateinterval_f": 0.2,
     "mapupdateinterval_n": 60,
     "defaultport_s": "USB",
     "mqapikey_s": "<======= YOUR MQ API KEY ======>",
