@@ -244,6 +244,7 @@ READONLY = "readonly"
 RPTDELAY = 500  # repeat delay for spinboxes
 RXMMSG = "RXM-SPARTN-KEY"
 SAT_EXPIRY = 10  # how long passed satellites are kept in the sky and graph view
+SBF_PROTOCOL = 64
 SOCK_NTRIP = "NTRIP CASTER"
 SOCK_SERVER = "SOCKET SERVER"
 SOCKCLIENT_HOST = "localhost"
@@ -285,6 +286,9 @@ TOPIC_IP = "/pp/ip/{}"
 TOPIC_MGA = "/pp/ubx/mga"
 TOPIC_RXM = "/pp/ubx/0236/ip"
 TTY_EVENT = "<<tty_read>>"
+TTY_PROTOCOL = 32
+TTYOK = ("OK", "$R:")
+TTYERR = ("ERROR", "$R?")
 TTYMARKER = "TTY<<"
 UBXPRESETS = "ubxpresets"
 UBXSIMULATOR = "ubxsimulator"
@@ -391,4 +395,14 @@ FIXLOOKUP = {
     "NAV2-STATUS5": "TIME ONLY",
     "NAV2-STATUS6": "RTK FLOAT",  # carrSoln
     "NAV2-STATUS7": "RTK FIXED",
+    "PVTGeodetic0": "NO FIX",
+    "PVTGeodetic1": "3D",
+    "PVTGeodetic2": "RTK",
+    "PVTGeodetic3": "3D",
+    "PVTGeodetic4": "RTK FIXED",
+    "PVTGeodetic5": "RTK FLOAT",
+    "PVTGeodetic6": "SBAS",
+    "PVTGeodetic7": "RTK FIXED",
+    "PVTGeodetic8": "RTK FLOAT",
+    "PVTGeodetic10": "PPP",
 }

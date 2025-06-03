@@ -249,7 +249,7 @@ class UBXHandler:
         self.__app.gnss_status.alt = data.hMSL / 1000  # meters
         self.__app.gnss_status.hacc = data.hAcc / 1000  # meters
         self.__app.gnss_status.vacc = data.vAcc / 1000  # meters
-        self.__app.gnss_status.sep = (data.height - data.hMSL) / 1000  # meters
+        self.__app.gnss_status.hae = data.height / 1000  # meters
 
     def _process_NAV_PVT(self, data: UBXMessage):
         """
@@ -268,7 +268,7 @@ class UBXHandler:
         self.__app.gnss_status.sip = data.numSV
         self.__app.gnss_status.speed = data.gSpeed / 1000  # m/s
         self.__app.gnss_status.track = data.headMot
-        self.__app.gnss_status.sep = (data.height - data.hMSL) / 1000  # meters
+        self.__app.gnss_status.hae = data.height / 1000  # meters
         self.__app.gnss_status.fix = fix2desc("NAV-PVT", data.fixType)
         if data.carrSoln > 0:
             self.__app.gnss_status.fix = fix2desc("NAV-PVT", data.carrSoln + 5)
@@ -293,7 +293,7 @@ class UBXHandler:
         self.__app.gnss_status.alt = data.hMSL / 1000  # meters
         self.__app.gnss_status.speed = data.gSpeed / 1000  # m/s
         self.__app.gnss_status.sip = data.numSV
-        self.__app.gnss_status.sep = (data.height - data.hMSL) / 1000  # meters
+        self.__app.gnss_status.hae = data.height / 1000  # meters
         ims = self.__app.gnss_status.imu_data
         ims["source"] = data.identity
         ims["roll"] = data.vehRoll

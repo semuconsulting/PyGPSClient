@@ -430,7 +430,7 @@ class BannerFrame(Frame):
         lat = self.__app.gnss_status.lat
         lon = self.__app.gnss_status.lon
         alt = self.__app.gnss_status.alt  # hMSL
-        hae = self.__app.gnss_status.sep + alt
+        hae = self.__app.gnss_status.hae
         self._lbl_llat.config(text="lat:")
         self._lbl_llon.config(text="lon:")
         self._lbl_lalt.config(text="hmsl:")

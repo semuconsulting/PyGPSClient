@@ -33,10 +33,13 @@ import ssl
 from datetime import datetime, timedelta
 from queue import Empty
 from threading import Event, Thread
+from time import sleep
 
 from certifi import where as findcacerts
 from pynmeagps import NMEAMessageError, NMEAParseError
 from pyrtcm import RTCMMessageError, RTCMParseError
+from pysbf2 import SBF_PROTOCOL as SBF_PROT
+from pysbf2 import SBFReader
 from pyubx2 import (
     ERR_LOG,
     NMEA_PROTOCOL,
@@ -57,9 +60,10 @@ from pygpsclient.globals import (
     DEFAULT_BUFSIZE,
     ERRCOL,
     FILEREAD_INTERVAL,
+    SBF_PROTOCOL,
+    TTY_PROTOCOL,
     UBXSIMULATOR,
 )
-from pygpsclient.strings import DLGTTTY
 
 
 class StreamHandler:
@@ -92,16 +96,11 @@ class StreamHandler:
         """
 
         self._stopevent.clear()
-        if self.__app.configuration.get("ttyprot_b"):
-            self._ttyevent.set()
-        else:
-            self._ttyevent.clear()
         self._stream_thread = Thread(
             target=self._read_thread,
             args=(
                 caller,
                 self._stopevent,
-                self._ttyevent,
                 settings,
             ),
             daemon=True,
@@ -116,23 +115,10 @@ class StreamHandler:
         self._stopevent.set()
         self._stream_thread = None
 
-    def ttymode(self, enabled: bool):
-        """
-        Set TTY mode event status.
-
-        :param bool enabled: TTY mode status
-        """
-
-        if enabled:
-            self._ttyevent.set()
-        else:
-            self._ttyevent.clear()
-
     def _read_thread(
         self,
         caller,
         stopevent: Event,
-        ttyevent: Event,
         settings: dict,
     ):
         """
@@ -141,7 +127,6 @@ class StreamHandler:
 
         :param caller owner: calling object
         :param Event stopevent: thread stop event
-        :param Event ttyevent: tty mode event
         :param dict settings: settings dictionary
         """
 
@@ -154,6 +139,10 @@ class StreamHandler:
         try:
             if conntype == CONNECTED:
                 ser = settings["serial_settings"]
+                if settings["protocol"] & TTY_PROTOCOL:
+                    timeout = 3
+                else:
+                    timeout = ser.timeout
                 with Serial(
                     ser.port,
                     ser.bpsrate,
@@ -162,22 +151,31 @@ class StreamHandler:
                     parity=ser.parity,
                     xonxoff=ser.xonxoff,
                     rtscts=ser.rtscts,
-                    timeout=ser.timeout,
+                    timeout=timeout,
                 ) as stream:
-                    self._readloop(
-                        stopevent,
-                        ttyevent,
-                        stream,
-                        settings,
-                        inactivity_timeout,
-                    )
+                    if settings["protocol"] & TTY_PROTOCOL:
+                        delay = self.__app.configuration.get(
+                            "ttydelay_b"
+                        ) * self.__app.configuration.get("guiupdateinterval_f")
+                        self._readlooptty(
+                            stopevent,
+                            stream,
+                            settings,
+                            delay,
+                        )
+                    else:
+                        self._readloop(
+                            stopevent,
+                            stream,
+                            settings,
+                            inactivity_timeout,
+                        )
 
             elif conntype == CONNECTED_FILE:
                 in_filepath = settings["in_filepath"]
                 with open(in_filepath, "rb") as stream:
                     self._readloop(
                         stopevent,
-                        ttyevent,
                         stream,
                         settings,
                         inactivity_timeout,
@@ -208,7 +206,6 @@ class StreamHandler:
                         stream.send(b"")  # send empty datagram to establish connection
                     self._readloop(
                         stopevent,
-                        ttyevent,
                         stream,
                         settings,
                         inactivity_timeout,
@@ -218,7 +215,6 @@ class StreamHandler:
                 with UBXSimulator() as stream:
                     self._readloop(
                         stopevent,
-                        ttyevent,
                         stream,
                         settings,
                         inactivity_timeout,
@@ -247,7 +243,6 @@ class StreamHandler:
     def _readloop(
         self,
         stopevent: Event,
-        ttyevent: Event,
         stream: object,
         settings: dict,
         inactivity: int,
@@ -260,11 +255,9 @@ class StreamHandler:
         prevent thrashing.
 
         :param Event stopevent: thread stop event
-        :param Event ttyevent: thread tty event
         :param object stream: serial data stream
         :param dict settings: settings dictionary
         :param int inactivity: inactivity timeout (s)
-        :param Event ttyevent: TTY mode event
         """
 
         def _errorhandler(err: Exception):
@@ -280,15 +273,25 @@ class StreamHandler:
 
         conntype = settings["conntype"]
 
-        # Parsed mode (NMEA, UBX,RTCM3)
-        ubr = UBXReader(
-            stream,
-            protfilter=NMEA_PROTOCOL | UBX_PROTOCOL | RTCM3_PROTOCOL,
-            quitonerror=ERR_LOG,
-            bufsize=DEFAULT_BUFSIZE,
-            msgmode=settings["msgmode"],
-            errorhandler=_errorhandler,
-        )
+        if settings["protocol"] & SBF_PROTOCOL:
+            # Parsed mode (NMEA, SBF, RTCM3)
+            ubr = SBFReader(
+                stream,
+                protfilter=NMEA_PROTOCOL | SBF_PROT | RTCM3_PROTOCOL,
+                quitonerror=ERR_LOG,
+                bufsize=DEFAULT_BUFSIZE,
+                errorhandler=_errorhandler,
+            )
+        else:
+            # Parsed mode (NMEA, UBX, RTCM3)
+            ubr = UBXReader(
+                stream,
+                protfilter=NMEA_PROTOCOL | UBX_PROTOCOL | RTCM3_PROTOCOL,
+                quitonerror=ERR_LOG,
+                bufsize=DEFAULT_BUFSIZE,
+                msgmode=settings["msgmode"],
+                errorhandler=_errorhandler,
+            )
 
         raw_data = None
         parsed_data = None
@@ -300,18 +303,7 @@ class StreamHandler:
                     conntype == CONNECTED_FILE
                     and datetime.now() > lastread + timedelta(seconds=FILEREAD_INTERVAL)
                 ):
-                    if ttyevent.is_set():  # TTY mode (ASCII data)
-                        raw_data = stream.readline()
-                        if raw_data == b"":
-                            raw_data = None
-                            parsed_data = None
-                        else:
-                            parsed_data = raw_data.decode(
-                                "ascii", errors="backslashreplace"
-                            )
-                            self._update_tty_status(raw_data, parsed_data)
-                    else:  # Parsed mode (NMEA, UBX, RTCM3)
-                        raw_data, parsed_data = ubr.read()
+                    raw_data, parsed_data = ubr.read()
                     if raw_data is not None:
                         settings["inqueue"].put((raw_data, parsed_data))
                         self.__master.event_generate(settings["read_event"])
@@ -349,14 +341,64 @@ class StreamHandler:
                 _errorhandler(err)
                 continue
 
-    def _update_tty_status(self, raw_data: bytes, parsed_data: str):
+    def _readlooptty(
+        self,
+        stopevent: Event,
+        stream: object,
+        settings: dict,
+        delay: float = 0.0,
+    ):
         """
-        Update TTY pending status if TTY dialog is open
+        THREADED PROCESS
+        TTY (ASCII) Read stream continously until stop event or stream error.
 
-        :param bytes raw_data: raw data
-        :param str parsed_data: parsed data
+        :param Event stopevent: thread stop event
+        :param object stream: serial data stream
+        :param dict settings: settings dictionary
+        :param float delay: delay between commands (secs)
         """
 
-        if "OK" in parsed_data.upper() or "ERROR" in parsed_data.upper():
-            if self.__app.dialog(DLGTTTY) is not None:
-                self.__app.dialog(DLGTTTY).update_status(raw_data)
+        def _errorhandler(err: Exception):
+            """
+            Stream error handler.
+
+            :param Exception err: error
+            """
+
+            parsed_data = f"Error parsing data stream {err}"
+            settings["inqueue"].put((raw_data, parsed_data))
+            self.__master.event_generate(settings["read_event"])
+
+        raw_data = None
+        while not stopevent.is_set():
+
+            try:
+
+                # write any queued output command to serial stream
+                try:
+                    # while not settings["outqueue"].empty():
+                    cmd = settings["outqueue"].get(False)
+                    if cmd is not None:
+                        stream.write(cmd)
+                    settings["outqueue"].task_done()
+                except Empty:
+                    pass
+
+                if delay:
+                    sleep(delay)
+
+                # read ascii input from serial stream
+                raw_data = b""
+                while stream.in_waiting > 0:
+                    raw_data += stream.read(1)
+
+                # place ascii data on input queue
+                if raw_data != b"":
+                    settings["inqueue"].put(
+                        (raw_data, raw_data.decode("ascii", errors="backslashreplace"))
+                    )
+                    self.__master.event_generate(settings["read_event"])
+
+            except (ValueError, SerialException) as err:
+                _errorhandler(err)
+                continue
