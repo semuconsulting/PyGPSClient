@@ -925,6 +925,7 @@ class SettingsFrame(Frame):
             self._btn_connect_file,
             self._chk_datalog,
             self._chk_recordtrack,
+            self._chk_tty,
         ):
             ctl.config(
                 state=(

@@ -135,6 +135,9 @@ class StreamHandler:
         if conntype == CONNECTED:
             if settings["serial_settings"].port == UBXSIMULATOR:
                 conntype = CONNECTED_SIMULATOR
+        ttydelay = self.__app.configuration.get(
+            "ttydelay_b"
+        ) * self.__app.configuration.get("guiupdateinterval_f")
 
         try:
             if conntype == CONNECTED:
@@ -154,14 +157,11 @@ class StreamHandler:
                     timeout=timeout,
                 ) as stream:
                     if settings["protocol"] & TTY_PROTOCOL:
-                        delay = self.__app.configuration.get(
-                            "ttydelay_b"
-                        ) * self.__app.configuration.get("guiupdateinterval_f")
                         self._readlooptty(
                             stopevent,
                             stream,
                             settings,
-                            delay,
+                            ttydelay,
                         )
                     else:
                         self._readloop(
@@ -213,12 +213,20 @@ class StreamHandler:
 
             elif conntype == CONNECTED_SIMULATOR:
                 with UBXSimulator() as stream:
-                    self._readloop(
-                        stopevent,
-                        stream,
-                        settings,
-                        inactivity_timeout,
-                    )
+                    if settings["protocol"] & TTY_PROTOCOL:
+                        self._readlooptty(
+                            stopevent,
+                            stream,
+                            settings,
+                            ttydelay,
+                        )
+                    else:
+                        self._readloop(
+                            stopevent,
+                            stream,
+                            settings,
+                            inactivity_timeout,
+                        )
 
         except EOFError:
             stopevent.set()

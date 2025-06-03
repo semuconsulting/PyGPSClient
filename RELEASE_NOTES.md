@@ -8,7 +8,9 @@ ENHANCEMENTS:
    - **NB:** At present, *either* UBX *or* SBF protocols can be selected, but not both at the same time.
    - **NB:** At present, with the exception of the SBF PVTGeodetic message, SBF data is not used to update the various user-selectable PyGPSClient widgets. This functionality may be enhanced in future releases.
    - **NB:** Serial connection must be disconnected before switching between SBF, UBX or TTY protocols.
-1. Enhancements to TTY Command mode - will now work with a wider variety of TTY-configured devices, including Septentrio Mosaic X5 and Feyman IM19.
+1. Enhancements to TTY Command mode - will now work with a wider variety of TTY-configured devices, including Septentrio Mosaic X5 Receiver and Feyman IM19 IMU.
+   - See [/examples/ttypresets_examples.py](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/ttypresets_examples.py) for examples of ASCII TTY commands for a variety of GNSS and related devices.
+   - **NB:** For Septentrio devices, send an 'Initialise Command Mode' string (`"SSSSSSSSSS\r\n"`) before sending further commands.
 1. Delay checkbox added to TTY Preset Commands dialog - if checked, inserts small delay between individual TTY commands.
 
 ### RELEASE 1.5.8

@@ -324,8 +324,6 @@ class TTYPresetDialog(Toplevel):
                         (cmd, cmd.decode("ascii", errors="backslashreplace"))
                     )
                     self.__master.event_generate(TTY_EVENT)
-                    if self._delay.get():
-                        sleep(self.__app.configuration.get("guiupdateinterval_f"))
         except Exception as err:  # pylint: disable=broad-except
             self.set_status(f"Error {err}", ERRCOL)
             self._lbl_send_command.config(image=self._img_warn)
