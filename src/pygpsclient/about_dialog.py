@@ -23,6 +23,7 @@ from PIL import Image, ImageTk
 from pygnssutils import version as PGVERSION
 from pynmeagps import version as NMEAVERSION
 from pyrtcm import version as RTCMVERSION
+from pysbf2 import version as SBFVERSION
 from pyspartn import version as SPARTNVERSION
 from pyubx2 import version as UBXVERSION
 
@@ -45,6 +46,7 @@ LIBVERSIONS = {
     "PyGPSClient": VERSION,
     "pygnssutils": PGVERSION,
     "pyubx2": UBXVERSION,
+    "pysbf2": SBFVERSION,
     "pynmeagps": NMEAVERSION,
     "pyrtcm": RTCMVERSION,
     "pyspartn": SPARTNVERSION,

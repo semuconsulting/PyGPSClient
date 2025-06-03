@@ -11,6 +11,7 @@ Created on 7 May 2025
 """
 
 import logging
+from time import sleep
 from tkinter import (
     HORIZONTAL,
     LEFT,
@@ -48,6 +49,8 @@ from pygpsclient.globals import (
     OKCOL,
     POPUP_TRANSIENT,
     TTY_EVENT,
+    TTYERR,
+    TTYOK,
 )
 from pygpsclient.strings import (
     CONFIRM,
@@ -93,6 +96,7 @@ class TTYPresetDialog(Toplevel):
         self._command = StringVar()
         self._crlf = IntVar()
         self._echo = IntVar()
+        self._delay = IntVar()
         self._body()
         self._do_layout()
         self.reset()
@@ -123,6 +127,11 @@ class TTYPresetDialog(Toplevel):
             self._frm_container,
             text="Echo",
             variable=self._echo,
+        )
+        self._chk_delay = Checkbutton(
+            self._frm_container,
+            text="Delay",
+            variable=self._delay,
         )
         self._lbl_presets = Label(
             self._frm_container, text="Preset TTY Commands", anchor=W
@@ -169,6 +178,7 @@ class TTYPresetDialog(Toplevel):
         self._ent_command.grid(column=1, row=0, columnspan=3, padx=3, sticky=(W, E))
         self._chk_crlf.grid(column=0, row=1, padx=3, sticky=W)
         self._chk_echo.grid(column=1, row=1, padx=3, sticky=W)
+        self._chk_delay.grid(column=2, row=1, padx=3, sticky=W)
         ttk.Separator(self._frm_container).grid(
             column=0, row=2, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
@@ -223,6 +233,7 @@ class TTYPresetDialog(Toplevel):
 
         self._crlf.set(self.__app.configuration.get("ttycrlf_b"))
         self._echo.set(self.__app.configuration.get("ttyecho_b"))
+        self._delay.set(self.__app.configuration.get("ttydelay_b"))
         idx = 0
         for tcmd in self.__app.configuration.get("ttypresets_l"):
             self._lbx_preset.insert(idx, tcmd)
@@ -242,6 +253,7 @@ class TTYPresetDialog(Toplevel):
 
         self.__app.configuration.set("ttycrlf_b", self._crlf.get())
         self.__app.configuration.set("ttyecho_b", self._echo.get())
+        self.__app.configuration.set("ttydelay_b", self._delay.get())
 
     def _on_select_preset(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -312,6 +324,8 @@ class TTYPresetDialog(Toplevel):
                         (cmd, cmd.decode("ascii", errors="backslashreplace"))
                     )
                     self.__master.event_generate(TTY_EVENT)
+                    if self._delay.get():
+                        sleep(self.__app.configuration.get("guiupdateinterval_f"))
         except Exception as err:  # pylint: disable=broad-except
             self.set_status(f"Error {err}", ERRCOL)
             self._lbl_send_command.config(image=self._img_warn)
@@ -323,13 +337,17 @@ class TTYPresetDialog(Toplevel):
         :param bytes msg: ASCII config message
         """
 
-        msgstr = msg.decode("ascii", errors="backslashreplace")
-        if "OK" in msgstr.upper():
-            self._lbl_send_command.config(image=self._img_confirmed)
-            self.set_status("Command(s) acknowledged", OKCOL)
-        elif "ERROR" in msgstr.upper():
-            self._lbl_send_command.config(image=self._img_warn)
-            self.set_status("Command(s) rejected", ERRCOL)
+        msgstr = msg.decode("ascii", errors="backslashreplace").upper()
+        for ack in TTYOK:
+            if ack in msgstr:
+                self._lbl_send_command.config(image=self._img_confirmed)
+                self.set_status("Command(s) acknowledged", OKCOL)
+                return
+        for nak in TTYERR:
+            if nak in msgstr:
+                self._lbl_send_command.config(image=self._img_warn)
+                self.set_status("Command(s) rejected", ERRCOL)
+                break
 
     def set_status(self, msg: str, col: str = INFOCOL):
         """

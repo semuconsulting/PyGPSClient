@@ -490,6 +490,7 @@ class SpartnLbandDialog(Frame):
             return
 
         conndict = {
+            "protocol": self.__app.configuration.get("protocol_n"),
             "read_event": SPARTN_EVENT,
             "eof_event": SPARTN_EOF_EVENT,
             "error_event": SPARTN_ERR_EVENT,

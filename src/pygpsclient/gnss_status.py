@@ -30,6 +30,7 @@ class GNSSStatus:
         self.lat = 0.0  # latitude as decimal
         self.lon = 0.0  # longitude as decimal
         self.alt = 0.0  # height above sea level m
+        self.hae = 0.0  # height above ellipsoid m
         self.speed = 0.0  # speed m/s
         self.track = 0.0  # track degrees
         self.fix = "NO FIX"  # fix type e.g. "3D"
@@ -40,7 +41,6 @@ class GNSSStatus:
         self.vdop = 0.0  # vertical DOP
         self.hacc = 0.0  # horizontal accuracy m
         self.vacc = 0.0  # vertical accuracy m
-        self.sep = 0.0  # separation from ellipsoid (height - hMSL) m
         self.diff_corr = 0  # DGPS correction status True/False
         self.diff_age = 0  # DGPS correction age seconds
         self.diff_station = "N/A"  # DGPS station id

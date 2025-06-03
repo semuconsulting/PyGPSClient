@@ -1,5 +1,16 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.5.9
+
+ENHANCEMENTS:
+
+1. Add support for Septentrio SBF binary GNSS protocol (*via the underlying `pysbf2` library*). If SBF protocol is selected, the console can now display parsed SBF data e.g. from Septentrio Mosaic X5. 
+   - **NB:** At present, *either* UBX *or* SBF protocols can be selected, but not both at the same time.
+   - **NB:** At present, with the exception of the SBF PVTGeodetic message, SBF data is not used to update the various user-selectable PyGPSClient widgets. This functionality may be enhanced in future releases.
+   - **NB:** Serial connection must be disconnected before switching between SBF, UBX or TTY protocols.
+1. Enhancements to TTY Command mode - will now work with a wider variety of TTY-configured devices, including Septentrio Mosaic X5 and Feyman IM19.
+1. Delay checkbox added to TTY Preset Commands dialog - if checked, inserts small delay between individual TTY commands.
+
 ### RELEASE 1.5.8
 
 FIXES:

@@ -19,9 +19,9 @@ Please help us keep our issue list small by adding fixes: #{$ISSUE_NO} to the co
 * Avoid external library dependencies unless there's a compelling reason not to.
 * We use and recommend [Visual Studio Code](https://code.visualstudio.com/) with the [Python Extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python) for development and testing.
 * Code should be documented in accordance with [Sphinx](https://www.sphinx-doc.org/en/master/) docstring conventions.
-* Code should formatted using [black](https://pypi.org/project/black/) (>= 23.0.0).
-* We use and recommend [pylint](https://pypi.org/project/pylint/) (>= 3.0.0) for code analysis.
-* We use and recommend [bandit](https://pypi.org/project/bandit/) (>= 1.7.0) for security vulnerability analysis.
+* Code should formatted using [black](https://pypi.org/project/black/) (>= 25.0.0).
+* We use and recommend [pylint](https://pypi.org/project/pylint/) (>= 3.3.0) for code analysis.
+* We use and recommend [bandit](https://pypi.org/project/bandit/) (>= 1.8.0) for security vulnerability analysis.
 * Commits must be [signed](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits).
 
 ## Testing
@@ -32,11 +32,11 @@ We use Python's native unittest framework for local unit testing, complemented b
 
 Please write unittest examples for new code you create and add them to the `/tests` folder following the naming convention `test_*.py`.
 
-We test on the following host platforms using a variety of u-blox devices (NEO-M6, NEO-M7, NEO-M8, NEO-M9, NEO-D9S, ZED-F9P, ZED-F9R, NEO-M10S):
+We test on the following host platforms using a variety of GNSS devices:
 
-* Windows 11
-* MacOS (Ventura & Sonoma, Intel and Apple Silicon)
-* Linux (Ubuntu 22.04 LTS Jammy & 23.10 Mantic)
+* Windows 11 (Intel and Snapdragon)
+* MacOS (Sonoma & Sequoia, Intel and Apple Silicon)
+* Linux (Ubuntu 24.04 LTS Numbat & 25.02 Puffin)
 * Raspberry Pi OS (Bookworm 32-bit & 64-bit)
 
 ## Submitting changes

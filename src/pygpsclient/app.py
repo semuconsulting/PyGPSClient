@@ -41,6 +41,7 @@ from pygnssutils import GNSSMQTTClient, GNSSNTRIPClient, MQTTMessage
 from pygnssutils.socket_server import ClientHandler, SocketServer
 from pynmeagps import NMEAMessage
 from pyrtcm import RTCMMessage
+from pysbf2 import SBFMessage
 from pyspartn import SPARTNMessage
 from pyubx2 import NMEA_PROTOCOL, POLL, RTCM3_PROTOCOL, UBX_PROTOCOL, UBXMessage
 from serial import SerialException, SerialTimeoutException
@@ -64,18 +65,19 @@ from pygpsclient.globals import (
     GNSS_ERR_EVENT,
     GNSS_EVENT,
     GNSS_TIMEOUT_EVENT,
-    GUI_UPDATE_INTERVAL,
     ICON_APP128,
     INFOCOL,
     MQTT_PROTOCOL,
     NOPORTS,
     NTRIP_EVENT,
     OKCOL,
+    SBF_PROTOCOL,
     SOCKSERVER_MAX_CLIENTS,
     SPARTN_EVENT,
     SPARTN_PROTOCOL,
     THD,
     TTY_EVENT,
+    TTY_PROTOCOL,
     TTYMARKER,
 )
 from pygpsclient.gnss_status import GNSSStatus
@@ -83,6 +85,7 @@ from pygpsclient.helpers import check_latest
 from pygpsclient.menu_bar import MenuBar
 from pygpsclient.nmea_handler import NMEAHandler
 from pygpsclient.rtcm3_handler import RTCM3Handler
+from pygpsclient.sbf_handler import SBFHandler
 from pygpsclient.stream_handler import StreamHandler
 from pygpsclient.strings import (
     CONFIGERR,
@@ -102,6 +105,7 @@ from pygpsclient.strings import (
     TITLE,
     VERCHECK,
 )
+from pygpsclient.tty_handler import TTYHandler
 from pygpsclient.ubx_handler import UBXHandler
 from pygpsclient.widget_state import (
     COL,
@@ -162,7 +166,9 @@ class App(Frame):
         self.spartn_stream_handler = StreamHandler(self)
         self.nmea_handler = NMEAHandler(self)
         self.ubx_handler = UBXHandler(self)
+        self.sbf_handler = SBFHandler(self)
         self.rtcm_handler = RTCM3Handler(self)
+        self.tty_handler = TTYHandler(self)
         self.ntrip_handler = GNSSNTRIPClient(self)
         self.spartn_handler = GNSSMQTTClient(self)
         self._conn_status = DISCONNECTED
@@ -785,12 +791,13 @@ class App(Frame):
         :rtype: dict
         """
 
+        sep = self.gnss_status.hae - self.gnss_status.alt
         return {
             "connection": self._conn_status,
             "lat": self.gnss_status.lat,
             "lon": self.gnss_status.lon,
             "alt": self.gnss_status.alt,
-            "sep": self.gnss_status.sep,
+            "sep": sep,
             "sip": self.gnss_status.sip,
             "fix": self.gnss_status.fix,
             "hdop": self.gnss_status.hdop,
@@ -812,6 +819,8 @@ class App(Frame):
         protfilter = self.configuration.get("protocol_n")
         if isinstance(parsed_data, NMEAMessage):
             msgprot = NMEA_PROTOCOL
+        elif isinstance(parsed_data, SBFMessage):
+            msgprot = SBF_PROTOCOL
         elif isinstance(parsed_data, UBXMessage):
             msgprot = UBX_PROTOCOL
         elif isinstance(parsed_data, RTCMMessage):
@@ -821,15 +830,21 @@ class App(Frame):
         elif isinstance(parsed_data, MQTTMessage):
             msgprot = MQTT_PROTOCOL
         elif isinstance(parsed_data, str):
-            if not self.configuration.get("ttyprot_b"):
+            if self.configuration.get("ttyprot_b"):
+                msgprot = TTY_PROTOCOL
+            else:
                 marker = "WARNING>>"
 
         if msgprot == UBX_PROTOCOL and msgprot & protfilter:
             self.ubx_handler.process_data(raw_data, parsed_data)
+        elif msgprot == SBF_PROTOCOL and msgprot & protfilter:
+            self.sbf_handler.process_data(raw_data, parsed_data)
         elif msgprot == NMEA_PROTOCOL and msgprot & protfilter:
             self.nmea_handler.process_data(raw_data, parsed_data)
         elif msgprot == RTCM3_PROTOCOL and msgprot & protfilter:
             self.rtcm_handler.process_data(raw_data, parsed_data)
+        elif msgprot == TTY_PROTOCOL and msgprot & protfilter:
+            self.tty_handler.process_data(raw_data, parsed_data)
         elif msgprot == SPARTN_PROTOCOL and msgprot & protfilter:
             pass
         elif msgprot == MQTT_PROTOCOL:
@@ -867,14 +882,14 @@ class App(Frame):
         Refresh visible widgets.
         """
 
-        if self.widget_state.state[WDGCONSOLE][VISIBLE]:
-            self.frm_console.update_console(self._consoledata)
-            self._consoledata = []
-        self.frm_banner.update_frame()
-        for _, widget in self.widget_state.state.items():
-            frm = getattr(self, widget[FRAME])
-            if hasattr(frm, "update_frame") and widget[VISIBLE]:
-                frm.update_frame()
+        for wdg, wdgdata in self.widget_state.state.items():
+            frm = getattr(self, wdgdata[FRAME])
+            if hasattr(frm, "update_frame") and wdgdata[VISIBLE]:
+                if wdg == WDGCONSOLE:
+                    frm.update_frame(self._consoledata)
+                    self._consoledata = []
+                else:
+                    frm.update_frame()
 
     def _check_update(self):
         """
