@@ -13,6 +13,7 @@ Created on 23 Dec 2022
 :license: BSD 3-Clause
 """
 
+import logging
 from tkinter import ALL, NW, Canvas, Checkbutton, E, Frame, IntVar, N, S, W
 
 from pyubx2 import UBXMessage
@@ -94,6 +95,7 @@ class SpectrumviewFrame(Frame):
 
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
+        self.logger = logging.getLogger(__name__)
 
         Frame.__init__(self, self.__master, *args, **kwargs)
 
@@ -483,7 +485,7 @@ class SpectrumviewFrame(Frame):
             for i, db in enumerate(spec):
                 if self._pgaoffset.get():
                     db += pga  # compensate for programmable gain
-                hz = int(minhz + (res * i))
+                hz = int(ctr - (spn / 2) + (res * i))
                 spanhz.append((hz, db))
             specxy.append(spanhz)
 

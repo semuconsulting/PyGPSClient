@@ -2,6 +2,10 @@
 
 ### RELEASE 1.5.9
 
+FIXES:
+
+1. Fixes [#193](https://github.com/semuconsulting/PyGPSClient/issues/193)
+
 ENHANCEMENTS:
 
 1. Add support for Septentrio SBF binary GNSS protocol (*via the underlying `pysbf2` library*). If SBF protocol is selected, the console can now display parsed SBF data e.g. from Septentrio Mosaic X5. 

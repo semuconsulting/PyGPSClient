@@ -10,8 +10,6 @@ Created on 7 May 2025
 :license: BSD 3-Clause
 """
 
-import logging
-from time import sleep
 from tkinter import (
     HORIZONTAL,
     LEFT,
@@ -79,7 +77,7 @@ class TTYPresetDialog(Toplevel):
 
         self.__app = app
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
-        self.logger = logging.getLogger(__name__)
+
         Toplevel.__init__(self, app)
         if POPUP_TRANSIENT:
             self.transient(self.__app)
