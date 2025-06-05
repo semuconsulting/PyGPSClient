@@ -133,7 +133,7 @@ class NMEAHandler:
         self.__app.gnss_status.lat = data.lat
         self.__app.gnss_status.lon = data.lon
         self.__app.gnss_status.alt = data.alt
-        self.__app.gnss_status.sep = data.sep
+        self.__app.gnss_status.hae = data.sep + data.alt
         self.__app.gnss_status.fix = fix2desc("GGA", data.quality)
         self.__app.gnss_status.diff_corr = 0 if data.diffAge == "" else 1
         self.__app.gnss_status.diff_age = data.diffAge
@@ -370,8 +370,8 @@ class NMEAHandler:
         self.__app.gnss_status.track = data.hdg
         self.__app.gnss_status.hdop = data.hdop
         self.__app.gnss_status.pdop = data.pdop
-        self.__app.gnss_status.sep = data.sep
         self.__app.gnss_status.alt = data.alt
+        self.__app.gnss_status.hae = data.sep + data.alt
         self.__app.gnss_status.sip = data.numsv
         self.__app.gnss_status.fix = ["NO FIX", "NO FIX", "2D", "3D"][data.fixtype]
 

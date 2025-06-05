@@ -124,7 +124,7 @@ class ConsoleFrame(Frame):
         self.txt_console.bind("<Double-Button-3>", self._on_clipboard)
         # self.txt_console.tag_bind(HALT, "<1>", self._on_halt) # doesn't seem to work on MacOS
 
-    def update_console(self, consoledata: list):
+    def update_frame(self, consoledata: list):
         """
         Print the latest data stream to the console in raw (NMEA) or
         parsed (key,value pair) format.

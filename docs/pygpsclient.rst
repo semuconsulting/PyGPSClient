@@ -220,6 +220,14 @@ pygpsclient.rtcm3\_handler module
    :show-inheritance:
    :undoc-members:
 
+pygpsclient.sbf\_handler module
+-------------------------------
+
+.. automodule:: pygpsclient.sbf_handler
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 pygpsclient.scatter\_frame module
 ---------------------------------
 
@@ -344,6 +352,14 @@ pygpsclient.sysmon\_frame module
 --------------------------------
 
 .. automodule:: pygpsclient.sysmon_frame
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+pygpsclient.tty\_handler module
+-------------------------------
+
+.. automodule:: pygpsclient.tty_handler
    :members:
    :show-inheritance:
    :undoc-members:
