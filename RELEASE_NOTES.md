@@ -1,5 +1,16 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.5.10
+
+FIXES:
+
+1. Fix issue which would cause console to flicker between fixed and dynamic fonts when filtering data.
+
+ENHANCEMENTS:
+
+1. Chart Plot widget streamlined to reduce memory footprint and simplify CSV cut-and-paste (double-right-click) function.
+1. Minor enhancements to `ubx2preset()` and `nmea2preset()` helper functions; added `\examples\convert_ubx_preset.py` example.
+
 ### RELEASE 1.5.9
 
 FIXES:
