@@ -9,6 +9,7 @@ FIXES:
 ENHANCEMENTS:
 
 1. Chart Plot widget streamlined to reduce memory footprint and simplify CSV cut-and-paste (double-right-click) function.
+1. Minor enhancements to `ubx2preset()` and `nmea2preset()` helper functions; added `\examples\convert_ubx_preset.py` example.
 
 ### RELEASE 1.5.9
 

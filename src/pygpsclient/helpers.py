@@ -1238,6 +1238,7 @@ def ubx2preset(msgs: tuple, desc: str = "") -> str:
     :rtype: str
     """
 
+    desc = desc.replace(",", " ")
     if not isinstance(msgs, tuple):
         msgs = (msgs,)
     preset = (
@@ -1269,6 +1270,7 @@ def nmea2preset(msgs: tuple, desc: str = "") -> str:
     :rtype: str
     """
 
+    desc = desc.replace(";", " ")
     if not isinstance(msgs, tuple):
         msgs = (msgs,)
     preset = (
