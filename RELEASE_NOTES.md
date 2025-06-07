@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.5.10
+
+ENHANCEMENTS:
+
+1. Chart Plot widget streamlined to reduce memory footprint and simplify CSV cut-and-paste (double-right-click) function.
+
 ### RELEASE 1.5.9
 
 FIXES:
