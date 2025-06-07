@@ -2,6 +2,10 @@
 
 ### RELEASE 1.5.10
 
+FIXES:
+
+1. Fix issue which would cause console to flicker between fixed and dynamic fonts when filtering data.
+
 ENHANCEMENTS:
 
 1. Chart Plot widget streamlined to reduce memory footprint and simplify CSV cut-and-paste (double-right-click) function.
