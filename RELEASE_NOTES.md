@@ -8,6 +8,7 @@ FIXES:
 
 ENHANCEMENTS:
 
+1. Add support for Septentrio Mosaic X5 Base Station configuration in NTRIP Caster mode (supplementing the existing u-blox ZED-F9P and Quectel LG290P options). Note that the Mosaic X5 is configured via ASCII TTY commands - to monitor the responses, set the console protocol to "TTY" (*remember to set it back to "RTCM" to monitor the RTCM3 output*). Note also that the input (ASCII command) UART port may be different to the output (RTCM3) port - ensure you select the appropriate port(s) when configuring the receiver and monitoring the RTCM3 output.
 1. Chart Plot widget streamlined to reduce memory footprint and simplify CSV cut-and-paste (double-right-click) function.
 1. Minor enhancements to `ubx2preset()` and `nmea2preset()` helper functions; added `\examples\convert_ubx_preset.py` example.
 

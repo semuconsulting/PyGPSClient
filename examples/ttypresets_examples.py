@@ -40,6 +40,10 @@ Created on 30 May 2025
         "Enable RTCM3 messages on COM2 in base station mode;sr3o, COM2, RTCM1001+RTCM1002+RTCM1005+RTCM1006; sdio, COM2, , RTCMv3",
         "List Known Antenna Phase Centres; lai, Overview",
         "Turn ethernet interface on; seth, on",
+        "Set Fixed Base Station Mode;setDataInOut,COM1, ,RTCMv3;setRTCMv3Formatting,1234;setStaticPosGeodetic,Geodetic1,37.23345,-115.81513,15;setPVTMode,Static, ,Geodetic1",
+        "Set Survey-In Base Station Mode;setDataInOut,COM1, ,RTCMv3;setRTCMv3Formatting,1234;setPVTMode,Static, ,auto",
+        "Stop RTCM output;setDataInOut,COM1, ,none",
+        "Soft Reset to Factory Defaults;erst,soft,config",
     ],
 }
 

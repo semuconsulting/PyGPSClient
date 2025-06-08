@@ -19,7 +19,8 @@ Created on 23 Jul 2023
 
 # pylint: disable=unused-argument
 
-# import logging
+import logging
+from time import sleep
 from tkinter import (
     DISABLED,
     NORMAL,
@@ -44,12 +45,16 @@ from pynmeagps import SET, NMEAMessage, llh2ecef
 from pyubx2 import UBXMessage
 
 from pygpsclient.globals import (
+    ASCII,
+    BSR,
     DISCONNECTED,
     ERRCOL,
     ICON_CONTRACT,
     ICON_EXPAND,
+    ICON_SEND,
     INFOCOL,
     LG290P,
+    MOSAIC_X5,
     READONLY,
     RPTDELAY,
     SERVERCONFIG,
@@ -136,7 +141,7 @@ class ServerConfigFrame(Frame):
         """
 
         Frame.__init__(self, container, *args, **kwargs)
-        # self.logger = logging.getLogger(__name__)
+        self.logger = logging.getLogger(__name__)
 
         self.__app = app
         self._container = container
@@ -146,7 +151,7 @@ class ServerConfigFrame(Frame):
         self.sock_host = StringVar()
         self.sock_mode = StringVar()
         self._sock_clients = StringVar()
-        self._set_basemode = IntVar()
+        # self._set_basemode = IntVar()
         self.receiver_type = StringVar()
         self.base_mode = StringVar()
         self.acclimit = IntVar()
@@ -160,6 +165,7 @@ class ServerConfigFrame(Frame):
         self.password = StringVar()
         self._img_expand = ImageTk.PhotoImage(Image.open(ICON_EXPAND))
         self._img_contract = ImageTk.PhotoImage(Image.open(ICON_CONTRACT))
+        self._img_send = ImageTk.PhotoImage(Image.open(ICON_SEND))
         self._sock_port_temp = SOCKSERVER_PORT
         self._fixed_lat_temp = 0
         self._fixed_lon_temp = 0
@@ -268,15 +274,21 @@ class ServerConfigFrame(Frame):
             relief="sunken",
             width=15,
         )
-        self._chk_set_basemode = Checkbutton(
+        self._lbl_configure_base = Label(
             self._frm_advanced,
             text=LBLCONFIGBASE,
-            variable=self._set_basemode,
+        )
+        self._btn_configure_base = Button(
+            self._frm_advanced,
+            command=self._on_configure_base,
+            image=self._img_send,
+            width=40,
+            height=22,
         )
         self._spn_rcvrtype = Spinbox(
             self._frm_advanced,
-            values=(ZED_F9, LG290P),
-            width=14,
+            values=(ZED_F9, LG290P, MOSAIC_X5),
+            width=18,
             state=READONLY,
             wrap=True,
             repeatdelay=RPTDELAY,
@@ -404,10 +416,9 @@ class ServerConfigFrame(Frame):
         self._lbl_sockclients.grid(column=3, row=3, rowspan=2, padx=2, pady=1, sticky=W)
         self._btn_toggle.grid(column=4, row=0, sticky=E)
         self._frm_advanced.grid_forget()
-        self._chk_set_basemode.grid(
-            column=0, row=0, columnspan=2, padx=2, pady=2, sticky=W
-        )
-        self._spn_rcvrtype.grid(column=2, row=0, columnspan=2, padx=2, pady=1, sticky=W)
+        self._lbl_configure_base.grid(column=0, row=0, padx=2, pady=2, sticky=W)
+        self._spn_rcvrtype.grid(column=1, row=0, columnspan=2, padx=2, pady=1, sticky=W)
+        self._btn_configure_base.grid(column=3, row=0, padx=2, pady=2, sticky=W)
         self._lbl_basemode.grid(column=0, row=1, padx=2, pady=1, sticky=E)
         self._spn_basemode.grid(column=1, row=1, padx=2, pady=1, sticky=W)
 
@@ -479,7 +490,6 @@ class ServerConfigFrame(Frame):
         for setting in (
             self.sock_port,
             self.sock_host,
-            self._set_basemode,
             self.receiver_type,
             self.acclimit,
             self.duration,
@@ -519,6 +529,14 @@ class ServerConfigFrame(Frame):
             # are updated in their respective routines below
         except (ValueError, TclError):
             pass
+
+    def _on_configure_base(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Send commands to configure base station.
+        """
+
+        if self.sock_mode.get() == SOCK_NTRIP:
+            self._config_rcvr()
 
     def set_status(self, status: int):
         """
@@ -573,7 +591,6 @@ class ServerConfigFrame(Frame):
             self._ent_sockhost,
             self._ent_sockport,
             self._spn_sockmode,
-            self._chk_set_basemode,
             self._spn_rcvrtype,
             self._lbl_basemode,
             self._spn_basemode,
@@ -599,16 +616,13 @@ class ServerConfigFrame(Frame):
             else:
                 state = READONLY if isinstance(wid, Spinbox) else NORMAL
             wid.config(state=state)
+        for wid in (self._btn_configure_base,):
+            if self._socket_serve.get():
+                state = DISABLED
+            else:
+                state = NORMAL
+            wid.config(state=state)
         self._lbl_elapsed.config(text="")
-
-        # configure receiver as base station if in NTRIP Caster mode
-        # and 'Configure Base' option is checked.
-        if (
-            self._socket_serve.get()
-            and self.sock_mode.get() == SOCK_NTRIP
-            and self._set_basemode.get()
-        ):
-            self._config_rcvr()
         self.__app.configuration.set("sockserver_b", int(self._socket_serve.get()))
 
     def _on_toggle_advanced(self):
@@ -674,7 +688,7 @@ class ServerConfigFrame(Frame):
 
         self._lbl_acclimit.grid(column=0, row=2, padx=2, pady=1, sticky=E)
         self._spn_acclimit.grid(column=1, row=2, padx=2, pady=1, sticky=W)
-        self._chk_disablenmea.grid(column=3, row=1, padx=2, pady=1, sticky=W)
+        self._chk_disablenmea.grid(column=2, row=1, padx=2, pady=1, sticky=W)
         self._lbl_duration.grid(column=0, row=3, padx=2, pady=1, sticky=E)
         self._spn_duration.grid(column=1, row=3, padx=2, pady=1, sticky=W)
         self._lbl_elapsed.grid(column=2, row=3, columnspan=2, padx=2, pady=1, sticky=W)
@@ -698,7 +712,7 @@ class ServerConfigFrame(Frame):
 
         self._lbl_acclimit.grid(column=0, row=2, padx=2, pady=1, sticky=E)
         self._spn_acclimit.grid(column=1, row=2, padx=2, pady=1, sticky=W)
-        self._chk_disablenmea.grid(column=3, row=1, padx=2, pady=1, sticky=W)
+        self._chk_disablenmea.grid(column=2, row=1, padx=2, pady=1, sticky=W)
         self._spn_posmode.grid(column=0, row=3, rowspan=3, padx=2, pady=1, sticky=E)
         self._lbl_fixedlat.grid(column=1, row=3, padx=2, pady=1, sticky=E)
         self._ent_fixedlat.grid(column=2, row=3, columnspan=3, padx=2, pady=1, sticky=W)
@@ -721,7 +735,7 @@ class ServerConfigFrame(Frame):
         Set DISABLED base mode.
         """
 
-        self._chk_disablenmea.grid(column=3, row=1, padx=2, pady=1, sticky=W)
+        self._chk_disablenmea.grid(column=2, row=1, padx=2, pady=1, sticky=W)
         self._lbl_acclimit.grid_forget()
         self._spn_acclimit.grid_forget()
         self._spn_posmode.grid_forget()
@@ -807,6 +821,7 @@ class ServerConfigFrame(Frame):
         Configure receiver as Base Station if in NTRIP caster mode.
         """
 
+        delay = self.__app.configuration.get("guiupdateinterval_f") / 2
         # set base station timing mode
         if self.base_mode.get() == BASE_SVIN:
             cmds = self._config_svin(self.acclimit.get(), self.duration.get())
@@ -824,8 +839,14 @@ class ServerConfigFrame(Frame):
                 cmds,
             ]
         for cmd in cmds:
-            # self.logger.debug(f"Base Config Message: {msg}")
-            self.__app.gnss_outqueue.put(cmd.serialize())
+            # self.logger.debug(f"Base Config Message: {cmd}")
+            if isinstance(cmd, (UBXMessage, NMEAMessage)):
+                self.__app.gnss_outqueue.put(cmd.serialize())
+            elif isinstance(cmd, str):  # TTY ASCII string
+                self.__app.gnss_outqueue.put(cmd.encode(ASCII, errors=BSR))
+                sleep(delay)  # add delay between each TTY command
+            else:  # raw bytes
+                self.__app.gnss_outqueue.put(cmd)
 
         if self.receiver_type.get() == ZED_F9:
             # set RTCM and UBX NAV-SVIN message output rate
@@ -835,7 +856,7 @@ class ServerConfigFrame(Frame):
                 self.__app.gnss_outqueue.put(msg.serialize())
                 msg = config_nmea(self.disable_nmea.get(), port)
                 self.__app.gnss_outqueue.put(msg.serialize())
-        else:  # LG290P
+        elif self.receiver_type.get() == LG290P:
             # poll for confirmation that rcvr has restarted,
             # then resend configuration commands a 2nd time
             self._pending_confs[PQTMVER] = SERVERCONFIG
@@ -867,12 +888,14 @@ class ServerConfigFrame(Frame):
         """
         Disable base station mode.
 
-        :return: UBXMessage or NMEAMessage(s)
-        :rtype: UBXMessage or NMEAMessage(s)
+        :return: one or more UBXMessage, NMEAMessage or bytes
+        :rtype: UBXMessage or list
         """
 
         if self.receiver_type.get() == LG290P:
             return self._config_disable_quectel()
+        if self.receiver_type.get() == MOSAIC_X5:
+            return self._config_disable_septentrio()
         return self._config_disable_ublox()
 
     def _config_disable_ublox(self) -> UBXMessage:
@@ -891,15 +914,15 @@ class ServerConfigFrame(Frame):
 
         return UBXMessage.config_set(layers, transaction, cfg_data)
 
-    def _config_disable_quectel(self) -> NMEAMessage:
+    def _config_disable_quectel(self) -> list:
         """
         Disable base station mode for Quectel receivers.
 
         NB: A 'feature' of Quectel firmware is that some command sequences
         require multiple restarts before taking effect.
 
-        :return: NMEAMessage(s)
-        :rtype: NMEAMessage(s)
+        :return: list of NMEAMessage(s)
+        :rtype: list
         """
 
         msgs = []
@@ -908,18 +931,34 @@ class ServerConfigFrame(Frame):
         msgs.append(NMEAMessage("P", "QTMSRR", SET))
         return msgs
 
+    def _config_disable_septentrio(self) -> list:
+        """
+        Disable base station mode for Septentrio receivers.
+
+        :return: ASCII TTY commands
+        :rtype: list
+        """
+
+        msgs = []
+        msgs.append("SSSSSSSSSS\r\n")
+        msgs.append("SSSSSSSSSS\r\n")
+        msgs.append("erst,soft,config\r\n")
+        return msgs
+
     def _config_svin(self, acc_limit: int, svin_min_dur: int) -> object:
         """
         Configure Survey-In mode with specied accuracy limit.
 
         :param int acc_limit: accuracy limit in cm
         :param int svin_min_dur: survey minimimum duration
-        :return: UBXMessage or NMEAMessage(s)
-        :rtype: UBXMessage or NMEAMessage(s)
+        :return: one or more UBXMessage, NMEAMessage or bytes
+        :rtype: UBXMessage or list
         """
 
         if self.receiver_type.get() == LG290P:
             return self._config_svin_quectel(acc_limit, svin_min_dur)
+        if self.receiver_type.get() == MOSAIC_X5:
+            return self._config_svin_septentrio(acc_limit, svin_min_dur)
         return self._config_svin_ublox(acc_limit, svin_min_dur)
 
     def _config_svin_ublox(self, acc_limit: int, svin_min_dur: int) -> UBXMessage:
@@ -943,7 +982,7 @@ class ServerConfigFrame(Frame):
 
         return UBXMessage.config_set(layers, transaction, cfg_data)
 
-    def _config_svin_quectel(self, acc_limit: int, svin_min_dur: int) -> NMEAMessage:
+    def _config_svin_quectel(self, acc_limit: int, svin_min_dur: int) -> list:
         """
         Configure Survey-In mode with specified accuracy limit for Quectel receivers.
 
@@ -952,8 +991,8 @@ class ServerConfigFrame(Frame):
 
         :param int acc_limit: accuracy limit in cm
         :param int svin_min_dur: survey minimimum duration
-        :return: NMEAMessage(s)
-        :rtype: NMEAMessage(s)
+        :return: list of NMEAMessage(s)
+        :rtype: list
         """
 
         msgs = []
@@ -986,6 +1025,28 @@ class ServerConfigFrame(Frame):
         msgs.append(NMEAMessage("P", "QTMSRR", SET))
         return msgs
 
+    def _config_svin_septentrio(self, acc_limit: int, svin_min_dur: int) -> list:
+        """
+        Configure Survey-In mode with specified accuracy limit for Septentrio receivers.
+
+        :param int acc_limit: accuracy limit in cm
+        :param int svin_min_dur: survey minimimum duration
+        :return: ASCII TTY commands
+        :rtype: list
+        """
+
+        msgs = []
+        msgs.append("SSSSSSSSSS\r\n")
+        msgs.append("SSSSSSSSSS\r\n")
+        msgs.append("setDataInOut, COM1, ,RTCMv3\r\n")
+        msgs.append("setRTCMv3Formatting,1234\r\n")
+        msgs.append(
+            "setRTCMv3Output,COM1,RTCM1006+RTCM1033+RTCM1077+RTCM1087+"
+            "RTCM1097+RTCM1107+RTCM1117+RTCM1127+RTCM1137+RTCM1230\r\n"
+        ),
+        msgs.append("setPVTMode,Static, ,auto\r\n")
+        return msgs
+
     def _config_fixed(
         self, acc_limit: int, lat: float, lon: float, height: float
     ) -> object:
@@ -994,14 +1055,16 @@ class ServerConfigFrame(Frame):
 
         :param int acc_limit: accuracy limit in cm
         :param float lat: lat or X in m
-        :param float lat: lon or Y in m
-        :param float lat: height or Z in m
-        :return: UBXMessage or NMEAMessage(s)
-        :rtype: UBXMessage or NMEAMessage(s)
+        :param float lon: lon or Y in m
+        :param float height: height or Z in m
+        :return: one or more UBXMessage, NMEAMessage or bytes
+        :rtype: UBXMessage or list
         """
 
         if self.receiver_type.get() == LG290P:
             return self._config_fixed_quectel(acc_limit, lat, lon, height)
+        if self.receiver_type.get() == MOSAIC_X5:
+            return self._config_fixed_septentrio(acc_limit, lat, lon, height)
         return self._config_fixed_ublox(acc_limit, lat, lon, height)
 
     def _config_fixed_ublox(
@@ -1012,8 +1075,8 @@ class ServerConfigFrame(Frame):
 
         :param int acc_limit: accuracy limit in cm
         :param float lat: lat or X in m
-        :param float lat: lon or Y in m
-        :param float lat: height or Z in m
+        :param float lon: lon or Y in m
+        :param float height: height or Z in m
         :return: UBXMessage
         :rtype: UBXMessage
         """
@@ -1056,7 +1119,7 @@ class ServerConfigFrame(Frame):
 
     def _config_fixed_quectel(
         self, acc_limit: int, lat: float, lon: float, height: float
-    ) -> NMEAMessage:
+    ) -> list:
         """
         Configure Fixed mode with specified coordinates for Quectel receivers.
 
@@ -1065,10 +1128,10 @@ class ServerConfigFrame(Frame):
 
         :param int acc_limit: accuracy limit in cm
         :param float lat: lat or X in m
-        :param float lat: lon or Y in m
-        :param float lat: height or Z in m
-        :return: NMEAMessage(s)
-        :rtype: NMEAMessage(s)
+        :param float lon: lon or Y in m
+        :param float height: height or Z in m
+        :return: list of NMEAMessage(s)
+        :rtype: list
         """
 
         if self._spn_posmode.get() == POS_LLH:
@@ -1107,6 +1170,35 @@ class ServerConfigFrame(Frame):
         )
         msgs.append(NMEAMessage("P", "QTMSAVEPAR", SET))
         msgs.append(NMEAMessage("P", "QTMSRR", SET))
+        return msgs
+
+    def _config_fixed_septentrio(
+        self, acc_limit: int, lat: float, lon: float, height: float
+    ) -> list:
+        """
+        Configure Fixed mode with specified coordinates for Septentrio receivers.
+
+        :param int acc_limit: accuracy limit in cm
+        :param float lat: lat or X in m
+        :param float lon: lon or Y in m
+        :param float height: height or Z in m
+        :return: ASCII TTY commands
+        :rtype: list
+        """
+
+        msgs = []
+        msgs.append("SSSSSSSSSS\r\n")
+        msgs.append("SSSSSSSSSS\r\n")
+        msgs.append("setDataInOut,COM1, ,RTCMv3\r\n")
+        msgs.append("setRTCMv3Formatting,1234\r\n")
+        msgs.append(
+            "setRTCMv3Output,COM1,RTCM1006+RTCM1033+RTCM1077+RTCM1087+"
+            "RTCM1097+RTCM1107+RTCM1117+RTCM1127+RTCM1137+RTCM1230\r\n"
+        ),
+        msgs.append(
+            f"setStaticPosGeodetic,Geodetic1,{lat:.8f},{lon:.8f},{height:.4f}\r\n"
+        )
+        msgs.append("setPVTMode,Static, ,Geodetic1\r\n")
         return msgs
 
     def _on_quectel_restart(self):
