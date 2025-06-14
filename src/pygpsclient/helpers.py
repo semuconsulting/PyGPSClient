@@ -719,6 +719,33 @@ def secs2unit(secs: int) -> tuple:
     return val, SECSUNITS[i]
 
 
+def dop2str(dop: float) -> str:
+    """
+    Convert Dilution of Precision float to descriptive string.
+
+    :param float dop: dilution of precision as float
+    :return: dilution of precision as string
+    :rtype: str
+
+    """
+
+    if dop == 0:
+        dops = "N/A"
+    elif dop <= 1:
+        dops = "Ideal"
+    elif dop <= 2:
+        dops = "Excellent"
+    elif dop <= 5:
+        dops = "Good"
+    elif dop <= 10:
+        dops = "Moderate"
+    elif dop <= 20:
+        dops = "Fair"
+    else:
+        dops = "Poor"
+    return dops
+
+
 def fontwidth(fnt: Font, txt: str = "W") -> int:
     """
     Get font width.

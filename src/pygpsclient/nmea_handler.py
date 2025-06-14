@@ -134,6 +134,7 @@ class NMEAHandler:
         self.__app.gnss_status.lon = data.lon
         self.__app.gnss_status.alt = data.alt
         self.__app.gnss_status.hae = data.sep + data.alt
+        self.__app.gnss_status.hdop = data.HDOP
         self.__app.gnss_status.fix = fix2desc("GGA", data.quality)
         self.__app.gnss_status.diff_corr = 0 if data.diffAge == "" else 1
         self.__app.gnss_status.diff_age = data.diffAge

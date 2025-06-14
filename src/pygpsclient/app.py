@@ -900,21 +900,26 @@ class App(Frame):
         if latest not in (VERSION, "N/A"):
             self.set_status(f"{VERCHECK} {latest}", ERRCOL)
 
-    def poll_version(self, protocol: str = "UBX"):
+    def poll_version(self, protocol: int):
         """
         Poll hardware information message for device hardware & firmware version.
 
-        :param str protocol: protocol (UBX)
+        :param int protocol: protocol(s)
         """
 
-        if protocol == "NMEA":
-            msg = NMEAMessage("P", "QTMVERNO", POLL)
-        else:
+        msg = None
+        if protocol & UBX_PROTOCOL:
             msg = UBXMessage("MON", "MON-VER", POLL)
-        self.gnss_outqueue.put(msg.serialize())
-        self.set_status(
-            f"{msg.identity} POLL message sent",
-        )
+        elif protocol & SBF_PROTOCOL:
+            pass
+        elif protocol & NMEA_PROTOCOL:
+            msg = NMEAMessage("P", "QTMVERNO", POLL)
+
+        if msg is not None:
+            self.gnss_outqueue.put(msg.serialize())
+            self.set_status(
+                f"{msg.identity} POLL message sent",
+            )
 
     @property
     def appmaster(self) -> Tk:

@@ -252,7 +252,7 @@
         "MOSAIC X5 Initialise Command Mode; SSSSSSSSSS",
         "MOSAIC X5 List receiver capabilities; grc",
         "MOSAIC X5 List NMEA outputs; gno",
-        "MOSAIC X5 Enable NMEA messages; sno, Stream1, COM1, GGA+GLL+GSV+RMC, sec1",
+        "MOSAIC X5 Enable NMEA messages; sno, Stream1, COM1, GGA+GSA+GLL+GSV+RMC+VTG, sec1",
         "MOSAIC X5 Disable NMEA messages; sno, Stream1, none, none, off",
         "MOSAIC X5 Enable Group stream; ssgp, Group1, MeasEpoch+PVTCartesian+DOP; sso, Stream2, COM1, Group1, sec1",
         "MOSAIC X5 Disable Group stream; sso, Stream2, none, none, off",

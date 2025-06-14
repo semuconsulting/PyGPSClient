@@ -940,7 +940,7 @@ class ServerConfigFrame(Frame):
         """
 
         msgs = []
-        msgs.append("SSSSSSSSSS\r\n")
+        # msgs.append("SSSSSSSSSS\r\n")
         msgs.append("SSSSSSSSSS\r\n")
         msgs.append("erst,soft,config\r\n")
         return msgs
@@ -1037,13 +1037,12 @@ class ServerConfigFrame(Frame):
 
         msgs = []
         msgs.append("SSSSSSSSSS\r\n")
-        msgs.append("SSSSSSSSSS\r\n")
         msgs.append("setDataInOut, COM1, ,RTCMv3\r\n")
         msgs.append("setRTCMv3Formatting,1234\r\n")
         msgs.append(
             "setRTCMv3Output,COM1,RTCM1006+RTCM1033+RTCM1077+RTCM1087+"
             "RTCM1097+RTCM1107+RTCM1117+RTCM1127+RTCM1137+RTCM1230\r\n"
-        ),
+        )
         msgs.append("setPVTMode,Static, ,auto\r\n")
         return msgs
 
@@ -1188,13 +1187,12 @@ class ServerConfigFrame(Frame):
 
         msgs = []
         msgs.append("SSSSSSSSSS\r\n")
-        msgs.append("SSSSSSSSSS\r\n")
         msgs.append("setDataInOut,COM1, ,RTCMv3\r\n")
         msgs.append("setRTCMv3Formatting,1234\r\n")
         msgs.append(
             "setRTCMv3Output,COM1,RTCM1006+RTCM1033+RTCM1077+RTCM1087+"
             "RTCM1097+RTCM1107+RTCM1117+RTCM1127+RTCM1137+RTCM1230\r\n"
-        ),
+        )
         msgs.append(
             f"setStaticPosGeodetic,Geodetic1,{lat:.8f},{lon:.8f},{height:.4f}\r\n"
         )
