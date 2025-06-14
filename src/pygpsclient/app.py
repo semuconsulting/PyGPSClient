@@ -791,12 +791,16 @@ class App(Frame):
         :rtype: dict
         """
 
-        sep = self.gnss_status.hae - self.gnss_status.alt
+        try:
+            sep = self.gnss_status.hae - self.gnss_status.alt
+        except TypeError:
+            sep = 0
         return {
             "connection": self._conn_status,
             "lat": self.gnss_status.lat,
             "lon": self.gnss_status.lon,
-            "alt": self.gnss_status.alt,
+            "alt": self.gnss_status.alt,  # hmsl
+            "hae": self.gnss_status.hae,
             "sep": sep,
             "sip": self.gnss_status.sip,
             "fix": self.gnss_status.fix,
