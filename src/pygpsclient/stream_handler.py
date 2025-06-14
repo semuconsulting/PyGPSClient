@@ -53,6 +53,8 @@ from pyubxutils import UBXSimulator
 from serial import Serial, SerialException, SerialTimeoutException
 
 from pygpsclient.globals import (
+    ASCII,
+    BSR,
     CONNECTED,
     CONNECTED_FILE,
     CONNECTED_SIMULATOR,
@@ -135,9 +137,11 @@ class StreamHandler:
         if conntype == CONNECTED:
             if settings["serial_settings"].port == UBXSIMULATOR:
                 conntype = CONNECTED_SIMULATOR
-        ttydelay = self.__app.configuration.get(
-            "ttydelay_b"
-        ) * self.__app.configuration.get("guiupdateinterval_f")
+        ttydelay = (
+            self.__app.configuration.get("ttydelay_b")
+            * self.__app.configuration.get("guiupdateinterval_f")
+            / 2
+        )
 
         try:
             if conntype == CONNECTED:
@@ -403,7 +407,7 @@ class StreamHandler:
                 # place ascii data on input queue
                 if raw_data != b"":
                     settings["inqueue"].put(
-                        (raw_data, raw_data.decode("ascii", errors="backslashreplace"))
+                        (raw_data, raw_data.decode(ASCII, errors=BSR))
                     )
                     self.__master.event_generate(settings["read_event"])
 

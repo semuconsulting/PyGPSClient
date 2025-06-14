@@ -35,6 +35,8 @@ from PIL import Image, ImageTk
 
 from pygpsclient.confirm_box import ConfirmBox
 from pygpsclient.globals import (
+    ASCII,
+    BSR,
     CRLF,
     ERRCOL,
     ICON_BLANK,
@@ -312,15 +314,13 @@ class TTYPresetDialog(Toplevel):
 
         try:
             for cmd in command.split(";"):
-                cmd = cmd.strip().encode("ascii", errors="backslashreplace")
+                cmd = cmd.strip().encode(ASCII, errors=BSR)
                 if self._crlf.get():
                     cmd += CRLF
                 self.__app.gnss_outqueue.put(cmd)
                 # self.logger.debug(f"command sent {cmd=}")
                 if self._echo.get():  # echo output command to console
-                    self.__app.gnss_inqueue.put(
-                        (cmd, cmd.decode("ascii", errors="backslashreplace"))
-                    )
+                    self.__app.gnss_inqueue.put((cmd, cmd.decode(ASCII, errors=BSR)))
                     self.__master.event_generate(TTY_EVENT)
         except Exception as err:  # pylint: disable=broad-except
             self.set_status(f"Error {err}", ERRCOL)
@@ -333,7 +333,7 @@ class TTYPresetDialog(Toplevel):
         :param bytes msg: ASCII config message
         """
 
-        msgstr = msg.decode("ascii", errors="backslashreplace").upper()
+        msgstr = msg.decode(ASCII, errors=BSR).upper()
         for ack in TTYOK:
             if ack in msgstr:
                 self._lbl_send_command.config(image=self._img_confirmed)

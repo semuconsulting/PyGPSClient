@@ -16,7 +16,6 @@ from tkinter import SUNKEN, Button, E, Frame, Label, N, S, StringVar, W
 
 from PIL import Image, ImageTk
 from pynmeagps.nmeahelpers import latlon2dmm, latlon2dms, llh2ecef
-from pyubx2 import dop2str
 
 from pygpsclient.globals import (
     BGCOL,
@@ -47,7 +46,7 @@ from pygpsclient.globals import (
     UIK,
     UMK,
 )
-from pygpsclient.helpers import m2ft, ms2kmph, ms2knots, ms2mph, scale_font
+from pygpsclient.helpers import dop2str, m2ft, ms2kmph, ms2knots, ms2mph, scale_font
 
 DGPSYES = "YES"
 DGPSNO = "N/A"

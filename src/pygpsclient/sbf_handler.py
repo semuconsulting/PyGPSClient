@@ -86,5 +86,5 @@ class SBFHandler:
             self.__app.gnss_status.track = data.COG
         self.__app.gnss_status.fix = fix2desc("PVTGeodetic", data.Type)
         if data.MeanCorrAge != 0:
-            self.__app.gnss_status.diff_age = data.MeanCorrAge
+            self.__app.gnss_status.diff_age = data.MeanCorrAge / 100  # seconds
         self.__app.gnss_status.diff_station = data.ReferenceID

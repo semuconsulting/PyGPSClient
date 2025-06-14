@@ -95,7 +95,7 @@ class ConsoleFrame(Frame):
         self.sblogv.config(command=self.txt_console.yview)
 
         # making the textbox read only and fixed width font
-        self.txt_console.configure(font=FONT_FIXED, state="disabled")
+        self.txt_console.configure(state="disabled")
 
         # set up color tagging
         for match, color in self._colortags:
@@ -142,20 +142,20 @@ class ConsoleFrame(Frame):
         maxlines = self.__app.configuration.get("maxlines_n")
         autoscroll = self.__app.configuration.get("autoscroll_b")
         self._halt = ""
-        con.configure(font=FONT_FIXED)
-
         consolestr = ""
+        con.configure(font=FONT_TEXT)
         for raw_data, parsed_data, marker in consoledata:
             if consoleformat == FORMAT_BINARY:
                 data = f"{marker}{raw_data}".strip("\n")
             elif consoleformat == FORMAT_HEXSTR:
                 data = f"{marker}{raw_data.hex()}"
             elif consoleformat == FORMAT_HEXTAB:
+                con.configure(font=FONT_FIXED)
                 data = hextable(raw_data)
             elif consoleformat == FORMAT_BOTH:
+                con.configure(font=FONT_FIXED)
                 data = f"{marker}{parsed_data}\n{hextable(raw_data)}"
             else:
-                con.configure(font=FONT_TEXT)
                 data = f"{marker}{parsed_data}"
             consolestr += data + "\n"
 

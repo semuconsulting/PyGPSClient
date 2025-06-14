@@ -31,7 +31,7 @@
                 "--ntripcasterpassword",
                 "testpassword",
                 "--verbosity",
-                "2"
+                "3"
             ],
             "options": {
                 "cwd": "src"

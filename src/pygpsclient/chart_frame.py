@@ -221,7 +221,7 @@ class ChartviewFrame(Frame):
         )
         self._lbl_maxpoints = Label(
             self,
-            text="Max Points/Chan",
+            text="Max Points",
             fg=LBLCOL,
             bg=BGCOL,
         )
@@ -394,8 +394,7 @@ class ChartviewFrame(Frame):
         Clear data.
         """
 
-        for chn in range(self._num_chans):
-            self._chart_data[chn] = []
+        self._chart_data = {}
         self._mintim = 1e20
         self._maxtim = 0
         self._can_chartview.delete(ALL)
@@ -454,6 +453,9 @@ class ChartviewFrame(Frame):
         except ValueError:
             maxpoints = DPTRANGE[2]  # 5000
 
+        now = round(time(), 0)  # time to nearest second
+        if now not in self._chart_data:
+            self._chart_data[now] = {}
         for chn in range(self._num_chans):
             mid = self._data_id[chn].get()
             name = self._data_name[chn].get()
@@ -491,19 +493,18 @@ class ChartviewFrame(Frame):
                 else:
                     continue
 
-            now = time()
-            self._chart_data[chn].append((now, val))
+            self._chart_data[now][chn] = val
 
             # update X axis (time) range
             self._mintim = min(now, self._mintim)
             self._maxtim = max(now, self._maxtim)
 
-            # limit number of data points per channel
-            while len(self._chart_data[chn]) > maxpoints:
-                self._chart_data[chn].pop(0)
-
             # flag if scaled value is out of range
             self.flag_outofrange(chn, val)
+
+        # limit number of data points
+        while len(self._chart_data) > maxpoints:
+            self._chart_data.pop(0)
 
     def flag_outofrange(self, chn: int, val: float):
         """
@@ -583,9 +584,13 @@ class ChartviewFrame(Frame):
 
             # plot each data point in channel
             inr = False
-            for tim, val in data[chn]:
+            for tim, channels in data.items():
+                try:
+                    val = channels[chn]
+                except KeyError:
+                    val = None
 
-                if val is None:  # not numeric
+                if val is None:
                     continue
 
                 if scale[chn] != 1:
@@ -731,16 +736,23 @@ class ChartviewFrame(Frame):
         """
 
         csv = (
-            f"PyGPSClient Chart Data,{time2str(time(),'%Y-%M-%d-%H:%M:%S')},"
+            f"PyGPSClient Chart Data,{time2str(time(),'%Y-%m-%d-%H:%M:%S')},"
             f"Channels,{self._num_chans}\n"
         )
-        for chn in range(self._num_chans):
-            csv += (
-                f"{chn},{self._ent_id[chn].get()},{self._ent_name[chn].get()},"
-                f"{len(self._chart_data[chn])}\nTime,Value\n"
-            )
-            for tim, val in self._chart_data[chn]:
-                csv += f"{time2str(tim,'%H:%M:%S.%f')},{val}\n"
+        hdr = True
+        for tim, data in self._chart_data.items():
+            if hdr:
+                csv += "Timestamp"
+                for chn in range(self._num_chans):
+                    csv += f",{self._ent_id[chn].get()}.{self._ent_name[chn].get()}"
+                csv += "\n"
+                hdr = False
+            csv += f"{time2str(tim,'%Y-%m-%d-%H:%M:%S')}"
+            for chn in range(self._num_chans):
+                try:
+                    csv += f",{data[chn]}"
+                except KeyError:
+                    csv += ","
             csv += "\n"
         self.__master.clipboard_clear()
         self.__master.clipboard_append(csv)

@@ -45,6 +45,7 @@ Canvas.create_circle = create_circle
 
 HOME = Path.home()
 APPNAME = __name__.split(".", 1)[0]  # i.e. "pygpsclient"
+ASCII = "ascii"
 AXISCOL = "white"
 BGCOL = "gray24"  # default widget background color
 BPSRATES = (
@@ -59,6 +60,7 @@ BPSRATES = (
     1000000,
     4800,
 )
+BSR = "backslashreplace"
 CFG = "cfg"
 CLASS = "cls"
 COLORTAGS = "colortags"
@@ -140,7 +142,7 @@ GPX_NS = (
 )
 GPX_TRACK_INTERVAL = 1  # minimum GPS track update interval (seconds)
 GRIDCOL = "grey40"
-GUI_UPDATE_INTERVAL = 0.5  # minimum GUI widget update interval (seconds)
+GUI_UPDATE_INTERVAL = 0.5  # GUI widget update interval (seconds)
 ICON_APP128 = path.join(DIRNAME, "resources/app-128.png")
 ICON_BLANK = path.join(DIRNAME, "resources/blank-1-24.png")
 ICON_CONFIRMED = path.join(DIRNAME, "resources/iconmonstr-check-mark-8-24.png")
@@ -219,6 +221,8 @@ WORLD = "world"
 LG290P = "Quectel LG290P"
 MAX_SNR = 60  # upper limit of graphview snr axis
 MAXLOGLINES = 10000  # maximum number of 'lines' per datalog file
+MIN_GUI_UPDATE_INTERVAL = 0.1  # minimum GUI widget update interval (seconds)
+MOSAIC_X5 = "Septentrio Mosaic X5"
 MQAPIKEY = "mqapikey"
 MQTT_PROTOCOL = 16
 MSGMODES = {

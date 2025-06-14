@@ -24,6 +24,7 @@ from pygpsclient.globals import (
     FORMAT_BINARY,
     FORMAT_PARSED,
     GUI_UPDATE_INTERVAL,
+    MIN_GUI_UPDATE_INTERVAL,
     MQTTIPMODE,
     PASSTHRU,
     RCVR_CONNECTION,
@@ -230,6 +231,8 @@ class Configuration:
             try:
                 for key, val in config.items():
                     key = key.replace("mgtt", "mqtt")  # tolerate "mgtt" typo
+                    if key == "guiupdateinterval_f":
+                        val = max(MIN_GUI_UPDATE_INTERVAL, val)
                     self.set(key, val)
             except KeyError:
                 err = f'Unrecognised setting "{key}": {val}'

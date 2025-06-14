@@ -791,12 +791,16 @@ class App(Frame):
         :rtype: dict
         """
 
-        sep = self.gnss_status.hae - self.gnss_status.alt
+        try:
+            sep = self.gnss_status.hae - self.gnss_status.alt
+        except TypeError:
+            sep = 0
         return {
             "connection": self._conn_status,
             "lat": self.gnss_status.lat,
             "lon": self.gnss_status.lon,
-            "alt": self.gnss_status.alt,
+            "alt": self.gnss_status.alt,  # hmsl
+            "hae": self.gnss_status.hae,
             "sep": sep,
             "sip": self.gnss_status.sip,
             "fix": self.gnss_status.fix,
@@ -900,21 +904,26 @@ class App(Frame):
         if latest not in (VERSION, "N/A"):
             self.set_status(f"{VERCHECK} {latest}", ERRCOL)
 
-    def poll_version(self, protocol: str = "UBX"):
+    def poll_version(self, protocol: int):
         """
         Poll hardware information message for device hardware & firmware version.
 
-        :param str protocol: protocol (UBX)
+        :param int protocol: protocol(s)
         """
 
-        if protocol == "NMEA":
-            msg = NMEAMessage("P", "QTMVERNO", POLL)
-        else:
+        msg = None
+        if protocol & UBX_PROTOCOL:
             msg = UBXMessage("MON", "MON-VER", POLL)
-        self.gnss_outqueue.put(msg.serialize())
-        self.set_status(
-            f"{msg.identity} POLL message sent",
-        )
+        elif protocol & SBF_PROTOCOL:
+            pass
+        elif protocol & NMEA_PROTOCOL:
+            msg = NMEAMessage("P", "QTMVERNO", POLL)
+
+        if msg is not None:
+            self.gnss_outqueue.put(msg.serialize())
+            self.set_status(
+                f"{msg.identity} POLL message sent",
+            )
 
     @property
     def appmaster(self) -> Tk:

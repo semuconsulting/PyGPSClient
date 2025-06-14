@@ -789,7 +789,7 @@ class SettingsFrame(Frame):
             connstr = f"{frm.port}:{frm.port_desc} @ {frm.bpsrate}"
             conndict = dict(conndict, **{"serial_settings": frm})
             # poll for device software version on connection
-            self.__app.poll_version()
+            self.__app.poll_version(conndict["protocol"])
         elif conntype == CONNECTED_SOCKET:
             frm = self.frm_socketclient
             if not frm.valid_settings():

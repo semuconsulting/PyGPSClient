@@ -66,11 +66,21 @@ class RTCM3Handler:
 
         try:
             self.__app.gnss_status.diff_station = parsed.DF003
-            lat1 = self.__app.gnss_status.lat
-            lon1 = self.__app.gnss_status.lon
+            self.__app.gnss_status.base_ecefx = parsed.DF025
+            self.__app.gnss_status.base_ecefy = parsed.DF026
+            self.__app.gnss_status.base_ecefz = parsed.DF027
             lat2, lon2, _ = ecef2llh(parsed.DF025, parsed.DF026, parsed.DF027)
             self.__app.gnss_status.rel_pos_length = (
-                haversine(lat1, lon1, lat2, lon2) * 100000
+                haversine(
+                    self.__app.gnss_status.lat,
+                    self.__app.gnss_status.lon,
+                    lat2,
+                    lon2,
+                )
+                * 100000
             )  # km to cm
+            # update Survey-In base station location
+            if self.__app.frm_settings.frm_socketserver is not None:
+                self.__app.frm_settings.frm_socketserver.update_base_location()
         except (AttributeError, ValueError):
             pass
