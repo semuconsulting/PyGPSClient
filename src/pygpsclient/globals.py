@@ -331,6 +331,7 @@ NMEA_MONHW = 15
 NMEA_PRESET = 16
 NMEA_CFGOTHER = 17
 SERVERCONFIG = 18
+SBF_MONHW = 19
 
 # map of fix values to descriptions
 # the keys in this map are a concatenation of NMEA/UBX

@@ -915,14 +915,19 @@ class App(Frame):
         if protocol & UBX_PROTOCOL:
             msg = UBXMessage("MON", "MON-VER", POLL)
         elif protocol & SBF_PROTOCOL:
-            pass
+            msg = b"SSSSSSSSSS\r\nesoc, COM1, ReceiverSetup\r\n"
         elif protocol & NMEA_PROTOCOL:
             msg = NMEAMessage("P", "QTMVERNO", POLL)
 
-        if msg is not None:
+        if isinstance(msg, (UBXMessage, NMEAMessage)):
             self.gnss_outqueue.put(msg.serialize())
             self.set_status(
                 f"{msg.identity} POLL message sent",
+            )
+        elif isinstance(msg, bytes):
+            self.gnss_outqueue.put(msg)
+            self.set_status(
+                "Setup POLL message sent",
             )
 
     @property
@@ -982,15 +987,3 @@ class App(Frame):
 
         self._rtk_conn_status = status
         self.frm_banner.update_rtk_status(status)
-
-    def svin_countdown(self, dur: int, valid: bool, active: bool):
-        """
-        Countdown survey-in duration for NTRIP caster mode.
-
-        :param int dur: elapsed time
-        :param bool valid: valid flag
-        :param bool active: active flag
-        """
-
-        if self.frm_settings.frm_socketserver is not None:
-            self.frm_settings.frm_socketserver.svin_countdown(dur, valid, active)

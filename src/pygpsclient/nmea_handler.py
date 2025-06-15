@@ -395,7 +395,10 @@ class NMEAHandler:
 
         valid = 1 if data.valid == 2 else 0
         active = data.valid == 1
-        self.__app.svin_countdown(data.obs, valid, active)
+        if self.__app.frm_settings.frm_socketserver is not None:
+            self.__app.frm_settings.frm_socketserver.svin_countdown(
+                data.obs, valid, active
+            )
 
     def _process_FMI(self, data: NMEAMessage):
         """
