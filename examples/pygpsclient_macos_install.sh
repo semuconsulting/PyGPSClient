@@ -17,10 +17,10 @@
 set -e
 
 echo "PyGPSClient will be installed at $HOME/pygpsclient/bin"
-
-echo "Installing latest Python from python.org ..."
-curl https://www.python.org/ftp/python/3.13.3/python-3.13.3-macos11.pkg --output python-3.13.3-macos11.pkg
-sudo installer -pkg python-3.13.3-macos11.pkg -target /
+VER=3.13.5
+echo "Installing Python $VER from python.org ..."
+curl https://www.python.org/ftp/python/$VER/python-$VER-macos11.pkg --output python-$VER-macos11.pkg
+sudo installer -pkg python-$VER-macos11.pkg -target /
 
 PYVER="$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')"
 echo "Installed Python version is $PYVER"
