@@ -47,9 +47,9 @@ from pygpsclient.globals import (
     UMK,
 )
 from pygpsclient.helpers import dop2str, m2ft, ms2kmph, ms2knots, ms2mph, scale_font
+from pygpsclient.strings import NA
 
 DGPSYES = "YES"
-DGPSNO = "N/A"
 M2MILES = 5280
 
 
@@ -414,7 +414,7 @@ class BannerFrame(Frame):
 
         tim = self.__app.gnss_status.utc
         if tim in (None, ""):
-            self._time.set(f"{'N/A': <15}")
+            self._time.set(f"{NA:<15}")
         else:
             self._time.set(f"{tim:%H:%M:%S.%f}")
 
@@ -463,10 +463,10 @@ class BannerFrame(Frame):
             self._hae.set(f"{hae:.4f}")
             self._alt_u.set(f"{alt_u:<2}")
         except (TypeError, ValueError):
-            self._lat.set("N/A            ")
-            self._lon.set("N/A            ")
-            self._alt.set("N/A  ")
-            self._hae.set("N/A  ")
+            self._lat.set(f"{NA:<15}")
+            self._lon.set(f"{NA:<15}")
+            self._alt.set(f"{NA:<6}")
+            self._hae.set(f"{NA:<6}")
             self._alt_u.set("  ")
 
     def _update_track(self, units):
@@ -491,13 +491,12 @@ class BannerFrame(Frame):
             self._speed.set(f"{speed:.2f}")
             self._speed_u.set(f"{speed_u:<5}")
         else:
-            self._speed.set("N/A")
-            self._speed.set("")
+            self._speed.set(NA)
         track = self.__app.gnss_status.track
         if isinstance(track, (int, float)):
             self._track.set(f"{track:05.1f}")
         else:
-            self._track.set("N/A  ")
+            self._track.set(f"{NA:<4}")
 
     def _update_fix(self):
         """
@@ -528,22 +527,33 @@ class BannerFrame(Frame):
         :param str units: distance units as string (UMM, UMK, UI, UIK)
         """
 
-        pdop = self.__app.gnss_status.pdop
-        self._dop.set(f"{pdop:.2f} {dop2str(pdop):<9}")
-        self._hvdop.set(
-            f"hdop {self.__app.gnss_status.hdop:.2f}\n"
-            + f"vdop {self.__app.gnss_status.vdop:.2f}"
-        )
-        if units in (UI, UIK):
-            self._hvacc.set(
-                f"hacc {m2ft(self.__app.gnss_status.hacc):.3f}\n"
-                + f"vacc {m2ft(self.__app.gnss_status.vacc):.3f}"
+        try:
+            pdop = self.__app.gnss_status.pdop
+            self._dop.set(f"{pdop:.2f} {dop2str(pdop):<9}")
+        except (TypeError, ValueError):
+            self._dop.set(NA)
+
+        try:
+            self._hvdop.set(
+                f"hdop {self.__app.gnss_status.hdop:.2f}\n"
+                + f"vdop {self.__app.gnss_status.vdop:.2f}"
             )
-        else:
-            self._hvacc.set(
-                f"hacc {self.__app.gnss_status.hacc:.3f}\n"
-                + f"vacc {self.__app.gnss_status.vacc:.3f}"
-            )
+        except (TypeError, ValueError):
+            self._hvdop.set(f"hdop {NA}\nvdop {NA}")
+
+        try:
+            if units in (UI, UIK):
+                self._hvacc.set(
+                    f"hacc {m2ft(self.__app.gnss_status.hacc):.3f}\n"
+                    + f"vacc {m2ft(self.__app.gnss_status.vacc):.3f}"
+                )
+            else:
+                self._hvacc.set(
+                    f"hacc {self.__app.gnss_status.hacc:.3f}\n"
+                    + f"vacc {self.__app.gnss_status.vacc:.3f}"
+                )
+        except (TypeError, ValueError):
+            self._hvacc.set(f"hacc {NA}\nvacc {NA}")
 
     def _update_dgps(self, units):
         """
@@ -552,9 +562,9 @@ class BannerFrame(Frame):
         :param str units: distance units as string (UMM, UMK, UI, UIK)
         """
 
-        self._diffcorr.set(DGPSYES if self.__app.gnss_status.diff_corr else DGPSNO)
+        self._diffcorr.set(DGPSYES if self.__app.gnss_status.diff_corr else NA)
         baseline = self.__app.gnss_status.rel_pos_length
-        bl = "N/A"
+        bl = NA
         bl_u = ""
         if isinstance(baseline, (int, float)):
             if baseline > 0.0:
@@ -577,12 +587,12 @@ class BannerFrame(Frame):
             age = self.__app.gnss_status.diff_age
             station = self.__app.gnss_status.diff_station
             if age in [None, "", 0]:
-                age = "N/A"
+                age = NA
             else:
                 age = f"{age} s"
             if station in [None, "", 0]:
-                station = "N/A"
-            if bl == "N/A":
+                station = NA
+            if bl == NA:
                 self._diffstat.set(f"age {age}\nstation {station} baseline {bl}")
             else:
                 self._diffstat.set(
