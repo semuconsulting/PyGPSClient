@@ -48,6 +48,7 @@ from pygpsclient.globals import (
     UMK,
 )
 from pygpsclient.helpers import m2ft, ms2kmph, ms2knots, ms2mph, scale_font
+from pygpsclient.strings import NA
 
 DGPSYES = "YES"
 DGPSNO = "N/A"
@@ -529,22 +530,33 @@ class BannerFrame(Frame):
         :param str units: distance units as string (UMM, UMK, UI, UIK)
         """
 
-        pdop = self.__app.gnss_status.pdop
-        self._dop.set(f"{pdop:.2f} {dop2str(pdop):<9}")
-        self._hvdop.set(
-            f"hdop {self.__app.gnss_status.hdop:.2f}\n"
-            + f"vdop {self.__app.gnss_status.vdop:.2f}"
-        )
-        if units in (UI, UIK):
-            self._hvacc.set(
-                f"hacc {m2ft(self.__app.gnss_status.hacc):.3f}\n"
-                + f"vacc {m2ft(self.__app.gnss_status.vacc):.3f}"
+        try:
+            pdop = self.__app.gnss_status.pdop
+            self._dop.set(f"{pdop:.2f} {dop2str(pdop):<9}")
+        except (TypeError, ValueError):
+            self._dop.set(NA)
+
+        try:
+            self._hvdop.set(
+                f"hdop {self.__app.gnss_status.hdop:.2f}\n"
+                + f"vdop {self.__app.gnss_status.vdop:.2f}"
             )
-        else:
-            self._hvacc.set(
-                f"hacc {self.__app.gnss_status.hacc:.3f}\n"
-                + f"vacc {self.__app.gnss_status.vacc:.3f}"
-            )
+        except (TypeError, ValueError):
+            self._hvdop.set(f"hdop {NA}\nvdop {NA}")
+
+        try:
+            if units in (UI, UIK):
+                self._hvacc.set(
+                    f"hacc {m2ft(self.__app.gnss_status.hacc):.3f}\n"
+                    + f"vacc {m2ft(self.__app.gnss_status.vacc):.3f}"
+                )
+            else:
+                self._hvacc.set(
+                    f"hacc {self.__app.gnss_status.hacc:.3f}\n"
+                    + f"vacc {self.__app.gnss_status.vacc:.3f}"
+                )
+        except (TypeError, ValueError):
+            self._hvacc.set(f"hacc {NA}\nvacc {NA}")
 
     def _update_dgps(self, units):
         """
