@@ -22,7 +22,6 @@ from pysbf2 import SBFMessage, itow2utc
 
 from pygpsclient.globals import ASCII, BSR
 from pygpsclient.helpers import fix2desc
-from pygpsclient.strings import DLGTNMEA
 
 DNUL = -2 * (10**10)
 DNUS = 65535

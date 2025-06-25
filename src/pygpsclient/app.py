@@ -360,8 +360,10 @@ class App(Frame):
         Reset widgets to default layout.
         """
 
-        for _, wdg in self.widget_state.state.items():
-            wdg[VISIBLE] = wdg.get(DEFAULT, False)
+        for nam, wdg in self.widget_state.state.items():
+            vis = wdg.get(DEFAULT, False)
+            wdg[VISIBLE] = vis
+            self.configuration.set(nam, vis)
         self._do_layout()
 
     def reset_gnssstatus(self):

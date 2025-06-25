@@ -15,7 +15,17 @@
                 "pip",
                 "install",
                 "--upgrade",
-                "."
+                "setuptools",
+                "build",
+                "wheel",
+                "black",
+                "pylint",
+                "pytest",
+                "pytest-cov",
+                "isort",
+                "bandit",
+                "Sphinx",
+                "sphinx-rtd-theme"
             ],
             "problemMatcher": []
         },

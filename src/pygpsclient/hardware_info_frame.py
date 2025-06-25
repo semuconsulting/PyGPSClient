@@ -142,9 +142,7 @@ class Hardware_Info_Frame(Frame):
             )
         elif isinstance(msg, bytes):
             self.__app.gnss_outqueue.put(msg)
-            self.__app.set_status(
-                f"Setup POLL message sent",
-            )
+            self.__app.set_status("Setup POLL message sent")
         self.__container.set_pending(pendmsg, penddlg)
 
     def update_status(self, msg: object):
