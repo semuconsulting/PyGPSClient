@@ -517,8 +517,12 @@ class BannerFrame(Frame):
         Update siv and sip
         """
 
-        self._siv.set(f"{self.__app.gnss_status.siv:02d}")
-        self._sip.set(f"{self.__app.gnss_status.sip:02d}")
+        try:
+            self._siv.set(f"{self.__app.gnss_status.siv:02d}")
+            self._sip.set(f"{self.__app.gnss_status.sip:02d}")
+        except (TypeError, ValueError):
+            self._siv.set(NA)
+            self._sip.set(NA)
 
     def _update_dop(self, units):
         """
