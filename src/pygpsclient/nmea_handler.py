@@ -134,6 +134,7 @@ class NMEAHandler:
         self.__app.gnss_status.lon = data.lon
         self.__app.gnss_status.alt = data.alt
         self.__app.gnss_status.hae = data.sep + data.alt
+        self.__app.gnss_status.hdop = data.HDOP
         self.__app.gnss_status.fix = fix2desc("GGA", data.quality)
         self.__app.gnss_status.diff_corr = 0 if data.diffAge == "" else 1
         self.__app.gnss_status.diff_age = data.diffAge
@@ -394,7 +395,10 @@ class NMEAHandler:
 
         valid = 1 if data.valid == 2 else 0
         active = data.valid == 1
-        self.__app.svin_countdown(data.obs, valid, active)
+        if self.__app.frm_settings.frm_socketserver is not None:
+            self.__app.frm_settings.frm_socketserver.svin_countdown(
+                data.obs, valid, active
+            )
 
     def _process_FMI(self, data: NMEAMessage):
         """

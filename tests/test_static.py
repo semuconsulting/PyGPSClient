@@ -22,6 +22,7 @@ from pygpsclient.helpers import (
     col2contrast,
     corrage2int,
     date2wnotow,
+    dop2str,
     fix2desc,
     data2xy,
     xy2data,
@@ -818,6 +819,23 @@ class StaticTest(unittest.TestCase):
         res = cfg.loadfile("good.json")
         self.assertEqual(res, ("good.json", ""))
 
+    def testdop2str(self):
+        dops = [
+            "N/A",
+            "Ideal",
+            "Ideal",
+            "Excellent",
+            "Excellent",
+            "Good",
+            "Moderate",
+            "Fair",
+            "Poor",
+        ]
+        i = 0
+        for dop in (0, 0.9, 1, 1.4, 2, 5, 10, 20, 30):
+            res = dop2str(dop)
+            self.assertEqual(res, dops[i])
+            i += 1
 
 if __name__ == "__main__":
     # import sys;sys.argv = ['', 'Test.testName']

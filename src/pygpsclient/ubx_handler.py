@@ -366,7 +366,10 @@ class UBXHandler:
         :param UBXMessage data: NAV-SVIN parsed message
         """
 
-        self.__app.svin_countdown(data.dur, data.valid, data.active)
+        if self.__app.frm_settings.frm_socketserver is not None:
+            self.__app.frm_settings.frm_socketserver.svin_countdown(
+                data.dur, data.valid, data.active
+            )
 
     def _process_NAV_SVINFO(self, data: UBXMessage):
         """

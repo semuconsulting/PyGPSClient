@@ -360,8 +360,10 @@ class App(Frame):
         Reset widgets to default layout.
         """
 
-        for _, wdg in self.widget_state.state.items():
-            wdg[VISIBLE] = wdg.get(DEFAULT, False)
+        for nam, wdg in self.widget_state.state.items():
+            vis = wdg.get(DEFAULT, False)
+            wdg[VISIBLE] = vis
+            self.configuration.set(nam, vis)
         self._do_layout()
 
     def reset_gnssstatus(self):
@@ -791,12 +793,16 @@ class App(Frame):
         :rtype: dict
         """
 
-        sep = self.gnss_status.hae - self.gnss_status.alt
+        try:
+            sep = self.gnss_status.hae - self.gnss_status.alt
+        except TypeError:
+            sep = 0
         return {
             "connection": self._conn_status,
             "lat": self.gnss_status.lat,
             "lon": self.gnss_status.lon,
-            "alt": self.gnss_status.alt,
+            "alt": self.gnss_status.alt,  # hmsl
+            "hae": self.gnss_status.hae,
             "sep": sep,
             "sip": self.gnss_status.sip,
             "fix": self.gnss_status.fix,
@@ -900,21 +906,31 @@ class App(Frame):
         if latest not in (VERSION, "N/A"):
             self.set_status(f"{VERCHECK} {latest}", ERRCOL)
 
-    def poll_version(self, protocol: str = "UBX"):
+    def poll_version(self, protocol: int):
         """
         Poll hardware information message for device hardware & firmware version.
 
-        :param str protocol: protocol (UBX)
+        :param int protocol: protocol(s)
         """
 
-        if protocol == "NMEA":
-            msg = NMEAMessage("P", "QTMVERNO", POLL)
-        else:
+        msg = None
+        if protocol & UBX_PROTOCOL:
             msg = UBXMessage("MON", "MON-VER", POLL)
-        self.gnss_outqueue.put(msg.serialize())
-        self.set_status(
-            f"{msg.identity} POLL message sent",
-        )
+        elif protocol & SBF_PROTOCOL:
+            msg = b"SSSSSSSSSS\r\nesoc, COM1, ReceiverSetup\r\n"
+        elif protocol & NMEA_PROTOCOL:
+            msg = NMEAMessage("P", "QTMVERNO", POLL)
+
+        if isinstance(msg, (UBXMessage, NMEAMessage)):
+            self.gnss_outqueue.put(msg.serialize())
+            self.set_status(
+                f"{msg.identity} POLL message sent",
+            )
+        elif isinstance(msg, bytes):
+            self.gnss_outqueue.put(msg)
+            self.set_status(
+                "Setup POLL message sent",
+            )
 
     @property
     def appmaster(self) -> Tk:
@@ -973,15 +989,3 @@ class App(Frame):
 
         self._rtk_conn_status = status
         self.frm_banner.update_rtk_status(status)
-
-    def svin_countdown(self, dur: int, valid: bool, active: bool):
-        """
-        Countdown survey-in duration for NTRIP caster mode.
-
-        :param int dur: elapsed time
-        :param bool valid: valid flag
-        :param bool active: active flag
-        """
-
-        if self.frm_settings.frm_socketserver is not None:
-            self.frm_settings.frm_socketserver.svin_countdown(dur, valid, active)

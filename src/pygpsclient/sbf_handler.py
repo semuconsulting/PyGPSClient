@@ -20,6 +20,7 @@ from math import degrees
 
 from pysbf2 import SBFMessage, itow2utc
 
+from pygpsclient.globals import ASCII, BSR
 from pygpsclient.helpers import fix2desc
 
 DNUL = -2 * (10**10)
@@ -61,6 +62,10 @@ class SBFHandler:
         # self.logger.debug(f"data received {parsed_data.identity}")
         if parsed_data.identity == "PVTGeodetic":
             self._process_PVTGeodetic(parsed_data)
+        elif parsed_data.identity == "ReceiverStatus":
+            self._process_ReceiverStatus(parsed_data)
+        elif parsed_data.identity == "ReceiverSetup":
+            self._process_ReceiverSetup(parsed_data)
 
     def _process_PVTGeodetic(self, data: SBFMessage):
         """
@@ -86,5 +91,37 @@ class SBFHandler:
             self.__app.gnss_status.track = data.COG
         self.__app.gnss_status.fix = fix2desc("PVTGeodetic", data.Type)
         if data.MeanCorrAge != 0:
-            self.__app.gnss_status.diff_age = data.MeanCorrAge
+            self.__app.gnss_status.diff_age = data.MeanCorrAge / 100  # seconds
         self.__app.gnss_status.diff_station = data.ReferenceID
+
+    def _process_ReceiverStatus(self, data: SBFMessage):
+        """
+        Process ReceiverStatus sentence.
+
+        :param SBFMessage data: ReceiverStatus message
+        """
+
+        sysdata = {}
+        sysdata["cpuLoad"] = data.CPULoad
+        sysdata["runTime"] = data.UpTime
+        sysdata["tempValue"] = data.Temperature - 100  # offset by 100
+        self.__app.gnss_status.sysmon_data = sysdata
+
+    def _process_ReceiverSetup(self, data: SBFMessage):
+        """
+        Process ReceiverSetups sentence.
+
+        :param SBFMessage data: ReceiverSetup message
+        """
+
+        verdata = {}
+        verdata["hwversion"] = data.ProductName.decode(ASCII, errors=BSR).replace(
+            "\x00", ""
+        )
+        verdata["fwversion"] = data.RxVersion.decode(ASCII, errors=BSR).replace(
+            "\x00", ""
+        )
+        verdata["romversion"] = data.GNSSFWVersion.decode(ASCII, errors=BSR).replace(
+            "\x00", ""
+        )
+        self.__app.gnss_status.version_data = verdata

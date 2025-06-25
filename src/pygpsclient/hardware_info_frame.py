@@ -25,6 +25,7 @@ from pygpsclient.globals import (
     ICON_WARNING,
     NMEA_MONHW,
     OKCOL,
+    SBF_MONHW,
     UBX_MONVER,
 )
 from pygpsclient.strings import NA
@@ -125,15 +126,23 @@ class Hardware_Info_Frame(Frame):
             msg = NMEAMessage("P", "QTMVERNO", POLL)
             pendmsg = "PQTMVERNO"
             penddlg = NMEA_MONHW
+        elif self._protocol == "SBF":
+            msg = b"SSSSSSSSSS\r\nesoc, COM1, ReceiverSetup\r\n"
+            pendmsg = "ReceiverSetup"
+            penddlg = SBF_MONHW
         else:
             msg = UBXMessage("MON", "MON-VER", POLL)
             pendmsg = "MON-VER"
             penddlg = UBX_MONVER
 
-        self.__app.gnss_outqueue.put(msg.serialize())
-        self.__app.set_status(
-            f"{msg.identity} POLL message sent",
-        )
+        if isinstance(msg, (NMEAMessage, UBXMessage)):
+            self.__app.gnss_outqueue.put(msg.serialize())
+            self.__app.set_status(
+                f"{msg.identity} POLL message sent",
+            )
+        elif isinstance(msg, bytes):
+            self.__app.gnss_outqueue.put(msg)
+            self.__app.set_status("Setup POLL message sent")
         self.__container.set_pending(pendmsg, penddlg)
 
     def update_status(self, msg: object):

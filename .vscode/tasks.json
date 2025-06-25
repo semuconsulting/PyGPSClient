@@ -15,7 +15,17 @@
                 "pip",
                 "install",
                 "--upgrade",
-                "."
+                "setuptools",
+                "build",
+                "wheel",
+                "black",
+                "pylint",
+                "pytest",
+                "pytest-cov",
+                "isort",
+                "bandit",
+                "Sphinx",
+                "sphinx-rtd-theme"
             ],
             "problemMatcher": []
         },
@@ -31,7 +41,7 @@
                 "--ntripcasterpassword",
                 "testpassword",
                 "--verbosity",
-                "2"
+                "3"
             ],
             "options": {
                 "cwd": "src"

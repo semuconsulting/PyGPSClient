@@ -55,6 +55,7 @@ dependencies = [
     "pyubx2>=1.2.52",
     "pyserial>=3.5",
     "pyubxutils>=1.0.3",
+    "pysbf2>=0.2.0",
 ]
 
 [project.scripts]
