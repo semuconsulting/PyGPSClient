@@ -273,7 +273,7 @@
         "IM19 Update Bootloader, see attachment for protocols; AT+UPDATE_BOOT",
         "IM19 Set the GNSS RTK receiver type; AT+GNSS_CARD=OEM",
         "IM19 Read parameters (SYSTEM/ALL); AT+READ_PARA=SYSTEM/ALL",
-        "IM19 Loading default parameters; AT+LOAD_DEFAULT",
+        "IM19 Loading default parameters; AT+LOAD_DEFAULT"
     ],
     "usermaps_l": [
         [
