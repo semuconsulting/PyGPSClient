@@ -87,6 +87,7 @@ In the following, `python3` & `pip` refer to the Python 3 executables. You may n
 
 - **NB** It is highly recommended to use the latest official [Python.org](https://www.python.org/downloads/) installation package for your platform, rather than any pre-installed version.
 - **NB** It is highly recommended that the Python 3 [binaries](#binaries) and site_packages directories are included in your PATH (*most standard Python 3 installation packages will do this automatically if you select the 'Add to PATH' option during installation*).
+- **FYI** The [latest official Python 3.13 installers](https://docs.python.org/3/howto/free-threading-python.html) include the option to disable the standard [Python Global Interpreter Lock (GIL)](https://realpython.com/python-gil/) and allow threads to run concurrently. Whilst still experimental, enabling this option when installing Python may afford some marginal performance improvements in PyGPSClient on multi-core machines.
 
 **Windows 10 or later:**
 
