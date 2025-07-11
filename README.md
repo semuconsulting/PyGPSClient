@@ -87,7 +87,6 @@ In the following, `python3` & `pip` refer to the Python 3 executables. You may n
 
 - **NB** It is highly recommended to use the latest official [Python.org](https://www.python.org/downloads/) installation package for your platform, rather than any pre-installed version.
 - **NB** It is highly recommended that the Python 3 [binaries](#binaries) and site_packages directories are included in your PATH (*most standard Python 3 installation packages will do this automatically if you select the 'Add to PATH' option during installation*).
-- **FYI** The [latest official Python 3.13 installers](https://docs.python.org/3/howto/free-threading-python.html) include the option to disable the standard [Python Global Interpreter Lock (GIL)](https://realpython.com/python-gil/) and allow threads to run concurrently. Whilst still experimental, enabling this option when installing Python may afford some marginal performance improvements in PyGPSClient on multi-core machines.
 
 **Windows 10 or later:**
 
@@ -115,13 +114,6 @@ If you're [compiling the latest version of Python 3 from source](https://github.
 
 ```shell
 sudo apt install tk-dev
-```
-
-On some 32-bit Linux platforms (e.g. Raspberry Pi OS 32), it may be necessary to [install Rust compiler support](https://www.rust-lang.org/tools/install) and some [additional build dependencies](https://cryptography.io/en/latest/installation/) in order to install the `cryptography` library which PyGPSClient depends on to decrypt SPARTN messages (see  [pyspartn cryptography installation notes](https://github.com/semuconsulting/pyspartn/tree/main/cryptography_installation#readme)):
-
-```shell
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-sudo apt-get install build-essential libssl-dev libffi-dev python3-dev pkg-config
 ```
 
 **Import Custom Map dependency - rasterio**
@@ -635,7 +627,14 @@ For further details, refer to the `pygnssutils` homepage at [https://github.com/
 --
 ## <a name="knownissues">Known Issues</a>
 
-None
+1. On some 32-bit Linux platforms (e.g. Raspberry Pi OS 32), it may be necessary to [install Rust compiler support](https://www.rust-lang.org/tools/install) and some [additional build dependencies](https://cryptography.io/en/latest/installation/) in order to install the `cryptography` library which PyGPSClient depends on to decrypt SPARTN messages (see  [pyspartn cryptography installation notes](https://github.com/semuconsulting/pyspartn/tree/main/cryptography_installation#readme)):
+
+  ```shell
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+  sudo apt-get install build-essential libssl-dev libffi-dev python3-dev pkg-config
+  ```
+
+2. The [latest official Python 3.13 installers](https://docs.python.org/3/howto/free-threading-python.html) include the option to disable the standard [Python Global Interpreter Lock (GIL)](https://realpython.com/python-gil/) and allow threads to run concurrently. Whilst the core PyGPSClient packages run fine in this mode (*and some marginal performance improvements may be seen on multi-core machines*), installing PyGPSClient using pip under the "No-GIL" `python3.13t` executable currently fails due to missing cryptography dependencies (*Warning: CPython 3.13t at /Users/user/pygpsclient_nogil/bin/python3 does not yet support abi3 so the build artifacts will be version-specific* *warning: openssl-sys@0.9.108: Could not find directory of OpenSSL installation*).  
 
 ---
 ## <a name="license">License</a>
