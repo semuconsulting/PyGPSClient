@@ -2,9 +2,13 @@
 
 ### RELEASE 1.5.11
 
+FIXES:
+
+1. Clarify interpretation of SPARTN decryption basedate integer values in *.json configuration file; `-1` signifies 'use current datetime' (`basedate=None`); `0` signifies 'use gnssTimeTag from incoming SPARTN data stream' (`basedate=pyspartn.TIMEBASE`); any other integer value represents an explicit gnssTimeTag value.
+
 ENHANCEMENTS:
 
-1. Make `cryptography` library dependency optional (*only required to decrypt encrypted MQTT SPARTN payloads*). If the `cryptography` library is not installed, the "Decode SPARTN in console" option will be greyed out in the SPARTN MQTT Client dialog.
+1. Make `cryptography` library dependency optional (*it is only required to decrypt encrypted MQTT SPARTN payloads*). If the `cryptography` library is not installed, the "Decode SPARTN in console" option will be greyed out in the SPARTN MQTT Client dialog.
 
 ### RELEASE 1.5.10
 
