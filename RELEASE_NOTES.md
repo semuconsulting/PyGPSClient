@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.5.11
+
+ENHANCEMENTS:
+
+1. Make `cryptography` library dependency optional (*only required to decrypt encrypted MQTT SPARTN payloads*). If the `cryptography` library is not installed, the "Decode SPARTN in console" option will be greyed out in the SPARTN MQTT Client dialog.
+
 ### RELEASE 1.5.10
 
 FIXES:
