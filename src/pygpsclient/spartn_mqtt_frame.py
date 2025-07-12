@@ -41,6 +41,11 @@ from tkinter import (
 
 from PIL import Image, ImageTk
 from pyspartn import date2timetag
+
+try:
+    from pyspartn import HASCRYPTO
+except ImportError:
+    HASCRYPTO = 1
 from pyubx2 import UBXMessage
 
 from pygpsclient.globals import (
@@ -327,6 +332,10 @@ class SPARTNMQTTDialog(Frame):
         else:
             self.set_controls(DISCONNECTED)
 
+        if not HASCRYPTO:
+            self._lbl_spartndecode.config(state=DISABLED)
+            self._chk_spartndecode.config(state=DISABLED)
+
     def _reset_keypaths(self, clientid):
         """
         Reset key and cert file paths.
@@ -406,7 +415,7 @@ class SPARTNMQTTDialog(Frame):
             self._settings["tlskey"] = cfg.get("mqttclienttlskey_s")
             self._settings["spartndecode"] = cfg.get("spartndecode_b")
             self._settings["spartnkey"] = cfg.get("spartnkey_s")
-            if self._settings["spartnkey"] == "":
+            if self._settings["spartnkey"] == "" or not HASCRYPTO:
                 self._settings["spartndecode"] = 0
             # if basedate is provided in config file, it must be an integer gnssTimetag
             basedate = cfg.get("spartnbasedate_n")
