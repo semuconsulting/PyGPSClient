@@ -270,7 +270,7 @@
         "MOSAIC X5 Soft Reset to Factory Defaults;erst,soft,config",
         "IM19 Tilt Survey Setup; AT+LOAD_DEFAULT; AT+GNSS_PORT=PHYSICAL_UART2; AT+NASC_OUTPUT=UART1,ON; AT+LEVER_ARM2=0.0057,-0.0732,-0.0645; AT+CLUB_VECTOR=0,0,1.865; AT+INSTALL_ANGLE=0,180,0; AT+GNSS_CARD=OEM; AT+WORK_MODE=408; AT+CORRECT_HOLDER=ENABLE; AT+SET_PPS_EDGE=RISING; AT+AHRS=ENABLE; AT+MAG_AUTO_SAVE=ENABLE; AT+SAVE_ALL",
         "IM19 System reset CONFIRM; AT+SYSTEM_RESET",
-        "IM19 Save the parameters CONFIRM AT+SAVE_ALL",
+        "IM19 Save the parameters; CONFIRM AT+SAVE_ALL",
         "IM19 Update module firmware, see attachment for protocols; AT+UPDATE_APP",
         "IM19 Update Bootloader, see attachment for protocols; AT+UPDATE_BOOT",
         "IM19 Set the GNSS RTK receiver type; AT+GNSS_CARD=OEM",
