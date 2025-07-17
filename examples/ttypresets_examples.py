@@ -22,6 +22,7 @@ Created on 30 May 2025
 # ******************************************
 {
     'ttypresets_l': [
+        "Initialise Command Mode; SSSSSSSSSS", 
         "List Antenna Info; lai, Overview",
         "List Antenna Info; lai, 'AERAT2775_159 SPKE'",
         "List Command Help; help, Overview",
