@@ -52,10 +52,10 @@ dependencies = [
     "requests>=2.28.0",
     "Pillow>=9.0.0",
     "pygnssutils>=1.1.15",
-    "pyubx2>=1.2.52",
+    "pyubx2>=1.2.55",
     "pyserial>=3.5",
     "pyubxutils>=1.0.3",
-    "pysbf2>=0.2.0",
+    "pysbf2>=1.0.0",
 ]
 
 [project.scripts]
