@@ -9,6 +9,7 @@ FIXES:
 ENHANCEMENTS:
 
 1. Make `cryptography` library dependency optional (*it is only required to decrypt encrypted MQTT SPARTN payloads*). If the `cryptography` library is not installed, the "Decode SPARTN in console" option will be greyed out in the SPARTN MQTT Client dialog.
+1. Allow datalogging and track recording to be enabled or disabled while connected (previously only available while disconnected).
 1. Update minimum pyubx2, pysbf2 and pygnssutils versions to take onboard latest fixes and enhancements.
 
 ### RELEASE 1.5.10
