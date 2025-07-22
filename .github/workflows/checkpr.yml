@@ -17,9 +17,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install deploy dependencies
-        run: pip install .[deploy]
-      - name: Install test dependencies
-        run: pip install .[test]
+        run: pip install --group deploy
       - name: Install code dependencies
         run: pip install .
       - name: Lint with pylint

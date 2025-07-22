@@ -1,5 +1,17 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.5.11
+
+FIXES:
+
+1. Clarify interpretation of SPARTN decryption basedate integer values in *.json configuration file; `-1` signifies 'use current datetime' (`basedate=None`); `0` signifies 'use gnssTimeTag from incoming SPARTN data stream' (`basedate=pyspartn.TIMEBASE`); any other integer value represents an explicit gnssTimeTag value.
+
+ENHANCEMENTS:
+
+1. Make `cryptography` library dependency optional (*it is only required to decrypt encrypted MQTT SPARTN payloads*). If the `cryptography` library is not installed, the "Decode SPARTN in console" option will be greyed out in the SPARTN MQTT Client dialog.
+1. Allow datalogging and track recording to be enabled or disabled while connected (previously only available while disconnected).
+1. Update minimum pyubx2, pysbf2 and pygnssutils versions to take onboard latest fixes and enhancements.
+
 ### RELEASE 1.5.10
 
 FIXES:

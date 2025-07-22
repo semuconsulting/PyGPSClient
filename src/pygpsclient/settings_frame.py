@@ -865,7 +865,8 @@ class SettingsFrame(Frame):
         """
 
         if self._datalog.get() == 1:
-            self.logpath = self.__app.file_handler.set_logfile_path(self.logpath)
+            if self.logpath in ("", None):
+                self.logpath = self.__app.file_handler.set_logfile_path(self.logpath)
             if self.logpath is not None:
                 self.__app.configuration.set("datalog_b", 1)
                 self.__app.configuration.set("logpath_s", self.logpath)
@@ -874,11 +875,13 @@ class SettingsFrame(Frame):
             else:
                 self.logpath = ""
                 self._datalog.set(False)
+            self._spn_datalog.config(state=DISABLED)
         else:
             self.__app.configuration.set("datalog_b", 0)
             self._datalog.set(False)
             self.__app.file_handler.close_logfile()
             self.__app.set_status("Data logging disabled")
+            self._spn_datalog.config(state=READONLY)
 
     def _on_record_track(self):
         """
@@ -923,8 +926,6 @@ class SettingsFrame(Frame):
         for ctl in (
             self._btn_connect_socket,
             self._btn_connect_file,
-            self._chk_datalog,
-            self._chk_recordtrack,
             self._chk_tty,
         ):
             ctl.config(
@@ -936,13 +937,6 @@ class SettingsFrame(Frame):
             )
         self._btn_disconnect.config(
             state=(DISABLED if status in (DISCONNECTED,) else NORMAL)
-        )
-        self._spn_datalog.config(
-            state=(
-                DISABLED
-                if status in (CONNECTED, CONNECTED_SOCKET, CONNECTED_FILE)
-                else READONLY
-            )
         )
 
     def get_size(self) -> tuple:

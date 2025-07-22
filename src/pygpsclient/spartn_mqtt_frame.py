@@ -18,7 +18,6 @@ Created on 26 Jan 2023
 :license: BSD 3-Clause
 """
 
-from datetime import datetime, timezone
 from os import path
 from pathlib import Path
 from tkinter import (
@@ -40,7 +39,12 @@ from tkinter import (
 )
 
 from PIL import Image, ImageTk
-from pyspartn import date2timetag
+from pyspartn import TIMEBASE
+
+try:
+    from pyspartn import HASCRYPTO
+except ImportError:
+    HASCRYPTO = 1
 from pyubx2 import UBXMessage
 
 from pygpsclient.globals import (
@@ -65,6 +69,7 @@ from pygpsclient.globals import (
     RPTDELAY,
     RXMMSG,
     SPARTN_BASEDATE_CURRENT,
+    SPARTN_BASEDATE_DATASTREAM,
     SPARTN_GNSS,
     SPARTN_OUTPORT,
     SPARTN_PPREGIONS,
@@ -327,6 +332,10 @@ class SPARTNMQTTDialog(Frame):
         else:
             self.set_controls(DISCONNECTED)
 
+        if not HASCRYPTO:
+            self._lbl_spartndecode.config(state=DISABLED)
+            self._chk_spartndecode.config(state=DISABLED)
+
     def _reset_keypaths(self, clientid):
         """
         Reset key and cert file paths.
@@ -406,12 +415,16 @@ class SPARTNMQTTDialog(Frame):
             self._settings["tlskey"] = cfg.get("mqttclienttlskey_s")
             self._settings["spartndecode"] = cfg.get("spartndecode_b")
             self._settings["spartnkey"] = cfg.get("spartnkey_s")
-            if self._settings["spartnkey"] == "":
+            if self._settings["spartnkey"] == "" or not HASCRYPTO:
                 self._settings["spartndecode"] = 0
             # if basedate is provided in config file, it must be an integer gnssTimetag
             basedate = cfg.get("spartnbasedate_n")
             if basedate == SPARTN_BASEDATE_CURRENT:
-                basedate = date2timetag(datetime.now(timezone.utc))
+                # pyspartn will interpret 'None' as current datetime
+                basedate = None
+            elif basedate == SPARTN_BASEDATE_DATASTREAM:
+                # pyspartn will interpret 'TIMEBASE' as use gnssTimeTag in datastream
+                basedate = TIMEBASE
             self._settings["spartnbasedate"] = basedate
 
         self._mqtt_server.set(self._settings["server"])
@@ -443,6 +456,7 @@ class SPARTNMQTTDialog(Frame):
         self._settings["topic_freq"] = self._mqtt_freqtopic.get()
         self._settings["tlscrt"] = self._mqtt_crt.get()
         self._settings["tlskey"] = self._mqtt_pem.get()
+        self._settings["spartndecode"] = self._spartndecode.get()
         self._settings["output"] = self._output
 
     def set_controls(self, status: int):
@@ -551,6 +565,9 @@ class SPARTNMQTTDialog(Frame):
                 topic_freq=self._settings["topic_freq"],
                 tlscrt=self._settings["tlscrt"],
                 tlskey=self._settings["tlskey"],
+                spartndecode=self._settings["spartndecode"],
+                spartnkey=self._settings["spartnkey"],
+                spartnbasedate=self._settings["spartnbasedate"],
                 output=self._settings["output"],
             )
             self.set_controls(CONNECTED_SPARTNIP)
