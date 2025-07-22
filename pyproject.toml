@@ -59,8 +59,8 @@ documentation = "https://www.semuconsulting.com/pygpsclient/"
 repository = "https://github.com/semuconsulting/PyGPSClient"
 changelog = "https://github.com/semuconsulting/PyGPSClient/blob/master/RELEASE_NOTES.md"
 
-[project.optional-dependencies]
-deploy = [
+[dependency-groups]
+build = [
     "build",
     "packaging>=24.2",
     "pip",
@@ -79,6 +79,7 @@ test = [
     "Sphinx",
     "sphinx-rtd-theme",
 ]
+deploy = [{ include-group = "build" }, { include-group = "test" }]
 
 [tool.setuptools.dynamic]
 version = { attr = "pygpsclient._version.__version__" }
