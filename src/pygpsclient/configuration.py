@@ -171,6 +171,7 @@ class Configuration:
             "mqttclienttlscrt_s": "<=== FULLY QUALIFIED PATH TO MQTT CRT FILE ===>",
             "mqttclienttlskey_s": "<=== FULLY QUALIFIED PATH TO MQTT KEY FILE ===>",
             # SPARTN L-Band client settings from SpartnLbandDialog if open
+            "lband_enabled_b": 0,  # PointPerfect SPARTN L-Band service has been discontiued
             "spartnport_s": "",
             "spartndecode_b": 0,
             "spartnkey_s": SPARTN_DEFAULT_KEY,

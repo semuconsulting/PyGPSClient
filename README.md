@@ -418,6 +418,8 @@ The facility can be accessed by clicking ![SPARTN Client button](https://github.
 
 2. L-BAND Correction (D9* Receiver):
 
+    **NB** Note that u-blox [discontinued their PointPerfect SPARTN L-Band service](https://portal.u-blox.com/s/question/0D5Oj00000uB53GKAS/suspension-of-european-pointperfect-lband-spartn-service) in the European region in March 2025 and Worldwide in June 2025. The SPARTN L-Band configuration panel is now disabled by default, though the panel can still be used for other generic L-Band modem configuration purposes and can be re-enabled by setting json configuration parameter `lband_enabled_b` to `1`.
+
     - SPARTN L-Band correction receiver e.g. u-blox NEO-D9S.
     - [Suitable Inmarsat L-band antenna](https://www.amazon.com/RTL-SDR-Blog-1525-1637-Inmarsat-Iridium/dp/B07WGWZS1D) and good satellite reception on regional frequency (NB: standard GNSS antenna may not be suitable).
     - Subscription to L-Band location service e.g. u-blox / Thingstream PointPerfect, which should provide the following details:
@@ -453,8 +455,7 @@ The facility can be accessed by clicking ![SPARTN Client button](https://github.
 
 ### L-Band Correction Configuration (D9*)
 
-**NB** Note that u-blox [discontinued their PointPerfect SPARTN L-Band service](https://portal.u-blox.com/s/question/0D5Oj00000uB53GKAS/suspension-of-european-pointperfect-lband-spartn-service) in the European region in March 2025.
-
+1. **NOTE** This panel is only available if json configuration setting `lband_enabled_b` is set to `1`.
 1. To connect to the Correction receiver, select the receiver's port from the SPARTN dialog's Serial Port listbox and click ![connect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/usbport-1-24.png?raw=true). To disconnect, click ![disconnect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-media-control-50-24.png?raw=true).
 1. Select the required Output Port - this is the port used to connect the Correction receiver to the GNSS receiver e.g. UART2 or I2C.
 1. If both Correction and GNSS receivers are connected to the same PyGPSClient workstation (e.g. via separate USB ports), it is possible to run the utility in Output Port = 'Passthough' mode, whereby the output data from the Correction receiver (UBX `RXM-PMP` messages) will be automatically passed through to the GNSS receiver by PyGPSClient, without the need to connect the two externally.

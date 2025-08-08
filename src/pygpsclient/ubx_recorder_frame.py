@@ -81,7 +81,7 @@ class UBX_Recorder_Frame(Frame):
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.__container = container  # Reference to UBX Configuration dialog
 
-        Frame.__init__(self, self.__container.container, *args, **kwargs)
+        super().__init__(container.container, *args, **kwargs)
 
         self._img_load = ImageTk.PhotoImage(Image.open(ICON_LOAD))
         self._img_save = ImageTk.PhotoImage(Image.open(ICON_SAVE))

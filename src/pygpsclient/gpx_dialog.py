@@ -18,11 +18,9 @@ from http.client import responses
 from io import BytesIO
 from tkinter import (
     ALL,
-    BOTH,
     CENTER,
     DISABLED,
     NW,
-    YES,
     Button,
     Canvas,
     E,
@@ -33,7 +31,6 @@ from tkinter import (
     S,
     Spinbox,
     StringVar,
-    Toplevel,
     W,
     font,
 )
@@ -49,11 +46,6 @@ from pygpsclient.globals import (
     CUSTOM,
     ERRCOL,
     HOME,
-    ICON_END,
-    ICON_EXIT,
-    ICON_LOAD,
-    ICON_REDRAW,
-    ICON_START,
     IMG_WORLD_CALIB,
     INFOCOL,
     KM2M,
@@ -64,7 +56,6 @@ from pygpsclient.globals import (
     KPH2MPS,
     M2FT,
     MAP,
-    POPUP_TRANSIENT,
     READONLY,
     RPTDELAY,
     SAT,
@@ -80,13 +71,12 @@ from pygpsclient.strings import (
     DLGGPXERROR,
     DLGGPXLOAD,
     DLGGPXNULL,
-    DLGGPXPROMPT,
-    DLGGPXVIEWER,
     DLGTGPX,
     MAPCONFIGERR,
     MAPOPENERR,
     OUTOFBOUNDS,
 )
+from pygpsclient.toplevel_dialog import ToplevelDialog
 
 # profile chart parameters:
 AXIS_XL = 35  # x axis left offset
@@ -97,9 +87,10 @@ ELE_COL = "palegreen3"  # color of elevation plot
 SPD_COL = INFOCOL  # color of speed plot
 TRK_COL = "magenta"  # color of track
 MD_LINES = 2  # number of lines of metadata
+MINDIM = (567, 467)
 
 
-class GPXViewerDialog(Toplevel):
+class GPXViewerDialog(ToplevelDialog):
     """GPXViewerDialog class."""
 
     def __init__(self, app, *args, **kwargs):
@@ -108,24 +99,12 @@ class GPXViewerDialog(Toplevel):
         self.__app = app
         self.logger = logging.getLogger(__name__)
         # self.__master = self.__app.appmaster  # link to root Tk window
-        Toplevel.__init__(self, app)
-        if POPUP_TRANSIENT:
-            self.transient(self.__app)
-        self.resizable(True, True)
-        self.title(DLGGPXVIEWER)  # pylint: disable=E1102
-        self.protocol("WM_DELETE_WINDOW", self.on_exit)
-        self._img_load = ImageTk.PhotoImage(Image.open(ICON_LOAD))
-        self._img_redraw = ImageTk.PhotoImage(Image.open(ICON_REDRAW))
-        self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
-        self._img_start = ImageTk.PhotoImage(Image.open(ICON_START))
-        self._img_end = ImageTk.PhotoImage(Image.open(ICON_END))
-        self.width = int(kwargs.get("width", 600))
-        self.height = int(kwargs.get("height", 600))
-        self.mheight = int(self.height * 0.75)
-        self.mwidth = self.width
-        self.pheight = int(self.height * 0.25)
+        super().__init__(app, DLGTGPX, MINDIM)
         self._zoom = IntVar()
         self._maptype = StringVar()
+        self.mheight = int(self.height * 0.75)
+        self.mwidth = int(self.width * 0.93)
+        self.pheight = int(self.mheight * 0.25)
         zoom = int(kwargs.get("zoom", 12))
         self._zoom.set(zoom)
         self._info = []
@@ -142,23 +121,28 @@ class GPXViewerDialog(Toplevel):
         self._do_layout()
         self._attach_events()
         self._reset()
-
-        self._do_mapalert(DLGGPXPROMPT)
+        self._finalise()
 
     def _body(self):
         """
         Create widgets.
         """
 
-        self._frm_map = Frame(self, borderwidth=2, relief="groove", bg=BGCOL)
-        self._frm_profile = Frame(self, borderwidth=2, relief="groove", bg=BGCOL)
-        self._frm_info = Frame(self, borderwidth=2, relief="groove")
-        self._frm_controls = Frame(self, borderwidth=2, relief="groove")
+        self._frm_body = Frame(self.container, borderwidth=2, relief="groove")
+        self._frm_map = Frame(self._frm_body, borderwidth=2, relief="groove", bg=BGCOL)
+        self._frm_profile = Frame(
+            self._frm_body, borderwidth=2, relief="groove", bg=BGCOL
+        )
+        self._frm_info = Frame(self._frm_body, borderwidth=2, relief="groove")
+        self._frm_controls = Frame(self._frm_body, borderwidth=2, relief="groove")
         self._can_mapview = Canvas(
-            self._frm_map, width=self.width, height=self.mheight, bg=BGCOL
+            self._frm_map, height=self.mheight, width=self.mwidth, bg=BGCOL
         )
         self._can_profile = Canvas(
-            self._frm_profile, width=self.width, height=self.pheight, bg="#f0f0e8"
+            self._frm_profile,
+            height=self.pheight,
+            width=self.mwidth,
+            bg="#f0f0e8",
         )
         self._lbl_info = []
         for i in range(MD_LINES):
@@ -167,7 +151,7 @@ class GPXViewerDialog(Toplevel):
             )
         self._btn_load = Button(
             self._frm_controls,
-            image=self._img_load,
+            image=self.img_load,
             width=40,
             command=self._on_load,
         )
@@ -196,15 +180,9 @@ class GPXViewerDialog(Toplevel):
         )
         self._btn_redraw = Button(
             self._frm_controls,
-            image=self._img_redraw,
+            image=self.img_redraw,
             width=40,
             command=self._on_redraw,
-        )
-        self._btn_exit = Button(
-            self._frm_controls,
-            image=self._img_exit,
-            width=40,
-            command=self.on_exit,
         )
 
     def _do_layout(self):
@@ -212,12 +190,13 @@ class GPXViewerDialog(Toplevel):
         Arrange widgets.
         """
 
+        self._frm_body.grid(column=0, row=0, sticky=(N, S, E, W))
         self._frm_map.grid(column=0, row=0, sticky=(N, S, E, W))
         self._frm_profile.grid(column=0, row=1, sticky=(W, E))
         self._frm_info.grid(column=0, row=2, sticky=(W, E))
         self._frm_controls.grid(column=0, row=3, columnspan=7, sticky=(W, E))
-        self._can_mapview.pack(fill=BOTH, expand=YES)
-        self._can_profile.pack(fill=BOTH, expand=YES)
+        self._can_mapview.grid(column=0, row=0, sticky=(N, S, E, W))
+        self._can_profile.grid(column=0, row=0, sticky=(N, S, E, W))
         for i in range(MD_LINES):
             self._lbl_info[i].grid(column=0, row=i, padx=3, pady=1, sticky=(W, E))
         self._btn_load.grid(column=0, row=1, padx=3, pady=3)
@@ -251,19 +230,22 @@ class GPXViewerDialog(Toplevel):
             padx=3,
             pady=3,
         )
-        self._btn_exit.grid(column=6, row=1, padx=3, pady=3, sticky=E)
 
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(0, weight=3)
-        self.grid_rowconfigure(1, weight=1)
+        self._frm_body.grid_columnconfigure(0, weight=10)
+        self._frm_body.grid_rowconfigure(0, weight=10)
+        self._frm_map.grid_columnconfigure(0, weight=10)
+        self._frm_map.grid_rowconfigure(0, weight=10)
+        self._frm_profile.grid_columnconfigure(0, weight=10)
+        self._frm_profile.grid_rowconfigure(0, weight=10)
+        self._frm_body.grid_rowconfigure(1, weight=2)
 
     def _attach_events(self):
         """
         Bind events to window.
         """
 
-        self.bind("<Configure>", self._on_resize)
         self._maptype.trace_add("write", self._on_maptype)
+        # self.bind("<Configure>", self._on_resize)
 
     def _reset(self):
         """
@@ -274,14 +256,6 @@ class GPXViewerDialog(Toplevel):
         self._can_profile.delete(ALL)
         for i in range(MD_LINES):
             self._info[i].set("")
-
-    def on_exit(self, *args, **kwargs):
-        """
-        Handle Exit button press.
-        """
-
-        self.__app.stop_dialog(DLGTGPX)
-        self.destroy()
 
     def _on_redraw(self, *args, **kwargs):
         """
@@ -337,29 +311,6 @@ class GPXViewerDialog(Toplevel):
             self._can_mapview.unbind("<Button-2>")
             self._can_mapview.unbind("<Button-3>")
 
-    def get_size(self):
-        """
-        Get current frame size.
-
-        :return: window size (width, height)
-        :rtype: tuple
-        """
-
-        self.update_idletasks()  # Make sure we know about any resizing
-        return self.winfo_width(), self.winfo_height()
-
-    def _on_resize(self, event):
-        """
-        Resize frame
-
-        :param event event: resize event
-        """
-
-        self.width, self.height = self.get_size()
-        self.mheight = self._can_mapview.winfo_height()
-        self.mwidth = self._can_mapview.winfo_width()
-        self.pheight = self._can_profile.winfo_height() - 5
-
     def _open_gpxfile(self) -> str:
         """
         Open gpx file.
@@ -379,15 +330,15 @@ class GPXViewerDialog(Toplevel):
         if self._gpxfile is None:  # user cancelled
             return
 
-        self._do_mapalert(DLGGPXLOAD)
+        self.set_status(DLGGPXLOAD, INFOCOL)
 
         with open(self._gpxfile, "r", encoding="utf-8") as gpx:
             try:
                 parser = minidom.parse(gpx)
                 trkpts = parser.getElementsByTagName("trkpt")
                 self._process_track(trkpts)
-            except (TypeError, AttributeError, expat.ExpatError) as err:
-                self._do_mapalert(f"{DLGGPXERROR}\n{repr(err)}")
+            except (TypeError, expat.ExpatError) as err:  # AttributeError,
+                self.set_status(f"{DLGGPXERROR}\n{repr(err)}", ERRCOL)
 
     def _process_track(self, trkpts: list):
         """
@@ -398,7 +349,7 @@ class GPXViewerDialog(Toplevel):
 
         rng = len(trkpts)
         if rng == 0:
-            self._do_mapalert(DLGGPXNULL)
+            self.set_status(DLGGPXNULL, ERRCOL)
             return
 
         minlat = minlon = 400
@@ -500,7 +451,8 @@ class GPXViewerDialog(Toplevel):
                 0, 0, image=self._mapimg, anchor=NW, tags="image"
             )
         else:
-            self._do_mapalert(err)
+            self.set_status(err, ERRCOL)
+            return
 
         # draw track with start and end icons
         i = 0
@@ -530,6 +482,7 @@ class GPXViewerDialog(Toplevel):
         """
         # pylint: disable=unused-variable
 
+        self.set_status("")
         if track in ({}, None):
             return
 
@@ -539,8 +492,8 @@ class GPXViewerDialog(Toplevel):
             url = format_mapquest_request(
                 mqapikey,
                 self._maptype.get(),
-                self.width,
-                self.mheight,
+                int(self.width),
+                int(self.mheight),
                 self._zoom.get(),
                 locations,
             )
@@ -548,9 +501,12 @@ class GPXViewerDialog(Toplevel):
             response.raise_for_status()  # raise Exception on HTTP error
             self._mapimg = ImageTk.PhotoImage(Image.open(BytesIO(response.content)))
         except (ConnError, ConnectTimeout, RequestException, HTTPError):
-            self._do_mapalert(
-                f"MAPQUEST API ERROR: HTTP code {response.status_code} "
-                + f"{responses[response.status_code]}\n\n{response.text}"
+            self.set_status(
+                (
+                    f"MAPQUEST API ERROR: HTTP code {response.status_code} "
+                    f"{responses[response.status_code]}\n\n{response.text}"
+                ),
+                ERRCOL,
             )
 
         self._can_mapview.create_image(
@@ -765,21 +721,6 @@ class GPXViewerDialog(Toplevel):
             spd_c = KPH2MPS
 
         return (dst_u, dst_c, ele_u, ele_c, spd_u, spd_c)
-
-    def _do_mapalert(self, msg: str):
-        """
-        Display alert on map canvas.
-        """
-
-        # self._reset()
-        self._can_mapview.create_text(
-            self.width / 2,
-            self.mheight / 2,
-            text=msg,
-            fill=ERRCOL,
-            tags="alert",
-        )
-        self.update_idletasks()
 
     @property
     def metadata(self) -> dict:

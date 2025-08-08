@@ -38,12 +38,10 @@ from tkinter import (
     Spinbox,
     StringVar,
     TclError,
-    Toplevel,
     W,
     ttk,
 )
 
-from PIL import Image, ImageTk
 from pygnssutils import NOGGA
 from pygnssutils.helpers import find_mp_distance
 
@@ -52,12 +50,8 @@ from pygpsclient.globals import (
     DISCONNECTED,
     ERRCOL,
     GGA_INTERVALS,
-    ICON_CONN,
-    ICON_DISCONN,
-    ICON_EXIT,
     INFOCOL,
     NTRIP,
-    POPUP_TRANSIENT,
     READONLY,
     RPTDELAY,
     UBX_CFGMSG,
@@ -73,7 +67,6 @@ from pygpsclient.globals import (
 from pygpsclient.helpers import MAXALT, VALFLOAT, get_mp_info, valid_entry
 from pygpsclient.socketconfig_frame import SocketConfigFrame
 from pygpsclient.strings import (
-    DLGNTRIPCONFIG,
     DLGTNTRIP,
     LBLGGAFIXED,
     LBLGGALIVE,
@@ -84,6 +77,7 @@ from pygpsclient.strings import (
     LBLNTRIPUSER,
     LBLNTRIPVERSION,
 )
+from pygpsclient.toplevel_dialog import ToplevelDialog
 
 NTRIP_VERSIONS = ("2.0", "1.0")
 KM2MILES = 0.6213712
@@ -94,9 +88,10 @@ SPARTN = "SPARTN"
 NTRIP_SPARTN = "ppntrip.services.u-blox.com"
 TCPIPV4 = "IPv4"
 TCPIPV6 = "IPv6"
+MINDIM = (500, 505)
 
 
-class NTRIPConfigDialog(Toplevel):
+class NTRIPConfigDialog(ToplevelDialog):
     """,
     NTRIPConfigDialog class.
     """
@@ -114,15 +109,7 @@ class NTRIPConfigDialog(Toplevel):
         self.logger = getLogger(__name__)
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
 
-        Toplevel.__init__(self, app)
-        if POPUP_TRANSIENT:
-            self.transient(self.__app)
-        self.resizable(False, False)
-        self.title(DLGNTRIPCONFIG)  # pylint: disable=E1102
-        self.protocol("WM_DELETE_WINDOW", self.on_exit)
-        self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
-        self._img_conn = ImageTk.PhotoImage(Image.open(ICON_CONN))
-        self._img_disconn = ImageTk.PhotoImage(Image.open(ICON_DISCONN))
+        super().__init__(app, DLGTNTRIP, MINDIM)
         self._cfg_msg_command = None
         self._pending_confs = {
             UBX_MONVER: (),
@@ -133,7 +120,6 @@ class NTRIPConfigDialog(Toplevel):
             UBX_PRESET: (),
             UBX_CFGRATE: (),
         }
-        self._status = StringVar()
         self._ntrip_datatype = StringVar()
         self._ntrip_https = IntVar()
         self._ntrip_version = StringVar()
@@ -155,6 +141,7 @@ class NTRIPConfigDialog(Toplevel):
         self._do_layout()
         self._reset()
         self._attach_events()
+        self._finalise()
 
     def _body(self):
         """
@@ -162,27 +149,17 @@ class NTRIPConfigDialog(Toplevel):
         """
         # pylint: disable=unnecessary-lambda
 
-        self._frm_container = Frame(self, borderwidth=2, relief="groove")
+        self._frm_body = Frame(self.container, borderwidth=2, relief="groove")
         self._frm_socket = SocketConfigFrame(
             self.__app,
-            self._frm_container,
+            self._frm_body,
             NTRIP,
             protocols=[TCPIPV4, TCPIPV6],
             server_callback=self._on_server,
         )
-        self._frm_status = Frame(self._frm_container, borderwidth=2, relief="groove")
-        self._lbl_status = Label(self._frm_status, textvariable=self._status, anchor=W)
-        self._btn_exit = Button(
-            self._frm_status,
-            image=self._img_exit,
-            width=55,
-            fg=ERRCOL,
-            command=self.on_exit,
-            font=self.__app.font_md,
-        )
-        self._lbl_mountpoint = Label(self._frm_container, text=LBLNTRIPMOUNT)
+        self._lbl_mountpoint = Label(self._frm_body, text=LBLNTRIPMOUNT)
         self._ent_mountpoint = Entry(
-            self._frm_container,
+            self._frm_body,
             textvariable=self._ntrip_mountpoint,
             state=NORMAL,
             relief="sunken",
@@ -190,28 +167,28 @@ class NTRIPConfigDialog(Toplevel):
         )
 
         self._lbl_mpdist = Label(
-            self._frm_container,
+            self._frm_body,
             textvariable=self._ntrip_mpdist,
             width=30,
             anchor=W,
         )
-        self._lbl_sourcetable = Label(self._frm_container, text=LBLNTRIPSTR)
+        self._lbl_sourcetable = Label(self._frm_body, text=LBLNTRIPSTR)
         self._lbx_sourcetable = Listbox(
-            self._frm_container,
+            self._frm_body,
             height=4,
             relief="sunken",
             width=55,
         )
-        self._scr_sourcetablev = Scrollbar(self._frm_container, orient=VERTICAL)
-        self._scr_sourcetableh = Scrollbar(self._frm_container, orient=HORIZONTAL)
+        self._scr_sourcetablev = Scrollbar(self._frm_body, orient=VERTICAL)
+        self._scr_sourcetableh = Scrollbar(self._frm_body, orient=HORIZONTAL)
         self._lbx_sourcetable.config(yscrollcommand=self._scr_sourcetablev.set)
         self._lbx_sourcetable.config(xscrollcommand=self._scr_sourcetableh.set)
         self._scr_sourcetablev.config(command=self._lbx_sourcetable.yview)
         self._scr_sourcetableh.config(command=self._lbx_sourcetable.xview)
 
-        self._lbl_ntripversion = Label(self._frm_container, text=LBLNTRIPVERSION)
+        self._lbl_ntripversion = Label(self._frm_body, text=LBLNTRIPVERSION)
         self._spn_ntripversion = Spinbox(
-            self._frm_container,
+            self._frm_body,
             values=(NTRIP_VERSIONS),
             width=4,
             wrap=True,
@@ -220,9 +197,9 @@ class NTRIPConfigDialog(Toplevel):
             textvariable=self._ntrip_version,
             state=READONLY,
         )
-        self._lbl_datatype = Label(self._frm_container, text="Data Type")
+        self._lbl_datatype = Label(self._frm_body, text="Data Type")
         self._spn_datatype = Spinbox(
-            self._frm_container,
+            self._frm_body,
             values=(RTCM, SPARTN),
             width=8,
             wrap=True,
@@ -231,26 +208,26 @@ class NTRIPConfigDialog(Toplevel):
             textvariable=self._ntrip_datatype,
             state=READONLY,
         )
-        self._lbl_user = Label(self._frm_container, text=LBLNTRIPUSER)
+        self._lbl_user = Label(self._frm_body, text=LBLNTRIPUSER)
         self._ent_user = Entry(
-            self._frm_container,
+            self._frm_body,
             textvariable=self._ntrip_user,
             state=NORMAL,
             relief="sunken",
             width=50,
         )
-        self._lbl_password = Label(self._frm_container, text=LBLNTRIPPWD)
+        self._lbl_password = Label(self._frm_body, text=LBLNTRIPPWD)
         self._ent_password = Entry(
-            self._frm_container,
+            self._frm_body,
             textvariable=self._ntrip_password,
             state=NORMAL,
             relief="sunken",
             width=20,
             show="*",
         )
-        self._lbl_ntripggaint = Label(self._frm_container, text=LBLNTRIPGGAINT)
+        self._lbl_ntripggaint = Label(self._frm_body, text=LBLNTRIPGGAINT)
         self._spn_ntripggaint = Spinbox(
-            self._frm_container,
+            self._frm_body,
             values=(GGA_INTERVALS),
             width=5,
             wrap=True,
@@ -260,41 +237,41 @@ class NTRIPConfigDialog(Toplevel):
             state=READONLY,
         )
         self._rad_ggalive = Radiobutton(
-            self._frm_container, text=LBLGGALIVE, variable=self._ntrip_gga_mode, value=0
+            self._frm_body, text=LBLGGALIVE, variable=self._ntrip_gga_mode, value=0
         )
         self._rad_ggafixed = Radiobutton(
-            self._frm_container,
+            self._frm_body,
             text=LBLGGAFIXED,
             variable=self._ntrip_gga_mode,
             value=1,
         )
-        self._lbl_lat = Label(self._frm_container, text="Ref Latitude")
+        self._lbl_lat = Label(self._frm_body, text="Ref Latitude")
         self._ent_lat = Entry(
-            self._frm_container,
+            self._frm_body,
             textvariable=self._ntrip_gga_lat,
             state=NORMAL,
             relief="sunken",
             width=15,
         )
-        self._lbl_lon = Label(self._frm_container, text="Ref Longitude")
+        self._lbl_lon = Label(self._frm_body, text="Ref Longitude")
         self._ent_lon = Entry(
-            self._frm_container,
+            self._frm_body,
             textvariable=self._ntrip_gga_lon,
             state=NORMAL,
             relief="sunken",
             width=15,
         )
-        self._lbl_alt = Label(self._frm_container, text="Ref Elevation m")
+        self._lbl_alt = Label(self._frm_body, text="Ref Elevation m")
         self._ent_alt = Entry(
-            self._frm_container,
+            self._frm_body,
             textvariable=self._ntrip_gga_alt,
             state=NORMAL,
             relief="sunken",
             width=15,
         )
-        self._lbl_sep = Label(self._frm_container, text="Ref Separation m")
+        self._lbl_sep = Label(self._frm_body, text="Ref Separation m")
         self._ent_sep = Entry(
-            self._frm_container,
+            self._frm_body,
             textvariable=self._ntrip_gga_sep,
             state=NORMAL,
             relief="sunken",
@@ -302,17 +279,17 @@ class NTRIPConfigDialog(Toplevel):
         )
 
         self._btn_connect = Button(
-            self._frm_container,
+            self._frm_body,
             width=45,
             height=35,
-            image=self._img_conn,
+            image=self.img_conn,
             command=lambda: self._connect(),
         )
         self._btn_disconnect = Button(
-            self._frm_container,
+            self._frm_body,
             width=45,
             height=35,
-            image=self._img_disconn,
+            image=self.img_disconn,
             command=lambda: self._disconnect(),
             state=DISABLED,
         )
@@ -323,25 +300,13 @@ class NTRIPConfigDialog(Toplevel):
         """
 
         # top of grid
-        col = 0
-        row = 0
-        self._frm_container.grid(
-            column=col,
-            row=row,
-            columnspan=5,
-            rowspan=22,
-            padx=3,
-            pady=3,
-            ipadx=5,
-            ipady=5,
-            sticky=(N, S, W, E),
-        )
+        self._frm_body.grid(column=0, row=0, sticky=(N, S, E, W))
 
         # body of grid
         self._frm_socket.grid(
             column=0, row=0, columnspan=3, rowspan=3, padx=3, pady=3, sticky=W
         )
-        ttk.Separator(self._frm_container).grid(
+        ttk.Separator(self._frm_body).grid(
             column=0, row=3, columnspan=5, padx=3, pady=3, sticky=(W, E)
         )
         self._lbl_mountpoint.grid(column=0, row=4, padx=3, pady=3, sticky=W)
@@ -363,7 +328,7 @@ class NTRIPConfigDialog(Toplevel):
         self._ent_password.grid(
             column=1, row=13, columnspan=2, padx=3, pady=3, sticky=W
         )
-        ttk.Separator(self._frm_container).grid(
+        ttk.Separator(self._frm_body).grid(
             column=0, row=14, columnspan=5, padx=3, pady=3, sticky=(W, E)
         )
         self._lbl_ntripggaint.grid(column=0, row=15, padx=2, pady=3, sticky=W)
@@ -378,30 +343,11 @@ class NTRIPConfigDialog(Toplevel):
         self._ent_alt.grid(column=1, row=18, columnspan=2, padx=3, pady=2, sticky=W)
         self._lbl_sep.grid(column=2, row=18, padx=3, pady=2, sticky=W)
         self._ent_sep.grid(column=3, row=18, columnspan=2, padx=3, pady=2, sticky=W)
-        ttk.Separator(self._frm_container).grid(
+        ttk.Separator(self._frm_body).grid(
             column=0, row=19, columnspan=5, padx=3, pady=3, sticky=(W, E)
         )
         self._btn_connect.grid(column=0, row=20, padx=3, pady=3, sticky=W)
         self._btn_disconnect.grid(column=1, row=20, padx=3, pady=3, sticky=W)
-
-        # bottom of grid
-        row = 21
-        col = 0
-        (colsp, rowsp) = self._frm_container.grid_size()
-        self._frm_status.grid(column=col, row=row, columnspan=colsp, sticky=(W, E))
-        self._lbl_status.grid(
-            column=0, row=0, columnspan=colsp - 1, ipadx=3, ipady=3, sticky=(W, E)
-        )
-        self._btn_exit.grid(column=colsp - 1, row=0, ipadx=3, ipady=3, sticky=E)
-
-        for frm in (self._frm_container, self._frm_status):
-            for i in range(colsp):
-                frm.grid_columnconfigure(i, weight=1)
-            for i in range(rowsp):
-                frm.grid_rowconfigure(i, weight=1)
-
-        self._frm_container.option_add("*Font", self.__app.font_sm)
-        self._frm_status.option_add("*Font", self.__app.font_sm)
 
     def _attach_events(self):
         """
@@ -426,6 +372,7 @@ class NTRIPConfigDialog(Toplevel):
             self._ntrip_gga_sep,
         ):
             setting.trace_add("write", self._on_update_config)
+        # self.bind("<Configure>", self._on_resize)
 
     def _reset(self):
         """
@@ -594,25 +541,6 @@ class NTRIPConfigDialog(Toplevel):
                 self._ntrip_datatype.set(RTCM)
         except TclError:
             pass
-
-    def on_exit(self, *args, **kwargs):  # pylint: disable=unused-argument
-        """
-        Handle Exit button press.
-        """
-
-        self.__app.stop_dialog(DLGTNTRIP)
-        self.destroy()
-
-    def get_size(self):
-        """
-        Get current frame size.
-
-        :return: window size (width, height)
-        :rtype: tuple
-        """
-
-        self.__master.update_idletasks()  # Make sure we know about any resizing
-        return (self.winfo_width(), self.winfo_height())
 
     def _get_settings(self):
         """

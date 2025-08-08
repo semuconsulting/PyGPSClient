@@ -8,6 +8,7 @@ dynamic = ["version"]
 authors = [{ name = "semuadmin", email = "semuadmin@semuconsulting.com" }]
 maintainers = [{ name = "semuadmin", email = "semuadmin@semuconsulting.com" }]
 description = "GNSS Diagnostic and UBX Configuration GUI Application"
+license = "BSD-3-Clause"
 license-files = ["LICENSE"]
 keywords = [
     "PyGPSClient",
@@ -137,3 +138,12 @@ testpaths = ["tests"]
 
 [tool.coverage.run]
 source = ["src"]
+
+[tool.coverage.paths]
+source = ["src"]
+
+[tool.coverage.report]
+fail_under = 15
+
+[tool.coverage.html]
+directory = "htmlcov"

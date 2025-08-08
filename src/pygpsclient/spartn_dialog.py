@@ -16,21 +16,13 @@ Created on 26 Jan 2023
 :license: BSD 3-Clause
 """
 
-from tkinter import Button, E, Frame, Label, N, S, StringVar, Toplevel, W
+from tkinter import E, N, S, W
 
-from PIL import Image, ImageTk
 from pyubx2 import UBXMessage
 
 from pygpsclient.globals import (
     CONNECTED_SPARTNIP,
     CONNECTED_SPARTNLB,
-    ERRCOL,
-    ICON_BLANK,
-    ICON_CONFIRMED,
-    ICON_EXIT,
-    ICON_PENDING,
-    ICON_WARNING,
-    POPUP_TRANSIENT,
     SPARTN_GNSS,
     SPARTN_LBAND,
     SPARTN_MQTT,
@@ -38,14 +30,17 @@ from pygpsclient.globals import (
 from pygpsclient.spartn_gnss_frame import SPARTNGNSSDialog
 from pygpsclient.spartn_lband_frame import SpartnLbandDialog
 from pygpsclient.spartn_mqtt_frame import SPARTNMQTTDialog
-from pygpsclient.strings import DLGSPARTNCONFIG, DLGTSPARTN
+from pygpsclient.strings import DLGTSPARTN
+from pygpsclient.toplevel_dialog import ToplevelDialog
 
 RXMMSG = "RXM-SPARTN-KEY"
 CFGSET = "CFG-VALGET/SET"
 CFGPOLL = "CFG-VALGET"
 
+MINDIM = (408, 758)
 
-class SPARTNConfigDialog(Toplevel):
+
+class SPARTNConfigDialog(ToplevelDialog):
     """,
     SPARTNConfigDialog class.
     """
@@ -62,23 +57,15 @@ class SPARTNConfigDialog(Toplevel):
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
 
-        Toplevel.__init__(self, app)
-        if POPUP_TRANSIENT:
-            self.transient(self.__app)
-        self.resizable(False, False)
-        self.title(DLGSPARTNCONFIG)  # pylint: disable=E1102
-        self.protocol("WM_DELETE_WINDOW", self.on_exit)
-        self._img_blank = ImageTk.PhotoImage(Image.open(ICON_BLANK))
-        self._img_pending = ImageTk.PhotoImage(Image.open(ICON_PENDING))
-        self._img_confirmed = ImageTk.PhotoImage(Image.open(ICON_CONFIRMED))
-        self._img_warn = ImageTk.PhotoImage(Image.open(ICON_WARNING))
-        self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
-        self._status = StringVar()
+        super().__init__(app, DLGTSPARTN, MINDIM)
         self._pending_confs = {}
+        self._lband_enabled = self.__app.configuration.get("lband_enabled_b")
 
         self._body()
         self._do_layout()
         self._reset()
+        self._attach_events()
+        self._finalise()
 
     def _body(self):
         """
@@ -86,30 +73,19 @@ class SPARTNConfigDialog(Toplevel):
         """
         # pylint: disable=unnecessary-lambda
 
-        self._frm_container = Frame(self)
-        self._frm_status = Frame(self._frm_container, borderwidth=2, relief="groove")
-        self._lbl_status = Label(self._frm_status, textvariable=self._status, anchor=W)
-        self._btn_exit = Button(
-            self._frm_status,
-            image=self._img_exit,
-            width=55,
-            fg=ERRCOL,
-            command=self.on_exit,
-            font=self.__app.font_md,
-        )
-
         self.frm_corrip = SPARTNMQTTDialog(
             self.__app,
             self,
             borderwidth=2,
             relief="groove",
         )
-        self.frm_corrlband = SpartnLbandDialog(
-            self.__app,
-            self,
-            borderwidth=2,
-            relief="groove",
-        )
+        if self._lband_enabled:
+            self.frm_corrlband = SpartnLbandDialog(
+                self.__app,
+                self,
+                borderwidth=2,
+                relief="groove",
+            )
         self.frm_gnss = SPARTNGNSSDialog(
             self.__app, self, borderwidth=2, relief="groove"
         )
@@ -126,53 +102,23 @@ class SPARTNConfigDialog(Toplevel):
             ipady=5,
             sticky=(N, S, W, E),
         )
-        self.frm_corrlband.grid(
-            column=1,
-            row=0,
-            ipadx=5,
-            ipady=5,
-            sticky=(N, S, W, E),
-        )
+        col = 1
+        if self._lband_enabled:
+            self.frm_corrlband.grid(
+                column=col,
+                row=0,
+                ipadx=5,
+                ipady=5,
+                sticky=(N, S, W, E),
+            )
+            col += 1
         self.frm_gnss.grid(
-            column=2,
+            column=col,
             row=0,
             ipadx=5,
             ipady=5,
             sticky=(N, S, W, E),
         )
-
-        # bottom of grid
-        self._frm_container.grid(
-            column=0,
-            row=0,
-            columnspan=3,
-            rowspan=2,
-            padx=3,
-            pady=3,
-            ipadx=5,
-            ipady=5,
-            sticky=(N, S, W, E),
-        )
-        self._frm_status.grid(
-            column=0,
-            row=1,
-            columnspan=3,
-            ipadx=5,
-            ipady=5,
-            sticky=(W, E),
-        )
-        self._lbl_status.grid(column=0, row=0, columnspan=2, sticky=W)
-        self._btn_exit.grid(column=2, row=0, sticky=E)
-
-        (colsp, rowsp) = self._frm_container.grid_size()
-        for frm in (self._frm_container, self._frm_status):
-            for i in range(colsp):
-                frm.grid_columnconfigure(i, weight=1)
-            for i in range(rowsp):
-                frm.grid_rowconfigure(i, weight=1)
-
-        self._frm_container.option_add("*Font", self.__app.font_sm)
-        self._frm_status.option_add("*Font", self.__app.font_sm)
 
     def _reset(self):
         """
@@ -180,6 +126,13 @@ class SPARTNConfigDialog(Toplevel):
         """
 
         self.set_status("")
+
+    def _attach_events(self):
+        """
+        Bind events to window.
+        """
+
+        # self.bind("<Configure>", self._on_resize)
 
     def set_status(self, message: str, color: str = ""):
         """
@@ -192,14 +145,6 @@ class SPARTNConfigDialog(Toplevel):
         if color != "":
             self._lbl_status.config(fg=color)
         self._status.set(" " + message)
-
-    def on_exit(self, *args, **kwargs):  # pylint: disable=unused-argument
-        """
-        Handle Exit button press.
-        """
-
-        self.__app.stop_dialog(DLGTSPARTN)
-        self.destroy()
 
     def set_pending(self, msgid: int, spartnfrm: int):
         """
@@ -274,14 +219,6 @@ class SPARTNConfigDialog(Toplevel):
         """
 
         self.frm_corrlband.on_disconnect(msg)
-
-    @property
-    def container(self):
-        """
-        Getter for container.
-        """
-
-        return self._frm_container
 
     @property
     def server(self) -> str:

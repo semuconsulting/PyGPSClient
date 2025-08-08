@@ -51,7 +51,7 @@ class UBX_PORT_Frame(Frame):
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.__container = container
 
-        Frame.__init__(self, self.__container.container, *args, **kwargs)
+        super().__init__(container.container, *args, **kwargs)
 
         self._img_send = ImageTk.PhotoImage(Image.open(ICON_SEND))
         self._img_pending = ImageTk.PhotoImage(Image.open(ICON_PENDING))

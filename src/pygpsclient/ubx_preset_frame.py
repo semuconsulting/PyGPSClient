@@ -123,7 +123,7 @@ class UBX_PRESET_Frame(Frame):
         self.logger = logging.getLogger(__name__)
         self.__container = container
 
-        Frame.__init__(self, self.__container.container, *args, **kwargs)
+        super().__init__(container.container, *args, **kwargs)
 
         self._img_send = ImageTk.PhotoImage(Image.open(ICON_SEND))
         self._img_pending = ImageTk.PhotoImage(Image.open(ICON_PENDING))

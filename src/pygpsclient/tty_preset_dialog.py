@@ -26,12 +26,9 @@ from tkinter import (
     S,
     Scrollbar,
     StringVar,
-    Toplevel,
     W,
     ttk,
 )
-
-from PIL import Image, ImageTk
 
 from pygpsclient.confirm_box import ConfirmBox
 from pygpsclient.globals import (
@@ -39,15 +36,8 @@ from pygpsclient.globals import (
     BSR,
     CRLF,
     ERRCOL,
-    ICON_BLANK,
-    ICON_CONFIRMED,
-    ICON_EXIT,
-    ICON_PENDING,
-    ICON_SEND,
-    ICON_WARNING,
     INFOCOL,
     OKCOL,
-    POPUP_TRANSIENT,
     TTY_EVENT,
     TTYERR,
     TTYOK,
@@ -58,13 +48,15 @@ from pygpsclient.strings import (
     DLGACTIONCONFIRM,
     DLGTTTY,
 )
+from pygpsclient.toplevel_dialog import ToplevelDialog
 
 CANCELLED = 0
 CONFIRMED = 1
 NOMINAL = 2
+MINDIM = (463, 493)
 
 
-class TTYPresetDialog(Toplevel):
+class TTYPresetDialog(ToplevelDialog):
     """
     TTY Preset and User-defined configuration command dialog.
     """
@@ -80,18 +72,7 @@ class TTYPresetDialog(Toplevel):
         self.__app = app
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
 
-        Toplevel.__init__(self, app)
-        if POPUP_TRANSIENT:
-            self.transient(self.__app)
-        self.resizable(True, True)
-        self.title(DLGTTTY)  # pylint: disable=E1102
-        self.protocol("WM_DELETE_WINDOW", self.on_exit)
-        self._img_none = ImageTk.PhotoImage(Image.open(ICON_BLANK))
-        self._img_send = ImageTk.PhotoImage(Image.open(ICON_SEND))
-        self._img_pending = ImageTk.PhotoImage(Image.open(ICON_PENDING))
-        self._img_confirmed = ImageTk.PhotoImage(Image.open(ICON_CONFIRMED))
-        self._img_warn = ImageTk.PhotoImage(Image.open(ICON_WARNING))
-        self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
+        super().__init__(app, DLGTTTY, MINDIM)
         self._confirm = False
         self._command = StringVar()
         self._crlf = IntVar()
@@ -101,43 +82,42 @@ class TTYPresetDialog(Toplevel):
         self._do_layout()
         self.reset()
         self._attach_events()
+        self._finalise()
 
     def _body(self):
         """
         Set up frame and widgets.
         """
 
-        self._frm_container = Frame(self, borderwidth=2, relief="groove")
+        self._frm_body = Frame(self.container, borderwidth=2, relief="groove")
         self._lbl_command = Label(
-            self._frm_container,
+            self._frm_body,
             text="Command",
         )
         self._ent_command = Entry(
-            self._frm_container,
+            self._frm_body,
             textvariable=self._command,
             relief="sunken",
             width=50,
         )
         self._chk_crlf = Checkbutton(
-            self._frm_container,
+            self._frm_body,
             text="CRLF",
             variable=self._crlf,
         )
         self._chk_echo = Checkbutton(
-            self._frm_container,
+            self._frm_body,
             text="Echo",
             variable=self._echo,
         )
         self._chk_delay = Checkbutton(
-            self._frm_container,
+            self._frm_body,
             text="Delay",
             variable=self._delay,
         )
-        self._lbl_presets = Label(
-            self._frm_container, text="Preset TTY Commands", anchor=W
-        )
+        self._lbl_presets = Label(self._frm_body, text="Preset TTY Commands", anchor=W)
         self._lbx_preset = Listbox(
-            self._frm_container,
+            self._frm_body,
             border=2,
             relief="sunken",
             height=25,
@@ -145,33 +125,26 @@ class TTYPresetDialog(Toplevel):
             justify=LEFT,
             exportselection=False,
         )
-        self._scr_presetv = Scrollbar(self._frm_container, orient=VERTICAL)
-        self._scr_preseth = Scrollbar(self._frm_container, orient=HORIZONTAL)
+        self._scr_presetv = Scrollbar(self._frm_body, orient=VERTICAL)
+        self._scr_preseth = Scrollbar(self._frm_body, orient=HORIZONTAL)
         self._lbx_preset.config(yscrollcommand=self._scr_presetv.set)
         self._lbx_preset.config(xscrollcommand=self._scr_preseth.set)
         self._scr_presetv.config(command=self._lbx_preset.yview)
         self._scr_preseth.config(command=self._lbx_preset.xview)
-        self._lbl_send_command = Label(self._frm_container)
+        self._lbl_send_command = Label(self._frm_body)
         self._btn_send_command = Button(
-            self._frm_container,
-            image=self._img_send,
+            self._frm_body,
+            image=self.img_send,
             width=50,
             command=self._on_send_command,
         )
-        self._btn_exit = Button(
-            self._frm_container,
-            image=self._img_exit,
-            width=40,
-            command=self.on_exit,
-        )
-        self._lbl_status = Label(self._frm_container, anchor=W)
 
     def _do_layout(self):
         """
         Layout widgets.
         """
 
-        self._frm_container.grid(
+        self._frm_body.grid(
             column=0, row=0, padx=5, pady=5, ipadx=5, ipady=5, sticky=(N, S, E, W)
         )
         self._lbl_command.grid(column=0, row=0, padx=3, sticky=W)
@@ -179,7 +152,7 @@ class TTYPresetDialog(Toplevel):
         self._chk_crlf.grid(column=0, row=1, padx=3, sticky=W)
         self._chk_echo.grid(column=1, row=1, padx=3, sticky=W)
         self._chk_delay.grid(column=2, row=1, padx=3, sticky=W)
-        ttk.Separator(self._frm_container).grid(
+        ttk.Separator(self._frm_body).grid(
             column=0, row=2, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
         self._lbl_presets.grid(column=0, row=3, columnspan=3, padx=3, sticky=(W, E))
@@ -192,7 +165,7 @@ class TTYPresetDialog(Toplevel):
             pady=3,
             sticky=(W, E),
         )
-        self._scr_presetv.grid(column=2, row=4, rowspan=20, sticky=(N, S, E))
+        self._scr_presetv.grid(column=2, row=3, rowspan=21, sticky=(N, S, E))
         self._scr_preseth.grid(column=0, row=24, columnspan=3, sticky=(W, E))
         self._btn_send_command.grid(
             column=3, row=3, padx=3, ipadx=3, ipady=3, sticky=(N, E)
@@ -200,21 +173,6 @@ class TTYPresetDialog(Toplevel):
         self._lbl_send_command.grid(
             column=3, row=4, padx=3, ipadx=3, ipady=3, sticky=(N, W, E)
         )
-        ttk.Separator(self._frm_container).grid(
-            column=0, row=25, padx=2, columnspan=4, pady=2, sticky=(W, E)
-        )
-        self._lbl_status.grid(
-            column=0, row=26, padx=3, ipadx=3, columnspan=3, ipady=3, sticky=(W, E)
-        )
-        self._btn_exit.grid(column=3, row=26, padx=3, ipadx=3, ipady=3)
-
-        # self._frm_container.grid_columnconfigure(0, weight=10)
-        # for col in range(1, 4):
-        #     self._frm_container.grid_columnconfigure(col, weight=0)
-        # for row in range(3):
-        #     self._frm_container.grid_rowconfigure(row, weight=0)
-        # self._frm_container.grid_rowconfigure(3, weight=10)
-        self._frm_container.option_add("*Font", self.__app.font_sm)
 
     def _attach_events(self):
         """
@@ -225,6 +183,7 @@ class TTYPresetDialog(Toplevel):
         for setting in (self._crlf, self._echo):
             setting.trace_add("write", self._on_update_settings)
         self._lbx_preset.bind("<<ListboxSelect>>", self._on_select_preset)
+        # self.bind("<Configure>", self._on_resize)
 
     def reset(self):
         """
@@ -244,7 +203,7 @@ class TTYPresetDialog(Toplevel):
         Command has been updated.
         """
 
-        self._lbl_send_command.config(image=self._img_none)
+        self._lbl_send_command.config(image=self.img_none)
 
     def _on_update_settings(self, var, index, mode):  # pylint: disable=unused-argument
         """
@@ -289,7 +248,7 @@ class TTYPresetDialog(Toplevel):
                 self._parse_command(self._command.get())
                 status = CONFIRMED
             if status == CONFIRMED:
-                self._lbl_send_command.config(image=self._img_pending)
+                self._lbl_send_command.config(image=self.img_pending)
                 self.set_status("Command(s) sent")
             elif status == CANCELLED:
                 self.set_status("Command(s) cancelled")
@@ -299,7 +258,7 @@ class TTYPresetDialog(Toplevel):
 
         except Exception as err:  # pylint: disable=broad-except
             self.set_status(f"Error {err}", ERRCOL)
-            self._lbl_send_command.config(image=self._img_warn)
+            self._lbl_send_command.config(image=self.img_warn)
 
     def _parse_command(self, command: str):
         """
@@ -324,7 +283,7 @@ class TTYPresetDialog(Toplevel):
                     self.__master.event_generate(TTY_EVENT)
         except Exception as err:  # pylint: disable=broad-except
             self.set_status(f"Error {err}", ERRCOL)
-            self._lbl_send_command.config(image=self._img_warn)
+            self._lbl_send_command.config(image=self.img_warn)
 
     def update_status(self, msg: bytes):
         """
@@ -336,29 +295,11 @@ class TTYPresetDialog(Toplevel):
         msgstr = msg.decode(ASCII, errors=BSR).upper()
         for ack in TTYOK:
             if ack in msgstr:
-                self._lbl_send_command.config(image=self._img_confirmed)
+                self._lbl_send_command.config(image=self.img_confirmed)
                 self.set_status("Command(s) acknowledged", OKCOL)
                 return
         for nak in TTYERR:
             if nak in msgstr:
-                self._lbl_send_command.config(image=self._img_warn)
+                self._lbl_send_command.config(image=self.img_warn)
                 self.set_status("Command(s) rejected", ERRCOL)
                 break
-
-    def set_status(self, msg: str, col: str = INFOCOL):
-        """
-        Set status message.
-
-        :param str msg: message
-        :param str col: color
-        """
-
-        self._lbl_status.configure(text=msg, fg=col)
-
-    def on_exit(self, *args, **kwargs):  # pylint: disable=unused-argument
-        """
-        Handle Exit button press.
-        """
-
-        self.__app.stop_dialog(DLGTTTY)
-        self.destroy()

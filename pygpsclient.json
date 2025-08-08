@@ -108,6 +108,7 @@
     "lbandclientxonxoff_b": 0,
     "lbandclienttimeout_f": 0.1,
     "lbandclientmsgmode_n": 0,
+    "lband_enabled_b": 0,
     "spartnport_s": "<== YOUR USER_DEFINED D9S SERIAL PORT ==>",
     "lbandclientfreq_n": 1556290000,
     "lbandclientschwin_n": 2200,

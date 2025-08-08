@@ -5,9 +5,12 @@
 FIXES:
 
 1. Clarify interpretation of SPARTN decryption basedate integer values in *.json configuration file; `-1` signifies 'use current datetime' (`basedate=None`); `0` signifies 'use gnssTimeTag from incoming SPARTN data stream' (`basedate=pyspartn.TIMEBASE`); any other integer value represents an explicit gnssTimeTag value.
+1. Fix minor bugs in GPX Viewer custom map handling.
 
 ENHANCEMENTS:
 
+1. Make all Toplevel dialogs scrollable and resizeable, depending on effective screen resolution. Applies to: UBX Config, NMEA Config, NTRIP Client, SPARTN Client, Display GPX Track, Import Custom Map, TTY Commands. This allows the dialogs to be usable on low resolution screens( 600 <= width <= 1024 pixels).
+1. Make SPARTN L-Band configuration panel optional - disabled by default (*ublox PointPerfect SPARTN L-Band service was discontinued in May 2025, though the panel can still be used for other generic L-Band modem configuration purposes*). Panel can be re-enabled by setting lband_enabled_b to 1.
 1. Make `cryptography` library dependency optional (*it is only required to decrypt encrypted MQTT SPARTN payloads*). If the `cryptography` library is not installed, the "Decode SPARTN in console" option will be greyed out in the SPARTN MQTT Client dialog.
 1. Allow datalogging and track recording to be enabled or disabled while connected (previously only available while disconnected).
 1. Update minimum pyubx2, pysbf2 and pygnssutils versions to take onboard latest fixes and enhancements.
@@ -644,7 +647,7 @@ ENHANCEMENTS:
 1. New CFG-* Other Configuration command panel added to UBX Configuration panel. Provides structured inputs for a range of legacy CFG commands. **NB:** For Generation 9+ devices, legacy CFG commands are deprecated in favour of the CFG-VALGET/SET/DEL Configuration Interface commands in the adjacent panel.
 2. When a legacy CFG command is selected from the CFG-* listbox, a POLL request is sent to the device to retrieve the current settings; these are then used to populate a series of dynamically generated Entry widgets. The user can amend the values as required and send the updated set of values as a SET message to the device. After sending, the current values will be polled again to confirm the update has taken place. **NB:** this mechanism is dependent on receiving timely POLL responses. Note caveats in README re. optimising POLL response performance.
 3. For the time being, there are a few constraints with regard to updating certain CFG types, but these will hopefully be addressed in a future update as and when time permits. The `pyubx2` library which underpins`PyGPSClient` fully supports *ALL* CFG-* commands.
-4. The new panel can be enabled or disabled using the `ENABLE_CFG_OTHER` boolean in `globals.py`.
+4. The new panel can be enabled or disabled using the `ENABLE_CFG_LEGACY` boolean in `globals.py`.
 
 ### RELEASE v1.3.7
 

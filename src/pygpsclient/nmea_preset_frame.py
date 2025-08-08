@@ -94,7 +94,7 @@ class NMEA_PRESET_Frame(Frame):
             self,
             border=2,
             relief="sunken",
-            height=35,
+            height=30,
             width=55,
             justify=LEFT,
             exportselection=False,

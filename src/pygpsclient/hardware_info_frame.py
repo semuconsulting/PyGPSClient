@@ -47,11 +47,10 @@ class Hardware_Info_Frame(Frame):
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.__container = container
         self._protocol = kwargs.pop("protocol", "UBX")
 
-        Frame.__init__(self, self.__container.container, *args, **kwargs)
+        super().__init__(container.container, *args, **kwargs)
 
         self._img_send = ImageTk.PhotoImage(Image.open(ICON_SEND))
         self._img_pending = ImageTk.PhotoImage(Image.open(ICON_PENDING))
@@ -99,7 +98,7 @@ class Hardware_Info_Frame(Frame):
             self.grid_columnconfigure(i, weight=1)
         for i in range(rows):
             self.grid_rowconfigure(i, weight=1)
-        self.option_add("*Font", self.__app.font_sm)
+        # self.option_add("*Font", self.__app.font_sm)
 
     def _attach_events(self):
         """

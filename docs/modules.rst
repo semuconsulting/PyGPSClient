@@ -1,7 +1,7 @@
-pygpsclient
+PyGPSClient
 ===========
 
 .. toctree::
    :maxdepth: 4
 
-   pygpsclient
+   PyGPSClient

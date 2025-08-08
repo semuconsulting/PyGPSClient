@@ -23,9 +23,8 @@ Created on 19 Sep 2020
 :license: BSD 3-Clause
 """
 
-from tkinter import Button, E, Frame, Label, N, S, StringVar, Toplevel, W
+from tkinter import E, N, S, W
 
-from PIL import Image, ImageTk
 from pyubx2 import UBXMessage
 
 from pygpsclient.dynamic_config_frame import Dynamic_Config_Frame
@@ -33,10 +32,8 @@ from pygpsclient.globals import (
     CONNECTED,
     CONNECTED_SIMULATOR,
     CONNECTED_SOCKET,
-    ENABLE_CFG_OTHER,
+    ENABLE_CFG_LEGACY,
     ERRCOL,
-    ICON_EXIT,
-    POPUP_TRANSIENT,
     UBX_CFGMSG,
     UBX_CFGOTHER,
     UBX_CFGPRT,
@@ -48,7 +45,8 @@ from pygpsclient.globals import (
     UBX_PRESET,
 )
 from pygpsclient.hardware_info_frame import Hardware_Info_Frame
-from pygpsclient.strings import DLGTUBX, DLGUBXCONFIG
+from pygpsclient.strings import DLGTUBX
+from pygpsclient.toplevel_dialog import ToplevelDialog
 from pygpsclient.ubx_cfgval_frame import UBX_CFGVAL_Frame
 from pygpsclient.ubx_msgrate_frame import UBX_MSGRATE_Frame
 from pygpsclient.ubx_port_frame import UBX_PORT_Frame
@@ -56,8 +54,10 @@ from pygpsclient.ubx_preset_frame import UBX_PRESET_Frame
 from pygpsclient.ubx_recorder_frame import UBX_Recorder_Frame
 from pygpsclient.ubx_solrate_frame import UBX_RATE_Frame
 
+MINDIM = (570, 1076)
 
-class UBXConfigDialog(Toplevel):
+
+class UBXConfigDialog(ToplevelDialog):
     """,
     UBXConfigDialog class.
     """
@@ -72,41 +72,24 @@ class UBXConfigDialog(Toplevel):
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
 
-        Toplevel.__init__(self, app)
-        if POPUP_TRANSIENT:
-            self.transient(self.__app)
-        self.resizable(True, True)  # allow for MacOS resize glitches
-        self.title(DLGUBXCONFIG)  # pylint: disable=E1102
-        self.protocol("WM_DELETE_WINDOW", self.on_exit)
-        self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
+        super().__init__(app, DLGTUBX, MINDIM)
+
         self._cfg_msg_command = None
         self._pending_confs = {}
-        self._status = StringVar()
-        self._status_cfgmsg = StringVar()
         self._recordmode = False
 
         self._body()
         self._do_layout()
         self._reset()
+        self._attach_events()
+        self._finalise()
 
     def _body(self):
         """
         Set up frame and widgets.
         """
 
-        self._frm_container = Frame(self, borderwidth=2, relief="groove")
-        self._frm_status = Frame(self._frm_container, borderwidth=2, relief="groove")
-        self._lbl_status = Label(self._frm_status, textvariable=self._status, anchor=W)
-        self._btn_exit = Button(
-            self._frm_status,
-            image=self._img_exit,
-            width=50,
-            fg=ERRCOL,
-            command=self.on_exit,
-            font=self.__app.font_md,
-        )
         # add configuration widgets
         self._frm_device_info = Hardware_Info_Frame(
             self.__app, self, borderwidth=2, relief="groove", protocol="UBX"
@@ -144,18 +127,6 @@ class UBXConfigDialog(Toplevel):
         # top of grid
         col = 0
         row = 0
-        self._frm_container.grid(
-            column=col,
-            row=row,
-            columnspan=12,
-            rowspan=22,
-            padx=3,
-            pady=3,
-            ipadx=5,
-            ipady=5,
-            sticky=(N, S, W, E),
-        )
-        # left column of grid
         for frm in (
             self._frm_device_info,
             self._frm_recorder,
@@ -163,7 +134,7 @@ class UBXConfigDialog(Toplevel):
             self._frm_config_rate,
             self._frm_config_msg,
         ):
-            (colsp, rowsp) = frm.grid_size()
+            colsp, rowsp = frm.grid_size()
             frm.grid(
                 column=col,
                 row=row,
@@ -172,9 +143,21 @@ class UBXConfigDialog(Toplevel):
                 sticky=(N, S, W, E),
             )
             row += rowsp
-        maxrow = row
         # middle column of grid
-        if ENABLE_CFG_OTHER:
+        row = 0
+        col += colsp
+        for frm in (self._frm_configdb, self._frm_preset):
+            colsp, rowsp = frm.grid_size()
+            frm.grid(
+                column=col,
+                row=row,
+                columnspan=colsp,
+                rowspan=rowsp,
+                sticky=(N, S, W, E),
+            )
+            row += rowsp
+        # right column of grid
+        if ENABLE_CFG_LEGACY:
             row = 0
             col += colsp
             for frm in (self._frm_config_dynamic,):
@@ -187,39 +170,6 @@ class UBXConfigDialog(Toplevel):
                     sticky=(N, S, W, E),
                 )
                 row += rowsp
-            maxrow = max(maxrow, row)
-        # right column of grid
-        row = 0
-        col += colsp
-        for frm in (self._frm_configdb, self._frm_preset):
-            (colsp, rowsp) = frm.grid_size()
-            frm.grid(
-                column=col,
-                row=row,
-                columnspan=colsp,
-                rowspan=rowsp,
-                sticky=(N, S, W, E),
-            )
-            row += rowsp
-        maxrow = max(maxrow, row)
-        # bottom of grid
-        col = 0
-        row = maxrow
-        (colsp, rowsp) = self._frm_container.grid_size()
-        self._frm_status.grid(column=col, row=row, columnspan=colsp, sticky=(W, E))
-        self._lbl_status.grid(
-            column=0, row=0, columnspan=colsp - 1, ipadx=3, ipady=3, sticky=(W, E)
-        )
-        self._btn_exit.grid(column=colsp - 1, row=0, ipadx=3, ipady=3, sticky=E)
-
-        for frm in (self._frm_container, self._frm_status):
-            for i in range(colsp):
-                frm.grid_columnconfigure(i, weight=1)
-            for i in range(rowsp):
-                frm.grid_rowconfigure(i, weight=1)
-
-        self._frm_container.option_add("*Font", self.__app.font_sm)
-        self._frm_status.option_add("*Font", self.__app.font_sm)
 
     def _reset(self):
         """
@@ -236,6 +186,13 @@ class UBXConfigDialog(Toplevel):
             CONNECTED_SIMULATOR,
         ):
             self.set_status("Device not connected", ERRCOL)
+
+    def _attach_events(self):
+        """
+        Bind events to window.
+        """
+
+        # self.bind("<Configure>", self._on_resize)
 
     def set_pending(self, msgid: int, ubxfrm: int):
         """
@@ -278,49 +235,6 @@ class UBXConfigDialog(Toplevel):
             for msgid in (msg.identity, "ACK-ACK", "ACK-NAK"):
                 if self._pending_confs.get(msgid, None) == ubxfrm:
                     self._pending_confs.pop(msgid)
-
-    def set_status(self, message: str, color: str = ""):
-        """
-        Set status message.
-
-        :param str message: message to be displayed
-        :param str color: rgb color of text (blue)
-        """
-
-        message = (message[:120] + "..") if len(message) > 120 else message
-        if color != "":
-            self._lbl_status.config(fg=color)
-        self._status.set("  " + message)
-
-    def on_exit(self, *args, **kwargs):  # pylint: disable=unused-argument
-        """
-        Handle Exit button press.
-        """
-
-        self.__app.stop_dialog(DLGTUBX)
-        self.destroy()
-
-    def get_size(self):
-        """
-        Get current frame size.
-
-        :return: window size (width, height)
-        :rtype: tuple
-        """
-
-        self.__master.update_idletasks()  # Make sure we know about any resizing
-        return self.winfo_width(), self.winfo_height()
-
-    @property
-    def container(self):
-        """
-        Getter for container frame.
-
-        :return: reference to container frame
-        :rtype: tkinter.Frame
-        """
-
-        return self._frm_container
 
     @property
     def recordmode(self) -> bool:

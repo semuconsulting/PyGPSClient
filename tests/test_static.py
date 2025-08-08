@@ -799,7 +799,7 @@ class StaticTest(unittest.TestCase):
         self.assertEqual(cfg.get("lbandclientdrat_n"), 2400)
         self.assertEqual(cfg.get("userport_s"), "")
         self.assertEqual(cfg.get("spartnport_s"), "")
-        self.assertEqual(len(cfg.settings), 135)
+        self.assertEqual(len(cfg.settings), 136)
         kwargs = {"userport": "/dev/ttyACM0", "spartnport": "/dev/ttyACM1"}
         cfg.loadcli(**kwargs)
         self.assertEqual(cfg.get("userport_s"), "/dev/ttyACM0")
@@ -836,6 +836,7 @@ class StaticTest(unittest.TestCase):
             res = dop2str(dop)
             self.assertEqual(res, dops[i])
             i += 1
+
 
 if __name__ == "__main__":
     # import sys;sys.argv = ['', 'Test.testName']
