@@ -28,7 +28,6 @@ from tkinter import (
     N,
     S,
     StringVar,
-    Toplevel,
     W,
 )
 
@@ -46,13 +45,10 @@ from pygpsclient.globals import (
     BGCOL,
     ERRCOL,
     HOME,
-    ICON_EXIT,
-    ICON_LOAD,
-    ICON_SEND,
     INFOCOL,
-    POPUP_TRANSIENT,
 )
 from pygpsclient.strings import DLGTIMPORTMAP
+from pygpsclient.toplevel_dialog import ToplevelDialog
 
 # profile chart parameters:
 AXIS_XL = 35  # x axis left offset
@@ -62,9 +58,10 @@ ELEAX_COL = "green4"  # color of elevation plot axis
 ELE_COL = "palegreen3"  # color of elevation plot
 SPD_COL = INFOCOL  # color of speed plot
 MD_LINES = 2  # number of lines of metadata
+MINDIM = (456, 418)
 
 
-class ImportMapDialog(Toplevel):
+class ImportMapDialog(ToplevelDialog):
     """ImportMapDialog class."""
 
     def __init__(self, app, *args, **kwargs):
@@ -72,15 +69,7 @@ class ImportMapDialog(Toplevel):
 
         self.__app = app
         # self.__master = self.__app.appmaster  # link to root Tk window
-        Toplevel.__init__(self, app)
-        if POPUP_TRANSIENT:
-            self.transient(self.__app)
-        self.resizable(True, True)
-        self.title(DLGTIMPORTMAP)  # pylint: disable=E1102
-        self.protocol("WM_DELETE_WINDOW", self.on_exit)
-        self._img_load = ImageTk.PhotoImage(Image.open(ICON_LOAD))
-        self._img_send = ImageTk.PhotoImage(Image.open(ICON_SEND))
-        self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
+        super().__init__(app, DLGTIMPORTMAP, MINDIM)
         self.width = int(kwargs.get("width", 400))
         self.height = int(kwargs.get("height", 400))
         self.mheight = int(self.height * 0.75)
@@ -97,26 +86,28 @@ class ImportMapDialog(Toplevel):
         self._do_layout()
         self._attach_events()
         self._reset()
+        self._finalise()
 
     def _body(self):
         """
         Create widgets.
         """
 
-        self._frm_map = Frame(self, borderwidth=2, relief="groove", bg=BGCOL)
-        self._frm_controls = Frame(self, borderwidth=2, relief="groove")
+        self._frm_body = Frame(self.container, borderwidth=2, relief="groove")
+        self._frm_map = Frame(self._frm_body, borderwidth=2, relief="groove", bg=BGCOL)
+        self._frm_controls = Frame(self._frm_body, borderwidth=2, relief="groove")
         self._canvas_map = Canvas(
             self._frm_map, width=self.width, height=self.mheight, bg=BGCOL
         )
         self._btn_load = Button(
             self._frm_controls,
-            image=self._img_load,
+            image=self.img_load,
             width=40,
             command=self._on_load,
         )
         self._btn_import = Button(
             self._frm_controls,
-            image=self._img_send,
+            image=self.img_send,
             width=40,
             command=self._on_import,
         )
@@ -138,26 +129,17 @@ class ImportMapDialog(Toplevel):
         self._ent_maxlon = Entry(
             self._frm_controls, width=10, textvariable=self._lonmax
         )
-        self._btn_exit = Button(
-            self._frm_controls,
-            image=self._img_exit,
-            width=40,
-            command=self.on_exit,
-        )
-        self._lbl_status = Label(self._frm_controls, text="", anchor=W)
 
     def _do_layout(self):
         """
         Arrange widgets.
         """
-
+        self._frm_body.grid(column=0, row=0, sticky=(N, S, E, W))
         self._frm_map.grid(column=0, row=0, sticky=(N, S, E, W))
         self._frm_controls.grid(column=0, row=1, sticky=(W, E))
         self._canvas_map.pack(fill=BOTH, expand=YES)
         self._btn_load.grid(column=0, row=0, padx=3, pady=3)
         self._btn_import.grid(column=1, row=0, padx=3, pady=3)
-        self._btn_exit.grid(column=4, row=0, padx=3, pady=3, sticky=E)
-
         self._lbl_min.grid(column=0, row=1, padx=3, pady=3, sticky=W)
         self._lbl_minlat.grid(column=1, row=1, padx=3, pady=3, sticky=E)
         self._ent_minlat.grid(column=2, row=1, padx=3, pady=3)
@@ -168,20 +150,13 @@ class ImportMapDialog(Toplevel):
         self._ent_maxlat.grid(column=2, row=2, padx=3, pady=3)
         self._lbl_maxlon.grid(column=3, row=2, padx=3, pady=3, sticky=E)
         self._ent_maxlon.grid(column=4, row=2, padx=3, pady=3)
-        self._lbl_status.grid(
-            column=0, row=3, columnspan=5, padx=3, pady=3, sticky=(W, E)
-        )
-
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(0, weight=3)
-        self.grid_rowconfigure(1, weight=1)
 
     def _attach_events(self):
         """
         Bind events to window.
         """
 
-        self.bind("<Configure>", self._on_resize)
+        # self.bind("<Configure>", self._on_resize)
 
     def _reset(self):
         """
@@ -191,39 +166,12 @@ class ImportMapDialog(Toplevel):
         self._canvas_map.delete(ALL)
         self._btn_import.config(state=DISABLED)
         if not HASRASTERIO:
-            self._show_status(
-                "Warning: rasterio library is not installed - bounds must be entered manually"
+            self.set_status(
+                "Warning: rasterio library is not installed - bounds must be entered manually",
+                INFOCOL,
             )
         else:
-            self._show_status()
-
-    def on_exit(self, *args, **kwargs):
-        """
-        Handle Exit button press.
-        """
-
-        self.__app.stop_dialog(DLGTIMPORTMAP)
-        self.destroy()
-
-    def get_size(self):
-        """
-        Get current frame size.
-
-        :return: window size (width, height)
-        :rtype: tuple
-        """
-
-        return (self.winfo_width(), self.winfo_height())
-
-    def _on_resize(self, event):
-        """
-        Resize frame
-
-        :param event event: resize event
-        """
-
-        self.width, self.height = self.get_size()
-        self.mheight = self._frm_map.winfo_height()
+            self.set_status("")
 
     def _open_mapfile(self) -> str:
         """
@@ -240,7 +188,7 @@ class ImportMapDialog(Toplevel):
         Load custom map from file.
         """
 
-        self._show_status()
+        self.set_status("")
         self._custommap = self._open_mapfile()
         if self._custommap is not None:
             self._get_bounds(self._custommap)
@@ -262,8 +210,9 @@ class ImportMapDialog(Toplevel):
                     ras.crs.to_epsg(), 4326, *ras.bounds
                 )
             except Exception:  # pylint: disable=broad-exception-caught
-                self._show_status(
-                    "Warning: image is not georeferenced - bounds must be entered manually"
+                self.set_status(
+                    "Warning: image is not georeferenced - bounds must be entered manually",
+                    ERRCOL,
                 )
 
         self._lonmin.set(round(lonmin, 8))
@@ -296,24 +245,13 @@ class ImportMapDialog(Toplevel):
             latmin = float(self._latmin.get())
             latmax = float(self._latmax.get())
         except ValueError:
-            self._show_status("Error: invalid bounds")
+            self.set_status("Error: invalid bounds", ERRCOL)
             return
 
         if lonmax + 180 <= lonmin + 180 or latmax + 90 <= latmin + 90:
-            self._show_status("Error: minimum must be less than maximum")
+            self.set_status("Error: minimum must be less than maximum", ERRCOL)
         else:
             usermaps = self.__app.configuration.get("usermaps_l")
             usermaps.append([self._custommap, [latmin, lonmin, latmax, lonmax]])
             self.__app.configuration.set("usermaps_l", usermaps)
-            self._show_status("Custom map imported", INFOCOL)
-
-    def _show_status(self, msg: str = "", col: str = ERRCOL):
-        """
-        Show error message in status label
-
-        :param str msg: error message
-        :param str col: text colour
-        """
-
-        self._lbl_status.config(text=msg, fg=col)
-        self.update_idletasks()
+            self.set_status("Custom map imported", INFOCOL)

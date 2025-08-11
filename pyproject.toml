@@ -8,6 +8,7 @@ dynamic = ["version"]
 authors = [{ name = "semuadmin", email = "semuadmin@semuconsulting.com" }]
 maintainers = [{ name = "semuadmin", email = "semuadmin@semuconsulting.com" }]
 description = "GNSS Diagnostic and UBX Configuration GUI Application"
+license = "BSD-3-Clause"
 license-files = ["LICENSE"]
 keywords = [
     "PyGPSClient",
@@ -48,15 +49,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: GIS",
 ]
 
-dependencies = [
-    "requests>=2.28.0",
-    "Pillow>=9.0.0",
-    "pygnssutils>=1.1.14",
-    "pyubx2>=1.2.52",
-    "pyserial>=3.5",
-    "pyubxutils>=1.0.3",
-    "pysbf2>=0.2.0",
-]
+dependencies = ["requests>=2.28.0", "Pillow>=9.0.0", "pygnssutils>=1.1.16"]
 
 [project.scripts]
 pygpsclient = "pygpsclient.__main__:main"
@@ -67,8 +60,8 @@ documentation = "https://www.semuconsulting.com/pygpsclient/"
 repository = "https://github.com/semuconsulting/PyGPSClient"
 changelog = "https://github.com/semuconsulting/PyGPSClient/blob/master/RELEASE_NOTES.md"
 
-[project.optional-dependencies]
-deploy = [
+[dependency-groups]
+build = [
     "build",
     "packaging>=24.2",
     "pip",
@@ -87,6 +80,7 @@ test = [
     "Sphinx",
     "sphinx-rtd-theme",
 ]
+deploy = [{ include-group = "build" }, { include-group = "test" }]
 
 [tool.setuptools.dynamic]
 version = { attr = "pygpsclient._version.__version__" }
@@ -144,3 +138,12 @@ testpaths = ["tests"]
 
 [tool.coverage.run]
 source = ["src"]
+
+[tool.coverage.paths]
+source = ["src"]
+
+[tool.coverage.report]
+fail_under = 15
+
+[tool.coverage.html]
+directory = "htmlcov"

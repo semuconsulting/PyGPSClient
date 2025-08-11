@@ -18,7 +18,7 @@ from datetime import datetime, timedelta
 from math import asin, atan, atan2, cos, degrees, pi, radians, sin, sqrt, trunc
 from socket import AF_INET, SOCK_DGRAM, socket
 from time import strftime
-from tkinter import Entry
+from tkinter import Entry, Tk
 from tkinter.font import Font
 
 from pynmeagps import WGS84_SMAJ_AXIS, haversine
@@ -41,6 +41,7 @@ from pygpsclient.globals import (
     MAX_SNR,
     PUBLICIP_URL,
     ROMVER_NEW,
+    SCREENSCALE,
     TIME0,
     Area,
     AreaXY,
@@ -68,6 +69,40 @@ AUTHS = {"N": "None", "B": "Basic", "D": "Digest"}
 CARRIERS = {"0": "No", "1": "L1", "2": "L1,L2"}
 SOLUTIONS = {"0": "Single", "1": "Network"}
 POINTLIMIT = 500  # max number of shape points supported by MapQuest API
+
+
+def screenres(master: Tk, scale: float = SCREENSCALE) -> tuple:
+    """
+    Get effective screen resolution.
+
+    :param tkinter.Tk master: reference to root
+    :param float scale: screen scaling factor
+    :return: adjusted screen resolution in pixels (height, width)
+    :rtype: tuple
+    """
+
+    return (master.winfo_screenheight() * scale, master.winfo_screenwidth() * scale)
+
+
+def check_lowres(master: Tk, dim: tuple) -> tuple:
+    """
+    Check if dialog dimensions exceed effective screen resolution.
+
+    :param tkinter.Tk master: reference to root
+    :param tuple dim: dialog dimensions in pixels (height, width)
+    :return: low resolution yes/no and effective resolution
+    :rtype: tuple (boolean, (screen height/width))
+    """
+
+    sh, sw = screenres(master)
+    dh, dw = dim
+    if sh < dh or sw < dw:
+        maxh, maxw = sh, sw
+        lowres = True
+    else:
+        maxh, maxw = dh, dw
+        lowres = False
+    return lowres, (maxh, maxw)
 
 
 def cel2cart(elevation: float, azimuth: float) -> tuple:

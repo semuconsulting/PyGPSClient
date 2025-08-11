@@ -1,445 +1,453 @@
-pygpsclient package
+PyGPSClient package
 ===================
 
 Submodules
 ----------
 
-pygpsclient.about\_dialog module
+PyGPSClient.about\_dialog module
 --------------------------------
 
-.. automodule:: pygpsclient.about_dialog
+.. automodule:: PyGPSClient.about_dialog
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.app module
+PyGPSClient.app module
 ----------------------
 
-.. automodule:: pygpsclient.app
+.. automodule:: PyGPSClient.app
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.banner\_frame module
+PyGPSClient.banner\_frame module
 --------------------------------
 
-.. automodule:: pygpsclient.banner_frame
+.. automodule:: PyGPSClient.banner_frame
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.chart\_frame module
+PyGPSClient.chart\_frame module
 -------------------------------
 
-.. automodule:: pygpsclient.chart_frame
+.. automodule:: PyGPSClient.chart_frame
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.configuration module
+PyGPSClient.configuration module
 --------------------------------
 
-.. automodule:: pygpsclient.configuration
+.. automodule:: PyGPSClient.configuration
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.confirm\_box module
+PyGPSClient.confirm\_box module
 -------------------------------
 
-.. automodule:: pygpsclient.confirm_box
+.. automodule:: PyGPSClient.confirm_box
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.console\_frame module
+PyGPSClient.console\_frame module
 ---------------------------------
 
-.. automodule:: pygpsclient.console_frame
+.. automodule:: PyGPSClient.console_frame
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.dialog\_state module
+PyGPSClient.dialog\_state module
 --------------------------------
 
-.. automodule:: pygpsclient.dialog_state
+.. automodule:: PyGPSClient.dialog_state
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.dynamic\_config\_frame module
+PyGPSClient.dynamic\_config\_frame module
 -----------------------------------------
 
-.. automodule:: pygpsclient.dynamic_config_frame
+.. automodule:: PyGPSClient.dynamic_config_frame
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.file\_handler module
+PyGPSClient.file\_handler module
 --------------------------------
 
-.. automodule:: pygpsclient.file_handler
+.. automodule:: PyGPSClient.file_handler
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.globals module
+PyGPSClient.globals module
 --------------------------
 
-.. automodule:: pygpsclient.globals
+.. automodule:: PyGPSClient.globals
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.gnss\_status module
+PyGPSClient.gnss\_status module
 -------------------------------
 
-.. automodule:: pygpsclient.gnss_status
+.. automodule:: PyGPSClient.gnss_status
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.gpx\_dialog module
+PyGPSClient.gpx\_dialog module
 ------------------------------
 
-.. automodule:: pygpsclient.gpx_dialog
+.. automodule:: PyGPSClient.gpx_dialog
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.graphview\_frame module
+PyGPSClient.graphview\_frame module
 -----------------------------------
 
-.. automodule:: pygpsclient.graphview_frame
+.. automodule:: PyGPSClient.graphview_frame
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.hardware\_info\_frame module
+PyGPSClient.hardware\_info\_frame module
 ----------------------------------------
 
-.. automodule:: pygpsclient.hardware_info_frame
+.. automodule:: PyGPSClient.hardware_info_frame
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.helpers module
+PyGPSClient.helpers module
 --------------------------
 
-.. automodule:: pygpsclient.helpers
+.. automodule:: PyGPSClient.helpers
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.importmap\_dialog module
+PyGPSClient.importmap\_dialog module
 ------------------------------------
 
-.. automodule:: pygpsclient.importmap_dialog
+.. automodule:: PyGPSClient.importmap_dialog
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.imu\_frame module
+PyGPSClient.imu\_frame module
 -----------------------------
 
-.. automodule:: pygpsclient.imu_frame
+.. automodule:: PyGPSClient.imu_frame
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.map\_frame module
+PyGPSClient.map\_frame module
 -----------------------------
 
-.. automodule:: pygpsclient.map_frame
+.. automodule:: PyGPSClient.map_frame
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.mapquest module
+PyGPSClient.mapquest module
 ---------------------------
 
-.. automodule:: pygpsclient.mapquest
+.. automodule:: PyGPSClient.mapquest
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.menu\_bar module
+PyGPSClient.menu\_bar module
 ----------------------------
 
-.. automodule:: pygpsclient.menu_bar
+.. automodule:: PyGPSClient.menu_bar
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.nmea\_config\_dialog module
+PyGPSClient.nmea\_config\_dialog module
 ---------------------------------------
 
-.. automodule:: pygpsclient.nmea_config_dialog
+.. automodule:: PyGPSClient.nmea_config_dialog
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.nmea\_handler module
+PyGPSClient.nmea\_handler module
 --------------------------------
 
-.. automodule:: pygpsclient.nmea_handler
+.. automodule:: PyGPSClient.nmea_handler
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.nmea\_preset\_frame module
+PyGPSClient.nmea\_preset\_frame module
 --------------------------------------
 
-.. automodule:: pygpsclient.nmea_preset_frame
+.. automodule:: PyGPSClient.nmea_preset_frame
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.ntrip\_client\_dialog module
+PyGPSClient.ntrip\_client\_dialog module
 ----------------------------------------
 
-.. automodule:: pygpsclient.ntrip_client_dialog
+.. automodule:: PyGPSClient.ntrip_client_dialog
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.rover\_frame module
+PyGPSClient.rover\_frame module
 -------------------------------
 
-.. automodule:: pygpsclient.rover_frame
+.. automodule:: PyGPSClient.rover_frame
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.rtcm3\_handler module
+PyGPSClient.rtcm3\_handler module
 ---------------------------------
 
-.. automodule:: pygpsclient.rtcm3_handler
+.. automodule:: PyGPSClient.rtcm3_handler
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.sbf\_handler module
+PyGPSClient.sbf\_handler module
 -------------------------------
 
-.. automodule:: pygpsclient.sbf_handler
+.. automodule:: PyGPSClient.sbf_handler
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.scatter\_frame module
+PyGPSClient.scatter\_frame module
 ---------------------------------
 
-.. automodule:: pygpsclient.scatter_frame
+.. automodule:: PyGPSClient.scatter_frame
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.serialconfig\_frame module
+PyGPSClient.serialconfig\_frame module
 --------------------------------------
 
-.. automodule:: pygpsclient.serialconfig_frame
+.. automodule:: PyGPSClient.serialconfig_frame
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.serverconfig\_frame module
+PyGPSClient.serverconfig\_frame module
 --------------------------------------
 
-.. automodule:: pygpsclient.serverconfig_frame
+.. automodule:: PyGPSClient.serverconfig_frame
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.settings\_frame module
+PyGPSClient.settings\_frame module
 ----------------------------------
 
-.. automodule:: pygpsclient.settings_frame
+.. automodule:: PyGPSClient.settings_frame
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.skyview\_frame module
+PyGPSClient.skyview\_frame module
 ---------------------------------
 
-.. automodule:: pygpsclient.skyview_frame
+.. automodule:: PyGPSClient.skyview_frame
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.socketconfig\_frame module
+PyGPSClient.socketconfig\_frame module
 --------------------------------------
 
-.. automodule:: pygpsclient.socketconfig_frame
+.. automodule:: PyGPSClient.socketconfig_frame
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.spartn\_dialog module
+PyGPSClient.spartn\_dialog module
 ---------------------------------
 
-.. automodule:: pygpsclient.spartn_dialog
+.. automodule:: PyGPSClient.spartn_dialog
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.spartn\_gnss\_frame module
+PyGPSClient.spartn\_gnss\_frame module
 --------------------------------------
 
-.. automodule:: pygpsclient.spartn_gnss_frame
+.. automodule:: PyGPSClient.spartn_gnss_frame
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.spartn\_json\_config module
+PyGPSClient.spartn\_json\_config module
 ---------------------------------------
 
-.. automodule:: pygpsclient.spartn_json_config
+.. automodule:: PyGPSClient.spartn_json_config
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.spartn\_lband\_frame module
+PyGPSClient.spartn\_lband\_frame module
 ---------------------------------------
 
-.. automodule:: pygpsclient.spartn_lband_frame
+.. automodule:: PyGPSClient.spartn_lband_frame
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.spartn\_mqtt\_frame module
+PyGPSClient.spartn\_mqtt\_frame module
 --------------------------------------
 
-.. automodule:: pygpsclient.spartn_mqtt_frame
+.. automodule:: PyGPSClient.spartn_mqtt_frame
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.spectrum\_frame module
+PyGPSClient.spectrum\_frame module
 ----------------------------------
 
-.. automodule:: pygpsclient.spectrum_frame
+.. automodule:: PyGPSClient.spectrum_frame
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.status\_frame module
+PyGPSClient.status\_frame module
 --------------------------------
 
-.. automodule:: pygpsclient.status_frame
+.. automodule:: PyGPSClient.status_frame
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.stream\_handler module
+PyGPSClient.stream\_handler module
 ----------------------------------
 
-.. automodule:: pygpsclient.stream_handler
+.. automodule:: PyGPSClient.stream_handler
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.strings module
+PyGPSClient.strings module
 --------------------------
 
-.. automodule:: pygpsclient.strings
+.. automodule:: PyGPSClient.strings
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.sysmon\_frame module
+PyGPSClient.sysmon\_frame module
 --------------------------------
 
-.. automodule:: pygpsclient.sysmon_frame
+.. automodule:: PyGPSClient.sysmon_frame
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.tty\_handler module
--------------------------------
-
-.. automodule:: pygpsclient.tty_handler
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-pygpsclient.tty\_preset\_dialog module
---------------------------------------
-
-.. automodule:: pygpsclient.tty_preset_dialog
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-pygpsclient.ubx\_cfgval\_frame module
--------------------------------------
-
-.. automodule:: pygpsclient.ubx_cfgval_frame
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-pygpsclient.ubx\_config\_dialog module
---------------------------------------
-
-.. automodule:: pygpsclient.ubx_config_dialog
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-pygpsclient.ubx\_handler module
--------------------------------
-
-.. automodule:: pygpsclient.ubx_handler
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-pygpsclient.ubx\_msgrate\_frame module
---------------------------------------
-
-.. automodule:: pygpsclient.ubx_msgrate_frame
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-pygpsclient.ubx\_port\_frame module
+PyGPSClient.toplevel\_dialog module
 -----------------------------------
 
-.. automodule:: pygpsclient.ubx_port_frame
+.. automodule:: PyGPSClient.toplevel_dialog
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.ubx\_preset\_frame module
--------------------------------------
+PyGPSClient.tty\_handler module
+-------------------------------
 
-.. automodule:: pygpsclient.ubx_preset_frame
+.. automodule:: PyGPSClient.tty_handler
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.ubx\_recorder\_frame module
----------------------------------------
-
-.. automodule:: pygpsclient.ubx_recorder_frame
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-pygpsclient.ubx\_solrate\_frame module
+PyGPSClient.tty\_preset\_dialog module
 --------------------------------------
 
-.. automodule:: pygpsclient.ubx_solrate_frame
+.. automodule:: PyGPSClient.tty_preset_dialog
    :members:
    :show-inheritance:
    :undoc-members:
 
-pygpsclient.widget\_state module
+PyGPSClient.ubx\_cfgval\_frame module
+-------------------------------------
+
+.. automodule:: PyGPSClient.ubx_cfgval_frame
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PyGPSClient.ubx\_config\_dialog module
+--------------------------------------
+
+.. automodule:: PyGPSClient.ubx_config_dialog
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PyGPSClient.ubx\_handler module
+-------------------------------
+
+.. automodule:: PyGPSClient.ubx_handler
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PyGPSClient.ubx\_msgrate\_frame module
+--------------------------------------
+
+.. automodule:: PyGPSClient.ubx_msgrate_frame
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PyGPSClient.ubx\_port\_frame module
+-----------------------------------
+
+.. automodule:: PyGPSClient.ubx_port_frame
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PyGPSClient.ubx\_preset\_frame module
+-------------------------------------
+
+.. automodule:: PyGPSClient.ubx_preset_frame
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PyGPSClient.ubx\_recorder\_frame module
+---------------------------------------
+
+.. automodule:: PyGPSClient.ubx_recorder_frame
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PyGPSClient.ubx\_solrate\_frame module
+--------------------------------------
+
+.. automodule:: PyGPSClient.ubx_solrate_frame
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+PyGPSClient.widget\_state module
 --------------------------------
 
-.. automodule:: pygpsclient.widget_state
+.. automodule:: PyGPSClient.widget_state
    :members:
    :show-inheritance:
    :undoc-members:
@@ -447,7 +455,7 @@ pygpsclient.widget\_state module
 Module contents
 ---------------
 
-.. automodule:: pygpsclient
+.. automodule:: PyGPSClient
    :members:
    :show-inheritance:
    :undoc-members:

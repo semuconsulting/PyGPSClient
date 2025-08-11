@@ -15,9 +15,8 @@ Created on 22 Mar 2025
 :license: BSD 3-Clause
 """
 
-from tkinter import Button, E, Frame, Label, N, S, StringVar, Toplevel, W
+from tkinter import E, N, S, W
 
-from PIL import Image, ImageTk
 from pynmeagps import NMEAMessage
 
 from pygpsclient.dynamic_config_frame import Dynamic_Config_Frame
@@ -26,19 +25,20 @@ from pygpsclient.globals import (
     CONNECTED_SIMULATOR,
     CONNECTED_SOCKET,
     ERRCOL,
-    ICON_EXIT,
     NMEA_CFGOTHER,
     NMEA_MONHW,
     NMEA_PRESET,
-    POPUP_TRANSIENT,
 )
 from pygpsclient.hardware_info_frame import Hardware_Info_Frame
 from pygpsclient.nmea_preset_frame import NMEA_PRESET_Frame
-from pygpsclient.strings import DLGNMEACONFIG, DLGTNMEA
+from pygpsclient.strings import DLGTNMEA
+from pygpsclient.toplevel_dialog import ToplevelDialog
+
+MINDIM = (541, 810)
 
 
-class NMEAConfigDialog(Toplevel):
-    """,
+class NMEAConfigDialog(ToplevelDialog):
+    """
     NMEAConfigDialog class.
     """
 
@@ -52,40 +52,23 @@ class NMEAConfigDialog(Toplevel):
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
 
-        Toplevel.__init__(self, app)
-        if POPUP_TRANSIENT:
-            self.transient(self.__app)
-        self.resizable(True, True)  # allow for MacOS resize glitches
-        self.title(DLGNMEACONFIG)  # pylint: disable=E1102
-        self.protocol("WM_DELETE_WINDOW", self.on_exit)
-        self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
+        super().__init__(app, DLGTNMEA, MINDIM)
+
         self._cfg_msg_command = None
         self._pending_confs = {}
-        self._status = StringVar()
-        self._status_cfgmsg = StringVar()
 
         self._body()
         self._do_layout()
         self._reset()
+        self._attach_events()
+        self._finalise()
 
     def _body(self):
         """
         Set up frame and widgets.
         """
 
-        self._frm_container = Frame(self, borderwidth=2, relief="groove")
-        self._frm_status = Frame(self._frm_container, borderwidth=2, relief="groove")
-        self._lbl_status = Label(self._frm_status, textvariable=self._status, anchor=W)
-        self._btn_exit = Button(
-            self._frm_status,
-            image=self._img_exit,
-            width=50,
-            fg=ERRCOL,
-            command=self.on_exit,
-            font=self.__app.font_md,
-        )
         # add configuration widgets
         self._frm_device_info = Hardware_Info_Frame(
             self.__app, self, borderwidth=2, relief="groove", protocol="NMEA"
@@ -106,22 +89,11 @@ class NMEAConfigDialog(Toplevel):
         """
 
         # top of grid
-        col = colsp = 0
-        row = rowsp = 0
-        self._frm_container.grid(
-            column=col,
-            row=row,
-            columnspan=12,
-            rowspan=22,
-            padx=3,
-            pady=3,
-            ipadx=5,
-            ipady=5,
-            sticky=(N, S, W, E),
-        )
+        col = 0
+        row = 0
         # left column of grid
         for frm in (self._frm_device_info, self._frm_preset):
-            (colsp, rowsp) = frm.grid_size()
+            colsp, rowsp = frm.grid_size()
             frm.grid(
                 column=col,
                 row=row,
@@ -130,12 +102,11 @@ class NMEAConfigDialog(Toplevel):
                 sticky=(N, S, W, E),
             )
             row += rowsp
-        maxrow = row
         # right column of grid
         row = 0
         col += colsp
         for frm in (self._frm_config_dynamic,):
-            (colsp, rowsp) = frm.grid_size()
+            colsp, rowsp = frm.grid_size()
             frm.grid(
                 column=col,
                 row=row,
@@ -144,25 +115,6 @@ class NMEAConfigDialog(Toplevel):
                 sticky=(N, S, W, E),
             )
             row += rowsp
-        maxrow = max(maxrow, row)
-        # bottom of grid
-        col = 0
-        row = maxrow
-        (colsp, rowsp) = self._frm_container.grid_size()
-        self._frm_status.grid(column=col, row=row, columnspan=colsp, sticky=(W, E))
-        self._lbl_status.grid(
-            column=0, row=0, columnspan=colsp - 1, ipadx=3, ipady=3, sticky=(W, E)
-        )
-        self._btn_exit.grid(column=colsp - 1, row=0, ipadx=3, ipady=3, sticky=E)
-
-        for frm in (self._frm_container, self._frm_status):
-            for i in range(colsp):
-                frm.grid_columnconfigure(i, weight=1)
-            for i in range(rowsp):
-                frm.grid_rowconfigure(i, weight=1)
-
-        self._frm_container.option_add("*Font", self.__app.font_sm)
-        self._frm_status.option_add("*Font", self.__app.font_sm)
 
     def _reset(self):
         """
@@ -177,6 +129,13 @@ class NMEAConfigDialog(Toplevel):
             CONNECTED_SIMULATOR,
         ):
             self.set_status("Device not connected", ERRCOL)
+
+    def _attach_events(self):
+        """
+        Bind events to window.
+        """
+
+        # self.bind("<Configure>", self._on_resize)
 
     def set_pending(self, msgid: int, ubxfrm: int):
         """
@@ -211,49 +170,6 @@ class NMEAConfigDialog(Toplevel):
             for msgid in (msg.identity, "ACK-ACK", "ACK-NAK"):
                 if self._pending_confs.get(msgid, None) == nmeafrm:
                     self._pending_confs.pop(msgid)
-
-    def set_status(self, message: str, color: str = ""):
-        """
-        Set status message.
-
-        :param str message: message to be displayed
-        :param str color: rgb color of text (blue)
-        """
-
-        message = (message[:120] + "..") if len(message) > 120 else message
-        if color != "":
-            self._lbl_status.config(fg=color)
-        self._status.set("  " + message)
-
-    def on_exit(self, *args, **kwargs):  # pylint: disable=unused-argument
-        """
-        Handle Exit button press.
-        """
-
-        self.__app.stop_dialog(DLGTNMEA)
-        self.destroy()
-
-    def get_size(self):
-        """
-        Get current frame size.
-
-        :return: window size (width, height)
-        :rtype: tuple
-        """
-
-        self.__master.update_idletasks()  # Make sure we know about any resizing
-        return self.winfo_width(), self.winfo_height()
-
-    @property
-    def container(self):
-        """
-        Getter for container frame.
-
-        :return: reference to container frame
-        :rtype: tkinter.Frame
-        """
-
-        return self._frm_container
 
     def send_command(self, msg: NMEAMessage):
         """

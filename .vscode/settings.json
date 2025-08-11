@@ -1,8 +1,20 @@
 {
     "python.testing.pytestEnabled": true,
-    "python.testing.unittestEnabled": false,
+    "python.terminal.activateEnvironment": true,
     "editor.formatOnSave": true,
-    "modulename": "pygpsclient",
-    "distname": "pygpsclient",
-    "python.defaultInterpreterPath": "python3",
+    "modulename": "${workspaceFolderBasename}",
+    "distname": "${workspaceFolderBasename}",
+    //"venv": "${env:UserProfile}/pygpsclient",
+    "venv": "${env:HOME}/pygpsclient",
+    "python.testing.pytestArgs": [
+        "tests"
+    ],
+    "C_Cpp.copilotHover": "disabled",
+    "chat.agent.enabled": false,
+    "chat.commandCenter.enabled": false,
+    "chat.notifyWindowOnConfirmation": false,
+    "telemetry.feedback.enabled": false,
+    "python.analysis.addHoverSummaries": false,
+    "python-envs.defaultEnvManager": "ms-python.python:venv",
+    "python-envs.pythonProjects": [],
 }

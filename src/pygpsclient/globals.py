@@ -93,7 +93,7 @@ DISCONNECTED = 0
 DMM = "DM.M"
 DMS = "D.M.S"
 ECEF = "ECEF"
-ENABLE_CFG_OTHER = True  # enable CFG=* Other Configuration command panel
+ENABLE_CFG_LEGACY = True  # enable CFG=* Other Configuration command panel
 ERRCOL = "salmon"  # default invalid data entry field background color
 ERROR = "ERR!"
 FGCOL = "white"  # default widget foreground color
@@ -214,6 +214,8 @@ M2FT = 3.28084
 MAPAPI_URL = "https://developer.mapquest.com/user/login/sign-up"
 MQTTIPMODE = 0
 MQTTLBANDMODE = 1
+MINHEIGHT = 600
+MINWIDTH = 800
 CUSTOM = "custom"
 MAP = "map"
 SAT = "sat"
@@ -249,6 +251,7 @@ RPTDELAY = 500  # repeat delay for spinboxes
 RXMMSG = "RXM-SPARTN-KEY"
 SAT_EXPIRY = 10  # how long passed satellites are kept in the sky and graph view
 SBF_PROTOCOL = 64
+SCREENSCALE = 0.8  # screen resolution scaling factor
 SOCK_NTRIP = "NTRIP CASTER"
 SOCK_SERVER = "SOCKET SERVER"
 SOCKCLIENT_HOST = "localhost"
