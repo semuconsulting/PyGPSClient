@@ -286,9 +286,9 @@ class GPXViewerDialog(ToplevelDialog):
         )
         self._can_mapview.create_text(
             x,
-            y - 3,
-            text=f"{pos.lat:.08f},{pos.lon:.08f}",
-            anchor=S,
+            y,
+            text=f"{pos.lat:.08f}\n{pos.lon:.08f}",
+            anchor=CENTER,
             fill=TRK_COL,
             tags="pos",
         )
@@ -337,7 +337,7 @@ class GPXViewerDialog(ToplevelDialog):
                 parser = minidom.parse(gpx)
                 trkpts = parser.getElementsByTagName("trkpt")
                 self._process_track(trkpts)
-            except (TypeError, expat.ExpatError) as err:  # AttributeError,
+            except (TypeError, AttributeError, expat.ExpatError) as err:
                 self.set_status(f"{DLGGPXERROR}\n{repr(err)}", ERRCOL)
 
     def _process_track(self, trkpts: list):
@@ -467,11 +467,11 @@ class GPXViewerDialog(ToplevelDialog):
             else:
                 x1, y1 = x, y
                 self._can_mapview.create_image(
-                    x1, y1, image=self._img_start, anchor=S, tags="track"
+                    x1, y1, image=self.img_start, anchor=S, tags="track"
                 )
         if i:
             self._can_mapview.create_image(
-                x2, y2, image=self._img_end, anchor=S, tags="track"
+                x2, y2, image=self.img_end, anchor=S, tags="track"
             )
 
     def _draw_online_map(self, track: list):
@@ -492,7 +492,7 @@ class GPXViewerDialog(ToplevelDialog):
             url = format_mapquest_request(
                 mqapikey,
                 self._maptype.get(),
-                int(self.width),
+                int(self.mwidth),
                 int(self.mheight),
                 self._zoom.get(),
                 locations,
@@ -617,7 +617,7 @@ class GPXViewerDialog(ToplevelDialog):
                 anchor=W,
             )
         self._can_profile.create_text(
-            self.width - AXIS_XR + 1,
+            self.mwidth - AXIS_XR + 1,
             self.pheight / 2 - 8,
             text=spd_u,
             fill=SPD_COL,

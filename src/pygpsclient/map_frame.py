@@ -213,14 +213,21 @@ class MapviewFrame(Frame):
         self._can_mapview.delete("pos")
         x, y = event.x, event.y
         self._pos = xy2ll(w, h, self._bounds, (x, y))
+        self._mark_point(x, y)
+
+    def _mark_point(self, x, y):
+        """
+        Mark point on custom map.
+        """
+
         self._can_mapview.create_circle(
             x, y, 2, outline=POSCOL, fill=POSCOL, tags="pos"
         )
         self._can_mapview.create_text(
             x,
-            y - 3,
-            text=f"{self._pos.lat:.08f},{self._pos.lon:.08f}",
-            anchor=S,
+            y,
+            text=f"{self._pos.lat:.08f}\n{self._pos.lon:.08f}",
+            anchor=CENTER,
             fill=POSCOL,
             tags="pos",
         )
@@ -349,17 +356,7 @@ class MapviewFrame(Frame):
         # mark any selected point
         if self._pos is not None:
             (x, y) = ll2xy(w, h, self._bounds, self._pos)
-            self._can_mapview.create_circle(
-                x, y, 2, outline=POSCOL, fill=POSCOL, tags="pos"
-            )
-            self._can_mapview.create_text(
-                x,
-                y - 3,
-                text=f"{self._pos.lat:.08f},{self._pos.lon:.08f}",
-                anchor=S,
-                fill=POSCOL,
-                tags="pos",
-            )
+            self._mark_point(x, y)
 
         if err != "":
             self._can_mapview.create_text(w / 2, h / 2, text=err, fill="orange")
