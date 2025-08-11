@@ -81,7 +81,7 @@ In the following, `python3` & `pip` refer to the Python 3 executables. You may n
 
 - Python 3.9 - 3.13
 - Tk (tkinter) >= 8.6*¹*
-- Screen resolution >= 800 x 600; Ideally >= 1920 x 1080, though the main application window is resizeable and reconfigurable.
+- Screen resolution >= 800 x 600; Ideally 1920 x 1080, though at lower screen resolutions (<= 1024 width), top level dialogs will be resizeable and scrollable.
 
 **All platforms**
 
@@ -315,7 +315,7 @@ The UBX Configuration Dialog currently provides the following UBX configuration 
 1. Solution Rate panel (CFG-RATE) sets navigation solution interval in ms (e.g. 1000 = 1/second) and measurement ratio (ratio between the number of measurements and the number of navigation solutions, e.g. 5 = five measurements per navigation solution).
 1. For each of the panels above, clicking anywhere in the panel background will refresh the displayed information with the current configuration.
 1. Message Rate panel (CFG-MSG) sets message rates per port for UBX and NMEA messages. Message rate is relative to navigation solution frequency e.g. a message rate of '4' means 'every 4th navigation solution' (higher = less frequent).
-1. Dynamic configuration panel providing structured updates for a range of legacy CFG-* configuration commands for pre-Generation 9+ devices. Note: 'X' (byte) type attributes can be entered as integers or hexadecimal strings e.g. 522125312 or 0x1f1f0000. Once a command is selected, the configuration is polled and the current values displayed. The user can then amend these values as required and send the updated configuration. Some polls require input arguments (e.g. portID) - these are highlighted and will be set at default values initially (e.g. portID = 0), but can be amended by the user and re-polled using the ![refresh](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-refresh-lined-24.png?raw=true) button.
+1. UBX Legacy Command configuration panel providing structured updates for a range of legacy CFG-* configuration commands for pre-Generation 9+ devices. Note: 'X' (byte) type attributes can be entered as integers or hexadecimal strings e.g. 522125312 or 0x1f1f0000. Once a command is selected, the configuration is polled and the current values displayed. The user can then amend these values as required and send the updated configuration. Some polls require input arguments (e.g. portID) - these are highlighted and will be set at default values initially (e.g. portID = 0), but can be amended by the user and re-polled using the ![refresh](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-refresh-lined-24.png?raw=true) button.
 1. Configuration Interface widget (CFG-VALSET, CFG-VALDEL and CFG-VALGET) queries and sets configuration for [Generation 9+ devices](https://github.com/semuconsulting/pyubx2#configinterface) e.g. NEO-M9, ZED-F9P, etc.
 1. Preset Commands widget supports a variety of preset and user-defined commands - see [user defined presets](#userdefined). The port checkboxes (USB, UART1, etc.) determine which device port(s) any preset message rate commands apply to (_assuming the selected ports are physically implemented on the device_). The selected port(s) may be saved as configuration parameter `defaultport_s` e.g. "USB,UART1".
 
