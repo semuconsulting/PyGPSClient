@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.5.12
+
+FIXES:
+
+1. Fix GPX Custom map loading error.
+
 ### RELEASE 1.5.11
 
 FIXES:
