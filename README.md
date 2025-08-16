@@ -145,7 +145,7 @@ usermod -a -G tty myuser
 
 ![Python version](https://img.shields.io/pypi/pyversions/PyGPSClient.svg?style=flat)
 [![PyPI version](https://img.shields.io/pypi/v/PyGPSClient.svg?style=flat)](https://pypi.org/project/PyGPSClient/)
-![PyPI downloads](https://img.shields.io/pypi/dm/PyGPSClient.svg?style=flat)
+[![PyPI downloads](https://github.com/semuconsulting/PyGPSClient/blob/master/images/clickpy_icon.svg?raw=true)](https://clickpy.clickhouse.com/dashboard/pygpsclient)
 
 The recommended way to install the latest version of `PyGPSClient` is with [pip](http://pypi.python.org/pypi/pip/):
 
