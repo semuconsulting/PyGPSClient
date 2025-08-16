@@ -3,7 +3,7 @@
    width="144"
    height="20"
    role="img"
-   aria-label="downloads: inaccessible"
+   aria-label="downloads: ClickPy"
    version="1.1"
    id="svg111"
    sodipodi:docname="downloads.svg"
@@ -38,7 +38,7 @@
        id="grid1161" />
   </sodipodi:namedview>
   <title
-     id="title87">downloads: inaccessible</title>
+     id="title87">downloads: ClickPy</title>
   <linearGradient
      id="s"
      x2="0"
@@ -74,7 +74,7 @@
        x="69"
        width="75"
        height="20"
-       fill="#9f9f9f"
+       fill="#64b83a"
        id="rect99" />
     <rect
        width="144"
