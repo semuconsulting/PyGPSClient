@@ -545,10 +545,11 @@ class GPXViewerDialog(ToplevelDialog):
                 (tim2, maxx, NE),
             ):
                 x, y = self._val2xy(w, h, maxe, maxx, 0, xtick[1])
+                hms = datetime.fromtimestamp(xtick[0]).strftime("%H:%M:%S")
                 self._can_profile.create_text(
                     x,
                     y - 2,
-                    text=f"{datetime.fromtimestamp(xtick[0]).strftime("%H:%M:%S")}",
+                    text=f"{hms}",
                     fill=GRIDCOL,
                     font=fnt,
                     anchor=xtick[2],
