@@ -25,8 +25,9 @@ from pyubx2 import GET, POLL, SET, SETPOLL
 Point = namedtuple("Point", ["lat", "lon"])
 # Area convention is minlat, minlon, maxlat, maxlon
 Area = namedtuple("Area", ["lat1", "lon1", "lat2", "lon2"])
-PointXY = namedtuple("Point", ["x", "y"])
-AreaXY = namedtuple("Area", ["x1", "y1", "x2", "y2"])
+TrackPoint = namedtuple("TrackPoint", ["lat", "lon", "tim", "ele", "spd"])
+PointXY = namedtuple("PointXY", ["x", "y"])
+AreaXY = namedtuple("AreaXY", ["x1", "y1", "x2", "y2"])
 
 
 def create_circle(self, x, y, r, **kwargs):
@@ -180,7 +181,7 @@ ICON_UNKNOWN = path.join(DIRNAME, "resources/clear-1-24.png")
 ICON_WARNING = path.join(DIRNAME, "resources/iconmonstr-warning-1-24.png")
 IMG_WORLD = path.join(DIRNAME, "resources/world.png")
 ICON_SPONSOR = path.join(DIRNAME, "resources/bmc-full-logo-no-background.png")
-IMG_WORLD_CALIB = Area(-90, -180, 90, 180)
+IMG_WORLD_BOUNDS = Area(-90, -180, 90, 180)
 INFOCOL = "steelblue2"
 KM2M = 1000
 KM2MIL = 0.621371
@@ -217,8 +218,7 @@ MQTTLBANDMODE = 1
 MINHEIGHT = 600
 MINWIDTH = 800
 CUSTOM = "custom"
-MAP = "map"
-SAT = "sat"
+IMPORT = "import"
 WORLD = "world"
 LG290P = "Quectel LG290P"
 MAX_SNR = 60  # upper limit of graphview snr axis
@@ -239,7 +239,6 @@ NTRIP_EVENT = "<<ntrip_read>>"
 OKCOL = "green"
 PASSTHRU = "Passthrough"
 PNTCOL = "orange"
-POPUP_TRANSIENT = True  # whether pop-up config dialogs are always on top
 PORTIDS = ("0 I2C", "1 UART1", "2 UART2", "3 USB", "4 SPI")
 PUBLICIP_URL = "https://ipinfo.io/json"
 PYPI_URL = "https://pypi.org/pypi/PyGPSClient"
@@ -247,7 +246,7 @@ QUITONERRORDEFAULT = 1
 RCVR_CONNECTION = "USB,UART1"  # default GNSS receiver connection port(s)
 ROMVER_NEW = "23.01"  # min device ROM version using configuration database
 READONLY = "readonly"
-RPTDELAY = 500  # repeat delay for spinboxes
+RESIZE = "resize"
 RXMMSG = "RXM-SPARTN-KEY"
 SAT_EXPIRY = 10  # how long passed satellites are kept in the sky and graph view
 SBF_PROTOCOL = 64

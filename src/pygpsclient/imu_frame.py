@@ -38,7 +38,7 @@ from pygpsclient.globals import (
     GRIDCOL,
     INFOCOL,
     PNTCOL,
-    RPTDELAY,
+    READONLY,
     WIDGETU2,
 )
 from pygpsclient.helpers import fontheight, rgb2str, scale_font
@@ -122,10 +122,9 @@ class IMUFrame(Frame):
             values=SOURCES,
             width=15,
             wrap=True,
-            repeatdelay=RPTDELAY,
-            repeatinterval=RPTDELAY,
             fg=PNTCOL,
             bg=BGCOL,
+            buttonbackground=BGCOL,
             textvariable=self._source,
         )
         self._lbl_range = Label(self, text="Range", fg=FGCOL, bg=BGCOL, anchor=W)
@@ -134,13 +133,12 @@ class IMUFrame(Frame):
             values=RANGES,
             width=8,
             wrap=True,
-            repeatdelay=RPTDELAY,
-            repeatinterval=RPTDELAY,
             fg=PNTCOL,
             bg=BGCOL,
             readonlybackground=BGCOL,
+            buttonbackground=BGCOL,
             textvariable=self._range,
-            state="readonly",
+            state=READONLY,
         )
         self._lbl_option = Label(self, text="Option", fg=FGCOL, bg=BGCOL, anchor=W)
         self._spn_option = Spinbox(
@@ -148,13 +146,12 @@ class IMUFrame(Frame):
             values=OPTIONS,
             width=8,
             wrap=True,
-            repeatdelay=RPTDELAY,
-            repeatinterval=RPTDELAY,
             fg=PNTCOL,
             bg=BGCOL,
             readonlybackground=BGCOL,
+            buttonbackground=BGCOL,
             textvariable=self._option,
-            state="readonly",
+            state=READONLY,
         )
         self.canvas.grid(column=0, row=0, columnspan=4, sticky=(N, S, E, W))
         self._lbl_source.grid(column=0, row=1, sticky=(W, E))

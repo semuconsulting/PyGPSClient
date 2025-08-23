@@ -52,7 +52,7 @@ from pygpsclient.globals import (
     BGCOL,
     FGCOL,
     PNTCOL,
-    RPTDELAY,
+    READONLY,
     SQRT2,
     WIDGETU1,
     Area,
@@ -61,8 +61,8 @@ from pygpsclient.globals import (
 from pygpsclient.helpers import (
     fontheight,
     get_point_at_vector,
-    in_bounds,
     ll2xy,
+    point_in_bounds,
     reorder_range,
     scale_font,
     xy2ll,
@@ -186,13 +186,12 @@ class ScatterViewFrame(Frame):
             values=crng,
             width=8,
             wrap=True,
-            repeatdelay=RPTDELAY,
-            repeatinterval=RPTDELAY,
-            fg=PNTCOL,
-            bg=BGCOL,
+            background=BGCOL,
             readonlybackground=BGCOL,
+            foreground=PNTCOL,
+            buttonbackground=BGCOL,
             textvariable=self._centermode,
-            state="readonly",
+            state=READONLY,
         )
         irng = reorder_range(INTS, self._interval.get())
         self._spn_interval = Spinbox(
@@ -200,13 +199,12 @@ class ScatterViewFrame(Frame):
             values=irng,
             width=5,
             wrap=True,
-            repeatdelay=RPTDELAY,
-            repeatinterval=RPTDELAY,
             fg=PNTCOL,
             bg=BGCOL,
             readonlybackground=BGCOL,
+            buttonbackground=BGCOL,
             textvariable=self._interval,
-            state="readonly",
+            state=READONLY,
         )
         self._scl_range = Scale(
             self,
@@ -421,7 +419,7 @@ class ScatterViewFrame(Frame):
         :param int size: size of circle (2)
         """
 
-        if not in_bounds(self._bounds, position):
+        if not point_in_bounds(self._bounds, position):
             return
 
         w, h = self.get_size()
@@ -584,12 +582,14 @@ class ScatterViewFrame(Frame):
 
             # include fixed reference point in autorange
             if FIXINAUTO and not out and self._fixed is not None:
-                if not in_bounds(self._bounds, self._fixed):
+                if not point_in_bounds(self._bounds, self._fixed):
                     out = True
             if not out:
-                if not in_bounds(
+                if not point_in_bounds(
                     self._bounds, Point(self._minlat, self._minlon)
-                ) or not in_bounds(self._bounds, Point(self._maxlat, self._maxlon)):
+                ) or not point_in_bounds(
+                    self._bounds, Point(self._maxlat, self._maxlon)
+                ):
                     out = True
             if out:
                 self._scale.set(self._scale.get() - 1)

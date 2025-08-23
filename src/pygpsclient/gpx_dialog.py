@@ -14,12 +14,9 @@ Created on 10 Jan 2023
 
 import logging
 from datetime import datetime
-from http.client import responses
-from io import BytesIO
 from tkinter import (
     ALL,
-    CENTER,
-    DISABLED,
+    NE,
     NW,
     Button,
     Canvas,
@@ -37,16 +34,12 @@ from tkinter import (
 from xml.dom import minidom
 from xml.parsers import expat
 
-from PIL import Image, ImageTk, UnidentifiedImageError
-from requests import ConnectionError as ConnError
-from requests import ConnectTimeout, HTTPError, RequestException, get
-
 from pygpsclient.globals import (
     BGCOL,
     CUSTOM,
     ERRCOL,
+    GRIDCOL,
     HOME,
-    IMG_WORLD_CALIB,
     INFOCOL,
     KM2M,
     KM2MIL,
@@ -55,26 +48,23 @@ from pygpsclient.globals import (
     KPH2MPH,
     KPH2MPS,
     M2FT,
-    MAP,
     READONLY,
-    RPTDELAY,
-    SAT,
     UI,
     UIK,
     UMK,
     Area,
     Point,
+    TrackPoint,
 )
-from pygpsclient.helpers import haversine, isot2dt, ll2xy, points2area, xy2ll
-from pygpsclient.mapquest import MAPQTIMEOUT, format_mapquest_request
+from pygpsclient.helpers import haversine, isot2dt
+from pygpsclient.map_canvas import HYB, MAP, SAT, MapCanvas
 from pygpsclient.strings import (
     DLGGPXERROR,
     DLGGPXLOAD,
     DLGGPXNULL,
+    DLGGPXOPEN,
+    DLGGPXWAIT,
     DLGTGPX,
-    MAPCONFIGERR,
-    MAPOPENERR,
-    OUTOFBOUNDS,
 )
 from pygpsclient.toplevel_dialog import ToplevelDialog
 
@@ -87,7 +77,7 @@ ELE_COL = "palegreen3"  # color of elevation plot
 SPD_COL = INFOCOL  # color of speed plot
 TRK_COL = "magenta"  # color of track
 MD_LINES = 2  # number of lines of metadata
-MINDIM = (567, 467)
+MINDIM = (400, 500)
 
 
 class GPXViewerDialog(ToplevelDialog):
@@ -100,27 +90,27 @@ class GPXViewerDialog(ToplevelDialog):
         self.logger = logging.getLogger(__name__)
         # self.__master = self.__app.appmaster  # link to root Tk window
         super().__init__(app, DLGTGPX, MINDIM)
-        self._zoom = IntVar()
+        self._mapzoom = IntVar()
         self._maptype = StringVar()
-        self.mheight = int(self.height * 0.75)
-        self.mwidth = int(self.width * 0.93)
-        self.pheight = int(self.mheight * 0.25)
         zoom = int(kwargs.get("zoom", 12))
-        self._zoom.set(zoom)
+        self._mapzoom.set(zoom)
         self._info = []
         for _ in range(MD_LINES):
             self._info.append(StringVar())
+        self._mtt = None
+        self._mtz = None
         self._mapimg = None
         self._track = None
         self._gpxfile = None
         self._metadata = {}
         self._bounds = None
+        self._center = None
         self._initdir = HOME
 
         self._body()
         self._do_layout()
-        self._attach_events()
         self._reset()
+        self._attach_events()
         self._finalise()
 
     def _body(self):
@@ -135,13 +125,17 @@ class GPXViewerDialog(ToplevelDialog):
         )
         self._frm_info = Frame(self._frm_body, borderwidth=2, relief="groove")
         self._frm_controls = Frame(self._frm_body, borderwidth=2, relief="groove")
-        self._can_mapview = Canvas(
-            self._frm_map, height=self.mheight, width=self.mwidth, bg=BGCOL
+        self._can_mapview = MapCanvas(
+            self.__app,
+            self._frm_map,
+            height=self.height * 0.75,
+            width=self.width,
+            bg=BGCOL,
         )
         self._can_profile = Canvas(
             self._frm_profile,
-            height=self.pheight,
-            width=self.mwidth,
+            height=self.height * 0.25,
+            width=self.width,
             bg="#f0f0e8",
         )
         self._lbl_info = []
@@ -155,27 +149,23 @@ class GPXViewerDialog(ToplevelDialog):
             width=40,
             command=self._on_load,
         )
+        self._lbl_maptype = Label(self._frm_controls, text="Map Type")
+        self._spn_maptype = Spinbox(
+            self._frm_controls,
+            values=(HYB, SAT, MAP, CUSTOM),
+            width=7,
+            wrap=True,
+            textvariable=self._maptype,
+            state=READONLY,
+        )
         self._lbl_zoom = Label(self._frm_controls, text="Zoom")
         self._spn_zoom = Spinbox(
             self._frm_controls,
             from_=1,
             to=20,
             width=5,
-            wrap=True,
-            repeatdelay=RPTDELAY,
-            repeatinterval=RPTDELAY,
-            textvariable=self._zoom,
-            state=READONLY,
-        )
-        self._lbl_maptype = Label(self._frm_controls, text="Map Type")
-        self._spn_maptype = Spinbox(
-            self._frm_controls,
-            values=(MAP, SAT, CUSTOM),
-            width=5,
-            wrap=True,
-            repeatdelay=RPTDELAY,
-            repeatinterval=RPTDELAY,
-            textvariable=self._maptype,
+            wrap=False,
+            textvariable=self._mapzoom,
             state=READONLY,
         )
         self._btn_redraw = Button(
@@ -200,30 +190,31 @@ class GPXViewerDialog(ToplevelDialog):
         for i in range(MD_LINES):
             self._lbl_info[i].grid(column=0, row=i, padx=3, pady=1, sticky=(W, E))
         self._btn_load.grid(column=0, row=1, padx=3, pady=3)
-        self._lbl_zoom.grid(
+        self._lbl_maptype.grid(
             column=1,
             row=1,
             padx=3,
             pady=3,
         )
-        self._spn_zoom.grid(
+        self._spn_maptype.grid(
             column=2,
             row=1,
             padx=3,
             pady=3,
         )
-        self._lbl_maptype.grid(
+        self._lbl_zoom.grid(
             column=3,
             row=1,
             padx=3,
             pady=3,
         )
-        self._spn_maptype.grid(
+        self._spn_zoom.grid(
             column=4,
             row=1,
             padx=3,
             pady=3,
         )
+
         self._btn_redraw.grid(
             column=5,
             row=1,
@@ -231,21 +222,37 @@ class GPXViewerDialog(ToplevelDialog):
             pady=3,
         )
 
+        # set column and row weights
+        # NB!!! these govern the 'pack' behaviour of the frames on resize
+        self.container.grid_columnconfigure(0, weight=10)
+        self.container.grid_rowconfigure(0, weight=10)
+        self.grid_columnconfigure(0, weight=10)
+        self.grid_rowconfigure(0, weight=10)
         self._frm_body.grid_columnconfigure(0, weight=10)
-        self._frm_body.grid_rowconfigure(0, weight=10)
+        self._frm_body.grid_rowconfigure(0, weight=10)  # map
+        self._frm_body.grid_rowconfigure(1, weight=3)  # profile
         self._frm_map.grid_columnconfigure(0, weight=10)
         self._frm_map.grid_rowconfigure(0, weight=10)
+        self._can_mapview.grid_columnconfigure(0, weight=10)
+        self._can_mapview.grid_rowconfigure(0, weight=10)
         self._frm_profile.grid_columnconfigure(0, weight=10)
         self._frm_profile.grid_rowconfigure(0, weight=10)
-        self._frm_body.grid_rowconfigure(1, weight=2)
 
     def _attach_events(self):
         """
         Bind events to window.
         """
 
-        self._maptype.trace_add("write", self._on_maptype)
-        # self.bind("<Configure>", self._on_resize)
+        self._mtt = self._maptype.trace_add("write", self._on_maptype)
+        self._mtz = self._mapzoom.trace_add("write", self._on_mapzoom)
+
+    def _detach_events(self):
+        """
+        Unbind events to window.
+        """
+
+        self._maptype.trace_remove("write", self._mtt)
+        self._mapzoom.trace_remove("write", self._mtz)
 
     def _reset(self):
         """
@@ -254,62 +261,42 @@ class GPXViewerDialog(ToplevelDialog):
 
         self._can_mapview.delete(ALL)
         self._can_profile.delete(ALL)
+        self._maptype.set(self.__app.configuration.get("gpxmaptype_s"))
+        self._mapzoom.set(self.__app.configuration.get("gpxmapzoom_n"))
         for i in range(MD_LINES):
             self._info[i].set("")
+        self._can_mapview.draw_msg(DLGGPXOPEN, INFOCOL)
+
+    def _on_maptype(self, var, index, mode):  # pylint: disable=unused-argument
+        """
+        Map type has changed.
+        """
+
+        self.__app.configuration.set("gpxmaptype_s", self._maptype.get())
+        self._on_redraw()
+
+    def _on_mapzoom(self, var, index, mode):  # pylint: disable=unused-argument
+        """
+        Map zoom has changed.
+        """
+
+        self.__app.configuration.set("gpxmapzoom_n", self._mapzoom.get())
+        self._on_redraw()
 
     def _on_redraw(self, *args, **kwargs):
         """
         Handle redraw button press.
         """
 
+        self._detach_events()
         self._reset()
-        if self._maptype.get() == CUSTOM:
-            self._draw_offline_map(self._track)
-        else:
-            self._draw_online_map(self._track)
+        self.set_status(DLGGPXWAIT, INFOCOL)
+        self._spn_zoom.config(highlightbackground="gray90", highlightthickness=3)
+        self._draw_map()
         self._draw_profile(self._track)
         self._format_metadata(self._metadata)
-
-    def _on_mark(self, event):
-        """
-        Mark point on map.
-
-        :param event: right click event
-        """
-
-        w, h = self.mwidth, self.mheight
-        self._can_mapview.delete("pos")
-        x, y = event.x, event.y
-        pos = xy2ll(w, h, self._bounds, (x, y))
-        self._can_mapview.create_circle(
-            x, y, 2, outline=TRK_COL, fill=TRK_COL, tags="pos"
-        )
-        self._can_mapview.create_text(
-            x,
-            y,
-            text=f"{pos.lat:.08f}\n{pos.lon:.08f}",
-            anchor=CENTER,
-            fill=TRK_COL,
-            tags="pos",
-        )
-
-    def _on_maptype(self, var, index, mode):
-        """
-        Disable zoom when using custom offline map.
-
-        :param var: _description_
-        :param index: _description_
-        :param mode: _description_
-        """
-
-        if self._maptype.get() == CUSTOM:
-            self._spn_zoom.configure(stat=DISABLED)
-            self._can_mapview.bind("<Button-2>", self._on_mark)
-            self._can_mapview.bind("<Button-3>", self._on_mark)
-        else:
-            self._spn_zoom.configure(stat=READONLY)
-            self._can_mapview.unbind("<Button-2>")
-            self._can_mapview.unbind("<Button-3>")
+        self.set_status("", INFOCOL)
+        self._attach_events()
 
     def _open_gpxfile(self) -> str:
         """
@@ -337,6 +324,7 @@ class GPXViewerDialog(ToplevelDialog):
                 parser = minidom.parse(gpx)
                 trkpts = parser.getElementsByTagName("trkpt")
                 self._process_track(trkpts)
+                self.set_status("")
             except (TypeError, AttributeError, expat.ExpatError) as err:
                 self.set_status(f"{DLGGPXERROR}\n{repr(err)}", ERRCOL)
 
@@ -387,10 +375,10 @@ class GPXViewerDialog(ToplevelDialog):
                 minele = min(ele, minele)
             except IndexError:  # 'ele' element does not exist
                 ele = 0.0
-            track.append((lat, lon, tim, ele, spd))
+            track.append(TrackPoint(lat, lon, tim, ele, spd))
 
-        # store bounding box
         self._bounds = Area(minlat, minlon, maxlat, maxlon)
+        self._center = Point((maxlat + minlat) / 2, (maxlon + minlon) / 2)
         elapsed = end - start
         self._track = track
         self._metadata["points"] = rng
@@ -400,123 +388,19 @@ class GPXViewerDialog(ToplevelDialog):
         self._metadata["max_elevation"] = maxele
         self._metadata["min_speed"] = minspd
         self._metadata["max_speed"] = maxspd
-        if self._maptype.get() == CUSTOM:
-            self._draw_offline_map(self._track)
-        else:
-            self._draw_online_map(self._track)
+
+        self._draw_map()
         self._draw_profile(self._track)
         self._format_metadata(self._metadata)
 
-    def _draw_offline_map(self, track: list):
+    def _val2xy(
+        self, width: int, height: int, maxy: int, maxx: int, ele: float, pnt: int
+    ) -> tuple:
         """
-        Draw fixed offline map using optional user-provided georeferenced
-        image path(s) and calibration bounding box(es).
+        Convert elevation & speed values to canvas pixel coordinates (x,y).
 
-        :param list track: list of lat/lon points
-        """
-        # pylint: disable=no-member
-
-        w, h = self.mwidth, self.mheight
-        bounds = IMG_WORLD_CALIB
-        err = ""
-
-        err = OUTOFBOUNDS
-        usermaps = self.__app.configuration.get("usermaps_l")
-        for mp in usermaps:
-            try:
-                mpath, bounds = mp
-                bounds = points2area((bounds[0], bounds[1], bounds[2], bounds[3]))
-                if (
-                    bounds.lat1 <= self._bounds.lat1
-                    and bounds.lat2 >= self._bounds.lat2
-                    and bounds.lon1 <= self._bounds.lon1
-                    and bounds.lon2 >= self._bounds.lon2
-                ):
-                    self._mapimg = Image.open(mpath)
-                    # Area is minlat, minlon, maxlat, maxlon
-                    self._bounds = bounds
-                    err = ""
-                    break
-            except (ValueError, IndexError):
-                err = MAPCONFIGERR
-                break
-            except (FileNotFoundError, UnidentifiedImageError):
-                err = MAPOPENERR.format(mpath.split("/")[-1])
-                break
-
-        self._can_mapview.delete(ALL)
-        if err == "":
-            self._mapimg = ImageTk.PhotoImage(self._mapimg.resize((w, h)))
-            self._can_mapview.create_image(
-                0, 0, image=self._mapimg, anchor=NW, tags="image"
-            )
-        else:
-            self.set_status(err, ERRCOL)
-            return
-
-        # draw track with start and end icons
-        i = 0
-        for i, (lat, lon, _, _, _) in enumerate(track):
-            x, y = ll2xy(w, h, self._bounds, Point(lat, lon))
-            if i:
-                x2, y2 = x, y
-                self._can_mapview.create_line(
-                    x1, y1, x2, y2, fill=TRK_COL, width=3, tags="track"
-                )
-                x1, y1 = x2, y2
-            else:
-                x1, y1 = x, y
-                self._can_mapview.create_image(
-                    x1, y1, image=self.img_start, anchor=S, tags="track"
-                )
-        if i:
-            self._can_mapview.create_image(
-                x2, y2, image=self.img_end, anchor=S, tags="track"
-            )
-
-    def _draw_online_map(self, track: list):
-        """
-        Draw static map image via MapQuest API.
-
-        :param list track: list of lat/lon points
-        """
-        # pylint: disable=unused-variable
-
-        self.set_status("")
-        if track in ({}, None):
-            return
-
-        mqapikey = self.__app.configuration.get("mqapikey_s")
-        locations = [Point(lat, lon) for lat, lon, _, _, _ in track]
-        try:
-            url = format_mapquest_request(
-                mqapikey,
-                self._maptype.get(),
-                int(self.mwidth),
-                int(self.mheight),
-                self._zoom.get(),
-                locations,
-            )
-            response = get(url, timeout=MAPQTIMEOUT)
-            response.raise_for_status()  # raise Exception on HTTP error
-            self._mapimg = ImageTk.PhotoImage(Image.open(BytesIO(response.content)))
-        except (ConnError, ConnectTimeout, RequestException, HTTPError):
-            self.set_status(
-                (
-                    f"MAPQUEST API ERROR: HTTP code {response.status_code} "
-                    f"{responses[response.status_code]}\n\n{response.text}"
-                ),
-                ERRCOL,
-            )
-
-        self._can_mapview.create_image(
-            0, 0, image=self._mapimg, anchor=NW, tags="image"
-        )
-
-    def _get_point(self, maxy: int, maxx: int, ele: float, pnt: int) -> tuple:
-        """
-        Convert elevation values to canvas pixel coordinates (x,y).
-
+        :param int width: width of panel in pixels
+        :param int height: height of panel in pixels
         :param int maxy: max extent of y axis
         :param int maxx: max extent of x axis
         :param int ele: elevation value
@@ -525,9 +409,35 @@ class GPXViewerDialog(ToplevelDialog):
         :rtype: tuple
         """
 
-        x = AXIS_XL + ((self.width - AXIS_XL - AXIS_XR) * pnt / maxx)
-        y = self.pheight - AXIS_Y - ((self.pheight - AXIS_Y) * ele / maxy)
+        x = AXIS_XL + ((width - AXIS_XL - AXIS_XR) * pnt / maxx)
+        y = height - AXIS_Y - ((height - AXIS_Y) * ele / maxy)
         return int(x), int(y)
+
+    def _draw_map(self):
+        """
+        Draw map on canvas.
+        """
+
+        location = self._center
+        maptype = self._maptype.get()
+        zoom = self._mapzoom.get()
+        bounds = self._can_mapview.zoom_bounds(
+            self.height, self.width, location, zoom, maptype
+        )
+        points = [Point(pnt.lat, pnt.lon) for pnt in self._track]
+        self._can_mapview.draw_map(
+            maptype,
+            location=location,
+            track=points,
+            bounds=bounds,
+            zoom=zoom,
+            marker=self._can_mapview.marker,
+        )
+
+        if self._can_mapview.zoommin:
+            self._spn_zoom.config(highlightbackground=ERRCOL, highlightthickness=3)
+        else:
+            self._spn_zoom.config(highlightbackground="gray90", highlightthickness=3)
 
     def _draw_profile(
         self, track: list
@@ -537,6 +447,8 @@ class GPXViewerDialog(ToplevelDialog):
         :param list track: list of lat/lon points
         """
 
+        w, h = self._frm_profile.winfo_width(), self._frm_profile.winfo_height()
+        fnt = font.Font(size=10)
         if track in ({}, None):
             return
 
@@ -560,42 +472,39 @@ class GPXViewerDialog(ToplevelDialog):
                 maxs = i
                 break
 
-        # plot elevation
-        x2 = AXIS_XL
-        y2 = self.pheight - AXIS_Y
-        for i, (_, _, _, ele, _) in enumerate(track):
-            if ele is None:
-                continue
-            x1, y1 = self._get_point(maxe, maxx, 0, i)
-            x2, y2 = self._get_point(maxe, maxx, ele * ele_c, i)
-            if i:
-                self._can_profile.create_line(x1, y1, x2, y2, fill=ELE_COL, width=2)
-
-        # plot speed
-        x2 = AXIS_XL
-        y2 = self.pheight - AXIS_Y
-        for i, (_, _, _, _, spd) in enumerate(track):
-            if spd is None:
-                continue
-            x1, y1 = x2, y2
-            x2, y2 = self._get_point(maxs, maxx, spd * spd_c, i)
-            if i:
-                self._can_profile.create_line(x1, y1, x2, y2, fill=SPD_COL, width=1)
+        # plot elevation & speed
+        x2e = AXIS_XL
+        y2e = h - AXIS_Y
+        x2s = AXIS_XL
+        y2s = h - AXIS_Y
+        for i, trk in enumerate(track):
+            if trk.ele is not None:
+                x1e, y1e = x2e, y2e  # self._val2xy(w, h, maxe, maxx, 0, i)
+                x2e, y2e = self._val2xy(w, h, maxe, maxx, trk.ele * ele_c, i)
+                if i:
+                    self._can_profile.create_line(
+                        x1e, y1e, x2e, y2e, fill=ELE_COL, width=2
+                    )
+            if trk.spd is not None:
+                x1s, y1s = x2s, y2s
+                x2s, y2s = self._val2xy(w, h, maxs, maxx, trk.spd * spd_c, i)
+                if i:
+                    self._can_profile.create_line(
+                        x1s, y1s, x2s, y2s, fill=SPD_COL, width=1
+                    )
 
         # plot elevation (yL) axis grid
-        fnt = font.Font(size=10)
         for ele in range(0, maxe, int(maxe / 5)):
-            if ele is None:
-                continue
-            x1, y1 = self._get_point(maxe, maxx, ele, 0)
-            x2, y2 = self._get_point(maxe, maxx, ele, maxx)
-            self._can_profile.create_line(x1, y1, x2 + 1, y1, fill="grey")
-            self._can_profile.create_text(
-                x1 - 2, y1, text=f"{ele}", fill=ELEAX_COL, font=fnt, anchor=E
-            )
+            if ele is not None:
+                x1, y1 = self._val2xy(w, h, maxe, maxx, ele, 0)
+                x2, y2 = self._val2xy(w, h, maxe, maxx, ele, maxx)
+                self._can_profile.create_line(x1, y1, x2 + 1, y1, fill=GRIDCOL)
+                self._can_profile.create_text(
+                    x1 - 2, y1, text=f"{ele}", fill=ELEAX_COL, font=fnt, anchor=E
+                )
         self._can_profile.create_text(
             AXIS_XL - 2,
-            self.pheight / 2 - 8,
+            h / 2 - 8,
             text=ele_u,
             fill=ELEAX_COL,
             font=fnt,
@@ -604,21 +513,20 @@ class GPXViewerDialog(ToplevelDialog):
 
         # plot speed (yR) axis grid
         for spd in range(0, int(maxs), int(maxs / 5)):
-            if spd is None:
-                continue
-            x1, y1 = self._get_point(maxs, maxx, spd, maxx)
-            x2, y2 = self._get_point(maxs, maxx, spd, maxx - 5)
-            self._can_profile.create_text(
-                self.width - AXIS_XR,
-                y1,
-                text=f"{spd}",
-                fill=SPD_COL,
-                font=fnt,
-                anchor=W,
-            )
+            if spd is not None:
+                x1, y1 = self._val2xy(w, h, maxs, maxx, spd, maxx)
+                x2, y2 = self._val2xy(w, h, maxs, maxx, spd, maxx - 5)
+                self._can_profile.create_text(
+                    w - AXIS_XR,
+                    y1,
+                    text=f"{spd}",
+                    fill=SPD_COL,
+                    font=fnt,
+                    anchor=W,
+                )
         self._can_profile.create_text(
-            self.mwidth - AXIS_XR + 1,
-            self.pheight / 2 - 8,
+            w - AXIS_XR + 1,
+            h / 2 - 8,
             text=spd_u,
             fill=SPD_COL,
             font=fnt,
@@ -628,20 +536,20 @@ class GPXViewerDialog(ToplevelDialog):
         # plot trackpoint (X) axis grid
         step = int(maxx / 10) if maxx > 10 else 1
         for n in range(0, maxx, step):
-            x1, y1 = self._get_point(maxe, maxx, 0, n)
-            x2, y2 = self._get_point(maxe, maxx, maxe, n)
-            self._can_profile.create_line(x1, y1 - 1, x1, y2, fill="grey")
+            x1, y1 = self._val2xy(w, h, maxe, maxx, 0, n)
+            x2, y2 = self._val2xy(w, h, maxe, maxx, maxe, n)
+            self._can_profile.create_line(x1, y1 - 1, x1, y2, fill=GRIDCOL)
             for xtick in (
-                (tim1, 0, W),
-                (timm, maxx / 2, CENTER),
-                (tim2, maxx, E),
+                (tim1, 0, NW),
+                (timm, maxx / 2, N),
+                (tim2, maxx, NE),
             ):
-                x, y = self._get_point(maxe, maxx, 0, xtick[1])
+                x, y = self._val2xy(w, h, maxe, maxx, 0, xtick[1])
                 self._can_profile.create_text(
                     x,
-                    y + 8,
-                    text=f"{datetime.fromtimestamp(xtick[0])}",
-                    fill="grey",
+                    y - 2,
+                    text=f"{datetime.fromtimestamp(xtick[0]).strftime("%H:%M:%S")}",
+                    fill=GRIDCOL,
                     font=fnt,
                     anchor=xtick[2],
                 )
@@ -667,16 +575,18 @@ class GPXViewerDialog(ToplevelDialog):
         else:
             ele = (
                 f"({ele_u}) min: {minele*ele_c:,.2f} max: {maxele*ele_c:,.2f} "
-                + f"diff: {(maxele-minele)*ele_c:,.2f}; "
+                f"diff: {(maxele-minele)*ele_c:,.2f}"
             )
         metadata = []
         metadata.append(
-            f"Points: {self._metadata['points']:,}; Dist ({dst_u}): {dist*dst_c:,.2f}; "
-            + f"Elapsed (hours): {elapsed:,.2f}; "
-            + f"Speed ({spd_u}) avg: {(dist/elapsed)*spd_c:,.2f} "
-            + f"max: {maxspd*spd_c:,.2f};"
+            (
+                f"Dist ({dst_u}): {dist*dst_c:,.2f}; "
+                f"Elapsed (hours): {elapsed:,.2f}; "
+                f"Speed ({spd_u}) avg: {(dist/elapsed)*spd_c:,.2f} "
+                f"max: {maxspd*spd_c:,.2f};"
+            )
         )
-        metadata.append(f"Elevation {ele}")
+        metadata.append(f"Elevation {ele}; Points: {self._metadata['points']:,}")
         for i in range(MD_LINES):
             self._info[i].set(metadata[i])
 
@@ -737,11 +647,3 @@ class GPXViewerDialog(ToplevelDialog):
         """
 
         return self._track
-
-    @property
-    def mapimage(self) -> ImageTk.PhotoImage:
-        """
-        Getter for image of map.
-        """
-
-        return self._mapimg

@@ -40,7 +40,6 @@ from pygpsclient.globals import (
     ICON_WARNING,
     OKCOL,
     READONLY,
-    RPTDELAY,
     UBX_CFGMSG,
 )
 from pygpsclient.strings import LBLCFGMSG
@@ -109,8 +108,6 @@ class UBX_MSGRATE_Frame(Frame):
             to=MAX_RATE,
             textvariable=self._ddc_rate,
             state=READONLY,
-            repeatdelay=RPTDELAY,
-            repeatinterval=RPTDELAY,
         )
         self._lbl_uart1 = Label(self, text="UART1")
         self._spn_uart1 = Spinbox(
@@ -120,8 +117,6 @@ class UBX_MSGRATE_Frame(Frame):
             to=MAX_RATE,
             textvariable=self._uart1_rate,
             state=READONLY,
-            repeatdelay=RPTDELAY,
-            repeatinterval=RPTDELAY,
         )
         self._lbl_uart2 = Label(self, text="UART2")
         self._spn_uart2 = Spinbox(
@@ -131,8 +126,6 @@ class UBX_MSGRATE_Frame(Frame):
             to=MAX_RATE,
             textvariable=self._uart2_rate,
             state=READONLY,
-            repeatdelay=RPTDELAY,
-            repeatinterval=RPTDELAY,
         )
         self._lbl_usb = Label(self, text="USB")
         self._spn_usb = Spinbox(
@@ -142,8 +135,6 @@ class UBX_MSGRATE_Frame(Frame):
             to=MAX_RATE,
             textvariable=self._usb_rate,
             state=READONLY,
-            repeatdelay=RPTDELAY,
-            repeatinterval=RPTDELAY,
         )
         self._lbl_spi = Label(self, text="SPI")
         self._spn_spi = Spinbox(
@@ -153,8 +144,6 @@ class UBX_MSGRATE_Frame(Frame):
             to=MAX_RATE,
             textvariable=self._spi_rate,
             state=READONLY,
-            repeatdelay=RPTDELAY,
-            repeatinterval=RPTDELAY,
         )
         self._lbl_send_command = Label(self)
         self._btn_send_command = Button(

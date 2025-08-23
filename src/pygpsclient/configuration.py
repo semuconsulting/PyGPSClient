@@ -17,6 +17,7 @@ from pyubx2 import GET
 from serial import PARITY_NONE
 
 from pygpsclient.globals import (
+    CUSTOM,
     DDD,
     DEFAULT_PASSWORD,
     DEFAULT_REGION,
@@ -77,6 +78,7 @@ class Configuration:
             # main settings from frm_settings
             **self.widget_config,
             "checkforupdate_b": 0,
+            "transient_dialog_b": 1,  # whether pop-up dialogs are on top of main app window
             "guiupdateinterval_f": GUI_UPDATE_INTERVAL,  # GUI widget update interval in seconds
             "mapupdateinterval_n": MAP_UPDATE_INTERVAL,
             "defaultport_s": RCVR_CONNECTION,
@@ -97,9 +99,12 @@ class Configuration:
             "maxlines_n": 100,
             "consoleformat_s": FORMAT_PARSED,
             "maptype_s": WORLD,
+            "mapzoom_n": 10,
+            "mapzoom_disabled_b": 0,  # whether offline maps zooming is disabled
+            "gpxmaptype_s": CUSTOM,
+            "gpxmapzoom_n": 10,
             "mqapikey_s": "<=== YOUR MAPQUEST API KEY  ===>",
             "showtrack_b": 0,
-            "mapzoom_n": 10,
             "legend_b": 1,
             "unusedsat_b": 0,
             "datalog_b": 0,

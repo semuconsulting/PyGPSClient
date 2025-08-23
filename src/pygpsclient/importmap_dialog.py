@@ -14,24 +14,20 @@ Created on 14 Sep 2024
 
 from tkinter import (
     ALL,
-    BOTH,
     DISABLED,
     NORMAL,
-    NW,
-    YES,
     Button,
-    Canvas,
+    Checkbutton,
     E,
     Entry,
     Frame,
+    IntVar,
     Label,
     N,
     S,
     StringVar,
     W,
 )
-
-from PIL import Image, ImageTk
 
 try:
     from rasterio import open as openraster  # pylint: disable=import-error
@@ -44,9 +40,11 @@ except (ImportError, ModuleNotFoundError):
 from pygpsclient.globals import (
     BGCOL,
     ERRCOL,
-    HOME,
+    IMPORT,
     INFOCOL,
+    Area,
 )
+from pygpsclient.map_canvas import MapCanvas
 from pygpsclient.strings import DLGTIMPORTMAP
 from pygpsclient.toplevel_dialog import ToplevelDialog
 
@@ -72,14 +70,11 @@ class ImportMapDialog(ToplevelDialog):
         super().__init__(app, DLGTIMPORTMAP, MINDIM)
         self.width = int(kwargs.get("width", 400))
         self.height = int(kwargs.get("height", 400))
-        self.mheight = int(self.height * 0.75)
+        self._first = IntVar()
         self._lonmin = StringVar()
         self._latmin = StringVar()
         self._lonmax = StringVar()
         self._latmax = StringVar()
-        self._mapimg = None
-        self._thmbimg = None
-        self._initdir = HOME
         self._custommap = ""
 
         self._body()
@@ -94,11 +89,10 @@ class ImportMapDialog(ToplevelDialog):
         """
 
         self._frm_body = Frame(self.container, borderwidth=2, relief="groove")
-        self._frm_map = Frame(self._frm_body, borderwidth=2, relief="groove", bg=BGCOL)
-        self._frm_controls = Frame(self._frm_body, borderwidth=2, relief="groove")
-        self._canvas_map = Canvas(
-            self._frm_map, width=self.width, height=self.mheight, bg=BGCOL
+        self._can_mapview = MapCanvas(
+            self.__app, self._frm_body, width=self.width, height=self.height, bg=BGCOL
         )
+        self._frm_controls = Frame(self._frm_body, borderwidth=2, relief="groove")
         self._btn_load = Button(
             self._frm_controls,
             image=self.img_load,
@@ -110,6 +104,15 @@ class ImportMapDialog(ToplevelDialog):
             image=self.img_send,
             width=40,
             command=self._on_import,
+        )
+        self._btn_redraw = Button(
+            self._frm_controls,
+            image=self.img_redraw,
+            width=40,
+            command=self._on_redraw,
+        )
+        self._chk_first = Checkbutton(
+            self._frm_controls, text="First?", variable=self._first
         )
         self._lbl_min = Label(self._frm_controls, text="Minimum:")
         self._lbl_minlat = Label(self._frm_controls, text="Latitude")
@@ -135,11 +138,12 @@ class ImportMapDialog(ToplevelDialog):
         Arrange widgets.
         """
         self._frm_body.grid(column=0, row=0, sticky=(N, S, E, W))
-        self._frm_map.grid(column=0, row=0, sticky=(N, S, E, W))
+        self._can_mapview.grid(column=0, row=0, sticky=(N, S, E, W))
         self._frm_controls.grid(column=0, row=1, sticky=(W, E))
-        self._canvas_map.pack(fill=BOTH, expand=YES)
         self._btn_load.grid(column=0, row=0, padx=3, pady=3)
-        self._btn_import.grid(column=1, row=0, padx=3, pady=3)
+        self._btn_redraw.grid(column=1, row=0, padx=3, pady=3)
+        self._btn_import.grid(column=2, row=0, padx=3, pady=3)
+        self._chk_first.grid(column=3, row=0, padx=3, pady=3)
         self._lbl_min.grid(column=0, row=1, padx=3, pady=3, sticky=W)
         self._lbl_minlat.grid(column=1, row=1, padx=3, pady=3, sticky=E)
         self._ent_minlat.grid(column=2, row=1, padx=3, pady=3)
@@ -150,21 +154,30 @@ class ImportMapDialog(ToplevelDialog):
         self._ent_maxlat.grid(column=2, row=2, padx=3, pady=3)
         self._lbl_maxlon.grid(column=3, row=2, padx=3, pady=3, sticky=E)
         self._ent_maxlon.grid(column=4, row=2, padx=3, pady=3)
+        self.container.grid_columnconfigure(0, weight=10)
+        self.container.grid_rowconfigure(0, weight=10)
+        self.grid_columnconfigure(0, weight=10)
+        self.grid_rowconfigure(0, weight=10)
+        self._frm_body.grid_columnconfigure(0, weight=10)
+        self._frm_body.grid_rowconfigure(0, weight=10)
+        self._can_mapview.grid_columnconfigure(0, weight=10)
+        self._can_mapview.grid_rowconfigure(0, weight=10)
 
     def _attach_events(self):
         """
         Bind events to window.
         """
 
-        # self.bind("<Configure>", self._on_resize)
+        self.container.bind("<Configure>", self._on_resize)
 
     def _reset(self):
         """
         Reset application.
         """
 
-        self._canvas_map.delete(ALL)
-        self._btn_import.config(state=DISABLED)
+        self._first.set(0)
+        self._can_mapview.delete(ALL)
+        # self._btn_import.config(state=DISABLED)
         if not HASRASTERIO:
             self.set_status(
                 "Warning: rasterio library is not installed - bounds must be entered manually",
@@ -172,6 +185,36 @@ class ImportMapDialog(ToplevelDialog):
             )
         else:
             self.set_status("")
+
+    def _on_load(self):
+        """
+        Load custom map from file.
+        """
+
+        self.set_status("")
+        self._custommap = self._open_mapfile()
+        if self._custommap is not None:
+            bounds = self._get_bounds(self._custommap)
+            self._can_mapview.draw_map(
+                maptype=IMPORT, mappath=self._custommap, bounds=bounds, zoom=None
+            )
+            self._btn_import.config(state=NORMAL)
+        else:
+            self._btn_import.config(state=DISABLED)
+
+    def _on_redraw(self, *args, **kwargs):
+        """
+        Handle redraw button press.
+        """
+
+        self._reset()
+        self._can_mapview.draw_map(
+            maptype=IMPORT,
+            mappath=self._custommap,
+            bounds=self._can_mapview.bounds,
+            marker=self._can_mapview.marker,
+            zoom=None,
+        )
 
     def _open_mapfile(self) -> str:
         """
@@ -183,23 +226,13 @@ class ImportMapDialog(ToplevelDialog):
             (("GeoTiff files", "*.tif"), ("all files", "*.*")),
         )
 
-    def _on_load(self):
-        """
-        Load custom map from file.
-        """
-
-        self.set_status("")
-        self._custommap = self._open_mapfile()
-        if self._custommap is not None:
-            self._get_bounds(self._custommap)
-            self._draw_map(self._custommap)
-            self._btn_import.config(state=NORMAL)
-
-    def _get_bounds(self, mappath) -> tuple:
+    def _get_bounds(self, mappath) -> Area:
         """
         Get bounds of custom map image file.
 
         :param str mappath: fully qualified path to map file
+        :return: bounds (extent)
+        :rtype: Area
         """
 
         lonmin = latmin = lonmax = latmax = 0.0
@@ -219,20 +252,12 @@ class ImportMapDialog(ToplevelDialog):
         self._latmin.set(round(latmin, 8))
         self._lonmax.set(round(lonmax, 8))
         self._latmax.set(round(latmax, 8))
-
-    def _draw_map(self, mappath="") -> ImageTk.PhotoImage:
-        """
-        Display selected custom map image.
-
-        :param str mappath: fully qualified path to map file
-        """
-
-        if mappath != "":
-            self._mapimg = ImageTk.PhotoImage(
-                Image.open(mappath).resize((self.width, self.mheight)),
-                Image.Resampling.BILINEAR,
-            )
-            self._canvas_map.create_image(0, 0, image=self._mapimg, anchor=NW)
+        return Area(
+            float(self._latmin.get()),
+            float(self._lonmin.get()),
+            float(self._latmax.get()),
+            float(self._lonmax.get()),
+        )
 
     def _on_import(self):
         """
@@ -252,6 +277,7 @@ class ImportMapDialog(ToplevelDialog):
             self.set_status("Error: minimum must be less than maximum", ERRCOL)
         else:
             usermaps = self.__app.configuration.get("usermaps_l")
-            usermaps.append([self._custommap, [latmin, lonmin, latmax, lonmax]])
+            idx = 0 if self._first.get() else len(usermaps) + 1
+            usermaps.insert(idx, [self._custommap, [latmin, lonmin, latmax, lonmax]])
             self.__app.configuration.set("usermaps_l", usermaps)
             self.set_status("Custom map imported", INFOCOL)

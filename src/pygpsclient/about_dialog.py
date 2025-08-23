@@ -16,7 +16,7 @@ from os import path
 from platform import python_version
 from subprocess import CalledProcessError, run
 from sys import executable
-from tkinter import Button, Checkbutton, E, Frame, IntVar, Label, Tcl, Toplevel, W
+from tkinter import Button, Checkbutton, E, Frame, IntVar, Label, Tcl, W
 from webbrowser import open_new_tab
 
 from PIL import Image, ImageTk
@@ -31,7 +31,6 @@ from pygpsclient._version import __version__ as VERSION
 from pygpsclient.globals import (
     ERRCOL,
     ICON_APP128,
-    ICON_EXIT,
     ICON_GITHUB,
     ICON_SPONSOR,
     INFOCOL,
@@ -40,7 +39,8 @@ from pygpsclient.globals import (
     SPONSOR_URL,
 )
 from pygpsclient.helpers import check_latest
-from pygpsclient.strings import ABOUTTXT, COPYRIGHTTXT, DLGABOUT, DLGTABOUT, GITHUB_URL
+from pygpsclient.strings import ABOUTTXT, COPYRIGHTTXT, DLGTABOUT, GITHUB_URL
+from pygpsclient.toplevel_dialog import ToplevelDialog
 
 LIBVERSIONS = {
     "PyGPSClient": VERSION,
@@ -53,12 +53,12 @@ LIBVERSIONS = {
 }
 
 
-class AboutDialog:
+class AboutDialog(ToplevelDialog):
     """
     About dialog box class
     """
 
-    def __init__(self, app, **kwargs):  # pylint: disable=unused-argument
+    def __init__(self, app, *args, **kwargs):  # pylint: disable=unused-argument
         """
         Initialise Toplevel dialog
 
@@ -68,94 +68,78 @@ class AboutDialog:
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.logger = logging.getLogger(__name__)
-        self._dialog = Toplevel()
-        self._dialog.title = DLGABOUT
-        self._dialog.geometry(
-            f"+{self.__master.winfo_rootx() + 50}+{self.__master.winfo_rooty() + 50}"
-        )
-        self._dialog.attributes("-topmost", "true")
         self._img_icon = ImageTk.PhotoImage(Image.open(ICON_APP128).resize((64, 64)))
         self._img_github = ImageTk.PhotoImage(Image.open(ICON_GITHUB).resize((32, 32)))
-        self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
         self._img_sponsor = ImageTk.PhotoImage(Image.open(ICON_SPONSOR))
         self._checkonstartup = IntVar()
         self._checkonstartup.set(self.__app.configuration.get("checkforupdate_b"))
         self._updates = []
 
+        super().__init__(app, DLGTABOUT, (200, 200))
+
         self._body()
         self._do_layout()
         self._attach_events()
+        self._finalise()
 
     def _body(self):
         """
         Set up widgets.
         """
 
-        self._frm_container = Frame(self._dialog, borderwidth=2, relief="groove")
-        self._lbl_title = Label(self._frm_container, text=DLGABOUT)
-        self._lbl_title.config(font=self.__app.font_md2)
-        self._lbl_icon = Label(self._frm_container, image=self._img_icon)
+        self._frm_body = Frame(self.container)
+        self._lbl_icon = Label(self._frm_body, image=self._img_icon, borderwidth=0)
         self._lbl_desc = Label(
-            self._frm_container,
+            self._frm_body,
             text=ABOUTTXT,
             wraplength=350,
-            font=self.__app.font_sm,
+            borderwidth=0,
         )
         tkv = Tcl().call("info", "patchlevel")
         self._lbl_python_version = Label(
-            self._frm_container,
+            self._frm_body,
             text=f"Python: {python_version()}  Tk: {tkv}",
-            font=self.__app.font_sm,
         )
         self._lbl_lib_versions = []
         for nam, ver in LIBVERSIONS.items():
             self._lbl_lib_versions.append(
                 Label(
-                    self._frm_container,
+                    self._frm_body,
                     text=f"{nam}: {ver}",
-                    font=self.__app.font_sm,
+                    borderwidth=0,
+                    highlightthickness=0,
                 )
             )
         self._btn_checkupdate = Button(
-            self._frm_container,
+            self._frm_body,
             text="Check for updates",
             width=12,
-            font=self.__app.font_sm,
             cursor="hand2",
         )
         self._chk_checkupdate = Checkbutton(
-            self._frm_container,
+            self._frm_body,
             text="Check on startup",
             variable=self._checkonstartup,
         )
         self._lbl_giticon = Label(
-            self._frm_container,
+            self._frm_body,
             image=self._img_github,
             cursor="hand2",
         )
         self._lbl_sponsoricon = Label(
-            self._frm_container,
+            self._frm_body,
             image=self._img_sponsor,
             cursor="hand2",
         )
         self._lbl_github = Label(
-            self._frm_container,
+            self._frm_body,
             text=GITHUB_URL,
-            font=self.__app.font_sm,
             fg=INFOCOL,
             cursor="hand2",
         )
         self._lbl_copyright = Label(
-            self._frm_container,
+            self._frm_body,
             text=COPYRIGHTTXT,
-            font=self.__app.font_sm,
-            cursor="hand2",
-        )
-        self._btn_ok = Button(
-            self._frm_container,
-            image=self._img_exit,
-            width=55,
-            command=self._ok_press,
             cursor="hand2",
         )
 
@@ -164,16 +148,13 @@ class AboutDialog:
         Arrange widgets in dialog.
         """
 
-        self._frm_container.grid(column=0, row=0, padx=5, pady=5, ipadx=5, ipady=5)
-        self._lbl_title.grid(column=0, row=0, columnspan=2, padx=3, pady=3)
-        self._lbl_icon.grid(column=0, row=1, columnspan=2, padx=3, pady=3)
-        self._lbl_desc.grid(column=0, row=2, columnspan=2, padx=3, pady=3)
-        self._lbl_python_version.grid(column=0, row=3, columnspan=2, padx=3, pady=3)
+        self._frm_body.grid(column=0, row=0, padx=5, pady=5, ipadx=5, ipady=5)
+        self._lbl_icon.grid(column=0, row=1, columnspan=2, padx=3, pady=0)
+        self._lbl_desc.grid(column=0, row=2, columnspan=2, padx=3, pady=0)
+        self._lbl_python_version.grid(column=0, row=3, columnspan=2, padx=3, pady=1)
         i = 0
         for i, _ in enumerate(LIBVERSIONS):
-            self._lbl_lib_versions[i].grid(
-                column=0, row=4 + i, columnspan=2, padx=2, pady=2
-            )
+            self._lbl_lib_versions[i].grid(column=0, row=4 + i, columnspan=2, padx=2)
         self._btn_checkupdate.grid(
             column=0, row=5 + i, ipadx=3, ipady=3, padx=3, pady=3
         )
@@ -184,9 +165,6 @@ class AboutDialog:
         self._lbl_sponsoricon.grid(column=1, row=6 + i, padx=(3, 1), pady=3, sticky=W)
         self._lbl_github.grid(column=0, row=7 + i, columnspan=2, padx=(1, 3), pady=3)
         self._lbl_copyright.grid(column=0, row=8 + i, columnspan=2, padx=3, pady=3)
-        self._btn_ok.grid(
-            column=0, row=9 + i, ipadx=3, ipady=3, columnspan=2, padx=5, pady=3
-        )
 
     def _attach_events(self):
         """
@@ -198,8 +176,7 @@ class AboutDialog:
         self._lbl_github.bind("<Button>", self._on_github)
         self._lbl_sponsoricon.bind("<Button>", self._on_sponsor)
         self._lbl_copyright.bind("<Button>", self._on_license)
-        self._btn_ok.bind("<Return>", self._ok_press)
-        self._btn_ok.focus_set()
+        self._btn_exit.focus_set()
         self._checkonstartup.trace_add("write", self._on_update_config)
 
     def _on_update_config(self, var, index, mode):  # pylint: disable=unused-argument
@@ -217,7 +194,7 @@ class AboutDialog:
         """
 
         open_new_tab(GITHUB_URL)
-        self._ok_press()
+        self.on_exit()
 
     def _on_sponsor(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -225,7 +202,7 @@ class AboutDialog:
         """
 
         open_new_tab(SPONSOR_URL)
-        self._ok_press()
+        self.on_exit()
 
     def _on_license(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -233,15 +210,7 @@ class AboutDialog:
         """
 
         open_new_tab(LICENSE_URL)
-        self._ok_press()
-
-    def _ok_press(self, *args, **kwargs):  # pylint: disable=unused-argument
-        """
-        Handle OK button press.
-        """
-
-        self.__app.stop_dialog(DLGTABOUT)
-        self._dialog.destroy()
+        self.on_exit()
 
     def _check_for_update(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -253,14 +222,14 @@ class AboutDialog:
             latest = check_latest(nam)
             txt = f"{nam}: {current}"
             if latest == current:
-                txt += ". ✓"
+                txt += " ✓"
                 col = OKCOL
             elif latest == "N/A":
-                txt += ". Info not available!"
+                txt += " - Info not available!"
                 col = ERRCOL
             else:
                 self._updates.append(nam)
-                txt += f". Latest version is {latest}"
+                txt += f" - Latest version is {latest}"
                 col = ERRCOL
             self._lbl_lib_versions[i].config(text=txt, fg=col)
 
@@ -274,7 +243,7 @@ class AboutDialog:
         """
 
         self._btn_checkupdate.config(text="UPDATING...", fg=INFOCOL)
-        self._dialog.update_idletasks()
+        self.update_idletasks()
         pth = path.dirname(path.abspath(getfile(currentframe())))
         if "pipx" in pth:  # installed into venv using pipx
             cmd = [

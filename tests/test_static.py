@@ -11,42 +11,44 @@ Static method tests for pygpsclient.helpers
 import unittest
 from datetime import datetime
 
+from pynmeagps import SET, NMEAMessage
 from pyubx2 import UBXMessage, UBXReader
-from pynmeagps import NMEAMessage, SET
 
-from pygpsclient.globals import Area, Point, AreaXY
+from pygpsclient.configuration import Configuration
+from pygpsclient.globals import Area, AreaXY, Point, TrackPoint
 from pygpsclient.helpers import (
+    area_in_bounds,
     bitsval,
     bytes2unit,
     cel2cart,
     col2contrast,
     corrage2int,
+    data2xy,
     date2wnotow,
     dop2str,
     fix2desc,
-    data2xy,
-    xy2data,
     ft2m,
     get_grid,
     get_mp_distance,
     get_mp_info,
     get_point_at_vector,
+    get_track_bounds,
     haversine,
     hsv2rgb,
-    in_bounds,
     isot2dt,
     kmph2ms,
     knots2ms,
     lanip,
-    limittrack,
     ll2xy,
     m2ft,
     ms2kmph,
     ms2knots,
     ms2mph,
     ned2vector,
+    nmea2preset,
+    normalise_area,
     parse_rxmspartnkey,
-    points2area,
+    point_in_bounds,
     pos2iso6709,
     publicip,
     reorder_range,
@@ -56,18 +58,18 @@ from pygpsclient.helpers import (
     stringvar2val,
     svid2gnssid,
     time2str,
+    ubx2preset,
     val2sphp,
     validURL,
     wnotow2date,
+    xy2data,
     xy2ll,
-    nmea2preset,
-    ubx2preset,
 )
 from pygpsclient.mapquest import (
     compress_track,
+    format_mapquest_request,
     mapq_compress,
     mapq_decompress,
-    format_mapquest_request,
 )
 from pygpsclient.widget_state import (
     DEFAULT,
@@ -76,7 +78,6 @@ from pygpsclient.widget_state import (
     VISIBLE,
     WidgetState,
 )
-from pygpsclient.configuration import Configuration
 
 
 class DummyFileHandler:
@@ -102,6 +103,33 @@ class StaticTest(unittest.TestCase):
 
     def tearDown(self):
         pass
+
+    def testconfiguration(self):
+
+        cfg = Configuration(DummyApp())
+        self.assertEqual(cfg.get("bpsrate_n"), 9600)
+        self.assertEqual(cfg.get("lbandclientdrat_n"), 2400)
+        self.assertEqual(cfg.get("userport_s"), "")
+        self.assertEqual(cfg.get("spartnport_s"), "")
+        self.assertEqual(len(cfg.settings), 140)
+        kwargs = {"userport": "/dev/ttyACM0", "spartnport": "/dev/ttyACM1"}
+        cfg.loadcli(**kwargs)
+        self.assertEqual(cfg.get("userport_s"), "/dev/ttyACM0")
+        self.assertEqual(cfg.get("spartnport_s"), "/dev/ttyACM1")
+        cfg.set("userport_s", "/dev/ttyACM2")
+        cfg.set("spartnport_s", "/dev/ttyACM3")
+        self.assertEqual(cfg.get("userport_s"), "/dev/ttyACM2")
+        self.assertEqual(cfg.get("spartnport_s"), "/dev/ttyACM3")
+
+    def testloadfile(self):
+
+        cfg = Configuration(DummyApp())
+        res = cfg.loadfile("bad.json")
+        self.assertEqual(
+            res, ("bad.json", f'Unrecognised setting "xcheckforupdate_b": 0')
+        )
+        res = cfg.loadfile("good.json")
+        self.assertEqual(res, ("good.json", ""))
 
     def testcel2cart(self):
         (elev, azim) = cel2cart(34, 128)
@@ -546,10 +574,18 @@ class StaticTest(unittest.TestCase):
         self.assertAlmostEqual(res.lat, -12.644276003524272, 4)
         self.assertAlmostEqual(res.lon, 34.868111659923926, 4)
 
-    def testinbounds(self):
-        res = in_bounds(Area(51.23, -2.41, 51.45, -2.13), Point(23.65, 45.123))
+    def testpointinbounds(self):
+        res = point_in_bounds(Area(51.23, -2.41, 51.45, -2.13), Point(23.65, 45.123))
         self.assertEqual(res, False)
-        res = in_bounds(Area(51.23, -2.41, 51.45, -2.13), Point(51.24, -2.39))
+        res = point_in_bounds(Area(51.23, -2.41, 51.45, -2.13), Point(51.24, -2.39))
+        self.assertEqual(res, True)
+
+    def testareainbounds(self):
+        res = area_in_bounds(Area(51.23, -2.41, 51.45, -2.13), Area(52, -3, 53, -2))
+        self.assertEqual(res, False)
+        res = area_in_bounds(
+            Area(51.23, -2.41, 51.45, -2.13), Area(51.24, -2.39, 51.44, -2.15)
+        )
         self.assertEqual(res, True)
 
     def testll2xy(self):
@@ -594,19 +630,19 @@ class StaticTest(unittest.TestCase):
         self.assertAlmostEqual(dx, -1.81264, 5)
         self.assertAlmostEqual(dy, 53.52345, 5)
 
-    def testpoints2area(self):
+    def testnormalise_area(self):
         points = (53, -2, 54, -1)
-        res = points2area(points)
+        res = normalise_area(points)
         self.assertEqual(res, Area(53, -2, 54, -1))
         points = (54, -2, 53, -1)
-        res = points2area(points)
+        res = normalise_area(points)
         self.assertEqual(res, Area(53, -2, 54, -1))
         points = (53, -1, 54, -2)
-        res = points2area(points)
+        res = normalise_area(points)
         self.assertEqual(res, Area(53, -2, 54, -1))
         points = (53, -2, 54)
         with self.assertRaises(ValueError) as context:
-            res = points2area(points)
+            res = normalise_area(points)
             self.assertTrue("Exactly 4 points required" in str(context.exception))
 
     def testreorderrange(self):
@@ -619,32 +655,10 @@ class StaticTest(unittest.TestCase):
         self.assertEqual(reorder_range(rng1, 44), rng1)
         self.assertEqual(reorder_range(rng2, "limes"), rng2)
 
-    def testlimittrack(self):
-        EXPECTED_RESULT = [
-            Point(lat=0, lon=0),
-            Point(lat=2, lon=4),
-            Point(lat=4, lon=8),
-            Point(lat=6, lon=12),
-            Point(lat=8, lon=16),
-            Point(lat=10, lon=20),
-            Point(lat=12, lon=24),
-            Point(lat=14, lon=28),
-            Point(lat=16, lon=32),
-            Point(lat=18, lon=36),
-        ]
-        track = []
-        for i in range(20):
-            track.append(Point(i, i * 2))
-        res = limittrack(track, 15)
-        self.assertEqual(res, EXPECTED_RESULT)
-        self.assertEqual(len(res), 10)
-        res = limittrack(track, 100)
-        self.assertEqual(len(res), 20)
-
     def testformat_mapquest_request(self):
-        EXPECTED_RESULT1 = "https://www.mapquestapi.com/staticmap/v5/map?key=abcdefghijklmnop&locations=45,34|marker-sm-616161-ff4444&zoom=3&size=600,400&type=map&scalebar=true&shape=radius:0.005345|weight:1|fill:ccffff50|border:88888850|45,34"
-        EXPECTED_RESULT2 = "https://www.mapquestapi.com/staticmap/v5/map?key=abcdefghijklmnop&locations=45,34|marker-sm-616161-ff4444&zoom=3&size=600,400&type=map&scalebar=true&boundingBox=40,30,50,40"
-        EXPECTED_RESULT3 = "https://www.mapquestapi.com/staticmap/v5/map?key=abcdefghijklmnop&locations=45,34||46,35&zoom=3&size=600,400&defaultMarker=marker-num&shape=weight:2|border:ff00ff|cmp6|enc:_sqytA_gez_A_seK_}hQ_oyo@_evi@&scalebar=true|bottom&type=map"
+        EXPECTED_RESULT1 = "https://www.mapquestapi.com/staticmap/v5/map?key=abcdefghijklmnop&type=map&size=600,400&zoom=3&scalebar=true|bottom"
+        EXPECTED_RESULT2 = "https://www.mapquestapi.com/staticmap/v5/map?key=abcdefghijklmnop&type=map&size=600,400&boundingBox=50,30,40,40&margin=0&scalebar=true|bottom"
+        EXPECTED_RESULT3 = "https://www.mapquestapi.com/staticmap/v5/map?key=abcdefghijklmnop&type=map&size=600,400&zoom=3&scalebar=true|bottom"
         res = format_mapquest_request(
             "abcdefghijklmnop", "map", 600, 400, 3, (Point(45, 34),), None, 5.345
         )
@@ -792,33 +806,6 @@ class StaticTest(unittest.TestCase):
             "Configure GNSS, CFG, CFG-GNSS, 0002040200042000010004000603180000004000, 1, CFG, CFG-GNSS, 0002040200042000010004000503180000004000, 1",
         )
 
-    def testconfiguration(self):
-
-        cfg = Configuration(DummyApp())
-        self.assertEqual(cfg.get("bpsrate_n"), 9600)
-        self.assertEqual(cfg.get("lbandclientdrat_n"), 2400)
-        self.assertEqual(cfg.get("userport_s"), "")
-        self.assertEqual(cfg.get("spartnport_s"), "")
-        self.assertEqual(len(cfg.settings), 136)
-        kwargs = {"userport": "/dev/ttyACM0", "spartnport": "/dev/ttyACM1"}
-        cfg.loadcli(**kwargs)
-        self.assertEqual(cfg.get("userport_s"), "/dev/ttyACM0")
-        self.assertEqual(cfg.get("spartnport_s"), "/dev/ttyACM1")
-        cfg.set("userport_s", "/dev/ttyACM2")
-        cfg.set("spartnport_s", "/dev/ttyACM3")
-        self.assertEqual(cfg.get("userport_s"), "/dev/ttyACM2")
-        self.assertEqual(cfg.get("spartnport_s"), "/dev/ttyACM3")
-
-    def testloadfile(self):
-
-        cfg = Configuration(DummyApp())
-        res = cfg.loadfile("bad.json")
-        self.assertEqual(
-            res, ("bad.json", f'Unrecognised setting "xcheckforupdate_b": 0')
-        )
-        res = cfg.loadfile("good.json")
-        self.assertEqual(res, ("good.json", ""))
-
     def testdop2str(self):
         dops = [
             "N/A",
@@ -836,6 +823,128 @@ class StaticTest(unittest.TestCase):
             res = dop2str(dop)
             self.assertEqual(res, dops[i])
             i += 1
+
+    def testtrackbounds(self):
+        track = [
+            TrackPoint(
+                lat=53.367779,
+                lon=-1.815559,
+                tim=1432993248.436,
+                ele=295.0,
+                spd=6.715710540781448,
+            ),
+            TrackPoint(
+                lat=53.367763,
+                lon=-1.815568,
+                tim=1432993249.444,
+                ele=295.0,
+                spd=6.711882545529664,
+            ),
+            TrackPoint(
+                lat=53.367691,
+                lon=-1.815627,
+                tim=1432993254.612,
+                ele=297.0,
+                spd=6.2148578220195745,
+            ),
+            TrackPoint(
+                lat=53.367678,
+                lon=-1.81564,
+                tim=1432993255.365,
+                ele=296.0,
+                spd=8.064486989308314,
+            ),
+            TrackPoint(
+                lat=53.367599,
+                lon=-1.815695,
+                tim=1432993265.43,
+                ele=298.0,
+                spd=3.4061951929567766,
+            ),
+            TrackPoint(
+                lat=53.36759,
+                lon=-1.815702,
+                tim=1432993266.428,
+                ele=299.0,
+                spd=3.9833901087479853,
+            ),
+            TrackPoint(
+                lat=53.367503,
+                lon=-1.815736,
+                tim=1432993272.462,
+                ele=300.0,
+                spd=5.933328376978552,
+            ),
+            TrackPoint(
+                lat=53.367487,
+                lon=-1.815725,
+                tim=1432993273.432,
+                ele=301.0,
+                spd=7.142276157762976,
+            ),
+            TrackPoint(
+                lat=53.367508,
+                lon=-1.815593,
+                tim=1432993280.436,
+                ele=301.0,
+                spd=4.663893711961502,
+            ),
+            TrackPoint(
+                lat=53.367507,
+                lon=-1.815571,
+                tim=1432993281.437,
+                ele=302.0,
+                spd=5.262069550081461,
+            ),
+            TrackPoint(
+                lat=53.367462,
+                lon=-1.815451,
+                tim=1432993288.36,
+                ele=306.0,
+                spd=4.895293914921759,
+            ),
+            TrackPoint(
+                lat=53.367455,
+                lon=-1.815433,
+                tim=1432993289.528,
+                ele=307.0,
+                spd=4.394047941517249,
+            ),
+            TrackPoint(
+                lat=53.36746,
+                lon=-1.815304,
+                tim=1432993295.4,
+                ele=304.0,
+                spd=5.264155466815996,
+            ),
+            TrackPoint(
+                lat=53.367463,
+                lon=-1.815283,
+                tim=1432993296.446,
+                ele=304.0,
+                spd=4.928306385908393,
+            ),
+            TrackPoint(
+                lat=53.367495,
+                lon=-1.815155,
+                tim=1432993310.396,
+                ele=303.0,
+                spd=2.3788542131221404,
+            ),
+            TrackPoint(
+                lat=53.367496,
+                lon=-1.815138,
+                tim=1432993311.444,
+                ele=302.0,
+                spd=3.890445235062791,
+            ),
+        ]
+        bounds, center = get_track_bounds(track)
+        self.assertEqual(
+            bounds, Area(lat1=53.367455, lon1=-1.815736, lat2=53.367779, lon2=-1.815138)
+        )
+        self.assertAlmostEqual(center.lat, 53.367617, 7)
+        self.assertAlmostEqual(center.lon, -1.815437, 7)
 
 
 if __name__ == "__main__":

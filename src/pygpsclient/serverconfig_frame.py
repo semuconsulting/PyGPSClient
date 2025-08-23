@@ -56,7 +56,6 @@ from pygpsclient.globals import (
     LG290P,
     MOSAIC_X5,
     READONLY,
-    RPTDELAY,
     SERVERCONFIG,
     SOCK_NTRIP,
     SOCKMODES,
@@ -200,8 +199,6 @@ class ServerConfigFrame(Frame):
             width=14,
             state=READONLY,
             wrap=True,
-            repeatdelay=RPTDELAY,
-            repeatinterval=RPTDELAY,
             textvariable=self.sock_mode,
         )
         self._lbl_sockhost = Label(
@@ -291,8 +288,6 @@ class ServerConfigFrame(Frame):
             width=18,
             state=READONLY,
             wrap=True,
-            repeatdelay=RPTDELAY,
-            repeatinterval=RPTDELAY,
             textvariable=self.receiver_type,
         )
         self._lbl_basemode = Label(
@@ -305,8 +300,6 @@ class ServerConfigFrame(Frame):
             width=10,
             state=READONLY,
             wrap=True,
-            repeatdelay=RPTDELAY,
-            repeatinterval=RPTDELAY,
             textvariable=self.base_mode,
         )
         self._lbl_acclimit = Label(
@@ -319,8 +312,6 @@ class ServerConfigFrame(Frame):
             width=7,
             state=READONLY,
             wrap=True,
-            repeatdelay=RPTDELAY,
-            repeatinterval=RPTDELAY,
             textvariable=self.acclimit,
         )
         self._lbl_duration = Label(
@@ -338,8 +329,6 @@ class ServerConfigFrame(Frame):
             width=5,
             state=READONLY,
             wrap=True,
-            repeatdelay=RPTDELAY,
-            repeatinterval=RPTDELAY,
             textvariable=self.duration,
         )
         self._lbl_elapsed = Label(
@@ -358,8 +347,6 @@ class ServerConfigFrame(Frame):
             width=6,
             state=READONLY,
             wrap=True,
-            repeatdelay=RPTDELAY,
-            repeatinterval=RPTDELAY,
             textvariable=self.pos_mode,
         )
         self._lbl_fixedlat = Label(
