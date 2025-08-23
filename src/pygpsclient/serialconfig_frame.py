@@ -50,7 +50,7 @@ from pygpsclient.globals import (
     ICON_EXPAND,
     ICON_REFRESH,
     LBAND,
-    RPTDELAY,
+    READONLY,
 )
 from pygpsclient.strings import LBLSPORT, LBLUDPORT
 
@@ -78,7 +78,6 @@ PARITIES = {
     PARITY_SPACE: "Space",
 }
 PARITY_RNG = list(PARITIES.values())
-READONLY = "readonly"
 STOPBITS_RNG = (1, 1.5, 2)
 TIMEOUT_RNG = ("0", "1", "2", "5", "10", "20")
 
@@ -165,8 +164,6 @@ class SerialConfigFrame(Frame):
             width=8,
             state=READONLY,
             wrap=True,
-            repeatdelay=RPTDELAY,
-            repeatinterval=RPTDELAY,
             textvariable=self._bpsrate,
         )
         self._btn_refresh = Button(
@@ -192,8 +189,6 @@ class SerialConfigFrame(Frame):
             width=3,
             state=READONLY,
             wrap=True,
-            repeatdelay=RPTDELAY,
-            repeatinterval=RPTDELAY,
             textvariable=self._databits,
         )
         self._lbl_stopbits = Label(self._frm_advanced, text="Stop Bits")
@@ -203,8 +198,6 @@ class SerialConfigFrame(Frame):
             width=3,
             state=READONLY,
             wrap=True,
-            repeatdelay=RPTDELAY,
-            repeatinterval=RPTDELAY,
             textvariable=self._stopbits,
         )
         self._lbl_parity_name = Label(self._frm_advanced, text="Parity")
@@ -214,8 +207,6 @@ class SerialConfigFrame(Frame):
             width=6,
             state=READONLY,
             wrap=True,
-            repeatdelay=RPTDELAY,
-            repeatinterval=RPTDELAY,
             textvariable=self._parity_name,
         )
         self._chk_rts = Checkbutton(
@@ -231,8 +222,6 @@ class SerialConfigFrame(Frame):
             width=4,
             state=READONLY,
             wrap=True,
-            repeatdelay=RPTDELAY,
-            repeatinterval=RPTDELAY,
             textvariable=self._timeout,
         )
         self._lbl_msgmode_name = Label(self._frm_advanced, text="Msg Mode")
@@ -260,8 +249,6 @@ class SerialConfigFrame(Frame):
             width=4,
             state=READONLY,
             wrap=True,
-            repeatdelay=RPTDELAY,
-            repeatinterval=RPTDELAY,
             textvariable=self._inactivity_timeout,
         )
 

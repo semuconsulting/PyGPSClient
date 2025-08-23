@@ -36,7 +36,7 @@ from pygpsclient.globals import (
     ICON_CONTRACT,
     ICON_EXPAND,
     NTRIP,
-    RPTDELAY,
+    READONLY,
 )
 from pygpsclient.helpers import MAXPORT, VALINT, VALURL, valid_entry
 
@@ -44,7 +44,6 @@ ADVOFF = "\u25bc"
 ADVON = "\u25b2"
 CONNECTED = 1
 DISCONNECTED = 0
-READONLY = "readonly"
 TCPIPV4 = "TCP IPv4"
 TCPIPV6 = "TCP IPv6"
 UDPIPV4 = "UDP IPv4"
@@ -118,8 +117,6 @@ class SocketConfigFrame(Frame):
             width=12,
             state=READONLY,
             wrap=True,
-            repeatdelay=RPTDELAY,
-            repeatinterval=RPTDELAY,
         )
         self._lbl_https = Label(self._frm_basic, text="HTTPS?")
         self._chk_https = Checkbutton(

@@ -48,7 +48,7 @@ from pygpsclient.globals import (
     ICON_WARNING,
     MINHEIGHT,
     MINWIDTH,
-    POPUP_TRANSIENT,
+    RESIZE,
 )
 from pygpsclient.helpers import check_lowres
 
@@ -74,10 +74,13 @@ class ToplevelDialog(Toplevel):
 
         super().__init__()
 
-        if POPUP_TRANSIENT:  # keep dialog on top of main app window
+        if self.__app.configuration.get("transient_dialog_b"):
             self.transient(self.__app)
         self.title(dlgname)  # pylint: disable=E1102
-        self.resizable(self.lowres, self.lowres)
+        if self.__app.dialog_state.state[dlgname][RESIZE]:
+            self.resizable(True, True)
+        else:
+            self.resizable(self.lowres, self.lowres)
         self.protocol("WM_DELETE_WINDOW", self.on_exit)
         self.img_none = ImageTk.PhotoImage(Image.open(ICON_BLANK))
         self.img_confirmed = ImageTk.PhotoImage(Image.open(ICON_CONFIRMED))
@@ -155,7 +158,7 @@ class ToplevelDialog(Toplevel):
         self._btn_exit.grid(column=1, row=0, sticky=E)
 
         # set column and row weights
-        # these govern the 'pack' behaviour of the frames on resize
+        # NB!!! these govern the 'pack' behaviour of the frames on resize
         self.grid_columnconfigure(0, weight=10)
         self.grid_rowconfigure(0, weight=10)
         self._frm_status.grid_columnconfigure(0, weight=10)

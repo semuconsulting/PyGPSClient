@@ -59,9 +59,14 @@ For [Bug reports](https://github.com/semuconsulting/PyGPSClient/blob/master/.git
 ---
 ## <a name="installation">Installation</a>
 
+![Python version](https://img.shields.io/pypi/pyversions/PyGPSClient.svg?style=flat)
+[![PyPI version](https://img.shields.io/pypi/v/PyGPSClient.svg?style=flat)](https://pypi.org/project/PyGPSClient/)
+[![PyPI downloads](https://github.com/semuconsulting/PyGPSClient/blob/master/images/clickpy_icon.svg?raw=true)](https://clickpy.clickhouse.com/dashboard/pygpsclient)
+
 ## The Quick Version
 
-If you have an [official Python]([Python.org](https://www.python.org/downloads/)) >=3.9 with tkinter >=8.6 installed and the Python [binaries](#binaries) folder is in your PATH, you can install PyGPSClient using pip:
+If you have an [official Python](https://www.python.org/downloads/) >=3.9 with tkinter >=8.6 installed and the Python [binaries](https://github.com/semuconsulting/PyGPSClient/blob/master/INSTALLATION.md#binaries) folder is in your PATH, you can install PyGPSClient using pip:
+
 ```shell
 python3 -m pip install --upgrade pygpsclient
 ```
@@ -75,172 +80,7 @@ pygpsclient
 
 ## The Longer Version
 
-In the following, `python3` & `pip` refer to the Python 3 executables. You may need to substitute `python` for `python3`, depending on your particular environment (*on Windows it's generally `python`*). 
-
-### Platform Dependencies
-
-- Python 3.9 - 3.13
-- Tk (tkinter) >= 8.6*¹*
-- Screen resolution >= 800 x 600; Ideally 1920 x 1080, though at lower screen resolutions (<= 1024 width), top level dialogs will be resizeable and scrollable.
-
-**All platforms**
-
-- **NB** It is highly recommended to use the latest official [Python.org](https://www.python.org/downloads/) installation package for your platform, rather than any pre-installed version.
-- **NB** It is highly recommended that the Python 3 [binaries](#binaries) and site_packages directories are included in your PATH (*most standard Python 3 installation packages will do this automatically if you select the 'Add to PATH' option during installation*).
-
-**Windows 10 or later:**
-
-Normally installs without any additional steps.
-
-**MacOS 13 or later:**
-
-(See also [Installation Script](#installscript) below)
-
-*¹* The version of Python supplied with some Apple MacOS platforms includes a [deprecated version of tkinter](https://www.python.org/download/mac/tcltk/) (8.5). Use an official [Python.org](https://www.python.org/downloads/) installation package instead. 
-
-**NB:** PyGPSClient does *NOT* require Homebrew or MacPorts to be installed on MacOS.
-
-**Linux (including Raspberry Pi OS):**
-
-(See also [Installation Script](#installscript) below)
-
-Some Linux distributions may not include the necessary pip, tkinter or Pillow imaging libraries by default. They may need to be installed separately, e.g.:
-
-```shell
-sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk libjpeg-dev zlib1g-dev
-```
-
-If you're [compiling the latest version of Python 3 from source](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/python_compile.sh), you may also need to install tk-dev (or a similarly named package e.g. tk-devel) first. Refer to http://wiki.python.org/moin/TkInter for further details:
-
-```shell
-sudo apt install tk-dev
-```
-
-**Import Custom Map dependency - rasterio**
-
-To enable automatic extent detection in the Import Custom Map facility, the `rasterio` Python library must be installed. This in turn requires the [GDAL (Geospatial Data Abstration Layer)](https://gdal.org/en/stable/) library:
-
-```shell
-python3 -m pip install rasterio
-```
-
-... or on some Linux distributions:
-
-```shell
-sudo apt install python3-rasterio
-```
-
-*FYI* GDAL can also be installed as part of a [QGIS](https://qgis.org/download/) installation.
-
-### User Privileges
-
-To access the serial port on most Linux platforms, you will need to be a member of the 
-`tty` and/or `dialout` groups. Other than this, no special privileges are required.
-
-```shell
-usermod -a -G tty myuser
-```
-
-### <a name="pip">Install using pip</a>
-
-![Python version](https://img.shields.io/pypi/pyversions/PyGPSClient.svg?style=flat)
-[![PyPI version](https://img.shields.io/pypi/v/PyGPSClient.svg?style=flat)](https://pypi.org/project/PyGPSClient/)
-[![PyPI downloads](https://github.com/semuconsulting/PyGPSClient/blob/master/images/clickpy_icon.svg?raw=true)](https://clickpy.clickhouse.com/dashboard/pygpsclient)
-
-The recommended way to install the latest version of `PyGPSClient` is with [pip](http://pypi.python.org/pypi/pip/):
-
-```shell
-python3 -m pip install --upgrade pygpsclient
-```
-
-If required, `PyGPSClient` can also be installed and run in a [virtual environment](https://www.geeksforgeeks.org/python-virtual-environment/) - this may be necessary if you have an `externally-managed-environment`, e.g.:
-```shell
-python3 -m venv pygpsclient
-source pygpsclient/bin/activate # (or pygpsclient\Scripts\activate on Windows)
-python3 -m pip install --upgrade pygpsclient
-pygpsclient
-```
-
-To deactivate the virtual environment:
-
-```shell
-deactivate
-```
-
-To reactivate and run from the virtual environment:
-```shell
-source pygpsclient/bin/activate # (or pygpsclient\Scripts\activate on Windows)
-pygpsclient
-```
-
-To upgrade PyGPSClient to the latest version from the virtual environment:
-```shell
-source pygpsclient/bin/activate # (or pygpsclient\Scripts\activate on Windows)
-python3 -m pip install --upgrade pygpsclient
-```
-
-The pip installation process places an executable file `pygpsclient` in the Python binaries folder (`../bin` on Linux & MacOS, `..\Scripts` on Windows). The PyGPSClient application may be started by double-clicking on this executable file from your file manager or, if the binaries folder is in your PATH, by opening a terminal and typing (all lowercase):
-```shell
-pygpsclient
-````
-
-`pygpsclient` accepts optional command line arguments for a variety of configurable parameters. These will override any saved configuration file settings. Type the following for help:
-```shell
-pygpsclient -h
-```
-
-**NB:** If the Python 3 binaries folder is *not* in your PATH, you will need to add the fully-qualified path to the `pygpsclient` executable in the command above.
-
-<a name="binaries">**Tip:**</a> The location of the relevant binaries folder can usually be found by executing one of the following commands:
-
-Global installation:
-```shell
-python3 -c "import os,sysconfig;print(sysconfig.get_path('scripts'))"
-```
-
-User installation:
-```shell
-python3 -c "import os,sysconfig;print(sysconfig.get_path('scripts',f'{os.name}_user'))"
-```
-
-Typically:
-
-1. Windows: `C:\Users\myuser\AppData\Roaming\Python\Python3**\Scripts\pygpsclient.exe`
-2. MacOS: `/Library/Frameworks/Python.framework/Versions/3.**/bin/pygpsclient`
-3. Linux: `/home/myuser/.local/bin/pygpsclient`
-4. Virtual Env: `$ENV/bin/pygpsclient` (or `$ENV\Scripts\pygpsclient.exe` on Windows), where `$ENV` is the full path to your virtual environment.
-
-where `**` signifies the Python version e.g. `3.12`.
-
-**NB** The pip installation process does not automatically create a desktop application launcher, but this can be done manually - see [APPLAUNCH](https://github.com/semuconsulting/PyGPSClient/blob/master/APPLAUNCH.md).
-
-### <a name="pipx">Install using pipx</a>
-
-You can also use [pipx](https://pipx.pypa.io/latest/installation/) (_if available_) to install `pygpsclient` into a virtual environment - use the `pipx ensurepath` command to add the relevant Python binaries folder to your PATH.
-
-```shell
-pipx ensurepath
-pipx install pygpsclient
-```
-
-`pipx` will typically create a virtual environment in the user's local shared folder e.g. `/home/user/.local/share/pipx/venvs/pygpsclient`.
-
-### <a name="installscript">Install Using Installation Script - MacOS & 64-bit Debian-based Linux Only</a>
-
-An example [installation shell script](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/pygpsclient_debian_install.sh) is available for use on most vanilla 64-bit Debian-based environments with Python>=3.9, including Raspberry Pi and Ubuntu. To run this installation script, download it to your Raspberry Pi or other Debian-based workstation and - from the download folder - type:
-
-```shell
-chmod +x pygpsclient_debian_install.sh
-./pygpsclient_debian_install.sh
-```
-
-A similar [installation shell script](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/pygpsclient_macos_install.sh) is available for MacOS 13 or later running a ZSH shell (*Homebrew or MacPorts are NOT required*). This will also install the latest official version of Python 3 with tkinter 8.6. Download the script to your Mac and - from the download folder - type:
-
-```shell
-./pygpsclient_macos_install.sh
-```
-
-In both cases you will be prompted to enter your sudo (admin) password.
+Please refer to [INSTALLATION.md](https://github.com/semuconsulting/PyGPSClient/blob/master/INSTALLATION.md).
 
 ---
 ## <a name="instructions">Instructions</a>
@@ -260,8 +100,6 @@ In both cases you will be prompted to enter your sudo (admin) password.
 1. Console Display - Select console display format (Parsed, Binary, Hex Tabular, Hex String, Parsed+Hex Tabular - see Console Widget below).
 1. Tags - enable color tags in console (see Console Widget below).
 1. Position Format and Units - Change the displayed position (D.DD / D.M.S / D.M.MM / ECEF) and unit (metric/imperial) formats.
-1. Map Type - Select from "world", "map", "sat" or "custom". "map" and "sat" types require an Internet connection and free [Mapquest API Key](#mapquestapi). "custom" offline map images can be imported and georeferenced using the [Menu..Options..Import Custom Map](#custommap) facility.
-1. Show Track - Tick to show track in map view. Map track will only be recorded while this checkbox is ticked.
 1. Show Unused Satellites - Include or exclude satellites that are not used in the navigation solution (e.g. because their signal level is too low) from the graph and sky view panels.
 1. DataLogging - Turn Data logging in the selected format on or off. You will be prompted to select the directory into which timestamped log files are saved.
 1. GPX Track - Turn track recording (in GPX format) on or off. You will be prompted to select the directory into which timestamped GPX track files are saved.
@@ -278,18 +116,33 @@ In both cases you will be prompted to enter your sudo (admin) password.
 1. [SPARTN Client](#spartnconfig) facility with the ability to configure an IP or L-Band SPARTN Correction source and SPARTN-compatible GNSS receiver (e.g. ZED-F9P) and pass the incoming correction data to the GNSS receiver (*requires an Internet connection and access to a SPARTN location service*). To display the SPARTN Client Configuration Dialog, click ![spartn icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-antenna-3-24.png?raw=true), or go to Menu..Options..SPARTN Configuration Dialog.
 1. [GPX Track Viewer](#gpxviewer) utility with elevation and speed profiles and track metadata. To display the GPX Track viewer, go to Menu..Options..GPX Track Viewer.
 
-FYI: By default, the GUI refresh interval is 0.5 seconds. This can be configured via the `guiupdateinterval_f` setting in the json configuration file. **NB:** PyGPSClient may become unresponsive on slower platforms (e.g. Raspberry Pi) if the GUI update interval is less than 0.1 seconds, though much lower intervals (<= 0.1 secs) can be accommodated on more powerful platforms.
+#### <a name="config">Configuration settings</a>
 
+- Configuration settings for PyGPSClient can be saved and recalled via the Menu..File..Save Configuration and Menu..File..Load Configuration options. By default, PyGPSClient will look for a file named `pygpsclient.json` in the user's home directory. Certain configuration settings require manual editing e.g. custom preset UBX, NMEA and TTY commands and tag colour schemes - see details below.
+
+#### <a name="updates">Checking for the latest version</a>
+
+- The About dialog (Menu..Help..About) includes a facility to check the latest available versions of PyGPSClient and its subsidiary modules, and initiate an automatic update. Tick the 'Check on startup' box to perform this check on startup (*note that this requires internet access, which may result in slower startup times on platforms with low bandwidth / high latency internet connections*).
+
+#### <a name="refreshrate">GUI refresh rate setting</a>
+
+- PyGPSClient processes all incoming GNSS data in 'real time' but, by default, the GUI is only refreshed every 0.5 seconds. The refresh rate can be configured via the `guiupdateinterval_f` setting in the json configuration file. **NB:** PyGPSClient may become unresponsive on slower platforms (e.g. Raspberry Pi) at high message rates if the GUI update interval is less than 0.1 seconds, though lower intervals (<= 0.1 secs) can be accommodated on more powerful platforms.
+
+#### <a name="transient">Transient dialog setting</a>
+
+- A boolean configuration setting `transient_dialog_b` governs whether pop-up dialogs are 'transient' (i.e. always on top of main application dialog) or not. The default setting of `0` allows pop-up dialogs to be minimised independently of the main application window, but be mindful that some dialogs may end up hidden behind others e.g. "Open file/folder" dialogs. **If a file open button appears unresponsive, check that the "Open file/folder" panel isn't already open but obscured**.
+
+---
 | User-selectable 'widgets' | To show or hide the various widgets, go to Menu..View and click on the relevant hide/show option. |
 |---------------------------|---------------------------------------------------------------------------------------------------|
 |![banner widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/banner_widget.png?raw=true)| Expandable banner showing key navigation status information based on messages received from receiver. To expand or collapse the banner or serial port configuration widgets, click the ![expand icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-arrow-80-16.png?raw=true)/![expand icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-triangle-1-16.png?raw=true) buttons. **NB**: some fields (e.g. hdop/vdop, hacc/vacc) are only available from proprietary NMEA or UBX messages and may not be output by default. The minimum messages required to populate all available fields are: NMEA: GGA, GSA, GSV, RMC, UBX00 (proprietary); UBX: NAV-DOP, NAV-PVT, NAV_SAT |
 |![console widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/console_widget.png?raw=true)| Configurable serial console widget showing incoming GNSS data streams in either parsed, binary or tabular hexadecimal formats. Double-right-click to copy contents of console to clipboard. The scroll behaviour and number of lines retained in the console can be configured via the settings panel. Supports user-configurable color tagging of selected strings for easy identification. Color tags are loaded from the `"colortag_b":` value (`0` = disable, `1` = enable) and `"colortags_l":` list (`[string, color]` pairs) in your json configuration file (see example provided). If color is set to "HALT", streaming will halt on any match and a warning displayed. NB: color tagging does impose a small performance overhead - turning it off will improve console response times at very high transaction rates.|
 |![skyview widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/skyview_widget.png?raw=true)| Skyview widget showing current satellite visibility and position (elevation / azimuth). Satellite icon borders are colour-coded to distinguish between different GNSS constellations. For consistency between NMEA and UBX data sources, will display GLONASS NMEA SVID (65-96) rather than slot (1-24). |
 |![graphview widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/graphview_widget.png?raw=true)| Graphview widget showing current satellite reception (carrier-to-noise ratio or cnr). Double-click to toggle legend. |
-|![static map](https://github.com/semuconsulting/PyGPSClient/blob/master/images/staticmap.png?raw=true)| Map widget with various modes of display. Map Type = 'world': a static offline Mercator world map showing current global location.
-|![webmap widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/webmap_widget.png?raw=true)| Map Type = 'map' or 'sat': Dynamic, online web map or satellite image via MapQuest API (*requires an Internet connection and free [Mapquest API Key](#mapquestapi)*). Left Click +/- to zoom in or out. Right click +/- to zoom in or out to maximum extent. By default, the web map will automatically refresh every 60 seconds (*indicated by a small timer icon at the top left*). The default refresh rate can be amended by changing the `"mapupdateinterval_n":` value in your json configuration file, but **NB** the facility is not intended to be used for real-time navigation. Double-click anywhere in the map to immediately refresh. |
-|![custom map](https://github.com/semuconsulting/PyGPSClient/blob/master/images/custommap.png?raw=true)| Map Type = 'custom': One or more user-defined custom offline maps can be imported using the Menu..Options..Import Custom Map facility, or by manually setting the `usermaps_l` field in the json configuration file. The `usermaps_l` setting represents a list of map paths and bounding boxes in the format ["path to map image", [minlat, minlon, maxlat, maxlon]] - see [example configuration file](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient.json#L268). Map images must be a [supported format](https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html) and use a standard WGS84 Web Mercator projection e.g. EPSG:4326.|
-|![import custom map](https://github.com/semuconsulting/PyGPSClient/blob/master/images/importcustommap.png?raw=true)| <a name="custommap">Import Custom Map dialog</a>. Click ![load icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-folder-18-24.png?raw=true) to open the custom map image location (*the default file suffix is `*.tif` - select Show Options to select any file suffix `*.*`*). If the `rasterio` library is installed and the image is georeferenced (e.g. using [QGIS](https://qgis.org/)), the map extent will be automatically extracted - otherwise it must be entered manually. Import the custom map path and extent settings by clicking ![play icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-arrow-12-24.png?raw=true). See [Creating Custom Maps for PyGPSClient](https://www.semuconsulting.com/gnsswiki/custommapwiki/) for tips on how to create a suitable georeferenced map image.|
+|![world map](https://github.com/semuconsulting/PyGPSClient/blob/master/images/staticmap.png?raw=true)| Map widget with various modes of display - select from "map" / "sat" (online) or "world" / "custom" (offline). Select zoom level 1 - 20. Double-click the zoom level label to reset the zoom to 10. Double-right-click the zoom label to maximise zoom to 20. Tick Track to show track (track will only be recorded while this box is checked). Double-Right-click will clear the map. Map Type = 'world': a static offline Mercator world map showing current global location.
+|![online map](https://github.com/semuconsulting/PyGPSClient/blob/master/images/webmap_widget.png?raw=true)| Map Type = 'map', 'sat' or 'hyb' (hybrid): Dynamic, online web map or satellite image via MapQuest API (*requires an Internet connection and free [Mapquest API Key](#mapquestapi)*). By default, the web map will automatically refresh every 60 seconds (*indicated by a small timer icon at the top left*). The default refresh rate can be amended by changing the `"mapupdateinterval_n":` value in your json configuration file, but **NB** the facility is not intended to be used for real-time navigation. Double-click anywhere in the map to immediately refresh. |
+|![offline map](https://github.com/semuconsulting/PyGPSClient/blob/master/images/custommap.png?raw=true)| Map Type = 'custom': One or more custom geo-referenced offline maps can be imported using the Menu..Options..Import Custom Map facility, or by manually setting the `usermaps_l` field in the json configuration file. The `usermaps_l` setting represents a list of map paths and bounding boxes in the format ["path to map image", [minlat, minlon, maxlat, maxlon]] - see [example configuration file](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient.json#L281). Map images must be a [supported format](https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html) and use a standard WGS84 Web Mercator projection e.g. EPSG:4326. PyGPSClient will automatically select the first image whose extents encompass the current location, based on the order in which the maps appear in `usermaps_l`. NB: The minimum and maximum viable 'zoom' levels depend on the resolution and extents of the imported image and the user's display - if the zoom bounds exceed the image extents, the Zoom spinbox will be highlighted. |
+|![import custom map](https://github.com/semuconsulting/PyGPSClient/blob/master/images/importcustommap.png?raw=true)| <a name="custommap">Import Custom Map dialog</a>. Click ![load icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-folder-18-24.png?raw=true) to open the custom map image location (*the default file suffix is `*.tif` - select Show Options to select any file suffix `*.*`*). If the `rasterio` library is installed and the image is geo-referenced (e.g. using [QGIS](https://qgis.org/)), the map extents will be automatically extracted - otherwise they must be entered manually. Import the custom map path and extent settings by clicking ![play icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-arrow-12-24.png?raw=true). By default, the imported map will be appended to the existing list - click 'First?' to insert the map at the top of the list instead. See [Creating Custom Maps for PyGPSClient](https://www.semuconsulting.com/gnsswiki/custommapwiki/) for tips on how to create a suitable georeferenced map image.|
 |![spectrum widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/spectrum_widget.png?raw=true)| Spectrum widget showing a spectrum analysis chart (*GNSS receiver must be capable of outputting UBX MON-SPAN messages*). Clicking anywhere in the spectrum chart will display the frequency and decibel reading at that point. Double-clicking anywhere in the chart will toggle the GNSS frequency band markers (L1, G2, etc.) on or off. Right-click anywhere in the chart to capture a snapshot of the spectrum data, which will then be superimposed on the live data. Double-right-click to clear snapshot. **NB:** Some receivers (e.g. NEO-F10N) will not output the requisite MON-SPAN messages unless the port baud rate is at least 57,600. |
 |![sysmon widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/sysmon_widget.png?raw=true)| System Monitor widget showing device cpu, memory and I/O utilisation (*GNSS receiver must be capable of outputting UBX MON-SYS and/or MON-COMMS messages*). Tick checkbox to toggle between actual (cumulative) I/O stats and pending I/O. |
 |![scatterplot widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/scatterplot_widget.png?raw=true)| Scatterplot widget showing variability in position reporting over time. (Optional) Enter fixed reference position. Select Average to center plot on dynamic average position (*displayed at top left*), or Fixed to center on fixed reference position (*if entered*). Check Autorange to set plot range automatically. Set the update interval (e.g. 4 = every 4th navigation solution). Use the range slider or mouse wheel to adjust plot range. Right-click to set fixed reference point to the current mouse cursor position. Double-click to clear the existing data. Settings may be saved to a json configuration file. |
@@ -533,7 +386,7 @@ By default, the server/caster binds to the host address '0.0.0.0' (IPv4) or '::'
 
 *GPX Track Viewer screenshot*
 
-The GPX Track Viewer can display any valid GPX file containing trackpoints (`<trkpt>..</trkpt>` elements) against either an ["custom" offline map image](#custommap), or an online MapQuest "map" or "sat" view. The "map" and "sat" options require a free [MapQuest API key](#mapquestapi). The Y axis scales will reflect the current choice of units (metric or imperial). Click ![refresh icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-refresh-lined-24.png?raw=true) to refresh the display after any changes (e.g. resizing, zooming or change of units). In "custom" view, zoom is not functional, and mouse right-click will show the position at the mouse cursor.
+The GPX Track Viewer can display any valid GPX file containing trackpoints (`<trkpt>..</trkpt>` elements) against either an ["custom" offline map image](#custommap), or an online MapQuest "map" or "sat" view. The "map" and "sat" options require a free [MapQuest API key](#mapquestapi). The Y axis scales will reflect the current choice of units (metric or imperial). Click ![refresh icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-refresh-lined-24.png?raw=true) to refresh the display after any changes (e.g. resizing, zooming or change of units). The location marker indicates the nominal center point of the track.
 
 ---
 ## <a name="mapquestapi">MapQuest API Key</a>
@@ -565,7 +418,7 @@ that this is a User variable rather than a System/Global variable.
 ## <a name="userdefined">User Defined Presets</a>
 
 The UBX and NMEA Configuration Dialogs include the facility to send user-defined configuration messages or message sequences to a compatible receiver. These can be set up by adding
-appropriate comma- or semicolon-delimited message descriptions and payload definitions to the `"ubxpresets_l":`or `"nmeapresets_l":` lists in your json configuration file (see [example provided](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient.json#L158)). The message definition comprises a free-format text description (*avoid embedded commas or semi-colons*) followed by one or more pyubx2 (UBX) or pynmeagps (NMEA) message constructors, e,g. 
+appropriate comma- or semicolon-delimited message descriptions and payload definitions to the `"ubxpresets_l":`or `"nmeapresets_l":` lists in your json configuration file (see [example provided](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient.json#L174)). The message definition comprises a free-format text description (*avoid embedded commas or semi-colons*) followed by one or more pyubx2 (UBX) or pynmeagps (NMEA) message constructors, e,g. 
 
 - UBX - `<description>, <message class>, <message id>, <payload as hexadecimal string>, <msgmode>`
 - NMEA - `<description>; <talker>; <message id>; <payload as comma-separated string>; <msgmode>`
@@ -590,7 +443,7 @@ Configure NAV-STATUS Message Rate on ZED-F9P, CFG, CFG-MSG, 0103000100000000, 1
 Configure UART baud rate on LG290P; P; QTMCFGUART; W,460800; 1
 ```
 
-Multiple commands can be concatenated on a single line. Illustrative examples are shown in the sample [pygpsclient.json](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient.json#L158) file.
+Multiple commands can be concatenated on a single line. Illustrative examples are shown in the sample [pygpsclient.json](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient.json#L174) file.
 
 ---
 ## <a name="ttycommands">TTY Commands and Presets</a>
@@ -602,7 +455,7 @@ The TTY Commands dialog provides a facility to send user-defined ASCII TTY comma
 - Echo checkbox - if ticked, outgoing TTY commands will be echoed on the console with the marker `"TTY<<"`.
 - Delay checkbox - if ticked, a small delay will be added between each outgoing command to allow time for the receiving device to process the command.
 
-Preset commands can be set up by adding appropriate semicolon-delimited message descriptions and payload definitions to the `"ttypresets_l":` list in your json configuration file (see [example provided](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient.json#L246)). The message definition comprises a free-format text description (*avoid embedded semi-colons*) followed by one or more ASCII TTY commands, e,g. 
+Preset commands can be set up by adding appropriate semicolon-delimited message descriptions and payload definitions to the `"ttypresets_l":` list in your json configuration file (see [example provided](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient.json#L255)). The message definition comprises a free-format text description (*avoid embedded semi-colons*) followed by one or more ASCII TTY commands, e,g. 
 
 - `<description>; <tty command>`
 
@@ -630,16 +483,18 @@ For further details, refer to the `pygnssutils` homepage at [https://github.com/
 --
 ## <a name="knownissues">Known Issues</a>
 
-1. On some 32-bit Linux platforms (e.g. Raspberry Pi OS 32), it may be necessary to [install Rust compiler support](https://www.rust-lang.org/tools/install) and some [additional build dependencies](https://cryptography.io/en/latest/installation/) in order to install the `cryptography` library which PyGPSClient depends on to decrypt SPARTN messages (see  [pyspartn cryptography installation notes](https://github.com/semuconsulting/pyspartn/tree/main/cryptography_installation#readme)):
+1. On some 32-bit Linux platforms (e.g. Raspberry Pi OS 32), it may be necessary to [install Rust compiler support](https://www.rust-lang.org/tools/install) and some [additional build dependencies](https://cryptography.io/en/latest/installation/) in order to install the `cryptography` library which PyGPSClient optionally depends on to decrypt SPARTN messages (see  [pyspartn cryptography installation notes](https://github.com/semuconsulting/pyspartn/tree/main/cryptography_installation#readme)):
 
   ```shell
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
   sudo apt-get install build-essential libssl-dev libffi-dev python3-dev pkg-config
   ```
 
-2. The [latest official Python 3.13 installers](https://docs.python.org/3/howto/free-threading-python.html) include the option to disable the standard [Python Global Interpreter Lock (GIL)](https://realpython.com/python-gil/) and allow threads to run concurrently. Whilst the core PyGPSClient packages run fine in this mode (*and some marginal performance improvements may be seen on multi-core machines*), installing PyGPSClient using pip under the "No-GIL" `python3.13t` executable currently fails due to missing cryptography dependencies (*Warning: CPython 3.13t at /Users/user/pygpsclient_nogil/bin/python3 does not yet support abi3 so the build artifacts will be version-specific* *warning: openssl-sys@0.9.108: Could not find directory of OpenSSL installation*).
+2. The [latest official Python 3.13 installers](https://docs.python.org/3/howto/free-threading-python.html) include the option to disable the standard [Python Global Interpreter Lock (GIL)](https://realpython.com/python-gil/) and allow threads to run concurrently. Whilst the core PyGPSClient packages run fine in this mode (*and some marginal performance improvements may be seen on multi-core machines*), installing PyGPSClient using pip under the "No-GIL" `python3.13t` executable currently fails due to missing `cryptography` dependencies (*Warning: CPython 3.13t at /Users/user/pygpsclient_nogil/bin/python3 does not yet support abi3 so the build artifacts will be version-specific* *warning: openssl-sys@0.9.108: Could not find directory of OpenSSL installation*). A workaround is to install `pyspartn` with the `-no-deps` option *first* (which removes the `cryptography` dependency), and *then* install PyGPSClient.
 
-3. u-blox [discontinued their PointPerfect SPARTN L-Band service](https://portal.u-blox.com/s/question/0D5Oj00000uB53GKAS/suspension-of-european-pointperfect-lband-spartn-service) in the European region in March 2025. As a result, PyGPSClient maintainers based in this region are no longer able to test this functionality against live data.
+3. PyGPSClient installs and runs fine with [Python 3.14rc2](https://pythoninsider.blogspot.com/2025/08/python-3140rc2-and-3137-are-go.html) but note that, at time of writing (Aug 2025), some optional dependencies (e.g. `rasterio`) are only available as source files and may require additional build resources (e.g. GDAL). In addition, there appears to be an issue with running `bandit` under Python 3.14 (*ERROR   Exception occurred when executing tests against ./build/lib/pygpsclient/__init__.py.*).
+
+4. u-blox [discontinued their PointPerfect SPARTN L-Band service](https://portal.u-blox.com/s/question/0D5Oj00000uB53GKAS/suspension-of-european-pointperfect-lband-spartn-service) in the European region in March 2025 and for the rest of the world in June 2025. As a result, PyGPSClient maintainers are no longer able to test this functionality against live data.
 
 ---
 ## <a name="license">License</a>

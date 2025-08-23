@@ -56,7 +56,6 @@ from pygpsclient.globals import (
     CONNECTED,
     CONNECTED_FILE,
     CONNECTED_SOCKET,
-    CUSTOM,
     DDD,
     DISCONNECTED,
     DMM,
@@ -81,13 +80,10 @@ from pygpsclient.globals import (
     ICON_SPARTNCONFIG,
     ICON_UBXCONFIG,
     KNOWNGPS,
-    MAP,
     MSGMODES,
     NOPORTS,
     OKCOL,
     READONLY,
-    RPTDELAY,
-    SAT,
     SBF_PROTOCOL,
     SPARTN_PROTOCOL,
     TIMEOUTS,
@@ -96,7 +92,6 @@ from pygpsclient.globals import (
     UIK,
     UMK,
     UMM,
-    WORLD,
 )
 from pygpsclient.helpers import fontheight, fontwidth
 from pygpsclient.serialconfig_frame import SerialConfigFrame
@@ -113,7 +108,6 @@ from pygpsclient.strings import (
     LBLNMEACONFIG,
     LBLNTRIPCONFIG,
     LBLPROTDISP,
-    LBLSHOWTRACK,
     LBLSHOWUNUSED,
     LBLSPARTNCONFIG,
     LBLTRACKRECORD,
@@ -121,7 +115,6 @@ from pygpsclient.strings import (
 )
 
 MAXLINES = ("200", "500", "1000", "2000", "100")
-MAPTYPES = (WORLD, MAP, SAT, CUSTOM)
 # initial dimensions adjusted for different widget
 # rendering on different platforms
 if system() == "Linux":  # Wayland
@@ -166,9 +159,6 @@ class SettingsFrame(Frame):
         self._prot_tty = IntVar()
         self._autoscroll = IntVar()
         self._maxlines = IntVar()
-        self.maptype = StringVar()
-        self.showtrack = IntVar()
-        self.mapzoom = IntVar()
         self._units = StringVar()
         self._degrees_format = StringVar()
         self._console_format = StringVar()
@@ -354,8 +344,6 @@ class SettingsFrame(Frame):
             width=10,
             state=READONLY,
             wrap=True,
-            repeatdelay=RPTDELAY,
-            repeatinterval=RPTDELAY,
             textvariable=self._console_format,
         )
         self._chk_tags = Checkbutton(
@@ -370,8 +358,6 @@ class SettingsFrame(Frame):
             width=6,
             state=READONLY,
             wrap=True,
-            repeatdelay=RPTDELAY,
-            repeatinterval=RPTDELAY,
             textvariable=self._degrees_format,
         )
         self._spn_units = Spinbox(
@@ -380,8 +366,6 @@ class SettingsFrame(Frame):
             width=13,
             state=READONLY,
             wrap=True,
-            repeatdelay=RPTDELAY,
-            repeatinterval=RPTDELAY,
             textvariable=self._units,
         )
         self._chk_scroll = Checkbutton(
@@ -392,24 +376,8 @@ class SettingsFrame(Frame):
             values=MAXLINES,
             width=6,
             wrap=True,
-            repeatdelay=RPTDELAY,
-            repeatinterval=RPTDELAY,
             textvariable=self._maxlines,
             state=READONLY,
-        )
-        self._lbl_maptype = Label(self._frm_options, text="Map Type")
-        self.spn_maptype = Spinbox(
-            self._frm_options,
-            values=MAPTYPES,
-            width=6,
-            wrap=True,
-            repeatdelay=RPTDELAY,
-            repeatinterval=RPTDELAY,
-            textvariable=self.maptype,
-            state=READONLY,
-        )
-        self._chk_showtrack = Checkbutton(
-            self._frm_options, text=LBLSHOWTRACK, variable=self.showtrack
         )
         self._chk_unusedsat = Checkbutton(
             self._frm_options, text=LBLSHOWUNUSED, variable=self._show_unusedsat
@@ -425,8 +393,6 @@ class SettingsFrame(Frame):
             values=(FORMATS),
             width=20,
             wrap=True,
-            repeatdelay=RPTDELAY,
-            repeatinterval=RPTDELAY,
             textvariable=self._logformat,
             state=READONLY,
         )
@@ -535,30 +501,27 @@ class SettingsFrame(Frame):
         self._spn_units.grid(column=2, row=3, columnspan=2, padx=2, pady=2, sticky=W)
         self._chk_scroll.grid(column=0, row=5, padx=2, pady=2, sticky=W)
         self._spn_maxlines.grid(column=1, row=5, columnspan=3, padx=2, pady=2, sticky=W)
-        self._lbl_maptype.grid(column=0, row=6, padx=2, pady=2, sticky=W)
-        self._chk_showtrack.grid(column=2, row=6, padx=2, pady=2, sticky=W)
-        self.spn_maptype.grid(column=1, row=6, padx=2, pady=2, sticky=W)
         self._chk_unusedsat.grid(
-            column=0, row=7, columnspan=2, padx=2, pady=2, sticky=W
+            column=0, row=6, columnspan=2, padx=2, pady=2, sticky=W
         )
-        self._chk_datalog.grid(column=0, row=8, padx=2, pady=2, sticky=W)
-        self._spn_datalog.grid(column=1, row=8, columnspan=3, padx=2, pady=2, sticky=W)
+        self._chk_datalog.grid(column=0, row=7, padx=2, pady=2, sticky=W)
+        self._spn_datalog.grid(column=1, row=7, columnspan=3, padx=2, pady=2, sticky=W)
         self._chk_recordtrack.grid(
-            column=0, row=9, columnspan=2, padx=2, pady=2, sticky=W
+            column=0, row=8, columnspan=2, padx=2, pady=2, sticky=W
         )
-        self._btn_ubxconfig.grid(column=0, row=10)
-        self._lbl_ubxconfig.grid(column=0, row=11)
-        self._btn_nmeaconfig.grid(column=1, row=10)
-        self._lbl_nmeaconfig.grid(column=1, row=11)
-        self._btn_ntripconfig.grid(column=2, row=10)
-        self._lbl_ntripconfig.grid(column=2, row=11)
-        self._btn_spartnconfig.grid(column=3, row=10)
-        self._lbl_spartnconfig.grid(column=3, row=11)
+        self._btn_ubxconfig.grid(column=0, row=9)
+        self._lbl_ubxconfig.grid(column=0, row=10)
+        self._btn_nmeaconfig.grid(column=1, row=9)
+        self._lbl_nmeaconfig.grid(column=1, row=10)
+        self._btn_ntripconfig.grid(column=2, row=9)
+        self._lbl_ntripconfig.grid(column=2, row=10)
+        self._btn_spartnconfig.grid(column=3, row=9)
+        self._lbl_spartnconfig.grid(column=3, row=10)
         ttk.Separator(self._frm_container).grid(
-            column=0, row=9, columnspan=4, padx=2, pady=2, sticky=(W, E)
+            column=0, row=10, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
         self.frm_socketserver.grid(
-            column=0, row=10, columnspan=4, padx=2, pady=2, sticky=(W, E)
+            column=0, row=11, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
 
     def reset(self):
@@ -580,9 +543,6 @@ class SettingsFrame(Frame):
         self._autoscroll.set(cfg.get("autoscroll_b"))
         self._maxlines.set(cfg.get("maxlines_n"))
         self._console_format.set(cfg.get("consoleformat_s"))
-        self.maptype.set(cfg.get("maptype_s"))
-        self.showtrack.set(cfg.get("showtrack_b"))
-        self.mapzoom.set(cfg.get("mapzoom_n"))
         self.show_legend.set(cfg.get("legend_b"))
         self._show_unusedsat.set(cfg.get("unusedsat_b"))
         self._logformat.set(cfg.get("logformat_s"))
@@ -628,9 +588,6 @@ class SettingsFrame(Frame):
             self._prot_spartn,
             self._autoscroll,
             self._maxlines,
-            self.maptype,
-            self.showtrack,
-            self.mapzoom,
             self._units,
             self._degrees_format,
             self._console_format,
@@ -731,9 +688,6 @@ class SettingsFrame(Frame):
             cfg.set("autoscroll_b", int(self._autoscroll.get()))
             cfg.set("maxlines_n", int(self._maxlines.get()))
             cfg.set("consoleformat_s", self._console_format.get())
-            cfg.set("maptype_s", self.maptype.get())
-            cfg.set("showtrack_b", int(self.showtrack.get()))
-            cfg.set("mapzoom_n", int(self.mapzoom.get()))
             cfg.set("legend_b", int(self.show_legend.get()))
             cfg.set("unusedsat_b", int(self._show_unusedsat.get()))
             cfg.set("datalog_b", int(self._datalog.get()))

@@ -19,23 +19,22 @@ Created on 04 May 2023
 
 from pygpsclient.globals import Area
 
-MAPQURL = "https://www.mapquestapi.com/staticmap/v5/map?key={}"
-MARKERURL = "marker-sm-616161-ff4444"
-MAPURL = (
-    MAPQURL
-    + "&locations={},{}|{}&zoom={}&size={},{}&type={}&scalebar={}"
-    + "&shape=radius:{}|weight:1|fill:ccffff50|border:88888850|{},{}"
-)  # centered on location to zoom level
-MAPURLBB = (
-    MAPQURL
-    + "&locations={},{}|{}&zoom={}&size={},{}&type={}&scalebar={}"
-    + "&boundingBox={},{},{},{}"
-)  # bounding box without location
-MAPURLTRK = (
-    MAPQURL
-    + "&locations={},{}||{},{}&zoom={}&size={},{}&defaultMarker=marker-num"
-    + "&shape=weight:2|border:{}|{}&scalebar={}|bottom&type={}"
-)  # bounding box to track
+# MapQuest API URLS:
+MAPQURL = (
+    "https://www.mapquestapi.com/staticmap/v5/map?"
+    + "key={key}&type={type}&size={width},{height}"
+)
+BBOX = "&boundingBox={lat2},{lon1},{lat1},{lon2}"  # top left, bottom right
+HACC = "&shape=radius:{radius}|weight:1|fill:ccffff50|border:88888850|{lat},{lon}"
+LOC = "&locations={lat},{lon}|{marker}"
+LOCS = "&locations={lat1},{lon1}||{lat2},{lon2}&defaultMarker=marker-num"
+LOCICON = "marker-sm-616161-ff4444"
+MARGIN = "&margin={margin}"  # bbox margin (default 50)
+RETINA = "@2x"  # append to size clause for double the resolution
+SCALE = "&scalebar={scale}|bottom"  # true or false
+TRK = "&shape=weight:2|border:{color}|{track}"
+ZOOM = "&zoom={zoom}"  # zoom level 1-20
+
 POINTLIMIT = 500  # max number of shape points supported by MapQuest API
 MAPQTIMEOUT = 5
 # how frequently the mapquest api is called to update the web map (seconds)
@@ -44,6 +43,10 @@ MIN_UPDATE_INTERVAL = 5
 MAX_ZOOM = 20
 MIN_ZOOM = 1
 TRKCOL = "ff00ff"
+# MapQuest static API map types ("dark" and "light" not used here)
+MAP = "map"
+SAT = "sat"
+HYB = "hyb"
 
 
 def compress_track(track: tuple, precision: int = 6, limit: int = POINTLIMIT) -> str:
@@ -79,10 +82,10 @@ def format_mapquest_request(
     width: int,
     height: int,
     zoom: int,
-    locations: tuple,
+    locations: list,
     bbox: Area = None,
     hacc: float = 0,
-):
+) -> str:
     """
     Formats URL for web map download.
 
@@ -91,7 +94,7 @@ def format_mapquest_request(
     :param int width: width of canvas
     :param int height: height of canvas
     :param int zoom: zoom factor
-    :param tuple locations: tuple of Points
+    :param list locations: list of Points
     :param Area bbox: bounding box (will override zoom)
     :param float hacc: horizontal accuracy
     :return: formatted MapQuest URL
@@ -99,63 +102,41 @@ def format_mapquest_request(
     """
     # pylint: disable=too-many-arguments, too-many-positional-arguments
 
+    url = MAPQURL.format(key=mqapikey, type=maptype, width=width, height=height)
     radius = str(hacc / 1000)  # km
     zoom = min(20, zoom)
+
+    if bbox is None:  # use location and zoom level
+        url += ZOOM.format(zoom=zoom)
+    else:  # use bounding box (remember upper left, bottom right)
+        url += BBOX.format(
+            lat2=bbox.lat2, lon1=bbox.lon1, lat1=bbox.lat1, lon2=bbox.lon2
+        ) + MARGIN.format(margin=0)
+
+    if isinstance(locations, list):  # at least one location
+        if len(locations) > 1:  # multiple locations (track)
+            comp = compress_track(locations)
+            url += LOCS.format(
+                lat1=locations[0].lat,
+                lon1=locations[0].lon,
+                lat2=locations[-1].lat,
+                lon2=locations[-1].lon,
+            ) + TRK.format(color=TRKCOL, track=f"cmp6|enc:{comp}")
+        else:  # single location
+            url += LOC.format(
+                lat=locations[0].lat, lon=locations[0].lon, marker=LOCICON
+            )
+
+        if hacc > 0:
+            url += HACC.format(
+                radius=radius, lat=locations[0].lat, lon=locations[0].lon
+            )
+
     # seems to be bug in MapQuest API which causes error
     # if scalebar displayed at maximum zoom
-    scalebar = "true" if zoom < 20 else "false"
+    url += SCALE.format(scale=("true" if zoom < 20 else "false"))
 
-    # if more than 1 location, set bounds to track extent
-    if len(locations) > 1:
-        comp = compress_track(locations)
-        return MAPURLTRK.format(
-            mqapikey,
-            locations[0].lat,
-            locations[0].lon,
-            locations[-1].lat,
-            locations[-1].lon,
-            zoom,
-            width,
-            height,
-            TRKCOL,
-            f"cmp6|enc:{comp}",
-            scalebar,
-            maptype,
-        )
-
-    # set bounds to specified bbox extent
-    if bbox is not None:
-        return MAPURLBB.format(
-            mqapikey,
-            locations[0].lat,
-            locations[0].lon,
-            MARKERURL,
-            zoom,
-            width,
-            height,
-            maptype,
-            scalebar,
-            bbox.lat1,
-            bbox.lon1,
-            bbox.lat2,
-            bbox.lon2,
-        )
-
-    # set bounds according to location and zoom level
-    return MAPURL.format(
-        mqapikey,
-        locations[0].lat,
-        locations[0].lon,
-        MARKERURL,
-        zoom,
-        width,
-        height,
-        maptype,
-        scalebar,
-        radius,
-        locations[0].lat,
-        locations[0].lon,
-    )
+    return url
 
 
 def mapq_encode(num: int) -> str:

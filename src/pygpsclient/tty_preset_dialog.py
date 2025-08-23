@@ -53,7 +53,7 @@ from pygpsclient.toplevel_dialog import ToplevelDialog
 CANCELLED = 0
 CONFIRMED = 1
 NOMINAL = 2
-MINDIM = (463, 493)
+MINDIM = (610, 500)
 
 
 class TTYPresetDialog(ToplevelDialog):
@@ -163,7 +163,7 @@ class TTYPresetDialog(ToplevelDialog):
             rowspan=10,
             padx=3,
             pady=3,
-            sticky=(W, E),
+            sticky=(N, S, W, E),
         )
         self._scr_presetv.grid(column=2, row=3, rowspan=21, sticky=(N, S, E))
         self._scr_preseth.grid(column=0, row=24, columnspan=3, sticky=(W, E))
@@ -173,6 +173,14 @@ class TTYPresetDialog(ToplevelDialog):
         self._lbl_send_command.grid(
             column=3, row=4, padx=3, ipadx=3, ipady=3, sticky=(N, W, E)
         )
+        self.container.grid_columnconfigure(0, weight=10)
+        self.container.grid_rowconfigure(0, weight=10)
+        self.grid_columnconfigure(0, weight=10)
+        self.grid_rowconfigure(0, weight=10)
+        colsp, _ = self._frm_body.grid_size()
+        for col in range(colsp - 1):
+            self._frm_body.grid_columnconfigure(col, weight=10)
+        self._frm_body.grid_rowconfigure(3, weight=10)
 
     def _attach_events(self):
         """

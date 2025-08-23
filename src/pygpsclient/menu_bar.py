@@ -35,7 +35,15 @@ from pygpsclient.strings import (
 )
 from pygpsclient.widget_state import MENU
 
-DIALOGS = (DLGTUBX, DLGTNMEA, DLGTNTRIP, DLGTSPARTN, DLGTGPX, DLGTIMPORTMAP, DLGTTTY)
+DIALOGS = (
+    DLGTUBX,
+    DLGTNMEA,
+    DLGTNTRIP,
+    DLGTSPARTN,
+    DLGTGPX,
+    DLGTIMPORTMAP,
+    DLGTTTY,
+)
 
 
 class MenuBar(Menu):

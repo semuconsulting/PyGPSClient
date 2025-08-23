@@ -44,7 +44,6 @@ from pygpsclient.globals import (
     BGCOL,
     GRIDCOL,
     READONLY,
-    RPTDELAY,
     WIDGETU6,
     AreaXY,
 )
@@ -255,11 +254,10 @@ class ChartviewFrame(Frame):
                 wrap=True,
                 textvariable=self._data_scale[chn],
                 state=NORMAL,
-                repeatdelay=RPTDELAY,
-                repeatinterval=RPTDELAY,
                 width=10,
                 fg=self._plotcols[chn],
                 bg=BGCOL,
+                buttonbackground=BGCOL,
             )
             self._spn_miny[chn] = Spinbox(
                 self,
@@ -267,11 +265,10 @@ class ChartviewFrame(Frame):
                 wrap=True,
                 textvariable=self._data_miny[chn],
                 state=NORMAL,
-                repeatdelay=RPTDELAY,
-                repeatinterval=RPTDELAY,
                 width=10,
                 fg=self._plotcols[chn],
                 bg=BGCOL,
+                buttonbackground=BGCOL,
             )
             self._spn_maxy[chn] = Spinbox(
                 self,
@@ -279,11 +276,10 @@ class ChartviewFrame(Frame):
                 wrap=True,
                 textvariable=self._data_maxy[chn],
                 state=NORMAL,
-                repeatdelay=RPTDELAY,
-                repeatinterval=RPTDELAY,
                 width=10,
                 fg=self._plotcols[chn],
                 bg=BGCOL,
+                buttonbackground=BGCOL,
             )
 
         self._spn_timrange = Spinbox(
@@ -292,11 +288,10 @@ class ChartviewFrame(Frame):
             wrap=True,
             textvariable=self._timrange,
             state=READONLY,
-            repeatdelay=RPTDELAY,
-            repeatinterval=RPTDELAY,
             width=8,
             fg=LBLCOL,
             readonlybackground=BGCOL,
+            buttonbackground=BGCOL,
         )
         self._spn_maxpoints = Spinbox(
             self,
@@ -304,11 +299,10 @@ class ChartviewFrame(Frame):
             wrap=True,
             textvariable=self._maxpoints,
             state=READONLY,
-            repeatdelay=RPTDELAY,
-            repeatinterval=RPTDELAY,
             width=8,
             fg=LBLCOL,
             readonlybackground=BGCOL,
+            buttonbackground=BGCOL,
         )
 
     def _do_layout(self):

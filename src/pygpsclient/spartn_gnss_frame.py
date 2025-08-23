@@ -50,7 +50,6 @@ from pygpsclient.globals import (
     ICON_WARNING,
     OKCOL,
     READONLY,
-    RPTDELAY,
     RXMMSG,
     SPARTN_GNSS,
     SPARTN_KEYLEN,
@@ -206,8 +205,6 @@ class SPARTNGNSSDialog(Frame):
             width=4,
             state=READONLY,
             wrap=True,
-            repeatdelay=RPTDELAY,
-            repeatinterval=RPTDELAY,
             textvariable=self._dgnssto,
         )
         self._lbl_loadjson = Label(

@@ -53,7 +53,6 @@ from pygpsclient.globals import (
     INFOCOL,
     NTRIP,
     READONLY,
-    RPTDELAY,
     UBX_CFGMSG,
     UBX_CFGPRT,
     UBX_CFGRATE,
@@ -192,8 +191,6 @@ class NTRIPConfigDialog(ToplevelDialog):
             values=(NTRIP_VERSIONS),
             width=4,
             wrap=True,
-            repeatdelay=RPTDELAY,
-            repeatinterval=RPTDELAY,
             textvariable=self._ntrip_version,
             state=READONLY,
         )
@@ -203,8 +200,6 @@ class NTRIPConfigDialog(ToplevelDialog):
             values=(RTCM, SPARTN),
             width=8,
             wrap=True,
-            repeatdelay=RPTDELAY,
-            repeatinterval=RPTDELAY,
             textvariable=self._ntrip_datatype,
             state=READONLY,
         )
@@ -231,8 +226,6 @@ class NTRIPConfigDialog(ToplevelDialog):
             values=(GGA_INTERVALS),
             width=5,
             wrap=True,
-            repeatdelay=RPTDELAY,
-            repeatinterval=RPTDELAY,
             textvariable=self._ntrip_gga_interval,
             state=READONLY,
         )
