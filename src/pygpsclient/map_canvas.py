@@ -35,7 +35,7 @@ from tkinter import (
 )
 
 from PIL import Image, ImageTk, UnidentifiedImageError
-from pynmeagps import haversine
+from pynmeagps import planar
 from requests import ConnectionError as ConnError
 from requests import ConnectTimeout, RequestException, get
 
@@ -511,13 +511,12 @@ class MapCanvas(Canvas):  # pylint: disable=too-many-ancestors
         radius = int(
             sqrt(self.height**2 + self.width**2)
             * hacc
-            / haversine(
+            / planar(
                 self._bounds.lat1,
                 self._bounds.lon1,
                 self._bounds.lat2,
                 self._bounds.lon2,
             )
-            / 1000  # km radius
         )
         x, y = ll2xy(self.width, self.height, self._bounds, location)
         self.create_circle(x, y, radius, outline=HACCCOL, fill="", tags=TAG_HACC)
