@@ -61,7 +61,7 @@ For [Bug reports](https://github.com/semuconsulting/PyGPSClient/blob/master/.git
 
 ![Python version](https://img.shields.io/pypi/pyversions/PyGPSClient.svg?style=flat)
 [![PyPI version](https://img.shields.io/pypi/v/PyGPSClient.svg?style=flat)](https://pypi.org/project/PyGPSClient/)
-[![PyPI downloads](https://github.com/semuconsulting/PyGPSClient/blob/master/images/clickpy_icon.svg?raw=true)](https://clickpy.clickhouse.com/dashboard/pygpsclient)
+[![PyPI downloads](https://github.com/semuconsulting/PyGPSClient/blob/master/images/clickpy_top10.svg?raw=true)](https://clickpy.clickhouse.com/dashboard/pygpsclient)
 
 ## The Quick Version
 

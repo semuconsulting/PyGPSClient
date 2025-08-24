@@ -5,8 +5,8 @@ build-backend = "setuptools.build_meta:__legacy__"
 [project]
 name = "pygpsclient"
 dynamic = ["version"]
-authors = [{ name = "semuadmin", email = "semuadmin@semuconsulting.com" }]
-maintainers = [{ name = "semuadmin", email = "semuadmin@semuconsulting.com" }]
+authors = [{ name = "Steve Smith", email = "semuadmin@semuconsulting.com" }]
+maintainers = [{ name = "Steve Smith", email = "semuadmin@semuconsulting.com" }]
 description = "GNSS Diagnostic and UBX Configuration GUI Application"
 license = "BSD-3-Clause"
 license-files = ["LICENSE"]
