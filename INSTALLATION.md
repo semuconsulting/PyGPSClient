@@ -61,7 +61,7 @@ The exact location of the site_packages and binary directories will depend on th
 
 In the following, `python3` & `pip` refer to the Python 3 executables. You may need to substitute `python` for `python3`, depending on your particular environment (*on Windows it's generally `python`*). 
 
-- Python 3.9 - 3.14
+- Python >= 3.9
 - Tk (tkinter) >= 8.6⁴ (*tkinter is a commonly used library for developing Graphical User Interfaces (GUI) in Python*)
 - Screen resolution >= 640 x 400; Ideally 1920 x 1080, though at lower screen resolutions (<= 1024 width), top level dialogs will be resizable and scrollable.
 
@@ -108,7 +108,7 @@ It is generally considered best practice to install into a [virtual environment]
 
 ```shell
 python3 -m venv pygpsclient
-source pygpsclient/bin/activate # (or pygpsclient\Scripts\activate on Windows)
+source pygpsclient/bin/activate # (or .\pygpsclient\Scripts\activate on Windows)
 python3 -m pip install --upgrade pygpsclient
 pygpsclient
 ```
@@ -121,13 +121,13 @@ deactivate
 
 To reactivate and run from the virtual environment:
 ```shell
-source pygpsclient/bin/activate # (or pygpsclient\Scripts\activate on Windows)
+source pygpsclient/bin/activate # (or .\pygpsclient\Scripts\activate on Windows)
 pygpsclient
 ```
 
 To upgrade PyGPSClient to the latest version from the virtual environment:
 ```shell
-source pygpsclient/bin/activate # (or pygpsclient\Scripts\activate on Windows)
+source pygpsclient/bin/activate # (or .\pygpsclient\Scripts\activate on Windows)
 python3 -m pip install --upgrade pygpsclient
 ```
 
@@ -143,10 +143,11 @@ pygpsclient -h
 
 ⁵ **NB:** If the Python 3 binaries folder is *not* in your PATH, you will need to add the fully-qualified path to the `pygpsclient` executable in the command above.
 
-<a name="binaries">**Tip:**</a> The location of the relevant binaries folder(s) can usually be found by executing the following command:
+<a name="binaries">**Tip:**</a> The location of the relevant binaries folder(s) can usually be found by executing the following commands:
 
 ```shell
-python3 -c "import os,sysconfig;print(sysconfig.get_path('scripts'))" && python3 -c "import os,sysconfig;print(sysconfig.get_path('scripts',f'{os.name}_user'))"
+python3 -c "import os,sysconfig;print(sysconfig.get_path('scripts'))"
+python3 -c "import os,sysconfig;print(sysconfig.get_path('scripts',f'{os.name}_user'))"
 ```
 
 **NB** The pip installation process does not automatically create a desktop application launcher, but this can be done manually - see [APPLAUNCH](https://github.com/semuconsulting/PyGPSClient/blob/master/APPLAUNCH.md).
@@ -181,7 +182,7 @@ pipx ensurepath # ensures venv binaries folder is in PATH
 pipx install pygpsclient
 ```
 
-pipx will typically create a virtual environment in the user's local shared folder e.g. `/home/user/.local/share/pipx/venvs/pygpsclient`.
+pipx will typically create a virtual environment in the user's home folder e.g. `/home/user/.local/share/pipx/venvs/pygpsclient` or `C:\Users\user\pipx\venvs\pygpsclient>`.
 
 ## <a name="script">Install using installation script</a>
 
