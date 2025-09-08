@@ -46,6 +46,7 @@ This is an independent project and we have no affiliation whatsoever with any GN
 ![Contributors](https://img.shields.io/github/contributors/semuconsulting/PyGPSClient.svg)
 ![Open Issues](https://img.shields.io/github/issues-raw/semuconsulting/PyGPSClient)
 
+
 The PyGPSClient home page is at [PyGPSClient](https://github.com/semuconsulting/PyGPSClient). The following references may be useful:
 1. [Glossary of GNSS Terms and Abbreviations](https://www.semuconsulting.com/gnsswiki/glossary/).
 1. [GNSS Positioning - A Reviser](https://www.semuconsulting.com/gnsswiki/) - a general overview of GNSS, OSR, SSR, RTK, NTRIP and SPARTN positioning and error correction technologies and terminology.
@@ -55,6 +56,8 @@ The PyGPSClient home page is at [PyGPSClient](https://github.com/semuconsulting/
 Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/semuconsulting/PyGPSClient/blob/master/CONTRIBUTING.md).
 
 For [Bug reports](https://github.com/semuconsulting/PyGPSClient/blob/master/.github/ISSUE_TEMPLATE/bug_report.md), please use the template provided. For feature requests and general queries and advice, post a message to one of the [PyGPSClient Discussions](https://github.com/semuconsulting/PyGPSClient/discussions) channels in the first instance.
+
+![No Copilot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/nocopilot100.png?raw=true)
 
 ---
 ## <a name="installation">Installation</a>
@@ -517,4 +520,4 @@ semuadmin@semuconsulting.com
 
 [![Sponsor](https://github.com/semuconsulting/pyubx2/blob/master/images/sponsor.png?raw=true)](https://buymeacoffee.com/semuconsulting)
 
-[![Freedom for Ukraine](https://github.com/semuadmin/sandpit/blob/main/src/sandpit/resources/ukraine200.jpg?raw=true)](https://u24.gov.ua/)
+[![Freedom for Ukraine](https://github.com/semuadmin/sandpit/blob/main/src/semuadmin_sandpit/resources/ukraine200.jpg?raw=true)](https://u24.gov.ua/)
