@@ -75,9 +75,11 @@ Normally installs without any additional steps.
 
 ### MacOS 13 or later
 
-⁴ The version of Python supplied with some older Apple MacOS platforms includes a [deprecated version of tkinter](https://www.python.org/download/mac/tcltk/) (8.5). Use an official [Python.org](https://www.python.org/downloads/) installation package instead. 
+⁴ The version of Python supplied with some older Apple MacOS platforms includes a [deprecated version of tkinter](https://www.python.org/download/mac/tcltk/) (8.5). Use an official [Python.org](https://www.python.org/downloads/macos) installation package instead. 
 
-**NB:** Python does ***NOT*** require Homebrew or MacPorts to be installed on MacOS. The Python organisation provides perfectly serviceable [64-bit universal installation packages](https://www.python.org/downloads/macos/) for all current and legacy versions of Python, including release candidates.
+**NB:** Python does ***NOT*** require Homebrew or MacPorts to be installed on MacOS. The Python organisation provides perfectly serviceable [64-bit universal installation packages](https://www.python.org/downloads/macos/) for all current and legacy versions of Python, including release candidates. 
+
+However, if you wish to install Python using [Homebrew](https://brew.sh/), note that you will need to use `brew install python-tk@3.*` rather than `brew install python@3.*`, as the latter does not include the tkinter (tcl-tk) library by default. Note also that the Homebrew formulae for python-tk>=3.12 include the latest tkinter 9.0 (rather than 8.6). There are known compatibility issues between tkinter 9.0 and other Python packages (*e.g. ImageTk*) on some platform configurations, which may result in PyGPSClient being unable to load. If you encounter these issues, consider using `brew install python-tk@3.11` or an official [Python.org](https://www.python.org/downloads/macos) installation package instead.
 
 ### Linux (including Raspberry Pi OS)
 
