@@ -62,7 +62,7 @@ The exact location of the site_packages and binary directories will depend on th
 In the following, `python3` & `pip` refer to the Python 3 executables. You may need to substitute `python` for `python3`, depending on your particular environment (*on Windows it's generally `python`*). 
 
 - Python >= 3.9
-- Tk (tkinter) >= 8.6⁴ (*tkinter is a commonly used library for developing Graphical User Interfaces (GUI) in Python*)
+- Tk (tkinter) >= 8.6, < 9.0⁴ (*tkinter is a commonly used library for developing Graphical User Interfaces (GUI) in Python*)
 - Screen resolution >= 640 x 400; Ideally 1920 x 1080, though at lower screen resolutions (<= 1024 width), top level dialogs will be resizable and scrollable.
 
 **NB** It is highly recommended to use the latest official [Python.org](https://www.python.org/downloads/) installation package for your platform, rather than any pre-installed version.
@@ -77,9 +77,15 @@ Normally installs without any additional steps.
 
 ⁴ The version of Python supplied with some older Apple MacOS platforms includes a [deprecated version of tkinter](https://www.python.org/download/mac/tcltk/) (8.5). Use an official [Python.org](https://www.python.org/downloads/macos) installation package instead. 
 
-**NB:** Python does ***NOT*** require Homebrew or MacPorts to be installed on MacOS. The Python organisation provides perfectly serviceable [64-bit universal installation packages](https://www.python.org/downloads/macos/) for all current and legacy versions of Python, including release candidates. 
+**NB:** Python does ***NOT*** require Homebrew or MacPorts to be installed on MacOS. The Python organisation provides serviceable [64-bit universal installation packages](https://www.python.org/downloads/macos/) for all current and legacy versions of Python, including release candidates. 
 
-However, if you wish to install Python using [Homebrew](https://brew.sh/), note that you will need to use `brew install python-tk@3.*` rather than `brew install python@3.*`, as the latter does not include the tkinter (tcl-tk) library by default. Note also that the Homebrew formulae for python-tk>=3.12 include the latest tkinter 9.0 (rather than 8.6). There are known compatibility issues between tkinter 9.0 and other Python packages (*e.g. ImageTk*) on some platform configurations, which may result in PyGPSClient being unable to load. If you encounter these issues, consider using `brew install python-tk@3.11` or an official [Python.org](https://www.python.org/downloads/macos) installation package instead.
+However, if you wish to install Python using [Homebrew](https://brew.sh/) to take advantage of certain non-default configurations (*e.g. support for sqlite3 extensions*), use the `python-tk` formula rather than `python`, e.g. 
+
+```shell
+brew install python-tk@3.13 libspatialite
+```
+
+Note also that the Homebrew formulae for python-tk>=3.12 include the latest tkinter 9.0 (rather than 8.6). There are known compatibility issues between tkinter 9.0 and other Python packages (*e.g. ImageTk*) on some platform configurations, which may result in PyGPSClient being unable to load. If you encounter these issues, consider using `brew install python-tk@3.11` or an official [Python.org](https://www.python.org/downloads/macos) installation package instead.
 
 ### Linux (including Raspberry Pi OS)
 
