@@ -62,7 +62,7 @@ The exact location of the site_packages and binary directories will depend on th
 In the following, `python3` & `pip` refer to the Python 3 executables. You may need to substitute `python` for `python3`, depending on your particular environment (*on Windows it's generally `python`*). 
 
 - Python >= 3.9
-- Tk (tkinter) >= 8.6, < 9.0⁴ (*tkinter is a commonly used library for developing Graphical User Interfaces (GUI) in Python*)
+- Tk (tkinter) >= 8.6⁴ (*tkinter is a commonly used library for developing Graphical User Interfaces (GUI) in Python*)
 - Screen resolution >= 640 x 400; Ideally 1920 x 1080, though at lower screen resolutions (<= 1024 width), top level dialogs will be resizable and scrollable.
 
 **NB** It is highly recommended to use the latest official [Python.org](https://www.python.org/downloads/) installation package for your platform, rather than any pre-installed version.
