@@ -12,8 +12,8 @@ Settings frame class for PyGPSClient application.
 
 Created on 12 Sep 2020
 
-:author: semuadmin
-:copyright: 2020 SEMU Consulting
+:author: semuadmin (Steve Smith)
+:copyright: 2020 semuadmin
 :license: BSD 3-Clause
 """
 
@@ -102,6 +102,7 @@ from pygpsclient.strings import (
     DLGTNTRIP,
     DLGTSPARTN,
     DLGTUBX,
+    LBLDATABASERECORD,
     LBLDATADISP,
     LBLDATALOG,
     LBLDEGFORMAT,
@@ -151,6 +152,7 @@ class SettingsFrame(Frame):
         self.infilepath = None
         self.logpath = HOME
         self.trackpath = HOME
+        self.databasepath = HOME
         self._prot_nmea = IntVar()
         self._prot_ubx = IntVar()
         self._prot_sbf = IntVar()
@@ -165,6 +167,7 @@ class SettingsFrame(Frame):
         self._datalog = IntVar()
         self._logformat = StringVar()
         self._record_track = IntVar()
+        self._record_database = IntVar()
         self._show_unusedsat = IntVar()
         self.show_legend = IntVar()
         self._colortag = IntVar()
@@ -402,6 +405,12 @@ class SettingsFrame(Frame):
             variable=self._record_track,
             command=lambda: self._on_record_track(),
         )
+        self._chk_recorddatabase = Checkbutton(
+            self._frm_options,
+            text=LBLDATABASERECORD,
+            variable=self._record_database,
+            command=lambda: self._on_record_database(),
+        )
         # configuration panel buttons
         self._lbl_ubxconfig = Label(
             self._frm_options,
@@ -509,6 +518,9 @@ class SettingsFrame(Frame):
         self._chk_recordtrack.grid(
             column=0, row=8, columnspan=2, padx=2, pady=2, sticky=W
         )
+        self._chk_recorddatabase.grid(
+            column=2, row=8, columnspan=2, padx=2, pady=2, sticky=W
+        )
         self._btn_ubxconfig.grid(column=0, row=9)
         self._lbl_ubxconfig.grid(column=0, row=10)
         self._btn_nmeaconfig.grid(column=1, row=9)
@@ -550,6 +562,8 @@ class SettingsFrame(Frame):
         self.logpath = cfg.get("logpath_s")
         self._record_track.set(cfg.get("recordtrack_b"))
         self.trackpath = cfg.get("trackpath_s")
+        self._record_database.set(cfg.get("database_b"))
+        self.databasepath = cfg.get("databasepath_s")
         self.clients = 0
         self._bind_events(True)
 
@@ -594,6 +608,7 @@ class SettingsFrame(Frame):
             self._datalog,
             self._logformat,
             self._record_track,
+            self._record_database,
             self._show_unusedsat,
             self.show_legend,
             self._colortag,
@@ -695,6 +710,8 @@ class SettingsFrame(Frame):
             cfg.set("logpath_s", self.logpath)
             cfg.set("recordtrack_b", int(self._record_track.get()))
             cfg.set("trackpath_s", int(self.trackpath))
+            cfg.set("database_b", int(self._record_database.get()))
+            cfg.set("databasepath_s", self.databasepath)
         except (ValueError, TclError):
             pass
 
@@ -820,19 +837,19 @@ class SettingsFrame(Frame):
 
         if self._datalog.get() == 1:
             if self.logpath in ("", None):
-                self.logpath = self.__app.file_handler.set_logfile_path(self.logpath)
+                self.logpath = self.__app.file_handler.set_logfile_path()
             if self.logpath is not None:
                 self.__app.configuration.set("datalog_b", 1)
                 self.__app.configuration.set("logpath_s", self.logpath)
-                self.__app.set_status("Data logging enabled: " + self.logpath)
+                self.__app.set_status(f"Data logging enabled: {self.logpath}")
                 self.__app.file_handler.open_logfile()
             else:
                 self.logpath = ""
-                self._datalog.set(False)
+                self._datalog.set(0)
             self._spn_datalog.config(state=DISABLED)
         else:
             self.__app.configuration.set("datalog_b", 0)
-            self._datalog.set(False)
+            self._datalog.set(0)
             self.__app.file_handler.close_logfile()
             self.__app.set_status("Data logging disabled")
             self._spn_datalog.config(state=READONLY)
@@ -843,17 +860,41 @@ class SettingsFrame(Frame):
         """
 
         if self._record_track.get() == 1:
-            self.trackpath = self.__app.file_handler.set_trackfile_path(self.trackpath)
+            if self.trackpath in ("", None):
+                self.trackpath = self.__app.file_handler.set_trackfile_path()
             if self.trackpath is not None:
-                self.__app.set_status("Track recording enabled: " + self.trackpath)
+                self.__app.configuration.set("recordtrack_b", 1)
+                self.__app.configuration.set("trackpath_s", self.trackpath)
+                self.__app.set_status(f"Track recording enabled: {self.trackpath}")
                 self.__app.file_handler.open_trackfile()
             else:
                 self.trackpath = ""
-                self._record_track.set(False)
+                self._record_track.set(0)
         else:
-            self._record_track.set(False)
+            self._record_track.set(0)
+            self.__app.configuration.set("recordtrack_b", 0)
             self.__app.file_handler.close_trackfile()
             self.__app.set_status("Track recording disabled")
+
+    def _on_record_database(self):
+        """
+        Start or stop database recorder.
+        """
+
+        if self._record_database.get() == 1:
+            if self.databasepath in ("", None):
+                self.databasepath = self.__app.file_handler.set_database_path()
+            if self.databasepath is not None:
+                rc = self.__app.sqlite_handler.open(dbpath=self.databasepath)
+                rc = 1 if rc == 1 else 0
+                self.__app.configuration.set("database_b", rc)
+                self.__app.configuration.set("databasepath_s", self.databasepath)
+            else:
+                self.databasepath = ""
+                self._record_database.set(0)
+        else:
+            self.__app.configuration.set("database_b", 0)
+            self.__app.set_status("Database recording disabled")
 
     def enable_controls(self, status: int):
         """

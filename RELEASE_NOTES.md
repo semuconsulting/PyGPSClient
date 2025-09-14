@@ -1,5 +1,24 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.5.14
+
+ENHANCEMENTS:
+
+1. Add facility to write gnss status data to a spatialite (sqlite3 with spatial extension) database, which can be utilised by many standard GNSS visualisation and analysis applications e.g. QGIS, GDAL, GRASS, GeoPandas etc. The facility may be enabled via a new `database` checkbox on the Settings panel. The default database path is `$HOME/pygpsclient.sqlite`. A single table `pygpsclient` is populated with all the information displayed in PyGPSClient's banner panel, with lat/lon/hmsl available as a POINTZ (3D) geometry. Note that, when first created, the database spatial metadata will take a few seconds to initialise.
+
+   **NB**: The facility is subject to the following Python environmental criteria:
+
+   - The Python environment must support the loading of sqlite3 extensions i.e. it must have been compiled with the `--enable-loadable-sqlite-extensions` option. This is true by default for most Windows and Linux platforms but **NOT** for most MacOS platforms. 
+   - The mod_spatialite module (.so, .dll or .dylib) must be installed and in `PATH` (or `LD_LIBRARY_PATH` on Linux).
+   
+   On MacOS platforms, it *may* be necessary to install (*e.g. via Homebrew*) a custom version of Python with the `--enable-loadable-sqlite-extensions` flag set and the `libspatialite` package installed e.g.
+
+   `brew install python-tk@3.13 libspatialite`
+
+   On Linux platforms which do not support sqlite3 extensions out of the box, it may be possible to compile from source a  a suitable version of [Python](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/python_compile.sh) and/or [libspatialite](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/libspatialite_compile.sh).
+
+2. BSD 3-Clause license attribution clarified in all modules.
+
 ### RELEASE 1.5.13
 
 ENHANCEMENTS:

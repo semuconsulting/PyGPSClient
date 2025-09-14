@@ -5,8 +5,8 @@ Class holding all PyGPSClient configuration settings.
 
 Created on 18 Apr 2025
 
-:author: semuadmin
-:copyright: 2020 SEMU Consulting
+:author: semuadmin (Steve Smith)
+:copyright: 2020 semuadmin
 :license: BSD 3-Clause
 """
 
@@ -112,6 +112,8 @@ class Configuration:
             "logpath_s": "",
             "recordtrack_b": 0,
             "trackpath_s": "",
+            "database_b": 0,
+            "databasepath_s": "",
             # serial port settings from frm_serial
             "serialport_s": "/dev/ttyACM0",
             "bpsrate_n": 9600,

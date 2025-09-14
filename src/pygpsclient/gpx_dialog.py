@@ -5,8 +5,8 @@ This is the pop-up dialog for the GPX Viewer function.
 
 Created on 10 Jan 2023
 
-:author: semuadmin
-:copyright: 2020 SEMU Consulting
+:author: semuadmin (Steve Smith)
+:copyright: 2020 semuadmin
 :license: BSD 3-Clause
 """
 
@@ -74,7 +74,7 @@ AXIS_XR = 35  # x axis right offset
 AXIS_Y = 15  # y axis bottom offset
 ELEAX_COL = "green4"  # color of elevation plot axis
 ELE_COL = "palegreen3"  # color of elevation plot
-SPD_COL = INFOCOL  # color of speed plot
+SPD_COL = "coral"  # color of speed plot
 TRK_COL = "magenta"  # color of track
 MD_LINES = 2  # number of lines of metadata
 MINDIM = (400, 500)

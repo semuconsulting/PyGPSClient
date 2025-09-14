@@ -24,8 +24,8 @@ To override individual module loglevel, use e.g.
 
 Created on 12 Sep 2020
 
-:author: semuadmin
-:copyright: 2020 SEMU Consulting
+:author: semuadmin (Steve Smith)
+:copyright: 2020 semuadmin
 :license: BSD 3-Clause
 """
 
@@ -86,6 +86,7 @@ from pygpsclient.menu_bar import MenuBar
 from pygpsclient.nmea_handler import NMEAHandler
 from pygpsclient.rtcm3_handler import RTCM3Handler
 from pygpsclient.sbf_handler import SBFHandler
+from pygpsclient.sqllite_handler import SqliteHandler
 from pygpsclient.stream_handler import StreamHandler
 from pygpsclient.strings import (
     CONFIGERR,
@@ -171,12 +172,14 @@ class App(Frame):
         self.tty_handler = TTYHandler(self)
         self.ntrip_handler = GNSSNTRIPClient(self)
         self.spartn_handler = GNSSMQTTClient(self)
+        self.sqlite_handler = SqliteHandler(self)
         self._conn_status = DISCONNECTED
         self._rtk_conn_status = DISCONNECTED
         self._nowidgets = True
         self._last_gui_update = datetime.now()
         self._socket_thread = None
         self._socket_server = None
+        self.database_enabled = False
         self._colcount = 0
         self._rowcount = 0
         self._consoledata = []
@@ -215,6 +218,13 @@ class App(Frame):
         self.frm_banner.update_conn_status(DISCONNECTED)
         if self.frm_settings.frm_serial.status == NOPORTS:
             self.set_status(INTROTXTNOPORTS, ERRCOL)
+
+        # open database if database recording enabled
+        dbpath = self.configuration.get("databasepath_s")
+        if self.configuration.get("database_b") and dbpath != "":
+            self.configuration.set(
+                "database_b", self.sqlite_handler.open(dbpath=dbpath)
+            )
 
         # check for more recent version (if enabled)
         if self.configuration.get("checkforupdate_b") and configerr == "":
@@ -421,6 +431,7 @@ class App(Frame):
 
         color = INFOCOL if color == "blue" else color
         self.frm_status.set_status(message, color)
+        self.update_idletasks()
 
     def set_event(self, evt: str):
         """
@@ -633,6 +644,7 @@ class App(Frame):
         self.file_handler.close_trackfile()
         self.stop_sockserver_thread()
         self.stream_handler.stop_read_thread()
+        self.sqlite_handler.close()
         self.__master.destroy()
 
     def on_gnss_read(self, event):  # pylint: disable=unused-argument
@@ -873,6 +885,9 @@ class App(Frame):
             seconds=self.configuration.get("guiupdateinterval_f")
         ):
             self._refresh_widgets()
+            # update database if enabled
+            if self.configuration.get("database_b"):
+                self.sqlite_handler.load_data()
             self._last_gui_update = datetime.now()
 
         # update GPX track file if enabled

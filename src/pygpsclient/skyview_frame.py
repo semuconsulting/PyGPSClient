@@ -7,8 +7,8 @@ This handles a frame containing a 2D plot of satellite visibility.
 
 Created on 13 Sep 2020
 
-:author: semuadmin
-:copyright: 2020 SEMU Consulting
+:author: semuadmin (Steve Smith)
+:copyright: 2020 semuadmin
 :license: BSD 3-Clause
 """
 

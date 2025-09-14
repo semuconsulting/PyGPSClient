@@ -8,8 +8,8 @@ a MON-SPAN message.
 
 Created on 23 Dec 2022
 
-:author: semuadmin
-:copyright: 2020 SEMU Consulting
+:author: semuadmin (Steve Smith)
+:copyright: 2020 semuadmin
 :license: BSD 3-Clause
 """
 

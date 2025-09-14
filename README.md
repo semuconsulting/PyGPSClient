@@ -104,8 +104,9 @@ Please refer to [INSTALLATION.md](https://github.com/semuconsulting/PyGPSClient/
 1. Tags - enable color tags in console (see Console Widget below).
 1. Position Format and Units - Change the displayed position (D.DD / D.M.S / D.M.MM / ECEF) and unit (metric/imperial) formats.
 1. Show Unused Satellites - Include or exclude satellites that are not used in the navigation solution (e.g. because their signal level is too low) from the graph and sky view panels.
-1. DataLogging - Turn Data logging in the selected format on or off. You will be prompted to select the directory into which timestamped log files are saved.
-1. GPX Track - Turn track recording (in GPX format) on or off. You will be prompted to select the directory into which timestamped GPX track files are saved.
+1. DataLogging - Turn Data logging in the selected format on or off. On first selection, you will be prompted to select the directory into which timestamped log files are saved.
+1. GPX Track - Turn track recording (in GPX format) on or off. On first selection, you will be prompted to select the directory into which timestamped GPX track files are saved.
+1. Database - Turn spatialite database recording (*where available*) on or off. On first selection, you will be prompted to select the directory into which the `pygpsclient.sqlite` database is saved. Note that, when first created, the database's spatial metadata will take a few seconds to initialise. **NB** This facility is dependent on your Python environment supporting the requisite sqlite3 `mod_spatialite` extension - see [INSTALLATION.md](https://github.com/semuconsulting/PyGPSClient/blob/master/INSTALLATION.md#prereqs) for further details.
 1. To save the current configuration to a file, go to File..Save Configuration.
 1. To load a saved configuration file, go to File..Load Configuration. The default configuration file location is `$HOME/pygpsclient.json`. **NB** Any active serial or RTK connection must be stopped before loading a new configuration.
 

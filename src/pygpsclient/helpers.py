@@ -7,8 +7,8 @@ Collection of helper methods.
 
 Created on 17 Apr 2021
 
-:author: semuadmin
-:copyright: 2020 SEMU Consulting
+:author: semuadmin (Steve Smith)
+:copyright: 2020 semuadmin
 :license: BSD 3-Clause
 
 """
@@ -655,6 +655,23 @@ def ll2xy(width: int, height: int, bounds: Area, position: Point) -> tuple:
     x = (position.lon - bounds.lon1) / (lw / width)
     y = height - (position.lat - bounds.lat1) / (lh / height)
     return x, y
+
+
+def makeval(val: object, default: object = 0.0) -> object:
+    """
+    Force value to be same type as default.
+
+    :param object val: value
+    :param object default: default value
+    :return: value or default
+    :rtype: object
+    """
+
+    if (not isinstance(val, type(default))) or (
+        val == "" and default != val and isinstance(default, str)
+    ):
+        return default
+    return val
 
 
 def m2ft(meters: float) -> float:

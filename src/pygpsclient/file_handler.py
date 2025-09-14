@@ -12,8 +12,8 @@ This handles all the file i/o, including:
 
 Created on 16 Sep 2020
 
-:author: semuadmin
-:copyright: 2020 SEMU Consulting
+:author: semuadmin (Steve Smith)
+:copyright: 2020 semuadmin
 :license: BSD 3-Clause
 """
 
@@ -66,6 +66,7 @@ class FileHandler:
         self._logname = None
         self._logfile = None
         self._trackpath = None
+        self._databasepath = None
         self._trackname = None
         self._trackfile = None
         self._configpath = None
@@ -299,6 +300,7 @@ class FileHandler:
 
         # pylint: disable=consider-using-with
 
+        self._trackpath = self.__app.configuration.get("trackpath_s")
         _, self._trackname = set_filename(self._trackpath, "track", "gpx")
         self._trackfile = open(self._trackname, "a", encoding="utf-8")
 
@@ -443,3 +445,19 @@ class FileHandler:
                 )
 
             self._last_track_update = datetime.now()
+
+    def set_database_path(self, initdir=HOME) -> Path:
+        """
+        Set database directory.
+
+        :param str initdir: initial directory (HOME)
+        :return: file path
+        :rtype: str
+        """
+
+        self._databasepath = filedialog.askdirectory(
+            title=SAVETITLE, initialdir=initdir, mustexist=True
+        )
+        if self._databasepath in ((), ""):
+            return None  # User cancelled
+        return self._databasepath

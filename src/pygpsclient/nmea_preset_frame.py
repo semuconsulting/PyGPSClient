@@ -5,8 +5,8 @@ NMEA Configuration frame for preset and user-defined commands
 
 Created on 22 Mar 2025
 
-:author: semuadmin
-:copyright: 2020 SEMU Consulting
+:author: semuadmin (Steve Smith)
+:copyright: 2020 semuadmin
 :license: BSD 3-Clause
 """
 

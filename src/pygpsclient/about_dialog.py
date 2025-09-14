@@ -5,8 +5,8 @@ About Dialog Box class for PyGPSClient application.
 
 Created on 20 Sep 2020
 
-:author: semuadmin
-:copyright: 2020 SEMU Consulting
+:author: semuadmin (Steve Smith)
+:copyright: 2020 semuadmin
 :license: BSD 3-Clause
 """
 
@@ -39,6 +39,7 @@ from pygpsclient.globals import (
     SPONSOR_URL,
 )
 from pygpsclient.helpers import check_latest
+from pygpsclient.sqllite_handler import DBINMEM, SQLVER
 from pygpsclient.strings import ABOUTTXT, COPYRIGHTTXT, DLGTABOUT, GITHUB_URL
 from pygpsclient.toplevel_dialog import ToplevelDialog
 
@@ -99,9 +100,15 @@ class AboutDialog(ToplevelDialog):
             borderwidth=0,
         )
         tkv = Tcl().call("info", "patchlevel")
+        spv = {
+            1: SQLVER,
+            0: "Error",
+            -1: "No ext",
+            -2: "No m_s",
+        }[self.__app.sqlite_handler.open(dbname=DBINMEM)]
         self._lbl_python_version = Label(
             self._frm_body,
-            text=f"Python: {python_version()}  Tk: {tkv}",
+            text=f"Python: {python_version()}  Tk: {tkv}  Spatial: {spv}",
         )
         self._lbl_lib_versions = []
         for nam, ver in LIBVERSIONS.items():

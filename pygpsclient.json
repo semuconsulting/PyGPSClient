@@ -48,6 +48,8 @@
     "logpath_s": "",
     "recordtrack_b": 0,
     "trackpath_s": "",
+    "database_b": 0,
+    "databasepath_s": "",
     "bpsrate_n": 9600,
     "databits_n": 8,
     "stopbits_f": 1.0,
