@@ -12,7 +12,7 @@ environmental criteria:
    sqlite3 extensions i.e. it must have been compiled
    with the `--enable-loadable-sqlite-extensions` option.
 2. The mod_spatialite module (.so, .dll or .dylib)
-   must be installed and in the `PATH`.
+   must be installed and in the `PATH`/`LD_LIBRARY_PATH`.
 
 Created on 13 Sep 2025
 
@@ -24,6 +24,7 @@ Created on 13 Sep 2025
 import logging
 import sqlite3
 import traceback
+from datetime import datetime, timezone
 from os import path
 
 from pynmeagps import ecef2llh
@@ -38,6 +39,14 @@ from pygpsclient.strings import NA
 
 SQLVER = sqlite3.sqlite_version
 """sqlite3 version"""
+SQLOK = SQLVER
+"""No SQL error"""
+SQLERR = "SQL error"
+"""Non-specific SQL error"""
+NOEXT = "No ext"
+"""sqlite3 extensions not supported"""
+NOMODS = "No m_s"
+"""sqlite3 mod_spatialite extension not found"""
 DBNAME = "pygpsclient.sqlite"
 """Default database name"""
 DBINMEM = ":memory:"
@@ -47,7 +56,6 @@ TBNAME = "pygpsclient"
 SQLBEGIN = "BEGIN TRANSACTION;"
 SQLCOMMIT = "COMMIT;"
 
-# CREATE SQL statement with 3D POINT (lon, lat, hmsl)
 SQLC1 = (
     SQLBEGIN
     + (
@@ -61,8 +69,8 @@ SQLC1 = (
     )
     + SQLCOMMIT
 )
+"""SQL for creating database and table with lat/lon/hmsl as 3D POINTZ"""
 
-# INSERT SQL statement with 3D POINT
 SQLI3D = (
     "INSERT INTO {table} (geom, utc, fix, hae, speed, track, siv, sip, pdop, "
     "hdop, vdop, hacc, vacc, diffcorr, diffage, diffstat, baselon, baselat, basehae) "
@@ -70,6 +78,14 @@ SQLI3D = (
     "{hae}, {speed}, {track}, {siv}, {sip}, {pdop}, {hdop}, {vdop}, {hacc}, "
     "{vacc}, {diffcorr}, {diffage}, '{diffstat}', {baselon}, {baselat}, {basehae});"
 )
+"""SQL for inserting row into table"""
+
+SQLSEL = (
+    "SELECT ST_X(geom), ST_Y(geom), ST_Z(geom), utc, fix, hae, speed, track, siv, "
+    "sip, pdop, hdop, vdop, hacc, vacc, diffcorr, diffage, diffstat, baselon, "
+    "baselat, basehae from {table} ORDER BY utc LIMIT {limit} OFFSET {offset}"
+)
+"""SQL for retrieving rows from table"""
 
 
 class SqliteHandler:
@@ -118,26 +134,26 @@ class SqliteHandler:
             self.logger.debug("Spatial metadata initialisation complete")
             self._cursor = self._connection.cursor()
             self._cursor.executescript(SQLC1.format(table=tbname))
-            return 1
+            return SQLOK
         except sqlite3.Error as err:
             self.__app.set_status(f"Error initialising spatial database {err}", ERRCOL)
             self.logger.debug(traceback.format_exc())
-            return 0
+            return SQLERR
 
     def open(
         self,
         dbpath: str = HOME,
         dbname: str = DBNAME,
         tbname: str = TBNAME,
-    ) -> int:
+    ) -> str:
         """
         Create sqlite3 connection and cursor.
 
         :param str dbpath: path to sqlite3 database file
         :param str dbname: name of sqlite3 database file
         :param str tbname: name of table containing gnss data
-        :return: return code
-        :rtype: int
+        :return: result
+        :rtype: str
         """
 
         try:
@@ -161,19 +177,19 @@ class SqliteHandler:
                 self._connection.close()
             else:
                 self.__app.set_status(f"Database {self._db} opened", OKCOL)
-            return 1
-        except AttributeError:
-            self.__app.set_status(f"Spatial database not supported", ERRCOL)
+            return SQLOK
+        except AttributeError as err:
+            self.__app.set_status(f"SQL error: {err}", ERRCOL)
             self.logger.debug(traceback.format_exc())
-            return -1  # extensions not supported
-        except sqlite3.OperationalError:
-            self.__app.set_status(f"Spatial extension not found", ERRCOL)
+            return NOEXT  # extensions not supported
+        except sqlite3.OperationalError as err:
+            self.__app.set_status(f"SQL error: {err}", ERRCOL)
             self.logger.debug(traceback.format_exc())
-            return -2  # no mod_spatial extension found
+            return NOMODS  # no mod_spatial extension found
         except sqlite3.Error as err:
-            self.__app.set_status(f"Spatial database error {err}", ERRCOL)
+            self.__app.set_status(f"SQL error: {err}", ERRCOL)
             self.logger.debug(traceback.format_exc())
-            return 0  # other sqlite error
+            return SQLERR  # other sqlite error
 
     def close(self):
         """
@@ -187,31 +203,32 @@ class SqliteHandler:
                 return
             self._connection.close()
 
-    def load_data(self, ignore_null: bool = True) -> bool:
+    def load_data(self, ignore_null: bool = True) -> str:
         """
         Load current gnss data (from `self.__app.gnss_status`) into database.
 
         :param bool ignore_null: ignore null position flag
-        :return: 0 = error, 1 = ok
-        :rtype: bool
+        :return: result
+        :rtype: str
         """
 
         gnss = self.__app.gnss_status
         if ignore_null and gnss.lat == 0.0 and gnss.lon == 0.0:
             self.logger.debug("Ignored null lat/lon value")
-            return True
+            return SQLOK
 
         try:
             baselat, baselon, basehae = ecef2llh(
                 gnss.base_ecefx, gnss.base_ecefy, gnss.base_ecefz
             )
             basehae = 0.0 if basehae == -10000000.0 else basehae
+            utc = datetime.combine(datetime.now(timezone.utc).date(), gnss.utc)
             sql = SQLI3D.format(
                 table=self._table,
                 lon=makeval(gnss.lon),
                 lat=makeval(gnss.lat),
                 hmsl=makeval(gnss.alt),
-                utc=float(gnss.utc.strftime("%H%M%S.%f")),
+                utc=float(utc.strftime("%Y%m%d%H%M%S.%f")),
                 fix=gnss.fix,
                 hae=makeval(gnss.hae),
                 speed=makeval(gnss.speed),
@@ -233,11 +250,32 @@ class SqliteHandler:
             sql = SQLBEGIN + sql + SQLCOMMIT
             self._cursor.executescript(sql)
             self.logger.debug(f"Executed SQL statement {sql}")
-            return 1
-        except sqlite3.OperationalError as err:
-            self.__app.set_status(f"Database write error: {err}", ERRCOL)
+            return SQLOK
+        except sqlite3.Error as err:
+            self.__app.set_status(f"SQL error: {err}", ERRCOL)
             self.logger.debug(traceback.format_exc())
-            return 0
+            return SQLERR
+
+    def get_data(self, limit: int = 100, offset: int = 0) -> object:
+        """
+        Retrieve rows from table as iterable, ordered by utc timestamp.
+
+        Check for SQLERR before iterating results.
+
+        :param int limit: number of rows
+        :param int offset: starting row
+        :return: iterable results
+        :rtype: results or error code as string
+        """
+
+        try:
+            self._cursor.execute(
+                SQLSEL.format(table=self._table, limit=limit, offset=offset)
+            )
+            return self._cursor.fetchall()
+        except sqlite3.Error:
+            self.logger.debug(traceback.format_exc())
+            return SQLERR
 
     @property
     def database(self) -> str:

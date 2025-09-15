@@ -97,6 +97,7 @@ from pygpsclient.helpers import fontheight, fontwidth
 from pygpsclient.serialconfig_frame import SerialConfigFrame
 from pygpsclient.serverconfig_frame import ServerConfigFrame
 from pygpsclient.socketconfig_frame import SocketConfigFrame
+from pygpsclient.sqllite_handler import SQLOK
 from pygpsclient.strings import (
     DLGTNMEA,
     DLGTNTRIP,
@@ -842,7 +843,9 @@ class SettingsFrame(Frame):
                 self.__app.configuration.set("datalog_b", 1)
                 self.__app.configuration.set("logpath_s", self.logpath)
                 self.__app.set_status(f"Data logging enabled: {self.logpath}")
-                self.__app.file_handler.open_logfile()
+                if not self.__app.file_handler.open_logfile():
+                    self.logpath = ""
+                    self._datalog.set(0)
             else:
                 self.logpath = ""
                 self._datalog.set(0)
@@ -866,7 +869,9 @@ class SettingsFrame(Frame):
                 self.__app.configuration.set("recordtrack_b", 1)
                 self.__app.configuration.set("trackpath_s", self.trackpath)
                 self.__app.set_status(f"Track recording enabled: {self.trackpath}")
-                self.__app.file_handler.open_trackfile()
+                if not self.__app.file_handler.open_trackfile():
+                    self.trackpath = ""
+                    self._record_track.set(0)
             else:
                 self.trackpath = ""
                 self._record_track.set(0)
@@ -886,8 +891,7 @@ class SettingsFrame(Frame):
                 self.databasepath = self.__app.file_handler.set_database_path()
             if self.databasepath is not None:
                 rc = self.__app.sqlite_handler.open(dbpath=self.databasepath)
-                rc = 1 if rc == 1 else 0
-                self.__app.configuration.set("database_b", rc)
+                self.__app.configuration.set("database_b", rc == SQLOK)
                 self.__app.configuration.set("databasepath_s", self.databasepath)
             else:
                 self.databasepath = ""

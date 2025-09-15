@@ -100,12 +100,7 @@ class AboutDialog(ToplevelDialog):
             borderwidth=0,
         )
         tkv = Tcl().call("info", "patchlevel")
-        spv = {
-            1: SQLVER,
-            0: "Error",
-            -1: "No ext",
-            -2: "No m_s",
-        }[self.__app.sqlite_handler.open(dbname=DBINMEM)]
+        spv = self.__app.sqlite_handler.open(dbname=DBINMEM)
         self._lbl_python_version = Label(
             self._frm_body,
             text=f"Python: {python_version()}  Tk: {tkv}  Spatial: {spv}",

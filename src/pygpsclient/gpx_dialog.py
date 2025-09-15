@@ -13,7 +13,7 @@ Created on 10 Jan 2023
 # pylint: disable=unused-argument
 
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from tkinter import (
     ALL,
     NE,
@@ -345,6 +345,7 @@ class GPXViewerDialog(ToplevelDialog):
         track = []
         start = end = dist = lat1 = lon1 = tim1 = maxele = spd = spd1 = maxspd = 0
         minele = minspd = 1e10
+        tm = datetime.now(timezone.utc).timestamp()
         for i, trkpt in enumerate(trkpts):
             lat = float(trkpt.attributes["lat"].value)
             lon = float(trkpt.attributes["lon"].value)
@@ -353,7 +354,10 @@ class GPXViewerDialog(ToplevelDialog):
             minlon = min(minlon, lon)
             maxlat = max(maxlat, lat)
             maxlon = max(maxlon, lon)
-            tim = isot2dt(trkpt.getElementsByTagName("time")[0].firstChild.data)
+            try:
+                tim = isot2dt(trkpt.getElementsByTagName("time")[0].firstChild.data)
+            except IndexError:
+                tim = tm + i  # use synthetic timestamp if gpx has no time element
             if i == 0:
                 lat1, lon1, tim1 = lat, lon, tim
                 start = tim

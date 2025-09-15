@@ -28,6 +28,7 @@ from pyubx2 import hextable
 from pygpsclient.globals import (
     APPNAME,
     CONFIGFILE,
+    ERRCOL,
     FORMAT_BINARY,
     FORMAT_BOTH,
     FORMAT_HEXSTR,
@@ -219,17 +220,25 @@ class FileHandler:
             return None  # User cancelled
         return self._logpath
 
-    def open_logfile(self):
+    def open_logfile(self) -> int:
         """
         Open logfile.
+
+        :return: 0 = error, 1 = ok
+        :rtype: int
         """
 
         # pylint: disable=consider-using-with
 
-        self._logpath = self.__app.configuration.get("logpath_s")
-        self._lines = 0
-        _, self._logname = set_filename(self._logpath, "data", "log")
-        self._logfile = open(self._logname, "a+b")
+        try:
+            self._logpath = self.__app.configuration.get("logpath_s")
+            self._lines = 0
+            _, self._logname = set_filename(self._logpath, "data", "log")
+            self._logfile = open(self._logname, "a+b")
+            return 1
+        except FileNotFoundError as err:
+            self.__app.set_status(f"{err}", ERRCOL)
+            return 0
 
     def write_logfile(self, raw_data, parsed_data):
         """
@@ -239,7 +248,8 @@ class FileHandler:
         """
 
         if self._logfile is None:
-            self.open_logfile()
+            if not self.open_logfile():
+                return
 
         lfm = self.__app.configuration.get("logformat_s")
         data = []
@@ -293,16 +303,23 @@ class FileHandler:
             return None  # User cancelled
         return self._trackpath
 
-    def open_trackfile(self):
+    def open_trackfile(self) -> int:
         """
         Open track file and create GPX track header tags.
+
+        :return: 0 = error, 1 = ok
+        :rtype: int
         """
 
         # pylint: disable=consider-using-with
 
-        self._trackpath = self.__app.configuration.get("trackpath_s")
-        _, self._trackname = set_filename(self._trackpath, "track", "gpx")
-        self._trackfile = open(self._trackname, "a", encoding="utf-8")
+        try:
+            self._trackpath = self.__app.configuration.get("trackpath_s")
+            _, self._trackname = set_filename(self._trackpath, "track", "gpx")
+            self._trackfile = open(self._trackname, "a", encoding="utf-8")
+        except FileNotFoundError as err:
+            self.__app.set_status(f"{err}", ERRCOL)
+            return 0
 
         date = datetime.now().isoformat() + "Z"
         gpxtrack = (
@@ -319,6 +336,8 @@ class FileHandler:
             self._trackfile.write(gpxtrack)
         except ValueError:
             pass
+
+        return 1
 
     def add_trackpoint(self, lat: float, lon: float, **kwargs):
         """
