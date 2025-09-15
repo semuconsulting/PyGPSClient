@@ -300,7 +300,7 @@ class SettingsFrame(Frame):
             width=45,
             height=35,
             image=self._img_exit,
-            command=lambda: self.__app.quit(),
+            command=lambda: self.__app.on_exit(),
         )
 
         self._lbl_status_preset = Label(
