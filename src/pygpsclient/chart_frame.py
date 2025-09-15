@@ -498,7 +498,7 @@ class ChartviewFrame(Frame):
 
         # limit number of data points
         while len(self._chart_data) > maxpoints:
-            self._chart_data.pop(0)
+            self._chart_data.pop(min(self._chart_data))
 
     def flag_outofrange(self, chn: int, val: float):
         """
