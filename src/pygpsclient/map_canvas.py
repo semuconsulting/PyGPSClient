@@ -603,6 +603,8 @@ class MapCanvas(Canvas):  # pylint: disable=too-many-ancestors
         :rtype: Area
         """
 
+        if location is None:
+            return
         xoff = 90 / 2**zoom
         yoff = xoff * height / width
         return Area(

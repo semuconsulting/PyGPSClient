@@ -190,6 +190,7 @@ class ToplevelDialog(Toplevel):
         if color != "":
             self._lbl_status.config(fg=color)
         self._status.set("  " + message)
+        self.update_idletasks()
 
     def on_exit(self, *args, **kwargs):  # pylint: disable=unused-argument
         """

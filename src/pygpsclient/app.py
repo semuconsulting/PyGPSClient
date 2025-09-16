@@ -86,7 +86,7 @@ from pygpsclient.menu_bar import MenuBar
 from pygpsclient.nmea_handler import NMEAHandler
 from pygpsclient.rtcm3_handler import RTCM3Handler
 from pygpsclient.sbf_handler import SBFHandler
-from pygpsclient.sqllite_handler import SqliteHandler
+from pygpsclient.sqllite_handler import SQLOK, SqliteHandler
 from pygpsclient.stream_handler import StreamHandler
 from pygpsclient.strings import (
     CONFIGERR,
@@ -222,9 +222,8 @@ class App(Frame):
         # open database if database recording enabled
         dbpath = self.configuration.get("databasepath_s")
         if self.configuration.get("database_b") and dbpath != "":
-            self.configuration.set(
-                "database_b", self.sqlite_handler.open(dbpath=dbpath)
-            )
+            rc = self.sqlite_handler.open(dbpath=dbpath)
+            self.configuration.set("database_b", rc == SQLOK)
 
         # check for more recent version (if enabled)
         if self.configuration.get("checkforupdate_b") and configerr == "":

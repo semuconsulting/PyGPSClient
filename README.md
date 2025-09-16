@@ -390,7 +390,8 @@ By default, the server/caster binds to the host address '0.0.0.0' (IPv4) or '::'
 
 *GPX Track Viewer screenshot*
 
-The GPX Track Viewer can display any valid GPX file containing trackpoints (`<trkpt>..</trkpt>` elements) against either an ["custom" offline map image](#custommap), or an online MapQuest "map" or "sat" view. The "map" and "sat" options require a free [MapQuest API key](#mapquestapi). The Y axis scales will reflect the current choice of units (metric or imperial). Click ![refresh icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-refresh-lined-24.png?raw=true) to refresh the display after any changes (e.g. resizing, zooming or change of units). The location marker indicates the nominal center point of the track.
+The GPX Track Viewer can display any valid GPX file containing track point (`trkpt`), route point (`rtept`) or waypoint (`wpt`)elements against either an ["custom" offline map image](#custommap), or an online MapQuest "map", "sat" or "hyb" view. The "map", "sat" and "hyb" options require a free [MapQuest API key](#mapquestapi). The Y axis scales will reflect the current choice of units (metric or imperial). If the GPX track omits a time element, the time and speed axes will be flagged as nominal. GPX track metadata, including min, max, average (mean) and median elevation and speed values, is displayed in the selected units. 
+Click ![refresh icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-refresh-lined-24.png?raw=true) to refresh the display after any changes (e.g. resizing, zooming or change of units). The location marker indicates the nominal center point of the track.
 
 ---
 ## <a name="mapquestapi">MapQuest API Key</a>

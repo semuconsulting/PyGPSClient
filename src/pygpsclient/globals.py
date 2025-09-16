@@ -183,9 +183,7 @@ IMG_WORLD = path.join(DIRNAME, "resources/world.png")
 ICON_SPONSOR = path.join(DIRNAME, "resources/bmc-full-logo-no-background.png")
 IMG_WORLD_BOUNDS = Area(-90, -180, 90, 180)
 INFOCOL = "steelblue2"
-KM2M = 1000
-KM2MIL = 0.621371
-KM2NMIL = 0.5399568
+
 KNOWNGPS = (
     "CP210",
     "FT230",
@@ -206,9 +204,6 @@ KNOWNGPS = (
     "USB_to_UART",
     "USER-DEFINED",
 )
-KPH2KNT = 0.5399568
-KPH2MPH = 0.621371
-KPH2MPS = 0.2777776918389111005
 LBAND = "LBAND"
 LICENSE_URL = "https://github.com/semuconsulting/PyGPSClient/blob/master/LICENSE"
 M2FT = 3.28084
@@ -247,6 +242,7 @@ RCVR_CONNECTION = "USB,UART1"  # default GNSS receiver connection port(s)
 ROMVER_NEW = "23.01"  # min device ROM version using configuration database
 READONLY = "readonly"
 RESIZE = "resize"
+ROUTE = "route"
 RXMMSG = "RXM-SPARTN-KEY"
 SAT_EXPIRY = 10  # how long passed satellites are kept in the sky and graph view
 SBF_PROTOCOL = 64
@@ -291,6 +287,7 @@ TIMEOUTS = (
 TOPIC_IP = "/pp/ip/{}"
 TOPIC_MGA = "/pp/ubx/mga"
 TOPIC_RXM = "/pp/ubx/0236/ip"
+TRACK = "track"
 TTY_EVENT = "<<tty_read>>"
 TTY_PROTOCOL = 32
 TTYOK = ("OK", "$R:")
@@ -298,11 +295,8 @@ TTYERR = ("ERROR", "$R?")
 TTYMARKER = "TTY<<"
 UBXPRESETS = "ubxpresets"
 UBXSIMULATOR = "ubxsimulator"
-UI = "Imperial mph"
-UIK = "Imperial knots"
-UMK = "Metric kmph"
-UMM = "Metric m/s"
 UTF8 = "utf-8"
+WAYPOINT = "waypoint"
 WIDGETU1 = (200, 200)  # small widget size
 WIDGETU2 = (300, 200)  # medium widget size
 WIDGETU3 = (800, 200)  # Console size
@@ -310,6 +304,24 @@ WIDGETU4 = (500, 500)  # GPX Track viewer size
 WIDGETU6 = (400, 200)  # Chart size
 XML_HDR = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
 ZED_F9 = "u-blox ZED-F9/X20"
+
+# Conversion factors
+UI = "Imperial mph"
+UIK = "Imperial knots"
+UMK = "Metric kmph"
+UMM = "Metric m/s"
+KM2M = 1000
+KM2MIL = 0.621371
+KM2NMIL = 0.5399568
+KPH2KNT = 0.5399568
+KPH2MPH = 0.6213712
+KPH2MPS = 0.2777778
+M2MIL = 0.0006213712
+M2NMIL = 0.0005399568
+M2KM = 0.001
+MPS2MPH = 2.236936
+MPS2KPH = 3.6
+MPS2KNT = 1.943844
 
 # UBX & NMEA config widget signifiers - used
 # to identify which widget should receive the

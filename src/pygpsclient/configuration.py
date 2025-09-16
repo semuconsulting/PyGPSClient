@@ -38,6 +38,7 @@ from pygpsclient.globals import (
     SPARTN_DEFAULT_KEY,
     SPARTN_OUTPORT,
     SPARTN_PPSERVER_URL,
+    TRACK,
     UMM,
     WORLD,
     ZED_F9,
@@ -103,6 +104,7 @@ class Configuration:
             "mapzoom_disabled_b": 0,  # whether offline maps zooming is disabled
             "gpxmaptype_s": CUSTOM,
             "gpxmapzoom_n": 10,
+            "gpxtype_s": TRACK,
             "mqapikey_s": "<=== YOUR MAPQUEST API KEY  ===>",
             "showtrack_b": 0,
             "legend_b": 1,
