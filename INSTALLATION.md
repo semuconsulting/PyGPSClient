@@ -26,7 +26,7 @@ Though by no means mandatory, it is [generally considered best practice](https:/
 1. Use different versions of the same package across applications.
 1. Keep your application dependencies clean and organized.
 
-Some platforms (e.g. Ubuntu Linux) **enforce** the use of virtual environments via a so-called 'Externally Managed Environment' constraint². Attempting to install a package into the global environment will result in an `error: externally-managed-environment` error.
+Some platforms (e.g. Ubuntu Linux and Homebrew-installed Python environments) **enforce** the use of virtual environments via a so-called 'Externally Managed Environment' constraint². Attempting to install a package into the global environment will result in an `error: externally-managed-environment` error.
 
 ¹ In practice, 'global' generally means the user's home environment. Installing into the platform's global system environment typically results in a `Defaulting to user installation because normal site-packages is not writeable` warning.
 

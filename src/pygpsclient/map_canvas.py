@@ -604,7 +604,7 @@ class MapCanvas(Canvas):  # pylint: disable=too-many-ancestors
         """
 
         if location is None:
-            return
+            return None
         xoff = 90 / 2**zoom
         yoff = xoff * height / width
         return Area(

@@ -17,6 +17,7 @@ Created on 17 Aug 2022
 """
 
 import logging
+import traceback
 from tkinter import (
     ALL,
     END,
@@ -38,7 +39,12 @@ from tkinter import (
 )
 
 from PIL import Image, ImageTk
-from pynmeagps import NMEA_PAYLOADS_POLL_PROP, NMEA_PAYLOADS_SET_PROP, NMEAMessage
+from pynmeagps import (
+    NMEA_MSGIDS_PROP,
+    NMEA_PAYLOADS_POLL_PROP,
+    NMEA_PAYLOADS_SET_PROP,
+    NMEAMessage,
+)
 from pyubx2 import (
     POLL,
     SET,
@@ -79,6 +85,7 @@ NAK = "ACK-NAK"
 
 # following CFG types excluded from selection...
 CFG_EXCLUDED = (
+    "LSC",  # Locosys - many variants not implemented
     "CFG-DAT-NUM",  # deprecated
     "CFG-GEOFENCE",  # 'variable by size' groups not yet implemented - use pyubx2
     "CFG-NMEAv0",  # deprecated
@@ -194,7 +201,7 @@ class Dynamic_Config_Frame(Frame):
             command=self._on_refresh,
             font=self.__app.font_md,
         )
-        self._lbl_command = Label(self, text="", anchor=W)
+        self._lbl_command = Label(self, text="", width=30, anchor=W)
         self._frm_container = Frame(self)
         self._can_container = Canvas(self._frm_container)
         self._frm_attrs = Frame(self._can_container)
@@ -258,7 +265,7 @@ class Dynamic_Config_Frame(Frame):
         self._lbx_cfg_cmd.delete(0, END)
         if self._protocol == NMEA:
             for i, cmd in enumerate(NMEA_PAYLOADS_SET_PROP):
-                if cmd[0:3] == "QTM" and cmd not in CFG_EXCLUDED:
+                if cmd not in CFG_EXCLUDED:
                     self._lbx_cfg_cmd.insert(i, cmd)
         else:
             for i, cmd in enumerate(UBX_PAYLOADS_SET):
@@ -296,11 +303,15 @@ class Dynamic_Config_Frame(Frame):
         self._expected_response = None
         idx = self._lbx_cfg_cmd.curselection()
         self._cfg_id = self._lbx_cfg_cmd.get(idx)
-        self._lbl_command.config(text=self._cfg_id)
         if self._protocol == NMEA:
+            cfgid = self._cfg_id.rsplit("_", 1)[0]
+            pde = NMEA_MSGIDS_PROP[cfgid].replace("Sets/Gets", "")
+            pdesc = f"{cfgid} {pde}"
             pdic = NMEA_PAYLOADS_SET_PROP[self._cfg_id]
         else:  # UBX
+            pdesc = self._cfg_id
             pdic = UBX_PAYLOADS_SET[self._cfg_id]
+        self._lbl_command.config(text=f"{pdesc}")
         self._clear_widgets()
         self._add_widgets(pdic, 1, 0)
         self.update()
@@ -330,6 +341,8 @@ class Dynamic_Config_Frame(Frame):
                 # strip off any variant suffix from cfg_id
                 # e.g. "QTMCFGUART_CURR" -> "QTMCFGUART"
                 cfg_id = self._cfg_id.rsplit("_", 1)[0]
+                if cfg_id[0:3] == "UBX":  # strip id from msgId
+                    cfg_id = cfg_id[0:3]
                 msg = NMEAMessage("P", cfg_id, SET, **vals)
                 penddlg = NMEA_CFGOTHER
                 pendcfg = ("P" + cfg_id,)
@@ -341,7 +354,7 @@ class Dynamic_Config_Frame(Frame):
 
             # send message, update status and await response
             self.__container.send_command(msg)
-            # self.logger.debug(f"command {msg.serialize()}")
+            self.logger.debug(f"command {msg.serialize()}")
             self._lbl_send_command.config(image=self._img_pending)
             self.__container.set_status(
                 f"{self._cfg_id} SET message sent",
@@ -351,6 +364,7 @@ class Dynamic_Config_Frame(Frame):
             self._expected_response = SET
 
         except ValueError as err:
+            self.logger.debug(traceback.format_exc())
             self.__container.set_status(
                 f"INVALID! {nam}, {att}: {err}",
                 ERRCOL,

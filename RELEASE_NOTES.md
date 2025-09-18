@@ -7,6 +7,7 @@ FIXES:
 1. Fix Chart update issue #210
 2. Fix Exit button not invoking on_exit() clean up routines (causing any in-progress GPX track recording to be unterminated).
 3. Fix `IndexError` when loading GPX tracks with no `<time></time>` elements - a synthetic timestamp sequence wil be used instead.
+4. Fix incorrect type formatting for some NMEA commands in NMEA Dynamic Configuration panel.
 
 ENHANCEMENTS:
 
@@ -25,7 +26,9 @@ ENHANCEMENTS:
    On Linux platforms which do not support sqlite3 extensions out of the box, it may be possible to compile from source a  suitable version of [Python](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/python_compile.sh) and/or [libspatialite](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/libspatialite_compile.sh).
 2. BSD 3-Clause license attribution clarified in all modules.
 3. Enhance elevation profile and metadata rendering in GPX track viewer. Add support for route and waypoint elements in addition to track.
-4. Various minor improvements to file exception handling.
+4. Enhance NMEA Dynamic Configuration dialog to support additional NMEA command types, including Quectel proprietary $PAIR  (Quectel LC29H/LC79H), Garmin $PGRM, Locosys %PINV (limited) and u-Blox $PUBX (requires pynmeagps>=1.0.53).
+5. Add support 
+5. Various minor improvements to file exception handling.
 
 ### RELEASE 1.5.13
 

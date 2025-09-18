@@ -1127,7 +1127,13 @@ def stringvar2val(val: str, att: str) -> object:
     :rtype: object (int, float or bytes)
     """
 
-    if atttyp(att) in ("E", "I", "L", "U"):  # integer
+    if att in ("DE", "LA", "LN"):  # NMEA float
+        val = float(val)
+    elif att in ("CH", "DT", "HX", "LAD", "LND", "TM"):  # NMEA str, hex
+        pass
+    elif att == "IN":  # NMEA int
+        val = int(val)
+    elif atttyp(att) in ("E", "I", "L", "U"):  # integer
         if val.find(".") != -1:  # ignore scaling decimals
             val = val[0 : val.find(".")]
         val = int(val)
@@ -1140,10 +1146,6 @@ def stringvar2val(val: str, att: str) -> object:
     elif atttyp(att) == "C":  # char
         val = bytes(val, "utf-8")
     elif atttyp(att) == "R":  # float
-        val = float(val)
-    elif atttyp(att) in ("IN", "HX"):  # NMEA int
-        val = int(val)
-    elif atttyp(att) in ("DE", "LA", "LN"):  # NMEA float
         val = float(val)
 
     return val
