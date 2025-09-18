@@ -1,5 +1,35 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.5.14
+
+FIXES:
+
+1. Fix Chart update issue #210
+2. Fix Exit button not invoking on_exit() clean up routines (causing any in-progress GPX track recording to be unterminated).
+3. Fix `IndexError` when loading GPX tracks with no `<time></time>` elements - a synthetic timestamp sequence wil be used instead.
+4. Fix incorrect type formatting for some NMEA commands in NMEA Dynamic Configuration panel.
+
+ENHANCEMENTS:
+
+1. Add facility to write gnss status data to a spatialite (sqlite3 with spatial extension) database, which can be utilised by many standard GNSS visualisation and analysis applications e.g. QGIS, GDAL, GRASS, GeoPandas etc. The facility may be enabled via a new 'Database' checkbox on the Settings panel. The default database path is `$HOME/pygpsclient.sqlite`. A single table `pygpsclient` is populated with all the information displayed in PyGPSClient's banner panel, with lat/lon/hmsl available as a POINTZ (3D) geometry. Note that, when first created, the database spatial metadata will take a few seconds to initialise.
+
+   **NB**: This optional facility is subject to the following Python environmental criteria:
+
+   - The Python environment must support the loading of sqlite3 extensions i.e. it must have been compiled with the `--enable-loadable-sqlite-extensions` option. This is true by default for most Windows and Linux platforms but **NOT** for most MacOS platforms. 
+   - The mod_spatialite module (.so, .dll or .dylib) must be installed and in `PATH` (or `LD_LIBRARY_PATH` on Linux).
+   - The 'About' dialog displays a new Spatial version/status - 'No ext' signifies the platform's Python does not support sqlite3 extensions; 'No m_s' signifies Python *does* support extensions but mod_spatialite is not installed or cannot be found in `PATH` or `LD_LIBRARY_PATH`. 
+   
+   On MacOS platforms, it *may* be necessary to install (*e.g. via Homebrew*) a custom version of Python with the `--enable-loadable-sqlite-extensions` flag set and the `libspatialite` package installed e.g.
+
+   `brew install python-tk@3.13 libspatialite`
+
+   On Linux platforms which do not support sqlite3 extensions out of the box, it may be possible to compile from source a  suitable version of [Python](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/python_compile.sh) and/or [libspatialite](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/libspatialite_compile.sh).
+2. BSD 3-Clause license attribution clarified in all modules.
+3. Enhance elevation profile and metadata rendering in GPX track viewer. Add support for route and waypoint elements in addition to track.
+4. Enhance NMEA Dynamic Configuration dialog to support additional NMEA command types, including Quectel proprietary $PAIR  (Quectel LC29H/LC79H), Garmin $PGRM, Locosys %PINV (limited) and u-Blox $PUBX (requires pynmeagps>=1.0.53).
+5. Add support 
+5. Various minor improvements to file exception handling.
+
 ### RELEASE 1.5.13
 
 ENHANCEMENTS:

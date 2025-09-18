@@ -5,8 +5,8 @@ TTY Protocol handler - handles all incoming TTY (ASCII Terminal) messages
 
 Created on 18 May 2025
 
-:author: semuadmin
-:copyright: 2020 SEMU Consulting
+:author: semuadmin (Steve Smith)
+:copyright: 2020 semuadmin
 :license: BSD 3-Clause
 """
 

@@ -7,8 +7,8 @@ to allow dialog to be usable on low resolution screens.
 
 Created on 19 Sep 2020
 
-:author: semuadmin
-:copyright: 2020 SEMU Consulting
+:author: semuadmin (Steve Smith)
+:copyright: 2020 semuadmin
 :license: BSD 3-Clause
 """
 
@@ -190,6 +190,7 @@ class ToplevelDialog(Toplevel):
         if color != "":
             self._lbl_status.config(fg=color)
         self._status.set("  " + message)
+        self.update_idletasks()
 
     def on_exit(self, *args, **kwargs):  # pylint: disable=unused-argument
         """

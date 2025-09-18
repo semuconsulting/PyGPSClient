@@ -7,8 +7,8 @@ Collection of helper methods.
 
 Created on 17 Apr 2021
 
-:author: semuadmin
-:copyright: 2020 SEMU Consulting
+:author: semuadmin (Steve Smith)
+:copyright: 2020 semuadmin
 :license: BSD 3-Clause
 
 """
@@ -657,6 +657,23 @@ def ll2xy(width: int, height: int, bounds: Area, position: Point) -> tuple:
     return x, y
 
 
+def makeval(val: object, default: object = 0.0) -> object:
+    """
+    Force value to be same type as default.
+
+    :param object val: value
+    :param object default: default value
+    :return: value or default
+    :rtype: object
+    """
+
+    if (not isinstance(val, type(default))) or (
+        val == "" and default != val and isinstance(default, str)
+    ):
+        return default
+    return val
+
+
 def m2ft(meters: float) -> float:
     """
     Convert meters to feet.
@@ -1110,7 +1127,13 @@ def stringvar2val(val: str, att: str) -> object:
     :rtype: object (int, float or bytes)
     """
 
-    if atttyp(att) in ("E", "I", "L", "U"):  # integer
+    if att in ("DE", "LA", "LN"):  # NMEA float
+        val = float(val)
+    elif att in ("CH", "DT", "HX", "LAD", "LND", "TM"):  # NMEA str, hex
+        pass
+    elif att == "IN":  # NMEA int
+        val = int(val)
+    elif atttyp(att) in ("E", "I", "L", "U"):  # integer
         if val.find(".") != -1:  # ignore scaling decimals
             val = val[0 : val.find(".")]
         val = int(val)
@@ -1123,10 +1146,6 @@ def stringvar2val(val: str, att: str) -> object:
     elif atttyp(att) == "C":  # char
         val = bytes(val, "utf-8")
     elif atttyp(att) == "R":  # float
-        val = float(val)
-    elif atttyp(att) in ("IN", "HX"):  # NMEA int
-        val = int(val)
-    elif atttyp(att) in ("DE", "LA", "LN"):  # NMEA float
         val = float(val)
 
     return val

@@ -11,8 +11,8 @@ Facilitates copying configuration from one device to another.
 
 Created on 9 Jan 2023
 
-:author: semuadmin
-:copyright: 2020 SEMU Consulting
+:author: semuadmin (Steve Smith)
+:copyright: 2020 semuadmin
 :license: BSD 3-Clause
 """
 

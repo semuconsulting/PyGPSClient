@@ -12,8 +12,8 @@ This handles all the file i/o, including:
 
 Created on 16 Sep 2020
 
-:author: semuadmin
-:copyright: 2020 SEMU Consulting
+:author: semuadmin (Steve Smith)
+:copyright: 2020 semuadmin
 :license: BSD 3-Clause
 """
 
@@ -28,6 +28,7 @@ from pyubx2 import hextable
 from pygpsclient.globals import (
     APPNAME,
     CONFIGFILE,
+    ERRCOL,
     FORMAT_BINARY,
     FORMAT_BOTH,
     FORMAT_HEXSTR,
@@ -66,6 +67,7 @@ class FileHandler:
         self._logname = None
         self._logfile = None
         self._trackpath = None
+        self._databasepath = None
         self._trackname = None
         self._trackfile = None
         self._configpath = None
@@ -218,17 +220,25 @@ class FileHandler:
             return None  # User cancelled
         return self._logpath
 
-    def open_logfile(self):
+    def open_logfile(self) -> int:
         """
         Open logfile.
+
+        :return: 0 = error, 1 = ok
+        :rtype: int
         """
 
         # pylint: disable=consider-using-with
 
-        self._logpath = self.__app.configuration.get("logpath_s")
-        self._lines = 0
-        _, self._logname = set_filename(self._logpath, "data", "log")
-        self._logfile = open(self._logname, "a+b")
+        try:
+            self._logpath = self.__app.configuration.get("logpath_s")
+            self._lines = 0
+            _, self._logname = set_filename(self._logpath, "data", "log")
+            self._logfile = open(self._logname, "a+b")
+            return 1
+        except FileNotFoundError as err:
+            self.__app.set_status(f"{err}", ERRCOL)
+            return 0
 
     def write_logfile(self, raw_data, parsed_data):
         """
@@ -238,7 +248,8 @@ class FileHandler:
         """
 
         if self._logfile is None:
-            self.open_logfile()
+            if not self.open_logfile():
+                return
 
         lfm = self.__app.configuration.get("logformat_s")
         data = []
@@ -292,15 +303,23 @@ class FileHandler:
             return None  # User cancelled
         return self._trackpath
 
-    def open_trackfile(self):
+    def open_trackfile(self) -> int:
         """
         Open track file and create GPX track header tags.
+
+        :return: 0 = error, 1 = ok
+        :rtype: int
         """
 
         # pylint: disable=consider-using-with
 
-        _, self._trackname = set_filename(self._trackpath, "track", "gpx")
-        self._trackfile = open(self._trackname, "a", encoding="utf-8")
+        try:
+            self._trackpath = self.__app.configuration.get("trackpath_s")
+            _, self._trackname = set_filename(self._trackpath, "track", "gpx")
+            self._trackfile = open(self._trackname, "a", encoding="utf-8")
+        except FileNotFoundError as err:
+            self.__app.set_status(f"{err}", ERRCOL)
+            return 0
 
         date = datetime.now().isoformat() + "Z"
         gpxtrack = (
@@ -317,6 +336,8 @@ class FileHandler:
             self._trackfile.write(gpxtrack)
         except ValueError:
             pass
+
+        return 1
 
     def add_trackpoint(self, lat: float, lon: float, **kwargs):
         """
@@ -443,3 +464,19 @@ class FileHandler:
                 )
 
             self._last_track_update = datetime.now()
+
+    def set_database_path(self, initdir=HOME) -> Path:
+        """
+        Set database directory.
+
+        :param str initdir: initial directory (HOME)
+        :return: file path
+        :rtype: str
+        """
+
+        self._databasepath = filedialog.askdirectory(
+            title=SAVETITLE, initialdir=initdir, mustexist=True
+        )
+        if self._databasepath in ((), ""):
+            return None  # User cancelled
+        return self._databasepath

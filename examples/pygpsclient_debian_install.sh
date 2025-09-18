@@ -37,18 +37,21 @@ python3 -m pip install --upgrade pip pygpsclient
 deactivate
 
 echo "Adding desktop launch icon..."
+# the LD_LIBRARY_PATH env setting allows PyGPSClient to find the 
+# mod_spatialite.so module, which is typically installed in this location
+# you can set other env variables in a similar fashion if required
 cat > $HOME/.local/share/applications/pygpsclient.desktop <<EOF
 [Desktop Entry]
 Type=Application
 Terminal=false
 Name=PyGPSClient
 Icon=$HOME/pygpsclient/lib/python$PYVER/site-packages/pygpsclient/resources/pygpsclient.ico
-Exec=$HOME/pygpsclient/bin/pygpsclient
+Exec=env LD_LIBRARY_PATH=/usr/local/lib $HOME/pygpsclient/bin/pygpsclient
 EOF
 
 echo "Adding directory to PATH..."
 BASHPROF1=$HOME/.profile
-BASHPROF2=$HOME/.bash_rc
+BASHPROF2=$HOME/.bashrc
 ZSHPROF1=$HOME/.zprofile
 ZSHPROF2=$HOME/.zshrc
 if test -f $BASHPROF1

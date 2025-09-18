@@ -10,8 +10,8 @@ Supply initial settings via `config` keyword argument.
 
 Created on 26 Jan 2023
 
-:author: semuadmin
-:copyright: 2020 SEMU Consulting
+:author: semuadmin (Steve Smith)
+:copyright: 2020 semuadmin
 :license: BSD 3-Clause
 """
 

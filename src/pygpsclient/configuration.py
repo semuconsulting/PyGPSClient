@@ -5,8 +5,8 @@ Class holding all PyGPSClient configuration settings.
 
 Created on 18 Apr 2025
 
-:author: semuadmin
-:copyright: 2020 SEMU Consulting
+:author: semuadmin (Steve Smith)
+:copyright: 2020 semuadmin
 :license: BSD 3-Clause
 """
 
@@ -38,6 +38,7 @@ from pygpsclient.globals import (
     SPARTN_DEFAULT_KEY,
     SPARTN_OUTPORT,
     SPARTN_PPSERVER_URL,
+    TRACK,
     UMM,
     WORLD,
     ZED_F9,
@@ -103,6 +104,7 @@ class Configuration:
             "mapzoom_disabled_b": 0,  # whether offline maps zooming is disabled
             "gpxmaptype_s": CUSTOM,
             "gpxmapzoom_n": 10,
+            "gpxtype_s": TRACK,
             "mqapikey_s": "<=== YOUR MAPQUEST API KEY  ===>",
             "showtrack_b": 0,
             "legend_b": 1,
@@ -112,6 +114,8 @@ class Configuration:
             "logpath_s": "",
             "recordtrack_b": 0,
             "trackpath_s": "",
+            "database_b": 0,
+            "databasepath_s": "",
             # serial port settings from frm_serial
             "serialport_s": "/dev/ttyACM0",
             "bpsrate_n": 9600,

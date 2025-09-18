@@ -40,6 +40,7 @@ from pygpsclient.helpers import (
     knots2ms,
     lanip,
     ll2xy,
+    makeval,
     m2ft,
     ms2kmph,
     ms2knots,
@@ -111,7 +112,7 @@ class StaticTest(unittest.TestCase):
         self.assertEqual(cfg.get("lbandclientdrat_n"), 2400)
         self.assertEqual(cfg.get("userport_s"), "")
         self.assertEqual(cfg.get("spartnport_s"), "")
-        self.assertEqual(len(cfg.settings), 140)
+        self.assertEqual(len(cfg.settings), 143)
         kwargs = {"userport": "/dev/ttyACM0", "spartnport": "/dev/ttyACM1"}
         cfg.loadcli(**kwargs)
         self.assertEqual(cfg.get("userport_s"), "/dev/ttyACM0")
@@ -137,6 +138,17 @@ class StaticTest(unittest.TestCase):
         self.assertAlmostEqual(azim, 0.653290, 5)
         res = cel2cart("xxx", "xxx")
         self.assertEqual(res, (0, 0))
+
+    def testmakeval(self):
+        self.assertEqual(makeval(""), 0.0)
+        self.assertEqual(makeval("", 0), 0)
+        self.assertEqual(makeval(3.45), 3.45)
+        self.assertEqual(makeval(3, 0), 3)
+        self.assertEqual(makeval("3", 1), 1)
+        self.assertEqual(makeval(None, "N/A"), "N/A")
+        self.assertEqual(makeval("", "N/A"), "N/A")
+        self.assertEqual(makeval(3.45, "N/A"), "N/A")
+        self.assertEqual(makeval("test", "N/A"), "test")
 
     def testm2ft(self):
         res = m2ft(39.234)

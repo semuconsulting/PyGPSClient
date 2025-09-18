@@ -26,7 +26,7 @@ Though by no means mandatory, it is [generally considered best practice](https:/
 1. Use different versions of the same package across applications.
 1. Keep your application dependencies clean and organized.
 
-Some platforms (e.g. Ubuntu Linux) **enforce** the use of virtual environments via a so-called 'Externally Managed Environment' constraint². Attempting to install a package into the global environment will result in an `error: externally-managed-environment` error.
+Some platforms (e.g. Ubuntu Linux and Homebrew-installed Python environments) **enforce** the use of virtual environments via a so-called 'Externally Managed Environment' constraint². Attempting to install a package into the global environment will result in an `error: externally-managed-environment` error.
 
 ¹ In practice, 'global' generally means the user's home environment. Installing into the platform's global system environment typically results in a `Defaulting to user installation because normal site-packages is not writeable` warning.
 
@@ -61,13 +61,18 @@ The exact location of the site_packages and binary directories will depend on th
 
 In the following, `python3` & `pip` refer to the Python 3 executables. You may need to substitute `python` for `python3`, depending on your particular environment (*on Windows it's generally `python`*). 
 
-- Python >= 3.9
-- Tk (tkinter) >= 8.6⁴ (*tkinter is a commonly used library for developing Graphical User Interfaces (GUI) in Python*)
+- Python >= 3.9⁴
+- Tk (tkinter) >= 8.6⁵ (*tkinter is a commonly used library for developing Graphical User Interfaces (GUI) in Python*)
 - Screen resolution >= 640 x 400; Ideally 1920 x 1080, though at lower screen resolutions (<= 1024 width), top level dialogs will be resizable and scrollable.
 
 **NB** It is highly recommended to use the latest official [Python.org](https://www.python.org/downloads/) installation package for your platform, rather than any pre-installed version.
 
 **NB** It is highly recommended that the Python 3 [binaries](#binaries) (`../bin` or `..\Scripts`) directory is included in your PATH (*most standard Python 3 installation packages will do this automatically if you select the 'Add to PATH' option during installation*).
+
+⁴ PyGPSClient's optional spatialite database recording facility is dependent upon the following:
+
+   - The Python environment must support the loading of sqlite3 extensions i.e. it must have been compiled with the `--enable-loadable-sqlite-extensions` option. This is true by default for most Windows and Linux platforms but **NOT** for most MacOS platforms. 
+   - The mod_spatialite module (.so, .dll or .dylib) must be installed and in the `PATH` (or `LD_LIBRARY_PATH` on Linux).
 
 ### Windows 10 or later
 
@@ -75,9 +80,9 @@ Normally installs without any additional steps.
 
 ### MacOS 13 or later
 
-⁴ The version of Python supplied with some older Apple MacOS platforms includes a [deprecated version of tkinter](https://www.python.org/download/mac/tcltk/) (8.5). Use an official [Python.org](https://www.python.org/downloads/macos) installation package instead. 
+⁵ The version of Python supplied with some older Apple MacOS platforms includes a [deprecated version of tkinter](https://www.python.org/download/mac/tcltk/) (8.5). Use an official [Python.org](https://www.python.org/downloads/macos) installation package instead. 
 
-**NB:** Python does ***NOT*** require Homebrew or MacPorts to be installed on MacOS. The Python organisation provides serviceable [64-bit universal installation packages](https://www.python.org/downloads/macos/) for all current and legacy versions of Python, including release candidates. 
+**NB:** Python does ***NOT*** normally require Homebrew or MacPorts to be installed on MacOS. The Python organisation provides serviceable [64-bit universal installation packages](https://www.python.org/downloads/macos/) for all current and legacy versions of Python, including release candidates. 
 
 However, if you wish to install Python using [Homebrew](https://brew.sh/) to take advantage of certain non-default configurations (*e.g. support for sqlite3 extensions*), use the `python-tk` formula rather than `python`, e.g. 
 
@@ -89,11 +94,13 @@ Note also that the Homebrew formulae for python-tk>=3.12 include the latest tkin
 
 ### Linux (including Raspberry Pi OS)
 
-Some Linux distributions may not include the necessary pip, tkinter or Pillow imaging libraries by default. They may need to be installed separately, e.g.:
+Some Linux distributions may not include the necessary pip, tkinter, Pillow or spatialite libraries by default. They may need to be installed separately, e.g.:
 
 ```shell
-sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk libjpeg-dev zlib1g-dev tk-dev
+sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk libjpeg-dev zlib1g-dev tk-dev libspatialite
 ```
+
+⁴ Support for the sqlite3 `mod_spatialite` extension may require a custom version of Python to be [compiled from source](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/python_compile.sh) if a suitable version is not available from any of the distribution's repos.
 
 ## <a name="userpriv">User Privileges</a>
 

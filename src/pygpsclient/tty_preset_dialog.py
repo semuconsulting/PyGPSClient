@@ -5,8 +5,8 @@ TTY Configuration frame for user-defined TTY (AT+) commands
 
 Created on 7 May 2025
 
-:author: semuadmin
-:copyright: 2020 SEMU Consulting
+:author: semuadmin (Steve Smith)
+:copyright: 2020 semuadmin
 :license: BSD 3-Clause
 """
 

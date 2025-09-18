@@ -22,8 +22,8 @@ display any status messages output by StreamHandler.
 
 Created on 16 Sep 2020
 
-:author: semuadmin
-:copyright: 2020 SEMU Consulting
+:author: semuadmin (Steve Smith)
+:copyright: 2020 semuadmin
 :license: BSD 3-Clause
 """
 

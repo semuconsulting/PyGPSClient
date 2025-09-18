@@ -19,7 +19,7 @@
 set -e
 
 # set required Python major and minor version e.g. 3.10.10
-PYVER="3.13.0"
+PYVER="3.13.7"
 # NB: uncomment this line to install this version alongside existing versions
 # ALTINSTALL=1
 
@@ -46,13 +46,21 @@ fi
 sudo apt update
 sudo apt build-dep python3
 sudo apt install build-essential gdb lcov pkg-config \
-      libbz2-dev libffi-dev libgdbm-dev libgdbm-compat-dev liblzma-dev \
+      libbz2-dev libffi-dev libgdbm-dev libgdbm-compat-dev \
       libncurses5-dev libreadline6-dev libsqlite3-dev libssl-dev \
-      lzma lzma-dev tk-dev uuid-dev zlib1g-dev -y
+      lzma tk-dev uuid-dev zlib1g-dev -y
+sudo apt install liblzma-dev || true
+# liblzma-dev may be lzma-dev on some platforms
+sudo apt install lzma-dev || true
+sudo apt install libspatialite || true
+# libspatialite may not be available as standard on some platforms
+# (e.g. Rasperry PI OS) but it is relatively straightforward to
+# compile from source using the libspatialite_compile.sh script
+# in the /examples folder
 
-# compile, install and verify installed version
+# compile source and install - this will take several minutes
 cd Python-${PYVER}
-./configure --enable-optimizations
+./configure --enable-optimizations --enable-loadable-sqlite-extensions
 make
 # make test
 if [ -z ${ALTINSTALL+x} ]

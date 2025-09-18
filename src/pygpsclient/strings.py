@@ -5,8 +5,8 @@ ENGLISH language string literals for PyGPSClient application
 
 Created on 12 Sep 2020
 
-:author: semuadmin
-:copyright: 2020 SEMU Consulting
+:author: semuadmin (Steve Smith)
+:copyright: 2020 semuadmin
 :license: BSD 3-Clause
 """
 
@@ -15,7 +15,7 @@ Created on 12 Sep 2020
 from pygpsclient.globals import GITHUB_URL, MAPAPI_URL
 
 TITLE = "PyGPSClient"
-COPYRIGHT = "\u00a9 2020 SEMU Consulting\nBSD 3-Clause License"
+COPYRIGHT = "\u00a9 2020 semuadmin (Steve Smith)\nBSD 3-Clause License"
 COPYRIGHTTXT = f"{COPYRIGHT}. All Rights Reserved"
 EPILOG = f"{COPYRIGHT} - {GITHUB_URL}"
 
@@ -107,7 +107,8 @@ LBLCFGRECORD = "CFG Configuration Load/Save/Record"
 LBLCONFIGBASE = "Configure Base"
 LBLCTL = "Controls"
 LBLDATADISP = "Console Display"
-LBLDATALOG = "DataLogging"
+LBLDATALOG = "Data logging"
+LBLDATABASERECORD = "Database"
 LBLDEGFORMAT = "Position Format"
 LBLDURATIONS = "Duration (s)"
 LBLGGAFIXED = "Fixed Reference"
@@ -159,10 +160,12 @@ DLGENABLEMONSPAN = "Enable or poll MON-SPAN message"
 DLGENABLEMONSYS = "Enable or poll MON-SYS/COMMS messages"
 DLGGPXERROR = "GPX Parsing Error!"
 DLGGPXOPEN = "Click folder icon to open GPX Track file"
-DLGGPXLOAD = "Loading GPX Track ..."
-DLGGPXNULL = "No Trackpoints in GPX File!"
+DLGGPXLOAD = "Loading GPX file ..."
+DLGGPXLOADED = "GPX data processed"
+DLGGPXNULL = "No <{}> elements in GPX File!"
 DLGGPXOOB = "Map out of bounds\nTry increasing zoom level"
 DLGGPXWAIT = "Redrawing..."
+DLGGPXNOMINAL = "time and speed axes are nominal"
 DLGHOWTO = f"How To Use {TITLE}"
 DLGJSONERR = "Error! {}"
 DLGJSONOK = "Keys loaded from {}"

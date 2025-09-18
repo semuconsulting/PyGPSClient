@@ -332,6 +332,14 @@ pygpsclient.spectrum\_frame module
    :show-inheritance:
    :undoc-members:
 
+pygpsclient.sqllite\_handler module
+-----------------------------------
+
+.. automodule:: pygpsclient.sqllite_handler
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 pygpsclient.status\_frame module
 --------------------------------
 

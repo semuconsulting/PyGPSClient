@@ -104,8 +104,9 @@ Please refer to [INSTALLATION.md](https://github.com/semuconsulting/PyGPSClient/
 1. Tags - enable color tags in console (see Console Widget below).
 1. Position Format and Units - Change the displayed position (D.DD / D.M.S / D.M.MM / ECEF) and unit (metric/imperial) formats.
 1. Show Unused Satellites - Include or exclude satellites that are not used in the navigation solution (e.g. because their signal level is too low) from the graph and sky view panels.
-1. DataLogging - Turn Data logging in the selected format on or off. You will be prompted to select the directory into which timestamped log files are saved.
-1. GPX Track - Turn track recording (in GPX format) on or off. You will be prompted to select the directory into which timestamped GPX track files are saved.
+1. DataLogging - Turn Data logging in the selected format on or off. On first selection, you will be prompted to select the directory into which timestamped log files are saved.
+1. GPX Track - Turn track recording (in GPX format) on or off. On first selection, you will be prompted to select the directory into which timestamped GPX track files are saved.
+1. Database - Turn spatialite database recording (*where available*) on or off. On first selection, you will be prompted to select the directory into which the `pygpsclient.sqlite` database is saved. Note that, when first created, the database's spatial metadata will take a few seconds to initialise (*up to a minute on Raspberry Pi and similar SBC*). **NB** This facility is dependent on your Python environment supporting the requisite [sqlite3 `mod_spatialite` extension](https://www.gaia-gis.it/fossil/libspatialite/index) - see [INSTALLATION.md](https://github.com/semuconsulting/PyGPSClient/blob/master/INSTALLATION.md#prereqs) for further details. If not supported, the option will be greyed out. Check the Menu..Help..About dialog for an indication of the current spatialite support status.
 1. To save the current configuration to a file, go to File..Save Configuration.
 1. To load a saved configuration file, go to File..Load Configuration. The default configuration file location is `$HOME/pygpsclient.json`. **NB** Any active serial or RTK connection must be stopped before loading a new configuration.
 
@@ -389,7 +390,8 @@ By default, the server/caster binds to the host address '0.0.0.0' (IPv4) or '::'
 
 *GPX Track Viewer screenshot*
 
-The GPX Track Viewer can display any valid GPX file containing trackpoints (`<trkpt>..</trkpt>` elements) against either an ["custom" offline map image](#custommap), or an online MapQuest "map" or "sat" view. The "map" and "sat" options require a free [MapQuest API key](#mapquestapi). The Y axis scales will reflect the current choice of units (metric or imperial). Click ![refresh icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-refresh-lined-24.png?raw=true) to refresh the display after any changes (e.g. resizing, zooming or change of units). The location marker indicates the nominal center point of the track.
+The GPX Track Viewer can display any valid GPX file containing track point (`trkpt`), route point (`rtept`) or waypoint (`wpt`)elements against either an ["custom" offline map image](#custommap), or an online MapQuest "map", "sat" or "hyb" view. The "map", "sat" and "hyb" options require a free [MapQuest API key](#mapquestapi). The Y axis scales will reflect the current choice of units (metric or imperial). If the GPX track omits a time element, the time and speed axes will be flagged as nominal. GPX track metadata, including min, max, average (mean) and median elevation and speed values, is displayed in the selected units. 
+Click ![refresh icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-refresh-lined-24.png?raw=true) to refresh the display after any changes (e.g. resizing, zooming or change of units). The location marker indicates the nominal center point of the track.
 
 ---
 ## <a name="mapquestapi">MapQuest API Key</a>
