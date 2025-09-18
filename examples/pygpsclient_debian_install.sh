@@ -51,7 +51,7 @@ EOF
 
 echo "Adding directory to PATH..."
 BASHPROF1=$HOME/.profile
-BASHPROF2=$HOME/.bash_rc
+BASHPROF2=$HOME/.bashrc
 ZSHPROF1=$HOME/.zprofile
 ZSHPROF2=$HOME/.zshrc
 if test -f $BASHPROF1

@@ -49,10 +49,10 @@ sudo apt install build-essential gdb lcov pkg-config \
       libbz2-dev libffi-dev libgdbm-dev libgdbm-compat-dev \
       libncurses5-dev libreadline6-dev libsqlite3-dev libssl-dev \
       lzma tk-dev uuid-dev zlib1g-dev -y
-sudo apt install liblzma-dev -y
+sudo apt install liblzma-dev || true
 # liblzma-dev may be lzma-dev on some platforms
-# sudo apt install lzma-dev -y
-sudo apt install libspatialite -y
+sudo apt install lzma-dev || true
+sudo apt install libspatialite || true
 # libspatialite may not be available as standard on some platforms
 # (e.g. Rasperry PI OS) but it is relatively straightforward to
 # compile from source using the libspatialite_compile.sh script

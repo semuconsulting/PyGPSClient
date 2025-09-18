@@ -86,7 +86,7 @@ from pygpsclient.menu_bar import MenuBar
 from pygpsclient.nmea_handler import NMEAHandler
 from pygpsclient.rtcm3_handler import RTCM3Handler
 from pygpsclient.sbf_handler import SBFHandler
-from pygpsclient.sqllite_handler import SQLOK, SqliteHandler
+from pygpsclient.sqllite_handler import DBINMEM, SQLOK, SqliteHandler
 from pygpsclient.stream_handler import StreamHandler
 from pygpsclient.strings import (
     CONFIGERR,
@@ -179,10 +179,11 @@ class App(Frame):
         self._last_gui_update = datetime.now()
         self._socket_thread = None
         self._socket_server = None
-        self.database_enabled = False
         self._colcount = 0
         self._rowcount = 0
         self._consoledata = []
+        # check if platform supports spatialite database
+        self.db_enabled = self.sqlite_handler.open(dbname=DBINMEM)
 
         # load config from json file
         configfile = kwargs.pop("config", CONFIGFILE)
@@ -221,7 +222,11 @@ class App(Frame):
 
         # open database if database recording enabled
         dbpath = self.configuration.get("databasepath_s")
-        if self.configuration.get("database_b") and dbpath != "":
+        if (
+            self.db_enabled == SQLOK
+            and self.configuration.get("database_b")
+            and dbpath != ""
+        ):
             rc = self.sqlite_handler.open(dbpath=dbpath)
             self.configuration.set("database_b", rc == SQLOK)
 
@@ -417,7 +422,8 @@ class App(Frame):
 
         """
 
-        self.frm_status.set_connection(message, color=color)
+        if hasattr(self, "frm_status"):
+            self.frm_status.set_connection(message, color=color)
 
     def set_status(self, message, color=OKCOL):
         """
@@ -428,9 +434,10 @@ class App(Frame):
 
         """
 
-        color = INFOCOL if color == "blue" else color
-        self.frm_status.set_status(message, color)
-        self.update_idletasks()
+        if hasattr(self, "frm_status"):
+            color = INFOCOL if color == "blue" else color
+            self.frm_status.set_status(message, color)
+            self.update_idletasks()
 
     def set_event(self, evt: str):
         """

@@ -157,6 +157,7 @@ class SqliteHandler:
         """
 
         try:
+            db = ""
             if dbname == DBINMEM:  # check for spatial support
                 db = dbname
                 exists = True
@@ -183,11 +184,11 @@ class SqliteHandler:
             self.logger.debug(traceback.format_exc())
             return NOEXT  # extensions not supported
         except sqlite3.OperationalError as err:
-            self.__app.set_status(f"SQL error: {err}", ERRCOL)
+            self.__app.set_status(f"SQL error {db}: {err}", ERRCOL)
             self.logger.debug(traceback.format_exc())
             return NOMODS  # no mod_spatial extension found
         except sqlite3.Error as err:
-            self.__app.set_status(f"SQL error: {err}", ERRCOL)
+            self.__app.set_status(f"SQL error {db}: {err}", ERRCOL)
             self.logger.debug(traceback.format_exc())
             return SQLERR  # other sqlite error
 

@@ -40,6 +40,7 @@
     "mapzoom_disabled_b": 0,
     "gpxmaptype_s": "custom",
     "gpxmapzoom_n": 10,
+    "gpxtype_s": "track",
     "showtrack_b": 0,
     "legend_b": 1,
     "unusedsat_b": 0,

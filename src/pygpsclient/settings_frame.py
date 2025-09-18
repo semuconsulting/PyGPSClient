@@ -563,8 +563,12 @@ class SettingsFrame(Frame):
         self.logpath = cfg.get("logpath_s")
         self._record_track.set(cfg.get("recordtrack_b"))
         self.trackpath = cfg.get("trackpath_s")
-        self._record_database.set(cfg.get("database_b"))
         self.databasepath = cfg.get("databasepath_s")
+        if self.__app.db_enabled != SQLOK:
+            self._record_database.set(0)
+            self._chk_recorddatabase.config(state=DISABLED)
+        else:
+            self._record_database.set(cfg.get("database_b"))
         self.clients = 0
         self._bind_events(True)
 

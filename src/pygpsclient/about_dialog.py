@@ -39,7 +39,6 @@ from pygpsclient.globals import (
     SPONSOR_URL,
 )
 from pygpsclient.helpers import check_latest
-from pygpsclient.sqllite_handler import DBINMEM, SQLVER
 from pygpsclient.strings import ABOUTTXT, COPYRIGHTTXT, DLGTABOUT, GITHUB_URL
 from pygpsclient.toplevel_dialog import ToplevelDialog
 
@@ -100,10 +99,9 @@ class AboutDialog(ToplevelDialog):
             borderwidth=0,
         )
         tkv = Tcl().call("info", "patchlevel")
-        spv = self.__app.sqlite_handler.open(dbname=DBINMEM)
         self._lbl_python_version = Label(
             self._frm_body,
-            text=f"Python: {python_version()}  Tk: {tkv}  Spatial: {spv}",
+            text=f"Python: {python_version()}  Tk: {tkv}  Spatial: {self.__app.db_enabled}",
         )
         self._lbl_lib_versions = []
         for nam, ver in LIBVERSIONS.items():
