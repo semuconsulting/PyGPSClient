@@ -63,6 +63,7 @@ changelog = "https://github.com/semuconsulting/PyGPSClient/blob/master/RELEASE_N
 
 [dependency-groups]
 build = [
+    "awscli",
     "build",
     "packaging>=24.2",
     "pip",
