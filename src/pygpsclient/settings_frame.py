@@ -97,7 +97,7 @@ from pygpsclient.helpers import fontheight, fontwidth
 from pygpsclient.serialconfig_frame import SerialConfigFrame
 from pygpsclient.serverconfig_frame import ServerConfigFrame
 from pygpsclient.socketconfig_frame import SocketConfigFrame
-from pygpsclient.sqllite_handler import SQLOK
+from pygpsclient.sqlite_handler import SQLOK
 from pygpsclient.strings import (
     DLGTNMEA,
     DLGTNTRIP,

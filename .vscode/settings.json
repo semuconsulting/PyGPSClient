@@ -1,11 +1,16 @@
 {
+    // These test, build and deploy tasks are targeted at a venv
+    // called 'pygpsclient' located in the user's home directory.
+    // Set your workspace default VSCode Python interpreter to
+    // this venv, i.e.
+    // "${userHome}/pygpsclient/bin/python3" on linux/macos
+    // "${userHome}/pygpsclient/Scripts/python" on windows
     "python.testing.pytestEnabled": true,
     "python.terminal.activateEnvironment": true,
     "editor.formatOnSave": true,
     "modulename": "pygpsclient", // "${workspaceFolderBasename}",
     "distname": "${workspaceFolderBasename}",
-    //"venv": "${env:UserProfile}/pygpsclient",
-    "venv": "${env:HOME}/pygpsclient",
+    "venv": "${userHome}/pygpsclient",
     "python.testing.pytestArgs": [
         "tests"
     ],
@@ -17,4 +22,5 @@
     "python.analysis.addHoverSummaries": false,
     "python-envs.defaultEnvManager": "ms-python.python:venv",
     "python-envs.pythonProjects": [],
+    "python.defaultInterpreterPath": "${userHome}/pygpsclient/bin/python3"
 }

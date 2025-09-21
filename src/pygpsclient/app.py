@@ -86,7 +86,7 @@ from pygpsclient.menu_bar import MenuBar
 from pygpsclient.nmea_handler import NMEAHandler
 from pygpsclient.rtcm3_handler import RTCM3Handler
 from pygpsclient.sbf_handler import SBFHandler
-from pygpsclient.sqllite_handler import DBINMEM, SQLOK, SqliteHandler
+from pygpsclient.sqlite_handler import DBINMEM, SQLOK, SqliteHandler
 from pygpsclient.stream_handler import StreamHandler
 from pygpsclient.strings import (
     CONFIGERR,

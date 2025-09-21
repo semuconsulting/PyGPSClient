@@ -1,5 +1,9 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.5.15
+
+1. Minor refinements to UI on lower resolution screens.
+
 ### RELEASE 1.5.14
 
 FIXES:

@@ -10,5 +10,6 @@ Created on 27 Sep 2020
 
 from pygpsclient._version import __version__
 from pygpsclient.helpers import nmea2preset, ubx2preset
+from pygpsclient.sqlite_handler import retrieve_data
 
 version = __version__

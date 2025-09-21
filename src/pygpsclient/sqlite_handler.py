@@ -81,9 +81,9 @@ SQLI3D = (
 """SQL for inserting row into table"""
 
 SQLSEL = (
-    "SELECT ST_X(geom), ST_Y(geom), ST_Z(geom), utc, fix, hae, speed, track, siv, "
+    "SELECT id, utc, ST_X(geom), ST_Y(geom), ST_Z(geom), fix, hae, speed, track, siv, "
     "sip, pdop, hdop, vdop, hacc, vacc, diffcorr, diffage, diffstat, baselon, "
-    "baselat, basehae from {table} ORDER BY utc LIMIT {limit} OFFSET {offset}"
+    "baselat, basehae from {table} {where} ORDER BY utc LIMIT {limit} OFFSET {offset};"
 )
 """SQL for retrieving rows from table"""
 
@@ -257,27 +257,6 @@ class SqliteHandler:
             self.logger.debug(traceback.format_exc())
             return SQLERR
 
-    def get_data(self, limit: int = 100, offset: int = 0) -> object:
-        """
-        Retrieve rows from table as iterable, ordered by utc timestamp.
-
-        Check for SQLERR before iterating results.
-
-        :param int limit: number of rows
-        :param int offset: starting row
-        :return: iterable results
-        :rtype: results or error code as string
-        """
-
-        try:
-            self._cursor.execute(
-                SQLSEL.format(table=self._table, limit=limit, offset=offset)
-            )
-            return self._cursor.fetchall()
-        except sqlite3.Error:
-            self.logger.debug(traceback.format_exc())
-            return SQLERR
-
     @property
     def database(self) -> str:
         """
@@ -288,3 +267,38 @@ class SqliteHandler:
         """
 
         return self._db
+
+
+def retrieve_data(
+    dbpath: str = path.join(HOME, DBNAME),
+    table: str = TBNAME,
+    sqlwhere: str = "",
+    limit: int = 100,
+    offset: int = 0,
+) -> list:
+    """
+    Retrieve specified rows from sqlite table, ordered by utc timestamp.
+
+    :param str dbpath: fully qualified path to database
+    :param str table: name of database table
+    :param str sqlwhere: optional SQL WHERE clause
+    :param int limit: SQL LIMIT number of rows
+    :param int offset: SQL OFFSET starting row
+    :return: list of matching results
+    :rtype: list
+    :raises: FileNotFoundError
+    :raises: sqlite3.Error
+    """
+
+    try:
+        if not path.exists(dbpath):
+            raise FileNotFoundError(f"No such database: '{dbpath}'")
+        con = sqlite3.connect(dbpath)
+        con.enable_load_extension(True)
+        con.load_extension("mod_spatialite")
+        cursor = con.cursor()
+        sql = SQLSEL.format(table=table, where=sqlwhere, limit=limit, offset=offset)
+        cursor.execute(sql)
+        return cursor.fetchall()
+    except (AttributeError, sqlite3.Error) as err:
+        raise (sqlite3.Error(f"Error '{err}' executing SQL statement:\n{sql}")) from err

@@ -76,7 +76,7 @@ from pygpsclient.helpers import stringvar2val
 from pygpsclient.strings import LBLCFGGENERIC, LBLCFGGENERICNMEA
 
 # dimensions of scrollable attribute window
-SCROLLX = 300
+SCROLLX = 370
 SCROLLY = 300
 NMEA = "NMEA"
 UBX = "UBX"

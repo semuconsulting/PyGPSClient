@@ -13,7 +13,6 @@ Created on 17 Apr 2021
 
 """
 
-import os
 from datetime import datetime, timedelta
 from math import asin, atan, atan2, cos, degrees, pi, radians, sin, sqrt, trunc
 from socket import AF_INET, SOCK_DGRAM, socket
@@ -1000,11 +999,11 @@ def secs2unit(secs: int) -> tuple:
     return val, SECSUNITS[i]
 
 
-def set_filename(path: str, mode: str, ext: str) -> tuple:
+def set_filename(fpath: str, mode: str, ext: str) -> tuple:
     """
     Return timestamped file name and fully qualified file path.
 
-    :param path: the file path as str
+    :param fpath: the file path as str
     :param mode: the type of file being created ('data', 'track') as str
     :param ext: the file extension ('log', 'gpx') as str
     :return: fully qualified filename and path
@@ -1012,7 +1011,7 @@ def set_filename(path: str, mode: str, ext: str) -> tuple:
     """
 
     filename = f"pygps{mode}-{strftime('%Y%m%d%H%M%S')}.{ext}"
-    filepath = os.path.join(path, filename)
+    filepath = fpath.join(fpath, filename)
     return filename, filepath
 
 

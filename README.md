@@ -52,6 +52,7 @@ The PyGPSClient home page is at [PyGPSClient](https://github.com/semuconsulting/
 1. [GNSS Positioning - A Reviser](https://www.semuconsulting.com/gnsswiki/) - a general overview of GNSS, OSR, SSR, RTK, NTRIP and SPARTN positioning and error correction technologies and terminology.
 1. [Achieving cm Level GNSS Accuracy using RTK](https://www.semuconsulting.com/gnsswiki/rtktips/) - practical tips on high precision RTK using PyGPSClient.
 1. [Sphinx API Documentation](https://www.semuconsulting.com/pygpsclient) in HTML format.
+1. From time to time, instructional videos may be posted to the [semuadmin YouTube channel](https://www.youtube.com/@semuadmin).
 
 Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/semuconsulting/PyGPSClient/blob/master/CONTRIBUTING.md).
 
@@ -107,6 +108,8 @@ Please refer to [INSTALLATION.md](https://github.com/semuconsulting/PyGPSClient/
 1. DataLogging - Turn Data logging in the selected format on or off. On first selection, you will be prompted to select the directory into which timestamped log files are saved.
 1. GPX Track - Turn track recording (in GPX format) on or off. On first selection, you will be prompted to select the directory into which timestamped GPX track files are saved.
 1. Database - Turn spatialite database recording (*where available*) on or off. On first selection, you will be prompted to select the directory into which the `pygpsclient.sqlite` database is saved. Note that, when first created, the database's spatial metadata will take a few seconds to initialise (*up to a minute on Raspberry Pi and similar SBC*). **NB** This facility is dependent on your Python environment supporting the requisite [sqlite3 `mod_spatialite` extension](https://www.gaia-gis.it/fossil/libspatialite/index) - see [INSTALLATION.md](https://github.com/semuconsulting/PyGPSClient/blob/master/INSTALLATION.md#prereqs) for further details. If not supported, the option will be greyed out. Check the Menu..Help..About dialog for an indication of the current spatialite support status.
+
+     *FYI* a helper method `retrieve_data()` is available to retrieve data from this database - see [Sphinx documentation](https://www.semuconsulting.com/pygpsclient/pygpsclient.html#pygpsclient.sqllite_handler.retrieve_data) and [retrieve_data.py](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/retrieve_data.py) example for details.
 1. To save the current configuration to a file, go to File..Save Configuration.
 1. To load a saved configuration file, go to File..Load Configuration. The default configuration file location is `$HOME/pygpsclient.json`. **NB** Any active serial or RTK connection must be stopped before loading a new configuration.
 
