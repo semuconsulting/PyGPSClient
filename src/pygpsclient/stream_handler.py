@@ -14,8 +14,7 @@ message queue and sends these to the receiver.
 The StreamHandler class is used by two PyGPSClient 'caller' objects:
 
 - SettingsFrame - i/o with the main GNSS receiver.
-- SpartnLbandDialog - i/o with a SPARTN L-Band receiver, when the
-SPARTN Client is active.
+- SpartnLbandDialog - i/o with a SPARTN L-Band receiver when SPARTN Client active.
 
 The caller object can implement a 'set_status()' method to
 display any status messages output by StreamHandler.
