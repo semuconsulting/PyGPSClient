@@ -2,6 +2,12 @@
 
 ### RELEASE 1.5.15
 
+FIXES:
+
+1. Fix GPX add trackpoint exception handling Fixes [#213](https://github.com/semuconsulting/PyGPSClient/issues/213)
+
+ENHANCEMENTS:
+
 1. Minor refinements to UI on lower resolution screens.
 
 ### RELEASE 1.5.14

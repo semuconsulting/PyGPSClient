@@ -15,6 +15,7 @@ Created on 17 Apr 2021
 
 from datetime import datetime, timedelta
 from math import asin, atan, atan2, cos, degrees, pi, radians, sin, sqrt, trunc
+from os import path
 from socket import AF_INET, SOCK_DGRAM, socket
 from time import strftime
 from tkinter import Entry, Tk
@@ -759,7 +760,7 @@ def ned2vector(n: float, e: float, d: float) -> tuple:
 def nmea2preset(msgs: tuple, desc: str = "") -> str:
     """
     Convert one or more NMEAMessages to format suitable for adding to user-defined
-    preset list `nmeapresets_l` in PyGPSClient *.json configuration files.
+    preset list `nmeapresets_l` in PyGPSClient .json configuration files.
 
     The format is:
     "<description>; <talker>; <msgID>; <payload as comma separated list>; <msgmode>"
@@ -787,13 +788,12 @@ def nmea2preset(msgs: tuple, desc: str = "") -> str:
 
 def normalise_area(points: tuple) -> Area:
     """
-    Convert 4 points to Area in correct order.
-    (minlat, minlon, maxlat, maxlon)
+    Convert 4 points to Area in correct order (minlat, minlon, maxlat, maxlon).
 
-    :param tuple points: tuple of (lat1, lon1, lat2, lon2)
-    :raises TypeError: if less than 4 points provided
+    :param tuple points: tuple of lat1, lon1, lat2, lon2
     :return: area
-    :rtype Area
+    :rtype: Area
+    :raises TypeError: if less than 4 points provided
     """
 
     if len(points) != 4:
@@ -1011,7 +1011,7 @@ def set_filename(fpath: str, mode: str, ext: str) -> tuple:
     """
 
     filename = f"pygps{mode}-{strftime('%Y%m%d%H%M%S')}.{ext}"
-    filepath = fpath.join(fpath, filename)
+    filepath = path.join(fpath, filename)
     return filename, filepath
 
 
@@ -1196,7 +1196,7 @@ def time2str(tim: float, sformat: str = "%H:%M:%S") -> str:
 def ubx2preset(msgs: tuple, desc: str = "") -> str:
     """
     Convert one or more UBXMessages to format suitable for adding to user-defined
-    preset list `ubxpresets_l` in PyGPSClient *.json configuration files.
+    preset list `ubxpresets_l` in PyGPSClient .json configuration files.
 
     The format is:
     "<description>, <talker>, <msgID>, <payload as hexadecimal string>, <msgmode>"

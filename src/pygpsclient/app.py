@@ -646,11 +646,11 @@ class App(Frame):
         Kill any running processes and quit application.
         """
 
-        self.file_handler.close_logfile()
-        self.file_handler.close_trackfile()
         self.stop_sockserver_thread()
         self.stream_handler.stop_read_thread()
         self.sqlite_handler.close()
+        self.file_handler.close_logfile()
+        self.file_handler.close_trackfile()
         self.__master.destroy()
 
     def on_gnss_read(self, event):  # pylint: disable=unused-argument

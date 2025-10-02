@@ -383,8 +383,9 @@ class FileHandler:
         trkpnt += "</trkpt>"
 
         try:
-            self._trackfile.write(trkpnt)
-            self._trackfile.flush()
+            if self._trackfile is not None:
+                self._trackfile.write(trkpnt)
+                self._trackfile.flush()
         except (IOError, ValueError):
             pass
 
