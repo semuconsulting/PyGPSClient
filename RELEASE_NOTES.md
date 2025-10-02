@@ -4,7 +4,8 @@
 
 FIXES:
 
-1. Fix GPX add trackpoint exception handling Fixes [#213](https://github.com/semuconsulting/PyGPSClient/issues/213)
+1. Fix GPX add trackpoint exception handling - Fixes [#213](https://github.com/semuconsulting/PyGPSClient/issues/213)
+1. Send NTRIP (RTCM) and SPARTN data via socket connection as well as serial connection - Addresses [#214](https://github.com/semuconsulting/PyGPSClient/discussions/214).
 
 ENHANCEMENTS:
 

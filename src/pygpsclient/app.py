@@ -56,6 +56,8 @@ from pygpsclient.globals import (
     CONFIGFILE,
     CONNECTED,
     CONNECTED_NTRIP,
+    CONNECTED_SIMULATOR,
+    CONNECTED_SOCKET,
     CONNECTED_SPARTNIP,
     CONNECTED_SPARTNLB,
     DISCONNECTED,
@@ -733,7 +735,11 @@ class App(Frame):
                 else:
                     source = "OTHER"
                 if isinstance(parsed_data, (RTCMMessage, SPARTNMessage)):
-                    if self.conn_status == CONNECTED:
+                    if self.conn_status in (
+                        CONNECTED,
+                        CONNECTED_SOCKET,
+                        CONNECTED_SIMULATOR,
+                    ):
                         self.gnss_outqueue.put(raw_data)
                     self.process_data(raw_data, parsed_data, source + ">>")
                 elif isinstance(parsed_data, NMEAMessage):
@@ -756,7 +762,11 @@ class App(Frame):
         try:
             raw_data, parsed_data = self.spartn_inqueue.get(False)
             if raw_data is not None and parsed_data is not None:
-                if self.conn_status == CONNECTED:
+                if self.conn_status in (
+                    CONNECTED,
+                    CONNECTED_SOCKET,
+                    CONNECTED_SIMULATOR,
+                ):
                     self.gnss_outqueue.put(raw_data)
                 if self._rtk_conn_status == CONNECTED_SPARTNLB:
                     source = "LBAND"
