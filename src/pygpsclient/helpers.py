@@ -1053,7 +1053,7 @@ def setubxrate(app: object, mid: str, rate: int = 1, prot: str = "UBX") -> UBXMe
             if prt != "":
                 cfgdata = [(f"CFG_MSGOUT_{prot}{mid}_{prt}", rate)]
                 msg = UBXMessage.config_set(SET_LAYER_RAM, TXN_NONE, cfgdata)
-                app.gnss_outqueue.put(msg.serialize())
+                app.send_to_device(msg.serialize())
 
     else:
 
@@ -1082,7 +1082,7 @@ def setubxrate(app: object, mid: str, rate: int = 1, prot: str = "UBX") -> UBXMe
             rateUSB=rates.get("USB", 0),
             rateSPI=rates.get("SPI", 0),
         )
-        app.gnss_outqueue.put(msg.serialize())
+        app.send_to_device(msg.serialize())
 
     return msg
 

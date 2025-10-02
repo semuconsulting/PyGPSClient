@@ -735,12 +735,7 @@ class App(Frame):
                 else:
                     source = "OTHER"
                 if isinstance(parsed_data, (RTCMMessage, SPARTNMessage)):
-                    if self.conn_status in (
-                        CONNECTED,
-                        CONNECTED_SOCKET,
-                        CONNECTED_SIMULATOR,
-                    ):
-                        self.gnss_outqueue.put(raw_data)
+                    self.send_to_device(raw_data)
                     self.process_data(raw_data, parsed_data, source + ">>")
                 elif isinstance(parsed_data, NMEAMessage):
                     # i.e. NMEA GGA sentence sent to NTRIP server
@@ -762,12 +757,7 @@ class App(Frame):
         try:
             raw_data, parsed_data = self.spartn_inqueue.get(False)
             if raw_data is not None and parsed_data is not None:
-                if self.conn_status in (
-                    CONNECTED,
-                    CONNECTED_SOCKET,
-                    CONNECTED_SIMULATOR,
-                ):
-                    self.gnss_outqueue.put(raw_data)
+                self.send_to_device(raw_data)
                 if self._rtk_conn_status == CONNECTED_SPARTNLB:
                     source = "LBAND"
                 elif self._rtk_conn_status == CONNECTED_SPARTNIP:
@@ -914,6 +904,20 @@ class App(Frame):
         if self.configuration.get("datalog_b"):
             self.file_handler.write_logfile(raw_data, parsed_data)
 
+    def send_to_device(self, data: object):
+        """
+        Send raw data to connected device.
+
+        :param object data: raw GNSS data (NMEA, UBX, ASCII, RTCM3, SPARTN)
+        """
+
+        if self.conn_status in (
+            CONNECTED,
+            CONNECTED_SOCKET,
+            CONNECTED_SIMULATOR,
+        ):
+            self.gnss_outqueue.put(data)
+
     def _refresh_widgets(self):
         """
         Refresh visible widgets.
@@ -953,12 +957,12 @@ class App(Frame):
             msg = NMEAMessage("P", "QTMVERNO", POLL)
 
         if isinstance(msg, (UBXMessage, NMEAMessage)):
-            self.gnss_outqueue.put(msg.serialize())
+            self.send_to_device(msg.serialize())
             self.set_status(
                 f"{msg.identity} POLL message sent",
             )
         elif isinstance(msg, bytes):
-            self.gnss_outqueue.put(msg)
+            self.send_to_device(msg)
             self.set_status(
                 "Setup POLL message sent",
             )

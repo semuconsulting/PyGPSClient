@@ -835,21 +835,21 @@ class ServerConfigFrame(Frame):
         for cmd in cmds:
             # self.logger.debug(f"Base Config Message: {cmd}")
             if isinstance(cmd, (UBXMessage, NMEAMessage)):
-                self.__app.gnss_outqueue.put(cmd.serialize())
+                self.__app.send_to_device(cmd.serialize())
             elif isinstance(cmd, str):  # TTY ASCII string
-                self.__app.gnss_outqueue.put(cmd.encode(ASCII, errors=BSR))
+                self.__app.send_to_device(cmd.encode(ASCII, errors=BSR))
                 sleep(delay)  # add delay between each TTY command
             else:  # raw bytes
-                self.__app.gnss_outqueue.put(cmd)
+                self.__app.send_to_device(cmd)
 
         if self.receiver_type.get() == ZED_F9:
             # set RTCM and UBX NAV-SVIN message output rate
             rate = 0 if self.base_mode.get() == BASE_DISABLED else 1
             for port in ("USB", "UART1"):
                 msg = self._config_msg_rates(rate, port)
-                self.__app.gnss_outqueue.put(msg.serialize())
+                self.__app.send_to_device(msg.serialize())
                 msg = config_nmea(self.disable_nmea.get(), port)
-                self.__app.gnss_outqueue.put(msg.serialize())
+                self.__app.send_to_device(msg.serialize())
         elif self.receiver_type.get() == LG290P:
             # poll for confirmation that rcvr has restarted,
             # then resend configuration commands a 2nd time
@@ -1213,7 +1213,7 @@ class ServerConfigFrame(Frame):
                     rate=1,
                     msgver=1,
                 )
-                self.__app.gnss_outqueue.put(cmd.serialize())
+                self.__app.send_to_device(cmd.serialize())
 
     def svin_countdown(self, ela: int, valid: bool, active: bool):
         """

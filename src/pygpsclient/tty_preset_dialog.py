@@ -284,7 +284,7 @@ class TTYPresetDialog(ToplevelDialog):
                 cmd = cmd.strip().encode(ASCII, errors=BSR)
                 if self._crlf.get():
                     cmd += CRLF
-                self.__app.gnss_outqueue.put(cmd)
+                self.__app.send_to_device(cmd)
                 # self.logger.debug(f"command sent {cmd=}")
                 if self._echo.get():  # echo output command to console
                     self.__app.gnss_inqueue.put((cmd, cmd.decode(ASCII, errors=BSR)))

@@ -135,12 +135,12 @@ class Hardware_Info_Frame(Frame):
             penddlg = UBX_MONVER
 
         if isinstance(msg, (NMEAMessage, UBXMessage)):
-            self.__app.gnss_outqueue.put(msg.serialize())
+            self.__app.send_to_device(msg.serialize())
             self.__app.set_status(
                 f"{msg.identity} POLL message sent",
             )
         elif isinstance(msg, bytes):
-            self.__app.gnss_outqueue.put(msg)
+            self.__app.send_to_device(msg)
             self.__app.set_status("Setup POLL message sent")
         self.__container.set_pending(pendmsg, penddlg)
 

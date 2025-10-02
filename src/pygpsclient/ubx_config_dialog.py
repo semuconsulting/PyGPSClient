@@ -262,7 +262,7 @@ class UBXConfigDialog(ToplevelDialog):
         Send command to receiver.
         """
 
-        self.__app.gnss_outqueue.put(msg.serialize())
+        self.__app.send_to_device(msg.serialize())
         self.record_command(msg)
 
     def record_command(self, msg: UBXMessage):
