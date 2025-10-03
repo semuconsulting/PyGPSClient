@@ -112,6 +112,21 @@ def bitsval(bitfield: bytes, position: int, length: int) -> int:
     return int.from_bytes(bitfield, "big") >> (lbb - position - length) & 2**length - 1
 
 
+def brew_installed() -> bool:
+    """
+    Check if Python installed under Homebrew.
+
+    Some Python/tkinter installations under Homebrew cause
+    a critical segmentation error when shell subprocesses
+    are invoked.
+
+    :return: yes/no
+    :rtype: bool
+    """
+
+    return path.isfile("/opt/homebrew/bin/python3")
+
+
 def bytes2unit(valb: int) -> tuple:
     """Format bytes as KB, MB, GB etc
     such that value < 100.

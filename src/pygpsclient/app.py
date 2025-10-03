@@ -33,7 +33,11 @@ Created on 12 Sep 2020
 
 import logging
 from datetime import datetime, timedelta
+from inspect import currentframe, getfile
+from os import path
 from queue import Empty, Queue
+from subprocess import CalledProcessError, run
+from sys import executable
 from threading import Thread
 from tkinter import E, Frame, N, PhotoImage, S, Tk, Toplevel, W, font
 
@@ -1024,3 +1028,43 @@ class App(Frame):
 
         self._rtk_conn_status = status
         self.frm_banner.update_rtk_status(status)
+
+    def do_app_update(self, updates: list) -> int:
+        """
+        Update outdated application modules to latest versions.
+
+        :param list updates: list of modules to be updated
+        :return: return code 0 = error, 1 = OK
+        :rtype: int
+        """
+
+        if len(updates) < 1:
+            return 1
+
+        pth = path.dirname(path.abspath(getfile(currentframe())))
+        if "pipx" in pth:  # installed into venv using pipx
+            cmd = [
+                "pipx",
+                "upgrade",
+                "pygpsclient",
+            ]
+        else:  # installed using pip
+            cmd = [
+                executable,  # i.e. python3 or python
+                "-m",
+                "pip",
+                "install",
+                "--upgrade",
+            ]
+            for pkg in updates:
+                cmd.append(pkg)
+
+        result = None
+        try:
+            self.logger.debug(f"{executable=} {pth=} {cmd=}")
+            result = run(cmd, check=True, capture_output=True)
+            self.logger.debug(result.stdout)
+            return 1
+        except CalledProcessError:
+            self.logger.error(result.stdout)
+            return 0

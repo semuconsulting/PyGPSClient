@@ -11,11 +11,7 @@ Created on 20 Sep 2020
 """
 
 import logging
-from inspect import currentframe, getfile
-from os import path
 from platform import python_version
-from subprocess import CalledProcessError, run
-from sys import executable
 from tkinter import Button, Checkbutton, E, Frame, IntVar, Label, Tcl, W
 from webbrowser import open_new_tab
 
@@ -38,8 +34,8 @@ from pygpsclient.globals import (
     OKCOL,
     SPONSOR_URL,
 )
-from pygpsclient.helpers import check_latest
-from pygpsclient.strings import ABOUTTXT, COPYRIGHTTXT, DLGTABOUT, GITHUB_URL
+from pygpsclient.helpers import brew_installed, check_latest
+from pygpsclient.strings import ABOUTTXT, BREWWARN, COPYRIGHTTXT, DLGTABOUT, GITHUB_URL
 from pygpsclient.toplevel_dialog import ToplevelDialog
 
 LIBVERSIONS = {
@@ -196,6 +192,10 @@ class AboutDialog(ToplevelDialog):
         Close dialog and go to GitHub.
         """
 
+        if brew_installed:
+            self._brew_warning()
+            return
+
         open_new_tab(GITHUB_URL)
         self.on_exit()
 
@@ -203,6 +203,10 @@ class AboutDialog(ToplevelDialog):
         """
         Close dialog and go to Sponsor website.
         """
+
+        if brew_installed:
+            self._brew_warning()
+            return
 
         open_new_tab(SPONSOR_URL)
         self.on_exit()
@@ -212,6 +216,10 @@ class AboutDialog(ToplevelDialog):
         Close dialog and go to GitHub LICENSE file.
         """
 
+        if brew_installed:
+            self._brew_warning()
+            return
+
         open_new_tab(LICENSE_URL)
         self.on_exit()
 
@@ -220,6 +228,7 @@ class AboutDialog(ToplevelDialog):
         Check for updates.
         """
 
+        self.set_status("")
         self._updates = []
         for i, (nam, current) in enumerate(LIBVERSIONS.items()):
             latest = check_latest(nam)
@@ -245,35 +254,23 @@ class AboutDialog(ToplevelDialog):
         Run python update.
         """
 
-        self._btn_checkupdate.config(text="UPDATING...", fg=INFOCOL)
-        self.update_idletasks()
-        pth = path.dirname(path.abspath(getfile(currentframe())))
-        if "pipx" in pth:  # installed into venv using pipx
-            cmd = [
-                "pipx",
-                "upgrade",
-                "pygpsclient",
-            ]
-        else:  # installed using pip
-            cmd = [
-                executable,  # i.e. python3 or python
-                "-m",
-                "pip",
-                "install",
-                "--upgrade",
-            ]
-            for pkg in self._updates:
-                cmd.append(pkg)
-
-        result = None
-        try:
-            result = run(cmd, check=True, capture_output=True)
-            self.logger.debug(result.stdout)
-        except CalledProcessError:
-            self.logger.error(result.stdout)
-            self._btn_checkupdate.config(text="UPDATE FAILED", fg=ERRCOL)
-            self._btn_checkupdate.bind("<Button>", self._check_for_update)
+        if brew_installed:
+            self._brew_warning()
             return
 
-        self._btn_checkupdate.config(text="RESTART APP", fg=OKCOL)
-        self._btn_checkupdate.bind("<Button>", self.__app.on_exit)
+        self._btn_checkupdate.config(text="UPDATING...", fg=INFOCOL)
+        self.update_idletasks()
+        rc = self.__app.do_app_update(self._updates)
+        if rc:
+            self._btn_checkupdate.config(text="RESTART APP", fg=OKCOL)
+            self._btn_checkupdate.bind("<Button>", self.__app.on_exit)
+        else:
+            self._btn_checkupdate.config(text="UPDATE FAILED", fg=ERRCOL)
+            self._btn_checkupdate.bind("<Button>", self._check_for_update)
+
+    def _brew_warning(self):
+        """
+        Display warning that some functionality unavailable with Homebrew.
+        """
+
+        self.set_status(BREWWARN, INFOCOL)

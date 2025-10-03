@@ -97,6 +97,26 @@ CFG_EXCLUDED = (
 # alternative POLL dictionary names for where POLL command
 # doesn't correspond to SET (fudge for Quectel)
 ALT_POLL_NAMES = {
+    "AIR050": "AIR051",
+    "AIR058": "AIR059",
+    "AIR062": "AIR063",
+    "AIR066": "AIR067",
+    "AIR070": "AIR071",
+    "AIR072": "AIR073",
+    "AIR074": "AIR075",
+    "AIR080": "AIR081",
+    "AIR086": "AIR087",
+    "AIR100": "AIR101",
+    "AIR104": "AIR105",
+    "AIR400": "AIR401",
+    "AIR410": "AIR421",
+    "AIR420": "AIR411",
+    "AIR432": "AIR433",
+    "AIR434": "AIR435",
+    "AIR436": "AIR437",
+    "AIR864": "AIR865",
+    "AIR866": "AIR867",
+    "AIR6010": "AIR6011",
     "QTMCFGGEOFENCE_DIS": "QTMCFGGEOFENCE",
     "QTMCFGGEOFENCE_POLY": "QTMCFGGEOFENCE",
     "QTMCFGPPS_DIS": "QTMCFGPPS",
@@ -112,7 +132,9 @@ NMEA_POLL_VALS = {
     "msgname": "RMC",
     "msgver": 1,
     "porttype": 1,
+    "portType": 0,
     "portid": 1,
+    "portIndex": 0,
     "ppsindex": 1,
     "signalid": 1,
     "status": "R",
@@ -266,7 +288,7 @@ class Dynamic_Config_Frame(Frame):
         if self._protocol == NMEA:
             for i, cmd in enumerate(NMEA_PAYLOADS_SET_PROP):
                 if cmd not in CFG_EXCLUDED:
-                    self._lbx_cfg_cmd.insert(i, cmd)
+                    self._lbx_cfg_cmd.insert(i, f"P{cmd}")
         else:
             for i, cmd in enumerate(UBX_PAYLOADS_SET):
                 if cmd[0:3] == "CFG" and cmd not in CFG_EXCLUDED:
@@ -302,11 +324,11 @@ class Dynamic_Config_Frame(Frame):
 
         self._expected_response = None
         idx = self._lbx_cfg_cmd.curselection()
-        self._cfg_id = self._lbx_cfg_cmd.get(idx)
+        self._cfg_id = self._lbx_cfg_cmd.get(idx)[1:]
         if self._protocol == NMEA:
             cfgid = self._cfg_id.rsplit("_", 1)[0]
             pde = NMEA_MSGIDS_PROP[cfgid].replace("Sets/Gets", "")
-            pdesc = f"{cfgid} {pde}"
+            pdesc = f"P{cfgid} {pde}"
             pdic = NMEA_PAYLOADS_SET_PROP[self._cfg_id]
         else:  # UBX
             pdesc = self._cfg_id
@@ -357,7 +379,7 @@ class Dynamic_Config_Frame(Frame):
             self.logger.debug(f"command {msg.serialize()}")
             self._lbl_send_command.config(image=self._img_pending)
             self.__container.set_status(
-                f"{self._cfg_id} SET message sent",
+                f"P{self._cfg_id} SET message sent",
             )
             for msgid in pendcfg:
                 self.__container.set_pending(msgid, penddlg)
@@ -384,7 +406,7 @@ class Dynamic_Config_Frame(Frame):
             return
 
         msg = penddlg = pendcfg = None
-        # use alternate names for some NMEA PQTM POLL commands
+        # use alternate names for some NMEA PAIR/PQTM POLL commands
         cfg_id = ALT_POLL_NAMES.get(self._cfg_id, self._cfg_id)
         # set any POLL arguments to specified or default values
         # e.g. portid = "1", msgname="RMC"
@@ -405,14 +427,14 @@ class Dynamic_Config_Frame(Frame):
         if msg is not None:
             self.__container.send_command(msg)
             # self.logger.debug(f"poll {msg.serialize()}")
-            self.__container.set_status(f"{cfg_id} POLL message sent", INFOCOL)
+            self.__container.set_status(f"P{cfg_id} POLL message sent", INFOCOL)
             self._lbl_send_command.config(image=self._img_pending)
             for msgid in pendcfg:
                 self.__container.set_pending(msgid, penddlg)
             self._expected_response = POLL
         else:  # CFG cannot be POLLed
             self.__container.set_status(
-                f"{cfg_id} No POLL available",
+                f"P{cfg_id} No POLL available",
             )
             self._lbl_send_command.config(image=self._img_unknown)
 
@@ -490,10 +512,10 @@ class Dynamic_Config_Frame(Frame):
                     self._update_widgets(msg)
 
             if ok:
-                self.__container.set_status(f"{cfg_id} message acknowledged", OKCOL)
+                self.__container.set_status(f"P{cfg_id} message acknowledged", OKCOL)
                 self._lbl_send_command.config(image=self._img_confirmed)
             else:
-                self.__container.set_status(f"{cfg_id} message rejected", ERRCOL)
+                self.__container.set_status(f"P{cfg_id} message rejected", ERRCOL)
                 self._lbl_send_command.config(image=self._img_warn)
             self.update()
 
@@ -628,9 +650,11 @@ class Dynamic_Config_Frame(Frame):
         """
 
         cfg = self._cfg_id.split("_")[0]
+        # use alternate names for some NMEA PAIR/PQTM POLL commands
+        cfg = ALT_POLL_NAMES.get(cfg, cfg)
         if (
             self._protocol == NMEA
-            and (cfg[:3] == "QTM" and nam != "status")  # ignore Quectel status
+            and (cfg[:3] in ("QTM", "AIR") and nam != "status")  # ignore Quectel status
             and nam in NMEA_PAYLOADS_POLL_PROP.get(cfg, {})
         ) or (self._protocol == UBX and nam in UBX_PAYLOADS_POLL.get(cfg, {})):
             wdg.configure(highlightbackground=INFOCOL, highlightcolor=INFOCOL)

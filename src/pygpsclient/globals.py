@@ -215,6 +215,7 @@ MINWIDTH = 800
 CUSTOM = "custom"
 IMPORT = "import"
 WORLD = "world"
+LC29H = "Quectel LC29H"
 LG290P = "Quectel LG290P"
 MAX_SNR = 60  # upper limit of graphview snr axis
 MAXLOGLINES = 10000  # maximum number of 'lines' per datalog file

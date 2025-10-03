@@ -2,14 +2,16 @@
 
 ### RELEASE 1.5.15
 
+ENHANCEMENTS:
+
+1. Add support for Quectel LC29H base station configuration in NTRIP Caster mode.
+1. Enhance support for Quectel PAIR commands in NMEA configuration panel.
+1. Minor refinements to UI on lower resolution screens.
+
 FIXES:
 
 1. Fix GPX add trackpoint exception handling - Fixes [#213](https://github.com/semuconsulting/PyGPSClient/issues/213)
 1. Send NTRIP (RTCM) and SPARTN data via socket connection as well as serial connection - Addresses [#214](https://github.com/semuconsulting/PyGPSClient/discussions/214).
-
-ENHANCEMENTS:
-
-1. Minor refinements to UI on lower resolution screens.
 
 ### RELEASE 1.5.14
 
