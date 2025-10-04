@@ -491,18 +491,22 @@ For further details, refer to the `pygnssutils` homepage at [https://github.com/
 --
 ## <a name="knownissues">Known Issues</a>
 
-1. On some 32-bit Linux platforms (e.g. Raspberry Pi OS 32), it may be necessary to [install Rust compiler support](https://www.rust-lang.org/tools/install) and some [additional build dependencies](https://cryptography.io/en/latest/installation/) in order to install the `cryptography` library which PyGPSClient optionally depends on to decrypt SPARTN messages (see  [pyspartn cryptography installation notes](https://github.com/semuconsulting/pyspartn/tree/main/cryptography_installation#readme)):
+1. Most budget USB-UART adapters (e.g. FT232, CH345, CP2102) have a bandwidth limit of around 3MB/s and may not work reliably above 115200 baud, even if the receiver supports higher baud rates. If you're using an adapter and notice significant message corruption, try reducing the baud rate to a maximum 115200.
 
-  ```shell
-  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-  sudo apt-get install build-essential libssl-dev libffi-dev python3-dev pkg-config
-  ```
+2. On some 32-bit Linux platforms (e.g. Raspberry Pi OS 32), it may be necessary to [install Rust compiler support](https://www.rust-lang.org/tools/install) and some [additional build dependencies](https://cryptography.io/en/latest/installation/) in order to install the `cryptography` library which PyGPSClient optionally depends on to decrypt SPARTN messages (see  [pyspartn cryptography installation notes](https://github.com/semuconsulting/pyspartn/tree/main/cryptography_installation#readme)):
 
-2. The [latest official Python 3.13 installers](https://docs.python.org/3/howto/free-threading-python.html) include the option to disable the standard [Python Global Interpreter Lock (GIL)](https://realpython.com/python-gil/) and allow threads to run concurrently. Whilst the core PyGPSClient packages run fine in this mode (*and some marginal performance improvements may be seen on multi-core machines*), installing PyGPSClient using pip under the "No-GIL" `python3.13t` executable currently fails due to missing `cryptography` dependencies (*Warning: CPython 3.13t at /Users/user/pygpsclient_nogil/bin/python3 does not yet support abi3 so the build artifacts will be version-specific* *warning: openssl-sys@0.9.108: Could not find directory of OpenSSL installation*). A workaround is to install `pyspartn` with the `-no-deps` option *first* (which removes the `cryptography` dependency), and *then* install PyGPSClient.
+   ```shell
+   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+   sudo apt-get install build-essential libssl-dev libffi-dev python3-dev pkg-config
+   ```
 
-3. PyGPSClient installs and runs fine with [Python 3.14rc2](https://pythoninsider.blogspot.com/2025/08/python-3140rc2-and-3137-are-go.html) but note that, at time of writing (Aug 2025), some optional dependencies (e.g. `rasterio`) are only available as source files and may require additional build resources (e.g. GDAL). In addition, there appears to be an issue with running `bandit` under Python 3.14 (*ERROR   Exception occurred when executing tests against ./build/lib/pygpsclient/__init__.py.*).
+3. The [latest official Python 3.13 installers](https://docs.python.org/3/howto/free-threading-python.html) include the option to disable the standard [Python Global Interpreter Lock (GIL)](https://realpython.com/python-gil/) and allow threads to run concurrently. Whilst the core PyGPSClient packages run fine in this mode (*and some marginal performance improvements may be seen on multi-core machines*), installing PyGPSClient using pip under the "No-GIL" `python3.13t` executable currently fails due to missing `cryptography` dependencies (*Warning: CPython 3.13t at /Users/user/pygpsclient_nogil/bin/python3 does not yet support abi3 so the build artifacts will be version-specific* *warning: openssl-sys@0.9.108: Could not find directory of OpenSSL installation*). A workaround is to install `pyspartn` with the `--no-deps` option *first* (which removes the `cryptography` dependency), and *then* install PyGPSClient.
 
-4. u-blox [discontinued their PointPerfect SPARTN L-Band service](https://portal.u-blox.com/s/question/0D5Oj00000uB53GKAS/suspension-of-european-pointperfect-lband-spartn-service) in the European region in March 2025 and for the rest of the world in June 2025. As a result, PyGPSClient maintainers are no longer able to test this functionality against live data.
+4. PyGPSClient installs and runs fine with [Python 3.14rc2](https://pythoninsider.blogspot.com/2025/08/python-3140rc2-and-3137-are-go.html) but note that, at time of writing (Aug 2025), some optional dependencies (e.g. `rasterio`) are only available as source files and may require additional build resources (e.g. GDAL). In addition, there appears to be an issue with running `bandit` under Python 3.14 (*ERROR   Exception occurred when executing tests against ./build/lib/pygpsclient/__init__.py.*). I expect this to be resolved when the final release is available.
+
+5. Some Homebrew-installed Python environments on MacOS can give rise to critical segmentation errors (*illegal memory access*)  when shell subprocesses are invoked. This may, for example, affect About..Update functionality; the workaround is to update via a standard CLI `pip install --upgrade` command.
+
+6. u-blox [discontinued their PointPerfect SPARTN L-Band service](https://portal.u-blox.com/s/question/0D5Oj00000uB53GKAS/suspension-of-european-pointperfect-lband-spartn-service) in the European region in March 2025 and for the rest of the world in June 2025. As a result, PyGPSClient maintainers are no longer able to test this functionality against live data.
 
 ---
 ## <a name="license">License</a>
