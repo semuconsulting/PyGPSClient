@@ -18,7 +18,7 @@ from tkinter import ALL, BOTH, YES, Canvas, Frame
 from pygpsclient.globals import BGCOL, FGCOL, GNSS_LIST, WIDGETU1
 from pygpsclient.helpers import cel2cart, col2contrast, fontheight, scale_font, snr2col
 
-OL_WID = 2
+OL_WID = 4
 
 
 class SkyviewFrame(Frame):

@@ -83,12 +83,13 @@ class Configuration:
             "guiupdateinterval_f": GUI_UPDATE_INTERVAL,  # GUI widget update interval in seconds
             "mapupdateinterval_n": MAP_UPDATE_INTERVAL,
             "defaultport_s": RCVR_CONNECTION,
-            "protocol_n": 15,
             "nmeaprot_b": 1,
             "ubxprot_b": 1,
-            "sbfprot_b": 0,
             "rtcmprot_b": 1,
-            "spartnprot_b": 1,
+            "sbfprot_b": 0,
+            "qgcprot_b": 0,
+            "spartnprot_b": 0,
+            "mqttprot_b": 1,
             "ttyprot_b": 0,
             "ttycrlf_b": 1,
             "ttyecho_b": 0,
@@ -180,7 +181,7 @@ class Configuration:
             "mqttclienttlscrt_s": "<=== FULLY QUALIFIED PATH TO MQTT CRT FILE ===>",
             "mqttclienttlskey_s": "<=== FULLY QUALIFIED PATH TO MQTT KEY FILE ===>",
             # SPARTN L-Band client settings from SpartnLbandDialog if open
-            "lband_enabled_b": 0,  # PointPerfect SPARTN L-Band service has been discontiued
+            "lband_enabled_b": 0,  # SPARTN L-Band and MQTT services discontinued
             "spartnport_s": "",
             "spartndecode_b": 0,
             "spartnkey_s": SPARTN_DEFAULT_KEY,
@@ -241,6 +242,8 @@ class Configuration:
             try:
                 for key, val in config.items():
                     key = key.replace("mgtt", "mqtt")  # tolerate "mgtt" typo
+                    if key == "protocol_n":  # redundant, ignore
+                        continue
                     if key == "guiupdateinterval_f":
                         val = max(MIN_GUI_UPDATE_INTERVAL, val)
                     self.set(key, val)

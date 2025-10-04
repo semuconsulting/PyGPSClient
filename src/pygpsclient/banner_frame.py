@@ -12,7 +12,7 @@ Created on 13 Sep 2020
 :license: BSD 3-Clause
 """
 
-from tkinter import SUNKEN, Button, E, Frame, Label, N, S, StringVar, W
+from tkinter import NW, SUNKEN, Button, E, Frame, Label, N, W
 
 from PIL import Image, ImageTk
 from pynmeagps.nmeahelpers import latlon2dmm, latlon2dms, llh2ecef
@@ -71,23 +71,6 @@ class BannerFrame(Frame):
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
         Frame.__init__(self, self.__master, *args, **kwargs)
 
-        self._time = StringVar()
-        self._lat = StringVar()
-        self._lon = StringVar()
-        self._alt = StringVar()
-        self._hae = StringVar()
-        self._speed = StringVar()
-        self._alt_u = StringVar()
-        self._speed_u = StringVar()
-        self._track = StringVar()
-        self._dop = StringVar()
-        self._hvdop = StringVar()
-        self._hvacc = StringVar()
-        self._fix = StringVar()
-        self._siv = StringVar()
-        self._sip = StringVar()
-        self._diffcorr = StringVar()
-        self._diffstat = StringVar()
         self._status = False
         self._show_advanced = False
 
@@ -126,10 +109,15 @@ class BannerFrame(Frame):
         self._frm_toggle = Frame(self, bg=BGCOL)
         self._frm_basic = Frame(self, bg=BGCOL, relief=SUNKEN)
         self._frm_advanced = Frame(self, bg=BGCOL)
+        self._frm_advanced2 = Frame(self, bg=BGCOL)
 
         self.option_add("*Font", self.__app.font_md2)
         self._lbl_ltime = Label(
-            self._frm_basic, text="utc:", bg=self._bgcol, fg=self._fgcol, anchor=N
+            self._frm_basic,
+            text="utc:",
+            bg=self._bgcol,
+            fg=self._fgcol,
+            anchor=N,
         )
         self._lbl_llat = Label(
             self._frm_basic, text="lat:", bg=self._bgcol, fg=self._fgcol, anchor=N
@@ -140,39 +128,39 @@ class BannerFrame(Frame):
         self._lbl_lalt = Label(
             self._frm_basic, text="hmsl:", bg=self._bgcol, fg=self._fgcol, anchor=N
         )
-        self._lbl_lhae = Label(
-            self._frm_basic, text="hae:", bg=self._bgcol, fg=self._fgcol, anchor=N
-        )
-        self._lbl_lspd = Label(
-            self._frm_basic, text="speed:", bg=self._bgcol, fg=self._fgcol, anchor=N
-        )
-        self._lbl_ltrk = Label(
-            self._frm_basic, text="track:", bg=self._bgcol, fg=self._fgcol, anchor=N
-        )
-        self._btn_toggle = Button(
-            self._frm_toggle,
-            width=30,
-            height=25,
-            command=self._toggle_advanced,
-            image=self._img_expand,
-        )
         self._lbl_lfix = Label(
             self._frm_basic, text="fix:", bg=self._bgcol, fg=self._fgcol, anchor=N
         )
+        self._btn_toggle = Button(
+            self._frm_toggle,
+            width=28,
+            height=22,
+            command=self._toggle_advanced,
+            image=self._img_expand,
+        )
+        self._lbl_lhae = Label(
+            self._frm_advanced, text="hae:", bg=self._bgcol, fg=self._fgcol, anchor=N
+        )
+        self._lbl_lspd = Label(
+            self._frm_advanced, text="speed:", bg=self._bgcol, fg=self._fgcol, anchor=N
+        )
+        self._lbl_ltrk = Label(
+            self._frm_advanced, text="track:", bg=self._bgcol, fg=self._fgcol, anchor=N
+        )
         self._lbl_lsiv = Label(
-            self._frm_advanced, text="siv:", bg=self._bgcol, fg=self._fgcol, anchor=N
+            self._frm_advanced2, text="siv:", bg=self._bgcol, fg=self._fgcol, anchor=N
         )
         self._lbl_lsip = Label(
-            self._frm_advanced, text="sip:", bg=self._bgcol, fg=self._fgcol, anchor=N
+            self._frm_advanced2, text="sip:", bg=self._bgcol, fg=self._fgcol, anchor=N
         )
         self._lbl_lpdop = Label(
-            self._frm_advanced, text="pdop:", bg=self._bgcol, fg=self._fgcol, anchor=N
+            self._frm_advanced2, text="pdop:", bg=self._bgcol, fg=self._fgcol, anchor=N
         )
         self._lbl_lacc = Label(
-            self._frm_advanced, text="acc:", bg=self._bgcol, fg=self._fgcol, anchor=N
+            self._frm_advanced2, text="acc:", bg=self._bgcol, fg=self._fgcol, anchor=N
         )
         self._lbl_ldgps = Label(
-            self._frm_advanced,
+            self._frm_advanced2,
             text="dgps:",
             bg=self._bgcol,
             fg=self._fgcol,
@@ -191,87 +179,58 @@ class BannerFrame(Frame):
         )
 
         self._lbl_time = Label(
-            self._frm_basic, textvariable=self._time, bg=self._bgcol, fg="cyan"
+            self._frm_basic, bg=self._bgcol, fg="cyan", width=15, anchor=W
         )
         self._lbl_lat = Label(
-            self._frm_basic, textvariable=self._lat, bg=self._bgcol, fg="orange"
+            self._frm_basic, bg=self._bgcol, fg="orange", width=16, anchor=W
         )
         self._lbl_lon = Label(
-            self._frm_basic, textvariable=self._lon, bg=self._bgcol, fg="orange"
+            self._frm_basic, bg=self._bgcol, fg="orange", width=17, anchor=W
         )
         self._lbl_alt = Label(
-            self._frm_basic, textvariable=self._alt, bg=self._bgcol, fg="orange"
-        )
-        self._lbl_hae = Label(
-            self._frm_basic, textvariable=self._hae, bg=self._bgcol, fg="orange"
-        )
-        self._lbl_spd = Label(
-            self._frm_basic, textvariable=self._speed, bg=self._bgcol, fg="deepskyblue"
-        )
-        self._lbl_trk = Label(
-            self._frm_basic, textvariable=self._track, bg=self._bgcol, fg="deepskyblue"
+            self._frm_basic, bg=self._bgcol, fg="orange", width=13, anchor=W
         )
         self._lbl_fix = Label(
-            self._frm_basic, textvariable=self._fix, bg=self._bgcol, fg="white"
+            self._frm_basic, bg=self._bgcol, fg="white", width=10, anchor=W
+        )
+        self._lbl_hae = Label(
+            self._frm_advanced, bg=self._bgcol, fg="orange", width=13, anchor=W
+        )
+        self._lbl_spd = Label(
+            self._frm_advanced, bg=self._bgcol, fg="deepskyblue", width=12, anchor=W
+        )
+        self._lbl_trk = Label(
+            self._frm_advanced, bg=self._bgcol, fg="deepskyblue", width=8, anchor=W
         )
         self._lbl_siv = Label(
-            self._frm_advanced, textvariable=self._siv, bg=self._bgcol, fg="yellow"
+            self._frm_advanced2, bg=self._bgcol, fg="yellow", width=2, anchor=W
         )
         self._lbl_sip = Label(
-            self._frm_advanced, textvariable=self._sip, bg=self._bgcol, fg="yellow"
+            self._frm_advanced2, bg=self._bgcol, fg="yellow", width=2, anchor=W
         )
         self._lbl_pdop = Label(
-            self._frm_advanced,
-            textvariable=self._dop,
-            bg=self._bgcol,
-            fg="mediumpurple1",
+            self._frm_advanced2, bg=self._bgcol, fg="mediumpurple1", width=12, anchor=W
         )
         self._lbl_diffcorr = Label(
-            self._frm_advanced,
-            textvariable=self._diffcorr,
-            bg=self._bgcol,
-            fg="hotpink",
+            self._frm_advanced2, bg=self._bgcol, fg="hotpink", width=3, anchor=W
         )
 
         self.option_add("*Font", self.__app.font_sm)
-        self._lbl_lalt_u = Label(
-            self._frm_basic,
-            textvariable=self._alt_u,
-            bg=self._bgcol,
-            fg="orange",
-            anchor=S,
-        )
-        self._lbl_lspd_u = Label(
-            self._frm_basic,
-            textvariable=self._speed_u,
-            bg=self._bgcol,
-            fg="deepskyblue",
-            anchor=S,
-        )
         self._lbl_hvdop = Label(
-            self._frm_advanced,
-            textvariable=self._hvdop,
-            bg=self._bgcol,
-            fg="mediumpurple1",
+            self._frm_advanced2, bg=self._bgcol, fg="mediumpurple1", width=9, anchor=W
         )
         self._lbl_hvacc = Label(
-            self._frm_advanced,
-            textvariable=self._hvacc,
-            bg=self._bgcol,
-            fg="aquamarine2",
+            self._frm_advanced2, bg=self._bgcol, fg="aquamarine2", width=9, anchor=W
         )
         self._lbl_lacc_u = Label(
-            self._frm_advanced,
-            textvariable=self._alt_u,
+            self._frm_advanced2,
             bg=self._bgcol,
             fg="aquamarine2",
-            anchor=N,
+            anchor=NW,
+            width=2,
         )
         self._lbl_diffstat = Label(
-            self._frm_advanced,
-            textvariable=self._diffstat,
-            bg=self._bgcol,
-            fg="hotpink",
+            self._frm_advanced2, bg=self._bgcol, fg="hotpink", width=20, anchor=W
         )
 
     def _do_layout(self):
@@ -282,40 +241,38 @@ class BannerFrame(Frame):
         self._lbl_status_preset.grid(column=0, row=0, padx=2, pady=3, sticky=W)
         self._lbl_rtk_preset.grid(column=1, row=0, padx=2, pady=3, sticky=W)
         self._lbl_transmit_preset.grid(column=2, row=0, padx=2, pady=3, sticky=W)
-        self._lbl_ltime.grid(column=1, row=0, pady=3, sticky=W)
-        self._lbl_time.grid(column=2, row=0, pady=3, sticky=W)
-        self._lbl_llat.grid(column=3, row=0, pady=3, sticky=W)
-        self._lbl_lat.grid(column=4, row=0, pady=3, sticky=W)
-        self._lbl_llon.grid(column=5, row=0, pady=3, sticky=W)
-        self._lbl_lon.grid(column=6, row=0, pady=3, sticky=W)
-        self._lbl_lalt.grid(column=7, row=0, pady=3, sticky=W)
-        self._lbl_alt.grid(column=8, row=0, pady=3, sticky=W)
-        self._lbl_lhae.grid(column=9, row=0, pady=3, sticky=W)
-        self._lbl_hae.grid(column=10, row=0, pady=3, sticky=W)
-        self._lbl_lalt_u.grid(column=11, row=0, pady=0, sticky=W)
-        self._lbl_lspd.grid(column=12, row=0, pady=3, sticky=W)
-        self._lbl_spd.grid(column=13, row=0, pady=3, sticky=W)
-        self._lbl_lspd_u.grid(column=14, row=0, pady=0, sticky=W)
-        self._lbl_ltrk.grid(column=15, row=0, pady=3, sticky=W)
-        self._lbl_trk.grid(column=16, row=0, pady=3, sticky=W)
-        self._lbl_lfix.grid(column=17, row=0, pady=3, sticky=W)
-        self._lbl_fix.grid(column=18, row=0, pady=3, sticky=W)
+        self._lbl_ltime.grid(column=1, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_time.grid(column=2, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_llat.grid(column=3, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_lat.grid(column=4, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_llon.grid(column=5, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_lon.grid(column=6, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_lalt.grid(column=7, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_alt.grid(column=8, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_lfix.grid(column=9, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_fix.grid(column=10, row=0, pady=0, padx=0, sticky=W)
 
-        self._lbl_lsiv.grid(column=0, row=0, pady=3, sticky=W)
-        self._lbl_siv.grid(column=1, row=0, pady=3, sticky=W)
-        self._lbl_lsip.grid(column=2, row=0, pady=3, sticky=W)
-        self._lbl_sip.grid(column=3, row=0, pady=3, sticky=W)
-        self._lbl_lpdop.grid(column=4, row=0, pady=3, sticky=W)
-        self._lbl_pdop.grid(column=5, row=0, pady=3, sticky=W)
-        self._lbl_hvdop.grid(column=6, row=0, pady=0, sticky=W)
-        self._lbl_lacc.grid(column=7, row=0, pady=3, sticky=W)
-        self._lbl_hvacc.grid(column=8, row=0, pady=0, sticky=W)
-        self._lbl_lacc_u.grid(column=9, row=0, pady=0, sticky=W)
-        self._lbl_ldgps.grid(column=10, row=0, pady=3, sticky=W)
-        self._lbl_diffcorr.grid(column=11, row=0, pady=3, sticky=W)
-        self._lbl_diffstat.grid(column=12, row=0, pady=3, sticky=W)
+        self._lbl_lhae.grid(column=0, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_hae.grid(column=1, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_lspd.grid(column=2, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_spd.grid(column=3, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_ltrk.grid(column=4, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_trk.grid(column=5, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_lsiv.grid(column=0, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_siv.grid(column=1, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_lsip.grid(column=2, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_sip.grid(column=3, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_lpdop.grid(column=4, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_pdop.grid(column=5, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_hvdop.grid(column=6, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_lacc.grid(column=7, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_hvacc.grid(column=8, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_lacc_u.grid(column=9, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_ldgps.grid(column=10, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_diffcorr.grid(column=11, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_diffstat.grid(column=12, row=0, pady=0, padx=0, sticky=W)
 
-        self._btn_toggle.grid(column=0, row=0, padx=8, pady=3, sticky=(N, E))
+        self._btn_toggle.grid(column=0, row=0, padx=0, pady=0, sticky=(N, E))
 
         self._toggle_advanced()
 
@@ -327,14 +284,16 @@ class BannerFrame(Frame):
         self._frm_connect.grid(
             column=0, row=0, rowspan=2, pady=3, ipadx=3, ipady=3, sticky=(N, W)
         )
-        self._frm_basic.grid(column=1, row=0, pady=3, sticky=W)
-        self._frm_toggle.grid(column=5, row=0, rowspan=2, pady=3, sticky=(N, E))
+        self._frm_basic.grid(column=1, row=0, pady=2, sticky=W)
+        self._frm_toggle.grid(column=5, row=0, rowspan=2, pady=2, sticky=(N, E))
         self._show_advanced = not self._show_advanced
         if self._show_advanced:
-            self._frm_advanced.grid(column=1, row=1, pady=3, sticky=W)
+            self._frm_advanced.grid(column=1, row=1, pady=2, sticky=W)
+            self._frm_advanced2.grid(column=1, row=2, pady=2, sticky=W)
             self._btn_toggle.config(image=self._img_contract)
         else:
             self._frm_advanced.grid_forget()
+            self._frm_advanced2.grid_forget()
             self._btn_toggle.config(image=self._img_expand)
 
     def _attach_events(self):
@@ -414,9 +373,9 @@ class BannerFrame(Frame):
 
         tim = self.__app.gnss_status.utc
         if tim in (None, ""):
-            self._time.set(f"{NA:<15}")
+            self._lbl_time.config(text=NA)
         else:
-            self._time.set(f"{tim:%H:%M:%S.%f}")
+            self._lbl_time.config(text=f"{tim:%H:%M:%S.%f}")
 
     def _update_pos(self, pos_format, units):
         """
@@ -444,8 +403,8 @@ class BannerFrame(Frame):
                 self._lbl_llat.config(text="X:")
                 self._lbl_llon.config(text="Y:")
                 self._lbl_lalt.config(text="Z:")
-                self._lat.set(f"{lat:.4f}")
-                self._lon.set(f"{lon:.4f}")
+                self._lbl_lat.config(text=f"{lat:.4f}")
+                self._lbl_lon.config(text=f"{lon:.4f}")
             else:
                 deg_f = "<15"
                 if pos_format == DMS:
@@ -457,17 +416,15 @@ class BannerFrame(Frame):
                 if units in (UI, UIK):
                     alt = m2ft(alt)
                     hae = m2ft(hae)
-                self._lat.set(f"{lat:{deg_f}}")
-                self._lon.set(f"{lon:{deg_f}}")
-            self._alt.set(f"{alt:.4f}")
-            self._hae.set(f"{hae:.4f}")
-            self._alt_u.set(f"{alt_u:<2}")
+                self._lbl_lat.config(text=f"{lat:{deg_f}}")
+                self._lbl_lon.config(text=f"{lon:{deg_f}}")
+            self._lbl_alt.config(text=f"{alt:.4f} {alt_u}")
+            self._lbl_hae.config(text=f"{hae:.4f} {alt_u}")
         except (TypeError, ValueError):
-            self._lat.set(f"{NA:<15}")
-            self._lon.set(f"{NA:<15}")
-            self._alt.set(f"{NA:<6}")
-            self._hae.set(f"{NA:<6}")
-            self._alt_u.set("  ")
+            self._lbl_lat.config(text=NA)
+            self._lbl_lon.config(text=NA)
+            self._lbl_alt.config(text=NA)
+            self._lbl_hae.config(text=NA)
 
     def _update_track(self, units):
         """
@@ -488,15 +445,14 @@ class BannerFrame(Frame):
             elif units == UMK:
                 speed = ms2kmph(speed)
                 speed_u = "kmph"
-            self._speed.set(f"{speed:.2f}")
-            self._speed_u.set(f"{speed_u:<5}")
+            self._lbl_spd.config(text=f"{speed:.2f} {speed_u}")
         else:
-            self._speed.set(NA)
+            self._lbl_spd.config(text=NA)
         track = self.__app.gnss_status.track
         if isinstance(track, (int, float)):
-            self._track.set(f"{track:05.1f}")
+            self._lbl_trk.config(text=f"{track:05.1f} °")
         else:
-            self._track.set(f"{NA:<4}")
+            self._lbl_trk.config(text=NA)
 
     def _update_fix(self):
         """
@@ -510,7 +466,7 @@ class BannerFrame(Frame):
             self._lbl_fix.config(fg="orange")
         else:
             self._lbl_fix.config(fg=ERRCOL)
-        self._fix.set(fix)
+        self._lbl_fix.config(text=fix)
 
     def _update_siv(self):
         """
@@ -518,11 +474,11 @@ class BannerFrame(Frame):
         """
 
         try:
-            self._siv.set(f"{self.__app.gnss_status.siv:02d}")
-            self._sip.set(f"{self.__app.gnss_status.sip:02d}")
+            self._lbl_siv.config(text=f"{self.__app.gnss_status.siv:02d}")
+            self._lbl_sip.config(text=f"{self.__app.gnss_status.sip:02d}")
         except (TypeError, ValueError):
-            self._siv.set(NA)
-            self._sip.set(NA)
+            self._lbl_siv.config(text=NA)
+            self._lbl_sip.config(text=NA)
 
     def _update_dop(self, units):
         """
@@ -533,31 +489,33 @@ class BannerFrame(Frame):
 
         try:
             pdop = self.__app.gnss_status.pdop
-            self._dop.set(f"{pdop:.2f} {dop2str(pdop):<9}")
+            self._lbl_pdop.config(text=f"{pdop:.2f} {dop2str(pdop)}")
         except (TypeError, ValueError):
-            self._dop.set(NA)
+            self._lbl_pdop.config(text=NA)
 
         try:
-            self._hvdop.set(
-                f"hdop {self.__app.gnss_status.hdop:.2f}\n"
+            self._lbl_hvdop.config(
+                text=f"hdop {self.__app.gnss_status.hdop:.2f}\n"
                 + f"vdop {self.__app.gnss_status.vdop:.2f}"
             )
         except (TypeError, ValueError):
-            self._hvdop.set(f"hdop {NA}\nvdop {NA}")
+            self._lbl_hvdop.config(text=f"hdop {NA}\nvdop {NA}")
 
         try:
             if units in (UI, UIK):
-                self._hvacc.set(
-                    f"hacc {m2ft(self.__app.gnss_status.hacc):.3f}\n"
+                self._lbl_hvacc.config(
+                    text=f"hacc {m2ft(self.__app.gnss_status.hacc):.3f}\n"
                     + f"vacc {m2ft(self.__app.gnss_status.vacc):.3f}"
                 )
+                self._lbl_lacc_u.config(text="ft")
             else:
-                self._hvacc.set(
-                    f"hacc {self.__app.gnss_status.hacc:.3f}\n"
+                self._lbl_hvacc.config(
+                    text=f"hacc {self.__app.gnss_status.hacc:.3f}\n"
                     + f"vacc {self.__app.gnss_status.vacc:.3f}"
                 )
+                self._lbl_lacc_u.config(text="m")
         except (TypeError, ValueError):
-            self._hvacc.set(f"hacc {NA}\nvacc {NA}")
+            self._lbl_hvacc.config(text=f"hacc {NA}\nvacc {NA}")
 
     def _update_dgps(self, units):
         """
@@ -566,7 +524,9 @@ class BannerFrame(Frame):
         :param str units: distance units as string (UMM, UMK, UI, UIK)
         """
 
-        self._diffcorr.set(DGPSYES if self.__app.gnss_status.diff_corr else NA)
+        self._lbl_diffcorr.config(
+            text=DGPSYES if self.__app.gnss_status.diff_corr else NA
+        )
         baseline = self.__app.gnss_status.rel_pos_length
         bl = NA
         bl_u = ""
@@ -597,13 +557,15 @@ class BannerFrame(Frame):
             if station in [None, "", 0]:
                 station = NA
             if bl == NA:
-                self._diffstat.set(f"age {age}\nstation {station} baseline {bl}")
+                self._lbl_diffstat.config(
+                    text=f"age {age}\nstation {station} baseline {bl}"
+                )
             else:
-                self._diffstat.set(
-                    f"age {age}\nstation {station} baseline {bl:.2f} {bl_u}"
+                self._lbl_diffstat.config(
+                    text=f"age {age}\nstation {station} baseline {bl:.2f} {bl_u}"
                 )
         else:
-            self._diffstat.set("")
+            self._lbl_diffstat.config(text="")
 
     def _set_fontsize(self):
         """
@@ -649,8 +611,6 @@ class BannerFrame(Frame):
             ctl.config(font=fnt)
 
         for ctl in (
-            self._lbl_lalt_u,
-            self._lbl_lspd_u,
             self._lbl_hvdop,
             self._lbl_hvacc,
             self._lbl_diffstat,

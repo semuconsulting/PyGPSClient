@@ -116,14 +116,12 @@
         {
             "label": "Security",
             "type": "process",
-            "command": "${config:python.defaultInterpreterPath}",
+            "command": "bandit",
             "args": [
-                "-m",
-                "bandit",
                 "-c",
                 "pyproject.toml",
                 "-r",
-                "."
+                "src/pygpsclient"
             ],
             "problemMatcher": []
         },

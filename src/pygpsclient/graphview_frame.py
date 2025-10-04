@@ -23,13 +23,13 @@ from pygpsclient.globals import (
     MAX_SNR,
     WIDGETU2,
 )
-from pygpsclient.helpers import fontheight, scale_font, snr2col
+from pygpsclient.helpers import col2contrast, fontheight, scale_font
 
 # Relative offsets of graph axes and legend
 AXIS_XL = 19
 AXIS_XR = 10
 AXIS_Y = 22
-OL_WID = 2
+OL_WID = 1
 LEG_XOFF = AXIS_XL + 10
 LEG_YOFF = 5
 LEG_GAP = 5
@@ -115,13 +115,10 @@ class GraphviewFrame(Frame):
                 font=self._font,
             )
         self.can_graphview.create_line(AXIS_XL, 5, AXIS_XL, h - AXIS_Y, fill=AXISCOL)
-        self.can_graphview.create_line(
-            w - AXIS_XR + 2, 5, w - AXIS_XR + 2, h - AXIS_Y, fill=AXISCOL
-        )
         self.can_graphview.create_text(
             AXIS_XR,
             5,
-            text="CN₀ dB",
+            text="dB",
             angle=90,
             fill=FGCOL,
             anchor=E,
@@ -146,15 +143,17 @@ class GraphviewFrame(Frame):
                 LEG_YOFF,
                 x + w - LEG_GAP,
                 LEG_YOFF + h,
-                outline=gnssCol,
-                fill=BGCOL,
+                # outline=gnssCol,
+                # fill=BGCOL,
+                outline=GRIDCOL,
+                fill=gnssCol,
                 width=OL_WID,
             )
             self.can_graphview.create_text(
                 (x + x + w - LEG_GAP) / 2,
                 LEG_YOFF + h / 2,
                 text=gnssName,
-                fill=FGCOL,
+                fill=col2contrast(gnssCol),
                 font=self._font,
             )
 
@@ -191,8 +190,9 @@ class GraphviewFrame(Frame):
                 h - AXIS_Y - 1,
                 offset + colwidth - OL_WID,
                 h - AXIS_Y - 1 - snr_y,
-                outline=ol_col,
-                fill=snr2col(snr),
+                outline=GRIDCOL,
+                # fill=snr2col(snr),
+                fill=ol_col,
                 width=OL_WID,
             )
             self.can_graphview.create_text(

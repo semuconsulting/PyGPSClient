@@ -376,7 +376,6 @@ class Dynamic_Config_Frame(Frame):
 
             # send message, update status and await response
             self.__container.send_command(msg)
-            self.logger.debug(f"command {msg.serialize()}")
             self._lbl_send_command.config(image=self._img_pending)
             self.__container.set_status(
                 f"P{self._cfg_id} SET message sent",
@@ -426,7 +425,6 @@ class Dynamic_Config_Frame(Frame):
 
         if msg is not None:
             self.__container.send_command(msg)
-            # self.logger.debug(f"poll {msg.serialize()}")
             self.__container.set_status(f"P{cfg_id} POLL message sent", INFOCOL)
             self._lbl_send_command.config(image=self._img_pending)
             for msgid in pendcfg:
@@ -489,7 +487,6 @@ class Dynamic_Config_Frame(Frame):
         """
 
         ok = False
-        # self.logger.debug(f"incoming status msg: {msg}")
         # strip off any variant suffix from cfg_id
         # e.g. "QTMCFGUART_CURR" -> "PQTMCFGUART"
         cfg_id = (
@@ -649,7 +646,7 @@ class Dynamic_Config_Frame(Frame):
         :param Entry wdg: Entry widget
         """
 
-        cfg = self._cfg_id.split("_")[0]
+        cfg = self._cfg_id  # .split("_")[0]
         # use alternate names for some NMEA PAIR/PQTM POLL commands
         cfg = ALT_POLL_NAMES.get(cfg, cfg)
         if (

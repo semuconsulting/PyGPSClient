@@ -18,6 +18,7 @@ from webbrowser import open_new_tab
 from PIL import Image, ImageTk
 from pygnssutils import version as PGVERSION
 from pynmeagps import version as NMEAVERSION
+from pyqgc import version as QGCVERSION
 from pyrtcm import version as RTCMVERSION
 from pysbf2 import version as SBFVERSION
 from pyspartn import version as SPARTNVERSION
@@ -35,7 +36,7 @@ from pygpsclient.globals import (
     SPONSOR_URL,
 )
 from pygpsclient.helpers import brew_installed, check_latest
-from pygpsclient.strings import ABOUTTXT, BREWWARN, COPYRIGHTTXT, DLGTABOUT, GITHUB_URL
+from pygpsclient.strings import ABOUTTXT, BREWWARN, COPYRIGHT, DLGTABOUT, GITHUB_URL
 from pygpsclient.toplevel_dialog import ToplevelDialog
 
 LIBVERSIONS = {
@@ -43,6 +44,7 @@ LIBVERSIONS = {
     "pygnssutils": PGVERSION,
     "pyubx2": UBXVERSION,
     "pysbf2": SBFVERSION,
+    "pyqgc": QGCVERSION,
     "pynmeagps": NMEAVERSION,
     "pyrtcm": RTCMVERSION,
     "pyspartn": SPARTNVERSION,
@@ -88,12 +90,15 @@ class AboutDialog(ToplevelDialog):
 
         self._frm_body = Frame(self.container)
         self._lbl_icon = Label(self._frm_body, image=self._img_icon, borderwidth=0)
-        self._lbl_desc = Label(
-            self._frm_body,
-            text=ABOUTTXT,
-            wraplength=350,
-            borderwidth=0,
-        )
+        self._lbl_descs = []
+        for txt in ABOUTTXT:
+            self._lbl_descs.append(
+                Label(
+                    self._frm_body,
+                    text=txt,
+                    borderwidth=0,
+                )
+            )
         tkv = Tcl().call("info", "patchlevel")
         self._lbl_python_version = Label(
             self._frm_body,
@@ -112,7 +117,7 @@ class AboutDialog(ToplevelDialog):
         self._btn_checkupdate = Button(
             self._frm_body,
             text="Check for updates",
-            width=12,
+            width=14,
             cursor="hand2",
         )
         self._chk_checkupdate = Checkbutton(
@@ -138,7 +143,7 @@ class AboutDialog(ToplevelDialog):
         )
         self._lbl_copyright = Label(
             self._frm_body,
-            text=COPYRIGHTTXT,
+            text=COPYRIGHT,
             cursor="hand2",
         )
 
@@ -147,23 +152,29 @@ class AboutDialog(ToplevelDialog):
         Arrange widgets in dialog.
         """
 
+        i = 0
         self._frm_body.grid(column=0, row=0, padx=5, pady=5, ipadx=5, ipady=5)
         self._lbl_icon.grid(column=0, row=1, columnspan=2, padx=3, pady=0)
-        self._lbl_desc.grid(column=0, row=2, columnspan=2, padx=3, pady=0)
-        self._lbl_python_version.grid(column=0, row=3, columnspan=2, padx=3, pady=1)
-        i = 0
-        for i, _ in enumerate(LIBVERSIONS):
-            self._lbl_lib_versions[i].grid(column=0, row=4 + i, columnspan=2, padx=2)
+        for i, lbl in enumerate(self._lbl_descs):
+            lbl.grid(column=0, row=2 + i, columnspan=2, padx=3, pady=0)
+        self._lbl_python_version.grid(column=0, row=3 + i, columnspan=2, padx=3, pady=1)
+        n = 4 + i
+        for i, lbl in enumerate(self._lbl_lib_versions):
+            lbl.grid(column=0, row=n + i, columnspan=2, padx=2)
         self._btn_checkupdate.grid(
-            column=0, row=5 + i, ipadx=3, ipady=3, padx=3, pady=3
+            column=0, row=1 + n + i, ipadx=3, ipady=3, padx=3, pady=3
         )
         self._chk_checkupdate.grid(
-            column=1, row=5 + i, ipadx=3, ipady=3, padx=3, pady=3
+            column=1, row=1 + n + i, ipadx=3, ipady=3, padx=3, pady=3
         )
-        self._lbl_giticon.grid(column=0, row=6 + i, padx=(3, 1), pady=3, sticky=E)
-        self._lbl_sponsoricon.grid(column=1, row=6 + i, padx=(3, 1), pady=3, sticky=W)
-        self._lbl_github.grid(column=0, row=7 + i, columnspan=2, padx=(1, 3), pady=3)
-        self._lbl_copyright.grid(column=0, row=8 + i, columnspan=2, padx=3, pady=3)
+        self._lbl_giticon.grid(column=0, row=2 + n + i, padx=(3, 1), pady=3, sticky=E)
+        self._lbl_sponsoricon.grid(
+            column=1, row=2 + n + i, padx=(3, 1), pady=3, sticky=W
+        )
+        self._lbl_github.grid(
+            column=0, row=3 + n + i, columnspan=2, padx=(1, 3), pady=3
+        )
+        self._lbl_copyright.grid(column=0, row=4 + n + i, columnspan=2, padx=3, pady=3)
 
     def _attach_events(self):
         """

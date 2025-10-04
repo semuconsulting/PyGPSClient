@@ -53,13 +53,6 @@ CONTRASTCOL = "black"
 DATA = "dat"
 ESFALG = "ESF-ALG"
 GPFMI = "GPFMI"
-SOURCES = (
-    ESFALG,
-    GPFMI,
-    "HNR-ATT",
-    "NAV-ATT",
-    "NAV-PVAT",
-)
 RANGES = (
     180,
     90,
@@ -98,10 +91,8 @@ class IMUFrame(Frame):
         self.height = kwargs.get("height", def_h)
         self._font = self.__app.font_md
         self._fonth = fontheight(self._font)
-        self._source = StringVar()
         self._range = IntVar()
         self._option = StringVar()
-        self._source.set(SOURCES[0])
         self._range.set(RANGES[0])
         self._body()
         self.reset()
@@ -116,17 +107,6 @@ class IMUFrame(Frame):
         self.grid_rowconfigure(1, weight=0)
         self.grid_rowconfigure(2, weight=0)
         self.canvas = Canvas(self, width=self.width, height=self.height, bg=BGCOL)
-        self._lbl_source = Label(self, text="Source", fg=FGCOL, bg=BGCOL, anchor=W)
-        self._spn_source = Spinbox(
-            self,
-            values=SOURCES,
-            width=15,
-            wrap=True,
-            fg=PNTCOL,
-            bg=BGCOL,
-            buttonbackground=BGCOL,
-            textvariable=self._source,
-        )
         self._lbl_range = Label(self, text="Range", fg=FGCOL, bg=BGCOL, anchor=W)
         self._spn_range = Spinbox(
             self,
@@ -154,12 +134,11 @@ class IMUFrame(Frame):
             state=READONLY,
         )
         self.canvas.grid(column=0, row=0, columnspan=4, sticky=(N, S, E, W))
-        self._lbl_source.grid(column=0, row=1, sticky=(W, E))
-        self._spn_source.grid(column=1, row=1, columnspan=3, sticky=(W, E))
-        self._lbl_range.grid(column=0, row=2, sticky=(W, E))
-        self._spn_range.grid(column=1, row=2, sticky=(W, E))
-        self._lbl_option.grid(column=2, row=2, sticky=(W, E))
-        self._spn_option.grid(column=3, row=2, sticky=(W, E))
+
+        self._lbl_range.grid(column=0, row=1, sticky=(W, E))
+        self._spn_range.grid(column=1, row=1, sticky=(W, E))
+        self._lbl_option.grid(column=2, row=1, sticky=(W, E))
+        self._spn_option.grid(column=3, row=1, sticky=(W, E))
 
     def reset(self):
         """
@@ -167,7 +146,6 @@ class IMUFrame(Frame):
         """
 
         cfg = self.__app.configuration.get("imusettings_d")
-        self._source.set(cfg.get("source_s"))
         self._range.set(cfg.get("range_n"))
         self._option.set(cfg.get("option_s"))
 
@@ -178,7 +156,7 @@ class IMUFrame(Frame):
 
         self.bind("<Configure>", self._on_resize)
         self.canvas.bind("<Double-Button-1>", self._on_clear)
-        for setting in (self._source, self._range, self._option):
+        for setting in (self._range, self._option):
             setting.trace_add("write", self._on_update_config)
 
     def _on_update_config(self, var, index, mode):  # pylint: disable=unused-argument
@@ -189,7 +167,6 @@ class IMUFrame(Frame):
         try:
             self.update()
             ims = {}
-            ims["source_s"] = self._source.get()
             ims["range_n"] = int(self._range.get())
             ims["option_s"] = self._option.get()
             self.__app.configuration.set("imusettings_d", ims)
@@ -240,6 +217,14 @@ class IMUFrame(Frame):
         self.canvas.create_text(
             OFFSETX,
             self._fonth * 6 + OFFSETY,
+            text="Source:",
+            fill=FGCOL,
+            font=self._font,
+            anchor=NW,
+        )
+        self.canvas.create_text(
+            OFFSETX,
+            self._fonth * 7 + OFFSETY,
             text="Status:",
             fill=FGCOL,
             font=self._font,
@@ -258,15 +243,12 @@ class IMUFrame(Frame):
 
         try:
             scale = self._range.get()
-            source = self._source.get().upper()
             data = self.__app.gnss_status.imu_data
-            # only use IMU data matching specified source
-            if data["source"].upper() != source:
-                raise ValueError("IMU data source does not match")
             rng = self._range.get()
             roll = float(data["roll"])
             pitch = float(data["pitch"])
             yaw = float(data["yaw"])
+            source = data["source"]
             status = data["status"]
 
             if source == GPFMI:  # Feyman IM19 IMU
@@ -346,6 +328,15 @@ class IMUFrame(Frame):
             self.canvas.create_text(
                 OFFSETX,
                 self._fonth * 6 + OFFSETY,
+                text=f"\t{source}",
+                fill=INFOCOL,
+                font=self._font,
+                anchor=NW,
+                tag=DATA,
+            )
+            self.canvas.create_text(
+                OFFSETX,
+                self._fonth * 7 + OFFSETY,
                 text=f"{status}",
                 fill=INFOCOL,
                 font=self._font,
@@ -358,6 +349,7 @@ class IMUFrame(Frame):
             self.canvas.create_text(
                 width / 2, height / 2, text=LBLNODATA, fill=ERRCOL, tag=DATA
             )
+        self.canvas.update_idletasks()
 
     def _flag_range(self, over: bool = False):
         """

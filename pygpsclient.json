@@ -19,12 +19,13 @@
     "defaultport_s": "USB",
     "mqapikey_s": "<======= YOUR MQ API KEY ======>",
     "serialport_s": "/dev/ttyACM0",
-    "protocol_n": 7,
     "nmeaprot_b": 1,
     "ubxprot_b": 1,
-    "sbfprot_b": 0,
     "rtcmprot_b": 1,
-    "spartnprot_b": 1,
+    "sbfprot_b": 0,
+    "qgcprot_b": 0,
+    "spartnprot_b": 0,
+    "mqttprot_b": 1,
     "ttyprot_b": 0,
     "ttycrlf_b": 1,
     "ttyecho_b": 0,
@@ -258,7 +259,10 @@
         "Poll Geofence configuration; P; QTMCFGGEOFENCE; R,0; 1; P; QTMCFGGEOFENCE; R,1; 1; P; QTMCFGGEOFENCE; R,2; 1; P; QTMCFGGEOFENCE; R,3; 1",
         "Configure Geofence (Circle); P; QTMCFGGEOFENCE; W,0,1,0,0,31.451248,117.451245,100.5; 1",
         "Configure Geofence (Polygon); P; QTMCFGGEOFENCE; W,0,1,0,3,31.451248,117.451245,100.5,12.36,85.24,118.72,56.45,140.13; 1",
-        "Disable Geofence; P; QTMCFGGEOFENCE; W,0,0; 1"
+        "Disable Geofence; P; QTMCFGGEOFENCE; W,0,0; 1",
+        "LG580P Enable OGC RAW-PPPB2B output;P; QTMCFGMSGRATE; W,1,1,0AB2,1,1;1",
+        "LG580P Enable OGC RAW-QZSSL6 output;P; QTMCFGMSGRATE; W,1,1,0AB6,1,1;1",
+        "LG580P Enable OGC RAW-HASE6 output;P; QTMCFGMSGRATE; W,1,1,0AE6,1,1;1"
     ],
     "ttypresets_l": [
         "MOSAIC X5 Initialise Command Mode; SSSSSSSSSS",
@@ -327,6 +331,10 @@
         [
             "SBF",
             "cyan"
+        ],
+        [
+            "QGC",
+            "turquoise1"
         ],
         [
             "RTCM",

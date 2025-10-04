@@ -91,13 +91,21 @@ class NMEAHandler:
                 self._process_QTMVER(parsed_data)
             elif parsed_data.msgID == "QTMPVT":  # LG290P pos, vel, trk
                 self._process_QTMPVT(parsed_data)
-            elif parsed_data.msgID[0:3] == "QTM" and hasattr(parsed_data, "status"):
-                self._process_QTMACK(parsed_data)
             elif parsed_data.msgID == "QTMSVINSTATUS":  # LG290P SVIN status
                 self._process_QTMSVINSTATUS(parsed_data)
+            elif parsed_data.msgID in (
+                "QTMDRPVA",
+                "QTMINS",
+                "QTMVEHATT",
+                "QTMTAR",
+                "INVMATTIT",
+                "STMDRPVA",
+            ):
+                self._process_IMU(parsed_data)
             elif parsed_data.msgID == "FMI":  # Feyman IM19 IMU status
                 self._process_FMI(parsed_data)
-
+            elif parsed_data.msgID[0:3] == "QTM" and hasattr(parsed_data, "status"):
+                self._process_QTMACK(parsed_data)
         except ValueError:
             pass
 
@@ -423,4 +431,27 @@ class NMEAHandler:
             ims["yaw"] = round(degrees(data.yaw), 4)
             ims["status"] = data.status
         except (KeyError, AttributeError):
+            pass
+
+    def _process_IMU(self, data: NMEAMessage):
+        """
+        Process IMU status from various proprietary NMEA sentences:
+        PQTMINS, PQTMDRPVA, PQTMVEHATT, PQTMTAR, PINVMATTIT, PSTMDRPVA
+
+        Roll, Pitch and Yaw (Heading) are in degrees.
+
+        :param NMEAMessage data: PQTM* message
+        """
+
+        try:
+            ims = self.__app.gnss_status.imu_data
+            ims["source"] = data.identity
+            ims["roll"] = round(data.roll, 4)
+            ims["pitch"] = round(data.pitch, 4)
+            if hasattr(data, "yaw"):
+                ims["yaw"] = round(data.yaw, 4)
+            elif hasattr(data, "heading"):
+                ims["yaw"] = round(data.heading, 4)
+            ims["status"] = ""
+        except (TypeError, KeyError, AttributeError):
             pass

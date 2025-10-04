@@ -61,7 +61,7 @@ The exact location of the site_packages and binary directories will depend on th
 
 In the following, `python3` & `pip` refer to the Python 3 executables. You may need to substitute `python` for `python3`, depending on your particular environment (*on Windows it's generally `python`*). 
 
-- Python >= 3.9⁴
+- Python >= 3.10⁴
 - Tk (tkinter) >= 8.6⁵ (*tkinter is a commonly used library for developing Graphical User Interfaces (GUI) in Python*)
 - Screen resolution >= 640 x 400; Ideally 1920 x 1080, though at lower screen resolutions (<= 1024 width), top level dialogs will be resizable and scrollable.
 
@@ -239,7 +239,7 @@ TBC. Anyone conversant with PowerShell is welcome to contribute an equivalent in
 
 BSD 3-Clause License
 
-Copyright &copy; 2020, SEMU Consulting
+Copyright &copy; 2020, semuadmin (Steve Smith)
 All rights reserved.
 
 Application icons from [iconmonstr](https://iconmonstr.com/license/) &copy;.
