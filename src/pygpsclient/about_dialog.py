@@ -192,7 +192,7 @@ class AboutDialog(ToplevelDialog):
         Close dialog and go to GitHub.
         """
 
-        if brew_installed:
+        if brew_installed():
             self._brew_warning()
             return
 
@@ -204,7 +204,7 @@ class AboutDialog(ToplevelDialog):
         Close dialog and go to Sponsor website.
         """
 
-        if brew_installed:
+        if brew_installed():
             self._brew_warning()
             return
 
@@ -216,7 +216,7 @@ class AboutDialog(ToplevelDialog):
         Close dialog and go to GitHub LICENSE file.
         """
 
-        if brew_installed:
+        if brew_installed():
             self._brew_warning()
             return
 
@@ -254,7 +254,7 @@ class AboutDialog(ToplevelDialog):
         Run python update.
         """
 
-        if brew_installed:
+        if brew_installed():
             self._brew_warning()
             return
 

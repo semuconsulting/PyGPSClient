@@ -584,6 +584,9 @@ class UBX_PRESET_Frame(Frame):
         Store current configuration in persistent storage
         but display confirmation message box first.
 
+        NB: Most u-blox receivers support BBR but not all
+        support Flash or EEPROM.
+
         :return: boolean signifying whether OK was pressed
         :rtype: bool
         """
@@ -597,8 +600,8 @@ class UBX_PRESET_Frame(Frame):
                 saveMask=b"\x1f\x1f\x00\x00",
                 # loadMask=b"\x01\x00\x00\x00",
                 devBBR=1,
-                devFlash=1,
-                devEEPROM=1,
+                devFlash=0,
+                devEEPROM=0,
             )
             self.__container.send_command(msg)
             return CONFIRMED

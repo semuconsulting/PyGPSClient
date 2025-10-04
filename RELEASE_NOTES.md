@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.5.16
+
+FIXES:
+
+1. "Check for Updates" function in Menu..About panel updated to cater for potential critical segmentation errors caused by some Homebrew Python installations when executing shell subprocesses.
+
 ### RELEASE 1.5.15
 
 ENHANCEMENTS:
