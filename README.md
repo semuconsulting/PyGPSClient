@@ -515,7 +515,7 @@ For further details, refer to the `pygnssutils` homepage at [https://github.com/
 
 BSD 3-Clause License
 
-Copyright &copy; 2020, SEMU Consulting
+Copyright &copy; 2020, semuadmin (Steve Smith)
 All rights reserved.
 
 Application icons from [iconmonstr](https://iconmonstr.com/license/) &copy;.
