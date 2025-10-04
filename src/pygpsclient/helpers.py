@@ -13,9 +13,9 @@ Created on 17 Apr 2021
 
 """
 
-import os
 from datetime import datetime, timedelta
 from math import asin, atan, atan2, cos, degrees, pi, radians, sin, sqrt, trunc
+from os import path
 from socket import AF_INET, SOCK_DGRAM, socket
 from time import strftime
 from tkinter import Entry, Tk
@@ -110,6 +110,21 @@ def bitsval(bitfield: bytes, position: int, length: int) -> int:
         return None
 
     return int.from_bytes(bitfield, "big") >> (lbb - position - length) & 2**length - 1
+
+
+def brew_installed() -> bool:
+    """
+    Check if Python installed under Homebrew.
+
+    Some Python/tkinter installations under Homebrew cause
+    a critical segmentation error when shell subprocesses
+    are invoked.
+
+    :return: yes/no
+    :rtype: bool
+    """
+
+    return path.isfile("/opt/homebrew/bin/python3")
 
 
 def bytes2unit(valb: int) -> tuple:
@@ -760,7 +775,7 @@ def ned2vector(n: float, e: float, d: float) -> tuple:
 def nmea2preset(msgs: tuple, desc: str = "") -> str:
     """
     Convert one or more NMEAMessages to format suitable for adding to user-defined
-    preset list `nmeapresets_l` in PyGPSClient *.json configuration files.
+    preset list `nmeapresets_l` in PyGPSClient .json configuration files.
 
     The format is:
     "<description>; <talker>; <msgID>; <payload as comma separated list>; <msgmode>"
@@ -788,13 +803,12 @@ def nmea2preset(msgs: tuple, desc: str = "") -> str:
 
 def normalise_area(points: tuple) -> Area:
     """
-    Convert 4 points to Area in correct order.
-    (minlat, minlon, maxlat, maxlon)
+    Convert 4 points to Area in correct order (minlat, minlon, maxlat, maxlon).
 
-    :param tuple points: tuple of (lat1, lon1, lat2, lon2)
-    :raises TypeError: if less than 4 points provided
+    :param tuple points: tuple of lat1, lon1, lat2, lon2
     :return: area
-    :rtype Area
+    :rtype: Area
+    :raises TypeError: if less than 4 points provided
     """
 
     if len(points) != 4:
@@ -1000,11 +1014,11 @@ def secs2unit(secs: int) -> tuple:
     return val, SECSUNITS[i]
 
 
-def set_filename(path: str, mode: str, ext: str) -> tuple:
+def set_filename(fpath: str, mode: str, ext: str) -> tuple:
     """
     Return timestamped file name and fully qualified file path.
 
-    :param path: the file path as str
+    :param fpath: the file path as str
     :param mode: the type of file being created ('data', 'track') as str
     :param ext: the file extension ('log', 'gpx') as str
     :return: fully qualified filename and path
@@ -1012,7 +1026,7 @@ def set_filename(path: str, mode: str, ext: str) -> tuple:
     """
 
     filename = f"pygps{mode}-{strftime('%Y%m%d%H%M%S')}.{ext}"
-    filepath = os.path.join(path, filename)
+    filepath = path.join(fpath, filename)
     return filename, filepath
 
 
@@ -1054,7 +1068,7 @@ def setubxrate(app: object, mid: str, rate: int = 1, prot: str = "UBX") -> UBXMe
             if prt != "":
                 cfgdata = [(f"CFG_MSGOUT_{prot}{mid}_{prt}", rate)]
                 msg = UBXMessage.config_set(SET_LAYER_RAM, TXN_NONE, cfgdata)
-                app.gnss_outqueue.put(msg.serialize())
+                app.send_to_device(msg.serialize())
 
     else:
 
@@ -1083,7 +1097,7 @@ def setubxrate(app: object, mid: str, rate: int = 1, prot: str = "UBX") -> UBXMe
             rateUSB=rates.get("USB", 0),
             rateSPI=rates.get("SPI", 0),
         )
-        app.gnss_outqueue.put(msg.serialize())
+        app.send_to_device(msg.serialize())
 
     return msg
 
@@ -1197,7 +1211,7 @@ def time2str(tim: float, sformat: str = "%H:%M:%S") -> str:
 def ubx2preset(msgs: tuple, desc: str = "") -> str:
     """
     Convert one or more UBXMessages to format suitable for adding to user-defined
-    preset list `ubxpresets_l` in PyGPSClient *.json configuration files.
+    preset list `ubxpresets_l` in PyGPSClient .json configuration files.
 
     The format is:
     "<description>, <talker>, <msgID>, <payload as hexadecimal string>, <msgmode>"

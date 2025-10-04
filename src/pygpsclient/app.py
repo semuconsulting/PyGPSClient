@@ -33,7 +33,11 @@ Created on 12 Sep 2020
 
 import logging
 from datetime import datetime, timedelta
+from inspect import currentframe, getfile
+from os import path
 from queue import Empty, Queue
+from subprocess import CalledProcessError, run
+from sys import executable
 from threading import Thread
 from tkinter import E, Frame, N, PhotoImage, S, Tk, Toplevel, W, font
 
@@ -56,6 +60,8 @@ from pygpsclient.globals import (
     CONFIGFILE,
     CONNECTED,
     CONNECTED_NTRIP,
+    CONNECTED_SIMULATOR,
+    CONNECTED_SOCKET,
     CONNECTED_SPARTNIP,
     CONNECTED_SPARTNLB,
     DISCONNECTED,
@@ -86,7 +92,7 @@ from pygpsclient.menu_bar import MenuBar
 from pygpsclient.nmea_handler import NMEAHandler
 from pygpsclient.rtcm3_handler import RTCM3Handler
 from pygpsclient.sbf_handler import SBFHandler
-from pygpsclient.sqllite_handler import DBINMEM, SQLOK, SqliteHandler
+from pygpsclient.sqlite_handler import DBINMEM, SQLOK, SqliteHandler
 from pygpsclient.stream_handler import StreamHandler
 from pygpsclient.strings import (
     CONFIGERR,
@@ -646,11 +652,11 @@ class App(Frame):
         Kill any running processes and quit application.
         """
 
-        self.file_handler.close_logfile()
-        self.file_handler.close_trackfile()
         self.stop_sockserver_thread()
         self.stream_handler.stop_read_thread()
         self.sqlite_handler.close()
+        self.file_handler.close_logfile()
+        self.file_handler.close_trackfile()
         self.__master.destroy()
 
     def on_gnss_read(self, event):  # pylint: disable=unused-argument
@@ -733,8 +739,7 @@ class App(Frame):
                 else:
                     source = "OTHER"
                 if isinstance(parsed_data, (RTCMMessage, SPARTNMessage)):
-                    if self.conn_status == CONNECTED:
-                        self.gnss_outqueue.put(raw_data)
+                    self.send_to_device(raw_data)
                     self.process_data(raw_data, parsed_data, source + ">>")
                 elif isinstance(parsed_data, NMEAMessage):
                     # i.e. NMEA GGA sentence sent to NTRIP server
@@ -756,8 +761,7 @@ class App(Frame):
         try:
             raw_data, parsed_data = self.spartn_inqueue.get(False)
             if raw_data is not None and parsed_data is not None:
-                if self.conn_status == CONNECTED:
-                    self.gnss_outqueue.put(raw_data)
+                self.send_to_device(raw_data)
                 if self._rtk_conn_status == CONNECTED_SPARTNLB:
                     source = "LBAND"
                 elif self._rtk_conn_status == CONNECTED_SPARTNIP:
@@ -904,6 +908,20 @@ class App(Frame):
         if self.configuration.get("datalog_b"):
             self.file_handler.write_logfile(raw_data, parsed_data)
 
+    def send_to_device(self, data: object):
+        """
+        Send raw data to connected device.
+
+        :param object data: raw GNSS data (NMEA, UBX, ASCII, RTCM3, SPARTN)
+        """
+
+        if self.conn_status in (
+            CONNECTED,
+            CONNECTED_SOCKET,
+            CONNECTED_SIMULATOR,
+        ):
+            self.gnss_outqueue.put(data)
+
     def _refresh_widgets(self):
         """
         Refresh visible widgets.
@@ -943,12 +961,12 @@ class App(Frame):
             msg = NMEAMessage("P", "QTMVERNO", POLL)
 
         if isinstance(msg, (UBXMessage, NMEAMessage)):
-            self.gnss_outqueue.put(msg.serialize())
+            self.send_to_device(msg.serialize())
             self.set_status(
                 f"{msg.identity} POLL message sent",
             )
         elif isinstance(msg, bytes):
-            self.gnss_outqueue.put(msg)
+            self.send_to_device(msg)
             self.set_status(
                 "Setup POLL message sent",
             )
@@ -1010,3 +1028,43 @@ class App(Frame):
 
         self._rtk_conn_status = status
         self.frm_banner.update_rtk_status(status)
+
+    def do_app_update(self, updates: list) -> int:
+        """
+        Update outdated application modules to latest versions.
+
+        :param list updates: list of modules to be updated
+        :return: return code 0 = error, 1 = OK
+        :rtype: int
+        """
+
+        if len(updates) < 1:
+            return 1
+
+        pth = path.dirname(path.abspath(getfile(currentframe())))
+        if "pipx" in pth:  # installed into venv using pipx
+            cmd = [
+                "pipx",
+                "upgrade",
+                "pygpsclient",
+            ]
+        else:  # installed using pip
+            cmd = [
+                executable,  # i.e. python3 or python
+                "-m",
+                "pip",
+                "install",
+                "--upgrade",
+            ]
+            for pkg in updates:
+                cmd.append(pkg)
+
+        result = None
+        try:
+            self.logger.debug(f"{executable=} {pth=} {cmd=}")
+            result = run(cmd, check=True, capture_output=True)
+            self.logger.debug(result.stdout)
+            return 1
+        except CalledProcessError:
+            self.logger.error(result.stdout)
+            return 0

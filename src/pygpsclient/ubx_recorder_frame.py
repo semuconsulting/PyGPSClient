@@ -356,7 +356,7 @@ class UBX_Recorder_Frame(Frame):
             i = 0
             for i, msg in enumerate(self._cmds_stored):
                 self._update_activity(f"{i} Sending {msg.identity}")
-                self.__app.gnss_outqueue.put(msg.serialize())
+                self.__app.send_to_device(msg.serialize())
                 sleep(0.01)
             self._update_activity(
                 f"{i + 1} command{'s' if i > 0 else ''} sent to device"

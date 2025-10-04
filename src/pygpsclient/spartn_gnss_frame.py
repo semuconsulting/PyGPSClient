@@ -458,7 +458,7 @@ class SPARTNGNSSDialog(Frame):
         Send command to GNSS receiver.
         """
 
-        self.__app.gnss_outqueue.put(msg.serialize())
+        self.__app.send_to_device(msg.serialize())
 
     def _set_date(self, val: StringVar, dat: datetime):
         """
@@ -481,7 +481,7 @@ class SPARTNGNSSDialog(Frame):
         """
 
         msg = UBXMessage("RXM", RXMMSG, POLL)
-        self.__app.gnss_outqueue.put(msg.serialize())
+        self.__app.send_to_device(msg.serialize())
         self.__container.set_pending(RXMMSG, SPARTN_GNSS)
 
     def update_status(self, msg: UBXMessage):

@@ -1,18 +1,10 @@
 {
-    // See https://go.microsoft.com/fwlink/?LinkId=733558
-    // for the documentation about the tasks.json format
-    //
-    // This VSCode development workflow is intended to work on
-    // MacOS, Linux and Windows (with Powershell>=5.1).
-    //
-    // Use the Install Deploy Dependencies tasks to install the necessary
-    // build and test packages into the system environment.
-    //
-    // Use the Create Venv task to create a virtual environment in the
-    // designated directory. Select this environment using Select
-    // Interpreter to auto-activate it via New Terminal.
-    //
-    // Remember to include any global Python bin (Scripts on Windows) in PATH.
+    // These test, build and deploy tasks are targeted at a venv
+    // called 'pygpsclient' located in the user's home directory.
+    // Set your workspace default VSCode Python interpreter to
+    // this venv, i.e.
+    // "${userHome}/pygpsclient/bin/python3" on linux/macos
+    // "${userHome}/pygpsclient/Scripts/python" on windows
     "version": "2.0.0",
     "tasks": [
         {

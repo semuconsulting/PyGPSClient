@@ -176,4 +176,4 @@ class NMEAConfigDialog(ToplevelDialog):
         Send command to receiver.
         """
 
-        self.__app.gnss_outqueue.put(msg.serialize())
+        self.__app.send_to_device(msg.serialize())

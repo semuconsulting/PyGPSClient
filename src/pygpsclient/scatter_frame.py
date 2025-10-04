@@ -77,7 +77,7 @@ FIXCOL = "green2"
 PNTTOPCOL = "red"
 CULLMID = True  # whether to cull random points from middle of array
 FIXINAUTO = False  # whether to include fixed ref point in autorange
-MAXPOINTS = 2000
+MAXPOINTS = 500
 PNT = "pnt"
 STDINT = 10  # standard deviation calculation interval
 
@@ -422,8 +422,7 @@ class ScatterViewFrame(Frame):
         if not point_in_bounds(self._bounds, position):
             return
 
-        w, h = self.get_size()
-        x, y = ll2xy(w, h, self._bounds, position)
+        x, y = ll2xy(self.width, self.height, self._bounds, position)
         self.canvas.create_circle(x, y, size, fill=color, outline=color, tags=PNT)
 
     def _set_average(self):
@@ -529,12 +528,16 @@ class ScatterViewFrame(Frame):
             return
         pos = Point(lat, lon)
 
-        if self._points and pos == self._points[-1]:
-            return  # Don't repeat exactly the last point.
+        if (
+            self._points
+            and round(pos.lat, 9) == round(self._points[-1].lat, 9)
+            and round(pos.lon, 9) == round(self._points[-1].lon, 9)
+        ):
+            return  # Don't repeat exactly the last point, to 9dp.
 
         self._points.append(pos)
         if len(self._points) > self._maxpoints:
-            self._cull_points()
+            self._limit_points()
 
         self._set_average()
 
@@ -559,13 +562,13 @@ class ScatterViewFrame(Frame):
 
         self._redraw()
 
-    def _cull_points(self):
+    def _limit_points(self):
         """
         Limit number of points in in-memory array.
         """
 
         if CULLMID:  # cull randomly from middle
-            self._points.pop(randrange(1, len(self._points) - 100))
+            self._points.pop(randrange(1, len(self._points) - int(MAXPOINTS / 10)))
         else:  # cull from start
             self._points.pop(0)
 

@@ -53,6 +53,7 @@ from pygpsclient.globals import (
     ICON_EXPAND,
     ICON_SEND,
     INFOCOL,
+    LC29H,
     LG290P,
     MOSAIC_X5,
     READONLY,
@@ -284,7 +285,7 @@ class ServerConfigFrame(Frame):
         )
         self._spn_rcvrtype = Spinbox(
             self._frm_advanced,
-            values=(ZED_F9, LG290P, MOSAIC_X5),
+            values=(ZED_F9, LG290P, LC29H, MOSAIC_X5),
             width=18,
             state=READONLY,
             wrap=True,
@@ -835,25 +836,28 @@ class ServerConfigFrame(Frame):
         for cmd in cmds:
             # self.logger.debug(f"Base Config Message: {cmd}")
             if isinstance(cmd, (UBXMessage, NMEAMessage)):
-                self.__app.gnss_outqueue.put(cmd.serialize())
+                self.__app.send_to_device(cmd.serialize())
             elif isinstance(cmd, str):  # TTY ASCII string
-                self.__app.gnss_outqueue.put(cmd.encode(ASCII, errors=BSR))
+                self.__app.send_to_device(cmd.encode(ASCII, errors=BSR))
                 sleep(delay)  # add delay between each TTY command
             else:  # raw bytes
-                self.__app.gnss_outqueue.put(cmd)
+                self.__app.send_to_device(cmd)
 
         if self.receiver_type.get() == ZED_F9:
             # set RTCM and UBX NAV-SVIN message output rate
             rate = 0 if self.base_mode.get() == BASE_DISABLED else 1
             for port in ("USB", "UART1"):
                 msg = self._config_msg_rates(rate, port)
-                self.__app.gnss_outqueue.put(msg.serialize())
+                self.__app.send_to_device(msg.serialize())
                 msg = config_nmea(self.disable_nmea.get(), port)
-                self.__app.gnss_outqueue.put(msg.serialize())
+                self.__app.send_to_device(msg.serialize())
         elif self.receiver_type.get() == LG290P:
             # poll for confirmation that rcvr has restarted,
             # then resend configuration commands a 2nd time
             self._pending_confs[PQTMVER] = SERVERCONFIG
+        elif self.receiver_type.get() == LC29H:
+            # poll for confirmation warm start has finished
+            pass
 
     def _config_msg_rates(self, rate: int, port_type: str) -> UBXMessage:
         """
@@ -887,7 +891,9 @@ class ServerConfigFrame(Frame):
         """
 
         if self.receiver_type.get() == LG290P:
-            return self._config_disable_quectel()
+            return self._config_disable_lg290p()
+        if self.receiver_type.get() == LC29H:
+            return self._config_disable_lc29h()
         if self.receiver_type.get() == MOSAIC_X5:
             return self._config_disable_septentrio()
         return self._config_disable_ublox()
@@ -908,9 +914,9 @@ class ServerConfigFrame(Frame):
 
         return UBXMessage.config_set(layers, transaction, cfg_data)
 
-    def _config_disable_quectel(self) -> list:
+    def _config_disable_lg290p(self) -> list:
         """
-        Disable base station mode for Quectel receivers.
+        Disable base station mode for Quectel LG290P receivers.
 
         NB: A 'feature' of Quectel firmware is that some command sequences
         require multiple restarts before taking effect.
@@ -923,6 +929,22 @@ class ServerConfigFrame(Frame):
         msgs.append(NMEAMessage("P", "QTMCFGRCVRMODE", SET, rcvrmode=1))
         msgs.append(NMEAMessage("P", "QTMSAVEPAR", SET))
         msgs.append(NMEAMessage("P", "QTMSRR", SET))
+        return msgs
+
+    def _config_disable_lc29h(self) -> list:
+        """
+        Disable base station mode for Quectel LC29H receivers.
+
+        :return: list of NMEAMessage(s)
+        :rtype: list
+        """
+
+        msgs = []
+        msgs.append(NMEAMessage("P", "AIR062", SET, type=-1))
+        msgs.append(NMEAMessage("P", "AIR432", SET, mode=-1))
+        msgs.append(NMEAMessage("P", "AIR434", SET, enabled=0))
+        msgs.append(NMEAMessage("P", "QTMSAVEPAR", SET))
+        msgs.append(NMEAMessage("P", "AIR005", SET))
         return msgs
 
     def _config_disable_septentrio(self) -> list:
@@ -950,7 +972,9 @@ class ServerConfigFrame(Frame):
         """
 
         if self.receiver_type.get() == LG290P:
-            return self._config_svin_quectel(acc_limit, svin_min_dur)
+            return self._config_svin_lg290p(acc_limit, svin_min_dur)
+        if self.receiver_type.get() == LC29H:
+            return self._config_svin_lc29h(acc_limit, svin_min_dur)
         if self.receiver_type.get() == MOSAIC_X5:
             return self._config_svin_septentrio(acc_limit, svin_min_dur)
         return self._config_svin_ublox(acc_limit, svin_min_dur)
@@ -976,9 +1000,9 @@ class ServerConfigFrame(Frame):
 
         return UBXMessage.config_set(layers, transaction, cfg_data)
 
-    def _config_svin_quectel(self, acc_limit: int, svin_min_dur: int) -> list:
+    def _config_svin_lg290p(self, acc_limit: int, svin_min_dur: int) -> list:
         """
-        Configure Survey-In mode with specified accuracy limit for Quectel receivers.
+        Configure Survey-In mode with specified accuracy limit for Quectel LG290P receivers.
 
         NB: A 'feature' of Quectel firmware is that some command sequences
         require multiple restarts before taking effect.
@@ -1019,6 +1043,28 @@ class ServerConfigFrame(Frame):
         msgs.append(NMEAMessage("P", "QTMSRR", SET))
         return msgs
 
+    def _config_svin_lc29h(self, acc_limit: int, svin_min_dur: int) -> list:
+        """
+        Configure Survey-In mode with specified accuracy limit for Quectel LC29H receivers.
+
+        NB: A 'feature' of Quectel firmware is that some command sequences
+        require multiple restarts before taking effect.
+
+        :param int acc_limit: accuracy limit in cm
+        :param int svin_min_dur: survey minimimum duration
+        :return: list of NMEAMessage(s)
+        :rtype: list
+        """
+
+        msgs = []
+        for i in range(9):
+            msgs.append(NMEAMessage("P", "AIR062", SET, type=i, rate=0))
+        msgs.append(NMEAMessage("P", "AIR432", SET, mode=1))
+        msgs.append(NMEAMessage("P", "AIR434", SET, enabled=1))
+        msgs.append(NMEAMessage("P", "QTMSAVEPAR", SET))
+        msgs.append(NMEAMessage("P", "AIR005", SET))
+        return msgs
+
     def _config_svin_septentrio(self, acc_limit: int, svin_min_dur: int) -> list:
         """
         Configure Survey-In mode with specified accuracy limit for Septentrio receivers.
@@ -1055,7 +1101,9 @@ class ServerConfigFrame(Frame):
         """
 
         if self.receiver_type.get() == LG290P:
-            return self._config_fixed_quectel(acc_limit, lat, lon, height)
+            return self._config_fixed_lg290p(acc_limit, lat, lon, height)
+        if self.receiver_type.get() == LC29H:
+            return self._config_fixed_lc29h(acc_limit, lat, lon, height)
         if self.receiver_type.get() == MOSAIC_X5:
             return self._config_fixed_septentrio(acc_limit, lat, lon, height)
         return self._config_fixed_ublox(acc_limit, lat, lon, height)
@@ -1110,11 +1158,11 @@ class ServerConfigFrame(Frame):
 
         return UBXMessage.config_set(layers, transaction, cfg_data)
 
-    def _config_fixed_quectel(
+    def _config_fixed_lg290p(
         self, acc_limit: int, lat: float, lon: float, height: float
     ) -> list:
         """
-        Configure Fixed mode with specified coordinates for Quectel receivers.
+        Configure Fixed mode with specified coordinates for Quectel LG290P receivers.
 
         NB: A 'feature' of Quectel firmware is that some command sequences
         require multiple restarts before taking effect.
@@ -1165,6 +1213,34 @@ class ServerConfigFrame(Frame):
         msgs.append(NMEAMessage("P", "QTMSRR", SET))
         return msgs
 
+    def _config_fixed_lc29h(
+        self, acc_limit: int, lat: float, lon: float, height: float
+    ) -> list:
+        """
+        Configure Fixed mode with specified coordinates for Quectel LC29H receivers.
+
+        :param int acc_limit: accuracy limit in cm
+        :param float lat: lat or X in m
+        :param float lon: lon or Y in m
+        :param float height: height or Z in m
+        :return: list of NMEAMessage(s)
+        :rtype: list
+        """
+
+        if self._spn_posmode.get() == POS_LLH:
+            ecef_x, ecef_y, ecef_z = llh2ecef(lat, lon, height)
+        else:  # POS_ECEF
+            ecef_x, ecef_y, ecef_z = lat, lon, height
+
+        msgs = []
+        for i in range(9):
+            msgs.append(NMEAMessage("P", "AIR062", SET, type=i, rate=0))
+        msgs.append(NMEAMessage("P", "AIR432", SET, mode=1))
+        msgs.append(NMEAMessage("P", "AIR434", SET, enabled=1))
+        msgs.append(NMEAMessage("P", "QTMSAVEPAR", SET))
+        msgs.append(NMEAMessage("P", "AIR005", SET))
+        return msgs
+
     def _config_fixed_septentrio(
         self, acc_limit: int, lat: float, lon: float, height: float
     ) -> list:
@@ -1213,7 +1289,7 @@ class ServerConfigFrame(Frame):
                     rate=1,
                     msgver=1,
                 )
-                self.__app.gnss_outqueue.put(cmd.serialize())
+                self.__app.send_to_device(cmd.serialize())
 
     def svin_countdown(self, ela: int, valid: bool, active: bool):
         """

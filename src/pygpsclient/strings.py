@@ -34,6 +34,7 @@ NA = "N/A"
 
 # Message text
 BADJSONERROR = "ERROR! Invalid metadata file"
+BREWWARN = "Function unavailable under Homebrew"
 CONFIGBAD = "{} command rejected"
 CONFIGERR = "Invalid configuration data"
 CONFIGOK = "{} command accepted"

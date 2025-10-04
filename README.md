@@ -23,7 +23,7 @@ PyGPSClient is a free, open-source, multi-platform graphical GNSS/GPS testing, d
 * Supports NMEA, UBX, SBF, RTCM3, NTRIP, SPARTN, MQTT and TTY (ASCII) protocols.
 * Capable of reading from a variety of GNSS data streams: Serial (USB / UART), Socket (TCP / UDP), binary data stream (terminal or file capture) and u-center (*.ubx) recording.
 * Provides [NTRIP](#ntripconfig) and [SPARTN](#spartnconfig) client facilities.
-* Can serve as an [NTRIP base station](#basestation) with an RTK-compatible receiver (e.g. u-blox ZED-F9P/X20P, Quectel LG290P or Septentrio Mosaic X5).
+* Can serve as an [NTRIP base station](#basestation) with an RTK-compatible receiver (e.g. u-blox ZED-F9P/X20P, Quectel LG290P, Quectel LC29H or Septentrio Mosaic X5).
 * While not intended to be a direct replacement, the application supports most of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool (*only public-domain features are supported*).
 * Also supports GNSS (*and related*) device configuration via proprietary NMEA sentences (e.g. Quectel LG290P PQTM*) and ASCII TTY commands (e.g. Septentrio Mosaic X5, Feyman IM19).
 
@@ -52,6 +52,7 @@ The PyGPSClient home page is at [PyGPSClient](https://github.com/semuconsulting/
 1. [GNSS Positioning - A Reviser](https://www.semuconsulting.com/gnsswiki/) - a general overview of GNSS, OSR, SSR, RTK, NTRIP and SPARTN positioning and error correction technologies and terminology.
 1. [Achieving cm Level GNSS Accuracy using RTK](https://www.semuconsulting.com/gnsswiki/rtktips/) - practical tips on high precision RTK using PyGPSClient.
 1. [Sphinx API Documentation](https://www.semuconsulting.com/pygpsclient) in HTML format.
+1. From time to time, instructional videos may be posted to the [semuadmin YouTube channel](https://www.youtube.com/@semuadmin).
 
 Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/semuconsulting/PyGPSClient/blob/master/CONTRIBUTING.md).
 
@@ -107,6 +108,8 @@ Please refer to [INSTALLATION.md](https://github.com/semuconsulting/PyGPSClient/
 1. DataLogging - Turn Data logging in the selected format on or off. On first selection, you will be prompted to select the directory into which timestamped log files are saved.
 1. GPX Track - Turn track recording (in GPX format) on or off. On first selection, you will be prompted to select the directory into which timestamped GPX track files are saved.
 1. Database - Turn spatialite database recording (*where available*) on or off. On first selection, you will be prompted to select the directory into which the `pygpsclient.sqlite` database is saved. Note that, when first created, the database's spatial metadata will take a few seconds to initialise (*up to a minute on Raspberry Pi and similar SBC*). **NB** This facility is dependent on your Python environment supporting the requisite [sqlite3 `mod_spatialite` extension](https://www.gaia-gis.it/fossil/libspatialite/index) - see [INSTALLATION.md](https://github.com/semuconsulting/PyGPSClient/blob/master/INSTALLATION.md#prereqs) for further details. If not supported, the option will be greyed out. Check the Menu..Help..About dialog for an indication of the current spatialite support status.
+
+     *FYI* a helper method `retrieve_data()` is available to retrieve data from this database - see [Sphinx documentation](https://www.semuconsulting.com/pygpsclient/pygpsclient.html#pygpsclient.sqllite_handler.retrieve_data) and [retrieve_data.py](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/retrieve_data.py) example for details.
 1. To save the current configuration to a file, go to File..Save Configuration.
 1. To load a saved configuration file, go to File..Load Configuration. The default configuration file location is `$HOME/pygpsclient.json`. **NB** Any active serial or RTK connection must be stopped before loading a new configuration.
 
@@ -363,7 +366,7 @@ By default, the server/caster binds to the host address '0.0.0.0' (IPv4) or '::'
 
 1. Select NTRIP CASTER mode and (if necessary) enter the host IP address and port.
 1. An additional expandable panel is made available to allow the user to configure a connected RTK-compatible receiver to operate in either `FIXED` or `SURVEY-IN` Base Station mode (*NB: parameters can only be amended while the caster is stopped*).
-1. Select the receiver type (currently u-blox ZED-F9*, u-blox ZED-X20*, Quectel LG290P and Septentrio Mosaic X5 receivers are supported) and click the Send button to send the appropriate configuration commands to the receiver. 
+1. Select the receiver type (currently u-blox ZED-F9*, u-blox ZED-X20*, Quectel LG290P, Quectel LC29H and Septentrio Mosaic X5 receivers are supported) and click the Send button to send the appropriate configuration commands to the receiver. 
 1. **NB** Septentrio Mosaic X5: These receivers are configured via ASCII TTY commands - to monitor the command responses, set the console protocol to "TTY" (*remember to set it back to RTCM when monitoring the RTCM3 output*). Note also that the input (ASCII command) UART port may be different to the output (RTCM3) UART port - make sure to select the appropriate port(s) when configuring the device and monitoring the RTCM3 output.
 1. NMEA messages can be suppressed by checking 'Disable NMEA'.
 1. NTRIP client login credentials are set via the user and password fields. 
