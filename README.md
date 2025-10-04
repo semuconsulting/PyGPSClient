@@ -24,8 +24,8 @@ PyGPSClient is a free, open-source, multi-platform graphical GNSS/GPS testing, d
 * Capable of reading from a variety of GNSS data streams: Serial (USB / UART), Socket (TCP / UDP), binary data stream (terminal or file capture) and u-center (*.ubx) recording.
 * Provides [NTRIP](#ntripconfig) and [SPARTN](#spartnconfig) client facilities.
 * Can serve as an [NTRIP base station](#basestation) with an RTK-compatible receiver (e.g. u-blox ZED-F9P/X20P, Quectel LG290P, Quectel LC29H or Septentrio Mosaic X5).
-* While not intended to be a direct replacement, the application supports most of the UBX configuration functionality in u-blox's Windows-only [u-center &copy;](https://www.u-blox.com/en/product/u-center) tool (*only public-domain features are supported*).
-* Also supports GNSS (*and related*) device configuration via proprietary NMEA sentences (e.g. Quectel LG290P PQTM*) and ASCII TTY commands (e.g. Septentrio Mosaic X5, Feyman IM19).
+* Supports GNSS (*and related*) device configuration via proprietary UBX (e.g. u-blox NEO-F10, ZED-F9, ZED-X20), NMEA (e.g. Quectel LG290P PQTM*, LC29H PAIR*) and ASCII TTY (e.g. Septentrio Mosaic X5, Feyman IM19) protocols.
+* While not intended to be a direct replacement, the application supports much of the configuration and monitoring functionality in u-blox's [u-center &copy;](https://www.u-blox.com/en/product/u-center) and Quectel's [QGNSS &copy;](https://www.quectel.com/download/qgnss_v2-2_en/) Windows-only tools (*only public-domain features are supported*).
 
 ![full app screenshot ubx](https://github.com/semuconsulting/PyGPSClient/blob/master/images/app.png?raw=true)
 
@@ -351,7 +351,7 @@ By default, the server/caster binds to the host address '0.0.0.0' (IPv4) or '::'
 
 **Pre-Requisites:**
 
-1. Running in NTRIP CASTER mode is predicated on the host being connected to an RTK-compatible GNSS receiver (e.g. u-blox ZED-F9P/X20P, Quectel LG290P or Septentrio Mosaic X5) **operating in Base Station mode** (either `FIXED` or `SURVEY_IN`) and outputting the requisite RTCM3 message types (1006, 1077, 1087, 1097, etc.). 
+1. Running in NTRIP CASTER mode is predicated on the host being connected to an RTK-compatible GNSS receiver **operating in Base Station mode** (either `FIXED` or `SURVEY_IN`) and outputting the requisite RTCM3 message types (1005/6, 1077, 1087, 1097, etc.). 
 1. It may be necessary to add a firewall rule and/or enable port-forwarding on the host machine or router to allow remote traffic on the specified address:port.
 
 **Instructions:**
@@ -366,7 +366,7 @@ By default, the server/caster binds to the host address '0.0.0.0' (IPv4) or '::'
 
 1. Select NTRIP CASTER mode and (if necessary) enter the host IP address and port.
 1. An additional expandable panel is made available to allow the user to configure a connected RTK-compatible receiver to operate in either `FIXED` or `SURVEY-IN` Base Station mode (*NB: parameters can only be amended while the caster is stopped*).
-1. Select the receiver type (currently u-blox ZED-F9*, u-blox ZED-X20*, Quectel LG290P, Quectel LC29H and Septentrio Mosaic X5 receivers are supported) and click the Send button to send the appropriate configuration commands to the receiver. 
+1. Select the receiver type (currently u-blox ZED-F9*, u-blox ZED-X20*, Quectel LG290P, Quectel LC29H (BA, and Septentrio Mosaic X5 receivers are supported) and click the Send button to send the appropriate configuration commands to the receiver. 
 1. **NB** Septentrio Mosaic X5: These receivers are configured via ASCII TTY commands - to monitor the command responses, set the console protocol to "TTY" (*remember to set it back to RTCM when monitoring the RTCM3 output*). Note also that the input (ASCII command) UART port may be different to the output (RTCM3) UART port - make sure to select the appropriate port(s) when configuring the device and monitoring the RTCM3 output.
 1. NMEA messages can be suppressed by checking 'Disable NMEA'.
 1. NTRIP client login credentials are set via the user and password fields. 
@@ -511,12 +511,11 @@ For further details, refer to the `pygnssutils` homepage at [https://github.com/
 ---
 ## <a name="license">License</a>
 
-![License](https://img.shields.io/github/license/semuconsulting/PyGPSClient.svg)
+[![License](https://img.shields.io/github/license/semuconsulting/PyGPSClient.svg)](https://github.com/semuconsulting/PyGPSClient/blob/master/LICENSE)
 
-BSD 3-Clause License
+[BSD 3-Clause License](https://github.com/semuconsulting/PyGPSClient/blob/master/LICENSE)
 
 Copyright &copy; 2020, semuadmin (Steve Smith)
-All rights reserved.
 
 Application icons from [iconmonstr](https://iconmonstr.com/license/) &copy;.
 
