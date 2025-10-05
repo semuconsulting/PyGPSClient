@@ -54,11 +54,17 @@ DATA = "dat"
 ESFALG = "ESF-ALG"
 GPFMI = "GPFMI"
 SOURCES = (
-    ESFALG,
-    GPFMI,
+    "ESF-ALG",
+    "FECGPATT",
+    "FMI",
     "HNR-ATT",
+    "INVMATTIT",
     "NAV-ATT",
     "NAV-PVAT",
+    "NAV2-PVAT",
+    "QTMDRPVA",
+    "QTMINS",
+    "QTMVEHATT",
 )
 RANGES = (
     180,

@@ -95,9 +95,10 @@ class NMEAHandler:
                 self._process_QTMACK(parsed_data)
             elif parsed_data.msgID == "QTMSVINSTATUS":  # LG290P SVIN status
                 self._process_QTMSVINSTATUS(parsed_data)
+            elif parsed_data.msgID in ("QTMDRPVA", "QTMINS", "QTMVEHATT"):
+                self._process_QTMINS(parsed_data)
             elif parsed_data.msgID == "FMI":  # Feyman IM19 IMU status
                 self._process_FMI(parsed_data)
-
         except ValueError:
             pass
 
@@ -422,5 +423,23 @@ class NMEAHandler:
             ims["pitch"] = round(degrees(data.pitch), 4)
             ims["yaw"] = round(degrees(data.yaw), 4)
             ims["status"] = data.status
+        except (KeyError, AttributeError):
+            pass
+
+    def _process_QTMINS(self, data: NMEAMessage):
+        """
+        Process QTMINS sentence - Quectel IMU status.
+
+        Roll, Pitch and Yaw are in degrees.
+
+        :param NMEAMessage data: PQTMINS message
+        """
+
+        try:
+            ims = self.__app.gnss_status.imu_data
+            ims["roll"] = round(data.roll, 4)
+            ims["pitch"] = round(data.pitch, 4)
+            ims["yaw"] = round(data.yaw, 4)
+            ims["status"] = ""
         except (KeyError, AttributeError):
             pass

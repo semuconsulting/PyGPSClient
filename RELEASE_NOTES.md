@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.5.17
+
+ENHANCEMENTS:
+
+1. Add additional IMU message types to IMU widget drop-down.
+
 ### RELEASE 1.5.16
 
 FIXES:
