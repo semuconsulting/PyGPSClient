@@ -124,14 +124,14 @@ GNSS_ERR_EVENT = "<<gnss_error>>"
 GNSS_EVENT = "<<gnss_read>>"
 GNSS_TIMEOUT_EVENT = "<<gnss_timeout>>"
 GNSS_LIST = {
-    0: ("GPS", "cornflowerblue"),
-    1: ("SBA", "orange"),
-    2: ("GAL", "green4"),
-    3: ("BEI", "mediumpurple2"),
-    4: ("IME", "violet"),
-    5: ("QZS", "yellow"),
-    6: ("GLO", "indianred"),
-    7: ("NAV", "grey60"),
+    0: ("GPS", "#6495ED"),
+    1: ("SBA", "#FF8000"),
+    2: ("GAL", "#008B00"),
+    3: ("BEI", "#9F79EE"),
+    4: ("IME", "#EE82EE"),
+    5: ("QZS", "#CDCD00"),
+    6: ("GLO", "#CD5C5C"),
+    7: ("NAV", "#D2B48C"),
 }
 GPSEPOCH0 = datetime(1980, 1, 6)  # for Wno and Tow calculations
 GPX_NS = (
