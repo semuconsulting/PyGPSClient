@@ -195,13 +195,13 @@ warning ![warning icon](https://github.com/semuconsulting/PyGPSClient/blob/maste
 
 **Pre-Requisites:**
 
-- Receiver capable of being configured via proprietary NMEA sentences, connected to the workstation via USB or UART port. At time of writing, the only supported GNSS receiver type is the Quectel LG290P, via PQTM* sentences, but additional types may be supported in the underlying NMEA parser library [pynmeagps](https://github.com/semuconsulting/pynmeagps) in later releases.
+- Receiver capable of being configured via proprietary NMEA sentences, connected to the workstation via USB or UART port. The facility includes support for several Quectel LG and LC series receivers via PQTM* and PAIR* sentences. Additional types may be supported in the underlying NMEA parser library [pynmeagps](https://github.com/semuconsulting/pynmeagps) in later releases (*contributions welcome*).
 
 **Instructions:**
 
 The NMEA Configuration Dialog currently provides the following NMEA configuration panels:
 1. Version panel shows current device hardware/firmware versions (*via PQTMVERNO polls*).
-1. Dynamic configuration panel providing structured updates for supported receivers e.g. the Quectel LG290P via PQTM* sentences. Once a command is selected, the configuration is polled and the current values displayed. The user can then amend these values as required and send the updated configuration. Some polls require input arguments (e.g. portid or msgname) - these are highlighted and will be set at default values initially (e.g. portid = 1), but can be amended by the user and re-polled using the ![refresh](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-refresh-lined-24.png?raw=true) button.
+1. Dynamic configuration panel providing structured updates for supported receivers e.g. Quectel LG290P via PQTM* sentences, or LC29H via PAIR* sentences. Once a command is selected, the configuration is polled and the current values displayed. The user can then amend these values as required and send the updated configuration. Some polls require input arguments (e.g. portid or msgname) - these are highlighted and will be set at default values initially (e.g. portid = 1), but can be amended by the user and re-polled using the ![refresh](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-refresh-lined-24.png?raw=true) button.
 1. Preset Commands widget supports a variety of preset and user-defined commands - see [user defined presets](#userdefined).
 
 An icon to the right of each 'SEND' 
@@ -210,7 +210,7 @@ An icon to the right of each 'SEND'
 confirmed ![confirmed icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-check-mark-8-24.png?raw=true) or 
 warning ![warning icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-warning-1-24.png?raw=true)).
 
-**NB:** Several Quectel LG290P commands require a Hot Restart (PQTMHOT) before taking effect, including PQTMCFGCNST (Enable/Disable Constellations), PQTMCFGFIX (Configure Fix Rate), PQTMCFGSAT (Configure Satellite Masks) and PQTMCFGSIGNAL (Configure Signal Masks). This is a Quectel protocol constraint, not a PyGPSClient issue.
+**NB:** Several Quectel LG and LC series commands require a Hot Restart (PQTMHOT) before taking effect, including PQTMCFGCNST (Enable/Disable Constellations), PQTMCFGFIX (Configure Fix Rate), PQTMCFGSAT (Configure Satellite Masks) and PQTMCFGSIGNAL (Configure Signal Masks). This is a Quectel protocol constraint, not a PyGPSClient issue.
 
 ---
 ## <a name="ntripconfig">NTRIP Client Facilities</a>
