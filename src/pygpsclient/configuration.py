@@ -87,6 +87,7 @@ class Configuration:
             "nmeaprot_b": 1,
             "ubxprot_b": 1,
             "sbfprot_b": 0,
+            "qgcprot_b": 0,
             "rtcmprot_b": 1,
             "spartnprot_b": 1,
             "ttyprot_b": 0,

@@ -35,18 +35,20 @@ from threading import Event, Thread
 from time import sleep
 
 from certifi import where as findcacerts
+from pygnssutils.gnssreader import (
+    NMEA_PROTOCOL,
+    QGC_PROTOCOL,
+    RTCM3_PROTOCOL,
+    SBF_PROTOCOL,
+    UBX_PROTOCOL,
+    GNSSReader,
+)
 from pynmeagps import NMEAMessageError, NMEAParseError
 from pyrtcm import RTCMMessageError, RTCMParseError
-from pysbf2 import SBF_PROTOCOL as SBF_PROT
-from pysbf2 import SBFReader
 from pyubx2 import (
     ERR_LOG,
-    NMEA_PROTOCOL,
-    RTCM3_PROTOCOL,
-    UBX_PROTOCOL,
     UBXMessageError,
     UBXParseError,
-    UBXReader,
 )
 from pyubxutils import UBXSimulator
 from serial import Serial, SerialException, SerialTimeoutException
@@ -61,7 +63,6 @@ from pygpsclient.globals import (
     DEFAULT_BUFSIZE,
     ERRCOL,
     FILEREAD_INTERVAL,
-    SBF_PROTOCOL,
     TTY_PROTOCOL,
     UBXSIMULATOR,
 )
@@ -284,25 +285,18 @@ class StreamHandler:
 
         conntype = settings["conntype"]
 
-        if settings["protocol"] & SBF_PROTOCOL:
-            # Parsed mode (NMEA, SBF, RTCM3)
-            ubr = SBFReader(
-                stream,
-                protfilter=NMEA_PROTOCOL | SBF_PROT | RTCM3_PROTOCOL,
-                quitonerror=ERR_LOG,
-                bufsize=DEFAULT_BUFSIZE,
-                errorhandler=_errorhandler,
-            )
-        else:
-            # Parsed mode (NMEA, UBX, RTCM3)
-            ubr = UBXReader(
-                stream,
-                protfilter=NMEA_PROTOCOL | UBX_PROTOCOL | RTCM3_PROTOCOL,
-                quitonerror=ERR_LOG,
-                bufsize=DEFAULT_BUFSIZE,
-                msgmode=settings["msgmode"],
-                errorhandler=_errorhandler,
-            )
+        ubr = GNSSReader(
+            stream,
+            protfilter=NMEA_PROTOCOL
+            | UBX_PROTOCOL
+            | SBF_PROTOCOL
+            | QGC_PROTOCOL
+            | RTCM3_PROTOCOL,
+            quitonerror=ERR_LOG,
+            bufsize=DEFAULT_BUFSIZE,
+            msgmode=settings["msgmode"],
+            errorhandler=_errorhandler,
+        )
 
         raw_data = None
         parsed_data = None

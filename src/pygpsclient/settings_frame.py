@@ -49,9 +49,15 @@ from tkinter import (
 )
 
 from PIL import Image, ImageTk
-from pyubx2 import NMEA_PROTOCOL, RTCM3_PROTOCOL, UBX_PROTOCOL
+from pygnssutils.gnssreader import (
+    NMEA_PROTOCOL,
+    QGC_PROTOCOL,
+    RTCM3_PROTOCOL,
+    SBF_PROTOCOL,
+    UBX_PROTOCOL,
+)
 
-from pygpsclient.globals import (
+from pygpsclient.globals import (  # SBF_PROTOCOL,
     BPSRATES,
     CONNECTED,
     CONNECTED_FILE,
@@ -84,7 +90,6 @@ from pygpsclient.globals import (
     NOPORTS,
     OKCOL,
     READONLY,
-    SBF_PROTOCOL,
     SPARTN_PROTOCOL,
     TIMEOUTS,
     TTY_PROTOCOL,
@@ -157,6 +162,7 @@ class SettingsFrame(Frame):
         self._prot_nmea = IntVar()
         self._prot_ubx = IntVar()
         self._prot_sbf = IntVar()
+        self._prot_qgc = IntVar()
         self._prot_rtcm3 = IntVar()
         self._prot_spartn = IntVar()
         self._prot_tty = IntVar()
@@ -336,6 +342,11 @@ class SettingsFrame(Frame):
             text="SBF",
             variable=self._prot_sbf,
         )
+        self._chk_qgc = Checkbutton(
+            self._frm_options,
+            text="QGC",
+            variable=self._prot_qgc,
+        )
         self._chk_tty = Checkbutton(
             self._frm_options,
             text="TTY",
@@ -497,9 +508,10 @@ class SettingsFrame(Frame):
         self._lbl_protocol.grid(column=0, row=0, padx=2, pady=2, sticky=W)
         self._chk_nmea.grid(column=1, row=0, padx=0, pady=0, sticky=W)
         self._chk_ubx.grid(column=2, row=0, padx=0, pady=0, sticky=W)
+        self._chk_sbf.grid(column=3, row=0, padx=0, pady=0, sticky=W)
+        self._chk_qgc.grid(column=4, row=0, padx=0, pady=0, sticky=W)
         self._chk_rtcm.grid(column=1, row=1, padx=0, pady=0, sticky=W)
         self._chk_spartn.grid(column=2, row=1, padx=0, pady=0, sticky=W)
-        self._chk_sbf.grid(column=3, row=0, padx=0, pady=0, sticky=W)
         self._chk_tty.grid(column=3, row=1, padx=0, pady=0, sticky=W)
         self._lbl_consoledisplay.grid(column=0, row=2, padx=2, pady=2, sticky=W)
         self._spn_conformat.grid(
@@ -547,6 +559,7 @@ class SettingsFrame(Frame):
         self._prot_nmea.set(cfg.get("nmeaprot_b"))
         self._prot_ubx.set(cfg.get("ubxprot_b"))
         self._prot_sbf.set(cfg.get("sbfprot_b"))
+        self._prot_qgc.set(cfg.get("qgcprot_b"))
         self._prot_rtcm3.set(cfg.get("rtcmprot_b"))
         self._prot_spartn.set(cfg.get("spartnprot_b"))
         self._prot_tty.set(cfg.get("ttyprot_b"))
@@ -587,21 +600,10 @@ class SettingsFrame(Frame):
                 self._prot_tty.trace_remove(
                     tracemode, self._prot_tty.trace_info()[0][1]
                 )
-        if add:
-            self._prot_ubx.trace_add(tracemode, self._on_update_ubx)
-        else:
-            if len(self._prot_ubx.trace_info()) > 0:
-                self._prot_ubx.trace_remove(
-                    tracemode, self._prot_ubx.trace_info()[0][1]
-                )
-        if add:
-            self._prot_sbf.trace_add(tracemode, self._on_update_sbf)
-        else:
-            if len(self._prot_sbf.trace_info()) > 0:
-                self._prot_sbf.trace_remove(
-                    tracemode, self._prot_sbf.trace_info()[0][1]
-                )
         for setting in (
+            self._prot_ubx,
+            self._prot_sbf,
+            self._prot_qgc,
             self._prot_nmea,
             self._prot_rtcm3,
             self._prot_spartn,
@@ -633,35 +635,35 @@ class SettingsFrame(Frame):
         self.__app.frm_spectrumview.reset()
         self.__app.reset_gnssstatus()
 
-    def _on_update_ubx(self, var, index, mode):  # pylint: disable=unused-argument
-        """
-        UBX or SBF protocol mode has been updated.
-        """
+    # def _on_update_ubx(self, var, index, mode):  # pylint: disable=unused-argument
+    #     """
+    #     UBX or SBF protocol mode has been updated.
+    #     """
 
-        try:
-            self.update()
-            if self._prot_ubx.get():
-                self._prot_sbf.set(0)
-                self.__app.configuration.set("sbfprot_b", int(self._prot_sbf.get()))
-            self.__app.configuration.set("ubxprot_b", int(self._prot_ubx.get()))
-            self._on_update_protocol()
-        except (ValueError, TclError):
-            pass
+    #     try:
+    #         self.update()
+    #         if self._prot_ubx.get():
+    #             self._prot_sbf.set(0)
+    #             self.__app.configuration.set("sbfprot_b", int(self._prot_sbf.get()))
+    #         self.__app.configuration.set("ubxprot_b", int(self._prot_ubx.get()))
+    #         self._on_update_protocol()
+    #     except (ValueError, TclError):
+    #         pass
 
-    def _on_update_sbf(self, var, index, mode):  # pylint: disable=unused-argument
-        """
-        UBX or SBF protocol mode has been updated.
-        """
+    # def _on_update_sbf(self, var, index, mode):  # pylint: disable=unused-argument
+    #     """
+    #     UBX or SBF protocol mode has been updated.
+    #     """
 
-        try:
-            self.update()
-            if self._prot_sbf.get():
-                self._prot_ubx.set(0)
-                self.__app.configuration.set("ubxprot_b", int(self._prot_ubx.get()))
-            self.__app.configuration.set("sbfprot_b", int(self._prot_sbf.get()))
-            self._on_update_protocol()
-        except (ValueError, TclError):
-            pass
+    #     try:
+    #         self.update()
+    #         if self._prot_sbf.get():
+    #             self._prot_ubx.set(0)
+    #             self.__app.configuration.set("ubxprot_b", int(self._prot_ubx.get()))
+    #         self.__app.configuration.set("sbfprot_b", int(self._prot_sbf.get()))
+    #         self._on_update_protocol()
+    #     except (ValueError, TclError):
+    #         pass
 
     def _on_update_tty(self, var, index, mode):  # pylint: disable=unused-argument
         """
@@ -676,6 +678,7 @@ class SettingsFrame(Frame):
                     self._prot_nmea,
                     self._prot_ubx,
                     self._prot_sbf,
+                    self._prot_qgc,
                     self._prot_rtcm3,
                     self._prot_spartn,
                 ):
@@ -684,6 +687,7 @@ class SettingsFrame(Frame):
                 self._prot_nmea.set(1)
                 self._prot_ubx.set(1)
                 self._prot_sbf.set(0)
+                self._prot_qgc.set(0)
                 self._prot_rtcm3.set(1)
                 self._prot_spartn.set(1)
             self.__app.configuration.set("ttyprot_b", tty)
@@ -698,6 +702,9 @@ class SettingsFrame(Frame):
         try:
             self.update()
             cfg = self.__app.configuration
+            cfg.set("ubxprot_b", int(self._prot_ubx.get()))
+            cfg.set("sbfprot_b", int(self._prot_sbf.get()))
+            cfg.set("qgcprot_b", int(self._prot_qgc.get()))
             cfg.set("nmeaprot_b", int(self._prot_nmea.get()))
             cfg.set("rtcmprot_b", int(self._prot_rtcm3.get()))
             cfg.set("spartnprot_b", int(self._prot_spartn.get()))
@@ -730,6 +737,7 @@ class SettingsFrame(Frame):
             NMEA_PROTOCOL * int(self._prot_nmea.get())
             + UBX_PROTOCOL * int(self._prot_ubx.get())
             + SBF_PROTOCOL * int(self._prot_sbf.get())
+            + QGC_PROTOCOL * int(self._prot_qgc.get())
             + RTCM3_PROTOCOL * int(self._prot_rtcm3.get())
             + SPARTN_PROTOCOL * int(self._prot_spartn.get())
             + TTY_PROTOCOL * int(self._prot_tty.get()),

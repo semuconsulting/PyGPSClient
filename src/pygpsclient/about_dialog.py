@@ -18,6 +18,7 @@ from webbrowser import open_new_tab
 from PIL import Image, ImageTk
 from pygnssutils import version as PGVERSION
 from pynmeagps import version as NMEAVERSION
+from pyqgc import version as QGCVERSION
 from pyrtcm import version as RTCMVERSION
 from pysbf2 import version as SBFVERSION
 from pyspartn import version as SPARTNVERSION
@@ -43,6 +44,7 @@ LIBVERSIONS = {
     "pygnssutils": PGVERSION,
     "pyubx2": UBXVERSION,
     "pysbf2": SBFVERSION,
+    "pyqgc": QGCVERSION,
     "pynmeagps": NMEAVERSION,
     "pyrtcm": RTCMVERSION,
     "pyspartn": SPARTNVERSION,

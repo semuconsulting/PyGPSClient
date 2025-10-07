@@ -4,8 +4,9 @@
 
 ENHANCEMENTS:
 
+1. Add provisional support for Quectel QGC binary message protocol (requires pyqgc>=0.1.1). Currently only implemented for LG580P RAW message types.
 1. Add additional IMU message types to IMU widget drop-down.
-2. Enhance performance and look and feel of banner skyview and graphview widgets.
+1. Enhance performance and look and feel of banner skyview and graphview widgets.
 
 ### RELEASE 1.5.16
 

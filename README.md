@@ -19,13 +19,15 @@
 [Author Information](#author)
 
 PyGPSClient is a free, open-source, multi-platform graphical GNSS/GPS testing, diagnostic and configuration application written entirely in Python and tkinter. 
-* Runs on any platform which supports a Python 3 interpreter (>=3.9) and tkinter (>=8.6) GUI framework, including Windows, MacOS, Linux and Raspberry Pi OS.
-* Supports NMEA, UBX, SBF, RTCM3, NTRIP, SPARTN, MQTT and TTY (ASCII) protocols.
+* Runs on any platform which supports a Python 3 interpreter (>=3.10) and tkinter (>=8.6) GUI framework, including Windows, MacOS, Linux and Raspberry Pi OS.
+* Supports NMEA, UBX, SBF, QGC, RTCM3, NTRIP, SPARTN, MQTT and TTY (ASCII) protocols¹.
 * Capable of reading from a variety of GNSS data streams: Serial (USB / UART), Socket (TCP / UDP), binary data stream (terminal or file capture) and u-center (*.ubx) recording.
 * Provides [NTRIP](#ntripconfig) and [SPARTN](#spartnconfig) client facilities.
 * Can serve as an [NTRIP base station](#basestation) with an RTK-compatible receiver (e.g. u-blox ZED-F9P/X20P, Quectel LG290P, Quectel LC29H or Septentrio Mosaic X5).
 * Supports GNSS (*and related*) device configuration via proprietary UBX (e.g. u-blox NEO-F10, ZED-F9, ZED-X20), NMEA (e.g. Quectel LG290P PQTM*, LC29H PAIR*) and ASCII TTY (e.g. Septentrio Mosaic X5, Feyman IM19) protocols.
 * While not intended to be a direct replacement, the application supports much of the configuration and monitoring functionality in u-blox's [u-center &copy;](https://www.u-blox.com/en/product/u-center) and Quectel's [QGNSS &copy;](https://www.quectel.com/download/qgnss_v2-2_en/) Windows-only tools (*only public-domain features are supported*).
+
+¹ *specific message support subject to underlying parser implementation*
 
 ![full app screenshot ubx](https://github.com/semuconsulting/PyGPSClient/blob/master/images/app.png?raw=true)
 
@@ -69,7 +71,7 @@ For [Bug reports](https://github.com/semuconsulting/PyGPSClient/blob/master/.git
 
 ## The Quick Version
 
-If you have an [official Python](https://www.python.org/downloads/) >=3.9 with tkinter >=8.6 installed and the Python [binaries](https://github.com/semuconsulting/PyGPSClient/blob/master/INSTALLATION.md#binaries) folder is in your PATH, you can install PyGPSClient using pip:
+If you have an [official Python](https://www.python.org/downloads/) >=3.10 with tkinter >=8.6 installed and the Python [binaries](https://github.com/semuconsulting/PyGPSClient/blob/master/INSTALLATION.md#binaries) folder is in your PATH, you can install PyGPSClient using pip:
 
 ```shell
 python3 -m pip install --upgrade pygpsclient
@@ -98,8 +100,8 @@ Please refer to [INSTALLATION.md](https://github.com/semuconsulting/PyGPSClient/
 ![connect-file icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/binary-1-24.png?raw=true) and select the file type (`*.log, *.ubx, *.*`) and path. PyGPSClient datalog files will be named e.g. `pygpsdata-20220427114802.log`, but any binary dump of an GNSS receiver output is acceptable, including `*.ubx` files produced by u-center.
 1. To disconnect from the data stream, click
 ![disconnect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-media-control-50-24.png?raw=true).
-1. Protocols Shown - Select which protocols to display; NMEA, UBX, SBF, RTCM3, SPARTN or TTY (NB: this only changes the displayed protocols - to change the actual protocols output by the receiver, use the [UBX Configuration Dialog](#ubxconfig)).
-   - **NB:** Serial connection must be stopped before changing between SBF, UBX or TTY (terminal) protocols.
+1. Protocols Shown - Select which protocols to display; NMEA, UBX, SBF, QGC, RTCM3, SPARTN or TTY (NB: this only changes the displayed protocols - to change the actual protocols output by the receiver, use the [UBX Configuration Dialog](#ubxconfig)).
+   - **NB:** Serial connection must be stopped before changing to or from TTY (terminal) protocol.
    - **NB:** Enabling TTY (terminal) mode will disable all other protocols.
 1. Console Display - Select console display format (Parsed, Binary, Hex Tabular, Hex String, Parsed+Hex Tabular - see Console Widget below).
 1. Tags - enable color tags in console (see Console Widget below).
