@@ -14,13 +14,12 @@ Created on 12 Sep 2020
 
 from tkinter import Menu
 
-from pygpsclient.strings import (
+from pygpsclient.strings import (  # DLGTSPARTN, # service discontinued by u-blox
     DLGTABOUT,
     DLGTGPX,
     DLGTIMPORTMAP,
     DLGTNMEA,
     DLGTNTRIP,
-    DLGTSPARTN,
     DLGTTTY,
     DLGTUBX,
     MENUABOUT,
@@ -39,7 +38,7 @@ DIALOGS = (
     DLGTUBX,
     DLGTNMEA,
     DLGTNTRIP,
-    DLGTSPARTN,
+    # DLGTSPARTN, # service discontinued by u-blox
     DLGTGPX,
     DLGTIMPORTMAP,
     DLGTTTY,

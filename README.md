@@ -253,6 +253,10 @@ Below is a illustrative NTRIP DGPS data log, showing:
 ---
 ## <a name="spartnconfig">SPARTN Client Facilities</a>
 
+  ### NB: As of October 2025 u-blox have discontinued both their [L-Band SPARTN correction service](https://portal.u-blox.com/s/question/0D5Oj00000uB53GKAS/suspension-of-european-pointperfect-lband-spartn-service) and their [MQTT SPART correction service](https://content.u-blox.com/sites/default/files/documents/End-of-life%20notification%20PointPerfect%20Flex%20MQTT%20protocol%20for%20corrections%20delivery.pdf), so the following functionality is effectively redundant and may be removed in a subsequent version of PyGPSClient.
+
+  The SPARTN MQTT and L-Band configuration panels are now disabled by default, though the L-Band panel can in theory still be used for other generic L-Band modem configuration purposes and can be re-enabled by setting json configuration parameter `lband_enabled_b` to `1`.
+
 ![spartn config widget screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/spartnconfig_widget.png?raw=true)
 
 The SPARTN Configuration utility allows users to receive and process SPARTN RTK Correction data from an IP or L-Band source to achieve cm level location accuracy. It provides three independent configuration sections, one for IP Correction (MQTT), one for L-Band Correction (e.g. NEO-D9S) and a third for the GNSS receiver (e.g. ZED-F9P). 
@@ -279,8 +283,6 @@ The facility can be accessed by clicking ![SPARTN Client button](https://github.
 		- `/pp/frequencies/Lb` - json message containing each region's L-band transmission frequency - currently `us` or `eu` (this is automatically enabled when `L-Band` is selected).
 
 2. L-BAND Correction (D9* Receiver):
-
-    **NB** Note that u-blox [discontinued their PointPerfect SPARTN L-Band service](https://portal.u-blox.com/s/question/0D5Oj00000uB53GKAS/suspension-of-european-pointperfect-lband-spartn-service) in the European region in March 2025 and Worldwide in June 2025. The SPARTN L-Band configuration panel is now disabled by default, though the panel can still be used for other generic L-Band modem configuration purposes and can be re-enabled by setting json configuration parameter `lband_enabled_b` to `1`.
 
     - SPARTN L-Band correction receiver e.g. u-blox NEO-D9S.
     - [Suitable Inmarsat L-band antenna](https://www.amazon.com/RTL-SDR-Blog-1525-1637-Inmarsat-Iridium/dp/B07WGWZS1D) and good satellite reception on regional frequency (NB: standard GNSS antenna may not be suitable).
