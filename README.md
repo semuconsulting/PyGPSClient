@@ -80,7 +80,14 @@ and then run it by typing:
 pygpsclient
 ```
 
-**NB** If you get `error: externally-managed-environment`, refer to the longer installation guidelines for **virtual environments** using [pip](#pip) or [pipx](#pipx) below.
+To install into a virtual environment (*which may be necessary if you have an [`externally-managed-environment`](https://github.com/semuconsulting/PyGPSClient/blob/master/INSTALLATION.md#basics)*):
+
+```shell
+python3 -m venv pygpsclient
+source pygpsclient/bin/activate # (or .\pygpsclient\Scripts\activate on Windows)
+python3 -m pip install --upgrade pygpsclient
+deactivate
+```
 
 ## The Longer Version
 
