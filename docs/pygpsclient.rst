@@ -212,6 +212,14 @@ pygpsclient.ntrip\_client\_dialog module
    :undoc-members:
    :show-inheritance:
 
+pygpsclient.qgc\_handler module
+-------------------------------
+
+.. automodule:: pygpsclient.qgc_handler
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pygpsclient.rover\_frame module
 -------------------------------
 

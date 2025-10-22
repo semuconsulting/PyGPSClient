@@ -16,7 +16,6 @@ from pygpsclient.globals import GITHUB_URL, MAPAPI_URL
 
 TITLE = "PyGPSClient"
 COPYRIGHT = "\u00a9 2020 semuadmin (Steve Smith)\nBSD 3-Clause License"
-COPYRIGHTTXT = f"{COPYRIGHT}. All Rights Reserved"
 EPILOG = f"{COPYRIGHT} - {GITHUB_URL}"
 
 INTROTXT = f"Welcome to {TITLE}!"
@@ -24,12 +23,12 @@ INTROTXTNOPORTS = INTROTXT
 
 HELPTXT = "Help..About - display About dialog."
 
-ABOUTTXT = (
-    f"{TITLE} is a free, open-source GNSS/GPS diagnostic and configuration "
-    "application written entirely in Python and tkinter. "
-    "It supports NMEA, UBX, SBF, RTCM3, NTRIP & SPARTN protocols. "
-    "Instructions and source code are available on GitHub at the link below."
-)
+ABOUTTXT = [
+    f"{TITLE} is a free, open-source GNSS diagnostic and configuration",
+    "application written entirely by volunteers in Python and tkinter.",
+    "It supports NMEA, UBX, SBF, QGC, RTCM3, NTRIP & SPARTN protocols.",
+    "Instructions and source code are available on GitHub at the link below.",
+]
 NA = "N/A"
 
 # Message text

@@ -74,7 +74,7 @@ class UBXHandler:
             self._process_NAV_POSLLH(parsed_data)
         elif parsed_data.identity in ("NAV-PVT", "NAV2-PVT"):
             self._process_NAV_PVT(parsed_data)
-        elif parsed_data.identity == "NAV-PVAT":
+        elif parsed_data.identity in ("NAV-PVAT", "NAV2-PVAT"):
             self._process_NAV_PVAT(parsed_data)
         elif parsed_data.identity == "NAV-RELPOSNED":
             self._process_NAV_RELPOSNED(parsed_data)

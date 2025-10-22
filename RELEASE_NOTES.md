@@ -1,5 +1,15 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.5.17
+
+ENHANCEMENTS:
+
+1. As of October 2025, u-blox have discontinued their MQTT SPARTN service (*having previously discontinued their L-Band SPARTN service earlier in the year*) so this functionality has been disabled by default in PyGPSClient in this release, and will be removed altogether in a subsequent release. It can be re-enabled by manually editing the `lband_enabled_b` configuration setting.
+1. Add provisional support for Quectel QGC binary message protocol (requires pyqgc>=0.1.2). Currently only Quectel LG290P / LG580P / LG680P RAW and LU600 IMU QGC message types are implemented, but this will be enhanced in future releases (contributions welcome).
+1. Add additional IMU message types to IMU widget drop-down.
+1. Enhance performance and look and feel of banner skyview and graphview widgets.
+1. Drop active support for Python 3.9, add 3.14 (3.9 EOL as at 31 October 2025).
+
 ### RELEASE 1.5.16
 
 FIXES:

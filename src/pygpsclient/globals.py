@@ -44,6 +44,12 @@ def create_circle(self, x, y, r, **kwargs):
 
 Canvas.create_circle = create_circle
 
+SPARTN_PROTOCOL = 32
+MQTT_PROTOCOL = 64
+TTY_PROTOCOL = 128
+"""Protocols (others defined in gnss_reader.py)"""
+
+
 HOME = Path.home()
 APPNAME = __name__.split(".", 1)[0]  # i.e. "pygpsclient"
 ASCII = "ascii"
@@ -124,14 +130,14 @@ GNSS_ERR_EVENT = "<<gnss_error>>"
 GNSS_EVENT = "<<gnss_read>>"
 GNSS_TIMEOUT_EVENT = "<<gnss_timeout>>"
 GNSS_LIST = {
-    0: ("GPS", "cornflowerblue"),
-    1: ("SBA", "orange"),
-    2: ("GAL", "green4"),
-    3: ("BEI", "mediumpurple2"),
-    4: ("IME", "violet"),
-    5: ("QZS", "yellow"),
-    6: ("GLO", "indianred"),
-    7: ("NAV", "grey60"),
+    0: ("GPS", "#6495ED"),
+    1: ("SBA", "#FF8000"),
+    2: ("GAL", "#008B00"),
+    3: ("BEI", "#9F79EE"),
+    4: ("IME", "#EE82EE"),
+    5: ("QZS", "#CDCD00"),
+    6: ("GLO", "#CD5C5C"),
+    7: ("NAV", "#D2B48C"),
 }
 GPSEPOCH0 = datetime(1980, 1, 6)  # for Wno and Tow calculations
 GPX_NS = (
@@ -172,6 +178,7 @@ ICON_SEND = path.join(DIRNAME, "resources/iconmonstr-arrow-12-24.png")
 ICON_SERIAL = path.join(DIRNAME, "resources/usbport-1-24.png")
 ICON_SOCKET = path.join(DIRNAME, "resources/ethernet-1-24.png")
 ICON_SPARTNCONFIG = path.join(DIRNAME, "resources/iconmonstr-antenna-3-24.png")
+ICON_SPARTNDISABLE = path.join(DIRNAME, "resources/iconmonstr-antenna-3-24-greyed.png")
 ICON_START = path.join(DIRNAME, "resources/marker_start.png")
 ICON_STOP = path.join(DIRNAME, "resources/iconmonstr-stop-1-24.png")
 ICON_TRANSMIT = path.join(DIRNAME, "resources/iconmonstr-transmit-10-24.png")
@@ -216,13 +223,12 @@ CUSTOM = "custom"
 IMPORT = "import"
 WORLD = "world"
 LC29H = "Quectel LC29H"
-LG290P = "Quectel LG290P"
+LG290P = "Quectel LG29P/LG580P"
 MAX_SNR = 60  # upper limit of graphview snr axis
 MAXLOGLINES = 10000  # maximum number of 'lines' per datalog file
 MIN_GUI_UPDATE_INTERVAL = 0.1  # minimum GUI widget update interval (seconds)
 MOSAIC_X5 = "Septentrio Mosaic X5"
 MQAPIKEY = "mqapikey"
-MQTT_PROTOCOL = 16
 MSGMODES = {
     "GET": GET,
     "SET": SET,
@@ -246,7 +252,7 @@ RESIZE = "resize"
 ROUTE = "route"
 RXMMSG = "RXM-SPARTN-KEY"
 SAT_EXPIRY = 10  # how long passed satellites are kept in the sky and graph view
-SBF_PROTOCOL = 64
+
 SCREENSCALE = 0.8  # screen resolution scaling factor
 SOCK_NTRIP = "NTRIP CASTER"
 SOCK_SERVER = "SOCKET SERVER"
@@ -267,7 +273,6 @@ SPARTN_BASEDATE_DATASTREAM = 0
 SPARTN_OUTPORT = 8883
 SPARTN_PPREGIONS = ("eu", "us", "jp", "kr", "au")
 SPARTN_PPSERVER_URL = "pp.services.u-blox.com"
-SPARTN_PROTOCOL = 8
 SPARTN_SOURCE_IP = 0
 SPARTN_SOURCE_LB = 1
 SPONSOR_URL = "https://buymeacoffee.com/semuconsulting"
@@ -290,7 +295,7 @@ TOPIC_MGA = "/pp/ubx/mga"
 TOPIC_RXM = "/pp/ubx/0236/ip"
 TRACK = "track"
 TTY_EVENT = "<<tty_read>>"
-TTY_PROTOCOL = 32
+
 TTYOK = ("OK", "$R:")
 TTYERR = ("ERROR", "$R?")
 TTYMARKER = "TTY<<"

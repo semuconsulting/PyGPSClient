@@ -19,21 +19,21 @@
 [Author Information](#author)
 
 PyGPSClient is a free, open-source, multi-platform graphical GNSS/GPS testing, diagnostic and configuration application written entirely in Python and tkinter. 
-* Runs on any platform which supports a Python 3 interpreter (>=3.9) and tkinter (>=8.6) GUI framework, including Windows, MacOS, Linux and Raspberry Pi OS.
-* Supports NMEA, UBX, SBF, RTCM3, NTRIP, SPARTN, MQTT and TTY (ASCII) protocols.
+* Runs on any platform which supports a Python 3 interpreter (>=3.10) and tkinter (>=8.6) GUI framework, including Windows, MacOS, Linux and Raspberry Pi OS.
+* Supports NMEA, UBX, SBF, QGC, RTCM3, NTRIP, SPARTN, MQTT and TTY (ASCII) protocols¹.
 * Capable of reading from a variety of GNSS data streams: Serial (USB / UART), Socket (TCP / UDP), binary data stream (terminal or file capture) and u-center (*.ubx) recording.
 * Provides [NTRIP](#ntripconfig) and [SPARTN](#spartnconfig) client facilities.
-* Can serve as an [NTRIP base station](#basestation) with an RTK-compatible receiver (e.g. u-blox ZED-F9P/X20P, Quectel LG290P, Quectel LC29H or Septentrio Mosaic X5).
-* Supports GNSS (*and related*) device configuration via proprietary UBX (e.g. u-blox NEO-F10, ZED-F9, ZED-X20), NMEA (e.g. Quectel LG290P PQTM*, LC29H PAIR*) and ASCII TTY (e.g. Septentrio Mosaic X5, Feyman IM19) protocols.
-* While not intended to be a direct replacement, the application supports much of the configuration and monitoring functionality in u-blox's [u-center &copy;](https://www.u-blox.com/en/product/u-center) and Quectel's [QGNSS &copy;](https://www.quectel.com/download/qgnss_v2-2_en/) Windows-only tools (*only public-domain features are supported*).
+* Can serve as an [NTRIP base station](#basestation) with an RTK-compatible receiver (e.g. u-blox ZED-F9P/X20P, Quectel LG290P, LG580P, LC29H or Septentrio Mosaic X5).
+* Supports GNSS (*and related*) device configuration via proprietary UBX (e.g. u-blox NEO-F10, ZED-F9, ZED-X20), NMEA (e.g. Quectel LG290P/LG580P PQTM*, LC29H PAIR*) and ASCII TTY (e.g. Septentrio Mosaic X5, Feyman IM19) protocols.
+* Can be installed using the standard `pip` Python package manager - see [installation instructions](#installation) below.
+
+This is an independent project and we have no affiliation whatsoever with any GNSS manufacturer or distributor.
+
+¹ *specific message support subject to underlying parser implementation*
 
 ![full app screenshot ubx](https://github.com/semuconsulting/PyGPSClient/blob/master/images/app.png?raw=true)
 
 *Screenshot showing mixed-protocol stream from u-blox ZED-F9P receiver, using PyGPSClient's [NTRIP Client](#ntripconfig) with a base station 26 km to the west to achieve better than 2 cm accuracy*
-
-The application can be installed using the standard `pip` Python package manager - see [installation instructions](#installation) below.
-
-This is an independent project and we have no affiliation whatsoever with any GNSS manufacturer or distributor.
 
 ---
 ## <a name="currentstatus">Current Status</a>
@@ -58,7 +58,7 @@ Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/sem
 
 For [Bug reports](https://github.com/semuconsulting/PyGPSClient/blob/master/.github/ISSUE_TEMPLATE/bug_report.md), please use the template provided. For feature requests and general queries and advice, post a message to one of the [PyGPSClient Discussions](https://github.com/semuconsulting/PyGPSClient/discussions) channels in the first instance.
 
-![No Copilot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/nocopilot100.png?raw=true)
+![No Copilot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/nocopilot75.png?raw=true)
 
 ---
 ## <a name="installation">Installation</a>
@@ -69,7 +69,7 @@ For [Bug reports](https://github.com/semuconsulting/PyGPSClient/blob/master/.git
 
 ## The Quick Version
 
-If you have an [official Python](https://www.python.org/downloads/) >=3.9 with tkinter >=8.6 installed and the Python [binaries](https://github.com/semuconsulting/PyGPSClient/blob/master/INSTALLATION.md#binaries) folder is in your PATH, you can install PyGPSClient using pip:
+If you have an [official Python](https://www.python.org/downloads/) >=3.10 with tkinter >=8.6 installed and the Python [binaries](https://github.com/semuconsulting/PyGPSClient/blob/master/INSTALLATION.md#binaries) folder is in your PATH, you can install PyGPSClient using pip:
 
 ```shell
 python3 -m pip install --upgrade pygpsclient
@@ -98,8 +98,8 @@ Please refer to [INSTALLATION.md](https://github.com/semuconsulting/PyGPSClient/
 ![connect-file icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/binary-1-24.png?raw=true) and select the file type (`*.log, *.ubx, *.*`) and path. PyGPSClient datalog files will be named e.g. `pygpsdata-20220427114802.log`, but any binary dump of an GNSS receiver output is acceptable, including `*.ubx` files produced by u-center.
 1. To disconnect from the data stream, click
 ![disconnect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-media-control-50-24.png?raw=true).
-1. Protocols Shown - Select which protocols to display; NMEA, UBX, SBF, RTCM3, SPARTN or TTY (NB: this only changes the displayed protocols - to change the actual protocols output by the receiver, use the [UBX Configuration Dialog](#ubxconfig)).
-   - **NB:** Serial connection must be stopped before changing between SBF, UBX or TTY (terminal) protocols.
+1. Protocols Shown - Select which protocols to display; NMEA, UBX, SBF, QGC, RTCM3, SPARTN or TTY (NB: this only changes the displayed protocols - to change the actual protocols output by the receiver, use the [UBX Configuration Dialog](#ubxconfig)).
+   - **NB:** Serial connection must be stopped before changing to or from TTY (terminal) protocol.
    - **NB:** Enabling TTY (terminal) mode will disable all other protocols.
 1. Console Display - Select console display format (Parsed, Binary, Hex Tabular, Hex String, Parsed+Hex Tabular - see Console Widget below).
 1. Tags - enable color tags in console (see Console Widget below).
@@ -129,7 +129,7 @@ Please refer to [INSTALLATION.md](https://github.com/semuconsulting/PyGPSClient/
 
 #### <a name="updates">Checking for the latest version</a>
 
-- The About dialog (Menu..Help..About) includes a facility to check the latest available versions of PyGPSClient and its subsidiary modules, and initiate an automatic update. Tick the 'Check on startup' box to perform this check on startup (*note that this requires internet access, which may result in slower startup times on platforms with low bandwidth / high latency internet connections*).
+- The About dialog (Menu..Help..About) includes a facility to check the latest available versions of PyGPSClient and its subsidiary modules, and initiate an automatic update. Tick the 'Check on startup' box to perform this check on startup (*note that this requires internet access, which may result in slower startup times on platforms with low bandwidth / high latency internet connections*). The facility may be unavailable in certain Homebrew-installed Python environments due to technical constraints.
 
 #### <a name="refreshrate">GUI refresh rate setting</a>
 
@@ -155,7 +155,7 @@ Please refer to [INSTALLATION.md](https://github.com/semuconsulting/PyGPSClient/
 |![scatterplot widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/scatterplot_widget.png?raw=true)| Scatterplot widget showing variability in position reporting over time. (Optional) Enter fixed reference position. Select Average to center plot on dynamic average position (*displayed at top left*), or Fixed to center on fixed reference position (*if entered*). Check Autorange to set plot range automatically. Set the update interval (e.g. 4 = every 4th navigation solution). Use the range slider or mouse wheel to adjust plot range. Right-click to set fixed reference point to the current mouse cursor position. Double-click to clear the existing data. Settings may be saved to a json configuration file. |
 |![rover widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/rover_widget.png?raw=true) | Rover widget plots the relative 2D position, track and status information for the roving receiver in a fixed or moving base / rover RTK configuration. Can also display relative position of NTRIP mountpoint and receiver in a static RTK configuration. Double-click to clear existing plot. (*GNSS rover receiver must be capable of outputting UBX NAV-RELPOSNED messages.*) |
 |![chart view](https://github.com/semuconsulting/PyGPSClient/blob/master/images/chart_widget.png?raw=true) | Chart widget acts as a multi-channel "plotter", allowing the user to plot a series of named numeric data attributes from any NMEA, UBX, SBF, RTCM or SPARTN data source, with configurable y (value) and x (time) axes. By default, the number of channels is set to 4, but this can be manually edited by the user via the json configuration file setting `chartsettings_d["numchn_n"]`. For each channel, user can select: (*optional*) identity of message source e.g. `NAV-PVT`; attribute name e.g. `hAcc`; scaling factor (divisor) e.g. 1000; y axis range e.g. 0 - 5. Wildcards are available for attribute groups - "\*" (average of group values), "+" (maximum of group values), "-" (minimum of group values) e.g. `cno*` will plot the average `cno` value for a group of satellites. Double-click to clear the existing data. Double-right-click to save the current chart data to the clipboard in CSV format which can be directly pasted into a spreadsheet application. Settings may be saved to a json configuration file. |
-|![IMU widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/imu_widget.png?raw=true) |  IMU (Inertial Management Unit) Monitor widget showing current orientation/attitude (roll, pitch, yaw) and status of IMU from a specified NMEA or UBX message source. Enter the identity of the UBX or NMEA message source (e.g. ESF-ALG, HNR-ATT, NAV-ATT, NAV-PVAT, GPFMI). Select range in degrees (from ±1 to ±180 degrees). Settings may be saved to a json configuration file. |
+|![IMU widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/imu_widget.png?raw=true) |  IMU (Inertial Management Unit) Monitor widget showing current orientation/attitude (roll, pitch, yaw) and status of IMU from any IMU/Dead Reckoning message source. Select range in degrees (from ±1 to ±180 degrees). Settings may be saved to a json configuration file. |
 
 ---
 ## <a name="ubxconfig">UBX Configuration Facilities</a>
@@ -251,95 +251,12 @@ Below is a illustrative NTRIP DGPS data log, showing:
 ---
 ## <a name="spartnconfig">SPARTN Client Facilities</a>
 
-![spartn config widget screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/spartnconfig_widget.png?raw=true)
+  ### NB: As of October 2025, u-blox have discontinued both their L-Band and MQTT encrypted SPARTN correction services, so the SPARTN Client functionality is effectively redundant and may be removed in a subsequent version of PyGPSClient.
 
-The SPARTN Configuration utility allows users to receive and process SPARTN RTK Correction data from an IP or L-Band source to achieve cm level location accuracy. It provides three independent configuration sections, one for IP Correction (MQTT), one for L-Band Correction (e.g. NEO-D9S) and a third for the GNSS receiver (e.g. ZED-F9P). 
+  The SPARTN MQTT and L-Band configuration panels are now disabled by default, though the L-Band panel can in theory still be used for other generic L-Band modem configuration purposes and can be re-enabled by setting json configuration parameter `lband_enabled_b` to `1`.
 
-The facility can be accessed by clicking ![SPARTN Client button](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-antenna-3-24.png?raw=true) or selecting Menu..Options..SPARTN Configuration Dialog.
+Please refer to [SPARTN.md](https://github.com/semuconsulting/PyGPSClient/blob/master/SPARTN.md) for instructions.
 
-**Pre-Requisites:**
-
-**NB:** SPARTN data from proprietary subscription services like Thingstream PointPerfect (MQTT or L-Band) is encrypted. While it is not necessary for PyGPSClient to decrypt the data prior to sending it to the GNSS receiver (*the receiver's own firmware will perform the necessary decryption provided the relevant keys have been uploaded*), if you wish to see the decrypted data in the PyGPSClient console it will be necessary to provide current decryption keys via the `spartndecode_b` and `spartnkey_s` settings in the json configuration file. Note that these keys are typically only valid for a 4 week period and will require regular updating. See [pyspartn Encrypted Payloads](https://github.com/semuconsulting/pyspartn#encrypted-payloads) for further details.
-
-1. IP Correction (MQTT Client):
-
-    - Internet access
-    - Subscription to a suitable MQTT SPARTN location service e.g. u-blox / Thingstream PointPerfect IP or L-band, which should provide the following details:
-      - Server URL e.g. `pp.services.u-blox.com`
-      - Client ID (which can be stored in the `"mqttclientid_s":` json configuration file setting or via environment variable `MQTTCLIENTID`)
-      - Client Certificate (`*.crt`) and Client Key (`*.pem`) files required to access the SPARTN service via an encrypted HTTPS connection. These files can be downloaded from the Thingstream..PointPerfect..Location Things..Credentials web page. If these are placed in the user's HOME directory using the location service's standard naming convention, PyGPSClient will find them automatically.
-      - Region code - select from `us`, `eu`, `jp`, `kr` or `au`.
-	  - Source - select from either `IP` or `L-Band` (*NB: the 'L-Band' MQTT mode provides decryption keys, Assist Now (ephemerides) data and L-Band frequency information, but the correction data itself arrives via the L-Band receiver below*).
-      - A list of published topics. These typically include:
-	  	- `/pp/ip/region` - binary SPARTN correction data (SPARTN-1X-HPAC* / OCB* / GAD*) for the selected region, for IP sources only.
-		- `/pp/ubx/mga` - UBX MGA AssistNow ephemera data for each constellation.
-		- `/pp/ubx/0236/ip` or `/pp/ubx/0236/Lb` - UBX RXM-SPARTNKEY messages containing the IP or L-band decryption keys to be uploaded to the GNSS receiver.
-		- `/pp/frequencies/Lb` - json message containing each region's L-band transmission frequency - currently `us` or `eu` (this is automatically enabled when `L-Band` is selected).
-
-2. L-BAND Correction (D9* Receiver):
-
-    **NB** Note that u-blox [discontinued their PointPerfect SPARTN L-Band service](https://portal.u-blox.com/s/question/0D5Oj00000uB53GKAS/suspension-of-european-pointperfect-lband-spartn-service) in the European region in March 2025 and Worldwide in June 2025. The SPARTN L-Band configuration panel is now disabled by default, though the panel can still be used for other generic L-Band modem configuration purposes and can be re-enabled by setting json configuration parameter `lband_enabled_b` to `1`.
-
-    - SPARTN L-Band correction receiver e.g. u-blox NEO-D9S.
-    - [Suitable Inmarsat L-band antenna](https://www.amazon.com/RTL-SDR-Blog-1525-1637-Inmarsat-Iridium/dp/B07WGWZS1D) and good satellite reception on regional frequency (NB: standard GNSS antenna may not be suitable).
-    - Subscription to L-Band location service e.g. u-blox / Thingstream PointPerfect, which should provide the following details:
-      - L-Band frequency (*also available via `/pp/frequencies/Lb` MQTT topic*)
-	  - Search window
-	  - Use Service ID?
-	  - Use Descrambling?
-	  - Use Prescrambling?
-	  - Service ID
-	  - Data Rate
-	  - Descrambler Init
-	  - Unique Word
-
-3. GNSS Receiver:
-
-    - SPARTN-compatible GNSS receiver e.g. u-blox ZED-F9P
-    - Subscription to either IP and/or L-Band location service(s) e.g. e.g. u-blox / Thingstream PointPerfect, which should provide the following details:
-      - Current and Next IP or L-band decryption Keys in hexadecimal format. These allow the receiver to decrypt the SPARTN message payloads.
-	  - Valid From dates in YYYYMMDD format (keys normally valid for 4 week period).
-
-**Instructions:**
-
-### IP Correction Configuration (MQTT)
-
-1. Enter your MQTT Client ID (or set it up beforehand as *.json configuration setting `"mqttclientid_s":` or via environment variable `MQTTCLIENTID`).
-1. Select the path to the MQTT `*.crt` and `*.pem` files provided by the location service (PyGPSClient will use the user's HOME directory by default).
-1. Select the required region and subscription mode (`IP` or `L-Band`).
-1. Select the required topics:
-    - IP - this is the raw SPARTN correction data as SPARTN-1X-HPAC* / OCB* / GAD* messages (required for IP; must be unchecked for L-Band).
-    - Assist - this is Assist Now data as UBX MGA-* messages.
-    - Key - this is the SPARTN IP or L-band decryption keys as a UBX RXM-SPARTNKEY message.
-1. To connect to the MQTT server, click ![connect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/ethernet-1-24.png?raw=true). To disconnect, click ![disconnect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-media-control-50-24.png?raw=true).
-
-### L-Band Correction Configuration (D9*)
-
-1. **NOTE** This panel is only available if json configuration setting `lband_enabled_b` is set to `1`.
-1. To connect to the Correction receiver, select the receiver's port from the SPARTN dialog's Serial Port listbox and click ![connect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/usbport-1-24.png?raw=true). To disconnect, click ![disconnect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-media-control-50-24.png?raw=true).
-1. Select the required Output Port - this is the port used to connect the Correction receiver to the GNSS receiver e.g. UART2 or I2C.
-1. If both Correction and GNSS receivers are connected to the same PyGPSClient workstation (e.g. via separate USB ports), it is possible to run the utility in Output Port = 'Passthough' mode, whereby the output data from the Correction receiver (UBX `RXM-PMP` messages) will be automatically passed through to the GNSS receiver by PyGPSClient, without the need to connect the two externally.
-1. To enable INF-DEBUG messages, which give diagnostic information about current L-Band reception, click 'Enable Debug?'.
-1. To save the configuration to the device's persistent storage (Battery-backed RAM, Flash or EEPROM), click 'Save Config?'. This only has to be done once for a given region.
-1. Once connected, click ![send button](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-arrow-12-24.png?raw=true) to upload the configuration. The utility will send the relevant configuration command(s) to the Correction receiver and poll for an acknowledgement.
-
-### GNSS Receiver Configuration (F9*)
-
-1. Connect to the GNSS receiver first by clicking ![connect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/usbport-1-24.png?raw=true) on the main PyGPSClient settings panel.
-1. If you are subscribing to the MQTT SPARTNKEY (`/pp/ubx/0236/ip` or `/pp/ubx/0236/Lb`) topic, the decryption key and validity date details will be entered automatically on receipt of a UBX RXM-SPARTNKEY message (which may take a few seconds after connecting). Alternatively, they can be uploaded from the service provider's JSON file, or entered manually as follows:
-1. Enter the current and next decryption keys in hexadecimal format e.g. `0102030405060708090a0b0c0d0e0f10`. The keys are normally 16 bytes long, or 32 hexadecimal characters.
-1. Enter the supplied Valid From dates in `YYYYMMDD` format. **NB:** These are *Valid From* dates rather than *Expiry* dates. If the location service provides Expiry dates, subtract 4 weeks from these to get the Valid From dates.
-1. Select 'DGPS Timeout', 'Upload keys', 'Configure receiver' and 'Disable NMEA' options as required.
-1. Select the SPARTN correction source - either `IP` or `L-Band`.
-1. To reduce traffic volumes, you can choose to disable NMEA messages from the receiver. A minimal set of UBX NAV messages will be enabled in their place.
-1. Click ![send button](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-arrow-12-24.png?raw=true) to upload the configuration. The utility will send the relevant configuration command(s) to the receiver and poll for an acknowledgement.
-
-
-Below is a illustrative SPARTN DGPS data log, showing:
-* Incoming SPARTN correction messages (SPARTN-1X-HPAC* high-precision atmosphere corrections; SPARTN-OCB* orbit / clock / bias corrections; SPARTN-1X-GAD geographic area definitions). 
-* Outgoing UBX RXM-COR confirmation messages from receiver showing that the SPARTN data has been received and decrypted OK.
-
-![spartn console screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/spartn_consolelog.png?raw=true)
 ---
 ## <a name="socketserver">Socket Server / NTRIP Caster Facilities</a>
 
@@ -493,20 +410,18 @@ For further details, refer to the `pygnssutils` homepage at [https://github.com/
 
 1. Most budget USB-UART adapters (e.g. FT232, CH345, CP2102) have a bandwidth limit of around 3MB/s and may not work reliably above 115200 baud, even if the receiver supports higher baud rates. If you're using an adapter and notice significant message corruption, try reducing the baud rate to a maximum 115200.
 
-2. On some 32-bit Linux platforms (e.g. Raspberry Pi OS 32), it may be necessary to [install Rust compiler support](https://www.rust-lang.org/tools/install) and some [additional build dependencies](https://cryptography.io/en/latest/installation/) in order to install the `cryptography` library which PyGPSClient optionally depends on to decrypt SPARTN messages (see  [pyspartn cryptography installation notes](https://github.com/semuconsulting/pyspartn/tree/main/cryptography_installation#readme)):
+2. As of October 2025, u-blox have [discontinued their PointPerfect SPARTN L-Band and MQTT services](https://portal.u-blox.com/s/question/0D5Oj00000uB53GKAS/suspension-of-european-pointperfect-lband-spartn-service). As a result, PyGPSClient's [SPARTN Configuration](#spartnconfig) panel is largely redundant and is disabled by default in version>=1.5.17, though it can be re-enabled by manually setting the `lband_enabled_b` configuration setting to 1.
+
+3. Some Homebrew-installed Python environments on MacOS can give rise to critical segmentation errors (*illegal memory access*)  when shell subprocesses are invoked, due to the way permissions are implemented. This may, for example, affect About..Update functionality; the workaround is to update via a standard CLI `pip install --upgrade` command.
+
+4. Installing the optional `rasterio` package in some Python 3.14 environments (e.g. MacOS) may result in `ERROR: A GDAL API version must be specified. Provide a path to gdal-config using a GDAL_CONFIG environment variable or use a GDAL_VERSION environment variable`. This is due to a pre-compiled bdist (wheel) distribution not yet being available for Python 3.14 on these platforms. This is likely to be resolved once Python 3.14 beds in - in the meantime, reverting to Python 3.13 resolves the issue.
+
+5. On some 32-bit Linux platforms (e.g. Raspberry Pi OS 32), it may be necessary to [install Rust compiler support](https://www.rust-lang.org/tools/install) and some [additional build dependencies](https://cryptography.io/en/latest/installation/) in order to install the `cryptography` library which PyGPSClient optionally depends on to decrypt SPARTN messages (see  [pyspartn cryptography installation notes](https://github.com/semuconsulting/pyspartn/tree/main/cryptography_installation#readme)):
 
    ```shell
    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
    sudo apt-get install build-essential libssl-dev libffi-dev python3-dev pkg-config
    ```
-
-3. The [latest official Python 3.13 installers](https://docs.python.org/3/howto/free-threading-python.html) include the option to disable the standard [Python Global Interpreter Lock (GIL)](https://realpython.com/python-gil/) and allow threads to run concurrently. Whilst the core PyGPSClient packages run fine in this mode (*and some marginal performance improvements may be seen on multi-core machines*), installing PyGPSClient using pip under the "No-GIL" `python3.13t` executable currently fails due to missing `cryptography` dependencies (*Warning: CPython 3.13t at /Users/user/pygpsclient_nogil/bin/python3 does not yet support abi3 so the build artifacts will be version-specific* *warning: openssl-sys@0.9.108: Could not find directory of OpenSSL installation*). A workaround is to install `pyspartn` with the `--no-deps` option *first* (which removes the `cryptography` dependency), and *then* install PyGPSClient.
-
-4. PyGPSClient installs and runs fine with [Python 3.14rc2](https://pythoninsider.blogspot.com/2025/08/python-3140rc2-and-3137-are-go.html) but note that, at time of writing (Aug 2025), some optional dependencies (e.g. `rasterio`) are only available as source files and may require additional build resources (e.g. GDAL). In addition, there appears to be an issue with running `bandit` under Python 3.14 (*ERROR   Exception occurred when executing tests against ./build/lib/pygpsclient/__init__.py.*). I expect this to be resolved when the final release is available.
-
-5. Some Homebrew-installed Python environments on MacOS can give rise to critical segmentation errors (*illegal memory access*)  when shell subprocesses are invoked. This may, for example, affect About..Update functionality; the workaround is to update via a standard CLI `pip install --upgrade` command.
-
-6. u-blox [discontinued their PointPerfect SPARTN L-Band service](https://portal.u-blox.com/s/question/0D5Oj00000uB53GKAS/suspension-of-european-pointperfect-lband-spartn-service) in the European region in March 2025 and for the rest of the world in June 2025. As a result, PyGPSClient maintainers are no longer able to test this functionality against live data.
 
 ---
 ## <a name="license">License</a>

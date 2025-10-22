@@ -42,12 +42,21 @@ from threading import Thread
 from tkinter import E, Frame, N, PhotoImage, S, Tk, Toplevel, W, font
 
 from pygnssutils import GNSSMQTTClient, GNSSNTRIPClient, MQTTMessage
+from pygnssutils.gnssreader import (
+    NMEA_PROTOCOL,
+    POLL,
+    QGC_PROTOCOL,
+    RTCM3_PROTOCOL,
+    SBF_PROTOCOL,
+    UBX_PROTOCOL,
+)
 from pygnssutils.socket_server import ClientHandler, SocketServer
 from pynmeagps import NMEAMessage
+from pyqgc import QGCMessage
 from pyrtcm import RTCMMessage
 from pysbf2 import SBFMessage
 from pyspartn import SPARTNMessage
-from pyubx2 import NMEA_PROTOCOL, POLL, RTCM3_PROTOCOL, UBX_PROTOCOL, UBXMessage
+from pyubx2 import UBXMessage
 from serial import SerialException, SerialTimeoutException
 
 from pygpsclient._version import __version__ as VERSION
@@ -77,7 +86,6 @@ from pygpsclient.globals import (
     NOPORTS,
     NTRIP_EVENT,
     OKCOL,
-    SBF_PROTOCOL,
     SOCKSERVER_MAX_CLIENTS,
     SPARTN_EVENT,
     SPARTN_PROTOCOL,
@@ -90,6 +98,7 @@ from pygpsclient.gnss_status import GNSSStatus
 from pygpsclient.helpers import check_latest
 from pygpsclient.menu_bar import MenuBar
 from pygpsclient.nmea_handler import NMEAHandler
+from pygpsclient.qgc_handler import QGCHandler
 from pygpsclient.rtcm3_handler import RTCM3Handler
 from pygpsclient.sbf_handler import SBFHandler
 from pygpsclient.sqlite_handler import DBINMEM, SQLOK, SqliteHandler
@@ -174,6 +183,7 @@ class App(Frame):
         self.nmea_handler = NMEAHandler(self)
         self.ubx_handler = UBXHandler(self)
         self.sbf_handler = SBFHandler(self)
+        self.qgc_handler = QGCHandler(self)
         self.rtcm_handler = RTCM3Handler(self)
         self.tty_handler = TTYHandler(self)
         self.ntrip_handler = GNSSNTRIPClient(self)
@@ -844,11 +854,13 @@ class App(Frame):
 
         # self.logger.debug(f"data received {parsed_data.identity}")
         msgprot = 0
-        protfilter = self.configuration.get("protocol_n")
+        protfilter = self.protocol_mask
         if isinstance(parsed_data, NMEAMessage):
             msgprot = NMEA_PROTOCOL
         elif isinstance(parsed_data, SBFMessage):
             msgprot = SBF_PROTOCOL
+        elif isinstance(parsed_data, QGCMessage):
+            msgprot = QGC_PROTOCOL
         elif isinstance(parsed_data, UBXMessage):
             msgprot = UBX_PROTOCOL
         elif isinstance(parsed_data, RTCMMessage):
@@ -867,6 +879,8 @@ class App(Frame):
             self.ubx_handler.process_data(raw_data, parsed_data)
         elif msgprot == SBF_PROTOCOL and msgprot & protfilter:
             self.sbf_handler.process_data(raw_data, parsed_data)
+        elif msgprot == QGC_PROTOCOL and msgprot & protfilter:
+            self.qgc_handler.process_data(raw_data, parsed_data)
         elif msgprot == NMEA_PROTOCOL and msgprot & protfilter:
             self.nmea_handler.process_data(raw_data, parsed_data)
         elif msgprot == RTCM3_PROTOCOL and msgprot & protfilter:
@@ -908,6 +922,8 @@ class App(Frame):
         if self.configuration.get("datalog_b"):
             self.file_handler.write_logfile(raw_data, parsed_data)
 
+        self.update_idletasks()
+
     def send_to_device(self, data: object):
         """
         Send raw data to connected device.
@@ -915,6 +931,7 @@ class App(Frame):
         :param object data: raw GNSS data (NMEA, UBX, ASCII, RTCM3, SPARTN)
         """
 
+        self.logger.debug(f"Sending message {data}")
         if self.conn_status in (
             CONNECTED,
             CONNECTED_SOCKET,
@@ -1028,6 +1045,28 @@ class App(Frame):
 
         self._rtk_conn_status = status
         self.frm_banner.update_rtk_status(status)
+
+    @property
+    def protocol_mask(self) -> int:
+        """
+        Getter for protocol mask.
+
+        :return: protocol mask as integer
+        :rtype: int
+        """
+
+        cfg = self.configuration
+        mask = (
+            (cfg.get("nmeaprot_b") * NMEA_PROTOCOL)  # 1
+            + (cfg.get("ubxprot_b") * UBX_PROTOCOL)  # 2
+            + (cfg.get("rtcmprot_b") * RTCM3_PROTOCOL)  # 4
+            + (cfg.get("sbfprot_b") * SBF_PROTOCOL)  # 8
+            + (cfg.get("qgcprot_b") * QGC_PROTOCOL)  # 16
+            + (cfg.get("spartnprot_b") * SPARTN_PROTOCOL)  # 32
+            + (cfg.get("mqttprot_b") * MQTT_PROTOCOL)  # 64
+            + (cfg.get("ttyprot_b") * TTY_PROTOCOL)  # 128
+        )
+        return mask
 
     def do_app_update(self, updates: list) -> int:
         """

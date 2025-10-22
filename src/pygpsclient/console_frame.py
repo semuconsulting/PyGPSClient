@@ -126,8 +126,7 @@ class ConsoleFrame(Frame):
 
     def update_frame(self, consoledata: list):
         """
-        Print the latest data stream to the console in raw (NMEA) or
-        parsed (key,value pair) format.
+        Print the formatted data stream to the console.
 
         'maxlines' defines the maximum number of scrollable lines that are
         retained in the text box on a FIFO basis.
@@ -136,45 +135,45 @@ class ConsoleFrame(Frame):
             accumulated since last console update
         """
 
-        con = self.txt_console
+        if not self.__app.configuration.get("autoscroll_b"):
+            return
+
         consoleformat = self.__app.configuration.get("consoleformat_s")
         colortagging = self.__app.configuration.get("colortag_b")
         maxlines = self.__app.configuration.get("maxlines_n")
-        autoscroll = self.__app.configuration.get("autoscroll_b")
         self._halt = ""
         consolestr = ""
-        con.configure(font=FONT_TEXT)
+        self.txt_console.configure(font=FONT_TEXT)
         for raw_data, parsed_data, marker in consoledata:
             if consoleformat == FORMAT_BINARY:
                 data = f"{marker}{raw_data}".strip("\n")
             elif consoleformat == FORMAT_HEXSTR:
                 data = f"{marker}{raw_data.hex()}"
             elif consoleformat == FORMAT_HEXTAB:
-                con.configure(font=FONT_FIXED)
+                self.txt_console.configure(font=FONT_FIXED)
                 data = hextable(raw_data)
             elif consoleformat == FORMAT_BOTH:
-                con.configure(font=FONT_FIXED)
+                self.txt_console.configure(font=FONT_FIXED)
                 data = f"{marker}{parsed_data}\n{hextable(raw_data)}"
             else:
                 data = f"{marker}{parsed_data}"
             consolestr += data + "\n"
 
         numlinesbefore = self.numlines
-        con.configure(state="normal")
-        con.insert(END, consolestr)
+        self.txt_console.configure(state="normal")
+        self.txt_console.insert(END, consolestr)
 
         if colortagging:
-            self._tag_line(con, numlinesbefore, self.numlines)
+            self._tag_line(self.txt_console, numlinesbefore, self.numlines)
             if self._halt != "":
                 self._on_halt(None)
 
         while self.numlines > maxlines:
-            con.delete("1.0", "2.0")  # delete top line
+            self.txt_console.delete("1.0", "2.0")  # delete top line
 
-        if autoscroll:
-            con.see("end")
-        con.configure(state="disabled")
-        self.update_idletasks()
+        self.txt_console.see("end")
+        self.txt_console.configure(state="disabled")
+        self.txt_console.update_idletasks()
 
     def _tag_line(self, con, startline: int, endline: int):
         """

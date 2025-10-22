@@ -49,9 +49,8 @@ from tkinter import (
 )
 
 from PIL import Image, ImageTk
-from pyubx2 import NMEA_PROTOCOL, RTCM3_PROTOCOL, UBX_PROTOCOL
 
-from pygpsclient.globals import (
+from pygpsclient.globals import (  # SBF_PROTOCOL,
     BPSRATES,
     CONNECTED,
     CONNECTED_FILE,
@@ -78,16 +77,14 @@ from pygpsclient.globals import (
     ICON_SERIAL,
     ICON_SOCKET,
     ICON_SPARTNCONFIG,
+    ICON_SPARTNDISABLE,
     ICON_UBXCONFIG,
     KNOWNGPS,
     MSGMODES,
     NOPORTS,
     OKCOL,
     READONLY,
-    SBF_PROTOCOL,
-    SPARTN_PROTOCOL,
     TIMEOUTS,
-    TTY_PROTOCOL,
     UI,
     UIK,
     UMK,
@@ -157,6 +154,7 @@ class SettingsFrame(Frame):
         self._prot_nmea = IntVar()
         self._prot_ubx = IntVar()
         self._prot_sbf = IntVar()
+        self._prot_qgc = IntVar()
         self._prot_rtcm3 = IntVar()
         self._prot_spartn = IntVar()
         self._prot_tty = IntVar()
@@ -183,6 +181,7 @@ class SettingsFrame(Frame):
         self._img_nmeaconfig = ImageTk.PhotoImage(Image.open(ICON_NMEACONFIG))
         self._img_ntripconfig = ImageTk.PhotoImage(Image.open(ICON_NTRIPCONFIG))
         self._img_spartnconfig = ImageTk.PhotoImage(Image.open(ICON_SPARTNCONFIG))
+        self._img_spartndisable = ImageTk.PhotoImage(Image.open(ICON_SPARTNDISABLE))
         self._img_dataread = ImageTk.PhotoImage(Image.open(ICON_LOGREAD))
 
         self._container()  # create scrollable container
@@ -335,6 +334,11 @@ class SettingsFrame(Frame):
             self._frm_options,
             text="SBF",
             variable=self._prot_sbf,
+        )
+        self._chk_qgc = Checkbutton(
+            self._frm_options,
+            text="QGC",
+            variable=self._prot_qgc,
         )
         self._chk_tty = Checkbutton(
             self._frm_options,
@@ -497,9 +501,10 @@ class SettingsFrame(Frame):
         self._lbl_protocol.grid(column=0, row=0, padx=2, pady=2, sticky=W)
         self._chk_nmea.grid(column=1, row=0, padx=0, pady=0, sticky=W)
         self._chk_ubx.grid(column=2, row=0, padx=0, pady=0, sticky=W)
+        self._chk_sbf.grid(column=3, row=0, padx=0, pady=0, sticky=W)
+        self._chk_qgc.grid(column=4, row=0, padx=0, pady=0, sticky=W)
         self._chk_rtcm.grid(column=1, row=1, padx=0, pady=0, sticky=W)
         self._chk_spartn.grid(column=2, row=1, padx=0, pady=0, sticky=W)
-        self._chk_sbf.grid(column=3, row=0, padx=0, pady=0, sticky=W)
         self._chk_tty.grid(column=3, row=1, padx=0, pady=0, sticky=W)
         self._lbl_consoledisplay.grid(column=0, row=2, padx=2, pady=2, sticky=W)
         self._spn_conformat.grid(
@@ -547,6 +552,7 @@ class SettingsFrame(Frame):
         self._prot_nmea.set(cfg.get("nmeaprot_b"))
         self._prot_ubx.set(cfg.get("ubxprot_b"))
         self._prot_sbf.set(cfg.get("sbfprot_b"))
+        self._prot_qgc.set(cfg.get("qgcprot_b"))
         self._prot_rtcm3.set(cfg.get("rtcmprot_b"))
         self._prot_spartn.set(cfg.get("spartnprot_b"))
         self._prot_tty.set(cfg.get("ttyprot_b"))
@@ -570,6 +576,12 @@ class SettingsFrame(Frame):
         else:
             self._record_database.set(cfg.get("database_b"))
         self.clients = 0
+
+        # MQTT and L-BAND SPARTN services discontinued by u-blox
+        if not cfg.get("lband_enabled_b"):
+            self._btn_spartnconfig.config(state=DISABLED, image=self._img_spartndisable)
+            self._lbl_spartnconfig.config(state=DISABLED)
+
         self._bind_events(True)
 
     def _bind_events(self, add: bool = True):
@@ -587,21 +599,10 @@ class SettingsFrame(Frame):
                 self._prot_tty.trace_remove(
                     tracemode, self._prot_tty.trace_info()[0][1]
                 )
-        if add:
-            self._prot_ubx.trace_add(tracemode, self._on_update_ubx)
-        else:
-            if len(self._prot_ubx.trace_info()) > 0:
-                self._prot_ubx.trace_remove(
-                    tracemode, self._prot_ubx.trace_info()[0][1]
-                )
-        if add:
-            self._prot_sbf.trace_add(tracemode, self._on_update_sbf)
-        else:
-            if len(self._prot_sbf.trace_info()) > 0:
-                self._prot_sbf.trace_remove(
-                    tracemode, self._prot_sbf.trace_info()[0][1]
-                )
         for setting in (
+            self._prot_ubx,
+            self._prot_sbf,
+            self._prot_qgc,
             self._prot_nmea,
             self._prot_rtcm3,
             self._prot_spartn,
@@ -633,35 +634,35 @@ class SettingsFrame(Frame):
         self.__app.frm_spectrumview.reset()
         self.__app.reset_gnssstatus()
 
-    def _on_update_ubx(self, var, index, mode):  # pylint: disable=unused-argument
-        """
-        UBX or SBF protocol mode has been updated.
-        """
+    # def _on_update_ubx(self, var, index, mode):  # pylint: disable=unused-argument
+    #     """
+    #     UBX or SBF protocol mode has been updated.
+    #     """
 
-        try:
-            self.update()
-            if self._prot_ubx.get():
-                self._prot_sbf.set(0)
-                self.__app.configuration.set("sbfprot_b", int(self._prot_sbf.get()))
-            self.__app.configuration.set("ubxprot_b", int(self._prot_ubx.get()))
-            self._on_update_protocol()
-        except (ValueError, TclError):
-            pass
+    #     try:
+    #         self.update()
+    #         if self._prot_ubx.get():
+    #             self._prot_sbf.set(0)
+    #             self.__app.configuration.set("sbfprot_b", int(self._prot_sbf.get()))
+    #         self.__app.configuration.set("ubxprot_b", int(self._prot_ubx.get()))
+    #         self._on_update_protocol()
+    #     except (ValueError, TclError):
+    #         pass
 
-    def _on_update_sbf(self, var, index, mode):  # pylint: disable=unused-argument
-        """
-        UBX or SBF protocol mode has been updated.
-        """
+    # def _on_update_sbf(self, var, index, mode):  # pylint: disable=unused-argument
+    #     """
+    #     UBX or SBF protocol mode has been updated.
+    #     """
 
-        try:
-            self.update()
-            if self._prot_sbf.get():
-                self._prot_ubx.set(0)
-                self.__app.configuration.set("ubxprot_b", int(self._prot_ubx.get()))
-            self.__app.configuration.set("sbfprot_b", int(self._prot_sbf.get()))
-            self._on_update_protocol()
-        except (ValueError, TclError):
-            pass
+    #     try:
+    #         self.update()
+    #         if self._prot_sbf.get():
+    #             self._prot_ubx.set(0)
+    #             self.__app.configuration.set("ubxprot_b", int(self._prot_ubx.get()))
+    #         self.__app.configuration.set("sbfprot_b", int(self._prot_sbf.get()))
+    #         self._on_update_protocol()
+    #     except (ValueError, TclError):
+    #         pass
 
     def _on_update_tty(self, var, index, mode):  # pylint: disable=unused-argument
         """
@@ -676,6 +677,7 @@ class SettingsFrame(Frame):
                     self._prot_nmea,
                     self._prot_ubx,
                     self._prot_sbf,
+                    self._prot_qgc,
                     self._prot_rtcm3,
                     self._prot_spartn,
                 ):
@@ -684,6 +686,7 @@ class SettingsFrame(Frame):
                 self._prot_nmea.set(1)
                 self._prot_ubx.set(1)
                 self._prot_sbf.set(0)
+                self._prot_qgc.set(0)
                 self._prot_rtcm3.set(1)
                 self._prot_spartn.set(1)
             self.__app.configuration.set("ttyprot_b", tty)
@@ -698,10 +701,12 @@ class SettingsFrame(Frame):
         try:
             self.update()
             cfg = self.__app.configuration
+            cfg.set("ubxprot_b", int(self._prot_ubx.get()))
+            cfg.set("sbfprot_b", int(self._prot_sbf.get()))
+            cfg.set("qgcprot_b", int(self._prot_qgc.get()))
             cfg.set("nmeaprot_b", int(self._prot_nmea.get()))
             cfg.set("rtcmprot_b", int(self._prot_rtcm3.get()))
             cfg.set("spartnprot_b", int(self._prot_spartn.get()))
-            self._on_update_protocol()
             cfg.set("degreesformat_s", self._degrees_format.get())
             cfg.set("colortag_b", int(self._colortag.get()))
             cfg.set("units_s", self._units.get())
@@ -720,21 +725,6 @@ class SettingsFrame(Frame):
         except (ValueError, TclError):
             pass
 
-    def _on_update_protocol(self):
-        """
-        Protocol(s) have been updated.
-        """
-
-        self.__app.configuration.set(
-            "protocol_n",
-            NMEA_PROTOCOL * int(self._prot_nmea.get())
-            + UBX_PROTOCOL * int(self._prot_ubx.get())
-            + SBF_PROTOCOL * int(self._prot_sbf.get())
-            + RTCM3_PROTOCOL * int(self._prot_rtcm3.get())
-            + SPARTN_PROTOCOL * int(self._prot_spartn.get())
-            + TTY_PROTOCOL * int(self._prot_tty.get()),
-        )
-
     def _on_connect(self, conntype: int):
         """
         Start or stop connection (serial, socket or file).
@@ -744,7 +734,7 @@ class SettingsFrame(Frame):
 
         connstr = ""
         conndict = {
-            "protocol": self.__app.configuration.get("protocol_n"),
+            "protocol": self.__app.protocol_mask,
             "read_event": GNSS_EVENT,
             "eof_event": GNSS_EOF_EVENT,
             "timeout_event": GNSS_TIMEOUT_EVENT,

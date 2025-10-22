@@ -14,13 +14,13 @@ Created on 12 Sep 2020
 
 from tkinter import Menu
 
+from pygpsclient.strings import DLGTSPARTN  # service discontinued by u-blox
 from pygpsclient.strings import (
     DLGTABOUT,
     DLGTGPX,
     DLGTIMPORTMAP,
     DLGTNMEA,
     DLGTNTRIP,
-    DLGTSPARTN,
     DLGTTTY,
     DLGTUBX,
     MENUABOUT,
@@ -39,7 +39,7 @@ DIALOGS = (
     DLGTUBX,
     DLGTNMEA,
     DLGTNTRIP,
-    DLGTSPARTN,
+    # DLGTSPARTN,  # service discontinued by u-blox
     DLGTGPX,
     DLGTIMPORTMAP,
     DLGTTTY,
@@ -97,8 +97,13 @@ class MenuBar(Menu):
         self.add_cascade(menu=self.view_menu, label=MENUVIEW)
 
         # Create a pull-down menu for view operations
+        dialogs = DIALOGS
+        # since u-blox discontinued SPARTN services, this menu
+        # option is now conditional
+        if self.__app.configuration.get("lband_enabled_b"):
+            dialogs += (DLGTSPARTN,)
         self.options_menu = Menu(self, tearoff=False)
-        for dlg in DIALOGS:
+        for dlg in dialogs:
             self.options_menu.add_command(
                 label=dlg,
                 underline=1,
