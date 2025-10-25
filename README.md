@@ -268,7 +268,7 @@ Please refer to [SPARTN.md](https://github.com/semuconsulting/PyGPSClient/blob/m
 ## <a name="socketserver">Socket Server / NTRIP Caster Facilities</a>
 
 The Socket Server / NTRIP Caster facility is capable of operating in either of two modes;
-1. SOCKET SERVER - an open, unauthenticated TCP socket server available to any socket client including, for example, another instance of PyGPSClient or the [`gnssstreamer` CLI utility](https://github.com/semuconsulting/pygnssutils#gnssstreamer). In this mode it will broadcast the host's currently connected GNSS data stream (NMEA, UBX, SBF, RTCM3). The default port is 50012.
+1. SOCKET SERVER - an open, unauthenticated TCP socket server available to any socket client including, for example, another instance of PyGPSClient or the [`gnssstreamer` CLI utility](https://github.com/semuconsulting/pygnssutils#gnssstreamer). In this mode it will broadcast the host's currently connected GNSS data stream. The default port is 50012.
 2. NTRIP CASTER - a simple implementation of an authenticated NTRIP caster available to any NTRIP client including, for example, PyGPSClient's NTRIP Client facility, [`gnssntripclient`](https://github.com/semuconsulting/pygnssutils#gnssntripclient) or BKG's [NTRIP Client (BNC)](https://igs.bkg.bund.de/ntrip/download). Login credentials for the NTRIP caster are set via the `"ntripcasteruser_s":` and `"ntripcasterpassword_s":` settings in the *.json confirmation file (they can also be set via PyGPSClient command line arguments `--ntripcasteruser`, `--ntripcasterpassword`, or by setting environment variables `NTRIPCASTER_USER`, `NTRIPCASTER_PASSWORD`). Default settings are as follows: bind address: 0.0.0.0, port: 2101, mountpoint: pygnssutils, user: anon, password: password.
 
 By default, the server/caster binds to the host address '0.0.0.0' (IPv4) or '::' (IPv6) i.e. all available IP addresses on the host machine. This can be overridden via the settings panel or a host environment variable `PYGPSCLIENT_BINDADDRESS`. A label on the settings panel indicates the number of connected clients, and the server/caster status is indicated in the topmost banner: running with no clients: ![transmit icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-noclient-10-24.png?raw=true), running with clients: ![transmit icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-transmit-10-24.png?raw=true).
@@ -290,7 +290,7 @@ By default, the server/caster binds to the host address '0.0.0.0' (IPv4) or '::'
 
 1. Select NTRIP CASTER mode and (if necessary) enter the host IP address and port.
 1. An additional expandable panel is made available to allow the user to configure a connected RTK-compatible receiver to operate in either `FIXED` or `SURVEY-IN` Base Station mode (*NB: parameters can only be amended while the caster is stopped*).
-1. Select the receiver type (currently u-blox ZED-F9*, u-blox ZED-X20*, Quectel LG290P, Quectel LC29H (BA, and Septentrio Mosaic X5 receivers are supported) and click the Send button to send the appropriate configuration commands to the receiver. 
+1. Select the receiver type (currently u-blox ZED-F9*, u-blox ZED-X20*, Quectel LG290P, Quectel LC29HBA and Septentrio Mosaic X5 receivers are supported) and click the Send button to send the appropriate configuration commands to the receiver. 
 1. **NB** Septentrio Mosaic X5: These receivers are configured via ASCII TTY commands - to monitor the command responses, set the console protocol to "TTY" (*remember to set it back to RTCM when monitoring the RTCM3 output*). Note also that the input (ASCII command) UART port may be different to the output (RTCM3) UART port - make sure to select the appropriate port(s) when configuring the device and monitoring the RTCM3 output.
 1. NMEA messages can be suppressed by checking 'Disable NMEA'.
 1. NTRIP client login credentials are set via the user and password fields. 
@@ -317,7 +317,7 @@ By default, the server/caster binds to the host address '0.0.0.0' (IPv4) or '::'
 
 *GPX Track Viewer screenshot*
 
-The GPX Track Viewer can display any valid GPX file containing track point (`trkpt`), route point (`rtept`) or waypoint (`wpt`)elements against either an ["custom" offline map image](#custommap), or an online MapQuest "map", "sat" or "hyb" view. The "map", "sat" and "hyb" options require a free [MapQuest API key](#mapquestapi). The Y axis scales will reflect the current choice of units (metric or imperial). If the GPX track omits a time element, the time and speed axes will be flagged as nominal. GPX track metadata, including min, max, average (mean) and median elevation and speed values, is displayed in the selected units. 
+The GPX Track Viewer can display any valid GPX file containing track point (`trkpt`), route point (`rtept`) or waypoint (`wpt`) elements against either an ["custom" offline map image](#custommap), or an online MapQuest "map", "sat" or "hyb" view. The "map", "sat" and "hyb" options require a free [MapQuest API key](#mapquestapi). The Y axis scales will reflect the current choice of units (metric or imperial). If the GPX track omits a time element, the time and speed axes will be flagged as nominal. GPX track metadata, including min, max, average (mean) and median elevation and speed values, is displayed in the selected units. 
 Click ![refresh icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-refresh-lined-24.png?raw=true) to refresh the display after any changes (e.g. resizing, zooming or change of units). The location marker indicates the nominal center point of the track.
 
 ---
@@ -398,17 +398,7 @@ The following example illustrates a series of ASCII configuration commands being
 ---
 ## <a name="cli">Command Line Utilities</a>
 
-The `pygnssutils` and `pyubxutils` libraries which underpin many of the functions in `PyGPSClient` also incorporate command line versions of these functions:
-
-1. `gnssstreamer` CLI utility. This is essentially a configurable input/output wrapper around the [`pyubx2.UBXReader`](https://github.com/semuconsulting/pyubx2#reading) class with flexible message formatting and filtering options for NMEA, UBX and RTCM3 protocols.
-1. `gnssserver` CLI utility. This implements a TCP Socket Server for GNSS data streams which is also capable of being run as a simple NTRIP Server.
-1. `gnssntripclient` CLI utility. This implements a simple NTRIP Client which receives RTCM3 correction data from an NTRIP Server and (optionally) sends this to a
-designated output stream.
-1. `gnssmqttclient` CLI utility. This implements a simple SPARTN IP (MQTT) Client which receives SPARTN and UBX correction data from a SPARTN IP location service (e.g. u-blox / Thingstream PointPerfect) and (optionally) sends this to a designated output stream.
-1. <a name="ubxsave">`ubxsave` CLI utility</a>. This saves a complete set of configuration data from any Generation 9+ u-blox device (e.g. NEO-M9N or ZED-F9P) to a file. The file can then be reloaded to any compatible device using the `ubxload` utility.
-1. `ubxload` CLI utility. This reads a file containing binary configuration data and loads it into any compatible Generation 9+ u-blox device (e.g. NEO-M9N or ZED-F9P).
-1. `ubxsetrate` CLI utility. A simple utility which sets NMEA or UBX message rates on u-blox GNSS receivers.
-1. `ubxbase` CLI utility. This configures an RTK-compatible UBX receiver (e.g. the ZED-F9P) to operate in Base Station mode.
+The `pygnssutils` and `pyubxutils` libraries which underpin many of the functions in `PyGPSClient` also incorporate command line versions of these functions.
 
 For further details, refer to the `pygnssutils` homepage at [https://github.com/semuconsulting/pygnssutils](https://github.com/semuconsulting/pygnssutils) or `pyubxutils` homepage at [https://github.com/semuconsulting/pyubxutils](https://github.com/semuconsulting/pyubxutils).
 
@@ -421,7 +411,7 @@ For further details, refer to the `pygnssutils` homepage at [https://github.com/
 
 3. Some Homebrew-installed Python environments on MacOS can give rise to critical segmentation errors (*illegal memory access*)  when shell subprocesses are invoked, due to the way permissions are implemented. This may, for example, affect About..Update functionality; the workaround is to update via a standard CLI `pip install --upgrade` command.
 
-4. Installing the optional `rasterio` package in some Python 3.14 environments (e.g. MacOS) may result in `ERROR: A GDAL API version must be specified. Provide a path to gdal-config using a GDAL_CONFIG environment variable or use a GDAL_VERSION environment variable`. This is due to a pre-compiled bdist (wheel) distribution not yet being available for Python 3.14 on these platforms. This is likely to be resolved once Python 3.14 beds in - in the meantime, reverting to Python 3.13 resolves the issue.
+4. Installing the optional `rasterio` package in some Python 3.14 environments (e.g. MacOS) may result in `ERROR: A GDAL API version must be specified. Provide a path to gdal-config using a GDAL_CONFIG environment variable or use a GDAL_VERSION environment variable`. This is due to a pre-compiled bdist (wheel) distribution not yet being available for Python 3.14 on these platforms. A [Python 3.14 bdist (wheel) distribution for rasterio is currently in progress](https://github.com/rasterio/rasterio/issues/3419).
 
 5. On some 32-bit Linux platforms (e.g. Raspberry Pi OS 32), it may be necessary to [install Rust compiler support](https://www.rust-lang.org/tools/install) and some [additional build dependencies](https://cryptography.io/en/latest/installation/) in order to install the `cryptography` library which PyGPSClient optionally depends on to decrypt SPARTN messages (see  [pyspartn cryptography installation notes](https://github.com/semuconsulting/pyspartn/tree/main/cryptography_installation#readme)):
 
