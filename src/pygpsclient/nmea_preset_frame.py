@@ -39,6 +39,7 @@ from pygpsclient.globals import (
     NMEA_PRESET,
     OKCOL,
 )
+from pygpsclient.nmea_presets import NMEAPRESETS
 from pygpsclient.strings import (
     CONFIRM,
     DLGACTION,
@@ -148,10 +149,13 @@ class NMEA_PRESET_Frame(Frame):
         Reset panel - Load user-defined presets if there are any.
         """
 
-        idx = 0
-        for upst in self.__app.configuration.get("nmeapresets_l"):
-            self._lbx_preset.insert(idx, "USER " + upst)
-            idx += 1
+        i = j = 0
+        for i, preset in enumerate(NMEAPRESETS):  # design-time presets
+            self._lbx_preset.insert(i, preset)
+        for j, preset in enumerate(
+            self.__app.configuration.get("nmeapresets_l")
+        ):  # run-time presets
+            self._lbx_preset.insert(i + 1 + j, preset)
 
     def _on_select_preset(self, *args, **kwargs):  # pylint: disable=unused-argument
         """

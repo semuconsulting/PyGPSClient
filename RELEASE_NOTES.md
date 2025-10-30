@@ -1,5 +1,21 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.5.18
+
+ENHANCEMENTS:
+
+1. Amend UBX Preset Configuration panel to remove the existing 24 'hard-wired' UBX commands (*some of which are now out of date*) and replace them with pre-formatted user-defined preset which can, if required, be removed or amended by the user. **ALL** UBX preset commands are now 'user-defined'. **NOTE** the pre-formatted `CFG-VALSET` commands supplied all take effect in the volatile RAM memory layer - to persist these configurations, select 'Save Configuration to BBR' (or other non-volatile memory).
+1. Allow self-sign certification for TLS (HTTPS) connections (requires `pygnssutils>=1.1.19`). Self-sign certificate/key location can be set via environment variable `PYGNSSUTILS_PEMPATH`; default is `$HOME/pygnssutils.pem`. A self-signed pem file suitable for test and demonstration purposes can be created interactively thus:
+   ```shell
+   openssl req -x509 -newkey rsa:4096 -keyout pygnssutils.pem -out pygnssutils.pem -sha256 -days 3650 -nodes
+   ```
+1. Update list of 'recognised' GNSS receiver serial port designators to include `IOUSBHostDevice` (Sparkfun ZED-X20P breakout) and `USB Dual_Serial` (Sparkfun Flex Breakout).
+
+FIXES:
+
+1. Fix issue with some ZED-X20P configuration commands not taking effect with firmware HPG 2.02.
+1. Fixed issue which prevented some warning messages being shown during initialisation.
+
 ### RELEASE 1.5.17
 
 ENHANCEMENTS:

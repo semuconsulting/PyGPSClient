@@ -12,7 +12,7 @@ Created on 20 Sep 2020
 
 import logging
 from platform import python_version
-from tkinter import Button, Checkbutton, E, Frame, IntVar, Label, Tcl, W
+from tkinter import Button, Checkbutton, Frame, IntVar, Label, Tcl
 from webbrowser import open_new_tab
 
 from PIL import Image, ImageTk
@@ -125,11 +125,6 @@ class AboutDialog(ToplevelDialog):
             text="Check on startup",
             variable=self._checkonstartup,
         )
-        self._lbl_giticon = Label(
-            self._frm_body,
-            image=self._img_github,
-            cursor="hand2",
-        )
         self._lbl_sponsoricon = Label(
             self._frm_body,
             image=self._img_sponsor,
@@ -167,14 +162,11 @@ class AboutDialog(ToplevelDialog):
         self._chk_checkupdate.grid(
             column=1, row=1 + n + i, ipadx=3, ipady=3, padx=3, pady=3
         )
-        self._lbl_giticon.grid(column=0, row=2 + n + i, padx=(3, 1), pady=3, sticky=E)
         self._lbl_sponsoricon.grid(
-            column=1, row=2 + n + i, padx=(3, 1), pady=3, sticky=W
+            column=0, row=2 + n + i, columnspan=2, padx=3, pady=3
         )
-        self._lbl_github.grid(
-            column=0, row=3 + n + i, columnspan=2, padx=(1, 3), pady=3
-        )
-        self._lbl_copyright.grid(column=0, row=4 + n + i, columnspan=2, padx=3, pady=3)
+        self._lbl_github.grid(column=0, row=3 + n + i, columnspan=2, padx=3, pady=0)
+        self._lbl_copyright.grid(column=0, row=4 + n + i, columnspan=2, padx=3, pady=0)
 
     def _attach_events(self):
         """
@@ -182,7 +174,6 @@ class AboutDialog(ToplevelDialog):
         """
 
         self._btn_checkupdate.bind("<Button>", self._check_for_update)
-        self._lbl_giticon.bind("<Button>", self._on_github)
         self._lbl_github.bind("<Button>", self._on_github)
         self._lbl_sponsoricon.bind("<Button>", self._on_sponsor)
         self._lbl_copyright.bind("<Button>", self._on_license)

@@ -91,7 +91,7 @@ DDD = "DD.D"
 DEFAULT_BUFSIZE = 4096
 DEFAULT_PASSWORD = "password"  # nosec
 DEFAULT_PORT = 50010
-DEFAULT_TLS_PORTS = (443, 2102)
+DEFAULT_TLS_PORTS = (443, 2102, 8443, 50443, 58443)
 DEFAULT_REGION = "eu"
 DEFAULT_SERVER = "localhost"
 DEFAULT_USER = "anon"
@@ -187,7 +187,7 @@ ICON_UNDO = path.join(DIRNAME, "resources/iconmonstr-undo-24.png")
 ICON_UNKNOWN = path.join(DIRNAME, "resources/clear-1-24.png")
 ICON_WARNING = path.join(DIRNAME, "resources/iconmonstr-warning-1-24.png")
 IMG_WORLD = path.join(DIRNAME, "resources/world.png")
-ICON_SPONSOR = path.join(DIRNAME, "resources/bmc-full-logo-no-background.png")
+ICON_SPONSOR = path.join(DIRNAME, "resources/bmac-logo-60.png")
 IMG_WORLD_BOUNDS = Area(-90, -180, 90, 180)
 INFOCOL = "steelblue2"
 
@@ -198,6 +198,7 @@ KNOWNGPS = (
     "garmin",
     "gnss",
     "gps",
+    "IOUSBHostDevice",
     "magellan",
     "navstar",
     "septentrio",
@@ -208,6 +209,7 @@ KNOWNGPS = (
     "USB Serial",
     "USB to UART",
     "USB UART",
+    "USB Dual_Serial",
     "USB_to_UART",
     "USER-DEFINED",
 )
@@ -309,7 +311,8 @@ WIDGETU3 = (800, 200)  # Console size
 WIDGETU4 = (500, 500)  # GPX Track viewer size
 WIDGETU6 = (400, 200)  # Chart size
 XML_HDR = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-ZED_F9 = "u-blox ZED-F9/X20"
+ZED_F9 = "u-blox ZED-F9"
+ZED_X20 = "u-blox ZED-X20"
 
 # Conversion factors
 UI = "Imperial mph"
@@ -352,6 +355,8 @@ NMEA_PRESET = 16
 NMEA_CFGOTHER = 17
 SERVERCONFIG = 18
 SBF_MONHW = 19
+
+STATUSPRIORITY = {INFOCOL: 0, "blue": 0, OKCOL: 2, "green": 1, ERRCOL: 3, "red": 3}
 
 # map of fix values to descriptions
 # the keys in this map are a concatenation of NMEA/UBX

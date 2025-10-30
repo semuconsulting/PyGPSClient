@@ -22,11 +22,13 @@ from pygpsclient.globals import (
     DEFAULT_PASSWORD,
     DEFAULT_REGION,
     DEFAULT_USER,
+    ERRCOL,
     FORMAT_BINARY,
     FORMAT_PARSED,
     GUI_UPDATE_INTERVAL,
     MIN_GUI_UPDATE_INTERVAL,
     MQTTIPMODE,
+    OKCOL,
     PASSTHRU,
     RCVR_CONNECTION,
     SOCKCLIENT_HOST,
@@ -45,6 +47,7 @@ from pygpsclient.globals import (
 )
 from pygpsclient.mapquest import MAP_UPDATE_INTERVAL
 from pygpsclient.spartn_lband_frame import D9S_PP_EU as D9S_PP
+from pygpsclient.strings import LOADCONFIGBAD, LOADCONFIGNONE, LOADCONFIGOK
 from pygpsclient.widget_state import VISIBLE
 
 
@@ -133,12 +136,15 @@ class Configuration:
             "sockclienthost_s": SOCKCLIENT_HOST,
             "sockclientport_n": SOCKCLIENT_PORT,
             "sockclienthttps_b": 0,
+            "sockclientselfsign_b": 0,
             "sockclientprotocol_s": "TCP IPv4",
             # socket server settings from frm_socketserver
             "sockserver_b": 0,
             "sockhost_s": SOCKSERVER_HOST,
             "sockport_n": SOCKSERVER_PORT,
+            "sockportntrip_n": SOCKSERVER_NTRIP_PORT,
             "sockmode_b": 0,
+            "sockhttps_b": 0,
             "ntripcasterbasemode_s": "SURVEY IN",
             "ntripcasterrcvrtype_s": ZED_F9,
             "ntripcasteracclimit_f": 100.0,
@@ -154,6 +160,7 @@ class Configuration:
             "ntripclientserver_s": "rtk2go.com",
             "ntripclientport_n": SOCKSERVER_NTRIP_PORT,
             "ntripclienthttps_b": 0,
+            "ntripclientselfsign_b": 0,
             "ntripclientprotocol_s": "IPv4",
             "ntripclientflowinfo_n": 0,
             "ntripclientscopeid_n": 0,
@@ -237,7 +244,7 @@ class Configuration:
         :rtype: tuple
         """
 
-        filename, config, err = self.__app.file_handler.load_config(filename)
+        fname, config, err = self.__app.file_handler.load_config(filename)
         if err == "":  # load succeeded
             try:
                 for key, val in config.items():
@@ -247,9 +254,15 @@ class Configuration:
                     if key == "guiupdateinterval_f":
                         val = max(MIN_GUI_UPDATE_INTERVAL, val)
                     self.set(key, val)
+                self.__app.set_status(LOADCONFIGOK.format(fname), OKCOL)
             except KeyError:
                 err = f'Unrecognised setting "{key}": {val}'
-        return filename, err
+        else:
+            if "No such file or directory" in err:
+                self.__app.set_status(LOADCONFIGNONE.format(fname), ERRCOL)
+            else:
+                self.__app.set_status(LOADCONFIGBAD.format(fname, err), ERRCOL)
+        return fname, err
 
     def savefile(self, filename: str = None) -> str:
         """

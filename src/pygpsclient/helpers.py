@@ -1058,8 +1058,8 @@ def setubxrate(app: object, mid: str, rate: int = 1, prot: str = "UBX") -> UBXMe
     prts = app.configuration.get("defaultport_s").split(",")
 
     # check device ROM version for configuration support
-    romver = app.gnss_status.version_data.get("romversion", NA).replace(NA, "")
-    if romver >= ROMVER_NEW:
+    romver = app.gnss_status.version_data.get("romversion", NA)
+    if romver in (NA, "") or romver >= ROMVER_NEW:
 
         # new style message rate configuration using CFG-VALSET & configuration database keys:
         prot = prot + "_" if prot != "RTCM_3X_TYPE" else prot

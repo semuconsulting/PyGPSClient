@@ -552,6 +552,7 @@ class NTRIPConfigDialog(ToplevelDialog):
             self._settings["server"] = cfg.get("ntripclientserver_s")
             self._settings["port"] = cfg.get("ntripclientport_n")
             self._settings["https"] = cfg.get("ntripclienthttps_b")
+            self._settings["selfsign"] = cfg.get("ntripclientselfsign_b")
             self._settings["ipprot"] = (
                 AF_INET6 if cfg.get("ntripclientprotocol_s") == IP6 else AF_INET
             )
@@ -581,6 +582,7 @@ class NTRIPConfigDialog(ToplevelDialog):
         self._frm_socket.server.set(self._settings["server"])
         self._frm_socket.port.set(self._settings["port"])
         self._frm_socket.https.set(self._settings["https"])
+        self._frm_socket.selfsign.set(self._settings["selfsign"])
         self._ntrip_mountpoint.set(self._settings["mountpoint"])
         self._ntrip_version.set(self._settings["version"])
         self._ntrip_datatype.set(self._settings["datatype"])
@@ -608,6 +610,7 @@ class NTRIPConfigDialog(ToplevelDialog):
         self._settings["server"] = self._frm_socket.server.get()
         self._settings["port"] = self._frm_socket.port.get()
         self._settings["https"] = self._frm_socket.https.get()
+        self._settings["selfsign"] = self._frm_socket.selfsign.get()
         self._settings["ipprot"] = (
             AF_INET6 if self._frm_socket.protocol.get() == IP6 else AF_INET
         )
@@ -651,6 +654,7 @@ class NTRIPConfigDialog(ToplevelDialog):
                 server=self._settings["server"],
                 port=self._settings["port"],
                 https=self._settings["https"],
+                selfsign=self._settings["selfsign"],
                 flowinfo=self._settings["flowinfo"],
                 scopeid=self._settings["scopeid"],
                 mountpoint=self._settings["mountpoint"],
