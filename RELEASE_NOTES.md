@@ -4,8 +4,13 @@
 
 ENHANCEMENTS:
 
-1. Amend UBX Preset Configuration panel to remove the existing 24 'hard-wired' UBX commands (*some of which are now out of date*) and replace them with pre-formatted user-defined preset which can, if required, be removed or amended by the user. **ALL** UBX preset commands are now 'user-defined'. **NOTE** the pre-formatted `CFG-VALSET` commands supplied all take effect in the volatile RAM memory layer - to persist these configurations, select 'Save Configuration to BBR' (or other non-volatile memory).
-1. Allow self-sign certification for TLS (HTTPS) connections (requires `pygnssutils>=1.1.19`). Self-sign certificate/key location can be set via environment variable `PYGNSSUTILS_PEMPATH`; default is `$HOME/pygnssutils.pem`. A self-signed pem file suitable for test and demonstration purposes can be created interactively thus:
+1. UBX, NMEA and TTY user-defined preset configuration settings `"ubxpresets_l"`, `"nmeapresets_l"` and `"ttypresets_l"` are now pre-populated with an initial set of commands on startup. Once saved to a \*.json configuration file, these initial commands can be removed, amended or supplemented in accordance with the user's preferences.
+
+   To reinstate the initial set of user-defined presets at a later date, insert the item `"INIT_PRESETS"` at the top of the `"ubxpresets_l"`. `"nmeapresets_l"` or `"ttypresets_l"` configuration setting.
+
+   In the case of UBX, these initial commands replace the existing 24 'hard-coded' UBX commands (*some of which are now out of date*). **NOTE** the initial UBX `CFG-VALSET` commands supplied all take effect in the volatile RAM memory layer - to persist these configurations, select 'Save Configuration to BBR' (or other non-volatile memory).
+
+1. Allow self-sign certification for TLS (HTTPS) connections (requires `pygnssutils>=1.1.19`) - previously these would have been rejected with an SSL error. Self-sign certificate/key location can be set via environment variable `PYGNSSUTILS_PEMPATH`; default is `$HOME/pygnssutils.pem`. A self-signed pem file suitable for test and demonstration purposes can be created interactively thus:
    ```shell
    openssl req -x509 -newkey rsa:4096 -keyout pygnssutils.pem -out pygnssutils.pem -sha256 -days 3650 -nodes
    ```

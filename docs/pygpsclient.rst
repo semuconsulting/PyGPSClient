@@ -148,6 +148,14 @@ pygpsclient.imu\_frame module
    :undoc-members:
    :show-inheritance:
 
+pygpsclient.init\_presets module
+--------------------------------
+
+.. automodule:: pygpsclient.init_presets
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pygpsclient.map\_canvas module
 ------------------------------
 
@@ -200,14 +208,6 @@ pygpsclient.nmea\_preset\_frame module
 --------------------------------------
 
 .. automodule:: pygpsclient.nmea_preset_frame
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-pygpsclient.nmea\_presets module
---------------------------------
-
-.. automodule:: pygpsclient.nmea_presets
    :members:
    :undoc-members:
    :show-inheritance:
@@ -456,14 +456,6 @@ pygpsclient.ubx\_preset\_frame module
 -------------------------------------
 
 .. automodule:: pygpsclient.ubx_preset_frame
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-pygpsclient.ubx\_presets module
--------------------------------
-
-.. automodule:: pygpsclient.ubx_presets
    :members:
    :undoc-members:
    :show-inheritance:

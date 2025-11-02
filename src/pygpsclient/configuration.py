@@ -45,10 +45,14 @@ from pygpsclient.globals import (
     WORLD,
     ZED_F9,
 )
+from pygpsclient.init_presets import INIT_PRESETS
 from pygpsclient.mapquest import MAP_UPDATE_INTERVAL
 from pygpsclient.spartn_lband_frame import D9S_PP_EU as D9S_PP
 from pygpsclient.strings import LOADCONFIGBAD, LOADCONFIGNONE, LOADCONFIGOK
 from pygpsclient.widget_state import VISIBLE
+
+INITMARKER = "INIT_PRESETS"
+PRE_L = "presets_l"
 
 
 class Configuration:
@@ -228,9 +232,9 @@ class Configuration:
                 "option_s": "N/A",
             },
             "chartsettings_d": {"numchn": 4, "timrng": 240},
-            "ubxpresets_l": [],
-            "nmeapresets_l": [],
-            "ttypresets_l": [],
+            f"ubx{PRE_L}": [],
+            f"nmea{PRE_L}": [],
+            f"tty{PRE_L}": [],
             "usermaps_l": [],
             "colortags_l": [],
         }
@@ -337,6 +341,28 @@ class Configuration:
         """
 
         return self.settings[name]
+
+    def init_presets(self, mode: str):
+        """
+        (Re-)Initialise user-defined presets list.
+
+        :param str mode: "ubx", "nmea" or "tty"
+        """
+
+        presets = f"{mode}{PRE_L}"
+        init_presets = INIT_PRESETS.get(presets, [])
+        lp = len(self.get(presets))
+        init = False
+        if lp == 0:
+            init = True
+        elif lp > 0 and self.get(presets)[0] == INITMARKER:
+            self.get(presets).pop(0)
+            init = True
+        if init:
+            self.set(
+                presets,
+                init_presets + self.get(presets),
+            )
 
     @property
     def settings(self) -> dict:

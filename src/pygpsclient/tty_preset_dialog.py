@@ -201,10 +201,9 @@ class TTYPresetDialog(ToplevelDialog):
         self._crlf.set(self.__app.configuration.get("ttycrlf_b"))
         self._echo.set(self.__app.configuration.get("ttyecho_b"))
         self._delay.set(self.__app.configuration.get("ttydelay_b"))
-        idx = 0
-        for tcmd in self.__app.configuration.get("ttypresets_l"):
-            self._lbx_preset.insert(idx, tcmd)
-            idx += 1
+        self.__app.configuration.init_presets("tty")
+        for i, preset in enumerate(self.__app.configuration.get("ttypresets_l")):
+            self._lbx_preset.insert(i, preset)
 
     def _on_update_command(self, var, index, mode):  # pylint: disable=unused-argument
         """

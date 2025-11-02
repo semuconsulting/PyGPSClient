@@ -184,7 +184,7 @@
         }
     },
     "ubxpresets_l": [
-        "Poll UART1/2 baud rates, CFG, CFG-VALGET, 000000000100524001005340, 2",
+        "INIT_PRESETS",
         "Poll Message Rates, CFG, CFG-VALGET, 00000000ffff9120, 2, CFG, CFG-VALGET, 00004000ffff9120, 2, CFG, CFG-VALGET, 00008000ffff9120, 2",
         "Poll Receiver Software Version, MON, MON-VER, , 2",
         "Poll Datum, CFG, CFG-DAT, , 2",
@@ -208,6 +208,7 @@
         "Set UBX GNSS to ALL, CFG, CFG-GNSS, 0020200700081000010001010101030001000101020408000000010103081000000001010400080000000103050003000100010506080E0001000101, 1"
     ],
     "nmeapresets_l": [
+        "INIT_PRESETS",
         "Check UniqueID; P; QTMUNIQID; ; 1",
         "Enable Debug; P; QTMDEBUGON; ; 1",
         "Disable Debug; P; QTMDEBUGOFF; ; 1",
@@ -246,22 +247,7 @@
         "LG580P Enable OGC RAW-HASE6 output;P; QTMCFGMSGRATE; W,1,1,0AE6,1,1;1"
     ],
     "ttypresets_l": [
-        "MOSAIC X5 Initialise Command Mode; SSSSSSSSSS",
-        "MOSAIC X5 List receiver capabilities; grc",
-        "MOSAIC X5 List NMEA outputs; gno",
-        "MOSAIC X5 Enable NMEA messages; sno, Stream1, COM1, GGA+GSA+GLL+GSV+RMC+VTG, sec1",
-        "MOSAIC X5 Disable NMEA messages; sno, Stream1, none, none, off",
-        "MOSAIC X5 Enable Group stream; ssgp, Group1, MeasEpoch+PVTCartesian+DOP; sso, Stream2, COM1, Group1, sec1",
-        "MOSAIC X5 Disable Group stream; sso, Stream2, none, none, off",
-        "MOSAIC X5 Output next Measurement Epoch; esoc, COM1, MeasEpoch",
-        "MOSAIC X5 Enable PVTGeod stream; sso, Stream2, COM1, PVTGeod, sec1",
-        "MOSAIC X5 Disable PVTGeod stream; sso, Stream2, COM1, none, none",
-        "MOSAIC X5 Enable Status stream; sso, Stream3, COM1, Status, sec1",
-        "MOSAIC X5 Disable Status stream; sso, Stream3, COM1, none, none",
-        "MOSAIC X5 Set Fixed Base Station Mode; setDataInOut,COM1, ,RTCMv3;setRTCMv3Formatting,1234;setStaticPosGeodetic,Geodetic1,37.23345,-115.81513,15;setPVTMode,Static, ,Geodetic1",
-        "MOSAIC X5 Set Survey-In Base Station Mode;setDataInOut,COM1, ,RTCMv3;setRTCMv3Formatting,1234;setPVTMode,Static, ,auto",
-        "MOSAIC X5 Stop RTCM output;setDataInOut,COM1, ,none",
-        "MOSAIC X5 Soft Reset to Factory Defaults;erst,soft,config",
+        "INIT_PRESETS",
         "IM19 Tilt Survey Setup; AT+LOAD_DEFAULT; AT+GNSS_PORT=PHYSICAL_UART2; AT+NASC_OUTPUT=UART1,ON; AT+LEVER_ARM2=0.0057,-0.0732,-0.0645; AT+CLUB_VECTOR=0,0,1.865; AT+INSTALL_ANGLE=0,180,0; AT+GNSS_CARD=OEM; AT+WORK_MODE=408; AT+CORRECT_HOLDER=ENABLE; AT+SET_PPS_EDGE=RISING; AT+AHRS=ENABLE; AT+MAG_AUTO_SAVE=ENABLE; AT+SAVE_ALL",
         "IM19 System reset CONFIRM; AT+SYSTEM_RESET",
         "IM19 Save the parameters; CONFIRM AT+SAVE_ALL",

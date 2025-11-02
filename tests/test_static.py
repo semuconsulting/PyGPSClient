@@ -14,7 +14,7 @@ from datetime import datetime
 from pynmeagps import SET, NMEAMessage
 from pyubx2 import UBXMessage, UBXReader
 
-from pygpsclient.configuration import Configuration
+from pygpsclient.configuration import Configuration, INITMARKER
 from pygpsclient.globals import Area, AreaXY, Point, TrackPoint, OKCOL
 from pygpsclient.helpers import (
     area_in_bounds,
@@ -134,6 +134,22 @@ class StaticTest(unittest.TestCase):
         )
         res = cfg.loadfile("good.json")
         self.assertEqual(res, ("good.json", ""))
+
+    def testinitpresets(self):
+        cfg = Configuration(DummyApp())
+        cfg.init_presets("ubx")
+        self.assertEqual(len(cfg.get("ubxpresets_l")), 46)
+        cfg.set(
+            "ubxpresets_l",
+            [
+                INITMARKER,
+                "first user preset",
+                "second user preset",
+                "third user preset",
+            ],
+        )
+        cfg.init_presets("ubx")
+        self.assertEqual(len(cfg.get("ubxpresets_l")), 49)
 
     def testcel2cart(self):
         (elev, azim) = cel2cart(34, 128)

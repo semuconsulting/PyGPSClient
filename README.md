@@ -355,13 +355,15 @@ that this is a User variable rather than a System/Global variable.
 ---
 ## <a name="userdefined">User Defined Presets</a>
 
-The UBX and NMEA Configuration Dialogs include the facility to send user-defined configuration messages or message sequences to a compatible receiver. These can be set up by adding
-appropriate comma- or semicolon-delimited message descriptions and payload definitions to the `"ubxpresets_l":`or `"nmeapresets_l":` lists in your json configuration file (see [example provided](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient.json#L174)). The message definition comprises a free-format text description (*avoid embedded commas or semi-colons*) followed by one or more pyubx2 (UBX) or pynmeagps (NMEA) message constructors, e,g. 
+The UBX, NMEA and TTY Configuration Dialogs include the facility to send user-defined configuration messages or message sequences to a compatible receiver. These can be set up by adding appropriate comma- or semicolon-delimited message descriptions and payload definitions to the `"ubxpresets_l"`, `"nmeapresets_l"` or `"ttypresets_l"` settings in your json configuration file (see [example provided](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient.json#L186)). The message definition comprises a free-format text description (*avoid embedded commas or semi-colons*) followed by one or more pyubx2 (UBX), pynmeagps (NMEA) or tty (ASCII) message constructors, e,g. 
 
 - UBX - `<description>, <message class>, <message id>, <payload as hexadecimal string>, <msgmode>`
 - NMEA - `<description>; <talker>; <message id>; <payload as comma-separated string>; <msgmode>`
+- TTY - `<description>; <tty command>`
 
 If the command description contains the term `CONFIRM`, a pop-up confirmation box will appear before the command is actioned.
+
+When PyGPSClient is first started, these settings are pre-populated with an initial set of preset commands, which can be saved to a \*.json configuration file and then manually removed, amended or supplemented in accordance with the user's preferences. To reinstate this initial set at a later date, insert the line `"INIT_PRESETS",` at the top of the relevant `"ubxpresets_l"`, `"nmeapresets_l"` or `"ttypresets_l"` configuration setting.
 
 The `pygpsclient.ubx2preset()` and `pygpsclient.nmea2preset()` helper functions may be used to convert a `UBXMessage` or `NMEAMessage` object into a preset string suitable for copying and pasting into the `"ubxpresents_l":` or `"nmeapresets_l":` JSON configuration sections:
 
@@ -393,9 +395,7 @@ The TTY Commands dialog provides a facility to send user-defined ASCII TTY comma
 - Echo checkbox - if ticked, outgoing TTY commands will be echoed on the console with the marker `"TTY<<"`.
 - Delay checkbox - if ticked, a small delay will be added between each outgoing command to allow time for the receiving device to process the command.
 
-Preset commands can be set up by adding appropriate semicolon-delimited message descriptions and payload definitions to the `"ttypresets_l":` list in your json configuration file (see [example provided](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient.json#L255)). The message definition comprises a free-format text description (*avoid embedded semi-colons*) followed by one or more ASCII TTY commands, e,g. 
-
-- `<description>; <tty command>`
+Preset commands can be set up by adding appropriate semicolon-delimited message descriptions and payload definitions to the `"ttypresets_l":` list in your json configuration file. See [User Defined Presets](#user-defined-presets) above and [example provided](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient.json#L302).
 
 The following example illustrates a series of ASCII configuration commands being sent to a Septentrio Mosaic X5 receiver, followed by successful acknowledgements:
 

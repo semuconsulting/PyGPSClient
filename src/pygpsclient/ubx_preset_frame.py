@@ -45,7 +45,6 @@ from pygpsclient.strings import (
     DLGACTIONCONFIRM,
     LBLUBXPRESET,
 )
-from pygpsclient.ubx_presets import UBXPRESETS
 
 CANCELLED = 0
 CONFIRMED = 1
@@ -96,7 +95,7 @@ class UBX_PRESET_Frame(Frame):
             border=2,
             relief="sunken",
             height=12,
-            width=34,
+            width=40,
             justify=LEFT,
             exportselection=False,
         )
@@ -125,8 +124,8 @@ class UBX_PRESET_Frame(Frame):
         )
         self._scr_presetv.grid(column=2, row=1, rowspan=12, sticky=(N, S, E))
         self._scr_preseth.grid(column=0, row=13, columnspan=3, sticky=(W, E))
-        self._btn_send_command.grid(column=3, row=1, ipadx=3, ipady=3, sticky=E)
-        self._lbl_send_command.grid(column=4, row=1, ipadx=3, ipady=3, sticky=E)
+        self._btn_send_command.grid(column=3, row=1, ipadx=3, ipady=3, sticky=(W, E))
+        self._lbl_send_command.grid(column=3, row=3, ipadx=3, ipady=3, sticky=(W, E))
 
         (cols, rows) = self.grid_size()
         for i in range(cols):
@@ -147,13 +146,9 @@ class UBX_PRESET_Frame(Frame):
         Reset panel - load user-defined presets if there are any.
         """
 
-        i = j = 0
-        for i, preset in enumerate(UBXPRESETS):  # design-time presets
+        self.__app.configuration.init_presets("ubx")
+        for i, preset in enumerate(self.__app.configuration.get("ubxpresets_l")):
             self._lbx_preset.insert(i, preset)
-        for j, preset in enumerate(
-            self.__app.configuration.get("ubxpresets_l")
-        ):  # run-time presets
-            self._lbx_preset.insert(i + 1 + j, preset)
 
     def _on_select_preset(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
