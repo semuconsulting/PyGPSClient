@@ -268,6 +268,7 @@ class SettingsFrame(Frame):
             height=35,
             image=self._img_serial,
             command=lambda: self._on_connect(CONNECTED),
+            state=NORMAL,
         )
         self._lbl_connect = Label(self._frm_buttons, text="USB/UART")
         self._btn_connect_socket = Button(
@@ -276,6 +277,7 @@ class SettingsFrame(Frame):
             height=35,
             image=self._img_socket,
             command=lambda: self._on_connect(CONNECTED_SOCKET),
+            state=NORMAL,
         )
         self._lbl_connect_socket = Label(self._frm_buttons, text="TCP/UDP")
         self._btn_connect_file = Button(
@@ -284,6 +286,7 @@ class SettingsFrame(Frame):
             height=35,
             image=self._img_dataread,
             command=lambda: self._on_connect(CONNECTED_FILE),
+            state=NORMAL,
         )
         self._lbl_connect_file = Label(self._frm_buttons, text="FILE")
         self._btn_disconnect = Button(
@@ -301,6 +304,7 @@ class SettingsFrame(Frame):
             height=35,
             image=self._img_exit,
             command=lambda: self.__app.on_exit(),
+            state=NORMAL,
         )
 
         self._lbl_status_preset = Label(
@@ -427,6 +431,7 @@ class SettingsFrame(Frame):
             width=45,
             image=self._img_ubxconfig,
             command=lambda: self._on_ubx_config(),
+            state=NORMAL,
         )
         self._lbl_nmeaconfig = Label(
             self._frm_options_btns,
@@ -437,6 +442,7 @@ class SettingsFrame(Frame):
             width=45,
             image=self._img_nmeaconfig,
             command=lambda: self._on_nmea_config(),
+            state=NORMAL,
         )
         self._lbl_ttyconfig = Label(
             self._frm_options_btns,
@@ -447,6 +453,7 @@ class SettingsFrame(Frame):
             width=45,
             image=self._img_ttyconfig,
             command=lambda: self._on_tty_config(),
+            state=NORMAL,
         )
         self._lbl_ntripconfig = Label(
             self._frm_options_btns,
@@ -457,6 +464,7 @@ class SettingsFrame(Frame):
             width=45,
             image=self._img_ntripconfig,
             command=lambda: self._on_ntrip_config(),
+            state=NORMAL,
         )
         # socket server configuration
         self.frm_socketserver = ServerConfigFrame(
@@ -793,13 +801,6 @@ class SettingsFrame(Frame):
         """
 
         self.__app.start_dialog(DLGTNTRIP)
-
-    # def _on_spartn_config(self, *args, **kwargs):  # pylint: disable=unused-argument
-    #     """
-    #     Open SPARTN Client configuration dialog panel.
-    #     """
-
-    #     self.__app.start_dialog(DLGTSPARTN)
 
     def _on_webmap(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
