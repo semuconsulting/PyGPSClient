@@ -309,6 +309,7 @@ class SettingsFrame(Frame):
 
         # Other configuration options
         self._frm_options = Frame(self._frm_container)
+        self._frm_options_btns = Frame(self._frm_options)
         self._lbl_protocol = Label(self._frm_options, text=LBLPROTDISP)
         self._chk_nmea = Checkbutton(
             self._frm_options,
@@ -418,55 +419,45 @@ class SettingsFrame(Frame):
         )
         # configuration panel buttons
         self._lbl_ubxconfig = Label(
-            self._frm_options,
+            self._frm_options_btns,
             text=LBLUBXCONFIG,
         )
         self._btn_ubxconfig = Button(
-            self._frm_options,
+            self._frm_options_btns,
             width=45,
             image=self._img_ubxconfig,
             command=lambda: self._on_ubx_config(),
         )
         self._lbl_nmeaconfig = Label(
-            self._frm_options,
+            self._frm_options_btns,
             text=LBLNMEACONFIG,
         )
         self._btn_nmeaconfig = Button(
-            self._frm_options,
+            self._frm_options_btns,
             width=45,
             image=self._img_nmeaconfig,
             command=lambda: self._on_nmea_config(),
         )
         self._lbl_ttyconfig = Label(
-            self._frm_options,
+            self._frm_options_btns,
             text=LBLTTYCONFIG,
         )
         self._btn_ttyconfig = Button(
-            self._frm_options,
+            self._frm_options_btns,
             width=45,
             image=self._img_ttyconfig,
             command=lambda: self._on_tty_config(),
         )
         self._lbl_ntripconfig = Label(
-            self._frm_options,
+            self._frm_options_btns,
             text=LBLNTRIPCONFIG,
         )
         self._btn_ntripconfig = Button(
-            self._frm_options,
+            self._frm_options_btns,
             width=45,
             image=self._img_ntripconfig,
             command=lambda: self._on_ntrip_config(),
         )
-        # self._lbl_spartnconfig = Label(
-        #     self._frm_options,
-        #     text=LBLSPARTNCONFIG,
-        # )
-        # self._btn_spartnconfig = Button(
-        #     self._frm_options,
-        #     width=45,
-        #     image=self._img_spartnconfig,
-        #     command=lambda: self._on_spartn_config(),
-        # )
         # socket server configuration
         self.frm_socketserver = ServerConfigFrame(
             self.__app,
@@ -537,16 +528,15 @@ class SettingsFrame(Frame):
         self._chk_recorddatabase.grid(
             column=2, row=8, columnspan=2, padx=2, pady=2, sticky=W
         )
-        self._btn_ubxconfig.grid(column=0, row=9)
-        self._lbl_ubxconfig.grid(column=0, row=10)
-        self._btn_nmeaconfig.grid(column=1, row=9)
-        self._lbl_nmeaconfig.grid(column=1, row=10)
-        self._btn_ttyconfig.grid(column=2, row=9)
-        self._lbl_ttyconfig.grid(column=2, row=10)
-        self._btn_ntripconfig.grid(column=3, row=9)
-        self._lbl_ntripconfig.grid(column=3, row=10)
-        # self._btn_spartnconfig.grid(column=3, row=9)
-        # self._lbl_spartnconfig.grid(column=3, row=10)
+        self._frm_options_btns.grid(column=0, row=9, columnspan=4, sticky=(W, E))
+        self._btn_ubxconfig.grid(column=0, row=0, padx=5)
+        self._lbl_ubxconfig.grid(column=0, row=1)
+        self._btn_nmeaconfig.grid(column=1, row=0, padx=5)
+        self._lbl_nmeaconfig.grid(column=1, row=1)
+        self._btn_ttyconfig.grid(column=2, row=0, padx=5)
+        self._lbl_ttyconfig.grid(column=2, row=1)
+        self._btn_ntripconfig.grid(column=3, row=0, padx=5)
+        self._lbl_ntripconfig.grid(column=3, row=1)
         ttk.Separator(self._frm_container).grid(
             column=0, row=10, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
