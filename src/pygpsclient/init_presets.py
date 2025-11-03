@@ -62,8 +62,8 @@ INIT_PRESETS = {
         "Poll UART1/2 Baudrates, CFG, CFG-VALGET, 000000000100524001005340, 2",
     ],
     "nmeapresets_l": [
-        "Quectel RESTORE FACTORY DEFAULTS CONFIRM; P; QTMRESTOREPAR; ; 1",
-        "Quectel Save configuration to non-volatile memory CONFIRM; P; QTMSAVEPAR; ; 1",
+        "Quectel Restore Factory Defaults CONFIRM; P; QTMRESTOREPAR; ; 1",
+        "Quectel Save Configuration to NVM CONFIRM; P; QTMSAVEPAR; ; 1",
         "Quectel HOT restart CONFIRM; P; QTMHOT; ; 1",
         "Quectel WARM restart CONFIRM; P; QTMWARM; ; 1",
         "Quectel COLD restart CONFIRM; P; QTMCOLD; ; 1",
@@ -74,7 +74,10 @@ INIT_PRESETS = {
     ],
     "ttypresets_l": [
         "Septentrio X5 Initialise Command Mode; SSSSSSSSSS",
-        "Septentrio X5 Soft Reset to Factory Defaults CONFIRM;erst,soft,config",
+        "Septentrio X5 Restore Factory Defaults CONFIRM; eccf, RxDefault, Boot",
+        "Septentrio X5 Save Current Configuration to NVM CONFIRM; eccf, Current, Boot",
+        "Septentrio X5 Soft Reset to Factory Defaults CONFIRM; erst, soft, config",
+        "Septentrio X5 Check Current Configuration File; lcf, Current",
         "Septentrio X5 List receiver capabilities; grc",
         "Septentrio X5 List NMEA outputs; gno",
         "Septentrio X5 Enable NMEA messages; sno, Stream1, COM1, GGA+GSA+GLL+GSV+RMC+VTG, sec1",

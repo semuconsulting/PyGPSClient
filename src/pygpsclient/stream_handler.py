@@ -41,8 +41,8 @@ from pygnssutils import (
     RTCM3_PROTOCOL,
     SBF_PROTOCOL,
     UBX_PROTOCOL,
+    GNSSError,
     GNSSReader,
-    GNSSStreamError,
     check_pemfile,
 )
 from pynmeagps import NMEAMessageError, NMEAParseError, NMEAStreamError
@@ -369,7 +369,7 @@ class StreamHandler:
                 QGCParseError,
                 QGCStreamError,
                 QGCTypeError,
-                GNSSStreamError,
+                GNSSError,
             ) as err:
                 _errorhandler(err)
                 continue

@@ -19,7 +19,7 @@ ENHANCEMENTS:
 
 FIXES:
 
-1. Fix issue where ValueError from GNSSReader would cause streaming to terminate.
+1. Fix issue where ValueError from GNSSReader would cause streaming to terminate (requires `pygnssutils>=1.1.20`).
 1. Fix issue with some ZED-X20P configuration commands not taking effect with firmware HPG 2.02.
 1. Fixed issue which prevented some warning messages being shown during initialisation.
 
