@@ -188,6 +188,7 @@ class SettingsFrame(Frame):
         self._body()
         self._do_layout()
         self.reset()
+        self.focus_force()
 
     def _container(self):
         """
