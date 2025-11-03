@@ -4,6 +4,7 @@
 
 ENHANCEMENTS:
 
+1. Add TTY Config button to main Settings Panel and remove SPARTN Config button (SPARTN Config can still be accessed via Menu..Options..SPARTN Configuration but is now [deprecated](https://github.com/semuconsulting/PyGPSClient/blob/master/SPARTN.md)). TTY Config uses traditional TTY (ASCII) commands to configure devices such as the Septentrio Mosaic X5.
 1. UBX, NMEA and TTY user-defined preset configuration settings `"ubxpresets_l"`, `"nmeapresets_l"` and `"ttypresets_l"` are now pre-populated with an initial set of commands on startup. Once saved to a \*.json configuration file, these initial commands can be removed, amended or supplemented in accordance with the user's preferences.
 
    To reinstate the initial set of user-defined presets at a later date, insert the item `"INIT_PRESETS"` at the top of the `"ubxpresets_l"`. `"nmeapresets_l"` or `"ttypresets_l"` configuration setting.
@@ -18,6 +19,7 @@ ENHANCEMENTS:
 
 FIXES:
 
+1. Fix issue where ValueError from GNSSReader would cause streaming to terminate.
 1. Fix issue with some ZED-X20P configuration commands not taking effect with firmware HPG 2.02.
 1. Fixed issue which prevented some warning messages being shown during initialisation.
 

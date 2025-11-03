@@ -50,7 +50,7 @@ from tkinter import (
 
 from PIL import Image, ImageTk
 
-from pygpsclient.globals import (  # SBF_PROTOCOL,
+from pygpsclient.globals import (
     BPSRATES,
     CONNECTED,
     CONNECTED_FILE,
@@ -76,8 +76,7 @@ from pygpsclient.globals import (  # SBF_PROTOCOL,
     ICON_NTRIPCONFIG,
     ICON_SERIAL,
     ICON_SOCKET,
-    ICON_SPARTNCONFIG,
-    ICON_SPARTNDISABLE,
+    ICON_TTYCONFIG,
     ICON_UBXCONFIG,
     KNOWNGPS,
     MSGMODES,
@@ -98,7 +97,7 @@ from pygpsclient.sqlite_handler import SQLOK
 from pygpsclient.strings import (
     DLGTNMEA,
     DLGTNTRIP,
-    DLGTSPARTN,
+    DLGTTTY,
     DLGTUBX,
     LBLDATABASERECORD,
     LBLDATADISP,
@@ -108,8 +107,8 @@ from pygpsclient.strings import (
     LBLNTRIPCONFIG,
     LBLPROTDISP,
     LBLSHOWUNUSED,
-    LBLSPARTNCONFIG,
     LBLTRACKRECORD,
+    LBLTTYCONFIG,
     LBLUBXCONFIG,
 )
 
@@ -179,9 +178,10 @@ class SettingsFrame(Frame):
         self._img_exit = ImageTk.PhotoImage(Image.open(ICON_EXIT))
         self._img_ubxconfig = ImageTk.PhotoImage(Image.open(ICON_UBXCONFIG))
         self._img_nmeaconfig = ImageTk.PhotoImage(Image.open(ICON_NMEACONFIG))
+        self._img_ttyconfig = ImageTk.PhotoImage(Image.open(ICON_TTYCONFIG))
         self._img_ntripconfig = ImageTk.PhotoImage(Image.open(ICON_NTRIPCONFIG))
-        self._img_spartnconfig = ImageTk.PhotoImage(Image.open(ICON_SPARTNCONFIG))
-        self._img_spartndisable = ImageTk.PhotoImage(Image.open(ICON_SPARTNDISABLE))
+        # self._img_spartnconfig = ImageTk.PhotoImage(Image.open(ICON_SPARTNCONFIG))
+        # self._img_spartndisable = ImageTk.PhotoImage(Image.open(ICON_SPARTNDISABLE))
         self._img_dataread = ImageTk.PhotoImage(Image.open(ICON_LOGREAD))
 
         self._container()  # create scrollable container
@@ -437,6 +437,16 @@ class SettingsFrame(Frame):
             image=self._img_nmeaconfig,
             command=lambda: self._on_nmea_config(),
         )
+        self._lbl_ttyconfig = Label(
+            self._frm_options,
+            text=LBLTTYCONFIG,
+        )
+        self._btn_ttyconfig = Button(
+            self._frm_options,
+            width=45,
+            image=self._img_ttyconfig,
+            command=lambda: self._on_tty_config(),
+        )
         self._lbl_ntripconfig = Label(
             self._frm_options,
             text=LBLNTRIPCONFIG,
@@ -447,16 +457,16 @@ class SettingsFrame(Frame):
             image=self._img_ntripconfig,
             command=lambda: self._on_ntrip_config(),
         )
-        self._lbl_spartnconfig = Label(
-            self._frm_options,
-            text=LBLSPARTNCONFIG,
-        )
-        self._btn_spartnconfig = Button(
-            self._frm_options,
-            width=45,
-            image=self._img_spartnconfig,
-            command=lambda: self._on_spartn_config(),
-        )
+        # self._lbl_spartnconfig = Label(
+        #     self._frm_options,
+        #     text=LBLSPARTNCONFIG,
+        # )
+        # self._btn_spartnconfig = Button(
+        #     self._frm_options,
+        #     width=45,
+        #     image=self._img_spartnconfig,
+        #     command=lambda: self._on_spartn_config(),
+        # )
         # socket server configuration
         self.frm_socketserver = ServerConfigFrame(
             self.__app,
@@ -531,10 +541,12 @@ class SettingsFrame(Frame):
         self._lbl_ubxconfig.grid(column=0, row=10)
         self._btn_nmeaconfig.grid(column=1, row=9)
         self._lbl_nmeaconfig.grid(column=1, row=10)
-        self._btn_ntripconfig.grid(column=2, row=9)
-        self._lbl_ntripconfig.grid(column=2, row=10)
-        self._btn_spartnconfig.grid(column=3, row=9)
-        self._lbl_spartnconfig.grid(column=3, row=10)
+        self._btn_ttyconfig.grid(column=2, row=9)
+        self._lbl_ttyconfig.grid(column=2, row=10)
+        self._btn_ntripconfig.grid(column=3, row=9)
+        self._lbl_ntripconfig.grid(column=3, row=10)
+        # self._btn_spartnconfig.grid(column=3, row=9)
+        # self._lbl_spartnconfig.grid(column=3, row=10)
         ttk.Separator(self._frm_container).grid(
             column=0, row=10, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
@@ -577,10 +589,10 @@ class SettingsFrame(Frame):
             self._record_database.set(cfg.get("database_b"))
         self.clients = 0
 
-        # MQTT and L-BAND SPARTN services discontinued by u-blox
-        if not cfg.get("lband_enabled_b"):
-            self._btn_spartnconfig.config(state=DISABLED, image=self._img_spartndisable)
-            self._lbl_spartnconfig.config(state=DISABLED)
+        # # MQTT and L-BAND SPARTN services discontinued by u-blox
+        # if not cfg.get("lband_enabled_b"):
+        #     self._btn_spartnconfig.config(state=DISABLED, image=self._img_spartndisable)
+        #     self._lbl_spartnconfig.config(state=DISABLED)
 
         self._bind_events(True)
 
@@ -634,45 +646,18 @@ class SettingsFrame(Frame):
         self.__app.frm_spectrumview.reset()
         self.__app.reset_gnssstatus()
 
-    # def _on_update_ubx(self, var, index, mode):  # pylint: disable=unused-argument
-    #     """
-    #     UBX or SBF protocol mode has been updated.
-    #     """
-
-    #     try:
-    #         self.update()
-    #         if self._prot_ubx.get():
-    #             self._prot_sbf.set(0)
-    #             self.__app.configuration.set("sbfprot_b", int(self._prot_sbf.get()))
-    #         self.__app.configuration.set("ubxprot_b", int(self._prot_ubx.get()))
-    #         self._on_update_protocol()
-    #     except (ValueError, TclError):
-    #         pass
-
-    # def _on_update_sbf(self, var, index, mode):  # pylint: disable=unused-argument
-    #     """
-    #     UBX or SBF protocol mode has been updated.
-    #     """
-
-    #     try:
-    #         self.update()
-    #         if self._prot_sbf.get():
-    #             self._prot_ubx.set(0)
-    #             self.__app.configuration.set("ubxprot_b", int(self._prot_ubx.get()))
-    #         self.__app.configuration.set("sbfprot_b", int(self._prot_sbf.get()))
-    #         self._on_update_protocol()
-    #     except (ValueError, TclError):
-    #         pass
-
     def _on_update_tty(self, var, index, mode):  # pylint: disable=unused-argument
         """
         TTY mode has been updated.
         """
 
         try:
+            self._bind_events(False)
+            cfg = self.__app.configuration
             tty = self._prot_tty.get()
             self.update()
             if tty:
+
                 for wdg in (
                     self._prot_nmea,
                     self._prot_ubx,
@@ -683,13 +668,14 @@ class SettingsFrame(Frame):
                 ):
                     wdg.set(0)
             else:
-                self._prot_nmea.set(1)
-                self._prot_ubx.set(1)
-                self._prot_sbf.set(0)
-                self._prot_qgc.set(0)
-                self._prot_rtcm3.set(1)
-                self._prot_spartn.set(1)
-            self.__app.configuration.set("ttyprot_b", tty)
+                self._prot_nmea.set(cfg.get("nmeaprot_b"))
+                self._prot_ubx.set(cfg.get("ubxprot_b"))
+                self._prot_sbf.set(cfg.get("sbfprot_b"))
+                self._prot_qgc.set(cfg.get("qgcprot_b"))
+                self._prot_rtcm3.set(cfg.get("rtcmprot_b"))
+                self._prot_spartn.set(cfg.get("spartnprot_b"))
+            cfg.set("ttyprot_b", tty)
+            self._bind_events(True)
         except (ValueError, TclError):
             pass
 
@@ -804,6 +790,13 @@ class SettingsFrame(Frame):
 
         self.__app.start_dialog(DLGTNMEA)
 
+    def _on_tty_config(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Open TTY configuration dialog panel.
+        """
+
+        self.__app.start_dialog(DLGTTTY)
+
     def _on_ntrip_config(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
         Open NTRIP Client configuration dialog panel.
@@ -811,12 +804,12 @@ class SettingsFrame(Frame):
 
         self.__app.start_dialog(DLGTNTRIP)
 
-    def _on_spartn_config(self, *args, **kwargs):  # pylint: disable=unused-argument
-        """
-        Open SPARTN Client configuration dialog panel.
-        """
+    # def _on_spartn_config(self, *args, **kwargs):  # pylint: disable=unused-argument
+    #     """
+    #     Open SPARTN Client configuration dialog panel.
+    #     """
 
-        self.__app.start_dialog(DLGTSPARTN)
+    #     self.__app.start_dialog(DLGTSPARTN)
 
     def _on_webmap(self, *args, **kwargs):  # pylint: disable=unused-argument
         """

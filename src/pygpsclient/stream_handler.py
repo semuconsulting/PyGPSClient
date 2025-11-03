@@ -42,15 +42,24 @@ from pygnssutils import (
     SBF_PROTOCOL,
     UBX_PROTOCOL,
     GNSSReader,
+    GNSSStreamError,
     check_pemfile,
 )
-from pynmeagps import NMEAMessageError, NMEAParseError
-from pyrtcm import RTCMMessageError, RTCMParseError
-from pyubx2 import (
-    ERR_LOG,
-    UBXMessageError,
-    UBXParseError,
+from pynmeagps import NMEAMessageError, NMEAParseError, NMEAStreamError
+from pyqgc import (
+    QGCMessageError,
+    QGCParseError,
+    QGCStreamError,
+    QGCTypeError,
 )
+from pyrtcm import RTCMMessageError, RTCMParseError, RTCMStreamError
+from pysbf2 import (
+    SBFMessageError,
+    SBFParseError,
+    SBFStreamError,
+    SBFTypeError,
+)
+from pyubx2 import ERR_LOG, UBXMessageError, UBXParseError, UBXStreamError
 from pyubxutils import UBXSimulator
 from serial import Serial, SerialException, SerialTimeoutException
 
@@ -345,10 +354,22 @@ class StreamHandler:
             except (
                 UBXMessageError,
                 UBXParseError,
+                UBXStreamError,
                 NMEAMessageError,
                 NMEAParseError,
+                NMEAStreamError,
                 RTCMMessageError,
                 RTCMParseError,
+                RTCMStreamError,
+                SBFMessageError,
+                SBFParseError,
+                SBFStreamError,
+                SBFTypeError,
+                QGCMessageError,
+                QGCParseError,
+                QGCStreamError,
+                QGCTypeError,
+                GNSSStreamError,
             ) as err:
                 _errorhandler(err)
                 continue

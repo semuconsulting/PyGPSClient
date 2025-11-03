@@ -6,13 +6,13 @@
 [Instructions](#instructions) |
 [UBX Configuration](#ubxconfig) |
 [NMEA Configuration](#nmeaconfig) |
+[TTY Commands](#ttycommands) |
 [NTRIP Client](#ntripconfig) |
 [SPARTN Client](#spartnconfig) |
 [Socket Server / NTRIP Caster](#socketserver) |
 [GPX Track Viewer](#gpxviewer) |
 [Mapquest API Key](#mapquestapi) |
 [User-defined Presets](#userdefined) |
-[TTY Commands](#ttycommands) |
 [CLI Utilities](#cli) |
 [Known Issues](#knownissues) |
 [License](#license) |
@@ -123,11 +123,12 @@ For more comprehensive installation instructions, please refer to [INSTALLATION.
 1. [Socket Server / NTRIP Caster](#socketserver) facility with two modes of operation: (a) open, unauthenticated Socket Server or (b) NTRIP Caster (mountpoint = `pygnssutils`).
 1. [UBX Configuration Dialog](#ubxconfig), with the ability to send a variety of UBX CFG configuration commands to u-blox GNSS devices. This includes the facility to add **user-defined commands or command sequences** - see instructions under [user-defined presets](#userdefined) below. To display the UBX Configuration Dialog (*only functional when connected to a UBX GNSS device via serial port*), click
 ![gear icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-gear-2-24.png?raw=true), or go to Menu..Options..UBX Configuration Dialog.
-1. [NMEA Configuration Dialog](#nmeaconfig), with the ability to send a variety of NMEA configuration commands to GNSS devices (e.g. Quectel LG290P). This includes the facility to add **user-defined commands or command sequences** - see instructions under [user-defined presets](#userdefined) below. To display the NMEA Configuration Dialog (*only functional when connected to a compatible GNSS device via serial port*), click
-![gear icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-gear-2-24-brown.png?raw=true), or go to Menu..Options..NMEA Configuration Dialog.
+1. [NMEA Configuration Dialog](#nmeaconfig), with the ability to send a variety of NMEA configuration commands to GNSS devices (e.g. Quectel LG290P). This includes the facility to add **user-defined commands or command sequences** - see instructions under [user-defined presets](#userdefined) below. To display the NMEA Configuration Dialog (*only functional when connected to a compatible GNSS device via serial port*), click ![gear icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-gear-2-24-brown.png?raw=true), or go to Menu..Options..NMEA Configuration Dialog.
+1. [TTY Config Dialog](#ttycommands), with the ability to send a variety of TTY (ASCII) configuration commands to GNSS and related devices (e.g. Septentrio X5, Feyman IM19). This includes the facility to add **user-defined commands or command sequences** - see instructions under [user-defined presets](#userdefined) below. To display the TTY Commands Dialog (*only functional when connected to a compatible GNSS device via serial port*), click
+![gear icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/icon-tty-24-green.png?raw=true), or go to Menu..Options..TTY Commands.
 1. [NTRIP Client](#ntripconfig) facility with the ability to connect to a specified NTRIP caster, parse the incoming RTCM3 or SPARTN data and feed this data to a compatible GNSS receiver (*requires an Internet connection and access to an NTRIP caster and local mountpoint*). To display the NTRIP Client Configuration Dialog, click
 ![ntrip icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-antenna-4-24.png?raw=true), or go to Menu..Options..NTRIP Configuration Dialog.
-1. [SPARTN Client](#spartnconfig) facility with the ability to configure an IP or L-Band SPARTN Correction source and SPARTN-compatible GNSS receiver (e.g. ZED-F9P) and pass the incoming correction data to the GNSS receiver (*requires an Internet connection and access to a SPARTN location service*). To display the SPARTN Client Configuration Dialog, click ![spartn icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-antenna-3-24.png?raw=true), or go to Menu..Options..SPARTN Configuration Dialog.
+1. [SPARTN Client](#spartnconfig) facility with the ability to configure an IP or L-Band SPARTN Correction source and SPARTN-compatible GNSS receiver (e.g. ZED-F9P) and pass the incoming correction data to the GNSS receiver (*requires an Internet connection and access to a SPARTN location service*). To display the SPARTN Client Configuration Dialog, go to Menu..Options..SPARTN Configuration Dialog.
 1. [GPX Track Viewer](#gpxviewer) utility with elevation and speed profiles and track metadata. To display the GPX Track viewer, go to Menu..Options..GPX Track Viewer.
 
 #### <a name="config">Configuration settings</a>
@@ -224,6 +225,24 @@ confirmed ![confirmed icon](https://github.com/semuconsulting/PyGPSClient/blob/m
 warning ![warning icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-warning-1-24.png?raw=true)).
 
 **NB:** Several Quectel LG and LC series commands require a Hot Restart (PQTMHOT) before taking effect, including PQTMCFGCNST (Enable/Disable Constellations), PQTMCFGFIX (Configure Fix Rate), PQTMCFGSAT (Configure Satellite Masks) and PQTMCFGSIGNAL (Configure Signal Masks). This is a Quectel protocol constraint, not a PyGPSClient issue.
+
+---
+## <a name="ttycommands">TTY Configuration Facilities</a>
+
+![ttydialog screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/tty_dialog.png?raw=true)
+
+The TTY Commands dialog provides a facility to send user-defined ASCII TTY configuration commands (e.g. `AT+` style commands) to the connected serial device. Commands can be entered manually or selected from a list of user-defined presets. The dialog can be accessed via the TTY Config button or Menu..Options..TTY Commands. 
+- CRLF checkbox - if ticked, a CRLF (`b"\x0d\x0a"`) terminator will be added to the command string. 
+- Echo checkbox - if ticked, outgoing TTY commands will be echoed on the console with the marker `"TTY<<"`.
+- Delay checkbox - if ticked, a small delay will be added between each outgoing command to allow time for the receiving device to process the command.
+
+Preset commands can be set up by adding appropriate semicolon-delimited message descriptions and payload definitions to the `"ttypresets_l":` list in your json configuration file. See [User Defined Presets](#user-defined-presets) above and [example provided](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient.json#L302).
+
+**NOTE:** Some GNSS devices (e.g. Septentrio X5) use separate UART ports for configuration and navigation/monitoring - ensure you are using the appropriate UART port when sending TTY commands. Septentrio devices also require an 'Initialise Command Mode' sequence (`SSSSSSSSSS`) to be sent before accepting TTY commands.
+
+The following example illustrates a series of ASCII configuration commands being sent to a Septentrio Mosaic X5 receiver, followed by successful acknowledgements:
+
+![ttyconsole screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/tty_console.png?raw=true)
 
 ---
 ## <a name="ntripconfig">NTRIP Client Facilities</a>
@@ -384,22 +403,6 @@ Configure UART baud rate on LG290P; P; QTMCFGUART; W,460800; 1
 ```
 
 Multiple commands can be concatenated on a single line. Illustrative examples are shown in the sample [pygpsclient.json](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient.json#L174) file.
-
----
-## <a name="ttycommands">TTY Commands and Presets</a>
-
-![ttydialog screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/tty_dialog.png?raw=true)
-
-The TTY Commands dialog provides a facility to send user-defined ASCII TTY commands (e.g. `AT+` style commands) to the connected serial device. Commands can be entered manually or selected from a list of user-defined presets. The dialog can be accessed via menu bar Options...TTY Commands. 
-- CRLF checkbox - if ticked, a CRLF (`b"\x0d\x0a"`) terminator will be added to the command string. 
-- Echo checkbox - if ticked, outgoing TTY commands will be echoed on the console with the marker `"TTY<<"`.
-- Delay checkbox - if ticked, a small delay will be added between each outgoing command to allow time for the receiving device to process the command.
-
-Preset commands can be set up by adding appropriate semicolon-delimited message descriptions and payload definitions to the `"ttypresets_l":` list in your json configuration file. See [User Defined Presets](#user-defined-presets) above and [example provided](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient.json#L302).
-
-The following example illustrates a series of ASCII configuration commands being sent to a Septentrio Mosaic X5 receiver, followed by successful acknowledgements:
-
-![ttyconsole screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/tty_console.png?raw=true)
 
 ---
 ## <a name="cli">Command Line Utilities</a>

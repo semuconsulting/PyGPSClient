@@ -10,6 +10,8 @@ Created on 31 Oct 2025
 :license: BSD 3-Clause
 """
 
+# pylint: disable=line-too-long
+
 INIT_PRESETS = {
     "ubxpresets_l": [
         "Restore Factory Defaults CONFIRM, CFG, CFG-CFG, 1f1f0000000000001f1f000007, 1",
@@ -72,13 +74,17 @@ INIT_PRESETS = {
     ],
     "ttypresets_l": [
         "Septentrio X5 Initialise Command Mode; SSSSSSSSSS",
-        "Septentrio X5 Soft Reset to Factory Defaults;erst,soft,config",
+        "Septentrio X5 Soft Reset to Factory Defaults CONFIRM;erst,soft,config",
         "Septentrio X5 List receiver capabilities; grc",
         "Septentrio X5 List NMEA outputs; gno",
         "Septentrio X5 Enable NMEA messages; sno, Stream1, COM1, GGA+GSA+GLL+GSV+RMC+VTG, sec1",
         "Septentrio X5 Disable NMEA messages; sno, Stream1, none, none, off",
         "Septentrio X5 Enable Group stream; ssgp, Group1, MeasEpoch+PVTCartesian+DOP; sso, Stream2, COM1, Group1, sec1",
         "Septentrio X5 Disable Group stream; sso, Stream2, none, none, off",
+        "Septentrio X5 Enable RAW Group stream; ssgp, Group2, NavRawBits; sso, Stream3, COM1, Group2, sec1",
+        "Septentrio X5 Disable RAW Group stream; sso, Stream3, none, none, off",
+        "Septentrio X5 Enable RINEX Group stream; ssgp, Group2, Rinex; sso, Stream3, COM1, Group2, sec1",
+        "Septentrio X5 Disable RINEX Group stream; sso, Stream3, none, none, off",
         "Septentrio X5 Output next Measurement Epoch; esoc, COM1, MeasEpoch",
         "Septentrio X5 Enable PVTGeod stream; sso, Stream2, COM1, PVTGeod, sec1",
         "Septentrio X5 Disable PVTGeod stream; sso, Stream2, COM1, none, none",
@@ -87,6 +93,9 @@ INIT_PRESETS = {
         "Septentrio X5 Set Fixed Base Station Mode; setDataInOut,COM1, ,RTCMv3;setRTCMv3Formatting,1234;setStaticPosGeodetic,Geodetic1,37.23345,-115.81513,15;setPVTMode,Static, ,Geodetic1",
         "Septentrio X5 Set Survey-In Base Station Mode;setDataInOut,COM1, ,RTCMv3;setRTCMv3Formatting,1234;setPVTMode,Static, ,auto",
         "Septentrio X5 Stop RTCM output;setDataInOut,COM1, ,none",
+        "Feyman IM19 Tilt Survey Setup; AT+LOAD_DEFAULT; AT+GNSS_PORT=PHYSICAL_UART2; AT+NASC_OUTPUT=UART1,ON; AT+LEVER_ARM2=0.0057,-0.0732,-0.0645; AT+CLUB_VECTOR=0,0,1.865; AT+INSTALL_ANGLE=0,180,0; AT+GNSS_CARD=OEM; AT+WORK_MODE=408; AT+CORRECT_HOLDER=ENABLE; AT+SET_PPS_EDGE=RISING; AT+AHRS=ENABLE; AT+MAG_AUTO_SAVE=ENABLE; AT+SAVE_ALL",
+        "Feyman IM19 System reset CONFIRM; AT+SYSTEM_RESET",
+        "Feyman IM19 Save the parameters CONFIRM; AT+SAVE_ALL",
     ],
 }
 """Initial user-defined presets"""

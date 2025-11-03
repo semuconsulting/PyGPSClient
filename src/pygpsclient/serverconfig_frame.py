@@ -47,7 +47,6 @@ from pyubx2 import SET_LAYER_RAM, TXN_NONE, UBXMessage
 from pygpsclient.globals import (
     ASCII,
     BSR,
-    DEFAULT_TLS_PORTS,
     DISCONNECTED,
     ERRCOL,
     ICON_CONTRACT,
