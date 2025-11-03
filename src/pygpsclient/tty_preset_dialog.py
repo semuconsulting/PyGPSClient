@@ -285,7 +285,7 @@ class TTYPresetDialog(ToplevelDialog):
                     cmd += CRLF
                 self.__app.send_to_device(cmd)
                 if self._echo.get():  # echo output command to console
-                    self.__app._consoledata.append(
+                    self.__app.consoledata.append(
                         (cmd, cmd.decode(ASCII, errors=BSR), TTYMARKER)
                     )
         except Exception as err:  # pylint: disable=broad-except

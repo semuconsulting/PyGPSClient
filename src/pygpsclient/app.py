@@ -196,7 +196,7 @@ class App(Frame):
         self._socket_server = None
         self._colcount = 0
         self._rowcount = 0
-        self._consoledata = []
+        self.consoledata = []
 
         # load config from json file
         configfile = kwargs.pop("config", CONFIGFILE)
@@ -893,7 +893,7 @@ class App(Frame):
         if self.widget_state.state[WDGCONSOLE][VISIBLE] and (
             msgprot in (0, MQTT_PROTOCOL) or msgprot & protfilter
         ):
-            self._consoledata.append((raw_data, parsed_data, marker))
+            self.consoledata.append((raw_data, parsed_data, marker))
 
         # periodically update widgets if visible
         if datetime.now() > self._last_gui_update + timedelta(
@@ -939,8 +939,8 @@ class App(Frame):
             frm = getattr(self, wdgdata[FRAME])
             if hasattr(frm, "update_frame") and wdgdata[VISIBLE]:
                 if wdg == WDGCONSOLE:
-                    frm.update_frame(self._consoledata)
-                    self._consoledata = []
+                    frm.update_frame(self.consoledata)
+                    self.consoledata = []
                 else:
                     frm.update_frame()
 
