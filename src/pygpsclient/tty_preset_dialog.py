@@ -38,8 +38,8 @@ from pygpsclient.globals import (
     ERRCOL,
     INFOCOL,
     OKCOL,
-    TTY_EVENT,
     TTYERR,
+    TTYMARKER,
     TTYOK,
 )
 from pygpsclient.strings import (
@@ -284,10 +284,10 @@ class TTYPresetDialog(ToplevelDialog):
                 if self._crlf.get():
                     cmd += CRLF
                 self.__app.send_to_device(cmd)
-                # self.logger.debug(f"command sent {cmd=}")
                 if self._echo.get():  # echo output command to console
-                    self.__app.gnss_inqueue.put((cmd, cmd.decode(ASCII, errors=BSR)))
-                    self.__master.event_generate(TTY_EVENT)
+                    self.__app._consoledata.append(
+                        (cmd, cmd.decode(ASCII, errors=BSR), TTYMARKER)
+                    )
         except Exception as err:  # pylint: disable=broad-except
             self.set_status(f"Error {err}", ERRCOL)
             self._lbl_send_command.config(image=self.img_warn)

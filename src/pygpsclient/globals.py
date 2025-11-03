@@ -297,7 +297,6 @@ TOPIC_IP = "/pp/ip/{}"
 TOPIC_MGA = "/pp/ubx/mga"
 TOPIC_RXM = "/pp/ubx/0236/ip"
 TRACK = "track"
-TTY_EVENT = "<<tty_read>>"
 
 TTYOK = ("OK", "$R:")
 TTYERR = ("ERROR", "$R?")
