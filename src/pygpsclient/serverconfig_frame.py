@@ -40,9 +40,9 @@ from tkinter import (
 from tkinter.ttk import Progressbar
 
 from PIL import Image, ImageTk
-from pygnssutils import RTCMTYPES
+from pygnssutils import RTCMTYPES, check_pemfile
 from pynmeagps import SET, NMEAMessage, ecef2llh, llh2ecef
-from pyubx2 import UBXMessage
+from pyubx2 import SET_LAYER_RAM, TXN_NONE, UBXMessage
 
 from pygpsclient.globals import (
     ASCII,
@@ -60,9 +60,8 @@ from pygpsclient.globals import (
     SERVERCONFIG,
     SOCK_NTRIP,
     SOCKMODES,
-    SOCKSERVER_NTRIP_PORT,
-    SOCKSERVER_PORT,
     ZED_F9,
+    ZED_X20,
 )
 from pygpsclient.helpers import (
     MAXPORT,
@@ -76,6 +75,7 @@ from pygpsclient.helpers import (
     valid_entry,
 )
 from pygpsclient.strings import (
+    DLGNOTLS,
     LBLACCURACY,
     LBLCONFIGBASE,
     LBLDISNMEA,
@@ -147,13 +147,14 @@ class ServerConfigFrame(Frame):
         self._container = container
         self._show_advanced = False
         self._socket_serve = IntVar()
-        self.sock_port = IntVar()
+        self.sock_port = StringVar()
         self.sock_host = StringVar()
         self.sock_mode = StringVar()
         self._sock_clients = StringVar()
         # self._set_basemode = IntVar()
         self.receiver_type = StringVar()
         self.base_mode = StringVar()
+        self.https = IntVar()
         self.acclimit = IntVar()
         self.duration = IntVar()
         self.pos_mode = StringVar()
@@ -166,7 +167,6 @@ class ServerConfigFrame(Frame):
         self._img_expand = ImageTk.PhotoImage(Image.open(ICON_EXPAND))
         self._img_contract = ImageTk.PhotoImage(Image.open(ICON_CONTRACT))
         self._img_send = ImageTk.PhotoImage(Image.open(ICON_SEND))
-        self._sock_port_temp = SOCKSERVER_PORT
         self._fixed_lat_temp = 0
         self._fixed_lon_temp = 0
         self._fixed_hae_temp = 0
@@ -211,6 +211,11 @@ class ServerConfigFrame(Frame):
             textvariable=self.sock_host,
             relief="sunken",
             width=12,
+        )
+        self._chk_https = Checkbutton(
+            self._frm_basic,
+            text="TLS",
+            variable=self.https,
         )
         self._lbl_publicipl = Label(
             self._frm_basic,
@@ -285,7 +290,7 @@ class ServerConfigFrame(Frame):
         )
         self._spn_rcvrtype = Spinbox(
             self._frm_advanced,
-            values=(ZED_F9, LG290P, LC29H, MOSAIC_X5),
+            values=(ZED_F9, ZED_X20, LG290P, LC29H, MOSAIC_X5),
             width=18,
             state=READONLY,
             wrap=True,
@@ -394,14 +399,15 @@ class ServerConfigFrame(Frame):
         self._spn_sockmode.grid(column=3, row=0, padx=2, pady=1, sticky=W)
         self._lbl_sockhost.grid(column=0, row=2, padx=2, pady=1, sticky=W)
         self._ent_sockhost.grid(column=1, row=2, padx=2, pady=1, sticky=W)
-        self._lbl_sockport.grid(column=2, row=2, padx=2, pady=1, sticky=W)
-        self._ent_sockport.grid(column=3, row=2, padx=2, pady=1, sticky=W)
-        self._lbl_publicipl.grid(column=0, row=3, padx=2, pady=1, sticky=W)
-        self._lbl_publicip.grid(column=1, row=3, padx=2, pady=1, sticky=W)
-        self._lbl_lanipl.grid(column=0, row=4, padx=2, pady=1, sticky=W)
-        self._lbl_lanip.grid(column=1, row=4, padx=2, pady=1, sticky=W)
-        self._lbl_clients.grid(column=2, row=3, rowspan=2, padx=2, pady=1, sticky=W)
-        self._lbl_sockclients.grid(column=3, row=3, rowspan=2, padx=2, pady=1, sticky=W)
+        self._lbl_clients.grid(column=2, row=2, padx=2, pady=1, sticky=W)
+        self._lbl_sockclients.grid(column=3, row=2, padx=2, pady=1, sticky=W)
+        self._lbl_sockport.grid(column=0, row=3, padx=2, pady=1, sticky=W)
+        self._ent_sockport.grid(column=1, row=3, padx=2, pady=1, sticky=W)
+        self._chk_https.grid(column=2, row=3, columnspan=2, padx=2, pady=1, sticky=W)
+        self._lbl_publicipl.grid(column=0, row=4, padx=2, pady=1, sticky=W)
+        self._lbl_publicip.grid(column=1, row=4, padx=2, pady=1, sticky=W)
+        self._lbl_lanipl.grid(column=2, row=4, padx=2, pady=1, sticky=W)
+        self._lbl_lanip.grid(column=3, row=4, padx=2, pady=1, sticky=W)
         self._btn_toggle.grid(column=4, row=0, sticky=E)
         self._frm_advanced.grid_forget()
         self._lbl_configure_base.grid(column=0, row=0, padx=2, pady=2, sticky=W)
@@ -432,13 +438,25 @@ class ServerConfigFrame(Frame):
         self.fixedhae.set(cfg.get("ntripcasterfixedalt_f"))
         self.disable_nmea.set(cfg.get("ntripcasterdisablenmea_b"))
         self.sock_host.set(cfg.get("sockhost_s"))
+        https = cfg.get("sockhttps_b")
+        pem, pemexists = check_pemfile()
+        if https and not pemexists:
+            err = DLGNOTLS.format(hostpem=pem)
+            self.__app.set_status(err, ERRCOL)
+            self.logger.error(err)
+            cfg.set("sockhttps_b", 0)
+            self._chk_https.config(state=DISABLED)
+            https = 0
+        self.https.set(https)
         self._lbl_publicip.config(text=publicip())
         self._lbl_lanip.config(text=lanip())
-        self.sock_port.set(cfg.get("sockport_n"))
+        if cfg.get("sockmode_b"):  # NTRIP CASTER
+            self.sock_port.set(cfg.get("sockportntrip_n"))
+        else:  # SOCKET SERVER
+            self.sock_port.set(cfg.get("sockport_n"))
         self.user.set(cfg.get("ntripcasteruser_s"))
         self.password.set(cfg.get("ntripcasterpassword_s"))
         self.clients = 0
-        self._sock_port_temp = self.sock_port.get()
         self._fixed_lat_temp = self.fixedlat.get()
         self._fixed_lon_temp = self.fixedlon.get()
         self._fixed_hae_temp = self.fixedhae.get()
@@ -458,25 +476,28 @@ class ServerConfigFrame(Frame):
         :param bool add: add or remove binding
         """
 
-        tracemode = ("write", "unset")
+        tracemode = "write"
         if add:
             self._socket_serve.trace_add(tracemode, self._on_socket_serve)
             self.sock_mode.trace_add(tracemode, self._on_sockmode)
             self.base_mode.trace_add(tracemode, self._on_basemode)
             self.pos_mode.trace_add(tracemode, self._on_posmode)
+            self.sock_port.trace_add(tracemode, self._on_sockport)
+            self.https.trace_add(tracemode, self._on_https)
         else:
             for setting in (
                 self._socket_serve,
                 self.sock_mode,
                 self.base_mode,
                 self.pos_mode,
+                self.sock_port,
+                self.https,
             ):
                 if len(setting.trace_info()) > 0:
                     setting.trace_remove(tracemode, setting.trace_info()[0][1])
 
         tracemode = "write"
         for setting in (
-            self.sock_port,
             self.sock_host,
             self.receiver_type,
             self.acclimit,
@@ -510,10 +531,9 @@ class ServerConfigFrame(Frame):
             cfg.set("ntripcasterfixedalt_f", float(self.fixedhae.get()))
             cfg.set("ntripcasterdisablenmea_b", self.disable_nmea.get())
             cfg.set("sockhost_s", self.sock_host.get())
-            cfg.set("sockport_n", int(self.sock_port.get()))
             cfg.set("ntripcasteruser_s", self.user.get())
             cfg.set("ntripcasterpassword_s", self.password.get())
-            # self.sockserve, self.sock_mode, self.base_mode & self.pos_mode
+            # self.sockserve, self.sock_mode, self.base_mode, self.pos_mode & self.https
             # are updated in their respective routines below
         except (ValueError, TclError):
             pass
@@ -565,7 +585,6 @@ class ServerConfigFrame(Frame):
             # start server
             self.__app.start_sockserver_thread()
             self.__app.stream_handler.sock_serve = True
-            self._sock_port_temp = self.sock_port.get()
             self._fixed_lat_temp = self.fixedlat.get()
             self._fixed_lon_temp = self.fixedlon.get()
             self._fixed_hae_temp = self.fixedhae.get()
@@ -578,6 +597,7 @@ class ServerConfigFrame(Frame):
         for wid in (
             self._ent_sockhost,
             self._ent_sockport,
+            self._chk_https,
             self._spn_sockmode,
             self._spn_rcvrtype,
             self._lbl_basemode,
@@ -650,17 +670,50 @@ class ServerConfigFrame(Frame):
         """
 
         if self.sock_mode.get() == SOCK_NTRIP:
-            self.sock_port.set(SOCKSERVER_NTRIP_PORT)
             self._btn_toggle.config(state=NORMAL)
             self._show_advanced = True
-            sockmode = 1
+            self.__app.configuration.set("sockmode_b", 1)
+            self.sock_port.set(self.__app.configuration.get("sockportntrip_n"))
         else:
-            self.sock_port.set(self._sock_port_temp)
             self._btn_toggle.config(state=DISABLED)
             self._show_advanced = False
-            sockmode = 0
+            self.__app.configuration.set("sockmode_b", 0)
+            self.sock_port.set(self.__app.configuration.get("sockport_n"))
         self._set_advanced()
-        self.__app.configuration.set("sockmode_b", sockmode)
+
+    def _on_sockport(self, var, index, mode):
+        """
+        Action when socket port is updated.
+        """
+
+        valid = valid_entry(self._ent_sockport, VALINT, 1, MAXPORT)
+        try:
+            if self.__app.configuration.get("sockmode_b"):  # NTRIP CASTER
+                self.__app.configuration.set(
+                    "sockportntrip_n", int(self.sock_port.get())
+                )
+            else:  # SOCKER SERVER
+                self.__app.configuration.set("sockport_n", int(self.sock_port.get()))
+            # if port ends 443, assume HTTPS; user can override
+            self.https.set(str(self.sock_port.get())[-3:] == "443")
+        except ValueError:
+            pass
+
+    def _on_https(self, var, index, mode):
+        """
+        Action when https flag is updated.
+        """
+
+        pem, pemexists = check_pemfile()
+        if self.https.get() and not pemexists:
+            err = DLGNOTLS.format(hostpem=pem)
+            self.__app.set_status(err, ERRCOL)
+            self.logger.error(err)
+            self._bind_events(False)
+            self.https.set(0)
+            self._chk_https.config(state=DISABLED)
+            self._bind_events(True)
+        self.__app.configuration.set("sockhttps_b", self.https.get())
 
     def _on_basemode(self, var, index, mode):
         """
@@ -843,12 +896,12 @@ class ServerConfigFrame(Frame):
             else:  # raw bytes
                 self.__app.send_to_device(cmd)
 
-        if self.receiver_type.get() == ZED_F9:
+        if self.receiver_type.get() in (ZED_F9, ZED_X20):
             # set RTCM and UBX NAV-SVIN message output rate
             rate = 0 if self.base_mode.get() == BASE_DISABLED else 1
             for port in ("USB", "UART1"):
-                msg = self._config_msg_rates(rate, port)
-                self.__app.send_to_device(msg.serialize())
+                self._config_msg_rates(rate, port)
+                # self.__app.send_to_device(msg.serialize())
                 msg = config_nmea(self.disable_nmea.get(), port)
                 self.__app.send_to_device(msg.serialize())
         elif self.receiver_type.get() == LG290P:
@@ -867,20 +920,20 @@ class ServerConfigFrame(Frame):
         :param str port_type: port that rcvr is connected on
         """
 
-        layers = 1  # 1 = RAM, 2 = BBR, 4 = Flash (can be OR'd)
-        transaction = 0
-        cfg_data = []
+        layers = SET_LAYER_RAM
+        transaction = TXN_NONE
         for rtcm_type, mrate in RTCMTYPES.items():
-
             cfg = f"CFG_MSGOUT_RTCM_3X_TYPE{rtcm_type}_{port_type}"
-            cfg_data.append([cfg, mrate if rate else 0])
+            cfg_data = [(cfg, mrate if rate else 0)]
+            msg = UBXMessage.config_set(layers, transaction, cfg_data)
+            self.__app.send_to_device(msg.serialize())
 
         # NAV-SVIN only output in SURVEY-IN mode
         rate = rate if self.base_mode.get() == BASE_SVIN else 0
         cfg = f"CFG_MSGOUT_UBX_NAV_SVIN_{port_type}"
-        cfg_data.append([cfg, rate])
-
-        return UBXMessage.config_set(layers, transaction, cfg_data)
+        cfg_data = [(cfg, rate)]
+        msg = UBXMessage.config_set(layers, transaction, cfg_data)
+        self.__app.send_to_device(msg.serialize())
 
     def _config_disable(self) -> object:
         """
@@ -906,8 +959,8 @@ class ServerConfigFrame(Frame):
         :rtype: UBXMessage
         """
 
-        layers = 1
-        transaction = 0
+        layers = SET_LAYER_RAM
+        transaction = TXN_NONE
         cfg_data = [
             ("CFG_TMODE_MODE", TMODE_DISABLED),
         ]
@@ -989,8 +1042,8 @@ class ServerConfigFrame(Frame):
         :rtype: UBXMessage
         """
 
-        layers = 1
-        transaction = 0
+        layers = SET_LAYER_RAM
+        transaction = TXN_NONE
         acc_limit = int(acc_limit * 100)  # convert to 0.1 mm
         cfg_data = [
             ("CFG_TMODE_MODE", TMODE_SVIN),
@@ -1122,8 +1175,8 @@ class ServerConfigFrame(Frame):
         :rtype: UBXMessage
         """
 
-        layers = 1
-        transaction = 0
+        layers = SET_LAYER_RAM
+        transaction = TXN_NONE
         acc_limit = int(acc_limit * 100)  # convert to 0.1 mm
         if self.pos_mode.get() == POS_LLH:
             lat_sp, lat_hp = val2sphp(lat, 1e-7)

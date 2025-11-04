@@ -77,6 +77,7 @@ ACTIVE = ""
 MODEINIT = "init"
 MODELIVE = "live"
 MODESNAP = "snap"
+MAXWAIT = 10
 
 
 class SpectrumviewFrame(Frame):
@@ -112,6 +113,7 @@ class SpectrumviewFrame(Frame):
         self._chartpos = None
         self._spectrum_snapshot = []
         self._pgaoffset = IntVar()
+        self._waits = 0
         self._font = self.__app.font_sm
         self._fonth = fontheight(self._font)
         self._body()
@@ -264,6 +266,7 @@ class SpectrumviewFrame(Frame):
         for msgid in ("ACK-ACK", "ACK-NAK"):
             self._set_pending(msgid, SPECTRUMVIEW)
         self._monspan_status = DLGWAITMONSPAN
+        self.init_frame()
 
     def _set_pending(self, msgid: int, ubxfrm: int):
         """
@@ -312,9 +315,16 @@ class SpectrumviewFrame(Frame):
         """
 
         rfblocks = self.__app.gnss_status.spectrum_data
+        # if len(rfblocks) == 0:
+        #     return
         if len(rfblocks) == 0:
-            return
-        self._monspan_status = ACTIVE
+            if self._waits >= MAXWAIT:
+                self._monspan_status = DLGNOMONSPAN
+            else:
+                self._waits += 1
+        else:
+            self._waits = 0
+            self._monspan_status = ACTIVE
         self._update_plot(rfblocks)
 
         if self._spectrum_snapshot != []:

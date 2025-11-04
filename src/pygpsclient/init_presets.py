@@ -1,0 +1,105 @@
+"""
+init_presets.py
+
+Initial set of UBX, NMEA and TTY preset commands.
+
+Created on 31 Oct 2025
+
+:author: semuadmin (Steve Smith)
+:copyright: 2020 semuadmin
+:license: BSD 3-Clause
+"""
+
+# pylint: disable=line-too-long
+
+INIT_PRESETS = {
+    "ubxpresets_l": [
+        "Restore Factory Defaults CONFIRM, CFG, CFG-CFG, 1f1f0000000000001f1f000007, 1",
+        "Save Configuration to BBR CONFIRM, CFG, CFG-CFG, 000000001f1f00000000000001, 1",
+        "Save Configuration to Flash CONFIRM, CFG, CFG-CFG, 000000001f1f00000000000002, 1",
+        "Save Configuration to EEPROM CONFIRM, CFG, CFG-CFG, 000000001f1f00000000000004, 1",
+        "Force HOT Reset (!WILL REQUIRE RECONNECTION!) CONFIRM, CFG, CFG-RST, 00000000, 1",
+        "Force WARM Reset (!WILL REQUIRE RECONNECTION!) CONFIRM, CFG, CFG-RST, 00010000, 1",
+        "Force COLD Reset (!WILL REQUIRE RECONNECTION!) CONFIRM, CFG, CFG-RST, ffff0000, 1",
+        "Stop GNSS, CFG, CFG-RST, 00000800, 1",
+        "Start GNSS, CFG, CFG-RST, 00000900, 1",
+        "Enable NMEA Protocol on USB, CFG, CFG-VALSET, 000100000200781001, 1",
+        "Disable NMEA Protocol on USB, CFG, CFG-VALSET, 000100000200781000, 1",
+        "Enable NMEA Protocol on UART1, CFG, CFG-VALSET, 000100000200741001, 1",
+        "Disable NMEA Protocol on UART1, CFG, CFG-VALSET, 000100000200741000, 1",
+        "Enable UBX Protocol on USB, CFG, CFG-VALSET, 000100000100781001, 1",
+        "Disable UBX Protocol on USB, CFG, CFG-VALSET, 000100000100781000, 1",
+        "Enable UBX Protocol on UART1, CFG, CFG-VALSET, 000100000100741001, 1",
+        "Disable UBX Protocol on UART1, CFG, CFG-VALSET, 000100000100741000, 1",
+        "Enable UBX NAV PVT/SAT/DOP USB, CFG, CFG-VALSET, 00010000090091200118009120013b00912001, 1",
+        "Disable UBX NAV PVT/SAT/DOP USB, CFG, CFG-VALSET, 00010000090091200018009120003b00912000, 1",
+        "Enable UBX NAV PVT/SAT/DOP UART1, CFG, CFG-VALSET, 00010000070091200116009120013900912001, 1",
+        "Disable UBX NAV PVT/SAT/DOP UART1, CFG, CFG-VALSET, 00010000070091200016009120003900912000, 1",
+        "Enable UBX NAV HPPOSLLH/ECEF High Precision USB, CFG, CFG-VALSET, 000100003600912001, 1",
+        "Disable UBX NAV HPPOSLLH/ECEF High Precision USB, CFG, CFG-VALSET, 0001000036009120003100912000, 1",
+        "Enable UBX NAV HPPOSLLH/ECEF High Precision UART1, CFG, CFG-VALSET, 0001000034009120012f00912001, 1",
+        "Disable UBX NAV HPPOSLLH/ECEF High Precision UART1, CFG, CFG-VALSET, 0001000034009120002f00912000, 1",
+        "Enable UBX RXM COR Correction Status USB, CFG, CFG-VALSET, 00010000b906912001, 1",
+        "Disable UBX RXM COR Correction Status USB, CFG, CFG-VALSET, 00010000b906912000, 1",
+        "Enable UBX RXM COR Correction Status UART1, CFG, CFG-VALSET, 00010000b706912001, 1",
+        "Disable UBX RXM COR Correction Status UART1, CFG, CFG-VALSET, 00010000b706912000, 1",
+        "Enable UBX RXM RAW/SUBFRAME USB, CFG, CFG-VALSET, 00010000a7029120013402912001, 1",
+        "Disable UBX RXM RAW/SUBFRAME USB, CFG, CFG-VALSET, 00010000a7029120003402912000, 1",
+        "Enable UBX RXM RAW/SUBFRAME UART1, CFG, CFG-VALSET, 00010000a5029120013202912001, 1",
+        "Disable UBX RXM RAW/SUBFRAME UART1, CFG, CFG-VALSET, 00010000a5029120003202912000, 1",
+        "Enable UBX MON Monitoring USB, CFG, CFG-VALSET, 00010000520391200157039120015c039120018a01912001a006912001, 1",
+        "Disable UBX MON Monitoring USB, CFG, CFG-VALSET, 00010000520391200057039120005c039120008a01912000a006912000, 1",
+        "Enable UBX MON Monitoring UART1, CFG, CFG-VALSET, 00010000500391200155039120015a0391200188019120019e06912001, 1",
+        "Disable UBX MON Monitoring UART1, CFG, CFG-VALSET, 00010000500391200055039120005a0391200088019120009e06912000, 1",
+        "Enable NMEA Proprietary PUBX00/03 USB, CFG, CFG-VALSET, 00010000ef00912001f400912001, 1",
+        "Disable NMEA Proprietary PUBX00/03 USB, CFG, CFG-VALSET, 00010000ef00912000f400912000, 1",
+        "Enable NMEA Proprietary PUBX00/03 UART1, CFG, CFG-VALSET, 00010000ed00912001f200912001, 1",
+        "Disable NMEA Proprietary PUBX00/03 UART1, CFG, CFG-VALSET, 00010000ed00912000f200912000, 1",
+        "Enable NMEA High Precision, CFG, CFG-VALSET, 000100000600931001, 1",
+        "Disable NMEA High Precision, CFG, CFG-VALSET, 000100000600931000, 1",
+        "Set UART1 Baudrate to 115200, CFG, CFG-VALSET, 000100000100524000c20100, 1",
+        "Set UART2 Baudrate to 115200, CFG, CFG-VALSET, 000100000100534000c20100, 1",
+        "Poll UART1/2 Baudrates, CFG, CFG-VALGET, 000000000100524001005340, 2",
+    ],
+    "nmeapresets_l": [
+        "Quectel Restore Factory Defaults CONFIRM; P; QTMRESTOREPAR; ; 1",
+        "Quectel Save Configuration to NVM CONFIRM; P; QTMSAVEPAR; ; 1",
+        "Quectel HOT restart CONFIRM; P; QTMHOT; ; 1",
+        "Quectel WARM restart CONFIRM; P; QTMWARM; ; 1",
+        "Quectel COLD restart CONFIRM; P; QTMCOLD; ; 1",
+        "Quectel System Reset and Reboot CONFIRM; P; QTMSRR; ; 1",
+        "Quectel Check Hardware Version; P; QTMVERNO; ; 2",
+        "Quectel Start GNSS; P; QTMGNSSSTART; ; 1",
+        "Quectel Stop GNSS; P; QTMGNSSSTOP; ; 1",
+    ],
+    "ttypresets_l": [
+        "Septentrio X5 Initialise Command Mode; SSSSSSSSSS",
+        "Septentrio X5 Restore Factory Defaults CONFIRM; eccf, RxDefault, Boot",
+        "Septentrio X5 Save Current Configuration to NVM CONFIRM; eccf, Current, Boot",
+        "Septentrio X5 Soft Reset to Factory Defaults CONFIRM; erst, soft, config",
+        "Septentrio X5 Check Current Configuration File; lcf, Current",
+        "Septentrio X5 List receiver capabilities; grc",
+        "Septentrio X5 List NMEA outputs; gno",
+        "Septentrio X5 List Command Help; help",
+        "Septentrio X5 Enable NMEA messages; sno, Stream1, COM1, GGA+GSA+GLL+GSV+RMC+VTG, sec1",
+        "Septentrio X5 Disable NMEA messages; sno, Stream1, none, none, off",
+        "Septentrio X5 Enable PVT Group stream; ssgp, Group1, MeasEpoch+PVTCartesian+DOP+DiffCorr; sso, Stream2, COM1, Group1, sec1",
+        "Septentrio X5 Disable PVT Group stream; sso, Stream2, none, none, off",
+        "Septentrio X5 Enable RAW Group stream; ssgp, Group2, RawNavBits; sso, Stream3, COM1, Group2, sec1",
+        "Septentrio X5 Disable RAW Group stream; sso, Stream3, none, none, off",
+        "Septentrio X5 Enable RINEX Group stream; ssgp, Group3, Rinex; sso, Stream4, COM1, Group3, sec1",
+        "Septentrio X5 Disable RINEX Group stream; sso, Stream4, none, none, off",
+        "Septentrio X5 Output next Measurement Epoch; esoc, COM1, MeasEpoch",
+        "Septentrio X5 Enable PVTGeod stream; sso, Stream2, COM1, PVTGeod, sec1",
+        "Septentrio X5 Disable PVTGeod stream; sso, Stream2, COM1, none, none",
+        "Septentrio X5 Enable Status stream; sso, Stream3, COM1, Status, sec1",
+        "Septentrio X5 Disable Status stream; sso, Stream3, COM1, none, none",
+        "Septentrio X5 Set Fixed Base Station Mode; setDataInOut,COM1, ,RTCMv3;setRTCMv3Formatting,1234;setStaticPosGeodetic,Geodetic1,37.23345,-115.81513,15;setPVTMode,Static, ,Geodetic1",
+        "Septentrio X5 Set Survey-In Base Station Mode;setDataInOut,COM1, ,RTCMv3;setRTCMv3Formatting,1234;setPVTMode,Static, ,auto",
+        "Septentrio X5 Stop RTCM output;setDataInOut,COM1, ,none",
+        "Feyman IM19 Tilt Survey Setup; AT+LOAD_DEFAULT; AT+GNSS_PORT=PHYSICAL_UART2; AT+NASC_OUTPUT=UART1,ON; AT+LEVER_ARM2=0.0057,-0.0732,-0.0645; AT+CLUB_VECTOR=0,0,1.865; AT+INSTALL_ANGLE=0,180,0; AT+GNSS_CARD=OEM; AT+WORK_MODE=408; AT+CORRECT_HOLDER=ENABLE; AT+SET_PPS_EDGE=RISING; AT+AHRS=ENABLE; AT+MAG_AUTO_SAVE=ENABLE; AT+SAVE_ALL",
+        "Feyman IM19 System reset CONFIRM; AT+SYSTEM_RESET",
+        "Feyman IM19 Save the parameters CONFIRM; AT+SAVE_ALL",
+    ],
+}
+"""Initial user-defined presets"""

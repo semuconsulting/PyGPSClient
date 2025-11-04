@@ -38,8 +38,8 @@ from pygpsclient.globals import (
     ERRCOL,
     INFOCOL,
     OKCOL,
-    TTY_EVENT,
     TTYERR,
+    TTYMARKER,
     TTYOK,
 )
 from pygpsclient.strings import (
@@ -201,10 +201,9 @@ class TTYPresetDialog(ToplevelDialog):
         self._crlf.set(self.__app.configuration.get("ttycrlf_b"))
         self._echo.set(self.__app.configuration.get("ttyecho_b"))
         self._delay.set(self.__app.configuration.get("ttydelay_b"))
-        idx = 0
-        for tcmd in self.__app.configuration.get("ttypresets_l"):
-            self._lbx_preset.insert(idx, tcmd)
-            idx += 1
+        self.__app.configuration.init_presets("tty")
+        for i, preset in enumerate(self.__app.configuration.get("ttypresets_l")):
+            self._lbx_preset.insert(i, preset)
 
     def _on_update_command(self, var, index, mode):  # pylint: disable=unused-argument
         """
@@ -285,10 +284,10 @@ class TTYPresetDialog(ToplevelDialog):
                 if self._crlf.get():
                     cmd += CRLF
                 self.__app.send_to_device(cmd)
-                # self.logger.debug(f"command sent {cmd=}")
                 if self._echo.get():  # echo output command to console
-                    self.__app.gnss_inqueue.put((cmd, cmd.decode(ASCII, errors=BSR)))
-                    self.__master.event_generate(TTY_EVENT)
+                    self.__app.consoledata.append(
+                        (cmd, cmd.decode(ASCII, errors=BSR), TTYMARKER)
+                    )
         except Exception as err:  # pylint: disable=broad-except
             self.set_status(f"Error {err}", ERRCOL)
             self._lbl_send_command.config(image=self.img_warn)

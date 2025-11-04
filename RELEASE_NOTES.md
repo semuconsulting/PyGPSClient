@@ -1,5 +1,30 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.5.18
+
+ENHANCEMENTS:
+
+1. Add TTY Config button to main Settings Panel and remove SPARTN Config button (SPARTN Config can still be accessed via Menu..Options..SPARTN Configuration but is now [deprecated](https://github.com/semuconsulting/PyGPSClient/blob/master/SPARTN.md)). TTY Config uses traditional TTY (ASCII) commands to configure devices such as the Septentrio Mosaic X5.
+1. UBX, NMEA and TTY user-defined preset configuration settings `"ubxpresets_l"`, `"nmeapresets_l"` and `"ttypresets_l"` are now pre-populated with an initial set of commands on startup. Once saved to a \*.json configuration file, these initial commands can be removed, amended or supplemented in accordance with the user's preferences.
+
+   To reinstate the initial set of user-defined presets at a later date, insert the item `"INIT_PRESETS"` at the top of the `"ubxpresets_l"`. `"nmeapresets_l"` or `"ttypresets_l"` configuration setting.
+
+   In the case of UBX, these initial commands replace the existing 24 'hard-coded' UBX commands (*some of which are now out of date*). **NOTE** the initial UBX `CFG-VALSET` commands supplied all take effect in the volatile RAM memory layer - to persist these configurations, select 'Save Configuration to BBR' (or other non-volatile memory).
+
+1. Allow self-sign certification for TLS (HTTPS) connections (requires `pygnssutils>=1.1.19`) - previously these would have been rejected with an SSL error. Self-sign certificate/key location can be set via environment variable `PYGNSSUTILS_PEMPATH`; default is `$HOME/pygnssutils.pem`. A self-signed pem file suitable for test and demonstration purposes can be created interactively thus:
+   ```shell
+   openssl req -x509 -newkey rsa:4096 -keyout pygnssutils.pem -out pygnssutils.pem -sha256 -days 3650 -nodes
+   ```
+1. Update list of 'recognised' GNSS receiver serial port designators to include `IOUSBHostDevice` (Sparkfun ZED-X20P breakout) and `USB Dual_Serial` (Sparkfun Flex Breakout).
+
+FIXES:
+
+1. Fix "SQLError Database not open" issue on initialisation.
+1. Fix issue where TTY Console would not refresh immediately if Echo was enabled.
+1. Fix issue where ValueError (unknown protocol) from GNSSReader would cause streaming to terminate (requires `pygnssutils>=1.1.20`).
+1. Fix issue with some ZED-X20P configuration commands not taking effect with firmware HPG 2.02.
+1. Fixed issue which prevented some warning messages being shown during initialisation.
+
 ### RELEASE 1.5.17
 
 ENHANCEMENTS:

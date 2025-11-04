@@ -78,6 +78,7 @@ class SocketConfigFrame(Frame):
         self.server = StringVar()
         self.port = IntVar()
         self.https = IntVar()
+        self.selfsign = IntVar()
         self.protocol = StringVar()
 
         self._img_expand = ImageTk.PhotoImage(Image.open(ICON_EXPAND))
@@ -118,10 +119,9 @@ class SocketConfigFrame(Frame):
             state=READONLY,
             wrap=True,
         )
-        self._lbl_https = Label(self._frm_basic, text="HTTPS?")
-        self._chk_https = Checkbutton(
-            self._frm_basic,
-            variable=self.https,
+        self._chk_https = Checkbutton(self._frm_basic, variable=self.https, text="TLS")
+        self._chk_selfsign = Checkbutton(
+            self._frm_basic, variable=self.selfsign, text="Self Sign"
         )
 
     def _do_layout(self):
@@ -136,10 +136,10 @@ class SocketConfigFrame(Frame):
         )
         self._lbl_port.grid(column=0, row=1, padx=2, pady=2, sticky=W)
         self.ent_port.grid(column=1, row=1, padx=2, pady=2, sticky=W)
-        self._lbl_protocol.grid(column=3, row=1, padx=2, pady=2, sticky=W)
-        self._spn_protocol.grid(column=4, row=1, padx=2, pady=2, sticky=W)
-        self._lbl_https.grid(column=0, row=2, padx=2, pady=2, sticky=W)
+        self._lbl_protocol.grid(column=2, row=1, padx=2, pady=2, sticky=W)
+        self._spn_protocol.grid(column=3, row=1, padx=2, pady=2, sticky=W)
         self._chk_https.grid(column=1, row=2, padx=2, pady=2, sticky=W)
+        self._chk_selfsign.grid(column=2, row=2, padx=2, pady=2, sticky=W)
 
     def _attach_events(self):
         """
@@ -159,14 +159,14 @@ class SocketConfigFrame(Frame):
         if add:
             self.server.trace_add(tracemode, self._on_update_server)
             self.port.trace_add(tracemode, self._on_update_port)
-            for setting in (self.https, self.protocol):
+            for setting in (self.https, self.protocol, self.selfsign):
                 setting.trace_add(tracemode, callback=self._on_update_config)
         else:
             if len(self.server.trace_info()) > 0:
                 self.server.trace_remove(tracemode, self.server.trace_info()[0][1])
             if len(self.port.trace_info()) > 0:
                 self.port.trace_remove(tracemode, self.port.trace_info()[0][1])
-            for setting in (self.https, self.protocol):
+            for setting in (self.https, self.protocol, self.selfsign):
                 if len(setting.trace_info()) > 0:
                     setting.trace_remove(tracemode, setting.trace_info()[0][1])
 
@@ -205,11 +205,13 @@ class SocketConfigFrame(Frame):
                 cfg.set("ntripclientserver_s", self.server.get())
                 cfg.set("ntripclientport_n", int(self.port.get()))
                 cfg.set("ntripclienthttps_b", int(self.https.get()))
+                cfg.set("ntripclientselfsign_b", int(self.selfsign.get()))
                 cfg.set("ntripclientprotocol_s", self.protocol.get())
             else:  # GNSS
                 cfg.set("sockclienthost_s", self.server.get())
                 cfg.set("sockclientport_n", int(self.port.get()))
                 cfg.set("sockclienthttps_b", int(self.https.get()))
+                cfg.set("sockclientselfsign_b", int(self.selfsign.get()))
                 cfg.set("sockclientprotocol_s", self.protocol.get())
         except (ValueError, TclError):
             pass
@@ -225,11 +227,13 @@ class SocketConfigFrame(Frame):
             self.server.set(cfg.get("ntripclientserver_s"))
             self.port.set(cfg.get("ntripclientport_n"))
             self.https.set(cfg.get("ntripclienthttps_b"))
+            self.selfsign.set(cfg.get("ntripclientselfsign_b"))
             self.protocol.set(cfg.get("ntripclientprotocol_s"))
         else:  # GNSS
             self.server.set(cfg.get("sockclienthost_s"))
             self.port.set(cfg.get("sockclientport_n"))
             self.https.set(cfg.get("sockclienthttps_b"))
+            self.selfsign.set(cfg.get("sockclientselfsign_b"))
             self.protocol.set(cfg.get("sockclientprotocol_s"))
         self._bind_events(True)
 
@@ -261,8 +265,8 @@ class SocketConfigFrame(Frame):
             self._lbl_port,
             self.ent_port,
             self._lbl_protocol,
-            self._lbl_https,
             self._chk_https,
+            self._chk_selfsign,
         ):
             widget.configure(state=(NORMAL if status == DISCONNECTED else DISABLED))
         for widget in (self._spn_protocol,):

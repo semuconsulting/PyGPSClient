@@ -14,8 +14,8 @@ from datetime import datetime
 from pynmeagps import SET, NMEAMessage
 from pyubx2 import UBXMessage, UBXReader
 
-from pygpsclient.configuration import Configuration
-from pygpsclient.globals import Area, AreaXY, Point, TrackPoint
+from pygpsclient.configuration import Configuration, INITMARKER
+from pygpsclient.globals import Area, AreaXY, Point, TrackPoint, OKCOL
 from pygpsclient.helpers import (
     area_in_bounds,
     bitsval,
@@ -97,6 +97,9 @@ class DummyApp:  # Dummy App class
         self.widget_state = WidgetState()
         self.file_handler = DummyFileHandler()
 
+    def set_status(self, message, color=OKCOL):
+        print(message)
+
 
 class StaticTest(unittest.TestCase):
     def setUp(self):
@@ -112,7 +115,7 @@ class StaticTest(unittest.TestCase):
         self.assertEqual(cfg.get("lbandclientdrat_n"), 2400)
         self.assertEqual(cfg.get("userport_s"), "")
         self.assertEqual(cfg.get("spartnport_s"), "")
-        self.assertEqual(len(cfg.settings), 144)
+        self.assertEqual(len(cfg.settings), 148)
         kwargs = {"userport": "/dev/ttyACM0", "spartnport": "/dev/ttyACM1"}
         cfg.loadcli(**kwargs)
         self.assertEqual(cfg.get("userport_s"), "/dev/ttyACM0")
@@ -131,6 +134,22 @@ class StaticTest(unittest.TestCase):
         )
         res = cfg.loadfile("good.json")
         self.assertEqual(res, ("good.json", ""))
+
+    def testinitpresets(self):
+        cfg = Configuration(DummyApp())
+        cfg.init_presets("ubx")
+        self.assertEqual(len(cfg.get("ubxpresets_l")), 46)
+        cfg.set(
+            "ubxpresets_l",
+            [
+                INITMARKER,
+                "first user preset",
+                "second user preset",
+                "third user preset",
+            ],
+        )
+        cfg.init_presets("ubx")
+        self.assertEqual(len(cfg.get("ubxpresets_l")), 49)
 
     def testcel2cart(self):
         (elev, azim) = cel2cart(34, 128)

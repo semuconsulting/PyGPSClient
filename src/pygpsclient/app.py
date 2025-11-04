@@ -50,7 +50,7 @@ from pygnssutils.gnssreader import (
     SBF_PROTOCOL,
     UBX_PROTOCOL,
 )
-from pygnssutils.socket_server import ClientHandler, SocketServer
+from pygnssutils.socket_server import ClientHandler, ClientHandlerTLS, SocketServer
 from pynmeagps import NMEAMessage
 from pyqgc import QGCMessage
 from pyrtcm import RTCMMessage
@@ -89,10 +89,9 @@ from pygpsclient.globals import (
     SOCKSERVER_MAX_CLIENTS,
     SPARTN_EVENT,
     SPARTN_PROTOCOL,
+    STATUSPRIORITY,
     THD,
-    TTY_EVENT,
     TTY_PROTOCOL,
-    TTYMARKER,
 )
 from pygpsclient.gnss_status import GNSSStatus
 from pygpsclient.helpers import check_latest
@@ -112,7 +111,6 @@ from pygpsclient.strings import (
     INACTIVE_TIMEOUT,
     INTROTXTNOPORTS,
     LOADCONFIGBAD,
-    LOADCONFIGNONE,
     LOADCONFIGOK,
     NOTCONN,
     NOWDGSWARN,
@@ -166,6 +164,7 @@ class App(Frame):
         self.__master.title(TITLE)
         self.__master.iconphoto(True, PhotoImage(file=ICON_APP128))
 
+        self._deferredmsg = None
         self.gnss_inqueue = Queue()  # messages from GNSS receiver
         self.gnss_outqueue = Queue()  # messages to GNSS receiver
         self.ntrip_inqueue = Queue()  # messages from NTRIP source
@@ -197,9 +196,7 @@ class App(Frame):
         self._socket_server = None
         self._colcount = 0
         self._rowcount = 0
-        self._consoledata = []
-        # check if platform supports spatialite database
-        self.db_enabled = self.sqlite_handler.open(dbname=DBINMEM)
+        self.consoledata = []
 
         # load config from json file
         configfile = kwargs.pop("config", CONFIGFILE)
@@ -208,22 +205,21 @@ class App(Frame):
         self.configuration.loadcli(**kwargs)
         if configerr == "":
             self.update_widgets()  # set initial widget state
+            if self._nowidgets:  # if all widgets have been disabled in config
+                self.set_status(NOWDGSWARN.format(configfile), ERRCOL)
+
+        # open database if database recording enabled
+        dbpath = self.configuration.get("databasepath_s")
+        if self.configuration.get("database_b") and dbpath != "":
+            self._db_enabled = self.sqlite_handler.open(dbpath=dbpath)
+        else:
+            self._db_enabled = self.sqlite_handler.open(dbname=DBINMEM)
+        if not self._db_enabled:
+            self.configuration.set("database_b", 0)
 
         self._body()
         self._do_layout()
         self._attach_events()
-
-        # display config load status once status frame has been instantiated
-        if configerr == "":
-            if self._nowidgets:  # if all widgets have been disabled in config
-                self.set_status(NOWDGSWARN.format(configfile), ERRCOL)
-            else:
-                self.set_status(LOADCONFIGOK.format(configfile), OKCOL)
-        else:
-            if "No such file or directory" in configerr:
-                self.set_status(LOADCONFIGNONE.format(configfile), ERRCOL)
-            else:
-                self.set_status(LOADCONFIGBAD.format(configfile, configerr), ERRCOL)
 
         # initialise widgets
         for value in self.widget_state.state.values():
@@ -236,19 +232,15 @@ class App(Frame):
         if self.frm_settings.frm_serial.status == NOPORTS:
             self.set_status(INTROTXTNOPORTS, ERRCOL)
 
-        # open database if database recording enabled
-        dbpath = self.configuration.get("databasepath_s")
-        if (
-            self.db_enabled == SQLOK
-            and self.configuration.get("database_b")
-            and dbpath != ""
-        ):
-            rc = self.sqlite_handler.open(dbpath=dbpath)
-            self.configuration.set("database_b", rc == SQLOK)
-
         # check for more recent version (if enabled)
         if self.configuration.get("checkforupdate_b") and configerr == "":
             self._check_update()
+
+        # display any deferred messages
+        if isinstance(self._deferredmsg, tuple):
+            msg, col = self._deferredmsg
+            self.set_status(msg, col)
+            self._deferredmsg = None
 
     def _body(self):
         """
@@ -414,7 +406,6 @@ class App(Frame):
         self.__master.bind(GNSS_ERR_EVENT, self.on_stream_error)
         self.__master.bind(NTRIP_EVENT, self.on_ntrip_read)
         self.__master.bind(SPARTN_EVENT, self.on_spartn_read)
-        self.__master.bind(TTY_EVENT, self.on_tty_read)
         self.__master.bind_all("<Control-q>", self.on_exit)
 
     def _set_default_fonts(self):
@@ -443,17 +434,26 @@ class App(Frame):
 
     def set_status(self, message, color=OKCOL):
         """
-        Sets text of status bar.
+        Sets text of status bar, or defer if frm_status not yet instantiated.
 
         :param str message: message to be displayed in status label
         :param str color: rgb color string
-
         """
+
+        def priority(col):
+            return STATUSPRIORITY.get(col, 0)
 
         if hasattr(self, "frm_status"):
             color = INFOCOL if color == "blue" else color
             self.frm_status.set_status(message, color)
             self.update_idletasks()
+        else:  # defer message until frm_status is instantiated
+            if isinstance(self._deferredmsg, tuple):
+                defpty = priority(self._deferredmsg[1])
+            else:
+                defpty = 0
+            if priority(color) > defpty:
+                self._deferredmsg = (message, color)
 
     def set_event(self, evt: str):
         """
@@ -582,9 +582,13 @@ class App(Frame):
         """
 
         cfg = self.configuration
-        host = cfg.get("sockhost_s")
-        port = cfg.get("sockport_n")
         ntripmode = cfg.get("sockmode_b")
+        host = cfg.get("sockhost_s")
+        if ntripmode:  # NTRIP CASTER
+            port = cfg.get("sockportntrip_n")
+        else:  # SOCKET SERVER
+            port = cfg.get("sockport_n")
+        https = cfg.get("sockhttps_b")
         ntripuser = cfg.get("ntripcasteruser_s")
         ntrippassword = cfg.get("ntripcasterpassword_s")
         self._socket_thread = Thread(
@@ -593,6 +597,7 @@ class App(Frame):
                 ntripmode,
                 host,
                 port,
+                https,
                 ntripuser,
                 ntrippassword,
                 SOCKSERVER_MAX_CLIENTS,
@@ -617,6 +622,7 @@ class App(Frame):
         ntripmode: int,
         host: str,
         port: int,
+        https: int,
         ntripuser: str,
         ntrippassword: str,
         maxclients: int,
@@ -629,10 +635,12 @@ class App(Frame):
         :param int ntripmode: 0 = open socket server, 1 = NTRIP server
         :param str host: socket host name (0.0.0.0)
         :param int port: socket port (50010)
+        :param int https: https enabled (0)
         :param int maxclients: max num of clients (5)
         :param Queue socketqueue: socket server read queue
         """
 
+        requesthandler = ClientHandlerTLS if https else ClientHandler
         try:
             with SocketServer(
                 self,
@@ -640,7 +648,7 @@ class App(Frame):
                 maxclients,
                 socketqueue,
                 (host, port),
-                ClientHandler,
+                requesthandler,
                 ntripuser=ntripuser,
                 ntrippassword=ntrippassword,
             ) as self._socket_server:
@@ -790,22 +798,6 @@ class App(Frame):
         except (SerialException, SerialTimeoutException) as err:
             self.set_status(f"Error sending to device {err}", ERRCOL)
 
-    def on_tty_read(self, event):  # pylint: disable=unused-argument
-        """
-        EVENT TRIGGERED
-        Action on <<tty_read>> event - data available on TTY queue.
-
-        :param event event: read event
-        """
-
-        try:
-            raw_data, parsed_data = self.gnss_inqueue.get(False)
-            if raw_data is not None:
-                self.process_data(raw_data, parsed_data, TTYMARKER)
-            self.gnss_inqueue.task_done()
-        except Empty:
-            pass
-
     def update_ntrip_status(self, status: bool, msgt: tuple = None):
         """
         Update NTRIP configuration dialog connection status.
@@ -902,7 +894,7 @@ class App(Frame):
         if self.widget_state.state[WDGCONSOLE][VISIBLE] and (
             msgprot in (0, MQTT_PROTOCOL) or msgprot & protfilter
         ):
-            self._consoledata.append((raw_data, parsed_data, marker))
+            self.consoledata.append((raw_data, parsed_data, marker))
 
         # periodically update widgets if visible
         if datetime.now() > self._last_gui_update + timedelta(
@@ -948,8 +940,8 @@ class App(Frame):
             frm = getattr(self, wdgdata[FRAME])
             if hasattr(frm, "update_frame") and wdgdata[VISIBLE]:
                 if wdg == WDGCONSOLE:
-                    frm.update_frame(self._consoledata)
-                    self._consoledata = []
+                    frm.update_frame(self.consoledata)
+                    self.consoledata = []
                 else:
                     frm.update_frame()
 
@@ -1067,6 +1059,17 @@ class App(Frame):
             + (cfg.get("ttyprot_b") * TTY_PROTOCOL)  # 128
         )
         return mask
+
+    @property
+    def db_enabled(self) -> bool:
+        """
+        Getter for database enabled status.
+
+        :return: database enabled status
+        :rtype: bool
+        """
+
+        return self._db_enabled
 
     def do_app_update(self, updates: list) -> int:
         """

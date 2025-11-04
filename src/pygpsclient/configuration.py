@@ -22,11 +22,13 @@ from pygpsclient.globals import (
     DEFAULT_PASSWORD,
     DEFAULT_REGION,
     DEFAULT_USER,
+    ERRCOL,
     FORMAT_BINARY,
     FORMAT_PARSED,
     GUI_UPDATE_INTERVAL,
     MIN_GUI_UPDATE_INTERVAL,
     MQTTIPMODE,
+    OKCOL,
     PASSTHRU,
     RCVR_CONNECTION,
     SOCKCLIENT_HOST,
@@ -43,9 +45,14 @@ from pygpsclient.globals import (
     WORLD,
     ZED_F9,
 )
+from pygpsclient.init_presets import INIT_PRESETS
 from pygpsclient.mapquest import MAP_UPDATE_INTERVAL
 from pygpsclient.spartn_lband_frame import D9S_PP_EU as D9S_PP
+from pygpsclient.strings import LOADCONFIGBAD, LOADCONFIGNONE, LOADCONFIGOK
 from pygpsclient.widget_state import VISIBLE
+
+INITMARKER = "INIT_PRESETS"
+PRE_L = "presets_l"
 
 
 class Configuration:
@@ -133,12 +140,15 @@ class Configuration:
             "sockclienthost_s": SOCKCLIENT_HOST,
             "sockclientport_n": SOCKCLIENT_PORT,
             "sockclienthttps_b": 0,
+            "sockclientselfsign_b": 0,
             "sockclientprotocol_s": "TCP IPv4",
             # socket server settings from frm_socketserver
             "sockserver_b": 0,
             "sockhost_s": SOCKSERVER_HOST,
             "sockport_n": SOCKSERVER_PORT,
+            "sockportntrip_n": SOCKSERVER_NTRIP_PORT,
             "sockmode_b": 0,
+            "sockhttps_b": 0,
             "ntripcasterbasemode_s": "SURVEY IN",
             "ntripcasterrcvrtype_s": ZED_F9,
             "ntripcasteracclimit_f": 100.0,
@@ -154,6 +164,7 @@ class Configuration:
             "ntripclientserver_s": "rtk2go.com",
             "ntripclientport_n": SOCKSERVER_NTRIP_PORT,
             "ntripclienthttps_b": 0,
+            "ntripclientselfsign_b": 0,
             "ntripclientprotocol_s": "IPv4",
             "ntripclientflowinfo_n": 0,
             "ntripclientscopeid_n": 0,
@@ -181,7 +192,7 @@ class Configuration:
             "mqttclienttlscrt_s": "<=== FULLY QUALIFIED PATH TO MQTT CRT FILE ===>",
             "mqttclienttlskey_s": "<=== FULLY QUALIFIED PATH TO MQTT KEY FILE ===>",
             # SPARTN L-Band client settings from SpartnLbandDialog if open
-            "lband_enabled_b": 0,  # SPARTN L-Band and MQTT services discontinued
+            "lband_enabled_b": 1,  # SPARTN L-Band and MQTT services discontinued
             "spartnport_s": "",
             "spartndecode_b": 0,
             "spartnkey_s": SPARTN_DEFAULT_KEY,
@@ -221,9 +232,9 @@ class Configuration:
                 "option_s": "N/A",
             },
             "chartsettings_d": {"numchn": 4, "timrng": 240},
-            "ubxpresets_l": [],
-            "nmeapresets_l": [],
-            "ttypresets_l": [],
+            f"ubx{PRE_L}": [],
+            f"nmea{PRE_L}": [],
+            f"tty{PRE_L}": [],
             "usermaps_l": [],
             "colortags_l": [],
         }
@@ -237,7 +248,7 @@ class Configuration:
         :rtype: tuple
         """
 
-        filename, config, err = self.__app.file_handler.load_config(filename)
+        fname, config, err = self.__app.file_handler.load_config(filename)
         if err == "":  # load succeeded
             try:
                 for key, val in config.items():
@@ -247,9 +258,15 @@ class Configuration:
                     if key == "guiupdateinterval_f":
                         val = max(MIN_GUI_UPDATE_INTERVAL, val)
                     self.set(key, val)
+                self.__app.set_status(LOADCONFIGOK.format(fname), OKCOL)
             except KeyError:
                 err = f'Unrecognised setting "{key}": {val}'
-        return filename, err
+        else:
+            if "No such file or directory" in err:
+                self.__app.set_status(LOADCONFIGNONE.format(fname), ERRCOL)
+            else:
+                self.__app.set_status(LOADCONFIGBAD.format(fname, err), ERRCOL)
+        return fname, err
 
     def savefile(self, filename: str = None) -> str:
         """
@@ -324,6 +341,28 @@ class Configuration:
         """
 
         return self.settings[name]
+
+    def init_presets(self, mode: str):
+        """
+        (Re-)Initialise user-defined presets list.
+
+        :param str mode: "ubx", "nmea" or "tty"
+        """
+
+        presets = f"{mode}{PRE_L}"
+        init_presets = INIT_PRESETS.get(presets, [])
+        lp = len(self.get(presets))
+        init = False
+        if lp == 0:
+            init = True
+        elif lp > 0 and self.get(presets)[0] == INITMARKER:
+            self.get(presets).pop(0)
+            init = True
+        if init:
+            self.set(
+                presets,
+                init_presets + self.get(presets),
+            )
 
     @property
     def settings(self) -> dict:

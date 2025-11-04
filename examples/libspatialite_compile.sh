@@ -26,7 +26,8 @@ tar zxvf libspatialite-5.1.0.tar.gz
 cd libspatialite-5.1.0
 # compile source and install - this will take several minutes
 # aarch64-unknown-linux-gnu is appropriate for ARM-based SBC platforms like RPi
-./configure --build=aarch64-unknown-linux-gnu --enable-freexl=no
+#./configure --build=aarch64-unknown-linux-gnu --enable-freexl=no
+./configure --build=x86_64-unknown-linux-gnu --enable-freexl=no
 make
 sudo make install-strip
 

@@ -35,21 +35,31 @@ from threading import Event, Thread
 from time import sleep
 
 from certifi import where as findcacerts
-from pygnssutils.gnssreader import (
+from pygnssutils import (
     NMEA_PROTOCOL,
     QGC_PROTOCOL,
     RTCM3_PROTOCOL,
     SBF_PROTOCOL,
     UBX_PROTOCOL,
+    GNSSError,
     GNSSReader,
+    check_pemfile,
 )
-from pynmeagps import NMEAMessageError, NMEAParseError
-from pyrtcm import RTCMMessageError, RTCMParseError
-from pyubx2 import (
-    ERR_LOG,
-    UBXMessageError,
-    UBXParseError,
+from pynmeagps import NMEAMessageError, NMEAParseError, NMEAStreamError
+from pyqgc import (
+    QGCMessageError,
+    QGCParseError,
+    QGCStreamError,
+    QGCTypeError,
 )
+from pyrtcm import RTCMMessageError, RTCMParseError, RTCMStreamError
+from pysbf2 import (
+    SBFMessageError,
+    SBFParseError,
+    SBFStreamError,
+    SBFTypeError,
+)
+from pyubx2 import ERR_LOG, UBXMessageError, UBXParseError, UBXStreamError
 from pyubxutils import UBXSimulator
 from serial import Serial, SerialException, SerialTimeoutException
 
@@ -190,6 +200,7 @@ class StreamHandler:
                 server = soc.server.get()
                 port = int(soc.port.get())
                 https = int(soc.https.get())
+                selfsign = int(soc.selfsign.get())
                 if soc.protocol.get()[-4:] == "IPv6":
                     afam = socket.AF_INET6
                     conn = socket.getaddrinfo(server, port)[1][4]
@@ -204,6 +215,11 @@ class StreamHandler:
                     if https:
                         context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
                         context.load_verify_locations(findcacerts())
+                        if selfsign:
+                            pem, _ = check_pemfile()
+                            # context.verify_mode = ssl.CERT_NONE
+                            context.load_verify_locations(pem)
+                            context.check_hostname = False
                         stream = context.wrap_socket(stream, server_hostname=server)
                     stream.connect(conn)
                     if socktype == socket.SOCK_DGRAM:
@@ -338,10 +354,22 @@ class StreamHandler:
             except (
                 UBXMessageError,
                 UBXParseError,
+                UBXStreamError,
                 NMEAMessageError,
                 NMEAParseError,
+                NMEAStreamError,
                 RTCMMessageError,
                 RTCMParseError,
+                RTCMStreamError,
+                SBFMessageError,
+                SBFParseError,
+                SBFStreamError,
+                SBFTypeError,
+                QGCMessageError,
+                QGCParseError,
+                QGCStreamError,
+                QGCTypeError,
+                GNSSError,
             ) as err:
                 _errorhandler(err)
                 continue

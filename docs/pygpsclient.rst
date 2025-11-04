@@ -148,6 +148,14 @@ pygpsclient.imu\_frame module
    :undoc-members:
    :show-inheritance:
 
+pygpsclient.init\_presets module
+--------------------------------
+
+.. automodule:: pygpsclient.init_presets
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pygpsclient.map\_canvas module
 ------------------------------
 

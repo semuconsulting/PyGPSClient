@@ -172,13 +172,11 @@ class UBXHandler:
                 if gnss in exts[i]:
                     gnss_supported = gnss_supported + gnss + " "
 
-        verdata = {}
-        verdata["swversion"] = sw_version
-        verdata["hwversion"] = hw_version
-        verdata["fwversion"] = fw_version
-        verdata["romversion"] = rom_version
-        verdata["gnss"] = gnss_supported
-        self.__app.gnss_status.version_data = verdata
+        self.__app.gnss_status.version_data["swversion"] = sw_version
+        self.__app.gnss_status.version_data["hwversion"] = hw_version
+        self.__app.gnss_status.version_data["fwversion"] = fw_version
+        self.__app.gnss_status.version_data["romversion"] = rom_version
+        self.__app.gnss_status.version_data["gnss"] = gnss_supported
 
         if self.__app.dialog(DLGTUBX) is not None:
             self.__app.dialog(DLGTUBX).update_pending(msg)

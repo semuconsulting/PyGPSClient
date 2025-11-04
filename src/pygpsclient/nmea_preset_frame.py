@@ -148,10 +148,9 @@ class NMEA_PRESET_Frame(Frame):
         Reset panel - Load user-defined presets if there are any.
         """
 
-        idx = 0
-        for upst in self.__app.configuration.get("nmeapresets_l"):
-            self._lbx_preset.insert(idx, "USER " + upst)
-            idx += 1
+        self.__app.configuration.init_presets("nmea")
+        for i, preset in enumerate(self.__app.configuration.get("nmeapresets_l")):
+            self._lbx_preset.insert(i, preset)
 
     def _on_select_preset(self, *args, **kwargs):  # pylint: disable=unused-argument
         """

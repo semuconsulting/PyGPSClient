@@ -156,11 +156,14 @@ class SqliteHandler:
         :rtype: str
         """
 
+        testing = dbname == DBINMEM
+        errcol = ERRCOL
         try:
             db = ""
-            if dbname == DBINMEM:  # check for spatial support
+            if testing:  # check for spatial support
                 db = dbname
                 exists = True
+                errcol = INFOCOL
             else:
                 db = path.join(dbpath, dbname)
                 exists = path.exists(db)
@@ -174,21 +177,21 @@ class SqliteHandler:
                 if not self._create(tbname):
                     return 0
             self._cursor = self._connection.cursor()
-            if dbname == DBINMEM:
+            if testing:
                 self._connection.close()
             else:
                 self.__app.set_status(f"Database {self._db} opened", OKCOL)
             return SQLOK
         except AttributeError as err:
-            self.__app.set_status(f"SQL error: {err}", ERRCOL)
+            self.__app.set_status(f"SQL error: {err}", errcol)
             self.logger.debug(traceback.format_exc())
             return NOEXT  # extensions not supported
         except sqlite3.OperationalError as err:
-            self.__app.set_status(f"SQL error {db}: {err}", ERRCOL)
+            self.__app.set_status(f"SQL error {db}: {err}", errcol)
             self.logger.debug(traceback.format_exc())
             return NOMODS  # no mod_spatial extension found
         except sqlite3.Error as err:
-            self.__app.set_status(f"SQL error {db}: {err}", ERRCOL)
+            self.__app.set_status(f"SQL error {db}: {err}", errcol)
             self.logger.debug(traceback.format_exc())
             return SQLERR  # other sqlite error
 

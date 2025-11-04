@@ -132,7 +132,7 @@ class FileHandler:
                 if err != "":
                     raise ValueError(err)
         except (ValueError, OSError, json.JSONDecodeError) as err:
-            return (None, None, str(err))
+            return (filename, None, str(err))
 
         return (filename, config, "")
 

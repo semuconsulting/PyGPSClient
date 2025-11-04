@@ -39,7 +39,7 @@ DIALOGS = (
     DLGTUBX,
     DLGTNMEA,
     DLGTNTRIP,
-    # DLGTSPARTN,  # service discontinued by u-blox
+    DLGTSPARTN,  # service discontinued by u-blox
     DLGTGPX,
     DLGTIMPORTMAP,
     DLGTTTY,
@@ -98,10 +98,6 @@ class MenuBar(Menu):
 
         # Create a pull-down menu for view operations
         dialogs = DIALOGS
-        # since u-blox discontinued SPARTN services, this menu
-        # option is now conditional
-        if self.__app.configuration.get("lband_enabled_b"):
-            dialogs += (DLGTSPARTN,)
         self.options_menu = Menu(self, tearoff=False)
         for dlg in dialogs:
             self.options_menu.add_command(

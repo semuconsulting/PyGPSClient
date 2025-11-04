@@ -6,30 +6,30 @@
 [Instructions](#instructions) |
 [UBX Configuration](#ubxconfig) |
 [NMEA Configuration](#nmeaconfig) |
+[TTY Commands](#ttycommands) |
 [NTRIP Client](#ntripconfig) |
 [SPARTN Client](#spartnconfig) |
 [Socket Server / NTRIP Caster](#socketserver) |
 [GPX Track Viewer](#gpxviewer) |
 [Mapquest API Key](#mapquestapi) |
 [User-defined Presets](#userdefined) |
-[TTY Commands](#ttycommands) |
 [CLI Utilities](#cli) |
 [Known Issues](#knownissues) |
 [License](#license) |
 [Author Information](#author)
 
-PyGPSClient is a free, open-source, multi-platform graphical GNSS/GPS testing, diagnostic and configuration application written entirely in Python and tkinter. 
+PyGPSClient is a free, open-source, multi-platform graphical GNSS/GPS testing, diagnostic and configuration application written entirely by volunteers in Python and tkinter. 
 * Runs on any platform which supports a Python 3 interpreter (>=3.10) and tkinter (>=8.6) GUI framework, including Windows, MacOS, Linux and Raspberry Pi OS.
 * Supports NMEA, UBX, SBF, QGC, RTCM3, NTRIP, SPARTN, MQTT and TTY (ASCII) protocols¹.
-* Capable of reading from a variety of GNSS data streams: Serial (USB / UART), Socket (TCP / UDP), binary data stream (terminal or file capture) and u-center (*.ubx) recording.
+* Capable of reading from a variety of GNSS data streams: Serial (USB / UART), Socket (TCP / UDP), binary data stream (terminal or file capture) and binary recording (e.g. u-center \*.ubx).
 * Provides [NTRIP](#ntripconfig) and [SPARTN](#spartnconfig) client facilities.
-* Can serve as an [NTRIP base station](#basestation) with an RTK-compatible receiver (e.g. u-blox ZED-F9P/X20P, Quectel LG290P, LG580P, LC29H or Septentrio Mosaic X5).
-* Supports GNSS (*and related*) device configuration via proprietary UBX (e.g. u-blox NEO-F10, ZED-F9, ZED-X20), NMEA (e.g. Quectel LG290P/LG580P PQTM*, LC29H PAIR*) and ASCII TTY (e.g. Septentrio Mosaic X5, Feyman IM19) protocols.
+* Can serve as an [NTRIP base station](#basestation) with an RTK-compatible receiver (e.g. u-blox ZED-F9P/ZED-X20P, Quectel LG290P/LG580P/LC29H and Septentrio Mosaic G5/X5).
+* Supports GNSS (*and related*) device configuration via proprietary UBX, NMEA and ASCII TTY protocols, including most u-blox, Quectel, Septentrio and Feyman GNSS devices.
 * Can be installed using the standard `pip` Python package manager - see [installation instructions](#installation) below.
 
 This is an independent project and we have no affiliation whatsoever with any GNSS manufacturer or distributor.
 
-¹ *specific message support subject to underlying parser implementation*
+¹ *specific message support subject to underlying parser implementation and open-source permissions*
 
 ![full app screenshot ubx](https://github.com/semuconsulting/PyGPSClient/blob/master/images/app.png?raw=true)
 
@@ -91,7 +91,7 @@ deactivate
 
 ## The Longer Version
 
-Please refer to [INSTALLATION.md](https://github.com/semuconsulting/PyGPSClient/blob/master/INSTALLATION.md).
+For more comprehensive installation instructions, please refer to [INSTALLATION.md](https://github.com/semuconsulting/PyGPSClient/blob/master/INSTALLATION.md).
 
 ---
 ## <a name="instructions">Instructions</a>
@@ -100,7 +100,7 @@ Please refer to [INSTALLATION.md](https://github.com/semuconsulting/PyGPSClient/
 ![connect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/usbport-1-24.png?raw=true). The application will endeavour to pre-select a recognised GNSS/GPS device but this is platform and device dependent. Press the ![refresh](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-refresh-6-16.png?raw=true) button to refresh the list of connected devices at any point. `Rate bps` (baud rate) is typically the only setting that might need adjusting, but tweaking the `timeout` setting may improve performance on certain platforms. The `Msg Mode` parameter defaults to `GET` i.e., periodic or poll response messages *from* a receiver. If you wish to parse streams of command or poll messages being sent *to* a receiver, set the `Msg Mode` to `SET` or `POLL`. An optional serial or socket stream inactivity timeout can also be set (in seconds; 0 = no timeout).
 1. A custom user-defined serial port can also be passed via the json configuration file setting `"userport_s":`, via environment variable `PYGPSCLIENT_USERPORT` or as a command line argument `--userport`. A special userport value of "ubxsimulator" invokes the experimental [`pyubxutils.UBXSimulator`](https://github.com/semuconsulting/pyubxutils/blob/main/src/pyubxutils/ubxsimulator.py) utility to emulate a GNSS NMEA/UBX serial stream. 
 1. To connect to a TCP or UDP socket, enter the server URL and port, select the protocol (defaults to TCP) and click 
-![connect socket icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/ethernet-1-24.png?raw=true).
+![connect socket icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/ethernet-1-24.png?raw=true). For SSL/TLS connections, tick the TLS checkbox. Tick the Self-Sign checkbox to tolerate self-signed SSL/TLS certification (*typically for test or demonstration services*).
 1. To stream from a previously-saved <a name="filestream">binary datalog file</a>, click 
 ![connect-file icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/binary-1-24.png?raw=true) and select the file type (`*.log, *.ubx, *.*`) and path. PyGPSClient datalog files will be named e.g. `pygpsdata-20220427114802.log`, but any binary dump of an GNSS receiver output is acceptable, including `*.ubx` files produced by u-center.
 1. To disconnect from the data stream, click
@@ -123,11 +123,12 @@ Please refer to [INSTALLATION.md](https://github.com/semuconsulting/PyGPSClient/
 1. [Socket Server / NTRIP Caster](#socketserver) facility with two modes of operation: (a) open, unauthenticated Socket Server or (b) NTRIP Caster (mountpoint = `pygnssutils`).
 1. [UBX Configuration Dialog](#ubxconfig), with the ability to send a variety of UBX CFG configuration commands to u-blox GNSS devices. This includes the facility to add **user-defined commands or command sequences** - see instructions under [user-defined presets](#userdefined) below. To display the UBX Configuration Dialog (*only functional when connected to a UBX GNSS device via serial port*), click
 ![gear icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-gear-2-24.png?raw=true), or go to Menu..Options..UBX Configuration Dialog.
-1. [NMEA Configuration Dialog](#nmeaconfig), with the ability to send a variety of NMEA configuration commands to GNSS devices (e.g. Quectel LG290P). This includes the facility to add **user-defined commands or command sequences** - see instructions under [user-defined presets](#userdefined) below. To display the NMEA Configuration Dialog (*only functional when connected to a compatible GNSS device via serial port*), click
-![gear icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-gear-2-24-brown.png?raw=true), or go to Menu..Options..NMEA Configuration Dialog.
+1. [NMEA Configuration Dialog](#nmeaconfig), with the ability to send a variety of NMEA configuration commands to GNSS devices (e.g. Quectel LG290P). This includes the facility to add **user-defined commands or command sequences** - see instructions under [user-defined presets](#userdefined) below. To display the NMEA Configuration Dialog (*only functional when connected to a compatible GNSS device via serial port*), click ![gear icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-gear-2-24-brown.png?raw=true), or go to Menu..Options..NMEA Configuration Dialog.
+1. [TTY Config Dialog](#ttycommands), with the ability to send a variety of TTY (ASCII) configuration commands to GNSS and related devices (e.g. Septentrio X5, Feyman IM19). This includes the facility to add **user-defined commands or command sequences** - see instructions under [user-defined presets](#userdefined) below. To display the TTY Commands Dialog (*only functional when connected to a compatible GNSS device via serial port*), click
+![gear icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/icon-tty-24-green.png?raw=true), or go to Menu..Options..TTY Commands.
 1. [NTRIP Client](#ntripconfig) facility with the ability to connect to a specified NTRIP caster, parse the incoming RTCM3 or SPARTN data and feed this data to a compatible GNSS receiver (*requires an Internet connection and access to an NTRIP caster and local mountpoint*). To display the NTRIP Client Configuration Dialog, click
 ![ntrip icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-antenna-4-24.png?raw=true), or go to Menu..Options..NTRIP Configuration Dialog.
-1. [SPARTN Client](#spartnconfig) facility with the ability to configure an IP or L-Band SPARTN Correction source and SPARTN-compatible GNSS receiver (e.g. ZED-F9P) and pass the incoming correction data to the GNSS receiver (*requires an Internet connection and access to a SPARTN location service*). To display the SPARTN Client Configuration Dialog, click ![spartn icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-antenna-3-24.png?raw=true), or go to Menu..Options..SPARTN Configuration Dialog.
+1. [SPARTN Client](#spartnconfig) facility with the ability to configure an IP or L-Band SPARTN Correction source and SPARTN-compatible GNSS receiver (e.g. ZED-F9P) and pass the incoming correction data to the GNSS receiver (*requires an Internet connection and access to a SPARTN location service*). To display the SPARTN Client Configuration Dialog, go to Menu..Options..SPARTN Configuration Dialog.
 1. [GPX Track Viewer](#gpxviewer) utility with elevation and speed profiles and track metadata. To display the GPX Track viewer, go to Menu..Options..GPX Track Viewer.
 
 #### <a name="config">Configuration settings</a>
@@ -150,41 +151,49 @@ Please refer to [INSTALLATION.md](https://github.com/semuconsulting/PyGPSClient/
 | User-selectable 'widgets' | To show or hide the various widgets, go to Menu..View and click on the relevant hide/show option. |
 |---------------------------|---------------------------------------------------------------------------------------------------|
 |![banner widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/banner_widget.png?raw=true)| Expandable banner showing key navigation status information based on messages received from receiver. To expand or collapse the banner or serial port configuration widgets, click the ![expand icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-arrow-80-16.png?raw=true)/![expand icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-triangle-1-16.png?raw=true) buttons. **NB**: some fields (e.g. hdop/vdop, hacc/vacc) are only available from proprietary NMEA or UBX messages and may not be output by default. The minimum messages required to populate all available fields are: NMEA: GGA, GSA, GSV, RMC, UBX00 (proprietary); UBX: NAV-DOP, NAV-PVT, NAV_SAT |
-|![console widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/console_widget.png?raw=true)| Configurable serial console widget showing incoming GNSS data streams in either parsed, binary or tabular hexadecimal formats. Double-right-click to copy contents of console to clipboard. The scroll behaviour and number of lines retained in the console can be configured via the settings panel. Supports user-configurable color tagging of selected strings for easy identification. Color tags are loaded from the `"colortag_b":` value (`0` = disable, `1` = enable) and `"colortags_l":` list (`[string, color]` pairs) in your json configuration file (see example provided). If color is set to "HALT", streaming will halt on any match and a warning displayed. NB: color tagging does impose a small performance overhead - turning it off will improve console response times at very high transaction rates.|
+|![console widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/console_widget.png?raw=true)| Configurable serial console widget showing incoming GNSS data streams in either parsed, binary or tabular hexadecimal formats. Double-right-click to copy contents of console to the clipboard. The scroll behaviour and number of lines retained in the console can be configured via the settings panel. Supports user-configurable color tagging of selected strings for easy identification. Color tags are loaded from the `"colortag_b":` value (`0` = disable, `1` = enable) and `"colortags_l":` list (`[string, color]` pairs) in your json configuration file (see example provided). If color is set to "HALT", streaming will halt on any match and a warning displayed. NB: color tagging does impose a small performance overhead - turning it off will improve console response times at very high transaction rates.|
 |![skyview widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/skyview_widget.png?raw=true)| Skyview widget showing current satellite visibility and position (elevation / azimuth). Satellite icon borders are colour-coded to distinguish between different GNSS constellations. For consistency between NMEA and UBX data sources, will display GLONASS NMEA SVID (65-96) rather than slot (1-24). |
-|![graphview widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/graphview_widget.png?raw=true)| Graphview widget showing current satellite reception (carrier-to-noise ratio or cnr). Double-click to toggle legend. |
+|![graphview widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/graphview_widget.png?raw=true)| Graphview widget showing current satellite reception for each GNSS constellation (carrier-to-noise ratio or cno). Double-click to toggle legend. |
 |![world map](https://github.com/semuconsulting/PyGPSClient/blob/master/images/staticmap.png?raw=true)| Map widget with various modes of display - select from "map" / "sat" (online) or "world" / "custom" (offline). Select zoom level 1 - 20. Double-click the zoom level label to reset the zoom to 10. Double-right-click the zoom label to maximise zoom to 20. Tick Track to show track (track will only be recorded while this box is checked). Double-Right-click will clear the map. Map Type = 'world': a static offline Mercator world map showing current global location.
 |![online map](https://github.com/semuconsulting/PyGPSClient/blob/master/images/webmap_widget.png?raw=true)| Map Type = 'map', 'sat' or 'hyb' (hybrid): Dynamic, online web map or satellite image via MapQuest API (*requires an Internet connection and free [Mapquest API Key](#mapquestapi)*). By default, the web map will automatically refresh every 60 seconds (*indicated by a small timer icon at the top left*). The default refresh rate can be amended by changing the `"mapupdateinterval_n":` value in your json configuration file, but **NB** the facility is not intended to be used for real-time navigation. Double-click anywhere in the map to immediately refresh. |
 |![offline map](https://github.com/semuconsulting/PyGPSClient/blob/master/images/custommap.png?raw=true)| Map Type = 'custom': One or more custom geo-referenced offline maps can be imported using the Menu..Options..Import Custom Map facility, or by manually setting the `usermaps_l` field in the json configuration file. The `usermaps_l` setting represents a list of map paths and bounding boxes in the format ["path to map image", [minlat, minlon, maxlat, maxlon]] - see [example configuration file](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient.json#L281). Map images must be a [supported format](https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html) and use a standard WGS84 Web Mercator projection e.g. EPSG:4326. PyGPSClient will automatically select the first image whose extents encompass the current location, based on the order in which the maps appear in `usermaps_l`. NB: The minimum and maximum viable 'zoom' levels depend on the resolution and extents of the imported image and the user's display - if the zoom bounds exceed the image extents, the Zoom spinbox will be highlighted. |
 |![import custom map](https://github.com/semuconsulting/PyGPSClient/blob/master/images/importcustommap.png?raw=true)| <a name="custommap">Import Custom Map dialog</a>. Click ![load icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-folder-18-24.png?raw=true) to open the custom map image location (*the default file suffix is `*.tif` - select Show Options to select any file suffix `*.*`*). If the `rasterio` library is installed and the image is geo-referenced (e.g. using [QGIS](https://qgis.org/)), the map extents will be automatically extracted - otherwise they must be entered manually. Import the custom map path and extent settings by clicking ![play icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-arrow-12-24.png?raw=true). By default, the imported map will be appended to the existing list - click 'First?' to insert the map at the top of the list instead. See [Creating Custom Maps for PyGPSClient](https://www.semuconsulting.com/gnsswiki/custommapwiki/) for tips on how to create a suitable georeferenced map image.|
 |![spectrum widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/spectrum_widget.png?raw=true)| Spectrum widget showing a spectrum analysis chart (*GNSS receiver must be capable of outputting UBX MON-SPAN messages*). Clicking anywhere in the spectrum chart will display the frequency and decibel reading at that point. Double-clicking anywhere in the chart will toggle the GNSS frequency band markers (L1, G2, etc.) on or off. Right-click anywhere in the chart to capture a snapshot of the spectrum data, which will then be superimposed on the live data. Double-right-click to clear snapshot. **NB:** Some receivers (e.g. NEO-F10N) will not output the requisite MON-SPAN messages unless the port baud rate is at least 57,600. |
-|![sysmon widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/sysmon_widget.png?raw=true)| System Monitor widget showing device cpu, memory and I/O utilisation (*GNSS receiver must be capable of outputting UBX MON-SYS and/or MON-COMMS messages*). Tick checkbox to toggle between actual (cumulative) I/O stats and pending I/O. |
-|![scatterplot widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/scatterplot_widget.png?raw=true)| Scatterplot widget showing variability in position reporting over time. (Optional) Enter fixed reference position. Select Average to center plot on dynamic average position (*displayed at top left*), or Fixed to center on fixed reference position (*if entered*). Check Autorange to set plot range automatically. Set the update interval (e.g. 4 = every 4th navigation solution). Use the range slider or mouse wheel to adjust plot range. Right-click to set fixed reference point to the current mouse cursor position. Double-click to clear the existing data. Settings may be saved to a json configuration file. |
+|![sysmon widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/sysmon_widget.png?raw=true)| System Monitor widget showing device cpu, memory and I/O utilisation (*GNSS receiver must be capable of outputting UBX MON-SYS/MON-COMMS or SBF ReceiverStatus messages*). Tick checkbox to toggle between actual (cumulative) I/O stats and pending I/O. Primarily intended for u-blox modules, but can display limited system information for other devices. |
+|![scatterplot widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/scatterplot_widget.png?raw=true)| Scatterplot widget showing variability in position reporting over time. (Optional) Enter fixed reference position. Select Average to center plot on dynamic average position (*displayed at top left*), or Fixed to center on fixed reference position (*if entered*). Check Autorange to set plot range automatically. Set the update interval (e.g. 4 = every 4th navigation solution). Use the range slider or mouse wheel to adjust plot range. Right-click to set fixed reference point to the current mouse cursor position. Double-click to clear the existing data. |
 |![rover widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/rover_widget.png?raw=true) | Rover widget plots the relative 2D position, track and status information for the roving receiver in a fixed or moving base / rover RTK configuration. Can also display relative position of NTRIP mountpoint and receiver in a static RTK configuration. Double-click to clear existing plot. (*GNSS rover receiver must be capable of outputting UBX NAV-RELPOSNED messages.*) |
-|![chart view](https://github.com/semuconsulting/PyGPSClient/blob/master/images/chart_widget.png?raw=true) | Chart widget acts as a multi-channel "plotter", allowing the user to plot a series of named numeric data attributes from any NMEA, UBX, SBF, RTCM or SPARTN data source, with configurable y (value) and x (time) axes. By default, the number of channels is set to 4, but this can be manually edited by the user via the json configuration file setting `chartsettings_d["numchn_n"]`. For each channel, user can select: (*optional*) identity of message source e.g. `NAV-PVT`; attribute name e.g. `hAcc`; scaling factor (divisor) e.g. 1000; y axis range e.g. 0 - 5. Wildcards are available for attribute groups - "\*" (average of group values), "+" (maximum of group values), "-" (minimum of group values) e.g. `cno*` will plot the average `cno` value for a group of satellites. Double-click to clear the existing data. Double-right-click to save the current chart data to the clipboard in CSV format which can be directly pasted into a spreadsheet application. Settings may be saved to a json configuration file. |
-|![IMU widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/imu_widget.png?raw=true) |  IMU (Inertial Management Unit) Monitor widget showing current orientation/attitude (roll, pitch, yaw) and status of IMU from any IMU/Dead Reckoning message source. Select range in degrees (from ±1 to ±180 degrees). Settings may be saved to a json configuration file. |
+|![chart view](https://github.com/semuconsulting/PyGPSClient/blob/master/images/chart_widget.png?raw=true) | Chart widget acts as a multi-channel "plotter", allowing the user to plot a series of named numeric data attributes from any parsed GNSS data source, with configurable y (value) and x (time) axes. By default, the number of channels is set to 4, but this can be manually edited by the user via the json configuration file setting `chartsettings_d["numchn_n"]`. For each channel, user can select: (*optional*) identity of message source e.g. `NAV-PVT`; attribute name e.g. `hAcc`; scaling factor (divisor) e.g. 1000; y axis range e.g. 0 - 5. Wildcards are available for attribute groups - "\*" (average of group values), "+" (maximum of group values), "-" (minimum of group values) e.g. `cno*` will plot the average `cno` value for a group of satellites. Double-click to clear the existing data. Double-right-click to save the current chart data to the clipboard in CSV format, which can be directly pasted into a spreadsheet application. |
+|![IMU widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/imu_widget.png?raw=true) |  IMU (Inertial Management Unit) Monitor widget showing current orientation/attitude (roll, pitch, yaw) and status of IMU from any IMU/Dead Reckoning message source. Select range in degrees (from ±1 to ±180 degrees). |
 
 ---
 ## <a name="ubxconfig">UBX Configuration Facilities</a>
 
 ![ubxconfig widget screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/ubxconfig_widget.png?raw=true)
 
-**Pre-Requisites:**
+**Pre-Requisites and Caveats:**
 
-- u-blox GNSS receiver e.g. u-blox NEO-M8S, ZED-F9P, etc. connected to the workstation via USB or UART port.
+- u-blox GNSS receiver connected to the workstation via USB or UART port¹².
+- **NOTE:** u-blox introduced a [new configuration mechanism](https://github.com/semuconsulting/pyubx2#configinterface) in 9th generation devices (**ROM protocol >=23.01**). Some UBX configuration commands (e.g. `CFG-PRT`, `CFG-RATE`, `CFG-MSG`) will only work with legacy devices (e.g. NEO-M6S, NEO-M8P); others (e.g. `CFG-VALSET`, `CFG-VALDEL`) will only work with newer devices (e.g. NEO-M9, ZED-F9P, ZED-X20P).
+- **NOTE:** The UBX protocol does not support synchronous command acknowledgement or unique confirmation IDs. Asynchronous command and poll acknowledgements and responses can take several seconds at high message transmission rates, or be discarded altogether if the device's transmit buffer is full (*txbuff-alloc error*). To ensure timely responses, try increasing the baud rate and/or temporarily reducing transmitted message rates using the configuration commands provided.
+- A warning icon (typically accompanied by an ACK-NAK response) is usually an indication that one or more of the commands sent is not supported by your receiver (*e.g. mismatched protocol*).
+
+¹ *Configuration commands can be sent via TCP socket, but a third-party or bespoke TCP-UART converter would be required at the receiving end.*
+
+² *I2C (QWIIC) is not directly supported, but third-party I2C-UART adapters are available.*
 
 **Instructions:**
 
 The UBX Configuration Dialog currently provides the following UBX configuration panels:
+
 1. Version panel shows current device hardware/firmware versions (*via MON-VER and MON-HW polls*).
 1. CFG Configuration Load/Save/Record facility. This allows users to record ![record icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-record-24.png?raw=true) a sequence of UBX CFG configuration commands, and to save ![save icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-save-14-24.png?raw=true) this recording to a file (as binary CFG-* messages). Saved files can be reloaded ![load icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-folder-18-24.png?raw=true) and the configuration commands replayed ![play icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-arrow-12-24.png?raw=true). This provides a means to easily reproduce a given sequence of configuration commands, or copy a saved configuration between compatible devices. The Configuration Load/Save/Record facility can accept configuration files in either binary UBX format (\*.ubx) or u-center text format (\*.txt). Files saved using the [ubxsave](#ubxsave) CLI utility (*installed via the `pygnssutils` library*) can also be reloaded and replayed. **Tip:** The contents of a binary config file can be reviewed using PyGPSClient's [file streaming facility](#filestream), *BUT* remember to set the `Msg Mode` in the Settings panel to `SET` rather than the default `GET` ![msgmode capture](https://github.com/semuconsulting/PyGPSClient/blob/master/images/msgmode.png?raw=true).
-1. Protocol Configuration panel (CFG-PRT) sets baud rate and inbound/outbound protocols across all available ports.
-1. Solution Rate panel (CFG-RATE) sets navigation solution interval in ms (e.g. 1000 = 1/second) and measurement ratio (ratio between the number of measurements and the number of navigation solutions, e.g. 5 = five measurements per navigation solution).
+1. Protocol Configuration panel (CFG-PRT) sets baud rate and inbound/outbound protocols across all available ports (*legacy protocols only*).
+1. Solution Rate panel (CFG-RATE) sets navigation solution interval in ms (e.g. 1000 = 1/second) and measurement ratio (ratio between the number of measurements and the number of navigation solutions, e.g. 5 = five measurements per navigation solution) (*legacy protocols only*).
 1. For each of the panels above, clicking anywhere in the panel background will refresh the displayed information with the current configuration.
-1. Message Rate panel (CFG-MSG) sets message rates per port for UBX and NMEA messages. Message rate is relative to navigation solution frequency e.g. a message rate of '4' means 'every 4th navigation solution' (higher = less frequent).
-1. UBX Legacy Command configuration panel providing structured updates for a range of legacy CFG-* configuration commands for pre-Generation 9+ devices. Note: 'X' (byte) type attributes can be entered as integers or hexadecimal strings e.g. 522125312 or 0x1f1f0000. Once a command is selected, the configuration is polled and the current values displayed. The user can then amend these values as required and send the updated configuration. Some polls require input arguments (e.g. portID) - these are highlighted and will be set at default values initially (e.g. portID = 0), but can be amended by the user and re-polled using the ![refresh](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-refresh-lined-24.png?raw=true) button.
-1. Configuration Interface widget (CFG-VALSET, CFG-VALDEL and CFG-VALGET) queries and sets configuration for [Generation 9+ devices](https://github.com/semuconsulting/pyubx2#configinterface) e.g. NEO-M9, ZED-F9P, etc.
-1. Preset Commands widget supports a variety of preset and user-defined commands - see [user defined presets](#userdefined). The port checkboxes (USB, UART1, etc.) determine which device port(s) any preset message rate commands apply to (_assuming the selected ports are physically implemented on the device_). The selected port(s) may be saved as configuration parameter `defaultport_s` e.g. "USB,UART1".
+1. Message Rate panel (CFG-MSG) sets message rates per port for UBX and NMEA messages (*legacy protocols only*). Message rate is relative to navigation solution frequency e.g. a message rate of '4' means 'every 4th navigation solution' (higher = less frequent).
+1. Configuration Interface widget (CFG-VALSET, CFG-VALDEL and CFG-VALGET) queries and sets configuration for *modern protocols only*.
+1. UBX Legacy Command configuration panel providing structured updates for a range of legacy CFG-* configuration commands (*legacy protocols only*). Note: 'X' (byte) type attributes can be entered as integers or hexadecimal strings e.g. 522125312 or 0x1f1f0000. Once a command is selected, the configuration is polled and the current values displayed. The user can then amend these values as required and send the updated configuration. Some polls require input arguments (e.g. portID) - these are highlighted and will be set at default values initially (e.g. portID = 0), but can be amended by the user and re-polled using the ![refresh](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-refresh-lined-24.png?raw=true) button.
+1. Preset Commands widget supports a variety of user-defined UBX commands and queries - see [user defined presets](#userdefined).
 
 An icon to the right of each 'SEND' 
 ![send icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-arrow-12-24.png?raw=true) button indicates the confirmation status of the configuration command; 
@@ -192,9 +201,6 @@ An icon to the right of each 'SEND'
 confirmed ![confirmed icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-check-mark-8-24.png?raw=true) or 
 warning ![warning icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-warning-1-24.png?raw=true)). 
 
-**Note:**
-* The UBX protocol does not support synchronous command acknowledgement or unique confirmation IDs. Asynchronous command and poll acknowledgements and responses can take several seconds at high message transmission rates, or be discarded altogether if the device's transmit buffer is full (*txbuff-alloc error*). To ensure timely responses, try increasing the baud rate and/or temporarily reducing transmitted message rates using the configuration commands provided.
-* A warning icon (typically accompanied by an ACK-NAK response) is usually an indication that one or more of the commands sent is not supported by your receiver.
 ---
 ## <a name="nmeaconfig">NMEA Configuration Facilities</a>
 
@@ -202,14 +208,15 @@ warning ![warning icon](https://github.com/semuconsulting/PyGPSClient/blob/maste
 
 **Pre-Requisites:**
 
-- Receiver capable of being configured via proprietary NMEA sentences, connected to the workstation via USB or UART port. The facility includes support for several Quectel LG and LC series receivers via PQTM* and PAIR* sentences. Additional types may be supported in the underlying NMEA parser library [pynmeagps](https://github.com/semuconsulting/pynmeagps) in later releases (*contributions welcome*).
+- Receiver capable of being configured via proprietary NMEA sentences, connected to the workstation via USB or UART port.
+- The facility includes support for several Quectel LG and LC series receivers via PQTM*, PSTM* and PAIR* sentences. Additional types may be supported in the underlying NMEA parser library [pynmeagps](https://github.com/semuconsulting/pynmeagps) in later releases (*contributions welcome*).
 
 **Instructions:**
 
 The NMEA Configuration Dialog currently provides the following NMEA configuration panels:
 1. Version panel shows current device hardware/firmware versions (*via PQTMVERNO polls*).
 1. Dynamic configuration panel providing structured updates for supported receivers e.g. Quectel LG290P via PQTM* sentences, or LC29H via PAIR* sentences. Once a command is selected, the configuration is polled and the current values displayed. The user can then amend these values as required and send the updated configuration. Some polls require input arguments (e.g. portid or msgname) - these are highlighted and will be set at default values initially (e.g. portid = 1), but can be amended by the user and re-polled using the ![refresh](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-refresh-lined-24.png?raw=true) button.
-1. Preset Commands widget supports a variety of preset and user-defined commands - see [user defined presets](#userdefined).
+1. Preset Commands widget supports a variety of user-defined NMEA commands and queries - see [user defined presets](#userdefined).
 
 An icon to the right of each 'SEND' 
 ![send icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-arrow-12-24.png?raw=true) button indicates the confirmation status of the configuration command; 
@@ -218,6 +225,24 @@ confirmed ![confirmed icon](https://github.com/semuconsulting/PyGPSClient/blob/m
 warning ![warning icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-warning-1-24.png?raw=true)).
 
 **NB:** Several Quectel LG and LC series commands require a Hot Restart (PQTMHOT) before taking effect, including PQTMCFGCNST (Enable/Disable Constellations), PQTMCFGFIX (Configure Fix Rate), PQTMCFGSAT (Configure Satellite Masks) and PQTMCFGSIGNAL (Configure Signal Masks). This is a Quectel protocol constraint, not a PyGPSClient issue.
+
+---
+## <a name="ttycommands">TTY Configuration Facilities</a>
+
+![ttydialog screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/tty_dialog.png?raw=true)
+
+The TTY Commands dialog provides a facility to send user-defined ASCII TTY configuration commands (e.g. `AT+` style commands) to the connected serial device. Commands can be entered manually or selected from a list of user-defined presets. The dialog can be accessed via the TTY Config button or Menu..Options..TTY Commands. 
+- CRLF checkbox - if ticked, a CRLF (`b"\x0d\x0a"`) terminator will be added to the command string. 
+- Echo checkbox - if ticked, outgoing TTY commands will be echoed on the console with the marker `"TTY<<"`.
+- Delay checkbox - if ticked, a small delay will be added between each outgoing command to allow time for the receiving device to process the command.
+
+Preset commands can be set up by adding appropriate semicolon-delimited message descriptions and payload definitions to the `"ttypresets_l":` list in your json configuration file. See [User Defined Presets](#user-defined-presets) above and [example provided](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient.json#L302).
+
+**NOTE:** Some GNSS devices (e.g. Septentrio X5) use separate UART ports for configuration and navigation/monitoring - ensure you are using the appropriate UART port when sending TTY commands. Septentrio devices also require an 'Initialise Command Mode' sequence (`SSSSSSSSSS`) to be sent before accepting TTY commands.
+
+The following example illustrates a series of ASCII configuration commands being sent to a Septentrio Mosaic X5 receiver, followed by successful acknowledgements:
+
+![ttyconsole screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/tty_console.png?raw=true)
 
 ---
 ## <a name="ntripconfig">NTRIP Client Facilities</a>
@@ -237,7 +262,7 @@ The NTRIP Configuration utility allows users to receive and process NTRIP RTK Co
 
 **Instructions:**
 
-1. Enter the required NTRIP server URL (or IP address), port (defaults to 2101) and HTTPS flag (defaults to 'yes' for ports 443/2102, 'no' for all else). For services which require authorisation, enter your login username and password.
+1. Enter the required NTRIP server URL (or IP address) and port (defaults to 2101). For SSL/TLS (HTTPS) connections (*typically on ports \*443 or 2102*), tick the TLS checkbox. Tick the Self-Sign checkbox to tolerate self-signed TLS certification (*typically for test or demonstration services*). For services which require authorisation, enter your assigned login username and password.
 1. Select the Data Type (defaults to RTCM, but can be set to SPARTN).
 1. To retrieve the sourcetable, leave the mountpoint field blank and click connect (*response may take a few seconds*). The required mountpoint may then be selected from the list, or entered manually. Where possible, `PyGPSClient` will automatically identify the closest mountpoint to the current location.
 1. For NTRIP services which require client position data via NMEA GGA sentences, select the appropriate sentence transmission interval in seconds. The default is 'None' (no GGA sentences sent). A value of 10 or 60 seconds is typical.
@@ -349,13 +374,15 @@ that this is a User variable rather than a System/Global variable.
 ---
 ## <a name="userdefined">User Defined Presets</a>
 
-The UBX and NMEA Configuration Dialogs include the facility to send user-defined configuration messages or message sequences to a compatible receiver. These can be set up by adding
-appropriate comma- or semicolon-delimited message descriptions and payload definitions to the `"ubxpresets_l":`or `"nmeapresets_l":` lists in your json configuration file (see [example provided](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient.json#L174)). The message definition comprises a free-format text description (*avoid embedded commas or semi-colons*) followed by one or more pyubx2 (UBX) or pynmeagps (NMEA) message constructors, e,g. 
+The UBX, NMEA and TTY Configuration Dialogs include the facility to send user-defined configuration messages or message sequences to a compatible receiver. These can be set up by adding appropriate comma- or semicolon-delimited message descriptions and payload definitions to the `"ubxpresets_l"`, `"nmeapresets_l"` or `"ttypresets_l"` settings in your json configuration file (see [example provided](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient.json#L186)). The message definition comprises a free-format text description (*avoid embedded commas or semi-colons*) followed by one or more pyubx2 (UBX), pynmeagps (NMEA) or tty (ASCII) message constructors, e,g. 
 
 - UBX - `<description>, <message class>, <message id>, <payload as hexadecimal string>, <msgmode>`
 - NMEA - `<description>; <talker>; <message id>; <payload as comma-separated string>; <msgmode>`
+- TTY - `<description>; <tty command>`
 
 If the command description contains the term `CONFIRM`, a pop-up confirmation box will appear before the command is actioned.
+
+When PyGPSClient is first started, these settings are pre-populated with an initial set of preset commands, which can be saved to a \*.json configuration file and then manually removed, amended or supplemented in accordance with the user's preferences. To reinstate this initial set at a later date, insert the line `"INIT_PRESETS",` at the top of the relevant `"ubxpresets_l"`, `"nmeapresets_l"` or `"ttypresets_l"` configuration setting.
 
 The `pygpsclient.ubx2preset()` and `pygpsclient.nmea2preset()` helper functions may be used to convert a `UBXMessage` or `NMEAMessage` object into a preset string suitable for copying and pasting into the `"ubxpresents_l":` or `"nmeapresets_l":` JSON configuration sections:
 
@@ -376,24 +403,6 @@ Configure UART baud rate on LG290P; P; QTMCFGUART; W,460800; 1
 ```
 
 Multiple commands can be concatenated on a single line. Illustrative examples are shown in the sample [pygpsclient.json](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient.json#L174) file.
-
----
-## <a name="ttycommands">TTY Commands and Presets</a>
-
-![ttydialog screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/tty_dialog.png?raw=true)
-
-The TTY Commands dialog provides a facility to send user-defined ASCII TTY commands (e.g. `AT+` style commands) to the connected serial device. Commands can be entered manually or selected from a list of user-defined presets. The dialog can be accessed via menu bar Options...TTY Commands. 
-- CRLF checkbox - if ticked, a CRLF (`b"\x0d\x0a"`) terminator will be added to the command string. 
-- Echo checkbox - if ticked, outgoing TTY commands will be echoed on the console with the marker `"TTY<<"`.
-- Delay checkbox - if ticked, a small delay will be added between each outgoing command to allow time for the receiving device to process the command.
-
-Preset commands can be set up by adding appropriate semicolon-delimited message descriptions and payload definitions to the `"ttypresets_l":` list in your json configuration file (see [example provided](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient.json#L255)). The message definition comprises a free-format text description (*avoid embedded semi-colons*) followed by one or more ASCII TTY commands, e,g. 
-
-- `<description>; <tty command>`
-
-The following example illustrates a series of ASCII configuration commands being sent to a Septentrio Mosaic X5 receiver, followed by successful acknowledgements:
-
-![ttyconsole screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/tty_console.png?raw=true)
 
 ---
 ## <a name="cli">Command Line Utilities</a>
