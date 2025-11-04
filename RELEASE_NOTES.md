@@ -19,6 +19,7 @@ ENHANCEMENTS:
 
 FIXES:
 
+1. Fix "SQLError Database not open" issue on initialisation.
 1. Fix issue where TTY Console would not refresh immediately if Echo was enabled.
 1. Fix issue where ValueError (unknown protocol) from GNSSReader would cause streaming to terminate (requires `pygnssutils>=1.1.20`).
 1. Fix issue with some ZED-X20P configuration commands not taking effect with firmware HPG 2.02.

@@ -211,10 +211,11 @@ class App(Frame):
         # open database if database recording enabled
         dbpath = self.configuration.get("databasepath_s")
         if self.configuration.get("database_b") and dbpath != "":
-            self.db_enabled = self.sqlite_handler.open(dbpath=dbpath)
+            self._db_enabled = self.sqlite_handler.open(dbpath=dbpath)
         else:
-            self.db_enabled = self.sqlite_handler.open(dbname=DBINMEM)
-        self.configuration.set("database_b", self.db_enabled == SQLOK)
+            self._db_enabled = self.sqlite_handler.open(dbname=DBINMEM)
+        if not self._db_enabled:
+            self.configuration.set("database_b", 0)
 
         self._body()
         self._do_layout()
@@ -1058,6 +1059,17 @@ class App(Frame):
             + (cfg.get("ttyprot_b") * TTY_PROTOCOL)  # 128
         )
         return mask
+
+    @property
+    def db_enabled(self) -> bool:
+        """
+        Getter for database enabled status.
+
+        :return: database enabled status
+        :rtype: bool
+        """
+
+        return self._db_enabled
 
     def do_app_update(self, updates: list) -> int:
         """

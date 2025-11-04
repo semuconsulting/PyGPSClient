@@ -180,8 +180,6 @@ class SettingsFrame(Frame):
         self._img_nmeaconfig = ImageTk.PhotoImage(Image.open(ICON_NMEACONFIG))
         self._img_ttyconfig = ImageTk.PhotoImage(Image.open(ICON_TTYCONFIG))
         self._img_ntripconfig = ImageTk.PhotoImage(Image.open(ICON_NTRIPCONFIG))
-        # self._img_spartnconfig = ImageTk.PhotoImage(Image.open(ICON_SPARTNCONFIG))
-        # self._img_spartndisable = ImageTk.PhotoImage(Image.open(ICON_SPARTNDISABLE))
         self._img_dataread = ImageTk.PhotoImage(Image.open(ICON_LOGREAD))
 
         self._container()  # create scrollable container
@@ -587,12 +585,6 @@ class SettingsFrame(Frame):
         else:
             self._record_database.set(cfg.get("database_b"))
         self.clients = 0
-
-        # # MQTT and L-BAND SPARTN services discontinued by u-blox
-        # if not cfg.get("lband_enabled_b"):
-        #     self._btn_spartnconfig.config(state=DISABLED, image=self._img_spartndisable)
-        #     self._lbl_spartnconfig.config(state=DISABLED)
-
         self._bind_events(True)
 
     def _bind_events(self, add: bool = True):
