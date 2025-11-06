@@ -41,7 +41,7 @@ from tkinter.ttk import Progressbar
 
 from PIL import Image, ImageTk
 from pygnssutils import RTCMTYPES, check_pemfile
-from pynmeagps import SET, NMEAMessage, ecef2llh, llh2ecef
+from pynmeagps import NMEAMessage, ecef2llh, llh2ecef
 from pyubx2 import SET_LAYER_RAM, TXN_NONE, UBXMessage
 
 from pygpsclient.globals import (
@@ -60,19 +60,33 @@ from pygpsclient.globals import (
     SERVERCONFIG,
     SOCK_NTRIP,
     SOCKMODES,
+    TRACEMODE_WRITE,
+    VALFLOAT,
+    VALINT,
+    VALNONBLANK,
     ZED_F9,
     ZED_X20,
 )
 from pygpsclient.helpers import (
     MAXPORT,
-    VALFLOAT,
-    VALINT,
-    VALNONBLANK,
     config_nmea,
     lanip,
     publicip,
-    val2sphp,
-    valid_entry,
+)
+from pygpsclient.receiver_config_handler import (
+    config_disable_lc29h,
+    config_disable_lg290p,
+    config_disable_septentrio,
+    config_disable_ublox,
+    config_fixed_lc29h,
+    config_fixed_lg290p,
+    config_fixed_septentrio,
+    config_fixed_ublox,
+    config_svin_lc29h,
+    config_svin_lg290p,
+    config_svin_quectel,
+    config_svin_septentrio,
+    config_svin_ublox,
 )
 from pygpsclient.strings import (
     DLGNOTLS,
@@ -113,16 +127,11 @@ BASE_FIXED = "FIXED"
 BASE_SVIN = "SURVEY IN"
 BASEMODES = (BASE_SVIN, BASE_DISABLED, BASE_FIXED)
 DURATIONS = (60, 1200, 600, 300, 240, 180, 120, 90)
-ECEF = 0
-LLH = 1
 MAXSVIN = 15
 POS_ECEF = "ECEF"
 POS_LLH = "LLH"
 PQTMVER = "PQTMVER"
 POSMODES = (POS_LLH, POS_ECEF)
-TMODE_DISABLED = 0
-TMODE_FIXED = 2
-TMODE_SVIN = 1
 
 
 class ServerConfigFrame(Frame):
@@ -175,8 +184,9 @@ class ServerConfigFrame(Frame):
 
         self._body()
         self._do_layout()
-        self._attach_events()
         self.reset()
+        # self._attach_events() # done in reset
+        self._attach_events1()
 
     def _body(self):
         """
@@ -421,18 +431,18 @@ class ServerConfigFrame(Frame):
         Reset settings to defaults.
         """
 
-        self._bind_events(False)
+        self._attach_events(False)
         cfg = self.__app.configuration
         self._socket_serve.set(cfg.get("sockserver_b"))
         self.sock_mode.set(SOCKMODES[cfg.get("sockmode_b")])
         self._on_toggle_advanced()
         self.base_mode.set(cfg.get("ntripcasterbasemode_s"))
-        self._on_basemode(None, None, "write")
+        self._on_update_basemode(None, None, TRACEMODE_WRITE)
         self.receiver_type.set(cfg.get("ntripcasterrcvrtype_s"))
         self.acclimit.set(cfg.get("ntripcasteracclimit_f"))
         self.duration.set(cfg.get("ntripcasterduration_n"))
         self.pos_mode.set(cfg.get("ntripcasterposmode_s"))
-        self._on_posmode(None, None, "write")
+        self._on_update_posmode(None, None, TRACEMODE_WRITE)
         self.fixedlat.set(cfg.get("ntripcasterfixedlat_f"))
         self.fixedlon.set(cfg.get("ntripcasterfixedlon_f"))
         self.fixedhae.set(cfg.get("ntripcasterfixedalt_f"))
@@ -460,91 +470,82 @@ class ServerConfigFrame(Frame):
         self._fixed_lat_temp = self.fixedlat.get()
         self._fixed_lon_temp = self.fixedlon.get()
         self._fixed_hae_temp = self.fixedhae.get()
-        self._bind_events(True)
+        self._attach_events(True)
 
-    def _attach_events(self):
+    def _attach_events1(self):
         """
-        Bind events to variables.
+        Bind resize events to variables.
         """
 
         self.bind("<Configure>", self._on_resize)
 
-    def _bind_events(self, add: bool = True):
+    def _attach_events(self, add: bool = True):
         """
         Add or remove event bindings to/from widgets.
 
-        :param bool add: add or remove binding
+        (trace_update() is a class extension method defined in globals.py)
+
+        :param bool add: add or remove trace
         """
 
-        tracemode = "write"
-        if add:
-            self._socket_serve.trace_add(tracemode, self._on_socket_serve)
-            self.sock_mode.trace_add(tracemode, self._on_sockmode)
-            self.base_mode.trace_add(tracemode, self._on_basemode)
-            self.pos_mode.trace_add(tracemode, self._on_posmode)
-            self.sock_port.trace_add(tracemode, self._on_sockport)
-            self.https.trace_add(tracemode, self._on_https)
+        tracemode = TRACEMODE_WRITE
+        self._socket_serve.trace_update(tracemode, self._on_socketserve, add)
+        self.sock_mode.trace_update(tracemode, self._on_update_sockmode, add)
+        self.base_mode.trace_update(tracemode, self._on_update_basemode, add)
+        self.pos_mode.trace_update(tracemode, self._on_update_posmode, add)
+        self.sock_port.trace_update(tracemode, self._on_update_sockport, add)
+        self.https.trace_update(tracemode, self._on_update_https, add)
+        self.sock_host.trace_update(tracemode, self._on_update_sockhost, add)
+        self.receiver_type.trace_update(tracemode, self._on_update_rcvrtype, add)
+        self.acclimit.trace_update(tracemode, self._on_update_acclimit, add)
+        self.duration.trace_update(tracemode, self._on_update_svinduration, add)
+        self.fixedlat.trace_update(tracemode, self._on_update_fixedlat, add)
+        self.fixedlon.trace_update(tracemode, self._on_update_fixedlon, add)
+        self.fixedhae.trace_update(tracemode, self._on_update_fixedhae, add)
+        self.disable_nmea.trace_update(tracemode, self._on_update_disablenmea, add)
+        self.user.trace_update(tracemode, self._on_update_user, add)
+        self.password.trace_update(tracemode, self._on_update_password, add)
+
+    def valid_settings(self) -> bool:
+        """
+        Validate settings.
+
+        :return: valid True/False
+        :rtype: bool
+        """
+
+        valid = True
+        valid = valid & self._ent_sockhost.validate(VALNONBLANK)
+        valid = valid & self._ent_sockport.validate(VALINT, 1, MAXPORT)
+        valid = valid & self._ent_fixedlat.validate(VALFLOAT)
+        valid = valid & self._ent_fixedlon.validate(VALFLOAT)
+        valid = valid & self._ent_fixedhae.validate(VALFLOAT)
+        valid = valid & self._ent_user.validate(VALNONBLANK)
+        valid = valid & self._ent_password.validate(VALNONBLANK)
+        return valid
+
+    def _on_toggle_advanced(self):
+        """
+        Toggle advanced socket settings panel on or off
+        if server mode is "NTRIP Caster".
+        """
+
+        if self.sock_mode.get() != SOCK_NTRIP:
+            return
+        self._show_advanced = not self._show_advanced
+        self._set_advanced()
+
+    def _set_advanced(self):
+        """
+        Set visibility of advanced socket server settings panel.
+        """
+
+        if self._show_advanced:
+            self._frm_advanced.grid(column=0, row=1, columnspan=5, sticky=(W, E))
+            self._btn_toggle.config(image=self._img_contract)
         else:
-            for setting in (
-                self._socket_serve,
-                self.sock_mode,
-                self.base_mode,
-                self.pos_mode,
-                self.sock_port,
-                self.https,
-            ):
-                if len(setting.trace_info()) > 0:
-                    setting.trace_remove(tracemode, setting.trace_info()[0][1])
-
-        tracemode = "write"
-        for setting in (
-            self.sock_host,
-            self.receiver_type,
-            self.acclimit,
-            self.duration,
-            self.fixedlat,
-            self.fixedlon,
-            self.fixedhae,
-            self.disable_nmea,
-            self.user,
-            self.password,
-        ):
-            if add:
-                setting.trace_add(tracemode, self._on_update_config)
-            else:
-                if len(setting.trace_info()) > 0:
-                    setting.trace_remove(tracemode, setting.trace_info()[0][1])
-
-    def _on_update_config(self, var, index, mode):  # pylint: disable=unused-argument
-        """
-        Update in-memory configuration if setting is changed.
-        """
-
-        try:
-            self.update()
-            cfg = self.__app.configuration
-            cfg.set("ntripcasterrcvrtype_s", self.receiver_type.get())
-            cfg.set("ntripcasteracclimit_f", float(self.acclimit.get()))
-            cfg.set("ntripcasterduration_n", int(self.duration.get()))
-            cfg.set("ntripcasterfixedlat_f", float(self.fixedlat.get()))
-            cfg.set("ntripcasterfixedlon_f", float(self.fixedlon.get()))
-            cfg.set("ntripcasterfixedalt_f", float(self.fixedhae.get()))
-            cfg.set("ntripcasterdisablenmea_b", self.disable_nmea.get())
-            cfg.set("sockhost_s", self.sock_host.get())
-            cfg.set("ntripcasteruser_s", self.user.get())
-            cfg.set("ntripcasterpassword_s", self.password.get())
-            # self.sockserve, self.sock_mode, self.base_mode, self.pos_mode & self.https
-            # are updated in their respective routines below
-        except (ValueError, TclError):
-            pass
-
-    def _on_configure_base(self, *args, **kwargs):  # pylint: disable=unused-argument
-        """
-        Send commands to configure base station.
-        """
-
-        if self.sock_mode.get() == SOCK_NTRIP:
-            self._config_rcvr()
+            self._frm_advanced.grid_forget()
+            self._btn_toggle.config(image=self._img_expand)
 
     def set_status(self, status: int):
         """
@@ -561,35 +562,27 @@ class ServerConfigFrame(Frame):
         else:
             self._chk_socketserve.configure(state=NORMAL)
 
-    def _on_socket_serve(self, var, index, mode):
+    def _on_socketserve(self, var, index, mode):
         """
-        Action when socket_serve variable is updated.
-        Start or stop socket server.
+        Action when socket server is started or stopped.
         """
+
+        if self.valid_settings():
+            self.__app.set_status("", INFOCOL)
+        else:
+            self.__app.set_status("ERROR - invalid entry", ERRCOL)
+            return
 
         self._quectel_restart = 0
         if self._socket_serve.get():
-            # validate entries
-            valid = True
-            valid = valid & valid_entry(self._ent_sockhost, VALNONBLANK)
-            valid = valid & valid_entry(self._ent_sockport, VALINT, 1, MAXPORT)
-            valid = valid & valid_entry(self._ent_fixedlat, VALFLOAT)
-            valid = valid & valid_entry(self._ent_fixedlon, VALFLOAT)
-            valid = valid & valid_entry(self._ent_fixedhae, VALFLOAT)
-            if valid:
-                self.__app.set_status("", INFOCOL)
-            else:
-                self.__app.set_status("ERROR - invalid entry", ERRCOL)
-                self._socket_serve.set(0)
-                return
             # start server
-            self.__app.start_sockserver_thread()
+            self.__app.sockserver_start()
             self.__app.stream_handler.sock_serve = True
             self._fixed_lat_temp = self.fixedlat.get()
             self._fixed_lon_temp = self.fixedlon.get()
             self._fixed_hae_temp = self.fixedhae.get()
         else:  # stop server
-            self.__app.stop_sockserver_thread()
+            self.__app.sockserver_stop()
             self.__app.stream_handler.sock_serve = False
             self.clients = 0
 
@@ -640,30 +633,211 @@ class ServerConfigFrame(Frame):
         self._lbl_elapsed.config(text="")
         self.__app.configuration.set("sockserver_b", int(self._socket_serve.get()))
 
-    def _on_toggle_advanced(self):
+    def _on_configure_base(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
-        Toggle advanced socket settings panel on or off
-        if server mode is "NTRIP Caster".
-        """
-
-        if self.sock_mode.get() != SOCK_NTRIP:
-            return
-        self._show_advanced = not self._show_advanced
-        self._set_advanced()
-
-    def _set_advanced(self):
-        """
-        Set visibility of advanced socket server settings panel.
+        Send commands to configure base station.
         """
 
-        if self._show_advanced:
-            self._frm_advanced.grid(column=0, row=1, columnspan=5, sticky=(W, E))
-            self._btn_toggle.config(image=self._img_contract)
+        if self.sock_mode.get() == SOCK_NTRIP:
+            self._config_receiver()
+
+    def _config_receiver(self):
+        """
+        Configure receiver as Base Station if in NTRIP caster mode.
+        """
+
+        # pylint: disable=no-member
+
+        # validate settings
+        if self.valid_settings():
+            self.__app.set_status("", INFOCOL)
         else:
-            self._frm_advanced.grid_forget()
-            self._btn_toggle.config(image=self._img_expand)
+            self.__app.set_status("ERROR - invalid entry", ERRCOL)
+            return
 
-    def _on_sockmode(self, var, index, mode):
+        delay = self.__app.configuration.get("guiupdateinterval_f") / 2
+        # set base station timing mode
+        if self.base_mode.get() == BASE_SVIN:
+            cmds = self._config_svin(self.acclimit.get(), self.duration.get())
+        elif self.base_mode.get() == BASE_FIXED:
+            cmds = self._config_fixed(
+                self.acclimit.get(),
+                self.fixedlat.get(),
+                self.fixedlon.get(),
+                self.fixedhae.get(),
+            )
+        else:  # DISABLED
+            cmds = self._config_disable()
+        if not isinstance(cmds, list):
+            cmds = [
+                cmds,
+            ]
+        for cmd in cmds:
+            # self.logger.debug(f"Base Config Message: {cmd}")
+            if isinstance(cmd, (UBXMessage, NMEAMessage)):
+                self.__app.send_to_device(cmd.serialize())
+            elif isinstance(cmd, str):  # TTY ASCII string
+                self.__app.send_to_device(cmd.encode(ASCII, errors=BSR))
+                sleep(delay)  # add delay between each TTY command
+            else:  # raw bytes
+                self.__app.send_to_device(cmd)
+
+        if self.receiver_type.get() in (ZED_F9, ZED_X20):
+            # set RTCM and UBX NAV-SVIN message output rate
+            rate = 0 if self.base_mode.get() == BASE_DISABLED else 1
+            for port in ("USB", "UART1"):
+                self._config_msg_rates(rate, port)
+                # self.__app.send_to_device(msg.serialize())
+                msg = config_nmea(self.disable_nmea.get(), port)
+                self.__app.send_to_device(msg.serialize())
+        elif self.receiver_type.get() == LG290P:
+            # poll for confirmation that rcvr has restarted,
+            # then resend configuration commands a 2nd time
+            self._pending_confs[PQTMVER] = SERVERCONFIG
+        elif self.receiver_type.get() == LC29H:
+            # poll for confirmation warm start has finished
+            pass
+
+    def _on_update_sockhost(self, var, index, mode):
+        """
+        Action on update sockhost.
+        """
+
+        if self._ent_sockhost.validate(VALNONBLANK):
+            self._chk_socketserve.config(state=NORMAL)
+        else:
+            self._chk_socketserve.config(state=DISABLED)
+            return
+        self.__app.configuration.set("sockhost_s", self.sock_host.get())
+
+    def _on_update_sockport(self, var, index, mode):
+        """
+        Action when socket port is updated.
+        """
+
+        if self._ent_sockport.validate(VALINT, 1, MAXPORT):
+            self._chk_socketserve.config(state=NORMAL)
+        else:
+            self._chk_socketserve.config(state=DISABLED)
+            return
+
+        try:
+            if self.__app.configuration.get("sockmode_b"):  # NTRIP CASTER
+                self.__app.configuration.set(
+                    "sockportntrip_n", int(self.sock_port.get())
+                )
+            else:  # SOCKER SERVER
+                self.__app.configuration.set("sockport_n", int(self.sock_port.get()))
+            # if port ends 443, assume HTTPS; user can override
+            self.https.set(str(self.sock_port.get())[-3:] == "443")
+        except ValueError:
+            pass
+
+    def _on_update_rcvrtype(self, var, index, mode):
+        """
+        Action on update rcvrtype.
+        """
+
+        self.__app.configuration.set("ntripcasterrcvrtype_s", self.receiver_type.get())
+
+    def _on_update_acclimit(self, var, index, mode):
+        """
+        Action on update acc limit.
+        """
+
+        self.__app.configuration.set(
+            "ntripcasteracclimit_f", float(self.acclimit.get())
+        )
+
+    def _on_update_svinduration(self, var, index, mode):
+        """
+        Action on update ntrip caster survey-in duration.
+        """
+
+        self.__app.configuration.set("ntripcasterduration_n", int(self.duration.get()))
+
+    def _on_update_fixedlat(self, var, index, mode):
+        """
+        Action on update fixed lat.
+        """
+
+        try:
+            if self._ent_fixedlat.validate(VALFLOAT):
+                self._btn_configure_base.config(state=NORMAL)
+            else:
+                self._btn_configure_base.config(state=DISABLED)
+                return
+            self.__app.configuration.set(
+                "ntripcasterfixedlat_f", float(self.fixedlat.get())
+            )
+        except TclError:
+            pass
+
+    def _on_update_fixedlon(self, var, index, mode):
+        """
+        Action on update fixed lon.
+        """
+
+        try:
+            if self._ent_fixedlon.validate(VALFLOAT):
+                self._btn_configure_base.config(state=NORMAL)
+            else:
+                self._btn_configure_base.config(state=DISABLED)
+                return
+            self.__app.configuration.set(
+                "ntripcasterfixedlon_f", float(self.fixedlon.get())
+            )
+        except TclError:
+            pass
+
+    def _on_update_fixedhae(self, var, index, mode):
+        """
+        Action on update fixed hae.
+        """
+
+        try:
+            if self._ent_fixedhae.validate(VALFLOAT):
+                self._btn_configure_base.config(state=NORMAL)
+            else:
+                self._btn_configure_base.config(state=DISABLED)
+                return
+            self.__app.configuration.set(
+                "ntripcasterfixedalt_f", float(self.fixedhae.get())
+            )
+        except TclError:
+            pass
+
+    def _on_update_disablenmea(self, var, index, mode):
+        """
+        Action on update disable nmea.
+        """
+
+        try:
+            self.__app.configuration.set(
+                "ntripcasterdisablenmea_b", self.disable_nmea.get()
+            )
+        except TclError:
+            pass
+
+    def _on_update_user(self, var, index, mode):
+        """
+        Action on update ntripcaster user.
+        """
+
+        if not self._ent_user.validate(VALNONBLANK):
+            return
+        self.__app.configuration.set("ntripcasteruser_s", self.user.get())
+
+    def _on_update_password(self, var, index, mode):
+        """
+        Action on update ntripcaster password.
+        """
+
+        if not self._ent_password.validate(VALNONBLANK):
+            return
+        self.__app.configuration.set("ntripcasterpassword_s", self.password.get())
+
+    def _on_update_sockmode(self, var, index, mode):
         """
         Action when sock_mode variable is updated (SOCKET SERVER/NTRIP CASTER).
         Set default port and expand button depending on socket server mode.
@@ -681,25 +855,7 @@ class ServerConfigFrame(Frame):
             self.sock_port.set(self.__app.configuration.get("sockport_n"))
         self._set_advanced()
 
-    def _on_sockport(self, var, index, mode):
-        """
-        Action when socket port is updated.
-        """
-
-        valid = valid_entry(self._ent_sockport, VALINT, 1, MAXPORT)
-        try:
-            if self.__app.configuration.get("sockmode_b"):  # NTRIP CASTER
-                self.__app.configuration.set(
-                    "sockportntrip_n", int(self.sock_port.get())
-                )
-            else:  # SOCKER SERVER
-                self.__app.configuration.set("sockport_n", int(self.sock_port.get()))
-            # if port ends 443, assume HTTPS; user can override
-            self.https.set(str(self.sock_port.get())[-3:] == "443")
-        except ValueError:
-            pass
-
-    def _on_https(self, var, index, mode):
+    def _on_update_https(self, var, index, mode):
         """
         Action when https flag is updated.
         """
@@ -709,27 +865,27 @@ class ServerConfigFrame(Frame):
             err = DLGNOTLS.format(hostpem=pem)
             self.__app.set_status(err, ERRCOL)
             self.logger.error(err)
-            self._bind_events(False)
+            self._attach_events(False)
             self.https.set(0)
             self._chk_https.config(state=DISABLED)
-            self._bind_events(True)
+            self._attach_events(True)
         self.__app.configuration.set("sockhttps_b", self.https.get())
 
-    def _on_basemode(self, var, index, mode):
+    def _on_update_basemode(self, var, index, mode):
         """
         Action when base_mode is updated (SVIN/FIXED).
         Set field visibility depending on base mode.
         """
 
         if self.base_mode.get() == BASE_SVIN:
-            self._on_basemode_svin()
+            self._on_update_basemode_svin()
         elif self.base_mode.get() == BASE_FIXED:
-            self._on_basemode_fixed()
+            self._on_update_basemode_fixed()
         else:  # Disabled
-            self._on_basemode_disabled()
+            self._on_update_basemode_disabled()
         self.__app.configuration.set("ntripcasterbasemode_s", self.base_mode.get())
 
-    def _on_basemode_svin(self):
+    def _on_update_basemode_svin(self):
         """
         Set SURVEY-IN base mode.
         """
@@ -751,7 +907,7 @@ class ServerConfigFrame(Frame):
         for wid in self._ent_fixedlat, self._ent_fixedlon, self._ent_fixedhae:
             wid.config(state=DISABLED)
 
-    def _on_basemode_fixed(self):
+    def _on_update_basemode_fixed(self):
         """
         Set FIXED base mode.
         """
@@ -778,7 +934,7 @@ class ServerConfigFrame(Frame):
             wid.config(state=NORMAL)
         self._set_coords(self.pos_mode.get())
 
-    def _on_basemode_disabled(self):
+    def _on_update_basemode_disabled(self):
         """
         Set DISABLED base mode.
         """
@@ -802,7 +958,7 @@ class ServerConfigFrame(Frame):
         self._lbl_password.grid_forget()
         self._ent_password.grid_forget()
 
-    def _on_posmode(self, var, index, mode):
+    def _on_update_posmode(self, var, index, mode):
         """
         Action when pos_mode variable is updated (LLH/ECEF).
         Set fixed reference labels depending on position mode (ECEF or LLH)
@@ -864,54 +1020,6 @@ class ServerConfigFrame(Frame):
         if self._socket_serve.get() in ("1", 1):
             self.__app.frm_banner.update_transmit_status(clients)
 
-    def _config_rcvr(self):
-        """
-        Configure receiver as Base Station if in NTRIP caster mode.
-        """
-
-        delay = self.__app.configuration.get("guiupdateinterval_f") / 2
-        # set base station timing mode
-        if self.base_mode.get() == BASE_SVIN:
-            cmds = self._config_svin(self.acclimit.get(), self.duration.get())
-        elif self.base_mode.get() == BASE_FIXED:
-            cmds = self._config_fixed(
-                self.acclimit.get(),
-                self.fixedlat.get(),
-                self.fixedlon.get(),
-                self.fixedhae.get(),
-            )
-        else:  # DISABLED
-            cmds = self._config_disable()
-        if not isinstance(cmds, list):
-            cmds = [
-                cmds,
-            ]
-        for cmd in cmds:
-            # self.logger.debug(f"Base Config Message: {cmd}")
-            if isinstance(cmd, (UBXMessage, NMEAMessage)):
-                self.__app.send_to_device(cmd.serialize())
-            elif isinstance(cmd, str):  # TTY ASCII string
-                self.__app.send_to_device(cmd.encode(ASCII, errors=BSR))
-                sleep(delay)  # add delay between each TTY command
-            else:  # raw bytes
-                self.__app.send_to_device(cmd)
-
-        if self.receiver_type.get() in (ZED_F9, ZED_X20):
-            # set RTCM and UBX NAV-SVIN message output rate
-            rate = 0 if self.base_mode.get() == BASE_DISABLED else 1
-            for port in ("USB", "UART1"):
-                self._config_msg_rates(rate, port)
-                # self.__app.send_to_device(msg.serialize())
-                msg = config_nmea(self.disable_nmea.get(), port)
-                self.__app.send_to_device(msg.serialize())
-        elif self.receiver_type.get() == LG290P:
-            # poll for confirmation that rcvr has restarted,
-            # then resend configuration commands a 2nd time
-            self._pending_confs[PQTMVER] = SERVERCONFIG
-        elif self.receiver_type.get() == LC29H:
-            # poll for confirmation warm start has finished
-            pass
-
     def _config_msg_rates(self, rate: int, port_type: str) -> UBXMessage:
         """
         Configure RTCM3 and UBX NAV-SVIN message rates.
@@ -944,75 +1052,12 @@ class ServerConfigFrame(Frame):
         """
 
         if self.receiver_type.get() == LG290P:
-            return self._config_disable_lg290p()
+            return config_disable_lg290p()
         if self.receiver_type.get() == LC29H:
-            return self._config_disable_lc29h()
+            return config_disable_lc29h()
         if self.receiver_type.get() == MOSAIC_X5:
-            return self._config_disable_septentrio()
-        return self._config_disable_ublox()
-
-    def _config_disable_ublox(self) -> UBXMessage:
-        """
-        Disable base station mode for u-blox receivers.
-
-        :return: UBXMessage
-        :rtype: UBXMessage
-        """
-
-        layers = SET_LAYER_RAM
-        transaction = TXN_NONE
-        cfg_data = [
-            ("CFG_TMODE_MODE", TMODE_DISABLED),
-        ]
-
-        return UBXMessage.config_set(layers, transaction, cfg_data)
-
-    def _config_disable_lg290p(self) -> list:
-        """
-        Disable base station mode for Quectel LG290P receivers.
-
-        NB: A 'feature' of Quectel firmware is that some command sequences
-        require multiple restarts before taking effect.
-
-        :return: list of NMEAMessage(s)
-        :rtype: list
-        """
-
-        msgs = []
-        msgs.append(NMEAMessage("P", "QTMCFGRCVRMODE", SET, rcvrmode=1))
-        msgs.append(NMEAMessage("P", "QTMSAVEPAR", SET))
-        msgs.append(NMEAMessage("P", "QTMSRR", SET))
-        return msgs
-
-    def _config_disable_lc29h(self) -> list:
-        """
-        Disable base station mode for Quectel LC29H receivers.
-
-        :return: list of NMEAMessage(s)
-        :rtype: list
-        """
-
-        msgs = []
-        msgs.append(NMEAMessage("P", "AIR062", SET, type=-1))
-        msgs.append(NMEAMessage("P", "AIR432", SET, mode=-1))
-        msgs.append(NMEAMessage("P", "AIR434", SET, enabled=0))
-        msgs.append(NMEAMessage("P", "QTMSAVEPAR", SET))
-        msgs.append(NMEAMessage("P", "AIR005", SET))
-        return msgs
-
-    def _config_disable_septentrio(self) -> list:
-        """
-        Disable base station mode for Septentrio receivers.
-
-        :return: ASCII TTY commands
-        :rtype: list
-        """
-
-        msgs = []
-        # msgs.append("SSSSSSSSSS\r\n")
-        msgs.append("SSSSSSSSSS\r\n")
-        msgs.append("erst,soft,config\r\n")
-        return msgs
+            return config_disable_septentrio()
+        return config_disable_ublox()
 
     def _config_svin(self, acc_limit: int, svin_min_dur: int) -> object:
         """
@@ -1025,119 +1070,12 @@ class ServerConfigFrame(Frame):
         """
 
         if self.receiver_type.get() == LG290P:
-            return self._config_svin_lg290p(acc_limit, svin_min_dur)
+            return config_svin_lg290p(acc_limit, svin_min_dur)
         if self.receiver_type.get() == LC29H:
-            return self._config_svin_lc29h(acc_limit, svin_min_dur)
+            return config_svin_lc29h(acc_limit, svin_min_dur)
         if self.receiver_type.get() == MOSAIC_X5:
-            return self._config_svin_septentrio(acc_limit, svin_min_dur)
-        return self._config_svin_ublox(acc_limit, svin_min_dur)
-
-    def _config_svin_ublox(self, acc_limit: int, svin_min_dur: int) -> UBXMessage:
-        """
-        Configure Survey-In mode with specified accuracy limit for u-blox receivers.
-
-        :param int acc_limit: accuracy limit in cm
-        :param int svin_min_dur: survey minimimum duration
-        :return: UBXMessage
-        :rtype: UBXMessage
-        """
-
-        layers = SET_LAYER_RAM
-        transaction = TXN_NONE
-        acc_limit = int(acc_limit * 100)  # convert to 0.1 mm
-        cfg_data = [
-            ("CFG_TMODE_MODE", TMODE_SVIN),
-            ("CFG_TMODE_SVIN_ACC_LIMIT", acc_limit),
-            ("CFG_TMODE_SVIN_MIN_DUR", svin_min_dur),
-        ]
-
-        return UBXMessage.config_set(layers, transaction, cfg_data)
-
-    def _config_svin_lg290p(self, acc_limit: int, svin_min_dur: int) -> list:
-        """
-        Configure Survey-In mode with specified accuracy limit for Quectel LG290P receivers.
-
-        NB: A 'feature' of Quectel firmware is that some command sequences
-        require multiple restarts before taking effect.
-
-        :param int acc_limit: accuracy limit in cm
-        :param int svin_min_dur: survey minimimum duration
-        :return: list of NMEAMessage(s)
-        :rtype: list
-        """
-
-        msgs = []
-        msgs.append(NMEAMessage("P", "QTMCFGRCVRMODE", SET, rcvrmode=2))
-        msgs.append(
-            NMEAMessage(
-                "P",
-                "QTMCFGRTCM",
-                SET,
-                msmtype=7,  # MSM 7 types e.g. 1077
-                msmmode=0,
-                msmelevthd=-90,
-                reserved1="07",
-                reserved2="06",
-                ephmode=1,
-                ephinterval=0,
-            )
-        )
-        msgs.append(
-            NMEAMessage(
-                "P",
-                "QTMCFGSVIN",
-                SET,
-                svinmode=1,
-                cfgcnt=svin_min_dur,
-                acclimit=acc_limit / 100,  # m
-            )
-        )
-        msgs.append(NMEAMessage("P", "QTMSAVEPAR", SET))
-        msgs.append(NMEAMessage("P", "QTMSRR", SET))
-        return msgs
-
-    def _config_svin_lc29h(self, acc_limit: int, svin_min_dur: int) -> list:
-        """
-        Configure Survey-In mode with specified accuracy limit for Quectel LC29H receivers.
-
-        NB: A 'feature' of Quectel firmware is that some command sequences
-        require multiple restarts before taking effect.
-
-        :param int acc_limit: accuracy limit in cm
-        :param int svin_min_dur: survey minimimum duration
-        :return: list of NMEAMessage(s)
-        :rtype: list
-        """
-
-        msgs = []
-        for i in range(9):
-            msgs.append(NMEAMessage("P", "AIR062", SET, type=i, rate=0))
-        msgs.append(NMEAMessage("P", "AIR432", SET, mode=1))
-        msgs.append(NMEAMessage("P", "AIR434", SET, enabled=1))
-        msgs.append(NMEAMessage("P", "QTMSAVEPAR", SET))
-        msgs.append(NMEAMessage("P", "AIR005", SET))
-        return msgs
-
-    def _config_svin_septentrio(self, acc_limit: int, svin_min_dur: int) -> list:
-        """
-        Configure Survey-In mode with specified accuracy limit for Septentrio receivers.
-
-        :param int acc_limit: accuracy limit in cm
-        :param int svin_min_dur: survey minimimum duration
-        :return: ASCII TTY commands
-        :rtype: list
-        """
-
-        msgs = []
-        msgs.append("SSSSSSSSSS\r\n")
-        msgs.append("setDataInOut, COM1, ,RTCMv3\r\n")
-        msgs.append("setRTCMv3Formatting,1234\r\n")
-        msgs.append(
-            "setRTCMv3Output,COM1,RTCM1006+RTCM1033+RTCM1077+RTCM1087+"
-            "RTCM1097+RTCM1107+RTCM1117+RTCM1127+RTCM1137+RTCM1230\r\n"
-        )
-        msgs.append("setPVTMode,Static, ,auto\r\n")
-        return msgs
+            return config_svin_septentrio(acc_limit, svin_min_dur)
+        return config_svin_ublox(acc_limit, svin_min_dur)
 
     def _config_fixed(
         self, acc_limit: int, lat: float, lon: float, height: float
@@ -1153,174 +1091,14 @@ class ServerConfigFrame(Frame):
         :rtype: UBXMessage or list
         """
 
+        posmode = self._spn_posmode.get()
         if self.receiver_type.get() == LG290P:
-            return self._config_fixed_lg290p(acc_limit, lat, lon, height)
+            return config_fixed_lg290p(acc_limit, lat, lon, height, posmode)
         if self.receiver_type.get() == LC29H:
-            return self._config_fixed_lc29h(acc_limit, lat, lon, height)
+            return config_fixed_lc29h(acc_limit, lat, lon, height, posmode)
         if self.receiver_type.get() == MOSAIC_X5:
-            return self._config_fixed_septentrio(acc_limit, lat, lon, height)
-        return self._config_fixed_ublox(acc_limit, lat, lon, height)
-
-    def _config_fixed_ublox(
-        self, acc_limit: int, lat: float, lon: float, height: float
-    ) -> UBXMessage:
-        """
-        Configure Fixed mode with specified coordinates for u-blox receivers.
-
-        :param int acc_limit: accuracy limit in cm
-        :param float lat: lat or X in m
-        :param float lon: lon or Y in m
-        :param float height: height or Z in m
-        :return: UBXMessage
-        :rtype: UBXMessage
-        """
-
-        layers = SET_LAYER_RAM
-        transaction = TXN_NONE
-        acc_limit = int(acc_limit * 100)  # convert to 0.1 mm
-        if self.pos_mode.get() == POS_LLH:
-            lat_sp, lat_hp = val2sphp(lat, 1e-7)
-            lon_sp, lon_hp = val2sphp(lon, 1e-7)
-            height_sp, height_hp = val2sphp(height, 0.01)
-            cfg_data = [
-                ("CFG_TMODE_MODE", TMODE_FIXED),
-                ("CFG_TMODE_POS_TYPE", LLH),
-                ("CFG_TMODE_FIXED_POS_ACC", acc_limit),
-                ("CFG_TMODE_LAT", lat_sp),
-                ("CFG_TMODE_LAT_HP", lat_hp),
-                ("CFG_TMODE_LON", lon_sp),
-                ("CFG_TMODE_LON_HP", lon_hp),
-                ("CFG_TMODE_HEIGHT", height_sp),
-                ("CFG_TMODE_HEIGHT_HP", height_hp),
-            ]
-        else:  # ECEF
-            x_sp, x_hp = val2sphp(lat, 0.01)
-            y_sp, y_hp = val2sphp(lon, 0.01)
-            z_sp, z_hp = val2sphp(height, 0.01)
-            cfg_data = [
-                ("CFG_TMODE_MODE", TMODE_FIXED),
-                ("CFG_TMODE_POS_TYPE", ECEF),
-                ("CFG_TMODE_FIXED_POS_ACC", acc_limit),
-                ("CFG_TMODE_ECEF_X", x_sp),
-                ("CFG_TMODE_ECEF_X_HP", x_hp),
-                ("CFG_TMODE_ECEF_Y", y_sp),
-                ("CFG_TMODE_ECEF_Y_HP", y_hp),
-                ("CFG_TMODE_ECEF_Z", z_sp),
-                ("CFG_TMODE_ECEF_Z_HP", z_hp),
-            ]
-
-        return UBXMessage.config_set(layers, transaction, cfg_data)
-
-    def _config_fixed_lg290p(
-        self, acc_limit: int, lat: float, lon: float, height: float
-    ) -> list:
-        """
-        Configure Fixed mode with specified coordinates for Quectel LG290P receivers.
-
-        NB: A 'feature' of Quectel firmware is that some command sequences
-        require multiple restarts before taking effect.
-
-        :param int acc_limit: accuracy limit in cm
-        :param float lat: lat or X in m
-        :param float lon: lon or Y in m
-        :param float height: height or Z in m
-        :return: list of NMEAMessage(s)
-        :rtype: list
-        """
-
-        if self._spn_posmode.get() == POS_LLH:
-            ecef_x, ecef_y, ecef_z = llh2ecef(lat, lon, height)
-        else:  # POS_ECEF
-            ecef_x, ecef_y, ecef_z = lat, lon, height
-
-        msgs = []
-        msgs.append(NMEAMessage("P", "QTMCFGRCVRMODE", SET, rcvrmode=2))
-        msgs.append(
-            NMEAMessage(
-                "P",
-                "QTMCFGRTCM",
-                SET,
-                msmtype=7,  # MSM 7 types e.g. 1077
-                msmmode=0,
-                msmelevthd=-90,
-                reserved1="07",
-                reserved2="06",
-                ephmode=1,
-                ephinterval=0,
-            )
-        )
-        msgs.append(
-            NMEAMessage(
-                "P",
-                "QTMCFGSVIN",
-                SET,
-                svinmode=2,
-                cfgcnt=0,
-                acclimit=acc_limit / 100,  # m
-                ecefx=ecef_x,
-                ecefy=ecef_y,
-                ecefz=ecef_z,
-            )
-        )
-        msgs.append(NMEAMessage("P", "QTMSAVEPAR", SET))
-        msgs.append(NMEAMessage("P", "QTMSRR", SET))
-        return msgs
-
-    def _config_fixed_lc29h(
-        self, acc_limit: int, lat: float, lon: float, height: float
-    ) -> list:
-        """
-        Configure Fixed mode with specified coordinates for Quectel LC29H receivers.
-
-        :param int acc_limit: accuracy limit in cm
-        :param float lat: lat or X in m
-        :param float lon: lon or Y in m
-        :param float height: height or Z in m
-        :return: list of NMEAMessage(s)
-        :rtype: list
-        """
-
-        if self._spn_posmode.get() == POS_LLH:
-            ecef_x, ecef_y, ecef_z = llh2ecef(lat, lon, height)
-        else:  # POS_ECEF
-            ecef_x, ecef_y, ecef_z = lat, lon, height
-
-        msgs = []
-        for i in range(9):
-            msgs.append(NMEAMessage("P", "AIR062", SET, type=i, rate=0))
-        msgs.append(NMEAMessage("P", "AIR432", SET, mode=1))
-        msgs.append(NMEAMessage("P", "AIR434", SET, enabled=1))
-        msgs.append(NMEAMessage("P", "QTMSAVEPAR", SET))
-        msgs.append(NMEAMessage("P", "AIR005", SET))
-        return msgs
-
-    def _config_fixed_septentrio(
-        self, acc_limit: int, lat: float, lon: float, height: float
-    ) -> list:
-        """
-        Configure Fixed mode with specified coordinates for Septentrio receivers.
-
-        :param int acc_limit: accuracy limit in cm
-        :param float lat: lat or X in m
-        :param float lon: lon or Y in m
-        :param float height: height or Z in m
-        :return: ASCII TTY commands
-        :rtype: list
-        """
-
-        msgs = []
-        msgs.append("SSSSSSSSSS\r\n")
-        msgs.append("setDataInOut,COM1, ,RTCMv3\r\n")
-        msgs.append("setRTCMv3Formatting,1234\r\n")
-        msgs.append(
-            "setRTCMv3Output,COM1,RTCM1006+RTCM1033+RTCM1077+RTCM1087+"
-            "RTCM1097+RTCM1107+RTCM1117+RTCM1127+RTCM1137+RTCM1230\r\n"
-        )
-        msgs.append(
-            f"setStaticPosGeodetic,Geodetic1,{lat:.8f},{lon:.8f},{height:.4f}\r\n"
-        )
-        msgs.append("setPVTMode,Static, ,Geodetic1\r\n")
-        return msgs
+            return config_fixed_septentrio(acc_limit, lat, lon, height, posmode)
+        return config_fixed_ublox(acc_limit, lat, lon, height, posmode)
 
     def _on_quectel_restart(self):
         """
@@ -1331,17 +1109,10 @@ class ServerConfigFrame(Frame):
         if self.base_mode.get() in (BASE_SVIN, BASE_FIXED):
             # if first restart, send config commands a 2nd time
             if self._quectel_restart == 1:
-                self._config_rcvr()
+                self._config_receiver()
             # if second restart and survey-in mode, enable SVIN status message
             if self.base_mode.get() == BASE_SVIN and self._quectel_restart == 2:
-                cmd = NMEAMessage(
-                    "P",
-                    "QTMCFGMSGRATE",
-                    SET,
-                    msgname="PQTMSVINSTATUS",
-                    rate=1,
-                    msgver=1,
-                )
+                cmd = config_svin_quectel()
                 self.__app.send_to_device(cmd.serialize())
 
     def svin_countdown(self, ela: int, valid: bool, active: bool):

@@ -1,6 +1,0 @@
-[Desktop Entry]
-Type=Application
-Terminal=false
-Name=PyGPSClient
-Icon=/home/user/.local/lib/python3.9/site-packages/pygpsclient/resources/pygpsclient.ico
-Exec=/home/user/.local/bin/pygpsclient

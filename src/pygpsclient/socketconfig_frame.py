@@ -14,6 +14,8 @@ Created on 27 Apr 2022
 :license: BSD 3-Clause
 """
 
+# pylint: disable=unused-argument
+
 from tkinter import (
     DISABLED,
     NORMAL,
@@ -35,10 +37,13 @@ from pygpsclient.globals import (
     DEFAULT_TLS_PORTS,
     ICON_CONTRACT,
     ICON_EXPAND,
-    NTRIP,
     READONLY,
+    TRACEMODE_WRITE,
+    VALINT,
+    VALNONBLANK,
+    VALURL,
 )
-from pygpsclient.helpers import MAXPORT, VALINT, VALURL, valid_entry
+from pygpsclient.helpers import MAXPORT
 
 ADVOFF = "\u25bc"
 ADVON = "\u25b2"
@@ -56,13 +61,12 @@ class SocketConfigFrame(Frame):
     Socket configuration frame class.
     """
 
-    def __init__(self, app, container, context, *args, **kwargs):
+    def __init__(self, app, container, *args, **kwargs):
         """
         Constructor.
 
         :param tkinter.Frame container: reference to container frame
         :param args: optional args to pass to Frame parent class
-        :param str context: serial port context (GNSS or LBAND)
         :param kwargs: optional kwargs for value ranges, or to pass to Frame parent class
         """
 
@@ -72,7 +76,6 @@ class SocketConfigFrame(Frame):
 
         self.__app = app
         self._container = container
-        self._context = context
         self._show_advanced = False
         self.status = DISCONNECTED
         self.server = StringVar()
@@ -86,8 +89,9 @@ class SocketConfigFrame(Frame):
 
         self._body()
         self._do_layout()
-        self._attach_events()
         self.reset()
+        # self._attach_events() # done in reset
+        self._attach_events1()
 
     def _body(self):
         """
@@ -141,101 +145,90 @@ class SocketConfigFrame(Frame):
         self._chk_https.grid(column=1, row=2, padx=2, pady=2, sticky=W)
         self._chk_selfsign.grid(column=2, row=2, padx=2, pady=2, sticky=W)
 
-    def _attach_events(self):
+    def _attach_events1(self):
         """
-        Bind events to frame.
+        Bind resize event to frame.
         """
 
         self.bind("<Configure>", self._on_resize)
 
-    def _bind_events(self, add: bool = True):
+    def _attach_events(self, add: bool = True):
         """
         Add or remove event bindings to/from widgets.
+
+        (trace_update() is a class extension method defined in globals.py)
 
         :param bool add: add or remove binding
         """
 
-        tracemode = "write"
-        if add:
-            self.server.trace_add(tracemode, self._on_update_server)
-            self.port.trace_add(tracemode, self._on_update_port)
-            for setting in (self.https, self.protocol, self.selfsign):
-                setting.trace_add(tracemode, callback=self._on_update_config)
-        else:
-            if len(self.server.trace_info()) > 0:
-                self.server.trace_remove(tracemode, self.server.trace_info()[0][1])
-            if len(self.port.trace_info()) > 0:
-                self.port.trace_remove(tracemode, self.port.trace_info()[0][1])
-            for setting in (self.https, self.protocol, self.selfsign):
-                if len(setting.trace_info()) > 0:
-                    setting.trace_remove(tracemode, setting.trace_info()[0][1])
+        tracemode = TRACEMODE_WRITE
+        self.server.trace_update(tracemode, self._on_update_server, add)
+        self.port.trace_update(tracemode, self._on_update_port, add)
+        self.https.trace_update(tracemode, self._on_update_https, add)
+        self.protocol.trace_update(tracemode, self._on_update_protocol, add)
+        self.selfsign.trace_update(tracemode, self._on_update_selfsign, add)
 
-    def _on_update_server(self, var, index, mode):  # pylint: disable=unused-argument
+    def _on_update_server(self, var, index, mode):
         """
         Server updated.
         """
 
-        if self._server_callback is not None:
-            self._server_callback(var, index, mode)
-        self._on_update_config(None, None, "write")
+        if not self.ent_server.validate(VALNONBLANK):
+            return
 
-    def _on_update_port(self, var, index, mode):  # pylint: disable=unused-argument
+        self.__app.configuration.set("sockclienthost_s", self.server.get())
+
+    def _on_update_port(self, var, index, mode):
         """
         Port updated.
         """
+
+        if not self.ent_port.validate(VALINT, 0, MAXPORT):
+            return
 
         try:
             if self.port.get() in DEFAULT_TLS_PORTS:
                 self.https.set(1)
             else:
                 self.https.set(0)
-            self._on_update_config(None, None, "write")
+            self.__app.configuration.set("sockclientport_n", int(self.port.get()))
         except TclError:
             pass
 
-    def _on_update_config(self, var, index, mode):  # pylint: disable=unused-argument
+    def _on_update_https(self, var, index, mode):
         """
-        Update in-memory configuration if setting is changed.
+        Action on updating TLS flag.
         """
 
-        self.update()
-        cfg = self.__app.configuration
-        try:
-            if self._context == NTRIP:
-                cfg.set("ntripclientserver_s", self.server.get())
-                cfg.set("ntripclientport_n", int(self.port.get()))
-                cfg.set("ntripclienthttps_b", int(self.https.get()))
-                cfg.set("ntripclientselfsign_b", int(self.selfsign.get()))
-                cfg.set("ntripclientprotocol_s", self.protocol.get())
-            else:  # GNSS
-                cfg.set("sockclienthost_s", self.server.get())
-                cfg.set("sockclientport_n", int(self.port.get()))
-                cfg.set("sockclienthttps_b", int(self.https.get()))
-                cfg.set("sockclientselfsign_b", int(self.selfsign.get()))
-                cfg.set("sockclientprotocol_s", self.protocol.get())
-        except (ValueError, TclError):
-            pass
+        self.__app.configuration.set("sockclienthttps_b", int(self.https.get()))
+
+    def _on_update_protocol(self, var, index, mode):
+        """
+        Action on updating TCP/UDP protocol.
+        """
+
+        self.__app.configuration.set("sockclientprotocol_s", self.protocol.get())
+
+    def _on_update_selfsign(self, var, index, mode):
+        """
+        Action on updating self-sign flag.
+        """
+
+        self.__app.configuration.set("sockclientselfsign_b", int(self.selfsign.get()))
 
     def reset(self):
         """
         Reset settings to saved configuration.
         """
 
-        self._bind_events(False)
+        self._attach_events(False)
         cfg = self.__app.configuration
-        if self._context == NTRIP:
-            self.server.set(cfg.get("ntripclientserver_s"))
-            self.port.set(cfg.get("ntripclientport_n"))
-            self.https.set(cfg.get("ntripclienthttps_b"))
-            self.selfsign.set(cfg.get("ntripclientselfsign_b"))
-            self.protocol.set(cfg.get("ntripclientprotocol_s"))
-        else:  # GNSS
-            self.server.set(cfg.get("sockclienthost_s"))
-            self.port.set(cfg.get("sockclientport_n"))
-            self.https.set(cfg.get("sockclienthttps_b"))
-            self.selfsign.set(cfg.get("sockclientselfsign_b"))
-            self.protocol.set(cfg.get("sockclientprotocol_s"))
-        self._bind_events(True)
+        self.server.set(cfg.get("sockclienthost_s"))
+        self.port.set(cfg.get("sockclientport_n"))
+        self.https.set(cfg.get("sockclienthttps_b"))
+        self.selfsign.set(cfg.get("sockclientselfsign_b"))
+        self.protocol.set(cfg.get("sockclientprotocol_s"))
+        self._attach_events(True)
 
     def valid_settings(self) -> bool:
         """
@@ -246,8 +239,8 @@ class SocketConfigFrame(Frame):
         """
 
         valid = True
-        valid = valid & valid_entry(self.ent_server, VALURL)
-        valid = valid & valid_entry(self.ent_port, VALINT, 0, MAXPORT)
+        valid = valid & self.ent_server.validate(VALURL)
+        valid = valid & self.ent_port.validate(VALINT, 0, MAXPORT)
         return valid
 
     def set_status(self, status: int = DISCONNECTED):
@@ -272,7 +265,7 @@ class SocketConfigFrame(Frame):
         for widget in (self._spn_protocol,):
             widget.configure(state=(READONLY if status == DISCONNECTED else DISABLED))
 
-    def _on_resize(self, event):  # pylint: disable=unused-argument
+    def _on_resize(self, event):
         """
         Resize frame.
 

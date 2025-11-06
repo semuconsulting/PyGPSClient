@@ -38,6 +38,7 @@ from pygpsclient.globals import (
     ERRCOL,
     INFOCOL,
     OKCOL,
+    TRACEMODE_WRITE,
     TTYERR,
     TTYMARKER,
     TTYOK,
@@ -187,9 +188,9 @@ class TTYPresetDialog(ToplevelDialog):
         Bind listbox selection events.
         """
 
-        self._command.trace_add("write", self._on_update_command)
+        self._command.trace_add(TRACEMODE_WRITE, self._on_update_command)
         for setting in (self._crlf, self._echo):
-            setting.trace_add("write", self._on_update_settings)
+            setting.trace_add(TRACEMODE_WRITE, self._on_update_settings)
         self._lbx_preset.bind("<<ListboxSelect>>", self._on_select_preset)
         # self.bind("<Configure>", self._on_resize)
 

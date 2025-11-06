@@ -1,9 +1,9 @@
 """
-graphview_frame.py
+levelsview_frame.py
 
-Graphview frame class for PyGPSClient application.
+Level view frame class for PyGPSClient application.
 
-This handles a frame containing a graph of current satellite reception.
+This handles a frame containing a graph of current satellite cno levels.
 
 Created on 14 Sep 2020
 
@@ -12,32 +12,35 @@ Created on 14 Sep 2020
 :license: BSD 3-Clause
 """
 
-from tkinter import ALL, BOTH, YES, Canvas, E, Frame
+# pylint: disable=no-member
 
+from tkinter import BOTH, NE, YES, Frame, font
+
+from pygpsclient.canvas_plot import (
+    TAG_DATA,
+    TAG_GRID,
+    TAG_XLABEL,
+    TAG_YLABEL,
+    CanvasGraph,
+)
 from pygpsclient.globals import (
-    AXISCOL,
     BGCOL,
     FGCOL,
     GNSS_LIST,
-    GRIDCOL,
+    GRIDMAJCOL,
     MAX_SNR,
     WIDGETU2,
 )
-from pygpsclient.helpers import col2contrast, fontheight, scale_font
+from pygpsclient.helpers import col2contrast
 
-# Relative offsets of graph axes and legend
-AXIS_XL = 19
-AXIS_XR = 10
-AXIS_Y = 22
 OL_WID = 1
-LEG_XOFF = AXIS_XL + 10
-LEG_YOFF = 5
-LEG_GAP = 5
+FONTSCALELG = 40
+FONTSCALESV = 40
 
 
-class GraphviewFrame(Frame):
+class LevelsviewFrame(Frame):
     """
-    Graphview frame class.
+    Levelsview frame class.
     """
 
     def __init__(self, app, *args, **kwargs):
@@ -57,8 +60,7 @@ class GraphviewFrame(Frame):
         def_w, def_h = WIDGETU2
         self.width = kwargs.get("width", def_w)
         self.height = kwargs.get("height", def_h)
-        self._font = self.__app.font_vsm
-        self._fonth = fontheight(self._font)
+        self._redraw = True
         self._body()
         self._attach_events()
 
@@ -69,10 +71,10 @@ class GraphviewFrame(Frame):
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
-        self.can_graphview = Canvas(
-            self, width=self.width, height=self.height, bg=BGCOL
+        self._canvas = CanvasGraph(
+            self.__app, self, width=self.width, height=self.height, bg=BGCOL
         )
-        self.can_graphview.pack(fill=BOTH, expand=YES)
+        self._canvas.pack(fill=BOTH, expand=YES)
 
     def _attach_events(self):
         """
@@ -80,7 +82,7 @@ class GraphviewFrame(Frame):
         """
 
         self.bind("<Configure>", self._on_resize)
-        self.can_graphview.bind("<Double-Button-1>", self._on_legend)
+        self._canvas.bind("<Double-Button-1>", self._on_legend)
 
     def _on_legend(self, event):  # pylint: disable=unused-argument
         """
@@ -92,38 +94,28 @@ class GraphviewFrame(Frame):
         self.__app.configuration.set(
             "legend_b", not self.__app.configuration.get("legend_b")
         )
+        self._redraw = True
 
     def init_frame(self):
         """
         Initialise graph view
         """
 
-        w, h = self.width, self.height
-        ticks = int(MAX_SNR / 10)
-        self.can_graphview.delete(ALL)
-        for i in range(ticks, 0, -1):
-            y = (h - AXIS_Y) * i / ticks
-            self.can_graphview.create_line(
-                AXIS_XL, y, w - AXIS_XR + 2, y, fill=AXISCOL if i == ticks else GRIDCOL
-            )
-            self.can_graphview.create_text(
-                10,
-                y,
-                text=str(MAX_SNR - (i * 10)),
-                angle=90,
-                fill=FGCOL,
-                font=self._font,
-            )
-        self.can_graphview.create_line(AXIS_XL, 5, AXIS_XL, h - AXIS_Y, fill=AXISCOL)
-        self.can_graphview.create_text(
-            AXIS_XR,
-            5,
-            text="dB",
-            angle=90,
-            fill=FGCOL,
-            anchor=E,
-            font=self._font,
+        # only redraw the tags that have changed
+        tags = (TAG_GRID, TAG_XLABEL, TAG_YLABEL) if self._redraw else ()
+        self._canvas.create_graph(
+            xdatamax=10,
+            ydatamax=(MAX_SNR,),
+            xtickmaj=2,
+            ytickmaj=int(MAX_SNR / 10),
+            ylegend=("cno",),
+            ycol=(FGCOL,),
+            ylabels=True,
+            xangle=35,
+            fontscale=FONTSCALELG,
+            tags=tags,
         )
+        self._redraw = False
 
         if self.__app.configuration.get("legend_b"):
             self._draw_legend()
@@ -133,28 +125,29 @@ class GraphviewFrame(Frame):
         Draw GNSS color code legend
         """
 
-        w = self.width / 10
-        h = self.height / 15
+        w = self.width / 12
+        h = self.height / 18
 
+        lgfont = font.Font(size=int(min(self.width, self.height) / FONTSCALELG))
         for i, (_, (gnssName, gnssCol)) in enumerate(GNSS_LIST.items()):
-            x = LEG_XOFF + w * i
-            self.can_graphview.create_rectangle(
+            x = (self._canvas.xoffl * 2) + w * i
+            self._canvas.create_rectangle(
                 x,
-                LEG_YOFF,
-                x + w - LEG_GAP,
-                LEG_YOFF + h,
-                # outline=gnssCol,
-                # fill=BGCOL,
-                outline=GRIDCOL,
+                self._canvas.yofft,
+                x + w - 5,
+                self._canvas.yofft + h,
+                outline=GRIDMAJCOL,
                 fill=gnssCol,
                 width=OL_WID,
+                tags=TAG_XLABEL,
             )
-            self.can_graphview.create_text(
-                (x + x + w - LEG_GAP) / 2,
-                LEG_YOFF + h / 2,
+            self._canvas.create_text(
+                (x + x + w - 5) / 2,
+                self._canvas.yofft + h / 2,
                 text=gnssName,
                 fill=col2contrast(gnssCol),
-                font=self._font,
+                font=lgfont,
+                tags=TAG_XLABEL,
             )
 
     def update_frame(self):
@@ -172,40 +165,42 @@ class GraphviewFrame(Frame):
         w, h = self.width, self.height
         self.init_frame()
 
-        offset = AXIS_XL + 2
-        colwidth = (w - AXIS_XL - AXIS_XR + 1) / siv
-        # scale x axis label according to siv
-        svfont, _ = scale_font(self.width, 6, siv, 14)
+        offset = self._canvas.xoffl  # AXIS_XL + 2
+        colwidth = (w - self._canvas.xoffl - self._canvas.xoffr + 1) / siv
+        # scale x axis label
+        svfont = font.Font(size=int(min(w, h) / FONTSCALESV))
         for d in sorted(data.values()):  # sort by ascending gnssid, svid
             gnssId, prn, _, _, snr = d
             if snr in ("", "0", 0):
                 snr = 1  # show 'place marker' in graph
             else:
                 snr = int(snr)
-            snr_y = int(snr) * (h - AXIS_Y - 1) / MAX_SNR
+            snr_y = int(snr) * (h - self._canvas.yoffb - 1) / MAX_SNR
             (_, ol_col) = GNSS_LIST[gnssId]
             prn = f"{int(prn):02}"
-            self.can_graphview.create_rectangle(
+            self._canvas.create_rectangle(
                 offset,
-                h - AXIS_Y - 1,
+                h - self._canvas.yoffb - 1,
                 offset + colwidth - OL_WID,
-                h - AXIS_Y - 1 - snr_y,
-                outline=GRIDCOL,
-                # fill=snr2col(snr),
+                h - self._canvas.yoffb - 1 - snr_y,
+                outline=GRIDMAJCOL,
                 fill=ol_col,
                 width=OL_WID,
+                tags=TAG_DATA,
             )
-            self.can_graphview.create_text(
+            self._canvas.create_text(
                 offset + colwidth / 2,
-                h - 10,
+                h - self._canvas.yoffb,
                 text=prn,
                 fill=FGCOL,
                 font=svfont,
                 angle=35,
+                anchor=NE,
+                tags=TAG_DATA,
             )
             offset += colwidth
 
-        self.can_graphview.update_idletasks()
+        # self._canvas.update_idletasks()
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """
@@ -215,7 +210,7 @@ class GraphviewFrame(Frame):
         """
 
         self.width, self.height = self.get_size()
-        self._font, self._fonth = scale_font(self.width, 8, 25, 16)
+        self._redraw = True
 
     def get_size(self):
         """
@@ -226,4 +221,4 @@ class GraphviewFrame(Frame):
         """
 
         self.update_idletasks()  # Make sure we know about any resizing
-        return self.can_graphview.winfo_width(), self.can_graphview.winfo_height()
+        return self._canvas.winfo_width(), self._canvas.winfo_height()

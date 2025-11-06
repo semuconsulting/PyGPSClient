@@ -35,13 +35,14 @@ from pygpsclient.globals import (
     BGCOL,
     ERRCOL,
     FGCOL,
-    GRIDCOL,
+    GRIDMAJCOL,
     INFOCOL,
     PNTCOL,
     READONLY,
+    TRACEMODE_WRITE,
     WIDGETU2,
 )
-from pygpsclient.helpers import fontheight, rgb2str, scale_font
+from pygpsclient.helpers import rgb2str, scale_font
 from pygpsclient.strings import LBLNODATA
 
 OFFSETX = 5
@@ -90,7 +91,7 @@ class IMUFrame(Frame):
         self.width = kwargs.get("width", def_w)
         self.height = kwargs.get("height", def_h)
         self._font = self.__app.font_md
-        self._fonth = fontheight(self._font)
+        self._fonth = self._font.metrics("linespace")
         self._range = IntVar()
         self._option = StringVar()
         self._range.set(RANGES[0])
@@ -157,7 +158,7 @@ class IMUFrame(Frame):
         self.bind("<Configure>", self._on_resize)
         self.canvas.bind("<Double-Button-1>", self._on_clear)
         for setting in (self._range, self._option):
-            setting.trace_add("write", self._on_update_config)
+            setting.trace_add(TRACEMODE_WRITE, self._on_update_config)
 
     def _on_update_config(self, var, index, mode):  # pylint: disable=unused-argument
         """
@@ -174,7 +175,7 @@ class IMUFrame(Frame):
         except (ValueError, TclError):
             pass
 
-    def _init_frame(self):
+    def init_frame(self):
         """
         Initialize scatter plot.
         """
@@ -187,7 +188,7 @@ class IMUFrame(Frame):
             OFFSETY,
             (width - OFFSETX * 2) / 2,
             self._fonth * 5 + OFFSETY + 6,
-            fill=GRIDCOL,
+            fill=GRIDMAJCOL,
             width=2,
         )
         self.canvas.create_text(
@@ -379,7 +380,7 @@ class IMUFrame(Frame):
         :param Event event: clear event
         """
 
-        self._init_frame()
+        self.init_frame()
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """
@@ -390,7 +391,7 @@ class IMUFrame(Frame):
 
         self.width, self.height = self.get_size()
         self._font, self._fonth = scale_font(self.width, 12, 25, 30)
-        self._init_frame()
+        self.init_frame()
         self._redraw()
 
     def get_size(self) -> tuple:

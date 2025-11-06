@@ -20,11 +20,11 @@ fixed reference selection.
 :license: BSD 3-Clause
 """
 
+# pylint: disable=no-member
+
 from tkinter import (
-    ALL,
     HORIZONTAL,
     NW,
-    Canvas,
     Checkbutton,
     E,
     Entry,
@@ -48,23 +48,28 @@ except (ImportError, ModuleNotFoundError):
 
 from random import randrange
 
+from pygpsclient.canvas_plot import (
+    MODE_POL,
+    TAG_DATA,
+    TAG_GRID,
+    TAG_XLABEL,
+    CanvasCompass,
+)
 from pygpsclient.globals import (
     BGCOL,
     FGCOL,
     PNTCOL,
     READONLY,
-    SQRT2,
+    TRACEMODE_WRITE,
     WIDGETU1,
     Area,
     Point,
 )
 from pygpsclient.helpers import (
-    fontheight,
     get_point_at_vector,
     ll2xy,
     point_in_bounds,
     reorder_range,
-    scale_font,
     xy2ll,
 )
 
@@ -73,8 +78,8 @@ CTRAVG = "Average"
 CTRFIX = "Fixed"
 CRTS = (CTRAVG, CTRFIX)
 INTS = (1, 2, 5, 10, 20, 50, 100)
-FIXCOL = "green2"
-PNTTOPCOL = "red"
+FIXCOL = "#00EE00"
+PNTTOPCOL = "#FF0000"
 CULLMID = True  # whether to cull random points from middle of array
 FIXINAUTO = False  # whether to include fixed ref point in autorange
 MAXPOINTS = 500
@@ -104,8 +109,7 @@ class ScatterViewFrame(Frame):
 
         self.width = kwargs.get("width", def_w)
         self.height = kwargs.get("height", def_h)
-        self._font = self.__app.font_sm
-        self._fonth = fontheight(self._font)
+        self._redraw = True
         self._maxpoints = 0
         self._points = []
         self._average = None
@@ -158,7 +162,9 @@ class ScatterViewFrame(Frame):
         self.grid_rowconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=0)
         self.grid_rowconfigure(2, weight=0)
-        self.canvas = Canvas(self, width=self.width, height=self.height, bg=BGCOL)
+        self._canvas = CanvasCompass(
+            self.__app, self, MODE_POL, width=self.width, height=self.height, bg=BGCOL
+        )
         self._ent_reflat = Entry(
             self,
             width=12,
@@ -216,7 +222,7 @@ class ScatterViewFrame(Frame):
             variable=self._scale,
             showvalue=False,
         )
-        self.canvas.grid(column=0, row=0, columnspan=3, sticky=(N, S, E, W))
+        self._canvas.grid(column=0, row=0, columnspan=3, sticky=(N, S, E, W))
         self._ent_reflat.grid(column=0, row=1, sticky=(W, E))
         self._ent_reflon.grid(column=1, row=1, sticky=(W, E))
         self._spn_center.grid(column=2, row=1, sticky=(W, E))
@@ -241,6 +247,7 @@ class ScatterViewFrame(Frame):
         self._centermode.set(cfg.get("scattercenter_s"))
         if self._centermode.get() != CTRFIX:
             self._centermode.set(CTRAVG)
+        self._redraw = True
 
     def _attach_events(self):
         """
@@ -248,11 +255,11 @@ class ScatterViewFrame(Frame):
         """
 
         self.bind("<Configure>", self._on_resize)
-        self.canvas.bind("<Double-Button-1>", self._on_clear)
-        self.canvas.bind("<Button-2>", self._on_recenter)  # mac
-        self.canvas.bind("<Button-3>", self._on_recenter)  # win
-        self.canvas.bind("<MouseWheel>", self._on_zoom)
-        self._scale.trace_add("write", self._on_rescale)
+        self._canvas.bind("<Double-Button-1>", self._on_clear)
+        self._canvas.bind("<Button-2>", self._on_recenter)  # mac
+        self._canvas.bind("<Button-3>", self._on_recenter)  # win
+        self._canvas.bind("<MouseWheel>", self._on_zoom)
+        self._scale.trace_add(TRACEMODE_WRITE, self._on_rescale)
         for setting in (
             self._autorange,
             self._interval,
@@ -260,7 +267,7 @@ class ScatterViewFrame(Frame):
             self._reflat,
             self._reflon,
         ):
-            setting.trace_add("write", self._on_update_config)
+            setting.trace_add(TRACEMODE_WRITE, self._on_update_config)
 
     def _on_zoom(self, event):
         """
@@ -284,7 +291,7 @@ class ScatterViewFrame(Frame):
         """
 
         self._on_update_config(var, index, mode)
-        self._on_resize(None)
+        self._redraw = True
 
     def _on_recenter(self, event):
         """
@@ -315,7 +322,7 @@ class ScatterViewFrame(Frame):
         self._maxlat = -100
         self._maxlon = -200
         self._updcount = -1
-        self._init_frame()
+        self._redraw = True
 
     def _on_update_config(self, var, index, mode):  # pylint: disable=unused-argument
         """
@@ -335,50 +342,31 @@ class ScatterViewFrame(Frame):
             self.__app.configuration.set("scattersettings_d", sst)
         except (ValueError, TclError):
             pass
+        self._redraw = True
 
-    def _init_frame(self):
+    def init_frame(self):
         """
         Initialize scatter plot.
         """
 
-        width, height = self.get_size()
-        self.canvas.delete(ALL)
-        self.canvas.create_line(0, height / 2, width, height / 2, fill=FGCOL)
-        self.canvas.create_line(width / 2, 0, width / 2, height, fill=FGCOL)
-
-        if self._bounds is None:
-            return
-
-        maxr = min(height / 2, width / 2)
-        for i in range(1, 5):
-            self.canvas.create_circle(
-                width / 2, height / 2, maxr * i / 4, outline=FGCOL, width=1
-            )
-            rng, unt = self.get_range_label()
-            if rng >= 100:
-                dp = 0
-            elif rng >= 10:
-                dp = 1
-            elif rng >= 1:
-                dp = 2
-            else:
-                dp = 3
-            dist = f"{rng * i/4:.{dp}f}{unt}"
-            txt_x = width / 2 + SQRT2 * maxr * i / 4
-            txt_y = height / 2 + SQRT2 * maxr * i / 4
-            self.canvas.create_text(
-                txt_x, txt_y, text=dist, fill=FGCOL, font=self._font
-            )
-
-        for x, y, anc in (
-            (width / 2, 5, N),
-            (width / 2, height - 5, S),
-            (5, height / 2, W),
-            (width - 5, height / 2, E),
-        ):
-            self.canvas.create_text(
-                x, y, text=anc.upper(), fill=FGCOL, font=self._font, anchor=anc
-            )
+        # only redraw the tags that have changed
+        tags = (TAG_GRID, TAG_XLABEL) if self._redraw else ()
+        scale, unt = self.get_range_label()
+        if scale >= 100:
+            dp = 0
+        elif scale >= 10:
+            dp = 1
+        elif scale >= 1:
+            dp = 2
+        else:
+            dp = 3
+        self._canvas.create_compass(
+            unit=unt,
+            dp=dp,
+            scale=scale / 10,  # divide by max radii,
+            tags=tags,
+        )
+        self._redraw = False
 
     def _draw_stats(self, lbl_font: object):
         """
@@ -390,24 +378,24 @@ class ScatterViewFrame(Frame):
         if self._average is None:
             return
 
-        self.canvas.delete(AVG)
+        # self._canvas.delete(TAG_DATA)
         y = 5
-        fh = self._fonth
+        fh = self._canvas.fnth
         avg = f"Avg: {self._average.lat:.9f}, {self._average.lon:.9f}"
-        self.canvas.create_text(
-            5, y, text=avg, fill=PNTCOL, font=lbl_font, anchor=NW, tags=AVG
+        self._canvas.create_text(
+            5, y, text=avg, fill=PNTCOL, font=lbl_font, anchor=NW, tags=TAG_DATA
         )
         y += fh
         if self._stddev is not None:
             std = f"Std: {self._stddev.lat:.3e}, {self._stddev.lon:.3e}"
-            self.canvas.create_text(
-                5, y, text=std, fill=PNTCOL, font=lbl_font, anchor=NW, tags=AVG
+            self._canvas.create_text(
+                5, y, text=std, fill=PNTCOL, font=lbl_font, anchor=NW, tags=TAG_DATA
             )
             y += fh
         np = len(self._points)
         pts = f"Pts: {np} {'!' if np >= self._maxpoints else ''}"
-        self.canvas.create_text(
-            5, y, text=pts, fill=PNTCOL, font=lbl_font, anchor=NW, tags=AVG
+        self._canvas.create_text(
+            5, y, text=pts, fill=PNTCOL, font=lbl_font, anchor=NW, tags=TAG_DATA
         )
 
     def _draw_point(self, position: Point, color: str = PNTCOL, size: int = 2):
@@ -423,7 +411,7 @@ class ScatterViewFrame(Frame):
             return
 
         x, y = ll2xy(self.width, self.height, self._bounds, position)
-        self.canvas.create_circle(x, y, size, fill=color, outline=color, tags=PNT)
+        self._canvas.create_circle(x, y, size, fill=color, outline=color, tags=TAG_DATA)
 
     def _set_average(self):
         """
@@ -449,7 +437,7 @@ class ScatterViewFrame(Frame):
 
     def _set_bounds(self, center: Point):
         """
-        Set bounding box of canvas baed on center point and
+        Set bounding box of canvas based on center point and
         plot range.
 
         :param Point center: centre of bounding box
@@ -466,7 +454,7 @@ class ScatterViewFrame(Frame):
         self._range = disth
 
         if self._bounds != self._lastbounds:
-            self._init_frame()
+            self.init_frame()
             self._lastbounds = self._bounds
 
     def get_range_label(self) -> tuple:
@@ -488,7 +476,7 @@ class ScatterViewFrame(Frame):
             unt = "cm"
         return rng, unt
 
-    def _redraw(self):
+    def _update_plot(self):
         """
         Redraw all the points on the scatter plot.
         """
@@ -496,7 +484,6 @@ class ScatterViewFrame(Frame):
         if not self._points:
             return
 
-        self.canvas.delete(PNT)
         lp = len(self._points) - 1
         for i, pnt in enumerate(self._points):
             if i == lp:
@@ -506,7 +493,7 @@ class ScatterViewFrame(Frame):
             self._draw_point(self._fixed, FIXCOL, 3)
         self._draw_point(self._points[-1], PNTTOPCOL)
 
-        self._draw_stats(self._font)
+        self._draw_stats(self._canvas.font)
 
     def update_frame(self):
         """
@@ -560,7 +547,8 @@ class ScatterViewFrame(Frame):
         if self._autorange.get():
             self._do_autorange(middle)
 
-        self._redraw()
+        self.init_frame()
+        self._update_plot()
 
     def _limit_points(self):
         """
@@ -606,9 +594,7 @@ class ScatterViewFrame(Frame):
         """
 
         self.width, self.height = self.get_size()
-        self._font, self._fonth = scale_font(self.width, 10, 25, 20)
-        self._init_frame()
-        self._redraw()
+        self._redraw = True
 
     def get_size(self) -> tuple:
         """
@@ -619,4 +605,4 @@ class ScatterViewFrame(Frame):
         """
 
         self.update_idletasks()  # Make sure we know about resizing
-        return self.canvas.winfo_width(), self.canvas.winfo_height()
+        return self._canvas.winfo_width(), self._canvas.winfo_height()

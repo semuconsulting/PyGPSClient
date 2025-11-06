@@ -216,7 +216,7 @@ class ConsoleFrame(Frame):
         :param event event: HALT event
         """
 
-        self.__app.stream_handler.stop_read_thread()
+        self.__app.stream_handler.stop()
         self.__app.set_status(HALTTAGWARN.format(self._halt), ERRCOL)
         self.__app.conn_status = DISCONNECTED
 

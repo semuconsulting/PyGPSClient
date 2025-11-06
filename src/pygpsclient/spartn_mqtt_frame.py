@@ -72,8 +72,11 @@ from pygpsclient.globals import (
     SPARTN_GNSS,
     SPARTN_OUTPORT,
     SPARTN_PPREGIONS,
+    TRACEMODE_WRITE,
+    VALINT,
+    VALLEN,
 )
-from pygpsclient.helpers import MAXPORT, VALINT, VALLEN, valid_entry
+from pygpsclient.helpers import MAXPORT
 from pygpsclient.strings import DLGSPARTNWARN, LBLSPARTNIP, MQTTCONN
 
 
@@ -298,7 +301,7 @@ class SPARTNMQTTDialog(Frame):
         Set up event listeners.
         """
 
-        self._mqtt_source.trace_add("write", self._on_source)
+        self._mqtt_source.trace_add(TRACEMODE_WRITE, self._on_source)
         for setting in (
             self._mqtt_server,
             self._mqtt_port,
@@ -312,7 +315,7 @@ class SPARTNMQTTDialog(Frame):
             self._mqtt_freqtopic,
             self._spartndecode,
         ):
-            setting.trace_add("write", self._on_update_config)
+            setting.trace_add(TRACEMODE_WRITE, self._on_update_config)
 
     def _reset(self):
         """
@@ -490,7 +493,7 @@ class SPARTNMQTTDialog(Frame):
             wdg.config(state=stat)
 
         if status == DISCONNECTED:
-            self._on_source(None, None, "write")
+            self._on_source(None, None, TRACEMODE_WRITE)
 
     def _valid_settings(self) -> bool:
         """
@@ -501,11 +504,11 @@ class SPARTNMQTTDialog(Frame):
         """
 
         valid = True
-        valid = valid & valid_entry(self._ent_mqttserver, VALLEN, 1, 50)
-        valid = valid & valid_entry(self._ent_mqttport, VALINT, 1, MAXPORT)
-        valid = valid & valid_entry(self._ent_mqttclientid, VALLEN, 1, 50)
-        valid = valid & valid_entry(self._ent_mqttcrt, VALLEN, 1, 254)
-        valid = valid & valid_entry(self._ent_mqttpem, VALLEN, 1, 254)
+        valid = valid & self._ent_mqttserver.validate(VALLEN, 1, 50)
+        valid = valid & self._ent_mqttport.validate(VALINT, 1, MAXPORT)
+        valid = valid & self._ent_mqttclientid.validate(VALLEN, 1, 50)
+        valid = valid & self._ent_mqttcrt.validate(VALLEN, 1, 254)
+        valid = valid & self._ent_mqttpem.validate(VALLEN, 1, 254)
         return valid
 
     def _get_spartncerts(self, ext: str):

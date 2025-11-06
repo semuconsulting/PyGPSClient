@@ -10,6 +10,8 @@ Created on 22 Dec 2020
 :license: BSD 3-Clause
 """
 
+# pylint: disable=no-member
+
 from tkinter import (
     HORIZONTAL,
     LEFT,
@@ -43,7 +45,12 @@ from pygpsclient.globals import (
     ICON_WARNING,
     OKCOL,
     READONLY,
+    TRACEMODE_WRITE,
     UBX_CFGVAL,
+    VALBOOL,
+    VALFLOAT,
+    VALINT,
+    VALNONBLANK,
 )
 
 VALSET = 0
@@ -239,7 +246,7 @@ class UBX_CFGVAL_Frame(Frame):
 
         self._lbx_cat.bind("<<ListboxSelect>>", self._on_select_cat)
         self._lbx_parm.bind("<<ListboxSelect>>", self._on_select_parm)
-        self._cfgmode.trace_add("write", self._on_select_mode)
+        self._cfgmode.trace_add(TRACEMODE_WRITE, self._on_select_mode)
 
     def reset(self):
         """
@@ -321,9 +328,14 @@ class UBX_CFGVAL_Frame(Frame):
         :rtype: bool
         """
 
-        valid_entry = True
+        valid = True
         att = atttyp(self._cfgatt.get())
-        atts = attsiz(self._cfgatt.get())
+        try:
+            atts = attsiz(self._cfgatt.get())
+        except ValueError as err:
+            self._ent_val.validate(VALNONBLANK)
+            self.__container.set_status(f"INVALID ENTRY - {err}", ERRCOL)
+            return False
         val = self._cfgval.get()
         layers = self._cfglayer.get()
         if layers == "BBR":
@@ -334,30 +346,37 @@ class UBX_CFGVAL_Frame(Frame):
             layers = 1
         try:
             if att in ("C", "X"):  # byte or char
+                self._ent_val.validate(VALNONBLANK)
                 if len(val) == atts * 2:  # 2 hex chars per byte
                     val = bytearray.fromhex(val)
                 else:
-                    valid_entry = False
+                    valid = False
+
             elif att in ("E", "U"):  # unsigned integer
+                self._ent_val.validate(VALINT)
                 val = int(val)
                 if val < 0:
-                    valid_entry = False
+                    valid = False
+
             elif att == "L":  # bool
+                self._ent_val.validate(VALBOOL)
                 val = int(val)
                 if val not in (0, 1):
-                    valid_entry = False
+                    valid = False
             elif att == "I":  # signed integer
+                self._ent_val.validate(VALINT)
                 val = int(val)
             elif att == "R":  # floating point
+                self._ent_val.validate(VALFLOAT)
                 val = float(val)
             transaction = 0
             cfgData = [
                 (self._cfgval_keyname, val),
             ]
         except ValueError:
-            valid_entry = False
+            valid = False
 
-        if valid_entry:
+        if valid:
             msg = UBXMessage.config_set(layers, transaction, cfgData)
             self.__container.send_command(msg)
             self._lbl_send_command.config(image=self._img_pending)
@@ -377,7 +396,7 @@ class UBX_CFGVAL_Frame(Frame):
                 ERRCOL,
             )
 
-        return valid_entry
+        return valid
 
     def _do_valdel(self):
         """

@@ -32,20 +32,20 @@ Some platforms (e.g. Ubuntu Linux and Homebrew-installed Python environments) **
 
 ² Though not recommended, this constraint can generally be removed by simply deleting or renaming the file `/usr/lib/python3.x/EXTERNALLY-MANAGED`.
 
-### <a name="format">sdist vs wheel</a>
+### <a name="format">sdist vs wheel (bdist)</a>
 
 There are two file formats in common use for distributing Python packages:
 
-1. sdist (source distribution ) - conceptually, an archive of the source code in raw form. Concretely, an sdist is a TAR compressed archive (`.tar.gz`) containing the source code plus an additional special file called PKG-INFO, which holds the project metadata. Packages with 'extension modules', written in languages like C, C++ and Rust, need to be compiled into platform-dependent machine code *at time of installation*. This may in turn require certain external 'build dependencies' (*files required for successful code compilation*) to be pre-installed on the installation platform.
-1. wheel (aka binary distribution or bdist) - conceptually, a wheel contains exactly the files that need to be copied when installing the package. There is a big difference between sdists and wheels for packages with 'extension modules'. With these packages, wheels do not contain source code (like C source files) but compiled, executable code (like `.so` files on Linux or `.dll` on Windows). Concretely, wheels are ZIP compressed files (`.whl`) containing Python source code and any non-Python compiled executables.
+1. sdist (source distribution) - a platform-independent TAR compressed archive (`.tar.gz`) of the Python and any non-Python source code in raw form, including a special PKG-INFO file which holds the project metadata. Packages with 'extension modules', written in languages like C, C++ and Rust, need to be compiled into platform-dependent executable code *at time of installation*. This may in turn require certain external 'build dependencies' (*files required for successful code compilation*) to be pre-installed on the target platform.
+1. wheel (binary distribution or bdist) - a platform-dependent ZIP compressed archive (`.whl`) of the Python source and the *compiled, executable* code for any non-Python extension modules that need to be copied when installing the package (e.g. `.so` files on Linux, `.dylib` on MacOS or `.dll` on Windows).
 
-By default, pip will look for wheel first, and only resort to using sdist where no wheel is available for the installation platform.
+By default, pip will look for wheel first, and only resort to using sdist where no wheel is available for the target platform.
 
-For pure Python packages like PyGPSClient and its subsidiary [GNSS utilities](https://github.com/semuconsulting), the differences between sdist and wheel distributions are to some extent academic. The distinction is, however, relevant for some of PyGPSClient's optional dependencies (e.g. `cryptography` and `rasterio`) - see [troubleshooting](#troubleshooting) for further details.
+For pure Python packages like PyGPSClient and its subsidiary [GNSS utilities](https://github.com/semuconsulting), which contain no non-Python extension modules, the differences between sdist and wheel distributions are to some extent academic. The distinction is, however, relevant for some of PyGPSClient's optional dependencies (e.g. `cryptography` and `rasterio`) - see [troubleshooting](#troubleshooting) for further details.
 
 ### <a name="binaries">site_packages and binaries directories</a>
 
-pip installs application source code and distribution information into a `../site_packages` directory.
+pip installs application source code and distribution metadata into a `../site_packages` directory.
 
 If the installation also entails one or more binary executables, these will be installed into a `../bin` directory (or `..\Scripts` on Windows). In the case of PyGPSClient, for example, pip installs a binary executable `../bin/pygpsclient` (or `..\Scripts\pygpsclient.exe` on Windows), which allows the application to be executed from the command line or standard application shortcut³.
 
@@ -204,7 +204,7 @@ pipx will typically create a virtual environment in the user's home folder e.g. 
 The following scripts require sudo/admin privileges and will prompt for the sudo password.
 
 ### Debian Linux
-An example [installation shell script](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/pygpsclient_debian_install.sh) is available for use on most vanilla 64-bit Debian-based environments with Python>=3.9, including Raspberry Pi and Ubuntu. To run this installation script, download it to your Raspberry Pi or other Debian-based workstation and - from the download folder - type:
+An example [installation shell script](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/pygpsclient_debian_install.sh) is available for use on most vanilla 64-bit Debian-based environments with Python>=3.10, including Raspberry Pi and Ubuntu. To run this installation script, download it to your Raspberry Pi or other Debian-based workstation and - from the download folder - type:
 
 ```shell
 chmod +x pygpsclient_debian_install.sh
@@ -230,7 +230,7 @@ TBC. Anyone conversant with PowerShell is welcome to contribute an equivalent in
   
    In practice, `rasterio` is only required for automatic extents detection in PyGPSClient's Import Custom Map facility. As a workaround, extents can be entered manually, or you can try importing maps on a different platform and then copy-and-paste the relevant `usermaps_l` extents configuration to the target platform.
 
-1. The optional `cryptography` package is only available as an [sdist](#sdist-vs-wheel) on some 32-bit Linux / ARM platforms (including Raspberry Pi OS), and the consequent OpenSSL build requirements may be problematic e.g. `Building wheel for cryptography (PEP 517): finished with status 'error'`. Refer to [cryptography installation](https://github.com/semuconsulting/pyspartn/blob/main/cryptography_installation/README.md) for assistance. To install PyGPSClient *without* cryptography, first install the `pyspartn` package with the `--no-deps` option i.e. `python3 -m pip install pyspartn --no-deps`, and *then* install PyGPSClient.
+1. The optional `cryptography` package is only available as an [sdist](#sdist-vs-wheel) on some 32-bit Linux / ARM platforms (including Raspberry Pi OS), and the consequent OpenSSL build requirements may be problematic e.g. `Building wheel for cryptography (PEP 517): finished with status 'error'`. Refer to [cryptography installation](https://github.com/semuconsulting/pyspartn/blob/main/cryptography_installation/README.md) for assistance.
 
 ---
 ## <a name="license">License</a>

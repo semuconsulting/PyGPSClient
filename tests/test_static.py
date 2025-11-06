@@ -1,9 +1,13 @@
 """
-Created on 3 Oct 2020
+test_static.py
 
 Static method tests for pygpsclient.helpers
 
-@author: semuadmin
+Created on 3 Oct 2020
+
+:author: semuadmin (Steve Smith)
+:copyright: 2020 semuadmin
+:license: BSD 3-Clause
 """
 
 # pylint: disable=missing-docstring
@@ -15,22 +19,31 @@ from pynmeagps import SET, NMEAMessage
 from pyubx2 import UBXMessage, UBXReader
 
 from pygpsclient.configuration import Configuration, INITMARKER
-from pygpsclient.globals import Area, AreaXY, Point, TrackPoint, OKCOL
+from pygpsclient.globals import (
+    Area,
+    AreaXY,
+    Point,
+    TrackPoint,
+    OKCOL,
+    UI,
+    UMM,
+    UIK,
+    UMK,
+)
 from pygpsclient.helpers import (
     area_in_bounds,
     bitsval,
     bytes2unit,
-    cel2cart,
     col2contrast,
     corrage2int,
-    data2xy,
     date2wnotow,
     dop2str,
     fix2desc,
     ft2m,
-    get_grid,
     get_mp_distance,
     get_mp_info,
+    get_range,
+    get_units,
     get_point_at_vector,
     get_track_bounds,
     haversine,
@@ -61,9 +74,7 @@ from pygpsclient.helpers import (
     time2str,
     ubx2preset,
     val2sphp,
-    validURL,
     wnotow2date,
-    xy2data,
     xy2ll,
 )
 from pygpsclient.mapquest import (
@@ -115,7 +126,7 @@ class StaticTest(unittest.TestCase):
         self.assertEqual(cfg.get("lbandclientdrat_n"), 2400)
         self.assertEqual(cfg.get("userport_s"), "")
         self.assertEqual(cfg.get("spartnport_s"), "")
-        self.assertEqual(len(cfg.settings), 148)
+        self.assertEqual(len(cfg.settings), 150)
         kwargs = {"userport": "/dev/ttyACM0", "spartnport": "/dev/ttyACM1"}
         cfg.loadcli(**kwargs)
         self.assertEqual(cfg.get("userport_s"), "/dev/ttyACM0")
@@ -130,7 +141,11 @@ class StaticTest(unittest.TestCase):
         cfg = Configuration(DummyApp())
         res = cfg.loadfile("bad.json")
         self.assertEqual(
-            res, ("bad.json", f'Unrecognised setting "xcheckforupdate_b": 0')
+            res,
+            (
+                "bad.json",
+                "Unrecognised configuration setting 'xcheckforupdate_b: 0'; using defaults",
+            ),
         )
         res = cfg.loadfile("good.json")
         self.assertEqual(res, ("good.json", ""))
@@ -151,13 +166,6 @@ class StaticTest(unittest.TestCase):
         cfg.init_presets("ubx")
         self.assertEqual(len(cfg.get("ubxpresets_l")), 49)
 
-    def testcel2cart(self):
-        (elev, azim) = cel2cart(34, 128)
-        self.assertAlmostEqual(elev, -0.510406, 5)
-        self.assertAlmostEqual(azim, 0.653290, 5)
-        res = cel2cart("xxx", "xxx")
-        self.assertEqual(res, (0, 0))
-
     def testmakeval(self):
         self.assertEqual(makeval(""), 0.0)
         self.assertEqual(makeval("", 0), 0)
@@ -168,6 +176,23 @@ class StaticTest(unittest.TestCase):
         self.assertEqual(makeval("", "N/A"), "N/A")
         self.assertEqual(makeval(3.45, "N/A"), "N/A")
         self.assertEqual(makeval("test", "N/A"), "test")
+
+    def testgetrange(self):
+        rng = (1, 2, 5, 10, 20, 50, 100, 200, 500)
+        self.assertEqual(get_range(45.28, rng), 50)
+        self.assertEqual(get_range(15.28, rng), 20)
+        self.assertEqual(get_range(201, rng), 500)
+        self.assertEqual(get_range(0.46, rng), 1)
+
+    def testgetunits(self):
+        self.assertEqual(
+            get_units(UI), ("miles", 0.0006213712, "ft", 3.28084, "mph", 2.236936)
+        )
+        self.assertEqual(get_units(UMM), ("m", 1, "m", 1, "m/s", 1))
+        self.assertEqual(
+            get_units(UIK), ("naut miles", 0.0005399568, "ft", 3.28084, "knt", 1.943844)
+        )
+        self.assertEqual(get_units(UMK), ("km", 0.001, "m", 1, "kph", 3.6))
 
     def testm2ft(self):
         res = m2ft(39.234)
@@ -274,22 +299,6 @@ class StaticTest(unittest.TestCase):
         for i, fix in enumerate(fixes):
             res = corrage2int(fix)
             self.assertEqual(res, EXPECTED_RESULT[i])
-
-    def testvalidURL(self):
-        res = validURL("localhost")
-        self.assertEqual(res, True)
-        res = validURL("tcpserver.com")
-        self.assertEqual(res, True)
-        res = validURL("192.168.0.72")
-        self.assertEqual(res, True)
-        res = validURL(None)
-        self.assertEqual(res, False)
-        res = validURL("")
-        self.assertEqual(res, False)
-        # res = validURL("192.168,0.72")
-        # self.assertEqual(res, False)
-        # res = validURL("sdfffasdff")
-        # self.assertEqual(res, False)
 
     def testhaversine(self):
         res = haversine(51.23, -2.41, 34.205, 56.34)
@@ -637,30 +646,6 @@ class StaticTest(unittest.TestCase):
         self.assertAlmostEqual(pos.lat, 53.52345, 5)
         self.assertAlmostEqual(pos.lon, -1.81264, 5)
 
-    def testdata2xy(self):
-        bounds = AreaXY(-2, 53, -1, 54)
-        x, y = data2xy(600, 400, bounds, -1.5, 53.5)
-        self.assertEqual(x, 300, 5)
-        self.assertEqual(y, 200, 5)
-        x, y = data2xy(600, 400, bounds, -1.81264, 53.52345)
-        self.assertAlmostEqual(x, 112.416, 5)
-        self.assertAlmostEqual(y, 190.620, 5)
-        x, y = data2xy(600, 400, bounds, -1.81264, 53.52345, 7, 5)
-        self.assertAlmostEqual(x, 119.416, 5)
-        self.assertAlmostEqual(y, 195.620, 5)
-
-    def testxy2data(self):
-        bounds = AreaXY(-2, 53, -1, 54)
-        dx, dy = xy2data(600, 400, bounds, 300, 200)
-        self.assertEqual(dx, -1.5, 5)
-        self.assertEqual(dy, 53.5, 5)
-        dx, dy = xy2data(600, 400, bounds, 112.416, 190.620)
-        self.assertAlmostEqual(dx, -1.81264, 5)
-        self.assertAlmostEqual(dy, 53.52345, 5)
-        dx, dy = xy2data(600, 400, bounds, 119.416, 195.620, 7, 5)
-        self.assertAlmostEqual(dx, -1.81264, 5)
-        self.assertAlmostEqual(dy, 53.52345, 5)
-
     def testnormalise_area(self):
         points = (53, -2, 54, -1)
         res = normalise_area(points)
@@ -719,53 +704,6 @@ class StaticTest(unittest.TestCase):
         )
         # print(res)
         self.assertEqual(res, EXPECTED_RESULT3)
-
-    def testgetgrid(self):
-        res = get_grid(7)
-        self.assertEqual(res, (0.0, 0.1667, 0.3333, 0.5, 0.6667, 0.8333, 1.0))
-        res = get_grid()
-        self.assertEqual(
-            res,
-            (0.0, 0.1111, 0.2222, 0.3333, 0.4444, 0.5556, 0.6667, 0.7778, 0.8889, 1.0),
-        )
-        res = get_grid(13)
-        self.assertEqual(
-            res,
-            (
-                0.0,
-                0.0833,
-                0.1667,
-                0.25,
-                0.3333,
-                0.4167,
-                0.5,
-                0.5833,
-                0.6667,
-                0.75,
-                0.8333,
-                0.9167,
-                1.0,
-            ),
-        )
-        res = get_grid(13, 0, 100, False)
-        self.assertEqual(
-            res,
-            (
-                0.0,
-                7.6923,
-                15.3846,
-                23.0769,
-                30.7692,
-                38.4615,
-                46.1538,
-                53.8462,
-                61.5385,
-                69.2308,
-                76.9231,
-                84.6154,
-                92.3077,
-            ),
-        )
 
     def testtime2str(self):
         res = time2str(1732547672)

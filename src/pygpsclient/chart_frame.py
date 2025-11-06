@@ -3,12 +3,9 @@ chart_frame.py
 
 Chart frame class for PyGPSClient application.
 
-This emulates a 4-channel "oscilloscope", allowing the user to plot
-up to 4 named data attributes over time. X-axis and Y-axis scale and
-ranges are all configurable.
-
-Plot limited only by the number of data points that can be comfortably
-held in memory.
+This emulates a multi-channel plotter, allowing the user to plot
+multiple named numeric data attributes from any parsed GNSS source over
+time. X-axis and Y-axis scale and ranges are all configurable.
 
 Created on 24 Nov 2024
 
@@ -20,13 +17,7 @@ Created on 24 Nov 2024
 from random import choice
 from time import time
 from tkinter import (
-    ALL,
-    NE,
     NORMAL,
-    NW,
-    SE,
-    SW,
-    Canvas,
     E,
     Entry,
     Frame,
@@ -37,41 +28,39 @@ from tkinter import (
     StringVar,
     TclError,
     W,
+    font,
 )
 
+from pygpsclient.canvas_plot import (
+    TAG_DATA,
+    TAG_GRID,
+    TAG_XLABEL,
+    TAG_YLABEL,
+    CanvasGraph,
+)
 from pygpsclient.globals import (
-    AXISCOL,
     BGCOL,
-    GRIDCOL,
+    ERRCOL,
+    FGCOL,
+    PLOTCOLS,
     READONLY,
+    TRACEMODE_WRITE,
+    VALFLOAT,
+    VALNONSPACE,
     WIDGETU6,
-    AreaXY,
 )
-from pygpsclient.helpers import data2xy, fontheight, get_grid, scale_font, time2str
+from pygpsclient.helpers import time2str
 
-MAXCHANS = 4
-RESFONT = 28  # font size relative to widget size
-MINFONT = 8  # minimum font size
-PLOTWID = 1
-PLOTCOLS = ("yellow", "cyan", "magenta", "deepskyblue")
-GRIDMINCOL = "grey30"
-LBLGRID = 5
-GRIDSTEPS = get_grid(21)
-XLBLSTEPS = get_grid(LBLGRID)
-YLBLSTEPS = get_grid(LBLGRID)
-ERRCOL = "coral"
+OL_WID = 1
 LBLCOL = "white"
 CONTRASTCOL = "black"
-MODEINIT = "chart"
-AXISTAG = "axt"
-AXISLBLTAG = "axl"
 # total capacity depends on available free memory...
 TIMRANGE = [int(i * 10**n) for n in (1, 2, 3, 4) for i in (1, 2.4, 3.6, 4.8, 6)]
 DPTRANGE = [int(i * 10**n) for n in (3, 4, 5, 6) for i in (1, 2, 5)]
-XRANGE = 120
 CHARTMINY = 0
 CHARTMAXY = 100
 CHARTSCALE = 1
+FONTSCALE = 20
 MINY = "MinY {}"
 MAXY = "MaxY {}"
 
@@ -130,17 +119,14 @@ class ChartviewFrame(Frame):
         self.width = kwargs.get("width", def_w)
         self.height = kwargs.get("height", def_h)
         self.configure(bg=BGCOL)
-        self._font = None
-        self._fonth = 6
         self._xoff = 20  # chart X offset for labels
         self._yoff = 20  # chart Y offset for labels
         self._chart_data = {}
-        self._num_chans = self.chartsettings.get("numchn_n", MAXCHANS)
+        self._num_chans = self.chartsettings.get("numchn_n")
         if self._num_chans % 2:  # no channels must be even
             self._num_chans += 1
         self._plotcols = PLOTCOLS
         self._font = self.__app.font_sm
-        self._fonth = fontheight(self._font)
         # generate random plot colours for channels > 4
         if self._num_chans > 4:
             self._plotcols += tuple(
@@ -152,8 +138,9 @@ class ChartviewFrame(Frame):
         self._data_scale = [None] * self._num_chans
         self._data_miny = [None] * self._num_chans
         self._data_maxy = [None] * self._num_chans
-        self._mintim = 1e20
+        self._mintim = 0
         self._maxtim = 0
+        self._redraw = True
         self._timrange = StringVar()
         self._maxpoints = StringVar()
         for chn in range(self._num_chans):
@@ -179,8 +166,8 @@ class ChartviewFrame(Frame):
         self.grid_rowconfigure(0, weight=1)
         for i in range(1, 2 + self._num_chans):
             self.grid_rowconfigure(i, weight=0)
-        self._can_chartview = Canvas(
-            self, width=self.width, height=self.height, bg=BGCOL
+        self._canvas = CanvasGraph(
+            self.__app, self, width=self.width, height=self.height, bg=BGCOL
         )
         self._lbl_id = Label(
             self,
@@ -310,7 +297,7 @@ class ChartviewFrame(Frame):
         Position widgets in frame.
         """
 
-        self._can_chartview.grid(column=0, row=0, columnspan=6, sticky=(N, S, E, W))
+        self._canvas.grid(column=0, row=0, columnspan=6, sticky=(N, S, E, W))
         self._lbl_id.grid(column=0, row=1, sticky=(W, E))
         self._lbl_name.grid(column=1, row=1, sticky=(W, E))
         self._lbl_scale.grid(column=2, row=1, sticky=(W, E))
@@ -333,17 +320,17 @@ class ChartviewFrame(Frame):
         """
 
         self.bind("<Configure>", self._on_resize)
-        self._can_chartview.bind("<Double-Button-1>", self._on_clear)
-        self._can_chartview.bind("<Double-Button-2>", self._on_clipboard)
-        self._can_chartview.bind("<Double-Button-3>", self._on_clipboard)
-        self._timrange.trace_add("write", self._on_update_config)
-        self._maxpoints.trace_add("write", self._on_update_config)
+        self._canvas.bind("<Double-Button-1>", self._on_clear)
+        self._canvas.bind("<Double-Button-2>", self._on_clipboard)
+        self._canvas.bind("<Double-Button-3>", self._on_clipboard)
+        self._timrange.trace_add(TRACEMODE_WRITE, self._on_update_config)
+        self._maxpoints.trace_add(TRACEMODE_WRITE, self._on_update_config)
         for chn in range(self._num_chans):
-            self._data_id[chn].trace_add("write", self._on_update_config)
-            self._data_name[chn].trace_add("write", self._on_update_config)
-            self._data_scale[chn].trace_add("write", self._on_update_config)
-            self._data_miny[chn].trace_add("write", self._on_update_config)
-            self._data_maxy[chn].trace_add("write", self._on_update_config)
+            self._data_id[chn].trace_add(TRACEMODE_WRITE, self._on_update_config)
+            self._data_name[chn].trace_add(TRACEMODE_WRITE, self._on_update_config)
+            self._data_scale[chn].trace_add(TRACEMODE_WRITE, self._on_update_config)
+            self._data_miny[chn].trace_add(TRACEMODE_WRITE, self._on_update_config)
+            self._data_maxy[chn].trace_add(TRACEMODE_WRITE, self._on_update_config)
 
     def _on_update_config(self, var, index, mode):  # pylint: disable=unused-argument
         """
@@ -365,6 +352,7 @@ class ChartviewFrame(Frame):
             self.__app.configuration.set("chartsettings_d", cst)
         except (ValueError, TclError):
             pass
+        self._redraw = True
 
     def reset(self):
         """
@@ -389,9 +377,7 @@ class ChartviewFrame(Frame):
         """
 
         self._chart_data = {}
-        self._mintim = 1e20
-        self._maxtim = 0
-        self._can_chartview.delete(ALL)
+        self._redraw = True
         self.update_frame()
 
     def _valid_settings(self) -> bool:
@@ -402,38 +388,14 @@ class ChartviewFrame(Frame):
         :rtype: bool
         """
 
-        try:
-            for chn in range(self._num_chans):
-                _ = float(self._data_scale[chn].get())
-                _ = float(self._data_miny[chn].get())
-                _ = float(self._data_maxy[chn].get())
-            _ = float(self._timrange.get())
-            return True
-        except ValueError:
-            self._disp_alert("Error: Invalid settings")
-            return False
-
-    def init_frame(self):
-        """
-        Initialise spectrum chart.
-        """
-
-        w, h = self.width, self.height
-        self._xoff = self._fonth * self._num_chans / 2 + 3  # chart X offset for labels
-        self._yoff = self._fonth + 3  # chart Y offset for labels
-        self._can_chartview.delete(ALL)
-
-        # draw grid
-        for i, p in enumerate(GRIDSTEPS):
-            y = (h - self._yoff) * p
-            col = AXISCOL if p in (0, 1.0) else GRIDMINCOL if i % LBLGRID else GRIDCOL
-            self._can_chartview.create_line(
-                self._xoff, y, w - self._xoff, y, fill=col, tags=AXISTAG
-            )
-            x = self._xoff + (w - self._xoff * 2) * p
-            self._can_chartview.create_line(
-                x, 0, x, h - self._yoff, fill=col, tags=AXISTAG
-            )
+        valid = True
+        for chn in range(self._num_chans):
+            valid &= self._ent_id[chn].validate(VALNONSPACE)
+            valid &= self._ent_name[chn].validate(VALNONSPACE)
+            valid &= self._spn_scale[chn].validate(VALFLOAT)
+            valid &= self._spn_miny[chn].validate(VALFLOAT)
+            valid &= self._spn_maxy[chn].validate(VALFLOAT)
+        return valid
 
     def update_data(self, parsed_data: object):
         """
@@ -535,6 +497,52 @@ class ChartviewFrame(Frame):
 
         self._update_plot(self._chart_data)
 
+    def init_frame(self):
+        """
+        Initialise spectrum chart.
+        """
+
+        # pylint: disable=consider-using-generator
+
+        # need tuples here to pass validation in create_graph()
+        yminval = tuple(
+            [float(self._data_miny[chn].get()) for chn in range(self._num_chans)]
+        )
+        ymaxval = tuple(
+            [float(self._data_maxy[chn].get()) for chn in range(self._num_chans)]
+        )
+        yleg = tuple(["" for chn in range(self._num_chans)])
+        dp = tuple([0 for chn in range(self._num_chans)])
+        ycol = self._plotcols
+
+        # Initialise graph
+        # only redraw the tags that have changed
+        tags = (TAG_GRID, TAG_XLABEL, TAG_YLABEL) if self._redraw else (TAG_XLABEL,)
+        self._maxtim = time()
+        self._mintim = self._maxtim - int(self._timrange.get())
+        self._canvas.create_graph(
+            xdatamax=self._maxtim,
+            xdatamin=self._mintim,
+            ydatamax=ymaxval,
+            ydatamin=yminval,
+            xtickmaj=5,
+            xtickmin=20,
+            ytickmaj=5,
+            ytickmin=20,
+            xdp=0,
+            ydp=dp,
+            xlegend="time",
+            xtimeformat="%H:%M:%S",
+            xcol=FGCOL,
+            ylegend=yleg,
+            ycol=ycol,
+            xlabels=True,
+            ylabels=True,
+            fontscale=FONTSCALE,
+            tags=tags,
+        )
+        self._redraw = False
+
     def _update_plot(self, data: dict):
         """
         Update chart plot with data.
@@ -543,42 +551,21 @@ class ChartviewFrame(Frame):
         :param int xrange: number of points
         """
 
+        # pylint: disable=no-member
+
         if not self._valid_settings():
             return
 
-        mintim = 1e20
-        maxtim = 0
-        w, h = self.width, self.height
         self.init_frame()
 
-        # set default ranges for all channels
-        minval = [CHARTMINY] * self._num_chans
-        maxval = [CHARTMAXY] * self._num_chans
-        scale = [CHARTSCALE] * self._num_chans
-
-        # get X axis (time) range for all channels and draw labels
-        mintim, maxtim = self._mintim, self._maxtim
-        mintim = maxtim - float(self._timrange.get())
-        bounds = AreaXY(mintim, CHARTMINY, maxtim, CHARTMAXY)
-        self._can_chartview.delete(AXISLBLTAG)
-        self._draw_xaxis_labels(w, h, bounds, mintim, maxtim)
         self._spn_timrange.configure(fg=LBLCOL, readonlybackground=BGCOL)
 
         # plot each channel's data points
         for chn in range(self._num_chans):
+            tm2 = self._mintim
+            vl2 = 0
+            for n, (tim, channels) in enumerate(data.items()):
 
-            chncol = self._plotcols[chn]
-            minval[chn] = float(self._data_miny[chn].get())
-            maxval[chn] = float(self._data_maxy[chn].get())
-            scale[chn] = float(self._data_scale[chn].get())
-            bounds = AreaXY(mintim, minval[chn], maxtim, maxval[chn])
-
-            # draw Y axis (data value) labels for this channel
-            self._draw_yaxis_labels(w, h, bounds, minval[chn], maxval[chn], chn)
-
-            # plot each data point in channel
-            inr = False
-            for tim, channels in data.items():
                 try:
                     val = channels[chn]
                 except KeyError:
@@ -587,140 +574,23 @@ class ChartviewFrame(Frame):
                 if val is None:
                     continue
 
-                if scale[chn] != 1:
-                    val /= scale[chn]  # scale data
+                scale = float(self._data_scale[chn].get())
+                if scale != 1:
+                    val /= scale  # scale data
 
-                # convert datapoint to canvas x,y coordinates
-                x, y = data2xy(
-                    w - self._xoff * 2,
-                    h - self._yoff,
-                    bounds,
-                    tim,
-                    val,
-                    self._xoff,
-                )
-                if x <= self._xoff:
-                    inr = False
-                # plot line
-                if inr:
-                    x2, y2 = x, y
-                    self._can_chartview.create_line(
-                        x1,
-                        y1,
-                        x2,
-                        y2,
-                        fill=chncol,
-                        width=PLOTWID,
-                        tags=f"plot_{chn:1d}",
+                tm1, vl1 = tm2, vl2
+                tm2, vl2 = tim, val
+                if n and tm1 > self._mintim:
+                    self._canvas.create_gline(
+                        tm1,
+                        vl1,
+                        tm2,
+                        vl2,
+                        fill=self._canvas.ycol[chn],
+                        width=OL_WID,
+                        chn=chn,
+                        tags=(TAG_DATA,),
                     )
-                    x1, y1 = x2, y2
-                else:
-                    x1, y1 = max(x, self._xoff), y
-                inr = True
-
-    def _draw_xaxis_labels(
-        self, w: int, h: int, bounds: AreaXY, mintim: float, maxtim: float
-    ):
-        """
-        Draw X axis (time) labels.
-
-        :param int w: canvas width
-        :param int h: canvas height
-        :param AreaXY bounds: data bounds
-        :param float mintim: minimum time
-        :param float maxtim: maximum time
-        """
-        # pylint: disable=too-many-arguments, too-many-positional-arguments
-
-        for g in XLBLSTEPS:
-            xval = mintim + (maxtim - mintim) * g
-            x, _ = data2xy(w - self._xoff * 2, h - self._yoff, bounds, xval, 0)
-            if g == 0:
-                anc = NW
-            elif g == 1:
-                anc = NE
-            else:
-                anc = N
-            self._can_chartview.create_text(
-                x + self._xoff,
-                h - self._yoff,
-                text=time2str(xval),
-                anchor=anc,
-                fill=AXISCOL,
-                font=self._font,
-                tags=AXISLBLTAG,
-            )
-
-    def _draw_yaxis_labels(
-        self,
-        w: int,
-        h: int,
-        bounds: AreaXY,
-        minval: float,
-        maxval: float,
-        chn: int,
-    ):
-        """
-        Draw Y axis (data value) labels for this channel.
-
-        :param int w: canvas width
-        :param int h: canvas height
-        :param AreaXY bounds: data bounds
-        :param float minval: minimum val for chn
-        :param float maxval: maximum val for chn
-        :param int chn: channel
-        """
-        # pylint: disable=too-many-arguments, too-many-positional-arguments
-
-        col = self._plotcols[chn]
-        yo = 2  # avoid edges
-        # y axis labels alternate left and right
-        if chn % 2:  # odd channels
-            x = w - yo - self._fonth * ((chn - 1) / 2)
-        else:  # even channels
-            x = yo + self._fonth * (chn / 2)
-
-        for g in YLBLSTEPS:
-            yval = minval + (maxval - minval) * g
-            _, y = data2xy(
-                w - self._xoff * MAXCHANS / 2, h - self._yoff, bounds, 0, yval
-            )
-            if g == 0:
-                anc = SW if chn % 2 else NW
-            elif g == 1:
-                y += yo * 2  # avoid edges
-                anc = SE if chn % 2 else NE
-            else:
-                anc = S if chn % 2 else N
-            self._can_chartview.create_text(
-                x,
-                y,
-                text=yval,
-                fill=col,
-                font=self._font,
-                angle=90,
-                anchor=anc,
-                tags=AXISLBLTAG,
-            )
-
-    def _disp_alert(self, msg):
-        """
-        Display alert message on canvas.
-
-        :param str msg: error message
-        """
-
-        w, h = self.width, self.height
-
-        self._can_chartview.delete(ALL)
-        self._can_chartview.create_text(
-            w / 2,
-            h / 2,
-            text=msg,
-            fill="orange",
-            font=self._font,
-            anchor=S,
-        )
 
     def _on_clipboard(self, event):  # pylint: disable=unused-argument
         """
@@ -760,7 +630,8 @@ class ChartviewFrame(Frame):
         """
 
         self.width, self.height = self.get_size()
-        self._font, self._fonth = scale_font(self.width, 6, 35, 16)
+        self._font = font.Font(size=int(min(self.width, self.height) / FONTSCALE))
+        self._redraw = True
 
     def get_size(self):
         """
@@ -771,4 +642,4 @@ class ChartviewFrame(Frame):
         """
 
         self.update_idletasks()  # Make sure we know about any resizing
-        return self._can_chartview.winfo_width(), self._can_chartview.winfo_height()
+        return self._canvas.winfo_width(), self._canvas.winfo_height()

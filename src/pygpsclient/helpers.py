@@ -1,9 +1,7 @@
 """
 helpers.py
 
-PyGPSClient Helpers.
-
-Collection of helper methods.
+Collection of helper methods and tkinter class extensions.
 
 Created on 17 Apr 2021
 
@@ -14,12 +12,32 @@ Created on 17 Apr 2021
 """
 
 from datetime import datetime, timedelta
-from math import asin, atan, atan2, cos, degrees, pi, radians, sin, sqrt, trunc
+from math import (
+    asin,
+    atan,
+    atan2,
+    cos,
+    degrees,
+    pi,
+    radians,
+    sin,
+    sqrt,
+    trunc,
+)
 from os import path
 from socket import AF_INET, SOCK_DGRAM, socket
 from time import strftime
-from tkinter import Entry, Tk
+from tkinter import (
+    BooleanVar,
+    DoubleVar,
+    Entry,
+    IntVar,
+    Spinbox,
+    StringVar,
+    Tk,
+)
 from tkinter.font import Font
+from typing import Literal
 
 from pynmeagps import WGS84_SMAJ_AXIS, haversine
 from pyubx2 import (
@@ -38,13 +56,34 @@ from pygpsclient.globals import (
     ERRCOL,
     FIXLOOKUP,
     GPSEPOCH0,
+    M2FT,
+    M2KM,
+    M2MIL,
+    M2NMIL,
     MAX_SNR,
+    MAXFLOAT,
+    MINFLOAT,
+    MPS2KNT,
+    MPS2KPH,
+    MPS2MPH,
     PUBLICIP_URL,
     ROMVER_NEW,
     SCREENSCALE,
     TIME0,
+    UI,
+    UIK,
+    UMK,
+    VALBLANK,
+    VALBOOL,
+    VALDMY,
+    VALFLOAT,
+    VALHEX,
+    VALINT,
+    VALLEN,
+    VALNONBLANK,
+    VALNONSPACE,
+    VALURL,
     Area,
-    AreaXY,
     Point,
 )
 from pygpsclient.strings import NA
@@ -52,22 +91,97 @@ from pygpsclient.strings import NA
 # validation type flags
 MAXPORT = 65535
 MAXALT = 10000.0  # meters arbitrary
-MAXFLOAT = 2e20
-MINFLOAT = -MAXFLOAT
-VALBLANK = 1
-VALNONBLANK = 2
-VALINT = 4
-VALFLOAT = 8
-VALURL = 16
-VALHEX = 32
-VALDMY = 64
-VALLEN = 128
 
 # NTRIP enumerations
 NMEA = {"0": "No GGA", "1": "GGA"}
 AUTHS = {"N": "None", "B": "Basic", "D": "Digest"}
 CARRIERS = {"0": "No", "1": "L1", "2": "L1,L2"}
 SOLUTIONS = {"0": "Single", "1": "Network"}
+
+
+def validate(self: Entry, valmode: int, low=MINFLOAT, high=MAXFLOAT) -> bool:
+    """
+    Extends tkinter.Entry class to add parameterised validation
+    and error highlighting.
+
+    :param Entry self: tkinter entry widget instance
+    :param int valmode: int representing validation type - can be OR'd
+    :param object low: optional min value
+    :param object high: optional max value
+    :return: True/False
+    :rtype: bool
+    """
+
+    valid = True
+    try:
+        val = self.get()
+        if valmode == VALBLANK and val == "":
+            valid = True  # blank ok
+        elif valmode == VALNONBLANK:  # non-blank
+            valid = val != "" and not val.isspace()
+        elif valmode == VALNONSPACE:  # non-blank
+            valid = not val.isspace()
+        elif valmode == VALINT:  # int in range
+            valid = low < int(val) < high
+        elif valmode == VALBOOL:  # boolean
+            valid = val in ("0", "1", 1, 0)
+        elif valmode == VALFLOAT:  # float in range
+            valid = low < float(val) < high
+        elif valmode == VALURL:  # valid URL
+            # none of the clever RFC 3986 regexes
+            # seem to work 100% of the time
+            valid = val != "" and not val.isspace()
+        elif valmode == VALHEX:  # valid hexadecimal
+            bytes.fromhex(val)
+        elif valmode == VALDMY:  # valid date YYYYMMDD
+            datetime(int(val[0:4]), int(val[4:6]), int(val[6:8]))
+        elif valmode == VALLEN:  # valid length
+            valid = low <= len(val) <= high
+    except ValueError:
+        valid = False
+
+    if valid:
+        self.configure(highlightthickness=0)
+    else:
+        self.configure(
+            highlightthickness=2, highlightbackground=ERRCOL, highlightcolor=ERRCOL
+        )
+    return valid
+
+
+for wdg in (Entry, Spinbox):
+    wdg.validate = validate
+
+
+def trace_update(
+    self: IntVar | StringVar | DoubleVar | BooleanVar,
+    mode: Literal["array", "read", "write", "unset"],
+    callback: object,
+    add: bool = True,
+) -> str:
+    """
+    Extends tkinter.*Var classes with trace_update method.
+
+    :param str mode: 'array', 'read', 'write' or 'unset'
+    :param function callback: callback
+    :param bool add: add (True) or remove (False) trace
+    :return: status
+    :rtype: str
+    """
+
+    if add:
+        return self.trace_add(mode, callback)
+    if len(self.trace_info()) > 0:
+        return self.trace_remove(mode, self.trace_info()[0][1])
+    return None
+
+
+for var in (BooleanVar, DoubleVar, IntVar, StringVar):
+    var.trace_update = trace_update
+
+# ****************************************************************
+# End of Custom Class Extensions
+# ****************************************************************
 
 
 def area_in_bounds(
@@ -149,26 +263,6 @@ def bytes2unit(valb: int) -> tuple:
         if i > 4:
             break
     return val, valu
-
-
-def cel2cart(elevation: float, azimuth: float) -> tuple:
-    """
-    Convert celestial coordinates (degrees) to Cartesian coordinates.
-
-    :param float elevation: elevation
-    :param float azimuth: azimuth
-    :return: cartesian x,y coordinates
-    :rtype: tuple
-
-    """
-
-    if not (isinstance(elevation, (float, int)) and isinstance(azimuth, (float, int))):
-        return (0, 0)
-    elevation = elevation * pi / 180
-    azimuth = azimuth * pi / 180
-    x = cos(azimuth) * cos(elevation)
-    y = sin(azimuth) * cos(elevation)
-    return (x, y)
 
 
 def check_latest(name: str) -> str:
@@ -274,40 +368,6 @@ def corrage2int(code: int) -> int:
     return lookup.get(code, 0)
 
 
-def data2xy(
-    width: int,
-    height: int,
-    bounds: AreaXY,
-    xdata: float,
-    ydata: float,
-    xoffset: float = 0,
-    yoffset: float = 0,
-) -> tuple:
-    """
-    Convert datapoint x,y to canvas x,y. Y is vertical axis.
-
-    :param int width: canvas width
-    :param int height: canvas height
-    :param AreaXY bounds: x,y bounds of data
-    :param float xdata: datapoint x
-    :param float ydata: datapoint y
-    :param float xoffset: canvas x offset
-    :param float yoffset: canvas y offset
-    :return: x,y canvas coordinates
-    :rtype: tuple
-    """
-    # pylint: disable=too-many-arguments, too-many-positional-arguments
-
-    try:
-        lw = bounds.x2 - bounds.x1
-        lh = bounds.y2 - bounds.y1
-        x = (xdata - bounds.x1) / (lw / width)
-        y = height - (ydata - bounds.y1) / (lh / height)
-    except ZeroDivisionError:
-        return 0, 0
-    return x + xoffset, y + yoffset
-
-
 def date2wnotow(dat: datetime) -> tuple:
     """
     Get GPS Week number (Wno) and Time of Week (Tow)
@@ -365,31 +425,6 @@ def fix2desc(msgid: str, fix: object) -> str:
     return FIXLOOKUP.get(msgid + str(fix), "NO FIX")
 
 
-def fontheight(fnt: Font) -> int:
-    """
-    Get font height.
-
-    :param Font fnt: font
-    :return: font height in pixels
-    :rtype: int
-    """
-
-    return Font.metrics(fnt, "linespace")
-
-
-def fontwidth(fnt: Font, txt: str = "W") -> int:
-    """
-    Get font width.
-
-    :param Font fnt:font
-    :param txt: reference text ("W")
-    :return: font width in pixels
-    :rtype: int
-    """
-
-    return Font.measure(fnt, txt)
-
-
 def ft2m(feet: float) -> float:
     """
     Convert feet to meters.
@@ -404,40 +439,6 @@ def ft2m(feet: float) -> float:
     if not isinstance(feet, (float, int)):
         return 0
     return feet / 3.28084
-
-
-def get_grid(
-    num: int = 10, start: int = 0, stop: int = 1, endpoint: bool = True
-) -> tuple:
-    """
-    Generate linear grid steps for graphing widgets.
-
-    :param int num: number of increments (10)
-    :param int start: start point (0)
-    :param int stop: end point (1)
-    :param bool endpoint: include endpoint (True)
-    :return: linear grid increments
-    :rtype: tuple
-    """
-
-    def linspace(start, stop, num, endpoint):
-        """Generator for linear grid"""
-        num = int(num)
-        start = start * 1.0
-        stop = stop * 1.0
-
-        if num == 1:
-            yield round(stop, 4)
-            return
-        if endpoint:
-            step = (stop - start) / (num - 1)
-        else:
-            step = (stop - start) / num
-
-        for i in range(num):
-            yield round(start + step * i, 4)
-
-    return tuple(linspace(start, stop, num, endpoint))
 
 
 def get_mp_distance(lat: float, lon: float, mp: list) -> float:
@@ -530,6 +531,16 @@ def get_point_at_vector(
     return Point(degrees(phi2), degrees(lambda2))
 
 
+def get_range(val: float, rng: tuple):
+    """
+    Find first value in range which exceeds specified value.
+
+    :param float val: value
+    :param tuple rng: range
+    """
+    return rng[next(x[0] for x in enumerate(rng) if x[1] > val)]
+
+
 def get_track_bounds(track: list) -> tuple:
     """
     Get bounds and centre point of track list.
@@ -549,6 +560,48 @@ def get_track_bounds(track: list) -> tuple:
     return Area(minlat, minlon, maxlat, maxlon), Point(
         (maxlat + minlat) / 2, (maxlon + minlon) / 2
     )
+
+
+def get_units(units: str) -> tuple:
+    """
+    Get speed and elevation units and conversions.
+    Default is metric - meters and meters per second.
+
+    :param str unit: unit
+    :return: tuple of (dst_u, dst_c, ele_u, ele_C, spd_u, spd_c)
+    :rtype: tuple
+    """
+
+    if units == UI:
+        dst_u = "miles"
+        dst_c = M2MIL
+        ele_u = "ft"
+        ele_c = M2FT
+        spd_u = "mph"
+        spd_c = MPS2MPH
+    elif units == UIK:
+        dst_u = "naut miles"
+        dst_c = M2NMIL
+        ele_u = "ft"
+        ele_c = M2FT
+        spd_u = "knt"
+        spd_c = MPS2KNT
+    elif units == UMK:
+        dst_u = "km"
+        dst_c = M2KM
+        ele_u = "m"
+        ele_c = 1
+        spd_u = "kph"
+        spd_c = MPS2KPH
+    else:  # UMM
+        dst_u = "m"
+        dst_c = 1
+        ele_u = "m"
+        ele_c = 1
+        spd_u = "m/s"
+        spd_c = 1
+
+    return dst_u, dst_c, ele_u, ele_c, spd_u, spd_c
 
 
 def hsv2rgb(h: float, s: float, v: float) -> str:
@@ -970,9 +1023,9 @@ def scale_font(
     """
 
     fnt = Font(size=12) if fnt is None else fnt
-    fs = basesize * width / fontwidth(fnt, "W" * txtwidth)
+    fs = basesize * width / fnt.measure("W" * txtwidth)
     fnt = Font(size=int(min(fs, maxsize))) if maxsize else Font(size=int(fs))
-    return fnt, fontheight(fnt)
+    return fnt, fnt.metrics("linespace")
 
 
 def screenres(master: Tk, scale: float = SCREENSCALE) -> tuple:
@@ -1240,51 +1293,6 @@ def ubx2preset(msgs: tuple, desc: str = "") -> str:
     return preset
 
 
-def valid_entry(entry: Entry, valmode: int, low=MINFLOAT, high=MAXFLOAT) -> bool:
-    """
-    Validates tkinter entry field and highlights it if in error.
-
-    :param Entry entry: tkinter entry widget
-    :param int valmode: int representing validation type - can be OR'd
-    :param object low: optional min value
-    :param object high: optional max value
-    :return: True/False
-    :rtype: bool
-    """
-
-    valid = True
-    try:
-        if valmode & VALBLANK and entry.get() == "":  # blank ok
-            valid = True
-        else:
-            if valmode & VALNONBLANK:  # non-blank
-                valid = entry.get() != ""
-            if valmode & VALINT:  # int in range
-                valid = low < int(entry.get()) < high
-            if valmode & VALFLOAT:  # float in range
-                valid = low < float(entry.get()) < high
-            if valmode & VALURL:  # valid URL
-                valid = validURL(entry.get())
-            if valmode & VALHEX:  # valid hexadecimal
-                bytes.fromhex(entry.get())
-            if valmode & VALDMY:  # valid date YYYYMMDD
-                dat = entry.get()
-                datetime(int(dat[0:4]), int(dat[4:6]), int(dat[6:8]))
-            if valmode & VALLEN:  # valid length
-                valid = low <= len(entry.get()) <= high
-    except ValueError:
-        valid = False
-
-    # entry.config(bg=ENTCOL if valid else ERRCOL)
-    if valid:
-        entry.configure(highlightthickness=0)
-    else:
-        entry.configure(
-            highlightthickness=2, highlightbackground=ERRCOL, highlightcolor=ERRCOL
-        )
-    return valid
-
-
 def val2sphp(val: float, scale: float) -> tuple:
     """
     Convert a float value into separate
@@ -1306,30 +1314,6 @@ def val2sphp(val: float, scale: float) -> tuple:
     return val_sp, val_hp
 
 
-def validURL(url: str) -> bool:
-    """
-    Validate URL.
-
-    :param str url: URL to check
-    :return: valid True/False
-    :rtype: bool
-    """
-    # pylint: disable=line-too-long
-
-    # regex = re.compile(
-    #     # r"^(?:http|https)?://"  # http:// or https://
-    #     r"^(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|"  # domain...
-    #     r"localhost|"  # localhost...
-    #     r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})"  # ...or ip
-    #     r"(?::\d+)?"  # optional port
-    #     r"(?:/?|[/?]\S+)$",
-    #     re.IGNORECASE,
-    # )
-
-    # return re.match(regex, url) is not None
-    return url not in (None, "")
-
-
 def wnotow2date(wno: int, tow: int) -> datetime:
     """
     Get datetime from GPS Week number (Wno) and Time of Week (Tow).
@@ -1345,40 +1329,6 @@ def wnotow2date(wno: int, tow: int) -> datetime:
     dat = GPSEPOCH0 + timedelta(days=wno * 7)
     dat += timedelta(seconds=tow)
     return dat
-
-
-def xy2data(
-    width: int,
-    height: int,
-    bounds: AreaXY,
-    x: int,
-    y: int,
-    xoffset: int = 0,
-    yoffset: int = 0,
-) -> tuple:
-    """
-    Convert canvas x,y to datapoint x,y. Y is vertical axis.
-
-    :param int width: canvas width
-    :param int height: canvas height
-    :param AreaXY bounds: x,y bounds of data
-    :param int x: canvas x coordinate
-    :param int y: canvas y coordinate
-    :param float xoffset: canvas x offset
-    :param float yoffset: canvas y offset
-    :return: xdata, ydata
-    :rtype: tuple
-    """
-    # pylint: disable=too-many-arguments, too-many-positional-arguments
-
-    try:
-        lw = bounds.x2 - bounds.x1
-        lh = bounds.y2 - bounds.y1
-        datax = bounds.x1 + (x - xoffset) / (width / lw)
-        datay = bounds.y1 + (height - (y - yoffset)) / (height / lh)
-    except ZeroDivisionError:
-        return 0, 0
-    return datax, datay
 
 
 def xy2ll(width: int, height: int, bounds: Area, xy: tuple) -> Point:

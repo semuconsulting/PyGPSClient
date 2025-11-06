@@ -46,19 +46,9 @@ from pygnssutils import (
     check_pemfile,
 )
 from pynmeagps import NMEAMessageError, NMEAParseError, NMEAStreamError
-from pyqgc import (
-    QGCMessageError,
-    QGCParseError,
-    QGCStreamError,
-    QGCTypeError,
-)
+from pyqgc import QGCMessageError, QGCParseError, QGCStreamError
 from pyrtcm import RTCMMessageError, RTCMParseError, RTCMStreamError
-from pysbf2 import (
-    SBFMessageError,
-    SBFParseError,
-    SBFStreamError,
-    SBFTypeError,
-)
+from pysbf2 import SBFMessageError, SBFParseError, SBFStreamError
 from pyubx2 import ERR_LOG, UBXMessageError, UBXParseError, UBXStreamError
 from pyubxutils import UBXSimulator
 from serial import Serial, SerialException, SerialTimeoutException
@@ -72,7 +62,6 @@ from pygpsclient.globals import (
     CONNECTED_SOCKET,
     DEFAULT_BUFSIZE,
     ERRCOL,
-    FILEREAD_INTERVAL,
     TTY_PROTOCOL,
     UBXSIMULATOR,
 )
@@ -99,7 +88,7 @@ class StreamHandler:
         self._stopevent = Event()
         self._ttyevent = Event()
 
-    def start_read_thread(self, caller: object, settings: dict):
+    def start(self, caller: object, settings: dict):
         """
         Start the stream read thread.
 
@@ -119,7 +108,7 @@ class StreamHandler:
         )
         self._stream_thread.start()
 
-    def stop_read_thread(self):
+    def stop(self):
         """
         Stop serial reader thread.
         """
@@ -322,7 +311,11 @@ class StreamHandler:
             try:
                 if conntype in (CONNECTED, CONNECTED_SOCKET) or (
                     conntype == CONNECTED_FILE
-                    and datetime.now() > lastread + timedelta(seconds=FILEREAD_INTERVAL)
+                    and datetime.now()
+                    > lastread
+                    + timedelta(
+                        milliseconds=self.__app.configuration.get("filedelay_n")
+                    )
                 ):
                     raw_data, parsed_data = ubr.read()
                     if raw_data is not None:
@@ -364,11 +357,9 @@ class StreamHandler:
                 SBFMessageError,
                 SBFParseError,
                 SBFStreamError,
-                SBFTypeError,
                 QGCMessageError,
                 QGCParseError,
                 QGCStreamError,
-                QGCTypeError,
                 GNSSError,
             ) as err:
                 _errorhandler(err)
