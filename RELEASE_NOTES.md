@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.5.20
+
+FIXES:
+
+1. Replace missing manifest file.
+
 ### RELEASE 1.5.19
 
 FIXES:
