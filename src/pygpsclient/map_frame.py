@@ -37,16 +37,17 @@ from tkinter import (
     W,
 )
 
+from pygpsclient.canvas_map import HYB, MAP, MAPTYPES, SAT, TAG_CLOCK, CanvasMap
 from pygpsclient.globals import (
     BGCOL,
     ERRCOL,
     PNTCOL,
     READONLY,
+    TRACEMODE_WRITE,
     WIDGETU2,
     WORLD,
     Point,
 )
-from pygpsclient.map_canvas import HYB, MAP, MAPTYPES, SAT, TAG_CLOCK, MapCanvas
 from pygpsclient.mapquest import (
     MAX_ZOOM,
     MIN_UPDATE_INTERVAL,
@@ -104,7 +105,7 @@ class MapviewFrame(Frame):
         Set up frame and widgets.
         """
 
-        self._can_mapview = MapCanvas(
+        self._can_mapview = CanvasMap(
             self.__app,
             self,
             height=self.height,
@@ -172,9 +173,9 @@ class MapviewFrame(Frame):
         """
 
         self.bind("<Configure>", self._on_resize)
-        self._maptype.trace_add("write", self.on_maptype)
-        self._mapzoom.trace_add("write", self.on_mapzoom)
-        self._showtrack.trace_add("write", self.on_showtrack)
+        self._maptype.trace_add(TRACEMODE_WRITE, self.on_maptype)
+        self._mapzoom.trace_add(TRACEMODE_WRITE, self.on_mapzoom)
+        self._showtrack.trace_add(TRACEMODE_WRITE, self.on_showtrack)
         self._can_mapview.bind("<Double-Button-1>", self.on_refresh)
         self._lbl_zoom.bind(
             "<Double-Button-1>",

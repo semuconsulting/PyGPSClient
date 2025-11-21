@@ -1,9 +1,9 @@
 
 # Creating A Desktop Application Launcher
 
-The pip installation process does not automatically create a desktop application launcher for PyGPSClient, but this can be done manually:
+The pip installation process does not automatically create a desktop application launcher for PyGPSClient, but this can be done manually.
 
-_In the examples below, substitute `Python3.11` for your environment's version of Python e.g. `Python3.12`, `Python3.13`, etc., and `myuser` for your user name._
+The illustrations below assume PyGPSClient has been installed into a virtual environment named `pygpsclient` in the user's home directory.
 
 ## Windows
 

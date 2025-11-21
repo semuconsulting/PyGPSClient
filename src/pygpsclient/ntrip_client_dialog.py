@@ -51,8 +51,8 @@ from pygpsclient.globals import (
     ERRCOL,
     GGA_INTERVALS,
     INFOCOL,
-    NTRIP,
     READONLY,
+    TRACEMODE_WRITE,
     UBX_CFGMSG,
     UBX_CFGPRT,
     UBX_CFGRATE,
@@ -62,9 +62,10 @@ from pygpsclient.globals import (
     UBX_PRESET,
     UI,
     UIK,
+    VALFLOAT,
 )
-from pygpsclient.helpers import MAXALT, VALFLOAT, get_mp_info, valid_entry
-from pygpsclient.socketconfig_frame import SocketConfigFrame
+from pygpsclient.helpers import MAXALT, get_mp_info
+from pygpsclient.socketconfig_ntrip_frame import SocketConfigNtripFrame
 from pygpsclient.strings import (
     DLGTNTRIP,
     LBLGGAFIXED,
@@ -149,10 +150,9 @@ class NTRIPConfigDialog(ToplevelDialog):
         # pylint: disable=unnecessary-lambda
 
         self._frm_body = Frame(self.container, borderwidth=2, relief="groove")
-        self._frm_socket = SocketConfigFrame(
+        self._frm_socket = SocketConfigNtripFrame(
             self.__app,
             self._frm_body,
-            NTRIP,
             protocols=[TCPIPV4, TCPIPV6],
             server_callback=self._on_server,
         )
@@ -364,7 +364,7 @@ class NTRIPConfigDialog(ToplevelDialog):
             self._ntrip_gga_alt,
             self._ntrip_gga_sep,
         ):
-            setting.trace_add("write", self._on_update_config)
+            setting.trace_add(TRACEMODE_WRITE, self._on_update_config)
         # self.bind("<Configure>", self._on_resize)
 
     def _reset(self):
@@ -694,10 +694,10 @@ class NTRIPConfigDialog(ToplevelDialog):
 
         valid = self._frm_socket.valid_settings()
         if self._settings["ggamode"] == 1:  # fixed reference
-            valid = valid & valid_entry(self._ent_lat, VALFLOAT, -90.0, 90.0)
-            valid = valid & valid_entry(self._ent_lon, VALFLOAT, -180.0, 180.0)
-            valid = valid & valid_entry(self._ent_alt, VALFLOAT, -MAXALT, MAXALT)
-            valid = valid & valid_entry(self._ent_sep, VALFLOAT, -MAXALT, MAXALT)
+            valid = valid & self._ent_lat.validate(VALFLOAT, -90.0, 90.0)
+            valid = valid & self._ent_lon.validate(VALFLOAT, -180.0, 180.0)
+            valid = valid & self._ent_alt.validate(VALFLOAT, -MAXALT, MAXALT)
+            valid = valid & self._ent_sep.validate(VALFLOAT, -MAXALT, MAXALT)
 
         if not valid:
             self.set_status("ERROR - invalid settings", ERRCOL)

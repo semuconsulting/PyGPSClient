@@ -28,6 +28,22 @@ pygpsclient.banner\_frame module
    :undoc-members:
    :show-inheritance:
 
+pygpsclient.canvas\_map module
+------------------------------
+
+.. automodule:: pygpsclient.canvas_map
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pygpsclient.canvas\_plot module
+-------------------------------
+
+.. automodule:: pygpsclient.canvas_plot
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pygpsclient.chart\_frame module
 -------------------------------
 
@@ -108,14 +124,6 @@ pygpsclient.gpx\_dialog module
    :undoc-members:
    :show-inheritance:
 
-pygpsclient.graphview\_frame module
------------------------------------
-
-.. automodule:: pygpsclient.graphview_frame
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 pygpsclient.hardware\_info\_frame module
 ----------------------------------------
 
@@ -156,10 +164,10 @@ pygpsclient.init\_presets module
    :undoc-members:
    :show-inheritance:
 
-pygpsclient.map\_canvas module
-------------------------------
+pygpsclient.levelsview\_frame module
+------------------------------------
 
-.. automodule:: pygpsclient.map_canvas
+.. automodule:: pygpsclient.levelsview_frame
    :members:
    :undoc-members:
    :show-inheritance:
@@ -228,6 +236,14 @@ pygpsclient.qgc\_handler module
    :undoc-members:
    :show-inheritance:
 
+pygpsclient.receiver\_config\_handler module
+--------------------------------------------
+
+.. automodule:: pygpsclient.receiver_config_handler
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pygpsclient.rover\_frame module
 -------------------------------
 
@@ -268,6 +284,14 @@ pygpsclient.serialconfig\_frame module
    :undoc-members:
    :show-inheritance:
 
+pygpsclient.serialconfig\_lband\_frame module
+---------------------------------------------
+
+.. automodule:: pygpsclient.serialconfig_lband_frame
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pygpsclient.serverconfig\_frame module
 --------------------------------------
 
@@ -296,6 +320,14 @@ pygpsclient.socketconfig\_frame module
 --------------------------------------
 
 .. automodule:: pygpsclient.socketconfig_frame
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pygpsclient.socketconfig\_ntrip\_frame module
+---------------------------------------------
+
+.. automodule:: pygpsclient.socketconfig_ntrip_frame
    :members:
    :undoc-members:
    :show-inheritance:

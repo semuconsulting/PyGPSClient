@@ -13,22 +13,31 @@ Created on 22 Aug 2023
 :license: BSD 3-Clause
 """
 
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name, no-member
 
-from math import cos, pi, sin
-from tkinter import ALL, BOTH, NW, SW, YES, E, Frame, N, S, W
+from tkinter import BOTH, NW, SW, YES, Frame
 
-from pygpsclient.globals import BGCOL, FGCOL, WIDGETU2
-from pygpsclient.helpers import fontheight, scale_font, setubxrate
-from pygpsclient.skyview_frame import Canvas
+from pygpsclient.canvas_plot import (
+    MODE_POL,
+    TAG_DATA,
+    TAG_GRID,
+    TAG_XLABEL,
+    CanvasCompass,
+)
+from pygpsclient.globals import (
+    BGCOL,
+    PNTCOL,
+    WIDGETU2,
+)
+from pygpsclient.helpers import setubxrate
+from pygpsclient.strings import NA
 
-INSET = 4  # avoid edges
-SQRT2 = 0.7071067811865476
 MAXPOINTS = 100
-PNTCOL = "orange"
-TRKCOL = "darkorange3"
-ACCCOL = "darkorange3"
+INSET = 4
+TRKCOL = "#CD6600"
 TRKTOL = 5
+# setup ranges from 10cm to 5000km
+RANGES = [int(i * 10**n) for n in range(1, 9) for i in (1, 2, 5)]
 
 
 class RoverFrame(Frame):
@@ -52,11 +61,13 @@ class RoverFrame(Frame):
         def_w, def_h = WIDGETU2
         self.width = kwargs.get("width", def_w)
         self.height = kwargs.get("height", def_h)
-        self.scale = 1
-        self.range = int(min(self.width / 2, self.height / 2)) - INSET
+        self._range = 1
+        self._temprange = 1
+        self._scale_c = 1
+        self._scale_u = "cm"
         self.points = []
-        self._font = self.__app.font_sm
-        self._fonth = fontheight(self._font)
+        self._redraw = True
+        self._maxdist = 0
         self._body()
         self._attach_events()
 
@@ -65,9 +76,10 @@ class RoverFrame(Frame):
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
-        self.canvas = Canvas(self, width=self.width, height=self.height, bg=BGCOL)
-        self.scale = 1
-        self.canvas.pack(fill=BOTH, expand=YES)
+        self._canvas = CanvasCompass(
+            self.__app, self, MODE_POL, width=self.width, height=self.height, bg=BGCOL
+        )
+        self._canvas.pack(fill=BOTH, expand=YES)
 
     def _attach_events(self):
         """
@@ -75,69 +87,25 @@ class RoverFrame(Frame):
         """
 
         self.bind("<Configure>", self._on_resize)
-        self.canvas.bind("<Double-Button-1>", self._on_clear)
+        self._canvas.bind("<Double-Button-1>", self._on_clear)
 
     def init_frame(self):
         """
         Initialize plot.
         """
 
-        width, height = self.get_size()
-        self.canvas.delete(ALL)
-
-        self.canvas.create_line(0, height / 2, width, height / 2, fill=FGCOL)
-        self.canvas.create_line(width / 2, 0, width / 2, height, fill=FGCOL)
-        fh = self._fonth
-        self.canvas.create_text(
-            width - fh,
-            height / 2,
-            text="90\u00b0\n E",
-            fill=FGCOL,
-            font=self._font,
-            anchor=E,
+        # only redraw the tags that have changed
+        tags = (TAG_GRID, TAG_XLABEL) if self._redraw else ()
+        maxgrid = 10
+        scale = self._range / maxgrid / self._scale_c
+        self._canvas.create_compass(
+            radii=range(maxgrid, 1, -2),
+            unit=self._scale_u,
+            dp=0,
+            scale=scale,
+            tags=tags,
         )
-        self.canvas.create_text(
-            fh,
-            height / 2,
-            text="270\u00b0\n W",
-            fill=FGCOL,
-            font=self._font,
-            anchor=W,
-        )
-        self.canvas.create_text(
-            width / 2, fh, text="0\u00b0 N", fill=FGCOL, font=self._font, anchor=N
-        )
-        self.canvas.create_text(
-            width / 2,
-            height - fh,
-            text="180\u00b0 S",
-            fill=FGCOL,
-            font=self._font,
-            anchor=S,
-        )
-
-        for rds in range(self.range, 10, int(self.range / -4)):
-            self.canvas.create_circle(
-                width / 2, height / 2, rds, outline=FGCOL, width=1
-            )
-            if self.scale >= 1e4:
-                mul = 1e5
-                unt = "km"
-            elif self.scale >= 1e2:
-                mul = 1e2
-                unt = "m"
-            else:
-                mul = 1
-                unt = "cm"
-            txt_x = width / 2 + SQRT2 * rds
-            txt_y = height / 2 + SQRT2 * rds
-            self.canvas.create_text(
-                txt_x,
-                txt_y,
-                text=f"{rds*self.scale/mul:.0f} {unt}",
-                fill=FGCOL,
-                font=self._font,
-            )
+        self._redraw = False
 
     def update_frame(self):
         """
@@ -146,14 +114,11 @@ class RoverFrame(Frame):
 
         center_x = self.width / 2
         center_y = self.height / 2
-        self.range = int(min(center_x, center_y) - INSET)
-        hdg, dis, acchdg, accdis = (
-            self.__app.gnss_status.rel_pos_heading,
-            self.__app.gnss_status.rel_pos_length,
-            self.__app.gnss_status.acc_heading,
-            self.__app.gnss_status.acc_length,
-        )
-        if len(self.__app.gnss_status.rel_pos_flags) >= 5:
+        hdg = self.__app.gnss_status.rel_pos_heading
+        dis = self.__app.gnss_status.rel_pos_length
+        acchdg = self.__app.gnss_status.acc_heading
+        accdis = self.__app.gnss_status.acc_length
+        try:
             fixok, diffsoln, valrp, valhdg, carrsoln, moving = (
                 self.__app.gnss_status.rel_pos_flags[0],
                 self.__app.gnss_status.rel_pos_flags[1],
@@ -162,87 +127,122 @@ class RoverFrame(Frame):
                 self.__app.gnss_status.rel_pos_flags[3],
                 self.__app.gnss_status.rel_pos_flags[4],
             )
-        else:
-            fixok = diffsoln = valrp = valhdg = carrsoln = moving = 0
+        except IndexError:
+            valrp = moving = NA
+            fixok = hdg != 0
+            valhdg = hdg != 0
+            if "RTK-FIXED" in self.__app.gnss_status.fix:
+                carrsoln = 2
+                diffsoln = 1
+            elif "RTK" in self.__app.gnss_status.fix:
+                carrsoln = 1
+                diffsoln = 1
+            else:
+                carrsoln = 0
+                diffsoln = 0
 
-        self.store_track(hdg, dis)
+        self._store_track(hdg, dis)
 
-        # set scale automatically
-        x = 1
-        while dis / x > self.range:
-            x *= 2
-        self.scale = x
+        self._set_range(dis)  # set range and scale automatically
 
         self.init_frame()
 
         # plot status information
-        fh = self._fonth
-        self.canvas.create_text(
+        fh = self._canvas.fnth
+        self._canvas.create_text(
             INSET,
             INSET,
             text=f"Len {dis:,.2f} ± {accdis:.2f} cm",
             fill=PNTCOL,
             anchor=NW,
-            font=self._font,
+            font=self._canvas.font,
+            tags=TAG_DATA,
         )
-        self.canvas.create_text(
+        self._canvas.create_text(
             INSET,
             INSET + fh,
             text=f"Hdg {hdg:.2f} ± {acchdg:.2f}",
             fill=PNTCOL,
             anchor=NW,
-            font=self._font,
+            font=self._canvas.font,
+            tags=TAG_DATA,
         )
-        fixok = "FIX OK" if fixok else "NO FIX"
-        diffsoln = "DGPS" if diffsoln else "NO DGPS"
-        valrp = "VALID RP" if valrp else "INVALID RP"
-        valhdg = "VALID HDG" if valhdg else "INVALID HDG"
-        try:
-            carrsoln = ["NO RTK", "RTK FLOAT", "RTK FIXED"][carrsoln]
-        except IndexError:
-            carrsoln = "NO RTK"
-        moving = "MOVING" if moving else "STATIC"
-        self.canvas.create_text(
+        fixok = {0: "NO FIX", 1: "FIX OK"}.get(fixok, "FIX NA")
+        diffsoln = {0: "NO DGPS", 1: "DGPS"}.get(diffsoln, "DGPS NA")
+        valrp = {0: "INVALID RP", 1: "VALID RP"}.get(valrp, "RP NA")
+        valhdg = {0: "INVALID HDG", 1: "VALID HDG"}.get(valhdg, "HDG NA")
+        carrsoln = {0: "NO RTK", 1: "RTK FLOAT", 2: "RTK FIXED"}.get(carrsoln, "RTK NA")
+        moving = {0: "STATIC", 1: "MOVING"}.get(moving, "MOVING NA")
+        self._canvas.create_text(
             INSET,
             self.height - INSET,
             text=f"{fixok}\n{diffsoln}\n{valrp}\n{valhdg}\n{carrsoln}\n{moving}",
             fill=PNTCOL,
             anchor=SW,
-            font=self._font,
+            font=self._canvas.font,
+            tags=TAG_DATA,
         )
 
         # plot historical relative position track
         for thdg, tdis in self.points:
-            x, y = self.get_point(thdg, tdis, center_x, center_y)
-            self.canvas.create_circle(x, y, 2, fill=TRKCOL, outline=TRKCOL)
+            x, y = self._canvas.d2xy(thdg, tdis / self._scale_c)
+            self._canvas.create_circle(
+                x,
+                y,
+                2,
+                fill=TRKCOL,
+                outline=TRKCOL,
+                tags=TAG_DATA,
+            )
 
-        # plot latest relative position
-        x, y = self.get_point(hdg, dis, center_x, center_y)
-        self.canvas.create_circle(x, y, accdis / self.scale, outline=ACCCOL)
-        self.canvas.create_line(center_x, center_y, x, y, fill=PNTCOL, width=3)
-        self.canvas.create_circle(x, y, 3, fill=PNTCOL, outline=PNTCOL)
+        # plot latest relative position with accuracy radius
+        x, y = self._canvas.d2xy(hdg, dis / self._scale_c)
+        self._canvas.create_circle(
+            x,
+            y,
+            accdis / (self._range / 10 / self._scale_c),
+            outline=TRKCOL,
+            tags=TAG_DATA,
+        )
+        self._canvas.create_line(
+            center_x,
+            center_y,
+            x,
+            y,
+            fill=PNTCOL,
+            width=3,
+            tags=TAG_DATA,
+        )
+        self._canvas.create_circle(x, y, 3, fill=PNTCOL, outline=PNTCOL, tags=TAG_DATA)
 
-        self.update_idletasks()
-
-    def get_point(self, hdg: float, dis: float, cx: int, cy: int) -> tuple:
+    def _set_range(self, distance: float):
         """
-        Get point on chart.
+        Set range and scale.
 
-        :param float hdg: heading in degrees
-        :param float dis: length in cm
-        :param int cx: width / 2
-        :param int cy: height / 2
-        :return: x.y plot coordinates
-        :rtype: tuple
+        :param float distance: distance in cm
         """
 
-        rad = ((hdg - 90) % 360) * pi / 180
-        dis = dis / self.scale
-        x = (cos(rad) * dis) + cx
-        y = (sin(rad) * dis) + cy
-        return x, y
+        self._temprange = self._range
+        # set range and scale automatically
+        self._maxdist = max(distance, self._maxdist)
+        r = RANGES[0]
+        for r in RANGES:
+            if self._maxdist < r:
+                break
+        self._range = r
+        if self._range >= 1e4:
+            self._scale_c = 1e5
+            self._scale_u = "km"
+        elif self._range >= 1e2:
+            self._scale_c = 1e2
+            self._scale_u = "m"
+        else:
+            self._scale_c = 1
+            self._scale_u = "cm"
+        # force redraw if range has changed
+        self._redraw = self._redraw | self._temprange != self._range
 
-    def store_track(
+    def _store_track(
         self,
         hdg: float,
         dis: float,
@@ -289,8 +289,7 @@ class RoverFrame(Frame):
         """
 
         self.width, self.height = self.get_size()
-        self._font, self._fonth = scale_font(self.width, 10, 30, 20)
-        self.init_frame()
+        self._redraw = True
 
     def _on_clear(self, event):  # pylint: disable=unused-argument
         """ "
@@ -300,7 +299,8 @@ class RoverFrame(Frame):
         """
 
         self.points = []
-        self.init_frame()
+        self._maxdist = 0
+        self._redraw = True
 
     def get_size(self) -> tuple:
         """
@@ -311,4 +311,4 @@ class RoverFrame(Frame):
         """
 
         self.update_idletasks()  # Make sure we know about resizing
-        return self.canvas.winfo_width(), self.canvas.winfo_height()
+        return self._canvas.winfo_width(), self._canvas.winfo_height()

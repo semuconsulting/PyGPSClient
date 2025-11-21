@@ -54,7 +54,6 @@ from pygpsclient.globals import (
     ICON_SOCKET,
     ICON_WARNING,
     KNOWNGPS,
-    LBAND,
     MSGMODES,
     NOPORTS,
     OKCOL,
@@ -65,9 +64,10 @@ from pygpsclient.globals import (
     SPARTN_EVENT,
     SPARTN_LBAND,
     TIMEOUTS,
+    TRACEMODE_WRITE,
+    VALINT,
 )
-from pygpsclient.helpers import VALINT, valid_entry
-from pygpsclient.serialconfig_frame import SerialConfigFrame
+from pygpsclient.serialconfig_lband_frame import SerialConfigLbandFrame
 from pygpsclient.strings import CONFIGBAD, CONFIGOK, DLGSPARTNWARN, LBLSPARTNLB
 
 U2MAX = 2e16 - 1
@@ -187,11 +187,10 @@ class SpartnLbandDialog(Frame):
         self._lbl_corrlband = Label(self, text=LBLSPARTNLB)
 
         # Correction receiver serial port configuration panel
-        self._frm_spartn_serial = SerialConfigFrame(
+        self._frm_spartn_serial = SerialConfigLbandFrame(
             self.__app,
             self,
-            LBAND,
-            preselect=KNOWNGPS,
+            recognised=KNOWNGPS,
             timeouts=TIMEOUTS,
             bpsrates=BPSRATES,
             msgmodes=list(MSGMODES.keys()),
@@ -364,7 +363,7 @@ class SpartnLbandDialog(Frame):
             self._spartn_unqword,
             self._spartn_outport,
         ):
-            setting.trace_add("write", self._on_update_config)
+            setting.trace_add(TRACEMODE_WRITE, self._on_update_config)
 
     def _reset(self):
         """
@@ -455,13 +454,11 @@ class SpartnLbandDialog(Frame):
         """
 
         valid = True
-        valid = valid & valid_entry(
-            self._ent_freq, VALINT, 1e9, 2e9
-        )  # L-band 1GHz - 2GHz
-        valid = valid & valid_entry(self._ent_schwin, VALINT, 0, U2MAX)  # U2
-        valid = valid & valid_entry(self._ent_sid, VALINT, 0, U2MAX)  # U2
-        valid = valid & valid_entry(self._ent_descraminit, VALINT, 0, U2MAX)  # U2
-        valid = valid & valid_entry(self._ent_unqword, VALINT, 0, U8MAX)  # U8
+        valid = valid & self._ent_freq.validate(VALINT, 1e9, 2e9)  # L-band 1GHz - 2GHz
+        valid = valid & self._ent_schwin.validate(VALINT, 0, U2MAX)  # U2
+        valid = valid & self._ent_sid.validate(VALINT, 0, U2MAX)  # U2
+        valid = valid & self._ent_descraminit.validate(VALINT, 0, U2MAX)  # U2
+        valid = valid & self._ent_unqword.validate(VALINT, 0, U8MAX)  # U8
 
         if not valid:
             self.__container.set_status("ERROR - invalid settings", ERRCOL)
@@ -499,7 +496,7 @@ class SpartnLbandDialog(Frame):
 
         # start serial stream thread
         self.__app.rtk_conn_status = CONNECTED_SPARTNLB
-        self.__app.spartn_stream_handler.start_read_thread(self.__container, conndict)
+        self.__app.spartn_stream_handler.start(self.__container, conndict)
         self.__container.set_status(
             f"Connected to {frm.port}:{frm.port_desc} @ {frm.bpsrate}", OKCOL
         )
@@ -517,7 +514,7 @@ class SpartnLbandDialog(Frame):
         msg += "Disconnected"
         if self.__app.rtk_conn_status == CONNECTED_SPARTNLB:
             if self.__app.spartn_stream_handler is not None:
-                self.__app.spartn_stream_handler.stop_read_thread()
+                self.__app.spartn_stream_handler.stop()
                 self.__app.rtk_conn_status = DISCONNECTED
                 self.__container.set_status(
                     msg,

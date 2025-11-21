@@ -34,8 +34,10 @@ from pygpsclient.globals import (
     LICENSE_URL,
     OKCOL,
     SPONSOR_URL,
+    TRACEMODE_WRITE,
 )
 from pygpsclient.helpers import brew_installed, check_latest
+from pygpsclient.sqlite_handler import SQLSTATUS
 from pygpsclient.strings import ABOUTTXT, BREWWARN, COPYRIGHT, DLGTABOUT, GITHUB_URL
 from pygpsclient.toplevel_dialog import ToplevelDialog
 
@@ -102,7 +104,10 @@ class AboutDialog(ToplevelDialog):
         tkv = Tcl().call("info", "patchlevel")
         self._lbl_python_version = Label(
             self._frm_body,
-            text=f"Python: {python_version()}  Tk: {tkv}  Spatial: {self.__app.db_enabled}",
+            text=(
+                f"Python: {python_version()}  Tk: {tkv}  "
+                f"Spatial: {SQLSTATUS[self.__app.db_enabled]}"
+            ),
         )
         self._lbl_lib_versions = []
         for nam, ver in LIBVERSIONS.items():
@@ -177,12 +182,12 @@ class AboutDialog(ToplevelDialog):
         self._lbl_github.bind("<Button>", self._on_github)
         self._lbl_sponsoricon.bind("<Button>", self._on_sponsor)
         self._lbl_copyright.bind("<Button>", self._on_license)
+        self._checkonstartup.trace_add(TRACEMODE_WRITE, self._on_update_startup)
         self._btn_exit.focus_set()
-        self._checkonstartup.trace_add("write", self._on_update_config)
 
-    def _on_update_config(self, var, index, mode):  # pylint: disable=unused-argument
+    def _on_update_startup(self, var, index, mode):  # pylint: disable=unused-argument
         """
-        Save current settings to saved app config dict.
+        Action when check on startup flag updated.
         """
 
         self.__app.configuration.set(

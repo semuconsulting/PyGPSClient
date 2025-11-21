@@ -22,6 +22,7 @@ from tkinter import Canvas
 
 from pyubx2 import GET, POLL, SET, SETPOLL
 
+# Type Declarations
 Point = namedtuple("Point", ["lat", "lon"])
 # Area convention is minlat, minlon, maxlat, maxlon
 Area = namedtuple("Area", ["lat1", "lon1", "lat2", "lon2"])
@@ -30,9 +31,9 @@ PointXY = namedtuple("PointXY", ["x", "y"])
 AreaXY = namedtuple("AreaXY", ["x1", "y1", "x2", "y2"])
 
 
-def create_circle(self, x, y, r, **kwargs):
+def create_circle(self: Canvas, x: int, y: int, r: int, **kwargs):
     """
-    Helper method to simplify drawing circles on canvas
+    Extends tkinter.Canvas class to simplify drawing compass grids on canvas.
 
     :param int x: x coordinate
     :param int y: y coordinate
@@ -44,17 +45,38 @@ def create_circle(self, x, y, r, **kwargs):
 
 Canvas.create_circle = create_circle
 
+# Default colors
+AXISCOL = "#E5E5E5"  # default plot axis color
+BGCOL = "#3D3D3D"  # default widget background color
+ERRCOL = "#FA8072"  # default error message color
+FGCOL = "#FFFFFF"  # default widget foreground color
+GNSS_LIST = {
+    0: ("GPS", "#6495ED"),
+    1: ("SBA", "#FF8000"),
+    2: ("GAL", "#008B00"),
+    3: ("BEI", "#9F79EE"),
+    4: ("IME", "#EE82EE"),
+    5: ("QZS", "#CDCD00"),
+    6: ("GLO", "#CD5C5C"),
+    7: ("NAV", "#D2B48C"),
+}
+GRIDLEGEND = "#B0B0B0"  # default grid legend color
+GRIDMAJCOL = "#666666"  # default grid major tick color
+GRIDMINCOL = "#4D4D4D"  # default grid minor tick color
+INFOCOL = "#5CACEE"  # default info message color
+OKCOL = "#008000"  # default OK message color
+PLOTCOLS = ("#FFFF00", "#00FFFF", "#FF00FF", "#00BFFF")
+PNTCOL = "#FF8000"  # default plot point color
+
+# Protocols to be used in protocol mask (others defined in gnss_reader.py)
 SPARTN_PROTOCOL = 32
 MQTT_PROTOCOL = 64
 TTY_PROTOCOL = 128
-"""Protocols (others defined in gnss_reader.py)"""
 
-
+# Various global constants
 HOME = Path.home()
 APPNAME = __name__.split(".", 1)[0]  # i.e. "pygpsclient"
 ASCII = "ascii"
-AXISCOL = "white"
-BGCOL = "gray24"  # default widget background color
 BPSRATES = (
     9600,
     19200,
@@ -101,9 +123,7 @@ DMM = "DM.M"
 DMS = "D.M.S"
 ECEF = "ECEF"
 ENABLE_CFG_LEGACY = True  # enable CFG=* Other Configuration command panel
-ERRCOL = "salmon"  # default invalid data entry field background color
 ERROR = "ERR!"
-FGCOL = "white"  # default widget foreground color
 FILEREAD_INTERVAL = 0.02  # delay between successive datalog file reads (seconds)
 FONT_FIXED = "TkFixedFont"
 FONT_MENU = "TkMenuFont"
@@ -129,16 +149,6 @@ GNSS_EOF_EVENT = "<<gnss_eof>>"
 GNSS_ERR_EVENT = "<<gnss_error>>"
 GNSS_EVENT = "<<gnss_read>>"
 GNSS_TIMEOUT_EVENT = "<<gnss_timeout>>"
-GNSS_LIST = {
-    0: ("GPS", "#6495ED"),
-    1: ("SBA", "#FF8000"),
-    2: ("GAL", "#008B00"),
-    3: ("BEI", "#9F79EE"),
-    4: ("IME", "#EE82EE"),
-    5: ("QZS", "#CDCD00"),
-    6: ("GLO", "#CD5C5C"),
-    7: ("NAV", "#D2B48C"),
-}
 GPSEPOCH0 = datetime(1980, 1, 6)  # for Wno and Tow calculations
 GPX_NS = (
     'xmlns="http://www.topografix.com/GPX/1/1" '
@@ -148,7 +158,6 @@ GPX_NS = (
     'http://www.topografix.com/GPX/1/1/gpx.xsd"'
 )
 GPX_TRACK_INTERVAL = 1  # minimum GPS track update interval (seconds)
-GRIDCOL = "grey40"
 GUI_UPDATE_INTERVAL = 0.5  # GUI widget update interval (seconds)
 ICON_APP128 = path.join(DIRNAME, "resources/app-128.png")
 ICON_BLANK = path.join(DIRNAME, "resources/blank-1-24.png")
@@ -190,33 +199,8 @@ ICON_WARNING = path.join(DIRNAME, "resources/iconmonstr-warning-1-24.png")
 IMG_WORLD = path.join(DIRNAME, "resources/world.png")
 ICON_SPONSOR = path.join(DIRNAME, "resources/bmac-logo-60.png")
 IMG_WORLD_BOUNDS = Area(-90, -180, 90, 180)
-INFOCOL = "steelblue2"
-
-KNOWNGPS = (
-    "CP210",
-    "FT230",
-    "FT232",
-    "garmin",
-    "gnss",
-    "gps",
-    "IOUSBHostDevice",
-    "magellan",
-    "navstar",
-    "septentrio",
-    "sirf",
-    "trimble",
-    "u-blox",
-    "ublox",
-    "USB Serial",
-    "USB to UART",
-    "USB UART",
-    "USB Dual_Serial",
-    "USB_to_UART",
-    "USER-DEFINED",
-)
 LBAND = "LBAND"
 LICENSE_URL = "https://github.com/semuconsulting/PyGPSClient/blob/master/LICENSE"
-M2FT = 3.28084
 MAPAPI_URL = "https://developer.mapquest.com/user/login/sign-up"
 MQTTIPMODE = 0
 MQTTLBANDMODE = 1
@@ -230,6 +214,8 @@ LG290P = "Quectel LG29P/LG580P"
 MAX_SNR = 60  # upper limit of graphview snr axis
 MAXLOGLINES = 10000  # maximum number of 'lines' per datalog file
 MIN_GUI_UPDATE_INTERVAL = 0.1  # minimum GUI widget update interval (seconds)
+MAXFLOAT = 2e20
+MINFLOAT = -MAXFLOAT
 MOSAIC_X5 = "Septentrio Mosaic X5"
 MQAPIKEY = "mqapikey"
 MSGMODES = {
@@ -241,9 +227,7 @@ MSGMODES = {
 NOPORTS = 3
 NTRIP = "NTRIP"
 NTRIP_EVENT = "<<ntrip_read>>"
-OKCOL = "green"
 PASSTHRU = "Passthrough"
-PNTCOL = "orange"
 PORTIDS = ("0 I2C", "1 UART1", "2 UART2", "3 USB", "4 SPI")
 PUBLICIP_URL = "https://ipinfo.io/json"
 PYPI_URL = "https://pypi.org/pypi/PyGPSClient"
@@ -280,6 +264,7 @@ SPARTN_SOURCE_IP = 0
 SPARTN_SOURCE_LB = 1
 SPONSOR_URL = "https://buymeacoffee.com/semuconsulting"
 SQRT2 = 0.7071067811865476  # square root of 2
+STATUSPRIORITY = {INFOCOL: 0, "blue": 0, OKCOL: 2, "green": 1, ERRCOL: 3, "red": 3}
 THD = "thd"
 TIME0 = datetime(1970, 1, 1)  # basedate for time()
 TIMEOUTS = (
@@ -297,13 +282,23 @@ TOPIC_IP = "/pp/ip/{}"
 TOPIC_MGA = "/pp/ubx/mga"
 TOPIC_RXM = "/pp/ubx/0236/ip"
 TRACK = "track"
-
+TRACEMODE_WRITE = "write"
 TTYOK = ("OK", "$R:")
 TTYERR = ("ERROR", "$R?")
 TTYMARKER = "TTY<<"
 UBXPRESETS = "ubxpresets"
 UBXSIMULATOR = "ubxsimulator"
 UTF8 = "utf-8"
+VALBLANK = 1
+VALNONBLANK = 2
+VALNONSPACE = 3
+VALINT = 4
+VALFLOAT = 5
+VALURL = 6
+VALHEX = 7
+VALDMY = 8
+VALLEN = 9
+VALBOOL = 10
 WAYPOINT = "waypoint"
 WIDGETU1 = (200, 200)  # small widget size
 WIDGETU2 = (300, 200)  # medium widget size
@@ -325,6 +320,7 @@ KM2NMIL = 0.5399568
 KPH2KNT = 0.5399568
 KPH2MPH = 0.6213712
 KPH2MPS = 0.2777778
+M2FT = 3.28084
 M2MIL = 0.0006213712
 M2NMIL = 0.0005399568
 M2KM = 0.001
@@ -356,7 +352,29 @@ NMEA_CFGOTHER = 17
 SERVERCONFIG = 18
 SBF_MONHW = 19
 
-STATUSPRIORITY = {INFOCOL: 0, "blue": 0, OKCOL: 2, "green": 1, ERRCOL: 3, "red": 3}
+# keep KNOWNGPS all lower case
+KNOWNGPS = (
+    "cp210",
+    "ft230",
+    "ft232",
+    "garmin",
+    "gnss",
+    "gps",
+    "iousbhostdevice",
+    "magellan",
+    "navstar",
+    "septentrio",
+    "sirf",
+    "trimble",
+    "u-blox",
+    "ublox",
+    "usb serial",
+    "usb to uart",
+    "usb uart",
+    "usb dual_serial",
+    "usb_to_uart",
+    "user-defined",
+)
 
 # map of fix values to descriptions
 # the keys in this map are a concatenation of NMEA/UBX

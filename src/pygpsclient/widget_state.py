@@ -28,8 +28,8 @@ from pygpsclient.banner_frame import BannerFrame
 from pygpsclient.chart_frame import ChartviewFrame
 from pygpsclient.console_frame import ConsoleFrame
 from pygpsclient.globals import CLASS, FRAME
-from pygpsclient.graphview_frame import GraphviewFrame
 from pygpsclient.imu_frame import IMUFrame
+from pygpsclient.levelsview_frame import LevelsviewFrame
 from pygpsclient.map_frame import MapviewFrame
 from pygpsclient.rover_frame import RoverFrame
 from pygpsclient.scatter_frame import ScatterViewFrame
@@ -128,8 +128,8 @@ class WidgetState:
             },
             WDGLEVELS: {
                 DEFAULT: True,
-                CLASS: GraphviewFrame,
-                FRAME: "frm_graphview",
+                CLASS: LevelsviewFrame,
+                FRAME: "frm_levelsview",
                 VISIBLE: True,
             },
             WDGMAP: {

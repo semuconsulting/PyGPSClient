@@ -17,7 +17,7 @@ Created on 12 Sep 2020
 :license: BSD 3-Clause
 """
 
-# pylint: disable=unnecessary-lambda
+# pylint: disable=unnecessary-lambda, unused-argument
 
 from platform import system
 from tkinter import (
@@ -62,7 +62,6 @@ from pygpsclient.globals import (
     ECEF,
     ERRCOL,
     FORMATS,
-    GNSS,
     GNSS_EOF_EVENT,
     GNSS_ERR_EVENT,
     GNSS_EVENT,
@@ -84,12 +83,12 @@ from pygpsclient.globals import (
     OKCOL,
     READONLY,
     TIMEOUTS,
+    TRACEMODE_WRITE,
     UI,
     UIK,
     UMK,
     UMM,
 )
-from pygpsclient.helpers import fontheight, fontwidth
 from pygpsclient.serialconfig_frame import SerialConfigFrame
 from pygpsclient.serverconfig_frame import ServerConfigFrame
 from pygpsclient.socketconfig_frame import SocketConfigFrame
@@ -113,6 +112,7 @@ from pygpsclient.strings import (
 )
 
 MAXLINES = ("200", "500", "1000", "2000", "100")
+FILEDELAYS = (10, 20, 50, 100, 200, 500, 1000, 2000)
 # initial dimensions adjusted for different widget
 # rendering on different platforms
 if system() == "Linux":  # Wayland
@@ -154,11 +154,12 @@ class SettingsFrame(Frame):
         self._prot_ubx = IntVar()
         self._prot_sbf = IntVar()
         self._prot_qgc = IntVar()
-        self._prot_rtcm3 = IntVar()
+        self._prot_rtcm = IntVar()
         self._prot_spartn = IntVar()
         self._prot_tty = IntVar()
         self._autoscroll = IntVar()
         self._maxlines = IntVar()
+        self._filedelay = IntVar()
         self._units = StringVar()
         self._degrees_format = StringVar()
         self._console_format = StringVar()
@@ -167,7 +168,6 @@ class SettingsFrame(Frame):
         self._record_track = IntVar()
         self._record_database = IntVar()
         self._show_unusedsat = IntVar()
-        self.show_legend = IntVar()
         self._colortag = IntVar()
         self.defaultports = self.__app.configuration.get("defaultport_s")
         self._validsettings = True
@@ -186,6 +186,7 @@ class SettingsFrame(Frame):
         self._body()
         self._do_layout()
         self.reset()
+        # self._attach_events() # done in reset
         self.focus_force()
 
     def _container(self):
@@ -196,8 +197,10 @@ class SettingsFrame(Frame):
         function which invokes the on_expand() method here.
         """
 
-        dimw = fontwidth(self.__app.font_md) * MINWIDTH
-        dimh = fontheight(self.__app.font_md) * MINHEIGHT
+        fntw = self.__app.font_md.measure("W")
+        fnth = self.__app.font_md.metrics("linespace")
+        dimw = fntw * MINWIDTH
+        dimh = fnth * MINHEIGHT
         self._frm_main = Frame(self)
         self._frm_main.pack(fill=BOTH, expand=1)
         self_frm_scrollx = Frame(self._frm_main)
@@ -245,19 +248,14 @@ class SettingsFrame(Frame):
         self.frm_serial = SerialConfigFrame(
             self.__app,
             self._frm_container,
-            GNSS,
-            preselect=KNOWNGPS,
+            recognised=KNOWNGPS,
             timeouts=TIMEOUTS,
             bpsrates=BPSRATES,
             msgmodes=list(MSGMODES.keys()),
         )
 
         # socket client configuration panel
-        self.frm_socketclient = SocketConfigFrame(
-            self.__app,
-            self._frm_container,
-            GNSS,
-        )
+        self.frm_socketclient = SocketConfigFrame(self.__app, self._frm_container)
 
         # connection buttons
         self._frm_buttons = Frame(self._frm_container)
@@ -327,7 +325,7 @@ class SettingsFrame(Frame):
         self._chk_rtcm = Checkbutton(
             self._frm_options,
             text="RTCM",
-            variable=self._prot_rtcm3,
+            variable=self._prot_rtcm,
         )
         self._chk_spartn = Checkbutton(
             self._frm_options,
@@ -391,6 +389,20 @@ class SettingsFrame(Frame):
             textvariable=self._maxlines,
             state=READONLY,
         )
+        self._lbl_filedelay = Label(
+            self._frm_options,
+            text="File Delay",
+        )
+        self._spn_filedelay = Spinbox(
+            self._frm_options,
+            value=FILEDELAYS,
+            width=4,
+            wrap=True,
+            textvariable=self._filedelay,
+            state=READONLY,
+            repeatdelay=1000,
+            repeatinterval=1000,
+        )
         self._chk_unusedsat = Checkbutton(
             self._frm_options, text=LBLSHOWUNUSED, variable=self._show_unusedsat
         )
@@ -398,7 +410,6 @@ class SettingsFrame(Frame):
             self._frm_options,
             text=LBLDATALOG,
             variable=self._datalog,
-            command=lambda: self._on_data_log(),
         )
         self._spn_datalog = Spinbox(
             self._frm_options,
@@ -412,13 +423,11 @@ class SettingsFrame(Frame):
             self._frm_options,
             text=LBLTRACKRECORD,
             variable=self._record_track,
-            command=lambda: self._on_record_track(),
         )
         self._chk_recorddatabase = Checkbutton(
             self._frm_options,
             text=LBLDATABASERECORD,
             variable=self._record_database,
-            command=lambda: self._on_record_database(),
         )
         # configuration panel buttons
         self._lbl_ubxconfig = Label(
@@ -523,7 +532,9 @@ class SettingsFrame(Frame):
         self._spn_format.grid(column=1, row=3, padx=2, pady=2, sticky=W)
         self._spn_units.grid(column=2, row=3, columnspan=2, padx=2, pady=2, sticky=W)
         self._chk_scroll.grid(column=0, row=5, padx=2, pady=2, sticky=W)
-        self._spn_maxlines.grid(column=1, row=5, columnspan=3, padx=2, pady=2, sticky=W)
+        self._spn_maxlines.grid(column=1, row=5, padx=2, pady=2, sticky=W)
+        self._lbl_filedelay.grid(column=2, row=5, padx=2, pady=2, sticky=E)
+        self._spn_filedelay.grid(column=3, row=5, padx=2, pady=2, sticky=W)
         self._chk_unusedsat.grid(
             column=0, row=6, columnspan=2, padx=2, pady=2, sticky=W
         )
@@ -551,18 +562,50 @@ class SettingsFrame(Frame):
             column=0, row=11, columnspan=4, padx=2, pady=2, sticky=(W, E)
         )
 
+    def _attach_events(self, add: bool = True):
+        """
+        Bind events to widgets.
+
+        (trace_update() is a class extension method defined in globals.py)
+
+        :param bool add: add or remove trace
+        """
+
+        # pylint: disable=no-member
+
+        tracemode = TRACEMODE_WRITE
+        self._prot_ubx.trace_update(tracemode, self._on_update_ubxprot, add)
+        self._prot_sbf.trace_update(tracemode, self._on_update_sbfprot, add)
+        self._prot_qgc.trace_update(tracemode, self._on_update_qgcprot, add)
+        self._prot_nmea.trace_update(tracemode, self._on_update_nmeaprot, add)
+        self._prot_rtcm.trace_update(tracemode, self._on_update_rtcmprot, add)
+        self._prot_spartn.trace_update(tracemode, self._on_update_spartnprot, add)
+        self._prot_tty.trace_update(tracemode, self._on_update_ttyprot, add)
+        self._autoscroll.trace_update(tracemode, self._on_update_autoscroll, add)
+        self._maxlines.trace_update(tracemode, self._on_update_maxlines, add)
+        self._filedelay.trace_update(tracemode, self._on_update_filedelay, add)
+        self._units.trace_update(tracemode, self._on_update_units, add)
+        self._degrees_format.trace_update(tracemode, self._on_update_degreesformat, add)
+        self._console_format.trace_update(tracemode, self._on_update_consoleformat, add)
+        self._show_unusedsat.trace_update(tracemode, self._on_update_unusedsat, add)
+        self._colortag.trace_update(tracemode, self._on_update_colortag, add)
+        self._logformat.trace_update(tracemode, self._on_update_logformat, add)
+        self._datalog.trace_update(tracemode, self._on_data_log, add)
+        self._record_track.trace_update(tracemode, self._on_record_track, add)
+        self._record_database.trace_update(tracemode, self._on_record_database, add)
+
     def reset(self):
         """
         Reset settings to saved configuration.
         """
 
-        self._bind_events(False)
+        self._attach_events(False)
         cfg = self.__app.configuration
         self._prot_nmea.set(cfg.get("nmeaprot_b"))
         self._prot_ubx.set(cfg.get("ubxprot_b"))
         self._prot_sbf.set(cfg.get("sbfprot_b"))
         self._prot_qgc.set(cfg.get("qgcprot_b"))
-        self._prot_rtcm3.set(cfg.get("rtcmprot_b"))
+        self._prot_rtcm.set(cfg.get("rtcmprot_b"))
         self._prot_spartn.set(cfg.get("spartnprot_b"))
         self._prot_tty.set(cfg.get("ttyprot_b"))
         self._degrees_format.set(cfg.get("degreesformat_s"))
@@ -570,8 +613,8 @@ class SettingsFrame(Frame):
         self._units.set(cfg.get("units_s"))
         self._autoscroll.set(cfg.get("autoscroll_b"))
         self._maxlines.set(cfg.get("maxlines_n"))
+        self._filedelay.set(cfg.get("filedelay_n"))
         self._console_format.set(cfg.get("consoleformat_s"))
-        self.show_legend.set(cfg.get("legend_b"))
         self._show_unusedsat.set(cfg.get("unusedsat_b"))
         self._logformat.set(cfg.get("logformat_s"))
         self._datalog.set(cfg.get("datalog_b"))
@@ -579,54 +622,14 @@ class SettingsFrame(Frame):
         self._record_track.set(cfg.get("recordtrack_b"))
         self.trackpath = cfg.get("trackpath_s")
         self.databasepath = cfg.get("databasepath_s")
-        if self.__app.db_enabled != SQLOK:
+        if self.__app.db_enabled == SQLOK:
+            self._record_database.set(cfg.get("database_b"))
+        else:
             self._record_database.set(0)
             self._chk_recorddatabase.config(state=DISABLED)
-        else:
-            self._record_database.set(cfg.get("database_b"))
+
         self.clients = 0
-        self._bind_events(True)
-
-    def _bind_events(self, add: bool = True):
-        """
-        Add or remove event bindings to/from widgets.
-
-        :param bool add: add or remove binding
-        """
-
-        tracemode = "write"
-        if add:
-            self._prot_tty.trace_add(tracemode, self._on_update_tty)
-        else:
-            if len(self._prot_tty.trace_info()) > 0:
-                self._prot_tty.trace_remove(
-                    tracemode, self._prot_tty.trace_info()[0][1]
-                )
-        for setting in (
-            self._prot_ubx,
-            self._prot_sbf,
-            self._prot_qgc,
-            self._prot_nmea,
-            self._prot_rtcm3,
-            self._prot_spartn,
-            self._autoscroll,
-            self._maxlines,
-            self._units,
-            self._degrees_format,
-            self._console_format,
-            self._datalog,
-            self._logformat,
-            self._record_track,
-            self._record_database,
-            self._show_unusedsat,
-            self.show_legend,
-            self._colortag,
-        ):
-            if add:
-                setting.trace_add(tracemode, self._on_update_config)
-            else:
-                if len(setting.trace_info()) > 0:
-                    setting.trace_remove(tracemode, setting.trace_info()[0][1])
+        self._attach_events(True)
 
     def _reset_frames(self):
         """
@@ -637,13 +640,60 @@ class SettingsFrame(Frame):
         self.__app.frm_spectrumview.reset()
         self.__app.reset_gnssstatus()
 
-    def _on_update_tty(self, var, index, mode):  # pylint: disable=unused-argument
+    def _on_update_ubxprot(self, var, index, mode):
+        """
+        Action on updating ubxprot.
+        """
+
+        if not self._prot_tty.get():
+            self.__app.configuration.set("ubxprot_b", self._prot_ubx.get())
+
+    def _on_update_sbfprot(self, var, index, mode):
+        """
+        Action on updating sbfprot.
+        """
+
+        if not self._prot_tty.get():
+            self.__app.configuration.set("sbfprot_b", self._prot_sbf.get())
+
+    def _on_update_qgcprot(self, var, index, mode):
+        """
+        Action on updating qgcprot.
+        """
+
+        if not self._prot_tty.get():
+            self.__app.configuration.set("qgcprot_b", self._prot_qgc.get())
+
+    def _on_update_nmeaprot(self, var, index, mode):
+        """
+        Action on updating nmeaprot.
+        """
+
+        if not self._prot_tty.get():
+            self.__app.configuration.set("nmeaprot_b", self._prot_nmea.get())
+
+    def _on_update_rtcmprot(self, var, index, mode):
+        """
+        Action on updating rtcmprot.
+        """
+
+        if not self._prot_tty.get():
+            self.__app.configuration.set("rtcmprot_b", self._prot_rtcm.get())
+
+    def _on_update_spartnprot(self, var, index, mode):
+        """
+        Action on updating spartnprot.
+        """
+
+        if not self._prot_tty.get():
+            self.__app.configuration.set("spartnprot_b", self._prot_spartn.get())
+
+    def _on_update_ttyprot(self, var, index, mode):
         """
         TTY mode has been updated.
         """
 
         try:
-            self._bind_events(False)
             cfg = self.__app.configuration
             tty = self._prot_tty.get()
             self.update()
@@ -654,7 +704,7 @@ class SettingsFrame(Frame):
                     self._prot_ubx,
                     self._prot_sbf,
                     self._prot_qgc,
-                    self._prot_rtcm3,
+                    self._prot_rtcm,
                     self._prot_spartn,
                 ):
                     wdg.set(0)
@@ -663,44 +713,171 @@ class SettingsFrame(Frame):
                 self._prot_ubx.set(cfg.get("ubxprot_b"))
                 self._prot_sbf.set(cfg.get("sbfprot_b"))
                 self._prot_qgc.set(cfg.get("qgcprot_b"))
-                self._prot_rtcm3.set(cfg.get("rtcmprot_b"))
+                self._prot_rtcm.set(cfg.get("rtcmprot_b"))
                 self._prot_spartn.set(cfg.get("spartnprot_b"))
             cfg.set("ttyprot_b", tty)
-            self._bind_events(True)
         except (ValueError, TclError):
             pass
 
-    def _on_update_config(self, var, index, mode):  # pylint: disable=unused-argument
+    def _on_update_consoleformat(self, var, index, mode):
         """
-        Update in-memory configuration if setting is changed.
+        Action on updating console format.
         """
 
-        try:
-            self.update()
-            cfg = self.__app.configuration
-            cfg.set("ubxprot_b", int(self._prot_ubx.get()))
-            cfg.set("sbfprot_b", int(self._prot_sbf.get()))
-            cfg.set("qgcprot_b", int(self._prot_qgc.get()))
-            cfg.set("nmeaprot_b", int(self._prot_nmea.get()))
-            cfg.set("rtcmprot_b", int(self._prot_rtcm3.get()))
-            cfg.set("spartnprot_b", int(self._prot_spartn.get()))
-            cfg.set("degreesformat_s", self._degrees_format.get())
-            cfg.set("colortag_b", int(self._colortag.get()))
-            cfg.set("units_s", self._units.get())
-            cfg.set("autoscroll_b", int(self._autoscroll.get()))
-            cfg.set("maxlines_n", int(self._maxlines.get()))
-            cfg.set("consoleformat_s", self._console_format.get())
-            cfg.set("legend_b", int(self.show_legend.get()))
-            cfg.set("unusedsat_b", int(self._show_unusedsat.get()))
-            cfg.set("datalog_b", int(self._datalog.get()))
-            cfg.set("logformat_s", self._logformat.get())
-            cfg.set("logpath_s", self.logpath)
-            cfg.set("recordtrack_b", int(self._record_track.get()))
-            cfg.set("trackpath_s", int(self.trackpath))
-            cfg.set("database_b", int(self._record_database.get()))
-            cfg.set("databasepath_s", self.databasepath)
-        except (ValueError, TclError):
-            pass
+        self.__app.configuration.set("consoleformat_s", self._console_format.get())
+
+    def _on_update_maxlines(self, var, index, mode):
+        """
+        Action on updating console maxlines.
+        """
+
+        self.__app.configuration.set("maxlines_n", self._maxlines.get())
+
+    def _on_update_filedelay(self, var, index, mode):
+        """
+        Action on updating filedelay.
+        """
+
+        self.__app.configuration.set("filedelay_n", self._filedelay.get())
+
+    def _on_update_degreesformat(self, var, index, mode):
+        """
+        Action on updating degrees format.
+        """
+
+        self.__app.configuration.set("degreesformat_s", self._degrees_format.get())
+
+    def _on_update_units(self, var, index, mode):
+        """
+        Action on updating units.
+        """
+
+        self.__app.configuration.set("units_s", self._units.get())
+
+    def _on_update_colortag(self, var, index, mode):
+        """
+        Action on updating color tagging.
+        """
+
+        self.__app.configuration.set("colortag_b", self._colortag.get())
+
+    def _on_update_autoscroll(self, var, index, mode):
+        """
+        Action on updating autoscroll.
+        """
+
+        self.__app.configuration.set("autoscroll_b", self._autoscroll.get())
+
+    def _on_update_unusedsat(self, var, index, mode):
+        """
+        Action on updating unused satellites.
+        """
+
+        self.__app.configuration.set("unusedsat_b", self._show_unusedsat.get())
+
+    def _on_update_logformat(self, var, index, mode):
+        """
+        Action on updating log format.
+        """
+
+        self.__app.configuration.set("logformat_s", self._prot_ubx.get())
+
+    def _on_ubx_config(self, *args, **kwargs):
+        """
+        Open UBX configuration dialog panel.
+        """
+
+        self.__app.start_dialog(DLGTUBX)
+
+    def _on_nmea_config(self, *args, **kwargs):
+        """
+        Open NMEA configuration dialog panel.
+        """
+
+        self.__app.start_dialog(DLGTNMEA)
+
+    def _on_tty_config(self, *args, **kwargs):
+        """
+        Open TTY configuration dialog panel.
+        """
+
+        self.__app.start_dialog(DLGTTTY)
+
+    def _on_ntrip_config(self, *args, **kwargs):
+        """
+        Open NTRIP Client configuration dialog panel.
+        """
+
+        self.__app.start_dialog(DLGTNTRIP)
+
+    def _on_data_log(self, var, index, mode):
+        """
+        Start or stop data logger.
+        """
+
+        if self._datalog.get() == 1:
+            if self.logpath in ("", None):
+                self.logpath = self.__app.file_handler.set_logfile_path()
+            if self.logpath is not None:
+                self.__app.configuration.set("datalog_b", 1)
+                self.__app.configuration.set("logpath_s", self.logpath)
+                self.__app.set_status(f"Data logging enabled: {self.logpath}")
+                if not self.__app.file_handler.open_logfile():
+                    self.logpath = ""
+                    self._datalog.set(0)
+            else:
+                self.logpath = ""
+                self._datalog.set(0)
+            self._spn_datalog.config(state=DISABLED)
+        else:
+            self.__app.configuration.set("datalog_b", 0)
+            self._datalog.set(0)
+            self.__app.file_handler.close_logfile()
+            self.__app.set_status("Data logging disabled")
+            self._spn_datalog.config(state=READONLY)
+
+    def _on_record_track(self, var, index, mode):
+        """
+        Start or stop track recorder.
+        """
+
+        if self._record_track.get() == 1:
+            if self.trackpath in ("", None):
+                self.trackpath = self.__app.file_handler.set_trackfile_path()
+            if self.trackpath is not None:
+                self.__app.configuration.set("recordtrack_b", 1)
+                self.__app.configuration.set("trackpath_s", self.trackpath)
+                self.__app.set_status(f"Track recording enabled: {self.trackpath}")
+                if not self.__app.file_handler.open_trackfile():
+                    self.trackpath = ""
+                    self._record_track.set(0)
+            else:
+                self.trackpath = ""
+                self._record_track.set(0)
+        else:
+            self._record_track.set(0)
+            self.__app.configuration.set("recordtrack_b", 0)
+            self.__app.file_handler.close_trackfile()
+            self.__app.set_status("Track recording disabled")
+
+    def _on_record_database(self, var, index, mode):
+        """
+        Start or stop database recorder.
+        """
+
+        if self._record_database.get() == 1:
+            if self.databasepath in ("", None):
+                self.databasepath = self.__app.file_handler.set_database_path()
+            if self.databasepath is not None:
+                rc = self.__app.sqlite_handler.open(dbpath=self.databasepath)
+                self.__app.configuration.set("database_b", rc == SQLOK)
+                self.__app.configuration.set("databasepath_s", self.databasepath)
+            else:
+                self.databasepath = ""
+                self._record_database.set(0)
+        else:
+            self.__app.configuration.set("database_b", 0)
+            self.__app.set_status("Database recording disabled")
 
     def _on_connect(self, conntype: int):
         """
@@ -740,6 +917,8 @@ class SettingsFrame(Frame):
                 return
             connstr = f"{frm.server.get()}:{frm.port.get()}"
             conndict = dict(conndict, **{"socket_settings": frm})
+            # poll for device software version on connection
+            self.__app.poll_version(conndict["protocol"])
         elif conntype == CONNECTED_FILE:
             self.infilepath = self.__app.file_handler.open_file(
                 "datalog",
@@ -756,7 +935,7 @@ class SettingsFrame(Frame):
         elif conntype == DISCONNECTED:
             if self.__app.conn_status != DISCONNECTED:
                 self.__app.conn_status = DISCONNECTED
-                self.__app.stream_handler.stop_read_thread()
+                self.__app.stream_handler.stop()
                 return
         else:
             return
@@ -765,111 +944,7 @@ class SettingsFrame(Frame):
         self.__app.set_status("")
         self.__app.conn_status = conntype
         self._reset_frames()
-        self.__app.stream_handler.start_read_thread(self.__app, conndict)
-
-    def _on_ubx_config(self, *args, **kwargs):  # pylint: disable=unused-argument
-        """
-        Open UBX configuration dialog panel.
-        """
-
-        self.__app.start_dialog(DLGTUBX)
-
-    def _on_nmea_config(self, *args, **kwargs):  # pylint: disable=unused-argument
-        """
-        Open NMEA configuration dialog panel.
-        """
-
-        self.__app.start_dialog(DLGTNMEA)
-
-    def _on_tty_config(self, *args, **kwargs):  # pylint: disable=unused-argument
-        """
-        Open TTY configuration dialog panel.
-        """
-
-        self.__app.start_dialog(DLGTTTY)
-
-    def _on_ntrip_config(self, *args, **kwargs):  # pylint: disable=unused-argument
-        """
-        Open NTRIP Client configuration dialog panel.
-        """
-
-        self.__app.start_dialog(DLGTNTRIP)
-
-    def _on_webmap(self, *args, **kwargs):  # pylint: disable=unused-argument
-        """
-        Reset webmap refresh timer.
-        """
-
-        self.__app.frm_mapview.reset_map_refresh()
-
-    def _on_data_log(self):
-        """
-        Start or stop data logger.
-        """
-
-        if self._datalog.get() == 1:
-            if self.logpath in ("", None):
-                self.logpath = self.__app.file_handler.set_logfile_path()
-            if self.logpath is not None:
-                self.__app.configuration.set("datalog_b", 1)
-                self.__app.configuration.set("logpath_s", self.logpath)
-                self.__app.set_status(f"Data logging enabled: {self.logpath}")
-                if not self.__app.file_handler.open_logfile():
-                    self.logpath = ""
-                    self._datalog.set(0)
-            else:
-                self.logpath = ""
-                self._datalog.set(0)
-            self._spn_datalog.config(state=DISABLED)
-        else:
-            self.__app.configuration.set("datalog_b", 0)
-            self._datalog.set(0)
-            self.__app.file_handler.close_logfile()
-            self.__app.set_status("Data logging disabled")
-            self._spn_datalog.config(state=READONLY)
-
-    def _on_record_track(self):
-        """
-        Start or stop track recorder.
-        """
-
-        if self._record_track.get() == 1:
-            if self.trackpath in ("", None):
-                self.trackpath = self.__app.file_handler.set_trackfile_path()
-            if self.trackpath is not None:
-                self.__app.configuration.set("recordtrack_b", 1)
-                self.__app.configuration.set("trackpath_s", self.trackpath)
-                self.__app.set_status(f"Track recording enabled: {self.trackpath}")
-                if not self.__app.file_handler.open_trackfile():
-                    self.trackpath = ""
-                    self._record_track.set(0)
-            else:
-                self.trackpath = ""
-                self._record_track.set(0)
-        else:
-            self._record_track.set(0)
-            self.__app.configuration.set("recordtrack_b", 0)
-            self.__app.file_handler.close_trackfile()
-            self.__app.set_status("Track recording disabled")
-
-    def _on_record_database(self):
-        """
-        Start or stop database recorder.
-        """
-
-        if self._record_database.get() == 1:
-            if self.databasepath in ("", None):
-                self.databasepath = self.__app.file_handler.set_database_path()
-            if self.databasepath is not None:
-                rc = self.__app.sqlite_handler.open(dbpath=self.databasepath)
-                self.__app.configuration.set("database_b", rc == SQLOK)
-                self.__app.configuration.set("databasepath_s", self.databasepath)
-            else:
-                self.databasepath = ""
-                self._record_database.set(0)
-        else:
-            self.__app.configuration.set("database_b", 0)
-            self.__app.set_status("Database recording disabled")
+        self.__app.stream_handler.start(self.__app, conndict)
 
     def enable_controls(self, status: int):
         """

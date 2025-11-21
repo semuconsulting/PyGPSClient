@@ -55,14 +55,14 @@ from pygpsclient.globals import (
     SPARTN_KEYLEN,
     SPARTN_SOURCE_IP,
     SPARTN_SOURCE_LB,
-)
-from pygpsclient.helpers import (
+    TRACEMODE_WRITE,
     VALDMY,
     VALHEX,
     VALLEN,
+)
+from pygpsclient.helpers import (
     date2wnotow,
     parse_rxmspartnkey,
-    valid_entry,
 )
 from pygpsclient.spartn_json_config import SpartnJsonConfig
 from pygpsclient.strings import (
@@ -302,7 +302,7 @@ class SPARTNGNSSDialog(Frame):
         Set up event listeners.
         """
 
-        self._spartn_key1.trace_add("write", self._on_update_config)
+        self._spartn_key1.trace_add(TRACEMODE_WRITE, self._on_update_config)
 
     def _on_update_config(self, var, index, mode):  # pylint: disable=unused-argument
         """
@@ -327,17 +327,17 @@ class SPARTNGNSSDialog(Frame):
         # key must be valid hexadecimal and 16 bytes (32 chars) in length
         valid = (
             valid
-            & valid_entry(self._ent_key1, VALHEX)
-            & valid_entry(self._ent_key1, VALLEN, SPARTN_KEYLEN * 2, SPARTN_KEYLEN * 2)
+            & self._ent_key1.validate(VALHEX)
+            & self._ent_key1.validate(VALLEN, SPARTN_KEYLEN * 2, SPARTN_KEYLEN * 2)
         )
         # from date must be valid date in format YYYYMMDD
-        valid = valid & valid_entry(self._ent_valdate1, VALDMY)
+        valid = valid & self._ent_valdate1.validate(VALDMY)
         valid = (
             valid
-            & valid_entry(self._ent_key2, VALHEX)
-            & valid_entry(self._ent_key2, VALLEN, SPARTN_KEYLEN * 2, SPARTN_KEYLEN * 2)
+            & self._ent_key2.validate(VALHEX)
+            & self._ent_key2.validate(VALLEN, SPARTN_KEYLEN * 2, SPARTN_KEYLEN * 2)
         )
-        valid = valid & valid_entry(self._ent_valdate2, VALDMY)
+        valid = valid & self._ent_valdate2.validate(VALDMY)
 
         if not valid:
             self.__container.set_status("ERROR - invalid settings", ERRCOL)

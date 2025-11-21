@@ -37,14 +37,17 @@ try:
 except (ImportError, ModuleNotFoundError):
     HASRASTERIO = False
 
+from pygpsclient.canvas_map import CanvasMap
 from pygpsclient.globals import (
     BGCOL,
     ERRCOL,
     IMPORT,
     INFOCOL,
+    TRACEMODE_WRITE,
+    VALFLOAT,
     Area,
 )
-from pygpsclient.map_canvas import MapCanvas
+from pygpsclient.helpers import validate  # pylint: disable=unused-import
 from pygpsclient.strings import DLGTIMPORTMAP
 from pygpsclient.toplevel_dialog import ToplevelDialog
 
@@ -89,7 +92,7 @@ class ImportMapDialog(ToplevelDialog):
         """
 
         self._frm_body = Frame(self.container, borderwidth=2, relief="groove")
-        self._can_mapview = MapCanvas(
+        self._can_mapview = CanvasMap(
             self.__app, self._frm_body, width=self.width, height=self.height, bg=BGCOL
         )
         self._frm_controls = Frame(self._frm_body, borderwidth=2, relief="groove")
@@ -169,6 +172,13 @@ class ImportMapDialog(ToplevelDialog):
         """
 
         self.container.bind("<Configure>", self._on_resize)
+        for ent in (
+            self._lonmin,
+            self._lonmax,
+            self._latmin,
+            self._latmax,
+        ):
+            ent.trace_update(TRACEMODE_WRITE, self._on_update)
 
     def _reset(self):
         """
@@ -185,6 +195,34 @@ class ImportMapDialog(ToplevelDialog):
             )
         else:
             self.set_status("")
+
+    def _on_update(self, var, index, mode):
+        """
+        Action on updating bounds.
+        """
+
+        self._valid_entries()
+
+    def _valid_entries(self) -> bool:
+        """
+        Validate bounds entries.
+
+        :return: True/False
+        :rtype: bool
+        """
+
+        valid = True
+        valid = valid & self._ent_minlat.validate(VALFLOAT, -90, 90)
+        valid = valid & self._ent_maxlat.validate(-90, 90)
+        valid = valid & self._ent_minlon.validate(VALFLOAT, -180, 180)
+        valid = valid & self._ent_maxlon.validate(-180, 180)
+        if valid:
+            self.set_status("", INFOCOL)
+            self._btn_import.config(state=NORMAL)
+        else:
+            self.set_status("Error: invalid entry", ERRCOL)
+            self._btn_import.config(state=DISABLED)
+        return valid
 
     def _on_load(self):
         """
@@ -264,14 +302,13 @@ class ImportMapDialog(ToplevelDialog):
         Validate bounds and import custom file into saved config.
         """
 
-        try:
-            lonmin = float(self._lonmin.get())
-            lonmax = float(self._lonmax.get())
-            latmin = float(self._latmin.get())
-            latmax = float(self._latmax.get())
-        except ValueError:
-            self.set_status("Error: invalid bounds", ERRCOL)
+        if not self._valid_entries():
             return
+
+        lonmin = float(self._lonmin.get())
+        lonmax = float(self._lonmax.get())
+        latmin = float(self._latmin.get())
+        latmax = float(self._latmax.get())
 
         if lonmax + 180 <= lonmin + 180 or latmax + 90 <= latmin + 90:
             self.set_status("Error: minimum must be less than maximum", ERRCOL)

@@ -1,7 +1,7 @@
 """
-map_canvas.py
+canvas_map.py
 
-Multi-purpose canvas for offline and online maps.
+Multi-purpose CanvasMap subclass for offline and online maps.
 
 This handles a canvas containing a location map which can be either:
 
@@ -56,7 +56,6 @@ from pygpsclient.globals import (
 )
 from pygpsclient.helpers import (
     area_in_bounds,
-    fontheight,
     get_track_bounds,
     ll2xy,
     normalise_area,
@@ -96,13 +95,13 @@ TAG_LOCATION = "loc"
 MARKERSIZE = 6
 MAX_SIZE = 100000000  # 154,746,100 pixels for PIL/Image
 """Maximum image size allowed by PIL Image library"""
-MAPTYPES = (WORLD, HYB, SAT, MAP, CUSTOM)
+MAPTYPES = (WORLD, MAP, SAT, HYB, CUSTOM)
 """ Map Types """
 
 
-class MapCanvas(Canvas):  # pylint: disable=too-many-ancestors
+class CanvasMap(Canvas):  # pylint: disable=too-many-ancestors
     """
-    Map Canvas class.
+    Canvas Map class.
     """
 
     def __init__(self, app, container, *args, **kwargs):
@@ -136,7 +135,7 @@ class MapCanvas(Canvas):  # pylint: disable=too-many-ancestors
         self._lastmaptype = ""
         self._lastmappath = ""
         self._font = self.__app.font_sm
-        self._fonth = fontheight(self._font)
+        self._fonth = self._font.metrics("linespace")
 
         super().__init__(self.__container, *args, **kwargs)
 

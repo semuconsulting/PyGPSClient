@@ -21,7 +21,6 @@ from pyubx2 import BOOTTYPE, UBXMessage
 from pygpsclient.globals import BGCOL, FGCOL, PNTCOL, SYSMONVIEW, WIDGETU2
 from pygpsclient.helpers import (
     bytes2unit,
-    fontheight,
     hsv2rgb,
     scale_font,
     secs2unit,
@@ -78,7 +77,7 @@ class SysmonFrame(Frame):
         self._mode = IntVar()
         self._mode.set(0)
         self._font = self.__app.font_sm
-        self._fonth = fontheight(self._font)
+        self._fonth = self._font.metrics("linespace")
         self._body()
         self._attach_events()
 

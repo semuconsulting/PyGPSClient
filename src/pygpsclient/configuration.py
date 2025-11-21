@@ -16,6 +16,7 @@ from os import getenv
 from pyubx2 import GET
 from serial import PARITY_NONE
 
+from pygpsclient import version
 from pygpsclient.globals import (
     CUSTOM,
     DDD,
@@ -48,7 +49,12 @@ from pygpsclient.globals import (
 from pygpsclient.init_presets import INIT_PRESETS
 from pygpsclient.mapquest import MAP_UPDATE_INTERVAL
 from pygpsclient.spartn_lband_frame import D9S_PP_EU as D9S_PP
-from pygpsclient.strings import LOADCONFIGBAD, LOADCONFIGNONE, LOADCONFIGOK
+from pygpsclient.strings import (
+    LOADCONFIGBAD,
+    LOADCONFIGNK,
+    LOADCONFIGNONE,
+    LOADCONFIGOK,
+)
 from pygpsclient.widget_state import VISIBLE
 
 INITMARKER = "INIT_PRESETS"
@@ -83,6 +89,7 @@ class Configuration:
 
         # Set initial default configuration
         self._settings = {
+            "version_s": version,
             # main settings from frm_settings
             **self.widget_config,
             "checkforupdate_b": 0,
@@ -106,6 +113,7 @@ class Configuration:
             "units_s": UMM,
             "autoscroll_b": 1,
             "maxlines_n": 100,
+            "filedelay_n": 20,  # milliseconds
             "consoleformat_s": FORMAT_PARSED,
             "maptype_s": WORLD,
             "mapzoom_n": 10,
@@ -231,7 +239,11 @@ class Configuration:
                 "range_n": 180,
                 "option_s": "N/A",
             },
-            "chartsettings_d": {"numchn": 4, "timrng": 240},
+            "chartsettings_d": {
+                "numchn_n": 4,
+                "timrng_n": 240,
+                "maxpoints_n": 1000,
+            },
             f"ubx{PRE_L}": [],
             f"nmea{PRE_L}": [],
             f"tty{PRE_L}": [],
@@ -249,23 +261,31 @@ class Configuration:
         """
 
         fname, config, err = self.__app.file_handler.load_config(filename)
+        key = ""
+        val = 0
         if err == "":  # load succeeded
             try:
                 for key, val in config.items():
                     key = key.replace("mgtt", "mqtt")  # tolerate "mgtt" typo
                     if key == "protocol_n":  # redundant, ignore
                         continue
-                    if key == "guiupdateinterval_f":
+                    if key == "guiupdateinterval_f":  # disallow excessive value
                         val = max(MIN_GUI_UPDATE_INTERVAL, val)
                     self.set(key, val)
-                self.__app.set_status(LOADCONFIGOK.format(fname), OKCOL)
-            except KeyError:
-                err = f'Unrecognised setting "{key}": {val}'
+                # self.__app.set_status(LOADCONFIGOK.format(fname), OKCOL)
+            except KeyError:  # unrecognised setting
+                err = LOADCONFIGNK.format(key, val)
         else:
             if "No such file or directory" in err:
-                self.__app.set_status(LOADCONFIGNONE.format(fname), ERRCOL)
+                err = LOADCONFIGNONE.format(fname)
             else:
-                self.__app.set_status(LOADCONFIGBAD.format(fname, err), ERRCOL)
+                err = LOADCONFIGBAD.format(fname, err)
+
+        if err == "":  # config valid
+            self.__app.set_status(LOADCONFIGOK.format(fname), OKCOL)
+        else:
+            self.__app.set_status(err, ERRCOL)
+
         return fname, err
 
     def savefile(self, filename: str = None) -> str:

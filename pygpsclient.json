@@ -1,4 +1,5 @@
 {
+    "version_s": "1.5.19",
     "Banner": true,
     "Settings": true,
     "Status": true,
@@ -35,6 +36,7 @@
     "units_s": "Metric m/s",
     "autoscroll_b": 1,
     "maxlines_n": 200,
+    "filedelay_n": 20,
     "consoleformat_s": "Parsed",
     "maptype_s": "world",
     "mapzoom_n": 10,

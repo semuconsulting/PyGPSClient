@@ -14,7 +14,7 @@ Created on 10 Apr 2022
 
 import logging
 
-from pynmeagps import ecef2llh, haversine
+from pynmeagps import bearing, ecef2llh, haversine
 from pyrtcm import RTCMMessage
 
 
@@ -79,6 +79,9 @@ class RTCM3Handler:
                 )
                 * 100000
             )  # km to cm
+            self.__app.gnss_status.rel_pos_heading = bearing(
+                lat2, lon2, self.__app.gnss_status.lat, self.__app.gnss_status.lon
+            )
             # update Survey-In base station location
             if self.__app.frm_settings.frm_socketserver is not None:
                 self.__app.frm_settings.frm_socketserver.update_base_location()

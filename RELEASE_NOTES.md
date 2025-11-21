@@ -1,5 +1,18 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.5.19
+
+FIXES:
+
+1. Fix typo in initial chart configuration settings, which could cause a `TypeError` on startup if no json config file exists.
+
+ENHANCEMENTS:
+
+1. Add 'File Delay' setting to control delay between input file reads - effectively a 'throttle' for file input. Default (previously fixed) is 20 milliseconds.
+1. Improved exception handling in several panels.
+1. Internal streamlining and rationalisation of compass and graph canvas draw routines to improve GUI look and consistency.
+1. Add Control-K "kill switch" key binding to immediately disconnect and terminate all running threads.
+
 ### RELEASE 1.5.18
 
 ENHANCEMENTS:
@@ -92,7 +105,7 @@ ENHANCEMENTS:
    - Location-centered zooming is now available for both offline and online maps (*previously only online maps could be zoomed via MapQuest API*). For offline maps, the minimum and maximum viable zoom levels will depend on the resolution and extents of the imported geo-referenced image(s).
    - For both online and offline maps, each zoom level (1-20) corresponds to a pre-calculated lat/lon bounding box. If you see black borders around an offline map, this signifies that the geo-referenced image does not extend to the current zoom level bounds - try increasing the zoom level until the map fills the canvas.
    - A new boolean configuration setting `mapzoom_disabled_b` governs the location-centered zoom behaviour for offline maps. To enable zoomable custom maps, set this to `0` (the default). To revert to the previous map-centered static handling, set this to `1`.
-   - **NB**: the MapCanvas class can only display one offline image at a time - it cannot 'tile' multiple images to form a single larger image on the canvas. The largest single image the map viewer can handle is around 150 million pixels (roughly 430 MB), though one would need an extremely high resolution screen (8K) to take advantage of images of such resolution.
+   - **NB**: the CanvasMap class can only display one offline image at a time - it cannot 'tile' multiple images to form a single larger image on the canvas. The largest single image the map viewer can handle is around 150 million pixels (roughly 430 MB), though one would need an extremely high resolution screen (8K) to take advantage of images of such resolution.
 1. 'Map Type', 'Zoom' and 'Show Track' options moved from settings panel to mapview widget, allowing these to be altered even if the settings panel is hidden.
 1. A new boolean configuration setting `transient_dialog_b` (default `1`) governs whether Toplevel dialogs are 'transient' (i.e. always on top of main application dialog) or not. A setting of `0` allows pop-up dialogs to be minimised independently of the main application window, but be mindful that some dialogs may end up hidden behind others e.g. "Open file/folder" dialogs. If a file open button appears unresponsive, check that the "Open file/folder" panel isn't already open but obscured. Applies to all Toplevel dialogs (UBX Configuration, NMEA Configuration, NTRIP Client, SPARTN Client, About, GPX Viewer, Import Custom Map, TTY Presets).
 

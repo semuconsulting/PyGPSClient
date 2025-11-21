@@ -110,6 +110,7 @@ from pygpsclient.strings import (
     ENDOFFILE,
     INACTIVE_TIMEOUT,
     INTROTXTNOPORTS,
+    KILLSWITCH,
     LOADCONFIGBAD,
     LOADCONFIGOK,
     NOTCONN,
@@ -214,7 +215,7 @@ class App(Frame):
             self._db_enabled = self.sqlite_handler.open(dbpath=dbpath)
         else:
             self._db_enabled = self.sqlite_handler.open(dbname=DBINMEM)
-        if not self._db_enabled:
+        if self._db_enabled != SQLOK:
             self.configuration.set("database_b", 0)
 
         self._body()
@@ -225,6 +226,7 @@ class App(Frame):
         for value in self.widget_state.state.values():
             frm = getattr(self, value[FRAME])
             if hasattr(frm, "init_frame"):
+                frm.update_idletasks()
                 frm.init_frame()
 
         # display initial connection status
@@ -407,6 +409,7 @@ class App(Frame):
         self.__master.bind(NTRIP_EVENT, self.on_ntrip_read)
         self.__master.bind(SPARTN_EVENT, self.on_spartn_read)
         self.__master.bind_all("<Control-q>", self.on_exit)
+        self.__master.bind_all("<Control-k>", self.on_killswitch)
 
     def _set_default_fonts(self):
         """
@@ -576,7 +579,7 @@ class App(Frame):
 
         return self.dialog_state.state[dlg][DLG]
 
-    def start_sockserver_thread(self):
+    def sockserver_start(self):
         """
         Start socket server thread.
         """
@@ -608,7 +611,7 @@ class App(Frame):
         self._socket_thread.start()
         self.frm_banner.update_transmit_status(0)
 
-    def stop_sockserver_thread(self):
+    def sockserver_stop(self):
         """
         Stop socket server thread.
         """
@@ -665,17 +668,42 @@ class App(Frame):
 
         self.frm_settings.frm_socketserver.clients = clients
 
-    def on_exit(self, *args, **kwargs):  # pylint: disable=unused-argument
+    def _shutdown(self):
         """
-        Kill any running processes and quit application.
+        Shut down running handlers.
         """
 
-        self.stop_sockserver_thread()
-        self.stream_handler.stop_read_thread()
+        self.sockserver_stop()
+        self.stream_handler.stop()
         self.sqlite_handler.close()
         self.file_handler.close_logfile()
         self.file_handler.close_trackfile()
+
+    def on_exit(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Quit application.
+        """
+
+        self._shutdown()
         self.__master.destroy()
+
+    def on_killswitch(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Ctrl-K (kill switch) clicked.
+        """
+
+        try:
+            self._shutdown()
+            for dlg in self.dialog_state.state:
+                if self.dialog(dlg) is not None:
+                    self.dialog(dlg).destroy()
+                    self.stop_dialog(dlg)
+            self.conn_status = DISCONNECTED
+            self.rtk_conn_status = DISCONNECTED
+        except Exception as err:  # pylint: disable=broad-exception-caught
+            self.logger.error(err)
+        self.set_status(KILLSWITCH, ERRCOL)
+        self.logger.debug(KILLSWITCH)
 
     def on_gnss_read(self, event):  # pylint: disable=unused-argument
         """

@@ -39,14 +39,15 @@ from pygpsclient.strings import NA
 
 SQLVER = sqlite3.sqlite_version
 """sqlite3 version"""
-SQLOK = SQLVER
+SQLOK = 1
 """No SQL error"""
-SQLERR = "SQL error"
+SQLERR = 0
 """Non-specific SQL error"""
-NOEXT = "No ext"
+NOEXT = -1
 """sqlite3 extensions not supported"""
-NOMODS = "No m_s"
+NOMODS = -2
 """sqlite3 mod_spatialite extension not found"""
+SQLSTATUS = {SQLOK: SQLVER, SQLERR: "SQL Err", NOEXT: "No ext", NOMODS: "No m_s"}
 DBNAME = "pygpsclient.sqlite"
 """Default database name"""
 DBINMEM = ":memory:"
