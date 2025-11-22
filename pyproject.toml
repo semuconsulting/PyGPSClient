@@ -65,6 +65,10 @@ repository = "https://github.com/semuconsulting/PyGPSClient"
 changelog = "https://github.com/semuconsulting/PyGPSClient/blob/master/RELEASE_NOTES.md"
 
 [dependency-groups]
+optional = [
+    "rasterio",
+    "cryptography",
+]
 build = [
     "awscli",
     "build",

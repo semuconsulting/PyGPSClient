@@ -22,6 +22,8 @@
     "python.analysis.addHoverSummaries": false,
     "python-envs.defaultEnvManager": "ms-python.python:venv",
     "python-envs.pythonProjects": [],
+    "python.venvPath": "${userHome}/pygpsclient/bin/python3",
+    "python.systemPath": "/usr/local/bin/python3.13",
     "python.defaultInterpreterPath": "${userHome}/pygpsclient/bin/python3",
     //"python.defaultInterpreterPath": "C:/Users/steve/pygpsclient/Scripts/python.exe",
     "python.testing.unittestEnabled": false

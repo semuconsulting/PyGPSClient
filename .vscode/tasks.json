@@ -1,42 +1,42 @@
 {
-    // These test, build and deploy tasks are targeted at a venv
+    // PyGPSClient VSCode workflow.
+    //
+    // These build, install and test tasks are targeted at a venv
     // called 'pygpsclient' located in the user's home directory.
     // Set your workspace default VSCode Python interpreter to
     // this venv, i.e.
-    // "${userHome}/pygpsclient/bin/python3" on linux/macos
-    // "${userHome}/pygpsclient/Scripts/python" on windows
+    // "${userHome}/pygpsclient/bin/python3" on Linux/MacOS
+    // "C:/Users/user/pygpsclient/Scripts/python.exe" on Windows
+    //
+    // The "Test" task will initialise the venv and execute all
+    // necessary build and installation precursors.
+    //
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Create Venv",
-            "type": "process",
-            "command": "${config:python.defaultInterpreterPath}",
+            "label": "Delete Venv",
+            "type": "shell",
+            "command": "rm",
             "args": [
-                "-m",
-                "venv",
+                "-rf",
                 "${config:venv}",
-                //"--system-site-packages"
             ],
             "problemMatcher": []
         },
         {
-            "label": "Run Local Version",
+            "label": "Create Venv",
             "type": "process",
-            "command": "${config:python.defaultInterpreterPath}",
+            "command": "${config:python.systemPath}",
             "args": [
                 "-m",
-                "pygpsclient",
-                "--ntripcasteruser",
-                "semuadmin",
-                "--ntripcasterpassword",
-                "testpassword",
-                "--verbosity",
-                "3"
+                "venv",
+                "${config:venv}",
             ],
-            "options": {
-                "cwd": "src"
-            },
-            "problemMatcher": []
+            "problemMatcher": [],
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Delete Venv",
+            ],
         },
         {
             "label": "Install Deploy Dependencies",
@@ -46,10 +46,25 @@
                 "-m",
                 "pip",
                 "install",
+                "--upgrade",
                 "--group",
                 "deploy"
             ],
-            "problemMatcher": []
+            "problemMatcher": [],
+        },
+        {
+            "label": "Install Optional Dependencies",
+            "type": "process",
+            "command": "${config:python.defaultInterpreterPath}",
+            "args": [
+                "-m",
+                "pip",
+                "install",
+                "--upgrade",
+                "--group",
+                "optional"
+            ],
+            "problemMatcher": [],
         },
         {
             "label": "Clean",
@@ -64,13 +79,14 @@
                 "${config:modulename}.egg-info",
             ],
             "windows": {
-                "command": "rm",
+                "command": "Remove-Item",
                 "args": [
-                    "-R",
-                    "-Path",
-                    "'src/${config:modulename}.egg-info','build','dist','htmlcov','docs/_build'",
+                    "-Recurse",
+                    "-Force",
                     "-ErrorAction",
-                    "SilentlyContinue" // doesn't work! - stops on exit code 1 anyway
+                    "SilentlyContinue", // doesn't work! - stops on exit code 1 anyway
+                    "-Path",
+                    "'build','dist','htmlcov','docs/_build','src/${config:modulename}.egg-info'",
                 ]
             },
             "options": {
@@ -126,20 +142,6 @@
             "problemMatcher": []
         },
         {
-            "label": "Test",
-            "type": "process",
-            "command": "${config:python.defaultInterpreterPath}",
-            "args": [
-                "-m",
-                "pytest"
-            ],
-            "problemMatcher": [],
-            "group": {
-                "kind": "test",
-                "isDefault": true
-            }
-        },
-        {
             "label": "Build",
             "type": "process",
             "command": "${config:python.defaultInterpreterPath}",
@@ -153,15 +155,51 @@
             "problemMatcher": [],
             "dependsOrder": "sequence",
             "dependsOn": [
+                "Create Venv",
+                "Install Deploy Dependencies",
+                "Install Optional Dependencies",
                 "Clean",
-                "Security",
                 "Sort Imports",
                 "Format",
-                "Pylint",
-                "Test",
             ],
             "group": {
                 "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Install", // into venv
+            "type": "process",
+            "command": "${config:python.defaultInterpreterPath}",
+            "args": [
+                "-m",
+                "pip",
+                "install",
+                "--upgrade",
+                "--force-reinstall",
+                "--find-links=${workspaceFolder}/dist",
+                "${workspaceFolderBasename}",
+            ],
+            "problemMatcher": [],
+        },
+        {
+            "label": "Test",
+            "type": "process",
+            "command": "${config:python.defaultInterpreterPath}",
+            "args": [
+                "-m",
+                "pytest"
+            ],
+            "problemMatcher": [],
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Build",
+                "Install", // have to install before running pylint
+                "Pylint",
+                "Security",
+            ],
+            "group": {
+                "kind": "test",
                 "isDefault": true
             }
         },
@@ -200,7 +238,7 @@
             "problemMatcher": []
         },
         {
-            "label": "Sphinx Deploy to S3", // needs AWS credentials
+            "label": "Sphinx Deploy", // needs AWS S3 credentials
             "type": "process",
             "command": "aws",
             "args": [
@@ -217,29 +255,16 @@
             "problemMatcher": []
         },
         {
-            "label": "Install Locally",
+            "label": "Run Installed Version",
             "type": "process",
             "command": "${config:python.defaultInterpreterPath}",
             "args": [
                 "-m",
-                "pip",
-                "install",
-                "--upgrade",
-                "--force-reinstall",
-                "--find-links=${workspaceFolder}/dist",
-                "${workspaceFolderBasename}",
-                // "--target",
-                // "${config:venv}/Lib/site-packages"
-            ],
-            "options": {
-                "cwd": "dist"
-            },
-            "dependsOrder": "sequence",
-            "dependsOn": [
-                "Build",
-                "Sphinx HTML"
+                "pygpsclient",
+                //"--verbosity",
+                //"3"
             ],
             "problemMatcher": []
-        }
+        },
     ]
 }
