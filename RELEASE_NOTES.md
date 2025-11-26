@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.5.21
+
+FIXES:
+
+1. Fix issue with datalogging #224.
+
 ### RELEASE 1.5.20
 
 FIXES:

@@ -122,7 +122,9 @@ class ChartviewFrame(Frame):
         self._xoff = 20  # chart X offset for labels
         self._yoff = 20  # chart Y offset for labels
         self._chart_data = {}
-        self._num_chans = self.chartsettings.get("numchn_n")
+        self._num_chans = self.chartsettings.get(
+            "numchn_n", self.chartsettings.get("numchn", 4)
+        )  # cater for typo in earlier chartsettings
         if self._num_chans % 2:  # no channels must be even
             self._num_chans += 1
         self._plotcols = PLOTCOLS
