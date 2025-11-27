@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.5.22
+
+ENHANCEMENTS:
+
+1. Make maximum individual data log file size (in bytes) manually configurable via `logsize_n` setting in json configuration file. Default is 10 MB.
+
 ### RELEASE 1.5.21
 
 FIXES:

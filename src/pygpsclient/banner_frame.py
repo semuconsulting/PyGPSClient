@@ -230,7 +230,7 @@ class BannerFrame(Frame):
             width=2,
         )
         self._lbl_diffstat = Label(
-            self._frm_advanced2, bg=self._bgcol, fg="hotpink", width=20, anchor=W
+            self._frm_advanced2, bg=self._bgcol, fg="hotpink", width=25, anchor=W
         )
 
     def _do_layout(self):

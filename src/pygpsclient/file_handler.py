@@ -37,7 +37,6 @@ from pygpsclient.globals import (
     GPX_NS,
     GPX_TRACK_INTERVAL,
     HOME,
-    MAXLOGLINES,
     XML_HDR,
 )
 from pygpsclient.helpers import set_filename
@@ -73,7 +72,7 @@ class FileHandler:
         self._configpath = None
         self._configfile = None
         self._initdir = {}
-        self._lines = 0
+        self._logsize = 0
         self._last_track_update = datetime.fromordinal(1)
 
     def __del__(self):
@@ -232,7 +231,7 @@ class FileHandler:
 
         try:
             self._logpath = self.__app.configuration.get("logpath_s")
-            self._lines = 0
+            self._logsize = 0
             _, self._logname = set_filename(self._logpath, "data", "log")
             self._logfile = open(self._logname, "a+b")
             return 1
@@ -252,6 +251,7 @@ class FileHandler:
                 return
 
         lfm = self.__app.configuration.get("logformat_s")
+        maxsize = self.__app.configuration.get("logsize_n")
         data = []
         if lfm in (FORMAT_PARSED, FORMAT_BOTH):
             data.append(parsed_data)
@@ -268,11 +268,11 @@ class FileHandler:
             try:
                 self._logfile.write(datum)
                 self._logfile.flush()
-                self._lines += 1
+                self._logsize += len(datum)
             except ValueError:
                 pass
 
-        if self._lines > MAXLOGLINES:
+        if self._logsize > maxsize:
             self.close_logfile()
             self.open_logfile()
 

@@ -27,6 +27,7 @@ from pygpsclient.globals import (
     FORMAT_BINARY,
     FORMAT_PARSED,
     GUI_UPDATE_INTERVAL,
+    MAXLOGSIZE,
     MIN_GUI_UPDATE_INTERVAL,
     MQTTIPMODE,
     OKCOL,
@@ -128,6 +129,7 @@ class Configuration:
             "datalog_b": 0,
             "logformat_s": FORMAT_BINARY,
             "logpath_s": "",
+            "logsize_n": MAXLOGSIZE,
             "recordtrack_b": 0,
             "trackpath_s": "",
             "database_b": 0,
@@ -272,7 +274,6 @@ class Configuration:
                     if key == "guiupdateinterval_f":  # disallow excessive value
                         val = max(MIN_GUI_UPDATE_INTERVAL, val)
                     self.set(key, val)
-                # self.__app.set_status(LOADCONFIGOK.format(fname), OKCOL)
             except KeyError:  # unrecognised setting
                 err = LOADCONFIGNK.format(key, val)
         else:
@@ -297,6 +298,7 @@ class Configuration:
         :rtype: str
         """
 
+        self.set("version_s", version)
         return self.__app.file_handler.save_config(self.settings, filename)
 
     def loadcli(self, **kwargs):
