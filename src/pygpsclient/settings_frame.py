@@ -780,7 +780,7 @@ class SettingsFrame(Frame):
         Action on updating log format.
         """
 
-        self.__app.configuration.set("logformat_s", self._prot_ubx.get())
+        self.__app.configuration.set("logformat_s", self._logformat.get())
 
     def _on_ubx_config(self, *args, **kwargs):
         """
