@@ -237,9 +237,8 @@ class Configuration:
                 "scatterlon_f": 0.0,
             },
             "imusettings_d": {
-                "source_s": "ESF-ALG",
                 "range_n": 180,
-                "option_s": "N/A",
+                "option_s": "N/A",  # reserved for future use
             },
             "chartsettings_d": {
                 "numchn_n": 4,

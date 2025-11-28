@@ -1,5 +1,5 @@
 {
-    "version_s": "1.5.19",
+    "version_s": "1.5.21",
     "Banner": true,
     "Settings": true,
     "Status": true,
@@ -149,7 +149,6 @@
         "scatterlon_f": -115.81513
     },
     "imusettings_d": {
-        "source_s": "ESF-ALG",
         "range_n": 30,
         "option_s": "N/A"
     },
