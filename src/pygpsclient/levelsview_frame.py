@@ -14,7 +14,7 @@ Created on 14 Sep 2020
 
 # pylint: disable=no-member
 
-from tkinter import BOTH, NE, YES, Frame, font
+from tkinter import NE, E, Frame, N, S, W, font
 
 from pygpsclient.canvas_plot import (
     TAG_DATA,
@@ -74,7 +74,7 @@ class LevelsviewFrame(Frame):
         self._canvas = CanvasGraph(
             self.__app, self, width=self.width, height=self.height, bg=BGCOL
         )
-        self._canvas.pack(fill=BOTH, expand=YES)
+        self._canvas.grid(column=0, row=0, sticky=(N, S, E, W))
 
     def _attach_events(self):
         """

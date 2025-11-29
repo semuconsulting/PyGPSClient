@@ -3,13 +3,17 @@ app.py
 
 PyGPSClient - Main tkinter application class.
 
+Essentially the 'Model' in a nominal MVC (Model-View-Controller)
+architecture.
+
 - Loads configuration from json file (if available)
 - Instantiates all frames, widgets, and protocol handlers.
-- Starts and stops threaded dialog and protocol handler processes.
-- Maintains current serial and RTK connection status.
-- Reacts to various message events, processes navigation data
-  placed on input message queue by serial, socket or file stream reader
-  and assigns to appropriate NMEA, UBX or RTCM protocol handler.
+- Maintains state of all user-selectable widgets.
+- Maintains state of all threaded dialog and protocol handler processes.
+- Maintains state of serial and RTK connections.
+- Handles event-driven data processing of navigation data placed on
+  input message queue by stream handler and assigns to appropriate
+  protocol handler.
 - Maintains central dictionary of current key navigation data as
   `gnss_status`, for use by user-selectable widgets.
 
@@ -206,7 +210,8 @@ class App(Frame):
         self.configuration.loadcli(**kwargs)
         if configerr == "":
             self.update_widgets()  # set initial widget state
-            if self._nowidgets:  # if all widgets have been disabled in config
+            # warning if all widgets have been disabled in config
+            if self._nowidgets:
                 self.set_status(NOWDGSWARN.format(configfile), ERRCOL)
 
         # open database if database recording enabled
@@ -265,6 +270,11 @@ class App(Frame):
         """
         Arrange widgets in main application frame, and set
         widget visibility and menu label (show/hide).
+
+        NB: PyGPSClient generally favours 'grid' rather than 'pack'
+        layout management throughout:
+        - grid weight = 0 means fixed, non-expandable
+        - grid weight > 0 means expandable
         """
 
         col = 0
@@ -277,15 +287,10 @@ class App(Frame):
                 name, col, row, maxcol, maxrow, men
             )
 
-        # ensure widgets expand to size of container (needed
-        # when not using 'pack' grid management)
-        # weight = 0 means fixed, non-expandable
-        # weight > 0 means expandable
         for col in range(MAXCOLSPAN + 1):
             self.__master.grid_columnconfigure(col, weight=0)
         for row in range(MAXROWSPAN + 2):
             self.__master.grid_rowconfigure(row, weight=0)
-        # print(f"{maxcol=} {maxrow=}")
         for col in range(maxcol):
             self.__master.grid_columnconfigure(col, weight=5)
         for row in range(1, maxrow + 1):
@@ -297,9 +302,9 @@ class App(Frame):
         """
         Arrange widgets and update menu label (show/hide).
 
-        Widgets with explicit COL settings will be placed in fixed
-        positions; widgets with no COL setting will be arranged
-        dynamically.
+        Widgets with explicit COL(umn) settings will be placed in fixed
+        positions; widgets with no COL(umn) setting will be arranged
+        dynamically (left to right, top to bottom).
 
         :param str name: name of widget
         :param int col: col
@@ -349,9 +354,6 @@ class App(Frame):
             self.menu.view_menu.entryconfig(men, label=f"{lbl} {name}")
             men += 1
 
-        # force widget to rescale
-        frm.event_generate("<Configure>")
-
         return col, row, maxcol, maxrow, men
 
     def widget_toggle(self, name: str):
@@ -370,7 +372,7 @@ class App(Frame):
 
     def widget_enable_messages(self, name: str):
         """
-        Enable any NMEA, UBX or RTCM messages required by widget.
+        Enable any GNSS messages required by widget.
 
         :param str name: widget name
         """
@@ -392,7 +394,7 @@ class App(Frame):
 
     def reset_gnssstatus(self):
         """
-        Reset gnss_status dict e.g. after reconnecting.
+        Reset gnss_status dictionary e.g. after reconnecting.
         """
 
         self.gnss_status = GNSSStatus()
@@ -437,7 +439,7 @@ class App(Frame):
 
     def set_status(self, message, color=OKCOL):
         """
-        Sets text of status bar, or defer if frm_status not yet instantiated.
+        Sets text of status bar, or defers if frm_status not yet instantiated.
 
         :param str message: message to be displayed in status label
         :param str color: rgb color string
@@ -460,7 +462,7 @@ class App(Frame):
 
     def set_event(self, evt: str):
         """
-        Generate event
+        Generate master event.
 
         :param str evt: event type string
         """
@@ -546,7 +548,6 @@ class App(Frame):
     def _dialog_thread(self, dlg: str):
         """
         THREADED PROCESS
-
         Dialog thread.
 
         :param str dlg: name of dialog
@@ -632,7 +633,7 @@ class App(Frame):
         socketqueue: Queue,
     ):
         """
-        THREADED
+        THREADED PROCESS
         Socket Server thread.
 
         :param int ntripmode: 0 = open socket server, 1 = NTRIP server
@@ -839,7 +840,8 @@ class App(Frame):
 
     def get_coordinates(self) -> dict:
         """
-        Get current coordinates and fix data.
+        Supply current coordinates and fix data to any widget
+        that requests it (mirrors NMEA GGA format).
 
         :return: dict of coords and fix data
         :rtype: dict
@@ -865,7 +867,9 @@ class App(Frame):
 
     def process_data(self, raw_data: bytes, parsed_data: object, marker: str = ""):
         """
-        Update the various GUI widgets, GPX track and log file.
+        THIS IS THE MAIN GNSS DATA PROCESSING LOOP
+
+        Update the various GUI widgets, data & gpx logs and database.
 
         :param bytes raw_data: raw message data
         :param object parsed data: NMEAMessage, UBXMessage or RTCMMessage
@@ -912,7 +916,7 @@ class App(Frame):
         elif msgprot == MQTT_PROTOCOL:
             pass
 
-        # update chart data if chart is visible
+        # update chart plot if chart is visible
         if self.widget_state.state[WDGCHART][VISIBLE]:
             getattr(self, self.widget_state.state[WDGCHART][FRAME]).update_data(
                 parsed_data
@@ -942,13 +946,13 @@ class App(Frame):
         if self.configuration.get("datalog_b"):
             self.file_handler.write_logfile(raw_data, parsed_data)
 
-        self.update_idletasks()
+        self.update_idletasks()  # needed to keep GUI responsive
 
     def send_to_device(self, data: object):
         """
         Send raw data to connected device.
 
-        :param object data: raw GNSS data (NMEA, UBX, ASCII, RTCM3, SPARTN)
+        :param object data: raw GNSS data (NMEA, UBX, TTY, RTCM3, SPARTN)
         """
 
         self.logger.debug(f"Sending message {data}")
@@ -1047,7 +1051,7 @@ class App(Frame):
     @property
     def rtk_conn_status(self) -> int:
         """
-        Getter for SPARTN connection status.
+        Getter for RTK connection status.
 
         :return: connection status
         :rtype: int
@@ -1058,7 +1062,7 @@ class App(Frame):
     @rtk_conn_status.setter
     def rtk_conn_status(self, status: int):
         """
-        Setter for SPARTN connection status.
+        Setter for RTK connection status.
 
         :param int status: connection status
         """
@@ -1101,9 +1105,12 @@ class App(Frame):
 
     def do_app_update(self, updates: list) -> int:
         """
-        Update outdated application modules to latest versions.
+        Update outdated application packages to latest versions.
 
-        :param list updates: list of modules to be updated
+        NB: Some platforms (e.g. Homebrew-installed Python environments)
+        may block Python subprocess calls ('run') on security grounds.
+
+        :param list updates: list of packages to be updated
         :return: return code 0 = error, 1 = OK
         :rtype: int
         """

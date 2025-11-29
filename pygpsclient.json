@@ -1,5 +1,5 @@
 {
-    "version_s": "1.5.19",
+    "version_s": "1.5.21",
     "Banner": true,
     "Settings": true,
     "Status": true,
@@ -47,9 +47,10 @@
     "showtrack_b": 0,
     "legend_b": 1,
     "unusedsat_b": 0,
-    "logformat_s": "Binary",
     "datalog_b": 0,
+    "logformat_s": "Binary",
     "logpath_s": "",
+    "logsize_n": 10485760,
     "recordtrack_b": 0,
     "trackpath_s": "",
     "database_b": 0,
@@ -148,7 +149,6 @@
         "scatterlon_f": -115.81513
     },
     "imusettings_d": {
-        "source_s": "ESF-ALG",
         "range_n": 30,
         "option_s": "N/A"
     },

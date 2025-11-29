@@ -91,7 +91,6 @@ class SocketConfigFrame(Frame):
         self._do_layout()
         self.reset()
         # self._attach_events() # done in reset
-        self._attach_events1()
 
     def _body(self):
         """
@@ -144,13 +143,6 @@ class SocketConfigFrame(Frame):
         self._spn_protocol.grid(column=3, row=1, padx=2, pady=2, sticky=W)
         self._chk_https.grid(column=1, row=2, padx=2, pady=2, sticky=W)
         self._chk_selfsign.grid(column=2, row=2, padx=2, pady=2, sticky=W)
-
-    def _attach_events1(self):
-        """
-        Bind resize event to frame.
-        """
-
-        self.bind("<Configure>", self._on_resize)
 
     def _attach_events(self, add: bool = True):
         """

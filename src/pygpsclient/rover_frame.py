@@ -15,7 +15,7 @@ Created on 22 Aug 2023
 
 # pylint: disable=invalid-name, no-member
 
-from tkinter import BOTH, NW, SW, YES, Frame
+from tkinter import NW, SW, E, Frame, N, S, W
 
 from pygpsclient.canvas_plot import (
     MODE_POL,
@@ -79,7 +79,7 @@ class RoverFrame(Frame):
         self._canvas = CanvasCompass(
             self.__app, self, MODE_POL, width=self.width, height=self.height, bg=BGCOL
         )
-        self._canvas.pack(fill=BOTH, expand=YES)
+        self._canvas.grid(column=0, row=0, sticky=(N, S, E, W))
 
     def _attach_events(self):
         """
