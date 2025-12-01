@@ -3,7 +3,8 @@ settings_frame.py
 
 Settings frame class for PyGPSClient application.
 
-- Holds all the latest settings in self.config
+- Reads and updates configuration held in self.__app.configuration.
+- Starts or stops data logging.
 - Sets initial (saved) configuration of the following frames:
 - frm_settings (SettingsFrame class) for general application settings.
 - frm_serial (SerialConfigFrame class) for serial port settings.

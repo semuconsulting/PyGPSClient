@@ -199,8 +199,6 @@ class App(Frame):
         self._last_gui_update = datetime.now()
         self._socket_thread = None
         self._socket_server = None
-        self._colcount = 0
-        self._rowcount = 0
         self.consoledata = []
 
         # load config from json file
@@ -227,7 +225,7 @@ class App(Frame):
         self._do_layout()
         self._attach_events()
 
-        # initialise widgets
+        # instantiate widgets
         for value in self.widget_state.state.values():
             frm = getattr(self, value[FRAME])
             if hasattr(frm, "init_frame"):
@@ -258,7 +256,7 @@ class App(Frame):
         self.menu = MenuBar(self)
         self.__master.config(menu=self.menu)
 
-        # instantiate widgets
+        # initialise widget state
         for value in self.widget_state.state.values():
             setattr(
                 self,
@@ -532,6 +530,20 @@ class App(Frame):
         except KeyError as err:
             self.set_status(f"{CONFIGERR} - {err}", ERRCOL)
 
+    def _refresh_widgets(self):
+        """
+        Refresh visible widgets.
+        """
+
+        for wdg, wdgdata in self.widget_state.state.items():
+            frm = getattr(self, wdgdata[FRAME])
+            if hasattr(frm, "update_frame") and wdgdata[VISIBLE]:
+                if wdg == WDGCONSOLE:
+                    frm.update_frame(self.consoledata)
+                    self.consoledata = []
+                else:
+                    frm.update_frame()
+
     def start_dialog(self, dlg: str):
         """
         Start a threaded dialog task if the dialog is not already open.
@@ -663,6 +675,7 @@ class App(Frame):
     def update_clients(self, clients: int):
         """
         Update number of connected clients in settings panel.
+        Called by pygnssutils.socket_server.
 
         :param int clients: no of connected clients
         """
@@ -842,6 +855,7 @@ class App(Frame):
         """
         Supply current coordinates and fix data to any widget
         that requests it (mirrors NMEA GGA format).
+        Called by pygnssutils.ntrip_client.
 
         :return: dict of coords and fix data
         :rtype: dict
@@ -962,20 +976,6 @@ class App(Frame):
             CONNECTED_SIMULATOR,
         ):
             self.gnss_outqueue.put(data)
-
-    def _refresh_widgets(self):
-        """
-        Refresh visible widgets.
-        """
-
-        for wdg, wdgdata in self.widget_state.state.items():
-            frm = getattr(self, wdgdata[FRAME])
-            if hasattr(frm, "update_frame") and wdgdata[VISIBLE]:
-                if wdg == WDGCONSOLE:
-                    frm.update_frame(self.consoledata)
-                    self.consoledata = []
-                else:
-                    frm.update_frame()
 
     def _check_update(self):
         """

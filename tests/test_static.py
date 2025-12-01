@@ -77,7 +77,7 @@ from pygpsclient.helpers import (
     wnotow2date,
     xy2ll,
 )
-from pygpsclient.mapquest import (
+from pygpsclient.mapquest_handler import (
     compress_track,
     format_mapquest_request,
     mapq_compress,
@@ -140,13 +140,7 @@ class StaticTest(unittest.TestCase):
 
         cfg = Configuration(DummyApp())
         res = cfg.loadfile("bad.json")
-        self.assertEqual(
-            res,
-            (
-                "bad.json",
-                "Unrecognised configuration setting 'xcheckforupdate_b: 0'; using defaults",
-            ),
-        )
+        self.assertEqual(res, ("bad.json", ""))
         res = cfg.loadfile("good.json")
         self.assertEqual(res, ("good.json", ""))
 

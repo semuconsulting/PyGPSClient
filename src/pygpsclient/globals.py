@@ -335,7 +335,6 @@ NMEA_CFGOTHER = 17
 SERVERCONFIG = 18
 SBF_MONHW = 19
 
-# keep KNOWNGPS all lower case
 KNOWNGPS = (
     "cp210",
     "ft230",
@@ -358,13 +357,12 @@ KNOWNGPS = (
     "usb_to_uart",
     "user-defined",
 )
+"""
+Recognised GNSS device serial port designators.
+Used to 'auto-select' GNSS device in serial port list.
+(keep in lower-case)
+"""
 
-# map of fix values to descriptions
-# the keys in this map are a concatenation of NMEA/UBX
-# message identifier and attribute value e.g.:
-# GGA1: GGA + quality = 1
-# NAV-STATUS3: NAV-STATUS + gpsFix = 3
-# (valid for NMEA >=4)
 FIXLOOKUP = {
     "GGA1": "3D",  # quality
     "GGA2": "3D",
@@ -437,3 +435,11 @@ FIXLOOKUP = {
     "PVTGeodetic8": "RTK FLOAT",
     "PVTGeodetic10": "PPP",
 }
+"""
+Map of fix values to descriptions.
+The keys in this map are a concatenation of NMEA/UBX
+message identifier and attribute value e.g.
+GGA1: GGA + quality = 1
+NAV-STATUS3: NAV-STATUS + gpsFix = 3
+(valid for NMEA >=4)
+"""

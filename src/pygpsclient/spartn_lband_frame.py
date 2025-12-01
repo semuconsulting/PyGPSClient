@@ -67,6 +67,7 @@ from pygpsclient.globals import (
     TRACEMODE_WRITE,
     VALINT,
 )
+from pygpsclient.helpers import validate  # pylint: disable=unused-import
 from pygpsclient.serialconfig_lband_frame import SerialConfigLbandFrame
 from pygpsclient.strings import CONFIGBAD, CONFIGOK, DLGSPARTNWARN, LBLSPARTNLB
 

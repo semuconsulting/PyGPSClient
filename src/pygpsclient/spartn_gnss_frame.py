@@ -60,6 +60,7 @@ from pygpsclient.globals import (
     VALHEX,
     VALLEN,
 )
+from pygpsclient.helpers import validate  # pylint: disable=unused-import
 from pygpsclient.helpers import (
     date2wnotow,
     parse_rxmspartnkey,

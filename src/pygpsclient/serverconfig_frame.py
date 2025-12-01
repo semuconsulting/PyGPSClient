@@ -69,7 +69,6 @@ from pygpsclient.globals import (
 )
 from pygpsclient.helpers import (
     MAXPORT,
-    config_nmea,
     lanip,
     publicip,
 )
@@ -82,6 +81,7 @@ from pygpsclient.receiver_config_handler import (
     config_fixed_lg290p,
     config_fixed_septentrio,
     config_fixed_ublox,
+    config_nmea,
     config_svin_lc29h,
     config_svin_lg290p,
     config_svin_quectel,

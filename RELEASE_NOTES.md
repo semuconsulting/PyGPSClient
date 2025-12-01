@@ -5,6 +5,7 @@
 ENHANCEMENTS:
 
 1. Make maximum individual data log file size (in bytes) manually configurable via `logsize_n` setting in json configuration file. Default is 10 MB.
+1. Tolerate unrecognised configuration settings in json file with warning "Consider re-saving" (previously json file would have been rejected).
 
 ### RELEASE 1.5.21
 

@@ -48,13 +48,14 @@ from pygpsclient.globals import (
     ZED_F9,
 )
 from pygpsclient.init_presets import INIT_PRESETS
-from pygpsclient.mapquest import MAP_UPDATE_INTERVAL
+from pygpsclient.mapquest_handler import MAP_UPDATE_INTERVAL
 from pygpsclient.spartn_lband_frame import D9S_PP_EU as D9S_PP
 from pygpsclient.strings import (
     LOADCONFIGBAD,
     LOADCONFIGNK,
     LOADCONFIGNONE,
     LOADCONFIGOK,
+    LOADCONFIGRESAVE,
 )
 from pygpsclient.widget_state import VISIBLE
 
@@ -264,17 +265,20 @@ class Configuration:
         fname, config, err = self.__app.file_handler.load_config(filename)
         key = ""
         val = 0
+        resave = False
         if err == "":  # load succeeded
-            try:
-                for key, val in config.items():
-                    key = key.replace("mgtt", "mqtt")  # tolerate "mgtt" typo
-                    if key == "protocol_n":  # redundant, ignore
-                        continue
-                    if key == "guiupdateinterval_f":  # disallow excessive value
-                        val = max(MIN_GUI_UPDATE_INTERVAL, val)
+            for key, val in config.items():
+                if key == "version_s" and val != version:
+                    resave = True
+                key = key.replace("mgtt", "mqtt")  # tolerate "mgtt" typo
+                if key == "guiupdateinterval_f":  # disallow excessive value
+                    val = max(MIN_GUI_UPDATE_INTERVAL, val)
+                try:
                     self.set(key, val)
-            except KeyError:  # unrecognised setting
-                err = LOADCONFIGNK.format(key, val)
+                except KeyError:  # ignore unrecognised setting
+                    self.logger.info(LOADCONFIGNK.format(key, val))
+                    resave = True
+                    continue
         else:
             if "No such file or directory" in err:
                 err = LOADCONFIGNONE.format(fname)
@@ -282,7 +286,8 @@ class Configuration:
                 err = LOADCONFIGBAD.format(fname, err)
 
         if err == "":  # config valid
-            self.__app.set_status(LOADCONFIGOK.format(fname), OKCOL)
+            rs = LOADCONFIGRESAVE if resave else ""
+            self.__app.set_status(LOADCONFIGOK.format(fname, rs), OKCOL)
         else:
             self.__app.set_status(err, ERRCOL)
 

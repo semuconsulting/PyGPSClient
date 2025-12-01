@@ -48,7 +48,7 @@ from pygpsclient.globals import (
     WORLD,
     Point,
 )
-from pygpsclient.mapquest import (
+from pygpsclient.mapquest_handler import (
     MAX_ZOOM,
     MIN_UPDATE_INTERVAL,
     MIN_ZOOM,

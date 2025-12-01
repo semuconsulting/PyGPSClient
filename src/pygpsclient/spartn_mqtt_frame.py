@@ -76,7 +76,7 @@ from pygpsclient.globals import (
     VALINT,
     VALLEN,
 )
-from pygpsclient.helpers import MAXPORT
+from pygpsclient.helpers import MAXPORT, validate  # pylint: disable=unused-import
 from pygpsclient.strings import DLGSPARTNWARN, LBLSPARTNIP, MQTTCONN
 
 
