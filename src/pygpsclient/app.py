@@ -964,6 +964,7 @@ class App(Frame):
             self.file_handler.write_logfile(raw_data, parsed_data)
 
         self.update_idletasks()  # needed to keep GUI responsive
+        self.__master.update_idletasks()
 
     def send_to_device(self, data: object):
         """

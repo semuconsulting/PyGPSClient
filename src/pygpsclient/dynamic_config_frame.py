@@ -324,13 +324,14 @@ class Dynamic_Config_Frame(Frame):
 
         self._expected_response = None
         idx = self._lbx_cfg_cmd.curselection()
-        self._cfg_id = self._lbx_cfg_cmd.get(idx)[1:]
         if self._protocol == NMEA:
+            self._cfg_id = self._lbx_cfg_cmd.get(idx)[1:]
             cfgid = self._cfg_id.rsplit("_", 1)[0]
             pde = NMEA_MSGIDS_PROP[cfgid].replace("Sets/Gets", "")
             pdesc = f"P{cfgid} {pde}"
             pdic = NMEA_PAYLOADS_SET_PROP[self._cfg_id]
         else:  # UBX
+            self._cfg_id = self._lbx_cfg_cmd.get(idx)
             pdesc = self._cfg_id
             pdic = UBX_PAYLOADS_SET[self._cfg_id]
         self._lbl_command.config(text=f"{pdesc}")
