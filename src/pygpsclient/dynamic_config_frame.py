@@ -424,16 +424,17 @@ class Dynamic_Config_Frame(Frame):
                 penddlg = UBX_CFGOTHER
                 pendcfg = (msg.identity, NAK)
 
+        cp = "P" if self._protocol == NMEA else ""
         if msg is not None:
             self.__container.send_command(msg)
-            self.__container.set_status(f"P{cfg_id} POLL message sent", INFOCOL)
+            self.__container.set_status(f"{cp}{cfg_id} POLL message sent", INFOCOL)
             self._lbl_send_command.config(image=self._img_pending)
             for msgid in pendcfg:
                 self.__container.set_pending(msgid, penddlg)
             self._expected_response = POLL
         else:  # CFG cannot be POLLed
             self.__container.set_status(
-                f"P{cfg_id} No POLL available",
+                f"{cp}{cfg_id} No POLL available",
             )
             self._lbl_send_command.config(image=self._img_unknown)
 
