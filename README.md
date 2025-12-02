@@ -35,6 +35,14 @@ This is an independent project and we have no affiliation whatsoever with any GN
 
 *Screenshot showing mixed-protocol stream from u-blox ZED-F9P receiver, using PyGPSClient's [NTRIP Client](#ntripconfig) with a base station 26 km to the west to achieve better than 2 cm accuracy*
 
+#### References
+
+1. [Glossary of GNSS Terms and Abbreviations](https://www.semuconsulting.com/gnsswiki/glossary/).
+1. [GNSS Positioning - A Reviser](https://www.semuconsulting.com/gnsswiki/) - a general overview of GNSS, OSR, SSR, RTK, NTRIP and SPARTN positioning and error correction technologies and terminology.
+1. [Achieving cm Level GNSS Accuracy using RTK](https://www.semuconsulting.com/gnsswiki/rtktips/) - practical tips on high precision RTK using PyGPSClient.
+1. From time to time, instructional videos may be posted to the [semuadmin YouTube channel](https://www.youtube.com/@semuadmin).
+1. [Sphinx API Documentation](https://www.semuconsulting.com/pygpsclient) in HTML format.
+
 ---
 ## <a name="currentstatus">Current Status</a>
 
@@ -46,13 +54,7 @@ This is an independent project and we have no affiliation whatsoever with any GN
 ![Contributors](https://img.shields.io/github/contributors/semuconsulting/PyGPSClient.svg)
 ![Open Issues](https://img.shields.io/github/issues-raw/semuconsulting/PyGPSClient)
 
-
-The PyGPSClient home page is at [PyGPSClient](https://github.com/semuconsulting/PyGPSClient). The following references may be useful:
-1. [Glossary of GNSS Terms and Abbreviations](https://www.semuconsulting.com/gnsswiki/glossary/).
-1. [GNSS Positioning - A Reviser](https://www.semuconsulting.com/gnsswiki/) - a general overview of GNSS, OSR, SSR, RTK, NTRIP and SPARTN positioning and error correction technologies and terminology.
-1. [Achieving cm Level GNSS Accuracy using RTK](https://www.semuconsulting.com/gnsswiki/rtktips/) - practical tips on high precision RTK using PyGPSClient.
-1. [Sphinx API Documentation](https://www.semuconsulting.com/pygpsclient) in HTML format.
-1. From time to time, instructional videos may be posted to the [semuadmin YouTube channel](https://www.youtube.com/@semuadmin).
+The PyGPSClient home page is at [PyGPSClient](https://github.com/semuconsulting/PyGPSClient). 
 
 Contributions welcome - please refer to [CONTRIBUTING.MD](https://github.com/semuconsulting/PyGPSClient/blob/master/CONTRIBUTING.md).
 

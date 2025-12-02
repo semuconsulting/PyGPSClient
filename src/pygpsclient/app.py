@@ -352,6 +352,9 @@ class App(Frame):
             self.menu.view_menu.entryconfig(men, label=f"{lbl} {name}")
             men += 1
 
+        # force widget to rescale
+        # frm.event_generate("<Configure>")
+
         return col, row, maxcol, maxrow, men
 
     def widget_toggle(self, name: str):

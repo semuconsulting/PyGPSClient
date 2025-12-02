@@ -180,10 +180,10 @@ pygpsclient.map\_frame module
    :undoc-members:
    :show-inheritance:
 
-pygpsclient.mapquest module
----------------------------
+pygpsclient.mapquest\_handler module
+------------------------------------
 
-.. automodule:: pygpsclient.mapquest
+.. automodule:: pygpsclient.mapquest_handler
    :members:
    :undoc-members:
    :show-inheritance:
