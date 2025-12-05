@@ -10,7 +10,18 @@ Created on 22 Dec 2020
 :license: BSD 3-Clause
 """
 
-from tkinter import Button, Checkbutton, E, Frame, IntVar, Label, Spinbox, StringVar, W
+from tkinter import (
+    EW,
+    Button,
+    Checkbutton,
+    E,
+    Frame,
+    IntVar,
+    Label,
+    Spinbox,
+    StringVar,
+    W,
+)
 
 from PIL import Image, ImageTk
 from pyubx2 import POLL, SET, UBXMessage
@@ -132,7 +143,7 @@ class UBX_PORT_Frame(Frame):
         Layout widgets.
         """
 
-        self._lbl_cfg_port.grid(column=0, row=0, columnspan=6, padx=3, sticky=(W, E))
+        self._lbl_cfg_port.grid(column=0, row=0, columnspan=6, padx=3, sticky=EW)
         self._lbl_ubx_portid.grid(
             column=0, row=1, columnspan=1, rowspan=2, padx=3, sticky=W
         )
@@ -197,10 +208,10 @@ class UBX_PORT_Frame(Frame):
             self._outprot_nmea.set(msg.outNMEA)
             self._outprot_rtcm3.set(msg.outRTCM3)
             self._lbl_send_command.config(image=self._img_confirmed)
-            self.__container.set_status("CFG-PRT GET message received", OKCOL)
+            self.__container.status_label = ("CFG-PRT GET message received", OKCOL)
 
         elif msg.identity == "ACK-NAK":
-            self.__container.set_status("CFG-PRT POLL message rejected", ERRCOL)
+            self.__container.status_label = ("CFG-PRT POLL message rejected", ERRCOL)
             self._lbl_send_command.config(image=self._img_warn)
 
     def _on_select_portid(self):
@@ -243,9 +254,7 @@ class UBX_PORT_Frame(Frame):
         )
         self.__container.send_command(msg)
         self._lbl_send_command.config(image=self._img_pending)
-        self.__container.set_status(
-            "CFG-PRT SET message sent",
-        )
+        self.__container.status_label = "CFG-PRT SET message sent"
         for msgid in ("ACK-NAK", "ACK-NAK"):
             self.__container.set_pending(msgid, UBX_CFGPRT)
 
@@ -260,8 +269,6 @@ class UBX_PORT_Frame(Frame):
         msg = UBXMessage("CFG", "CFG-PRT", POLL, portID=portID)
         self.__container.send_command(msg)
         self._lbl_send_command.config(image=self._img_pending)
-        self.__container.set_status(
-            "CFG-PRT POLL message sent",
-        )
+        self.__container.status_label = "CFG-PRT POLL message sent"
         for msgid in ("CFG-PRT", "ACK-NAK"):
             self.__container.set_pending(msgid, UBX_CFGPRT)

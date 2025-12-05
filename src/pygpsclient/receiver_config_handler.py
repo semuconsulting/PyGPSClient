@@ -19,6 +19,28 @@ from pyubx2 import SET, SET_LAYER_RAM, TXN_NONE, UBXMessage
 from pygpsclient.helpers import val2sphp
 
 
+def config_nmea(state: int, port_type: str = "USB") -> UBXMessage:
+    """
+    Enable or disable NMEA messages at port level and use minimum UBX
+    instead (NAV-PRT, NAV_SAT, NAV_DOP).
+
+    :param int state: 1 = disable NMEA, 0 = enable NMEA
+    :param str port_type: port that rcvr is connected on
+    """
+
+    nmea_state = 0 if state else 1
+    layers = 1
+    transaction = 0
+    cfg_data = []
+    cfg_data.append((f"CFG_{port_type}OUTPROT_NMEA", nmea_state))
+    cfg_data.append((f"CFG_{port_type}OUTPROT_UBX", 1))
+    cfg_data.append((f"CFG_MSGOUT_UBX_NAV_PVT_{port_type}", state))
+    cfg_data.append((f"CFG_MSGOUT_UBX_NAV_DOP_{port_type}", state))
+    cfg_data.append((f"CFG_MSGOUT_UBX_NAV_SAT_{port_type}", state * 4))
+
+    return UBXMessage.config_set(layers, transaction, cfg_data)
+
+
 def config_disable_ublox() -> UBXMessage:
     """
     Disable base station mode for u-blox receivers.

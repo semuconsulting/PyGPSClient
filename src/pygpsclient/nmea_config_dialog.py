@@ -15,7 +15,7 @@ Created on 22 Mar 2025
 :license: BSD 3-Clause
 """
 
-from tkinter import E, N, S, W
+from tkinter import NSEW
 
 from pynmeagps import NMEAMessage
 
@@ -99,7 +99,7 @@ class NMEAConfigDialog(ToplevelDialog):
                 row=row,
                 columnspan=colsp,
                 rowspan=rowsp,
-                sticky=(N, S, W, E),
+                sticky=NSEW,
             )
             row += rowsp
         # right column of grid
@@ -112,7 +112,7 @@ class NMEAConfigDialog(ToplevelDialog):
                 row=row,
                 columnspan=colsp,
                 rowspan=rowsp,
-                sticky=(N, S, W, E),
+                sticky=NSEW,
             )
             row += rowsp
 
@@ -128,7 +128,7 @@ class NMEAConfigDialog(ToplevelDialog):
             CONNECTED_SOCKET,
             CONNECTED_SIMULATOR,
         ):
-            self.set_status("Device not connected", ERRCOL)
+            self.status_label = ("Device not connected", ERRCOL)
 
     def _attach_events(self):
         """

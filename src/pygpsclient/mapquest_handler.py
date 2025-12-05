@@ -1,5 +1,5 @@
 """
-mapquest.py
+mapquest_handler.py
 
 MapQuest API Constants and Methods.
 

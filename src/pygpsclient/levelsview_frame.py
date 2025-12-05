@@ -14,7 +14,7 @@ Created on 14 Sep 2020
 
 # pylint: disable=no-member
 
-from tkinter import BOTH, NE, YES, Frame, font
+from tkinter import NE, NSEW, Frame, font
 
 from pygpsclient.canvas_plot import (
     TAG_DATA,
@@ -35,7 +35,7 @@ from pygpsclient.helpers import col2contrast
 
 OL_WID = 1
 FONTSCALELG = 40
-FONTSCALESV = 40
+FONTSCALESV = 30
 
 
 class LevelsviewFrame(Frame):
@@ -74,7 +74,7 @@ class LevelsviewFrame(Frame):
         self._canvas = CanvasGraph(
             self.__app, self, width=self.width, height=self.height, bg=BGCOL
         )
-        self._canvas.pack(fill=BOTH, expand=YES)
+        self._canvas.grid(column=0, row=0, sticky=NSEW)
 
     def _attach_events(self):
         """
@@ -168,7 +168,8 @@ class LevelsviewFrame(Frame):
         offset = self._canvas.xoffl  # AXIS_XL + 2
         colwidth = (w - self._canvas.xoffl - self._canvas.xoffr + 1) / siv
         # scale x axis label
-        svfont = font.Font(size=int(min(w, h) / FONTSCALESV))
+        fsiz = min(w * 15 / siv, w, h)
+        svfont = font.Font(size=int(fsiz / FONTSCALESV))
         for d in sorted(data.values()):  # sort by ascending gnssid, svid
             gnssId, prn, _, _, snr = d
             if snr in ("", "0", 0):
@@ -190,7 +191,7 @@ class LevelsviewFrame(Frame):
             )
             self._canvas.create_text(
                 offset + colwidth / 2,
-                h - self._canvas.yoffb,
+                h - self._canvas.yoffb - 1,
                 text=prn,
                 fill=FGCOL,
                 font=svfont,

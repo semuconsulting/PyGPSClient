@@ -23,7 +23,7 @@ Created on 19 Sep 2020
 :license: BSD 3-Clause
 """
 
-from tkinter import E, N, S, W
+from tkinter import NSEW
 
 from pyubx2 import UBXMessage
 
@@ -127,6 +127,7 @@ class UBXConfigDialog(ToplevelDialog):
         # top of grid
         col = 0
         row = 0
+        colsp = 0
         for frm in (
             self._frm_device_info,
             self._frm_recorder,
@@ -140,7 +141,7 @@ class UBXConfigDialog(ToplevelDialog):
                 row=row,
                 columnspan=colsp,
                 rowspan=rowsp,
-                sticky=(N, S, W, E),
+                sticky=NSEW,
             )
             row += rowsp
         # middle column of grid
@@ -153,7 +154,7 @@ class UBXConfigDialog(ToplevelDialog):
                 row=row,
                 columnspan=colsp,
                 rowspan=rowsp,
-                sticky=(N, S, W, E),
+                sticky=NSEW,
             )
             row += rowsp
         # right column of grid
@@ -167,7 +168,7 @@ class UBXConfigDialog(ToplevelDialog):
                     row=row,
                     columnspan=colsp,
                     rowspan=rowsp,
-                    sticky=(N, S, W, E),
+                    sticky=NSEW,
                 )
                 row += rowsp
 
@@ -185,7 +186,7 @@ class UBXConfigDialog(ToplevelDialog):
             CONNECTED_SOCKET,
             CONNECTED_SIMULATOR,
         ):
-            self.set_status("Device not connected", ERRCOL)
+            self.status_label = ("Device not connected", ERRCOL)
 
     def _attach_events(self):
         """

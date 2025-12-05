@@ -22,6 +22,7 @@ import logging
 from datetime import datetime, timedelta
 from pathlib import Path
 from tkinter import filedialog
+from types import NoneType
 
 from pyubx2 import hextable
 
@@ -37,7 +38,6 @@ from pygpsclient.globals import (
     GPX_NS,
     GPX_TRACK_INTERVAL,
     HOME,
-    MAXLOGLINES,
     XML_HDR,
 )
 from pygpsclient.helpers import set_filename
@@ -73,7 +73,7 @@ class FileHandler:
         self._configpath = None
         self._configfile = None
         self._initdir = {}
-        self._lines = 0
+        self._logsize = 0
         self._last_track_update = datetime.fromordinal(1)
 
     def __del__(self):
@@ -232,12 +232,12 @@ class FileHandler:
 
         try:
             self._logpath = self.__app.configuration.get("logpath_s")
-            self._lines = 0
+            self._logsize = 0
             _, self._logname = set_filename(self._logpath, "data", "log")
             self._logfile = open(self._logname, "a+b")
             return 1
         except FileNotFoundError as err:
-            self.__app.set_status(f"{err}", ERRCOL)
+            self.__app.status_label = (f"{err}", ERRCOL)
             return 0
 
     def write_logfile(self, raw_data, parsed_data):
@@ -252,6 +252,7 @@ class FileHandler:
                 return
 
         lfm = self.__app.configuration.get("logformat_s")
+        maxsize = self.__app.configuration.get("logsize_n")
         data = []
         if lfm in (FORMAT_PARSED, FORMAT_BOTH):
             data.append(parsed_data)
@@ -268,11 +269,11 @@ class FileHandler:
             try:
                 self._logfile.write(datum)
                 self._logfile.flush()
-                self._lines += 1
+                self._logsize += len(datum)
             except ValueError:
                 pass
 
-        if self._lines > MAXLOGLINES:
+        if self._logsize > maxsize:
             self.close_logfile()
             self.open_logfile()
 
@@ -318,7 +319,7 @@ class FileHandler:
             _, self._trackname = set_filename(self._trackpath, "track", "gpx")
             self._trackfile = open(self._trackname, "a", encoding="utf-8")
         except FileNotFoundError as err:
-            self.__app.set_status(f"{err}", ERRCOL)
+            self.__app.status_label = (f"{err}", ERRCOL)
             return 0
 
         date = datetime.now().isoformat() + "Z"
@@ -466,13 +467,13 @@ class FileHandler:
 
             self._last_track_update = datetime.now()
 
-    def set_database_path(self, initdir=HOME) -> Path:
+    def set_database_path(self, initdir: Path = HOME) -> str | NoneType:
         """
         Set database directory.
 
-        :param str initdir: initial directory (HOME)
-        :return: file path
-        :rtype: str
+        :param Path initdir: initial directory (HOME)
+        :return: file path or None
+        :rtype: str | NoneType
         """
 
         self._databasepath = filedialog.askdirectory(

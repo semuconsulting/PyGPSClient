@@ -7,7 +7,6 @@ used to maintain the state of the various threaded dialogs.
 CLASS = name of dialog class
 THD = instance of thread
 DLG = instance of dialog frame
-CFG = whether to pass configuration data to dialog
 RESIZE = whether dialog is resizeable
 
 Created on 16 Aug 2023
@@ -18,7 +17,7 @@ Created on 16 Aug 2023
 """
 
 from pygpsclient.about_dialog import AboutDialog
-from pygpsclient.globals import CFG, CLASS, RESIZE, THD
+from pygpsclient.globals import CLASS, RESIZE, THD
 from pygpsclient.gpx_dialog import GPXViewerDialog
 from pygpsclient.importmap_dialog import ImportMapDialog
 from pygpsclient.nmea_config_dialog import NMEAConfigDialog
@@ -54,56 +53,48 @@ class DialogState:
                 CLASS: AboutDialog,
                 THD: None,
                 DLG: None,
-                CFG: False,
                 RESIZE: False,
             },
             DLGTUBX: {
                 CLASS: UBXConfigDialog,
                 THD: None,
                 DLG: None,
-                CFG: True,
                 RESIZE: False,
             },
             DLGTNMEA: {
                 CLASS: NMEAConfigDialog,
                 THD: None,
                 DLG: None,
-                CFG: True,
                 RESIZE: False,
             },
             DLGTNTRIP: {
                 CLASS: NTRIPConfigDialog,
                 THD: None,
                 DLG: None,
-                CFG: True,
                 RESIZE: False,
             },
             DLGTSPARTN: {
                 CLASS: SPARTNConfigDialog,
                 THD: None,
                 DLG: None,
-                CFG: True,
                 RESIZE: False,
             },
             DLGTGPX: {
                 CLASS: GPXViewerDialog,
                 THD: None,
                 DLG: None,
-                CFG: True,
                 RESIZE: True,
             },
             DLGTIMPORTMAP: {
                 CLASS: ImportMapDialog,
                 THD: None,
                 DLG: None,
-                CFG: True,
                 RESIZE: True,
             },
             DLGTTTY: {
                 CLASS: TTYPresetDialog,
                 THD: None,
                 DLG: None,
-                CFG: True,
                 RESIZE: True,
             },
             # add any new dialogs here

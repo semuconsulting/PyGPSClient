@@ -26,6 +26,7 @@ import sqlite3
 import traceback
 from datetime import datetime, timezone
 from os import path
+from types import NoneType
 
 from pynmeagps import ecef2llh
 
@@ -127,8 +128,9 @@ class SqliteHandler:
         """
 
         try:
-            self.__app.set_status(
-                f"Database {self._db} initialising - please wait...", INFOCOL
+            self.__app.status_label = (
+                f"Database {self._db} initialising - please wait...",
+                INFOCOL,
             )
             self.logger.debug("Spatial metadata initialisation in progress...")
             self._connection.execute("SELECT InitSpatialMetaData();")
@@ -137,7 +139,10 @@ class SqliteHandler:
             self._cursor.executescript(SQLC1.format(table=tbname))
             return SQLOK
         except sqlite3.Error as err:
-            self.__app.set_status(f"Error initialising spatial database {err}", ERRCOL)
+            self.__app.status_label = (
+                f"Error initialising spatial database {err}",
+                ERRCOL,
+            )
             self.logger.debug(traceback.format_exc())
             return SQLERR
 
@@ -146,7 +151,7 @@ class SqliteHandler:
         dbpath: str = HOME,
         dbname: str = DBNAME,
         tbname: str = TBNAME,
-    ) -> str:
+    ) -> str | int:
         """
         Create sqlite3 connection and cursor.
 
@@ -154,7 +159,7 @@ class SqliteHandler:
         :param str dbname: name of sqlite3 database file
         :param str tbname: name of table containing gnss data
         :return: result
-        :rtype: str
+        :rtype: str | int
         """
 
         testing = dbname == DBINMEM
@@ -181,18 +186,18 @@ class SqliteHandler:
             if testing:
                 self._connection.close()
             else:
-                self.__app.set_status(f"Database {self._db} opened", OKCOL)
+                self.__app.status_label = (f"Database {self._db} opened", OKCOL)
             return SQLOK
         except AttributeError as err:
-            self.__app.set_status(f"SQL error: {err}", errcol)
+            self.__app.status_label = (f"SQL error: {err}", errcol)
             self.logger.debug(traceback.format_exc())
             return NOEXT  # extensions not supported
         except sqlite3.OperationalError as err:
-            self.__app.set_status(f"SQL error {db}: {err}", errcol)
+            self.__app.status_label = (f"SQL error {db}: {err}", errcol)
             self.logger.debug(traceback.format_exc())
             return NOMODS  # no mod_spatial extension found
         except sqlite3.Error as err:
-            self.__app.set_status(f"SQL error {db}: {err}", errcol)
+            self.__app.status_label = (f"SQL error {db}: {err}", errcol)
             self.logger.debug(traceback.format_exc())
             return SQLERR  # other sqlite error
 
@@ -257,17 +262,17 @@ class SqliteHandler:
             self.logger.debug(f"Executed SQL statement {sql}")
             return SQLOK
         except sqlite3.Error as err:
-            self.__app.set_status(f"SQL error: {err}", ERRCOL)
+            self.__app.status_label = (f"SQL error: {err}", ERRCOL)
             self.logger.debug(traceback.format_exc())
             return SQLERR
 
     @property
-    def database(self) -> str:
+    def database(self) -> str | NoneType:
         """
         Getter for database name.
 
-        :return: database path/name
-        :rtype: str
+        :return: database path/name or None
+        :rtype: str | NoneType
         """
 
         return self._db

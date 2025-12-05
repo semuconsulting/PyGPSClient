@@ -16,7 +16,7 @@ The StreamHandler class is used by two PyGPSClient 'caller' objects:
 - SettingsFrame - i/o with the main GNSS receiver.
 - SpartnLbandDialog - i/o with a SPARTN L-Band receiver when SPARTN Client active.
 
-The caller object can implement a 'set_status()' method to
+The caller object can implement a 'status_label = ()' method to
 display any status messages output by StreamHandler.
 
 Created on 16 Sep 2020
@@ -27,12 +27,22 @@ Created on 16 Sep 2020
 """
 
 import logging
-import socket
 import ssl
 from datetime import datetime, timedelta
+from io import BufferedReader
 from queue import Empty
+from socket import (
+    AF_INET,
+    AF_INET6,
+    SOCK_DGRAM,
+    SOCK_STREAM,
+    gaierror,
+    getaddrinfo,
+    socket,
+)
 from threading import Event, Thread
 from time import sleep
+from tkinter import Frame, Label, Tk
 
 from certifi import where as findcacerts
 from pygnssutils import (
@@ -88,11 +98,11 @@ class StreamHandler:
         self._stopevent = Event()
         self._ttyevent = Event()
 
-    def start(self, caller: object, settings: dict):
+    def start(self, caller: Frame, settings: dict):
         """
         Start the stream read thread.
 
-        :param caller owner: calling object
+        :param Frame caller: calling Frame
         :param dict settings: settings dictionary
         """
 
@@ -100,9 +110,10 @@ class StreamHandler:
         self._stream_thread = Thread(
             target=self._read_thread,
             args=(
-                caller,
+                self.__master,
                 self._stopevent,
                 settings,
+                caller.status_label,  # for status update messages
             ),
             daemon=True,
         )
@@ -118,9 +129,10 @@ class StreamHandler:
 
     def _read_thread(
         self,
-        caller,
+        master: Tk,
         stopevent: Event,
         settings: dict,
+        status: Label,
     ):
         """
         THREADED PROCESS
@@ -161,6 +173,7 @@ class StreamHandler:
                 ) as stream:
                     if settings["protocol"] & TTY_PROTOCOL:
                         self._readlooptty(
+                            master,
                             stopevent,
                             stream,
                             settings,
@@ -168,6 +181,7 @@ class StreamHandler:
                         )
                     else:
                         self._readloop(
+                            master,
                             stopevent,
                             stream,
                             settings,
@@ -178,6 +192,7 @@ class StreamHandler:
                 in_filepath = settings["in_filepath"]
                 with open(in_filepath, "rb") as stream:
                     self._readloop(
+                        master,
                         stopevent,
                         stream,
                         settings,
@@ -191,16 +206,16 @@ class StreamHandler:
                 https = int(soc.https.get())
                 selfsign = int(soc.selfsign.get())
                 if soc.protocol.get()[-4:] == "IPv6":
-                    afam = socket.AF_INET6
-                    conn = socket.getaddrinfo(server, port)[1][4]
+                    afam = AF_INET6
+                    conn = getaddrinfo(server, port)[1][4]
                 else:  # IPv4
-                    afam = socket.AF_INET
+                    afam = AF_INET
                     conn = (server, port)
                 if soc.protocol.get()[:3] == "UDP":
-                    socktype = socket.SOCK_DGRAM
+                    socktype = SOCK_DGRAM
                 else:  # TCP
-                    socktype = socket.SOCK_STREAM
-                with socket.socket(afam, socktype) as stream:
+                    socktype = SOCK_STREAM
+                with socket(afam, socktype) as stream:
                     if https:
                         context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
                         context.load_verify_locations(findcacerts())
@@ -211,9 +226,10 @@ class StreamHandler:
                             context.check_hostname = False
                         stream = context.wrap_socket(stream, server_hostname=server)
                     stream.connect(conn)
-                    if socktype == socket.SOCK_DGRAM:
+                    if socktype == SOCK_DGRAM:
                         stream.send(b"")  # send empty datagram to establish connection
                     self._readloop(
+                        master,
                         stopevent,
                         stream,
                         settings,
@@ -224,6 +240,7 @@ class StreamHandler:
                 with UBXSimulator() as stream:
                     if settings["protocol"] & TTY_PROTOCOL:
                         self._readlooptty(
+                            master,
                             stopevent,
                             stream,
                             settings,
@@ -231,6 +248,7 @@ class StreamHandler:
                         )
                     else:
                         self._readloop(
+                            master,
                             stopevent,
                             stream,
                             settings,
@@ -239,28 +257,29 @@ class StreamHandler:
 
         except EOFError:
             stopevent.set()
-            self.__master.event_generate(settings["eof_event"])
+            master.event_generate(settings["eof_event"])
         except TimeoutError:
             stopevent.set()
-            self.__master.event_generate(settings["timeout_event"])
+            master.event_generate(settings["timeout_event"])
         except (
             IOError,
             SerialException,
             SerialTimeoutException,
             OSError,
             AttributeError,
-            socket.gaierror,
+            gaierror,
         ) as err:
             if not stopevent.is_set():
                 stopevent.set()
-                self.__master.event_generate(settings["error_event"])
-                if hasattr(caller, "set_status"):
-                    caller.set_status(str(err), ERRCOL)
+                master.event_generate(settings["error_event"])
+                # use after(0) to avoid tkinter main thread contention
+                status.after(0, status.config, {"text": str(err), "fg": ERRCOL})
 
     def _readloop(
         self,
+        master: Tk,
         stopevent: Event,
-        stream: object,
+        stream: Serial | BufferedReader | socket,
         settings: dict,
         inactivity: int,
     ):
@@ -272,7 +291,7 @@ class StreamHandler:
         prevent thrashing.
 
         :param Event stopevent: thread stop event
-        :param object stream: serial data stream
+        :param Serial | BufferedReader stream: serial data stream
         :param dict settings: settings dictionary
         :param int inactivity: inactivity timeout (s)
         """
@@ -286,7 +305,7 @@ class StreamHandler:
 
             parsed_data = f"Error parsing data stream {err}"
             settings["inqueue"].put((raw_data, parsed_data))
-            self.__master.event_generate(settings["read_event"])
+            master.event_generate(settings["read_event"])
 
         conntype = settings["conntype"]
 
@@ -320,7 +339,7 @@ class StreamHandler:
                     raw_data, parsed_data = ubr.read()
                     if raw_data is not None:
                         settings["inqueue"].put((raw_data, parsed_data))
-                        self.__master.event_generate(settings["read_event"])
+                        master.event_generate(settings["read_event"])
                         lastevent = datetime.now()
                     else:  # timeout or eof
                         if conntype == CONNECTED_FILE:
@@ -331,7 +350,6 @@ class StreamHandler:
                             raise TimeoutError
                     if conntype == CONNECTED_FILE:
                         lastread = datetime.now()
-                        self.__master.update_idletasks()
 
                     # write any queued output data to serial stream
                     if conntype in (CONNECTED, CONNECTED_SOCKET):
@@ -365,10 +383,14 @@ class StreamHandler:
                 _errorhandler(err)
                 continue
 
+            # allow for any tkinter events e.g. dialogs
+            master.update_idletasks()
+
     def _readlooptty(
         self,
+        master: Tk,
         stopevent: Event,
-        stream: object,
+        stream: Serial,
         settings: dict,
         delay: float = 0.0,
     ):
@@ -377,7 +399,7 @@ class StreamHandler:
         TTY (ASCII) Read stream continously until stop event or stream error.
 
         :param Event stopevent: thread stop event
-        :param object stream: serial data stream
+        :param Serial stream: serial data stream
         :param dict settings: settings dictionary
         :param float delay: delay between commands (secs)
         """
@@ -391,7 +413,7 @@ class StreamHandler:
 
             parsed_data = f"Error parsing data stream {err}"
             settings["inqueue"].put((raw_data, parsed_data))
-            self.__master.event_generate(settings["read_event"])
+            master.event_generate(settings["read_event"])
 
         raw_data = None
         while not stopevent.is_set():
@@ -421,7 +443,7 @@ class StreamHandler:
                     settings["inqueue"].put(
                         (raw_data, raw_data.decode(ASCII, errors=BSR))
                     )
-                    self.__master.event_generate(settings["read_event"])
+                    master.event_generate(settings["read_event"])
 
             except (ValueError, SerialException) as err:
                 _errorhandler(err)

@@ -11,8 +11,12 @@ Created on 7 May 2025
 """
 
 from tkinter import (
+    EW,
     HORIZONTAL,
     LEFT,
+    NE,
+    NS,
+    NSEW,
     VERTICAL,
     Button,
     Checkbutton,
@@ -146,17 +150,17 @@ class TTYPresetDialog(ToplevelDialog):
         """
 
         self._frm_body.grid(
-            column=0, row=0, padx=5, pady=5, ipadx=5, ipady=5, sticky=(N, S, E, W)
+            column=0, row=0, padx=5, pady=5, ipadx=5, ipady=5, sticky=NSEW
         )
         self._lbl_command.grid(column=0, row=0, padx=3, sticky=W)
-        self._ent_command.grid(column=1, row=0, columnspan=3, padx=3, sticky=(W, E))
+        self._ent_command.grid(column=1, row=0, columnspan=3, padx=3, sticky=EW)
         self._chk_crlf.grid(column=0, row=1, padx=3, sticky=W)
         self._chk_echo.grid(column=1, row=1, padx=3, sticky=W)
         self._chk_delay.grid(column=2, row=1, padx=3, sticky=W)
         ttk.Separator(self._frm_body).grid(
-            column=0, row=2, columnspan=4, padx=2, pady=2, sticky=(W, E)
+            column=0, row=2, columnspan=4, padx=2, pady=2, sticky=EW
         )
-        self._lbl_presets.grid(column=0, row=3, columnspan=3, padx=3, sticky=(W, E))
+        self._lbl_presets.grid(column=0, row=3, columnspan=3, padx=3, sticky=EW)
         self._lbx_preset.grid(
             column=0,
             row=3,
@@ -164,15 +168,15 @@ class TTYPresetDialog(ToplevelDialog):
             rowspan=10,
             padx=3,
             pady=3,
-            sticky=(N, S, W, E),
+            sticky=NS,
         )
         self._scr_presetv.grid(column=2, row=3, rowspan=21, sticky=(N, S, E))
-        self._scr_preseth.grid(column=0, row=24, columnspan=3, sticky=(W, E))
+        self._scr_preseth.grid(column=0, row=24, columnspan=3, sticky=EW)
         self._btn_send_command.grid(
-            column=3, row=3, padx=3, ipadx=3, ipady=3, sticky=(N, E)
+            column=3, row=3, padx=3, ipadx=3, ipady=3, sticky=NE
         )
         self._lbl_send_command.grid(
-            column=3, row=4, padx=3, ipadx=3, ipady=3, sticky=(N, W, E)
+            column=3, row=4, padx=3, ipadx=3, ipady=3, sticky=EW
         )
         self.container.grid_columnconfigure(0, weight=10)
         self.container.grid_rowconfigure(0, weight=10)
@@ -228,13 +232,13 @@ class TTYPresetDialog(ToplevelDialog):
         """
 
         try:
-            self.set_status("", INFOCOL)
+            self.status_label = ("", INFOCOL)
             idx = self._lbx_preset.curselection()
             preset = self._lbx_preset.get(idx).split(";", 1)
             self._confirm = CONFIRM in preset[0]
             self._command.set(preset[1])
         except IndexError:
-            self.set_status("Invalid preset format", ERRCOL)
+            self.status_label = ("Invalid preset format", ERRCOL)
 
     def _on_send_command(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -242,7 +246,7 @@ class TTYPresetDialog(ToplevelDialog):
         """
 
         if self._command.get() in ("", None):
-            self.set_status("Enter or select command", ERRCOL)
+            self.status_label = ("Enter or select command", ERRCOL)
             return
 
         try:
@@ -257,15 +261,15 @@ class TTYPresetDialog(ToplevelDialog):
                 status = CONFIRMED
             if status == CONFIRMED:
                 self._lbl_send_command.config(image=self.img_pending)
-                self.set_status("Command(s) sent")
+                self.status_label = "Command(s) sent"
             elif status == CANCELLED:
-                self.set_status("Command(s) cancelled")
+                self.status_label = "Command(s) cancelled"
             elif status == NOMINAL:
-                self.set_status("Command(s) sent, no results")
+                self.status_label = "Command(s) sent, no results"
             self._confirm = False
 
         except Exception as err:  # pylint: disable=broad-except
-            self.set_status(f"Error {err}", ERRCOL)
+            self.status_label = (f"Error {err}", ERRCOL)
             self._lbl_send_command.config(image=self.img_warn)
 
     def _parse_command(self, command: str):
@@ -290,7 +294,7 @@ class TTYPresetDialog(ToplevelDialog):
                         (cmd, cmd.decode(ASCII, errors=BSR), TTYMARKER)
                     )
         except Exception as err:  # pylint: disable=broad-except
-            self.set_status(f"Error {err}", ERRCOL)
+            self.status_label = (f"Error {err}", ERRCOL)
             self._lbl_send_command.config(image=self.img_warn)
 
     def update_status(self, msg: bytes):
@@ -304,10 +308,10 @@ class TTYPresetDialog(ToplevelDialog):
         for ack in TTYOK:
             if ack in msgstr:
                 self._lbl_send_command.config(image=self.img_confirmed)
-                self.set_status("Command(s) acknowledged", OKCOL)
+                self.status_label = ("Command(s) acknowledged", OKCOL)
                 return
         for nak in TTYERR:
             if nak in msgstr:
                 self._lbl_send_command.config(image=self.img_warn)
-                self.set_status("Command(s) rejected", ERRCOL)
+                self.status_label = ("Command(s) rejected", ERRCOL)
                 break

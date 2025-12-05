@@ -12,6 +12,7 @@ Created on 22 Dec 2020
 
 import logging
 from tkinter import (
+    EW,
     HORIZONTAL,
     LEFT,
     VERTICAL,
@@ -118,14 +119,14 @@ class UBX_PRESET_Frame(Frame):
         Layout widgets.
         """
 
-        self._lbl_presets.grid(column=0, row=0, columnspan=6, padx=3, sticky=(W, E))
+        self._lbl_presets.grid(column=0, row=0, columnspan=6, padx=3, sticky=EW)
         self._lbx_preset.grid(
-            column=0, row=1, columnspan=3, rowspan=12, padx=3, pady=3, sticky=(W, E)
+            column=0, row=1, columnspan=3, rowspan=12, padx=3, pady=3, sticky=EW
         )
         self._scr_presetv.grid(column=2, row=1, rowspan=12, sticky=(N, S, E))
-        self._scr_preseth.grid(column=0, row=13, columnspan=3, sticky=(W, E))
-        self._btn_send_command.grid(column=3, row=1, ipadx=3, ipady=3, sticky=(W, E))
-        self._lbl_send_command.grid(column=3, row=3, ipadx=3, ipady=3, sticky=(W, E))
+        self._scr_preseth.grid(column=0, row=13, columnspan=3, sticky=EW)
+        self._btn_send_command.grid(column=3, row=1, ipadx=3, ipady=3, sticky=EW)
+        self._lbl_send_command.grid(column=3, row=3, ipadx=3, ipady=3, sticky=EW)
 
         (cols, rows) = self.grid_size()
         for i in range(cols):
@@ -164,7 +165,7 @@ class UBX_PRESET_Frame(Frame):
         """
 
         if self._preset_command in ("", None):
-            self.__container.set_status("Select preset", ERRCOL)
+            self.__container.status_label = ("Select preset", ERRCOL)
             return
 
         status = CONFIRMED
@@ -183,22 +184,16 @@ class UBX_PRESET_Frame(Frame):
 
             if status == CONFIRMED:
                 self._lbl_send_command.config(image=self._img_pending)
-                self.__container.set_status(
-                    "Command(s) sent",
-                )
+                self.__container.status_label = "Command(s) sent"
                 for msgid in confids:
                     self.__container.set_pending(msgid, UBX_PRESET)
             elif status == CANCELLED:
-                self.__container.set_status(
-                    "Command(s) cancelled",
-                )
+                self.__container.status_label = "Command(s) cancelled"
             elif status == NOMINAL:
-                self.__container.set_status(
-                    "Command(s) sent, no results",
-                )
+                self.__container.status_label = "Command(s) sent, no results"
 
         except Exception as err:  # pylint: disable=broad-except
-            self.__container.set_status(f"Error {err}", ERRCOL)
+            self.__container.status_label = (f"Error {err}", ERRCOL)
             self._lbl_send_command.config(image=self._img_warn)
 
     def _format_preset(self, command: str):
@@ -226,7 +221,7 @@ class UBX_PRESET_Frame(Frame):
                     msg = UBXMessage(ubx_class, ubx_id, mode)
                 self.__container.send_command(msg)
         except Exception as err:  # pylint: disable=broad-except
-            self.__app.set_status(f"Error {err}", ERRCOL)
+            self.__container.status_label = (f"Error {err}", ERRCOL)
             self._lbl_send_command.config(image=self._img_warn)
 
     def update_status(self, msg: UBXMessage):
@@ -238,7 +233,7 @@ class UBX_PRESET_Frame(Frame):
 
         if msg.identity in ("ACK-ACK", "MON-VER"):
             self._lbl_send_command.config(image=self._img_confirmed)
-            self.__container.set_status("Preset command(s) acknowledged", OKCOL)
+            self.__container.status_label = ("Preset command(s) acknowledged", OKCOL)
         elif msg.identity == "ACK-NAK":
             self._lbl_send_command.config(image=self._img_warn)
-            self.__container.set_status("Preset command(s) rejected", ERRCOL)
+            self.__container.status_label = ("Preset command(s) rejected", ERRCOL)

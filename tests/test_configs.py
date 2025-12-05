@@ -15,6 +15,7 @@ Created on 3 Oct 2020
 import unittest
 
 from pygpsclient.receiver_config_handler import (
+    config_nmea,
     config_disable_lc29h,
     config_disable_lg290p,
     config_disable_septentrio,
@@ -37,6 +38,11 @@ class ConfigsTest(unittest.TestCase):
 
     def tearDown(self):
         pass
+
+    def test_config_nmea(self):
+        EXPECTED_RESULT = "<UBX(CFG-VALSET, version=0, ram=1, bbr=0, flash=0, action=0, reserved0=0, CFG_UART1OUTPROT_NMEA=0, CFG_UART1OUTPROT_UBX=1, CFG_MSGOUT_UBX_NAV_PVT_UART1=1, CFG_MSGOUT_UBX_NAV_DOP_UART1=1, CFG_MSGOUT_UBX_NAV_SAT_UART1=4)>"
+        res = config_nmea(1, "UART1")
+        self.assertEqual(str(res), EXPECTED_RESULT)
 
     def test_config_disable_lc29h(self):
         EXPECTED_RESULT = "[NMEAMessage('P','AIR062', 1, payload=['-1', '0']), NMEAMessage('P','AIR432', 1, payload=['-1']), NMEAMessage('P','AIR434', 1, payload=['0']), NMEAMessage('P','QTMSAVEPAR', 1, payload=[]), NMEAMessage('P','AIR005', 1, payload=[])]"

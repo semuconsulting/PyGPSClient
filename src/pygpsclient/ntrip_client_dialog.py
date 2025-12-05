@@ -21,19 +21,19 @@ from socket import AF_INET, AF_INET6
 from tkinter import (
     DISABLED,
     END,
+    EW,
     HORIZONTAL,
     NORMAL,
+    NS,
+    NSEW,
     VERTICAL,
     Button,
-    E,
     Entry,
     Frame,
     IntVar,
     Label,
     Listbox,
-    N,
     Radiobutton,
-    S,
     Scrollbar,
     Spinbox,
     StringVar,
@@ -293,24 +293,24 @@ class NTRIPConfigDialog(ToplevelDialog):
         """
 
         # top of grid
-        self._frm_body.grid(column=0, row=0, sticky=(N, S, E, W))
+        self._frm_body.grid(column=0, row=0, sticky=NSEW)
 
         # body of grid
         self._frm_socket.grid(
             column=0, row=0, columnspan=3, rowspan=3, padx=3, pady=3, sticky=W
         )
         ttk.Separator(self._frm_body).grid(
-            column=0, row=3, columnspan=5, padx=3, pady=3, sticky=(W, E)
+            column=0, row=3, columnspan=5, padx=3, pady=3, sticky=EW
         )
         self._lbl_mountpoint.grid(column=0, row=4, padx=3, pady=3, sticky=W)
         self._ent_mountpoint.grid(column=1, row=4, padx=3, pady=3, sticky=W)
         self._lbl_mpdist.grid(column=2, row=4, columnspan=2, padx=3, pady=3, sticky=W)
         self._lbl_sourcetable.grid(column=0, row=5, padx=3, pady=3, sticky=W)
         self._lbx_sourcetable.grid(
-            column=1, row=5, columnspan=3, rowspan=4, padx=3, pady=3, sticky=(E, W)
+            column=1, row=5, columnspan=3, rowspan=4, padx=3, pady=3, sticky=EW
         )
-        self._scr_sourcetablev.grid(column=4, row=5, rowspan=4, sticky=(N, S))
-        self._scr_sourcetableh.grid(column=1, columnspan=3, row=9, sticky=(E, W))
+        self._scr_sourcetablev.grid(column=4, row=5, rowspan=4, sticky=NS)
+        self._scr_sourcetableh.grid(column=1, columnspan=3, row=9, sticky=EW)
         self._lbl_ntripversion.grid(column=0, row=10, padx=3, pady=3, sticky=W)
         self._spn_ntripversion.grid(column=1, row=10, padx=3, pady=3, sticky=W)
         self._lbl_datatype.grid(column=0, row=11, padx=3, pady=3, sticky=W)
@@ -322,7 +322,7 @@ class NTRIPConfigDialog(ToplevelDialog):
             column=1, row=13, columnspan=2, padx=3, pady=3, sticky=W
         )
         ttk.Separator(self._frm_body).grid(
-            column=0, row=14, columnspan=5, padx=3, pady=3, sticky=(W, E)
+            column=0, row=14, columnspan=5, padx=3, pady=3, sticky=EW
         )
         self._lbl_ntripggaint.grid(column=0, row=15, padx=2, pady=3, sticky=W)
         self._spn_ntripggaint.grid(column=1, row=15, padx=3, pady=2, sticky=W)
@@ -337,7 +337,7 @@ class NTRIPConfigDialog(ToplevelDialog):
         self._lbl_sep.grid(column=2, row=18, padx=3, pady=2, sticky=W)
         self._ent_sep.grid(column=3, row=18, columnspan=2, padx=3, pady=2, sticky=W)
         ttk.Separator(self._frm_body).grid(
-            column=0, row=19, columnspan=5, padx=3, pady=3, sticky=(W, E)
+            column=0, row=19, columnspan=5, padx=3, pady=3, sticky=EW
         )
         self._btn_connect.grid(column=0, row=20, padx=3, pady=3, sticky=W)
         self._btn_disconnect.grid(column=1, row=20, padx=3, pady=3, sticky=W)
@@ -429,12 +429,12 @@ class NTRIPConfigDialog(ToplevelDialog):
                     else "Disconnected"
                 )
             if msgt is None:
-                self.set_status(msg, INFOCOL)
+                self.status_label = (msg, INFOCOL)
             else:
                 msg, col = msgt
-                self.set_status(msg, col)
+                self.status_label = (msg, col)
 
-            self._frm_socket.set_status(connected)
+            self._frm_socket.status_label = connected
 
             self._btn_disconnect.config(state=(NORMAL if connected else DISABLED))
 
@@ -473,20 +473,6 @@ class NTRIPConfigDialog(ToplevelDialog):
                 self.set_mp_dist(mindist, mpname)
         except TclError:  # fudge during thread termination
             pass
-
-    def set_status(self, message: str, color: str = ""):
-        """
-        Set status message.
-
-        :param str message: message to be displayed
-        :param str color: rgb color of text
-        """
-
-        color = INFOCOL if color == "blue" else color
-        message = f"{message[:78]}.." if len(message) > 80 else message
-        if color != "":
-            self._lbl_status.config(fg=color)
-        self._status.set(" " + message)
 
     def _on_select_mp(self, event):
         """
@@ -700,7 +686,7 @@ class NTRIPConfigDialog(ToplevelDialog):
             valid = valid & self._ent_sep.validate(VALFLOAT, -MAXALT, MAXALT)
 
         if not valid:
-            self.set_status("ERROR - invalid settings", ERRCOL)
+            self.status_label = ("ERROR - invalid settings", ERRCOL)
 
         return valid
 

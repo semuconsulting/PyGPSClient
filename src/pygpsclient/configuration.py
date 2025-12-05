@@ -10,8 +10,11 @@ Created on 18 Apr 2025
 :license: BSD 3-Clause
 """
 
+# pylint: disable=logging-format-interpolation
+
 import logging
 from os import getenv
+from types import NoneType
 
 from pyubx2 import GET
 from serial import PARITY_NONE
@@ -27,6 +30,7 @@ from pygpsclient.globals import (
     FORMAT_BINARY,
     FORMAT_PARSED,
     GUI_UPDATE_INTERVAL,
+    MAXLOGSIZE,
     MIN_GUI_UPDATE_INTERVAL,
     MQTTIPMODE,
     OKCOL,
@@ -47,13 +51,14 @@ from pygpsclient.globals import (
     ZED_F9,
 )
 from pygpsclient.init_presets import INIT_PRESETS
-from pygpsclient.mapquest import MAP_UPDATE_INTERVAL
+from pygpsclient.mapquest_handler import MAP_UPDATE_INTERVAL
 from pygpsclient.spartn_lband_frame import D9S_PP_EU as D9S_PP
 from pygpsclient.strings import (
     LOADCONFIGBAD,
     LOADCONFIGNK,
     LOADCONFIGNONE,
     LOADCONFIGOK,
+    LOADCONFIGRESAVE,
 )
 from pygpsclient.widget_state import VISIBLE
 
@@ -128,6 +133,7 @@ class Configuration:
             "datalog_b": 0,
             "logformat_s": FORMAT_BINARY,
             "logpath_s": "",
+            "logsize_n": MAXLOGSIZE,
             "recordtrack_b": 0,
             "trackpath_s": "",
             "database_b": 0,
@@ -235,9 +241,8 @@ class Configuration:
                 "scatterlon_f": 0.0,
             },
             "imusettings_d": {
-                "source_s": "ESF-ALG",
                 "range_n": 180,
-                "option_s": "N/A",
+                "option_s": "N/A",  # reserved for future use
             },
             "chartsettings_d": {
                 "numchn_n": 4,
@@ -251,11 +256,11 @@ class Configuration:
             "colortags_l": [],
         }
 
-    def loadfile(self, filename: str = None) -> tuple:
+    def loadfile(self, filename: str | NoneType = None) -> tuple:
         """
         Load configuration from json file.
 
-        :param str filename: config file name
+        :param str | NoneType filename: config file name
         :return: tuple of filename and err message (or "" if OK)
         :rtype: tuple
         """
@@ -263,18 +268,20 @@ class Configuration:
         fname, config, err = self.__app.file_handler.load_config(filename)
         key = ""
         val = 0
+        resave = False
         if err == "":  # load succeeded
-            try:
-                for key, val in config.items():
-                    key = key.replace("mgtt", "mqtt")  # tolerate "mgtt" typo
-                    if key == "protocol_n":  # redundant, ignore
-                        continue
-                    if key == "guiupdateinterval_f":  # disallow excessive value
-                        val = max(MIN_GUI_UPDATE_INTERVAL, val)
+            for key, val in config.items():
+                if key == "version_s" and val != version:
+                    resave = True
+                key = key.replace("mgtt", "mqtt")  # tolerate "mgtt" typo
+                if key == "guiupdateinterval_f":  # disallow excessive value
+                    val = max(MIN_GUI_UPDATE_INTERVAL, val)
+                try:
                     self.set(key, val)
-                # self.__app.set_status(LOADCONFIGOK.format(fname), OKCOL)
-            except KeyError:  # unrecognised setting
-                err = LOADCONFIGNK.format(key, val)
+                except KeyError:  # ignore unrecognised setting
+                    self.logger.info(LOADCONFIGNK.format(key, val))
+                    resave = True
+                    continue
         else:
             if "No such file or directory" in err:
                 err = LOADCONFIGNONE.format(fname)
@@ -282,21 +289,23 @@ class Configuration:
                 err = LOADCONFIGBAD.format(fname, err)
 
         if err == "":  # config valid
-            self.__app.set_status(LOADCONFIGOK.format(fname), OKCOL)
+            rs = LOADCONFIGRESAVE if resave else ""
+            self.__app.status_label = (LOADCONFIGOK.format(fname, rs), OKCOL)
         else:
-            self.__app.set_status(err, ERRCOL)
+            self.__app.status_label = (err, ERRCOL)
 
         return fname, err
 
-    def savefile(self, filename: str = None) -> str:
+    def savefile(self, filename: str | NoneType = None) -> str:
         """
         Save configuration to json file.
 
-        :param str filename: config file name
+        :param str | NoneType filename: config file name
         :return: error code, or "" if OK
         :rtype: str
         """
 
+        self.set("version_s", version)
         return self.__app.file_handler.save_config(self.settings, filename)
 
     def loadcli(self, **kwargs):

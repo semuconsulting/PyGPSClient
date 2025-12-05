@@ -18,9 +18,9 @@ Created on 27 Apr 2022
 
 from tkinter import (
     DISABLED,
+    EW,
     NORMAL,
     Checkbutton,
-    E,
     Entry,
     Frame,
     IntVar,
@@ -91,7 +91,6 @@ class SocketConfigFrame(Frame):
         self._do_layout()
         self.reset()
         # self._attach_events() # done in reset
-        self._attach_events1()
 
     def _body(self):
         """
@@ -133,24 +132,15 @@ class SocketConfigFrame(Frame):
         Layout widgets.
         """
 
-        self._frm_basic.grid(column=0, row=0, columnspan=4, sticky=(W, E))
+        self._frm_basic.grid(column=0, row=0, columnspan=4, sticky=EW)
         self._lbl_server.grid(column=0, row=0, padx=2, pady=2, sticky=W)
-        self.ent_server.grid(
-            column=1, row=0, padx=2, pady=2, columnspan=4, sticky=(W, E)
-        )
+        self.ent_server.grid(column=1, row=0, padx=2, pady=2, columnspan=4, sticky=EW)
         self._lbl_port.grid(column=0, row=1, padx=2, pady=2, sticky=W)
         self.ent_port.grid(column=1, row=1, padx=2, pady=2, sticky=W)
         self._lbl_protocol.grid(column=2, row=1, padx=2, pady=2, sticky=W)
         self._spn_protocol.grid(column=3, row=1, padx=2, pady=2, sticky=W)
         self._chk_https.grid(column=1, row=2, padx=2, pady=2, sticky=W)
         self._chk_selfsign.grid(column=2, row=2, padx=2, pady=2, sticky=W)
-
-    def _attach_events1(self):
-        """
-        Bind resize event to frame.
-        """
-
-        self.bind("<Configure>", self._on_resize)
 
     def _attach_events(self, add: bool = True):
         """

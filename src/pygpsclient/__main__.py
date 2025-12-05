@@ -1,5 +1,5 @@
 """
-Entry point for PyGPSClient Application.
+CLI Entry point for PyGPSClient Application.
 
 Created on 12 Sep 2020
 

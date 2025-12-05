@@ -15,7 +15,9 @@ Created on 14 Sep 2024
 from tkinter import (
     ALL,
     DISABLED,
+    EW,
     NORMAL,
+    NSEW,
     Button,
     Checkbutton,
     E,
@@ -23,8 +25,6 @@ from tkinter import (
     Frame,
     IntVar,
     Label,
-    N,
-    S,
     StringVar,
     W,
 )
@@ -42,7 +42,7 @@ from pygpsclient.globals import (
     BGCOL,
     ERRCOL,
     IMPORT,
-    INFOCOL,
+    OKCOL,
     TRACEMODE_WRITE,
     VALFLOAT,
     Area,
@@ -51,14 +51,6 @@ from pygpsclient.helpers import validate  # pylint: disable=unused-import
 from pygpsclient.strings import DLGTIMPORTMAP
 from pygpsclient.toplevel_dialog import ToplevelDialog
 
-# profile chart parameters:
-AXIS_XL = 35  # x axis left offset
-AXIS_XR = 35  # x axis right offset
-AXIS_Y = 15  # y axis bottom offset
-ELEAX_COL = "green4"  # color of elevation plot axis
-ELE_COL = "palegreen3"  # color of elevation plot
-SPD_COL = INFOCOL  # color of speed plot
-MD_LINES = 2  # number of lines of metadata
 MINDIM = (456, 418)
 
 
@@ -140,9 +132,9 @@ class ImportMapDialog(ToplevelDialog):
         """
         Arrange widgets.
         """
-        self._frm_body.grid(column=0, row=0, sticky=(N, S, E, W))
-        self._can_mapview.grid(column=0, row=0, sticky=(N, S, E, W))
-        self._frm_controls.grid(column=0, row=1, sticky=(W, E))
+        self._frm_body.grid(column=0, row=0, sticky=NSEW)
+        self._can_mapview.grid(column=0, row=0, sticky=NSEW)
+        self._frm_controls.grid(column=0, row=1, sticky=EW)
         self._btn_load.grid(column=0, row=0, padx=3, pady=3)
         self._btn_redraw.grid(column=1, row=0, padx=3, pady=3)
         self._btn_import.grid(column=2, row=0, padx=3, pady=3)
@@ -189,12 +181,9 @@ class ImportMapDialog(ToplevelDialog):
         self._can_mapview.delete(ALL)
         # self._btn_import.config(state=DISABLED)
         if not HASRASTERIO:
-            self.set_status(
-                "Warning: rasterio library is not installed - bounds must be entered manually",
-                INFOCOL,
-            )
+            self.status_label = "Warning: rasterio library is not installed - bounds must be entered manually"
         else:
-            self.set_status("")
+            self.status_label = ""
 
     def _on_update(self, var, index, mode):
         """
@@ -217,10 +206,10 @@ class ImportMapDialog(ToplevelDialog):
         valid = valid & self._ent_minlon.validate(VALFLOAT, -180, 180)
         valid = valid & self._ent_maxlon.validate(-180, 180)
         if valid:
-            self.set_status("", INFOCOL)
+            self.status_label = ""
             self._btn_import.config(state=NORMAL)
         else:
-            self.set_status("Error: invalid entry", ERRCOL)
+            self.status_label = ("Error: invalid entry", ERRCOL)
             self._btn_import.config(state=DISABLED)
         return valid
 
@@ -229,7 +218,7 @@ class ImportMapDialog(ToplevelDialog):
         Load custom map from file.
         """
 
-        self.set_status("")
+        self.status_label = ""
         self._custommap = self._open_mapfile()
         if self._custommap is not None:
             bounds = self._get_bounds(self._custommap)
@@ -281,15 +270,15 @@ class ImportMapDialog(ToplevelDialog):
                     ras.crs.to_epsg(), 4326, *ras.bounds
                 )
             except Exception:  # pylint: disable=broad-exception-caught
-                self.set_status(
+                self.status_label = (
                     "Warning: image is not georeferenced - bounds must be entered manually",
                     ERRCOL,
                 )
 
-        self._lonmin.set(round(lonmin, 8))
-        self._latmin.set(round(latmin, 8))
-        self._lonmax.set(round(lonmax, 8))
-        self._latmax.set(round(latmax, 8))
+        self._lonmin.set(str(round(lonmin, 8)))
+        self._latmin.set(str(round(latmin, 8)))
+        self._lonmax.set(str(round(lonmax, 8)))
+        self._latmax.set(str(round(latmax, 8)))
         return Area(
             float(self._latmin.get()),
             float(self._lonmin.get()),
@@ -311,10 +300,10 @@ class ImportMapDialog(ToplevelDialog):
         latmax = float(self._latmax.get())
 
         if lonmax + 180 <= lonmin + 180 or latmax + 90 <= latmin + 90:
-            self.set_status("Error: minimum must be less than maximum", ERRCOL)
+            self.status_label = ("Error: minimum must be less than maximum", ERRCOL)
         else:
             usermaps = self.__app.configuration.get("usermaps_l")
             idx = 0 if self._first.get() else len(usermaps) + 1
             usermaps.insert(idx, [self._custommap, [latmin, lonmin, latmax, lonmax]])
             self.__app.configuration.set("usermaps_l", usermaps)
-            self.set_status("Custom map imported", INFOCOL)
+            self.status_label = ("Custom map imported", OKCOL)

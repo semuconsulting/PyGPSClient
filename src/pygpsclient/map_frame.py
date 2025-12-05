@@ -24,14 +24,13 @@ Created on 13 Sep 2020
 from time import time
 from tkinter import (
     DISABLED,
+    EW,
     NORMAL,
+    NSEW,
     Checkbutton,
-    E,
     Frame,
     IntVar,
     Label,
-    N,
-    S,
     Spinbox,
     StringVar,
     W,
@@ -48,7 +47,7 @@ from pygpsclient.globals import (
     WORLD,
     Point,
 )
-from pygpsclient.mapquest import (
+from pygpsclient.mapquest_handler import (
     MAX_ZOOM,
     MIN_UPDATE_INTERVAL,
     MIN_ZOOM,
@@ -156,8 +155,8 @@ class MapviewFrame(Frame):
         Arrange widgets in frame.
         """
 
-        self._can_mapview.grid(column=0, row=0, sticky=(N, S, E, W))
-        self._frm_options.grid(column=0, row=1, sticky=(E, W))
+        self._can_mapview.grid(column=0, row=0, sticky=NSEW)
+        self._frm_options.grid(column=0, row=1, sticky=EW)
         self._spn_maptype.grid(column=0, row=0, padx=1, sticky=W)
         self._lbl_zoom.grid(column=1, row=0, padx=1, sticky=W)
         self._spn_zoom.grid(column=2, row=0, padx=1, sticky=W)

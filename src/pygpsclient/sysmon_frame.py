@@ -14,7 +14,7 @@ Created on 30 Apr 2023
 :license: BSD 3-Clause
 """
 
-from tkinter import ALL, NW, Canvas, E, Frame, IntVar, N, Radiobutton, S, W
+from tkinter import ALL, EW, NSEW, NW, Canvas, E, Frame, IntVar, Radiobutton, W
 
 from pyubx2 import BOOTTYPE, UBXMessage
 
@@ -106,8 +106,8 @@ class SysmonFrame(Frame):
             bg=BGCOL,
             # selectcolor=BGCOL,
         )
-        self._can_sysmon.grid(column=0, row=0, padx=0, pady=0, sticky=(N, S, W, E))
-        self._frm_status.grid(column=0, row=1, padx=2, pady=2, sticky=(W, E))
+        self._can_sysmon.grid(column=0, row=0, padx=0, pady=0, sticky=NSEW)
+        self._frm_status.grid(column=0, row=1, padx=2, pady=2, sticky=EW)
         self._rad_actual.grid(column=0, row=0, padx=0, pady=0, sticky=W)
         self._rad_pending.grid(column=1, row=0, padx=0, pady=0, sticky=W)
         self.grid_columnconfigure(0, weight=1)

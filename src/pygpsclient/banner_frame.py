@@ -12,7 +12,7 @@ Created on 13 Sep 2020
 :license: BSD 3-Clause
 """
 
-from tkinter import NW, SUNKEN, Button, E, Frame, Label, N, W
+from tkinter import NE, NW, SUNKEN, Button, Frame, Label, N, W
 
 from PIL import Image, ImageTk
 from pynmeagps.nmeahelpers import latlon2dmm, latlon2dms, llh2ecef
@@ -230,7 +230,7 @@ class BannerFrame(Frame):
             width=2,
         )
         self._lbl_diffstat = Label(
-            self._frm_advanced2, bg=self._bgcol, fg="hotpink", width=20, anchor=W
+            self._frm_advanced2, bg=self._bgcol, fg="hotpink", width=25, anchor=W
         )
 
     def _do_layout(self):
@@ -272,7 +272,7 @@ class BannerFrame(Frame):
         self._lbl_diffcorr.grid(column=11, row=0, pady=0, padx=0, sticky=W)
         self._lbl_diffstat.grid(column=12, row=0, pady=0, padx=0, sticky=W)
 
-        self._btn_toggle.grid(column=0, row=0, padx=0, pady=0, sticky=(N, E))
+        self._btn_toggle.grid(column=0, row=0, padx=0, pady=0, sticky=NE)
 
         self._toggle_advanced()
 
@@ -282,10 +282,10 @@ class BannerFrame(Frame):
         """
 
         self._frm_connect.grid(
-            column=0, row=0, rowspan=2, pady=3, ipadx=3, ipady=3, sticky=(N, W)
+            column=0, row=0, rowspan=2, pady=3, ipadx=3, ipady=3, sticky=NW
         )
         self._frm_basic.grid(column=1, row=0, pady=2, sticky=W)
-        self._frm_toggle.grid(column=5, row=0, rowspan=2, pady=2, sticky=(N, E))
+        self._frm_toggle.grid(column=5, row=0, rowspan=2, pady=2, sticky=NE)
         self._show_advanced = not self._show_advanced
         if self._show_advanced:
             self._frm_advanced.grid(column=1, row=1, pady=2, sticky=W)
