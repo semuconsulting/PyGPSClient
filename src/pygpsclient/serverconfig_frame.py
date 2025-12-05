@@ -23,6 +23,7 @@ import logging
 from time import sleep
 from tkinter import (
     DISABLED,
+    EW,
     NORMAL,
     Button,
     Checkbutton,
@@ -159,8 +160,7 @@ class ServerConfigFrame(Frame):
         self.sock_port = StringVar()
         self.sock_host = StringVar()
         self.sock_mode = StringVar()
-        self._sock_clients = StringVar()
-        # self._set_basemode = IntVar()
+        self._sock_clients = IntVar()
         self.receiver_type = StringVar()
         self.base_mode = StringVar()
         self.https = IntVar()
@@ -401,7 +401,7 @@ class ServerConfigFrame(Frame):
         Layout widgets.
         """
 
-        self._frm_basic.grid(column=0, row=0, columnspan=5, sticky=(W, E))
+        self._frm_basic.grid(column=0, row=0, columnspan=5, sticky=EW)
         self._chk_socketserve.grid(
             column=0, row=0, columnspan=2, rowspan=2, padx=2, pady=1, sticky=W
         )
@@ -452,7 +452,7 @@ class ServerConfigFrame(Frame):
         pem, pemexists = check_pemfile()
         if https and not pemexists:
             err = DLGNOTLS.format(hostpem=pem)
-            self.__app.set_status(err, ERRCOL)
+            self.__app.status_label = (err, ERRCOL)
             self.logger.error(err)
             cfg.set("sockhttps_b", 0)
             self._chk_https.config(state=DISABLED)
@@ -541,7 +541,7 @@ class ServerConfigFrame(Frame):
         """
 
         if self._show_advanced:
-            self._frm_advanced.grid(column=0, row=1, columnspan=5, sticky=(W, E))
+            self._frm_advanced.grid(column=0, row=1, columnspan=5, sticky=EW)
             self._btn_toggle.config(image=self._img_contract)
         else:
             self._frm_advanced.grid_forget()
@@ -568,9 +568,9 @@ class ServerConfigFrame(Frame):
         """
 
         if self.valid_settings():
-            self.__app.set_status("", INFOCOL)
+            self.__app.status_label = ("", INFOCOL)
         else:
-            self.__app.set_status("ERROR - invalid entry", ERRCOL)
+            self.__app.status_label = ("ERROR - invalid entry", ERRCOL)
             return
 
         self._quectel_restart = 0
@@ -650,9 +650,9 @@ class ServerConfigFrame(Frame):
 
         # validate settings
         if self.valid_settings():
-            self.__app.set_status("", INFOCOL)
+            self.__app.status_label = ("", INFOCOL)
         else:
-            self.__app.set_status("ERROR - invalid entry", ERRCOL)
+            self.__app.status_label = ("ERROR - invalid entry", ERRCOL)
             return
 
         delay = self.__app.configuration.get("guiupdateinterval_f") / 2
@@ -863,7 +863,7 @@ class ServerConfigFrame(Frame):
         pem, pemexists = check_pemfile()
         if self.https.get() and not pemexists:
             err = DLGNOTLS.format(hostpem=pem)
-            self.__app.set_status(err, ERRCOL)
+            self.__app.status_label = (err, ERRCOL)
             self.logger.error(err)
             self._attach_events(False)
             self.https.set(0)
@@ -1020,7 +1020,7 @@ class ServerConfigFrame(Frame):
         if self._socket_serve.get() in ("1", 1):
             self.__app.frm_banner.update_transmit_status(clients)
 
-    def _config_msg_rates(self, rate: int, port_type: str) -> UBXMessage:
+    def _config_msg_rates(self, rate: int, port_type: str):
         """
         Configure RTCM3 and UBX NAV-SVIN message rates.
 
@@ -1144,12 +1144,12 @@ class ServerConfigFrame(Frame):
             self._pgb_elapsed.grid_forget()
 
     @property
-    def socketserving(self) -> bool:
+    def socketserving(self) -> int:
         """
         Getter for socket serve flag.
 
         :return: server running True/False
-        :rtype: bool
+        :rtype: int
         """
 
         return self._socket_serve.get()

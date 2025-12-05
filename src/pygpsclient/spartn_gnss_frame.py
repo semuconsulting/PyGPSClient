@@ -19,10 +19,10 @@ Created on 26 Jan 2023
 
 from datetime import datetime, timedelta, timezone
 from tkinter import (
+    EW,
     NORMAL,
     Button,
     Checkbutton,
-    E,
     Entry,
     Frame,
     IntVar,
@@ -250,7 +250,7 @@ class SPARTNGNSSDialog(Frame):
         self._lbl_loadjson.grid(column=0, row=1, padx=3, pady=2, sticky=W)
         self._btn_loadjson.grid(column=1, row=1, columnspan=3, padx=3, pady=2, sticky=W)
         ttk.Separator(self).grid(
-            column=0, row=2, columnspan=4, padx=2, pady=3, sticky=(W, E)
+            column=0, row=2, columnspan=4, padx=2, pady=3, sticky=EW
         )
         self._lbl_curr.grid(column=0, row=3, columnspan=4, padx=3, pady=2, sticky=W)
         self._lbl_key1.grid(column=0, row=4, padx=3, pady=2, sticky=W)
@@ -258,7 +258,7 @@ class SPARTNGNSSDialog(Frame):
         self._lbl_valdate1.grid(column=0, row=5, padx=3, pady=2, sticky=W)
         self._ent_valdate1.grid(column=1, row=5, columnspan=3, padx=3, pady=2, sticky=W)
         ttk.Separator(self).grid(
-            column=0, row=6, columnspan=4, padx=2, pady=3, sticky=(W, E)
+            column=0, row=6, columnspan=4, padx=2, pady=3, sticky=EW
         )
         self._lbl_next.grid(column=0, row=7, columnspan=3, padx=3, pady=2, sticky=W)
         self._lbl_key2.grid(column=0, row=8, padx=3, pady=2, sticky=W)
@@ -266,7 +266,7 @@ class SPARTNGNSSDialog(Frame):
         self._lbl_valdate2.grid(column=0, row=9, padx=3, pady=2, sticky=W)
         self._ent_valdate2.grid(column=1, row=9, columnspan=3, padx=3, pady=2, sticky=W)
         ttk.Separator(self).grid(
-            column=0, row=10, columnspan=4, padx=2, pady=3, sticky=(W, E)
+            column=0, row=10, columnspan=4, padx=2, pady=3, sticky=EW
         )
         self._rad_source0.grid(column=0, row=11, padx=3, pady=2, sticky=W)
         self._rad_source1.grid(column=1, row=11, columnspan=3, padx=3, pady=2, sticky=W)
@@ -278,7 +278,7 @@ class SPARTNGNSSDialog(Frame):
             column=2, row=13, columnspan=2, padx=3, pady=2, sticky=W
         )
         ttk.Separator(self).grid(
-            column=0, row=14, columnspan=4, padx=2, pady=3, sticky=(W, E)
+            column=0, row=14, columnspan=4, padx=2, pady=3, sticky=EW
         )
         self._btn_send_command.grid(column=2, row=15, padx=3, pady=2, sticky=W)
         self._lbl_send_command.grid(column=3, row=15, padx=3, pady=2, sticky=W)
@@ -341,7 +341,7 @@ class SPARTNGNSSDialog(Frame):
         valid = valid & self._ent_valdate2.validate(VALDMY)
 
         if not valid:
-            self.__container.set_status("ERROR - invalid settings", ERRCOL)
+            self.__container.status_label = ("ERROR - invalid settings", ERRCOL)
 
         return valid
 
@@ -424,8 +424,7 @@ class SPARTNGNSSDialog(Frame):
             return
 
         if self.__app.conn_status != CONNECTED:
-            self.__container.set_status(NOTCONN, ERRCOL)
-            # return
+            self.__container.status_label = (NOTCONN, ERRCOL)
 
         if self._send_f9p_config.get():
             msgc = "config"
@@ -443,13 +442,13 @@ class SPARTNGNSSDialog(Frame):
         else:
             msgk = ""
         if msgk == "" and msgc == "":
-            self.__container.set_status(NULLSEND, ERRCOL)
+            self.__container.status_label = (NULLSEND, ERRCOL)
             return
         if msgk != "" and msgc != "":
             msga = " and "
         else:
             msga = ""
-        self.__container.set_status(f"{(msgk + msga + msgc).capitalize()} sent", OKCOL)
+        self.__container.status_label = f"{(msgk + msga + msgc).capitalize()} sent"
         self._lbl_send_command.config(image=self._img_pending)
         for msgid in ("RXM-SPARTNKEY", "CFG-VALGET", "ACK-ACK", "ACK-NAK"):
             self.__container.set_pending(msgid, SPARTN_GNSS)
@@ -504,13 +503,13 @@ class SPARTNGNSSDialog(Frame):
                 col = OKCOL
             else:
                 col = ERRCOL
-            self.__container.set_status(CONFIGRXM.format(RXMMSG, msg.numKeys), col)
+            self.__container.status_label = (CONFIGRXM.format(RXMMSG, msg.numKeys), col)
         elif msg.identity == "ACK-ACK":
             self._lbl_send_command.config(image=self._img_confirmed)
-            self.__container.set_status(CONFIGOK.format(CFGSET), OKCOL)
+            self.__container.status_label = (CONFIGOK.format(CFGSET), OKCOL)
         elif msg.identity == "ACK-NAK":
             self._lbl_send_command.config(image=self._img_warn)
-            self.__container.set_status(CONFIGBAD.format(CFGSET), ERRCOL)
+            self.__container.status_label = (CONFIGBAD.format(CFGSET), ERRCOL)
         self.update_idletasks()
 
     def _on_load_json(self):
@@ -537,6 +536,6 @@ class SPARTNGNSSDialog(Frame):
             (key, start, _) = spc.next_key
             self._spartn_key2.set(key)
             self._spartn_valdate2.set(start.strftime("%Y%m%d"))
-            self.__container.set_status(DLGJSONOK.format(jsonfile), OKCOL)
+            self.__container.status_label = (DLGJSONOK.format(jsonfile), OKCOL)
         except Exception as err:  # pylint: disable=broad-exception-caught
-            self.__container.set_status(DLGJSONERR.format(err), ERRCOL)
+            self.__container.status_label = (DLGJSONERR.format(err), ERRCOL)

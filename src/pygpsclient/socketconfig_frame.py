@@ -18,9 +18,9 @@ Created on 27 Apr 2022
 
 from tkinter import (
     DISABLED,
+    EW,
     NORMAL,
     Checkbutton,
-    E,
     Entry,
     Frame,
     IntVar,
@@ -132,11 +132,9 @@ class SocketConfigFrame(Frame):
         Layout widgets.
         """
 
-        self._frm_basic.grid(column=0, row=0, columnspan=4, sticky=(W, E))
+        self._frm_basic.grid(column=0, row=0, columnspan=4, sticky=EW)
         self._lbl_server.grid(column=0, row=0, padx=2, pady=2, sticky=W)
-        self.ent_server.grid(
-            column=1, row=0, padx=2, pady=2, columnspan=4, sticky=(W, E)
-        )
+        self.ent_server.grid(column=1, row=0, padx=2, pady=2, columnspan=4, sticky=EW)
         self._lbl_port.grid(column=0, row=1, padx=2, pady=2, sticky=W)
         self.ent_port.grid(column=1, row=1, padx=2, pady=2, sticky=W)
         self._lbl_protocol.grid(column=2, row=1, padx=2, pady=2, sticky=W)

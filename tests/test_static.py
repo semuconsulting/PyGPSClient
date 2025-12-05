@@ -107,8 +107,14 @@ class DummyApp:  # Dummy App class
         self.appmaster = "appmaster"
         self.widget_state = WidgetState()
         self.file_handler = DummyFileHandler()
+        self.label_status = ""
 
-    def set_status(self, message, color=OKCOL):
+    @property
+    def status_label(self) -> str:
+        return self.label_status
+
+    @status_label.setter
+    def status_label(self, message):
         print(message)
 
 

@@ -43,7 +43,8 @@ from queue import Empty, Queue
 from subprocess import CalledProcessError, run
 from sys import executable
 from threading import Thread
-from tkinter import E, Frame, N, PhotoImage, S, Tk, Toplevel, W, font
+from tkinter import NSEW, Frame, Label, PhotoImage, Tk, Toplevel, font
+from types import NoneType
 
 from pygnssutils import GNSSMQTTClient, GNSSNTRIPClient, MQTTMessage
 from pygnssutils.gnssreader import (
@@ -68,7 +69,6 @@ from pygpsclient.configuration import Configuration
 from pygpsclient.dialog_state import DialogState
 from pygpsclient.file_handler import FileHandler
 from pygpsclient.globals import (
-    CFG,
     CLASS,
     CONFIGFILE,
     CONNECTED,
@@ -210,7 +210,7 @@ class App(Frame):
             self.update_widgets()  # set initial widget state
             # warning if all widgets have been disabled in config
             if self._nowidgets:
-                self.set_status(NOWDGSWARN.format(configfile), ERRCOL)
+                self.status_label = (NOWDGSWARN.format(configfile), ERRCOL)
 
         # open database if database recording enabled
         dbpath = self.configuration.get("databasepath_s")
@@ -235,7 +235,7 @@ class App(Frame):
         # display initial connection status
         self.frm_banner.update_conn_status(DISCONNECTED)
         if self.frm_settings.frm_serial.status == NOPORTS:
-            self.set_status(INTROTXTNOPORTS, ERRCOL)
+            self.status_label = (INTROTXTNOPORTS, ERRCOL)
 
         # check for more recent version (if enabled)
         if self.configuration.get("checkforupdate_b") and configerr == "":
@@ -243,8 +243,7 @@ class App(Frame):
 
         # display any deferred messages
         if isinstance(self._deferredmsg, tuple):
-            msg, col = self._deferredmsg
-            self.set_status(msg, col)
+            self.status_label = self._deferredmsg
             self._deferredmsg = None
 
     def _body(self):
@@ -333,7 +332,7 @@ class App(Frame):
                 rowspan=rowspan,
                 padx=2,
                 pady=2,
-                sticky=wdg.get(STICKY, (N, S, W, E)),
+                sticky=wdg.get(STICKY, NSEW),
             )
             lbl = HIDE
             if dynamic:
@@ -426,41 +425,6 @@ class App(Frame):
         self.font_md2 = font.Font(size=14)
         self.font_lg = font.Font(size=18)
 
-    def set_connection(self, message, color=OKCOL):
-        """
-        Sets connection description in status bar.
-
-        :param str message: message to be displayed in connection label
-        :param str color: rgb color string
-
-        """
-
-        if hasattr(self, "frm_status"):
-            self.frm_status.set_connection(message, color=color)
-
-    def set_status(self, message, color=OKCOL):
-        """
-        Sets text of status bar, or defers if frm_status not yet instantiated.
-
-        :param str message: message to be displayed in status label
-        :param str color: rgb color string
-        """
-
-        def priority(col):
-            return STATUSPRIORITY.get(col, 0)
-
-        if hasattr(self, "frm_status"):
-            color = INFOCOL if color == "blue" else color
-            self.frm_status.set_status(message, color)
-            self.update_idletasks()
-        else:  # defer message until frm_status is instantiated
-            if isinstance(self._deferredmsg, tuple):
-                defpty = priority(self._deferredmsg[1])
-            else:
-                defpty = 0
-            if priority(color) > defpty:
-                self._deferredmsg = (message, color)
-
     def set_event(self, evt: str):
         """
         Generate master event.
@@ -477,9 +441,9 @@ class App(Frame):
 
         # Warn if Streaming, NTRIP or SPARTN clients are running
         if self.conn_status == DISCONNECTED and self.rtk_conn_status == DISCONNECTED:
-            self.set_status("", OKCOL)
+            self.status_label = ("", OKCOL)
         else:
-            self.set_status(DLGSTOPRTK, ERRCOL)
+            self.status_label = (DLGSTOPRTK, ERRCOL)
             return
 
         filename, err = self.configuration.loadfile()
@@ -494,13 +458,13 @@ class App(Frame):
                 frm.reset()
             self._do_layout()
             if self._nowidgets:
-                self.set_status(NOWDGSWARN.format(filename), ERRCOL)
+                self.status_label = (NOWDGSWARN.format(filename), ERRCOL)
             else:
-                self.set_status(LOADCONFIGOK.format(filename), OKCOL)
+                self.status_label = (LOADCONFIGOK.format(filename), OKCOL)
         elif err == "cancelled":  # user cancelled
             return
         else:  # config error
-            self.set_status(LOADCONFIGBAD.format(filename), ERRCOL)
+            self.status_label = (LOADCONFIGBAD.format(filename), ERRCOL)
 
     def save_config(self):
         """
@@ -509,9 +473,9 @@ class App(Frame):
 
         err = self.configuration.savefile()
         if err == "":
-            self.set_status(SAVECONFIGOK, OKCOL)
+            self.status_label = (SAVECONFIGOK, OKCOL)
         else:  # save failed
-            self.set_status(SAVECONFIGBAD.format(err), ERRCOL)
+            self.status_label = (SAVECONFIGBAD.format(err), ERRCOL)
 
     def update_widgets(self):
         """
@@ -531,7 +495,7 @@ class App(Frame):
             if self._nowidgets:
                 self.widget_state.state["Status"][VISIBLE] = "true"
         except KeyError as err:
-            self.set_status(f"{CONFIGERR} - {err}", ERRCOL)
+            self.status_label = (f"{CONFIGERR} - {err}", ERRCOL)
 
     def _refresh_widgets(self):
         """
@@ -568,11 +532,8 @@ class App(Frame):
         :param str dlg: name of dialog
         """
 
-        config = (
-            self.configuration.settings if self.dialog_state.state[dlg][CFG] else {}
-        )
         cls = self.dialog_state.state[dlg][CLASS]
-        self.dialog_state.state[dlg][DLG] = cls(self, saved_config=config)
+        self.dialog_state.state[dlg][DLG] = cls(self)
 
     def stop_dialog(self, dlg: str):
         """
@@ -673,7 +634,7 @@ class App(Frame):
             ) as self._socket_server:
                 self._socket_server.serve_forever()
         except OSError as err:
-            self.set_status(f"Error starting socket server {err}", ERRCOL)
+            self.status_label = (f"Error starting socket server {err}", ERRCOL)
 
     def update_clients(self, clients: int):
         """
@@ -719,7 +680,7 @@ class App(Frame):
             self.rtk_conn_status = DISCONNECTED
         except Exception as err:  # pylint: disable=broad-exception-caught
             self.logger.error(err)
-        self.set_status(KILLSWITCH, ERRCOL)
+        self.status_label = (KILLSWITCH, ERRCOL)
         self.logger.debug(KILLSWITCH)
 
     def on_gnss_read(self, event):  # pylint: disable=unused-argument
@@ -754,7 +715,7 @@ class App(Frame):
         )
         self._refresh_widgets()
         self.conn_status = DISCONNECTED
-        self.set_status(ENDOFFILE, ERRCOL)
+        self.status_label = (ENDOFFILE, ERRCOL)
 
     def on_gnss_timeout(self, event):  # pylint: disable=unused-argument
         """
@@ -769,7 +730,7 @@ class App(Frame):
         )
         self._refresh_widgets()
         self.conn_status = DISCONNECTED
-        self.set_status(INACTIVE_TIMEOUT, ERRCOL)
+        self.status_label = (INACTIVE_TIMEOUT, ERRCOL)
 
     def on_stream_error(self, event):  # pylint: disable=unused-argument
         """
@@ -811,7 +772,7 @@ class App(Frame):
         except Empty:
             pass
         except (SerialException, SerialTimeoutException) as err:
-            self.set_status(f"Error sending to device {err}", ERRCOL)
+            self.status_label = (f"Error sending to device {err}", ERRCOL)
 
     def on_spartn_read(self, event):  # pylint: disable=unused-argument
         """
@@ -841,14 +802,14 @@ class App(Frame):
         except Empty:
             pass
         except (SerialException, SerialTimeoutException) as err:
-            self.set_status(f"Error sending to device {err}", ERRCOL)
+            self.status_label = (f"Error sending to device {err}", ERRCOL)
 
-    def update_ntrip_status(self, status: bool, msgt: tuple = None):
+    def update_ntrip_status(self, status: bool, msgt: tuple | NoneType = None):
         """
         Update NTRIP configuration dialog connection status.
 
         :param bool status: connected to NTRIP server yes/no
-        :param tuple msgt: tuple of (message, color)
+        :param tuple | None msgt: tuple of (message, color) or None
         """
 
         if self.dialog(DLGTNTRIP) is not None:
@@ -963,8 +924,7 @@ class App(Frame):
         if self.configuration.get("datalog_b"):
             self.file_handler.write_logfile(raw_data, parsed_data)
 
-        self.update_idletasks()  # needed to keep GUI responsive
-        self.__master.update_idletasks()
+        # self.update_idletasks()  # doesn't seem to be needed
 
     def send_to_device(self, data: object):
         """
@@ -988,7 +948,7 @@ class App(Frame):
 
         latest = check_latest(TITLE)
         if latest not in (VERSION, "N/A"):
-            self.set_status(f"{VERCHECK} {latest}", ERRCOL)
+            self.status_label = (f"{VERCHECK} {latest}", ERRCOL)
 
     def poll_version(self, protocol: int):
         """
@@ -1007,14 +967,10 @@ class App(Frame):
 
         if isinstance(msg, (UBXMessage, NMEAMessage)):
             self.send_to_device(msg.serialize())
-            self.set_status(
-                f"{msg.identity} POLL message sent",
-            )
+            self.status_label = (f"{msg.identity} POLL message sent", INFOCOL)
         elif isinstance(msg, bytes):
             self.send_to_device(msg)
-            self.set_status(
-                "Setup POLL message sent",
-            )
+            self.status_label = ("Setup POLL message sent", INFOCOL)
 
     @property
     def appmaster(self) -> Tk:
@@ -1026,6 +982,85 @@ class App(Frame):
         """
 
         return self.__master
+
+    @property
+    def conn_label(self) -> Label:
+        """
+        Getter for connection_label.
+
+        :return: status label
+        :rtype: Label
+        """
+
+        return self.frm_status.lbl_connection
+
+    @conn_label.setter
+    def conn_label(self, connection: str | tuple[str, str]):
+        """
+        Sets connection description in status bar.
+
+        :param str | tuple connection: (connection, color)
+        """
+
+        if isinstance(connection, tuple):
+            connection, color = connection
+        else:
+            color = INFOCOL
+
+        # truncate very long connection description
+        if len(connection) > 100:
+            connection = "..." + connection[-100:]
+
+        if hasattr(self, "frm_status"):
+            self.conn_label.after(
+                0, self.conn_label.config, {"text": connection, "fg": color}
+            )
+            self.update_idletasks()
+
+    @property
+    def status_label(self) -> Label:
+        """
+        Getter for status_label.
+
+        :return: status label
+        :rtype: Label
+        """
+
+        return self.frm_status.lbl_status
+
+    @status_label.setter
+    def status_label(self, message: str | tuple[str, str]):
+        """
+        Sets status message, or defers if frm_status not yet instantiated.
+
+        :param str | tuple message: (message, color)
+        """
+
+        def priority(col):
+            return STATUSPRIORITY.get(col, 0)
+
+        if isinstance(message, tuple):
+            message, color = message
+        else:
+            color = INFOCOL
+
+        # truncate very long messages
+        if len(message) > 200:
+            message = "..." + message[-200:]
+
+        if hasattr(self, "frm_status"):
+            color = INFOCOL if color == "blue" else color
+            self.status_label.after(
+                0, self.status_label.config, {"text": message, "fg": color}
+            )
+            self.update_idletasks()
+        else:  # defer message until frm_status is instantiated
+            if isinstance(self._deferredmsg, tuple):
+                defpty = priority(self._deferredmsg[1])
+            else:
+                defpty = 0
+            if priority(color) > defpty:
+                self._deferredmsg = (message, color)
 
     @property
     def conn_status(self) -> int:
@@ -1050,7 +1085,7 @@ class App(Frame):
         self.frm_banner.update_conn_status(status)
         self.frm_settings.enable_controls(status)
         if status == DISCONNECTED:
-            self.set_connection(NOTCONN)
+            self.conn_label = (NOTCONN, INFOCOL)
 
     @property
     def rtk_conn_status(self) -> int:
@@ -1097,12 +1132,12 @@ class App(Frame):
         return mask
 
     @property
-    def db_enabled(self) -> bool:
+    def db_enabled(self) -> int | str:
         """
         Getter for database enabled status.
 
-        :return: database enabled status
-        :rtype: bool
+        :return: database enabled status or err code
+        :rtype: int | str
         """
 
         return self._db_enabled

@@ -90,7 +90,6 @@ BPSRATES = (
     4800,
 )
 BSR = "backslashreplace"
-CFG = "cfg"
 CLASS = "cls"
 COLORTAGS = "colortags"
 CONFIGFILE = path.join(HOME, f"{APPNAME}.json")

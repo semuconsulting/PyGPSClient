@@ -18,7 +18,7 @@ Created on 9 Jan 2023
 
 from threading import Event, Thread
 from time import sleep
-from tkinter import Button, E, Frame, Label, TclError, W, filedialog
+from tkinter import EW, Button, Frame, Label, TclError, W, filedialog
 
 from PIL import Image, ImageTk
 from pyubx2 import (
@@ -159,15 +159,15 @@ class UBX_Recorder_Frame(Frame):
         Layout widgets.
         """
 
-        self._lbl_recorder.grid(column=0, row=0, columnspan=6, padx=3, sticky=(W, E))
+        self._lbl_recorder.grid(column=0, row=0, columnspan=6, padx=3, sticky=EW)
         self._btn_load.grid(column=0, row=1, ipadx=3, ipady=3, sticky=W)
         self._btn_save.grid(column=1, row=1, ipadx=3, ipady=3, sticky=W)
         self._btn_play.grid(column=2, row=1, ipadx=3, ipady=3, sticky=W)
         self._btn_record.grid(column=3, row=1, ipadx=3, ipady=3, sticky=W)
         self._btn_undo.grid(column=4, row=1, ipadx=3, ipady=3, sticky=W)
         self._btn_delete.grid(column=5, row=1, ipadx=3, ipady=3, sticky=W)
-        self._lbl_status.grid(column=0, row=2, columnspan=6, padx=3, sticky=(W, E))
-        self._lbl_activity.grid(column=0, row=3, columnspan=6, padx=3, sticky=(W, E))
+        self._lbl_status.grid(column=0, row=2, columnspan=6, padx=3, sticky=EW)
+        self._lbl_activity.grid(column=0, row=3, columnspan=6, padx=3, sticky=EW)
 
         (cols, rows) = self.grid_size()
         for i in range(cols):

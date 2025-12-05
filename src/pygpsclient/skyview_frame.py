@@ -15,7 +15,7 @@ Created on 13 Sep 2020
 # pylint: disable = no-member
 
 from operator import itemgetter
-from tkinter import E, Frame, N, S, W
+from tkinter import NSEW, Frame
 
 from pygpsclient.canvas_plot import (
     MODE_CEL,
@@ -79,7 +79,7 @@ class SkyviewFrame(Frame):
             height=self.height,
             bg=self.bg_col,
         )
-        self._canvas.grid(column=0, row=0, sticky=(N, S, E, W))
+        self._canvas.grid(column=0, row=0, sticky=NSEW)
 
     def _attach_events(self):
         """

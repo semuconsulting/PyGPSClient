@@ -10,8 +10,11 @@ Created on 18 Apr 2025
 :license: BSD 3-Clause
 """
 
+# pylint: disable=logging-format-interpolation
+
 import logging
 from os import getenv
+from types import NoneType
 
 from pyubx2 import GET
 from serial import PARITY_NONE
@@ -253,11 +256,11 @@ class Configuration:
             "colortags_l": [],
         }
 
-    def loadfile(self, filename: str = None) -> tuple:
+    def loadfile(self, filename: str | NoneType = None) -> tuple:
         """
         Load configuration from json file.
 
-        :param str filename: config file name
+        :param str | NoneType filename: config file name
         :return: tuple of filename and err message (or "" if OK)
         :rtype: tuple
         """
@@ -287,17 +290,17 @@ class Configuration:
 
         if err == "":  # config valid
             rs = LOADCONFIGRESAVE if resave else ""
-            self.__app.set_status(LOADCONFIGOK.format(fname, rs), OKCOL)
+            self.__app.status_label = (LOADCONFIGOK.format(fname, rs), OKCOL)
         else:
-            self.__app.set_status(err, ERRCOL)
+            self.__app.status_label = (err, ERRCOL)
 
         return fname, err
 
-    def savefile(self, filename: str = None) -> str:
+    def savefile(self, filename: str | NoneType = None) -> str:
         """
         Save configuration to json file.
 
-        :param str filename: config file name
+        :param str | NoneType filename: config file name
         :return: error code, or "" if OK
         :rtype: str
         """

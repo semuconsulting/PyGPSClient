@@ -21,7 +21,9 @@ import traceback
 from tkinter import (
     ALL,
     END,
+    EW,
     LEFT,
+    NSEW,
     NW,
     VERTICAL,
     Button,
@@ -244,24 +246,24 @@ class Dynamic_Config_Frame(Frame):
         Layout widgets.
         """
 
-        self._lbl_cfg_dyn.grid(column=0, row=0, columnspan=4, padx=3, sticky=(W, E))
+        self._lbl_cfg_dyn.grid(column=0, row=0, columnspan=4, padx=3, sticky=EW)
         self._lbx_cfg_cmd.grid(
-            column=0, row=1, columnspan=2, rowspan=6, padx=3, pady=3, sticky=(W, E)
+            column=0, row=1, columnspan=2, rowspan=6, padx=3, pady=3, sticky=EW
         )
         self._scr_cfg_cmd.grid(column=1, row=1, rowspan=6, sticky=(N, S, E))
         self._btn_send_command.grid(column=3, row=1, ipadx=3, ipady=3, sticky=W)
         self._lbl_send_command.grid(column=3, row=2, ipadx=3, ipady=3, sticky=W)
         self._btn_refresh.grid(column=3, row=3, ipadx=3, ipady=3, sticky=W)
-        self._lbl_command.grid(column=0, row=7, columnspan=4, padx=3, sticky=(W, E))
+        self._lbl_command.grid(column=0, row=7, columnspan=4, padx=3, sticky=EW)
         self._frm_container.grid(
-            column=0, row=8, columnspan=4, rowspan=15, padx=3, sticky=(N, S, W, E)
+            column=0, row=8, columnspan=4, rowspan=15, padx=3, sticky=NSEW
         )
         self._can_container.grid(
-            column=0, row=0, columnspan=3, rowspan=15, padx=3, sticky=(N, S, W, E)
+            column=0, row=0, columnspan=3, rowspan=15, padx=3, sticky=NSEW
         )
         self._scr_container_ver.grid(column=3, row=0, rowspan=15, sticky=(N, S, E))
         self._scr_container_hor.grid(
-            column=0, row=15, columnspan=4, rowspan=15, sticky=(W, E)
+            column=0, row=15, columnspan=4, rowspan=15, sticky=EW
         )
 
         (cols, rows) = self.grid_size()
@@ -346,7 +348,7 @@ class Dynamic_Config_Frame(Frame):
         """
 
         if self._cfg_id in ("", None):
-            self.__container.set_status("Select command", ERRCOL)
+            self.__container.status_label = ("Select command", ERRCOL)
             return
 
         nam = ""
@@ -378,16 +380,14 @@ class Dynamic_Config_Frame(Frame):
             # send message, update status and await response
             self.__container.send_command(msg)
             self._lbl_send_command.config(image=self._img_pending)
-            self.__container.set_status(
-                f"P{self._cfg_id} SET message sent",
-            )
+            self.__container.status_label = f"P{self._cfg_id} SET message sent"
             for msgid in pendcfg:
                 self.__container.set_pending(msgid, penddlg)
             self._expected_response = SET
 
         except ValueError as err:
             self.logger.debug(traceback.format_exc())
-            self.__container.set_status(
+            self.__container.status_label = (
                 f"INVALID! {nam}, {att}: {err}",
                 ERRCOL,
             )
@@ -402,7 +402,7 @@ class Dynamic_Config_Frame(Frame):
         """
 
         if self._cfg_id in ("", None):
-            self.__container.set_status("Select command", ERRCOL)
+            self.__container.status_label = ("Select command", ERRCOL)
             return
 
         msg = penddlg = pendcfg = None
@@ -427,15 +427,13 @@ class Dynamic_Config_Frame(Frame):
         cp = "P" if self._protocol == NMEA else ""
         if msg is not None:
             self.__container.send_command(msg)
-            self.__container.set_status(f"{cp}{cfg_id} POLL message sent", INFOCOL)
+            self.__container.status_label = f"{cp}{cfg_id} POLL message sent"
             self._lbl_send_command.config(image=self._img_pending)
             for msgid in pendcfg:
                 self.__container.set_pending(msgid, penddlg)
             self._expected_response = POLL
         else:  # CFG cannot be POLLed
-            self.__container.set_status(
-                f"{cp}{cfg_id} No POLL available",
-            )
+            self.__container.status_label = f"{cp}{cfg_id} No POLL available"
             self._lbl_send_command.config(image=self._img_unknown)
 
     def _do_poll_args(self, cfg_id: str) -> dict:
@@ -511,10 +509,13 @@ class Dynamic_Config_Frame(Frame):
                     self._update_widgets(msg)
 
             if ok:
-                self.__container.set_status(f"{cfg_id} message acknowledged", OKCOL)
+                self.__container.status_label = (
+                    f"{cfg_id} message acknowledged",
+                    OKCOL,
+                )
                 self._lbl_send_command.config(image=self._img_confirmed)
             else:
-                self.__container.set_status(f"{cfg_id} message rejected", ERRCOL)
+                self.__container.status_label = (f"{cfg_id} message rejected", ERRCOL)
                 self._lbl_send_command.config(image=self._img_warn)
             self.update()
 

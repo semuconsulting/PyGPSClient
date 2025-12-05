@@ -22,6 +22,7 @@ import logging
 from datetime import datetime, timedelta
 from pathlib import Path
 from tkinter import filedialog
+from types import NoneType
 
 from pyubx2 import hextable
 
@@ -236,7 +237,7 @@ class FileHandler:
             self._logfile = open(self._logname, "a+b")
             return 1
         except FileNotFoundError as err:
-            self.__app.set_status(f"{err}", ERRCOL)
+            self.__app.status_label = (f"{err}", ERRCOL)
             return 0
 
     def write_logfile(self, raw_data, parsed_data):
@@ -318,7 +319,7 @@ class FileHandler:
             _, self._trackname = set_filename(self._trackpath, "track", "gpx")
             self._trackfile = open(self._trackname, "a", encoding="utf-8")
         except FileNotFoundError as err:
-            self.__app.set_status(f"{err}", ERRCOL)
+            self.__app.status_label = (f"{err}", ERRCOL)
             return 0
 
         date = datetime.now().isoformat() + "Z"
@@ -466,13 +467,13 @@ class FileHandler:
 
             self._last_track_update = datetime.now()
 
-    def set_database_path(self, initdir=HOME) -> Path:
+    def set_database_path(self, initdir: Path = HOME) -> str | NoneType:
         """
         Set database directory.
 
-        :param str initdir: initial directory (HOME)
-        :return: file path
-        :rtype: str
+        :param Path initdir: initial directory (HOME)
+        :return: file path or None
+        :rtype: str | NoneType
         """
 
         self._databasepath = filedialog.askdirectory(

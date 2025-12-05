@@ -20,9 +20,11 @@ Created on 24 Dec 2020
 
 from tkinter import (
     DISABLED,
+    EW,
     HORIZONTAL,
     LEFT,
     NORMAL,
+    NS,
     VERTICAL,
     Button,
     Checkbutton,
@@ -33,8 +35,6 @@ from tkinter import (
     IntVar,
     Label,
     Listbox,
-    N,
-    S,
     Scrollbar,
     Spinbox,
     StringVar,
@@ -260,13 +260,11 @@ class SerialConfigFrame(Frame):
         Layout widgets.
         """
 
-        self._frm_basic.grid(column=0, row=0, columnspan=4, sticky=(W, E))
+        self._frm_basic.grid(column=0, row=0, columnspan=4, sticky=EW)
         self._lbl_port.grid(column=0, row=0, sticky=W)
-        self._lbx_port.grid(
-            column=1, row=0, columnspan=3, sticky=(W, E), padx=3, pady=2
-        )
-        self._scr_portv.grid(column=4, row=0, sticky=(N, S))
-        self._scr_porth.grid(column=1, row=1, columnspan=3, sticky=(E, W))
+        self._lbx_port.grid(column=1, row=0, columnspan=3, sticky=EW, padx=3, pady=2)
+        self._scr_portv.grid(column=4, row=0, sticky=NS)
+        self._scr_porth.grid(column=1, row=1, columnspan=3, sticky=EW)
         self._lbl_bpsrate.grid(column=0, row=2, sticky=W)
         self._spn_bpsrate.grid(column=1, row=2, sticky=W, padx=3, pady=2)
         self._btn_refresh.grid(column=3, row=2, sticky=E)
@@ -506,7 +504,7 @@ class SerialConfigFrame(Frame):
 
         self._show_advanced = not self._show_advanced
         if self._show_advanced:
-            self._frm_advanced.grid(column=0, row=1, columnspan=3, sticky=(W, E))
+            self._frm_advanced.grid(column=0, row=1, columnspan=3, sticky=EW)
             self._btn_toggle.config(image=self._img_contract)
         else:
             self._frm_advanced.grid_forget()

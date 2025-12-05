@@ -10,7 +10,7 @@ Created on 19 Feb 2020
 :license: BSD 3-Clause
 """
 
-from tkinter import Button, E, Frame, IntVar, Label, Spinbox, StringVar, W
+from tkinter import EW, Button, E, Frame, IntVar, Label, Spinbox, StringVar, W
 
 from PIL import Image, ImageTk
 from pyubx2 import POLL, SET, UBXMessage
@@ -118,7 +118,7 @@ class UBX_RATE_Frame(Frame):
         Layout widgets.
         """
 
-        self._lbl_cfg_rate.grid(column=0, row=0, columnspan=6, padx=3, sticky=(W, E))
+        self._lbl_cfg_rate.grid(column=0, row=0, columnspan=6, padx=3, sticky=EW)
         self._lbl_ubx_measint.grid(
             column=0, row=1, columnspan=2, rowspan=1, padx=3, pady=3, sticky=W
         )
@@ -173,10 +173,10 @@ class UBX_RATE_Frame(Frame):
             self._navrate.set(msg.navRate)
             self._timeref.set(TIMEREFS[msg.timeRef])
             self._lbl_send_command.config(image=self._img_confirmed)
-            self.__container.set_status("CFG-RATE GET message received", OKCOL)
+            self.__container.status_label = ("CFG-RATE GET message received", OKCOL)
 
         elif msg.identity == "ACK-NAK":
-            self.__container.set_status("CFG-RATE POLL message rejected", ERRCOL)
+            self.__container.status_label = ("CFG-RATE POLL message rejected", ERRCOL)
             self._lbl_send_command.config(image=self._img_warn)
 
     def _on_send_rate(self, *args, **kwargs):  # pylint: disable=unused-argument
@@ -200,9 +200,7 @@ class UBX_RATE_Frame(Frame):
         )
         self.__container.send_command(msg)
         self._lbl_send_command.config(image=self._img_pending)
-        self.__container.set_status(
-            "CFG-RATE SET message sent",
-        )
+        self.__container.status_label = "CFG-RATE SET message sent"
         self.__container.set_pending(UBX_CFGRATE, ("ACK-ACK", "ACK-NAK"))
 
         self._do_poll_rate()
@@ -215,8 +213,6 @@ class UBX_RATE_Frame(Frame):
         msg = UBXMessage("CFG", "CFG-RATE", POLL)
         self.__container.send_command(msg)
         self._lbl_send_command.config(image=self._img_pending)
-        self.__container.set_status(
-            "CFG-RATE POLL message sent",
-        )
+        self.__container.status_label = "CFG-RATE POLL message sent"
         for msgid in ("CFG-RATE", "ACK-NAK"):
             self.__container.set_pending(msgid, UBX_CFGRATE)

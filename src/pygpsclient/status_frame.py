@@ -12,7 +12,7 @@ Created on 12 Sep 2020
 :license: BSD 3-Clause
 """
 
-from tkinter import VERTICAL, E, Frame, Label, N, S, StringVar, W, ttk
+from tkinter import EW, NS, VERTICAL, Frame, Label, W, ttk
 
 
 class StatusFrame(Frame):
@@ -33,8 +33,6 @@ class StatusFrame(Frame):
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
         Frame.__init__(self, self.__master, *args, **kwargs)
 
-        self._status = StringVar()
-        self._connection = StringVar()
         self.width, self.height = self.get_size()
         self._body()
 
@@ -49,49 +47,11 @@ class StatusFrame(Frame):
 
         self.option_add("*Font", self.__app.font_md)
 
-        self._lbl_connection = Label(self, textvariable=self._connection, anchor=W)
-        self._lbl_status_preset = Label(self, textvariable=self._status, anchor=W)
-        self._lbl_connection.grid(column=0, row=0, sticky=(W, E))
-        ttk.Separator(self, orient=VERTICAL).grid(column=1, row=0, sticky=(N, S))
-        self._lbl_status_preset.grid(column=2, row=0, sticky=(W, E))
-
-    def set_connection(self, connection: str, color: str = ""):
-        """
-        Sets connection description in status bar.
-
-        :param str connection: description of connection
-        :param str color: rgb color string (default=blue)
-
-        """
-
-        if len(connection) > 100:
-            connection = "..." + connection[-100:]
-        if color != "":
-            self._lbl_connection.config(fg=color)
-        self._connection.set("  " + connection)
-
-    def set_status(self, message, color: str = ""):
-        """
-        Sets message in status bar.
-
-        :param str message: message to be displayed in status bar
-        :param str color: rgb color string (default=blue)
-
-        """
-
-        if len(message) > 200:
-            message = "..." + message[-200:]
-        if color != "":
-            self._lbl_status_preset.config(fg=color)
-        self._status.set("  " + message)
-
-    def clear_status(self):
-        """
-        Clears status bar.
-        """
-
-        self._connection.set("")
-        self._status.set("")
+        self.lbl_connection = Label(self, anchor=W)
+        self.lbl_status = Label(self, anchor=W)
+        self.lbl_connection.grid(column=0, row=0, sticky=EW)
+        ttk.Separator(self, orient=VERTICAL).grid(column=1, row=0, sticky=NS)
+        self.lbl_status.grid(column=2, row=0, sticky=EW)
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """
@@ -112,6 +72,4 @@ class StatusFrame(Frame):
         """
 
         self.update_idletasks()  # Make sure we know about any resizing
-        width = self.winfo_width()
-        height = self.winfo_height()
-        return (width, height)
+        return self.winfo_width(), self.winfo_height()
