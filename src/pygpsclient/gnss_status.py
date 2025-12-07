@@ -54,7 +54,9 @@ class GNSSStatus:
         self.acc_heading = 0.0  # rover relative position heading accuracy
         self.acc_length = 0.0  # rover relative position distance accuracy
         self.rel_pos_flags = []  # rover relative position flags
-        self.gsv_data = {}  # list of satellite tuples (gnssId, svid, elev, azim, cno)
+        self.gsv_data = (
+            {}
+        )  # dict of satellite tuples {(gnssid,svid}: (gnssId, svid, elev, azim, cno)}
         self.version_data = {
             "swversion": NA,
             "hwversion": NA,

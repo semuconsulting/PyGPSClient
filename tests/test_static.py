@@ -77,7 +77,7 @@ from pygpsclient.helpers import (
     wnotow2date,
     xy2ll,
 )
-from pygpsclient.mapquest import (
+from pygpsclient.mapquest_handler import (
     compress_track,
     format_mapquest_request,
     mapq_compress,
@@ -107,8 +107,14 @@ class DummyApp:  # Dummy App class
         self.appmaster = "appmaster"
         self.widget_state = WidgetState()
         self.file_handler = DummyFileHandler()
+        self.label_status = ""
 
-    def set_status(self, message, color=OKCOL):
+    @property
+    def status_label(self) -> str:
+        return self.label_status
+
+    @status_label.setter
+    def status_label(self, message):
         print(message)
 
 
@@ -126,7 +132,7 @@ class StaticTest(unittest.TestCase):
         self.assertEqual(cfg.get("lbandclientdrat_n"), 2400)
         self.assertEqual(cfg.get("userport_s"), "")
         self.assertEqual(cfg.get("spartnport_s"), "")
-        self.assertEqual(len(cfg.settings), 150)
+        self.assertEqual(len(cfg.settings), 151)
         kwargs = {"userport": "/dev/ttyACM0", "spartnport": "/dev/ttyACM1"}
         cfg.loadcli(**kwargs)
         self.assertEqual(cfg.get("userport_s"), "/dev/ttyACM0")
@@ -140,13 +146,7 @@ class StaticTest(unittest.TestCase):
 
         cfg = Configuration(DummyApp())
         res = cfg.loadfile("bad.json")
-        self.assertEqual(
-            res,
-            (
-                "bad.json",
-                "Unrecognised configuration setting 'xcheckforupdate_b: 0'; using defaults",
-            ),
-        )
+        self.assertEqual(res, ("bad.json", ""))
         res = cfg.loadfile("good.json")
         self.assertEqual(res, ("good.json", ""))
 

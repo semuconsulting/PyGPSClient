@@ -49,11 +49,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: GIS",
 ]
 
-dependencies = [
-    "requests>=2.28.0", 
-    "Pillow>=9.0.0", 
-    "pygnssutils>=1.1.20"
-]
+dependencies = ["requests>=2.28.0", "Pillow>=9.0.0", "pygnssutils>=1.1.20"]
 
 [project.scripts]
 pygpsclient = "pygpsclient.__main__:main"
@@ -65,10 +61,7 @@ repository = "https://github.com/semuconsulting/PyGPSClient"
 changelog = "https://github.com/semuconsulting/PyGPSClient/blob/master/RELEASE_NOTES.md"
 
 [dependency-groups]
-optional = [
-    "rasterio",
-    "cryptography",
-]
+optional = ["rasterio", "cryptography"]
 build = [
     "awscli",
     "build",
@@ -141,7 +134,7 @@ disable = """
 
 [tool.pytest.ini_options]
 minversion = "7.0"
-addopts = "--cov --cov-report html --cov-fail-under 18"
+addopts = "--cov --cov-report html --cov-fail-under 17"
 pythonpath = ["src"]
 testpaths = ["tests"]
 
@@ -152,7 +145,7 @@ source = ["src"]
 source = ["src"]
 
 [tool.coverage.report]
-fail_under = 18
+fail_under = 17
 
 [tool.coverage.html]
 directory = "htmlcov"

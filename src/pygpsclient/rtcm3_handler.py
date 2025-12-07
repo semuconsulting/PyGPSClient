@@ -54,7 +54,6 @@ class RTCM3Handler:
                 self._process_1005(parsed_data)
 
         except ValueError:
-            # self.__app.set_status(RTCMVALERROR.format(err), ERRCOL)
             pass
 
     def _process_1005(self, parsed: RTCMMessage):

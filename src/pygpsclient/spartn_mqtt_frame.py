@@ -22,6 +22,7 @@ from os import path
 from pathlib import Path
 from tkinter import (
     DISABLED,
+    EW,
     NORMAL,
     Button,
     Checkbutton,
@@ -76,7 +77,7 @@ from pygpsclient.globals import (
     VALINT,
     VALLEN,
 )
-from pygpsclient.helpers import MAXPORT
+from pygpsclient.helpers import MAXPORT, validate  # pylint: disable=unused-import
 from pygpsclient.strings import DLGSPARTNWARN, LBLSPARTNIP, MQTTCONN
 
 
@@ -279,19 +280,15 @@ class SPARTNMQTTDialog(Frame):
         self._chk_mqtt_keytopic.grid(column=3, row=5, padx=3, pady=2, sticky=W)
         self._chk_mqtt_freqtopic.grid(column=4, row=5, padx=3, pady=2, sticky=W)
         self._lbl_mqttcrt.grid(column=0, row=6, padx=3, pady=2, sticky=W)
-        self._ent_mqttcrt.grid(
-            column=1, row=6, padx=3, columnspan=3, pady=2, sticky=(W, E)
-        )
+        self._ent_mqttcrt.grid(column=1, row=6, padx=3, columnspan=3, pady=2, sticky=EW)
         self._btn_opencrt.grid(column=4, row=6, padx=3, pady=2, sticky=E)
         self._lbl_mqttpem.grid(column=0, row=7, padx=3, pady=2, sticky=W)
-        self._ent_mqttpem.grid(
-            column=1, row=7, columnspan=3, padx=3, pady=2, sticky=(W, E)
-        )
+        self._ent_mqttpem.grid(column=1, row=7, columnspan=3, padx=3, pady=2, sticky=EW)
         self._btn_openpem.grid(column=4, row=7, padx=3, pady=2, sticky=E)
         self._lbl_spartndecode.grid(column=0, row=8, columnspan=2, sticky=W)
         self._chk_spartndecode.grid(column=2, row=8, sticky=W)
         ttk.Separator(self).grid(
-            column=0, row=9, columnspan=6, padx=2, pady=3, sticky=(W, E)
+            column=0, row=9, columnspan=6, padx=2, pady=3, sticky=EW
         )
         self._btn_connect.grid(column=0, row=10, padx=3, pady=2, sticky=W)
         self._btn_disconnect.grid(column=2, row=10, padx=3, pady=2, sticky=W)
@@ -324,9 +321,7 @@ class SPARTNMQTTDialog(Frame):
 
         self._get_settings()
         self._reset_keypaths(self._mqtt_clientid.get())
-        self.__container.set_status(
-            "",
-        )
+        self.__container.status_label = ""
         if self.__app.rtk_conn_status == CONNECTED_SPARTNIP:
             self.set_controls(CONNECTED_SPARTNIP)
         else:
@@ -519,6 +514,7 @@ class SPARTNMQTTDialog(Frame):
         """
 
         spfile = self.__app.file_handler.open_file(
+            self,
             "spartncert",
             (
                 ("spartn files", f"*.{ext}"),
@@ -536,7 +532,7 @@ class SPARTNMQTTDialog(Frame):
         """
 
         if self.__app.rtk_conn_status == CONNECTED_SPARTNLB:
-            self.__container.set_status(
+            self.__container.status_label = (
                 DLGSPARTNWARN.format("L-Band", "IP"),
                 ERRCOL,
             )
@@ -571,13 +567,10 @@ class SPARTNMQTTDialog(Frame):
                 output=self._settings["output"],
             )
             self.set_controls(CONNECTED_SPARTNIP)
-            self.__container.set_status(
-                MQTTCONN.format(server),
-                OKCOL,
-            )
+            self.__container.status_label = (MQTTCONN.format(server), OKCOL)
             self.__app.rtk_conn_status = CONNECTED_SPARTNIP
         else:
-            self.__container.set_status("ERROR! Invalid Settings", ERRCOL)
+            self.__container.status_label = ("ERROR! Invalid Settings", ERRCOL)
 
     def on_disconnect(self, msg: str = ""):
         """
@@ -590,10 +583,7 @@ class SPARTNMQTTDialog(Frame):
         if self.__app.rtk_conn_status == CONNECTED_SPARTNIP:
             self.__app.spartn_handler.stop()
             self.__app.rtk_conn_status = DISCONNECTED
-            self.__container.set_status(
-                msg,
-                ERRCOL,
-            )
+            self.__container.status_label = (msg, ERRCOL)
         self.set_controls(DISCONNECTED)
 
     def update_status(self, msg: UBXMessage):

@@ -339,7 +339,7 @@ class UBXHandler:
             cno = getattr(data, "cno" + idx)
             if cno == 0 and not show_unused:  # omit unused sats
                 continue
-            self.gsv_data[f"{gnssId}-{svid}"] = (gnssId, svid, elev, azim, cno)
+            self.gsv_data[(gnssId, svid)] = (gnssId, svid, elev, azim, cno)
 
         self.__app.gnss_status.siv = len(self.gsv_data)
         self.__app.gnss_status.gsv_data = self.gsv_data

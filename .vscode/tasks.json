@@ -157,7 +157,7 @@
             "dependsOn": [
                 "Create Venv",
                 "Install Deploy Dependencies",
-                "Install Optional Dependencies",
+                //"Install Optional Dependencies",
                 "Clean",
                 "Sort Imports",
                 "Format",

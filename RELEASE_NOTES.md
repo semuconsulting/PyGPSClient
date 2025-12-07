@@ -1,5 +1,17 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.5.22
+
+FIXES:
+
+1. Fix KeyError in UBX Legacy Dynamic Config Panel https://github.com/semuconsulting/PyGPSClient/issues/227
+
+ENHANCEMENTS:
+
+1. Make maximum individual data log file size (in bytes) manually configurable via `logsize_n` setting in json configuration file. Default is 10 MB.
+1. Tolerate unrecognised configuration settings in json file with warning "Consider re-saving" (previously json file would have been rejected). Unrecognised settings will be logged as INFO messages (--verbosity 2).
+1. Internal enhancements to thread handling to improve dialog response at high transaction rates.
+
 ### RELEASE 1.5.21
 
 FIXES:

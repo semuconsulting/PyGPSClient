@@ -62,7 +62,7 @@ from pygpsclient.helpers import (
     point_in_bounds,
     scale_font,
 )
-from pygpsclient.mapquest import (
+from pygpsclient.mapquest_handler import (
     HYB,
     MAP,
     MAPQTIMEOUT,

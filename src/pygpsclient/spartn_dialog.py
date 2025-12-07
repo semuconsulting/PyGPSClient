@@ -16,7 +16,8 @@ Created on 26 Jan 2023
 :license: BSD 3-Clause
 """
 
-from tkinter import E, N, S, W
+from tkinter import NSEW
+from types import NoneType
 
 from pyubx2 import UBXMessage
 
@@ -100,7 +101,7 @@ class SPARTNConfigDialog(ToplevelDialog):
             row=0,
             ipadx=5,
             ipady=5,
-            sticky=(N, S, W, E),
+            sticky=NSEW,
         )
         col = 1
         if self._lband_enabled:
@@ -109,7 +110,7 @@ class SPARTNConfigDialog(ToplevelDialog):
                 row=0,
                 ipadx=5,
                 ipady=5,
-                sticky=(N, S, W, E),
+                sticky=NSEW,
             )
             col += 1
         self.frm_gnss.grid(
@@ -117,7 +118,7 @@ class SPARTNConfigDialog(ToplevelDialog):
             row=0,
             ipadx=5,
             ipady=5,
-            sticky=(N, S, W, E),
+            sticky=NSEW,
         )
 
     def _reset(self):
@@ -125,7 +126,7 @@ class SPARTNConfigDialog(ToplevelDialog):
         Reset configuration widgets.
         """
 
-        self.set_status("")
+        self.status_label = ""
 
     def _attach_events(self):
         """
@@ -133,18 +134,6 @@ class SPARTNConfigDialog(ToplevelDialog):
         """
 
         # self.bind("<Configure>", self._on_resize)
-
-    def set_status(self, message: str, color: str = ""):
-        """
-        Set status message.
-        :param str message: message to be displayed
-        :param str color: rgb color of text
-        """
-
-        message = (message[:180] + "..") if len(message) > 180 else message
-        if color != "":
-            self._lbl_status.config(fg=color)
-        self._status.set(" " + message)
 
     def set_pending(self, msgid: int, spartnfrm: int):
         """
@@ -186,12 +175,12 @@ class SPARTNConfigDialog(ToplevelDialog):
                 if self._pending_confs.get(msgid, None) == spartnfrm:
                     self._pending_confs.pop(msgid)
 
-    def set_controls(self, status: bool, msgt: tuple = None):
+    def set_controls(self, status: bool, msgt: tuple | NoneType = None):
         """
         Set controls in IP or L-Band clients.
 
         :param bool status: connected to SPARTN server yes/no
-        :param tuple msgt: tuple of (message, color)
+        :param tuple | Nonetype msgt: tuple of (message, color) or None
         """
 
         if status == CONNECTED_SPARTNIP:
@@ -199,8 +188,7 @@ class SPARTNConfigDialog(ToplevelDialog):
         elif status == CONNECTED_SPARTNLB:
             self.frm_corrlband.set_controls(status)
         if msgt is not None:
-            msg, col = msgt
-            self.set_status(msg, col)
+            self.status_label = msgt
 
     def disconnect_ip(self, msg: str = ""):
         """

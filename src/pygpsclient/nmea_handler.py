@@ -227,19 +227,23 @@ class NMEAHandler:
             gnss = 2  # Galileo
         elif data.talker in ("GB", "BD"):
             gnss = 3  # Beidou (only available in MMEA 4.11)
+        elif data.talker == "GQ":
+            gnss = 5  # QZSS
         elif data.talker == "GL":
             gnss = 6  # GLONASS
         elif data.talker == "GI":
             gnss = 7  # NAVIC
         else:
-            gnss = 0  # GPS, SBAS, QZSS
+            gnss = 0  # GPS, SBAS
 
         for i in range(4):
             idx = f"_{i+1:02d}"
             svid = getattr(data, "svid" + idx, "")
             if svid != "":
-                key = f"{gnss}-{svid}"
-                gsv_dict[key] = (
+                svid = int(svid)
+                if gnss == 0 and (120 <= svid <= 158):
+                    gnss = 1  # SBAS
+                gsv_dict[(gnss, svid)] = (
                     gnss,
                     svid,
                     getattr(data, "elv" + idx),
