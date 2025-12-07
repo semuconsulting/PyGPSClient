@@ -181,7 +181,10 @@ class ImportMapDialog(ToplevelDialog):
         self._can_mapview.delete(ALL)
         # self._btn_import.config(state=DISABLED)
         if not HASRASTERIO:
-            self.status_label = "Warning: rasterio library is not installed - bounds must be entered manually"
+            self.status_label = (
+                "Warning: rasterio library is not installed - "
+                "bounds must be entered manually"
+            )
         else:
             self.status_label = ""
 
@@ -246,9 +249,13 @@ class ImportMapDialog(ToplevelDialog):
     def _open_mapfile(self) -> str:
         """
         Open custom map file.
+
+        :return: fully qualified path to map file
+        :rtype: str
         """
 
         return self.__app.file_handler.open_file(
+            self,
             "tif",
             (("GeoTiff files", "*.tif"), ("all files", "*.*")),
         )

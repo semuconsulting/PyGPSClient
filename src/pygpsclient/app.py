@@ -43,6 +43,7 @@ from queue import Empty, Queue
 from subprocess import CalledProcessError, run
 from sys import executable
 from threading import Thread
+from time import process_time_ns, time
 from tkinter import NSEW, Frame, Label, PhotoImage, Tk, Toplevel, font
 from types import NoneType
 
@@ -94,7 +95,6 @@ from pygpsclient.globals import (
     SPARTN_EVENT,
     SPARTN_PROTOCOL,
     STATUSPRIORITY,
-    THD,
     TTY_PROTOCOL,
 )
 from pygpsclient.gnss_status import GNSSStatus
@@ -158,6 +158,9 @@ class App(Frame):
         :param args: optional args
         :param kwargs: optional (CLI) kwargs
         """
+
+        self.starttime = time()  # for run time benchmarking
+        self.processtime = 0  # for process time benchmarking
 
         self.__master = master
         self.logger = logging.getLogger(__name__)
@@ -513,37 +516,14 @@ class App(Frame):
 
     def start_dialog(self, dlg: str):
         """
-        Start a threaded dialog task if the dialog is not already open.
+        Open a top level dialog if the dialog is not already open.
 
         :param str dlg: name of dialog
         """
 
-        if self.dialog_state.state[dlg][THD] is None:
-            self.dialog_state.state[dlg][THD] = Thread(
-                target=self._dialog_thread, args=(dlg,), daemon=False
-            )
-            self.dialog_state.state[dlg][THD].start()
-
-    def _dialog_thread(self, dlg: str):
-        """
-        THREADED PROCESS
-        Dialog thread.
-
-        :param str dlg: name of dialog
-        """
-
-        cls = self.dialog_state.state[dlg][CLASS]
-        self.dialog_state.state[dlg][DLG] = cls(self)
-
-    def stop_dialog(self, dlg: str):
-        """
-        Register dialog as closed.
-
-        :param str dlg: name of dialog
-        """
-
-        self.dialog_state.state[dlg][THD] = None
-        self.dialog_state.state[dlg][DLG] = None
+        if self.dialog_state.state[dlg][DLG] == None:
+            cls = self.dialog_state.state[dlg][CLASS]
+            self.dialog_state.state[dlg][DLG] = cls(self)
 
     def dialog(self, dlg: str) -> Toplevel:
         """
@@ -675,7 +655,7 @@ class App(Frame):
             for dlg in self.dialog_state.state:
                 if self.dialog(dlg) is not None:
                     self.dialog(dlg).destroy()
-                    self.stop_dialog(dlg)
+                    # self.stop_dialog(dlg)
             self.conn_status = DISCONNECTED
             self.rtk_conn_status = DISCONNECTED
         except Exception as err:  # pylint: disable=broad-exception-caught
@@ -854,6 +834,7 @@ class App(Frame):
         :param str marker: string prepended to console entries e.g. "NTRIP>>"
         """
 
+        start = process_time_ns()
         # self.logger.debug(f"data received {parsed_data.identity}")
         msgprot = 0
         protfilter = self.protocol_mask
@@ -924,7 +905,8 @@ class App(Frame):
         if self.configuration.get("datalog_b"):
             self.file_handler.write_logfile(raw_data, parsed_data)
 
-        # self.update_idletasks()  # doesn't seem to be needed
+        self.update_idletasks()
+        self.processtime = process_time_ns() - start
 
     def send_to_device(self, data: object):
         """

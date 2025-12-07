@@ -12,6 +12,7 @@ Created on 19 Sep 2020
 :license: BSD 3-Clause
 """
 
+import logging
 from tkinter import (
     ALL,
     EW,
@@ -26,7 +27,6 @@ from tkinter import (
     Frame,
     Label,
     Scrollbar,
-    StringVar,
     Toplevel,
     W,
 )
@@ -34,6 +34,7 @@ from tkinter import (
 from PIL import Image, ImageTk
 
 from pygpsclient.globals import (
+    APPNAME,
     ERRCOL,
     ICON_BLANK,
     ICON_CONFIRMED,
@@ -53,6 +54,7 @@ from pygpsclient.globals import (
     RESIZE,
 )
 from pygpsclient.helpers import check_lowres
+from pygpsclient.strings import DLG
 
 
 class ToplevelDialog(Toplevel):
@@ -72,6 +74,7 @@ class ToplevelDialog(Toplevel):
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self._dlgname = dlgname
+        self.logger = logging.getLogger(f"{APPNAME}.{dlgname}")
         self.lowres, (self.height, self.width) = check_lowres(self.__master, dim)
 
         super().__init__()
@@ -184,7 +187,7 @@ class ToplevelDialog(Toplevel):
         Handle Exit button press.
         """
 
-        self.__app.stop_dialog(self._dlgname)
+        self.__app.dialog_state.state[self._dlgname][DLG] = None
         self.destroy()
 
     def _on_resize(self, event):  # pylint: disable=unused-argument

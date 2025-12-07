@@ -21,7 +21,7 @@ import json
 import logging
 from datetime import datetime, timedelta
 from pathlib import Path
-from tkinter import filedialog
+from tkinter import Frame, Toplevel, filedialog
 from types import NoneType
 
 from pyubx2 import hextable
@@ -84,20 +84,27 @@ class FileHandler:
         self.close_logfile()
         self.close_trackfile()
 
-    def open_file(self, mode: str, exts: tuple = DEFEXT) -> str:
+    def open_file(
+        self,
+        parent: Frame | Toplevel,
+        mode: str,
+        exts: tuple = DEFEXT,
+    ) -> str | NoneType:
         """
         Generic routine to open specified file type.
 
+        :param Frame | Toplevel | NoneType: parent: parent window
         :param str mode: type of file e.g. "config", "gpxtrack" etc.
         :param tuple exts: tuple of file types ("description", "ext")
         :return: fully qualified path to file, or None if user cancelled
-        :rtype: str
+        :rtype: str | NoneType
         """
 
         fil = filedialog.askopenfilename(
             title=f"Open {mode.upper()} File",
             initialdir=self._initdir.get(mode, HOME),
             filetypes=exts,
+            parent=parent,
         )
         if fil in ((), ""):
             return None  # User cancelled
@@ -204,13 +211,13 @@ class FileHandler:
         except (OSError, json.JSONDecodeError) as err:
             return str(err)
 
-    def set_logfile_path(self, initdir=HOME) -> Path:
+    def set_logfile_path(self, initdir=HOME) -> Path | NoneType:
         """
         Set file path.
 
         :param str initdir: initial directory (HOME)
         :return: file path
-        :rtype: str
+        :rtype: str | NoneType
         """
 
         self._logpath = filedialog.askdirectory(

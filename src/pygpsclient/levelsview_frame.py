@@ -106,9 +106,9 @@ class LevelsviewFrame(Frame):
         self._canvas.create_graph(
             xdatamax=10,
             ydatamax=(MAX_SNR,),
-            xtickmaj=2,
+            xtickmaj=5,
             ytickmaj=int(MAX_SNR / 10),
-            ylegend=("cno",),
+            ylegend=("C/N0 dBHz",),
             ycol=(FGCOL,),
             ylabels=True,
             xangle=35,
@@ -170,8 +170,8 @@ class LevelsviewFrame(Frame):
         # scale x axis label
         fsiz = min(w * 15 / siv, w, h)
         svfont = font.Font(size=int(fsiz / FONTSCALESV))
-        for d in sorted(data.values()):  # sort by ascending gnssid, svid
-            gnssId, prn, _, _, snr = d
+        for val in sorted(data.values()):  # sort by ascending gnssid, svid
+            gnssId, prn, _, _, snr = val
             if snr in ("", "0", 0):
                 snr = 1  # show 'place marker' in graph
             else:
@@ -201,7 +201,7 @@ class LevelsviewFrame(Frame):
             )
             offset += colwidth
 
-        # self._canvas.update_idletasks()
+            self.update_idletasks()
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """

@@ -355,6 +355,7 @@ class GPXViewerDialog(ToplevelDialog):
         """
 
         return self.__app.file_handler.open_file(
+            self,
             "gpx",
             (("gpx files", "*.gpx"), ("all files", "*.*")),
         )

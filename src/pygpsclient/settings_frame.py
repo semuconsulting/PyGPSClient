@@ -896,6 +896,7 @@ class SettingsFrame(Frame):
             self.__app.poll_version(conndict["protocol"])
         elif conntype == CONNECTED_FILE:
             self.infilepath = self.__app.file_handler.open_file(
+                self,
                 "datalog",
                 (
                     ("datalog files", "*.log"),

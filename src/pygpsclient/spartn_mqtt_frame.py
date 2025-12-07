@@ -514,6 +514,7 @@ class SPARTNMQTTDialog(Frame):
         """
 
         spfile = self.__app.file_handler.open_file(
+            self,
             "spartncert",
             (
                 ("spartn files", f"*.{ext}"),

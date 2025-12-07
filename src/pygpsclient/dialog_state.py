@@ -17,7 +17,7 @@ Created on 16 Aug 2023
 """
 
 from pygpsclient.about_dialog import AboutDialog
-from pygpsclient.globals import CLASS, RESIZE, THD
+from pygpsclient.globals import CLASS, RESIZE
 from pygpsclient.gpx_dialog import GPXViewerDialog
 from pygpsclient.importmap_dialog import ImportMapDialog
 from pygpsclient.nmea_config_dialog import NMEAConfigDialog
@@ -51,49 +51,41 @@ class DialogState:
         self.state = {
             DLGTABOUT: {
                 CLASS: AboutDialog,
-                THD: None,
                 DLG: None,
                 RESIZE: False,
             },
             DLGTUBX: {
                 CLASS: UBXConfigDialog,
-                THD: None,
                 DLG: None,
                 RESIZE: False,
             },
             DLGTNMEA: {
                 CLASS: NMEAConfigDialog,
-                THD: None,
                 DLG: None,
                 RESIZE: False,
             },
             DLGTNTRIP: {
                 CLASS: NTRIPConfigDialog,
-                THD: None,
                 DLG: None,
                 RESIZE: False,
             },
             DLGTSPARTN: {
                 CLASS: SPARTNConfigDialog,
-                THD: None,
                 DLG: None,
                 RESIZE: False,
             },
             DLGTGPX: {
                 CLASS: GPXViewerDialog,
-                THD: None,
                 DLG: None,
                 RESIZE: True,
             },
             DLGTIMPORTMAP: {
                 CLASS: ImportMapDialog,
-                THD: None,
                 DLG: None,
                 RESIZE: True,
             },
             DLGTTTY: {
                 CLASS: TTYPresetDialog,
-                THD: None,
                 DLG: None,
                 RESIZE: True,
             },

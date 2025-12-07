@@ -333,6 +333,7 @@ class SpectrumviewFrame(Frame):
                         width=OL_WID,
                         tags=(mode, TAG_DATA),
                     )
+            self.update_idletasks()
 
         # display any marked db/hz coordinate
         if self._chartpos is not None:

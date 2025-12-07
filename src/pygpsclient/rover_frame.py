@@ -194,6 +194,7 @@ class RoverFrame(Frame):
                 outline=TRKCOL,
                 tags=TAG_DATA,
             )
+            self.update_idletasks()
 
         # plot latest relative position with accuracy radius
         x, y = self._canvas.d2xy(hdg, dis / self._scale_c)

@@ -487,6 +487,7 @@ class ScatterViewFrame(Frame):
             if i == lp:
                 break
             self._draw_point(pnt, PNTCOL)
+            self.update_idletasks()
         if self._fixed is not None:
             self._draw_point(self._fixed, FIXCOL, 3)
         self._draw_point(self._points[-1], PNTTOPCOL)

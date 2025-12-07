@@ -519,7 +519,7 @@ class SPARTNGNSSDialog(Frame):
         # pylint: disable=unused-variable
 
         jsonfile = self.__app.file_handler.open_file(
-            "spartnjson", (("json files", "*.json"), ("all files", "*.*"))
+            self, "spartnjson", (("json files", "*.json"), ("all files", "*.*"))
         )
         if jsonfile is None:
             return

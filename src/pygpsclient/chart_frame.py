@@ -423,7 +423,9 @@ class ChartviewFrame(Frame):
                         continue
 
             # wildcards *+-, sum, max or min of group of values
-            if name[-1] in ("*", "+", "-"):
+            if name == "processtime":
+                val = self.__app.processtime / 1000  # microseconds
+            elif name[-1] in ("*", "+", "-"):
                 vals = []
                 for attr in parsed_data.__dict__:
                     if name[:-1] in attr and name[0] != "_":
@@ -591,6 +593,7 @@ class ChartviewFrame(Frame):
                         chn=chn,
                         tags=(TAG_DATA,),
                     )
+                self.update_idletasks()
 
     def _on_clipboard(self, event):  # pylint: disable=unused-argument
         """

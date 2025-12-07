@@ -14,7 +14,6 @@ Created on 13 Sep 2020
 
 # pylint: disable = no-member
 
-from operator import itemgetter
 from tkinter import NSEW, Frame
 
 from pygpsclient.canvas_plot import (
@@ -109,9 +108,9 @@ class SkyviewFrame(Frame):
         data = self.__app.gnss_status.gsv_data
         self.init_frame()
 
-        for d in sorted(data.values(), key=itemgetter(4)):  # sort by ascending snr
+        for val in sorted(data.values(), key=lambda x: x[4]):  # sort by ascending snr
             try:
-                gnssId, prn, ele, azi, snr = d
+                gnssId, prn, ele, azi, snr = val
                 x, y = self._canvas.d2xy(int(azi), int(ele))
                 snr = 0 if snr == "" else int(snr)
                 (_, ol_col) = GNSS_LIST[gnssId]
@@ -137,7 +136,7 @@ class SkyviewFrame(Frame):
             except ValueError:
                 pass
 
-        self._canvas.update_idletasks()
+            self.update_idletasks()
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """

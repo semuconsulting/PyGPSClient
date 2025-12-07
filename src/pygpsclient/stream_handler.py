@@ -384,7 +384,7 @@ class StreamHandler:
                 continue
 
             # allow for any tkinter events e.g. dialogs
-            master.update_idletasks()
+            self.__app.update_idletasks()
 
     def _readlooptty(
         self,

@@ -206,6 +206,7 @@ class UBX_Recorder_Frame(Frame):
         """
 
         return self.__app.file_handler.open_file(
+            self,
             "ubx",
             (
                 ("ubx config files", "*.ubx"),
