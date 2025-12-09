@@ -1238,6 +1238,18 @@ def time2str(tim: float, sformat: str = "%H:%M:%S") -> str:
     return dt.strftime(sformat)
 
 
+def unused_sats(data: dict) -> int:
+    """
+    Get number of 'unused' sats in gnss_data.gsv_data.
+
+    :param dict data: {(gnssid,svid}: (gnssId, svid, elev, azim, cno, last_updated)}
+    :return: number of sats where cno = 0
+    :rtype: int
+    """
+
+    return sum(1 for (_, _, _, _, cno, _) in data.values() if cno == 0)
+
+
 def ubx2preset(msgs: tuple, desc: str = "") -> str:
     """
     Convert one or more UBXMessages to format suitable for adding to user-defined

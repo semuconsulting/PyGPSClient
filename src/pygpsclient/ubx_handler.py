@@ -16,6 +16,7 @@ Created on 30 Sep 2020
 """
 
 import logging
+from time import time
 
 from pyubx2 import UBXMessage, itow2utc
 
@@ -323,9 +324,9 @@ class UBXHandler:
         :param UBXMessage data: NAV-SAT parsed message
         """
 
-        show_unused = self.__app.configuration.get("unusedsat_b")
         self.gsv_data = {}
         num_siv = int(data.numSvs)
+        now = time()
 
         for i in range(num_siv):
             idx = f"_{i+1:02d}"
@@ -337,9 +338,7 @@ class UBXHandler:
             elev = getattr(data, "elev" + idx)
             azim = getattr(data, "azim" + idx)
             cno = getattr(data, "cno" + idx)
-            if cno == 0 and not show_unused:  # omit unused sats
-                continue
-            self.gsv_data[(gnssId, svid)] = (gnssId, svid, elev, azim, cno)
+            self.gsv_data[(gnssId, svid)] = (gnssId, svid, elev, azim, cno, now)
 
         self.__app.gnss_status.siv = len(self.gsv_data)
         self.__app.gnss_status.gsv_data = self.gsv_data
@@ -352,7 +351,6 @@ class UBXHandler:
         """
 
         self.__app.gnss_status.diff_corr = data.diffSoln
-        # self.__app.gnss_status.diff_age = "<60"
         self.__app.gnss_status.fix = fix2desc("NAV-STATUS", data.gpsFix)
         if data.carrSoln > 0:
             self.__app.gnss_status.fix = fix2desc("NAV-STATUS", data.carrSoln + 5)

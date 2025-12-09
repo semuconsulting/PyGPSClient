@@ -258,6 +258,8 @@ SQRT2 = 0.7071067811865476  # square root of 2
 STATUSPRIORITY = {INFOCOL: 0, "blue": 0, OKCOL: 2, "green": 1, ERRCOL: 3, "red": 3}
 TIME0 = datetime(1970, 1, 1)  # basedate for time()
 TIMEOUTS = ("0.1", "0.2", "1", "2", "5", "10", "20", "None", "0")
+# map nmea talker to gnss_id
+TKGN = {"GN": 0, "GP": 0, "GA": 2, "GB": 3, "BD": 3, "GQ": 5, "GL": 6, "GI": 7}
 TOPIC_IP = "/pp/ip/{}"
 TOPIC_MGA = "/pp/ubx/mga"
 TOPIC_RXM = "/pp/ubx/0236/ip"

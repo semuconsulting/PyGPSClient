@@ -24,7 +24,6 @@ from pygpsclient.globals import (
     AreaXY,
     Point,
     TrackPoint,
-    OKCOL,
     UI,
     UMM,
     UIK,
@@ -73,6 +72,7 @@ from pygpsclient.helpers import (
     svid2gnssid,
     time2str,
     ubx2preset,
+    unused_sats,
     val2sphp,
     wnotow2date,
     xy2ll,
@@ -915,6 +915,13 @@ class StaticTest(unittest.TestCase):
         self.assertAlmostEqual(center.lat, 53.367617, 7)
         self.assertAlmostEqual(center.lon, -1.815437, 7)
 
+    def testunusedsats(self):
+        gsv_data = {(1,1): (0,0,0,0,5,0),(1,2): (0,0,0,0,7,0),(2,1): (0,0,0,0,0,0),(2,2): (0,0,0,0,1,0),(3,1): (0,0,0,0,5,0)}
+        self.assertEqual(unused_sats(gsv_data), 1)
+        gsv_data = {(1,1): (0,0,0,0,5,0),(1,2): (0,0,0,0,7,0),(2,1): (0,0,0,0,0,0),(2,2): (0,0,0,0,1,0),(3,1): (0,0,0,0,0,0)}
+        self.assertEqual(unused_sats(gsv_data), 2)
+        gsv_data = {(1,1): (0,0,0,0,5,0),(1,2): (0,0,0,0,7,0),(2,1): (0,0,0,0,1,0),(2,2): (0,0,0,0,1,0),(3,1): (0,0,0,0,4,0)}
+        self.assertEqual(unused_sats(gsv_data), 0)
 
 if __name__ == "__main__":
     # import sys;sys.argv = ['', 'Test.testName']

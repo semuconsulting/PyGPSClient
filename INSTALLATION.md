@@ -41,7 +41,7 @@ There are two file formats in common use for distributing Python packages:
 
 By default, pip will look for wheel first, and only resort to using sdist where no wheel is available for the target platform.
 
-For pure Python packages like PyGPSClient and its subsidiary [GNSS utilities](https://github.com/semuconsulting), which contain no non-Python extension modules, the differences between sdist and wheel distributions are to some extent academic. The distinction is, however, relevant for some of PyGPSClient's optional dependencies (e.g. `cryptography` and `rasterio`) - see [troubleshooting](#troubleshooting) for further details.
+For pure Python packages like PyGPSClient and its subsidiary [GNSS utilities](https://github.com/semuconsulting), which contain no non-Python extension modules, the differences between sdist and wheel distributions are to some extent academic - a single pygpsclient `pygpsclient-*-none-any.whl` package can be installed on *any* target architecture. The distinction is, however, relevant for some of PyGPSClient's optional dependencies (e.g. `cryptography` and `rasterio`) - see [troubleshooting](#troubleshooting) for further details.
 
 ### <a name="binaries">site_packages and binaries directories</a>
 

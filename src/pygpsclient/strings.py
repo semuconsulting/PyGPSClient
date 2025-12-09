@@ -138,7 +138,7 @@ LBLSERVERHOST = "Host IP"
 LBLSERVERMODE = "Mode"
 LBLSERVERPORT = "Port"
 LBLSET = "Settings"
-LBLSHOWUNUSED = "Show Unused Satellites"
+LBLSHOWUNUSED = "Include C/N0 = 0"
 LBLSOCKSERVE = "Socket Server /\nNTRIP Caster   "  # padded to align
 LBLSPARTNCONFIG = "SPARTN Client"
 LBLSPARTNGN = "GNSS RECEIVER CONFIGURATION (F9*)"

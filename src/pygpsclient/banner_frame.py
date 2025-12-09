@@ -47,7 +47,15 @@ from pygpsclient.globals import (
     UIK,
     UMK,
 )
-from pygpsclient.helpers import dop2str, m2ft, ms2kmph, ms2knots, ms2mph, scale_font
+from pygpsclient.helpers import (
+    dop2str,
+    m2ft,
+    ms2kmph,
+    ms2knots,
+    ms2mph,
+    scale_font,
+    unused_sats,
+)
 from pygpsclient.strings import NA
 
 DGPSYES = "YES"
@@ -482,11 +490,19 @@ class BannerFrame(Frame):
 
     def _update_siv(self):
         """
-        Update siv and sip
+        Update siv and sip.
+
+        Exclude unused sats (cno = 0) if show_unused is not set.
         """
 
+        siv = self.__app.gnss_status.siv
+        siv = (
+            siv
+            if self.__app.configuration.get("unusedsat_b")
+            else siv - unused_sats(self.__app.gnss_status.gsv_data)
+        )
         try:
-            self._lbl_siv.config(text=f"{self.__app.gnss_status.siv:02d}")
+            self._lbl_siv.config(text=f"{siv:02d}")
             self._lbl_sip.config(text=f"{self.__app.gnss_status.sip:02d}")
         except (TypeError, ValueError):
             self._lbl_siv.config(text=NA)
