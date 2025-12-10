@@ -14,14 +14,13 @@ Created 23 March 2023
 """
 
 from tkinter import (
+    EW,
+    NSEW,
     NW,
     Canvas,
-    E,
     Frame,
     IntVar,
     Label,
-    N,
-    S,
     Spinbox,
     StringVar,
     TclError,
@@ -134,12 +133,12 @@ class IMUFrame(Frame):
             textvariable=self._option,
             state=READONLY,
         )
-        self.canvas.grid(column=0, row=0, columnspan=4, sticky=(N, S, E, W))
+        self.canvas.grid(column=0, row=0, columnspan=4, sticky=NSEW)
 
-        self._lbl_range.grid(column=0, row=1, sticky=(W, E))
-        self._spn_range.grid(column=1, row=1, sticky=(W, E))
-        self._lbl_option.grid(column=2, row=1, sticky=(W, E))
-        self._spn_option.grid(column=3, row=1, sticky=(W, E))
+        self._lbl_range.grid(column=0, row=1, sticky=EW)
+        self._spn_range.grid(column=1, row=1, sticky=EW)
+        self._lbl_option.grid(column=2, row=1, sticky=EW)
+        self._spn_option.grid(column=3, row=1, sticky=EW)
 
     def reset(self):
         """

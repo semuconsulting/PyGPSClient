@@ -14,8 +14,7 @@ Created on 13 Sep 2020
 
 # pylint: disable = no-member
 
-from operator import itemgetter
-from tkinter import BOTH, YES, Frame
+from tkinter import NSEW, Frame
 
 from pygpsclient.canvas_plot import (
     MODE_CEL,
@@ -30,7 +29,7 @@ from pygpsclient.globals import (
     GNSS_LIST,
     WIDGETU2,
 )
-from pygpsclient.helpers import col2contrast, snr2col
+from pygpsclient.helpers import col2contrast, snr2col, unused_sats
 
 OL_WID = 4
 FONTSCALE = 30
@@ -79,7 +78,7 @@ class SkyviewFrame(Frame):
             height=self.height,
             bg=self.bg_col,
         )
-        self._canvas.pack(fill=BOTH, expand=YES)
+        self._canvas.grid(column=0, row=0, sticky=NSEW)
 
     def _attach_events(self):
         """
@@ -107,16 +106,23 @@ class SkyviewFrame(Frame):
         """
 
         data = self.__app.gnss_status.gsv_data
+        show_unused = self.__app.configuration.get("unusedsat_b")
+        siv = len(data)
+        if siv == 0:
+            return
+        siv = siv if show_unused else siv - unused_sats(data)
+
         self.init_frame()
 
-        for d in sorted(data.values(), key=itemgetter(4)):  # sort by ascending snr
+        for val in sorted(data.values(), key=lambda x: x[4]):  # sort by ascending C/N0
             try:
-                gnssId, prn, ele, azi, snr = d
+                gnssId, prn, ele, azi, cno, _ = val
+                if cno == 0 and not show_unused:
+                    continue
                 x, y = self._canvas.d2xy(int(azi), int(ele))
-                snr = 0 if snr == "" else int(snr)
                 (_, ol_col) = GNSS_LIST[gnssId]
                 prn = f"{int(prn):02}"
-                bg_col = snr2col(snr)
+                bg_col = snr2col(cno)
                 self._canvas.create_circle(
                     x,
                     y,
@@ -137,7 +143,7 @@ class SkyviewFrame(Frame):
             except ValueError:
                 pass
 
-        self._canvas.update_idletasks()
+            self.update_idletasks()
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """

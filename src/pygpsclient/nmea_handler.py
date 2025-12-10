@@ -23,7 +23,7 @@ from time import time
 from pynmeagps import NMEAMessage
 from pyubx2 import itow2utc
 
-from pygpsclient.globals import SAT_EXPIRY
+from pygpsclient.globals import SAT_EXPIRY, TKGN
 from pygpsclient.helpers import fix2desc, kmph2ms, knots2ms, svid2gnssid
 from pygpsclient.strings import DLGTNMEA
 
@@ -219,46 +219,38 @@ class NMEAHandler:
         :param pynmeagps.NMEAMessage data: parsed GSV sentence
         """
 
-        show_unused = self.__app.configuration.get("unusedsat_b")
-        self.gsv_data = {}
-        gsv_dict = {}
+        gnss = TKGN.get(data.talker, 0)
         now = time()
-        if data.talker == "GA":
-            gnss = 2  # Galileo
-        elif data.talker in ("GB", "BD"):
-            gnss = 3  # Beidou (only available in MMEA 4.11)
-        elif data.talker == "GL":
-            gnss = 6  # GLONASS
-        elif data.talker == "GI":
-            gnss = 7  # NAVIC
-        else:
-            gnss = 0  # GPS, SBAS, QZSS
 
         for i in range(4):
             idx = f"_{i+1:02d}"
             svid = getattr(data, "svid" + idx, "")
+            elev = getattr(data, "elv" + idx, 0)
+            azim = getattr(data, "az" + idx, 0)
+            cno = getattr(data, "cno" + idx, 0)
+            if not isinstance(cno, (int, float)):
+                cno = 0
             if svid != "":
-                key = f"{gnss}-{svid}"
-                gsv_dict[key] = (
+                svid = int(svid)
+                if gnss == 0 and (120 <= svid <= 158):
+                    gnss = 1  # SBAS
+                self.__app.gnss_status.gsv_data[(gnss, svid)] = (
                     gnss,
                     svid,
-                    getattr(data, "elv" + idx),
-                    getattr(data, "az" + idx),
-                    str(getattr(data, "cno" + idx)),
+                    elev,
+                    azim,
+                    cno,
                     now,
                 )
 
-        for key, value in gsv_dict.items():
-            self.gsv_log[key] = value
+        # discard sats that haven't been seen in a while
+        for key, (_, _, _, _, _, lastupdate) in list(
+            self.__app.gnss_status.gsv_data.items()
+        ):
+            if now - lastupdate > SAT_EXPIRY:
+                del self.__app.gnss_status.gsv_data[key]
 
-        for key, (gnssId, svid, elev, azim, cno, lastupdate) in self.gsv_log.items():
-            if cno in ("", "0", 0) and not show_unused:  # omit unused sats
-                continue
-            if now - lastupdate < SAT_EXPIRY:  # expire passed sats
-                self.gsv_data[key] = (gnssId, svid, elev, azim, cno)
-
-        self.__app.gnss_status.siv = len(self.gsv_data)
-        self.__app.gnss_status.gsv_data = self.gsv_data
+        self.__app.gnss_status.siv = len(self.__app.gnss_status.gsv_data)
 
     def _process_VTG(self, data: NMEAMessage):
         """

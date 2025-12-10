@@ -17,17 +17,15 @@ Created on 24 Nov 2024
 from random import choice
 from time import time
 from tkinter import (
+    EW,
     NORMAL,
-    E,
+    NSEW,
     Entry,
     Frame,
     Label,
-    N,
-    S,
     Spinbox,
     StringVar,
     TclError,
-    W,
     font,
 )
 
@@ -299,22 +297,22 @@ class ChartviewFrame(Frame):
         Position widgets in frame.
         """
 
-        self._canvas.grid(column=0, row=0, columnspan=6, sticky=(N, S, E, W))
-        self._lbl_id.grid(column=0, row=1, sticky=(W, E))
-        self._lbl_name.grid(column=1, row=1, sticky=(W, E))
-        self._lbl_scale.grid(column=2, row=1, sticky=(W, E))
-        self._lbl_miny.grid(column=3, row=1, sticky=(W, E))
-        self._lbl_maxy.grid(column=4, row=1, sticky=(W, E))
+        self._canvas.grid(column=0, row=0, columnspan=6, sticky=NSEW)
+        self._lbl_id.grid(column=0, row=1, sticky=EW)
+        self._lbl_name.grid(column=1, row=1, sticky=EW)
+        self._lbl_scale.grid(column=2, row=1, sticky=EW)
+        self._lbl_miny.grid(column=3, row=1, sticky=EW)
+        self._lbl_maxy.grid(column=4, row=1, sticky=EW)
         for chn in range(self._num_chans):
-            self._ent_id[chn].grid(column=0, row=2 + chn, sticky=(W, E))
-            self._ent_name[chn].grid(column=1, row=2 + chn, sticky=(W, E))
-            self._spn_scale[chn].grid(column=2, row=2 + chn, sticky=(W, E))
-            self._spn_miny[chn].grid(column=3, row=2 + chn, sticky=(W, E))
-            self._spn_maxy[chn].grid(column=4, row=2 + chn, sticky=(W, E))
-        self._lbl_timrange.grid(column=5, row=1, sticky=(W, E))
-        self._spn_timrange.grid(column=5, row=2, sticky=(W, E))
-        self._lbl_maxpoints.grid(column=5, row=3, sticky=(W, E))
-        self._spn_maxpoints.grid(column=5, row=4, sticky=(W, E))
+            self._ent_id[chn].grid(column=0, row=2 + chn, sticky=EW)
+            self._ent_name[chn].grid(column=1, row=2 + chn, sticky=EW)
+            self._spn_scale[chn].grid(column=2, row=2 + chn, sticky=EW)
+            self._spn_miny[chn].grid(column=3, row=2 + chn, sticky=EW)
+            self._spn_maxy[chn].grid(column=4, row=2 + chn, sticky=EW)
+        self._lbl_timrange.grid(column=5, row=1, sticky=EW)
+        self._spn_timrange.grid(column=5, row=2, sticky=EW)
+        self._lbl_maxpoints.grid(column=5, row=3, sticky=EW)
+        self._spn_maxpoints.grid(column=5, row=4, sticky=EW)
 
     def _attach_events(self):
         """
@@ -425,7 +423,9 @@ class ChartviewFrame(Frame):
                         continue
 
             # wildcards *+-, sum, max or min of group of values
-            if name[-1] in ("*", "+", "-"):
+            if name == "processtime":
+                val = self.__app.processtime / 1000  # microseconds
+            elif name[-1] in ("*", "+", "-"):
                 vals = []
                 for attr in parsed_data.__dict__:
                     if name[:-1] in attr and name[0] != "_":
@@ -593,6 +593,7 @@ class ChartviewFrame(Frame):
                         chn=chn,
                         tags=(TAG_DATA,),
                     )
+                self.update_idletasks()
 
     def _on_clipboard(self, event):  # pylint: disable=unused-argument
         """

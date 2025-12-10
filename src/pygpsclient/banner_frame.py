@@ -12,7 +12,8 @@ Created on 13 Sep 2020
 :license: BSD 3-Clause
 """
 
-from tkinter import NW, SUNKEN, Button, E, Frame, Label, N, W
+from time import time
+from tkinter import NE, NW, SUNKEN, Button, E, Frame, Label, N, W
 
 from PIL import Image, ImageTk
 from pynmeagps.nmeahelpers import latlon2dmm, latlon2dms, llh2ecef
@@ -46,7 +47,15 @@ from pygpsclient.globals import (
     UIK,
     UMK,
 )
-from pygpsclient.helpers import dop2str, m2ft, ms2kmph, ms2knots, ms2mph, scale_font
+from pygpsclient.helpers import (
+    dop2str,
+    m2ft,
+    ms2kmph,
+    ms2knots,
+    ms2mph,
+    scale_font,
+    unused_sats,
+)
 from pygpsclient.strings import NA
 
 DGPSYES = "YES"
@@ -202,6 +211,9 @@ class BannerFrame(Frame):
         self._lbl_trk = Label(
             self._frm_advanced, bg=self._bgcol, fg="deepskyblue", width=8, anchor=W
         )
+        self._lbl_benchmark = Label(
+            self._frm_advanced, text="", bg=self._bgcol, fg="grey", width=15, anchor=E
+        )
         self._lbl_siv = Label(
             self._frm_advanced2, bg=self._bgcol, fg="yellow", width=2, anchor=W
         )
@@ -230,7 +242,7 @@ class BannerFrame(Frame):
             width=2,
         )
         self._lbl_diffstat = Label(
-            self._frm_advanced2, bg=self._bgcol, fg="hotpink", width=20, anchor=W
+            self._frm_advanced2, bg=self._bgcol, fg="hotpink", width=25, anchor=W
         )
 
     def _do_layout(self):
@@ -258,6 +270,7 @@ class BannerFrame(Frame):
         self._lbl_spd.grid(column=3, row=0, pady=0, padx=0, sticky=W)
         self._lbl_ltrk.grid(column=4, row=0, pady=0, padx=0, sticky=W)
         self._lbl_trk.grid(column=5, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_benchmark.grid(column=6, row=0, pady=0, padx=0, sticky=E)
         self._lbl_lsiv.grid(column=0, row=0, pady=0, padx=0, sticky=W)
         self._lbl_siv.grid(column=1, row=0, pady=0, padx=0, sticky=W)
         self._lbl_lsip.grid(column=2, row=0, pady=0, padx=0, sticky=W)
@@ -272,7 +285,7 @@ class BannerFrame(Frame):
         self._lbl_diffcorr.grid(column=11, row=0, pady=0, padx=0, sticky=W)
         self._lbl_diffstat.grid(column=12, row=0, pady=0, padx=0, sticky=W)
 
-        self._btn_toggle.grid(column=0, row=0, padx=0, pady=0, sticky=(N, E))
+        self._btn_toggle.grid(column=0, row=0, padx=0, pady=0, sticky=NE)
 
         self._toggle_advanced()
 
@@ -282,10 +295,10 @@ class BannerFrame(Frame):
         """
 
         self._frm_connect.grid(
-            column=0, row=0, rowspan=2, pady=3, ipadx=3, ipady=3, sticky=(N, W)
+            column=0, row=0, rowspan=2, pady=3, ipadx=3, ipady=3, sticky=NW
         )
         self._frm_basic.grid(column=1, row=0, pady=2, sticky=W)
-        self._frm_toggle.grid(column=5, row=0, rowspan=2, pady=2, sticky=(N, E))
+        self._frm_toggle.grid(column=5, row=0, rowspan=2, pady=2, sticky=NE)
         self._show_advanced = not self._show_advanced
         if self._show_advanced:
             self._frm_advanced.grid(column=1, row=1, pady=2, sticky=W)
@@ -376,6 +389,13 @@ class BannerFrame(Frame):
             self._lbl_time.config(text=NA)
         else:
             self._lbl_time.config(text=f"{tim:%H:%M:%S.%f}")
+
+        # display run time in s and process time in µs
+        if self.__app.configuration.get("version_s") == "BENCHMARK":
+            tim = time()
+            self._lbl_benchmark.config(
+                text=f"{tim-self.__app.starttime:.0f} s {self.__app.processtime/1000:.0f} µs"
+            )
 
     def _update_pos(self, pos_format, units):
         """
@@ -470,11 +490,19 @@ class BannerFrame(Frame):
 
     def _update_siv(self):
         """
-        Update siv and sip
+        Update siv and sip.
+
+        Exclude unused sats (cno = 0) if show_unused is not set.
         """
 
+        siv = self.__app.gnss_status.siv
+        siv = (
+            siv
+            if self.__app.configuration.get("unusedsat_b")
+            else siv - unused_sats(self.__app.gnss_status.gsv_data)
+        )
         try:
-            self._lbl_siv.config(text=f"{self.__app.gnss_status.siv:02d}")
+            self._lbl_siv.config(text=f"{siv:02d}")
             self._lbl_sip.config(text=f"{self.__app.gnss_status.sip:02d}")
         except (TypeError, ValueError):
             self._lbl_siv.config(text=NA)
@@ -583,6 +611,7 @@ class BannerFrame(Frame):
             self._lbl_hae,
             self._lbl_spd,
             self._lbl_trk,
+            self._lbl_benchmark,
             self._lbl_pdop,
             self._lbl_fix,
             self._lbl_sip,

@@ -235,7 +235,7 @@ class AboutDialog(ToplevelDialog):
         Check for updates.
         """
 
-        self.set_status("")
+        self.status_label = ""
         self._updates = []
         for i, (nam, current) in enumerate(LIBVERSIONS.items()):
             latest = check_latest(nam)
@@ -280,4 +280,4 @@ class AboutDialog(ToplevelDialog):
         Display warning that some functionality unavailable with Homebrew.
         """
 
-        self.set_status(BREWWARN, INFOCOL)
+        self.status_label = (BREWWARN, INFOCOL)

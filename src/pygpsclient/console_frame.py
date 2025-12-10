@@ -17,7 +17,18 @@ Created on 12 Sep 2020
 :license: BSD 3-Clause
 """
 
-from tkinter import END, HORIZONTAL, NONE, VERTICAL, E, Frame, N, S, Scrollbar, Text, W
+from tkinter import (
+    END,
+    EW,
+    HORIZONTAL,
+    NONE,
+    NS,
+    NSEW,
+    VERTICAL,
+    Frame,
+    Scrollbar,
+    Text,
+)
 
 from pyubx2 import hextable
 
@@ -109,9 +120,9 @@ class ConsoleFrame(Frame):
         Set position of widgets in frame
         """
 
-        self.txt_console.grid(column=0, row=0, pady=1, padx=1, sticky=(N, S, E, W))
-        self.sblogv.grid(column=1, row=0, sticky=(N, S, E))
-        self.sblogh.grid(column=0, row=1, sticky=(S, E, W))
+        self.txt_console.grid(column=0, row=0, pady=1, padx=1, sticky=NSEW)
+        self.sblogv.grid(column=1, row=0, sticky=NS)
+        self.sblogh.grid(column=0, row=1, sticky=EW)
 
     def _attach_events(self):
         """
@@ -217,7 +228,7 @@ class ConsoleFrame(Frame):
         """
 
         self.__app.stream_handler.stop()
-        self.__app.set_status(HALTTAGWARN.format(self._halt), ERRCOL)
+        self.__app.status_label = (HALTTAGWARN.format(self._halt), ERRCOL)
         self.__app.conn_status = DISCONNECTED
 
     def _on_clipboard(self, event):  # pylint: disable=unused-argument

@@ -17,16 +17,15 @@ Created on 26 Jan 2023
 
 from tkinter import (
     DISABLED,
+    EW,
     NORMAL,
+    NSEW,
     Button,
     Checkbutton,
-    E,
     Entry,
     Frame,
     IntVar,
     Label,
-    N,
-    S,
     Spinbox,
     StringVar,
     TclError,
@@ -67,6 +66,7 @@ from pygpsclient.globals import (
     TRACEMODE_WRITE,
     VALINT,
 )
+from pygpsclient.helpers import validate  # pylint: disable=unused-import
 from pygpsclient.serialconfig_lband_frame import SerialConfigLbandFrame
 from pygpsclient.strings import CONFIGBAD, CONFIGOK, DLGSPARTNWARN, LBLSPARTNLB
 
@@ -310,10 +310,10 @@ class SpartnLbandDialog(Frame):
             column=0, row=0, columnspan=4, padx=3, pady=2, sticky=W
         )
         self._frm_spartn_serial.grid(
-            column=0, row=1, columnspan=4, padx=3, pady=2, sticky=(N, S, W, E)
+            column=0, row=1, columnspan=4, padx=3, pady=2, sticky=NSEW
         )
         ttk.Separator(self).grid(
-            column=0, row=2, columnspan=4, padx=2, pady=3, sticky=(W, E)
+            column=0, row=2, columnspan=4, padx=2, pady=3, sticky=EW
         )
         self._lbl_freq.grid(column=0, row=3, sticky=W)
         self._ent_freq.grid(column=1, row=3, sticky=W)
@@ -337,7 +337,7 @@ class SpartnLbandDialog(Frame):
         self._lbl_ebno.grid(column=0, row=11, sticky=W)
         self._lbl_fec.grid(column=1, row=11, sticky=W)
         ttk.Separator(self).grid(
-            column=0, row=12, columnspan=4, padx=2, pady=3, sticky=(W, E)
+            column=0, row=12, columnspan=4, padx=2, pady=3, sticky=EW
         )
         self._btn_connect.grid(column=0, row=13, padx=3, pady=2, sticky=W)
         self._btn_disconnect.grid(column=1, row=13, padx=3, pady=2, sticky=W)
@@ -383,7 +383,7 @@ class SpartnLbandDialog(Frame):
         self._spartn_descrminit.set(cfg.get("lbandclientdescrminit_n"))
         self._spartn_unqword.set(cfg.get("lbandclientunqword_s"))
         self._spartn_outport.set(cfg.get("lbandclientoutport_s"))
-        self.__container.set_status("")
+        self.__container.status_label = ""
         if self.__app.rtk_conn_status == CONNECTED_SPARTNLB:
             self.set_controls(CONNECTED_SPARTNLB)
         else:
@@ -418,7 +418,7 @@ class SpartnLbandDialog(Frame):
         :param int status: connection status (0 = disconnected, 1 = connected)
         """
 
-        self._frm_spartn_serial.set_status(status)
+        self._frm_spartn_serial.status_label = status
         stat = DISABLED if status == CONNECTED_SPARTNLB else NORMAL
         for wdg in (self._btn_connect,):
             wdg.config(state=stat)
@@ -461,7 +461,7 @@ class SpartnLbandDialog(Frame):
         valid = valid & self._ent_unqword.validate(VALINT, 0, U8MAX)  # U8
 
         if not valid:
-            self.__container.set_status("ERROR - invalid settings", ERRCOL)
+            self.__container.status_label = ("ERROR - invalid settings", ERRCOL)
 
         return valid
 
@@ -472,7 +472,7 @@ class SpartnLbandDialog(Frame):
 
         frm = self._frm_spartn_serial
         if self.__app.rtk_conn_status == CONNECTED_SPARTNIP:
-            self.__container.set_status(
+            self.__container.status_label = (
                 DLGSPARTNWARN.format("IP", "L-Band"),
                 ERRCOL,
             )
@@ -497,8 +497,8 @@ class SpartnLbandDialog(Frame):
         # start serial stream thread
         self.__app.rtk_conn_status = CONNECTED_SPARTNLB
         self.__app.spartn_stream_handler.start(self.__container, conndict)
-        self.__container.set_status(
-            f"Connected to {frm.port}:{frm.port_desc} @ {frm.bpsrate}", OKCOL
+        self.__container.status_label = (
+            f"Connected to {frm.port}:{frm.port_desc} @ {frm.bpsrate}"
         )
         self.set_controls(CONNECTED_SPARTNLB)
 
@@ -516,10 +516,7 @@ class SpartnLbandDialog(Frame):
             if self.__app.spartn_stream_handler is not None:
                 self.__app.spartn_stream_handler.stop()
                 self.__app.rtk_conn_status = DISCONNECTED
-                self.__container.set_status(
-                    msg,
-                    ERRCOL,
-                )
+                self.__container.status_label = (msg, ERRCOL)
             self.set_controls(DISCONNECTED)
 
     def on_error(self, event):  # pylint: disable=unused-argument
@@ -627,7 +624,7 @@ class SpartnLbandDialog(Frame):
 
         msg = self._format_cfgcorr()
         self._send_command(msg)
-        self.__container.set_status(f"{CFGSET} command sent", OKCOL)
+        self.__container.status_label = f"{CFGSET} command sent"
         self._lbl_send.config(image=self._img_pending)
 
         # save config to persistent memory
@@ -680,14 +677,14 @@ class SpartnLbandDialog(Frame):
                 self._spartn_prescrm.set(msg.CFG_PMP_USE_PRESCRAMBLING)
             if hasattr(msg, "CFG_PMP_UNIQUE_WORD"):
                 self._spartn_unqword.set(msg.CFG_PMP_UNIQUE_WORD)
-            self.__container.set_status(f"{CFGPOLL} received", OKCOL)
+            self.__container.status_label = (f"{CFGPOLL} received", OKCOL)
             self._lbl_send.config(image=self._img_confirmed)
         elif msg.identity == "ACK-ACK":
             self._lbl_send.config(image=self._img_confirmed)
-            self.__container.set_status(CONFIGOK.format(CFGSET), OKCOL)
+            self.__container.status_label = (CONFIGOK.format(CFGSET), OKCOL)
         elif msg.identity == "ACK-NAK":
             self._lbl_send.config(image=self._img_warn)
-            self.__container.set_status(CONFIGBAD.format(CFGSET), ERRCOL)
+            self.__container.status_label = (CONFIGBAD.format(CFGSET), ERRCOL)
         elif msg.identity == "RXM-PMP":
             self._lbl_ebno.config(text=f"Eb/N0: {msg.ebno} dB")
             self._lbl_fec.config(text=f"FEC Bits: {msg.fecBits}")

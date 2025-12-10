@@ -13,6 +13,7 @@ Created on 22 Sep 2020
 """
 
 from tkinter import (
+    EW,
     LEFT,
     VERTICAL,
     Button,
@@ -159,10 +160,9 @@ class UBX_MSGRATE_Frame(Frame):
         """
         Layout widgets.
         """
-
-        self._lbl_cfg_msg.grid(column=0, row=0, columnspan=6, padx=3, sticky=(W, E))
+        self._lbl_cfg_msg.grid(column=0, row=0, columnspan=6, padx=3, sticky=EW)
         self._lbx_cfg_msg.grid(
-            column=0, row=1, columnspan=2, rowspan=11, padx=3, pady=3, sticky=(W, E)
+            column=0, row=1, columnspan=2, rowspan=11, padx=3, pady=3, sticky=EW
         )
         self._scr_cfg_msg.grid(column=1, row=1, rowspan=11, sticky=(N, S, E))
         self._lbl_usb.grid(column=2, row=1, rowspan=2, padx=0, pady=1, sticky=E)
@@ -215,7 +215,7 @@ class UBX_MSGRATE_Frame(Frame):
         """
 
         if msg.identity == "CFG-MSG":
-            self.__container.set_status("CFG-MSG GET message received", OKCOL)
+            self.__container.status_label = ("CFG-MSG GET message received", OKCOL)
             self._ddc_rate.set(msg.rateDDC)
             self._uart1_rate.set(msg.rateUART1)
             self._uart2_rate.set(msg.rateUART2)
@@ -224,7 +224,7 @@ class UBX_MSGRATE_Frame(Frame):
             self._lbl_send_command.config(image=self._img_confirmed)
 
         elif msg.identity == "ACK-NAK":
-            self.__container.set_status("CFG-MSG POLL message rejected", ERRCOL)
+            self.__container.status_label = ("CFG-MSG POLL message rejected", ERRCOL)
             self._lbl_send_command.config(image=self._img_warn)
 
     def _on_select_cfg_msg(self, *args, **kwargs):  # pylint: disable=unused-argument
@@ -266,7 +266,7 @@ class UBX_MSGRATE_Frame(Frame):
         )
         self.__container.send_command(msg)
         self._lbl_send_command.config(image=self._img_pending)
-        self.__container.set_status("CFG-MSG SET message sent", OKCOL)
+        self.__container.status_label = "CFG-MSG SET message sent"
         for msgid in ("ACK-ACK", "ACK-NAK"):
             self.__container.set_pending(msgid, UBX_CFGMSG)
 
@@ -282,8 +282,6 @@ class UBX_MSGRATE_Frame(Frame):
         msg = UBXMessage("CFG", "CFG-MSG", POLL, payload=msgtyp)
         self.__container.send_command(msg)
         self._lbl_send_command.config(image=self._img_pending)
-        self.__container.set_status(
-            "CFG-MSG POLL message sent",
-        )
+        self.__container.status_label = "CFG-MSG POLL message sent"
         for msgid in ("CFG-MSG", "ACK-NAK"):
             self.__container.set_pending(msgid, UBX_CFGMSG)

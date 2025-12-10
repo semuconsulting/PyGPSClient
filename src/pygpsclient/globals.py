@@ -73,7 +73,7 @@ SPARTN_PROTOCOL = 32
 MQTT_PROTOCOL = 64
 TTY_PROTOCOL = 128
 
-# Various global constants
+# Various global constants - please keep in ascending alphabetical order
 HOME = Path.home()
 APPNAME = __name__.split(".", 1)[0]  # i.e. "pygpsclient"
 ASCII = "ascii"
@@ -90,7 +90,6 @@ BPSRATES = (
     4800,
 )
 BSR = "backslashreplace"
-CFG = "cfg"
 CLASS = "cls"
 COLORTAGS = "colortags"
 CONFIGFILE = path.join(HOME, f"{APPNAME}.json")
@@ -109,13 +108,14 @@ CONNMODES = {
     4: "socket",
 }
 CRLF = b"\x0d\x0a"
+CUSTOM = "custom"
 DDD = "DD.D"
 DEFAULT_BUFSIZE = 4096
 DEFAULT_PASSWORD = "password"  # nosec
 DEFAULT_PORT = 50010
-DEFAULT_TLS_PORTS = (443, 2102, 8443, 50443, 58443)
 DEFAULT_REGION = "eu"
 DEFAULT_SERVER = "localhost"
+DEFAULT_TLS_PORTS = (443, 2102, 8443, 50443, 58443)
 DEFAULT_USER = "anon"
 DIRNAME = path.dirname(__file__)
 DISCONNECTED = 0
@@ -172,11 +172,10 @@ ICON_EXPAND = path.join(DIRNAME, "resources/iconmonstr-arrow-80-16.png")
 ICON_GITHUB = path.join(DIRNAME, "resources/github-256.png")
 ICON_LOAD = path.join(DIRNAME, "resources/iconmonstr-folder-18-24.png")
 ICON_LOGREAD = path.join(DIRNAME, "resources/binary-1-24.png")
-ICON_NMEACONFIG = path.join(DIRNAME, "resources/iconmonstr-gear-2-24-brown.png")
+ICON_NMEACONFIG = path.join(DIRNAME, "resources/iconmonstr-gear-2-24-nmea.png")
 ICON_NOCLIENT = path.join(DIRNAME, "resources/iconmonstr-noclient-10-24.png")
 ICON_NOTRANSMIT = path.join(DIRNAME, "resources/iconmonstr-notransmit-10-24.png")
 ICON_NTRIPCONFIG = path.join(DIRNAME, "resources/iconmonstr-antenna-4-24.png")
-ICON_TTYCONFIG = path.join(DIRNAME, "resources/icon-tty-24-green.png")
 ICON_PENDING = path.join(DIRNAME, "resources/iconmonstr-time-6-24.png")
 ICON_PLAY = path.join(DIRNAME, "resources/iconmonstr-media-control-48-24.png")
 ICON_POS = path.join(DIRNAME, "resources/iconmonstr-plus-lined-24.png")
@@ -188,42 +187,35 @@ ICON_SEND = path.join(DIRNAME, "resources/iconmonstr-arrow-12-24.png")
 ICON_SERIAL = path.join(DIRNAME, "resources/usbport-1-24.png")
 ICON_SOCKET = path.join(DIRNAME, "resources/ethernet-1-24.png")
 ICON_SPARTNCONFIG = path.join(DIRNAME, "resources/iconmonstr-antenna-3-24.png")
-# ICON_SPARTNDISABLE = path.join(DIRNAME, "resources/iconmonstr-antenna-3-24-greyed.png")
+ICON_SPONSOR = path.join(DIRNAME, "resources/bmac-logo-60.png")
 ICON_START = path.join(DIRNAME, "resources/marker_start.png")
 ICON_STOP = path.join(DIRNAME, "resources/iconmonstr-stop-1-24.png")
 ICON_TRANSMIT = path.join(DIRNAME, "resources/iconmonstr-transmit-10-24.png")
-ICON_UBXCONFIG = path.join(DIRNAME, "resources/iconmonstr-gear-2-24.png")
+ICON_TTYCONFIG = path.join(DIRNAME, "resources/iconmonstr-gear-2-24-tty.png")
+ICON_UBXCONFIG = path.join(DIRNAME, "resources/iconmonstr-gear-2-24-ubx.png")
 ICON_UNDO = path.join(DIRNAME, "resources/iconmonstr-undo-24.png")
 ICON_UNKNOWN = path.join(DIRNAME, "resources/clear-1-24.png")
 ICON_WARNING = path.join(DIRNAME, "resources/iconmonstr-warning-1-24.png")
 IMG_WORLD = path.join(DIRNAME, "resources/world.png")
-ICON_SPONSOR = path.join(DIRNAME, "resources/bmac-logo-60.png")
 IMG_WORLD_BOUNDS = Area(-90, -180, 90, 180)
-LBAND = "LBAND"
-LICENSE_URL = "https://github.com/semuconsulting/PyGPSClient/blob/master/LICENSE"
-MAPAPI_URL = "https://developer.mapquest.com/user/login/sign-up"
-MQTTIPMODE = 0
-MQTTLBANDMODE = 1
-MINHEIGHT = 600
-MINWIDTH = 800
-CUSTOM = "custom"
 IMPORT = "import"
-WORLD = "world"
+LBAND = "LBAND"
 LC29H = "Quectel LC29H"
 LG290P = "Quectel LG29P/LG580P"
-MAX_SNR = 60  # upper limit of graphview snr axis
-MAXLOGLINES = 10000  # maximum number of 'lines' per datalog file
-MIN_GUI_UPDATE_INTERVAL = 0.1  # minimum GUI widget update interval (seconds)
+LICENSE_URL = "https://github.com/semuconsulting/PyGPSClient/blob/master/LICENSE"
+MAPAPI_URL = "https://developer.mapquest.com/user/login/sign-up"
+MAX_SNR = 60  # upper limit of levelsview CNo axis
 MAXFLOAT = 2e20
+MAXLOGSIZE = 10485760  # maximum size of individual log file in bytes
+MIN_GUI_UPDATE_INTERVAL = 0.1  # minimum GUI widget update interval (seconds)
 MINFLOAT = -MAXFLOAT
-MOSAIC_X5 = "Septentrio Mosaic X5"
+MINHEIGHT = 600
+MINWIDTH = 800
+MOSAIC_X5 = "Septentrio Mosaic X3/X5"
 MQAPIKEY = "mqapikey"
-MSGMODES = {
-    "GET": GET,
-    "SET": SET,
-    "POLL": POLL,
-    "SETPOLL": SETPOLL,
-}
+MQTTIPMODE = 0
+MQTTLBANDMODE = 1
+MSGMODES = {"GET": GET, "SET": SET, "POLL": POLL, "SETPOLL": SETPOLL}
 NOPORTS = 3
 NTRIP = "NTRIP"
 NTRIP_EVENT = "<<ntrip_read>>"
@@ -233,13 +225,12 @@ PUBLICIP_URL = "https://ipinfo.io/json"
 PYPI_URL = "https://pypi.org/pypi/PyGPSClient"
 QUITONERRORDEFAULT = 1
 RCVR_CONNECTION = "USB,UART1"  # default GNSS receiver connection port(s)
-ROMVER_NEW = "23.01"  # min device ROM version using configuration database
 READONLY = "readonly"
 RESIZE = "resize"
+ROMVER_NEW = "23.01"  # min device ROM version using configuration database
 ROUTE = "route"
 RXMMSG = "RXM-SPARTN-KEY"
 SAT_EXPIRY = 10  # how long passed satellites are kept in the sky and graph view
-
 SCREENSCALE = 0.8  # screen resolution scaling factor
 SOCK_NTRIP = "NTRIP CASTER"
 SOCK_SERVER = "SOCKET SERVER"
@@ -250,13 +241,13 @@ SOCKSERVER_HOST = "0.0.0.0"  # i.e. bind to all host IP addresses
 SOCKSERVER_MAX_CLIENTS = 5
 SOCKSERVER_NTRIP_PORT = 2101
 SOCKSERVER_PORT = 50012
+SPARTN_BASEDATE_CURRENT = -1
+SPARTN_BASEDATE_DATASTREAM = 0
+SPARTN_DEFAULT_KEY = "abcd1234abcd1234abcd1234abcd1234"
 SPARTN_EOF_EVENT = "<<spartn_eof>>"
 SPARTN_ERR_EVENT = "<<spartn_error>>"
 SPARTN_EVENT = "<<spartn_read>>"
 SPARTN_KEYLEN = 16
-SPARTN_DEFAULT_KEY = "abcd1234abcd1234abcd1234abcd1234"
-SPARTN_BASEDATE_CURRENT = -1
-SPARTN_BASEDATE_DATASTREAM = 0
 SPARTN_OUTPORT = 8883
 SPARTN_PPREGIONS = ("eu", "us", "jp", "kr", "au")
 SPARTN_PPSERVER_URL = "pp.services.u-blox.com"
@@ -265,19 +256,10 @@ SPARTN_SOURCE_LB = 1
 SPONSOR_URL = "https://buymeacoffee.com/semuconsulting"
 SQRT2 = 0.7071067811865476  # square root of 2
 STATUSPRIORITY = {INFOCOL: 0, "blue": 0, OKCOL: 2, "green": 1, ERRCOL: 3, "red": 3}
-THD = "thd"
 TIME0 = datetime(1970, 1, 1)  # basedate for time()
-TIMEOUTS = (
-    "0.1",
-    "0.2",
-    "1",
-    "2",
-    "5",
-    "10",
-    "20",
-    "None",
-    "0",
-)
+TIMEOUTS = ("0.1", "0.2", "1", "2", "5", "10", "20", "None", "0")
+# map nmea talker to gnss_id
+TKGN = {"GN": 0, "GP": 0, "GA": 2, "GB": 3, "BD": 3, "GQ": 5, "GL": 6, "GI": 7}
 TOPIC_IP = "/pp/ip/{}"
 TOPIC_MGA = "/pp/ubx/mga"
 TOPIC_RXM = "/pp/ubx/0236/ip"
@@ -305,6 +287,7 @@ WIDGETU2 = (300, 200)  # medium widget size
 WIDGETU3 = (800, 200)  # Console size
 WIDGETU4 = (500, 500)  # GPX Track viewer size
 WIDGETU6 = (400, 200)  # Chart size
+WORLD = "world"
 XML_HDR = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
 ZED_F9 = "u-blox ZED-F9"
 ZED_X20 = "u-blox ZED-X20"
@@ -352,7 +335,6 @@ NMEA_CFGOTHER = 17
 SERVERCONFIG = 18
 SBF_MONHW = 19
 
-# keep KNOWNGPS all lower case
 KNOWNGPS = (
     "cp210",
     "ft230",
@@ -375,13 +357,12 @@ KNOWNGPS = (
     "usb_to_uart",
     "user-defined",
 )
+"""
+Recognised GNSS device serial port designators.
+Used to 'auto-select' GNSS device in serial port list.
+(keep in lower-case)
+"""
 
-# map of fix values to descriptions
-# the keys in this map are a concatenation of NMEA/UBX
-# message identifier and attribute value e.g.:
-# GGA1: GGA + quality = 1
-# NAV-STATUS3: NAV-STATUS + gpsFix = 3
-# (valid for NMEA >=4)
 FIXLOOKUP = {
     "GGA1": "3D",  # quality
     "GGA2": "3D",
@@ -454,3 +435,11 @@ FIXLOOKUP = {
     "PVTGeodetic8": "RTK FLOAT",
     "PVTGeodetic10": "PPP",
 }
+"""
+Map of fix values to descriptions.
+The keys in this map are a concatenation of NMEA/UBX
+message identifier and attribute value e.g.
+GGA1: GGA + quality = 1
+NAV-STATUS3: NAV-STATUS + gpsFix = 3
+(valid for NMEA >=4)
+"""

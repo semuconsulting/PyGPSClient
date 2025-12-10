@@ -16,7 +16,7 @@ Created on 23 Dec 2022
 # pylint: disable=no-member, unused-argument
 
 import logging
-from tkinter import ALL, NW, Checkbutton, E, Frame, IntVar, N, S, W
+from tkinter import ALL, EW, NSEW, NW, Checkbutton, Frame, IntVar, S, W
 
 from pyubx2 import UBXMessage
 
@@ -143,8 +143,8 @@ class SpectrumviewFrame(Frame):
             variable=self._pgaoffset,
             anchor=W,
         )
-        self._canvas.grid(column=0, row=0, columnspan=3, sticky=(N, S, E, W))
-        self.chk_pgaoffset.grid(column=0, row=1, sticky=(W, E))
+        self._canvas.grid(column=0, row=0, columnspan=3, sticky=NSEW)
+        self.chk_pgaoffset.grid(column=0, row=1, sticky=EW)
 
     def _attach_events(self):
         """
@@ -333,6 +333,7 @@ class SpectrumviewFrame(Frame):
                         width=OL_WID,
                         tags=(mode, TAG_DATA),
                     )
+            self.update_idletasks()
 
         # display any marked db/hz coordinate
         if self._chartpos is not None:

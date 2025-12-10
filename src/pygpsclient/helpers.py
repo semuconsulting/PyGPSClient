@@ -315,30 +315,7 @@ def col2contrast(col: str) -> str:
 
     r, g, b = str2rgb(col)
     luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
-    col = "black" if luminance > 0.5 else "white"
-    return col
-
-
-def config_nmea(state: int, port_type: str = "USB") -> UBXMessage:
-    """
-    Enable or disable NMEA messages at port level and use minimum UBX
-    instead (NAV-PRT, NAV_SAT, NAV_DOP).
-
-    :param int state: 1 = disable NMEA, 0 = enable NMEA
-    :param str port_type: port that rcvr is connected on
-    """
-
-    nmea_state = 0 if state else 1
-    layers = 1
-    transaction = 0
-    cfg_data = []
-    cfg_data.append((f"CFG_{port_type}OUTPROT_NMEA", nmea_state))
-    cfg_data.append((f"CFG_{port_type}OUTPROT_UBX", 1))
-    cfg_data.append((f"CFG_MSGOUT_UBX_NAV_PVT_{port_type}", state))
-    cfg_data.append((f"CFG_MSGOUT_UBX_NAV_DOP_{port_type}", state))
-    cfg_data.append((f"CFG_MSGOUT_UBX_NAV_SAT_{port_type}", state * 4))
-
-    return UBXMessage.config_set(layers, transaction, cfg_data)
+    return "black" if luminance > 0.5 else "white"
 
 
 def corrage2int(code: int) -> int:
@@ -1259,6 +1236,18 @@ def time2str(tim: float, sformat: str = "%H:%M:%S") -> str:
 
     dt = TIME0 + timedelta(seconds=tim)
     return dt.strftime(sformat)
+
+
+def unused_sats(data: dict) -> int:
+    """
+    Get number of 'unused' sats in gnss_data.gsv_data.
+
+    :param dict data: {(gnssid,svid}: (gnssId, svid, elev, azim, cno, last_updated)}
+    :return: number of sats where cno = 0
+    :rtype: int
+    """
+
+    return sum(1 for (_, _, _, _, cno, _) in data.values() if cno == 0)
 
 
 def ubx2preset(msgs: tuple, desc: str = "") -> str:

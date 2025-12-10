@@ -24,7 +24,6 @@ from pygpsclient.globals import (
     ICON_SEND,
     ICON_WARNING,
     NMEA_MONHW,
-    OKCOL,
     SBF_MONHW,
     UBX_MONVER,
 )
@@ -136,19 +135,17 @@ class Hardware_Info_Frame(Frame):
 
         if isinstance(msg, (NMEAMessage, UBXMessage)):
             self.__app.send_to_device(msg.serialize())
-            self.__app.set_status(
-                f"{msg.identity} POLL message sent",
-            )
+            self.__container.status_label = f"{msg.identity} POLL message sent"
         elif isinstance(msg, bytes):
             self.__app.send_to_device(msg)
-            self.__app.set_status("Setup POLL message sent")
+            self.__container.status_label = "Setup POLL message sent"
         self.__container.set_pending(pendmsg, penddlg)
 
-    def update_status(self, msg: object):
+    def update_status(self, msg: UBXMessage | NMEAMessage):
         """
         Update pending confirmation status.
 
-        :param object msg: UBX or NMEA config message
+        :param UBXMessage | NMEAMessage msg: UBX or NMEA config message
         """
 
         self._lbl_swver.config(
@@ -165,4 +162,4 @@ class Hardware_Info_Frame(Frame):
         )
         self._lbl_gnss.config(text=self.__app.gnss_status.version_data.get("gnss", NA))
 
-        self.__container.set_status(f"{msg.identity} GET message received", OKCOL)
+        self.__container.status_label = f"{msg.identity} GET message received"

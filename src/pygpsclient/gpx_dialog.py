@@ -17,13 +17,13 @@ import traceback
 from statistics import mean, median
 from tkinter import (
     ALL,
+    EW,
+    NSEW,
     Button,
-    E,
     Frame,
     IntVar,
     Label,
     N,
-    S,
     Spinbox,
     StringVar,
     W,
@@ -214,15 +214,15 @@ class GPXViewerDialog(ToplevelDialog):
         Arrange widgets.
         """
 
-        self._frm_body.grid(column=0, row=0, sticky=(N, S, E, W))
-        self._frm_map.grid(column=0, row=0, sticky=(N, S, E, W))
-        self._frm_profile.grid(column=0, row=1, sticky=(W, E))
-        self._frm_info.grid(column=0, row=2, sticky=(W, E))
-        self._frm_controls.grid(column=0, row=3, columnspan=7, sticky=(W, E))
-        self._can_mapview.grid(column=0, row=0, sticky=(N, S, E, W))
-        self._can_profile.grid(column=0, row=0, sticky=(N, S, E, W))
+        self._frm_body.grid(column=0, row=0, sticky=NSEW)
+        self._frm_map.grid(column=0, row=0, sticky=NSEW)
+        self._frm_profile.grid(column=0, row=1, sticky=EW)
+        self._frm_info.grid(column=0, row=2, sticky=EW)
+        self._frm_controls.grid(column=0, row=3, columnspan=7, sticky=EW)
+        self._can_mapview.grid(column=0, row=0, sticky=NSEW)
+        self._can_profile.grid(column=0, row=0, sticky=NSEW)
         for i in range(MD_LINES):
-            self._lbl_info[i].grid(column=0, row=i, padx=1, pady=1, sticky=(W, E))
+            self._lbl_info[i].grid(column=0, row=i, padx=1, pady=1, sticky=EW)
         self._btn_load.grid(column=0, row=1, padx=3, pady=3)
         self._lbl_maptype.grid(
             column=1,
@@ -339,7 +339,7 @@ class GPXViewerDialog(ToplevelDialog):
         Handle redraw button press.
         """
 
-        self.set_status(DLGGPXWAIT, INFOCOL)
+        self.status_label = (DLGGPXWAIT, INFOCOL)
         self._detach_events()
         self._reset()
         self._spn_zoom.config(highlightbackground="gray90", highlightthickness=3)
@@ -355,6 +355,7 @@ class GPXViewerDialog(ToplevelDialog):
         """
 
         return self.__app.file_handler.open_file(
+            self,
             "gpx",
             (("gpx files", "*.gpx"), ("all files", "*.*")),
         )
@@ -367,7 +368,7 @@ class GPXViewerDialog(ToplevelDialog):
         self._gpxfile = self._open_gpxfile()
         if self._gpxfile is None:  # user cancelled
             return
-        self.set_status(DLGGPXLOAD, INFOCOL)
+        self.status_label = (DLGGPXLOAD, INFOCOL)
         self._parse_gpx()
 
     def _parse_gpx(self):
@@ -381,7 +382,7 @@ class GPXViewerDialog(ToplevelDialog):
                 trkpts = parser.getElementsByTagName(f"{ptyp}")
                 self._process_track(trkpts, ptyp)
             except (TypeError, AttributeError, expat.ExpatError) as err:
-                self.set_status(f"{DLGGPXERROR}\n{repr(err)}", ERRCOL)
+                self.status_label = (f"{DLGGPXERROR}\n{repr(err)}", ERRCOL)
                 self.logger.error(traceback.format_exc())
 
     def _process_track(self, trkpts: list, ptyp: str):
@@ -396,7 +397,7 @@ class GPXViewerDialog(ToplevelDialog):
         self._no_time = False
         self._no_ele = False
         if self._rng == 0:
-            self.set_status(DLGGPXNULL.format(ptyp), ERRCOL)
+            self.status_label = (DLGGPXNULL.format(ptyp), ERRCOL)
             return
 
         minlat = minlon = 400
@@ -458,7 +459,7 @@ class GPXViewerDialog(ToplevelDialog):
         self._draw_map()
         self._draw_profile()
         self._draw_metadata()
-        self.set_status(DLGGPXLOADED, INFOCOL)
+        self.status_label = (DLGGPXLOADED, INFOCOL)
 
     def _draw_map(self):
         """

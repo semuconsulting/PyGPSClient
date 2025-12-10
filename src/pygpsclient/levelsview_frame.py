@@ -14,7 +14,7 @@ Created on 14 Sep 2020
 
 # pylint: disable=no-member
 
-from tkinter import BOTH, NE, YES, Frame, font
+from tkinter import NE, NSEW, Frame, font
 
 from pygpsclient.canvas_plot import (
     TAG_DATA,
@@ -31,11 +31,11 @@ from pygpsclient.globals import (
     MAX_SNR,
     WIDGETU2,
 )
-from pygpsclient.helpers import col2contrast
+from pygpsclient.helpers import col2contrast, unused_sats
 
 OL_WID = 1
 FONTSCALELG = 40
-FONTSCALESV = 40
+FONTSCALESV = 30
 
 
 class LevelsviewFrame(Frame):
@@ -74,7 +74,7 @@ class LevelsviewFrame(Frame):
         self._canvas = CanvasGraph(
             self.__app, self, width=self.width, height=self.height, bg=BGCOL
         )
-        self._canvas.pack(fill=BOTH, expand=YES)
+        self._canvas.grid(column=0, row=0, sticky=NSEW)
 
     def _attach_events(self):
         """
@@ -106,9 +106,9 @@ class LevelsviewFrame(Frame):
         self._canvas.create_graph(
             xdatamax=10,
             ydatamax=(MAX_SNR,),
-            xtickmaj=2,
+            xtickmaj=5,
             ytickmaj=int(MAX_SNR / 10),
-            ylegend=("cno",),
+            ylegend=("C/N0 dBHz",),
             ycol=(FGCOL,),
             ylabels=True,
             xangle=35,
@@ -157,10 +157,11 @@ class LevelsviewFrame(Frame):
         """
 
         data = self.__app.gnss_status.gsv_data
-        siv = len(self.__app.gnss_status.gsv_data)
-
+        show_unused = self.__app.configuration.get("unusedsat_b")
+        siv = len(data)
         if siv == 0:
             return
+        siv = siv if show_unused else siv - unused_sats(data)
 
         w, h = self.width, self.height
         self.init_frame()
@@ -168,14 +169,16 @@ class LevelsviewFrame(Frame):
         offset = self._canvas.xoffl  # AXIS_XL + 2
         colwidth = (w - self._canvas.xoffl - self._canvas.xoffr + 1) / siv
         # scale x axis label
-        svfont = font.Font(size=int(min(w, h) / FONTSCALESV))
-        for d in sorted(data.values()):  # sort by ascending gnssid, svid
-            gnssId, prn, _, _, snr = d
-            if snr in ("", "0", 0):
-                snr = 1  # show 'place marker' in graph
-            else:
-                snr = int(snr)
-            snr_y = int(snr) * (h - self._canvas.yoffb - 1) / MAX_SNR
+        fsiz = min(w * 15 / siv, w, h)
+        svfont = font.Font(size=int(fsiz / FONTSCALESV))
+        for val in sorted(data.values()):  # sort by ascending gnssid, svid
+            gnssId, prn, _, _, cno, _ = val
+            if cno == 0:
+                if show_unused:
+                    cno = 1  # show 'place marker' in graph
+                else:
+                    continue
+            snr_y = int(cno) * (h - self._canvas.yoffb - 1) / MAX_SNR
             (_, ol_col) = GNSS_LIST[gnssId]
             prn = f"{int(prn):02}"
             self._canvas.create_rectangle(
@@ -190,7 +193,7 @@ class LevelsviewFrame(Frame):
             )
             self._canvas.create_text(
                 offset + colwidth / 2,
-                h - self._canvas.yoffb,
+                h - self._canvas.yoffb - 1,
                 text=prn,
                 fill=FGCOL,
                 font=svfont,
@@ -200,7 +203,7 @@ class LevelsviewFrame(Frame):
             )
             offset += colwidth
 
-        # self._canvas.update_idletasks()
+            self.update_idletasks()
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """

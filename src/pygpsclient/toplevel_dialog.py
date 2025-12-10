@@ -12,9 +12,13 @@ Created on 19 Sep 2020
 :license: BSD 3-Clause
 """
 
+import logging
 from tkinter import (
     ALL,
+    EW,
     HORIZONTAL,
+    NS,
+    NSEW,
     NW,
     VERTICAL,
     Button,
@@ -22,10 +26,7 @@ from tkinter import (
     E,
     Frame,
     Label,
-    N,
-    S,
     Scrollbar,
-    StringVar,
     Toplevel,
     W,
 )
@@ -33,6 +34,7 @@ from tkinter import (
 from PIL import Image, ImageTk
 
 from pygpsclient.globals import (
+    APPNAME,
     ERRCOL,
     ICON_BLANK,
     ICON_CONFIRMED,
@@ -46,11 +48,13 @@ from pygpsclient.globals import (
     ICON_SEND,
     ICON_START,
     ICON_WARNING,
+    INFOCOL,
     MINHEIGHT,
     MINWIDTH,
     RESIZE,
 )
 from pygpsclient.helpers import check_lowres
+from pygpsclient.strings import DLG
 
 
 class ToplevelDialog(Toplevel):
@@ -70,6 +74,7 @@ class ToplevelDialog(Toplevel):
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self._dlgname = dlgname
+        self.logger = logging.getLogger(f"{APPNAME}.{dlgname}")
         self.lowres, (self.height, self.width) = check_lowres(self.__master, dim)
 
         super().__init__()
@@ -94,7 +99,6 @@ class ToplevelDialog(Toplevel):
         self.img_send = ImageTk.PhotoImage(Image.open(ICON_SEND))
         self.img_start = ImageTk.PhotoImage(Image.open(ICON_START))
         self.img_warn = ImageTk.PhotoImage(Image.open(ICON_WARNING))
-        self._status = StringVar()
 
         self._con_body()
 
@@ -124,9 +128,9 @@ class ToplevelDialog(Toplevel):
             self._frm_container = Frame(
                 self._can_container, borderwidth=2, relief="groove"
             )
-            self._can_container.grid(column=0, row=0, sticky=(N, S, E, W))
-            x_scrollbar.grid(column=0, row=1, sticky=(E, W))
-            y_scrollbar.grid(column=1, row=0, sticky=(N, S))
+            self._can_container.grid(column=0, row=0, sticky=NSEW)
+            x_scrollbar.grid(column=0, row=1, sticky=EW)
+            y_scrollbar.grid(column=1, row=0, sticky=NS)
             x_scrollbar.config(command=self._can_container.xview)
             y_scrollbar.config(command=self._can_container.yview)
             # ensure container canvas expands to accommodate child frames
@@ -141,11 +145,11 @@ class ToplevelDialog(Toplevel):
             )
         else:  # normal resolution
             self._frm_container = Frame(self, borderwidth=2, relief="groove")
-            self._frm_container.grid(column=0, row=0, sticky=(N, S, E, W))
+            self._frm_container.grid(column=0, row=0, sticky=NSEW)
 
         # create status frame
         self._frm_status = Frame(self, borderwidth=2, relief="groove")
-        self._lbl_status = Label(self._frm_status, textvariable=self._status, anchor=W)
+        self._lbl_status = Label(self._frm_status, anchor=W)
         self._btn_exit = Button(
             self._frm_status,
             image=self.img_exit,
@@ -153,8 +157,8 @@ class ToplevelDialog(Toplevel):
             fg=ERRCOL,
             command=self.on_exit,
         )
-        self._frm_status.grid(column=0, row=2, sticky=(W, E))
-        self._lbl_status.grid(column=0, row=0, sticky=(W, E))
+        self._frm_status.grid(column=0, row=2, sticky=EW)
+        self._lbl_status.grid(column=0, row=0, sticky=EW)
         self._btn_exit.grid(column=1, row=0, sticky=E)
 
         # set column and row weights
@@ -176,28 +180,14 @@ class ToplevelDialog(Toplevel):
         Finalise Toplevel window after child frames have been created.
         """
 
-        # self.set_status(f"{self.height}, {self.width}") # testing only
-
-    def set_status(self, message: str, color: str = ""):
-        """
-        Set status message.
-
-        :param str message: message to be displayed
-        :param str color: rgb color of text (blue)
-        """
-
-        message = (message[:120] + "..") if len(message) > 120 else message
-        if color != "":
-            self._lbl_status.config(fg=color)
-        self._status.set("  " + message)
-        self.update_idletasks()
+        # self.status_label = (f"{self.height}, {self.width}") # testing only
 
     def on_exit(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
         Handle Exit button press.
         """
 
-        self.__app.stop_dialog(self._dlgname)
+        self.__app.dialog_state.state[self._dlgname][DLG] = None
         self.destroy()
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
@@ -230,3 +220,38 @@ class ToplevelDialog(Toplevel):
         """
 
         return self._frm_container
+
+    @property
+    def status_label(self) -> Label:
+        """
+        Getter for status_label.
+
+        :param self: Description
+        :return: Description
+        :rtype: Label
+        """
+
+        return self._lbl_status
+
+    @status_label.setter
+    def status_label(self, message: str | tuple[str, str]):
+        """
+        Setter for status_label.
+
+        :param self: Description
+        :param tuple | str message: (message, color))
+        """
+
+        if isinstance(message, tuple):
+            message, color = message
+        else:
+            color = INFOCOL
+
+        # truncate very long messages
+        if len(message) > 100:
+            message = "..." + message[-100:]
+
+        self.status_label.after(
+            0, self.status_label.config, {"text": message, "fg": color}
+        )
+        self.update_idletasks()

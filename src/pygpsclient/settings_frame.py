@@ -3,7 +3,8 @@ settings_frame.py
 
 Settings frame class for PyGPSClient application.
 
-- Holds all the latest settings in self.config
+- Reads and updates configuration held in self.__app.configuration.
+- Starts or stops data logging.
 - Sets initial (saved) configuration of the following frames:
 - frm_settings (SettingsFrame class) for general application settings.
 - frm_serial (SerialConfigFrame class) for serial port settings.
@@ -25,6 +26,7 @@ from tkinter import (
     BOTH,
     BOTTOM,
     DISABLED,
+    EW,
     HORIZONTAL,
     LEFT,
     NORMAL,
@@ -77,6 +79,7 @@ from pygpsclient.globals import (
     ICON_SOCKET,
     ICON_TTYCONFIG,
     ICON_UBXCONFIG,
+    INFOCOL,
     KNOWNGPS,
     MSGMODES,
     NOPORTS,
@@ -438,8 +441,7 @@ class SettingsFrame(Frame):
             self._frm_options_btns,
             width=45,
             image=self._img_ubxconfig,
-            command=lambda: self._on_ubx_config(),
-            state=NORMAL,
+            command=lambda: self.__app.start_dialog(DLGTUBX),
         )
         self._lbl_nmeaconfig = Label(
             self._frm_options_btns,
@@ -449,7 +451,7 @@ class SettingsFrame(Frame):
             self._frm_options_btns,
             width=45,
             image=self._img_nmeaconfig,
-            command=lambda: self._on_nmea_config(),
+            command=lambda: self.__app.start_dialog(DLGTNMEA),
             state=NORMAL,
         )
         self._lbl_ttyconfig = Label(
@@ -460,7 +462,7 @@ class SettingsFrame(Frame):
             self._frm_options_btns,
             width=45,
             image=self._img_ttyconfig,
-            command=lambda: self._on_tty_config(),
+            command=lambda: self.__app.start_dialog(DLGTTTY),
             state=NORMAL,
         )
         self._lbl_ntripconfig = Label(
@@ -471,7 +473,7 @@ class SettingsFrame(Frame):
             self._frm_options_btns,
             width=45,
             image=self._img_ntripconfig,
-            command=lambda: self._on_ntrip_config(),
+            command=lambda: self.__app.start_dialog(DLGTNTRIP),
             state=NORMAL,
         )
         # socket server configuration
@@ -485,36 +487,34 @@ class SettingsFrame(Frame):
         Position widgets in frame.
         """
 
-        self.frm_serial.grid(
-            column=0, row=1, columnspan=4, padx=2, pady=2, sticky=(W, E)
-        )
+        self.frm_serial.grid(column=0, row=1, columnspan=4, padx=2, pady=2, sticky=EW)
         ttk.Separator(self._frm_container).grid(
-            column=0, row=2, columnspan=4, padx=2, pady=2, sticky=(W, E)
+            column=0, row=2, columnspan=4, padx=2, pady=2, sticky=EW
         )
 
         self.frm_socketclient.grid(
-            column=0, row=3, columnspan=4, padx=2, pady=2, sticky=(W, E)
+            column=0, row=3, columnspan=4, padx=2, pady=2, sticky=EW
         )
         ttk.Separator(self._frm_container).grid(
-            column=0, row=4, columnspan=4, padx=2, pady=2, sticky=(W, E)
+            column=0, row=4, columnspan=4, padx=2, pady=2, sticky=EW
         )
 
-        self._frm_buttons.grid(column=0, row=5, columnspan=4, sticky=(W, E))
+        self._frm_buttons.grid(column=0, row=5, columnspan=4, sticky=EW)
         self._btn_connect.grid(column=0, row=0, padx=2, pady=1)
         self._btn_connect_socket.grid(column=1, row=0, padx=2, pady=1)
         self._btn_connect_file.grid(column=2, row=0, padx=2, pady=1)
         self._btn_disconnect.grid(column=3, row=0, padx=2, pady=1)
         self._btn_exit.grid(column=4, row=0, padx=2, pady=1)
-        self._lbl_connect.grid(column=0, row=1, padx=1, pady=1, sticky=(W, E))
-        self._lbl_connect_socket.grid(column=1, row=1, padx=1, pady=1, sticky=(W, E))
-        self._lbl_connect_file.grid(column=2, row=1, padx=1, pady=1, sticky=(W, E))
-        self._lbl_disconnect.grid(column=3, row=1, padx=1, pady=1, sticky=(W, E))
+        self._lbl_connect.grid(column=0, row=1, padx=1, pady=1, sticky=EW)
+        self._lbl_connect_socket.grid(column=1, row=1, padx=1, pady=1, sticky=EW)
+        self._lbl_connect_file.grid(column=2, row=1, padx=1, pady=1, sticky=EW)
+        self._lbl_disconnect.grid(column=3, row=1, padx=1, pady=1, sticky=EW)
 
         ttk.Separator(self._frm_container).grid(
-            column=0, row=7, columnspan=4, padx=2, pady=2, sticky=(W, E)
+            column=0, row=7, columnspan=4, padx=2, pady=2, sticky=EW
         )
 
-        self._frm_options.grid(column=0, row=8, columnspan=4, sticky=(W, E))
+        self._frm_options.grid(column=0, row=8, columnspan=4, sticky=EW)
         self._lbl_protocol.grid(column=0, row=0, padx=2, pady=2, sticky=W)
         self._chk_nmea.grid(column=1, row=0, padx=0, pady=0, sticky=W)
         self._chk_ubx.grid(column=2, row=0, padx=0, pady=0, sticky=W)
@@ -546,7 +546,7 @@ class SettingsFrame(Frame):
         self._chk_recorddatabase.grid(
             column=2, row=8, columnspan=2, padx=2, pady=2, sticky=W
         )
-        self._frm_options_btns.grid(column=0, row=9, columnspan=4, sticky=(W, E))
+        self._frm_options_btns.grid(column=0, row=9, columnspan=4, sticky=EW)
         self._btn_ubxconfig.grid(column=0, row=0, padx=5)
         self._lbl_ubxconfig.grid(column=0, row=1)
         self._btn_nmeaconfig.grid(column=1, row=0, padx=5)
@@ -556,10 +556,10 @@ class SettingsFrame(Frame):
         self._btn_ntripconfig.grid(column=3, row=0, padx=5)
         self._lbl_ntripconfig.grid(column=3, row=1)
         ttk.Separator(self._frm_container).grid(
-            column=0, row=10, columnspan=4, padx=2, pady=2, sticky=(W, E)
+            column=0, row=10, columnspan=4, padx=2, pady=2, sticky=EW
         )
         self.frm_socketserver.grid(
-            column=0, row=11, columnspan=4, padx=2, pady=2, sticky=(W, E)
+            column=0, row=11, columnspan=4, padx=2, pady=2, sticky=EW
         )
 
     def _attach_events(self, add: bool = True):
@@ -782,34 +782,6 @@ class SettingsFrame(Frame):
 
         self.__app.configuration.set("logformat_s", self._logformat.get())
 
-    def _on_ubx_config(self, *args, **kwargs):
-        """
-        Open UBX configuration dialog panel.
-        """
-
-        self.__app.start_dialog(DLGTUBX)
-
-    def _on_nmea_config(self, *args, **kwargs):
-        """
-        Open NMEA configuration dialog panel.
-        """
-
-        self.__app.start_dialog(DLGTNMEA)
-
-    def _on_tty_config(self, *args, **kwargs):
-        """
-        Open TTY configuration dialog panel.
-        """
-
-        self.__app.start_dialog(DLGTTTY)
-
-    def _on_ntrip_config(self, *args, **kwargs):
-        """
-        Open NTRIP Client configuration dialog panel.
-        """
-
-        self.__app.start_dialog(DLGTNTRIP)
-
     def _on_data_log(self, var, index, mode):
         """
         Start or stop data logger.
@@ -821,7 +793,10 @@ class SettingsFrame(Frame):
             if self.logpath is not None:
                 self.__app.configuration.set("datalog_b", 1)
                 self.__app.configuration.set("logpath_s", self.logpath)
-                self.__app.set_status(f"Data logging enabled: {self.logpath}")
+                self.__app.status_label = (
+                    f"Data logging enabled: {self.logpath}",
+                    INFOCOL,
+                )
                 if not self.__app.file_handler.open_logfile():
                     self.logpath = ""
                     self._datalog.set(0)
@@ -833,7 +808,7 @@ class SettingsFrame(Frame):
             self.__app.configuration.set("datalog_b", 0)
             self._datalog.set(0)
             self.__app.file_handler.close_logfile()
-            self.__app.set_status("Data logging disabled")
+            self.__app.status_label = ("Data logging disabled", INFOCOL)
             self._spn_datalog.config(state=READONLY)
 
     def _on_record_track(self, var, index, mode):
@@ -847,7 +822,7 @@ class SettingsFrame(Frame):
             if self.trackpath is not None:
                 self.__app.configuration.set("recordtrack_b", 1)
                 self.__app.configuration.set("trackpath_s", self.trackpath)
-                self.__app.set_status(f"Track recording enabled: {self.trackpath}")
+                self.__app.status_label = f"Track recording enabled: {self.trackpath}"
                 if not self.__app.file_handler.open_trackfile():
                     self.trackpath = ""
                     self._record_track.set(0)
@@ -858,7 +833,7 @@ class SettingsFrame(Frame):
             self._record_track.set(0)
             self.__app.configuration.set("recordtrack_b", 0)
             self.__app.file_handler.close_trackfile()
-            self.__app.set_status("Track recording disabled")
+            self.__app.status_label = "Track recording disabled"
 
     def _on_record_database(self, var, index, mode):
         """
@@ -877,7 +852,7 @@ class SettingsFrame(Frame):
                 self._record_database.set(0)
         else:
             self.__app.configuration.set("database_b", 0)
-            self.__app.set_status("Database recording disabled")
+            self.__app.status_label = "Database recording disabled"
 
     def _on_connect(self, conntype: int):
         """
@@ -901,7 +876,7 @@ class SettingsFrame(Frame):
             "inactivity_timeout": self.frm_serial.inactivity_timeout,
         }
 
-        self.frm_socketserver.set_status(conntype)
+        self.frm_socketserver.status_label = conntype
         if conntype == CONNECTED:
             frm = self.frm_serial
             if frm.status == NOPORTS:
@@ -913,7 +888,7 @@ class SettingsFrame(Frame):
         elif conntype == CONNECTED_SOCKET:
             frm = self.frm_socketclient
             if not frm.valid_settings():
-                self.__app.set_status("ERROR - invalid settings", ERRCOL)
+                self.__app.status_label = ("ERROR - invalid settings", ERRCOL)
                 return
             connstr = f"{frm.server.get()}:{frm.port.get()}"
             conndict = dict(conndict, **{"socket_settings": frm})
@@ -921,6 +896,7 @@ class SettingsFrame(Frame):
             self.__app.poll_version(conndict["protocol"])
         elif conntype == CONNECTED_FILE:
             self.infilepath = self.__app.file_handler.open_file(
+                self,
                 "datalog",
                 (
                     ("datalog files", "*.log"),
@@ -940,9 +916,9 @@ class SettingsFrame(Frame):
         else:
             return
 
-        self.__app.set_connection(connstr, OKCOL)
-        self.__app.set_status("")
         self.__app.conn_status = conntype
+        self.__app.conn_label = (connstr, OKCOL)
+        self.__app.status_label = ("", INFOCOL)
         self._reset_frames()
         self.__app.stream_handler.start(self.__app, conndict)
 
@@ -957,9 +933,9 @@ class SettingsFrame(Frame):
 
         """
 
-        self.frm_serial.set_status(status)
-        self.frm_socketclient.set_status(status)
-        self.frm_socketserver.set_status(status)
+        self.frm_serial.status_label = status
+        self.frm_socketclient.status_label = status
+        self.frm_socketserver.status_label = status
 
         self._btn_connect.config(
             state=(

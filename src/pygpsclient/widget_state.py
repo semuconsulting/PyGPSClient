@@ -22,7 +22,7 @@ Created on 30 Apr 2023
 :license: BSD 3-Clause
 """
 
-from tkinter import E, N, S, W
+from tkinter import NSEW, E, S, W
 
 from pygpsclient.banner_frame import BannerFrame
 from pygpsclient.chart_frame import ChartviewFrame
@@ -85,7 +85,7 @@ class WidgetState:
                 CLASS: BannerFrame,
                 FRAME: "frm_banner",
                 VISIBLE: True,
-                STICKY: (N, W, E, S),
+                STICKY: NSEW,
                 COL: 0,
                 ROW: 0,
                 COLSPAN: 6,
@@ -95,7 +95,7 @@ class WidgetState:
                 CLASS: SettingsFrame,
                 FRAME: "frm_settings",
                 VISIBLE: True,
-                STICKY: (N, W, E, S),
+                STICKY: NSEW,
                 COL: 5,
                 ROW: 1,
                 ROWSPAN: 4,

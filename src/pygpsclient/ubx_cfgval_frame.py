@@ -13,6 +13,7 @@ Created on 22 Dec 2020
 # pylint: disable=no-member
 
 from tkinter import (
+    EW,
     HORIZONTAL,
     LEFT,
     NORMAL,
@@ -200,17 +201,17 @@ class UBX_CFGVAL_Frame(Frame):
         Layout widgets.
         """
 
-        self._lbl_configdb.grid(column=0, row=0, columnspan=6, padx=3, sticky=(W, E))
-        self._lbl_cat.grid(column=0, row=1, padx=3, sticky=(W, E))
-        self._lbx_cat.grid(column=0, row=2, rowspan=5, padx=3, pady=3, sticky=(W, E))
+        self._lbl_configdb.grid(column=0, row=0, columnspan=6, padx=3, sticky=EW)
+        self._lbl_cat.grid(column=0, row=1, padx=3, sticky=EW)
+        self._lbx_cat.grid(column=0, row=2, rowspan=5, padx=3, pady=3, sticky=EW)
         self._scr_catv.grid(column=0, row=2, rowspan=5, sticky=(N, S, E))
-        self._scr_cath.grid(column=0, row=7, sticky=(W, E))
-        self._lbl_parm.grid(column=1, row=1, columnspan=4, padx=3, sticky=(W, E))
+        self._scr_cath.grid(column=0, row=7, sticky=EW)
+        self._lbl_parm.grid(column=1, row=1, columnspan=4, padx=3, sticky=EW)
         self._lbx_parm.grid(
-            column=1, row=2, columnspan=4, rowspan=5, padx=3, pady=3, sticky=(W, E)
+            column=1, row=2, columnspan=4, rowspan=5, padx=3, pady=3, sticky=EW
         )
         self._scr_parmv.grid(column=4, row=2, rowspan=5, sticky=(N, S, E))
-        self._scr_parmh.grid(column=1, row=7, columnspan=4, sticky=(W, E))
+        self._scr_parmh.grid(column=1, row=7, columnspan=4, sticky=EW)
         self._rad_cfgget.grid(column=0, row=8, padx=3, pady=0, sticky=W)
         self._rad_cfgset.grid(column=0, row=9, padx=3, pady=0, sticky=W)
         self._rad_cfgdel.grid(column=0, row=10, padx=3, pady=0, sticky=W)
@@ -221,9 +222,7 @@ class UBX_CFGVAL_Frame(Frame):
         self._lbl_layer.grid(column=1, row=9, padx=3, pady=0, sticky=E)
         self._spn_layer.grid(column=2, row=9, padx=3, pady=0, sticky=W)
         self._lbl_val.grid(column=1, row=10, padx=3, pady=0, sticky=E)
-        self._ent_val.grid(
-            column=2, row=10, columnspan=3, padx=3, pady=0, sticky=(W, E)
-        )
+        self._ent_val.grid(column=2, row=10, columnspan=3, padx=3, pady=0, sticky=EW)
 
         self._btn_send_command.grid(
             column=3, row=12, rowspan=2, ipadx=3, ipady=3, sticky=E
@@ -334,7 +333,7 @@ class UBX_CFGVAL_Frame(Frame):
             atts = attsiz(self._cfgatt.get())
         except ValueError as err:
             self._ent_val.validate(VALNONBLANK)
-            self.__container.set_status(f"INVALID ENTRY - {err}", ERRCOL)
+            self.__container.status_label = (f"INVALID ENTRY - {err}", ERRCOL)
             return False
         val = self._cfgval.get()
         layers = self._cfglayer.get()
@@ -380,15 +379,13 @@ class UBX_CFGVAL_Frame(Frame):
             msg = UBXMessage.config_set(layers, transaction, cfgData)
             self.__container.send_command(msg)
             self._lbl_send_command.config(image=self._img_pending)
-            self.__container.set_status(
-                "CFG-VALSET SET message sent",
-            )
+            self.__container.status_label = "CFG-VALSET SET message sent"
             for msgid in ("ACK-ACK", "ACK-NAK"):
                 self.__container.set_pending(msgid, UBX_CFGVAL)
         else:
             self._lbl_send_command.config(image=self._img_warn)
             typ = ATTDICT[att]
-            self.__container.set_status(
+            self.__container.status_label = (
                 (
                     "INVALID ENTRY - must conform to parameter "
                     f"type {att} ({typ}) and size {atts} bytes"
@@ -417,7 +414,7 @@ class UBX_CFGVAL_Frame(Frame):
         msg = UBXMessage.config_del(layers, transaction, key)
         self.__container.send_command(msg)
         self._lbl_send_command.config(image=self._img_pending)
-        self.__container.set_status("CFG-VALDEL SET message sent")
+        self.__container.status_label = "CFG-VALDEL SET message sent"
         for msgid in ("ACK-ACK", "ACK-NAK"):
             self.__container.set_pending(msgid, UBX_CFGVAL)
 
@@ -442,7 +439,7 @@ class UBX_CFGVAL_Frame(Frame):
         msg = UBXMessage.config_poll(layers, transaction, keys)
         self.__container.send_command(msg)
         self._lbl_send_command.config(image=self._img_pending)
-        self.__container.set_status("CFG-VALGET POLL message sent")
+        self.__container.status_label = "CFG-VALGET POLL message sent"
         for msgid in ("CFG-VALGET", "ACK-ACK", "ACK-NAK"):
             self.__container.set_pending(msgid, UBX_CFGVAL)
 
@@ -460,12 +457,12 @@ class UBX_CFGVAL_Frame(Frame):
                 if isinstance(val, bytes):
                     val = val.hex()
                 self._cfgval.set(val)
-            self.__container.set_status("CFG-VALGET GET message received", OKCOL)
+            self.__container.status_label = ("CFG-VALGET GET message received", OKCOL)
 
         elif msg.identity == "ACK-ACK":
             self._lbl_send_command.config(image=self._img_confirmed)
-            self.__container.set_status("CFG-VAL command acknowledged", OKCOL)
+            self.__container.status_label = ("CFG-VAL command acknowledged", OKCOL)
 
         elif msg.identity == "ACK-NAK":
             self._lbl_send_command.config(image=self._img_warn)
-            self.__container.set_status("CFG-VAL command rejected", ERRCOL)
+            self.__container.status_label = ("CFG-VAL command rejected", ERRCOL)

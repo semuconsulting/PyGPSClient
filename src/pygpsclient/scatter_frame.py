@@ -23,20 +23,18 @@ fixed reference selection.
 # pylint: disable=no-member
 
 from tkinter import (
+    EW,
     HORIZONTAL,
+    NSEW,
     NW,
     Checkbutton,
-    E,
     Entry,
     Frame,
     IntVar,
-    N,
-    S,
     Scale,
     Spinbox,
     StringVar,
     TclError,
-    W,
 )
 
 try:
@@ -80,9 +78,9 @@ CRTS = (CTRAVG, CTRFIX)
 INTS = (1, 2, 5, 10, 20, 50, 100)
 FIXCOL = "#00EE00"
 PNTTOPCOL = "#FF0000"
-CULLMID = True  # whether to cull random points from middle of array
+CULLMID = False  # whether to cull random points from middle of array
 FIXINAUTO = False  # whether to include fixed ref point in autorange
-MAXPOINTS = 500
+MAXPOINTS = 500  # maximum number of in-memory points before truncation
 PNT = "pnt"
 STDINT = 10  # standard deviation calculation interval
 
@@ -222,13 +220,13 @@ class ScatterViewFrame(Frame):
             variable=self._scale,
             showvalue=False,
         )
-        self._canvas.grid(column=0, row=0, columnspan=3, sticky=(N, S, E, W))
-        self._ent_reflat.grid(column=0, row=1, sticky=(W, E))
-        self._ent_reflon.grid(column=1, row=1, sticky=(W, E))
-        self._spn_center.grid(column=2, row=1, sticky=(W, E))
-        self._chk_autorange.grid(column=0, row=2, sticky=(W, E))
-        self._spn_interval.grid(column=1, row=2, sticky=(W, E))
-        self._scl_range.grid(column=2, row=2, sticky=(W, E))
+        self._canvas.grid(column=0, row=0, columnspan=3, sticky=NSEW)
+        self._ent_reflat.grid(column=0, row=1, sticky=EW)
+        self._ent_reflon.grid(column=1, row=1, sticky=EW)
+        self._spn_center.grid(column=2, row=1, sticky=EW)
+        self._chk_autorange.grid(column=0, row=2, sticky=EW)
+        self._spn_interval.grid(column=1, row=2, sticky=EW)
+        self._scl_range.grid(column=2, row=2, sticky=EW)
 
     def reset(self):
         """
@@ -489,6 +487,7 @@ class ScatterViewFrame(Frame):
             if i == lp:
                 break
             self._draw_point(pnt, PNTCOL)
+            self.update_idletasks()
         if self._fixed is not None:
             self._draw_point(self._fixed, FIXCOL, 3)
         self._draw_point(self._points[-1], PNTTOPCOL)
