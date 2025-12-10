@@ -114,13 +114,12 @@ class SkyviewFrame(Frame):
 
         self.init_frame()
 
-        for val in sorted(data.values(), key=lambda x: x[4]):  # sort by ascending snr
+        for val in sorted(data.values(), key=lambda x: x[4]):  # sort by ascending C/N0
             try:
                 gnssId, prn, ele, azi, cno, _ = val
                 if cno == 0 and not show_unused:
                     continue
                 x, y = self._canvas.d2xy(int(azi), int(ele))
-                cno = 0 if cno == "" else int(cno)
                 (_, ol_col) = GNSS_LIST[gnssId]
                 prn = f"{int(prn):02}"
                 bg_col = snr2col(cno)
