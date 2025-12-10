@@ -188,6 +188,14 @@ pygpsclient.mapquest module
    :undoc-members:
    :show-inheritance:
 
+pygpsclient.mapquest\_handler module
+------------------------------------
+
+.. automodule:: pygpsclient.mapquest_handler
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pygpsclient.menu\_bar module
 ----------------------------
 
