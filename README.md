@@ -433,9 +433,7 @@ For further details, refer to the `pygnssutils` homepage at [https://github.com/
 
 3. Some Homebrew-installed Python environments on MacOS can give rise to critical segmentation errors (*illegal memory access*)  when shell subprocesses are invoked, due to the way permissions are implemented. This may, for example, affect About..Update functionality; the workaround is to update via a standard CLI `pip install --upgrade` command.
 
-4. Installing the optional `rasterio` package in some Python 3.14 environments (e.g. MacOS) may result in a [build dependency issue](https://github.com/semuconsulting/PyGPSClient/blob/master/INSTALLATION.md#sdist-vs-wheel) `ERROR: A GDAL API version must be specified. Provide a path to gdal-config using a GDAL_CONFIG environment variable or use a GDAL_VERSION environment variable`. This is due to a pre-compiled bdist (wheel) distribution not yet being available for Python 3.14 on these platforms. A [Python 3.14 bdist (wheel) distribution for rasterio is currently in progress](https://github.com/rasterio/rasterio/issues/3419).
-
-5. Installing the optional `cryptography` package on some 32-bit Linux platforms (e.g. Raspberry Pi OS 32) may require [Rust compiler support](https://www.rust-lang.org/tools/install) and some [additional build dependencies](https://cryptography.io/en/latest/installation/) (see  [pyspartn cryptography installation notes](https://github.com/semuconsulting/pyspartn/tree/main/cryptography_installation#readme)):
+4. Installing the optional `cryptography` package on some 32-bit Linux platforms (e.g. Raspberry Pi OS 32) may require [Rust compiler support](https://www.rust-lang.org/tools/install) and some [additional build dependencies](https://cryptography.io/en/latest/installation/) (see  [pyspartn cryptography installation notes](https://github.com/semuconsulting/pyspartn/tree/main/cryptography_installation#readme)):
 
    ```shell
    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
