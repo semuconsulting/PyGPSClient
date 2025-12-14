@@ -21,7 +21,7 @@ Created on 13 Sep 2020
 :license: BSD 3-Clause
 """
 
-# pylint: disable=too-many-positional-arguments, too-many-arguments
+# pylint: disable=too-many-positional-arguments, too-many-arguments, unused-argument
 
 from http.client import responses
 from io import BytesIO

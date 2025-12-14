@@ -17,7 +17,7 @@ Created on 22 Mar 2025
 
 from tkinter import NSEW
 
-from pynmeagps import NMEAMessage
+from pynmeagps import SET, NMEAMessage
 
 from pygpsclient.dynamic_config_frame import Dynamic_Config_Frame
 from pygpsclient.globals import (
@@ -177,3 +177,14 @@ class NMEAConfigDialog(ToplevelDialog):
         """
 
         self.__app.send_to_device(msg.serialize())
+        self._record_command(msg)
+
+    def _record_command(self, msg: NMEAMessage):
+        """
+        Record command to memory if in 'record' mode.
+
+        :param bytes msg: configuration message
+        """
+
+        if self.__app.recording and msg.msgmode == SET:
+            self.__app.recorded_commands = msg

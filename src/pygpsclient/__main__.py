@@ -37,7 +37,7 @@ def main():
     """The main tkinter loop."""
 
     ap = ArgumentParser(
-        epilog=EPILOG,
+        epilog=f"\033[1m\033[91m{EPILOG}\033[0m",
         formatter_class=ArgumentDefaultsHelpFormatter,
         description="Command line arguments will override configuration file",
     )

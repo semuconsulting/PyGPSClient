@@ -108,7 +108,7 @@ class LevelsviewFrame(Frame):
             ydatamax=(MAX_SNR,),
             xtickmaj=5,
             ytickmaj=int(MAX_SNR / 10),
-            ylegend=("C/N0 dBHz",),
+            ylegend=("C/No dBHz",),
             ycol=(FGCOL,),
             ylabels=True,
             xangle=35,

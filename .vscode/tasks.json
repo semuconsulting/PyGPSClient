@@ -25,7 +25,7 @@
         },
         {
             "label": "Create Venv",
-            "type": "process",
+            "type": "shell",
             "command": "${config:python.systemPath}",
             "args": [
                 "-m",
@@ -39,8 +39,17 @@
             ],
         },
         {
+            "label": "Activate Venv",
+            "type": "shell",
+            "command": "source",
+            "args": [
+                "~/pygpsclient/bin/activate",
+            ],
+            "problemMatcher": [],
+        },
+        {
             "label": "Install Deploy Dependencies",
-            "type": "process",
+            "type": "shell",
             "command": "${config:python.defaultInterpreterPath}",
             "args": [
                 "-m",
@@ -54,7 +63,7 @@
         },
         {
             "label": "Install Optional Dependencies",
-            "type": "process",
+            "type": "shell",
             "command": "${config:python.defaultInterpreterPath}",
             "args": [
                 "-m",
@@ -96,7 +105,7 @@
         },
         {
             "label": "Sort Imports",
-            "type": "process",
+            "type": "shell",
             "command": "${config:python.defaultInterpreterPath}",
             "args": [
                 "-m",
@@ -109,7 +118,7 @@
         },
         {
             "label": "Format",
-            "type": "process",
+            "type": "shell",
             "command": "${config:python.defaultInterpreterPath}",
             "args": [
                 "-m",
@@ -143,7 +152,7 @@
         },
         {
             "label": "Build",
-            "type": "process",
+            "type": "shell",
             "command": "${config:python.defaultInterpreterPath}",
             "args": [
                 "-m",
@@ -168,23 +177,32 @@
             }
         },
         {
-            "label": "Install", // into venv
-            "type": "process",
+            "label": "Install", // into Virtual Environment
+            "type": "shell",
             "command": "${config:python.defaultInterpreterPath}",
             "args": [
                 "-m",
                 "pip",
                 "install",
-                "--upgrade",
                 "--force-reinstall",
-                "--find-links=${workspaceFolder}/dist",
-                "${workspaceFolderBasename}",
+                // wildcard only works on Posix platforms
+                "${workspaceFolder}/dist/pygpsclient-*-py3-none-any.whl",
             ],
+            "windows": {
+                "command": "${config:python.defaultInterpreterPath}",
+                "args": [
+                    "-m",
+                    "pip",
+                    "install",
+                    "--force-reinstall",
+                    "${workspaceFolder}/dist/pygpsclient-1.5.22-py3-none-any.whl",
+                ]
+            },
             "problemMatcher": [],
         },
         {
             "label": "Test",
-            "type": "process",
+            "type": "shell",
             "command": "${config:python.defaultInterpreterPath}",
             "args": [
                 "-m",
@@ -193,10 +211,12 @@
             "problemMatcher": [],
             "dependsOrder": "sequence",
             "dependsOn": [
+                "Activate Venv",
                 "Build",
                 "Install", // have to install before running pylint
                 "Pylint",
                 "Security",
+                "Sphinx HTML",
             ],
             "group": {
                 "kind": "test",
@@ -205,7 +225,7 @@
         },
         {
             "label": "Sphinx",
-            "type": "process",
+            "type": "shell",
             "command": "sphinx-apidoc",
             "args": [
                 "--ext-autodoc",
@@ -220,7 +240,7 @@
         },
         {
             "label": "Sphinx HTML",
-            "type": "process",
+            "type": "shell",
             "command": "/usr/bin/make",
             "windows": {
                 "command": "${workspaceFolder}/docs/make.bat"
@@ -239,7 +259,7 @@
         },
         {
             "label": "Sphinx Deploy", // needs AWS S3 credentials
-            "type": "process",
+            "type": "shell",
             "command": "aws",
             "args": [
                 "s3",
@@ -256,7 +276,7 @@
         },
         {
             "label": "Run Installed Version",
-            "type": "process",
+            "type": "shell",
             "command": "${config:python.defaultInterpreterPath}",
             "args": [
                 "-m",
