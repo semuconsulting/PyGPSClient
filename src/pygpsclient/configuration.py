@@ -60,7 +60,7 @@ from pygpsclient.strings import (
     LOADCONFIGOK,
     LOADCONFIGRESAVE,
 )
-from pygpsclient.widget_state import VISIBLE
+from pygpsclient.widget_state import MAXCOLSPAN, VISIBLE
 
 INITMARKER = "INIT_PRESETS"
 PRE_L = "presets_l"
@@ -118,6 +118,7 @@ class Configuration:
             "units_s": UMM,
             "autoscroll_b": 1,
             "maxlines_n": 100,
+            "maxcolumns_n": MAXCOLSPAN,  # maximum number of user-selectable widget columns
             "filedelay_n": 20,  # milliseconds
             "consoleformat_s": FORMAT_PARSED,
             "maptype_s": WORLD,
@@ -364,7 +365,7 @@ class Configuration:
         Get individual value.
 
         :param str name: name of setting
-        :return: setting value (or None if not exist)
+        :return: setting value
         :rtype: object
         :raises: KeyError if setting does not exist
         """

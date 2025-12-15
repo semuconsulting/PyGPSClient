@@ -289,6 +289,7 @@ class TTYPresetDialog(ToplevelDialog):
                 if self._crlf.get():
                     cmd += CRLF
                 self.__app.send_to_device(cmd)
+                self._record_command(cmd)
                 if self._echo.get():  # echo output command to console
                     self.__app.consoledata.append(
                         (cmd, cmd.decode(ASCII, errors=BSR), TTYMARKER)
@@ -296,6 +297,16 @@ class TTYPresetDialog(ToplevelDialog):
         except Exception as err:  # pylint: disable=broad-except
             self.status_label = (f"Error {err}", ERRCOL)
             self._lbl_send_command.config(image=self.img_warn)
+
+    def _record_command(self, msg: bytes):
+        """
+        Record command to memory if in 'record' mode.
+
+        :param bytes msg: configuration message
+        """
+
+        if self.__app.recording:
+            self.__app.recorded_commands = msg
 
     def update_status(self, msg: bytes):
         """

@@ -162,24 +162,24 @@ class UBX_MSGRATE_Frame(Frame):
         """
         self._lbl_cfg_msg.grid(column=0, row=0, columnspan=6, padx=3, sticky=EW)
         self._lbx_cfg_msg.grid(
-            column=0, row=1, columnspan=2, rowspan=11, padx=3, pady=3, sticky=EW
+            column=0, row=1, columnspan=2, rowspan=6, padx=3, pady=3, sticky=EW
         )
-        self._scr_cfg_msg.grid(column=1, row=1, rowspan=11, sticky=(N, S, E))
-        self._lbl_usb.grid(column=2, row=1, rowspan=2, padx=0, pady=1, sticky=E)
-        self._spn_usb.grid(column=3, row=1, rowspan=2, padx=0, pady=0, sticky=W)
-        self._lbl_uart1.grid(column=2, row=3, rowspan=2, padx=0, pady=1, sticky=E)
-        self._spn_uart1.grid(column=3, row=3, rowspan=2, padx=0, pady=0, sticky=W)
-        self._lbl_uart2.grid(column=2, row=5, rowspan=2, padx=0, pady=1, sticky=E)
-        self._spn_uart2.grid(column=3, row=5, rowspan=2, padx=0, pady=0, sticky=W)
-        self._lbl_ddc.grid(column=2, row=7, rowspan=2, padx=0, pady=1, sticky=E)
-        self._spn_ddc.grid(column=3, row=7, rowspan=2, padx=0, pady=0, sticky=W)
-        self._lbl_spi.grid(column=2, row=9, rowspan=2, padx=0, pady=1, sticky=E)
-        self._spn_spi.grid(column=3, row=9, rowspan=2, padx=0, pady=0, sticky=W)
+        self._scr_cfg_msg.grid(column=1, row=1, rowspan=6, sticky=(N, S, E))
+        self._lbl_usb.grid(column=2, row=1, padx=0, pady=1, sticky=E)
+        self._spn_usb.grid(column=3, row=1, padx=0, pady=0, sticky=W)
+        self._lbl_uart1.grid(column=2, row=2, padx=0, pady=1, sticky=E)
+        self._spn_uart1.grid(column=3, row=2, padx=0, pady=0, sticky=W)
+        self._lbl_uart2.grid(column=2, row=3, padx=0, pady=1, sticky=E)
+        self._spn_uart2.grid(column=3, row=3, padx=0, pady=0, sticky=W)
+        self._lbl_ddc.grid(column=2, row=4, padx=0, pady=1, sticky=E)
+        self._spn_ddc.grid(column=3, row=4, padx=0, pady=0, sticky=W)
+        self._lbl_spi.grid(column=2, row=5, padx=0, pady=1, sticky=E)
+        self._spn_spi.grid(column=3, row=5, padx=0, pady=0, sticky=W)
         self._btn_send_command.grid(
-            column=4, row=1, rowspan=11, ipadx=3, ipady=3, sticky=E
+            column=4, row=1, rowspan=6, ipadx=3, ipady=3, sticky=E
         )
         self._lbl_send_command.grid(
-            column=5, row=1, rowspan=11, ipadx=3, ipady=3, sticky=E
+            column=5, row=1, rowspan=6, ipadx=3, ipady=3, sticky=E
         )
 
         (cols, rows) = self.grid_size()

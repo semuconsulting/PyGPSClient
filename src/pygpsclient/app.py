@@ -96,6 +96,7 @@ from pygpsclient.globals import (
     SPARTN_PROTOCOL,
     STATUSPRIORITY,
     TTY_PROTOCOL,
+    UNDO,
 )
 from pygpsclient.gnss_status import GNSSStatus
 from pygpsclient.helpers import check_latest
@@ -111,6 +112,7 @@ from pygpsclient.strings import (
     DLG,
     DLGSTOPRTK,
     DLGTNTRIP,
+    DLGTRECORD,
     ENDOFFILE,
     INACTIVE_TIMEOUT,
     INTROTXTNOPORTS,
@@ -131,6 +133,7 @@ from pygpsclient.widget_state import (
     COLSPAN,
     DEFAULT,
     HIDE,
+    MAXCOLS,
     MAXCOLSPAN,
     MAXROWSPAN,
     MENU,
@@ -203,6 +206,9 @@ class App(Frame):
         self._socket_thread = None
         self._socket_server = None
         self.consoledata = []
+        self._recorded_commands = []  # captured by RecorderDialog
+        self.recording = False  # RecordDialog status
+        self.recording_type = 0  # 0 = TTY ONLY, 1 = UBX/NMEA
 
         # load config from json file
         configfile = kwargs.pop("config", CONFIGFILE)
@@ -316,6 +322,7 @@ class App(Frame):
         :rtype: tuple
         """
 
+        maxcols = self.configuration.get("maxcolumns_n")  # type: ignore
         wdg = self.widget_state.state[name]
         dynamic = wdg.get(COL, None) is None
         frm = getattr(self, wdg[FRAME])
@@ -324,8 +331,10 @@ class App(Frame):
             fcol = wdg.get(COL, col)
             frow = wdg.get(ROW, row)
             colspan = wdg.get(COLSPAN, 1)
+            if colspan == MAXCOLS:
+                colspan = maxcols
             rowspan = wdg.get(ROWSPAN, 1)
-            if dynamic and fcol + colspan > MAXCOLSPAN:
+            if dynamic and fcol + colspan > maxcols:
                 fcol = 0
                 frow += 1
             frm.grid(
@@ -340,7 +349,7 @@ class App(Frame):
             lbl = HIDE
             if dynamic:
                 col += colspan
-                if col >= MAXCOLSPAN:
+                if col >= maxcols:  # type: ignore
                     col = 0
                     row += rowspan
                 maxcol = max(maxcol, fcol + colspan)
@@ -1090,6 +1099,41 @@ class App(Frame):
 
         self._rtk_conn_status = status
         self.frm_banner.update_rtk_status(status)
+
+    @property
+    def recorded_commands(self) -> list:
+        """
+        Getter for RTK connection status.
+
+        :return: connection status
+        :rtype: list
+        """
+
+        return self._recorded_commands
+
+    @recorded_commands.setter
+    def recorded_commands(self, msg: UBXMessage | NMEAMessage | str | NoneType = None):
+        """
+        Setter for recorded_commands.
+
+        :param UBXMessage | NMEAMessage | str | NoneType msg: configuration command or None
+        """
+
+        if msg is None:
+            self._recorded_commands = []
+            self.recording_type = 0  # 0 = TTY ONLY
+        elif msg == UNDO:
+            self._recorded_commands.pop()
+            if len(self._recorded_commands) == 0:
+                self.recording_type = 0  # 0 = TTY ONLY
+        else:
+            if isinstance(msg, (UBXMessage, NMEAMessage)):
+                self.recording_type = 1  # 0 = TTY ONLY, 1 = UBX/NMEA
+            self._recorded_commands.append(msg)
+
+        # update RecordDialog command count, if dialog is visible
+        if hasattr(self.dialog(DLGTRECORD), "update_count"):
+            self.dialog(DLGTRECORD).update_count()
 
     @property
     def protocol_mask(self) -> int:

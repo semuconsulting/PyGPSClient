@@ -25,7 +25,7 @@ Created on 19 Sep 2020
 
 from tkinter import NSEW
 
-from pyubx2 import UBXMessage
+from pyubx2 import SET, UBXMessage
 
 from pygpsclient.dynamic_config_frame import Dynamic_Config_Frame
 from pygpsclient.globals import (
@@ -51,7 +51,6 @@ from pygpsclient.ubx_cfgval_frame import UBX_CFGVAL_Frame
 from pygpsclient.ubx_msgrate_frame import UBX_MSGRATE_Frame
 from pygpsclient.ubx_port_frame import UBX_PORT_Frame
 from pygpsclient.ubx_preset_frame import UBX_PRESET_Frame
-from pygpsclient.ubx_recorder_frame import UBX_Recorder_Frame
 from pygpsclient.ubx_solrate_frame import UBX_RATE_Frame
 
 MINDIM = (570, 1076)
@@ -94,9 +93,6 @@ class UBXConfigDialog(ToplevelDialog):
         self._frm_device_info = Hardware_Info_Frame(
             self.__app, self, borderwidth=2, relief="groove", protocol="UBX"
         )
-        self._frm_recorder = UBX_Recorder_Frame(
-            self.__app, self, borderwidth=2, relief="groove"
-        )
         self._frm_config_port = UBX_PORT_Frame(
             self.__app, self, borderwidth=2, relief="groove"
         )
@@ -130,7 +126,6 @@ class UBXConfigDialog(ToplevelDialog):
         colsp = 0
         for frm in (
             self._frm_device_info,
-            self._frm_recorder,
             self._frm_config_port,
             self._frm_config_rate,
             self._frm_config_msg,
@@ -264,12 +259,14 @@ class UBXConfigDialog(ToplevelDialog):
         """
 
         self.__app.send_to_device(msg.serialize())
-        self.record_command(msg)
+        self._record_command(msg)
 
-    def record_command(self, msg: UBXMessage):
+    def _record_command(self, msg: UBXMessage):
         """
         Record command to memory if in 'record' mode.
+
+        :param bytes msg: configuration message
         """
 
-        if self.recordmode:
-            self._frm_recorder.update_record(msg)
+        if self.__app.recording and msg.msgmode == SET:
+            self.__app.recorded_commands = msg

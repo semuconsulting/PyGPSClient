@@ -180,14 +180,6 @@ pygpsclient.map\_frame module
    :undoc-members:
    :show-inheritance:
 
-pygpsclient.mapquest module
----------------------------
-
-.. automodule:: pygpsclient.mapquest
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 pygpsclient.mapquest\_handler module
 ------------------------------------
 
@@ -248,6 +240,14 @@ pygpsclient.receiver\_config\_handler module
 --------------------------------------------
 
 .. automodule:: pygpsclient.receiver_config_handler
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pygpsclient.recorder\_dialog module
+-----------------------------------
+
+.. automodule:: pygpsclient.recorder_dialog
    :members:
    :undoc-members:
    :show-inheritance:
@@ -496,14 +496,6 @@ pygpsclient.ubx\_preset\_frame module
 -------------------------------------
 
 .. automodule:: pygpsclient.ubx_preset_frame
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-pygpsclient.ubx\_recorder\_frame module
----------------------------------------
-
-.. automodule:: pygpsclient.ubx_recorder_frame
    :members:
    :undoc-members:
    :show-inheritance:

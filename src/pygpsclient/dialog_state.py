@@ -22,6 +22,7 @@ from pygpsclient.gpx_dialog import GPXViewerDialog
 from pygpsclient.importmap_dialog import ImportMapDialog
 from pygpsclient.nmea_config_dialog import NMEAConfigDialog
 from pygpsclient.ntrip_client_dialog import NTRIPConfigDialog
+from pygpsclient.recorder_dialog import RecorderDialog
 from pygpsclient.spartn_dialog import SPARTNConfigDialog
 from pygpsclient.strings import (
     DLG,
@@ -30,6 +31,7 @@ from pygpsclient.strings import (
     DLGTIMPORTMAP,
     DLGTNMEA,
     DLGTNTRIP,
+    DLGTRECORD,
     DLGTSPARTN,
     DLGTTTY,
     DLGTUBX,
@@ -88,6 +90,11 @@ class DialogState:
                 CLASS: TTYPresetDialog,
                 DLG: None,
                 RESIZE: True,
+            },
+            DLGTRECORD: {
+                CLASS: RecorderDialog,
+                DLG: None,
+                RESIZE: False,
             },
             # add any new dialogs here
         }

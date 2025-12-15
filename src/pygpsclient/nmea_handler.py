@@ -48,7 +48,6 @@ class NMEAHandler:
         self._parsed_data = None
         # Holds array of current satellites in view from NMEA GSV sentences
         self.gsv_data = {}
-        self.gsv_log = {}  # Holds cumulative log of all satellites seen
 
     def process_data(self, raw_data: bytes, parsed_data: object):
         """
@@ -307,13 +306,16 @@ class NMEAHandler:
 
         show_unused = self.__app.configuration.get("unusedsat_b")
         self.gsv_data = {}
+        now = time()
         for i in range(data.numSv):
             idx = f"_{i+1:02d}"
             svid = getattr(data, "svid" + idx)
             gnss = svid2gnssid(svid)
             elev = getattr(data, "ele" + idx)
             azim = getattr(data, "azi" + idx)
-            cno = str(getattr(data, "cno" + idx))
+            cno = getattr(data, "cno" + idx)
+            if not isinstance(cno, (int, float)):
+                cno = 0
             # fudge to make PUBX03 svid numbering consistent with GSV
             if gnss == 2 and svid > 210:  # Galileo
                 svid -= 210
@@ -321,10 +323,16 @@ class NMEAHandler:
                 svid -= 32
             if cno in ("", "0", 0) and not show_unused:  # omit unused sats
                 continue
-            self.gsv_data[f"{gnss}-{svid}"] = (gnss, svid, elev, azim, cno)
+            self.__app.gnss_status.gsv_data[(gnss, svid)] = (
+                gnss,
+                svid,
+                elev,
+                azim,
+                cno,
+                now,
+            )
 
         self.__app.gnss_status.siv = len(self.gsv_data)
-        self.__app.gnss_status.gsv_data = self.gsv_data
 
     def _process_QTMVERNO(self, data: NMEAMessage):
         """

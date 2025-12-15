@@ -44,6 +44,7 @@ COLSPAN = "colspan"
 DEFAULT = "def"
 HIDE = "Hide"
 MAXCOLSPAN = 4  # max no of widget columns
+MAXCOLS = 999  # always occupy the full row
 MAXROWSPAN = 4  # max no of widget rows
 MENU = "men"
 RESET = "rst"
@@ -118,7 +119,7 @@ class WidgetState:
                 CLASS: ConsoleFrame,
                 FRAME: "frm_console",
                 VISIBLE: True,
-                COLSPAN: MAXCOLSPAN,
+                COLSPAN: MAXCOLS,
             },
             WDGSATS: {
                 DEFAULT: True,

@@ -9,7 +9,7 @@
     "python.terminal.activateEnvironment": true,
     "editor.formatOnSave": true,
     "modulename": "pygpsclient", // "${workspaceFolderBasename}",
-    "distname": "${workspaceFolderBasename}",
+    "distname": "pygpsclient",
     "venv": "${userHome}/pygpsclient",
     "python.testing.pytestArgs": [
         "tests"
