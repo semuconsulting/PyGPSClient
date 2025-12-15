@@ -159,9 +159,9 @@ class LevelsviewFrame(Frame):
         data = self.__app.gnss_status.gsv_data
         show_unused = self.__app.configuration.get("unusedsat_b")
         siv = len(data)
-        if siv == 0:
-            return
         siv = siv if show_unused else siv - unused_sats(data)
+        if siv <= 0:
+            return
 
         w, h = self.width, self.height
         self.init_frame()

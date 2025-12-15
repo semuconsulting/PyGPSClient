@@ -46,8 +46,6 @@ class NMEAHandler:
 
         self._raw_data = None
         self._parsed_data = None
-        # Holds array of current satellites in view from NMEA GSV sentences
-        self.gsv_data = {}
 
     def process_data(self, raw_data: bytes, parsed_data: object):
         """
@@ -304,8 +302,7 @@ class NMEAHandler:
         """
         # pylint: disable=consider-using-dict-items
 
-        show_unused = self.__app.configuration.get("unusedsat_b")
-        self.gsv_data = {}
+        self.__app.gnss_status.gsv_data = {}
         now = time()
         for i in range(data.numSv):
             idx = f"_{i+1:02d}"
@@ -321,8 +318,6 @@ class NMEAHandler:
                 svid -= 210
             if gnss == 3 and svid > 32:  # Beidou
                 svid -= 32
-            if cno in ("", "0", 0) and not show_unused:  # omit unused sats
-                continue
             self.__app.gnss_status.gsv_data[(gnss, svid)] = (
                 gnss,
                 svid,
@@ -332,7 +327,7 @@ class NMEAHandler:
                 now,
             )
 
-        self.__app.gnss_status.siv = len(self.gsv_data)
+        self.__app.gnss_status.siv = len(self.__app.gnss_status.gsv_data)
 
     def _process_QTMVERNO(self, data: NMEAMessage):
         """

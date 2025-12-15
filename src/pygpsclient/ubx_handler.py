@@ -45,8 +45,6 @@ class UBXHandler:
         self._cdb = 0
         self._raw_data = None
         self._parsed_data = None
-        # Holds array of current satellites in view from NMEA GSV or UBX NAV-SVINFO sentences
-        self.gsv_data = {}
 
     def process_data(self, raw_data: bytes, parsed_data: object):
         """
@@ -324,7 +322,7 @@ class UBXHandler:
         :param UBXMessage data: NAV-SAT parsed message
         """
 
-        self.gsv_data = {}
+        self.__app.gnss_status.gsv_data = {}
         num_siv = int(data.numSvs)
         now = time()
 
@@ -338,10 +336,16 @@ class UBXHandler:
             elev = getattr(data, "elev" + idx)
             azim = getattr(data, "azim" + idx)
             cno = getattr(data, "cno" + idx)
-            self.gsv_data[(gnssId, svid)] = (gnssId, svid, elev, azim, cno, now)
+            self.__app.gnss_status.gsv_data[(gnssId, svid)] = (
+                gnssId,
+                svid,
+                elev,
+                azim,
+                cno,
+                now,
+            )
 
-        self.__app.gnss_status.siv = len(self.gsv_data)
-        self.__app.gnss_status.gsv_data = self.gsv_data
+        self.__app.gnss_status.siv = len(self.__app.gnss_status.gsv_data)
 
     def _process_NAV_STATUS(self, data: UBXMessage):
         """
@@ -376,9 +380,9 @@ class UBXHandler:
         :param UBXMessage data: NAV-SVINFO parsed message
         """
 
-        show_unused = self.__app.configuration.get("unusedsat_b")
-        self.gsv_data = {}
+        self.__app.gnss_status.gsv_data = {}
         num_siv = int(data.numCh)
+        now = time()
 
         for i in range(num_siv):
             idx = f"_{i+1:02d}"
@@ -387,11 +391,16 @@ class UBXHandler:
             elev = getattr(data, "elev" + idx)
             azim = getattr(data, "azim" + idx)
             cno = getattr(data, "cno" + idx)
-            if cno == 0 and not show_unused:  # omit unused sats
-                continue
-            self.gsv_data[f"{gnssId}-{svid}"] = (gnssId, svid, elev, azim, cno)
+            self.__app.gnss_status.gsv_data[(gnssId, svid)] = (
+                gnssId,
+                svid,
+                elev,
+                azim,
+                cno,
+                now,
+            )
 
-        self.__app.gnss_status.gsv_data = self.gsv_data
+        self.__app.gnss_status.siv = len(self.__app.gnss_status.gsv_data)
 
     def _process_NAV_SOL(self, data: UBXMessage):
         """
