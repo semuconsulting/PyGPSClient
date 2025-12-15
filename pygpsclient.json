@@ -36,6 +36,7 @@
     "units_s": "Metric m/s",
     "autoscroll_b": 1,
     "maxlines_n": 200,
+    "maxcolumns_n": 4,
     "filedelay_n": 20,
     "consoleformat_s": "Parsed",
     "maptype_s": "world",

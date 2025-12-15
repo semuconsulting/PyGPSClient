@@ -37,6 +37,7 @@ class ConfirmBox(Toplevel):
         self.__master = parent
         Toplevel.__init__(self, parent)
         self.title(title)  # pylint: disable=E1102
+        self.attributes("-topmost", True)  # keep on top
         self.resizable(False, False)
         Label(self, text=prompt, anchor=W).grid(
             row=0, column=0, columnspan=2, padx=3, pady=5

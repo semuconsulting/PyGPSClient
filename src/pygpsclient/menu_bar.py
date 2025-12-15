@@ -21,6 +21,7 @@ from pygpsclient.strings import (
     DLGTIMPORTMAP,
     DLGTNMEA,
     DLGTNTRIP,
+    DLGTRECORD,
     DLGTTTY,
     DLGTUBX,
     MENUABOUT,
@@ -43,6 +44,7 @@ DIALOGS = (
     DLGTGPX,
     DLGTIMPORTMAP,
     DLGTTTY,
+    DLGTRECORD,
 )
 
 

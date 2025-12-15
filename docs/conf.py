@@ -13,11 +13,15 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath("../src"))
+# get path to site-packages (source) folder within venv
+pypath = (
+    f"{os.path.expanduser("~")}/pygpsclient/lib/python"
+    f"{sys.version_info.major}.{sys.version_info.minor}/site-packages"
+)
+print(f"\n\033[1mUsing absolute path:\033[0m \033[95m{pypath}\033[0m\n")
+sys.path.insert(0, os.path.abspath(pypath))
 
 from pygpsclient import version as VERSION
-
-# sys.path.insert(0, os.path.abspath('../pygpsclient'))
 
 # -- Project information -----------------------------------------------------
 

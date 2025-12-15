@@ -1,5 +1,15 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.5.23
+
+FIXES:
+
+1. Fix PUBX003 file input parsing error [#229](https://github.com/semuconsulting/PyGPSClient/issues/229)
+
+ENHANCEMENTS:
+
+1. Move Configuration Command Load/Save/Record facility from UBX Configuration Panel to separate dialog, selectable from Options menu. Can now be used to record and replay UBX, NMEA and TTY configuration commands.
+
 ### RELEASE 1.5.22
 
 FIXES:

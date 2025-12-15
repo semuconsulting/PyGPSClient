@@ -270,6 +270,7 @@ TTYERR = ("ERROR", "$R?")
 TTYMARKER = "TTY<<"
 UBXPRESETS = "ubxpresets"
 UBXSIMULATOR = "ubxsimulator"
+UNDO = "UNDO"
 UTF8 = "utf-8"
 VALBLANK = 1
 VALNONBLANK = 2
