@@ -277,7 +277,8 @@ The NTRIP Configuration utility allows users to receive and process NTRIP RTK Co
 
 **Instructions:**
 
-1. Enter the required NTRIP server URL (or IP address) and port (defaults to 2101). For SSL/TLS (HTTPS) connections (*typically on ports \*443 or 2102*), tick the TLS checkbox. Tick the Self-Sign checkbox to tolerate self-signed TLS certification (*typically for test or demonstration services*). For services which require authorisation, enter your assigned login username and password.
+1. Enter the required NTRIP server URL (or IP address) and port (defaults to 2101). For SSL/TLS (HTTPS) connections (*typically on ports \*443 or 2102*), tick the TLS checkbox. Tick the Self-Sign checkbox to tolerate self-signed TLS certification (*typically for test or demonstration services*); the path to the self-sign TLS certificate can be set via environment variable `PYGNSSUTILS_CRTPATH`; the default is `$HOME\pygnssutils.crt`.
+1. For services which require authorisation, enter your assigned login username and password.
 1. Select the Data Type (defaults to RTCM, but can be set to SPARTN).
 1. To retrieve the sourcetable, leave the mountpoint field blank and click connect (*response may take a few seconds*). The required mountpoint may then be selected from the list, or entered manually. Where possible, `PyGPSClient` will automatically identify the closest mountpoint to the current location.
 1. For NTRIP services which require client position data via NMEA GGA sentences, select the appropriate sentence transmission interval in seconds. The default is 'None' (no GGA sentences sent). A value of 10 or 60 seconds is typical.
@@ -321,6 +322,7 @@ By default, the server/caster binds to the host address '0.0.0.0' (IPv4) or '::'
    ```shell
    openssl req -x509 -newkey rsa:4096 -keyout pygnssutils.pem -out pygnssutils.pem -sha256 -days 3650 -nodes
    ```
+   The TLS Client will only require the certificate from this file, which can be set via environment variable `PYGNSSUTILS_CRTPATH`; the default is `$HOME\pygnssutils.crt`.
 
 **Instructions:**
 

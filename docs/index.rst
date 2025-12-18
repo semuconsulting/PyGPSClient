@@ -10,6 +10,7 @@ Welcome to PyGPSClient's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   modules.rst
 
 Indices and tables
 ==================
