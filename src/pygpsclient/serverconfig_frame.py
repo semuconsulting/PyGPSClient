@@ -20,6 +20,7 @@ Created on 23 Jul 2023
 # pylint: disable=unused-argument, too-many-lines
 
 import logging
+from pathlib import Path
 from time import sleep
 from tkinter import (
     DISABLED,
@@ -41,7 +42,7 @@ from tkinter import (
 from tkinter.ttk import Progressbar
 
 from PIL import Image, ImageTk
-from pygnssutils import RTCMTYPES, check_pemfile
+from pygnssutils import RTCMTYPES
 from pynmeagps import NMEAMessage, ecef2llh, llh2ecef
 from pyubx2 import SET_LAYER_RAM, TXN_NONE, UBXMessage
 
@@ -198,7 +199,7 @@ class ServerConfigFrame(Frame):
             self._frm_basic,
             text=LBLSOCKSERVE,
             variable=self._socket_serve,
-            state=DISABLED,
+            state=NORMAL,
         )
         self._lbl_sockmode = Label(
             self._frm_basic,
@@ -449,8 +450,8 @@ class ServerConfigFrame(Frame):
         self.disable_nmea.set(cfg.get("ntripcasterdisablenmea_b"))
         self.sock_host.set(cfg.get("sockhost_s"))
         https = cfg.get("sockhttps_b")
-        pem, pemexists = check_pemfile()
-        if https and not pemexists:
+        pem = cfg.get("tlspempath_s")
+        if https and not Path(pem).exists():
             err = DLGNOTLS.format(hostpem=pem)
             self.__app.status_label = (err, ERRCOL)
             self.logger.error(err)
@@ -860,8 +861,8 @@ class ServerConfigFrame(Frame):
         Action when https flag is updated.
         """
 
-        pem, pemexists = check_pemfile()
-        if self.https.get() and not pemexists:
+        pem = self.__app.configuration.get("tlspempath_s")
+        if self.https.get() and not Path(pem).exists():
             err = DLGNOTLS.format(hostpem=pem)
             self.__app.status_label = (err, ERRCOL)
             self.logger.error(err)

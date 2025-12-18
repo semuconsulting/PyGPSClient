@@ -317,10 +317,11 @@ By default, the server/caster binds to the host address '0.0.0.0' (IPv4) or '::'
 
 1. Running in NTRIP CASTER mode is predicated on the host being connected to an RTK-compatible GNSS receiver **operating in Base Station mode** (either `FIXED` or `SURVEY_IN`) and outputting the requisite RTCM3 message types (1005/6, 1077, 1087, 1097, etc.). 
 1. It may be necessary to add a firewall rule and/or enable port-forwarding on the host machine or router to allow remote traffic on the specified address:port.
-1. The server supports encrypted TLS (HTTPS) connections. The TLS certificate/key location can be set via environment variable `PYGNSSUTILS_PEMPATH`; the default is `$HOME/pygnssutils.pem`. A self-signed pem file suitable for test and demonstration purposes can be created interactively thus:
+1. The server supports encrypted TLS (HTTPS) connections. The TLS server private key / certificate location can be set via environment variable `PYGNSSUTILS_PEMPATH`; the default is `$HOME/pygnssutils.pem`. A self-signed pem file suitable for test and demonstration purposes can be created interactively thus:
    ```shell
    openssl req -x509 -newkey rsa:4096 -keyout pygnssutils.pem -out pygnssutils.pem -sha256 -days 3650 -nodes
    ```
+   The client will only require the certificate from this file, which can be set via environment variable `PYGNSSUTILS_CRTPATH`; the default is `$HOME/pygnssutils.crt`.
 
 **Instructions:**
 

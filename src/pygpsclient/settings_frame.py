@@ -874,6 +874,7 @@ class SettingsFrame(Frame):
             "conntype": conntype,
             "msgmode": self.frm_serial.msgmode,
             "inactivity_timeout": self.frm_serial.inactivity_timeout,
+            "tlscrtpath": self.__app.configuration.get("tlscrtpath_s"),
         }
 
         self.frm_socketserver.status_label = conntype

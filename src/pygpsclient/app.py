@@ -560,6 +560,8 @@ class App(Frame):
         https = cfg.get("sockhttps_b")
         ntripuser = cfg.get("ntripcasteruser_s")
         ntrippassword = cfg.get("ntripcasterpassword_s")
+        tlspempath = cfg.get("tlspempath_s")
+        ntriprtcmstr = "1002(1),1006(5),1077(1),1087(1),1097(1),1127(1),1230(1)" # TODO
         self._socket_thread = Thread(
             target=self._sockserver_thread,
             args=(
@@ -567,6 +569,8 @@ class App(Frame):
                 host,
                 port,
                 https,
+                tlspempath,
+                ntriprtcmstr,
                 ntripuser,
                 ntrippassword,
                 SOCKSERVER_MAX_CLIENTS,
@@ -592,6 +596,8 @@ class App(Frame):
         host: str,
         port: int,
         https: int,
+        tlspempath: str,
+        ntriprtcmstr: str,
         ntripuser: str,
         ntrippassword: str,
         maxclients: int,
@@ -605,6 +611,8 @@ class App(Frame):
         :param str host: socket host name (0.0.0.0)
         :param int port: socket port (50010)
         :param int https: https enabled (0)
+        :param str tlspempath: path to TLS PEM file ("$HOME/pygnssutils.pem")
+        :param str ntriprtcmstr: NTRIP caster RTCM type(rate) sourcetable entry
         :param int maxclients: max num of clients (5)
         :param Queue socketqueue: socket server read queue
         """
@@ -620,6 +628,8 @@ class App(Frame):
                 requesthandler,
                 ntripuser=ntripuser,
                 ntrippassword=ntrippassword,
+                tlspempath=tlspempath,
+                ntriprtcmstr=ntriprtcmstr,
             ) as self._socket_server:
                 self._socket_server.serve_forever()
         except OSError as err:

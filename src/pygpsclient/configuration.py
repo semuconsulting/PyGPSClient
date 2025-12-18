@@ -16,6 +16,12 @@ import logging
 from os import getenv
 from types import NoneType
 
+from pygnssutils import (
+    PYGNSSUTILS_CRT,
+    PYGNSSUTILS_CRTPATH,
+    PYGNSSUTILS_PEM,
+    PYGNSSUTILS_PEMPATH,
+)
 from pyubx2 import GET
 from serial import PARITY_NONE
 
@@ -139,6 +145,8 @@ class Configuration:
             "trackpath_s": "",
             "database_b": 0,
             "databasepath_s": "",
+            "tlspempath_s": PYGNSSUTILS_PEM,
+            "tlscrtpath_s": PYGNSSUTILS_CRT,
             # serial port settings from frm_serial
             "serialport_s": "/dev/ttyACM0",
             "bpsrate_n": 9600,
@@ -346,6 +354,12 @@ class Configuration:
         arg = kwargs.pop("ntripcasterpassword", getenv("NTRIPCASTER_PASSWORD", None))
         if arg is not None:
             self.set("ntripcasterpassword_s", arg)
+        arg = kwargs.pop("tlspempath", getenv(PYGNSSUTILS_PEMPATH, PYGNSSUTILS_PEM))
+        if arg is not None:
+            self.set("tlspempath_s", arg)
+        arg = kwargs.pop("tlscrtpath", getenv(PYGNSSUTILS_CRTPATH, PYGNSSUTILS_CRT))
+        if arg is not None:
+            self.set("tlscrtpath_s", arg)
 
     def set(self, name: str, value: object):
         """

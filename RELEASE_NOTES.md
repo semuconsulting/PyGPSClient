@@ -1,5 +1,10 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.6.0
+
+CHANGES:
+
+
 ### RELEASE 1.5.23
 
 FIXES:
