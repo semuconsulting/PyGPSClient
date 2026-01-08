@@ -69,6 +69,7 @@ class CanvasGraph(Canvas):
         xcol: str = "#000000",
         ycol: tuple = ("#000000",),
         xlabels: bool = False,
+        xlabelsfrm: str = "000",
         ylabels: bool = False,
         fontscale: int = 30,
         **kwargs,
@@ -77,26 +78,27 @@ class CanvasGraph(Canvas):
         Extends tkinter.Canvas Class to simplify drawing graphs on canvas.
         Accommodates multiple Y axis channels.
 
-        :param float xdatamax: x maximum data value,
-        :param float xdatamin: x minimum data value,
-        :param tuple ydatamax: y channel(s) maximum data value,
-        :param tuple ydatamin: y channel(s) minimum data value,
-        :param int xtickmaj: x major ticks,
+        :param float xdatamax: x maximum data value
+        :param float xdatamin: x minimum data value
+        :param tuple ydatamax: y channel(s) maximum data value
+        :param tuple ydatamin: y channel(s) minimum data value
+        :param int xtickmaj: x major ticks
         :param int ytickmaj: y major ticks
-        :param int xtickmin: x minor ticks,
-        :param int ytickmin: y minor ticks,
-        :param str fillmaj: major axis color,
-        :param str fillmin: minor axis color,
-        :param int xdp: x label decimal places,
-        :param tuple ydp: y channel(s) label decimal places,
-        :param str xlegend: x legend,
+        :param int xtickmin: x minor ticks
+        :param int ytickmin: y minor ticks
+        :param str fillmaj: major axis color
+        :param str fillmin: minor axis color
+        :param int xdp: x label decimal places
+        :param tuple ydp: y channel(s) label decimal places
+        :param str xlegend: x legend
         :param str xtimeformat: x label time format e.g. "%H:%M:%S"
-        :param tuple ylegend: y channels legend,
-        :param str xcol: x label color,
-        :param tuple ycol: y channel(s) color,
-        :param bool xlabels: x labels on/off,
-        :param bool ylabels: y labels on/off,
-        :param int fontscale: font scaling factor (higher is smaller),
+        :param tuple ylegend: y channels legend
+        :param str xcol: x label color
+        :param tuple ycol: y channel(s) color
+        :param bool xlabels: x labels on/off
+        :param str xlabelsfrm: xlabel format string e.g. "000"
+        :param bool ylabels: y labels on/off
+        :param int fontscale: font scaling factor (higher is smaller)
         :return: return code
         :rtype: int
         :raises: ValueError if Y channel args have dissimilar lengths
@@ -140,10 +142,11 @@ class CanvasGraph(Canvas):
         self.fnth = self.font.metrics("linespace")
         self.xoffl = self.fnth * ceil(len(ydatamax) / 2) * 1.5
         self.xoffr = self.xoffl
-        self.yoffb = self.fnth * 1.5
         xangle = kwargs.pop("xangle", 0)
-        if xangle != 0:  # add extra Y offset for slanted X labels
-            self.yoffb += self.font.measure("000") * sin(radians(xangle))
+        if xangle == 0:
+            self.yoffb = self.fnth * 1.5
+        else:  # add extra Y offset for slanted X labels
+            self.yoffb = self.font.measure(xlabelsfrm) * cos(radians(xangle)) * 1.2
         self.yofft = self.fnth
         self.xdatamax = xdatamax
         self.xdatamin = xdatamin

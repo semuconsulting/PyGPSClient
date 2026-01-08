@@ -170,7 +170,7 @@ class BannerFrame(Frame):
         )
         self._lbl_ldgps = Label(
             self._frm_advanced2,
-            text="dgps:",
+            text="corr:",
             bg=self._bgcol,
             fg=self._fgcol,
             anchor=N,

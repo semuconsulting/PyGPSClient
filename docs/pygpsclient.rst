@@ -316,6 +316,14 @@ pygpsclient.settings\_frame module
    :undoc-members:
    :show-inheritance:
 
+pygpsclient.signalsview\_frame module
+-------------------------------------
+
+.. automodule:: pygpsclient.signalsview_frame
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pygpsclient.skyview\_frame module
 ---------------------------------
 

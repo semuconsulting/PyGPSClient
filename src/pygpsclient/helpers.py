@@ -35,8 +35,8 @@ from tkinter import (
     Spinbox,
     StringVar,
     Tk,
+    font,
 )
-from tkinter.font import Font
 from typing import Literal
 
 from pynmeagps import WGS84_SMAJ_AXIS, haversine
@@ -389,6 +389,40 @@ def dop2str(dop: float) -> str:
     return dops
 
 
+def fitfont(
+    fmt: str,
+    maxw: int,
+    maxh: int,
+    angle: int = 0,
+    maxsiz: int = 10,
+    constraint: int = 3,
+) -> tuple[font.Font, float, float]:
+    """
+    Create font to fit space.
+
+    :param str format: format of string
+    :param int maxw: max width in pixels
+    :param int maxh: max height in pixels
+    :param int angle: font angle in degrees
+    :param int maxsiz: maximum font size in pixels
+    :param int constraint: 1 = width, 2 = height, 3 = width & height
+    :return: tuple of (sized font, font width, font height)
+    :rtype: tuple[font.Font, float, float]
+    """
+
+    fw, fh = maxw + 1, maxh + 1
+    rw, rh = fw, fh
+    siz = maxsiz
+    fnt = font.Font(size=-siz)
+    while (
+        (rw > maxw and constraint & 1) or (rh > maxh and constraint & 2)
+    ) and siz > 0:
+        fnt = font.Font(size=-siz)
+        rw, rh = fontdim(fmt, fnt, angle)
+        siz -= 1
+    return fnt, fw, fh
+
+
 def fix2desc(msgid: str, fix: object) -> str:
     """
     Get integer fix value for given message fix status.
@@ -416,6 +450,25 @@ def ft2m(feet: float) -> float:
     if not isinstance(feet, (float, int)):
         return 0
     return feet / 3.28084
+
+
+def fontdim(fmt: str, fnt: font.Font, angle: int = 0) -> tuple[float, float]:
+    """
+    Get x,y pixel dimensions of string in given rotated font.
+
+    :param str fmt: format string e.g. "000"
+    :param font.Font fnt: font
+    :param int angle: rotation angle in degrees (0 = horizontal)
+    :return: tuple of (width, height)
+    :rtype: tuple[float, float]
+    """
+
+    theta = radians(angle)
+    fw = fnt.measure(fmt)
+    fh = fnt.metrics("linespace")
+    rw = abs(fw * cos(theta)) + abs(fh * sin(theta))
+    rh = abs(fh * cos(theta)) + abs(fw * sin(theta))
+    return rw, rh
 
 
 def get_mp_distance(lat: float, lon: float, mp: list) -> float:
@@ -985,7 +1038,7 @@ def rgb2str(r: int, g: int, b: int) -> str:
 
 
 def scale_font(
-    width: int, basesize: int, txtwidth: int, maxsize: int = 0, fnt: Font = None
+    width: int, basesize: int, txtwidth: int, maxsize: int = 0, fnt: font.Font = None
 ) -> tuple:
     """
     Scale font size to widget width.
@@ -999,9 +1052,9 @@ def scale_font(
     :rtype: tuple
     """
 
-    fnt = Font(size=12) if fnt is None else fnt
+    fnt = font.Font(size=12) if fnt is None else fnt
     fs = basesize * width / fnt.measure("W" * txtwidth)
-    fnt = Font(size=int(min(fs, maxsize))) if maxsize else Font(size=int(fs))
+    fnt = font.Font(size=int(min(fs, maxsize))) if maxsize else font.Font(size=int(fs))
     return fnt, fnt.metrics("linespace")
 
 

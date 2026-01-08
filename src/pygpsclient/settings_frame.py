@@ -170,7 +170,9 @@ class SettingsFrame(Frame):
         self._logformat = StringVar()
         self._record_track = IntVar()
         self._record_database = IntVar()
-        self._show_unusedsat = IntVar()
+        self.show_unusedsat = (
+            IntVar()
+        )  # can be updated by levels_frame and signals_frame
         self._colortag = IntVar()
         self.defaultports = self.__app.configuration.get("defaultport_s")
         self._validsettings = True
@@ -407,7 +409,7 @@ class SettingsFrame(Frame):
             repeatinterval=1000,
         )
         self._chk_unusedsat = Checkbutton(
-            self._frm_options, text=LBLSHOWUNUSED, variable=self._show_unusedsat
+            self._frm_options, text=LBLSHOWUNUSED, variable=self.show_unusedsat
         )
         self._chk_datalog = Checkbutton(
             self._frm_options,
@@ -587,7 +589,7 @@ class SettingsFrame(Frame):
         self._units.trace_update(tracemode, self._on_update_units, add)
         self._degrees_format.trace_update(tracemode, self._on_update_degreesformat, add)
         self._console_format.trace_update(tracemode, self._on_update_consoleformat, add)
-        self._show_unusedsat.trace_update(tracemode, self._on_update_unusedsat, add)
+        self.show_unusedsat.trace_update(tracemode, self._on_update_unusedsat, add)
         self._colortag.trace_update(tracemode, self._on_update_colortag, add)
         self._logformat.trace_update(tracemode, self._on_update_logformat, add)
         self._datalog.trace_update(tracemode, self._on_data_log, add)
@@ -615,7 +617,7 @@ class SettingsFrame(Frame):
         self._maxlines.set(cfg.get("maxlines_n"))
         self._filedelay.set(cfg.get("filedelay_n"))
         self._console_format.set(cfg.get("consoleformat_s"))
-        self._show_unusedsat.set(cfg.get("unusedsat_b"))
+        self.show_unusedsat.set(cfg.get("unusedsat_b"))
         self._logformat.set(cfg.get("logformat_s"))
         self._datalog.set(cfg.get("datalog_b"))
         self.logpath = cfg.get("logpath_s")
@@ -773,7 +775,7 @@ class SettingsFrame(Frame):
         Action on updating unused satellites.
         """
 
-        self.__app.configuration.set("unusedsat_b", self._show_unusedsat.get())
+        self.__app.configuration.set("unusedsat_b", self.show_unusedsat.get())
 
     def _on_update_logformat(self, var, index, mode):
         """

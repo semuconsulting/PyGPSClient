@@ -561,7 +561,7 @@ class App(Frame):
         ntripuser = cfg.get("ntripcasteruser_s")
         ntrippassword = cfg.get("ntripcasterpassword_s")
         tlspempath = cfg.get("tlspempath_s")
-        ntriprtcmstr = "1002(1),1006(5),1077(1),1087(1),1097(1),1127(1),1230(1)" # TODO
+        ntriprtcmstr = "1002(1),1006(5),1077(1),1087(1),1097(1),1127(1),1230(1)"  # TODO
         self._socket_thread = Thread(
             target=self._sockserver_thread,
             args=(

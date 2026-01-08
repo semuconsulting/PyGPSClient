@@ -4,6 +4,8 @@
 
 CHANGES:
 
+1. Add user-selectable SignalsView widget, displaying individual GNSS signal levels and (where applicable) correction sources (from UBX NAV-SIG message).
+1. Minor cosmetic updates to SpectrumView widget.
 
 ### RELEASE 1.5.23
 
