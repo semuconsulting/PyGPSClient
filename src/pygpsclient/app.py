@@ -176,6 +176,7 @@ class App(Frame):
         self.__master.iconphoto(True, PhotoImage(file=ICON_APP128))
 
         self._deferredmsg = None
+        self._server_status = -1  # socket server status -1 = inactive
         self.gnss_inqueue = Queue()  # messages from GNSS receiver
         self.gnss_outqueue = Queue()  # messages to GNSS receiver
         self.ntrip_inqueue = Queue()  # messages from NTRIP source
@@ -465,7 +466,6 @@ class App(Frame):
                 self.frm_settings,
                 self.frm_settings.frm_serial,
                 self.frm_settings.frm_socketclient,
-                self.frm_settings.frm_socketserver,
             ):
                 frm.reset()
             self._do_layout()
@@ -579,16 +579,16 @@ class App(Frame):
             daemon=True,
         )
         self._socket_thread.start()
-        self.frm_banner.update_transmit_status(0)
+        self.server_status = 0  # 0 = active, no clients
 
     def sockserver_stop(self):
         """
         Stop socket server thread.
         """
 
-        self.frm_banner.update_transmit_status(-1)
         if self._socket_server is not None:
             self._socket_server.shutdown()
+        self.server_status = -1  # -1 = inactive
 
     def _sockserver_thread(
         self,
@@ -643,7 +643,8 @@ class App(Frame):
         :param int clients: no of connected clients
         """
 
-        self.frm_settings.frm_socketserver.clients = clients
+        self.server_status = clients
+        # self.frm_settings.frm_socketserver.clients = clients TODO
 
     def _shutdown(self):
         """
@@ -694,9 +695,9 @@ class App(Frame):
             raw_data, parsed_data = self.gnss_inqueue.get(False)
             if raw_data is not None and parsed_data is not None:
                 self.process_data(raw_data, parsed_data)
-            # if socket server is running, output raw data to socket
-            if self.frm_settings.frm_socketserver.socketserving:
-                self.socket_outqueue.put(raw_data)
+                # if socket server is running, output raw data to socket
+                if self.server_status:  # TODO
+                    self.socket_outqueue.put(raw_data)
             self.gnss_inqueue.task_done()
         except Empty:
             pass
@@ -709,9 +710,7 @@ class App(Frame):
         :param event event: <<gnss_eof>> event
         """
 
-        self.frm_settings.frm_socketserver.socketserving = (
-            False  # turn off socket server
-        )
+        self.server_status = -1
         self._refresh_widgets()
         self.conn_status = DISCONNECTED
         self.status_label = (ENDOFFILE, ERRCOL)
@@ -724,9 +723,7 @@ class App(Frame):
         :param event event: <<gnss_timeout>> event
         """
 
-        self.frm_settings.frm_socketserver.socketserving = (
-            False  # turn off socket server
-        )
+        self.server_status = -1
         self._refresh_widgets()
         self.conn_status = DISCONNECTED
         self.status_label = (INACTIVE_TIMEOUT, ERRCOL)
@@ -1087,6 +1084,30 @@ class App(Frame):
         self.frm_settings.enable_controls(status)
         if status == DISCONNECTED:
             self.conn_label = (NOTCONN, INFOCOL)
+
+    @property
+    def server_status(self) -> int:
+        """
+        Getter for socket server status.
+
+        :return: server status
+        :rtype: int
+        """
+
+        return self._server_status
+
+    @server_status.setter
+    def server_status(self, status: int):
+        """
+        Setter for socket server status.
+
+        :param int status: server status
+            -1 - inactive, 0 = active no clients, >0 = active clients
+        """
+
+        self._server_status = status
+        self.frm_banner.update_transmit_status(status)
+        self.configuration.set("sockserver_b", status >= 0)
 
     @property
     def rtk_conn_status(self) -> int:

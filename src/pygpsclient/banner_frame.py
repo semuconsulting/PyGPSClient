@@ -186,6 +186,9 @@ class BannerFrame(Frame):
         self._lbl_transmit_preset = Label(
             self._frm_connect, bg=self._bgcol, image=self._img_blank
         )
+        self._lbl_clients = Label(
+            self._frm_connect, bg=self._bgcol, fg="green", width=2, anchor=W
+        )
 
         self._lbl_time = Label(
             self._frm_basic, bg=self._bgcol, fg="cyan", width=15, anchor=W
@@ -252,7 +255,8 @@ class BannerFrame(Frame):
 
         self._lbl_status_preset.grid(column=0, row=0, padx=2, pady=3, sticky=W)
         self._lbl_rtk_preset.grid(column=1, row=0, padx=2, pady=3, sticky=W)
-        self._lbl_transmit_preset.grid(column=2, row=0, padx=2, pady=3, sticky=W)
+        self._lbl_transmit_preset.grid(column=2, row=0, padx=1, pady=3, sticky=W)
+        self._lbl_clients.grid(column=3, row=0, padx=1, pady=3, sticky=W)
         self._lbl_ltime.grid(column=1, row=0, pady=0, padx=0, sticky=W)
         self._lbl_time.grid(column=2, row=0, pady=0, padx=0, sticky=W)
         self._lbl_llat.grid(column=3, row=0, pady=0, padx=0, sticky=W)
@@ -358,10 +362,13 @@ class BannerFrame(Frame):
 
         if transmit > 0:
             self._lbl_transmit_preset.configure(image=self._img_transmit)
+            self._lbl_clients.config(text=transmit, fg="#6b8839")
         elif transmit == 0:
             self._lbl_transmit_preset.configure(image=self._img_noclient)
+            self._lbl_clients.config(text=transmit, fg="#e7b03e")
         else:
             self._lbl_transmit_preset.configure(image=self._img_blank)
+            self._lbl_clients.config(text=" ", fg=BGCOL)
 
     def update_frame(self):
         """

@@ -22,7 +22,7 @@ from pyubx2 import UBXMessage, itow2utc
 
 from pygpsclient.globals import GLONASS_NMEA, UTF8
 from pygpsclient.helpers import corrage2int, fix2desc, ned2vector, svid2gnssid
-from pygpsclient.strings import DLGTSPARTN, DLGTUBX, NA
+from pygpsclient.strings import DLGTSERVER, DLGTSPARTN, DLGTUBX, NA
 from pygpsclient.widget_state import VISIBLE, WDGSIGNALS, WDGSPECTRUM, WDGSYSMON
 
 
@@ -409,8 +409,8 @@ class UBXHandler:
         :param UBXMessage data: NAV-SVIN parsed message
         """
 
-        if self.__app.frm_settings.frm_socketserver is not None:
-            self.__app.frm_settings.frm_socketserver.svin_countdown(
+        if self.__app.dialog(DLGTSERVER) is not None:
+            self.__app.dialog(DLGTSERVER).svin_countdown(
                 data.dur, data.valid, data.active
             )
 

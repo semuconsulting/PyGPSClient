@@ -109,9 +109,6 @@ class LevelsviewFrame(Frame):
         self.__app.configuration.set(
             "unusedsat_b", not self.__app.configuration.get("unusedsat_b")
         )
-        self.__app.frm_settings.show_unusedsat.set(
-            self.__app.configuration.get("unusedsat_b")
-        )
         self._redraw = True
 
     def init_frame(self):

@@ -149,7 +149,7 @@ class SerialConfigFrame(Frame):
             self._frm_basic,
             border=2,
             relief="sunken",
-            width=38,
+            width=30,
             height=5,
             justify=LEFT,
             exportselection=False,
