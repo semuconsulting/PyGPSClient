@@ -39,7 +39,7 @@ from tkinter import (
 )
 from typing import Literal
 
-from pynmeagps import WGS84_SMAJ_AXIS, haversine
+from pynmeagps import WGS84_SMAJ_AXIS, NMEAMessage, haversine
 from pyubx2 import (
     SET,
     SET_LAYER_RAM,
@@ -53,6 +53,7 @@ from pyubx2 import (
 from requests import get
 
 from pygpsclient.globals import (
+    BSR,
     ERRCOL,
     FIXLOOKUP,
     GPSEPOCH0,
@@ -855,7 +856,9 @@ def ned2vector(n: float, e: float, d: float) -> tuple:
     return dis, hdg
 
 
-def nmea2preset(msgs: tuple, desc: str = "") -> str:
+def nmea2preset(
+    msgs: NMEAMessage | tuple[NMEAMessage] | list[NMEAMessage], desc: str = ""
+) -> str:
     """
     Convert one or more NMEAMessages to format suitable for adding to user-defined
     preset list `nmeapresets_l` in PyGPSClient .json configuration files.
@@ -865,14 +868,14 @@ def nmea2preset(msgs: tuple, desc: str = "") -> str:
 
     e.g. "Configure Signals; P; QTMCFGSIGNAL; W,7,3,F,3F,7,1; 1"
 
-    :param tuple msgs: NMEAmessage or tuple of NMEAmessages
+    :param NMEAMessage | tuple[NMEAMessage] | list[NMEAMessage] msgs: NMEAmessage(s)
     :param str desc: preset description
     :return: preset string
     :rtype: str
     """
 
     desc = desc.replace(";", " ")
-    if not isinstance(msgs, tuple):
+    if not isinstance(msgs, (tuple, list)):
         msgs = (msgs,)
     preset = (
         f"{msgs[0].identity} {['GET','SET','POLL'][msgs[0].msgmode]}"
@@ -1291,6 +1294,31 @@ def time2str(tim: float, sformat: str = "%H:%M:%S") -> str:
     return dt.strftime(sformat)
 
 
+def tty2preset(msgs: bytes | tuple[bytes] | list[bytes], desc: str = "") -> str:
+    """
+    Convert one or more ASCII TTY commands to format suitable for adding to user-defined
+    preset list `ttypresets_l` in PyGPSClient .json configuration files.
+
+    The format is:
+    "<description>; <ascii>"
+
+    e.g. "IM19 System reset CONFIRM; AT+SYSTEM_RESET"
+
+    :param bytes | tuple[bytes] | list[bytes] msgs: ASCII TTY command(s)
+    :param str desc: preset description
+    :return: preset string
+    :rtype: str
+    """
+
+    desc = desc.replace(";", " ")
+    if not isinstance(msgs, (tuple, list)):
+        msgs = (msgs,)
+    preset = "TTY Command" if desc == "" else desc
+    for msg in msgs:
+        preset += f"; {msg.decode("ascii", errors=BSR).strip("\r\n")}"
+    return preset
+
+
 def unused_sats(data: dict) -> int:
     """
     Get number of 'unused' sats in gnss_data.gsv_data.
@@ -1303,7 +1331,9 @@ def unused_sats(data: dict) -> int:
     return sum(1 for (_, _, _, _, cno, _) in data.values() if cno == 0)
 
 
-def ubx2preset(msgs: tuple, desc: str = "") -> str:
+def ubx2preset(
+    msgs: UBXMessage | tuple[UBXMessage] | list[UBXMessage], desc: str = ""
+) -> str:
     """
     Convert one or more UBXMessages to format suitable for adding to user-defined
     preset list `ubxpresets_l` in PyGPSClient .json configuration files.
@@ -1313,14 +1343,14 @@ def ubx2preset(msgs: tuple, desc: str = "") -> str:
 
     e.g. "Set NMEA High Precision Mode, CFG, CFG-VALSET, 000100000600931001, 1"
 
-    :param tuple msgs: UBXMessage or tuple of UBXmessages
+    :param UBXMessage | tuple[UBXMessage] | list[UBXMessage] msgs: UBXMessage(s)
     :param str desc: preset description
     :return: preset string
     :rtype: str
     """
 
     desc = desc.replace(",", " ")
-    if not isinstance(msgs, tuple):
+    if not isinstance(msgs, (tuple, list)):
         msgs = (msgs,)
     preset = (
         f"{msgs[0].identity} {['GET','SET','POLL'][msgs[0].msgmode]}"

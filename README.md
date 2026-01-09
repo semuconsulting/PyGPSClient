@@ -258,7 +258,14 @@ The following example illustrates a series of ASCII configuration commands being
 
 ![recorder screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/recorder_dialog.png?raw=true)
 
-This allows users to record ![record icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-record-24.png?raw=true) a sequence of UBX, NMEA or TTY configuration commands as they are sent to a device, and to save ![save icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-save-14-24.png?raw=true) this recording to a file. Saved files can be reloaded ![load icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-folder-18-24.png?raw=true) and the configuration commands replayed ![play icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-arrow-12-24.png?raw=true). This provides a means to easily reproduce a given sequence of configuration commands, or copy a saved configuration between compatible devices. The Configuration Load facility can accept configuration files in either UBX/NMEA binary (\*.bin), TTY (\*.tty) or u-center UBX text format (\*.txt). Files saved using the [ubxsave](#ubxsave) CLI utility (*installed via the `pygnssutils` library*) can also be reloaded and replayed. **Tip:** The contents of a binary (\*.bin) config file can be reviewed using PyGPSClient's [file streaming facility](#filestream), *BUT* remember to set the `Msg Mode` in the Settings panel to `SET` rather than the default `GET` ![msgmode capture](https://github.com/semuconsulting/PyGPSClient/blob/master/images/msgmode.png?raw=true).
+The configuration command load/save/record facility supports a number of configuration use cases:
+1. It allows users to record ![record icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-record-24.png?raw=true) a sequence of UBX, NMEA or TTY configuration commands as they are sent to a device, and to save ![save icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-save-14-24.png?raw=true) this recording to a binary file.
+1. Saved recordings can be reloaded ![load icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-folder-18-24.png?raw=true) and the configuration commands replayed ![play icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-arrow-12-24.png?raw=true). This provides a means to easily reproduce a given sequence of configuration commands, or copy a saved configuration between compatible devices.
+1. Recorded commands of a similar type (UBX, NMEA or TTY) can also be imported ![import icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-import-24.png?raw=true) into PyGPSClient's json configuration file as [user defined presets](#user-defined-presets). They can then be replayed from the Presets panel via a single click.
+1. The Configuration Load facility can accept configuration files in either UBX/NMEA binary (\*.bin), TTY (\*.tty) or u-center UBX text format (\*.txt) (as also used by [Ardusimple](https://www.ardusimple.com/configuration-files/?wmc-currency=EUR)).
+1. Files saved using the [ubxsave](#ubxsave) CLI utility (*installed via the `pygnssutils` library*) can also be reloaded and replayed.
+
+**Tip:** The contents of a binary (\*.bin) config file can be reviewed using PyGPSClient's [file streaming facility](#filestream), *BUT* remember to set the `Msg Mode` in the Settings panel to `SET` rather than the default `GET` ![msgmode capture](https://github.com/semuconsulting/PyGPSClient/blob/master/images/msgmode.png?raw=true).
 
 ---
 ## <a name="ntripconfig">NTRIP Client Facilities</a>
@@ -407,10 +414,10 @@ If the command description contains the term `CONFIRM`, a pop-up confirmation bo
 
 When PyGPSClient is first started, these settings are pre-populated with an initial set of preset commands, which can be saved to a \*.json configuration file and then manually removed, amended or supplemented in accordance with the user's preferences. To reinstate this initial set at a later date, insert the line `"INIT_PRESETS",` at the top of the relevant `"ubxpresets_l"`, `"nmeapresets_l"` or `"ttypresets_l"` configuration setting.
 
-The `pygpsclient.ubx2preset()` and `pygpsclient.nmea2preset()` helper functions may be used to convert a `UBXMessage` or `NMEAMessage` object into a preset string suitable for copying and pasting into the `"ubxpresents_l":` or `"nmeapresets_l":` JSON configuration sections:
+The `pygpsclient.ubx2preset()`, `pygpsclient.nmea2preset()` and `pygpsclient.tty2preset()` helper functions may be used to convert a `UBXMessage`, `NMEAMessage` or ASCII text object into a preset string suitable for copying and pasting into the `"ubxpresents_l":`, `"nmeapresets_l":` or `"ttypresets_l":` JSON configuration sections:
 
 ```python
-from pygpsclient import ubx2preset, nmea2preset
+from pygpsclient import ubx2preset, nmea2preset, tty2preset
 from pyubx2 import UBXMessage
 from pynmeagps import NMEAMessage, SET
 
@@ -419,10 +426,14 @@ print(ubx2preset(ubx, "Configure NAV-STATUS Message Rate on ZED-F9P"))
 
 nmea = NMEAMessage("P", "QTMCFGUART", SET, baudrate=460800)
 print(nmea2preset(nmea, "Configure UART baud rate on LG290P"))
+
+tty = b"AT+SYSTEM_RESET\r\n"
+print(tty2preset(tty, "IM19 System Reset CONFIRM"))
 ```
 ```
 Configure NAV-STATUS Message Rate on ZED-F9P, CFG, CFG-MSG, 0103000100000000, 1
 Configure UART baud rate on LG290P; P; QTMCFGUART; W,460800; 1
+IM19 System reset CONFIRM; AT+SYSTEM_RESET
 ```
 
 Multiple commands can be concatenated on a single line. Illustrative examples are shown in the sample [pygpsclient.json](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient.json#L188) file.
