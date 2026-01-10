@@ -122,7 +122,7 @@ FILEDELAYS = (2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000)
 # initial dimensions (in font character units) adjusted
 # for different widget rendering on different platforms
 if system() == "Linux":  # Wayland
-    MINHEIGHT = 27
+    MINHEIGHT = 28
     MINWIDTH = 24
 elif system() == "Darwin":  # MacOS
     MINHEIGHT = 37

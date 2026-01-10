@@ -258,7 +258,7 @@ The following example illustrates a series of ASCII configuration commands being
 
 ![recorder screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/recorder_dialog.png?raw=true)
 
-The configuration command load/save/record facility supports a number of configuration use cases:
+The Configuration Command Load/Save/Record facility supports the following functionality:
 1. It allows users to record ![record icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-record-24.png?raw=true) a sequence of UBX, NMEA or TTY configuration commands as they are sent to a device, and to save ![save icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-save-14-24.png?raw=true) this recording to a binary file.
 1. Saved recordings can be reloaded ![load icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-folder-18-24.png?raw=true) and the configuration commands replayed ![play icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-arrow-12-24.png?raw=true). This provides a means to easily reproduce a given sequence of configuration commands, or copy a saved configuration between compatible devices.
 1. Recorded commands of a similar type (UBX, NMEA or TTY) can also be imported ![import icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-import-24.png?raw=true) into PyGPSClient's json configuration file as [user defined presets](#user-defined-presets). They can then be replayed from the Presets panel via a single click.
@@ -437,6 +437,8 @@ IM19 System reset CONFIRM; AT+SYSTEM_RESET
 ```
 
 Multiple commands can be concatenated on a single line. Illustrative examples are shown in the sample [pygpsclient.json](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient.json#L188) file.
+
+The [Configuration Command Load/Save/Record facility](#configuration-command-loadsaverecord-facility) can also be used to import recorded configuration command sequences into the presets section of the json configuration file.
 
 ---
 ## <a name="cli">Command Line Utilities</a>
