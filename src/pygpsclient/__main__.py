@@ -103,6 +103,16 @@ def main():
         default=SUPPRESS,
     )
     ap.add_argument(
+        "--tlspempath",
+        help="Fully qualified path to TLS PEM (private key/certificate) file",
+        default=SUPPRESS,
+    )
+    ap.add_argument(
+        "--tlscrtpath",
+        help="Fully qualified path to TLS CRT (certificate) file",
+        default=SUPPRESS,
+    )
+    ap.add_argument(
         "--verbosity",
         help=(
             f"Log message verbosity "

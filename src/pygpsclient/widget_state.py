@@ -34,6 +34,7 @@ from pygpsclient.map_frame import MapviewFrame
 from pygpsclient.rover_frame import RoverFrame
 from pygpsclient.scatter_frame import ScatterViewFrame
 from pygpsclient.settings_frame import SettingsFrame
+from pygpsclient.signalsview_frame import SignalsviewFrame
 from pygpsclient.skyview_frame import SkyviewFrame
 from pygpsclient.spectrum_frame import SpectrumviewFrame
 from pygpsclient.status_frame import StatusFrame
@@ -66,6 +67,7 @@ WDGSTATUS = "Status"
 WDGSYSMON = "System Monitor"
 WDGCHART = "Chart Plot"
 WDGIMUMON = "IMU Monitor"
+WDGSIGNALS = "Signals"
 
 
 class WidgetState:
@@ -132,6 +134,12 @@ class WidgetState:
                 CLASS: LevelsviewFrame,
                 FRAME: "frm_levelsview",
                 VISIBLE: True,
+            },
+            WDGSIGNALS: {
+                CLASS: SignalsviewFrame,
+                FRAME: "frm_signalsview",
+                VISIBLE: False,
+                COLSPAN: 2,
             },
             WDGMAP: {
                 DEFAULT: True,

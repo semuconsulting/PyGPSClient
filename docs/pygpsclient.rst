@@ -300,10 +300,10 @@ pygpsclient.serialconfig\_lband\_frame module
    :undoc-members:
    :show-inheritance:
 
-pygpsclient.serverconfig\_frame module
---------------------------------------
+pygpsclient.serverconfig\_dialog module
+---------------------------------------
 
-.. automodule:: pygpsclient.serverconfig_frame
+.. automodule:: pygpsclient.serverconfig_dialog
    :members:
    :undoc-members:
    :show-inheritance:
@@ -312,6 +312,14 @@ pygpsclient.settings\_frame module
 ----------------------------------
 
 .. automodule:: pygpsclient.settings_frame
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pygpsclient.signalsview\_frame module
+-------------------------------------
+
+.. automodule:: pygpsclient.signalsview_frame
    :members:
    :undoc-members:
    :show-inheritance:
