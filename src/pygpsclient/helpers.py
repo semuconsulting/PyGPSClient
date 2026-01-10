@@ -1315,7 +1315,8 @@ def tty2preset(msgs: bytes | tuple[bytes] | list[bytes], desc: str = "") -> str:
         msgs = (msgs,)
     preset = "TTY Command" if desc == "" else desc
     for msg in msgs:
-        preset += f'; {msg.decode("ascii", errors=BSR).strip("\r\n")}'
+        cmd = msg.decode("ascii", errors=BSR).strip("\r\n")
+        preset += f"; {cmd}"
     return preset
 
 
