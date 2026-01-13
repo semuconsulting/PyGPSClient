@@ -132,7 +132,7 @@ class StaticTest(unittest.TestCase):
         self.assertEqual(cfg.get("lbandclientdrat_n"), 2400)
         self.assertEqual(cfg.get("userport_s"), "")
         self.assertEqual(cfg.get("spartnport_s"), "")
-        self.assertEqual(len(cfg.settings), 152)
+        self.assertEqual(len(cfg.settings), 155)
         kwargs = {"userport": "/dev/ttyACM0", "spartnport": "/dev/ttyACM1"}
         cfg.loadcli(**kwargs)
         self.assertEqual(cfg.get("userport_s"), "/dev/ttyACM0")
@@ -536,20 +536,21 @@ class StaticTest(unittest.TestCase):
             "identifier": "Curug",
             "format": "RTCM 3.2",
             "messages": "1005(31),1074(1),1084(1),1094(1)",
-            "carrier": "L1,L2",
+            "carrier": "2",
             "navs": "GPS+GLO+GAL",
             "network": "SNIP",
             "country": "SRB",
             "lat": "45.47",
             "lon": "20.06",
-            "gga": "GGA",
-            "solution": "Single",
+            "gga": "1",
+            "solution": "0",
             "generator": "sNTRIP",
             "encrypt": "none",
-            "auth": "Basic",
+            "auth": "B",
             "fee": "N",
             "bitrate": "3120",
         }
+        EXPECTED_RESULT2 = {'name': 'N/A', 'gga': 0}
         srt = (
             "ACACU",
             "Curug",
@@ -573,7 +574,7 @@ class StaticTest(unittest.TestCase):
         res = get_mp_info(srt)
         self.assertEqual(res, EXPECTED_RESULT)
         res = get_mp_info([])
-        self.assertEqual(res, None)
+        self.assertEqual(res, EXPECTED_RESULT2)
 
     def testpublicip(self):
         res = publicip()

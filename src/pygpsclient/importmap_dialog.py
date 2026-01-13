@@ -51,8 +51,6 @@ from pygpsclient.helpers import validate  # pylint: disable=unused-import
 from pygpsclient.strings import DLGTIMPORTMAP
 from pygpsclient.toplevel_dialog import ToplevelDialog
 
-MINDIM = (456, 418)
-
 
 class ImportMapDialog(ToplevelDialog):
     """ImportMapDialog class."""
@@ -62,7 +60,7 @@ class ImportMapDialog(ToplevelDialog):
 
         self.__app = app
         # self.__master = self.__app.appmaster  # link to root Tk window
-        super().__init__(app, DLGTIMPORTMAP, MINDIM)
+        super().__init__(app, DLGTIMPORTMAP)
         self.width = int(kwargs.get("width", 400))
         self.height = int(kwargs.get("height", 400))
         self._first = IntVar()
@@ -83,7 +81,7 @@ class ImportMapDialog(ToplevelDialog):
         Create widgets.
         """
 
-        self._frm_body = Frame(self.container, borderwidth=2, relief="groove")
+        self._frm_body = Frame(self.container)
         self._can_mapview = CanvasMap(
             self.__app, self._frm_body, width=self.width, height=self.height, bg=BGCOL
         )

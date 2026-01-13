@@ -38,8 +38,6 @@ RXMMSG = "RXM-SPARTN-KEY"
 CFGSET = "CFG-VALGET/SET"
 CFGPOLL = "CFG-VALGET"
 
-MINDIM = (408, 758)
-
 
 class SPARTNConfigDialog(ToplevelDialog):
     """,
@@ -58,7 +56,7 @@ class SPARTNConfigDialog(ToplevelDialog):
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
 
-        super().__init__(app, DLGTSPARTN, MINDIM)
+        super().__init__(app, DLGTSPARTN)
         self._pending_confs = {}
         self._lband_enabled = self.__app.configuration.get("lband_enabled_b")
 

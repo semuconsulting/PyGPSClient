@@ -20,38 +20,26 @@ Created on 12 Sep 2020
 
 # pylint: disable=unnecessary-lambda, unused-argument
 
-from platform import system
 from tkinter import (
-    ALL,
-    BOTH,
-    BOTTOM,
     DISABLED,
     EW,
-    HORIZONTAL,
-    LEFT,
     NORMAL,
-    NW,
-    RIGHT,
-    VERTICAL,
     Button,
-    Canvas,
     Checkbutton,
     E,
     Frame,
     IntVar,
     Label,
-    Scrollbar,
     Spinbox,
     StringVar,
     TclError,
     W,
-    X,
-    Y,
     ttk,
 )
 
 from PIL import Image, ImageTk
 
+from pygpsclient.canvas_subclasses import CanvasContainer
 from pygpsclient.globals import (
     BPSRATES,
     CONNECTED,
@@ -77,6 +65,7 @@ from pygpsclient.globals import (
     ICON_NTRIPCONFIG,
     ICON_SERIAL,
     ICON_SOCKET,
+    ICON_TRANSMIT,
     ICON_TTYCONFIG,
     ICON_UBXCONFIG,
     INFOCOL,
@@ -93,22 +82,24 @@ from pygpsclient.globals import (
     UMM,
 )
 from pygpsclient.serialconfig_frame import SerialConfigFrame
-from pygpsclient.serverconfig_frame import ServerConfigFrame
 from pygpsclient.socketconfig_frame import SocketConfigFrame
 from pygpsclient.sqlite_handler import SQLOK
 from pygpsclient.strings import (
     DLGTNMEA,
     DLGTNTRIP,
+    DLGTSERVER,
     DLGTTTY,
     DLGTUBX,
+    LBLAUTOSCROLL,
     LBLDATABASERECORD,
     LBLDATADISP,
     LBLDATALOG,
     LBLDEGFORMAT,
+    LBLFILEDELAY,
     LBLNMEACONFIG,
     LBLNTRIPCONFIG,
     LBLPROTDISP,
-    LBLSHOWUNUSED,
+    LBLSERVERCONFIG,
     LBLTRACKRECORD,
     LBLTTYCONFIG,
     LBLUBXCONFIG,
@@ -116,18 +107,6 @@ from pygpsclient.strings import (
 
 MAXLINES = ("200", "500", "1000", "2000", "100")
 FILEDELAYS = (2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000)
-# initial dimensions adjusted for different widget
-# rendering on different platforms
-if system() == "Linux":  # Wayland
-    MINHEIGHT = 28
-    MINWIDTH = 28
-elif system() == "Darwin":  # MacOS
-
-    MINHEIGHT = 38
-    MINWIDTH = 30
-else:  # Windows and others
-    MINHEIGHT = 35
-    MINWIDTH = 26
 
 
 class SettingsFrame(Frame):
@@ -170,7 +149,6 @@ class SettingsFrame(Frame):
         self._logformat = StringVar()
         self._record_track = IntVar()
         self._record_database = IntVar()
-        self._show_unusedsat = IntVar()
         self._colortag = IntVar()
         self.defaultports = self.__app.configuration.get("defaultport_s")
         self._validsettings = True
@@ -183,6 +161,7 @@ class SettingsFrame(Frame):
         self._img_nmeaconfig = ImageTk.PhotoImage(Image.open(ICON_NMEACONFIG))
         self._img_ttyconfig = ImageTk.PhotoImage(Image.open(ICON_TTYCONFIG))
         self._img_ntripconfig = ImageTk.PhotoImage(Image.open(ICON_NTRIPCONFIG))
+        self._img_serverconfig = ImageTk.PhotoImage(Image.open(ICON_TRANSMIT))
         self._img_dataread = ImageTk.PhotoImage(Image.open(ICON_LOGREAD))
 
         self._container()  # create scrollable container
@@ -200,34 +179,8 @@ class SettingsFrame(Frame):
         function which invokes the on_expand() method here.
         """
 
-        fntw = self.__app.font_md.measure("W")
-        fnth = self.__app.font_md.metrics("linespace")
-        dimw = fntw * MINWIDTH
-        dimh = fnth * MINHEIGHT
-        self._frm_main = Frame(self)
-        self._frm_main.pack(fill=BOTH, expand=1)
-        self_frm_scrollx = Frame(self._frm_main)
-        self_frm_scrollx.pack(fill=X, side=BOTTOM)
-        self._can_container = Canvas(self._frm_main, height=dimh, width=dimw)
-        self._frm_container = Frame(self._can_container)
-        self._can_container.pack(side=LEFT, fill=BOTH, expand=1)
-        x_scrollbar = Scrollbar(
-            self_frm_scrollx, orient=HORIZONTAL, command=self._can_container.xview
-        )
-        x_scrollbar.pack(side=BOTTOM, fill=X)
-        y_scrollbar = Scrollbar(
-            self._frm_main, orient=VERTICAL, command=self._can_container.yview
-        )
-        y_scrollbar.pack(side=RIGHT, fill=Y)
-        self._can_container.configure(xscrollcommand=x_scrollbar.set)
-        self._can_container.configure(yscrollcommand=y_scrollbar.set)
-        self._can_container.create_window((0, 0), window=self._frm_container, anchor=NW)
-        self._can_container.bind(
-            "<Configure>",
-            lambda e: self._can_container.config(
-                scrollregion=self._can_container.bbox(ALL)
-            ),
-        )
+        self._can_container = CanvasContainer(self.__app, self)
+        self._frm_container = self._can_container.frm_container
 
     def on_expand(self):
         """
@@ -240,10 +193,6 @@ class SettingsFrame(Frame):
         """
         Set up frame and widgets.
         """
-
-        for i in range(4):
-            self._frm_container.grid_columnconfigure(i, weight=1)
-        self._frm_container.grid_rowconfigure(0, weight=1)
 
         self._frm_container.option_add("*Font", self.__app.font_sm)
 
@@ -382,7 +331,7 @@ class SettingsFrame(Frame):
             textvariable=self._units,
         )
         self._chk_scroll = Checkbutton(
-            self._frm_options, text="Autoscroll", variable=self._autoscroll
+            self._frm_options, text=LBLAUTOSCROLL, variable=self._autoscroll
         )
         self._spn_maxlines = Spinbox(
             self._frm_options,
@@ -394,7 +343,7 @@ class SettingsFrame(Frame):
         )
         self._lbl_filedelay = Label(
             self._frm_options,
-            text="File Delay",
+            text=LBLFILEDELAY,
         )
         self._spn_filedelay = Spinbox(
             self._frm_options,
@@ -405,9 +354,6 @@ class SettingsFrame(Frame):
             state=READONLY,
             repeatdelay=1000,
             repeatinterval=1000,
-        )
-        self._chk_unusedsat = Checkbutton(
-            self._frm_options, text=LBLSHOWUNUSED, variable=self._show_unusedsat
         )
         self._chk_datalog = Checkbutton(
             self._frm_options,
@@ -476,10 +422,16 @@ class SettingsFrame(Frame):
             command=lambda: self.__app.start_dialog(DLGTNTRIP),
             state=NORMAL,
         )
-        # socket server configuration
-        self.frm_socketserver = ServerConfigFrame(
-            self.__app,
-            self._frm_container,
+        self._lbl_serverconfig = Label(
+            self._frm_options_btns,
+            text=LBLSERVERCONFIG,
+        )
+        self._btn_serverconfig = Button(
+            self._frm_options_btns,
+            width=45,
+            image=self._img_serverconfig,
+            command=lambda: self.__app.start_dialog(DLGTSERVER),
+            state=NORMAL,
         )
 
     def _do_layout(self):
@@ -518,49 +470,50 @@ class SettingsFrame(Frame):
         self._lbl_protocol.grid(column=0, row=0, padx=2, pady=2, sticky=W)
         self._chk_nmea.grid(column=1, row=0, padx=0, pady=0, sticky=W)
         self._chk_ubx.grid(column=2, row=0, padx=0, pady=0, sticky=W)
-        self._chk_sbf.grid(column=3, row=0, padx=0, pady=0, sticky=W)
-        self._chk_qgc.grid(column=4, row=0, padx=0, pady=0, sticky=W)
-        self._chk_rtcm.grid(column=1, row=1, padx=0, pady=0, sticky=W)
-        self._chk_spartn.grid(column=2, row=1, padx=0, pady=0, sticky=W)
-        self._chk_tty.grid(column=3, row=1, padx=0, pady=0, sticky=W)
-        self._lbl_consoledisplay.grid(column=0, row=2, padx=2, pady=2, sticky=W)
+        self._chk_rtcm.grid(column=3, row=0, padx=0, pady=0, sticky=W)
+        self._chk_sbf.grid(column=1, row=1, padx=0, pady=0, sticky=W)
+        self._chk_qgc.grid(column=2, row=1, padx=0, pady=0, sticky=W)
+        self._chk_spartn.grid(column=3, row=1, padx=0, pady=0, sticky=W)
+        self._chk_tty.grid(column=1, row=2, padx=0, pady=0, sticky=W)
+        self._lbl_consoledisplay.grid(column=0, row=3, padx=2, pady=2, sticky=W)
         self._spn_conformat.grid(
-            column=1, row=2, columnspan=2, padx=1, pady=2, sticky=W
+            column=1, row=3, columnspan=2, padx=1, pady=2, sticky=W
         )
-        self._chk_tags.grid(column=3, row=2, padx=1, pady=2, sticky=W)
-        self._lbl_format.grid(column=0, row=3, padx=2, pady=2, sticky=W)
-        self._spn_format.grid(column=1, row=3, padx=2, pady=2, sticky=W)
-        self._spn_units.grid(column=2, row=3, columnspan=2, padx=2, pady=2, sticky=W)
-        self._chk_scroll.grid(column=0, row=5, padx=2, pady=2, sticky=W)
-        self._spn_maxlines.grid(column=1, row=5, padx=2, pady=2, sticky=W)
-        self._lbl_filedelay.grid(column=2, row=5, padx=2, pady=2, sticky=E)
-        self._spn_filedelay.grid(column=3, row=5, padx=2, pady=2, sticky=W)
-        self._chk_unusedsat.grid(
-            column=0, row=6, columnspan=2, padx=2, pady=2, sticky=W
-        )
-        self._chk_datalog.grid(column=0, row=7, padx=2, pady=2, sticky=W)
-        self._spn_datalog.grid(column=1, row=7, columnspan=3, padx=2, pady=2, sticky=W)
+        self._chk_tags.grid(column=3, row=3, padx=1, pady=2, sticky=W)
+        self._lbl_format.grid(column=0, row=4, padx=2, pady=2, sticky=W)
+        self._spn_format.grid(column=1, row=4, padx=2, pady=2, sticky=W)
+        self._spn_units.grid(column=2, row=4, columnspan=2, padx=2, pady=2, sticky=W)
+        self._chk_scroll.grid(column=0, row=6, padx=2, pady=2, sticky=W)
+        self._spn_maxlines.grid(column=1, row=6, padx=2, pady=2, sticky=W)
+        self._lbl_filedelay.grid(column=2, row=6, padx=2, pady=2, sticky=E)
+        self._spn_filedelay.grid(column=3, row=6, padx=2, pady=2, sticky=W)
+        self._chk_datalog.grid(column=0, row=8, padx=2, pady=2, sticky=W)
+        self._spn_datalog.grid(column=1, row=8, columnspan=3, padx=2, pady=2, sticky=W)
         self._chk_recordtrack.grid(
-            column=0, row=8, columnspan=2, padx=2, pady=2, sticky=W
+            column=0, row=9, columnspan=2, padx=2, pady=2, sticky=W
         )
         self._chk_recorddatabase.grid(
-            column=2, row=8, columnspan=2, padx=2, pady=2, sticky=W
+            column=2, row=9, columnspan=2, padx=2, pady=2, sticky=W
         )
-        self._frm_options_btns.grid(column=0, row=9, columnspan=4, sticky=EW)
-        self._btn_ubxconfig.grid(column=0, row=0, padx=5)
+        self._frm_options_btns.grid(column=0, row=10, columnspan=4, sticky=EW)
+        self._btn_ubxconfig.grid(column=0, row=0, padx=2, pady=1)
         self._lbl_ubxconfig.grid(column=0, row=1)
-        self._btn_nmeaconfig.grid(column=1, row=0, padx=5)
+        self._btn_nmeaconfig.grid(column=1, row=0, padx=2, pady=1)
         self._lbl_nmeaconfig.grid(column=1, row=1)
-        self._btn_ttyconfig.grid(column=2, row=0, padx=5)
+        self._btn_ttyconfig.grid(column=2, row=0, padx=2, pady=1)
         self._lbl_ttyconfig.grid(column=2, row=1)
-        self._btn_ntripconfig.grid(column=3, row=0, padx=5)
+        self._btn_ntripconfig.grid(column=3, row=0, padx=2, pady=1)
         self._lbl_ntripconfig.grid(column=3, row=1)
-        ttk.Separator(self._frm_container).grid(
-            column=0, row=10, columnspan=4, padx=2, pady=2, sticky=EW
+        self._btn_serverconfig.grid(column=4, row=0, padx=2, pady=1)
+        self._lbl_serverconfig.grid(column=4, row=1)
+
+        # resize container canvas to accommodate frame
+        self._frm_container.update()
+        self._can_container.config(
+            height=self._frm_container.winfo_height(),
+            width=self._frm_container.winfo_width(),
         )
-        self.frm_socketserver.grid(
-            column=0, row=11, columnspan=4, padx=2, pady=2, sticky=EW
-        )
+        self._can_container.update()
 
     def _attach_events(self, add: bool = True):
         """
@@ -587,7 +540,6 @@ class SettingsFrame(Frame):
         self._units.trace_update(tracemode, self._on_update_units, add)
         self._degrees_format.trace_update(tracemode, self._on_update_degreesformat, add)
         self._console_format.trace_update(tracemode, self._on_update_consoleformat, add)
-        self._show_unusedsat.trace_update(tracemode, self._on_update_unusedsat, add)
         self._colortag.trace_update(tracemode, self._on_update_colortag, add)
         self._logformat.trace_update(tracemode, self._on_update_logformat, add)
         self._datalog.trace_update(tracemode, self._on_data_log, add)
@@ -615,7 +567,6 @@ class SettingsFrame(Frame):
         self._maxlines.set(cfg.get("maxlines_n"))
         self._filedelay.set(cfg.get("filedelay_n"))
         self._console_format.set(cfg.get("consoleformat_s"))
-        self._show_unusedsat.set(cfg.get("unusedsat_b"))
         self._logformat.set(cfg.get("logformat_s"))
         self._datalog.set(cfg.get("datalog_b"))
         self.logpath = cfg.get("logpath_s")
@@ -768,13 +719,6 @@ class SettingsFrame(Frame):
 
         self.__app.configuration.set("autoscroll_b", self._autoscroll.get())
 
-    def _on_update_unusedsat(self, var, index, mode):
-        """
-        Action on updating unused satellites.
-        """
-
-        self.__app.configuration.set("unusedsat_b", self._show_unusedsat.get())
-
     def _on_update_logformat(self, var, index, mode):
         """
         Action on updating log format.
@@ -874,9 +818,10 @@ class SettingsFrame(Frame):
             "conntype": conntype,
             "msgmode": self.frm_serial.msgmode,
             "inactivity_timeout": self.frm_serial.inactivity_timeout,
+            "tlscrtpath": self.__app.configuration.get("tlscrtpath_s"),
         }
 
-        self.frm_socketserver.status_label = conntype
+        # self.frm_socketserver.status_label = conntype
         if conntype == CONNECTED:
             frm = self.frm_serial
             if frm.status == NOPORTS:
@@ -935,7 +880,6 @@ class SettingsFrame(Frame):
 
         self.frm_serial.status_label = status
         self.frm_socketclient.status_label = status
-        self.frm_socketserver.status_label = status
 
         self._btn_connect.config(
             state=(

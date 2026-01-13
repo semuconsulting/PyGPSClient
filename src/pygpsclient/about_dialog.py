@@ -53,9 +53,6 @@ LIBVERSIONS = {
 }
 
 
-MINDIM = (600, 400)
-
-
 class AboutDialog(ToplevelDialog):
     """
     About dialog box class
@@ -78,7 +75,7 @@ class AboutDialog(ToplevelDialog):
         self._checkonstartup.set(self.__app.configuration.get("checkforupdate_b"))
         self._updates = []
 
-        super().__init__(app, DLGTABOUT, MINDIM)
+        super().__init__(app, DLGTABOUT)
 
         self._body()
         self._do_layout()

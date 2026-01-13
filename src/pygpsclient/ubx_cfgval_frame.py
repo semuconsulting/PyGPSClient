@@ -31,6 +31,7 @@ from tkinter import (
     Scrollbar,
     Spinbox,
     StringVar,
+    TclError,
     W,
 )
 
@@ -298,13 +299,16 @@ class UBX_CFGVAL_Frame(Frame):
         Configuration parameter (keyname) has been selected.
         """
 
-        idx = self._lbx_parm.curselection()
-        self._cfgval_keyname = self._lbx_parm.get(idx)
+        try:
+            idx = self._lbx_parm.curselection()
+            self._cfgval_keyname = self._lbx_parm.get(idx)
 
-        (keyid, att) = cfgname2key(self._cfgval_keyname)
-        self._cfgkeyid.set(hex(keyid))
-        self._cfgatt.set(att)
-        self._cfgval.set("")
+            (keyid, att) = cfgname2key(self._cfgval_keyname)
+            self._cfgkeyid.set(hex(keyid))
+            self._cfgatt.set(att)
+            self._cfgval.set("")
+        except TclError:
+            pass
 
     def _on_send_config(self, *args, **kwargs):  # pylint: disable=unused-argument
         """

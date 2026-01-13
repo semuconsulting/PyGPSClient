@@ -29,7 +29,7 @@ from tkinter import (
     font,
 )
 
-from pygpsclient.canvas_plot import (
+from pygpsclient.canvas_subclasses import (
     TAG_DATA,
     TAG_GRID,
     TAG_XLABEL,

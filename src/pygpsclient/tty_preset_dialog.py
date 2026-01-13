@@ -58,7 +58,6 @@ from pygpsclient.toplevel_dialog import ToplevelDialog
 CANCELLED = 0
 CONFIRMED = 1
 NOMINAL = 2
-MINDIM = (610, 500)
 
 
 class TTYPresetDialog(ToplevelDialog):
@@ -77,7 +76,7 @@ class TTYPresetDialog(ToplevelDialog):
         self.__app = app
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
 
-        super().__init__(app, DLGTTTY, MINDIM)
+        super().__init__(app, DLGTTTY)
         self._confirm = False
         self._command = StringVar()
         self._crlf = IntVar()
@@ -94,7 +93,7 @@ class TTYPresetDialog(ToplevelDialog):
         Set up frame and widgets.
         """
 
-        self._frm_body = Frame(self.container, borderwidth=2, relief="groove")
+        self._frm_body = Frame(self.container)
         self._lbl_command = Label(
             self._frm_body,
             text="Command",

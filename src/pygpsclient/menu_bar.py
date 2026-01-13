@@ -22,6 +22,7 @@ from pygpsclient.strings import (
     DLGTNMEA,
     DLGTNTRIP,
     DLGTRECORD,
+    DLGTSERVER,
     DLGTTTY,
     DLGTUBX,
     MENUABOUT,
@@ -40,6 +41,7 @@ DIALOGS = (
     DLGTUBX,
     DLGTNMEA,
     DLGTNTRIP,
+    DLGTSERVER,
     DLGTSPARTN,  # service discontinued by u-blox
     DLGTGPX,
     DLGTIMPORTMAP,

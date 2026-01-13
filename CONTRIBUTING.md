@@ -15,10 +15,11 @@ Please help us keep our issue list small by adding fixes: #{$ISSUE_NO} to the co
 ## Coding conventions
 
 * This is open source software. Code should be as simple and transparent as possible. Favour clarity over brevity.
-* Avoid external library dependencies unless there's a compelling reason not to.
-* We use and recommend [Visual Studio Code](https://code.visualstudio.com/) with the [Python Extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python) for development and testing.
+* Avoid external library dependencies (*especially those only available as source distributions*) unless there's a compelling reason not to.
+* Avoid platform-specific methods (*be vigilant with tkinter window manager methods*).
 * Code should be documented in accordance with [Sphinx](https://www.sphinx-doc.org/en/master/) docstring conventions.
 * Code should formatted using [black](https://pypi.org/project/black/).
+* We use and recommend [Visual Studio Code](https://code.visualstudio.com/) with the [Python Extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python) for development and testing.
 * We use and recommend [pylint](https://pypi.org/project/pylint/) for code analysis.
 * We use and recommend [bandit](https://pypi.org/project/bandit/) for security vulnerability analysis.
 * Commits must be [signed](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits).

@@ -2,8 +2,14 @@
 toplevel_dialog.py
 
 Top Level container dialog which displays child frames
-within a scrollable and resizeable canvas, primarily
-to allow dialog to be usable on low resolution screens.
+depending on resize behaviour and available screen resolution:
+
+- If frame is resizeable (defined in dialog_state), display as such.
+- If frame is non-resizeable and child frame dimensions exceed screen
+  dimensions, frame will be embedded as a window inside a scrollable
+  and resizeable canvas (can_container).
+- Otherwise, frame will be displayed as a fixed, non-resizeable
+  dialog (frm_container).
 
 Created on 19 Sep 2020
 
@@ -14,25 +20,19 @@ Created on 19 Sep 2020
 
 import logging
 from tkinter import (
-    ALL,
     EW,
-    HORIZONTAL,
-    NS,
     NSEW,
-    NW,
-    VERTICAL,
     Button,
-    Canvas,
     E,
     Frame,
     Label,
-    Scrollbar,
     Toplevel,
     W,
 )
 
 from PIL import Image, ImageTk
 
+from pygpsclient.canvas_subclasses import CanvasContainer
 from pygpsclient.globals import (
     APPNAME,
     ERRCOL,
@@ -49,8 +49,6 @@ from pygpsclient.globals import (
     ICON_START,
     ICON_WARNING,
     INFOCOL,
-    MINHEIGHT,
-    MINWIDTH,
     RESIZE,
 )
 from pygpsclient.helpers import check_lowres
@@ -62,30 +60,29 @@ class ToplevelDialog(Toplevel):
     ToplevelDialog class.
     """
 
-    def __init__(self, app, dlgname: str, dim: tuple = (MINHEIGHT, MINWIDTH)):
+    def __init__(self, app, dlgname: str):
         """
         Constructor.
 
         :param Frame app: reference to main tkinter application
         :param str dlgname: dialog name
-        :param tuple dim: initial dimensions (height, width)
         """
 
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self._dlgname = dlgname
         self.logger = logging.getLogger(f"{APPNAME}.{dlgname}")
-        self.lowres, (self.height, self.width) = check_lowres(self.__master, dim)
+        self.width, self.height = 300, 300  # initial, updated in finalise()
+        self._resizable = self.__app.dialog_state.state[self._dlgname].get(
+            RESIZE, False
+        )
 
         super().__init__()
 
         if self.__app.configuration.get("transient_dialog_b"):
             self.transient(self.__app)
         self.title(dlgname)  # pylint: disable=E1102
-        if self.__app.dialog_state.state[dlgname][RESIZE]:
-            self.resizable(True, True)
-        else:
-            self.resizable(self.lowres, self.lowres)
+        self.resizable(self._resizable, self._resizable)
         self.protocol("WM_DELETE_WINDOW", self.on_exit)
         self.img_none = ImageTk.PhotoImage(Image.open(ICON_BLANK))
         self.img_confirmed = ImageTk.PhotoImage(Image.open(ICON_CONFIRMED))
@@ -100,52 +97,20 @@ class ToplevelDialog(Toplevel):
         self.img_start = ImageTk.PhotoImage(Image.open(ICON_START))
         self.img_warn = ImageTk.PhotoImage(Image.open(ICON_WARNING))
 
-        self._con_body()
+        self._con_body(self._resizable)
 
-    def on_expand(self):
-        """
-        Automatically expand container canvas when sub-frames are resized.
-        """
-
-        self._can_container.event_generate("<Configure>")
-
-    def _con_body(self):
+    def _con_body(self, resizeable: bool):
         """
         Set up scrollable frame and widgets.
         """
 
-        # create container frame
-        if self.lowres:
-            x_scrollbar = Scrollbar(self, orient=HORIZONTAL)
-            y_scrollbar = Scrollbar(self, orient=VERTICAL)
-            self._can_container = Canvas(
-                self,
-                width=self.width,
-                height=self.height,
-                xscrollcommand=x_scrollbar.set,
-                yscrollcommand=y_scrollbar.set,
-            )
-            self._frm_container = Frame(
-                self._can_container, borderwidth=2, relief="groove"
-            )
-            self._can_container.grid(column=0, row=0, sticky=NSEW)
-            x_scrollbar.grid(column=0, row=1, sticky=EW)
-            y_scrollbar.grid(column=1, row=0, sticky=NS)
-            x_scrollbar.config(command=self._can_container.xview)
-            y_scrollbar.config(command=self._can_container.yview)
-            # ensure container canvas expands to accommodate child frames
-            self._can_container.create_window(
-                (0, 0), window=self._frm_container, anchor=NW
-            )
-            self._can_container.bind(
-                "<Configure>",
-                lambda e: self._can_container.config(
-                    scrollregion=self._can_container.bbox(ALL)
-                ),
-            )
-        else:  # normal resolution
-            self._frm_container = Frame(self, borderwidth=2, relief="groove")
+        # create container frame for non-resizeable dialogs
+        if resizeable:
+            self._frm_container = Frame(self)
             self._frm_container.grid(column=0, row=0, sticky=NSEW)
+        else:
+            self._can_container = CanvasContainer(self.__app, self)
+            self._frm_container = self._can_container.frm_container
 
         # create status frame
         self._frm_status = Frame(self, borderwidth=2, relief="groove")
@@ -163,24 +128,37 @@ class ToplevelDialog(Toplevel):
 
         # set column and row weights
         # NB!!! these govern the 'pack' behaviour of the frames on resize
-        self.grid_columnconfigure(0, weight=10)
-        self.grid_rowconfigure(0, weight=10)
-        self._frm_status.grid_columnconfigure(0, weight=10)
-        if self.lowres:
-            colsp, rowsp = self._can_container.grid_size()
-        else:
-            colsp, rowsp = self._frm_container.grid_size()
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+        self._frm_status.grid_columnconfigure(0, weight=1)
+        colsp, rowsp = self._frm_container.grid_size()
         for i in range(colsp):
-            self._frm_status.grid_columnconfigure(i, weight=10)
+            self._frm_status.grid_columnconfigure(i, weight=1)
         for i in range(rowsp):
-            self._frm_status.grid_rowconfigure(i, weight=10)
+            self._frm_status.grid_rowconfigure(i, weight=1)
 
     def _finalise(self):
         """
         Finalise Toplevel window after child frames have been created.
         """
 
-        # self.status_label = (f"{self.height}, {self.width}") # testing only
+        # resize container canvas to accommodate frame
+        # if frame is larger than screen, make container resizeable and
+        # show scrollbars, otherwise hide scrollbars and make non-resizable
+        if hasattr(self, "_can_container"):
+            self._frm_container.update_idletasks()
+            fh = self._frm_container.winfo_height()
+            fw = self._frm_container.winfo_width()
+            self._can_container.config(height=fh, width=fw)
+            self._can_container.update_idletasks()
+            lowres, _ = check_lowres(self.__master, (fh, fw))
+            if lowres:
+                self.resizable(True, True)
+                # NB Some Linux platforms appear to require Toplevel dialog windows
+                # to be non-transient for the window 'maximise' icon to work properly
+            else:
+                self._can_container.show_scroll(False)
+                self.resizable(self._resizable, self._resizable)
 
     def on_exit(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -189,6 +167,14 @@ class ToplevelDialog(Toplevel):
 
         self.__app.dialog_state.state[self._dlgname][DLG] = None
         self.destroy()
+
+    def on_expand(self):
+        """
+        Automatically expand container canvas when sub-frames are resized.
+        """
+
+        if hasattr(self, "_can_container"):
+            self._can_container.event_generate("<Configure>")
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """
@@ -199,12 +185,12 @@ class ToplevelDialog(Toplevel):
 
         self.width, self.height = self.get_size()
 
-    def get_size(self):
+    def get_size(self) -> tuple[int, int]:
         """
         Get current frame size.
 
         :return: window size (width, height)
-        :rtype: tuple
+        :rtype: tuple[int,int]
         """
 
         self.__master.update_idletasks()  # Make sure we know about any resizing

@@ -16,11 +16,12 @@ Created on 23 Dec 2022
 # pylint: disable=no-member, unused-argument
 
 import logging
-from tkinter import ALL, EW, NSEW, NW, Checkbutton, Frame, IntVar, S, W
+from tkinter import ALL, EW, NSEW, NW, Checkbutton, Frame, IntVar, N, S, W
+from types import NoneType
 
 from pyubx2 import UBXMessage
 
-from pygpsclient.canvas_plot import (
+from pygpsclient.canvas_subclasses import (
     TAG_DATA,
     TAG_GRID,
     TAG_XLABEL,
@@ -45,18 +46,21 @@ MIN_DB = 0
 MAX_DB = 200
 MIN_HZ = 1.1e9
 MAX_HZ = 1.70e9
-RF_BANDS = {
-    "B1": 1575420000,
+RF_FREQS = {
+    # "INM": 1536000000,
     "B3": 1268520000,
-    "B2": 1202025000,
+    "B2I": 1207140000,
     "B2a": 1176450000,
+    "B1C": 1575420000,
+    "B1I": 1561098000,
     "E6": 1278750000,
-    "E5b": 1202025000,
+    "E5b": 1207140000,
     "E5a": 1176450000,
     "E1": 1575420000,
-    "G3": 1202025000,
-    "G2": 1248060000,
-    "G1": 1600995000,
+    "G3": 1207140000,
+    "G2": 1246000000,
+    "G1": 1602000000,
+    "L6": 1278750000,
     "L5": 1176450000,
     "L2": 1227600000,
     "L1": 1575420000,
@@ -288,7 +292,9 @@ class SpectrumviewFrame(Frame):
             tags=TAG_DATA,
         )
 
-    def _update_plot(self, rfblocks: list, mode: str = MODELIVE, colors: dict = None):
+    def _update_plot(
+        self, rfblocks: list, mode: str = MODELIVE, colors: dict | NoneType = None
+    ):
         """
         Update spectrum plot with live or snapshot rf block data.
 
@@ -307,7 +313,7 @@ class SpectrumviewFrame(Frame):
             self.init_frame()
             # plot frequency bands
             if self._showrf:
-                self._plot_rf_bands(mode)
+                self._plot_RF_FREQS(mode)
 
         # for each RF block in MON-SPAN message
         for i, rfblock in enumerate(specxy):
@@ -356,7 +362,7 @@ class SpectrumviewFrame(Frame):
             - rfw * (index + 1)
             - (index * self._canvas.fnth)
         )
-        y = self._canvas.yofft * 2
+        y = 3  # self._canvas.yofft * 2
         x2 = x1 + rfw
         if mode == MODESNAP:
             y += self._canvas.fnth
@@ -367,42 +373,40 @@ class SpectrumviewFrame(Frame):
                 text=f"RF {rf + 1}",
                 fill=FGCOL,
                 font=self._canvas.font,
-                anchor=S,
+                anchor=N,
                 tags=(mode, TAG_XLABEL),
             )
         self._canvas.create_line(
             x1,
-            y,
+            y + self._canvas.fnth,
             x2,
-            y,
+            y + self._canvas.fnth,
             fill=col,
             width=OL_WID,
             tags=(mode, TAG_XLABEL),
         )
 
-    def _plot_rf_bands(self, mode: str):
+    def _plot_RF_FREQS(self, mode: str):
         """
-        Plot RF band markers
+        Plot RF frequency markers
 
         :param int mode: plot or snapshot
         """
 
-        for nam, frq in RF_BANDS.items():
+        for nam, frq in RF_FREQS.items():
             if self._minhz < frq < self._maxhz:
                 yoff, col = {
                     "L": (self._canvas.fnth, GNSS_LIST[0][1]),  # GPS
                     "G": (self._canvas.fnth * 2, GNSS_LIST[6][1]),  # GLONASS
                     "E": (self._canvas.fnth * 3, GNSS_LIST[2][1]),  # Galileo
-                    "S": (self._canvas.fnth * 3, GNSS_LIST[2][1]),  # Galileo SAR
                     "B": (self._canvas.fnth * 4, GNSS_LIST[3][1]),  # Beidou
+                    "I": (self._canvas.fnth * 5, "#FF83FA"),  # INMARSAT
                 }[nam[0:1]]
                 if nam not in (
-                    "E1",
-                    "E5a",
                     "E5b",
-                    "B2a",
-                    "B2",
-                    "B1",
+                    "E1",
+                    "B2I",
+                    "B1C",
                 ):  # same freq as other bands
                     self._canvas.create_gline(
                         frq / GHZ,

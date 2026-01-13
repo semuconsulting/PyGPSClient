@@ -149,7 +149,7 @@ class SerialConfigFrame(Frame):
             self._frm_basic,
             border=2,
             relief="sunken",
-            width=38,
+            width=30,
             height=5,
             justify=LEFT,
             exportselection=False,
@@ -715,4 +715,7 @@ class SerialConfigFrame(Frame):
         :param event event: resize event
         """
 
-        self.__app.frm_settings.on_expand()
+        try:
+            self.__app.frm_settings.on_expand()
+        except AttributeError:
+            pass  # frm_settings not yet instantiated

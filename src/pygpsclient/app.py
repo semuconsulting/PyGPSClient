@@ -134,8 +134,6 @@ from pygpsclient.widget_state import (
     DEFAULT,
     HIDE,
     MAXCOLS,
-    MAXCOLSPAN,
-    MAXROWSPAN,
     MENU,
     ROW,
     ROWSPAN,
@@ -176,6 +174,7 @@ class App(Frame):
         self.__master.iconphoto(True, PhotoImage(file=ICON_APP128))
 
         self._deferredmsg = None
+        self._server_status = -1  # socket server status -1 = inactive
         self.gnss_inqueue = Queue()  # messages from GNSS receiver
         self.gnss_outqueue = Queue()  # messages to GNSS receiver
         self.ntrip_inqueue = Queue()  # messages from NTRIP source
@@ -293,10 +292,6 @@ class App(Frame):
                 name, col, row, maxcol, maxrow, men
             )
 
-        for col in range(MAXCOLSPAN + 1):
-            self.__master.grid_columnconfigure(col, weight=0)
-        for row in range(MAXROWSPAN + 2):
-            self.__master.grid_rowconfigure(row, weight=0)
         for col in range(maxcol):
             self.__master.grid_columnconfigure(col, weight=5)
         for row in range(1, maxrow + 1):
@@ -465,7 +460,6 @@ class App(Frame):
                 self.frm_settings,
                 self.frm_settings.frm_serial,
                 self.frm_settings.frm_socketclient,
-                self.frm_settings.frm_socketserver,
             ):
                 frm.reset()
             self._do_layout()
@@ -560,6 +554,8 @@ class App(Frame):
         https = cfg.get("sockhttps_b")
         ntripuser = cfg.get("ntripcasteruser_s")
         ntrippassword = cfg.get("ntripcasterpassword_s")
+        tlspempath = cfg.get("tlspempath_s")
+        ntriprtcmstr = "1002(1),1006(5),1077(1),1087(1),1097(1),1127(1),1230(1)"  # TODO
         self._socket_thread = Thread(
             target=self._sockserver_thread,
             args=(
@@ -567,6 +563,8 @@ class App(Frame):
                 host,
                 port,
                 https,
+                tlspempath,
+                ntriprtcmstr,
                 ntripuser,
                 ntrippassword,
                 SOCKSERVER_MAX_CLIENTS,
@@ -575,16 +573,16 @@ class App(Frame):
             daemon=True,
         )
         self._socket_thread.start()
-        self.frm_banner.update_transmit_status(0)
+        self.server_status = 0  # 0 = active, no clients
 
     def sockserver_stop(self):
         """
         Stop socket server thread.
         """
 
-        self.frm_banner.update_transmit_status(-1)
         if self._socket_server is not None:
             self._socket_server.shutdown()
+        self.server_status = -1  # -1 = inactive
 
     def _sockserver_thread(
         self,
@@ -592,6 +590,8 @@ class App(Frame):
         host: str,
         port: int,
         https: int,
+        tlspempath: str,
+        ntriprtcmstr: str,
         ntripuser: str,
         ntrippassword: str,
         maxclients: int,
@@ -605,6 +605,8 @@ class App(Frame):
         :param str host: socket host name (0.0.0.0)
         :param int port: socket port (50010)
         :param int https: https enabled (0)
+        :param str tlspempath: path to TLS PEM file ("$HOME/pygnssutils.pem")
+        :param str ntriprtcmstr: NTRIP caster RTCM type(rate) sourcetable entry
         :param int maxclients: max num of clients (5)
         :param Queue socketqueue: socket server read queue
         """
@@ -620,6 +622,8 @@ class App(Frame):
                 requesthandler,
                 ntripuser=ntripuser,
                 ntrippassword=ntrippassword,
+                tlspempath=tlspempath,
+                ntriprtcmstr=ntriprtcmstr,
             ) as self._socket_server:
                 self._socket_server.serve_forever()
         except OSError as err:
@@ -633,7 +637,8 @@ class App(Frame):
         :param int clients: no of connected clients
         """
 
-        self.frm_settings.frm_socketserver.clients = clients
+        self.server_status = clients
+        # self.frm_settings.frm_socketserver.clients = clients TODO
 
     def _shutdown(self):
         """
@@ -684,9 +689,9 @@ class App(Frame):
             raw_data, parsed_data = self.gnss_inqueue.get(False)
             if raw_data is not None and parsed_data is not None:
                 self.process_data(raw_data, parsed_data)
-            # if socket server is running, output raw data to socket
-            if self.frm_settings.frm_socketserver.socketserving:
-                self.socket_outqueue.put(raw_data)
+                # if socket server is running, output raw data to socket
+                if self.server_status:  # TODO
+                    self.socket_outqueue.put(raw_data)
             self.gnss_inqueue.task_done()
         except Empty:
             pass
@@ -699,9 +704,7 @@ class App(Frame):
         :param event event: <<gnss_eof>> event
         """
 
-        self.frm_settings.frm_socketserver.socketserving = (
-            False  # turn off socket server
-        )
+        self.server_status = -1
         self._refresh_widgets()
         self.conn_status = DISCONNECTED
         self.status_label = (ENDOFFILE, ERRCOL)
@@ -714,9 +717,7 @@ class App(Frame):
         :param event event: <<gnss_timeout>> event
         """
 
-        self.frm_settings.frm_socketserver.socketserving = (
-            False  # turn off socket server
-        )
+        self.server_status = -1
         self._refresh_widgets()
         self.conn_status = DISCONNECTED
         self.status_label = (INACTIVE_TIMEOUT, ERRCOL)
@@ -1077,6 +1078,30 @@ class App(Frame):
         self.frm_settings.enable_controls(status)
         if status == DISCONNECTED:
             self.conn_label = (NOTCONN, INFOCOL)
+
+    @property
+    def server_status(self) -> int:
+        """
+        Getter for socket server status.
+
+        :return: server status
+        :rtype: int
+        """
+
+        return self._server_status
+
+    @server_status.setter
+    def server_status(self, status: int):
+        """
+        Setter for socket server status.
+
+        :param int status: server status
+            -1 - inactive, 0 = active no clients, >0 = active clients
+        """
+
+        self._server_status = status
+        self.frm_banner.update_transmit_status(status)
+        self.configuration.set("sockserver_b", status >= 0)
 
     @property
     def rtk_conn_status(self) -> int:

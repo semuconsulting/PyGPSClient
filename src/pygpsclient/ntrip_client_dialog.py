@@ -3,9 +3,12 @@ nmea_client_dialog.py
 
 NTRIP client configuration dialog.
 
-Initial settings are from the saved configuration.
+Initial settings are from the saved json configuration.
 Once started, the persisted state for the NTRIP client is held in
-the threaded NTRIP handler itself, NOT in this frame.
+the client itself (pygnssutils.ntripclient), NOT in this dialog.
+
+The NTRIP client invokes the `set_controls` method in this dialog
+to update any established connection parameters.
 
 The dialog may be closed while the NTRIP client is running.
 
@@ -24,7 +27,6 @@ from tkinter import (
     EW,
     HORIZONTAL,
     NORMAL,
-    NS,
     NSEW,
     VERTICAL,
     Button,
@@ -33,7 +35,9 @@ from tkinter import (
     IntVar,
     Label,
     Listbox,
+    N,
     Radiobutton,
+    S,
     Scrollbar,
     Spinbox,
     StringVar,
@@ -41,6 +45,7 @@ from tkinter import (
     W,
     ttk,
 )
+from types import NoneType
 
 from pygnssutils import NOGGA
 from pygnssutils.helpers import find_mp_distance
@@ -49,7 +54,6 @@ from pygpsclient.globals import (
     CONNECTED_NTRIP,
     DISCONNECTED,
     ERRCOL,
-    GGA_INTERVALS,
     INFOCOL,
     READONLY,
     TRACEMODE_WRITE,
@@ -68,6 +72,7 @@ from pygpsclient.helpers import MAXALT, get_mp_info
 from pygpsclient.socketconfig_ntrip_frame import SocketConfigNtripFrame
 from pygpsclient.strings import (
     DLGTNTRIP,
+    LBLDATATYPE,
     LBLGGAFIXED,
     LBLGGALIVE,
     LBLNTRIPGGAINT,
@@ -79,6 +84,7 @@ from pygpsclient.strings import (
 )
 from pygpsclient.toplevel_dialog import ToplevelDialog
 
+GGA_INTERVALS = ("None", "2", "5", "10", "60", "120")
 NTRIP_VERSIONS = ("2.0", "1.0")
 KM2MILES = 0.6213712
 IP4 = "IPv4"
@@ -88,7 +94,6 @@ SPARTN = "SPARTN"
 NTRIP_SPARTN = "ppntrip.services.u-blox.com"
 TCPIPV4 = "IPv4"
 TCPIPV6 = "IPv6"
-MINDIM = (500, 505)
 
 
 class NTRIPConfigDialog(ToplevelDialog):
@@ -109,7 +114,7 @@ class NTRIPConfigDialog(ToplevelDialog):
         self.logger = getLogger(__name__)
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
 
-        super().__init__(app, DLGTNTRIP, MINDIM)
+        super().__init__(app, DLGTNTRIP)
         self._cfg_msg_command = None
         self._pending_confs = {
             UBX_MONVER: (),
@@ -124,7 +129,6 @@ class NTRIPConfigDialog(ToplevelDialog):
         self._ntrip_https = IntVar()
         self._ntrip_version = StringVar()
         self._ntrip_mountpoint = StringVar()
-        self._ntrip_mpdist = StringVar()
         self._ntrip_user = StringVar()
         self._ntrip_password = StringVar()
         self._ntrip_gga_interval = StringVar()
@@ -149,7 +153,7 @@ class NTRIPConfigDialog(ToplevelDialog):
         """
         # pylint: disable=unnecessary-lambda
 
-        self._frm_body = Frame(self.container, borderwidth=2, relief="groove")
+        self._frm_body = Frame(self.container)
         self._frm_socket = SocketConfigNtripFrame(
             self.__app,
             self._frm_body,
@@ -162,12 +166,11 @@ class NTRIPConfigDialog(ToplevelDialog):
             textvariable=self._ntrip_mountpoint,
             state=NORMAL,
             relief="sunken",
-            width=15,
+            width=12,
         )
 
         self._lbl_mpdist = Label(
             self._frm_body,
-            textvariable=self._ntrip_mpdist,
             width=30,
             anchor=W,
         )
@@ -176,7 +179,7 @@ class NTRIPConfigDialog(ToplevelDialog):
             self._frm_body,
             height=4,
             relief="sunken",
-            width=55,
+            width=40,
         )
         self._scr_sourcetablev = Scrollbar(self._frm_body, orient=VERTICAL)
         self._scr_sourcetableh = Scrollbar(self._frm_body, orient=HORIZONTAL)
@@ -194,7 +197,7 @@ class NTRIPConfigDialog(ToplevelDialog):
             textvariable=self._ntrip_version,
             state=READONLY,
         )
-        self._lbl_datatype = Label(self._frm_body, text="Data Type")
+        self._lbl_datatype = Label(self._frm_body, text=LBLDATATYPE)
         self._spn_datatype = Spinbox(
             self._frm_body,
             values=(RTCM, SPARTN),
@@ -209,7 +212,7 @@ class NTRIPConfigDialog(ToplevelDialog):
             textvariable=self._ntrip_user,
             state=NORMAL,
             relief="sunken",
-            width=50,
+            width=40,
         )
         self._lbl_password = Label(self._frm_body, text=LBLNTRIPPWD)
         self._ent_password = Entry(
@@ -217,7 +220,7 @@ class NTRIPConfigDialog(ToplevelDialog):
             textvariable=self._ntrip_password,
             state=NORMAL,
             relief="sunken",
-            width=20,
+            width=40,
             show="*",
         )
         self._lbl_ntripggaint = Label(self._frm_body, text=LBLNTRIPGGAINT)
@@ -297,50 +300,50 @@ class NTRIPConfigDialog(ToplevelDialog):
 
         # body of grid
         self._frm_socket.grid(
-            column=0, row=0, columnspan=3, rowspan=3, padx=3, pady=3, sticky=W
+            column=0, row=0, columnspan=5, rowspan=3, padx=3, pady=3, sticky=W
         )
         ttk.Separator(self._frm_body).grid(
             column=0, row=3, columnspan=5, padx=3, pady=3, sticky=EW
         )
         self._lbl_mountpoint.grid(column=0, row=4, padx=3, pady=3, sticky=W)
         self._ent_mountpoint.grid(column=1, row=4, padx=3, pady=3, sticky=W)
-        self._lbl_mpdist.grid(column=2, row=4, columnspan=2, padx=3, pady=3, sticky=W)
+        self._lbl_mpdist.grid(column=2, columnspan=2, row=4, padx=3, pady=3, sticky=W)
         self._lbl_sourcetable.grid(column=0, row=5, padx=3, pady=3, sticky=W)
         self._lbx_sourcetable.grid(
             column=1, row=5, columnspan=3, rowspan=4, padx=3, pady=3, sticky=EW
         )
-        self._scr_sourcetablev.grid(column=4, row=5, rowspan=4, sticky=NS)
+        self._scr_sourcetablev.grid(column=4, row=5, rowspan=4, sticky=(N, S, W))
         self._scr_sourcetableh.grid(column=1, columnspan=3, row=9, sticky=EW)
         self._lbl_ntripversion.grid(column=0, row=10, padx=3, pady=3, sticky=W)
         self._spn_ntripversion.grid(column=1, row=10, padx=3, pady=3, sticky=W)
-        self._lbl_datatype.grid(column=0, row=11, padx=3, pady=3, sticky=W)
-        self._spn_datatype.grid(column=1, row=11, padx=3, pady=3, sticky=W)
-        self._lbl_user.grid(column=0, row=12, padx=3, pady=3, sticky=W)
-        self._ent_user.grid(column=1, row=12, columnspan=3, padx=3, pady=3, sticky=W)
-        self._lbl_password.grid(column=0, row=13, padx=3, pady=3, sticky=W)
+        self._lbl_datatype.grid(column=2, row=10, padx=3, pady=3, sticky=W)
+        self._spn_datatype.grid(column=3, row=10, padx=3, pady=3, sticky=W)
+        self._lbl_user.grid(column=0, row=11, padx=3, pady=3, sticky=W)
+        self._ent_user.grid(column=1, row=11, columnspan=3, padx=3, pady=3, sticky=W)
+        self._lbl_password.grid(column=0, row=12, padx=3, pady=3, sticky=W)
         self._ent_password.grid(
-            column=1, row=13, columnspan=2, padx=3, pady=3, sticky=W
+            column=1, row=12, columnspan=3, padx=3, pady=3, sticky=W
         )
         ttk.Separator(self._frm_body).grid(
-            column=0, row=14, columnspan=5, padx=3, pady=3, sticky=EW
+            column=0, row=13, columnspan=5, padx=3, pady=3, sticky=EW
         )
-        self._lbl_ntripggaint.grid(column=0, row=15, padx=2, pady=3, sticky=W)
-        self._spn_ntripggaint.grid(column=1, row=15, padx=3, pady=2, sticky=W)
-        self._rad_ggalive.grid(column=0, row=16, padx=3, pady=2, sticky=W)
-        self._rad_ggafixed.grid(column=1, row=16, padx=3, pady=2, sticky=W)
-        self._lbl_lat.grid(column=0, row=17, padx=3, pady=2, sticky=W)
-        self._ent_lat.grid(column=1, row=17, columnspan=2, padx=3, pady=2, sticky=W)
-        self._lbl_lon.grid(column=2, row=17, padx=3, pady=2, sticky=W)
-        self._ent_lon.grid(column=3, row=17, columnspan=2, padx=3, pady=2, sticky=W)
-        self._lbl_alt.grid(column=0, row=18, padx=3, pady=2, sticky=W)
-        self._ent_alt.grid(column=1, row=18, columnspan=2, padx=3, pady=2, sticky=W)
-        self._lbl_sep.grid(column=2, row=18, padx=3, pady=2, sticky=W)
-        self._ent_sep.grid(column=3, row=18, columnspan=2, padx=3, pady=2, sticky=W)
+        self._rad_ggalive.grid(column=0, row=14, padx=3, pady=2, sticky=W)
+        self._rad_ggafixed.grid(column=1, row=14, padx=3, pady=2, sticky=W)
+        self._lbl_ntripggaint.grid(column=2, row=14, padx=2, pady=3, sticky=W)
+        self._spn_ntripggaint.grid(column=3, row=14, padx=3, pady=2, sticky=W)
+        self._lbl_lat.grid(column=0, row=15, padx=3, pady=2, sticky=W)
+        self._ent_lat.grid(column=1, row=15, padx=3, pady=2, sticky=W)
+        self._lbl_lon.grid(column=2, row=15, padx=3, pady=2, sticky=W)
+        self._ent_lon.grid(column=3, row=15, padx=3, pady=2, sticky=W)
+        self._lbl_alt.grid(column=0, row=16, padx=3, pady=2, sticky=W)
+        self._ent_alt.grid(column=1, row=16, padx=3, pady=2, sticky=W)
+        self._lbl_sep.grid(column=2, row=16, padx=3, pady=2, sticky=W)
+        self._ent_sep.grid(column=3, row=16, padx=3, pady=2, sticky=W)
         ttk.Separator(self._frm_body).grid(
-            column=0, row=19, columnspan=5, padx=3, pady=3, sticky=EW
+            column=0, row=17, columnspan=5, padx=3, pady=3, sticky=EW
         )
-        self._btn_connect.grid(column=0, row=20, padx=3, pady=3, sticky=W)
-        self._btn_disconnect.grid(column=1, row=20, padx=3, pady=3, sticky=W)
+        self._btn_connect.grid(column=0, row=18, padx=3, pady=3, sticky=W)
+        self._btn_disconnect.grid(column=1, row=18, padx=3, pady=3, sticky=W)
 
     def _attach_events(self):
         """
@@ -354,7 +357,6 @@ class NTRIPConfigDialog(ToplevelDialog):
             self._ntrip_https,
             self._ntrip_version,
             self._ntrip_mountpoint,
-            self._ntrip_mpdist,
             self._ntrip_user,
             self._ntrip_password,
             self._ntrip_gga_interval,
@@ -365,7 +367,6 @@ class NTRIPConfigDialog(ToplevelDialog):
             self._ntrip_gga_sep,
         ):
             setting.trace_add(TRACEMODE_WRITE, self._on_update_config)
-        # self.bind("<Configure>", self._on_resize)
 
     def _reset(self):
         """
@@ -390,7 +391,7 @@ class NTRIPConfigDialog(ToplevelDialog):
             cfg.set("ntripclientuser_s", self._ntrip_user.get())
             cfg.set("ntripclientpassword_s", self._ntrip_password.get())
             ggaint = self._ntrip_gga_interval.get()
-            ggaint = NOGGA if ggaint == "None" else int(ggaint)
+            ggaint = NOGGA if ggaint in ("None", "Not Required") else int(ggaint)
             cfg.set("ntripclientggainterval_n", ggaint)
             cfg.set("ntripclientggamode_b", self._ntrip_gga_mode.get())
             cfg.set("ntripclientreflat_f", float(self._ntrip_gga_lat.get()))
@@ -400,13 +401,15 @@ class NTRIPConfigDialog(ToplevelDialog):
         except (ValueError, TclError):
             pass
 
-    def set_controls(self, connected: bool, msgt: tuple = None):
+    def set_controls(self, connected: bool, msgt: NoneType | tuple = None):
         """
         Set App RTK connection status and enable or disable controls
         depending on connection status.
 
+        NB: Called by pygnssutils.ntripclient when NTRIP connection established.
+
         :param bool status: connection status (True/False)
-        :param tuple msgt: tuple of (message, color)
+        :param NoneType | tuple msgt: tuple of (message, color)
         """
 
         self.__app.rtk_conn_status = CONNECTED_NTRIP if connected else DISCONNECTED
@@ -485,14 +488,12 @@ class NTRIPConfigDialog(ToplevelDialog):
             w = event.widget
             index = int(w.curselection()[0])
             srt = w.get(index)  # sourcetable entry
-            name = srt[0]
             info = get_mp_info(srt)
-            # self.logger.debug(f"MP info: {name} {info}")
-            notes = (
-                ""
-                if info is None
-                else f', {info["gga"]}, {info["encrypt"]}, {info["auth"]}'
-            )
+            name = info["name"]
+            if info["gga"] in ("0", 0):  # gga not required
+                self._ntrip_gga_interval.set(GGA_INTERVALS[0])
+            else:  # gga required
+                self._ntrip_gga_interval.set(GGA_INTERVALS[3])
             self._ntrip_mountpoint.set(name)
             lat, lon = self._get_coordinates()
             if isinstance(lat, float) and isinstance(lon, float):
@@ -500,9 +501,9 @@ class NTRIPConfigDialog(ToplevelDialog):
                     lat, lon, self._settings["sourcetable"], name
                 )
                 if mpname is None:
-                    self.set_mp_dist(None, name, notes)
+                    self.set_mp_dist(None, name)
                 else:
-                    self.set_mp_dist(mindist, mpname, notes)
+                    self.set_mp_dist(mindist, mpname)
         except (IndexError, KeyError):  # not yet populated
             pass
 
@@ -690,7 +691,7 @@ class NTRIPConfigDialog(ToplevelDialog):
 
         return valid
 
-    def set_mp_dist(self, dist: float, name: str = "", info: str = ""):
+    def set_mp_dist(self, dist: float, name: str = ""):
         """
         Set mountpoint distance label.
 
@@ -699,27 +700,26 @@ class NTRIPConfigDialog(ToplevelDialog):
 
         if name in (None, ""):
             return
-        dist_l = "Distance n/a"
+        dist_l = "Baseline n/a"
         dist_u = "km"
         if isinstance(dist, float):
             units = self.__app.configuration.get("units_s")
             if units in (UI, UIK):
                 dist *= KM2MILES
                 dist_u = "miles"
-            dist_l = f"Dist: {dist:,.1f} {dist_u}{info}"
+            dist_l = f"Baseline: {dist:,.1f} {dist_u}"
         self._ntrip_mountpoint.set(name)
-        self._ntrip_mpdist.set(dist_l)
+        self._lbl_mpdist.config(text=dist_l)
 
-    def _get_coordinates(self) -> tuple:
+    def _get_coordinates(self) -> tuple[float, float]:
         """
         Get coordinates from receiver or fixed reference settings.
 
         :returns: tuple (lat,lon)
-        :rtype: tuple
+        :rtype: tuple[float,float]
         """
 
         try:
-            # if self._settings.get("ggamode", 0) == 0:  # live position
             if self._ntrip_gga_mode.get() == 0:  # live position
                 status = self.__app.get_coordinates()
                 lat, lon = status["lat"], status["lon"]
@@ -728,4 +728,4 @@ class NTRIPConfigDialog(ToplevelDialog):
                 lon = float(self._settings["reflon"])
             return lat, lon
         except (ValueError, TypeError):
-            return "", ""
+            return 0, 0

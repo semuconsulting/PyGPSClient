@@ -53,8 +53,6 @@ from pygpsclient.ubx_port_frame import UBX_PORT_Frame
 from pygpsclient.ubx_preset_frame import UBX_PRESET_Frame
 from pygpsclient.ubx_solrate_frame import UBX_RATE_Frame
 
-MINDIM = (570, 1076)
-
 
 class UBXConfigDialog(ToplevelDialog):
     """,
@@ -72,7 +70,7 @@ class UBXConfigDialog(ToplevelDialog):
 
         self.__app = app  # Reference to main application class
 
-        super().__init__(app, DLGTUBX, MINDIM)
+        super().__init__(app, DLGTUBX)
 
         self._cfg_msg_command = None
         self._pending_confs = {}

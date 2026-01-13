@@ -16,7 +16,7 @@ Created on 13 Sep 2020
 
 from tkinter import NSEW, Frame
 
-from pygpsclient.canvas_plot import (
+from pygpsclient.canvas_subclasses import (
     MODE_CEL,
     TAG_DATA,
     TAG_GRID,

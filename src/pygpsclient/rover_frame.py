@@ -17,7 +17,7 @@ Created on 22 Aug 2023
 
 from tkinter import NSEW, NW, SW, Frame
 
-from pygpsclient.canvas_plot import (
+from pygpsclient.canvas_subclasses import (
     MODE_POL,
     TAG_DATA,
     TAG_GRID,

@@ -34,8 +34,6 @@ from pygpsclient.nmea_preset_frame import NMEA_PRESET_Frame
 from pygpsclient.strings import DLGTNMEA
 from pygpsclient.toplevel_dialog import ToplevelDialog
 
-MINDIM = (541, 810)
-
 
 class NMEAConfigDialog(ToplevelDialog):
     """
@@ -53,7 +51,7 @@ class NMEAConfigDialog(ToplevelDialog):
 
         self.__app = app  # Reference to main application class
 
-        super().__init__(app, DLGTNMEA, MINDIM)
+        super().__init__(app, DLGTNMEA)
 
         self._cfg_msg_command = None
         self._pending_confs = {}
