@@ -33,7 +33,7 @@ Created on 12 Sep 2020
 :license: BSD 3-Clause
 """
 
-# pylint: disable=too-many-ancestors, no-member, too-many-lines
+# pylint: disable=too-many-ancestors, no-member
 
 import logging
 from datetime import datetime, timedelta
@@ -44,7 +44,7 @@ from subprocess import CalledProcessError, run
 from sys import executable
 from threading import Thread
 from time import process_time_ns, time
-from tkinter import NSEW, Frame, Label, PhotoImage, Tk, Toplevel, font
+from tkinter import EW, NSEW, NW, Frame, Label, PhotoImage, Tk, Toplevel, font
 from types import NoneType
 
 from pygnssutils import GNSSMQTTClient, GNSSNTRIPClient, MQTTMessage
@@ -66,10 +66,12 @@ from pyubx2 import UBXMessage
 from serial import SerialException, SerialTimeoutException
 
 from pygpsclient._version import __version__ as VERSION
+from pygpsclient.banner_frame import BannerFrame
 from pygpsclient.configuration import Configuration
 from pygpsclient.dialog_state import DialogState
 from pygpsclient.file_handler import FileHandler
 from pygpsclient.globals import (
+    BGCOL,
     CLASS,
     CONFIGFILE,
     CONNECTED,
@@ -105,7 +107,9 @@ from pygpsclient.nmea_handler import NMEAHandler
 from pygpsclient.qgc_handler import QGCHandler
 from pygpsclient.rtcm3_handler import RTCM3Handler
 from pygpsclient.sbf_handler import SBFHandler
+from pygpsclient.settings_frame import SettingsFrame
 from pygpsclient.sqlite_handler import DBINMEM, SQLOK, SqliteHandler
+from pygpsclient.status_frame import StatusFrame
 from pygpsclient.stream_handler import StreamHandler
 from pygpsclient.strings import (
     CONFIGERR,
@@ -129,16 +133,12 @@ from pygpsclient.strings import (
 from pygpsclient.tty_handler import TTYHandler
 from pygpsclient.ubx_handler import UBXHandler
 from pygpsclient.widget_state import (
-    COL,
     COLSPAN,
     DEFAULT,
     HIDE,
-    MAXCOLS,
-    MENU,
-    ROW,
-    ROWSPAN,
+    MAXROWSPAN,
+    MAXSPAN,
     SHOW,
-    STICKY,
     VISIBLE,
     WDGCHART,
     WDGCONSOLE,
@@ -233,9 +233,9 @@ class App(Frame):
         self._do_layout()
         self._attach_events()
 
-        # instantiate widgets
-        for value in self.widget_state.state.values():
-            frm = getattr(self, value[FRAME])
+        # initialise widgets
+        for wdg in self.widget_state.state.values():
+            frm = getattr(self.frm_widgets, wdg[FRAME])
             if hasattr(frm, "init_frame"):
                 frm.update_idletasks()
                 frm.init_frame()
@@ -263,105 +263,117 @@ class App(Frame):
         self.menu = MenuBar(self)
         self.__master.config(menu=self.menu)
 
-        # initialise widget state
-        for value in self.widget_state.state.values():
+        self.frm_banner = BannerFrame(self, borderwidth=2, relief="groove")
+        self.frm_status = StatusFrame(self, borderwidth=2, relief="groove")
+        self.frm_settings = SettingsFrame(self)
+        self.frm_widgets = Frame(self, bg=BGCOL)
+
+        # instantiate widgets
+        for wdg in self.widget_state.state.values():
             setattr(
-                self,
-                value[FRAME],
-                value[CLASS](self, borderwidth=2, relief="groove"),
+                self.frm_widgets,
+                wdg[FRAME],
+                wdg[CLASS](self, borderwidth=2, relief="groove"),
             )
 
     def _do_layout(self):
         """
-        Arrange widgets in main application frame, and set
-        widget visibility and menu label (show/hide).
+        Arrange visible widgets in main application frame and set
+        menu labels (show/hide).
 
-        NB: PyGPSClient generally favours 'grid' rather than 'pack'
-        layout management throughout:
+        NB: PyGPSClient uses 'grid' rather than 'pack' layout management throughout:
         - grid weight = 0 means fixed, non-expandable
         - grid weight > 0 means expandable
         """
 
+        # get maximum column and row spans for frm_widgets
+        cols = 0
+        maxcols = 1
+        maxrows = 0
+        for wdg in self.widget_state.state.values():
+            if wdg[VISIBLE]:
+                if cols == 0:
+                    maxrows += 1
+                cols += wdg.get(COLSPAN, 1)
+                if cols > self.configuration.get("maxcolumns_n"):
+                    cols = 0
+                    maxrows += 1
+                maxcols = max(cols, maxcols)
+        # print(f"DEBUG {maxcols=} {maxrows=} {cols=}")
+
+        # dynamically position widgets in frm_widgets
         col = 0
         row = 1
-        maxcol = 0
-        maxrow = 0
-        men = 0
-        for name in self.widget_state.state:
-            col, row, maxcol, maxrow, men = self._widget_grid(
-                name, col, row, maxcol, maxrow, men
-            )
-
-        for col in range(maxcol):
-            self.__master.grid_columnconfigure(col, weight=5)
-        for row in range(1, maxrow + 1):
-            self.__master.grid_rowconfigure(row, weight=5)
-
-    def _widget_grid(
-        self, name: str, col: int, row: int, maxcol: int, maxrow: int, men: int
-    ) -> tuple:
-        """
-        Arrange widgets and update menu label (show/hide).
-
-        Widgets with explicit COL(umn) settings will be placed in fixed
-        positions; widgets with no COL(umn) setting will be arranged
-        dynamically (left to right, top to bottom).
-
-        :param str name: name of widget
-        :param int col: col
-        :param int row: row
-        :param int maxcol: max cols
-        :param int maxrow: max rows
-        :param int men: menu position
-        :return: max row & col
-        :rtype: tuple
-        """
-
-        maxcols = self.configuration.get("maxcolumns_n")  # type: ignore
-        wdg = self.widget_state.state[name]
-        dynamic = wdg.get(COL, None) is None
-        frm = getattr(self, wdg[FRAME])
-        if wdg[VISIBLE]:
-            self.widget_enable_messages(name)
-            fcol = wdg.get(COL, col)
-            frow = wdg.get(ROW, row)
-            colspan = wdg.get(COLSPAN, 1)
-            if colspan == MAXCOLS:
-                colspan = maxcols
-            rowspan = wdg.get(ROWSPAN, 1)
-            if dynamic and fcol + colspan > maxcols:
-                fcol = 0
-                frow += 1
-            frm.grid(
-                column=fcol,
-                row=frow,
-                columnspan=colspan,
-                rowspan=rowspan,
-                padx=2,
-                pady=2,
-                sticky=wdg.get(STICKY, NSEW),
-            )
-            lbl = HIDE
-            if dynamic:
-                col += colspan
-                if col >= maxcols:  # type: ignore
+        men = 2
+        for name, wdg in self.widget_state.state.items():
+            frm = getattr(self.frm_widgets, wdg[FRAME])
+            if wdg[VISIBLE]:
+                # enable any GNSS data required by widget
+                self.widget_enable_messages(name)
+                cols = (
+                    maxcols if wdg.get(COLSPAN, 1) == MAXSPAN else wdg.get(COLSPAN, 1)
+                )
+                frm.grid(column=col, row=row, columnspan=cols, sticky=NSEW)
+                col += cols
+                if col >= maxcols:
                     col = 0
-                    row += rowspan
-                maxcol = max(maxcol, fcol + colspan)
-                maxrow = max(maxrow, frow)
-        else:
-            frm.grid_forget()
-            lbl = SHOW
-
-        # update menu label (show/hide)
-        if wdg.get(MENU, True):
+                    row += 1
+                lbl = HIDE
+            else:
+                frm.grid_forget()
+                lbl = SHOW
+            # update menu label (show/hide)
             self.menu.view_menu.entryconfig(men, label=f"{lbl} {name}")
             men += 1
 
-        # force widget to rescale
-        # frm.event_generate("<Configure>")
+        # do main layout
+        self.frm_banner.grid(column=0, row=0, columnspan=maxcols + 1, sticky=EW)
+        self.frm_widgets.grid(
+            column=0, row=1, columnspan=maxcols, rowspan=maxrows, sticky=NSEW
+        )
+        if self.configuration.get("showsettings_b"):
+            self.frm_settings.grid(column=maxcols, row=1, rowspan=maxrows, sticky=NW)
+        else:
+            self.frm_settings.grid_forget()
+        self.frm_status.grid(
+            column=0, row=maxrows + 1, columnspan=maxcols + 1, sticky=EW
+        )
+        # update settings menu labels (dock/undock, show/hide)
+        lbl = "Undock" if self.configuration.get("docksettings_b") else "Dock"
+        self.menu.view_menu.entryconfig(0, label=f"{lbl} Settings")
+        lbl = HIDE if self.configuration.get("showsettings_b") else SHOW
+        self.menu.view_menu.entryconfig(1, label=f"{lbl} Settings")
 
-        return col, row, maxcol, maxrow, men
+        # set 'pack' behaviour of main layout
+        for frm in (self, self.__master):
+            for col in range(maxcols):
+                frm.grid_columnconfigure(col, weight=1)
+            for col in range(maxcols, self.configuration.get("maxcolumns_n") + 1):
+                frm.grid_columnconfigure(col, weight=0)
+            for row in range(1, maxrows + 1):
+                frm.grid_rowconfigure(row, weight=1)
+            for row in range(maxrows + 1, MAXROWSPAN + 1):
+                frm.grid_rowconfigure(row, weight=0)
+
+    def settings_toggle(self):
+        """
+        Toggle settings visibility.
+        """
+
+        self.configuration.set(
+            "showsettings_b", not self.configuration.get("showsettings_b")
+        )
+        self._do_layout()
+
+    def settings_dock(self):
+        """
+        Toggle settings docking.
+        """
+
+        self.configuration.set(
+            "docksettings_b", not self.configuration.get("docksettings_b")
+        )
+        self._do_layout()
 
     def widget_toggle(self, name: str):
         """
@@ -384,20 +396,30 @@ class App(Frame):
         :param str name: widget name
         """
 
-        frm = getattr(self, self.widget_state.state[name][FRAME])
+        frm = getattr(self.frm_widgets, self.widget_state.state[name][FRAME])
         if hasattr(frm, "enable_messages"):
             frm.enable_messages(self.widget_state.state[name][VISIBLE])
 
-    def widget_reset(self):
+    def reset_layout(self):
         """
-        Reset widgets to default layout.
+        Reset to default layout.
         """
 
-        for nam, wdg in self.widget_state.state.items():
+        for name, wdg in self.widget_state.state.items():
             vis = wdg.get(DEFAULT, False)
             wdg[VISIBLE] = vis
-            self.configuration.set(nam, vis)
+            self.configuration.set(name, vis)
+        self.configuration.set("showsettings_b", True)
+        self.configuration.set("docksettings_b", True)
         self._do_layout()
+
+    def reset_frames(self):
+        """
+        Reset frames.
+        """
+
+        self.frm_widgets.frm_mapview.reset_map_refresh()
+        self.frm_widgets.frm_spectrumview.reset()
 
     def reset_gnssstatus(self):
         """
@@ -508,8 +530,9 @@ class App(Frame):
         Refresh visible widgets.
         """
 
+        self.frm_banner.update_frame()
         for wdg, wdgdata in self.widget_state.state.items():
-            frm = getattr(self, wdgdata[FRAME])
+            frm = getattr(self.frm_widgets, wdgdata[FRAME])
             if hasattr(frm, "update_frame") and wdgdata[VISIBLE]:
                 if wdg == WDGCONSOLE:
                     frm.update_frame(self.consoledata)
@@ -887,9 +910,9 @@ class App(Frame):
 
         # update chart plot if chart is visible
         if self.widget_state.state[WDGCHART][VISIBLE]:
-            getattr(self, self.widget_state.state[WDGCHART][FRAME]).update_data(
-                parsed_data
-            )
+            getattr(
+                self.frm_widgets, self.widget_state.state[WDGCHART][FRAME]
+            ).update_data(parsed_data)
 
         # update consoledata if console is visible and protocol not filtered
         if self.widget_state.state[WDGCONSOLE][VISIBLE] and (

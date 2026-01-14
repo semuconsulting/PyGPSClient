@@ -101,7 +101,8 @@ class Configuration:
         # Set initial default configuration
         self._settings = {
             "version_s": version,
-            # main settings from frm_settings
+            "showsettings_b": 1,
+            "docksettings_b": 1,
             **self.widget_config,
             "checkforupdate_b": 0,
             "transient_dialog_b": 1,  # whether pop-up dialogs are on top of main app window

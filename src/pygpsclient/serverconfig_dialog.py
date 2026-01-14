@@ -458,8 +458,8 @@ class ServerConfigDialog(ToplevelDialog):
             self._chk_https.config(state=DISABLED)
             https = 0
         self.https.set(https)
-        self._lbl_publicip.config(text=publicip())
-        self._lbl_lanip.config(text=lanip())
+        self.after(5, lambda: self._lbl_publicip.config(text=publicip()))
+        self.after(5, lambda: self._lbl_lanip.config(text=lanip()))
         if cfg.get("sockmode_b"):  # NTRIP CASTER
             self.sock_port.set(cfg.get("sockportntrip_n"))
         else:  # SOCKET SERVER

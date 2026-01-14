@@ -22,9 +22,6 @@ Created on 30 Apr 2023
 :license: BSD 3-Clause
 """
 
-from tkinter import NSEW, E, S, W
-
-from pygpsclient.banner_frame import BannerFrame
 from pygpsclient.chart_frame import ChartviewFrame
 from pygpsclient.console_frame import ConsoleFrame
 from pygpsclient.globals import CLASS, FRAME
@@ -33,37 +30,27 @@ from pygpsclient.levelsview_frame import LevelsviewFrame
 from pygpsclient.map_frame import MapviewFrame
 from pygpsclient.rover_frame import RoverFrame
 from pygpsclient.scatter_frame import ScatterViewFrame
-from pygpsclient.settings_frame import SettingsFrame
 from pygpsclient.signalsview_frame import SignalsviewFrame
 from pygpsclient.skyview_frame import SkyviewFrame
 from pygpsclient.spectrum_frame import SpectrumviewFrame
-from pygpsclient.status_frame import StatusFrame
 from pygpsclient.sysmon_frame import SysmonFrame
 
-COL = "COL"
 COLSPAN = "colspan"
 DEFAULT = "def"
 HIDE = "Hide"
 MAXCOLSPAN = 4  # max no of widget columns
-MAXCOLS = 999  # always occupy the full row
+MAXSPAN = 0  # always occupy the full row
 MAXROWSPAN = 4  # max no of widget rows
-MENU = "men"
 RESET = "rst"
-ROW = "row"
-ROWSPAN = "rowspan"
 SHOW = "Show"
-STICKY = "sty"
 VISIBLE = "vis"
-WDGBANNER = "Banner"
 WDGCONSOLE = "Console"
 WDGLEVELS = "Levels"
 WDGMAP = "Map"
 WDGROVER = "Rover Plot"
 WDGSATS = "Satellites"
 WDGSCATTER = "Scatter Plot"
-WDGSETTINGS = "Settings"
 WDGSPECTRUM = "Spectrum"
-WDGSTATUS = "Status"
 WDGSYSMON = "System Monitor"
 WDGCHART = "Chart Plot"
 WDGIMUMON = "IMU Monitor"
@@ -81,47 +68,12 @@ class WidgetState:
         """
 
         self.state = {
-            # these widgets have fixed positions
-            WDGBANNER: {  # always on top
-                DEFAULT: True,
-                MENU: False,
-                CLASS: BannerFrame,
-                FRAME: "frm_banner",
-                VISIBLE: True,
-                STICKY: NSEW,
-                COL: 0,
-                ROW: 0,
-                COLSPAN: 6,
-            },
-            WDGSETTINGS: {  # always on right
-                DEFAULT: True,
-                CLASS: SettingsFrame,
-                FRAME: "frm_settings",
-                VISIBLE: True,
-                STICKY: NSEW,
-                COL: 5,
-                ROW: 1,
-                ROWSPAN: 4,
-            },
-            WDGSTATUS: {  # always on bottom
-                DEFAULT: True,
-                MENU: False,
-                CLASS: StatusFrame,
-                FRAME: "frm_status",
-                VISIBLE: True,
-                STICKY: (S, W, E),
-                COL: 0,
-                ROW: 5,
-                COLSPAN: 6,
-            },
-            # these widgets rearrange dynamically according to
-            # which has been selected to be visible
             WDGCONSOLE: {
                 DEFAULT: True,
                 CLASS: ConsoleFrame,
                 FRAME: "frm_console",
                 VISIBLE: True,
-                COLSPAN: MAXCOLS,
+                COLSPAN: MAXSPAN,
             },
             WDGSATS: {
                 DEFAULT: True,

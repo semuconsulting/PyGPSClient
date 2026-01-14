@@ -86,7 +86,6 @@ from pygpsclient.mapquest_handler import (
 from pygpsclient.widget_state import (
     DEFAULT,
     FRAME,
-    MENU,
     VISIBLE,
     WidgetState,
 )
@@ -132,7 +131,7 @@ class StaticTest(unittest.TestCase):
         self.assertEqual(cfg.get("lbandclientdrat_n"), 2400)
         self.assertEqual(cfg.get("userport_s"), "")
         self.assertEqual(cfg.get("spartnport_s"), "")
-        self.assertEqual(len(cfg.settings), 155)
+        self.assertEqual(len(cfg.settings), 154)  # 155)
         kwargs = {"userport": "/dev/ttyACM0", "spartnport": "/dev/ttyACM1"}
         cfg.loadcli(**kwargs)
         self.assertEqual(cfg.get("userport_s"), "/dev/ttyACM0")
@@ -504,7 +503,6 @@ class StaticTest(unittest.TestCase):
         NoneType = type(None)
         for wdg, wdict in app.widget_state.state.items():
             self.assertIsInstance(wdg, str),
-            self.assertIsInstance(wdict.get(MENU, True), bool),
             self.assertIsInstance(wdict.get(DEFAULT, False), bool),
             self.assertIsInstance(wdict[FRAME], str),
             self.assertEqual(wdict["frm"][0:4], "frm_"),
@@ -550,7 +548,7 @@ class StaticTest(unittest.TestCase):
             "fee": "N",
             "bitrate": "3120",
         }
-        EXPECTED_RESULT2 = {'name': 'N/A', 'gga': 0}
+        EXPECTED_RESULT2 = {"name": "N/A", "gga": 0}
         srt = (
             "ACACU",
             "Curug",
@@ -917,12 +915,31 @@ class StaticTest(unittest.TestCase):
         self.assertAlmostEqual(center.lon, -1.815437, 7)
 
     def testunusedsats(self):
-        gsv_data = {(1,1): (0,0,0,0,5,0),(1,2): (0,0,0,0,7,0),(2,1): (0,0,0,0,0,0),(2,2): (0,0,0,0,1,0),(3,1): (0,0,0,0,5,0)}
+        gsv_data = {
+            (1, 1): (0, 0, 0, 0, 5, 0),
+            (1, 2): (0, 0, 0, 0, 7, 0),
+            (2, 1): (0, 0, 0, 0, 0, 0),
+            (2, 2): (0, 0, 0, 0, 1, 0),
+            (3, 1): (0, 0, 0, 0, 5, 0),
+        }
         self.assertEqual(unused_sats(gsv_data), 1)
-        gsv_data = {(1,1): (0,0,0,0,5,0),(1,2): (0,0,0,0,7,0),(2,1): (0,0,0,0,0,0),(2,2): (0,0,0,0,1,0),(3,1): (0,0,0,0,0,0)}
+        gsv_data = {
+            (1, 1): (0, 0, 0, 0, 5, 0),
+            (1, 2): (0, 0, 0, 0, 7, 0),
+            (2, 1): (0, 0, 0, 0, 0, 0),
+            (2, 2): (0, 0, 0, 0, 1, 0),
+            (3, 1): (0, 0, 0, 0, 0, 0),
+        }
         self.assertEqual(unused_sats(gsv_data), 2)
-        gsv_data = {(1,1): (0,0,0,0,5,0),(1,2): (0,0,0,0,7,0),(2,1): (0,0,0,0,1,0),(2,2): (0,0,0,0,1,0),(3,1): (0,0,0,0,4,0)}
+        gsv_data = {
+            (1, 1): (0, 0, 0, 0, 5, 0),
+            (1, 2): (0, 0, 0, 0, 7, 0),
+            (2, 1): (0, 0, 0, 0, 1, 0),
+            (2, 2): (0, 0, 0, 0, 1, 0),
+            (3, 1): (0, 0, 0, 0, 4, 0),
+        }
         self.assertEqual(unused_sats(gsv_data), 0)
+
 
 if __name__ == "__main__":
     # import sys;sys.argv = ['', 'Test.testName']

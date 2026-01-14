@@ -35,7 +35,6 @@ from pygpsclient.strings import (
     MENUSAVE,
     MENUVIEW,
 )
-from pygpsclient.widget_state import MENU
 
 DIALOGS = (
     DLGTUBX,
@@ -88,15 +87,24 @@ class MenuBar(Menu):
         # Create a pull-down menu for view operations
         # Menu labels are set in app._grid_widgets() function
         self.view_menu = Menu(self, tearoff=False)
-        for wdg, wdict in self.__app.widget_state.state.items():
-            if wdict.get(MENU, True):
-                self.view_menu.add_command(
-                    underline=1, command=lambda i=wdg: self.__app.widget_toggle(i)
-                )
+        self.view_menu.add_command(
+            underline=1,
+            label="Undock Settings",
+            command=self.__app.settings_dock,
+        )
+        self.view_menu.add_command(
+            underline=1,
+            label="Hide Settings",
+            command=self.__app.settings_toggle,
+        )
+        for nam in self.__app.widget_state.state:
+            self.view_menu.add_command(
+                underline=1, command=lambda i=nam: self.__app.widget_toggle(i)
+            )
         self.view_menu.add_command(
             underline=1,
             label=MENURESET,
-            command=lambda: self.__app.widget_reset(),  # pylint: disable=unnecessary-lambda
+            command=lambda: self.__app.reset_layout(),  # pylint: disable=unnecessary-lambda
         )
         self.add_cascade(menu=self.view_menu, label=MENUVIEW)
 

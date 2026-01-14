@@ -582,15 +582,6 @@ class SettingsFrame(Frame):
         self.clients = 0
         self._attach_events(True)
 
-    def _reset_frames(self):
-        """
-        Reset frames.
-        """
-
-        self.__app.frm_mapview.reset_map_refresh()
-        self.__app.frm_spectrumview.reset()
-        self.__app.reset_gnssstatus()
-
     def _on_update_ubxprot(self, var, index, mode):
         """
         Action on updating ubxprot.
@@ -864,7 +855,8 @@ class SettingsFrame(Frame):
         self.__app.conn_status = conntype
         self.__app.conn_label = (connstr, OKCOL)
         self.__app.status_label = ("", INFOCOL)
-        self._reset_frames()
+        self.__app.reset_frames()
+        self.__app.reset_gnssstatus()
         self.__app.stream_handler.start(self.__app, conndict)
 
     def enable_controls(self, status: int):
