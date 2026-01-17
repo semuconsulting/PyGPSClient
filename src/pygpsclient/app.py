@@ -33,7 +33,7 @@ Created on 12 Sep 2020
 :license: BSD 3-Clause
 """
 
-# pylint: disable=too-many-ancestors, no-member, too-many-lines
+# pylint: disable=too-many-ancestors, no-member
 
 import logging
 from datetime import datetime, timedelta
@@ -44,7 +44,7 @@ from subprocess import CalledProcessError, run
 from sys import executable
 from threading import Thread
 from time import process_time_ns, time
-from tkinter import NSEW, Frame, Label, PhotoImage, Tk, Toplevel, font
+from tkinter import EW, NSEW, NW, Frame, Label, PhotoImage, Tk, Toplevel, font
 from types import NoneType
 
 from pygnssutils import GNSSMQTTClient, GNSSNTRIPClient, MQTTMessage
@@ -66,10 +66,12 @@ from pyubx2 import UBXMessage
 from serial import SerialException, SerialTimeoutException
 
 from pygpsclient._version import __version__ as VERSION
+from pygpsclient.banner_frame import BannerFrame
 from pygpsclient.configuration import Configuration
 from pygpsclient.dialog_state import DialogState
 from pygpsclient.file_handler import FileHandler
 from pygpsclient.globals import (
+    BGCOL,
     CLASS,
     CONFIGFILE,
     CONNECTED,
@@ -105,7 +107,9 @@ from pygpsclient.nmea_handler import NMEAHandler
 from pygpsclient.qgc_handler import QGCHandler
 from pygpsclient.rtcm3_handler import RTCM3Handler
 from pygpsclient.sbf_handler import SBFHandler
+from pygpsclient.settings_frame import SettingsFrame
 from pygpsclient.sqlite_handler import DBINMEM, SQLOK, SqliteHandler
+from pygpsclient.status_frame import StatusFrame
 from pygpsclient.stream_handler import StreamHandler
 from pygpsclient.strings import (
     CONFIGERR,
@@ -113,12 +117,11 @@ from pygpsclient.strings import (
     DLGSTOPRTK,
     DLGTNTRIP,
     DLGTRECORD,
+    DLGTSETTINGS,
     ENDOFFILE,
     INACTIVE_TIMEOUT,
     INTROTXTNOPORTS,
     KILLSWITCH,
-    LOADCONFIGBAD,
-    LOADCONFIGOK,
     NOTCONN,
     NOWDGSWARN,
     SAVECONFIGBAD,
@@ -129,18 +132,12 @@ from pygpsclient.strings import (
 from pygpsclient.tty_handler import TTYHandler
 from pygpsclient.ubx_handler import UBXHandler
 from pygpsclient.widget_state import (
-    COL,
     COLSPAN,
     DEFAULT,
     HIDE,
-    MAXCOLS,
-    MAXCOLSPAN,
     MAXROWSPAN,
-    MENU,
-    ROW,
-    ROWSPAN,
+    MAXSPAN,
     SHOW,
-    STICKY,
     VISIBLE,
     WDGCHART,
     WDGCONSOLE,
@@ -168,14 +165,14 @@ class App(Frame):
         self.__master = master
         self.logger = logging.getLogger(__name__)
 
-        # Init Frame class
-        Frame.__init__(self, self.__master)
+        super().__init__(master)
 
         self.__master.protocol("WM_DELETE_WINDOW", self.on_exit)
         self.__master.title(TITLE)
         self.__master.iconphoto(True, PhotoImage(file=ICON_APP128))
 
         self._deferredmsg = None
+        self._server_status = -1  # socket server status -1 = inactive
         self.gnss_inqueue = Queue()  # messages from GNSS receiver
         self.gnss_outqueue = Queue()  # messages to GNSS receiver
         self.ntrip_inqueue = Queue()  # messages from NTRIP source
@@ -199,6 +196,7 @@ class App(Frame):
         self.ntrip_handler = GNSSNTRIPClient(self)
         self.spartn_handler = GNSSMQTTClient(self)
         self.sqlite_handler = SqliteHandler(self)
+        self.frm_settings = None
         self._conn_status = DISCONNECTED
         self._rtk_conn_status = DISCONNECTED
         self._nowidgets = True
@@ -234,9 +232,9 @@ class App(Frame):
         self._do_layout()
         self._attach_events()
 
-        # instantiate widgets
-        for value in self.widget_state.state.values():
-            frm = getattr(self, value[FRAME])
+        # initialise widgets
+        for wdg in self.widget_state.state.values():
+            frm = getattr(self, wdg[FRAME])
             if hasattr(frm, "init_frame"):
                 frm.update_idletasks()
                 frm.init_frame()
@@ -264,109 +262,136 @@ class App(Frame):
         self.menu = MenuBar(self)
         self.__master.config(menu=self.menu)
 
-        # initialise widget state
-        for value in self.widget_state.state.values():
+        self.frm_banner = BannerFrame(self, borderwidth=2, relief="groove")
+        self.frm_status = StatusFrame(self, borderwidth=2, relief="groove")
+        self.frm_settings = SettingsFrame(self)
+        self.frm_widgets = Frame(self.__master, bg=BGCOL)
+
+        # instantiate widgets
+        for wdg in self.widget_state.state.values():
             setattr(
+                # self.frm_widgets,
                 self,
-                value[FRAME],
-                value[CLASS](self, borderwidth=2, relief="groove"),
+                wdg[FRAME],
+                wdg[CLASS](self, self.frm_widgets, borderwidth=2, relief="groove"),
             )
 
     def _do_layout(self):
         """
-        Arrange widgets in main application frame, and set
-        widget visibility and menu label (show/hide).
+        Arrange visible widgets in main application frame and set
+        menu labels (show/hide).
 
-        NB: PyGPSClient generally favours 'grid' rather than 'pack'
-        layout management throughout:
+        NB: PyGPSClient uses 'grid' rather than 'pack' layout management throughout:
         - grid weight = 0 means fixed, non-expandable
         - grid weight > 0 means expandable
         """
 
+        # get maximum column and row spans for frm_widgets
+        cols = 0
+        maxcols = 1
+        maxrows = 0
+        for wdg in self.widget_state.state.values():
+            if wdg[VISIBLE]:
+                if cols == 0:
+                    maxrows += 1
+                cols += wdg.get(COLSPAN, 1)
+                if cols > self.configuration.get("maxcolumns_n"):
+                    cols = 0
+                    maxrows += 1
+                maxcols = max(cols, maxcols)
+
+        # dynamically position widgets in frm_widgets
         col = 0
         row = 1
-        maxcol = 0
-        maxrow = 0
-        men = 0
-        for name in self.widget_state.state:
-            col, row, maxcol, maxrow, men = self._widget_grid(
-                name, col, row, maxcol, maxrow, men
-            )
-
-        for col in range(MAXCOLSPAN + 1):
-            self.__master.grid_columnconfigure(col, weight=0)
-        for row in range(MAXROWSPAN + 2):
-            self.__master.grid_rowconfigure(row, weight=0)
-        for col in range(maxcol):
-            self.__master.grid_columnconfigure(col, weight=5)
-        for row in range(1, maxrow + 1):
-            self.__master.grid_rowconfigure(row, weight=5)
-
-    def _widget_grid(
-        self, name: str, col: int, row: int, maxcol: int, maxrow: int, men: int
-    ) -> tuple:
-        """
-        Arrange widgets and update menu label (show/hide).
-
-        Widgets with explicit COL(umn) settings will be placed in fixed
-        positions; widgets with no COL(umn) setting will be arranged
-        dynamically (left to right, top to bottom).
-
-        :param str name: name of widget
-        :param int col: col
-        :param int row: row
-        :param int maxcol: max cols
-        :param int maxrow: max rows
-        :param int men: menu position
-        :return: max row & col
-        :rtype: tuple
-        """
-
-        maxcols = self.configuration.get("maxcolumns_n")  # type: ignore
-        wdg = self.widget_state.state[name]
-        dynamic = wdg.get(COL, None) is None
-        frm = getattr(self, wdg[FRAME])
-        if wdg[VISIBLE]:
-            self.widget_enable_messages(name)
-            fcol = wdg.get(COL, col)
-            frow = wdg.get(ROW, row)
-            colspan = wdg.get(COLSPAN, 1)
-            if colspan == MAXCOLS:
-                colspan = maxcols
-            rowspan = wdg.get(ROWSPAN, 1)
-            if dynamic and fcol + colspan > maxcols:
-                fcol = 0
-                frow += 1
-            frm.grid(
-                column=fcol,
-                row=frow,
-                columnspan=colspan,
-                rowspan=rowspan,
-                padx=2,
-                pady=2,
-                sticky=wdg.get(STICKY, NSEW),
-            )
-            lbl = HIDE
-            if dynamic:
-                col += colspan
-                if col >= maxcols:  # type: ignore
+        men = 2
+        for name, wdg in self.widget_state.state.items():
+            frm = getattr(self, wdg[FRAME])
+            if wdg[VISIBLE]:
+                # enable any GNSS data required by widget
+                self.widget_enable_messages(name)
+                cols = (
+                    maxcols if wdg.get(COLSPAN, 1) == MAXSPAN else wdg.get(COLSPAN, 1)
+                )
+                frm.grid(column=col, row=row, columnspan=cols, sticky=NSEW)
+                col += cols
+                if col >= maxcols:
                     col = 0
-                    row += rowspan
-                maxcol = max(maxcol, fcol + colspan)
-                maxrow = max(maxrow, frow)
-        else:
-            frm.grid_forget()
-            lbl = SHOW
-
-        # update menu label (show/hide)
-        if wdg.get(MENU, True):
+                    row += 1
+                lbl = HIDE
+            else:
+                frm.grid_forget()
+                lbl = SHOW
+            # update menu label (show/hide)
             self.menu.view_menu.entryconfig(men, label=f"{lbl} {name}")
             men += 1
 
-        # force widget to rescale
-        # frm.event_generate("<Configure>")
+        # do main layout
+        self.frm_banner.grid(column=0, row=0, columnspan=maxcols + 1, sticky=EW)
+        self.frm_widgets.grid(
+            column=0, row=1, columnspan=maxcols, rowspan=maxrows, sticky=NSEW
+        )
+        if isinstance(self.frm_settings, SettingsFrame):  # docked
+            if self.configuration.get("showsettings_b"):
+                self.frm_settings.grid(
+                    column=maxcols, row=1, rowspan=maxrows, sticky=NW
+                )
+            else:
+                self.frm_settings.grid_forget()
+        self.frm_status.grid(
+            column=0, row=maxrows + 1, columnspan=maxcols + 1, sticky=EW
+        )
+        # update settings menu labels (dock/undock, show/hide)
+        lbl = "Undock" if self.configuration.get("docksettings_b") else "Dock"
+        self.menu.view_menu.entryconfig(0, label=f"{lbl} Settings")
+        lbl = HIDE if self.configuration.get("showsettings_b") else SHOW
+        self.menu.view_menu.entryconfig(1, label=f"{lbl} Settings")
 
-        return col, row, maxcol, maxrow, men
+        # set 'pack' behaviour of main layout
+        for frm in (self, self.__master, self.frm_widgets):
+            for col in range(maxcols):
+                frm.grid_columnconfigure(col, weight=1)
+            for col in range(maxcols, self.configuration.get("maxcolumns_n") + 1):
+                frm.grid_columnconfigure(col, weight=0)
+            for row in range(1, maxrows + 1):
+                frm.grid_rowconfigure(row, weight=1)
+            for row in range(maxrows + 1, MAXROWSPAN + 1):
+                frm.grid_rowconfigure(row, weight=0)
+
+    def settings_toggle(self):
+        """
+        Toggle settings visibility.
+        """
+
+        self.configuration.set(
+            "showsettings_b", not self.configuration.get("showsettings_b")
+        )
+        self._do_layout()
+
+    def settings_dock(self):
+        """
+        Toggle settings docking.
+
+        - If undocked, destroy any existing instance of SettingsFrame
+          and launch SettingsDialog instead.
+        - If docked, destroy SettingsDialog and instantiate SettingsFrame.
+        """
+
+        self.configuration.set(
+            "docksettings_b", not self.configuration.get("docksettings_b")
+        )
+        if self.configuration.get("docksettings_b"):
+            if self.dialog_state.state[DLGTSETTINGS][DLG] is not None:
+                self.dialog_state.state[DLGTSETTINGS][DLG].destroy()
+                self.dialog_state.state[DLGTSETTINGS][DLG] = None
+                self.frm_settings = SettingsFrame(self)
+        else:
+            if self.dialog_state.state[DLGTSETTINGS][DLG] is None:
+                if isinstance(self.frm_settings, SettingsFrame):
+                    self.frm_settings.grid_forget()
+                    self.frm_settings.destroy()
+                self.start_dialog(DLGTSETTINGS)
+                self.frm_settings = self.dialog_state.state[DLGTSETTINGS][DLG]
+        self._do_layout()
 
     def widget_toggle(self, name: str):
         """
@@ -393,16 +418,26 @@ class App(Frame):
         if hasattr(frm, "enable_messages"):
             frm.enable_messages(self.widget_state.state[name][VISIBLE])
 
-    def widget_reset(self):
+    def reset_layout(self):
         """
-        Reset widgets to default layout.
+        Reset to default layout.
         """
 
-        for nam, wdg in self.widget_state.state.items():
+        for name, wdg in self.widget_state.state.items():
             vis = wdg.get(DEFAULT, False)
             wdg[VISIBLE] = vis
-            self.configuration.set(nam, vis)
+            self.configuration.set(name, vis)
+        self.configuration.set("showsettings_b", True)
+        self.configuration.set("docksettings_b", True)
         self._do_layout()
+
+    def reset_frames(self):
+        """
+        Reset frames.
+        """
+
+        self.frm_mapview.reset_map_refresh()
+        self.frm_spectrumview.reset()
 
     def reset_gnssstatus(self):
         """
@@ -462,21 +497,16 @@ class App(Frame):
         if err == "":  # load succeeded
             self.update_widgets()
             for frm in (
-                self.frm_settings,
+                self.frm_settings.frm_settings,
                 self.frm_settings.frm_serial,
                 self.frm_settings.frm_socketclient,
-                self.frm_settings.frm_socketserver,
             ):
                 frm.reset()
             self._do_layout()
             if self._nowidgets:
                 self.status_label = (NOWDGSWARN.format(filename), ERRCOL)
-            else:
-                self.status_label = (LOADCONFIGOK.format(filename), OKCOL)
-        elif err == "cancelled":  # user cancelled
-            return
-        else:  # config error
-            self.status_label = (LOADCONFIGBAD.format(filename), ERRCOL)
+        elif err == "cancelled":
+            pass
 
     def save_config(self):
         """
@@ -514,6 +544,7 @@ class App(Frame):
         Refresh visible widgets.
         """
 
+        self.frm_banner.update_frame()
         for wdg, wdgdata in self.widget_state.state.items():
             frm = getattr(self, wdgdata[FRAME])
             if hasattr(frm, "update_frame") and wdgdata[VISIBLE]:
@@ -560,6 +591,8 @@ class App(Frame):
         https = cfg.get("sockhttps_b")
         ntripuser = cfg.get("ntripcasteruser_s")
         ntrippassword = cfg.get("ntripcasterpassword_s")
+        tlspempath = cfg.get("tlspempath_s")
+        ntriprtcmstr = "1002(1),1006(5),1077(1),1087(1),1097(1),1127(1),1230(1)"
         self._socket_thread = Thread(
             target=self._sockserver_thread,
             args=(
@@ -567,6 +600,8 @@ class App(Frame):
                 host,
                 port,
                 https,
+                tlspempath,
+                ntriprtcmstr,
                 ntripuser,
                 ntrippassword,
                 SOCKSERVER_MAX_CLIENTS,
@@ -575,16 +610,16 @@ class App(Frame):
             daemon=True,
         )
         self._socket_thread.start()
-        self.frm_banner.update_transmit_status(0)
+        self.server_status = 0  # 0 = active, no clients
 
     def sockserver_stop(self):
         """
         Stop socket server thread.
         """
 
-        self.frm_banner.update_transmit_status(-1)
         if self._socket_server is not None:
             self._socket_server.shutdown()
+        self.server_status = -1  # -1 = inactive
 
     def _sockserver_thread(
         self,
@@ -592,6 +627,8 @@ class App(Frame):
         host: str,
         port: int,
         https: int,
+        tlspempath: str,
+        ntriprtcmstr: str,
         ntripuser: str,
         ntrippassword: str,
         maxclients: int,
@@ -605,6 +642,8 @@ class App(Frame):
         :param str host: socket host name (0.0.0.0)
         :param int port: socket port (50010)
         :param int https: https enabled (0)
+        :param str tlspempath: path to TLS PEM file ("$HOME/pygnssutils.pem")
+        :param str ntriprtcmstr: NTRIP caster RTCM type(rate) sourcetable entry
         :param int maxclients: max num of clients (5)
         :param Queue socketqueue: socket server read queue
         """
@@ -620,6 +659,8 @@ class App(Frame):
                 requesthandler,
                 ntripuser=ntripuser,
                 ntrippassword=ntrippassword,
+                tlspempath=tlspempath,
+                ntriprtcmstr=ntriprtcmstr,
             ) as self._socket_server:
                 self._socket_server.serve_forever()
         except OSError as err:
@@ -633,7 +674,7 @@ class App(Frame):
         :param int clients: no of connected clients
         """
 
-        self.frm_settings.frm_socketserver.clients = clients
+        self.server_status = clients
 
     def _shutdown(self):
         """
@@ -684,9 +725,9 @@ class App(Frame):
             raw_data, parsed_data = self.gnss_inqueue.get(False)
             if raw_data is not None and parsed_data is not None:
                 self.process_data(raw_data, parsed_data)
-            # if socket server is running, output raw data to socket
-            if self.frm_settings.frm_socketserver.socketserving:
-                self.socket_outqueue.put(raw_data)
+                # if socket server is running, output raw data to socket
+                if self.server_status:
+                    self.socket_outqueue.put(raw_data)
             self.gnss_inqueue.task_done()
         except Empty:
             pass
@@ -699,9 +740,7 @@ class App(Frame):
         :param event event: <<gnss_eof>> event
         """
 
-        self.frm_settings.frm_socketserver.socketserving = (
-            False  # turn off socket server
-        )
+        self.server_status = -1
         self._refresh_widgets()
         self.conn_status = DISCONNECTED
         self.status_label = (ENDOFFILE, ERRCOL)
@@ -714,9 +753,7 @@ class App(Frame):
         :param event event: <<gnss_timeout>> event
         """
 
-        self.frm_settings.frm_socketserver.socketserving = (
-            False  # turn off socket server
-        )
+        self.server_status = -1
         self._refresh_widgets()
         self.conn_status = DISCONNECTED
         self.status_label = (INACTIVE_TIMEOUT, ERRCOL)
@@ -1074,9 +1111,33 @@ class App(Frame):
 
         self._conn_status = status
         self.frm_banner.update_conn_status(status)
-        self.frm_settings.enable_controls(status)
+        self.frm_settings.frm_settings.enable_controls(status)
         if status == DISCONNECTED:
             self.conn_label = (NOTCONN, INFOCOL)
+
+    @property
+    def server_status(self) -> int:
+        """
+        Getter for socket server status.
+
+        :return: server status
+        :rtype: int
+        """
+
+        return self._server_status
+
+    @server_status.setter
+    def server_status(self, status: int):
+        """
+        Setter for socket server status.
+
+        :param int status: server status
+            -1 - inactive, 0 = active no clients, >0 = active clients
+        """
+
+        self._server_status = status
+        self.frm_banner.update_transmit_status(status)
+        self.configuration.set("sockserver_b", status >= 0)
 
     @property
     def rtk_conn_status(self) -> int:

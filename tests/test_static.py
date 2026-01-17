@@ -86,7 +86,6 @@ from pygpsclient.mapquest_handler import (
 from pygpsclient.widget_state import (
     DEFAULT,
     FRAME,
-    MENU,
     VISIBLE,
     WidgetState,
 )
@@ -132,7 +131,7 @@ class StaticTest(unittest.TestCase):
         self.assertEqual(cfg.get("lbandclientdrat_n"), 2400)
         self.assertEqual(cfg.get("userport_s"), "")
         self.assertEqual(cfg.get("spartnport_s"), "")
-        self.assertEqual(len(cfg.settings), 152)
+        self.assertEqual(len(cfg.settings), 154)  # 155)
         kwargs = {"userport": "/dev/ttyACM0", "spartnport": "/dev/ttyACM1"}
         cfg.loadcli(**kwargs)
         self.assertEqual(cfg.get("userport_s"), "/dev/ttyACM0")
@@ -504,7 +503,6 @@ class StaticTest(unittest.TestCase):
         NoneType = type(None)
         for wdg, wdict in app.widget_state.state.items():
             self.assertIsInstance(wdg, str),
-            self.assertIsInstance(wdict.get(MENU, True), bool),
             self.assertIsInstance(wdict.get(DEFAULT, False), bool),
             self.assertIsInstance(wdict[FRAME], str),
             self.assertEqual(wdict["frm"][0:4], "frm_"),
@@ -536,20 +534,21 @@ class StaticTest(unittest.TestCase):
             "identifier": "Curug",
             "format": "RTCM 3.2",
             "messages": "1005(31),1074(1),1084(1),1094(1)",
-            "carrier": "L1,L2",
+            "carrier": "2",
             "navs": "GPS+GLO+GAL",
             "network": "SNIP",
             "country": "SRB",
             "lat": "45.47",
             "lon": "20.06",
-            "gga": "GGA",
-            "solution": "Single",
+            "gga": "1",
+            "solution": "0",
             "generator": "sNTRIP",
             "encrypt": "none",
-            "auth": "Basic",
+            "auth": "B",
             "fee": "N",
             "bitrate": "3120",
         }
+        EXPECTED_RESULT2 = {"name": "N/A", "gga": 0}
         srt = (
             "ACACU",
             "Curug",
@@ -573,7 +572,7 @@ class StaticTest(unittest.TestCase):
         res = get_mp_info(srt)
         self.assertEqual(res, EXPECTED_RESULT)
         res = get_mp_info([])
-        self.assertEqual(res, None)
+        self.assertEqual(res, EXPECTED_RESULT2)
 
     def testpublicip(self):
         res = publicip()
@@ -916,12 +915,31 @@ class StaticTest(unittest.TestCase):
         self.assertAlmostEqual(center.lon, -1.815437, 7)
 
     def testunusedsats(self):
-        gsv_data = {(1,1): (0,0,0,0,5,0),(1,2): (0,0,0,0,7,0),(2,1): (0,0,0,0,0,0),(2,2): (0,0,0,0,1,0),(3,1): (0,0,0,0,5,0)}
+        gsv_data = {
+            (1, 1): (0, 0, 0, 0, 5, 0),
+            (1, 2): (0, 0, 0, 0, 7, 0),
+            (2, 1): (0, 0, 0, 0, 0, 0),
+            (2, 2): (0, 0, 0, 0, 1, 0),
+            (3, 1): (0, 0, 0, 0, 5, 0),
+        }
         self.assertEqual(unused_sats(gsv_data), 1)
-        gsv_data = {(1,1): (0,0,0,0,5,0),(1,2): (0,0,0,0,7,0),(2,1): (0,0,0,0,0,0),(2,2): (0,0,0,0,1,0),(3,1): (0,0,0,0,0,0)}
+        gsv_data = {
+            (1, 1): (0, 0, 0, 0, 5, 0),
+            (1, 2): (0, 0, 0, 0, 7, 0),
+            (2, 1): (0, 0, 0, 0, 0, 0),
+            (2, 2): (0, 0, 0, 0, 1, 0),
+            (3, 1): (0, 0, 0, 0, 0, 0),
+        }
         self.assertEqual(unused_sats(gsv_data), 2)
-        gsv_data = {(1,1): (0,0,0,0,5,0),(1,2): (0,0,0,0,7,0),(2,1): (0,0,0,0,1,0),(2,2): (0,0,0,0,1,0),(3,1): (0,0,0,0,4,0)}
+        gsv_data = {
+            (1, 1): (0, 0, 0, 0, 5, 0),
+            (1, 2): (0, 0, 0, 0, 7, 0),
+            (2, 1): (0, 0, 0, 0, 1, 0),
+            (2, 2): (0, 0, 0, 0, 1, 0),
+            (3, 1): (0, 0, 0, 0, 4, 0),
+        }
         self.assertEqual(unused_sats(gsv_data), 0)
+
 
 if __name__ == "__main__":
     # import sys;sys.argv = ['', 'Test.testName']

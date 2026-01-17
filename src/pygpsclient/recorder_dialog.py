@@ -18,6 +18,7 @@ Created on 9 Jan 2023
 
 # pylint: disable=unused-argument
 
+from datetime import datetime
 from threading import Event, Thread
 from time import sleep
 from tkinter import CENTER, EW, NSEW, Button, Frame, Label, TclError, W, filedialog
@@ -45,6 +46,7 @@ from pygpsclient.globals import (
     FGCOL,
     HOME,
     ICON_DELETE,
+    ICON_IMPORT,
     ICON_LOAD,
     ICON_RECORD,
     ICON_SAVE,
@@ -56,7 +58,7 @@ from pygpsclient.globals import (
     PNTCOL,
     UNDO,
 )
-from pygpsclient.helpers import set_filename
+from pygpsclient.helpers import nmea2preset, set_filename, tty2preset, ubx2preset
 from pygpsclient.strings import DLGTRECORD, SAVETITLE
 from pygpsclient.toplevel_dialog import ToplevelDialog
 
@@ -70,8 +72,6 @@ STOP = 0
 TTYONLY = 0
 VALSET = b"\x8a"
 VALGET = b"\x8b"
-
-MINDIM = (500, 300)
 
 
 class RecorderDialog(ToplevelDialog):
@@ -91,7 +91,7 @@ class RecorderDialog(ToplevelDialog):
 
         self.__app = app
         # self.__master = self.__app.appmaster  # link to root Tk window
-        super().__init__(app, DLGTRECORD, MINDIM)
+        super().__init__(app, DLGTRECORD)
         self.width = int(kwargs.get("width", 500))
         self.height = int(kwargs.get("height", 300))
 
@@ -100,6 +100,7 @@ class RecorderDialog(ToplevelDialog):
         self._img_play = ImageTk.PhotoImage(Image.open(ICON_SEND))
         self._img_stop = ImageTk.PhotoImage(Image.open(ICON_STOP))
         self._img_record = ImageTk.PhotoImage(Image.open(ICON_RECORD))
+        self._img_import = ImageTk.PhotoImage(Image.open(ICON_IMPORT))
         self._img_undo = ImageTk.PhotoImage(Image.open(ICON_UNDO))
         self._img_delete = ImageTk.PhotoImage(Image.open(ICON_DELETE))
         self._rec_status = STOP
@@ -135,6 +136,14 @@ class RecorderDialog(ToplevelDialog):
             image=self._img_save,
             width=40,
             command=self._on_save,
+            highlightbackground=BGCOL,
+            highlightthickness=2,
+        )
+        self._btn_import = Button(
+            self._frm_body,
+            image=self._img_import,
+            width=40,
+            command=self._on_import,
             highlightbackground=BGCOL,
             highlightthickness=2,
         )
@@ -191,11 +200,12 @@ class RecorderDialog(ToplevelDialog):
         self._frm_body.grid(column=0, row=0, sticky=NSEW)
         self._btn_load.grid(column=0, row=0, ipadx=3, ipady=3, sticky=W)
         self._btn_save.grid(column=1, row=0, ipadx=3, ipady=3, sticky=W)
-        self._btn_play.grid(column=2, row=0, ipadx=3, ipady=3, sticky=W)
-        self._btn_record.grid(column=3, row=0, ipadx=3, ipady=3, sticky=W)
-        self._btn_undo.grid(column=4, row=0, ipadx=3, ipady=3, sticky=W)
-        self._btn_delete.grid(column=5, row=0, ipadx=3, ipady=3, sticky=W)
-        self._lbl_memory.grid(column=6, row=0, ipadx=3, ipady=3, sticky=W)
+        self._btn_import.grid(column=2, row=0, ipadx=3, ipady=3, sticky=W)
+        self._btn_play.grid(column=3, row=0, ipadx=3, ipady=3, sticky=W)
+        self._btn_record.grid(column=4, row=0, ipadx=3, ipady=3, sticky=W)
+        self._btn_undo.grid(column=5, row=0, ipadx=3, ipady=3, sticky=W)
+        self._btn_delete.grid(column=6, row=0, ipadx=3, ipady=3, sticky=W)
+        self._lbl_memory.grid(column=7, row=0, ipadx=3, ipady=3, sticky=W)
         self._lbl_activity.grid(column=0, row=2, columnspan=7, padx=3, sticky=EW)
 
         (cols, rows) = self.grid_size()
@@ -450,6 +460,49 @@ class RecorderDialog(ToplevelDialog):
         stat = "started" if self._rec_status else "stopped"
         self.status_label = (f"Recording {stat}", INFOCOL)
         self._update_status()
+
+    def _on_import(self):
+        """
+        Import commands as presets.
+
+        NB: Assumes all commands in a single recording are of the
+        same type (i.e. UBX, NMEA or TTY).
+        """
+
+        if self._rec_status == RECORD:
+            return
+
+        if len(self.__app.recorded_commands) == 0:
+            self.status_label = ("Nothing to import", ERRCOL)
+            return
+
+        try:
+            now = f'Recorded commands {datetime.now().strftime("%Y-%m-%d_%H:%M:%S")}'
+            if isinstance(self.__app.recorded_commands[0], UBXMessage):
+                self.__app.configuration.get("ubxpresets_l").append(
+                    ubx2preset(self.__app.recorded_commands, now)
+                )
+                typ = "UBX"
+            elif isinstance(self.__app.recorded_commands[0], NMEAMessage):
+                self.__app.configuration.get("nmeapresets_l").append(
+                    nmea2preset(self.__app.recorded_commands, now)
+                )
+                typ = "NMEA"
+            else:  # tty
+                self.__app.configuration.get("ttypresets_l").append(
+                    tty2preset(self.__app.recorded_commands, now)
+                )
+                typ = "TTY"
+
+            self.status_label = (
+                f"{len(self.__app.recorded_commands)} commands imported as {typ} presets",
+                OKCOL,
+            )
+        except AttributeError:
+            self.status_label = (
+                "Recorded commands must be of same type",
+                ERRCOL,
+            )
 
     def _on_undo(self):
         """

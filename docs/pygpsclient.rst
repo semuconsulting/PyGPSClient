@@ -36,10 +36,10 @@ pygpsclient.canvas\_map module
    :undoc-members:
    :show-inheritance:
 
-pygpsclient.canvas\_plot module
--------------------------------
+pygpsclient.canvas\_subclasses module
+-------------------------------------
 
-.. automodule:: pygpsclient.canvas_plot
+.. automodule:: pygpsclient.canvas_subclasses
    :members:
    :undoc-members:
    :show-inheritance:
@@ -300,10 +300,26 @@ pygpsclient.serialconfig\_lband\_frame module
    :undoc-members:
    :show-inheritance:
 
-pygpsclient.serverconfig\_frame module
---------------------------------------
+pygpsclient.serverconfig\_dialog module
+---------------------------------------
 
-.. automodule:: pygpsclient.serverconfig_frame
+.. automodule:: pygpsclient.serverconfig_dialog
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pygpsclient.settings\_child\_frame module
+-----------------------------------------
+
+.. automodule:: pygpsclient.settings_child_frame
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pygpsclient.settings\_dialog module
+-----------------------------------
+
+.. automodule:: pygpsclient.settings_dialog
    :members:
    :undoc-members:
    :show-inheritance:
@@ -312,6 +328,14 @@ pygpsclient.settings\_frame module
 ----------------------------------
 
 .. automodule:: pygpsclient.settings_frame
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pygpsclient.signalsview\_frame module
+-------------------------------------
+
+.. automodule:: pygpsclient.signalsview_frame
    :members:
    :undoc-members:
    :show-inheritance:

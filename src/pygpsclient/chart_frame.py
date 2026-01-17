@@ -29,7 +29,7 @@ from tkinter import (
     font,
 )
 
-from pygpsclient.canvas_plot import (
+from pygpsclient.canvas_subclasses import (
     TAG_DATA,
     TAG_GRID,
     TAG_XLABEL,
@@ -98,11 +98,12 @@ class ChartviewFrame(Frame):
     CHartview frame class.
     """
 
-    def __init__(self, app, *args, **kwargs):
+    def __init__(self, app, parent, *args, **kwargs):
         """
         Constructor.
 
         :param Frame app: reference to main tkinter application
+        :param Frame parent: reference to parent frame
         :param args: optional args to pass to Frame parent class
         :param kwargs: optional kwargs to pass to Frame parent class
         """
@@ -110,7 +111,7 @@ class ChartviewFrame(Frame):
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
 
-        Frame.__init__(self, self.__master, *args, **kwargs)
+        super().__init__(parent, *args, **kwargs)
 
         self.chartsettings = self.__app.configuration.get("chartsettings_d")
         def_w, def_h = WIDGETU6

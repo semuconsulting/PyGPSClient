@@ -53,7 +53,6 @@ from pygnssutils import (
     UBX_PROTOCOL,
     GNSSError,
     GNSSReader,
-    check_pemfile,
 )
 from pynmeagps import NMEAMessageError, NMEAParseError, NMEAStreamError
 from pyqgc import QGCMessageError, QGCParseError, QGCStreamError
@@ -220,9 +219,9 @@ class StreamHandler:
                         context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
                         context.load_verify_locations(findcacerts())
                         if selfsign:
-                            pem, _ = check_pemfile()
+                            crt = settings.get("tlscrtpath")
                             # context.verify_mode = ssl.CERT_NONE
-                            context.load_verify_locations(pem)
+                            context.load_verify_locations(crt)
                             context.check_hostname = False
                         stream = context.wrap_socket(stream, server_hostname=server)
                     stream.connect(conn)
@@ -263,6 +262,7 @@ class StreamHandler:
             master.event_generate(settings["timeout_event"])
         except (
             IOError,
+            FileNotFoundError,
             SerialException,
             SerialTimeoutException,
             OSError,
@@ -270,10 +270,15 @@ class StreamHandler:
             gaierror,
         ) as err:
             if not stopevent.is_set():
+                fnam = (
+                    settings.get("tlscrtpath")
+                    if isinstance(err, FileNotFoundError)
+                    else ""
+                )
                 stopevent.set()
                 master.event_generate(settings["error_event"])
                 # use after(0) to avoid tkinter main thread contention
-                status.after(0, status.config, {"text": str(err), "fg": ERRCOL})
+                status.after(0, status.config, {"text": f"{err} {fnam}", "fg": ERRCOL})
 
     def _readloop(
         self,

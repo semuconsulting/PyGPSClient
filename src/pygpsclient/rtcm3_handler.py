@@ -84,5 +84,5 @@ class RTCM3Handler:
             # update Survey-In base station location
             if self.__app.frm_settings.frm_socketserver is not None:
                 self.__app.frm_settings.frm_socketserver.update_base_location()
-        except (AttributeError, ValueError):
+        except (AttributeError, TypeError, ValueError):
             pass

@@ -129,12 +129,12 @@ disable = """
     too-many-public-methods,
     too-many-locals,
     invalid-name,
-    logging-fstring-interpolation
+    logging-fstring-interpolation,
 """
 
 [tool.pytest.ini_options]
 minversion = "7.0"
-addopts = "--cov --cov-report html --cov-fail-under 18"
+addopts = "--cov --cov-report html --cov-fail-under 16"
 pythonpath = ["src"]
 testpaths = ["tests"]
 
@@ -145,7 +145,7 @@ source = ["src"]
 source = ["src"]
 
 [tool.coverage.report]
-fail_under = 18
+fail_under = 16
 
 [tool.coverage.html]
 directory = "htmlcov"

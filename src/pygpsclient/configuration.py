@@ -16,6 +16,12 @@ import logging
 from os import getenv
 from types import NoneType
 
+from pygnssutils import (
+    PYGNSSUTILS_CRT,
+    PYGNSSUTILS_CRTPATH,
+    PYGNSSUTILS_PEM,
+    PYGNSSUTILS_PEMPATH,
+)
 from pyubx2 import GET
 from serial import PARITY_NONE
 
@@ -95,7 +101,8 @@ class Configuration:
         # Set initial default configuration
         self._settings = {
             "version_s": version,
-            # main settings from frm_settings
+            "showsettings_b": 1,
+            "docksettings_b": 1,
             **self.widget_config,
             "checkforupdate_b": 0,
             "transient_dialog_b": 1,  # whether pop-up dialogs are on top of main app window
@@ -139,6 +146,8 @@ class Configuration:
             "trackpath_s": "",
             "database_b": 0,
             "databasepath_s": "",
+            "tlspempath_s": PYGNSSUTILS_PEM,
+            "tlscrtpath_s": PYGNSSUTILS_CRT,
             # serial port settings from frm_serial
             "serialport_s": "/dev/ttyACM0",
             "bpsrate_n": 9600,
@@ -284,6 +293,8 @@ class Configuration:
                     resave = True
                     continue
         else:
+            if err == "cancelled":  # user cancelled
+                return filename, err
             if "No such file or directory" in err:
                 err = LOADCONFIGNONE.format(fname)
             else:
@@ -346,6 +357,12 @@ class Configuration:
         arg = kwargs.pop("ntripcasterpassword", getenv("NTRIPCASTER_PASSWORD", None))
         if arg is not None:
             self.set("ntripcasterpassword_s", arg)
+        arg = kwargs.pop("tlspempath", getenv(PYGNSSUTILS_PEMPATH, PYGNSSUTILS_PEM))
+        if arg is not None:
+            self.set("tlspempath_s", arg)
+        arg = kwargs.pop("tlscrtpath", getenv(PYGNSSUTILS_CRTPATH, PYGNSSUTILS_CRT))
+        if arg is not None:
+            self.set("tlscrtpath_s", arg)
 
     def set(self, name: str, value: object):
         """

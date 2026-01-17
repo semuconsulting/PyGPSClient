@@ -16,7 +16,7 @@ Created on 13 Sep 2020
 
 from tkinter import NSEW, Frame
 
-from pygpsclient.canvas_plot import (
+from pygpsclient.canvas_subclasses import (
     MODE_CEL,
     TAG_DATA,
     TAG_GRID,
@@ -40,11 +40,12 @@ class SkyviewFrame(Frame):
     Skyview frame class.
     """
 
-    def __init__(self, app, *args, **kwargs):
+    def __init__(self, app: Frame, parent: Frame, *args, **kwargs):
         """
         Constructor.
 
         :param Frame app: reference to main tkinter application
+        :param Frame parent: reference to parent frame
         :param args: optional args to pass to Frame parent class
         :param kwargs: optional kwargs to pass to Frame parent class
         """
@@ -52,7 +53,7 @@ class SkyviewFrame(Frame):
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
 
-        Frame.__init__(self, self.__master, *args, **kwargs)
+        super().__init__(parent, *args, **kwargs)
 
         def_w, def_h = WIDGETU2
         self.width = kwargs.get("width", def_w)

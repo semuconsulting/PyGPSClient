@@ -35,11 +35,11 @@ from tkinter import (
     Spinbox,
     StringVar,
     Tk,
+    font,
 )
-from tkinter.font import Font
 from typing import Literal
 
-from pynmeagps import WGS84_SMAJ_AXIS, haversine
+from pynmeagps import WGS84_SMAJ_AXIS, NMEAMessage, haversine
 from pyubx2 import (
     SET,
     SET_LAYER_RAM,
@@ -53,6 +53,7 @@ from pyubx2 import (
 from requests import get
 
 from pygpsclient.globals import (
+    BSR,
     ERRCOL,
     FIXLOOKUP,
     GPSEPOCH0,
@@ -66,9 +67,9 @@ from pygpsclient.globals import (
     MPS2KNT,
     MPS2KPH,
     MPS2MPH,
+    OVERSCAN,
     PUBLICIP_URL,
     ROMVER_NEW,
-    SCREENSCALE,
     TIME0,
     UI,
     UIK,
@@ -91,12 +92,6 @@ from pygpsclient.strings import NA
 # validation type flags
 MAXPORT = 65535
 MAXALT = 10000.0  # meters arbitrary
-
-# NTRIP enumerations
-NMEA = {"0": "No GGA", "1": "GGA"}
-AUTHS = {"N": "None", "B": "Basic", "D": "Digest"}
-CARRIERS = {"0": "No", "1": "L1", "2": "L1,L2"}
-SOLUTIONS = {"0": "Single", "1": "Network"}
 
 
 def validate(self: Entry, valmode: int, low=MINFLOAT, high=MAXFLOAT) -> bool:
@@ -282,24 +277,22 @@ def check_latest(name: str) -> str:
         return NA
 
 
-def check_lowres(master: Tk, dim: tuple) -> tuple:
+def check_lowres(master: Tk, dim: tuple, overscan: float = OVERSCAN) -> tuple:
     """
     Check if dialog dimensions exceed effective screen resolution.
 
     :param tkinter.Tk master: reference to root
     :param tuple dim: dialog dimensions in pixels (height, width)
+    :param float overscan: screen 'overscan' allowance
     :return: low resolution yes/no and effective resolution
     :rtype: tuple (boolean, (screen height/width))
     """
 
-    sh, sw = screenres(master)
+    sh, sw = [int(i / overscan) for i in screenres(master)]
     dh, dw = dim
-    if sh < dh or sw < dw:
-        maxh, maxw = sh, sw
-        lowres = True
-    else:
-        maxh, maxw = dh, dw
-        lowres = False
+    maxh = min(sh, dh)
+    maxw = min(sw, dw)
+    lowres = (maxh, maxw) != dim
     return lowres, (maxh, maxw)
 
 
@@ -389,6 +382,40 @@ def dop2str(dop: float) -> str:
     return dops
 
 
+def fitfont(
+    fmt: str,
+    maxw: int,
+    maxh: int,
+    angle: int = 0,
+    maxsiz: int = 10,
+    constraint: int = 3,
+) -> tuple[font.Font, float, float]:
+    """
+    Create font to fit space.
+
+    :param str format: format of string
+    :param int maxw: max width in pixels
+    :param int maxh: max height in pixels
+    :param int angle: font angle in degrees
+    :param int maxsiz: maximum font size in pixels
+    :param int constraint: 1 = width, 2 = height, 3 = width & height
+    :return: tuple of (sized font, font width, font height)
+    :rtype: tuple[font.Font, float, float]
+    """
+
+    fw, fh = maxw + 1, maxh + 1
+    rw, rh = fw, fh
+    siz = maxsiz
+    fnt = font.Font(size=-siz)
+    while (
+        (rw > maxw and constraint & 1) or (rh > maxh and constraint & 2)
+    ) and siz > 0:
+        fnt = font.Font(size=-siz)
+        rw, rh = fontdim(fmt, fnt, angle)
+        siz -= 1
+    return fnt, fw, fh
+
+
 def fix2desc(msgid: str, fix: object) -> str:
     """
     Get integer fix value for given message fix status.
@@ -416,6 +443,25 @@ def ft2m(feet: float) -> float:
     if not isinstance(feet, (float, int)):
         return 0
     return feet / 3.28084
+
+
+def fontdim(fmt: str, fnt: font.Font, angle: int = 0) -> tuple[float, float]:
+    """
+    Get x,y pixel dimensions of string in given rotated font.
+
+    :param str fmt: format string e.g. "000"
+    :param font.Font fnt: font
+    :param int angle: rotation angle in degrees (0 = horizontal)
+    :return: tuple of (width, height)
+    :rtype: tuple[float, float]
+    """
+
+    theta = radians(angle)
+    fw = fnt.measure(fmt)
+    fh = fnt.metrics("linespace")
+    rw = abs(fw * cos(theta)) + abs(fh * sin(theta))
+    rh = abs(fh * cos(theta)) + abs(fw * sin(theta))
+    return rw, rh
 
 
 def get_mp_distance(lat: float, lon: float, mp: list) -> float:
@@ -460,22 +506,22 @@ def get_mp_info(srt: list) -> dict:
             "identifier": srt[1],
             "format": srt[2],
             "messages": srt[3],
-            "carrier": CARRIERS.get(srt[4], srt[4]),
+            "carrier": srt[4],
             "navs": srt[5],
             "network": srt[6],
             "country": srt[7],
             "lat": srt[8],
             "lon": srt[9],
-            "gga": NMEA.get(srt[10], srt[10]),
-            "solution": SOLUTIONS.get(srt[11], srt[11]),
+            "gga": srt[10],
+            "solution": srt[11],
             "generator": srt[12],
             "encrypt": srt[13],
-            "auth": AUTHS.get(srt[14], srt[14]),
+            "auth": srt[14],
             "fee": srt[15],
             "bitrate": srt[16],
         }
     except IndexError:
-        return None
+        return {"name": NA, "gga": 0}
 
 
 def get_point_at_vector(
@@ -802,7 +848,9 @@ def ned2vector(n: float, e: float, d: float) -> tuple:
     return dis, hdg
 
 
-def nmea2preset(msgs: tuple, desc: str = "") -> str:
+def nmea2preset(
+    msgs: NMEAMessage | tuple[NMEAMessage] | list[NMEAMessage], desc: str = ""
+) -> str:
     """
     Convert one or more NMEAMessages to format suitable for adding to user-defined
     preset list `nmeapresets_l` in PyGPSClient .json configuration files.
@@ -812,14 +860,14 @@ def nmea2preset(msgs: tuple, desc: str = "") -> str:
 
     e.g. "Configure Signals; P; QTMCFGSIGNAL; W,7,3,F,3F,7,1; 1"
 
-    :param tuple msgs: NMEAmessage or tuple of NMEAmessages
+    :param NMEAMessage | tuple[NMEAMessage] | list[NMEAMessage] msgs: NMEAmessage(s)
     :param str desc: preset description
     :return: preset string
     :rtype: str
     """
 
     desc = desc.replace(";", " ")
-    if not isinstance(msgs, tuple):
+    if not isinstance(msgs, (tuple, list)):
         msgs = (msgs,)
     preset = (
         f"{msgs[0].identity} {['GET','SET','POLL'][msgs[0].msgmode]}"
@@ -985,7 +1033,7 @@ def rgb2str(r: int, g: int, b: int) -> str:
 
 
 def scale_font(
-    width: int, basesize: int, txtwidth: int, maxsize: int = 0, fnt: Font = None
+    width: int, basesize: int, txtwidth: int, maxsize: int = 0, fnt: font.Font = None
 ) -> tuple:
     """
     Scale font size to widget width.
@@ -999,23 +1047,22 @@ def scale_font(
     :rtype: tuple
     """
 
-    fnt = Font(size=12) if fnt is None else fnt
+    fnt = font.Font(size=12) if fnt is None else fnt
     fs = basesize * width / fnt.measure("W" * txtwidth)
-    fnt = Font(size=int(min(fs, maxsize))) if maxsize else Font(size=int(fs))
+    fnt = font.Font(size=int(min(fs, maxsize))) if maxsize else font.Font(size=int(fs))
     return fnt, fnt.metrics("linespace")
 
 
-def screenres(master: Tk, scale: float = SCREENSCALE) -> tuple:
+def screenres(master: Tk) -> tuple:
     """
     Get effective screen resolution.
 
     :param tkinter.Tk master: reference to root
-    :param float scale: screen scaling factor
-    :return: adjusted screen resolution in pixels (height, width)
+    :return: screen resolution in pixels (height, width)
     :rtype: tuple
     """
 
-    return (master.winfo_screenheight() * scale, master.winfo_screenwidth() * scale)
+    return (master.winfo_screenheight(), master.winfo_screenwidth())
 
 
 def secs2unit(secs: int) -> tuple:
@@ -1238,6 +1285,32 @@ def time2str(tim: float, sformat: str = "%H:%M:%S") -> str:
     return dt.strftime(sformat)
 
 
+def tty2preset(msgs: bytes | tuple[bytes] | list[bytes], desc: str = "") -> str:
+    """
+    Convert one or more ASCII TTY commands to format suitable for adding to user-defined
+    preset list `ttypresets_l` in PyGPSClient .json configuration files.
+
+    The format is:
+    "<description>; <ascii>"
+
+    e.g. "IM19 System reset CONFIRM; AT+SYSTEM_RESET"
+
+    :param bytes | tuple[bytes] | list[bytes] msgs: ASCII TTY command(s)
+    :param str desc: preset description
+    :return: preset string
+    :rtype: str
+    """
+
+    desc = desc.replace(";", " ")
+    if not isinstance(msgs, (tuple, list)):
+        msgs = (msgs,)
+    preset = "TTY Command" if desc == "" else desc
+    for msg in msgs:
+        cmd = msg.decode("ascii", errors=BSR).strip("\r\n")
+        preset += f"; {cmd}"
+    return preset
+
+
 def unused_sats(data: dict) -> int:
     """
     Get number of 'unused' sats in gnss_data.gsv_data.
@@ -1250,7 +1323,9 @@ def unused_sats(data: dict) -> int:
     return sum(1 for (_, _, _, _, cno, _) in data.values() if cno == 0)
 
 
-def ubx2preset(msgs: tuple, desc: str = "") -> str:
+def ubx2preset(
+    msgs: UBXMessage | tuple[UBXMessage] | list[UBXMessage], desc: str = ""
+) -> str:
     """
     Convert one or more UBXMessages to format suitable for adding to user-defined
     preset list `ubxpresets_l` in PyGPSClient .json configuration files.
@@ -1260,14 +1335,14 @@ def ubx2preset(msgs: tuple, desc: str = "") -> str:
 
     e.g. "Set NMEA High Precision Mode, CFG, CFG-VALSET, 000100000600931001, 1"
 
-    :param tuple msgs: UBXMessage or tuple of UBXmessages
+    :param UBXMessage | tuple[UBXMessage] | list[UBXMessage] msgs: UBXMessage(s)
     :param str desc: preset description
     :return: preset string
     :rtype: str
     """
 
     desc = desc.replace(",", " ")
-    if not isinstance(msgs, tuple):
+    if not isinstance(msgs, (tuple, list)):
         msgs = (msgs,)
     preset = (
         f"{msgs[0].identity} {['GET','SET','POLL'][msgs[0].msgmode]}"

@@ -22,8 +22,8 @@ from pyubx2 import UBXMessage, itow2utc
 
 from pygpsclient.globals import GLONASS_NMEA, UTF8
 from pygpsclient.helpers import corrage2int, fix2desc, ned2vector, svid2gnssid
-from pygpsclient.strings import DLGTSPARTN, DLGTUBX, NA
-from pygpsclient.widget_state import VISIBLE, WDGSPECTRUM, WDGSYSMON
+from pygpsclient.strings import DLGTSERVER, DLGTSPARTN, DLGTUBX, NA
+from pygpsclient.widget_state import VISIBLE, WDGSIGNALS, WDGSPECTRUM, WDGSYSMON
 
 
 class UBXHandler:
@@ -79,6 +79,8 @@ class UBXHandler:
             self._process_NAV_RELPOSNED(parsed_data)
         elif parsed_data.identity in ("NAV-SAT", "NAV2-SAT"):
             self._process_NAV_SAT(parsed_data)
+        elif parsed_data.identity in ("NAV-SIG", "NAV2-SIG"):
+            self._process_NAV_SIG(parsed_data)
         elif parsed_data.identity in ("NAV-STATUS", "NAV2-STATUS"):
             self._process_NAV_STATUS(parsed_data)
         elif parsed_data.identity == "NAV-SVIN":
@@ -118,10 +120,10 @@ class UBXHandler:
         if self.__app.dialog(DLGTSPARTN) is not None:
             self.__app.dialog(DLGTSPARTN).update_pending(msg)
 
-        # if Spectrumview or Sysmon widgets are active, send ACKSs there
+        # if Spectrumview, Sysmon or Signals widgets are active, send ACKSs there
         if msg.identity in ("ACK-ACK", "ACK-NAK"):
             wdgs = self.__app.widget_state.state
-            for wdg in (WDGSYSMON, WDGSPECTRUM):
+            for wdg in (WDGSYSMON, WDGSPECTRUM, WDGSIGNALS):
                 if wdgs[wdg][VISIBLE]:
                     if msg.clsID == 6 and msg.msgID == 1:  # CFG-MSG
                         getattr(self.__app, wdgs[wdg]["frm"]).update_pending(msg)
@@ -347,6 +349,47 @@ class UBXHandler:
 
         self.__app.gnss_status.siv = len(self.__app.gnss_status.gsv_data)
 
+    def _process_NAV_SIG(self, data: UBXMessage):
+        """
+        Process NAV-SIG sentences - Signal Information.
+
+        NB: For consistency with NMEA GSV and UBX NAV-SVINFO message types,
+        this uses the NMEA SVID numbering range for GLONASS satellites
+        (65 - 96) rather than the Slot ID (1-24) by default.
+        To change this, set the GLONASS_NMEA flag in globals.py to False.
+
+        :param UBXMessage data: NAV-SIG parsed message
+        """
+
+        self.__app.gnss_status.sig_data = {}
+        num_sig = int(data.numSigs)
+        now = time()
+
+        for i in range(num_sig):
+            idx = f"_{i+1:02d}"
+            gnssId = getattr(data, "gnssId" + idx)
+            svid = getattr(data, "svId" + idx)
+            sigid = getattr(data, "sigId" + idx)
+            # use NMEA GLONASS numbering (65-96) rather than slotID (1-24)
+            if gnssId == 6 and svid < 25 and svid != 255 and GLONASS_NMEA:
+                svid += 64
+            cno = getattr(data, "cno" + idx)
+            corrsource = getattr(data, "corrSource" + idx)
+            quality = getattr(data, "qualityInd" + idx)
+            sigflags = 0
+            self.__app.gnss_status.sig_data[(gnssId, svid, sigid)] = (
+                gnssId,
+                svid,
+                sigid,
+                cno,
+                corrsource,
+                quality,
+                sigflags,
+                now,
+            )
+
+        # print(f"DEBUG {self.__app.gnss_status.sig_data=}")
+
     def _process_NAV_STATUS(self, data: UBXMessage):
         """
         Process NAV-STATUS sentences - Status Information.
@@ -366,8 +409,8 @@ class UBXHandler:
         :param UBXMessage data: NAV-SVIN parsed message
         """
 
-        if self.__app.frm_settings.frm_socketserver is not None:
-            self.__app.frm_settings.frm_socketserver.svin_countdown(
+        if self.__app.dialog(DLGTSERVER) is not None:
+            self.__app.dialog(DLGTSERVER).svin_countdown(
                 data.dur, data.valid, data.active
             )
 

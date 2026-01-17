@@ -31,6 +31,7 @@ from tkinter import (
     Scrollbar,
     Spinbox,
     StringVar,
+    TclError,
     W,
 )
 
@@ -73,21 +74,21 @@ class UBX_CFGVAL_Frame(Frame):
     UBX CFG-VAL configuration command panel.
     """
 
-    def __init__(self, app, container, *args, **kwargs):
+    def __init__(self, app: Frame, parent: Frame, *args, **kwargs):
         """
         Constructor.
 
         :param Frame app: reference to main tkinter application
-        :param Frame container: reference to container frame (config-dialog)
+        :param Frame parent: reference to parent frame (config-dialog)
         :param args: optional args to pass to Frame parent class
         :param kwargs: optional kwargs to pass to Frame parent class
         """
 
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
-        self.__container = container
+        self.__container = parent
 
-        super().__init__(container.container, *args, **kwargs)
+        super().__init__(parent.container, *args, **kwargs)
 
         self._img_send = ImageTk.PhotoImage(Image.open(ICON_SEND))
         self._img_pending = ImageTk.PhotoImage(Image.open(ICON_PENDING))
@@ -298,13 +299,16 @@ class UBX_CFGVAL_Frame(Frame):
         Configuration parameter (keyname) has been selected.
         """
 
-        idx = self._lbx_parm.curselection()
-        self._cfgval_keyname = self._lbx_parm.get(idx)
+        try:
+            idx = self._lbx_parm.curselection()
+            self._cfgval_keyname = self._lbx_parm.get(idx)
 
-        (keyid, att) = cfgname2key(self._cfgval_keyname)
-        self._cfgkeyid.set(hex(keyid))
-        self._cfgatt.set(att)
-        self._cfgval.set("")
+            (keyid, att) = cfgname2key(self._cfgval_keyname)
+            self._cfgkeyid.set(hex(keyid))
+            self._cfgatt.set(att)
+            self._cfgval.set("")
+        except TclError:
+            pass
 
     def _on_send_config(self, *args, **kwargs):  # pylint: disable=unused-argument
         """

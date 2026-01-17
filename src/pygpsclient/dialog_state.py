@@ -2,12 +2,11 @@
 dialog_state.py
 
 Class holding global constants, strings and dictionaries
-used to maintain the state of the various threaded dialogs.
+used to maintain the state of the various pop-up dialogs.
 
 CLASS = name of dialog class
-THD = instance of thread
 DLG = instance of dialog frame
-RESIZE = whether dialog is resizeable
+RESIZE = whether dialog is resizeable (defaults to False)
 
 Created on 16 Aug 2023
 
@@ -23,6 +22,8 @@ from pygpsclient.importmap_dialog import ImportMapDialog
 from pygpsclient.nmea_config_dialog import NMEAConfigDialog
 from pygpsclient.ntrip_client_dialog import NTRIPConfigDialog
 from pygpsclient.recorder_dialog import RecorderDialog
+from pygpsclient.serverconfig_dialog import ServerConfigDialog
+from pygpsclient.settings_dialog import SettingsDialog
 from pygpsclient.spartn_dialog import SPARTNConfigDialog
 from pygpsclient.strings import (
     DLG,
@@ -32,6 +33,8 @@ from pygpsclient.strings import (
     DLGTNMEA,
     DLGTNTRIP,
     DLGTRECORD,
+    DLGTSERVER,
+    DLGTSETTINGS,
     DLGTSPARTN,
     DLGTTTY,
     DLGTUBX,
@@ -71,6 +74,11 @@ class DialogState:
                 DLG: None,
                 RESIZE: False,
             },
+            DLGTSERVER: {
+                CLASS: ServerConfigDialog,
+                DLG: None,
+                RESIZE: True,
+            },
             DLGTSPARTN: {
                 CLASS: SPARTNConfigDialog,
                 DLG: None,
@@ -89,10 +97,15 @@ class DialogState:
             DLGTTTY: {
                 CLASS: TTYPresetDialog,
                 DLG: None,
-                RESIZE: True,
+                RESIZE: False,
             },
             DLGTRECORD: {
                 CLASS: RecorderDialog,
+                DLG: None,
+                RESIZE: False,
+            },
+            DLGTSETTINGS: {
+                CLASS: SettingsDialog,
                 DLG: None,
                 RESIZE: False,
             },

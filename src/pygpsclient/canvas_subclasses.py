@@ -1,7 +1,8 @@
 """
-canvas_plot.py
+canvas_subclasses.py
 
-Multi-purpose CanvasGraph and CanvasCompass subclasses for PyGPSClient application.
+Multi-purpose CanvasContainer, CanvasGraph and CanvasCompass subclasses
+for PyGPSClient application.
 
 Simplifies plotting of graphs and compass representations.
 
@@ -18,7 +19,25 @@ Created on 20 Nov 2025
 
 from datetime import timedelta
 from math import ceil, cos, radians, sin
-from tkinter import NE, NW, SE, Canvas, E, Frame, N, S, W, font
+from tkinter import (
+    ALL,
+    EW,
+    HORIZONTAL,
+    NE,
+    NS,
+    NSEW,
+    NW,
+    SE,
+    VERTICAL,
+    Canvas,
+    E,
+    Frame,
+    N,
+    S,
+    Scrollbar,
+    W,
+    font,
+)
 from typing import Literal
 
 from pygpsclient.globals import GRIDLEGEND, GRIDMAJCOL, GRIDMINCOL, SQRT2, TIME0
@@ -30,6 +49,60 @@ TAG_YLABEL = "ylb"
 MODE_CEL = "ele"
 MODE_POL = "lin"
 DEFRADII = {"ele": (0, 30, 45, 60, 75, 90), "lin": range(10, 1, -2)}
+
+
+class CanvasContainer(Canvas):
+    """
+    Custom expandable and scrollable Canvas Container class,
+    used to contain frames whose dimensions exceed the current
+    application window size.
+    """
+
+    def __init__(self, app, container, *args, **kwargs):
+        """
+        Constructor.
+
+        :param app: Application
+        :param container: Container frame
+        """
+
+        self.__app = app  # Reference to main application class
+        self.__master = self.__app.appmaster  # Reference to root class (Tk)
+        self.x_scrollbar = Scrollbar(container, orient=HORIZONTAL)
+        self.y_scrollbar = Scrollbar(container, orient=VERTICAL)
+
+        super().__init__(
+            container,
+            xscrollcommand=self.x_scrollbar.set,
+            yscrollcommand=self.y_scrollbar.set,
+            *args,
+            **kwargs,
+        )
+
+        self.frm_container = Frame(self, borderwidth=2, relief="groove")
+        self.grid(column=0, row=0, sticky=NSEW)
+        self.show_scroll()
+        self.x_scrollbar.config(command=self.xview)
+        self.y_scrollbar.config(command=self.yview)
+        # ensure container canvas expands to accommodate child frames
+        self.create_window((0, 0), window=self.frm_container, anchor=NW)
+        self.bind("<Configure>", lambda e: self.config(scrollregion=self.bbox(ALL)))
+        container.grid_columnconfigure(0, weight=1)
+        container.grid_rowconfigure(0, weight=1)
+
+    def show_scroll(self, show: bool = True):
+        """
+        Show or hide scrollbars.
+
+        :param bool show: show or hide
+        """
+
+        if show:
+            self.x_scrollbar.grid(column=0, row=1, sticky=EW)
+            self.y_scrollbar.grid(column=1, row=0, sticky=NS)
+        else:
+            self.x_scrollbar.grid_forget()
+            self.y_scrollbar.grid_forget()
 
 
 class CanvasGraph(Canvas):
@@ -69,6 +142,7 @@ class CanvasGraph(Canvas):
         xcol: str = "#000000",
         ycol: tuple = ("#000000",),
         xlabels: bool = False,
+        xlabelsfrm: str = "000",
         ylabels: bool = False,
         fontscale: int = 30,
         **kwargs,
@@ -77,26 +151,27 @@ class CanvasGraph(Canvas):
         Extends tkinter.Canvas Class to simplify drawing graphs on canvas.
         Accommodates multiple Y axis channels.
 
-        :param float xdatamax: x maximum data value,
-        :param float xdatamin: x minimum data value,
-        :param tuple ydatamax: y channel(s) maximum data value,
-        :param tuple ydatamin: y channel(s) minimum data value,
-        :param int xtickmaj: x major ticks,
+        :param float xdatamax: x maximum data value
+        :param float xdatamin: x minimum data value
+        :param tuple ydatamax: y channel(s) maximum data value
+        :param tuple ydatamin: y channel(s) minimum data value
+        :param int xtickmaj: x major ticks
         :param int ytickmaj: y major ticks
-        :param int xtickmin: x minor ticks,
-        :param int ytickmin: y minor ticks,
-        :param str fillmaj: major axis color,
-        :param str fillmin: minor axis color,
-        :param int xdp: x label decimal places,
-        :param tuple ydp: y channel(s) label decimal places,
-        :param str xlegend: x legend,
+        :param int xtickmin: x minor ticks
+        :param int ytickmin: y minor ticks
+        :param str fillmaj: major axis color
+        :param str fillmin: minor axis color
+        :param int xdp: x label decimal places
+        :param tuple ydp: y channel(s) label decimal places
+        :param str xlegend: x legend
         :param str xtimeformat: x label time format e.g. "%H:%M:%S"
-        :param tuple ylegend: y channels legend,
-        :param str xcol: x label color,
-        :param tuple ycol: y channel(s) color,
-        :param bool xlabels: x labels on/off,
-        :param bool ylabels: y labels on/off,
-        :param int fontscale: font scaling factor (higher is smaller),
+        :param tuple ylegend: y channels legend
+        :param str xcol: x label color
+        :param tuple ycol: y channel(s) color
+        :param bool xlabels: x labels on/off
+        :param str xlabelsfrm: xlabel format string e.g. "000"
+        :param bool ylabels: y labels on/off
+        :param int fontscale: font scaling factor (higher is smaller)
         :return: return code
         :rtype: int
         :raises: ValueError if Y channel args have dissimilar lengths
@@ -140,10 +215,11 @@ class CanvasGraph(Canvas):
         self.fnth = self.font.metrics("linespace")
         self.xoffl = self.fnth * ceil(len(ydatamax) / 2) * 1.5
         self.xoffr = self.xoffl
-        self.yoffb = self.fnth * 1.5
         xangle = kwargs.pop("xangle", 0)
-        if xangle != 0:  # add extra Y offset for slanted X labels
-            self.yoffb += self.font.measure("000") * sin(radians(xangle))
+        if xangle == 0:
+            self.yoffb = self.fnth * 1.5
+        else:  # add extra Y offset for slanted X labels
+            self.yoffb = self.font.measure(xlabelsfrm) * cos(radians(xangle)) * 1.2
         self.yofft = self.fnth
         self.xdatamax = xdatamax
         self.xdatamin = xdatamin

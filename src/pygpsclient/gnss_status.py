@@ -56,6 +56,9 @@ class GNSSStatus:
         self.rel_pos_flags = []  # rover relative position flags
         # dict of satellite {(gnssid,svid}: (gnssId, svid, elev, azim, cno, last_updated)}
         self.gsv_data = {}
+        # dict of signal {(gnssid,svid,sigid}: (gnssId, svid, sigid, cno, corrsource, quality,
+        # sigflags, last_updated)}
+        self.sig_data = {}
         # dict of hardware, firmware and software versions
         self.version_data = {
             "swversion": NA,

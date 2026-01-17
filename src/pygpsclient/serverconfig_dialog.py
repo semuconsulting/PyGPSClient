@@ -1,7 +1,7 @@
 """
-serverconfig_frame.py
+serverconfig_dialog.py
 
-Socket Server / NTRIP caster configuration panel Frame class.
+Socket Server / NTRIP caster configuration panel Dialog class.
 Supports two modes of operation - Socket Server and NTRIP Caster.
 
 If running in NTRIP Caster mode, two base station modes are available -
@@ -20,11 +20,14 @@ Created on 23 Jul 2023
 # pylint: disable=unused-argument, too-many-lines
 
 import logging
+from pathlib import Path
 from time import sleep
 from tkinter import (
     DISABLED,
     EW,
     NORMAL,
+    NSEW,
+    BooleanVar,
     Button,
     Checkbutton,
     DoubleVar,
@@ -41,7 +44,7 @@ from tkinter import (
 from tkinter.ttk import Progressbar
 
 from PIL import Image, ImageTk
-from pygnssutils import RTCMTYPES, check_pemfile
+from pygnssutils import RTCMTYPES
 from pynmeagps import NMEAMessage, ecef2llh, llh2ecef
 from pyubx2 import SET_LAYER_RAM, TXN_NONE, UBXMessage
 
@@ -59,8 +62,6 @@ from pygpsclient.globals import (
     MOSAIC_X5,
     READONLY,
     SERVERCONFIG,
-    SOCK_NTRIP,
-    SOCKMODES,
     TRACEMODE_WRITE,
     VALFLOAT,
     VALINT,
@@ -91,6 +92,7 @@ from pygpsclient.receiver_config_handler import (
 )
 from pygpsclient.strings import (
     DLGNOTLS,
+    DLGTSERVER,
     LBLACCURACY,
     LBLCONFIGBASE,
     LBLDISNMEA,
@@ -102,6 +104,7 @@ from pygpsclient.strings import (
     LBLSERVERPORT,
     LBLSOCKSERVE,
 )
+from pygpsclient.toplevel_dialog import ToplevelDialog
 
 ACCURACIES = (
     10.0,
@@ -133,34 +136,34 @@ POS_ECEF = "ECEF"
 POS_LLH = "LLH"
 PQTMVER = "PQTMVER"
 POSMODES = (POS_LLH, POS_ECEF)
+SOCK_NTRIP = "NTRIP CASTER"
+SOCK_SERVER = "SOCKET SERVER"
+SOCKMODES = (SOCK_SERVER, SOCK_NTRIP)
 
 
-class ServerConfigFrame(Frame):
+class ServerConfigDialog(ToplevelDialog):
     """
-    Server configuration frame class.
+    Server configuration dialog class.
     """
 
-    def __init__(self, app, container, *args, **kwargs):
+    def __init__(self, app, *args, **kwargs):
         """
         Constructor.
 
         :param Frame app: reference to main tkinter application
-        :param Frame container: reference to container frame
         :param args: optional args to pass to Frame parent class
         :param kwargs: optional kwargs for value ranges, or to pass to Frame parent class
         """
 
-        Frame.__init__(self, container, *args, **kwargs)
-        self.logger = logging.getLogger(__name__)
-
         self.__app = app
-        self._container = container
+        self.logger = logging.getLogger(__name__)
+        super().__init__(app, DLGTSERVER)
+
         self._show_advanced = False
-        self._socket_serve = IntVar()
+        self._socket_serve = BooleanVar()
         self.sock_port = StringVar()
         self.sock_host = StringVar()
         self.sock_mode = StringVar()
-        self._sock_clients = IntVar()
         self.receiver_type = StringVar()
         self.base_mode = StringVar()
         self.https = IntVar()
@@ -184,21 +187,23 @@ class ServerConfigFrame(Frame):
 
         self._body()
         self._do_layout()
-        self.reset()
+        self._reset()
         # self._attach_events() # done in reset
         self._attach_events1()
+        self._finalise()
 
     def _body(self):
         """
         Set up widgets.
         """
 
-        self._frm_basic = Frame(self)
+        self._frm_body = Frame(self.container)
+        self._frm_basic = Frame(self._frm_body)
         self._chk_socketserve = Checkbutton(
             self._frm_basic,
             text=LBLSOCKSERVE,
             variable=self._socket_serve,
-            state=DISABLED,
+            state=NORMAL,
         )
         self._lbl_sockmode = Label(
             self._frm_basic,
@@ -207,7 +212,7 @@ class ServerConfigFrame(Frame):
         self._spn_sockmode = Spinbox(
             self._frm_basic,
             values=SOCKMODES,
-            width=14,
+            width=16,
             state=READONLY,
             wrap=True,
             textvariable=self.sock_mode,
@@ -253,11 +258,6 @@ class ServerConfigFrame(Frame):
             relief="sunken",
             width=6,
         )
-        self._lbl_clients = Label(self._frm_basic, text="Clients")
-        self._lbl_sockclients = Label(
-            self._frm_basic,
-            textvariable=self._sock_clients,
-        )
         self._btn_toggle = Button(
             self._frm_basic,
             command=self._on_toggle_advanced,
@@ -266,7 +266,7 @@ class ServerConfigFrame(Frame):
             height=22,
             # state=DISABLED,
         )
-        self._frm_advanced = Frame(self)
+        self._frm_advanced = Frame(self._frm_body)
         self._lbl_user = Label(
             self._frm_advanced,
             text="User",
@@ -401,6 +401,7 @@ class ServerConfigFrame(Frame):
         Layout widgets.
         """
 
+        self._frm_body.grid(column=0, row=0, sticky=NSEW)
         self._frm_basic.grid(column=0, row=0, columnspan=5, sticky=EW)
         self._chk_socketserve.grid(
             column=0, row=0, columnspan=2, rowspan=2, padx=2, pady=1, sticky=W
@@ -409,8 +410,6 @@ class ServerConfigFrame(Frame):
         self._spn_sockmode.grid(column=3, row=0, padx=2, pady=1, sticky=W)
         self._lbl_sockhost.grid(column=0, row=2, padx=2, pady=1, sticky=W)
         self._ent_sockhost.grid(column=1, row=2, padx=2, pady=1, sticky=W)
-        self._lbl_clients.grid(column=2, row=2, padx=2, pady=1, sticky=W)
-        self._lbl_sockclients.grid(column=3, row=2, padx=2, pady=1, sticky=W)
         self._lbl_sockport.grid(column=0, row=3, padx=2, pady=1, sticky=W)
         self._ent_sockport.grid(column=1, row=3, padx=2, pady=1, sticky=W)
         self._chk_https.grid(column=2, row=3, columnspan=2, padx=2, pady=1, sticky=W)
@@ -426,14 +425,15 @@ class ServerConfigFrame(Frame):
         self._lbl_basemode.grid(column=0, row=1, padx=2, pady=1, sticky=E)
         self._spn_basemode.grid(column=1, row=1, padx=2, pady=1, sticky=W)
 
-    def reset(self):
+    def _reset(self):
         """
         Reset settings to defaults.
         """
 
         self._attach_events(False)
         cfg = self.__app.configuration
-        self._socket_serve.set(cfg.get("sockserver_b"))
+        self._socket_serve.set(self.__app.server_status >= 0)
+        self._set_controls()
         self.sock_mode.set(SOCKMODES[cfg.get("sockmode_b")])
         self._on_toggle_advanced()
         self.base_mode.set(cfg.get("ntripcasterbasemode_s"))
@@ -449,24 +449,23 @@ class ServerConfigFrame(Frame):
         self.disable_nmea.set(cfg.get("ntripcasterdisablenmea_b"))
         self.sock_host.set(cfg.get("sockhost_s"))
         https = cfg.get("sockhttps_b")
-        pem, pemexists = check_pemfile()
-        if https and not pemexists:
+        pem = cfg.get("tlspempath_s")
+        if https and not Path(pem).exists():
             err = DLGNOTLS.format(hostpem=pem)
-            self.__app.status_label = (err, ERRCOL)
+            self.status_label = (err, ERRCOL)
             self.logger.error(err)
             cfg.set("sockhttps_b", 0)
             self._chk_https.config(state=DISABLED)
             https = 0
         self.https.set(https)
-        self._lbl_publicip.config(text=publicip())
-        self._lbl_lanip.config(text=lanip())
+        self.after(5, lambda: self._lbl_publicip.config(text=publicip()))
+        self.after(5, lambda: self._lbl_lanip.config(text=lanip()))
         if cfg.get("sockmode_b"):  # NTRIP CASTER
             self.sock_port.set(cfg.get("sockportntrip_n"))
         else:  # SOCKET SERVER
             self.sock_port.set(cfg.get("sockport_n"))
         self.user.set(cfg.get("ntripcasteruser_s"))
         self.password.set(cfg.get("ntripcasterpassword_s"))
-        self.clients = 0
         self._fixed_lat_temp = self.fixedlat.get()
         self._fixed_lon_temp = self.fixedlon.get()
         self._fixed_hae_temp = self.fixedhae.get()
@@ -558,7 +557,6 @@ class ServerConfigFrame(Frame):
         if status == DISCONNECTED:
             self._chk_socketserve.configure(state=DISABLED)
             self._socket_serve.set(0)
-            self.clients = 0
         else:
             self._chk_socketserve.configure(state=NORMAL)
 
@@ -568,25 +566,30 @@ class ServerConfigFrame(Frame):
         """
 
         if self.valid_settings():
-            self.__app.status_label = ("", INFOCOL)
+            self.status_label = ("", INFOCOL)
         else:
-            self.__app.status_label = ("ERROR - invalid entry", ERRCOL)
+            self.status_label = ("ERROR - invalid entry", ERRCOL)
             return
 
         self._quectel_restart = 0
         if self._socket_serve.get():
             # start server
             self.__app.sockserver_start()
-            self.__app.stream_handler.sock_serve = True
+            # self.__app.stream_handler.sock_serve = True
             self._fixed_lat_temp = self.fixedlat.get()
             self._fixed_lon_temp = self.fixedlon.get()
             self._fixed_hae_temp = self.fixedhae.get()
         else:  # stop server
             self.__app.sockserver_stop()
-            self.__app.stream_handler.sock_serve = False
-            self.clients = 0
+            # self.__app.stream_handler.sock_serve = False
 
-        # set visibility of various fields depending on server status
+        self._set_controls()
+
+    def _set_controls(self):
+        """
+        Set visibility of various fields depending on server status.
+        """
+
         for wid in (
             self._ent_sockhost,
             self._ent_sockport,
@@ -631,7 +634,6 @@ class ServerConfigFrame(Frame):
                 state = NORMAL
             wid.config(state=state)
         self._lbl_elapsed.config(text="")
-        self.__app.configuration.set("sockserver_b", int(self._socket_serve.get()))
 
     def _on_configure_base(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -650,9 +652,9 @@ class ServerConfigFrame(Frame):
 
         # validate settings
         if self.valid_settings():
-            self.__app.status_label = ("", INFOCOL)
+            self.status_label = ("", INFOCOL)
         else:
-            self.__app.status_label = ("ERROR - invalid entry", ERRCOL)
+            self.status_label = ("ERROR - invalid entry", ERRCOL)
             return
 
         delay = self.__app.configuration.get("guiupdateinterval_f") / 2
@@ -860,10 +862,10 @@ class ServerConfigFrame(Frame):
         Action when https flag is updated.
         """
 
-        pem, pemexists = check_pemfile()
-        if self.https.get() and not pemexists:
+        pem = self.__app.configuration.get("tlspempath_s")
+        if self.https.get() and not Path(pem).exists():
             err = DLGNOTLS.format(hostpem=pem)
-            self.__app.status_label = (err, ERRCOL)
+            self.status_label = (err, ERRCOL)
             self.logger.error(err)
             self._attach_events(False)
             self.https.set(0)
@@ -1000,26 +1002,6 @@ class ServerConfigFrame(Frame):
         self.fixedlon.set(lon)
         self.fixedhae.set(hae)
 
-    @property
-    def clients(self) -> int:
-        """
-        Getter for number of socket clients.
-        """
-
-        return self._sock_clients.get()
-
-    @clients.setter
-    def clients(self, clients: int):
-        """
-        Setter for number of socket clients.
-
-        :param int clients: no of clients connected
-        """
-
-        self._sock_clients.set(clients)
-        if self._socket_serve.get() in ("1", 1):
-            self.__app.frm_banner.update_transmit_status(clients)
-
     def _config_msg_rates(self, rate: int, port_type: str):
         """
         Configure RTCM3 and UBX NAV-SVIN message rates.
@@ -1144,12 +1126,12 @@ class ServerConfigFrame(Frame):
             self._pgb_elapsed.grid_forget()
 
     @property
-    def socketserving(self) -> int:
+    def socketserving(self) -> bool:
         """
         Getter for socket serve flag.
 
         :return: server running True/False
-        :rtype: int
+        :rtype: bool
         """
 
         return self._socket_serve.get()
@@ -1162,7 +1144,8 @@ class ServerConfigFrame(Frame):
         :param bool state: server running True/False
         """
 
-        return self._socket_serve.set(state)
+        self._socket_serve.set(state)
+        self.__app.configuration.set("sockserver_b", state)
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """

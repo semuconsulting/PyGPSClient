@@ -124,6 +124,7 @@ class FileHandler:
         try:
             if filename is None:
                 filename = self.open_file(
+                    None,
                     "config",
                     (
                         ("config files", "*.json"),

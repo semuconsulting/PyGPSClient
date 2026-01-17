@@ -34,7 +34,7 @@ from xml.parsers import expat
 from pynmeagps import haversine, planar
 
 from pygpsclient.canvas_map import HYB, MAP, SAT, CanvasMap
-from pygpsclient.canvas_plot import CanvasGraph
+from pygpsclient.canvas_subclasses import CanvasGraph
 from pygpsclient.globals import (
     BGCOL,
     CUSTOM,
@@ -67,8 +67,6 @@ from pygpsclient.strings import (
 from pygpsclient.toplevel_dialog import ToplevelDialog
 
 MD_LINES = 3  # number of lines of metadata
-MINDIM = (400, 500)
-
 GPXTYPES = {TRACK: "trkpt", WAYPOINT: "wpt", ROUTE: "rtept"}
 AXISLBLTAG = "axl"
 CHARTMINY = 0
@@ -91,7 +89,7 @@ class GPXViewerDialog(ToplevelDialog):
         self.__app = app
         self.logger = logging.getLogger(__name__)
         # self.__master = self.__app.appmaster  # link to root Tk window
-        super().__init__(app, DLGTGPX, MINDIM)
+        super().__init__(app, DLGTGPX)
         self._mapzoom = IntVar()
         self._maptype = StringVar()
         self._gpxtype = StringVar()
@@ -136,7 +134,7 @@ class GPXViewerDialog(ToplevelDialog):
         Create widgets.
         """
 
-        self._frm_body = Frame(self.container, borderwidth=2, relief="groove")
+        self._frm_body = Frame(self.container)
         self._frm_map = Frame(self._frm_body, borderwidth=2, relief="groove", bg=BGCOL)
         self._frm_profile = Frame(
             self._frm_body, borderwidth=2, relief="groove", bg=BGCOL

@@ -72,13 +72,15 @@ class BannerFrame(Frame):
         Constructor.
 
         :param Frame app: reference to main tkinter application
+        :param Frame parent: reference to parent frame
         :param args: optional args to pass to Frame parent class
         :param kwargs: optional kwargs to pass to Frame parent class
         """
 
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
-        Frame.__init__(self, self.__master, *args, **kwargs)
+
+        super().__init__(self.__master, *args, **kwargs)
 
         self._status = False
         self._show_advanced = False
@@ -121,6 +123,9 @@ class BannerFrame(Frame):
         self._frm_advanced2 = Frame(self, bg=BGCOL)
 
         self.option_add("*Font", self.__app.font_md2)
+        self._lbl_clients = Label(
+            self._frm_connect, bg=self._bgcol, fg="green", width=2, anchor=W
+        )
         self._lbl_ltime = Label(
             self._frm_basic,
             text="utc:",
@@ -168,9 +173,9 @@ class BannerFrame(Frame):
         self._lbl_lacc = Label(
             self._frm_advanced2, text="acc:", bg=self._bgcol, fg=self._fgcol, anchor=N
         )
-        self._lbl_ldgps = Label(
+        self._lbl_lcorr = Label(
             self._frm_advanced2,
-            text="dgps:",
+            text="corr:",
             bg=self._bgcol,
             fg=self._fgcol,
             anchor=N,
@@ -186,7 +191,6 @@ class BannerFrame(Frame):
         self._lbl_transmit_preset = Label(
             self._frm_connect, bg=self._bgcol, image=self._img_blank
         )
-
         self._lbl_time = Label(
             self._frm_basic, bg=self._bgcol, fg="cyan", width=15, anchor=W
         )
@@ -224,7 +228,7 @@ class BannerFrame(Frame):
             self._frm_advanced2, bg=self._bgcol, fg="mediumpurple1", width=12, anchor=W
         )
         self._lbl_diffcorr = Label(
-            self._frm_advanced2, bg=self._bgcol, fg="hotpink", width=3, anchor=W
+            self._frm_advanced2, bg=self._bgcol, fg="hotpink", width=4, anchor=W
         )
 
         self.option_add("*Font", self.__app.font_sm)
@@ -252,7 +256,8 @@ class BannerFrame(Frame):
 
         self._lbl_status_preset.grid(column=0, row=0, padx=2, pady=3, sticky=W)
         self._lbl_rtk_preset.grid(column=1, row=0, padx=2, pady=3, sticky=W)
-        self._lbl_transmit_preset.grid(column=2, row=0, padx=2, pady=3, sticky=W)
+        self._lbl_transmit_preset.grid(column=2, row=0, padx=1, pady=3, sticky=W)
+        self._lbl_clients.grid(column=3, row=0, padx=1, pady=3, sticky=W)
         self._lbl_ltime.grid(column=1, row=0, pady=0, padx=0, sticky=W)
         self._lbl_time.grid(column=2, row=0, pady=0, padx=0, sticky=W)
         self._lbl_llat.grid(column=3, row=0, pady=0, padx=0, sticky=W)
@@ -281,7 +286,7 @@ class BannerFrame(Frame):
         self._lbl_lacc.grid(column=7, row=0, pady=0, padx=0, sticky=W)
         self._lbl_hvacc.grid(column=8, row=0, pady=0, padx=0, sticky=W)
         self._lbl_lacc_u.grid(column=9, row=0, pady=0, padx=0, sticky=W)
-        self._lbl_ldgps.grid(column=10, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_lcorr.grid(column=10, row=0, pady=0, padx=0, sticky=W)
         self._lbl_diffcorr.grid(column=11, row=0, pady=0, padx=0, sticky=W)
         self._lbl_diffstat.grid(column=12, row=0, pady=0, padx=0, sticky=W)
 
@@ -358,10 +363,13 @@ class BannerFrame(Frame):
 
         if transmit > 0:
             self._lbl_transmit_preset.configure(image=self._img_transmit)
+            self._lbl_clients.config(text=transmit, fg="#6b8839")
         elif transmit == 0:
             self._lbl_transmit_preset.configure(image=self._img_noclient)
+            self._lbl_clients.config(text=transmit, fg="#e7b03e")
         else:
             self._lbl_transmit_preset.configure(image=self._img_blank)
+            self._lbl_clients.config(text=" ", fg=BGCOL)
 
     def update_frame(self):
         """
@@ -634,7 +642,7 @@ class BannerFrame(Frame):
             self._lbl_lsip,
             self._lbl_lsiv,
             self._lbl_lacc,
-            self._lbl_ldgps,
+            self._lbl_lcorr,
         ):
             fnt, _ = scale_font(w, 12, txt)
             ctl.config(font=fnt)
