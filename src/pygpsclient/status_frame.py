@@ -36,23 +36,32 @@ class StatusFrame(Frame):
 
         self.width, self.height = self.get_size()
         self._body()
-
-        self.bind("<Configure>", self._on_resize)
+        self._do_layout()
+        self._attach_events()
 
     def _body(self):
         """
         Set up frame and widgets.
         """
 
-        self.grid_rowconfigure(0, weight=1)
-
-        self.option_add("*Font", self.__app.font_md)
-
         self.lbl_connection = Label(self, anchor=W)
         self.lbl_status = Label(self, anchor=W)
+
+    def _do_layout(self):
+        """
+        Position widgets in frame.
+        """
+
         self.lbl_connection.grid(column=0, row=0, sticky=EW)
         ttk.Separator(self, orient=VERTICAL).grid(column=1, row=0, sticky=NS)
         self.lbl_status.grid(column=2, row=0, sticky=EW)
+
+    def _attach_events(self):
+        """
+        Bind events to frame.
+        """
+
+        self.bind("<Configure>", self._on_resize)
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """

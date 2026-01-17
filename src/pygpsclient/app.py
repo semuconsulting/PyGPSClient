@@ -122,8 +122,6 @@ from pygpsclient.strings import (
     INACTIVE_TIMEOUT,
     INTROTXTNOPORTS,
     KILLSWITCH,
-    LOADCONFIGBAD,
-    LOADCONFIGOK,
     NOTCONN,
     NOWDGSWARN,
     SAVECONFIGBAD,
@@ -499,7 +497,7 @@ class App(Frame):
         if err == "":  # load succeeded
             self.update_widgets()
             for frm in (
-                self.frm_settings,
+                self.frm_settings.frm_settings,
                 self.frm_settings.frm_serial,
                 self.frm_settings.frm_socketclient,
             ):
@@ -507,12 +505,8 @@ class App(Frame):
             self._do_layout()
             if self._nowidgets:
                 self.status_label = (NOWDGSWARN.format(filename), ERRCOL)
-            else:
-                self.status_label = (LOADCONFIGOK.format(filename), OKCOL)
-        elif err == "cancelled":  # user cancelled
-            return
-        else:  # config error
-            self.status_label = (LOADCONFIGBAD.format(filename), ERRCOL)
+        elif err == "cancelled":
+            pass
 
     def save_config(self):
         """
@@ -681,7 +675,6 @@ class App(Frame):
         """
 
         self.server_status = clients
-        # self.frm_settings.frm_socketserver.clients = clients TODO
 
     def _shutdown(self):
         """

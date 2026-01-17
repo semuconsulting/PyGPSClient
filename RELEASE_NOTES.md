@@ -2,6 +2,12 @@
 
 ### RELEASE 1.6.0
 
+FIXES:
+
+1. Fix Load Configuration error \#232 `AttributeError: 'tuple' object has no attribute 'upper'`.
+
+ENHANCEMENTS:
+
 1. Add user-selectable Signals widget, displaying individual GNSS PRN / Signal ID levels and (where applicable) correction sources (receiver must support UBX NAV-SIG messages). Provides greater granularity than the existing Levels widget for UBX devices. Signal IDs are shown in RINEX format e.g. "L1_C/A", "E5_aQ", etc.
 1. Add user-defined preset import facility to Configuration Load/Save/Record panel (accessed via Menu..Options..Configuration Command Recorder). This allows user to record a sequence of UBX, NMEA or TTY commands as they are sent to the receiver and to import this sequence as a user-defined preset in the PyGPSClient json configuration file. This obviates the need to edit the configuration file manually. Remember to re-save the configuration file to persist the changes.
 1. Add Undock/Dock Settings panel facility, via Menu..View..Undock/Dock Settings. Settings panel can now be undocked from the main application window and displayed as a separate Toplevel dialog. If (*and only if*) non-transient (`transient_dialog_b: 0`), the settings panel can be minimized independently of the main window.

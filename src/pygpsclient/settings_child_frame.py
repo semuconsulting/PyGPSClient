@@ -58,7 +58,6 @@ from pygpsclient.globals import (
     HOME,
     ICON_CONN,
     ICON_DISCONN,
-    ICON_EXIT,
     ICON_LOGREAD,
     ICON_NMEACONFIG,
     ICON_NTRIPCONFIG,

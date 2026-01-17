@@ -293,6 +293,8 @@ class Configuration:
                     resave = True
                     continue
         else:
+            if err == "cancelled":  # user cancelled
+                return filename, err
             if "No such file or directory" in err:
                 err = LOADCONFIGNONE.format(fname)
             else:
