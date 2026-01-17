@@ -153,7 +153,7 @@ class NTRIPConfigDialog(ToplevelDialog):
         """
         # pylint: disable=unnecessary-lambda
 
-        self._frm_body = Frame(self.container)
+        self._frm_body = Frame(self)
         self._frm_socket = SocketConfigNtripFrame(
             self.__app,
             self._frm_body,

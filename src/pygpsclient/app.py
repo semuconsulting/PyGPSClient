@@ -117,6 +117,7 @@ from pygpsclient.strings import (
     DLGSTOPRTK,
     DLGTNTRIP,
     DLGTRECORD,
+    DLGTSETTINGS,
     ENDOFFILE,
     INACTIVE_TIMEOUT,
     INTROTXTNOPORTS,
@@ -166,8 +167,7 @@ class App(Frame):
         self.__master = master
         self.logger = logging.getLogger(__name__)
 
-        # Init Frame class
-        Frame.__init__(self, self.__master)
+        super().__init__(master)
 
         self.__master.protocol("WM_DELETE_WINDOW", self.on_exit)
         self.__master.title(TITLE)
@@ -198,6 +198,7 @@ class App(Frame):
         self.ntrip_handler = GNSSNTRIPClient(self)
         self.spartn_handler = GNSSMQTTClient(self)
         self.sqlite_handler = SqliteHandler(self)
+        self.frm_settings = None
         self._conn_status = DISCONNECTED
         self._rtk_conn_status = DISCONNECTED
         self._nowidgets = True
@@ -235,7 +236,7 @@ class App(Frame):
 
         # initialise widgets
         for wdg in self.widget_state.state.values():
-            frm = getattr(self.frm_widgets, wdg[FRAME])
+            frm = getattr(self, wdg[FRAME])
             if hasattr(frm, "init_frame"):
                 frm.update_idletasks()
                 frm.init_frame()
@@ -266,14 +267,15 @@ class App(Frame):
         self.frm_banner = BannerFrame(self, borderwidth=2, relief="groove")
         self.frm_status = StatusFrame(self, borderwidth=2, relief="groove")
         self.frm_settings = SettingsFrame(self)
-        self.frm_widgets = Frame(self, bg=BGCOL)
+        self.frm_widgets = Frame(self.__master, bg=BGCOL)
 
         # instantiate widgets
         for wdg in self.widget_state.state.values():
             setattr(
-                self.frm_widgets,
+                # self.frm_widgets,
+                self,
                 wdg[FRAME],
-                wdg[CLASS](self, borderwidth=2, relief="groove"),
+                wdg[CLASS](self, self.frm_widgets, borderwidth=2, relief="groove"),
             )
 
     def _do_layout(self):
@@ -299,14 +301,13 @@ class App(Frame):
                     cols = 0
                     maxrows += 1
                 maxcols = max(cols, maxcols)
-        # print(f"DEBUG {maxcols=} {maxrows=} {cols=}")
 
         # dynamically position widgets in frm_widgets
         col = 0
         row = 1
         men = 2
         for name, wdg in self.widget_state.state.items():
-            frm = getattr(self.frm_widgets, wdg[FRAME])
+            frm = getattr(self, wdg[FRAME])
             if wdg[VISIBLE]:
                 # enable any GNSS data required by widget
                 self.widget_enable_messages(name)
@@ -331,10 +332,13 @@ class App(Frame):
         self.frm_widgets.grid(
             column=0, row=1, columnspan=maxcols, rowspan=maxrows, sticky=NSEW
         )
-        if self.configuration.get("showsettings_b"):
-            self.frm_settings.grid(column=maxcols, row=1, rowspan=maxrows, sticky=NW)
-        else:
-            self.frm_settings.grid_forget()
+        if isinstance(self.frm_settings, SettingsFrame):  # docked
+            if self.configuration.get("showsettings_b"):
+                self.frm_settings.grid(
+                    column=maxcols, row=1, rowspan=maxrows, sticky=NW
+                )
+            else:
+                self.frm_settings.grid_forget()
         self.frm_status.grid(
             column=0, row=maxrows + 1, columnspan=maxcols + 1, sticky=EW
         )
@@ -345,7 +349,7 @@ class App(Frame):
         self.menu.view_menu.entryconfig(1, label=f"{lbl} Settings")
 
         # set 'pack' behaviour of main layout
-        for frm in (self, self.__master):
+        for frm in (self, self.__master, self.frm_widgets):
             for col in range(maxcols):
                 frm.grid_columnconfigure(col, weight=1)
             for col in range(maxcols, self.configuration.get("maxcolumns_n") + 1):
@@ -368,11 +372,27 @@ class App(Frame):
     def settings_dock(self):
         """
         Toggle settings docking.
+
+        - If undocked, destroy any existing instance of SettingsFrame
+          and launch SettingsDialog instead.
+        - If docked, destroy SettingsDialog and instantiate SettingsFrame.
         """
 
         self.configuration.set(
             "docksettings_b", not self.configuration.get("docksettings_b")
         )
+        if self.configuration.get("docksettings_b"):
+            if self.dialog_state.state[DLGTSETTINGS][DLG] is not None:
+                self.dialog_state.state[DLGTSETTINGS][DLG].destroy()
+                self.dialog_state.state[DLGTSETTINGS][DLG] = None
+                self.frm_settings = SettingsFrame(self)
+        else:
+            if self.dialog_state.state[DLGTSETTINGS][DLG] is None:
+                if isinstance(self.frm_settings, SettingsFrame):
+                    self.frm_settings.grid_forget()
+                    self.frm_settings.destroy()
+                self.start_dialog(DLGTSETTINGS)
+                self.frm_settings = self.dialog_state.state[DLGTSETTINGS][DLG]
         self._do_layout()
 
     def widget_toggle(self, name: str):
@@ -396,7 +416,7 @@ class App(Frame):
         :param str name: widget name
         """
 
-        frm = getattr(self.frm_widgets, self.widget_state.state[name][FRAME])
+        frm = getattr(self, self.widget_state.state[name][FRAME])
         if hasattr(frm, "enable_messages"):
             frm.enable_messages(self.widget_state.state[name][VISIBLE])
 
@@ -418,8 +438,8 @@ class App(Frame):
         Reset frames.
         """
 
-        self.frm_widgets.frm_mapview.reset_map_refresh()
-        self.frm_widgets.frm_spectrumview.reset()
+        self.frm_mapview.reset_map_refresh()
+        self.frm_spectrumview.reset()
 
     def reset_gnssstatus(self):
         """
@@ -532,7 +552,7 @@ class App(Frame):
 
         self.frm_banner.update_frame()
         for wdg, wdgdata in self.widget_state.state.items():
-            frm = getattr(self.frm_widgets, wdgdata[FRAME])
+            frm = getattr(self, wdgdata[FRAME])
             if hasattr(frm, "update_frame") and wdgdata[VISIBLE]:
                 if wdg == WDGCONSOLE:
                     frm.update_frame(self.consoledata)
@@ -578,7 +598,7 @@ class App(Frame):
         ntripuser = cfg.get("ntripcasteruser_s")
         ntrippassword = cfg.get("ntripcasterpassword_s")
         tlspempath = cfg.get("tlspempath_s")
-        ntriprtcmstr = "1002(1),1006(5),1077(1),1087(1),1097(1),1127(1),1230(1)"  # TODO
+        ntriprtcmstr = "1002(1),1006(5),1077(1),1087(1),1097(1),1127(1),1230(1)"
         self._socket_thread = Thread(
             target=self._sockserver_thread,
             args=(
@@ -713,7 +733,7 @@ class App(Frame):
             if raw_data is not None and parsed_data is not None:
                 self.process_data(raw_data, parsed_data)
                 # if socket server is running, output raw data to socket
-                if self.server_status:  # TODO
+                if self.server_status:
                     self.socket_outqueue.put(raw_data)
             self.gnss_inqueue.task_done()
         except Empty:
@@ -910,9 +930,9 @@ class App(Frame):
 
         # update chart plot if chart is visible
         if self.widget_state.state[WDGCHART][VISIBLE]:
-            getattr(
-                self.frm_widgets, self.widget_state.state[WDGCHART][FRAME]
-            ).update_data(parsed_data)
+            getattr(self, self.widget_state.state[WDGCHART][FRAME]).update_data(
+                parsed_data
+            )
 
         # update consoledata if console is visible and protocol not filtered
         if self.widget_state.state[WDGCONSOLE][VISIBLE] and (
@@ -1098,7 +1118,7 @@ class App(Frame):
 
         self._conn_status = status
         self.frm_banner.update_conn_status(status)
-        self.frm_settings.enable_controls(status)
+        self.frm_settings.frm_settings.enable_controls(status)
         if status == DISCONNECTED:
             self.conn_label = (NOTCONN, INFOCOL)
 

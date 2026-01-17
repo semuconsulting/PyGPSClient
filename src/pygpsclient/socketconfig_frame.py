@@ -61,21 +61,22 @@ class SocketConfigFrame(Frame):
     Socket configuration frame class.
     """
 
-    def __init__(self, app, container, *args, **kwargs):
+    def __init__(self, app: Frame, parent: Frame, *args, **kwargs):
         """
         Constructor.
 
         :param tkinter.Frame container: reference to container frame
+        :param Frame parent: reference to parent frame
         :param args: optional args to pass to Frame parent class
         :param kwargs: optional kwargs for value ranges, or to pass to Frame parent class
         """
 
+        self.__app = app
+        self._container = parent
         self._server_callback = kwargs.pop("server_callback", None)
         self._protocol_range = kwargs.pop("protocols", PROTOCOLS)
-        Frame.__init__(self, container, *args, **kwargs)
+        super().__init__(parent, *args, **kwargs)
 
-        self.__app = app
-        self._container = container
         self._show_advanced = False
         self.status = DISCONNECTED
         self.server = StringVar()

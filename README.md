@@ -9,7 +9,6 @@
 [TTY Commands](#ttycommands) |
 [Load/Save/Record Commands](#recorder) |
 [NTRIP Client](#ntripconfig) |
-[SPARTN Client](#spartnconfig) |
 [Socket Server / NTRIP Caster](#socketserver) |
 [GPX Track Viewer](#gpxviewer) |
 [Mapquest API Key](#mapquestapi) |
@@ -20,10 +19,10 @@
 [Author Information](#author)
 
 PyGPSClient is a free, open-source, multi-platform graphical GNSS/GPS testing, diagnostic and configuration application written entirely by volunteers in Python and tkinter. 
-* Runs on any platform which supports a Python 3 interpreter (>=3.10) and tkinter (>=8.6) GUI framework, including Windows, MacOS, Linux and Raspberry Pi OS.
+* Runs on any platform which supports a Python 3 interpreter (>=3.10) and tkinter (>=8.6) GUI framework, including Windows, MacOS, Linux and Raspberry Pi OS. Accommodates low resolution screens (>= 640x480) via resizable and/or scrollable panels.
 * Supports NMEA, UBX, SBF, QGC, RTCM3, NTRIP, SPARTN, MQTT and TTY (ASCII) protocols¹.
 * Capable of reading from a variety of GNSS data streams: Serial (USB / UART), Socket (TCP / UDP), binary data stream (terminal or file capture) and binary recording (e.g. u-center \*.ubx).
-* Provides [NTRIP](#ntripconfig) and [SPARTN](#spartnconfig) client facilities.
+* Provides [NTRIP](#ntripconfig) client facilities.
 * Can serve as an [NTRIP base station](#basestation) with an RTK-compatible receiver (e.g. u-blox ZED-F9P/ZED-X20P, Quectel LG290P/LG580P/LC29H and Septentrio Mosaic G5/X5).
 * Supports GNSS (*and related*) device configuration via proprietary UBX, NMEA and ASCII TTY protocols, including most u-blox, Quectel, Septentrio and Feyman GNSS devices.
 * Can be installed using the standard `pip` Python package manager - see [installation instructions](#installation) below.
@@ -100,8 +99,9 @@ For more comprehensive installation instructions, please refer to [INSTALLATION.
 ---
 ## <a name="instructions">Instructions</a>
 
-#### <a name="settings">Main settings panel</a>
+#### <a name="settings">Settings panel</a>
 
+1. By default, the Settings panel is displayed to the right of the main application window. It can be hidden or shown via Menu..View..Hide/Show Settings. The panel can also be 'undocked' from the main application window via Menu..View..Undock Settings and - if [non-transient](#transient) (`transient_dialog_b: 0`) - minimized independently of the main window. Exiting the undocked dialog, or selecting Menu..View..Dock Settings, will 'dock' the panel.
 1. To connect to a GNSS receiver via USB or UART port, select the device from the listbox, set the appropriate serial connection parameters and click 
 ![connect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/usbport-1-24.png?raw=true). The application will endeavour to pre-select a recognised GNSS/GPS device but this is platform and device dependent. Press the ![refresh](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-refresh-6-16.png?raw=true) button to refresh the list of connected devices at any point. `Rate bps` (baud rate) is typically the only setting that might need adjusting, but tweaking the `timeout` setting may improve performance on certain platforms. The `Msg Mode` parameter defaults to `GET` i.e., periodic or poll response messages *from* a receiver. If you wish to parse streams of command or poll messages being sent *to* a receiver, set the `Msg Mode` to `SET` or `POLL`. An optional serial or socket stream inactivity timeout can also be set (in seconds; 0 = no timeout).
 1. A custom user-defined serial port can also be passed via the json configuration file setting `"userport_s":`, via environment variable `PYGPSCLIENT_USERPORT` or as a command line argument `--userport`. A special userport value of "ubxsimulator" invokes the experimental [`pyubxutils.UBXSimulator`](https://github.com/semuconsulting/pyubxutils/blob/main/src/pyubxutils/ubxsimulator.py) utility to emulate a GNSS NMEA/UBX serial stream. 
@@ -111,9 +111,9 @@ For more comprehensive installation instructions, please refer to [INSTALLATION.
 ![connect-file icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/binary-1-24.png?raw=true) and select the file type (`*.log, *.ubx, *.*`) and path. PyGPSClient datalog files will be named e.g. `pygpsdata-20220427114802.log`, but any binary dump of an GNSS receiver output is acceptable, including `*.ubx` files produced by u-center. The 'File Delay' spinbox sets the delay in milliseconds between individual file reads, acting as a throttle on file readback.
 1. To disconnect from the data stream, click
 ![disconnect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-media-control-50-24.png?raw=true).
+1. To immediately disconnect and terminate all running threads, click Ctrl-K ("Kill Switch").
 1. To exit the application, click
 ![exit icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-door-6-24.png?raw=true), or press Ctrl-Q, or click the application window's close window icon.
-1. To immediately disconnect and terminate all running threads, click Ctrl-K ("Kill Switch").
 1. Protocols Shown - Select which protocols to display; NMEA, UBX, SBF, QGC, RTCM3, SPARTN or TTY (NB: this only changes the displayed protocols - to change the actual protocols output by the receiver, use the [UBX Configuration Dialog](#ubxconfig)).
    - **NB:** Serial connection must be stopped before changing to or from TTY (terminal) protocol.
    - **NB:** Enabling TTY (terminal) mode will disable all other protocols.
@@ -148,16 +148,11 @@ For more comprehensive installation instructions, please refer to [INSTALLATION.
 - It is recommended to re-save the configuration settings after each PyGPSClient version update, or if you see the warning "Consider re-saving" on startup.
 - PyGPSClient will prompt you to stop all running input and output streams before loading a new configuration.
 
-#### <a name="transient">Transient pop-up dialog setting</a>
+#### <a name="transient">Toplevel ('pop-up') dialog setting</a>
 
-- A boolean configuration setting `transient_dialog_b` governs whether pop-up (Toplevel) dialogs are 'transient' (i.e. always on top of main application dialog) or not. Changing this setting to `0` allows pop-up dialogs to be minimised independently of the main application window, but be mindful that some dialogs may end up hidden behind others e.g. "Open file/folder" dialogs. **If a file open button appears unresponsive, check that the "Open file/folder" panel isn't already open but obscured**. 
+- The behaviour of Toplevel ('pop-up') dialogs will depend on the screen resolution. If the width or height of a Toplevel dialog exceeds the screen resolution, the dialog will be displayed in a scrollable, resizeable window. Otherwise, the dialog is displayed as a fixed, non-resizeable panel.
+- A boolean configuration setting `transient_dialog_b` governs whether Toplevel dialogs are 'transient' (i.e. always on top of main application dialog) or not. Changing this setting to `0` allows Toplevel dialogs to be minimised independently of the main application window, but be mindful that some dialogs may end up hidden behind others e.g. "Open file/folder" dialogs. **If a file open button appears unresponsive, check that the "Open file/folder" panel isn't already open but obscured**. 
 - If you're accessing the desktop via a VNC session (e.g. to a headless Raspberry Pi) it is recommended to keep the setting at the default `1`, as VNC may not recognise keystrokes on overlaid non-transient windows.
-
-#### <a name="lowres">Pop-up dialogs on low resolution screens</a>
-
-- PyGPSClient's main application and widgets are fully resizeable and will work at all screen resolutions. If preferred, you can hide the rightmost Settings panel while monitoring the various widgets on smaller screens.
-- The behaviour of pop-up (Toplevel) dialogs will depend on the screen resolution. If the width or height of a pop-up dialog exceeds the screen resolution, the dialog will be displayed in a scrollable, resizeable window. Otherwise, the dialog is displayed as a fixed, non-resizeable panel.
-- **NB** Some Linux platforms appear to require Toplevel dialog windows to be non-transient (`transient_dialog_b: 0`) for the window 'maximise' icon to work properly.
 
 #### <a name="updates">Checking for the latest version</a>
 
@@ -167,10 +162,9 @@ For more comprehensive installation instructions, please refer to [INSTALLATION.
 
 - PyGPSClient processes all incoming GNSS data in 'real time' but, by default, the GUI is only refreshed every 0.5 seconds. The refresh rate can be configured via the `guiupdateinterval_f` setting in the json configuration file. **NB:** PyGPSClient may become unresponsive on slower platforms (e.g. Raspberry Pi) at high message rates if the GUI update interval is less than 0.1 seconds, though lower intervals (<= 0.1 secs) can be accommodated on more powerful platforms.
 
-
-
+#### <a name="widgets">User-selectable widgets</a>
 ---
-| User-selectable 'widgets' | To show or hide the various widgets, go to Menu..View and click on the relevant hide/show option. |
+| Widget | To show or hide the various widgets, go to Menu..View and click on the relevant hide/show option. |
 |---------------------------|---------------------------------------------------------------------------------------------------|
 |![banner widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/banner_widget.png?raw=true)| Expandable banner showing key navigation status information based on messages received from receiver. To expand or collapse the banner or serial port configuration widgets, click the ![expand icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-arrow-80-16.png?raw=true)/![expand icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-triangle-1-16.png?raw=true) buttons. **NB**: some fields (e.g. hdop/vdop, hacc/vacc) are only available from proprietary NMEA or UBX messages and may not be output by default. The minimum messages required to populate all available fields are: NMEA: GGA, GSA, GSV, RMC, UBX00 (proprietary); UBX: NAV-DOP, NAV-PVT, NAV-SAT |
 |![console widget](https://github.com/semuconsulting/PyGPSClient/blob/master/images/console_widget.png?raw=true)| Configurable serial console widget showing incoming GNSS data streams in either parsed, binary or tabular hexadecimal formats. Double-right-click to copy contents of console to the clipboard. The scroll behaviour and number of lines retained in the console can be configured via the settings panel. Supports user-configurable color tagging of selected strings for easy identification. Color tags are loaded from the `"colortag_b":` value (`0` = disable, `1` = enable) and `"colortags_l":` list (`[string, color]` pairs) in your json configuration file (see example provided). If color is set to "HALT", streaming will halt on any match and a warning displayed. NB: color tagging does impose a small performance overhead - turning it off will improve console response times at very high transaction rates.|
@@ -466,7 +460,7 @@ For further details, refer to the `pygnssutils` homepage at [https://github.com/
 
 1. Most budget USB-UART adapters (e.g. FT232, CH345, CP2102) have a bandwidth limit of around 3MB/s and may not work reliably above 115200 baud, even if the receiver supports higher baud rates. If you're using an adapter and notice significant message corruption, try reducing the baud rate to a maximum 115200.
 
-2. As of October 2025, u-blox have [discontinued their PointPerfect SPARTN L-Band and MQTT services](https://portal.u-blox.com/s/question/0D5Oj00000uB53GKAS/suspension-of-european-pointperfect-lband-spartn-service). As a result, PyGPSClient's [SPARTN Configuration](#spartnconfig) panel is largely redundant and is disabled by default in version>=1.5.17, though it can be re-enabled by manually setting the `lband_enabled_b` configuration setting to 1.
+2. Some Linux Wayland platforms appear to require Toplevel dialog windows to be non-transient (`transient_dialog_b: 0`) for the window 'maximise' icon to work properly.
 
 3. Some Homebrew-installed Python environments on MacOS can give rise to critical segmentation errors (*illegal memory access*)  when shell subprocesses are invoked, due to the way permissions are implemented. This may, for example, affect About..Update functionality; the workaround is to update via a standard CLI `pip install --upgrade` command.
 
@@ -476,6 +470,8 @@ For further details, refer to the `pygnssutils` homepage at [https://github.com/
    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
    sudo apt-get install build-essential libssl-dev libffi-dev python3-dev pkg-config
    ```
+
+5. As of October 2025, u-blox have [discontinued their PointPerfect SPARTN L-Band and MQTT services](https://portal.u-blox.com/s/question/0D5Oj00000uB53GKAS/suspension-of-european-pointperfect-lband-spartn-service). As a result, PyGPSClient's [SPARTN Configuration](#spartnconfig) panel is largely redundant and is disabled by default in version>=1.5.17, though it can be re-enabled by manually setting the `lband_enabled_b` configuration setting to 1.
 
 ---
 ## <a name="license">License</a>

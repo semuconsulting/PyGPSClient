@@ -60,7 +60,7 @@ class ToplevelDialog(Toplevel):
     ToplevelDialog class.
     """
 
-    def __init__(self, app, dlgname: str):
+    def __init__(self, app, dlgname: str, *args, **kwargs):
         """
         Constructor.
 
@@ -73,13 +73,16 @@ class ToplevelDialog(Toplevel):
         self._dlgname = dlgname
         self.logger = logging.getLogger(f"{APPNAME}.{dlgname}")
         self.width, self.height = 300, 300  # initial, updated in finalise()
-        self._resizable = self.__app.dialog_state.state[self._dlgname].get(
-            RESIZE, False
+        self._resizable = kwargs.pop(
+            "resizable", self.__app.dialog_state.state[self._dlgname].get(RESIZE, False)
+        )
+        transient = kwargs.pop(
+            "transient", self.__app.configuration.get("transient_dialog_b")
         )
 
-        super().__init__()
+        super().__init__(self.__master, *args, **kwargs)
 
-        if self.__app.configuration.get("transient_dialog_b"):
+        if transient:
             self.transient(self.__app)
         self.title(dlgname)  # pylint: disable=E1102
         self.resizable(self._resizable, self._resizable)
@@ -99,13 +102,15 @@ class ToplevelDialog(Toplevel):
 
         self._con_body(self._resizable)
 
-    def _con_body(self, resizeable: bool):
+    def _con_body(self, resizable: bool):
         """
         Set up scrollable frame and widgets.
+
+        :param bool resizable: resizable
         """
 
         # create container frame for non-resizeable dialogs
-        if resizeable:
+        if resizable:
             self._frm_container = Frame(self)
             self._frm_container.grid(column=0, row=0, sticky=NSEW)
         else:
@@ -118,13 +123,13 @@ class ToplevelDialog(Toplevel):
         self._btn_exit = Button(
             self._frm_status,
             image=self.img_exit,
-            width=50,
+            width=45,
             fg=ERRCOL,
             command=self.on_exit,
         )
         self._frm_status.grid(column=0, row=2, sticky=EW)
         self._lbl_status.grid(column=0, row=0, sticky=EW)
-        self._btn_exit.grid(column=1, row=0, sticky=E)
+        self._btn_exit.grid(column=1, row=0, padx=4, sticky=E)
 
         # set column and row weights
         # NB!!! these govern the 'pack' behaviour of the frames on resize
@@ -139,24 +144,30 @@ class ToplevelDialog(Toplevel):
 
     def _finalise(self):
         """
-        Finalise Toplevel window after child frames have been created.
+        Finalise Toplevel dialog after child frames have been created.
+
+        If screen is smaller than dialog (`lowres=True`), display within
+        smaller, resizeable and scrollable canvas container.
+
+        Otherwise, make the container the same size as the dialog and hide
+        the scrollbars.
+
+        NB Some Linux platforms appear to require Toplevel dialog windows
+        to be non-transient for the window 'maximise' icon to work properly
         """
 
-        # resize container canvas to accommodate frame
-        # if frame is larger than screen, make container resizeable and
-        # show scrollbars, otherwise hide scrollbars and make non-resizable
         if hasattr(self, "_can_container"):
             self._frm_container.update_idletasks()
             fh = self._frm_container.winfo_height()
             fw = self._frm_container.winfo_width()
-            self._can_container.config(height=fh, width=fw)
-            self._can_container.update_idletasks()
-            lowres, _ = check_lowres(self.__master, (fh, fw))
+            lowres, (sh, sw) = check_lowres(self.__master, (fh, fw))
             if lowres:
+                self._can_container.config(
+                    height=min(int(sh * 0.75), fh), width=min(int(sw * 0.75), fw)
+                )
                 self.resizable(True, True)
-                # NB Some Linux platforms appear to require Toplevel dialog windows
-                # to be non-transient for the window 'maximise' icon to work properly
             else:
+                self._can_container.config(height=fh, width=fw)
                 self._can_container.show_scroll(False)
                 self.resizable(self._resizable, self._resizable)
 

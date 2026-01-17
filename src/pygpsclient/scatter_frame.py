@@ -90,18 +90,19 @@ class ScatterViewFrame(Frame):
     Scatterplot view frame class.
     """
 
-    def __init__(self, app, *args, **kwargs):
+    def __init__(self, app: Frame, parent: Frame, *args, **kwargs):
         """
         Constructor.
 
         :param Frame app: reference to main tkinter application
+        :param Frame parent: reference to parent frame
         :param args: Optional args to pass to Frame parent class
         :param kwargs: Optional kwargs to pass to Frame parent class
         """
         self.__app = app
         self.__master = self.__app.appmaster
 
-        Frame.__init__(self, self.__master, *args, **kwargs)
+        super().__init__(parent, *args, **kwargs)
 
         def_w, def_h = WIDGETU1
 

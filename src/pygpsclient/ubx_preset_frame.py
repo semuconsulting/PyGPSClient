@@ -57,12 +57,12 @@ class UBX_PRESET_Frame(Frame):
     UBX Preset and User-defined configuration command panel.
     """
 
-    def __init__(self, app, container, *args, **kwargs):
+    def __init__(self, app: Frame, parent: Frame, *args, **kwargs):
         """
         Constructor.
 
         :param Frame app: reference to main tkinter application
-        :param Frame container: reference to container frame (config-dialog)
+        :param Frame parent: reference to parent frame (config-dialog)
         :param args: optional args to pass to Frame parent class
         :param kwargs: optional kwargs to pass to Frame parent class
         """
@@ -70,9 +70,9 @@ class UBX_PRESET_Frame(Frame):
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.logger = logging.getLogger(__name__)
-        self.__container = container
+        self.__container = parent
 
-        super().__init__(container.container, *args, **kwargs)
+        super().__init__(parent.container, *args, **kwargs)
 
         self._img_send = ImageTk.PhotoImage(Image.open(ICON_SEND))
         self._img_pending = ImageTk.PhotoImage(Image.open(ICON_PENDING))

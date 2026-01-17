@@ -376,7 +376,7 @@ class UBXHandler:
             cno = getattr(data, "cno" + idx)
             corrsource = getattr(data, "corrSource" + idx)
             quality = getattr(data, "qualityInd" + idx)
-            sigflags = 0  # TODO collate sigFlags bits
+            sigflags = 0
             self.__app.gnss_status.sig_data[(gnssId, svid, sigid)] = (
                 gnssId,
                 svid,

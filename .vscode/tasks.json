@@ -195,7 +195,7 @@
                     "pip",
                     "install",
                     "--force-reinstall",
-                    "${workspaceFolder}/dist/pygpsclient-1.5.22-py3-none-any.whl",
+                    "${workspaceFolder}/dist/pygpsclient-1.6.0-py3-none-any.whl",
                 ]
             },
             "problemMatcher": [],
@@ -275,15 +275,18 @@
             "problemMatcher": []
         },
         {
-            "label": "Run Installed Version",
+            "label": "Run from Source",
             "type": "shell",
-            "command": "${config:python.defaultInterpreterPath}",
+            "command": "python3",
             "args": [
                 "-m",
                 "pygpsclient",
                 //"--verbosity",
                 //"3"
             ],
+            "options": {
+                "cwd": "${workspaceFolder}/src"
+            },
             "problemMatcher": []
         },
     ]

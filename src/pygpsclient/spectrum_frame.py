@@ -95,11 +95,12 @@ class SpectrumviewFrame(Frame):
     Spectrumview frame class.
     """
 
-    def __init__(self, app, *args, **kwargs):
+    def __init__(self, app: Frame, parent: Frame, *args, **kwargs):
         """
         Constructor.
 
         :param Frame app: reference to main tkinter application
+        :param Frame parent: reference to parent frame
         :param args: optional args to pass to Frame parent class
         :param kwargs: optional kwargs to pass to Frame parent class
         """
@@ -108,7 +109,7 @@ class SpectrumviewFrame(Frame):
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.logger = logging.getLogger(__name__)
 
-        Frame.__init__(self, self.__master, *args, **kwargs)
+        super().__init__(parent, *args, **kwargs)
 
         def_w, def_h = WIDGETU2
         self.width = kwargs.get("width", def_w)

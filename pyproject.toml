@@ -130,7 +130,6 @@ disable = """
     too-many-locals,
     invalid-name,
     logging-fstring-interpolation,
-    fixme,
 """
 
 [tool.pytest.ini_options]

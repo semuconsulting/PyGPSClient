@@ -67,9 +67,9 @@ from pygpsclient.globals import (
     MPS2KNT,
     MPS2KPH,
     MPS2MPH,
+    OVERSCAN,
     PUBLICIP_URL,
     ROMVER_NEW,
-    SCREENSCALE,
     TIME0,
     UI,
     UIK,
@@ -277,7 +277,7 @@ def check_latest(name: str) -> str:
         return NA
 
 
-def check_lowres(master: Tk, dim: tuple, overscan: float = 1.1) -> tuple:
+def check_lowres(master: Tk, dim: tuple, overscan: float = OVERSCAN) -> tuple:
     """
     Check if dialog dimensions exceed effective screen resolution.
 
@@ -1053,17 +1053,16 @@ def scale_font(
     return fnt, fnt.metrics("linespace")
 
 
-def screenres(master: Tk, scale: float = SCREENSCALE) -> tuple:
+def screenres(master: Tk) -> tuple:
     """
     Get effective screen resolution.
 
     :param tkinter.Tk master: reference to root
-    :param float scale: screen scaling factor
-    :return: adjusted screen resolution in pixels (height, width)
+    :return: screen resolution in pixels (height, width)
     :rtype: tuple
     """
 
-    return (master.winfo_screenheight() * scale, master.winfo_screenwidth() * scale)
+    return (master.winfo_screenheight(), master.winfo_screenwidth())
 
 
 def secs2unit(secs: int) -> tuple:

@@ -308,6 +308,22 @@ pygpsclient.serverconfig\_dialog module
    :undoc-members:
    :show-inheritance:
 
+pygpsclient.settings\_child\_frame module
+-----------------------------------------
+
+.. automodule:: pygpsclient.settings_child_frame
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pygpsclient.settings\_dialog module
+-----------------------------------
+
+.. automodule:: pygpsclient.settings_dialog
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pygpsclient.settings\_frame module
 ----------------------------------
 

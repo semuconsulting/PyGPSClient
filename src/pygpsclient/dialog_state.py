@@ -23,6 +23,7 @@ from pygpsclient.nmea_config_dialog import NMEAConfigDialog
 from pygpsclient.ntrip_client_dialog import NTRIPConfigDialog
 from pygpsclient.recorder_dialog import RecorderDialog
 from pygpsclient.serverconfig_dialog import ServerConfigDialog
+from pygpsclient.settings_dialog import SettingsDialog
 from pygpsclient.spartn_dialog import SPARTNConfigDialog
 from pygpsclient.strings import (
     DLG,
@@ -33,6 +34,7 @@ from pygpsclient.strings import (
     DLGTNTRIP,
     DLGTRECORD,
     DLGTSERVER,
+    DLGTSETTINGS,
     DLGTSPARTN,
     DLGTTTY,
     DLGTUBX,
@@ -99,6 +101,11 @@ class DialogState:
             },
             DLGTRECORD: {
                 CLASS: RecorderDialog,
+                DLG: None,
+                RESIZE: False,
+            },
+            DLGTSETTINGS: {
+                CLASS: SettingsDialog,
                 DLG: None,
                 RESIZE: False,
             },

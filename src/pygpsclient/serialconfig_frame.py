@@ -25,6 +25,7 @@ from tkinter import (
     LEFT,
     NORMAL,
     NS,
+    NSEW,
     VERTICAL,
     Button,
     Checkbutton,
@@ -38,6 +39,7 @@ from tkinter import (
     Scrollbar,
     Spinbox,
     StringVar,
+    TclError,
     W,
 )
 
@@ -91,12 +93,12 @@ class SerialConfigFrame(Frame):
     Serial port configuration frame class.
     """
 
-    def __init__(self, app, container, *args, **kwargs):
+    def __init__(self, app: Frame, parent: Frame, *args, **kwargs):
         """
         Constructor.
 
         :param Frame app: reference to main tkinter application
-        :param tkinter.Frame container: reference to container frame
+        :param Frame parent: reference to parent frame
         :param args: optional args to pass to Frame parent class
         :param kwargs: optional kwargs for value ranges, or to pass to Frame parent class
         """
@@ -109,7 +111,7 @@ class SerialConfigFrame(Frame):
         self._msgmode_name_rng = kwargs.pop("msgmodes", MSGMODE_RNG)
         self._recognised = kwargs.pop("recognised", ())
 
-        Frame.__init__(self, container, *args, **kwargs)
+        super().__init__(parent, *args, **kwargs)
 
         self.__app = app
         self._show_advanced = False
@@ -260,7 +262,7 @@ class SerialConfigFrame(Frame):
         Layout widgets.
         """
 
-        self._frm_basic.grid(column=0, row=0, columnspan=4, sticky=EW)
+        self._frm_basic.grid(column=0, row=0, sticky=NSEW)
         self._lbl_port.grid(column=0, row=0, sticky=W)
         self._lbx_port.grid(column=1, row=0, columnspan=3, sticky=EW, padx=3, pady=2)
         self._scr_portv.grid(column=4, row=0, sticky=NS)
@@ -345,6 +347,19 @@ class SerialConfigFrame(Frame):
         self.user_defined_port.set(cfg.get("userport_s"))
         self._on_refresh_ports()
         self._attach_events(True)
+
+    def _on_toggle_advanced(self):
+        """
+        Toggle advanced serial port settings panel on or off.
+        """
+
+        self._show_advanced = not self._show_advanced
+        if self._show_advanced:
+            self._frm_advanced.grid(column=0, row=1, sticky=NSEW)
+            self._btn_toggle.config(image=self._img_contract)
+        else:
+            self._frm_advanced.grid_forget()
+            self._btn_toggle.config(image=self._img_expand)
 
     def _get_ports(self):
         """
@@ -496,19 +511,6 @@ class SerialConfigFrame(Frame):
         """
 
         self.__app.configuration.set("userport_s", self.userport)
-
-    def _on_toggle_advanced(self):
-        """
-        Toggle advanced serial port settings panel on or off.
-        """
-
-        self._show_advanced = not self._show_advanced
-        if self._show_advanced:
-            self._frm_advanced.grid(column=0, row=1, columnspan=3, sticky=EW)
-            self._btn_toggle.config(image=self._img_contract)
-        else:
-            self._frm_advanced.grid_forget()
-            self._btn_toggle.config(image=self._img_expand)
 
     def set_status(self, status: int = DISCONNECTED):
         """
@@ -717,5 +719,5 @@ class SerialConfigFrame(Frame):
 
         try:
             self.__app.frm_settings.on_expand()
-        except AttributeError:
+        except (AttributeError, TclError):
             pass  # frm_settings not yet instantiated
