@@ -144,13 +144,13 @@ For more comprehensive installation instructions, please refer to [INSTALLATION.
 
 #### <a name="config">Saving and loading configuration settings</a>
 
-- Configuration settings for PyGPSClient can be saved and recalled via the Menu..File..Save Configuration and Menu..File..Load Configuration options. By default, PyGPSClient will look for a file named `pygpsclient.json` in the user's home directory. Certain configuration settings require manual editing e.g. custom preset UBX, NMEA and TTY commands and tag colour schemes - see details below.
+- Configuration settings for PyGPSClient can be saved and recalled via the Menu..File..Save/Load Configuration options. By default, PyGPSClient will look for a file named `pygpsclient.json` in the user's home directory. Certain configuration settings require manual editing e.g. custom preset UBX, NMEA and TTY commands and tag colour schemes - see details below.
 - It is recommended to re-save the configuration settings after each PyGPSClient version update, or if you see the warning "Consider re-saving" on startup.
 - PyGPSClient will prompt you to stop all running input and output streams before loading a new configuration.
 
 #### <a name="transient">Toplevel ('pop-up') dialog setting</a>
 
-- The behaviour of Toplevel ('pop-up') dialogs will depend on the screen resolution. If the width or height of a Toplevel dialog exceeds the screen resolution, the dialog will be displayed in a scrollable, resizeable window. Otherwise, the dialog is displayed as a fixed, non-resizeable panel.
+- The behaviour of Toplevel ('pop-up') dialogs will depend on the screen resolution and 'transient' setting. If the width or height of a Toplevel dialog exceeds the screen resolution, the dialog will be displayed in a scrollable, resizeable window. Otherwise, the dialog is displayed as a fixed, non-resizeable panel.
 - A boolean configuration setting `transient_dialog_b` governs whether Toplevel dialogs are 'transient' (i.e. always on top of main application dialog) or not. Changing this setting to `0` allows Toplevel dialogs to be minimised independently of the main application window, but be mindful that some dialogs may end up hidden behind others e.g. "Open file/folder" dialogs. **If a file open button appears unresponsive, check that the "Open file/folder" panel isn't already open but obscured**. 
 - If you're accessing the desktop via a VNC session (e.g. to a headless Raspberry Pi) it is recommended to keep the setting at the default `1`, as VNC may not recognise keystrokes on overlaid non-transient windows.
 

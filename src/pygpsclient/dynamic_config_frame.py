@@ -266,7 +266,7 @@ class Dynamic_Config_Frame(Frame):
             column=0, row=15, columnspan=4, rowspan=15, sticky=EW
         )
 
-        (cols, rows) = self.grid_size()
+        cols, rows = self.grid_size()
         for i in range(cols):
             self.grid_columnconfigure(i, weight=1)
         for i in range(rows):

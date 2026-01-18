@@ -311,7 +311,7 @@ class SignalsviewFrame(Frame):
                 continue
             sig = SIGID.get((gnssId, sigid), sigid)
             snr_y = int(cno) * (h - self._canvas.yoffb - 1) / MAX_SNR
-            (_, ol_col) = GNSS_LIST[gnssId]
+            _, ol_col = GNSS_LIST[gnssId]
             prn = f"{int(prn):02}"
             self._canvas.create_rectangle(
                 offset,

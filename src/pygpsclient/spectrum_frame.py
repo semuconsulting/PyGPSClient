@@ -466,7 +466,7 @@ class SpectrumviewFrame(Frame):
 
         # for each RF block in MON-SPAN message
         for i, rfblock in enumerate(rfblocks):
-            (spec, spn, res, ctr, pga) = rfblock
+            spec, spn, res, ctr, pga = rfblock
             minhz = int(min(minhz, ctr - res * (spn / res) / 2))
             maxhz = int(max(maxhz, ctr + res * (spn / res) / 2))
             spanhz = []

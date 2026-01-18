@@ -155,7 +155,7 @@ class UBXConfigDialog(ToplevelDialog):
             row = 0
             col += colsp
             for frm in (self._frm_config_dynamic,):
-                (colsp, rowsp) = frm.grid_size()
+                colsp, rowsp = frm.grid_size()
                 frm.grid(
                     column=col,
                     row=row,

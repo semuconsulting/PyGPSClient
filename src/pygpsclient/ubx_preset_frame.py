@@ -128,7 +128,7 @@ class UBX_PRESET_Frame(Frame):
         self._btn_send_command.grid(column=3, row=1, ipadx=3, ipady=3, sticky=EW)
         self._lbl_send_command.grid(column=3, row=3, ipadx=3, ipady=3, sticky=EW)
 
-        (cols, rows) = self.grid_size()
+        cols, rows = self.grid_size()
         for i in range(cols):
             self.grid_columnconfigure(i, weight=1)
         for i in range(rows):

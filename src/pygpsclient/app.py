@@ -89,6 +89,7 @@ from pygpsclient.globals import (
     GNSS_TIMEOUT_EVENT,
     ICON_APP128,
     INFOCOL,
+    MAINSCALE,
     MQTT_PROTOCOL,
     NOPORTS,
     NTRIP_EVENT,
@@ -101,7 +102,12 @@ from pygpsclient.globals import (
     UNDO,
 )
 from pygpsclient.gnss_status import GNSSStatus
-from pygpsclient.helpers import check_latest
+from pygpsclient.helpers import (
+    brew_installed,
+    check_for_updates,
+    check_latest,
+    set_geom,
+)
 from pygpsclient.menu_bar import MenuBar
 from pygpsclient.nmea_handler import NMEAHandler
 from pygpsclient.qgc_handler import QGCHandler
@@ -112,6 +118,7 @@ from pygpsclient.sqlite_handler import DBINMEM, SQLOK, SqliteHandler
 from pygpsclient.status_frame import StatusFrame
 from pygpsclient.stream_handler import StreamHandler
 from pygpsclient.strings import (
+    BREWUPDATE,
     CONFIGERR,
     DLG,
     DLGSTOPRTK,
@@ -127,6 +134,9 @@ from pygpsclient.strings import (
     SAVECONFIGBAD,
     SAVECONFIGOK,
     TITLE,
+    UPDATEERR,
+    UPDATEINPROG,
+    UPDATERESTART,
     VERCHECK,
 )
 from pygpsclient.tty_handler import TTYHandler
@@ -135,7 +145,6 @@ from pygpsclient.widget_state import (
     COLSPAN,
     DEFAULT,
     HIDE,
-    MAXROWSPAN,
     MAXSPAN,
     SHOW,
     VISIBLE,
@@ -167,11 +176,30 @@ class App(Frame):
 
         super().__init__(master)
 
+        # load config from json file
+        self._deferredmsg = None
+        self.widget_state = WidgetState()  # widget state
+        self.file_handler = FileHandler(self)
+        self.configuration = Configuration(self)  # configuration state
+        configfile = kwargs.pop("config", CONFIGFILE)
+        _, configerr = self.configuration.loadfile(configfile)
+        # load config from CLI arguments & env variables
+        self.configuration.loadcli(**kwargs)
+        if configerr == "":
+            self.update_widgets()  # set initial widget state
+            # warning if all widgets have been disabled in config
+            if self._nowidgets:
+                self.status_label = (NOWDGSWARN.format(configfile), ERRCOL)
+
+        # setup main application window
+        geom = self.configuration.get("screengeom_s")
+        if geom == "":
+            geom = set_geom(master, MAINSCALE)
+        self.__master.geometry(geom)
         self.__master.protocol("WM_DELETE_WINDOW", self.on_exit)
         self.__master.title(TITLE)
         self.__master.iconphoto(True, PhotoImage(file=ICON_APP128))
 
-        self._deferredmsg = None
         self._server_status = -1  # socket server status -1 = inactive
         self.gnss_inqueue = Queue()  # messages from GNSS receiver
         self.gnss_outqueue = Queue()  # messages to GNSS receiver
@@ -180,11 +208,8 @@ class App(Frame):
         self.spartn_outqueue = Queue()  # messages to SPARTN correction rcvr
         self.socket_inqueue = Queue()  # message from socket
         self.socket_outqueue = Queue()  # message to socket
-        self.widget_state = WidgetState()  # widget state
         self.dialog_state = DialogState()  # dialog state
-        self.configuration = Configuration(self)  # configuration state
         self.gnss_status = GNSSStatus()  # holds latest GNSS readings
-        self.file_handler = FileHandler(self)
         self.stream_handler = StreamHandler(self)
         self.spartn_stream_handler = StreamHandler(self)
         self.nmea_handler = NMEAHandler(self)
@@ -207,17 +232,6 @@ class App(Frame):
         self._recorded_commands = []  # captured by RecorderDialog
         self.recording = False  # RecordDialog status
         self.recording_type = 0  # 0 = TTY ONLY, 1 = UBX/NMEA
-
-        # load config from json file
-        configfile = kwargs.pop("config", CONFIGFILE)
-        _, configerr = self.configuration.loadfile(configfile)
-        # load config from CLI arguments & env variables
-        self.configuration.loadcli(**kwargs)
-        if configerr == "":
-            self.update_widgets()  # set initial widget state
-            # warning if all widgets have been disabled in config
-            if self._nowidgets:
-                self.status_label = (NOWDGSWARN.format(configfile), ERRCOL)
 
         # open database if database recording enabled
         dbpath = self.configuration.get("databasepath_s")
@@ -244,14 +258,14 @@ class App(Frame):
         if self.frm_settings.frm_serial.status == NOPORTS:
             self.status_label = (INTROTXTNOPORTS, ERRCOL)
 
-        # check for more recent version (if enabled)
-        if self.configuration.get("checkforupdate_b") and configerr == "":
-            self._check_update()
-
         # display any deferred messages
         if isinstance(self._deferredmsg, tuple):
             self.status_label = self._deferredmsg
             self._deferredmsg = None
+
+        # check for more recent version (if enabled)
+        if self.configuration.get("checkforupdate_b") and configerr == "":
+            self._check_update()
 
     def _body(self):
         """
@@ -260,7 +274,7 @@ class App(Frame):
 
         self._set_default_fonts()
         self.menu = MenuBar(self)
-        self.__master.config(menu=self.menu)
+        self.__master.config(menu=self.menu, bg=BGCOL)
 
         self.frm_banner = BannerFrame(self, borderwidth=2, relief="groove")
         self.frm_status = StatusFrame(self, borderwidth=2, relief="groove")
@@ -278,84 +292,119 @@ class App(Frame):
 
     def _do_layout(self):
         """
-        Arrange visible widgets in main application frame and set
-        menu labels (show/hide).
+        Arrange and 'pack' visible widgets in main application frame and set
+        show/hide View menu labels.
+
+        Widget order, visibility and columnspan are defined in widget_state.
+        Visible widgets are gridded in sequence, left to right, top to bottom,
+        subject to a maximum columnspan defined in "maxcolumns_n" (default 4).
+        A widget columnspan of 0 (MAXSPAN) signifies the widget occupies a
+        full row.
 
         NB: PyGPSClient uses 'grid' rather than 'pack' layout management throughout:
-        - grid weight = 0 means fixed, non-expandable
-        - grid weight > 0 means expandable
+
+        - grid col/row weight = 0 means non-expandable
+        - grid col/row weight > 0 and `sticky=NSEW` is equivalent to
+          `pack(fill = BOTH, expand = True)`
+
+        FYI: `grid.forget()` method has potential memory leak; use sparingly!
         """
 
-        # get maximum column and row spans for frm_widgets
+        # do main layout
+        self.frm_banner.grid(column=0, row=0, columnspan=2, sticky=EW)
+        self.frm_widgets.grid(column=0, row=1, sticky=NSEW)
+        if isinstance(self.frm_settings, SettingsFrame):  # docked
+            if self.configuration.get("showsettings_b"):
+                self.frm_settings.grid(column=1, row=1, sticky=NW)
+            else:
+                if self.frm_settings.winfo_ismapped():
+                    self.frm_settings.grid_forget()
+        self.frm_status.grid(column=0, row=2, columnspan=2, sticky=EW)
+
+        # get overall column and row spans for frm_widgets
+        maxcols = self.configuration.get("maxcolumns_n")
+        wcolspan = 0
+        wrowspan = 1
         cols = 0
-        maxcols = 1
-        maxrows = 0
-        for wdg in self.widget_state.state.values():
-            if wdg[VISIBLE]:
-                if cols == 0:
-                    maxrows += 1
-                cols += wdg.get(COLSPAN, 1)
-                if cols > self.configuration.get("maxcolumns_n"):
-                    cols = 0
-                    maxrows += 1
-                maxcols = max(cols, maxcols)
+        wids = [
+            wdg.get(COLSPAN, 1)
+            for wdg in self.widget_state.state.values()
+            if wdg[VISIBLE]
+        ]
+        for c in wids:
+            if c == MAXSPAN or c + cols > maxcols:
+                wrowspan += 2 if c == MAXSPAN and cols > 0 else 1
+                cols = 0
+            cols += c
+            wcolspan = max(wcolspan, cols)
+        wcolspan = max(1, wcolspan)
 
         # dynamically position widgets in frm_widgets
         col = 0
-        row = 1
+        row = 0
         men = 2
         for name, wdg in self.widget_state.state.items():
             frm = getattr(self, wdg[FRAME])
             if wdg[VISIBLE]:
-                # enable any GNSS data required by widget
+                lbl = HIDE
+                # enable any GNSS message output required by widget
                 self.widget_enable_messages(name)
-                cols = (
-                    maxcols if wdg.get(COLSPAN, 1) == MAXSPAN else wdg.get(COLSPAN, 1)
-                )
-                frm.grid(column=col, row=row, columnspan=cols, sticky=NSEW)
-                col += cols
-                if col >= maxcols:
+                c = wdg.get(COLSPAN, 1)
+                cols = wcolspan if c == MAXSPAN else c
+                # only grid if position has changed
+                frmi = frm.grid_info()
+                if (
+                    frmi.get("column", None) != col
+                    or frmi.get("row", None) != row
+                    or frmi.get("columnspan", None) != cols
+                ):
+                    frm.grid(column=col, row=row, columnspan=cols, sticky=NSEW)
+                if c == MAXSPAN or c + col >= maxcols:
                     col = 0
                     row += 1
-                lbl = HIDE
+                else:
+                    col += c
             else:
-                frm.grid_forget()
                 lbl = SHOW
-            # update menu label (show/hide)
+                # only forget if gridded (memory leak!)
+                if frm.winfo_ismapped():
+                    frm.grid_forget()
+
+            # update View menu label (show/hide)
             self.menu.view_menu.entryconfig(men, label=f"{lbl} {name}")
             men += 1
 
-        # do main layout
-        self.frm_banner.grid(column=0, row=0, columnspan=maxcols + 1, sticky=EW)
-        self.frm_widgets.grid(
-            column=0, row=1, columnspan=maxcols, rowspan=maxrows, sticky=NSEW
-        )
-        if isinstance(self.frm_settings, SettingsFrame):  # docked
-            if self.configuration.get("showsettings_b"):
-                self.frm_settings.grid(
-                    column=maxcols, row=1, rowspan=maxrows, sticky=NW
-                )
-            else:
-                self.frm_settings.grid_forget()
-        self.frm_status.grid(
-            column=0, row=maxrows + 1, columnspan=maxcols + 1, sticky=EW
-        )
-        # update settings menu labels (dock/undock, show/hide)
+        # update View menu labels for Settings (dock/undock, show/hide)
         lbl = "Undock" if self.configuration.get("docksettings_b") else "Dock"
         self.menu.view_menu.entryconfig(0, label=f"{lbl} Settings")
         lbl = HIDE if self.configuration.get("showsettings_b") else SHOW
         self.menu.view_menu.entryconfig(1, label=f"{lbl} Settings")
 
-        # set 'pack' behaviour of main layout
-        for frm in (self, self.__master, self.frm_widgets):
-            for col in range(maxcols):
-                frm.grid_columnconfigure(col, weight=1)
-            for col in range(maxcols, self.configuration.get("maxcolumns_n") + 1):
-                frm.grid_columnconfigure(col, weight=0)
-            for row in range(1, maxrows + 1):
-                frm.grid_rowconfigure(row, weight=1)
-            for row in range(maxrows + 1, MAXROWSPAN + 1):
-                frm.grid_rowconfigure(row, weight=0)
+        # set column and row weights to control 'pack' behaviour of main layout
+        self.__master.grid_columnconfigure(0, weight=1)
+        self.__master.grid_rowconfigure(1, weight=1)
+        wcol, wrow = self.frm_widgets.grid_size()
+        for col in range(wcol):
+            w = 1 if col < wcolspan else 0
+            self.frm_widgets.grid_columnconfigure(col, weight=w)
+        for row in range(wrow):
+            w = 1 if row < wrowspan else 0
+            self.frm_widgets.grid_rowconfigure(row, weight=w)
+
+    def _attach_events(self):
+        """
+        Bind events to main application.
+        """
+
+        self.__master.bind(GNSS_EVENT, self.on_gnss_read)
+        self.__master.bind(GNSS_EOF_EVENT, self.on_gnss_eof)
+        self.__master.bind(GNSS_TIMEOUT_EVENT, self.on_gnss_timeout)
+        self.__master.bind(GNSS_ERR_EVENT, self.on_stream_error)
+        self.__master.bind(NTRIP_EVENT, self.on_ntrip_read)
+        self.__master.bind(SPARTN_EVENT, self.on_spartn_read)
+        self.__master.bind_all("<Control-q>", self.on_exit)
+        self.__master.bind_all("<Control-k>", self.on_killswitch)
+        # <Control-u> also bound in check_updates
 
     def settings_toggle(self):
         """
@@ -446,20 +495,6 @@ class App(Frame):
 
         self.gnss_status = GNSSStatus()
 
-    def _attach_events(self):
-        """
-        Bind events to main application.
-        """
-
-        self.__master.bind(GNSS_EVENT, self.on_gnss_read)
-        self.__master.bind(GNSS_EOF_EVENT, self.on_gnss_eof)
-        self.__master.bind(GNSS_TIMEOUT_EVENT, self.on_gnss_timeout)
-        self.__master.bind(GNSS_ERR_EVENT, self.on_stream_error)
-        self.__master.bind(NTRIP_EVENT, self.on_ntrip_read)
-        self.__master.bind(SPARTN_EVENT, self.on_spartn_read)
-        self.__master.bind_all("<Control-q>", self.on_exit)
-        self.__master.bind_all("<Control-k>", self.on_killswitch)
-
     def _set_default_fonts(self):
         """
         Set default fonts for entire application.
@@ -513,9 +548,14 @@ class App(Frame):
         Save configuration file menu option.
         """
 
+        # save current screen geometry
+        self.configuration.set("screengeom_s", self.__master.geometry())
+
         err = self.configuration.savefile()
         if err == "":
             self.status_label = (SAVECONFIGOK, OKCOL)
+        elif err == "cancelled":
+            pass
         else:  # save failed
             self.status_label = (SAVECONFIGBAD.format(err), ERRCOL)
 
@@ -976,7 +1016,14 @@ class App(Frame):
 
         latest = check_latest(TITLE)
         if latest not in (VERSION, "N/A"):
-            self.status_label = (f"{VERCHECK} {latest}", ERRCOL)
+            shortcut = "" if brew_installed() else " CTRL-U to update."
+            self.status_label = (
+                VERCHECK.format(title=TITLE, version=latest, shortcut=shortcut),
+                ERRCOL,
+            )
+            self.__master.bind_all("<Control-u>", self.do_app_update)
+        else:
+            self.__master.unbind("<Control-u>")
 
     def poll_version(self, protocol: int):
         """
@@ -1114,6 +1161,11 @@ class App(Frame):
         self.frm_settings.frm_settings.enable_controls(status)
         if status == DISCONNECTED:
             self.conn_label = (NOTCONN, INFOCOL)
+        elif status in (CONNECTED, CONNECTED_SOCKET):
+            for name, wdg in self.widget_state.state.items():
+                if wdg[VISIBLE]:
+                    # enable any GNSS message output required by widget
+                    self.widget_enable_messages(name)
 
     @property
     def server_status(self) -> int:
@@ -1229,18 +1281,25 @@ class App(Frame):
 
         return self._db_enabled
 
-    def do_app_update(self, updates: list) -> int:
+    def do_app_update(self, *args, **kwargs) -> int:
         """
         Update outdated application packages to latest versions.
 
         NB: Some platforms (e.g. Homebrew-installed Python environments)
         may block Python subprocess calls ('run') on security grounds.
 
-        :param list updates: list of packages to be updated
         :return: return code 0 = error, 1 = OK
         :rtype: int
         """
 
+        if brew_installed():
+            self.status_label = (BREWUPDATE, INFOCOL)
+            return 0
+
+        self.status_label = (UPDATEINPROG, INFOCOL)
+        updates = [
+            nam for (nam, current, latest) in check_for_updates() if latest != current
+        ]
         if len(updates) < 1:
             return 1
 
@@ -1259,15 +1318,17 @@ class App(Frame):
                 "install",
                 "--upgrade",
             ]
-            for pkg in updates:
-                cmd.append(pkg)
+            for name in updates:
+                cmd.append(name)
 
         result = None
         try:
             self.logger.debug(f"{executable=} {pth=} {cmd=}")
             result = run(cmd, check=True, capture_output=True)
+            self.status_label = (UPDATERESTART, OKCOL)
             self.logger.debug(result.stdout)
             return 1
-        except CalledProcessError:
+        except CalledProcessError as err:
+            self.status_label = (UPDATEERR.format(err=err), ERRCOL)
             self.logger.error(result.stdout)
             return 0

@@ -39,7 +39,13 @@ from tkinter import (
 )
 from typing import Literal
 
+from pygnssutils import version as PGVERSION
 from pynmeagps import WGS84_SMAJ_AXIS, NMEAMessage, haversine
+from pynmeagps import version as NMEAVERSION
+from pyqgc import version as QGCVERSION
+from pyrtcm import version as RTCMVERSION
+from pysbf2 import version as SBFVERSION
+from pyspartn import version as SPARTNVERSION
 from pyubx2 import (
     SET,
     SET_LAYER_RAM,
@@ -50,8 +56,10 @@ from pyubx2 import (
     attsiz,
     atttyp,
 )
+from pyubx2 import version as UBXVERSION
 from requests import get
 
+from pygpsclient._version import __version__ as VERSION
 from pygpsclient.globals import (
     BSR,
     ERRCOL,
@@ -92,6 +100,16 @@ from pygpsclient.strings import NA
 # validation type flags
 MAXPORT = 65535
 MAXALT = 10000.0  # meters arbitrary
+LIBVERSIONS = {
+    "PyGPSClient": VERSION,
+    "pygnssutils": PGVERSION,
+    "pyubx2": UBXVERSION,
+    "pysbf2": SBFVERSION,
+    "pyqgc": QGCVERSION,
+    "pynmeagps": NMEAVERSION,
+    "pyrtcm": RTCMVERSION,
+    "pyspartn": SPARTNVERSION,
+}
 
 
 def validate(self: Entry, valmode: int, low=MINFLOAT, high=MAXFLOAT) -> bool:
@@ -275,6 +293,20 @@ def check_latest(name: str) -> str:
         ]
     except Exception:  # pylint: disable=broad-except
         return NA
+
+
+def check_for_updates() -> list[tuple[str, str, str]]:
+    """
+    Check for updates.
+
+    :return: list of module name, current and latest version
+    :rtype: list[tuple[str,str,str]]
+    """
+
+    updates = []
+    for nam, current in LIBVERSIONS.items():
+        updates.append((nam, current, check_latest(nam)))
+    return updates
 
 
 def check_lowres(master: Tk, dim: tuple, overscan: float = OVERSCAN) -> tuple:
@@ -1105,6 +1137,22 @@ def set_filename(fpath: str, mode: str, ext: str) -> tuple:
     filename = f"pygps{mode}-{strftime('%Y%m%d%H%M%S')}.{ext}"
     filepath = path.join(fpath, filename)
     return filename, filepath
+
+
+def set_geom(window, scale: float = 1) -> str:
+    """
+    Set geometry string to size and centre window on screen.
+
+    :param window: window
+    :param float scale: scale window (relative to screen)
+    :return: formatted geometry string
+    :rtype: str
+    """
+
+    sh, sw = screenres(window)
+    w, h = [int(i * scale) for i in (sw, sh)]
+    x, y = [int((i / 2) - (j / 2)) for i, j in ((sw, w), (sh, h))]
+    return f"{w}x{h}+{x}+{y}"
 
 
 def setubxrate(app: object, mid: str, rate: int = 1, prot: str = "UBX") -> UBXMessage:

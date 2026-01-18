@@ -23,7 +23,7 @@ class SettingsFrame(Frame):
     Settings frame class.
     """
 
-    def __init__(self, app, *args, **kwargs):
+    def __init__(self, app: Frame, *args, **kwargs):
         """
         Constructor.
 
@@ -65,7 +65,6 @@ class SettingsFrame(Frame):
         Set up frame and widgets.
         """
 
-        self._frm_container.option_add("*Font", self.__app.font_sm)
         self.frm_settings = SettingsChildFrame(self.__app, self._frm_container)
         self.frm_serial = self.frm_settings.frm_serial
         self.frm_socketclient = self.frm_settings.frm_socketclient

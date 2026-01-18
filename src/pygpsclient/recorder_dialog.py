@@ -208,7 +208,7 @@ class RecorderDialog(ToplevelDialog):
         self._lbl_memory.grid(column=7, row=0, ipadx=3, ipady=3, sticky=W)
         self._lbl_activity.grid(column=0, row=2, columnspan=7, padx=3, sticky=EW)
 
-        (cols, rows) = self.grid_size()
+        cols, rows = self.grid_size()
         for i in range(cols):
             self.grid_columnconfigure(i, weight=1)
         for i in range(rows):

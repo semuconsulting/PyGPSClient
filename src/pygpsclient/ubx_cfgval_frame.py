@@ -232,7 +232,7 @@ class UBX_CFGVAL_Frame(Frame):
             column=4, row=13, rowspan=2, ipadx=3, ipady=3, sticky=E
         )
 
-        (cols, rows) = self.grid_size()
+        cols, rows = self.grid_size()
         for i in range(cols):
             self.grid_columnconfigure(i, weight=1)
         for i in range(rows):
@@ -303,7 +303,7 @@ class UBX_CFGVAL_Frame(Frame):
             idx = self._lbx_parm.curselection()
             self._cfgval_keyname = self._lbx_parm.get(idx)
 
-            (keyid, att) = cfgname2key(self._cfgval_keyname)
+            keyid, att = cfgname2key(self._cfgval_keyname)
             self._cfgkeyid.set(hex(keyid))
             self._cfgatt.set(att)
             self._cfgval.set("")

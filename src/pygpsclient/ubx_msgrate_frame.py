@@ -182,7 +182,7 @@ class UBX_MSGRATE_Frame(Frame):
             column=5, row=1, rowspan=6, ipadx=3, ipady=3, sticky=E
         )
 
-        (cols, rows) = self.grid_size()
+        cols, rows = self.grid_size()
         for i in range(cols):
             self.grid_columnconfigure(i, weight=1)
         for i in range(rows):

@@ -1,5 +1,9 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.6.1
+
+1. Updates to main application window geometry (size and position) handling. Current window geometry is now saved to json configuration file as `screengeom_s` (e.g. `"1373x798+71+44"`), and will be restored on restart. Default startup geometry is centered at 75% of screen resolution.
+
 ### RELEASE 1.6.0
 
 FIXES:
