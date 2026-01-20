@@ -11,20 +11,12 @@ Created on 20 Sep 2020
 """
 
 import logging
-from platform import python_version
+from platform import machine, python_version
 from tkinter import Button, Checkbutton, Frame, IntVar, Label, Tcl
 from webbrowser import open_new_tab
 
 from PIL import Image, ImageTk
-from pygnssutils import version as PGVERSION
-from pynmeagps import version as NMEAVERSION
-from pyqgc import version as QGCVERSION
-from pyrtcm import version as RTCMVERSION
-from pysbf2 import version as SBFVERSION
-from pyspartn import version as SPARTNVERSION
-from pyubx2 import version as UBXVERSION
 
-from pygpsclient._version import __version__ as VERSION
 from pygpsclient.globals import (
     ERRCOL,
     ICON_APP128,
@@ -36,21 +28,21 @@ from pygpsclient.globals import (
     SPONSOR_URL,
     TRACEMODE_WRITE,
 )
-from pygpsclient.helpers import brew_installed, check_latest
+from pygpsclient.helpers import LIBVERSIONS, brew_installed, check_for_updates
 from pygpsclient.sqlite_handler import SQLSTATUS
-from pygpsclient.strings import ABOUTTXT, BREWWARN, COPYRIGHT, DLGTABOUT, GITHUB_URL
+from pygpsclient.strings import (
+    ABOUTTXT,
+    BREWUPDATE,
+    BREWWARN,
+    COPYRIGHT,
+    DLGTABOUT,
+    GITHUB_URL,
+    NA,
+    UPDATEERR,
+    UPDATEINPROG,
+    UPDATERESTART,
+)
 from pygpsclient.toplevel_dialog import ToplevelDialog
-
-LIBVERSIONS = {
-    "PyGPSClient": VERSION,
-    "pygnssutils": PGVERSION,
-    "pyubx2": UBXVERSION,
-    "pysbf2": SBFVERSION,
-    "pyqgc": QGCVERSION,
-    "pynmeagps": NMEAVERSION,
-    "pyrtcm": RTCMVERSION,
-    "pyspartn": SPARTNVERSION,
-}
 
 
 class AboutDialog(ToplevelDialog):
@@ -73,7 +65,6 @@ class AboutDialog(ToplevelDialog):
         self._img_sponsor = ImageTk.PhotoImage(Image.open(ICON_SPONSOR))
         self._checkonstartup = IntVar()
         self._checkonstartup.set(self.__app.configuration.get("checkforupdate_b"))
-        self._updates = []
 
         super().__init__(app, DLGTABOUT)
 
@@ -102,6 +93,7 @@ class AboutDialog(ToplevelDialog):
         self._lbl_python_version = Label(
             self._frm_body,
             text=(
+                f"Arch: {machine()}  "
                 f"Python: {python_version()}  Tk: {tkv}  "
                 f"Spatial: {SQLSTATUS[self.__app.db_enabled]}"
             ),
@@ -118,7 +110,7 @@ class AboutDialog(ToplevelDialog):
             )
         self._btn_checkupdate = Button(
             self._frm_body,
-            text="Check for updates",
+            text="",
             width=14,
             cursor="hand2",
         )
@@ -175,7 +167,7 @@ class AboutDialog(ToplevelDialog):
         Bind events to dialog.
         """
 
-        self._btn_checkupdate.bind("<Button>", self._check_for_update)
+        self._set_update_btn_mode(False)
         self._lbl_github.bind("<Button>", self._on_github)
         self._lbl_sponsoricon.bind("<Button>", self._on_sponsor)
         self._lbl_copyright.bind("<Button>", self._on_license)
@@ -197,7 +189,7 @@ class AboutDialog(ToplevelDialog):
         """
 
         if brew_installed():
-            self._brew_warning()
+            self.status_label = (BREWWARN, INFOCOL)
             return
 
         open_new_tab(GITHUB_URL)
@@ -209,7 +201,7 @@ class AboutDialog(ToplevelDialog):
         """
 
         if brew_installed():
-            self._brew_warning()
+            self.status_label = (BREWWARN, INFOCOL)
             return
 
         open_new_tab(SPONSOR_URL)
@@ -221,7 +213,7 @@ class AboutDialog(ToplevelDialog):
         """
 
         if brew_installed():
-            self._brew_warning()
+            self.status_label = (BREWWARN, INFOCOL)
             return
 
         open_new_tab(LICENSE_URL)
@@ -232,26 +224,27 @@ class AboutDialog(ToplevelDialog):
         Check for updates.
         """
 
-        self.status_label = ""
-        self._updates = []
-        for i, (nam, current) in enumerate(LIBVERSIONS.items()):
-            latest = check_latest(nam)
+        versions = check_for_updates()
+        self.status_label = ("Checking for updates...", INFOCOL)
+        for i, (nam, current, latest) in enumerate(versions):
             txt = f"{nam}: {current}"
             if latest == current:
                 txt += " ✓"
                 col = OKCOL
-            elif latest == "N/A":
+            elif latest == NA:
                 txt += " - Info not available!"
                 col = ERRCOL
             else:
-                self._updates.append(nam)
                 txt += f" - Latest version is {latest}"
                 col = ERRCOL
             self._lbl_lib_versions[i].config(text=txt, fg=col)
 
-        if len(self._updates) > 0:
-            self._btn_checkupdate.config(text="UPDATE", fg=INFOCOL)
-            self._btn_checkupdate.bind("<Button>", self._do_update)
+        updates = [nam for (nam, current, latest) in versions if latest != current]
+        if len(updates) > 0:
+            self.status_label = ("Updates available", OKCOL)
+            self._set_update_btn_mode(True)
+        else:
+            self.status_label = ("No updates available", INFOCOL)
 
     def _do_update(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -259,22 +252,28 @@ class AboutDialog(ToplevelDialog):
         """
 
         if brew_installed():
-            self._brew_warning()
+            self.status_label = (BREWUPDATE, INFOCOL)
             return
 
-        self._btn_checkupdate.config(text="UPDATING...", fg=INFOCOL)
-        self.update_idletasks()
-        rc = self.__app.do_app_update(self._updates)
+        self.status_label = (UPDATEINPROG, INFOCOL)
+        rc = self.__app.do_app_update()
         if rc:
-            self._btn_checkupdate.config(text="RESTART APP", fg=OKCOL)
-            self._btn_checkupdate.bind("<Button>", self.__app.on_exit)
+            self.status_label = (UPDATERESTART, OKCOL)
         else:
-            self._btn_checkupdate.config(text="UPDATE FAILED", fg=ERRCOL)
+            self.status_label = (UPDATEERR.format(err=rc), ERRCOL)
+        self._set_update_btn_mode(False)
+
+    def _set_update_btn_mode(self, update: bool):
+        """
+        Set Check for update button label and binding.
+
+        :param bool update: False = check, True = update
+        """
+
+        if update:
+            self._btn_checkupdate.config(text="UPDATE", fg=OKCOL)
+            self._btn_checkupdate.bind("<Button>", self._do_update)
+        else:
+            self._btn_checkupdate.config(text="CHECK FOR UPDATES", fg=INFOCOL)
             self._btn_checkupdate.bind("<Button>", self._check_for_update)
-
-    def _brew_warning(self):
-        """
-        Display warning that some functionality unavailable with Homebrew.
-        """
-
-        self.status_label = (BREWWARN, INFOCOL)
+        self.update_idletasks()

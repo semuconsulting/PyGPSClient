@@ -264,7 +264,7 @@ class RoverFrame(Frame):
         nth = 3
         numpt = len(self.points)
         if numpt > 0:
-            (hdg_1, dis_1) = self.points[-1]
+            hdg_1, dis_1 = self.points[-1]
             if round(hdg, dp) == round(hdg_1, dp) and round(dis, dp) == round(
                 dis_1, dp
             ):

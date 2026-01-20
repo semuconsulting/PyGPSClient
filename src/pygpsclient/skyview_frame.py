@@ -121,7 +121,7 @@ class SkyviewFrame(Frame):
                 if cno == 0 and not show_unused:
                     continue
                 x, y = self._canvas.d2xy(int(azi), int(ele))
-                (_, ol_col) = GNSS_LIST[gnssId]
+                _, ol_col = GNSS_LIST[gnssId]
                 prn = f"{int(prn):02}"
                 bg_col = snr2col(cno)
                 self._canvas.create_circle(

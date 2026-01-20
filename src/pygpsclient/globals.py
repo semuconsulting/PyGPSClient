@@ -207,6 +207,7 @@ LICENSE_URL = "https://github.com/semuconsulting/PyGPSClient/blob/master/LICENSE
 LIN = "Linux"
 MAC = "Darwin"
 MAPAPI_URL = "https://developer.mapquest.com/user/login/sign-up"
+MAINSCALE = 0.75  # initial size of main window relative to screen size
 MAX_SNR = 60  # upper limit of levelsview CNo axis
 MAXFLOAT = 2e20
 MAXLOGSIZE = 10485760  # maximum size of individual log file in bytes

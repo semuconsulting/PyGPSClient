@@ -101,10 +101,11 @@ class Configuration:
         # Set initial default configuration
         self._settings = {
             "version_s": version,
+            "screengeom_s": "",  # screen geometry in tkinter format f"{w}x{h}+{x}+{y}"
             "showsettings_b": 1,
             "docksettings_b": 1,
             **self.widget_config,
-            "checkforupdate_b": 0,
+            "checkforupdate_b": 1,
             "transient_dialog_b": 1,  # whether pop-up dialogs are on top of main app window
             "guiupdateinterval_f": GUI_UPDATE_INTERVAL,  # GUI widget update interval in seconds
             "mapupdateinterval_n": MAP_UPDATE_INTERVAL,

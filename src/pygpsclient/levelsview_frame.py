@@ -188,7 +188,7 @@ class LevelsviewFrame(Frame):
             if cno == 0 and not show_unused:
                 continue
             snr_y = int(cno) * (h - self._canvas.yoffb - 1) / MAX_SNR
-            (_, ol_col) = GNSS_LIST[gnssId]
+            _, ol_col = GNSS_LIST[gnssId]
             self._canvas.create_rectangle(
                 offset,
                 h - self._canvas.yoffb - 1,

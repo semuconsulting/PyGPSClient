@@ -528,10 +528,10 @@ class SPARTNGNSSDialog(Frame):
             scheme, host, port = spc.server.split(":")
             self.__container.server = host.replace("//", "")
             self.__container.clientid = spc.clientid
-            (key, start, _) = spc.current_key
+            key, start, _ = spc.current_key
             self._spartn_key1.set(key)
             self._spartn_valdate1.set(start.strftime("%Y%m%d"))
-            (key, start, _) = spc.next_key
+            key, start, _ = spc.next_key
             self._spartn_key2.set(key)
             self._spartn_valdate2.set(start.strftime("%Y%m%d"))
             self.__container.status_label = (DLGJSONOK.format(jsonfile), OKCOL)
