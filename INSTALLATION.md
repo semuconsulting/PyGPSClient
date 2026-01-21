@@ -103,7 +103,7 @@ sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk libjpeg-
 Or for Arch-based distros:
 
 ```shell
-sudo pacman -S tk
+sudo pacman -S tk libspatialite
 ```
 
 **NB:** A wide variety of window and display managers are available for Arch Linux, and each has its devotees. We recommend one of the more refined window managers such as Cinnamon, Deepin, Gnome or Mate, rather than the more basic XFCE option which, while functional, does not render tkinter apps well.
