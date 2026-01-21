@@ -94,11 +94,19 @@ Note also that the Homebrew formulae for python-tk>=3.12 include the latest tkin
 
 ### Linux (including Raspberry Pi OS)
 
-Some Linux distributions may not include the necessary pip, tkinter, Pillow or spatialite libraries by default. They may need to be installed separately, e.g.:
+Some Linux distributions may not include the necessary pip, tkinter, Pillow or spatialite libraries by default. They may need to be installed separately, e.g. for Debian-based distros:
 
 ```shell
 sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk libjpeg-dev zlib1g-dev tk-dev libspatialite
 ```
+
+Or for Arch-based distros:
+
+```shell
+sudo pacman -S tk
+```
+
+**NB:** A wide variety of window and display managers are available for Arch Linux, and each has its devotees. We recommend one of the more refined window managers such as Cinnamon, Deepin, Gnome or Mate, rather than the more basic XFCE option which, while functional, does not render tkinter apps well.
 
 ⁴ Support for the sqlite3 `mod_spatialite` extension may require a custom version of Python to be [compiled from source](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/python_compile.sh) if a suitable version is not available from any of the distribution's repos.
 
