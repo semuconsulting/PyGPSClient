@@ -50,6 +50,7 @@ from pygpsclient.canvas_subclasses import (
     MODE_POL,
     TAG_DATA,
     TAG_GRID,
+    TAG_WAIT,
     TAG_XLABEL,
     CanvasCompass,
 )
@@ -70,6 +71,7 @@ from pygpsclient.helpers import (
     reorder_range,
     xy2ll,
 )
+from pygpsclient.strings import DLGWAITPOS
 
 AVG = "avg"
 CTRAVG = "Average"
@@ -115,6 +117,7 @@ class ScatterViewFrame(Frame):
         self._stddev = None
         self._fixed = None
         self._bounds = None
+        self._waiting = True
         self._minlat = 100
         self._minlon = 200
         self._maxlat = -100
@@ -349,7 +352,7 @@ class ScatterViewFrame(Frame):
         """
 
         # only redraw the tags that have changed
-        tags = (TAG_GRID, TAG_XLABEL) if self._redraw else ()
+        tags = (TAG_GRID, TAG_XLABEL, TAG_WAIT) if self._redraw else ()
         scale, unt = self.get_range_label()
         if scale >= 100:
             dp = 0
@@ -513,6 +516,7 @@ class ScatterViewFrame(Frame):
 
         if lat == 0.0 and lon == 0.0:  # assume no fix
             return
+        self._waiting = False
         pos = Point(lat, lon)
 
         if (
@@ -595,6 +599,15 @@ class ScatterViewFrame(Frame):
 
         self.width, self.height = self.get_size()
         self._redraw = True
+        self._on_waiting()
+
+    def _on_waiting(self):
+        """
+        Display 'waiting for data' alert.
+        """
+
+        if self._waiting:
+            self._canvas.create_alert(DLGWAITPOS, tags=TAG_WAIT)
 
     def get_size(self) -> tuple:
         """

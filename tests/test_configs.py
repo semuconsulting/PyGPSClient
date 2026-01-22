@@ -19,15 +19,18 @@ from pygpsclient.receiver_config_handler import (
     config_disable_lc29h,
     config_disable_lg290p,
     config_disable_septentrio,
+    config_disable_unicore,
     config_disable_ublox,
     config_fixed_lc29h,
     config_fixed_lg290p,
     config_fixed_septentrio,
+    config_fixed_unicore,
     config_fixed_ublox,
     config_svin_lc29h,
     config_svin_lg290p,
     config_svin_quectel,
     config_svin_septentrio,
+    config_svin_unicore,
     config_svin_ublox,
 )
 
@@ -59,6 +62,12 @@ class ConfigsTest(unittest.TestCase):
         res = config_disable_septentrio()
         self.assertEqual(str(res), EXPECTED_RESULT)
 
+    def test_config_disable_unicore(self):
+        EXPECTED_RESULT = "['mode rover survey\\r\\n', 'rtcm1006 com1 0\\r\\n', 'rtcm1033 com1 0\\r\\n', 'rtcm1074 com1 0\\r\\n', 'rtcm1084 com1 0\\r\\n', 'rtcm1094 com1 0\\r\\n', 'rtcm1124 com1 0\\r\\n', 'saveconfig\\r\\n']"
+        res = config_disable_unicore()
+        # print(res)
+        self.assertEqual(str(res), EXPECTED_RESULT)
+
     def test_config_disable_ublox(self):
         EXPECTED_RESULT = "<UBX(CFG-VALSET, version=0, ram=1, bbr=0, flash=0, action=0, reserved0=0, CFG_TMODE_MODE=0)>"
         res = config_disable_ublox()
@@ -77,6 +86,12 @@ class ConfigsTest(unittest.TestCase):
     def test_config_fixed_septentrio(self):
         EXPECTED_RESULT = "['SSSSSSSSSS\\r\\n', 'setDataInOut,COM1, ,RTCMv3\\r\\n', 'setRTCMv3Formatting,1234\\r\\n', 'setRTCMv3Output,COM1,RTCM1006+RTCM1033+RTCM1077+RTCM1087+RTCM1097+RTCM1107+RTCM1117+RTCM1127+RTCM1137+RTCM1230\\r\\n', 'setStaticPosGeodetic,Geodetic1,37.23345000,-115.81513000,15.0000\\r\\n', 'setPVTMode,Static, ,Geodetic1\\r\\n']"
         res = config_fixed_septentrio(3000, 37.23345, -115.81513, 15.00, "LLH")
+        self.assertEqual(str(res), EXPECTED_RESULT)
+
+    def test_config_fixed_unicore(self):
+        EXPECTED_RESULT = "['mode base 37.23345 -115.81513 15.0\\r\\n', 'rtcm1006 com1 10\\r\\n', 'rtcm1033 com1 10\\r\\n', 'rtcm1074 com1 1\\r\\n', 'rtcm1084 com1 1\\r\\n', 'rtcm1094 com1 1\\r\\n', 'rtcm1124 com1 1\\r\\n', 'saveconfig\\r\\n']"
+        res = config_fixed_unicore(3000, 37.23345, -115.81513, 15.00, "LLH")
+        # print(res)
         self.assertEqual(str(res), EXPECTED_RESULT)
 
     def test_config_fixed_ublox(self):
@@ -104,6 +119,12 @@ class ConfigsTest(unittest.TestCase):
     def test_config_svin_septentrio(self):
         EXPECTED_RESULT = "['SSSSSSSSSS\\r\\n', 'setDataInOut, COM1, ,RTCMv3\\r\\n', 'setRTCMv3Formatting,1234\\r\\n', 'setRTCMv3Output,COM1,RTCM1006+RTCM1033+RTCM1077+RTCM1087+RTCM1097+RTCM1107+RTCM1117+RTCM1127+RTCM1137+RTCM1230\\r\\n', 'setPVTMode,Static, ,auto\\r\\n']"
         res = config_svin_septentrio(3000, 60)
+        self.assertEqual(str(res), EXPECTED_RESULT)
+
+    def test_config_svin_unicore(self):
+        EXPECTED_RESULT = "['mode base time 60\\r\\n', 'rtcm1006 com1 10\\r\\n', 'rtcm1033 com1 10\\r\\n', 'rtcm1074 com1 1\\r\\n', 'rtcm1084 com1 1\\r\\n', 'rtcm1094 com1 1\\r\\n', 'rtcm1124 com1 1\\r\\n', 'saveconfig\\r\\n']"
+        res = config_svin_unicore(3000, 60)
+        # print(res)
         self.assertEqual(str(res), EXPECTED_RESULT)
 
     def test_config_svin_ublox(self):

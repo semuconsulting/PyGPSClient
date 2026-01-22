@@ -28,6 +28,13 @@ class GNSSStatus:
         Constructor.
         """
 
+        self.reset()
+
+    def reset(self):
+        """
+        Reset all data.
+        """
+
         self.utc = datetime.now(timezone.utc).time().replace(microsecond=0)  # UTC time
         self.lat = 0.0  # latitude as decimal
         self.lon = 0.0  # longitude as decimal

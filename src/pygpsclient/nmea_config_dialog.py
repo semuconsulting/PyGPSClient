@@ -68,11 +68,9 @@ class NMEAConfigDialog(ToplevelDialog):
         """
 
         # add configuration widgets
-        self._frm_device_info = Hardware_Info_Frame(
-            self.__app, self, borderwidth=2, relief="groove", protocol="NMEA"
-        )
+        self._frm_device_info = Hardware_Info_Frame(self.__app, self, protocol="NMEA")
         self._frm_config_dynamic = Dynamic_Config_Frame(
-            self.__app, self, borderwidth=2, relief="groove", protocol="NMEA"
+            self.__app, self, protocol="NMEA"
         )
         self._frm_preset = NMEA_PRESET_Frame(
             self.__app,

@@ -108,6 +108,26 @@ def config_disable_septentrio() -> list:
     return msgs
 
 
+def config_disable_unicore() -> list:
+    """
+    Disable base station mode for Unicore receivers.
+
+    :return: ASCII TTY commands
+    :rtype: list
+    """
+
+    msgs = []
+    msgs.append("mode rover survey\r\n")
+    msgs.append("rtcm1006 com1 0\r\n")
+    msgs.append("rtcm1033 com1 0\r\n")
+    msgs.append("rtcm1074 com1 0\r\n")
+    msgs.append("rtcm1084 com1 0\r\n")
+    msgs.append("rtcm1094 com1 0\r\n")
+    msgs.append("rtcm1124 com1 0\r\n")
+    msgs.append("saveconfig\r\n")
+    return msgs
+
+
 def config_svin_ublox(acc_limit: int, svin_min_dur: int) -> UBXMessage:
     """
     Configure Survey-In mode with specified accuracy limit for u-blox receivers.
@@ -216,6 +236,28 @@ def config_svin_septentrio(acc_limit: int, svin_min_dur: int) -> list:
         "RTCM1097+RTCM1107+RTCM1117+RTCM1127+RTCM1137+RTCM1230\r\n"
     )
     msgs.append("setPVTMode,Static, ,auto\r\n")
+    return msgs
+
+
+def config_svin_unicore(acc_limit: int, svin_min_dur: int) -> list:
+    """
+    Configure Survey-In mode with specified accuracy limit for Unicore receivers.
+
+    :param int acc_limit: accuracy limit in cm
+    :param int svin_min_dur: survey minimimum duration
+    :return: ASCII TTY commands
+    :rtype: list
+    """
+
+    msgs = []
+    msgs.append(f"mode base time {svin_min_dur}\r\n")
+    msgs.append("rtcm1006 com1 10\r\n")
+    msgs.append("rtcm1033 com1 10\r\n")
+    msgs.append("rtcm1074 com1 1\r\n")
+    msgs.append("rtcm1084 com1 1\r\n")
+    msgs.append("rtcm1094 com1 1\r\n")
+    msgs.append("rtcm1124 com1 1\r\n")
+    msgs.append("saveconfig\r\n")
     return msgs
 
 
@@ -378,6 +420,33 @@ def config_fixed_septentrio(
     )
     msgs.append(f"setStaticPosGeodetic,Geodetic1,{lat:.8f},{lon:.8f},{height:.4f}\r\n")
     msgs.append("setPVTMode,Static, ,Geodetic1\r\n")
+    return msgs
+
+
+def config_fixed_unicore(
+    acc_limit: int, lat: float, lon: float, height: float, posmode: str
+) -> list:
+    """
+    Configure Fixed mode with specified coordinates for Septentrio receivers.
+
+    :param int acc_limit: accuracy limit in cm
+    :param float lat: lat or X in m
+    :param float lon: lon or Y in m
+    :param float height: height or Z in m
+    :param str posmode: "LLH" or "ECEF"
+    :return: ASCII TTY commands
+    :rtype: list
+    """
+
+    msgs = []
+    msgs.append(f"mode base {lat} {lon} {height}\r\n")
+    msgs.append("rtcm1006 com1 10\r\n")
+    msgs.append("rtcm1033 com1 10\r\n")
+    msgs.append("rtcm1074 com1 1\r\n")
+    msgs.append("rtcm1084 com1 1\r\n")
+    msgs.append("rtcm1094 com1 1\r\n")
+    msgs.append("rtcm1124 com1 1\r\n")
+    msgs.append("saveconfig\r\n")
     return msgs
 
 

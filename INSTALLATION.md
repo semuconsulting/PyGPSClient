@@ -1,4 +1,3 @@
-
 # PyGPSClient Installation
 
 [Basics](#basics) |
@@ -92,24 +91,42 @@ brew install python-tk@3.13 libspatialite
 
 Note also that the Homebrew formulae for python-tk>=3.12 include the latest tkinter 9.0 (rather than 8.6). There are known compatibility issues between tkinter 9.0 and other Python packages (*e.g. ImageTk*) on some platform configurations, which may result in PyGPSClient being unable to load. If you encounter these issues, consider using `brew install python-tk@3.11` or an official [Python.org](https://www.python.org/downloads/macos) installation package instead.
 
+Note that on MacOS, serial ports may appear as `/dev/tty*` *or* `/dev/cu*`. To understand the differences between the two, see [here](https://www.codegenes.net/blog/what-s-the-difference-between-dev-tty-and-dev-cu-on-macos/).
+
 ### Linux (including Raspberry Pi OS)
 
-Some Linux distributions may not include the necessary pip, tkinter, Pillow or spatialite libraries by default. They may need to be installed separately, e.g.:
+Some Linux distributions may not include the necessary pip, venv, tkinter, Pillow or spatialite libraries by default. They may need to be installed separately, e.g. for Debian-based distibutions, a combination of some or all of the following:
 
 ```shell
-sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk libjpeg-dev zlib1g-dev tk-dev libspatialite
+sudo apt install python3-pip python3-tk python3-pil python3-venv python3-pil.imagetk libjpeg-dev zlib1g-dev tk-dev libspatialite
+```
+
+For Arch-based distributions:
+
+```shell
+sudo pacman -S tk libspatialite
 ```
 
 ⁴ Support for the sqlite3 `mod_spatialite` extension may require a custom version of Python to be [compiled from source](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/python_compile.sh) if a suitable version is not available from any of the distribution's repos.
 
 ## <a name="userpriv">User Privileges</a>
 
-To access the serial port on most Linux platforms, you will need to be a member of the 
-`tty` and/or `dialout` groups. Other than this, no special privileges are required.
+To access the serial port (`/dev/tty*`) on most Linux platforms, you will need to be a member of whichever group or "`Gid`" the `/dev/tty*` device belongs to. Failure to do this will typically result in an error `[Errno 13] could not open port /dev/ttyACM0 [Errno 13] permission denied /dev/ttyACM0`
+
+To check and set the necessary group permissions:
 
 ```shell
-usermod -a -G tty myuser
+stat /dev/ttyACM0 | grep Gid
 ```
+`Access: (0660/crw-rw----)  Uid: (    0/    root)   Gid: (   20/ dialout)` <-- group in this case is `dialout`; add user to this group using usermod (*you may have to log out and in again for this to take effect*):
+
+```shell
+sudo usermod -a -G dialout myuser
+```
+
+For Debian-based platforms, the group is normally `dialout`; on Arch-based platforms it may be `uucp` or `tty`.
+
+Other than this, no special privileges are required.
 
 ## <a name="pip">Install using pip</a>
 

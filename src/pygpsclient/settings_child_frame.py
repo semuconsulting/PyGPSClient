@@ -137,6 +137,7 @@ class SettingsChildFrame(Frame):
         self._prot_ubx = IntVar()
         self._prot_sbf = IntVar()
         self._prot_qgc = IntVar()
+        self._prot_unicore = IntVar()
         self._prot_rtcm = IntVar()
         self._prot_spartn = IntVar()
         self._prot_tty = IntVar()
@@ -272,6 +273,11 @@ class SettingsChildFrame(Frame):
             self._frm_options,
             text="QGC",
             variable=self._prot_qgc,
+        )
+        self._chk_unicore = Checkbutton(
+            self._frm_options,
+            text="UNI",
+            variable=self._prot_unicore,
         )
         self._chk_tty = Checkbutton(
             self._frm_options,
@@ -454,6 +460,7 @@ class SettingsChildFrame(Frame):
         self._chk_qgc.grid(column=2, row=1, padx=0, pady=0, sticky=W)
         self._chk_spartn.grid(column=3, row=1, padx=0, pady=0, sticky=W)
         self._chk_tty.grid(column=1, row=2, padx=0, pady=0, sticky=W)
+        # self._chk_unicore.grid(column=2, row=2, padx=0, pady=0, sticky=W) # TODO
         self._lbl_consoledisplay.grid(column=0, row=3, padx=2, pady=2, sticky=W)
         self._spn_conformat.grid(
             column=1, row=3, columnspan=2, padx=1, pady=2, sticky=W
@@ -501,6 +508,7 @@ class SettingsChildFrame(Frame):
         self._prot_ubx.trace_update(tracemode, self._on_update_ubxprot, add)
         self._prot_sbf.trace_update(tracemode, self._on_update_sbfprot, add)
         self._prot_qgc.trace_update(tracemode, self._on_update_qgcprot, add)
+        self._prot_unicore.trace_update(tracemode, self._on_update_unicoreprot, add)
         self._prot_nmea.trace_update(tracemode, self._on_update_nmeaprot, add)
         self._prot_rtcm.trace_update(tracemode, self._on_update_rtcmprot, add)
         self._prot_spartn.trace_update(tracemode, self._on_update_spartnprot, add)
@@ -578,6 +586,14 @@ class SettingsChildFrame(Frame):
         if not self._prot_tty.get():
             self.__app.configuration.set("qgcprot_b", self._prot_qgc.get())
 
+    def _on_update_unicoreprot(self, var, index, mode):
+        """
+        Action on updating unicoreprot.
+        """
+
+        if not self._prot_tty.get():
+            self.__app.configuration.set("unicoreprot_b", self._prot_unicore.get())
+
     def _on_update_nmeaprot(self, var, index, mode):
         """
         Action on updating nmeaprot.
@@ -618,6 +634,7 @@ class SettingsChildFrame(Frame):
                     self._prot_ubx,
                     self._prot_sbf,
                     self._prot_qgc,
+                    self._prot_unicore,
                     self._prot_rtcm,
                     self._prot_spartn,
                 ):
@@ -627,6 +644,7 @@ class SettingsChildFrame(Frame):
                 self._prot_ubx.set(cfg.get("ubxprot_b"))
                 self._prot_sbf.set(cfg.get("sbfprot_b"))
                 self._prot_qgc.set(cfg.get("qgcprot_b"))
+                self._prot_unicore.set(cfg.get("unicoreprot_b"))
                 self._prot_rtcm.set(cfg.get("rtcmprot_b"))
                 self._prot_spartn.set(cfg.get("spartnprot_b"))
             cfg.set("ttyprot_b", tty)
@@ -827,8 +845,8 @@ class SettingsChildFrame(Frame):
         self.__app.conn_status = conntype
         self.__app.conn_label = (connstr, OKCOL)
         self.__app.status_label = ("", INFOCOL)
-        self.__app.reset_frames()
-        self.__app.reset_gnssstatus()
+        self.__app.last_map_update = 0  # reset MAPQuest API refresh clock
+        self.__app.gnss_status.reset()  # reset all GNSS data
         self.__app.stream_handler.start(self.__app, conndict)
 
     def enable_controls(self, status: int):

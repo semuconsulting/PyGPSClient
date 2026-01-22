@@ -19,6 +19,7 @@ from tkinter import NE, NSEW, Frame, font
 from pygpsclient.canvas_subclasses import (
     TAG_DATA,
     TAG_GRID,
+    TAG_WAIT,
     TAG_XLABEL,
     TAG_YLABEL,
     CanvasGraph,
@@ -32,6 +33,7 @@ from pygpsclient.globals import (
     WIDGETU2,
 )
 from pygpsclient.helpers import col2contrast, fitfont, unused_sats
+from pygpsclient.strings import DLGWAITCNO
 
 OL_WID = 1
 FONTSCALELG = 40
@@ -63,6 +65,7 @@ class LevelsviewFrame(Frame):
         self.width = kwargs.get("width", def_w)
         self.height = kwargs.get("height", def_h)
         self._redraw = True
+        self._waiting = True
         self._body()
         self._attach_events()
 
@@ -118,7 +121,7 @@ class LevelsviewFrame(Frame):
         """
 
         # only redraw the tags that have changed
-        tags = (TAG_GRID, TAG_XLABEL, TAG_YLABEL) if self._redraw else ()
+        tags = (TAG_GRID, TAG_XLABEL, TAG_YLABEL, TAG_WAIT) if self._redraw else ()
         self._canvas.create_graph(
             xdatamax=10,
             ydatamax=(MAX_SNR,),
@@ -177,12 +180,13 @@ class LevelsviewFrame(Frame):
         if siv <= 0:
             return
 
+        self._waiting = False
         w, h = self.width, self.height
         self.init_frame()
 
         offset = self._canvas.xoffl
         colwidth = (w - self._canvas.xoffl - self._canvas.xoffr + 1) / siv
-        xfnt, _, _ = fitfont(XLBLFMT, colwidth, self._canvas.yoffb, XLBLANGLE)
+        xfnt, _, _, _ = fitfont(XLBLFMT, colwidth, self._canvas.yoffb, XLBLANGLE)
         for val in sorted(data.values()):  # sort by ascending gnssid, svid
             gnssId, prn, _, _, cno, _ = val
             if cno == 0 and not show_unused:
@@ -224,6 +228,15 @@ class LevelsviewFrame(Frame):
 
         self.width, self.height = self.get_size()
         self._redraw = True
+        self._on_waiting()
+
+    def _on_waiting(self):
+        """
+        Display 'waiting for data' alert.
+        """
+
+        if self._waiting:
+            self._canvas.create_alert(DLGWAITCNO, tags=TAG_WAIT)
 
     def get_size(self):
         """

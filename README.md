@@ -23,8 +23,8 @@ PyGPSClient is a free, open-source, multi-platform graphical GNSS/GPS testing, d
 * Supports NMEA, UBX, SBF, QGC, RTCM3, NTRIP, SPARTN, MQTT and TTY (ASCII) protocols¹.
 * Capable of reading from a variety of GNSS data streams: Serial (USB / UART), Socket (TCP / UDP), binary data stream (terminal or file capture) and binary recording (e.g. u-center \*.ubx).
 * Provides [NTRIP](#ntripconfig) client facilities.
-* Can serve as an [NTRIP base station](#basestation) with an RTK-compatible receiver (e.g. u-blox ZED-F9P/ZED-X20P, Quectel LG290P/LG580P/LC29H and Septentrio Mosaic G5/X5).
-* Supports GNSS (*and related*) device configuration via proprietary UBX, NMEA and ASCII TTY protocols, including most u-blox, Quectel, Septentrio and Feyman GNSS devices.
+* Can serve as an [NTRIP base station](#basestation) with an RTK-compatible receiver (e.g. u-blox ZED-F9P/ZED-X20P, Quectel LG290P/LG580P/LC29H, Septentrio Mosaic G5/X5 or Unicore UM98n).
+* Supports GNSS (*and related*) device configuration via proprietary UBX, NMEA and ASCII TTY protocols, including most u-blox, Quectel, Septentrio, Unicore and Feyman GNSS devices.
 * Can be installed using the standard `pip` Python package manager - see [installation instructions](#installation) below.
 
 This is an independent project and we have no affiliation whatsoever with any GNSS manufacturer or distributor.
@@ -104,6 +104,8 @@ For more comprehensive installation instructions, please refer to [INSTALLATION.
 1. By default, the Settings panel is displayed to the right of the main application window. It can be hidden or shown via Menu..View..Hide/Show Settings. The panel can also be 'undocked' from the main application window via Menu..View..Undock Settings and - if [non-transient](#transient) (`transient_dialog_b: 0`) - minimized independently of the main window. Exiting the undocked dialog, or selecting Menu..View..Dock Settings, will 'dock' the panel.
 1. To connect to a GNSS receiver via USB or UART port, select the device from the listbox, set the appropriate serial connection parameters and click 
 ![connect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/usbport-1-24.png?raw=true). The application will endeavour to pre-select a recognised GNSS/GPS device but this is platform and device dependent. Press the ![refresh](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-refresh-6-16.png?raw=true) button to refresh the list of connected devices at any point. `Rate bps` (baud rate) is typically the only setting that might need adjusting, but tweaking the `timeout` setting may improve performance on certain platforms. The `Msg Mode` parameter defaults to `GET` i.e., periodic or poll response messages *from* a receiver. If you wish to parse streams of command or poll messages being sent *to* a receiver, set the `Msg Mode` to `SET` or `POLL`. An optional serial or socket stream inactivity timeout can also be set (in seconds; 0 = no timeout).
+
+   If you get a permissions error on attempting to connect to a serial port e.g. `[Errno 13] permission denied /dev/ttyACM0`, refer to the [Installation Guidelines - User Privileges](https://github.com/semuconsulting/PyGPSClient/blob/master/INSTALLATION.md#user-privileges).
 1. A custom user-defined serial port can also be passed via the json configuration file setting `"userport_s":`, via environment variable `PYGPSCLIENT_USERPORT` or as a command line argument `--userport`. A special userport value of "ubxsimulator" invokes the experimental [`pyubxutils.UBXSimulator`](https://github.com/semuconsulting/pyubxutils/blob/main/src/pyubxutils/ubxsimulator.py) utility to emulate a GNSS NMEA/UBX serial stream. 
 1. To connect to a TCP or UDP socket, enter the server URL and port, select the protocol (defaults to TCP) and click 
 ![connect socket icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/ethernet-1-24.png?raw=true). For encrypted TLS connections, tick the 'TLS' checkbox. Tick the 'Self Sign' checkbox to accommodate self-signed TLS certification (*typically for test or demonstration services*).
@@ -353,7 +355,7 @@ By default, the server/caster binds to the host address '0.0.0.0' (IPv4) or '::'
 1. Select NTRIP CASTER mode and (if necessary) enter the host IP address and port.
 1. Select 'TLS' to enable an encrypted TLS (HTTPS) connection.
 1. An additional expandable panel is made available to allow the user to configure a connected RTK-compatible receiver to operate in either `FIXED` or `SURVEY-IN` Base Station mode (*NB: parameters can only be amended while the caster is stopped*).
-1. Select the receiver type (currently u-blox ZED-F9*, u-blox ZED-X20*, Quectel LG290P, Quectel LC29HBA and Septentrio Mosaic X5 receivers are supported) and click the Send button to send the appropriate configuration commands to the receiver. 
+1. Select the receiver type and click the Send button to send the appropriate configuration commands to the receiver. 
 1. **NB** Septentrio Mosaic X5: These receivers are configured via ASCII TTY commands - to monitor the command responses, set the console protocol to "TTY" (*remember to set it back to RTCM when monitoring the RTCM3 output*). Note also that the input (ASCII command) UART port may be different to the output (RTCM3) UART port - make sure to select the appropriate port(s) when configuring the device and monitoring the RTCM3 output.
 1. NMEA messages can be suppressed by checking 'Disable NMEA'.
 1. NTRIP client login credentials are set via the user and password fields. 

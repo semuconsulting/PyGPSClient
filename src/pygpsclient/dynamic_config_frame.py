@@ -528,6 +528,7 @@ class Dynamic_Config_Frame(Frame):
         wdgs = self._frm_attrs.grid_slaves()
         for wdg in wdgs:
             wdg.destroy()
+            wdg = None
         Label(self._frm_attrs, text="Attribute", width=12, anchor=W).grid(
             column=0, row=0, padx=3, sticky=(W)
         )

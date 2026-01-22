@@ -1,14 +1,16 @@
 """
-qgc_handler.py
+uni_handler.py
 
-QGC Protocol handler - handles all incoming QGC messages
+WORK IN PROGRESS - AWAITING PARSER DEVELOPMENT
 
-Parses individual QGC messages (using pyqgc library)
+Unicore GNSS Protocol handler - handles all incoming UNI messages
+
+Parses individual UNI (Unicore UM98n GNSS) messages (using pyunignss library)
 and adds selected attribute values to the app.gnss_status
 data dictionary. This dictionary is then used to periodically
 update the various user-selectable widget panels.
 
-Created on 6 Oct 2025
+Created on 27 Jan 2026
 
 :author: semuadmin (Steve Smith)
 :copyright: 2020 semuadmin
@@ -18,9 +20,9 @@ Created on 6 Oct 2025
 import logging
 
 
-class QGCHandler:
+class UNIHandler:
     """
-    QGCHandler class
+    UNIHandler class
     """
 
     def __init__(self, app):
@@ -40,10 +42,10 @@ class QGCHandler:
     # pylint: disable=unused-argument
     def process_data(self, raw_data: bytes, parsed_data: object):
         """
-        Process relevant QGC message types
+        Process relevant UNI message types
 
         :param bytes raw_data: raw data
-        :param QGCMessage parsed_data: parsed data
+        :param UNIMessage parsed_data: parsed data
         """
 
         if raw_data is None:

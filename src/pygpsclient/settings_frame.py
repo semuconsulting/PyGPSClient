@@ -23,11 +23,12 @@ class SettingsFrame(Frame):
     Settings frame class.
     """
 
-    def __init__(self, app: Frame, *args, **kwargs):
+    def __init__(self, app: Frame, parent: Frame, *args, **kwargs):
         """
         Constructor.
 
         :param Frame app: reference to main tkinter application
+        :param Frame parent: reference to parent frame
         :param args: optional args to pass to Frame parent class
         :param kwargs: optional kwargs to pass to Frame parent class
         """
@@ -35,7 +36,7 @@ class SettingsFrame(Frame):
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
 
-        super().__init__(self.__master, *args, **kwargs)
+        super().__init__(parent, *args, **kwargs)
 
         self._container()  # create scrollable container
         self._body()

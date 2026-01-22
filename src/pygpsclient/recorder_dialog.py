@@ -121,7 +121,7 @@ class RecorderDialog(ToplevelDialog):
         Set up frame and widgets.
         """
 
-        self._frm_body = Frame(self.container, borderwidth=2, relief="groove", bg=BGCOL)
+        self._frm_body = Frame(self.container, bg=BGCOL)
         self._btn_load = Button(
             self._frm_body,
             image=self._img_load,
