@@ -95,10 +95,16 @@ Note that on MacOS, serial ports may appear as `/dev/tty*` *or* `/dev/cu*`. To u
 
 ### Linux (including Raspberry Pi OS)
 
-Some Linux distributions may not include the necessary pip, venv, tkinter, Pillow or spatialite libraries by default. They may need to be installed separately, e.g. a combination of some or all of the following:
+Some Linux distributions may not include the necessary pip, venv, tkinter, Pillow or spatialite libraries by default. They may need to be installed separately, e.g. for Debian-based distibutions, a combination of some or all of the following:
 
 ```shell
 sudo apt install python3-pip python3-tk python3-pil python3-venv python3-pil.imagetk libjpeg-dev zlib1g-dev tk-dev libspatialite
+```
+
+For Arch-based distributions:
+
+```shell
+sudo pacman -S tk libspatialite
 ```
 
 ⁴ Support for the sqlite3 `mod_spatialite` extension may require a custom version of Python to be [compiled from source](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/python_compile.sh) if a suitable version is not available from any of the distribution's repos.
@@ -112,10 +118,10 @@ To check and set the necessary group permissions:
 ```shell
 stat /dev/ttyACM0 | grep Gid
 ```
-`Access: (0660/crw-rw----)  Uid: (    0/    root)   Gid: (   20/ dialout)` <-- group in this case is `dialout`; add user to this group using usermod:
+`Access: (0660/crw-rw----)  Uid: (    0/    root)   Gid: (   20/ dialout)` <-- group in this case is `dialout`; add user to this group using usermod (*you may have to log out and in again for this to take effect*):
 
 ```shell
-usermod -a -G dialout myuser
+sudo usermod -a -G dialout myuser
 ```
 
 For Debian-based platforms, the group is normally `dialout`; on Arch-based platforms it may be `uucp` or `tty`.
