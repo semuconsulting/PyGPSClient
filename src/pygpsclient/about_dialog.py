@@ -111,7 +111,7 @@ class AboutDialog(ToplevelDialog):
         self._btn_checkupdate = Button(
             self._frm_body,
             text="",
-            width=14,
+            width=16,
             cursor="hand2",
         )
         self._chk_checkupdate = Checkbutton(

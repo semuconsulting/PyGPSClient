@@ -337,6 +337,10 @@ class UBXHandler:
                 svid += 64
             elev = getattr(data, "elev" + idx)
             azim = getattr(data, "azim" + idx)
+            # elev = -91 normally means 'not used'
+            if not -90 <= elev <= 90:
+                elev = ""
+                azim = ""
             cno = getattr(data, "cno" + idx)
             self.__app.gnss_status.gsv_data[(gnssId, svid)] = (
                 gnssId,

@@ -424,9 +424,7 @@ class ChartviewFrame(Frame):
                         continue
 
             # wildcards *+-, sum, max or min of group of values
-            if name == "processtime":
-                val = self.__app.processtime / 1000  # microseconds
-            elif name[-1] in ("*", "+", "-"):
+            if name[-1] in ("*", "+", "-"):
                 vals = []
                 for attr in parsed_data.__dict__:
                     if name[:-1] in attr and name[0] != "_":

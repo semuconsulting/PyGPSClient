@@ -22,6 +22,7 @@ from pyubx2 import CORRSOURCE, SIGID, UBXMessage
 from pygpsclient.canvas_subclasses import (
     TAG_DATA,
     TAG_GRID,
+    TAG_WAIT,
     TAG_XLABEL,
     TAG_YLABEL,
     CanvasGraph,
@@ -32,17 +33,16 @@ from pygpsclient.globals import (
     GNSS_LIST,
     GRIDMAJCOL,
     MAX_SNR,
+    MAXWAIT,
     PNTCOL,
     SIGNALSVIEW,
     WIDGETU3,
 )
 from pygpsclient.helpers import col2contrast, fitfont, setubxrate
-from pygpsclient.strings import DLGENABLENAVSIG, DLGNONAVSIG, DLGWAITNAVSIG
+from pygpsclient.strings import DLGNONAVSIG, DLGWAITNAVSIG
 
 OL_WID = 1
 FONTSCALELG = 40
-MAXWAIT = 10
-ACTIVE = ""
 XLBLANGLE = 60
 XLBLFMT = "000 WWW_W/W"
 # Correction source legend
@@ -88,11 +88,12 @@ class SignalsviewFrame(Frame):
         self.width = kwargs.get("width", def_w)
         self.height = kwargs.get("height", def_h)
         self._redraw = True
-        self._navsig_status = DLGENABLENAVSIG
         self._pending_confs = {}
         self._waits = 0
+        self._waiting = True
         self._body()
         self._attach_events()
+        self.enable_messages(True)
 
     def _body(self):
         """
@@ -150,7 +151,6 @@ class SignalsviewFrame(Frame):
         setubxrate(self.__app, "NAV-SIG", status)
         for msgid in ("ACK-ACK", "ACK-NAK"):
             self._set_pending(msgid, SIGNALSVIEW)
-        self._navsig_status = DLGWAITNAVSIG
 
     def _set_pending(self, msgid: int, ubxfrm: int):
         """
@@ -185,7 +185,6 @@ class SignalsviewFrame(Frame):
                 tags=TAG_DATA,
             )
             self._pending_confs.pop("ACK-NAK")
-            self._navsig_status = DLGNONAVSIG
 
         if self._pending_confs.get("ACK-ACK", False):
             self._pending_confs.pop("ACK-ACK")
@@ -205,7 +204,7 @@ class SignalsviewFrame(Frame):
         """
 
         # only redraw the tags that have changed
-        tags = (TAG_GRID, TAG_XLABEL, TAG_YLABEL) if self._redraw else ()
+        tags = (TAG_GRID, TAG_XLABEL, TAG_YLABEL, TAG_WAIT) if self._redraw else ()
         self._canvas.create_graph(
             xdatamax=10,
             ydatamax=(MAX_SNR,),
@@ -220,15 +219,6 @@ class SignalsviewFrame(Frame):
             tags=tags,
         )
         self._redraw = False
-
-        # display 'enable NAV-SIG' warning
-        self._canvas.create_text(
-            self.width / 2,
-            self.height / 2,
-            text=self._navsig_status,
-            fill=PNTCOL,
-            tags=TAG_DATA,
-        )
 
     def _draw_legend(self):
         """
@@ -262,7 +252,9 @@ class SignalsviewFrame(Frame):
             )
 
         # correction source legend
-        xfnt, _, _ = fitfont(CL, self.width / 2 - self._canvas.xoffl, h / 2, maxsiz=12)
+        xfnt, _, _, _ = fitfont(
+            CL, self.width / 2 - self._canvas.xoffl, h / 2, maxsiz=12
+        )
         self._canvas.create_text(
             self.width / 2,
             self._canvas.yofft + 1,
@@ -282,12 +274,12 @@ class SignalsviewFrame(Frame):
         data = self.__app.gnss_status.sig_data
         if len(data) == 0:
             if self._waits >= MAXWAIT:
-                self._navsig_status = DLGNONAVSIG
+                self._canvas.create_alert(DLGNONAVSIG, tags=TAG_WAIT)
             else:
                 self._waits += 1
         else:
+            self._waiting = False
             self._waits = 0
-            self._navsig_status = ACTIVE
         show_unused = self.__app.configuration.get("unusedsat_b")
         siv = len(data)
         siv = siv if show_unused else siv - unused_sigs(data)
@@ -299,7 +291,7 @@ class SignalsviewFrame(Frame):
 
         offset = self._canvas.xoffl
         colwidth = (w - self._canvas.xoffl - self._canvas.xoffr + 1) / siv
-        xfnt, _, _ = fitfont(
+        xfnt, _, _, _ = fitfont(
             XLBLFMT,
             colwidth * 1.66,
             self._canvas.yoffb,
@@ -360,6 +352,16 @@ class SignalsviewFrame(Frame):
 
         self.width, self.height = self.get_size()
         self._redraw = True
+        self._on_waiting()
+
+    def _on_waiting(self):
+        """
+        Display 'waiting for data' alert.
+        """
+
+        if self._waiting:
+            txt = DLGNONAVSIG if self._waits >= MAXWAIT else DLGWAITNAVSIG
+            self._canvas.create_alert(txt, tags=TAG_WAIT)
 
     def get_size(self):
         """

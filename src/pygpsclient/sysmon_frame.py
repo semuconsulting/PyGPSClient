@@ -14,25 +14,27 @@ Created on 30 Apr 2023
 :license: BSD 3-Clause
 """
 
-from tkinter import ALL, EW, NSEW, NW, Canvas, E, Frame, IntVar, Radiobutton, W
+from tkinter import EW, NSEW, NW, Canvas, E, Frame, IntVar, Radiobutton, W
 
 from pyubx2 import BOOTTYPE, UBXMessage
 
-from pygpsclient.globals import BGCOL, FGCOL, PNTCOL, SYSMONVIEW, WIDGETU2
+from pygpsclient.canvas_subclasses import TAG_DATA, TAG_WAIT
+from pygpsclient.globals import BGCOL, FGCOL, MAXWAIT, PNTCOL, SYSMONVIEW, WIDGETU2
 from pygpsclient.helpers import (
     bytes2unit,
+    fitfont,
     hsv2rgb,
-    scale_font,
     secs2unit,
     setubxrate,
 )
-from pygpsclient.strings import DLGENABLEMONSYS, DLGNOMONSYS, DLGWAITMONSYS, NA
+from pygpsclient.strings import DLGNOMONSYS, DLGWAITMONSYS, NA
 
-MINFONT = 6  # minimum font size
-MAXTEMP = 100  # °C
-INSET = 4
-SPACING = 5
+ACTIVE = ""
 DASH = (5, 2)
+FONTSCALE = 25
+INSET = 4
+MAXLINES = 19
+MAXTEMP = 100  # °C
 PORTIDS = {
     0x0000: "I2C",  # 0 I2C
     0x0100: "UART1",  # 256 UART1
@@ -42,10 +44,7 @@ PORTIDS = {
     0x0300: "USB",  # 768 USB
     0x0400: "SPI",  # 1024 SPI
 }
-ACTIVE = ""
-MAXLINES = 23
-MINFONT = 4
-MAXWAIT = 10
+SPACING = 2
 
 
 class SysmonFrame(Frame):
@@ -71,23 +70,24 @@ class SysmonFrame(Frame):
         def_w, def_h = WIDGETU2
         self.width = kwargs.get("width", def_w)
         self.height = kwargs.get("height", def_h)
-        self._monsys_status = DLGENABLEMONSYS
         self._pending_confs = {}
         self._maxtemp = 0
         self._waits = 0
+        self._waiting = True
         self._mode = IntVar()
         self._mode.set(0)
         self._font = self.__app.font_sm
         self._fonth = self._font.metrics("linespace")
         self._body()
         self._attach_events()
+        self.enable_messages(True)
 
     def _body(self):
         """
         Set up frame and widgets.
         """
 
-        self._can_sysmon = Canvas(self, width=self.width, height=self.height, bg=BGCOL)
+        self._canvas = Canvas(self, width=self.width, height=self.height, bg=BGCOL)
         self._frm_status = Frame(self, bg=BGCOL)
         self._rad_actual = Radiobutton(
             self._frm_status,
@@ -96,7 +96,6 @@ class SysmonFrame(Frame):
             value=0,
             fg=PNTCOL,
             bg=BGCOL,
-            # selectcolor=BGCOL,
         )
         self._rad_pending = Radiobutton(
             self._frm_status,
@@ -105,9 +104,8 @@ class SysmonFrame(Frame):
             value=1,
             fg=PNTCOL,
             bg=BGCOL,
-            # selectcolor=BGCOL,
         )
-        self._can_sysmon.grid(column=0, row=0, padx=0, pady=0, sticky=NSEW)
+        self._canvas.grid(column=0, row=0, padx=0, pady=0, sticky=NSEW)
         self._frm_status.grid(column=0, row=1, padx=2, pady=2, sticky=EW)
         self._rad_actual.grid(column=0, row=0, padx=0, pady=0, sticky=W)
         self._rad_pending.grid(column=1, row=0, padx=0, pady=0, sticky=W)
@@ -120,20 +118,14 @@ class SysmonFrame(Frame):
         """
 
         self.bind("<Configure>", self._on_resize)
-        self._can_sysmon.bind("<Double-Button-1>", self._on_clear)
+        self._canvas.bind("<Double-Button-1>", self._on_clear)
 
     def init_chart(self):
         """
         Initialise sysmon chart.
         """
 
-        self._can_sysmon.delete(ALL)
-        self._can_sysmon.create_text(
-            self.width / 2,
-            self.height / 2,
-            text=self._monsys_status,
-            fill="orange",
-        )
+        self._canvas.delete(TAG_DATA)
 
     def _on_clear(self, event):  # pylint: disable=unused-argument
         """
@@ -145,7 +137,6 @@ class SysmonFrame(Frame):
         self.__app.gnss_status.sysmon_data = {}
         self.__app.gnss_status.comms_data = {}
         self._maxtemp = 0
-        self._monsys_status = DLGWAITMONSYS
         self.init_chart()
 
     def enable_messages(self, status: int):
@@ -162,7 +153,6 @@ class SysmonFrame(Frame):
             setubxrate(self.__app, msgid, status)
         for msgid in ("ACK-ACK", "ACK-NAK"):
             self._set_pending(msgid, SYSMONVIEW)
-        self._monsys_status = DLGWAITMONSYS
         self.init_chart()
 
     def _set_pending(self, msgid: int, ubxfrm: int):
@@ -187,8 +177,6 @@ class SysmonFrame(Frame):
         pending = self._pending_confs.get(msg.identity, False)
         if pending and msg.identity == "ACK-NAK":
             self._pending_confs.pop("ACK-NAK")
-            self._monsys_status = DLGNOMONSYS
-
         if self._pending_confs.get("ACK-ACK", False):
             self._pending_confs.pop("ACK-ACK")
 
@@ -209,11 +197,12 @@ class SysmonFrame(Frame):
         if len(sysdata) + len(commsdata) == 0:
             self._waits += 1
             if self._waits >= MAXWAIT:
-                self._monsys_status = DLGNOMONSYS
+                self._canvas.create_alert(DLGNOMONSYS, tags=TAG_WAIT)
                 self.init_chart()
             return
 
-        self._monsys_status = ACTIVE
+        self._waiting = False
+        self._canvas.delete(TAG_WAIT)
         self._waits = 0
         try:
             bootType = BOOTTYPE[sysdata.get("bootType", 0)]
@@ -251,16 +240,16 @@ class SysmonFrame(Frame):
                 + f"Runtime: {rtm:{rtf}} {rtmu}\n"
                 + f"Notices: {noticeCount}, Warnings: {warnCount}, Errors: {errorCount}"
             )
-            self._can_sysmon.create_text(
+            self._canvas.create_text(
                 INSET,
                 y,
                 text=txt,
                 fill=FGCOL,
                 anchor=NW,
                 font=self._font,
+                tags=TAG_DATA,
             )
         except KeyError:  # invalid sysmon-data or comms-data
-            self._monsys_status = DLGNOMONSYS
             self.init_chart()
 
     def _chart_parm(
@@ -278,17 +267,18 @@ class SysmonFrame(Frame):
 
         scale = (self.width - (3 * xoffset)) / 100
         x = xoffset
-        self._can_sysmon.create_text(
+        self._canvas.create_text(
             x,
             y,
             text=f"{lbl}: {val} {unit}",
             fill=FGCOL,
             anchor=W,
             font=self._font,
+            tags=TAG_DATA,
         )
         y += self._fonth
         if isinstance(maxval, (int, float)):
-            self._can_sysmon.create_line(
+            self._canvas.create_line(
                 x,
                 y,
                 x + maxval * scale,
@@ -296,15 +286,17 @@ class SysmonFrame(Frame):
                 fill=self._set_col(maxval),
                 dash=DASH,
                 width=self._fonth,
+                tags=TAG_DATA,
             )
         if isinstance(val, (int, float)):
-            self._can_sysmon.create_line(
+            self._canvas.create_line(
                 x,
                 y,
                 x + val * scale,
                 y,
                 fill=self._set_col(val),
                 width=self._fonth,
+                tags=TAG_DATA,
             )
             y += self._fonth + SPACING
         return y
@@ -332,25 +324,27 @@ class SysmonFrame(Frame):
         rxb, rxbu = bytes2unit(pdata[7 if mod else 6])
         rxf = "d" if rxbu == "" else ".02f"
         txt = f"{PORTIDS.get(port, NA)} → {txb:{txf}} {txbu} ← {rxb:{rxf}} {rxbu}:"
-        self._can_sysmon.create_text(  # port
+        self._canvas.create_text(  # port
             x,
             y,
             text=txt,
             fill=FGCOL,
             anchor=W,
             font=self._font,
+            tags=TAG_DATA,
         )
-        self._can_sysmon.create_text(  # port
+        self._canvas.create_text(  # port
             x + cap - 1,
             y,
             text="⇄",
             fill=FGCOL,
             anchor=E,
             font=self._font,
+            tags=TAG_DATA,
         )
         p = -1
         for i in range(0, 8, 4):  # RX & TX
-            self._can_sysmon.create_line(  # max
+            self._canvas.create_line(  # max
                 x + cap,
                 y + p,
                 x + cap + pdata[i + 1] * scale,
@@ -358,14 +352,16 @@ class SysmonFrame(Frame):
                 fill=self._set_col(pdata[i + 1]),
                 dash=DASH,
                 width=2,
+                tags=TAG_DATA,
             )
-            self._can_sysmon.create_line(  # val
+            self._canvas.create_line(  # val
                 x + cap,
                 y + p,
                 x + cap + pdata[i] * scale,
                 y + p,
                 fill=self._set_col(pdata[i]),
                 width=2,
+                tags=TAG_DATA,
             )
             p += 4
         y += self._fonth
@@ -391,7 +387,19 @@ class SysmonFrame(Frame):
         """
 
         self.width, self.height = self.get_size()
-        self._font, self._fonth = scale_font(self.width, 10, 35, 20)
+        self._font, _, self._fonth, _ = fitfont(
+            "X" * FONTSCALE, self.width, int(self.height / MAXLINES)
+        )
+        self._on_waiting()
+
+    def _on_waiting(self):
+        """
+        Display 'waiting for data' alert.
+        """
+
+        if self._waiting:
+            txt = DLGNOMONSYS if self._waits > MAXWAIT else DLGWAITMONSYS
+            self._canvas.create_alert(txt, tags=TAG_WAIT)
 
     def get_size(self):
         """
@@ -402,4 +410,4 @@ class SysmonFrame(Frame):
         """
 
         self.update_idletasks()  # Make sure we know about any resizing
-        return self._can_sysmon.winfo_width(), self._can_sysmon.winfo_height()
+        return self._canvas.winfo_width(), self._canvas.winfo_height()

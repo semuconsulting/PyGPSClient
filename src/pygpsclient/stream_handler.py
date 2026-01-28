@@ -26,6 +26,8 @@ Created on 16 Sep 2020
 :license: BSD 3-Clause
 """
 
+# pylint: disable=fixme
+
 import logging
 import ssl
 from datetime import datetime, timedelta
@@ -45,7 +47,7 @@ from time import sleep
 from tkinter import Frame, Label, Tk
 
 from certifi import where as findcacerts
-from pygnssutils import (
+from pygnssutils import (  # UNI_PROTOCOL # TODO
     NMEA_PROTOCOL,
     QGC_PROTOCOL,
     RTCM3_PROTOCOL,
@@ -321,6 +323,7 @@ class StreamHandler:
             | SBF_PROTOCOL
             | QGC_PROTOCOL
             | RTCM3_PROTOCOL,
+            # | UNI_PROTOCOL,  # TODO
             quitonerror=ERR_LOG,
             bufsize=DEFAULT_BUFSIZE,
             msgmode=settings["msgmode"],
@@ -383,6 +386,9 @@ class StreamHandler:
                 QGCMessageError,
                 QGCParseError,
                 QGCStreamError,
+                # UNIMessageError,
+                # UNIParseError,
+                # UNIStreamError,
                 GNSSError,
             ) as err:
                 _errorhandler(err)

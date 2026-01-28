@@ -39,6 +39,7 @@ from pynmeagps import planar
 from requests import ConnectionError as ConnError
 from requests import ConnectTimeout, RequestException, get
 
+from pygpsclient.canvas_subclasses import create_circle  # pylint: disable=unused-import
 from pygpsclient.globals import (
     BGCOL,
     CUSTOM,
@@ -74,6 +75,7 @@ from pygpsclient.strings import (
     DLGGPXOOB,
     MAPCONFIGERR,
     MAPOPENERR,
+    MAPPERMERR,
     NOCONN,
     NOWEBMAPCONN,
     NOWEBMAPFIX,
@@ -261,8 +263,8 @@ class CanvasMap(Canvas):  # pylint: disable=too-many-ancestors
         """
 
         err = OUTOFBOUNDS.format("unknown")
+        mpath = None
         try:
-            mpath = None
             if maptype == IMPORT:
                 mpath = mappath
                 self._bounds = bounds
@@ -281,6 +283,8 @@ class CanvasMap(Canvas):  # pylint: disable=too-many-ancestors
                 err = ""
         except (ValueError, IndexError):
             err = MAPCONFIGERR
+        except PermissionError:
+            err = MAPPERMERR.format(mpath.split("/")[-1])
         except (FileNotFoundError, UnidentifiedImageError):
             err = MAPOPENERR.format(mpath.split("/")[-1])
 

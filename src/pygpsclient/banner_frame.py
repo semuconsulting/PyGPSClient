@@ -12,8 +12,7 @@ Created on 13 Sep 2020
 :license: BSD 3-Clause
 """
 
-from time import time
-from tkinter import NE, NW, SUNKEN, Button, E, Frame, Label, N, W
+from tkinter import NE, NW, SUNKEN, Button, Frame, Label, N, W
 
 from PIL import Image, ImageTk
 from pynmeagps.nmeahelpers import latlon2dmm, latlon2dms, llh2ecef
@@ -56,10 +55,11 @@ from pygpsclient.helpers import (
     scale_font,
     unused_sats,
 )
-from pygpsclient.strings import NA
+from pygpsclient.strings import DGPSYES, NA
 
-DGPSYES = "YES"
 M2MILES = 5280
+FONTBASE = 12
+FONTSCALE = 90
 
 
 class BannerFrame(Frame):
@@ -67,7 +67,7 @@ class BannerFrame(Frame):
     Banner frame class.
     """
 
-    def __init__(self, app, *args, **kwargs):
+    def __init__(self, app: Frame, parent: Frame, *args, **kwargs):
         """
         Constructor.
 
@@ -80,14 +80,8 @@ class BannerFrame(Frame):
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
 
-        super().__init__(self.__master, *args, **kwargs)
-
         self._status = False
         self._show_advanced = False
-
-        self._bgcol = BGCOL
-        self._fgcol = FGCOL
-        self.config(bg=self._bgcol)
         self._img_conn = ImageTk.PhotoImage(Image.open(ICON_CONN))
         self._img_serial = ImageTk.PhotoImage(Image.open(ICON_SERIAL))
         self._img_socket = ImageTk.PhotoImage(Image.open(ICON_SOCKET))
@@ -100,6 +94,8 @@ class BannerFrame(Frame):
         self._img_ntrip = ImageTk.PhotoImage(Image.open(ICON_NTRIPCONFIG))
         self._img_spartn = ImageTk.PhotoImage(Image.open(ICON_SPARTNCONFIG))
         self._img_blank = ImageTk.PhotoImage(Image.open(ICON_BLANK))
+
+        super().__init__(parent, *args, **kwargs)
 
         self.width, self.height = self.get_size()
 
@@ -122,28 +118,24 @@ class BannerFrame(Frame):
         self._frm_advanced = Frame(self, bg=BGCOL)
         self._frm_advanced2 = Frame(self, bg=BGCOL)
 
-        self.option_add("*Font", self.__app.font_md2)
         self._lbl_clients = Label(
-            self._frm_connect, bg=self._bgcol, fg="green", width=2, anchor=W
+            self._frm_connect, bg=BGCOL, fg="green", width=2, anchor=W
         )
         self._lbl_ltime = Label(
             self._frm_basic,
             text="utc:",
-            bg=self._bgcol,
-            fg=self._fgcol,
+            bg=BGCOL,
+            fg=FGCOL,
             anchor=N,
         )
         self._lbl_llat = Label(
-            self._frm_basic, text="lat:", bg=self._bgcol, fg=self._fgcol, anchor=N
+            self._frm_basic, text="lat:", bg=BGCOL, fg=FGCOL, anchor=N
         )
         self._lbl_llon = Label(
-            self._frm_basic, text="lon:", bg=self._bgcol, fg=self._fgcol, anchor=N
-        )
-        self._lbl_lalt = Label(
-            self._frm_basic, text="hmsl:", bg=self._bgcol, fg=self._fgcol, anchor=N
+            self._frm_basic, text="lon:", bg=BGCOL, fg=FGCOL, anchor=N
         )
         self._lbl_lfix = Label(
-            self._frm_basic, text="fix:", bg=self._bgcol, fg=self._fgcol, anchor=N
+            self._frm_basic, text="fix:", bg=BGCOL, fg=FGCOL, anchor=N
         )
         self._btn_toggle = Button(
             self._frm_toggle,
@@ -152,101 +144,93 @@ class BannerFrame(Frame):
             command=self._toggle_advanced,
             image=self._img_expand,
         )
+        self._lbl_lhmsl = Label(
+            self._frm_advanced, text="hmsl:", bg=BGCOL, fg=FGCOL, anchor=N
+        )
         self._lbl_lhae = Label(
-            self._frm_advanced, text="hae:", bg=self._bgcol, fg=self._fgcol, anchor=N
+            self._frm_advanced, text="hae:", bg=BGCOL, fg=FGCOL, anchor=N
         )
         self._lbl_lspd = Label(
-            self._frm_advanced, text="speed:", bg=self._bgcol, fg=self._fgcol, anchor=N
+            self._frm_advanced, text="speed:", bg=BGCOL, fg=FGCOL, anchor=N
         )
         self._lbl_ltrk = Label(
-            self._frm_advanced, text="track:", bg=self._bgcol, fg=self._fgcol, anchor=N
+            self._frm_advanced, text="track:", bg=BGCOL, fg=FGCOL, anchor=N
         )
         self._lbl_lsiv = Label(
-            self._frm_advanced2, text="siv:", bg=self._bgcol, fg=self._fgcol, anchor=N
+            self._frm_advanced2, text="siv:", bg=BGCOL, fg=FGCOL, anchor=N
         )
         self._lbl_lsip = Label(
-            self._frm_advanced2, text="sip:", bg=self._bgcol, fg=self._fgcol, anchor=N
+            self._frm_advanced2, text="sip:", bg=BGCOL, fg=FGCOL, anchor=N
         )
         self._lbl_lpdop = Label(
-            self._frm_advanced2, text="pdop:", bg=self._bgcol, fg=self._fgcol, anchor=N
+            self._frm_advanced2, text="pdop:", bg=BGCOL, fg=FGCOL, anchor=N
         )
         self._lbl_lacc = Label(
-            self._frm_advanced2, text="acc:", bg=self._bgcol, fg=self._fgcol, anchor=N
+            self._frm_advanced2, text="acc:", bg=BGCOL, fg=FGCOL, anchor=N
         )
         self._lbl_lcorr = Label(
             self._frm_advanced2,
             text="corr:",
-            bg=self._bgcol,
-            fg=self._fgcol,
+            bg=BGCOL,
+            fg=FGCOL,
             anchor=N,
         )
 
-        self.option_add("*Font", self.__app.font_lg)
         self._lbl_status_preset = Label(
-            self._frm_connect, bg=self._bgcol, image=self._img_conn
+            self._frm_connect, bg=BGCOL, image=self._img_conn
         )
-        self._lbl_rtk_preset = Label(
-            self._frm_connect, bg=self._bgcol, image=self._img_blank
-        )
+        self._lbl_rtk_preset = Label(self._frm_connect, bg=BGCOL, image=self._img_blank)
         self._lbl_transmit_preset = Label(
-            self._frm_connect, bg=self._bgcol, image=self._img_blank
+            self._frm_connect, bg=BGCOL, image=self._img_blank
         )
-        self._lbl_time = Label(
-            self._frm_basic, bg=self._bgcol, fg="cyan", width=15, anchor=W
-        )
+        self._lbl_time = Label(self._frm_basic, bg=BGCOL, fg="cyan", width=15, anchor=W)
         self._lbl_lat = Label(
-            self._frm_basic, bg=self._bgcol, fg="orange", width=16, anchor=W
+            self._frm_basic, bg=BGCOL, fg="orange", width=16, anchor=W
         )
         self._lbl_lon = Label(
-            self._frm_basic, bg=self._bgcol, fg="orange", width=17, anchor=W
+            self._frm_basic, bg=BGCOL, fg="orange", width=17, anchor=W
         )
-        self._lbl_alt = Label(
-            self._frm_basic, bg=self._bgcol, fg="orange", width=13, anchor=W
-        )
-        self._lbl_fix = Label(
-            self._frm_basic, bg=self._bgcol, fg="white", width=10, anchor=W
+        self._lbl_fix = Label(self._frm_basic, bg=BGCOL, fg="white", width=10, anchor=W)
+        self._lbl_hmsl = Label(
+            self._frm_advanced, bg=BGCOL, fg="orange", width=13, anchor=W
         )
         self._lbl_hae = Label(
-            self._frm_advanced, bg=self._bgcol, fg="orange", width=13, anchor=W
+            self._frm_advanced, bg=BGCOL, fg="orange", width=13, anchor=W
         )
         self._lbl_spd = Label(
-            self._frm_advanced, bg=self._bgcol, fg="deepskyblue", width=12, anchor=W
+            self._frm_advanced, bg=BGCOL, fg="deepskyblue", width=12, anchor=W
         )
         self._lbl_trk = Label(
-            self._frm_advanced, bg=self._bgcol, fg="deepskyblue", width=8, anchor=W
-        )
-        self._lbl_benchmark = Label(
-            self._frm_advanced, text="", bg=self._bgcol, fg="grey", width=15, anchor=E
+            self._frm_advanced, bg=BGCOL, fg="deepskyblue", width=8, anchor=W
         )
         self._lbl_siv = Label(
-            self._frm_advanced2, bg=self._bgcol, fg="yellow", width=2, anchor=W
+            self._frm_advanced2, bg=BGCOL, fg="yellow", width=2, anchor=W
         )
         self._lbl_sip = Label(
-            self._frm_advanced2, bg=self._bgcol, fg="yellow", width=2, anchor=W
+            self._frm_advanced2, bg=BGCOL, fg="yellow", width=2, anchor=W
         )
         self._lbl_pdop = Label(
-            self._frm_advanced2, bg=self._bgcol, fg="mediumpurple1", width=12, anchor=W
+            self._frm_advanced2, bg=BGCOL, fg="mediumpurple1", width=14, anchor=W
         )
         self._lbl_diffcorr = Label(
-            self._frm_advanced2, bg=self._bgcol, fg="hotpink", width=4, anchor=W
+            self._frm_advanced2, bg=BGCOL, fg="hotpink", width=3, anchor=W
         )
 
-        self.option_add("*Font", self.__app.font_sm)
         self._lbl_hvdop = Label(
-            self._frm_advanced2, bg=self._bgcol, fg="mediumpurple1", width=9, anchor=W
+            self._frm_advanced2, bg=BGCOL, fg="mediumpurple1", width=11, anchor=W
         )
         self._lbl_hvacc = Label(
-            self._frm_advanced2, bg=self._bgcol, fg="aquamarine2", width=9, anchor=W
+            self._frm_advanced2, bg=BGCOL, fg="aquamarine2", width=11, anchor=W
         )
         self._lbl_lacc_u = Label(
             self._frm_advanced2,
-            bg=self._bgcol,
+            bg=BGCOL,
             fg="aquamarine2",
             anchor=NW,
             width=2,
         )
         self._lbl_diffstat = Label(
-            self._frm_advanced2, bg=self._bgcol, fg="hotpink", width=25, anchor=W
+            self._frm_advanced2, bg=BGCOL, fg="hotpink", width=25, anchor=W
         )
 
     def _do_layout(self):
@@ -264,18 +248,17 @@ class BannerFrame(Frame):
         self._lbl_lat.grid(column=4, row=0, pady=0, padx=0, sticky=W)
         self._lbl_llon.grid(column=5, row=0, pady=0, padx=0, sticky=W)
         self._lbl_lon.grid(column=6, row=0, pady=0, padx=0, sticky=W)
-        self._lbl_lalt.grid(column=7, row=0, pady=0, padx=0, sticky=W)
-        self._lbl_alt.grid(column=8, row=0, pady=0, padx=0, sticky=W)
-        self._lbl_lfix.grid(column=9, row=0, pady=0, padx=0, sticky=W)
-        self._lbl_fix.grid(column=10, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_lfix.grid(column=7, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_fix.grid(column=8, row=0, pady=0, padx=0, sticky=W)
 
-        self._lbl_lhae.grid(column=0, row=0, pady=0, padx=0, sticky=W)
-        self._lbl_hae.grid(column=1, row=0, pady=0, padx=0, sticky=W)
-        self._lbl_lspd.grid(column=2, row=0, pady=0, padx=0, sticky=W)
-        self._lbl_spd.grid(column=3, row=0, pady=0, padx=0, sticky=W)
-        self._lbl_ltrk.grid(column=4, row=0, pady=0, padx=0, sticky=W)
-        self._lbl_trk.grid(column=5, row=0, pady=0, padx=0, sticky=W)
-        self._lbl_benchmark.grid(column=6, row=0, pady=0, padx=0, sticky=E)
+        self._lbl_lhmsl.grid(column=0, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_hmsl.grid(column=1, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_lhae.grid(column=2, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_hae.grid(column=3, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_lspd.grid(column=4, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_spd.grid(column=5, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_ltrk.grid(column=6, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_trk.grid(column=7, row=0, pady=0, padx=0, sticky=W)
         self._lbl_lsiv.grid(column=0, row=0, pady=0, padx=0, sticky=W)
         self._lbl_siv.grid(column=1, row=0, pady=0, padx=0, sticky=W)
         self._lbl_lsip.grid(column=2, row=0, pady=0, padx=0, sticky=W)
@@ -293,6 +276,13 @@ class BannerFrame(Frame):
         self._btn_toggle.grid(column=0, row=0, padx=0, pady=0, sticky=NE)
 
         self._toggle_advanced()
+
+    def _attach_events(self):
+        """
+        Bind events to frame.
+        """
+
+        self.bind("<Configure>", self._on_resize)
 
     def _toggle_advanced(self):
         """
@@ -313,13 +303,6 @@ class BannerFrame(Frame):
             self._frm_advanced.grid_forget()
             self._frm_advanced2.grid_forget()
             self._btn_toggle.config(image=self._img_expand)
-
-    def _attach_events(self):
-        """
-        Bind events to frame.
-        """
-
-        self.bind("<Configure>", self._on_resize)
 
     def update_conn_status(self, status: int):
         """
@@ -398,13 +381,6 @@ class BannerFrame(Frame):
         else:
             self._lbl_time.config(text=f"{tim:%H:%M:%S.%f}")
 
-        # display run time in s and process time in µs
-        if self.__app.configuration.get("version_s") == "BENCHMARK":
-            tim = time()
-            self._lbl_benchmark.config(
-                text=f"{tim-self.__app.starttime:.0f} s {self.__app.processtime/1000:.0f} µs"
-            )
-
     def _update_pos(self, pos_format, units):
         """
         Update position.
@@ -419,7 +395,7 @@ class BannerFrame(Frame):
         hae = self.__app.gnss_status.hae
         self._lbl_llat.config(text="lat:")
         self._lbl_llon.config(text="lon:")
-        self._lbl_lalt.config(text="hmsl:")
+        self._lbl_lhmsl.config(text="hmsl:")
         self._lbl_lhae.config(text="hae:")
         alt_u = "ft" if units in (UI, UIK) else "m"
 
@@ -430,7 +406,7 @@ class BannerFrame(Frame):
                     lat, lon = (m2ft(x) for x in (lat, lon))
                 self._lbl_llat.config(text="X:")
                 self._lbl_llon.config(text="Y:")
-                self._lbl_lalt.config(text="Z:")
+                self._lbl_lhmsl.config(text="Z:")
                 self._lbl_lat.config(text=f"{lat:.4f}")
                 self._lbl_lon.config(text=f"{lon:.4f}")
             else:
@@ -446,12 +422,12 @@ class BannerFrame(Frame):
                     hae = m2ft(hae)
                 self._lbl_lat.config(text=f"{lat:{deg_f}}")
                 self._lbl_lon.config(text=f"{lon:{deg_f}}")
-            self._lbl_alt.config(text=f"{alt:.4f} {alt_u}")
+            self._lbl_hmsl.config(text=f"{alt:.4f} {alt_u}")
             self._lbl_hae.config(text=f"{hae:.4f} {alt_u}")
         except (TypeError, ValueError):
             self._lbl_lat.config(text=NA)
             self._lbl_lon.config(text=NA)
-            self._lbl_alt.config(text=NA)
+            self._lbl_hmsl.config(text=NA)
             self._lbl_hae.config(text=NA)
 
     def _update_track(self, units):
@@ -593,12 +569,10 @@ class BannerFrame(Frame):
             if station in [None, "", 0]:
                 station = NA
             if bl == NA:
-                self._lbl_diffstat.config(
-                    text=f"age {age}\nstation {station} baseline {bl}"
-                )
+                self._lbl_diffstat.config(text=f"age {age}\nid {station} - {bl}")
             else:
                 self._lbl_diffstat.config(
-                    text=f"age {age}\nstation {station} baseline {bl:.2f} {bl_u}"
+                    text=f"age {age}\nid {station} - {bl:.2f} {bl_u}"
                 )
         else:
             self._lbl_diffstat.config(text="")
@@ -608,32 +582,28 @@ class BannerFrame(Frame):
         Adjust font sizes according to frame size
         """
 
-        w = self.width
-        txt = 100
         for ctl in (
             self._lbl_status_preset,
             self._lbl_time,
             self._lbl_lat,
             self._lbl_lon,
-            self._lbl_alt,
+            self._lbl_hmsl,
             self._lbl_hae,
             self._lbl_spd,
             self._lbl_trk,
-            self._lbl_benchmark,
             self._lbl_pdop,
             self._lbl_fix,
             self._lbl_sip,
             self._lbl_siv,
             self._lbl_diffcorr,
         ):
-            fnt, _ = scale_font(w, 16, txt)
-            ctl.config(font=fnt)
+            ctl.config(font=scale_font(self.width, FONTBASE, FONTSCALE)[0])
 
         for ctl in (
             self._lbl_ltime,
             self._lbl_llat,
             self._lbl_llon,
-            self._lbl_lalt,
+            self._lbl_lhmsl,
             self._lbl_lhae,
             self._lbl_lspd,
             self._lbl_ltrk,
@@ -644,16 +614,14 @@ class BannerFrame(Frame):
             self._lbl_lacc,
             self._lbl_lcorr,
         ):
-            fnt, _ = scale_font(w, 12, txt)
-            ctl.config(font=fnt)
+            ctl.config(font=scale_font(self.width, FONTBASE - 2, FONTSCALE)[0])
 
         for ctl in (
             self._lbl_hvdop,
             self._lbl_hvacc,
             self._lbl_diffstat,
         ):
-            fnt, _ = scale_font(w, 10, txt)
-            ctl.config(font=fnt)
+            ctl.config(font=scale_font(self.width, FONTBASE - 4, FONTSCALE)[0])
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """

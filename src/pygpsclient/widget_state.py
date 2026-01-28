@@ -37,12 +37,14 @@ from pygpsclient.sysmon_frame import SysmonFrame
 
 COLSPAN = "colspan"
 DEFAULT = "def"
+DOCK = "Dock"
 HIDE = "Hide"
 MAXCOLSPAN = 4  # max no of widget columns
 MAXSPAN = 0  # always occupy the full row
 MAXROWSPAN = 4  # max no of widget rows
 RESET = "rst"
 SHOW = "Show"
+UNDOCK = "Undock"
 VISIBLE = "vis"
 WDGCONSOLE = "Console"
 WDGLEVELS = "Levels"

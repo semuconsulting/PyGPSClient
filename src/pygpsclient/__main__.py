@@ -8,7 +8,6 @@ Created on 12 Sep 2020
 :license: BSD 3-Clause
 """
 
-import sys
 from argparse import SUPPRESS, ArgumentDefaultsHelpFormatter, ArgumentParser
 from logging import getLogger
 from tkinter import Tk
@@ -151,7 +150,6 @@ def main():
     root = Tk()
     App(root, **kwargs)
     root.mainloop()
-    sys.exit()
 
 
 if __name__ == "__main__":

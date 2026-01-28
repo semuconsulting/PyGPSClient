@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.6.2
+
+1. Add support for Unicore Secondary Antenna and Attitude (IMU) NMEA sentences e.g. UM98n "GGAH", "HPD" (requires pynmeagps>=1.1.0).
+1. Minor cosmetic UI enhancements to improve rendering on some Linux window managers (e.g. xfce).
+1. `Waiting for XXX data` alerts added to user-selectable widgets to clarify which type of GNSS data each widget is waiting for. Widgets are not 'initialised' (underlying grids & labels drawn) until this data arrives. As in previous versions, widgets which depend on protocol-specific data (e.g. UBX) will display a `Receiver does not appear to support XXX data` alert if requisite data isn't received after 10 navigation solutions.
+
 ### RELEASE 1.6.1
 
 1. Updates to main application window geometry (size and position) handling. Current window geometry is now saved to json configuration file as `screengeom_s` (e.g. `"1373x798+71+44"`), and will be restored on restart. Default startup geometry is centered at 75% of screen resolution.

@@ -19,6 +19,7 @@ from pynmeagps import SET, NMEAMessage
 from pyubx2 import UBXMessage, UBXReader
 
 from pygpsclient.configuration import Configuration, INITMARKER
+from pygpsclient.gnss_status import GNSSStatus
 from pygpsclient.globals import (
     Area,
     AreaXY,
@@ -74,6 +75,7 @@ from pygpsclient.helpers import (
     ubx2preset,
     unused_sats,
     val2sphp,
+    valid_geom,
     wnotow2date,
     xy2ll,
 )
@@ -124,6 +126,15 @@ class StaticTest(unittest.TestCase):
     def tearDown(self):
         pass
 
+    def testgnssstatus(self):
+
+        gnss = GNSSStatus()
+        self.assertEqual(gnss.lat, 0.0)
+        self.assertEqual(gnss.gsv_data, {})
+        gnss.lat = 53
+        gnss.reset()
+        self.assertEqual(gnss.lat, 0.0)
+
     def testconfiguration(self):
 
         cfg = Configuration(DummyApp())
@@ -131,7 +142,7 @@ class StaticTest(unittest.TestCase):
         self.assertEqual(cfg.get("lbandclientdrat_n"), 2400)
         self.assertEqual(cfg.get("userport_s"), "")
         self.assertEqual(cfg.get("spartnport_s"), "")
-        self.assertEqual(len(cfg.settings), 155)
+        self.assertEqual(len(cfg.settings), 156)
         kwargs = {"userport": "/dev/ttyACM0", "spartnport": "/dev/ttyACM1"}
         cfg.loadcli(**kwargs)
         self.assertEqual(cfg.get("userport_s"), "/dev/ttyACM0")
@@ -404,7 +415,7 @@ class StaticTest(unittest.TestCase):
         ]
         for i, (wno, tow) in enumerate(vals):
             self.assertEqual(str(wnotow2date(wno, tow)), dats[i])
-        (wno, tow) = date2wnotow(datetime(2020, 4, 12))
+        wno, tow = date2wnotow(datetime(2020, 4, 12))
         self.assertEqual(wnotow2date(wno, tow), datetime(2020, 4, 12))
 
     def testbitsval(self):
@@ -629,10 +640,10 @@ class StaticTest(unittest.TestCase):
 
     def testll2xy(self):
         bounds = Area(53, -2, 54, -1)
-        (x, y) = ll2xy(600, 400, bounds, Point(53.5, -1.5))
+        x, y = ll2xy(600, 400, bounds, Point(53.5, -1.5))
         self.assertEqual(x, 300, 5)
         self.assertEqual(y, 200, 5)
-        (x, y) = ll2xy(600, 400, bounds, Point(53.52345, -1.81264))
+        x, y = ll2xy(600, 400, bounds, Point(53.52345, -1.81264))
         self.assertAlmostEqual(x, 112.416, 5)
         self.assertAlmostEqual(y, 190.620, 5)
 
@@ -939,6 +950,28 @@ class StaticTest(unittest.TestCase):
             (3, 1): (0, 0, 0, 0, 4, 0),
         }
         self.assertEqual(unused_sats(gsv_data), 0)
+
+    def testvalidgeom(self):  # test valid_geom()
+        GEOMS = [
+            ("1064x620+30+45", True),
+            ("1064x0+30+45", False),
+            ("1064x620+-1544+45", True),
+            ("1064x620+-1544+-45", True),
+            ("0x245+0+45", False),
+            ("456x245+0+45", True),
+            ("01064x620+30+45", False),
+            ("1064x0620+30+45", False),
+            ("1064x620+0+0", True),
+            ("10x20+30+45", True),
+            ("56x07+1+01", False),
+            ("asdfxasdf+adf+45", False),
+            ("x5+3++", False),
+            ("2+2+2++", False),
+            ("", True),
+            ("asdf&%££asdf!!00#", False),
+        ]
+        for geom in GEOMS:
+            self.assertEqual(valid_geom(geom[0]), geom[1])
 
 
 if __name__ == "__main__":

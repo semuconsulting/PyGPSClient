@@ -1,12 +1,11 @@
 """
 canvas_subclasses.py
 
-Multi-purpose CanvasContainer, CanvasGraph and CanvasCompass subclasses
-for PyGPSClient application.
+Various custom canvas methods and subclasses (see also canvas_map.py).
 
-Simplifies plotting of graphs and compass representations.
-
-(see also canvas_map.py)
+- CanvasContainer: scrollable and resizeable container for Toplevel dialogs
+- CanvasGraph: configurable x,y graph plotter
+- CanvasCompass: configurable compass plotter
 
 Created on 20 Nov 2025
 
@@ -21,6 +20,7 @@ from datetime import timedelta
 from math import ceil, cos, radians, sin
 from tkinter import (
     ALL,
+    CENTER,
     EW,
     HORIZONTAL,
     NE,
@@ -40,15 +40,67 @@ from tkinter import (
 )
 from typing import Literal
 
-from pygpsclient.globals import GRIDLEGEND, GRIDMAJCOL, GRIDMINCOL, SQRT2, TIME0
+from pygpsclient.globals import GRIDLEGEND, GRIDMAJCOL, GRIDMINCOL, PNTCOL, SQRT2, TIME0
+from pygpsclient.helpers import fitfont
 
 TAG_DATA = "dat"
 TAG_GRID = "grd"
 TAG_XLABEL = "xlb"
 TAG_YLABEL = "ylb"
+TAG_WAIT = "wait"
 MODE_CEL = "ele"
 MODE_POL = "lin"
 DEFRADII = {"ele": (0, 30, 45, 60, 75, 90), "lin": range(10, 1, -2)}
+
+
+def create_circle(self: Canvas, x: int, y: int, r: int, **kwargs):
+    """
+    Extends tkinter.Canvas class to simplify drawing compass grids on canvas.
+
+    :param int x: x coordinate
+    :param int y: y coordinate
+    :param int r: radius
+    """
+
+    return self.create_oval(x - r, y - r, x + r, y + r, **kwargs)
+
+
+Canvas.create_circle = create_circle
+
+
+def create_alert(
+    self: Canvas,
+    text: str,
+    fill: str = PNTCOL,
+    tags: str | list[str] | tuple[str] = TAG_DATA,
+    **kwargs,
+) -> int:
+    """
+    Extends tkinter.Canvas class to display alert at centre of canvas.
+
+    :param str text: message
+    :param str fill: fill color
+    :param str | list[str] | tuple[str] tags: tags
+    :return: create_text return code
+    :rtype: int
+    """
+
+    self.delete(tags)
+    w, h = self.winfo_width(), self.winfo_height()
+    fnt, _, _, _ = fitfont(text, w, h)
+    return self.create_text(
+        w / 2,
+        h / 2,
+        text=text,
+        font=fnt,
+        fill=fill,
+        anchor=CENTER,
+        tags=tags,
+        **kwargs,
+    )
+
+
+Canvas.create_alert = create_alert
 
 
 class CanvasContainer(Canvas):
@@ -58,21 +110,21 @@ class CanvasContainer(Canvas):
     application window size.
     """
 
-    def __init__(self, app, container, *args, **kwargs):
+    def __init__(self, app, parent, *args, **kwargs):
         """
         Constructor.
 
         :param app: Application
-        :param container: Container frame
+        :param parent: Parent frame
         """
 
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
-        self.x_scrollbar = Scrollbar(container, orient=HORIZONTAL)
-        self.y_scrollbar = Scrollbar(container, orient=VERTICAL)
+        self.x_scrollbar = Scrollbar(parent, orient=HORIZONTAL)
+        self.y_scrollbar = Scrollbar(parent, orient=VERTICAL)
 
         super().__init__(
-            container,
+            parent,
             xscrollcommand=self.x_scrollbar.set,
             yscrollcommand=self.y_scrollbar.set,
             *args,
@@ -87,8 +139,8 @@ class CanvasContainer(Canvas):
         # ensure container canvas expands to accommodate child frames
         self.create_window((0, 0), window=self.frm_container, anchor=NW)
         self.bind("<Configure>", lambda e: self.config(scrollregion=self.bbox(ALL)))
-        container.grid_columnconfigure(0, weight=1)
-        container.grid_rowconfigure(0, weight=1)
+        parent.grid_columnconfigure(0, weight=1)
+        parent.grid_rowconfigure(0, weight=1)
 
     def show_scroll(self, show: bool = True):
         """
@@ -110,17 +162,17 @@ class CanvasGraph(Canvas):
     Custom Canvas Graph class.
     """
 
-    def __init__(self, app, container, *args, **kwargs):
+    def __init__(self, app, parent, *args, **kwargs):
         """
         Constructor.
 
         :param app: Application
-        :param container: Container frame
+        :param parent: Parent frame
         """
 
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
-        super().__init__(container, *args, **kwargs)
+        super().__init__(parent, *args, **kwargs)
 
     def create_graph(
         self,
@@ -448,7 +500,7 @@ class CanvasCompass(Canvas):
     def __init__(
         self,
         app: object,
-        container: Frame,
+        parent: Frame,
         mode: Literal["ele", "lin"],
         *args,
         **kwargs,
@@ -457,7 +509,7 @@ class CanvasCompass(Canvas):
         Constructor.
 
         :param app: Application
-        :param container: Container frame
+        :param parent: Parent frame
         :param int mode: ele (celestial) or lin (polar) coordinate system
         """
 
@@ -469,7 +521,7 @@ class CanvasCompass(Canvas):
         self.__app = app  # Reference to main application class
         self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self._mode = mode
-        super().__init__(container, *args, **kwargs)
+        super().__init__(parent, *args, **kwargs)
 
     def create_compass(
         self,

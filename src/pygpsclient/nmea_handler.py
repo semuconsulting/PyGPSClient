@@ -47,7 +47,7 @@ class NMEAHandler:
         self._raw_data = None
         self._parsed_data = None
 
-    def process_data(self, raw_data: bytes, parsed_data: object):
+    def process_data(self, raw_data: bytes, parsed_data: NMEAMessage):
         """
         Process relevant NMEA message types
 
@@ -60,19 +60,28 @@ class NMEAHandler:
             if raw_data is None:
                 return
             # self.logger.debug(f"data received {parsed_data.identity}")
-            if parsed_data.msgID == "RMC":  # Recommended minimum data for GPS
+            if parsed_data.msgID in ("RMC", "RMCH"):  # Recommended minimum data for GPS
                 self._process_RMC(parsed_data)
-            elif parsed_data.msgID == "GGA":  # GPS Fix Data
+            elif parsed_data.msgID in (
+                "GGA",
+                "GGAH",
+            ):  # GPS Fix Data (H = Unicore Extended)
                 self._process_GGA(parsed_data)
-            elif parsed_data.msgID == "GLL":  # GPS Lat Lon Data
+            elif parsed_data.msgID in ("GLL", "GLLH"):  # GPS Lat Lon Data
                 self._process_GLL(parsed_data)
-            elif parsed_data.msgID == "GNS":  # GNSS Fix Data
+            elif parsed_data.msgID in ("GNS", "GNSH"):  # GNSS Fix Data
                 self._process_GNS(parsed_data)
-            elif parsed_data.msgID == "GSA":  # GPS DOP (Dilution of Precision)
+            elif parsed_data.msgID in (
+                "GSA",
+                "GSAH",
+            ):  # GPS DOP (Dilution of Precision)
                 self._process_GSA(parsed_data)
-            elif parsed_data.msgID == "VTG":  # GPS Vector track and Speed over Ground
+            elif parsed_data.msgID in (
+                "VTG",
+                "VTGH",
+            ):  # GPS Vector track and Speed over Ground
                 self._process_VTG(parsed_data)
-            elif parsed_data.msgID == "GSV":  # GPS Satellites in View
+            elif parsed_data.msgID in ("GSV", "GSVH"):  # GPS Satellites in View
                 self._process_GSV(parsed_data)
             elif parsed_data.msgID == "ZDA":  # ZDA Time
                 self._process_ZDA(parsed_data)
@@ -91,6 +100,11 @@ class NMEAHandler:
             elif parsed_data.msgID == "QTMSVINSTATUS":  # LG290P SVIN status
                 self._process_QTMSVINSTATUS(parsed_data)
             elif parsed_data.msgID in (
+                "HPR",
+                "HPR2",
+                "HPD",
+                "TRA",
+                "TRA2",
                 "QTMDRPVA",
                 "QTMINS",
                 "QTMVEHATT",
@@ -430,8 +444,7 @@ class NMEAHandler:
 
     def _process_IMU(self, data: NMEAMessage):
         """
-        Process IMU status from various proprietary NMEA sentences:
-        PQTMINS, PQTMDRPVA, PQTMVEHATT, PQTMTAR, PINVMATTIT, PSTMDRPVA
+        Process IMU status from various proprietary NMEA sentences.
 
         Roll, Pitch and Yaw (Heading) are in degrees.
 
@@ -441,12 +454,11 @@ class NMEAHandler:
         try:
             ims = self.__app.gnss_status.imu_data
             ims["source"] = data.identity
-            ims["roll"] = round(data.roll, 4)
-            ims["pitch"] = round(data.pitch, 4)
-            if hasattr(data, "yaw"):
-                ims["yaw"] = round(data.yaw, 4)
-            elif hasattr(data, "heading"):
-                ims["yaw"] = round(data.heading, 4)
-            ims["status"] = ""
+            ims["roll"] = round(getattr(data, "roll", 0), 4)
+            ims["pitch"] = round(getattr(data, "pitch", 0), 4)
+            ims["yaw"] = round(getattr(data, "yaw", 0), 4)
+            if hasattr(data, "heading"):  # range 0 - 360
+                ims["yaw"] = round(data.heading - 180, 4)
+            ims["status"] = str(getattr(data, "quality", ""))
         except (TypeError, KeyError, AttributeError):
             pass

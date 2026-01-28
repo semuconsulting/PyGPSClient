@@ -135,11 +135,9 @@ class GPXViewerDialog(ToplevelDialog):
         """
 
         self._frm_body = Frame(self.container)
-        self._frm_map = Frame(self._frm_body, borderwidth=2, relief="groove", bg=BGCOL)
-        self._frm_profile = Frame(
-            self._frm_body, borderwidth=2, relief="groove", bg=BGCOL
-        )
-        self._frm_info = Frame(self._frm_body, borderwidth=2, relief="groove", bg=BGCOL)
+        self._frm_map = Frame(self._frm_body, bg=BGCOL)
+        self._frm_profile = Frame(self._frm_body, bg=BGCOL)
+        self._frm_info = Frame(self._frm_body, bg=BGCOL)
         self._frm_controls = Frame(self._frm_body, borderwidth=2, relief="groove")
         self._can_mapview = CanvasMap(
             self.__app,

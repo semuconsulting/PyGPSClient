@@ -16,7 +16,7 @@ Created on 23 Dec 2022
 # pylint: disable=no-member, unused-argument
 
 import logging
-from tkinter import ALL, EW, NSEW, NW, Checkbutton, Frame, IntVar, N, S, W
+from tkinter import ALL, CENTER, EW, NSEW, NW, Checkbutton, Frame, IntVar, N, S, W
 from types import NoneType
 
 from pyubx2 import UBXMessage
@@ -24,6 +24,7 @@ from pyubx2 import UBXMessage
 from pygpsclient.canvas_subclasses import (
     TAG_DATA,
     TAG_GRID,
+    TAG_WAIT,
     TAG_XLABEL,
     TAG_YLABEL,
     CanvasGraph,
@@ -32,13 +33,14 @@ from pygpsclient.globals import (
     BGCOL,
     FGCOL,
     GNSS_LIST,
+    MAXWAIT,
     PLOTCOLS,
     PNTCOL,
     SPECTRUMVIEW,
     WIDGETU2,
 )
 from pygpsclient.helpers import setubxrate
-from pygpsclient.strings import DLGENABLEMONSPAN, DLGNOMONSPAN, DLGWAITMONSPAN
+from pygpsclient.strings import DLGNOMONSPAN, DLGWAITMONSPAN
 
 # Graph dimensions
 OL_WID = 1
@@ -85,7 +87,6 @@ ACTIVE = ""
 MODEINIT = "init"
 MODELIVE = "live"
 MODESNAP = "snap"
-MAXWAIT = 10
 GHZ = 1e9
 FONTSCALE = 35
 
@@ -118,7 +119,6 @@ class SpectrumviewFrame(Frame):
         self._maxdb = MAX_DB
         self._minhz = MIN_HZ
         self._maxhz = MAX_HZ
-        self._monspan_status = DLGENABLEMONSPAN
         self._pending_confs = {}
         self._showrf = True
         self._chartpos = None
@@ -126,8 +126,10 @@ class SpectrumviewFrame(Frame):
         self._pgaoffset = IntVar()
         self._waits = 0
         self._redraw = True
+        self._waiting = True
         self._body()
         self._attach_events()
+        self.enable_messages(True)
 
     def _body(self):
         """
@@ -160,7 +162,9 @@ class SpectrumviewFrame(Frame):
         self._canvas.bind("<Button-1>", self._on_click)
         self._canvas.bind("<Double-Button-1>", self._on_toggle_rf)
         self._canvas.bind("<Button-2>", self._on_snapshot)
+        self._canvas.bind("<Button-3>", self._on_snapshot)
         self._canvas.bind("<Double-Button-2>", self._on_clear_snapshot)
+        self._canvas.bind("<Double-Button-3>", self._on_clear_snapshot)
         self._pgaoffset.trace_add(("write", "unset"), self._on_update_pga)
 
     def reset(self):
@@ -195,7 +199,6 @@ class SpectrumviewFrame(Frame):
         setubxrate(self.__app, "MON-SPAN", status)
         for msgid in ("ACK-ACK", "ACK-NAK"):
             self._set_pending(msgid, SPECTRUMVIEW)
-        self._monspan_status = DLGWAITMONSPAN
 
     def _set_pending(self, msgid: int, ubxfrm: int):
         """
@@ -229,7 +232,6 @@ class SpectrumviewFrame(Frame):
                 anchor=S,
             )
             self._pending_confs.pop("ACK-NAK")
-            self._monspan_status = DLGNOMONSPAN
 
         if self._pending_confs.get("ACK-ACK", False):
             self._pending_confs.pop("ACK-ACK")
@@ -245,12 +247,12 @@ class SpectrumviewFrame(Frame):
         rfblocks = self.__app.gnss_status.spectrum_data
         if len(rfblocks) == 0:
             if self._waits >= MAXWAIT:
-                self._monspan_status = DLGNOMONSPAN
+                self._canvas.create_alert(DLGNOMONSPAN, tags=TAG_WAIT)
             else:
                 self._waits += 1
-        else:
-            self._waits = 0
-            self._monspan_status = ACTIVE
+            return
+        self._waits = 0
+        self._waiting = False
         self._update_plot(rfblocks)
 
         if self._spectrum_snapshot != []:
@@ -262,7 +264,7 @@ class SpectrumviewFrame(Frame):
         """
 
         # only redraw the tags that have changed
-        tags = (TAG_GRID, TAG_XLABEL, TAG_YLABEL) if self._redraw else ()
+        tags = (TAG_GRID, TAG_XLABEL, TAG_YLABEL, TAG_WAIT) if self._redraw else ()
         # draw graph axes and labels
         self._canvas.create_graph(
             xdatamax=self._maxhz / GHZ,
@@ -283,15 +285,6 @@ class SpectrumviewFrame(Frame):
             tags=tags,
         )
         self._redraw = False
-
-        # display 'enable MON-SPAN' warning
-        self._canvas.create_text(
-            self.width / 2,
-            self.height / 2,
-            text=self._monspan_status,
-            fill="orange",
-            tags=TAG_DATA,
-        )
 
     def _update_plot(
         self, rfblocks: list, mode: str = MODELIVE, colors: dict | NoneType = None
@@ -445,7 +438,7 @@ class SpectrumviewFrame(Frame):
             text=f"{hz:.3f} GHz\n{db:.1f} dB",
             fill=FGCOL,
             font=self._canvas.font,
-            anchor="center",
+            anchor=CENTER,
             tags=(TAG_XLABEL, mode),
         )
 
@@ -527,6 +520,16 @@ class SpectrumviewFrame(Frame):
         self.width, self.height = self.get_size()
         self._chartpos = None
         self._redraw = True
+        self._on_waiting()
+
+    def _on_waiting(self):
+        """
+        Display 'waiting for data' alert.
+        """
+
+        if self._waiting:
+            txt = DLGNOMONSPAN if self._waits >= MAXWAIT else DLGWAITMONSPAN
+            self._canvas.create_alert(txt, tags=TAG_WAIT)
 
     def get_size(self):
         """

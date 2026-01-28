@@ -18,7 +18,6 @@ from collections import namedtuple
 from datetime import datetime
 from os import path
 from pathlib import Path
-from tkinter import Canvas
 
 from pyubx2 import GET, POLL, SET, SETPOLL
 
@@ -29,21 +28,6 @@ Area = namedtuple("Area", ["lat1", "lon1", "lat2", "lon2"])
 TrackPoint = namedtuple("TrackPoint", ["lat", "lon", "tim", "ele", "spd"])
 PointXY = namedtuple("PointXY", ["x", "y"])
 AreaXY = namedtuple("AreaXY", ["x1", "y1", "x2", "y2"])
-
-
-def create_circle(self: Canvas, x: int, y: int, r: int, **kwargs):
-    """
-    Extends tkinter.Canvas class to simplify drawing compass grids on canvas.
-
-    :param int x: x coordinate
-    :param int y: y coordinate
-    :param int r: radius
-    """
-
-    return self.create_oval(x - r, y - r, x + r, y + r, **kwargs)
-
-
-Canvas.create_circle = create_circle
 
 # Default colors
 AXISCOL = "#E5E5E5"  # default plot axis color
@@ -64,14 +48,15 @@ GRIDLEGEND = "#B0B0B0"  # default grid legend color
 GRIDMAJCOL = "#666666"  # default grid major tick color
 GRIDMINCOL = "#4D4D4D"  # default grid minor tick color
 INFOCOL = "#5CACEE"  # default info message color
-OKCOL = "#008000"  # default OK message color
+OKCOL = "#02B102"  # default OK message color
 PLOTCOLS = ("#FFFF00", "#00FFFF", "#FF00FF", "#00BFFF")
 PNTCOL = "#FF8000"  # default plot point color
 
-# Protocols to be used in protocol mask (others defined in gnss_reader.py)
-SPARTN_PROTOCOL = 32
-MQTT_PROTOCOL = 64
-TTY_PROTOCOL = 128
+# Protocols to be used in protocol mask (others defined in pygnssutils.gnss_reader.py)
+UNI_PROTOCOL = 32  # provisional - awaiting pygnssutils.gnssreader updates for Unicore
+SPARTN_PROTOCOL = 256
+MQTT_PROTOCOL = 512
+TTY_PROTOCOL = 1024
 
 # Various global constants - please keep in ascending alphabetical order
 HOME = Path.home()
@@ -211,6 +196,7 @@ MAINSCALE = 0.75  # initial size of main window relative to screen size
 MAX_SNR = 60  # upper limit of levelsview CNo axis
 MAXFLOAT = 2e20
 MAXLOGSIZE = 10485760  # maximum size of individual log file in bytes
+MAXWAIT = 10  # maximum number of update cycles while waiting for data
 MIN_GUI_UPDATE_INTERVAL = 0.1  # minimum GUI widget update interval (seconds)
 MINFLOAT = -MAXFLOAT
 MINDIM = "mindim"
@@ -270,6 +256,7 @@ TTYERR = ("ERROR", "$R?")
 TTYMARKER = "TTY<<"
 UBXPRESETS = "ubxpresets"
 UBXSIMULATOR = "ubxsimulator"
+UM980 = "Unicore UM98n"
 UNDO = "UNDO"
 UTF8 = "utf-8"
 VALBLANK = 1

@@ -9,7 +9,8 @@ architecture.
 - Loads configuration from json file (if available)
 - Instantiates all frames, widgets, and protocol handlers.
 - Maintains state of all user-selectable widgets.
-- Maintains state of all threaded dialog and protocol handler processes.
+- Maintains state of all Toplevel dialogs.
+- Maintains state of all threaded protocol handler processes.
 - Maintains state of serial and RTK connections.
 - Handles event-driven data processing of navigation data placed on
   input message queue by stream handler and assigns to appropriate
@@ -33,7 +34,7 @@ Created on 12 Sep 2020
 :license: BSD 3-Clause
 """
 
-# pylint: disable=too-many-ancestors, no-member
+# pylint: disable=no-member
 
 import logging
 from datetime import datetime, timedelta
@@ -43,12 +44,11 @@ from queue import Empty, Queue
 from subprocess import CalledProcessError, run
 from sys import executable
 from threading import Thread
-from time import process_time_ns, time
 from tkinter import EW, NSEW, NW, Frame, Label, PhotoImage, Tk, Toplevel, font
 from types import NoneType
 
 from pygnssutils import GNSSMQTTClient, GNSSNTRIPClient, MQTTMessage
-from pygnssutils.gnssreader import (
+from pygnssutils.gnssreader import (  # UNI_PROTOCOL, # TODO
     NMEA_PROTOCOL,
     POLL,
     QGC_PROTOCOL,
@@ -74,10 +74,7 @@ from pygpsclient.globals import (
     BGCOL,
     CLASS,
     CONFIGFILE,
-    CONNECTED,
     CONNECTED_NTRIP,
-    CONNECTED_SIMULATOR,
-    CONNECTED_SOCKET,
     CONNECTED_SPARTNIP,
     CONNECTED_SPARTNLB,
     DISCONNECTED,
@@ -100,6 +97,7 @@ from pygpsclient.globals import (
     STATUSPRIORITY,
     TTY_PROTOCOL,
     UNDO,
+    UNI_PROTOCOL,
 )
 from pygpsclient.gnss_status import GNSSStatus
 from pygpsclient.helpers import (
@@ -130,7 +128,6 @@ from pygpsclient.strings import (
     INTROTXTNOPORTS,
     KILLSWITCH,
     NOTCONN,
-    NOWDGSWARN,
     SAVECONFIGBAD,
     SAVECONFIGOK,
     TITLE,
@@ -141,12 +138,15 @@ from pygpsclient.strings import (
 )
 from pygpsclient.tty_handler import TTYHandler
 from pygpsclient.ubx_handler import UBXHandler
+from pygpsclient.uni_handler import UNIHandler
 from pygpsclient.widget_state import (
     COLSPAN,
     DEFAULT,
+    DOCK,
     HIDE,
     MAXSPAN,
     SHOW,
+    UNDOCK,
     VISIBLE,
     WDGCHART,
     WDGCONSOLE,
@@ -159,7 +159,7 @@ class App(Frame):
     Main PyGPSClient GUI Application Class.
     """
 
-    def __init__(self, master, **kwargs):  # pylint: disable=too-many-statements
+    def __init__(self, master, **kwargs):
         """
         Set up main application and add frames.
 
@@ -167,9 +167,6 @@ class App(Frame):
         :param args: optional args
         :param kwargs: optional (CLI) kwargs
         """
-
-        self.starttime = time()  # for run time benchmarking
-        self.processtime = 0  # for process time benchmarking
 
         self.__master = master
         self.logger = logging.getLogger(__name__)
@@ -187,9 +184,6 @@ class App(Frame):
         self.configuration.loadcli(**kwargs)
         if configerr == "":
             self.update_widgets()  # set initial widget state
-            # warning if all widgets have been disabled in config
-            if self._nowidgets:
-                self.status_label = (NOWDGSWARN.format(configfile), ERRCOL)
 
         # setup main application window
         geom = self.configuration.get("screengeom_s")
@@ -216,6 +210,7 @@ class App(Frame):
         self.ubx_handler = UBXHandler(self)
         self.sbf_handler = SBFHandler(self)
         self.qgc_handler = QGCHandler(self)
+        self.uni_handler = UNIHandler(self)
         self.rtcm_handler = RTCM3Handler(self)
         self.tty_handler = TTYHandler(self)
         self.ntrip_handler = GNSSNTRIPClient(self)
@@ -224,11 +219,11 @@ class App(Frame):
         self.frm_settings = None
         self._conn_status = DISCONNECTED
         self._rtk_conn_status = DISCONNECTED
-        self._nowidgets = True
         self._last_gui_update = datetime.now()
         self._socket_thread = None
         self._socket_server = None
         self.consoledata = []
+        self.last_map_update = 0
         self._recorded_commands = []  # captured by RecorderDialog
         self.recording = False  # RecordDialog status
         self.recording_type = 0  # 0 = TTY ONLY, 1 = UBX/NMEA
@@ -245,13 +240,6 @@ class App(Frame):
         self._body()
         self._do_layout()
         self._attach_events()
-
-        # initialise widgets
-        for wdg in self.widget_state.state.values():
-            frm = getattr(self, wdg[FRAME])
-            if hasattr(frm, "init_frame"):
-                frm.update_idletasks()
-                frm.init_frame()
 
         # display initial connection status
         self.frm_banner.update_conn_status(DISCONNECTED)
@@ -276,19 +264,14 @@ class App(Frame):
         self.menu = MenuBar(self)
         self.__master.config(menu=self.menu, bg=BGCOL)
 
-        self.frm_banner = BannerFrame(self, borderwidth=2, relief="groove")
-        self.frm_status = StatusFrame(self, borderwidth=2, relief="groove")
-        self.frm_settings = SettingsFrame(self)
+        self.frm_banner = BannerFrame(
+            self, self.__master, borderwidth=1, relief="groove", bg=BGCOL
+        )
+        self.frm_status = StatusFrame(
+            self, self.__master, borderwidth=1, relief="groove", bg=BGCOL
+        )
+        self.frm_settings = SettingsFrame(self, self.__master)
         self.frm_widgets = Frame(self.__master, bg=BGCOL)
-
-        # instantiate widgets
-        for wdg in self.widget_state.state.values():
-            setattr(
-                # self.frm_widgets,
-                self,
-                wdg[FRAME],
-                wdg[CLASS](self, self.frm_widgets, borderwidth=2, relief="groove"),
-            )
 
     def _do_layout(self):
         """
@@ -314,71 +297,49 @@ class App(Frame):
         self.frm_banner.grid(column=0, row=0, columnspan=2, sticky=EW)
         self.frm_widgets.grid(column=0, row=1, sticky=NSEW)
         if isinstance(self.frm_settings, SettingsFrame):  # docked
+            men0 = UNDOCK
             if self.configuration.get("showsettings_b"):
                 self.frm_settings.grid(column=1, row=1, sticky=NW)
             else:
                 if self.frm_settings.winfo_ismapped():
                     self.frm_settings.grid_forget()
+        else:
+            men0 = DOCK
         self.frm_status.grid(column=0, row=2, columnspan=2, sticky=EW)
 
-        # get overall column and row spans for frm_widgets
-        maxcols = self.configuration.get("maxcolumns_n")
-        wcolspan = 0
-        wrowspan = 1
-        cols = 0
-        wids = [
-            wdg.get(COLSPAN, 1)
-            for wdg in self.widget_state.state.values()
-            if wdg[VISIBLE]
-        ]
-        for c in wids:
-            if c == MAXSPAN or c + cols > maxcols:
-                wrowspan += 2 if c == MAXSPAN and cols > 0 else 1
-                cols = 0
-            cols += c
-            wcolspan = max(wcolspan, cols)
-        wcolspan = max(1, wcolspan)
+        # update View menu labels for Settings (dock/undock, show/hide)
+        self.menu.view_menu.entryconfig(0, label=f"{men0} Settings")
+        men1 = (SHOW, HIDE)[self.configuration.get("showsettings_b")]
+        self.menu.view_menu.entryconfig(1, label=f"{men1} Settings")
 
-        # dynamically position widgets in frm_widgets
+        # get column and row spans for frm_widgets
+        wcolspan, wrowspan = self.widget_spans()
+
+        # dynamically instantiate and position widgets in frm_widgets
         col = 0
         row = 0
-        men = 2
-        for name, wdg in self.widget_state.state.items():
-            frm = getattr(self, wdg[FRAME])
-            if wdg[VISIBLE]:
-                lbl = HIDE
-                # enable any GNSS message output required by widget
-                self.widget_enable_messages(name)
-                c = wdg.get(COLSPAN, 1)
+        for i, (name, state) in enumerate(self.widget_state.state.items()):
+            # setup widget
+            frm = self.widget_setup(state)
+            # set corresponding View menu label to 'Show' or 'Hide'
+            self.menu.view_menu.entryconfig(
+                i + 2, label=f"{(SHOW, HIDE)[state[VISIBLE]]} {name}"
+            )
+            if state[VISIBLE]:
+                c = state.get(COLSPAN, 1)
                 cols = wcolspan if c == MAXSPAN else c
-                # only grid if position has changed
                 frmi = frm.grid_info()
                 if (
                     frmi.get("column", None) != col
                     or frmi.get("row", None) != row
                     or frmi.get("columnspan", None) != cols
-                ):
+                ):  # only grid if position has changed
                     frm.grid(column=col, row=row, columnspan=cols, sticky=NSEW)
-                if c == MAXSPAN or c + col >= maxcols:
+                if c == MAXSPAN or c + col >= wcolspan:
                     col = 0
                     row += 1
                 else:
                     col += c
-            else:
-                lbl = SHOW
-                # only forget if gridded (memory leak!)
-                if frm.winfo_ismapped():
-                    frm.grid_forget()
-
-            # update View menu label (show/hide)
-            self.menu.view_menu.entryconfig(men, label=f"{lbl} {name}")
-            men += 1
-
-        # update View menu labels for Settings (dock/undock, show/hide)
-        lbl = "Undock" if self.configuration.get("docksettings_b") else "Dock"
-        self.menu.view_menu.entryconfig(0, label=f"{lbl} Settings")
-        lbl = HIDE if self.configuration.get("showsettings_b") else SHOW
-        self.menu.view_menu.entryconfig(1, label=f"{lbl} Settings")
 
         # set column and row weights to control 'pack' behaviour of main layout
         self.__master.grid_columnconfigure(0, weight=1)
@@ -432,15 +393,70 @@ class App(Frame):
             if self.dialog_state.state[DLGTSETTINGS][DLG] is not None:
                 self.dialog_state.state[DLGTSETTINGS][DLG].destroy()
                 self.dialog_state.state[DLGTSETTINGS][DLG] = None
-                self.frm_settings = SettingsFrame(self)
+                self.frm_settings = SettingsFrame(self, self.__master)
         else:
             if self.dialog_state.state[DLGTSETTINGS][DLG] is None:
                 if isinstance(self.frm_settings, SettingsFrame):
                     self.frm_settings.grid_forget()
                     self.frm_settings.destroy()
+                    self.frm_settings = None
                 self.start_dialog(DLGTSETTINGS)
                 self.frm_settings = self.dialog_state.state[DLGTSETTINGS][DLG]
         self._do_layout()
+
+    def widget_setup(self, state: dict) -> Frame | NoneType:
+        """
+        Instantiate or destroy widget.
+
+        :param dict state: widget state dictionary
+        :return: instantiated widget or None
+        :rtype: Frame | NoneType
+        """
+
+        frm = state[FRAME]
+        visible = state[VISIBLE]
+        w = getattr(self, frm, None)
+        if visible and w is None:
+            setattr(
+                self,
+                frm,
+                state[CLASS](self, self.frm_widgets, borderwidth=1, relief="groove"),
+            )
+        elif not visible and w is not None:
+            w.grid_forget()
+            w.destroy()
+            w = None
+            setattr(self, frm, None)
+        return getattr(self, frm, None)
+
+    def widget_spans(self) -> tuple[int, int]:
+        """
+        Get overall column and row spans for frm_widgets
+        from latest widget_state dictionary.
+
+        :return: columnspan, rowspan
+        :rtype: tuple[int, int]
+        """
+
+        maxcols = self.configuration.get("maxcolumns_n")
+        wcolspan = 0
+        wrowspan = 0
+        cols = 0
+        wids = [
+            wdg.get(COLSPAN, 1)
+            for wdg in self.widget_state.state.values()
+            if wdg[VISIBLE]
+        ]
+        for c in wids:
+            if c == MAXSPAN or c + cols > maxcols:
+                wrowspan += 2 if c == MAXSPAN and cols > 0 else 1
+                cols = 0
+            cols += c
+            wcolspan = max(wcolspan, cols)
+        if cols > 0:
+            wrowspan += 1
+
+        return max(1, wcolspan), max(1, wrowspan)
 
     def widget_toggle(self, name: str):
         """
@@ -456,17 +472,6 @@ class App(Frame):
         self.configuration.set(name, self.widget_state.state[name][VISIBLE])
         self._do_layout()
 
-    def widget_enable_messages(self, name: str):
-        """
-        Enable any GNSS messages required by widget.
-
-        :param str name: widget name
-        """
-
-        frm = getattr(self, self.widget_state.state[name][FRAME])
-        if hasattr(frm, "enable_messages"):
-            frm.enable_messages(self.widget_state.state[name][VISIBLE])
-
     def reset_layout(self):
         """
         Reset to default layout.
@@ -479,21 +484,6 @@ class App(Frame):
         self.configuration.set("showsettings_b", True)
         self.configuration.set("docksettings_b", True)
         self._do_layout()
-
-    def reset_frames(self):
-        """
-        Reset frames.
-        """
-
-        self.frm_mapview.reset_map_refresh()
-        self.frm_spectrumview.reset()
-
-    def reset_gnssstatus(self):
-        """
-        Reset gnss_status dictionary e.g. after reconnecting.
-        """
-
-        self.gnss_status = GNSSStatus()
 
     def _set_default_fonts(self):
         """
@@ -528,7 +518,7 @@ class App(Frame):
             self.status_label = (DLGSTOPRTK, ERRCOL)
             return
 
-        filename, err = self.configuration.loadfile()
+        _, err = self.configuration.loadfile()
         if err == "":  # load succeeded
             self.update_widgets()
             for frm in (
@@ -538,8 +528,6 @@ class App(Frame):
             ):
                 frm.reset()
             self._do_layout()
-            if self._nowidgets:
-                self.status_label = (NOWDGSWARN.format(filename), ERRCOL)
         elif err == "cancelled":
             pass
 
@@ -568,16 +556,11 @@ class App(Frame):
         """
 
         try:
-            self._nowidgets = True
             for key, vals in self.widget_state.state.items():
                 vis = self.configuration.get(key)
                 vals[VISIBLE] = vis
-                if vis:
-                    self._nowidgets = False
-            if self._nowidgets:
-                self.widget_state.state["Status"][VISIBLE] = "true"
         except KeyError as err:
-            self.status_label = (f"{CONFIGERR} - {err}", ERRCOL)
+            self.status_label = (CONFIGERR.format(err), ERRCOL)
 
     def _refresh_widgets(self):
         """
@@ -586,13 +569,14 @@ class App(Frame):
 
         self.frm_banner.update_frame()
         for wdg, wdgdata in self.widget_state.state.items():
-            frm = getattr(self, wdgdata[FRAME])
-            if hasattr(frm, "update_frame") and wdgdata[VISIBLE]:
-                if wdg == WDGCONSOLE:
-                    frm.update_frame(self.consoledata)
-                    self.consoledata = []
-                else:
-                    frm.update_frame()
+            frm = getattr(self, wdgdata[FRAME], None)
+            if frm is not None:
+                if hasattr(frm, "update_frame") and wdgdata[VISIBLE]:
+                    if wdg == WDGCONSOLE:
+                        frm.update_frame(self.consoledata)
+                        self.consoledata = []
+                    else:
+                        frm.update_frame()
 
     def start_dialog(self, dlg: str):
         """
@@ -607,7 +591,7 @@ class App(Frame):
 
     def dialog(self, dlg: str) -> Toplevel:
         """
-        Get reference to dialog instance.
+        Getter for dialog instance.
 
         :param str dlg: name of dialog
         :return: dialog instance
@@ -742,10 +726,10 @@ class App(Frame):
 
         try:
             self._shutdown()
-            for dlg in self.dialog_state.state:
-                if self.dialog(dlg) is not None:
-                    self.dialog(dlg).destroy()
-                    # self.stop_dialog(dlg)
+            for name, state in self.dialog_state.state.items():
+                if self.dialog(name) is not None:
+                    self.dialog(name).destroy()
+                    state[DLG] = None
             self.conn_status = DISCONNECTED
             self.rtk_conn_status = DISCONNECTED
         except Exception as err:  # pylint: disable=broad-exception-caught
@@ -920,7 +904,6 @@ class App(Frame):
         :param str marker: string prepended to console entries e.g. "NTRIP>>"
         """
 
-        start = process_time_ns()
         # self.logger.debug(f"data received {parsed_data.identity}")
         msgprot = 0
         protfilter = self.protocol_mask
@@ -930,6 +913,8 @@ class App(Frame):
             msgprot = SBF_PROTOCOL
         elif isinstance(parsed_data, QGCMessage):
             msgprot = QGC_PROTOCOL
+        # elif isinstance(parsed_data, UNIMessage):
+        #     msgprot = UNI_PROTOCOL
         elif isinstance(parsed_data, UBXMessage):
             msgprot = UBX_PROTOCOL
         elif isinstance(parsed_data, RTCMMessage):
@@ -950,6 +935,8 @@ class App(Frame):
             self.sbf_handler.process_data(raw_data, parsed_data)
         elif msgprot == QGC_PROTOCOL and msgprot & protfilter:
             self.qgc_handler.process_data(raw_data, parsed_data)
+        elif msgprot == UNI_PROTOCOL and msgprot & protfilter:
+            self.uni_handler.process_data(raw_data, parsed_data)
         elif msgprot == NMEA_PROTOCOL and msgprot & protfilter:
             self.nmea_handler.process_data(raw_data, parsed_data)
         elif msgprot == RTCM3_PROTOCOL and msgprot & protfilter:
@@ -992,22 +979,17 @@ class App(Frame):
             self.file_handler.write_logfile(raw_data, parsed_data)
 
         self.update_idletasks()
-        self.processtime = process_time_ns() - start
 
-    def send_to_device(self, data: object):
+    def send_to_device(self, data: bytes):
         """
-        Send raw data to connected device.
+        Place raw data on output queue (it will be processed when the
+        device next connects).
 
-        :param object data: raw GNSS data (NMEA, UBX, TTY, RTCM3, SPARTN)
+        :param bytes data: raw GNSS data (NMEA, UBX, TTY, RTCM3, SPARTN)
         """
 
         self.logger.debug(f"Sending message {data}")
-        if self.conn_status in (
-            CONNECTED,
-            CONNECTED_SOCKET,
-            CONNECTED_SIMULATOR,
-        ):
-            self.gnss_outqueue.put(data)
+        self.gnss_outqueue.put(data)
 
     def _check_update(self):
         """
@@ -1125,9 +1107,7 @@ class App(Frame):
 
         if hasattr(self, "frm_status"):
             color = INFOCOL if color == "blue" else color
-            self.status_label.after(
-                0, self.status_label.config, {"text": message, "fg": color}
-            )
+            self.status_label.config(text=message, fg=color)
             self.update_idletasks()
         else:  # defer message until frm_status is instantiated
             if isinstance(self._deferredmsg, tuple):
@@ -1161,11 +1141,6 @@ class App(Frame):
         self.frm_settings.frm_settings.enable_controls(status)
         if status == DISCONNECTED:
             self.conn_label = (NOTCONN, INFOCOL)
-        elif status in (CONNECTED, CONNECTED_SOCKET):
-            for name, wdg in self.widget_state.state.items():
-                if wdg[VISIBLE]:
-                    # enable any GNSS message output required by widget
-                    self.widget_enable_messages(name)
 
     @property
     def server_status(self) -> int:
@@ -1264,9 +1239,10 @@ class App(Frame):
             + (cfg.get("rtcmprot_b") * RTCM3_PROTOCOL)  # 4
             + (cfg.get("sbfprot_b") * SBF_PROTOCOL)  # 8
             + (cfg.get("qgcprot_b") * QGC_PROTOCOL)  # 16
-            + (cfg.get("spartnprot_b") * SPARTN_PROTOCOL)  # 32
-            + (cfg.get("mqttprot_b") * MQTT_PROTOCOL)  # 64
-            + (cfg.get("ttyprot_b") * TTY_PROTOCOL)  # 128
+            + (cfg.get("uniprot_b") * UNI_PROTOCOL)  # 32
+            + (cfg.get("spartnprot_b") * SPARTN_PROTOCOL)  # 256
+            + (cfg.get("mqttprot_b") * MQTT_PROTOCOL)  # 512
+            + (cfg.get("ttyprot_b") * TTY_PROTOCOL)  # 1024
         )
         return mask
 
@@ -1281,7 +1257,7 @@ class App(Frame):
 
         return self._db_enabled
 
-    def do_app_update(self, *args, **kwargs) -> int:
+    def do_app_update(self, *args, **kwargs) -> int:  # pylint: disable=unused-argument
         """
         Update outdated application packages to latest versions.
 

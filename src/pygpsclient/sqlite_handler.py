@@ -26,13 +26,14 @@ import sqlite3
 import traceback
 from datetime import datetime, timezone
 from os import path
+from pathlib import Path
 from types import NoneType
 
 from pynmeagps import ecef2llh
 
 from pygpsclient.globals import ERRCOL, HOME, INFOCOL, OKCOL
 from pygpsclient.helpers import makeval
-from pygpsclient.strings import NA
+from pygpsclient.strings import DLGDBINIT, DLGDBINITERR, DLGDBOPEN, DLGDBSQLERR, NA
 
 # path to mod_spatialite module, if required
 # SLPATH = "C:/Program Files/QGIS 3.44.1/bin"
@@ -72,6 +73,9 @@ SQLC1 = (
     + SQLCOMMIT
 )
 """SQL for creating database and table with lat/lon/hmsl as 3D POINTZ"""
+
+SQLINIT = "SELECT InitSpatialMetaData();"
+"""SQL for initialising spatial metadata"""
 
 SQLI3D = (
     "INSERT INTO {table} (geom, utc, fix, hae, speed, track, siv, sip, pdop, "
@@ -128,34 +132,28 @@ class SqliteHandler:
         """
 
         try:
-            self.__app.status_label = (
-                f"Database {self._db} initialising - please wait...",
-                INFOCOL,
-            )
+            self.__app.status_label = (DLGDBINIT.format(self._db), INFOCOL)
             self.logger.debug("Spatial metadata initialisation in progress...")
-            self._connection.execute("SELECT InitSpatialMetaData();")
+            self._connection.execute(SQLINIT)
             self.logger.debug("Spatial metadata initialisation complete")
             self._cursor = self._connection.cursor()
             self._cursor.executescript(SQLC1.format(table=tbname))
             return SQLOK
         except sqlite3.Error as err:
-            self.__app.status_label = (
-                f"Error initialising spatial database {err}",
-                ERRCOL,
-            )
+            self.__app.status_label = (DLGDBINITERR.format(err), ERRCOL)
             self.logger.debug(traceback.format_exc())
             return SQLERR
 
     def open(
         self,
-        dbpath: str = HOME,
+        dbpath: str | Path = HOME,
         dbname: str = DBNAME,
         tbname: str = TBNAME,
     ) -> str | int:
         """
         Create sqlite3 connection and cursor.
 
-        :param str dbpath: path to sqlite3 database file
+        :param str | Path dbpath: path to sqlite3 database file
         :param str dbname: name of sqlite3 database file
         :param str tbname: name of table containing gnss data
         :return: result
@@ -186,18 +184,18 @@ class SqliteHandler:
             if testing:
                 self._connection.close()
             else:
-                self.__app.status_label = (f"Database {self._db} opened", OKCOL)
+                self.__app.status_label = (DLGDBOPEN.format(self._db), OKCOL)
             return SQLOK
         except AttributeError as err:
-            self.__app.status_label = (f"SQL error: {err}", errcol)
+            self.__app.status_label = (DLGDBSQLERR.format(err), errcol)
             self.logger.debug(traceback.format_exc())
             return NOEXT  # extensions not supported
         except sqlite3.OperationalError as err:
-            self.__app.status_label = (f"SQL error {db}: {err}", errcol)
+            self.__app.status_label = (DLGDBSQLERR.format(err), errcol)
             self.logger.debug(traceback.format_exc())
             return NOMODS  # no mod_spatial extension found
         except sqlite3.Error as err:
-            self.__app.status_label = (f"SQL error {db}: {err}", errcol)
+            self.__app.status_label = (DLGDBSQLERR.format(err), errcol)
             self.logger.debug(traceback.format_exc())
             return SQLERR  # other sqlite error
 
@@ -213,13 +211,13 @@ class SqliteHandler:
                 return
             self._connection.close()
 
-    def load_data(self, ignore_null: bool = True) -> str:
+    def load_data(self, ignore_null: bool = True) -> int:
         """
         Load current gnss data (from `self.__app.gnss_status`) into database.
 
         :param bool ignore_null: ignore null position flag
         :return: result
-        :rtype: str
+        :rtype: int
         """
 
         gnss = self.__app.gnss_status
@@ -262,7 +260,7 @@ class SqliteHandler:
             self.logger.debug(f"Executed SQL statement {sql}")
             return SQLOK
         except sqlite3.Error as err:
-            self.__app.status_label = (f"SQL error: {err}", ERRCOL)
+            self.__app.status_label = (DLGDBSQLERR.format(err), ERRCOL)
             self.logger.debug(traceback.format_exc())
             return SQLERR
 
@@ -279,7 +277,7 @@ class SqliteHandler:
 
 
 def retrieve_data(
-    dbpath: str = path.join(HOME, DBNAME),
+    dbpath: str | Path = path.join(HOME, DBNAME),
     table: str = TBNAME,
     sqlwhere: str = "",
     limit: int = 100,
@@ -288,7 +286,7 @@ def retrieve_data(
     """
     Retrieve specified rows from sqlite table, ordered by utc timestamp.
 
-    :param str dbpath: fully qualified path to database
+    :param str | Path dbpath: fully qualified path to database
     :param str table: name of database table
     :param str sqlwhere: optional SQL WHERE clause
     :param int limit: SQL LIMIT number of rows
@@ -299,6 +297,7 @@ def retrieve_data(
     :raises: sqlite3.Error
     """
 
+    sql = ""
     try:
         if not path.exists(dbpath):
             raise FileNotFoundError(f"No such database: '{dbpath}'")

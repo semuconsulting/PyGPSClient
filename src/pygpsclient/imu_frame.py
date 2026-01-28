@@ -30,6 +30,7 @@ from tkinter import (
 from pynmeagps import FMI_STATUS
 from pyubx2 import ESFALG_STATUS
 
+from pygpsclient.canvas_subclasses import TAG_WAIT
 from pygpsclient.globals import (
     BGCOL,
     ERRCOL,
@@ -42,7 +43,7 @@ from pygpsclient.globals import (
     WIDGETU2,
 )
 from pygpsclient.helpers import rgb2str, scale_font
-from pygpsclient.strings import LBLNODATA
+from pygpsclient.strings import DLGWAITIMU
 
 OFFSETX = 5
 OFFSETY = 10
@@ -95,6 +96,7 @@ class IMUFrame(Frame):
         self._range = IntVar()
         self._option = StringVar()
         self._range.set(RANGES[0])
+        self._waiting = True
         self._body()
         self.reset()
         self._attach_events()
@@ -107,7 +109,7 @@ class IMUFrame(Frame):
         self.grid_rowconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=0)
         self.grid_rowconfigure(2, weight=0)
-        self.canvas = Canvas(self, width=self.width, height=self.height, bg=BGCOL)
+        self._canvas = Canvas(self, width=self.width, height=self.height, bg=BGCOL)
         self._lbl_range = Label(self, text="Range", fg=FGCOL, bg=BGCOL, anchor=W)
         self._spn_range = Spinbox(
             self,
@@ -134,7 +136,7 @@ class IMUFrame(Frame):
             textvariable=self._option,
             state=READONLY,
         )
-        self.canvas.grid(column=0, row=0, columnspan=4, sticky=NSEW)
+        self._canvas.grid(column=0, row=0, columnspan=4, sticky=NSEW)
 
         self._lbl_range.grid(column=0, row=1, sticky=EW)
         self._spn_range.grid(column=1, row=1, sticky=EW)
@@ -156,7 +158,7 @@ class IMUFrame(Frame):
         """
 
         self.bind("<Configure>", self._on_resize)
-        self.canvas.bind("<Double-Button-1>", self._on_clear)
+        self._canvas.bind("<Double-Button-1>", self._on_clear)
         for setting in (self._range, self._option):
             setting.trace_add(TRACEMODE_WRITE, self._on_update_config)
 
@@ -182,8 +184,8 @@ class IMUFrame(Frame):
 
         width, _ = self.get_size()
         self._flag_range(False)
-        self.canvas.delete("all")
-        self.canvas.create_line(
+        self._canvas.delete("all")
+        self._canvas.create_line(
             (width - OFFSETX * 2) / 2,
             OFFSETY,
             (width - OFFSETX * 2) / 2,
@@ -191,7 +193,7 @@ class IMUFrame(Frame):
             fill=GRIDMAJCOL,
             width=2,
         )
-        self.canvas.create_text(
+        self._canvas.create_text(
             OFFSETX,
             OFFSETY,
             text="Roll X:",
@@ -199,7 +201,7 @@ class IMUFrame(Frame):
             font=self._font,
             anchor=NW,
         )
-        self.canvas.create_text(
+        self._canvas.create_text(
             OFFSETX,
             self._fonth * 2 + OFFSETY,
             text="Pitch Y:",
@@ -207,7 +209,7 @@ class IMUFrame(Frame):
             font=self._font,
             anchor=NW,
         )
-        self.canvas.create_text(
+        self._canvas.create_text(
             OFFSETX,
             self._fonth * 4 + OFFSETY,
             text="Yaw Z:",
@@ -215,7 +217,7 @@ class IMUFrame(Frame):
             font=self._font,
             anchor=NW,
         )
-        self.canvas.create_text(
+        self._canvas.create_text(
             OFFSETX,
             self._fonth * 6 + OFFSETY,
             text="Source:",
@@ -223,7 +225,7 @@ class IMUFrame(Frame):
             font=self._font,
             anchor=NW,
         )
-        self.canvas.create_text(
+        self._canvas.create_text(
             OFFSETX,
             self._fonth * 7 + OFFSETY,
             text="Status:",
@@ -236,8 +238,8 @@ class IMUFrame(Frame):
         """
         Collect scatterplot data and update the plot.
         """
-        self.canvas.delete(DATA)
-        width, height = self.get_size()
+        self._canvas.delete(DATA)
+        width, _ = self.get_size()
         owidth = width - OFFSETX * 2
         wid = int(self._fonth / 2)
         wid2 = int(wid / 2)
@@ -245,6 +247,9 @@ class IMUFrame(Frame):
         try:
             scale = self._range.get()
             data = self.__app.gnss_status.imu_data
+            if data != {}:
+                self._waiting = False
+                self._canvas.delete(TAG_WAIT)
             rng = self._range.get()
             roll = float(data["roll"])
             pitch = float(data["pitch"])
@@ -272,7 +277,7 @@ class IMUFrame(Frame):
             if abs(roll) > scale or abs(pitch) > scale or abs(yaw) > scale:
                 self._flag_range(True)
 
-            self.canvas.create_text(
+            self._canvas.create_text(
                 OFFSETX,
                 OFFSETY,
                 text=f"\t{roll}",
@@ -281,7 +286,7 @@ class IMUFrame(Frame):
                 anchor=NW,
                 tag=DATA,
             )
-            self.canvas.create_line(
+            self._canvas.create_line(
                 owidth / 2,
                 self._fonth + OFFSETY + wid2,
                 owidth / 2 + rollbar,
@@ -290,7 +295,7 @@ class IMUFrame(Frame):
                 width=wid,
                 tag=DATA,
             )
-            self.canvas.create_text(
+            self._canvas.create_text(
                 OFFSETX,
                 self._fonth * 2 + OFFSETY,
                 text=f"\t{pitch}",
@@ -299,7 +304,7 @@ class IMUFrame(Frame):
                 anchor=NW,
                 tag=DATA,
             )
-            self.canvas.create_line(
+            self._canvas.create_line(
                 owidth / 2,
                 self._fonth * 3 + OFFSETY + wid2,
                 owidth / 2 + pitchbar,
@@ -308,7 +313,7 @@ class IMUFrame(Frame):
                 width=wid,
                 tag=DATA,
             )
-            self.canvas.create_text(
+            self._canvas.create_text(
                 OFFSETX,
                 self._fonth * 4 + OFFSETY,
                 text=f"\t{yaw}",
@@ -317,7 +322,7 @@ class IMUFrame(Frame):
                 anchor=NW,
                 tag=DATA,
             )
-            self.canvas.create_line(
+            self._canvas.create_line(
                 owidth / 2,
                 self._fonth * 5 + OFFSETY + wid2,
                 owidth / 2 + yawbar,
@@ -326,7 +331,7 @@ class IMUFrame(Frame):
                 width=wid,
                 tag=DATA,
             )
-            self.canvas.create_text(
+            self._canvas.create_text(
                 OFFSETX,
                 self._fonth * 6 + OFFSETY,
                 text=f"\t{source}",
@@ -335,7 +340,7 @@ class IMUFrame(Frame):
                 anchor=NW,
                 tag=DATA,
             )
-            self.canvas.create_text(
+            self._canvas.create_text(
                 OFFSETX,
                 self._fonth * 7 + OFFSETY,
                 text=f"{status}",
@@ -346,11 +351,8 @@ class IMUFrame(Frame):
             )
 
         except (KeyError, ValueError):
-            self.canvas.delete(DATA)
-            self.canvas.create_text(
-                width / 2, height / 2, text=LBLNODATA, fill=ERRCOL, tag=DATA
-            )
-        self.canvas.update_idletasks()
+            self._canvas.delete(DATA)
+        self._canvas.update_idletasks()
 
     def _flag_range(self, over: bool = False):
         """
@@ -393,6 +395,15 @@ class IMUFrame(Frame):
         self._font, self._fonth = scale_font(self.width, 12, 25, 30)
         self.init_frame()
         self._redraw()
+        self._on_waiting()
+
+    def _on_waiting(self):
+        """
+        Display 'waiting for data' alert.
+        """
+
+        if self._waiting:
+            self._canvas.create_alert(DLGWAITIMU, tags=TAG_WAIT)
 
     def get_size(self) -> tuple:
         """
@@ -403,4 +414,4 @@ class IMUFrame(Frame):
         """
 
         self.update_idletasks()  # Make sure we know about resizing
-        return self.canvas.winfo_width(), self.canvas.winfo_height()
+        return self._canvas.winfo_width(), self._canvas.winfo_height()

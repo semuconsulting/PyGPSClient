@@ -21,6 +21,7 @@ from pygpsclient.canvas_subclasses import (
     MODE_POL,
     TAG_DATA,
     TAG_GRID,
+    TAG_WAIT,
     TAG_XLABEL,
     CanvasCompass,
 )
@@ -30,7 +31,7 @@ from pygpsclient.globals import (
     WIDGETU2,
 )
 from pygpsclient.helpers import setubxrate
-from pygpsclient.strings import NA
+from pygpsclient.strings import DLGWAITRELPOS, NA
 
 MAXPOINTS = 100
 INSET = 4
@@ -69,8 +70,10 @@ class RoverFrame(Frame):
         self.points = []
         self._redraw = True
         self._maxdist = 0
+        self._waiting = True
         self._body()
         self._attach_events()
+        self.enable_messages(True)
 
     def _body(self):
         """Set up frame and widgets."""
@@ -96,7 +99,7 @@ class RoverFrame(Frame):
         """
 
         # only redraw the tags that have changed
-        tags = (TAG_GRID, TAG_XLABEL) if self._redraw else ()
+        tags = (TAG_GRID, TAG_XLABEL, TAG_WAIT) if self._redraw else ()
         maxgrid = 10
         scale = self._range / maxgrid / self._scale_c
         self._canvas.create_compass(
@@ -117,6 +120,10 @@ class RoverFrame(Frame):
         center_y = self.height / 2
         hdg = self.__app.gnss_status.rel_pos_heading
         dis = self.__app.gnss_status.rel_pos_length
+        if hdg not in (0.0, "", None) and dis not in (0.0, "", None):
+            self._waiting = False
+        else:
+            return
         acchdg = self.__app.gnss_status.acc_heading
         accdis = self.__app.gnss_status.acc_length
         try:
@@ -283,16 +290,6 @@ class RoverFrame(Frame):
 
         setubxrate(self.__app, "NAV-RELPOSNED", status)
 
-    def _on_resize(self, event):  # pylint: disable=unused-argument
-        """
-        Resize frame.
-
-        :param Event event: resize event
-        """
-
-        self.width, self.height = self.get_size()
-        self._redraw = True
-
     def _on_clear(self, event):  # pylint: disable=unused-argument
         """ "
         Clear plot.
@@ -303,6 +300,25 @@ class RoverFrame(Frame):
         self.points = []
         self._maxdist = 0
         self._redraw = True
+
+    def _on_resize(self, event):  # pylint: disable=unused-argument
+        """
+        Resize frame.
+
+        :param Event event: resize event
+        """
+
+        self.width, self.height = self.get_size()
+        self._redraw = True
+        self._on_waiting()
+
+    def _on_waiting(self):
+        """
+        Display 'waiting for data' alert.
+        """
+
+        if self._waiting:
+            self._canvas.create_alert(DLGWAITRELPOS, tags=TAG_WAIT)
 
     def get_size(self) -> tuple:
         """

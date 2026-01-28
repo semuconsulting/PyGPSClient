@@ -63,6 +63,7 @@ from pygpsclient.globals import (
     READONLY,
     SERVERCONFIG,
     TRACEMODE_WRITE,
+    UM980,
     VALFLOAT,
     VALINT,
     VALNONBLANK,
@@ -79,16 +80,19 @@ from pygpsclient.receiver_config_handler import (
     config_disable_lg290p,
     config_disable_septentrio,
     config_disable_ublox,
+    config_disable_unicore,
     config_fixed_lc29h,
     config_fixed_lg290p,
     config_fixed_septentrio,
     config_fixed_ublox,
+    config_fixed_unicore,
     config_nmea,
     config_svin_lc29h,
     config_svin_lg290p,
     config_svin_quectel,
     config_svin_septentrio,
     config_svin_ublox,
+    config_svin_unicore,
 )
 from pygpsclient.strings import (
     DLGNOTLS,
@@ -130,6 +134,7 @@ BASE_DISABLED = "DISABLED"
 BASE_FIXED = "FIXED"
 BASE_SVIN = "SURVEY IN"
 BASEMODES = (BASE_SVIN, BASE_DISABLED, BASE_FIXED)
+RTKDEVICES = (ZED_F9, UM980, LG290P, LC29H, MOSAIC_X5, ZED_X20)
 DURATIONS = (60, 1200, 600, 300, 240, 180, 120, 90)
 MAXSVIN = 15
 POS_ECEF = "ECEF"
@@ -300,7 +305,7 @@ class ServerConfigDialog(ToplevelDialog):
         )
         self._spn_rcvrtype = Spinbox(
             self._frm_advanced,
-            values=(ZED_F9, ZED_X20, LG290P, LC29H, MOSAIC_X5),
+            values=RTKDEVICES,
             width=18,
             state=READONLY,
             wrap=True,
@@ -1039,6 +1044,8 @@ class ServerConfigDialog(ToplevelDialog):
             return config_disable_lc29h()
         if self.receiver_type.get() == MOSAIC_X5:
             return config_disable_septentrio()
+        if self.receiver_type.get() == UM980:
+            return config_disable_unicore()
         return config_disable_ublox()
 
     def _config_svin(self, acc_limit: int, svin_min_dur: int) -> object:
@@ -1057,6 +1064,8 @@ class ServerConfigDialog(ToplevelDialog):
             return config_svin_lc29h(acc_limit, svin_min_dur)
         if self.receiver_type.get() == MOSAIC_X5:
             return config_svin_septentrio(acc_limit, svin_min_dur)
+        if self.receiver_type.get() == UM980:
+            return config_svin_unicore(acc_limit, svin_min_dur)
         return config_svin_ublox(acc_limit, svin_min_dur)
 
     def _config_fixed(
@@ -1080,6 +1089,8 @@ class ServerConfigDialog(ToplevelDialog):
             return config_fixed_lc29h(acc_limit, lat, lon, height, posmode)
         if self.receiver_type.get() == MOSAIC_X5:
             return config_fixed_septentrio(acc_limit, lat, lon, height, posmode)
+        if self.receiver_type.get() == UM980:
+            return config_fixed_unicore(acc_limit, lat, lon, height, posmode)
         return config_fixed_ublox(acc_limit, lat, lon, height, posmode)
 
     def _on_quectel_restart(self):

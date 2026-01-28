@@ -88,9 +88,7 @@ class UBXConfigDialog(ToplevelDialog):
         """
 
         # add configuration widgets
-        self._frm_device_info = Hardware_Info_Frame(
-            self.__app, self, borderwidth=2, relief="groove", protocol="UBX"
-        )
+        self._frm_device_info = Hardware_Info_Frame(self.__app, self, protocol="UBX")
         self._frm_config_port = UBX_PORT_Frame(
             self.__app, self, borderwidth=2, relief="groove"
         )
@@ -101,7 +99,7 @@ class UBXConfigDialog(ToplevelDialog):
             self.__app, self, borderwidth=2, relief="groove"
         )
         self._frm_config_dynamic = Dynamic_Config_Frame(
-            self.__app, self, borderwidth=2, relief="groove", protocol="UBX"
+            self.__app, self, protocol="UBX"
         )
         self._frm_configdb = UBX_CFGVAL_Frame(
             self.__app, self, borderwidth=2, relief="groove"

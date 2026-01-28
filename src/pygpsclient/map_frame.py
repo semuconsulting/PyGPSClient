@@ -37,6 +37,7 @@ from tkinter import (
 )
 
 from pygpsclient.canvas_map import HYB, MAP, MAPTYPES, SAT, TAG_CLOCK, CanvasMap
+from pygpsclient.canvas_subclasses import TAG_WAIT
 from pygpsclient.globals import (
     BGCOL,
     ERRCOL,
@@ -52,7 +53,7 @@ from pygpsclient.mapquest_handler import (
     MIN_UPDATE_INTERVAL,
     MIN_ZOOM,
 )
-from pygpsclient.strings import LBLSHOWTRACK, NOWEBMAPFIX
+from pygpsclient.strings import DLGWAITPOS, LBLSHOWTRACK
 
 ZOOMCOL = ERRCOL
 ZOOMEND = "lightgray"
@@ -85,10 +86,11 @@ class MapviewFrame(Frame):
         self.width = kwargs.get("width", def_w)
         self.height = kwargs.get("height", def_h)
         self._img = None
-        self._last_map_update = 0
+        self.__app.last_map_update = 0
         self._lastmaptype = ""
         self._lastmappath = ""
         self._bounds = None
+        self._waiting = True
         self._maptype = StringVar()
         self._maptype.set(self.__app.configuration.get("maptype_s"))
         self._showtrack = IntVar()
@@ -105,7 +107,7 @@ class MapviewFrame(Frame):
         Set up frame and widgets.
         """
 
-        self._can_mapview = CanvasMap(
+        self._canvas = CanvasMap(
             self.__app,
             self,
             height=self.height,
@@ -156,7 +158,7 @@ class MapviewFrame(Frame):
         Arrange widgets in frame.
         """
 
-        self._can_mapview.grid(column=0, row=0, sticky=NSEW)
+        self._canvas.grid(column=0, row=0, sticky=NSEW)
         self._frm_options.grid(column=0, row=1, sticky=EW)
         self._spn_maptype.grid(column=0, row=0, padx=1, sticky=W)
         self._lbl_zoom.grid(column=1, row=0, padx=1, sticky=W)
@@ -164,8 +166,8 @@ class MapviewFrame(Frame):
         self._chk_showtrack.grid(column=3, row=0, padx=1, sticky=W)
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
-        self._can_mapview.grid_columnconfigure(0, weight=1)
-        self._can_mapview.grid_rowconfigure(0, weight=1)
+        self._canvas.grid_columnconfigure(0, weight=1)
+        self._canvas.grid_rowconfigure(0, weight=1)
 
     def _attach_events(self):
         """
@@ -176,7 +178,7 @@ class MapviewFrame(Frame):
         self._maptype.trace_add(TRACEMODE_WRITE, self.on_maptype)
         self._mapzoom.trace_add(TRACEMODE_WRITE, self.on_mapzoom)
         self._showtrack.trace_add(TRACEMODE_WRITE, self.on_showtrack)
-        self._can_mapview.bind("<Double-Button-1>", self.on_refresh)
+        self._canvas.bind("<Double-Button-1>", self.on_refresh)
         self._lbl_zoom.bind(
             "<Double-Button-1>",
             lambda event, val=0: self._setzoom(val),
@@ -207,7 +209,7 @@ class MapviewFrame(Frame):
         :param event: event
         """
 
-        self._last_map_update = 0
+        self.__app.last_map_update = 0
 
     def on_maptype(self, var, index, mode):  # pylint: disable=unused-argument
         """
@@ -254,7 +256,7 @@ class MapviewFrame(Frame):
 
         self.__app.configuration.set("showtrack_b", self._showtrack.get())
         if not self._showtrack.get():
-            self._can_mapview.track = None
+            self._canvas.track = None
         self.on_refresh(None)
 
     def update_frame(self):
@@ -272,55 +274,42 @@ class MapviewFrame(Frame):
         self._maptype.set(self.__app.configuration.get("maptype_s"))
 
         # if no valid position, display warning message
-        # fix = kwargs.get("fix", 0)
-        if (
-            lat in (None, "")
-            or lon in (None, "")
-            or (lat == 0 and lon == 0)
-            # or fix in (0, 5)  # no fix or time only
-        ):
-            self.reset_map_refresh()
-            self._can_mapview.draw_msg(NOWEBMAPFIX)
+        if lat in (None, "") or lon in (None, "") or (lat == 0 and lon == 0):
+            self.__app.last_map_update = 0
             return
 
+        self._waiting = False
         # record track if Show Track checkbox ticked
         if self._showtrack.get():
-            self._can_mapview.track = Point(lat, lon)
+            self._canvas.track = Point(lat, lon)
 
         # limit mapquest calls to specified interval to avoid cost
         maptype = self._maptype.get()
         if maptype in (MAP, SAT, HYB):
             now = time()
-            if now - self._last_map_update < map_update_interval:
-                self._can_mapview.draw_countdown(
-                    (-360 / map_update_interval) * (now - self._last_map_update)
+            if now - self.__app.last_map_update < map_update_interval:
+                self._canvas.draw_countdown(
+                    (-360 / map_update_interval) * (now - self.__app.last_map_update)
                 )
                 return
-            self._last_map_update = now
+            self.__app.last_map_update = now
         else:
-            self._can_mapview.delete(TAG_CLOCK)
+            self._canvas.delete(TAG_CLOCK)
 
-        self._can_mapview.draw_map(
+        self._canvas.draw_map(
             maptype=self._maptype.get(),
             location=Point(lat, lon),
-            track=self._can_mapview.track,
-            marker=self._can_mapview.marker,
+            track=self._canvas.track,
+            marker=self._canvas.marker,
             hacc=hacc,
             zoom=self._mapzoom.get(),
         )
-        self._bounds = self._can_mapview.bounds
+        self._bounds = self._canvas.bounds
 
-        if self._can_mapview.zoommin:
+        if self._canvas.zoommin:
             self._spn_zoom.config(highlightbackground=ERRCOL, highlightthickness=3)
         else:
             self._spn_zoom.config(highlightbackground="gray90", highlightthickness=3)
-
-    def reset_map_refresh(self):
-        """
-        Reset map refresh counter to zero
-        """
-
-        self._last_map_update = 0
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """
@@ -330,6 +319,15 @@ class MapviewFrame(Frame):
         """
 
         self.width, self.height = self.get_size()
+        self._on_waiting()
+
+    def _on_waiting(self):
+        """
+        Display 'waiting for data' alert.
+        """
+
+        if self._waiting:
+            self._canvas.create_alert(DLGWAITPOS, tags=TAG_WAIT)
 
     def get_size(self):
         """
@@ -340,4 +338,4 @@ class MapviewFrame(Frame):
         """
 
         self.update_idletasks()  # Make sure we know about any resizing
-        return self._can_mapview.winfo_width(), self._can_mapview.winfo_height()
+        return self._canvas.winfo_width(), self._canvas.winfo_height()
