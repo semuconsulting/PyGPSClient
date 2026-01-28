@@ -508,7 +508,7 @@ class SettingsChildFrame(Frame):
         self._prot_ubx.trace_update(tracemode, self._on_update_ubxprot, add)
         self._prot_sbf.trace_update(tracemode, self._on_update_sbfprot, add)
         self._prot_qgc.trace_update(tracemode, self._on_update_qgcprot, add)
-        self._prot_unicore.trace_update(tracemode, self._on_update_unicoreprot, add)
+        self._prot_unicore.trace_update(tracemode, self._on_update_uniprot, add)
         self._prot_nmea.trace_update(tracemode, self._on_update_nmeaprot, add)
         self._prot_rtcm.trace_update(tracemode, self._on_update_rtcmprot, add)
         self._prot_spartn.trace_update(tracemode, self._on_update_spartnprot, add)
@@ -586,13 +586,13 @@ class SettingsChildFrame(Frame):
         if not self._prot_tty.get():
             self.__app.configuration.set("qgcprot_b", self._prot_qgc.get())
 
-    def _on_update_unicoreprot(self, var, index, mode):
+    def _on_update_uniprot(self, var, index, mode):
         """
         Action on updating unicoreprot.
         """
 
         if not self._prot_tty.get():
-            self.__app.configuration.set("unicoreprot_b", self._prot_unicore.get())
+            self.__app.configuration.set("uniprot_b", self._prot_unicore.get())
 
     def _on_update_nmeaprot(self, var, index, mode):
         """
@@ -644,7 +644,7 @@ class SettingsChildFrame(Frame):
                 self._prot_ubx.set(cfg.get("ubxprot_b"))
                 self._prot_sbf.set(cfg.get("sbfprot_b"))
                 self._prot_qgc.set(cfg.get("qgcprot_b"))
-                self._prot_unicore.set(cfg.get("unicoreprot_b"))
+                self._prot_unicore.set(cfg.get("uniprot_b"))
                 self._prot_rtcm.set(cfg.get("rtcmprot_b"))
                 self._prot_spartn.set(cfg.get("spartnprot_b"))
             cfg.set("ttyprot_b", tty)

@@ -71,9 +71,6 @@ from pygpsclient.configuration import Configuration
 from pygpsclient.dialog_state import DialogState
 from pygpsclient.file_handler import FileHandler
 from pygpsclient.globals import (
-    UNI_PROTOCOL,  # replace by pygnssutils value when available
-)
-from pygpsclient.globals import (
     BGCOL,
     CLASS,
     CONFIGFILE,
@@ -100,6 +97,7 @@ from pygpsclient.globals import (
     STATUSPRIORITY,
     TTY_PROTOCOL,
     UNDO,
+    UNI_PROTOCOL,
 )
 from pygpsclient.gnss_status import GNSSStatus
 from pygpsclient.helpers import (
@@ -1241,9 +1239,10 @@ class App(Frame):
             + (cfg.get("rtcmprot_b") * RTCM3_PROTOCOL)  # 4
             + (cfg.get("sbfprot_b") * SBF_PROTOCOL)  # 8
             + (cfg.get("qgcprot_b") * QGC_PROTOCOL)  # 16
-            + (cfg.get("spartnprot_b") * SPARTN_PROTOCOL)  # 32
-            + (cfg.get("mqttprot_b") * MQTT_PROTOCOL)  # 64
-            + (cfg.get("ttyprot_b") * TTY_PROTOCOL)  # 128
+            + (cfg.get("uniprot_b") * UNI_PROTOCOL)  # 32
+            + (cfg.get("spartnprot_b") * SPARTN_PROTOCOL)  # 256
+            + (cfg.get("mqttprot_b") * MQTT_PROTOCOL)  # 512
+            + (cfg.get("ttyprot_b") * TTY_PROTOCOL)  # 1024
         )
         return mask
 

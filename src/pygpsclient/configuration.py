@@ -116,7 +116,7 @@ class Configuration:
             "rtcmprot_b": 1,
             "sbfprot_b": 0,
             "qgcprot_b": 0,
-            "unicoreprot_b": 0,
+            "uniprot_b": 0,
             "spartnprot_b": 0,
             "mqttprot_b": 1,
             "ttyprot_b": 0,

@@ -52,11 +52,11 @@ OKCOL = "#02B102"  # default OK message color
 PLOTCOLS = ("#FFFF00", "#00FFFF", "#FF00FF", "#00BFFF")
 PNTCOL = "#FF8000"  # default plot point color
 
-# Protocols to be used in protocol mask (others defined in gnss_reader.py)
-SPARTN_PROTOCOL = 32
-MQTT_PROTOCOL = 64
-TTY_PROTOCOL = 128
-UNI_PROTOCOL = 256
+# Protocols to be used in protocol mask (others defined in pygnssutils.gnss_reader.py)
+UNI_PROTOCOL = 32  # provisional - awaiting pygnssutils.gnssreader updates for Unicore
+SPARTN_PROTOCOL = 256
+MQTT_PROTOCOL = 512
+TTY_PROTOCOL = 1024
 
 # Various global constants - please keep in ascending alphabetical order
 HOME = Path.home()
