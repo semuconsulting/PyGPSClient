@@ -15,6 +15,7 @@ Created on 18 Apr 2025
 import logging
 from os import getenv
 from types import NoneType
+from typing import Any
 
 from pygnssutils import (
     PYGNSSUTILS_CRT,
@@ -115,6 +116,7 @@ class Configuration:
             "rtcmprot_b": 1,
             "sbfprot_b": 0,
             "qgcprot_b": 0,
+            "uniprot_b": 0,
             "spartnprot_b": 0,
             "mqttprot_b": 1,
             "ttyprot_b": 0,
@@ -365,12 +367,12 @@ class Configuration:
         if arg is not None:
             self.set("tlscrtpath_s", arg)
 
-    def set(self, name: str, value: object):
+    def set(self, name: str, value: Any):
         """
         Set individual value.
 
         :param str name: name of setting
-        :param object value: value of setting
+        :param Any value: value of setting
         :raises: KeyError if setting does not exist
         """
 
@@ -378,13 +380,13 @@ class Configuration:
         self.settings[name] = value
         # self.logger.debug(f"{name=} {value=}")
 
-    def get(self, name: str) -> object:
+    def get(self, name: str) -> Any:
         """
         Get individual value.
 
         :param str name: name of setting
         :return: setting value
-        :rtype: object
+        :rtype: Any
         :raises: KeyError if setting does not exist
         """
 

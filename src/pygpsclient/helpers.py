@@ -11,6 +11,7 @@ Created on 17 Apr 2021
 
 """
 
+import re
 from datetime import datetime, timedelta
 from math import (
     asin,
@@ -37,7 +38,8 @@ from tkinter import (
     Tk,
     font,
 )
-from typing import Literal
+from types import NoneType
+from typing import Any, Literal
 
 from pygnssutils import version as PGVERSION
 from pynmeagps import WGS84_SMAJ_AXIS, NMEAMessage, haversine
@@ -421,7 +423,7 @@ def fitfont(
     angle: int = 0,
     maxsiz: int = 10,
     constraint: int = 3,
-) -> tuple[font.Font, float, float]:
+) -> tuple[font.Font, float, float, int]:
     """
     Create font to fit space.
 
@@ -431,8 +433,8 @@ def fitfont(
     :param int angle: font angle in degrees
     :param int maxsiz: maximum font size in pixels
     :param int constraint: 1 = width, 2 = height, 3 = width & height
-    :return: tuple of (sized font, font width, font height)
-    :rtype: tuple[font.Font, float, float]
+    :return: tuple of (sized font, font width, font height, font size in pixels)
+    :rtype: tuple[font.Font, float, float, int]
     """
 
     fw, fh = maxw + 1, maxh + 1
@@ -445,7 +447,7 @@ def fitfont(
         fnt = font.Font(size=-siz)
         rw, rh = fontdim(fmt, fnt, angle)
         siz -= 1
-    return fnt, fw, fh
+    return fnt, fw, fh, siz
 
 
 def fix2desc(msgid: str, fix: object) -> str:
@@ -780,14 +782,15 @@ def ll2xy(width: int, height: int, bounds: Area, position: Point) -> tuple:
     return x, y
 
 
-def makeval(val: object, default: object = 0.0) -> object:
+def makeval(val: Any, default: Any = 0.0) -> Any:
     """
-    Force value to be same type as default.
+    Force value to be same type as default
+    (used in sqlite database insertions).
 
     :param object val: value
-    :param object default: default value
+    :param Any default: default value
     :return: value or default
-    :rtype: object
+    :rtype: Any
     """
 
     if (not isinstance(val, type(default))) or (
@@ -1426,6 +1429,22 @@ def val2sphp(val: float, scale: float) -> tuple:
     return val_sp, val_hp
 
 
+def valid_geom(geom: str) -> bool:
+    """
+    Validate tkinter screen geometry string "%Wx%H+%X+%Y".
+    %X,%Y can be negative on multiple display configurations.
+
+    :param str geom: screen geom
+    :return: Valid/Invalid
+    :rtype: bool
+    """
+
+    if geom == "":
+        return True
+    regexgeom = re.compile(r"^([1-9][0-9]*)[x]([1-9][0-9]*)[+]-?\d*[+]-?\d*$")
+    return regexgeom.match(geom) is not None
+
+
 def wnotow2date(wno: int, tow: int) -> datetime:
     """
     Get datetime from GPS Week number (Wno) and Time of Week (Tow).
@@ -1443,7 +1462,7 @@ def wnotow2date(wno: int, tow: int) -> datetime:
     return dat
 
 
-def xy2ll(width: int, height: int, bounds: Area, xy: tuple) -> Point:
+def xy2ll(width: int, height: int, bounds: Area, xy: tuple) -> Point | NoneType:
     """
     Convert canvas x/y to lat/lon.
 
@@ -1452,7 +1471,7 @@ def xy2ll(width: int, height: int, bounds: Area, xy: tuple) -> Point:
     :param Area bounds: lat/lon bounds of canvas
     :param tuple xy: canvas x/y coordinate
     :return: lat/lon
-    :rtype: Point
+    :rtype: Point | NoneType
     """
 
     lw = bounds.lon2 - bounds.lon1

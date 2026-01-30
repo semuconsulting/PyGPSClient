@@ -40,7 +40,7 @@ from pygpsclient.globals import (
     HOME,
     XML_HDR,
 )
-from pygpsclient.helpers import set_filename
+from pygpsclient.helpers import set_filename, valid_geom
 from pygpsclient.strings import CONFIGTITLE, GITHUB_URL, SAVETITLE
 
 DEFEXT = ("all files", "*.*")
@@ -157,6 +157,9 @@ class FileHandler:
         for key, value in config.items():
             ctype = key[-2:]
             valstr = f'"{value}"' if isinstance(value, str) else value
+            if key == "screengeom_s" and not valid_geom(value):
+                err = f"Invalid geometry format for {key}: {valstr}"
+                break
             if ctype == "_n" and not isinstance(value, int):
                 err = f"Invalid int value for {key}: {valstr}"
                 break

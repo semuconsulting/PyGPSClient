@@ -532,6 +532,14 @@ pygpsclient.ubx\_solrate\_frame module
    :undoc-members:
    :show-inheritance:
 
+pygpsclient.uni\_handler module
+-------------------------------
+
+.. automodule:: pygpsclient.uni_handler
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pygpsclient.widget\_state module
 --------------------------------
 
