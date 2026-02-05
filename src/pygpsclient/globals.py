@@ -53,7 +53,6 @@ PLOTCOLS = ("#FFFF00", "#00FFFF", "#FF00FF", "#00BFFF")
 PNTCOL = "#FF8000"  # default plot point color
 
 # Protocols to be used in protocol mask (others defined in pygnssutils.gnss_reader.py)
-UNI_PROTOCOL = 32  # provisional - awaiting pygnssutils.gnssreader updates for Unicore
 SPARTN_PROTOCOL = 256
 MQTT_PROTOCOL = 512
 TTY_PROTOCOL = 1024
@@ -251,8 +250,8 @@ TOPIC_MGA = "/pp/ubx/mga"
 TOPIC_RXM = "/pp/ubx/0236/ip"
 TRACK = "track"
 TRACEMODE_WRITE = "write"
-TTYOK = ("OK", "$R:")
-TTYERR = ("ERROR", "$R?")
+TTYOK = ("OK", "$R:", "RESPONSE: OK")
+TTYERR = ("ERROR", "$R?", "RESPONSE: PARSING FAILD")
 TTYMARKER = "TTY<<"
 UBXPRESETS = "ubxpresets"
 UBXSIMULATOR = "ubxsimulator"

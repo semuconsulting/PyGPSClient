@@ -456,11 +456,11 @@ class SettingsChildFrame(Frame):
         self._chk_nmea.grid(column=1, row=0, padx=0, pady=0, sticky=W)
         self._chk_ubx.grid(column=2, row=0, padx=0, pady=0, sticky=W)
         self._chk_rtcm.grid(column=3, row=0, padx=0, pady=0, sticky=W)
-        self._chk_sbf.grid(column=1, row=1, padx=0, pady=0, sticky=W)
-        self._chk_qgc.grid(column=2, row=1, padx=0, pady=0, sticky=W)
-        self._chk_spartn.grid(column=3, row=1, padx=0, pady=0, sticky=W)
-        self._chk_tty.grid(column=1, row=2, padx=0, pady=0, sticky=W)
-        # self._chk_unicore.grid(column=2, row=2, padx=0, pady=0, sticky=W) # TODO
+        self._chk_unicore.grid(column=1, row=1, padx=0, pady=0, sticky=W)
+        self._chk_sbf.grid(column=2, row=1, padx=0, pady=0, sticky=W)
+        self._chk_qgc.grid(column=3, row=1, padx=0, pady=0, sticky=W)
+        self._chk_spartn.grid(column=1, row=2, padx=0, pady=0, sticky=W)
+        self._chk_tty.grid(column=2, row=2, padx=0, pady=0, sticky=W)
         self._lbl_consoledisplay.grid(column=0, row=3, padx=2, pady=2, sticky=W)
         self._spn_conformat.grid(
             column=1, row=3, columnspan=2, padx=1, pady=2, sticky=W
@@ -536,6 +536,7 @@ class SettingsChildFrame(Frame):
         self._prot_ubx.set(cfg.get("ubxprot_b"))
         self._prot_sbf.set(cfg.get("sbfprot_b"))
         self._prot_qgc.set(cfg.get("qgcprot_b"))
+        self._prot_unicore.set(cfg.get("uniprot_b"))
         self._prot_rtcm.set(cfg.get("rtcmprot_b"))
         self._prot_spartn.set(cfg.get("spartnprot_b"))
         self._prot_tty.set(cfg.get("ttyprot_b"))
@@ -588,7 +589,7 @@ class SettingsChildFrame(Frame):
 
     def _on_update_uniprot(self, var, index, mode):
         """
-        Action on updating unicoreprot.
+        Action on updating uniprot.
         """
 
         if not self._prot_tty.get():

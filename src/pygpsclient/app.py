@@ -48,13 +48,14 @@ from tkinter import EW, NSEW, NW, Frame, Label, PhotoImage, Tk, Toplevel, font
 from types import NoneType
 
 from pygnssutils import GNSSMQTTClient, GNSSNTRIPClient, MQTTMessage
-from pygnssutils.gnssreader import (  # UNI_PROTOCOL, # TODO
+from pygnssutils.gnssreader import (
     NMEA_PROTOCOL,
     POLL,
     QGC_PROTOCOL,
     RTCM3_PROTOCOL,
     SBF_PROTOCOL,
     UBX_PROTOCOL,
+    UNI_PROTOCOL,
 )
 from pygnssutils.socket_server import ClientHandler, ClientHandlerTLS, SocketServer
 from pynmeagps import NMEAMessage
@@ -63,6 +64,7 @@ from pyrtcm import RTCMMessage
 from pysbf2 import SBFMessage
 from pyspartn import SPARTNMessage
 from pyubx2 import UBXMessage
+from pyunigps import UNIMessage
 from serial import SerialException, SerialTimeoutException
 
 from pygpsclient._version import __version__ as VERSION
@@ -97,7 +99,6 @@ from pygpsclient.globals import (
     STATUSPRIORITY,
     TTY_PROTOCOL,
     UNDO,
-    UNI_PROTOCOL,
 )
 from pygpsclient.gnss_status import GNSSStatus
 from pygpsclient.helpers import (
@@ -913,8 +914,8 @@ class App(Frame):
             msgprot = SBF_PROTOCOL
         elif isinstance(parsed_data, QGCMessage):
             msgprot = QGC_PROTOCOL
-        # elif isinstance(parsed_data, UNIMessage):
-        #     msgprot = UNI_PROTOCOL
+        elif isinstance(parsed_data, UNIMessage):
+            msgprot = UNI_PROTOCOL
         elif isinstance(parsed_data, UBXMessage):
             msgprot = UBX_PROTOCOL
         elif isinstance(parsed_data, RTCMMessage):

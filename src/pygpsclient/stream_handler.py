@@ -47,12 +47,13 @@ from time import sleep
 from tkinter import Frame, Label, Tk
 
 from certifi import where as findcacerts
-from pygnssutils import (  # UNI_PROTOCOL # TODO
+from pygnssutils import (
     NMEA_PROTOCOL,
     QGC_PROTOCOL,
     RTCM3_PROTOCOL,
     SBF_PROTOCOL,
     UBX_PROTOCOL,
+    UNI_PROTOCOL,
     GNSSError,
     GNSSReader,
 )
@@ -322,8 +323,8 @@ class StreamHandler:
             | UBX_PROTOCOL
             | SBF_PROTOCOL
             | QGC_PROTOCOL
-            | RTCM3_PROTOCOL,
-            # | UNI_PROTOCOL,  # TODO
+            | RTCM3_PROTOCOL
+            | UNI_PROTOCOL,
             quitonerror=ERR_LOG,
             bufsize=DEFAULT_BUFSIZE,
             msgmode=settings["msgmode"],

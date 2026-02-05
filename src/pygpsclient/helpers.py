@@ -59,6 +59,7 @@ from pyubx2 import (
     atttyp,
 )
 from pyubx2 import version as UBXVERSION
+from pyunigps import version as UNIVERSION
 from requests import get
 
 from pygpsclient._version import __version__ as VERSION
@@ -107,6 +108,7 @@ LIBVERSIONS = {
     "pygnssutils": PGVERSION,
     "pyubx2": UBXVERSION,
     "pysbf2": SBFVERSION,
+    "pyunigps": UNIVERSION,
     "pyqgc": QGCVERSION,
     "pynmeagps": NMEAVERSION,
     "pyrtcm": RTCMVERSION,
