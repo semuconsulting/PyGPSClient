@@ -2,7 +2,7 @@
 
 ### RELEASE 1.6.3
 
-1. Add support for Unicore UNI binary data output messages via `pyunigps>=0.1.2` and `pygnssutils>=1.1.22`.
+1. Add support for Unicore UNI binary data output messages via `pyunigps>=0.1.3` and `pygnssutils>=1.1.22`.
 
 ### RELEASE 1.6.2
 
