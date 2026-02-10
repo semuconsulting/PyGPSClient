@@ -101,7 +101,7 @@ INIT_PRESETS = {
         "Unicore UM98n Save Current Configuration to NVM CONFIRM; saveconfig",
         "Unicore UM98n Force COLD reset CONFIRM; reset",
         "Unicore UM98n Enable NMEA on current port; gpgsa 1; gpgga 1; gpgll 1; gpgsv 4; gpvtg 1; gprmc 1",
-        "Unicore UM98n Enable UNI on current port; PVTSLNB 1; SATELLITEB 4; BESTNAV 1; STADOP 1",
+        "Unicore UM98n Enable UNI on current port; PVTSLNB 1; SATSINFOB 4; BESTNAV 1; STADOP 1",
         "Unicore UM98n Query Version; version",
         "Unicore UM98n Query Config; config",
         "Unicore UM98n Stop All Output on COM1; unlog COM1",

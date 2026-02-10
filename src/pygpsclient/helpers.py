@@ -42,7 +42,7 @@ from types import NoneType
 from typing import Any, Literal
 
 from pygnssutils import version as PGVERSION
-from pynmeagps import WGS84_SMAJ_AXIS, NMEAMessage, haversine
+from pynmeagps import WGS84_SMAJ_AXIS, NMEAMessage, haversine, leapsecond
 from pynmeagps import version as NMEAVERSION
 from pyqgc import version as QGCVERSION
 from pyrtcm import version as RTCMVERSION
@@ -1447,20 +1447,24 @@ def valid_geom(geom: str) -> bool:
     return regexgeom.match(geom) is not None
 
 
-def wnotow2date(wno: int, tow: int) -> datetime:
+def wnotow2date(wno: int, tow: int, ls: int | NoneType = None) -> datetime:
     """
-    Get datetime from GPS Week number (Wno) and Time of Week (Tow).
+    Get datetime from GPS Week number (Wno), Time of Week (Tow)
+    and leapsecond offset.
 
     GPS Epoch 0 = 6th Jan 1980
 
     :param int wno: week number
     :param int tow: time of week
+    :param int ls: leapsecond offset
     :return: datetime
     :rtype: datetime
     """
 
+    if ls is None:
+        ls = leapsecond(datetime.now())
     dat = GPSEPOCH0 + timedelta(days=wno * 7)
-    dat += timedelta(seconds=tow)
+    dat += timedelta(seconds=tow - ls)
     return dat
 
 

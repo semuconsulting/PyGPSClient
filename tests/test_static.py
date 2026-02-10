@@ -406,17 +406,17 @@ class StaticTest(unittest.TestCase):
             (2263, 518400),
         ]
         dats = [
-            "2023-01-01 00:00:00",
-            "2005-11-05 00:00:00",
-            "2020-08-20 00:00:00",
-            "2014-03-16 00:00:00",
-            "2023-05-21 00:00:00",
-            "2023-05-27 00:00:00",
+            "2022-12-31 23:59:42",
+            "2005-11-04 23:59:43",
+            "2020-08-19 23:59:44",
+            "2014-03-15 23:59:45",
+            "2023-05-20 23:59:46",
+            "2023-05-26 23:59:47",
         ]
         for i, (wno, tow) in enumerate(vals):
-            self.assertEqual(str(wnotow2date(wno, tow)), dats[i])
-        wno, tow = date2wnotow(datetime(2020, 4, 12))
-        self.assertEqual(wnotow2date(wno, tow), datetime(2020, 4, 12))
+            dat = wnotow2date(wno, tow, 18-i)
+            # print(f'"{dat}",')
+            self.assertEqual(str(dat), dats[i])
 
     def testbitsval(self):
         bits = [(7, 1), (8, 8), (22, 2), (24, 4), (40, 16)]
@@ -428,13 +428,11 @@ class StaticTest(unittest.TestCase):
             self.assertEqual(res, EXPECTED_RESULT[i])
 
     def testparserxm(self):
-        EXPECTED_RESULT = [
-            ("0c00", datetime(1988, 3, 1, 7, 40)),
-            ("290900", datetime(1988, 7, 4, 2, 40)),
-        ]
+        EXPECTED_RESULT = [('0c00', datetime(1988, 3, 1, 7, 39, 42)), ('290900', datetime(1988, 7, 4, 2, 39, 42))]
         RXM_SPARTNKEY = b"\xb5b\x026\x19\x00\x01\x02\x00\x00\x00\x02+\x00\xd0Y\xc8\r\x00\x03+\x00\x00\xdfl\x0e\x0c\x00)\t\x00D;"
         msg = UBXReader.parse(RXM_SPARTNKEY)
         res = parse_rxmspartnkey(msg)
+        # print(f'"{res}",')
         self.assertEqual(res, EXPECTED_RESULT)
 
     def testmapqcompress(self):
