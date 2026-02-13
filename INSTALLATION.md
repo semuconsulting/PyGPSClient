@@ -2,6 +2,7 @@
 
 [Basics](#basics) |
 [Prerequisites](#prereqs) |
+[User Privileges](#userpriv) |
 [Install with pip](#pip) |
 [Install with pipx](#pipx) |
 [Install with script](#script) |
@@ -60,6 +61,7 @@ The exact location of the site_packages and binary directories will depend on th
 
 In the following, `python3` & `pip` refer to the Python 3 executables. You may need to substitute `python` for `python3`, depending on your particular environment (*on Windows it's generally `python`*). 
 
+- Graphical User Interface (window system / manager)
 - Python >= 3.10⁴
 - Tk (tkinter) >= 8.6⁵ (*tkinter is a commonly used library for developing Graphical User Interfaces (GUI) in Python*)
 - Screen resolution >= 640 x 480 (VGA); Ideally 1920 x 1080, though at lower screen resolutions (<= 1024 width), top level dialogs will be resizable and scrollable.
@@ -95,7 +97,7 @@ Note that on MacOS, serial ports may appear as `/dev/tty*` *or* `/dev/cu*`. To u
 
 ### Linux (including Raspberry Pi OS)
 
-Some Linux distributions may not include the necessary pip, venv, tkinter, Pillow or spatialite libraries by default. They may need to be installed separately, e.g. for Debian-based distibutions, a combination of some or all of the following:
+Some older Linux distributions may not include all the necessary pip, venv, tkinter, Pillow or spatialite libraries by default e.g. for Debian-based distibutions, a combination of some or all of the following:
 
 ```shell
 sudo apt install python3-pip python3-tk python3-pil python3-venv python3-pil.imagetk libjpeg-dev zlib1g-dev tk-dev libspatialite
@@ -113,18 +115,20 @@ sudo pacman -S tk libspatialite
 
 To access the serial port (`/dev/tty*`) on most Linux platforms, you will need to be a member of whichever group or "`Gid`" the `/dev/tty*` device belongs to. Failure to do this will typically result in an error `[Errno 13] could not open port /dev/ttyACM0 [Errno 13] permission denied /dev/ttyACM0`
 
-To check and set the necessary group permissions:
+To check and set the necessary group permissions (*substitute your particular serial port for* `ttyACM0`):
 
 ```shell
 stat /dev/ttyACM0 | grep Gid
 ```
-`Access: (0660/crw-rw----)  Uid: (    0/    root)   Gid: (   20/ dialout)` <-- group in this case is `dialout`; add user to this group using usermod (*you may have to log out and in again for this to take effect*):
+`Access: (0660/crw-rw----)  Uid: (    0/    root)   Gid: (   20/ dialout)` <-- group in this case is `dialout`
+
+Add your user to this group using usermod (*you will need to log out and in again for this to take effect*):
 
 ```shell
-sudo usermod -a -G dialout myuser
+sudo usermod -aG dialout myuser
 ```
 
-For Debian-based platforms, the group is normally `dialout`; on Arch-based platforms it may be `uucp` or `tty`.
+For Debian-based platforms, the group is normally `dialout` or `tty`; on Arch-based platforms it is normally `uucp`.
 
 Other than this, no special privileges are required.
 
@@ -144,6 +148,7 @@ source pygpsclient/bin/activate # (or .\pygpsclient\Scripts\activate on Windows)
 python3 -m pip install --upgrade pygpsclient
 pygpsclient
 ```
+**NB**: It is recommended to use the form `python3 -m pip install` (*or less ambiguously `python3.*`, where `*` is the Python minor version e.g. `python3.13`*) rather than simply `pip3 install`, particularly if you have multiple Python environments on your platform.
 
 To deactivate the virtual environment:
 
@@ -221,17 +226,35 @@ pipx will typically create a virtual environment in the user's home folder e.g. 
 The following scripts require sudo/admin privileges and will prompt for the sudo password.
 
 ### Debian Linux
-An example [installation shell script](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/pygpsclient_debian_install.sh) is available for use on most vanilla 64-bit Debian-based environments with Python>=3.10, including Raspberry Pi and Ubuntu. To run this installation script, download it to your Raspberry Pi or other Debian-based workstation and - from the download folder - type:
+An [installation shell script](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/pygpsclient_debian_install.sh) is available for use on most vanilla 64-bit Debian-based desktop environments, including Raspberry Pi OS Trixie and Ubuntu LTS. The script...
+- Installs all necessary Python system libraries.
+- Installs PyGPSClient into a virtual environment in the user's home directory and adds this environment to the user's PATH.
+- Adds user to the relevant /dev/tty* group.
+- Creates a desktop application launcher which can be accessed from the Applications..Other menu.
 
 ```shell
+wget https://raw.githubusercontent.com/semuconsulting/PyGPSClient/refs/heads/master/examples/pygpsclient_debian_install.sh
+# or use curl -O ... if you prefer
 chmod +x pygpsclient_debian_install.sh
 ./pygpsclient_debian_install.sh
 ```
 
-### MacOS
-A similar [installation shell script](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/pygpsclient_macos_install.sh) is available for MacOS 13 or later running a ZSH shell (*Homebrew or MacPorts are **NOT** required*). This will also install the latest official version of Python 3 with tkinter 8.6. Download the script to your Mac and - from the download folder - type:
+### Arch Linux
+A similar [installation shell script](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/pygpsclient_arch_install.sh) is available for use on most vanilla 64-bit Arch-based desktop environments (e.g. Xfce / LightDM):
 
 ```shell
+curl -O https://raw.githubusercontent.com/semuconsulting/PyGPSClient/refs/heads/master/examples/pygpsclient_arch_install.sh
+# or use wget ... if you prefer
+chmod +x pygpsclient_arch_install.sh
+./pygpsclient_arch_install.sh
+```
+
+### MacOS
+A similar [installation shell script](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/pygpsclient_macos_install.sh) is available for MacOS 13 or later running a ZSH shell (*Homebrew or MacPorts are **NOT** required*). This will also install the latest official version of Python 3 with tkinter 8.6:
+
+```shell
+curl -O https://raw.githubusercontent.com/semuconsulting/PyGPSClient/refs/heads/master/examples/pygpsclient_macos_install.sh
+chmod +x pygpsclient_macos_install.sh
 ./pygpsclient_macos_install.sh
 ```
 

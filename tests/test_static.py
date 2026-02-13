@@ -76,7 +76,7 @@ from pygpsclient.helpers import (
     unused_sats,
     val2sphp,
     valid_geom,
-    wnotow2date,
+    wnotow2utc,
     xy2ll,
 )
 from pygpsclient.mapquest_handler import (
@@ -396,14 +396,14 @@ class StaticTest(unittest.TestCase):
             y, m, d = dat
             self.assertEqual(date2wnotow(datetime(y, m, d)), vals[i])
 
-    def testwnotow2date(self):
+    def testwnotow2utc(self):
         vals = [
             (2243, 0),
-            (1347, 518400),
-            (2119, 345600),
+            (1347, 518400000),
+            (2119, 345600000),
             (1784, 0),
             (2263, 0),
-            (2263, 518400),
+            (2263, 518400123),
         ]
         dats = [
             "2022-12-31 23:59:42",
@@ -411,10 +411,10 @@ class StaticTest(unittest.TestCase):
             "2020-08-19 23:59:44",
             "2014-03-15 23:59:45",
             "2023-05-20 23:59:46",
-            "2023-05-26 23:59:47",
+            "2023-05-26 23:59:47.123000",
         ]
         for i, (wno, tow) in enumerate(vals):
-            dat = wnotow2date(wno, tow, 18-i)
+            dat = wnotow2utc(wno, tow, 18-i)
             # print(f'"{dat}",')
             self.assertEqual(str(dat), dats[i])
 
@@ -428,11 +428,11 @@ class StaticTest(unittest.TestCase):
             self.assertEqual(res, EXPECTED_RESULT[i])
 
     def testparserxm(self):
-        EXPECTED_RESULT = [('0c00', datetime(1988, 3, 1, 7, 39, 42)), ('290900', datetime(1988, 7, 4, 2, 39, 42))]
+        EXPECTED_RESULT = [('0c00', datetime(1988, 3, 1, 7, 39, 55)), ('290900', datetime(1988, 7, 4, 2, 39, 55))]
         RXM_SPARTNKEY = b"\xb5b\x026\x19\x00\x01\x02\x00\x00\x00\x02+\x00\xd0Y\xc8\r\x00\x03+\x00\x00\xdfl\x0e\x0c\x00)\t\x00D;"
         msg = UBXReader.parse(RXM_SPARTNKEY)
         res = parse_rxmspartnkey(msg)
-        # print(f'"{res}",')
+        print(f'"{res}",')
         self.assertEqual(res, EXPECTED_RESULT)
 
     def testmapqcompress(self):

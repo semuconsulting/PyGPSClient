@@ -159,9 +159,9 @@ class ConsoleFrame(Frame):
         self.txt_console.configure(font=FONT_TEXT)
         for raw_data, parsed_data, marker in consoledata:
             if consoleformat == FORMAT_BINARY:
-                data = f"{marker}{raw_data}".strip("\n")
+                data = f"{marker}{raw_data}\n"
             elif consoleformat == FORMAT_HEXSTR:
-                data = f"{marker}{raw_data.hex()}"
+                data = f"{marker}{raw_data.hex()}\n"
             elif consoleformat == FORMAT_HEXTAB:
                 self.txt_console.configure(font=FONT_FIXED)
                 data = hextable(raw_data)
@@ -169,8 +169,9 @@ class ConsoleFrame(Frame):
                 self.txt_console.configure(font=FONT_FIXED)
                 data = f"{marker}{parsed_data}\n{hextable(raw_data)}"
             else:
-                data = f"{marker}{parsed_data}"
-            consolestr += data + "\n"
+                data = f"{marker}{parsed_data}\n"
+
+            consolestr += data
 
         numlinesbefore = self.numlines
         self.txt_console.configure(state="normal")

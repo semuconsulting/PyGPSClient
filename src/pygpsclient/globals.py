@@ -75,6 +75,7 @@ BPSRATES = (
 )
 BSR = "backslashreplace"
 CLASS = "cls"
+CMDPAUSE = 50  # pause between sent commands in ms
 COLORTAGS = "colortags"
 CONFIGFILE = path.join(HOME, f"{APPNAME}.json")
 CONNECTED = 1
@@ -185,8 +186,8 @@ IMG_WORLD = path.join(DIRNAME, "resources/world.png")
 IMG_WORLD_BOUNDS = Area(-90, -180, 90, 180)
 IMPORT = "import"
 LBAND = "LBAND"
-LC29H = "Quectel LC29H"
-LG290P = "Quectel LG29P/LG580P"
+LCSERIES = "Quectel LC Series"
+LGSERIES = "Quectel LG Series"
 LICENSE_URL = "https://github.com/semuconsulting/PyGPSClient/blob/master/LICENSE"
 LIN = "Linux"
 MAC = "Darwin"
@@ -242,7 +243,7 @@ SPONSOR_URL = "https://buymeacoffee.com/semuconsulting"
 SQRT2 = 0.7071067811865476  # square root of 2
 STATUSPRIORITY = {INFOCOL: 0, "blue": 0, OKCOL: 2, "green": 1, ERRCOL: 3, "red": 3}
 TIME0 = datetime(1970, 1, 1)  # basedate for time()
-TIMEOUTS = ("0.1", "0.2", "1", "2", "5", "10", "20", "None", "0")
+TIMEOUTS = ("0.1", "0.2", "0.5", "1", "2", "5", "10", "20", "None", "0")
 # map nmea talker to gnss_id
 TKGN = {"GN": 0, "GP": 0, "GA": 2, "GB": 3, "BD": 3, "GQ": 5, "GL": 6, "GI": 7}
 TOPIC_IP = "/pp/ip/{}"
@@ -323,6 +324,7 @@ NMEA_CFGOTHER = 17
 SERVERCONFIG = 18
 SBF_MONHW = 19
 SIGNALSVIEW = 20
+UNI_MONHW = 21
 
 KNOWNGPS = (
     "cp210",

@@ -1,11 +1,16 @@
 #!/bin/bash
 
-# Bash shell script to install PyGPSClient on any modern 64-bit Debian-based Linux
-# desktop environment, including Ubuntu LTS, Debian Trixie and Raspberry Pi OS.
+# Bash shell script to install PyGPSClient on 64-bit Arch-based
+# Linux environments.
+#
+# Arch Desktop generally includes all the necessary Python3 executables by
+# default (but remember to look for the third-party ARM64/AARCH64
+# distributables if you're using an ARM SBC like Raspberry Pi).
 #
 # Change shebang /bin/bash to /bin/zsh if running from zsh shell.
+# NB: NOT for use on Windows or MacOS!
 #
-# Remember to run chmod +x pygpsclient_debian_install.sh to make this script executable.
+# Remember to run chmod +x pygpsclient_arch_install.sh to make this script executable.
 #
 # Full installation instructions:
 # https://github.com/semuconsulting/PyGPSClient
@@ -21,23 +26,18 @@ echo "Installed Python version is $PYVER"
 
 echo "PyGPSClient will be installed at $HOME/pygpsclient/bin"
 
-# Raspberry Pi OS (Trixie) desktop comes with all the core Python tkinter dependencies included.
-# Ubuntu LTS and most other Debian desktop distros are missing Python pip, venv, tkinter
-# and PIL libraries.
-RELEASE="$(lsb_release -d)"
-echo "Installing dependencies for $RELEASE..."
-sudo apt install python3-pip python3-venv python3-tk python3-pil python3-pil.imagetk || true
-sudo apt install libjpeg-dev zlib1g-dev tk-dev python3-rasterio libsqlite3-mod-spatialite || true
-
+# this is generally all that's needed - Arch Desktop includes the latest Python3
+echo "Installing dependencies..."
+sudo pacman -S tk libspatialite
+     
 echo "Setting user permissions for /dev/tty* devices..."
-sudo usermod -a -G dialout $USER
+sudo usermod -aG uucp $USER
 
 echo "Creating virtual environment..."
 cd $HOME
 python3 -m venv pygpsclient
 source pygpsclient/bin/activate
-python3 -m pip install --upgrade pip pygpsclient
-python3 -m pip install --upgrade rasterio || true
+python3 -m pip install --upgrade pip pygpsclient rasterio
 deactivate
 
 echo "Adding desktop launch icon..."
@@ -73,7 +73,7 @@ elif test -f $ZSHPROF2
 then
 PROF=$ZSHPROF2
 fi
-sed -i '$a# Path to PyGPSClient executable\nexport PATH="$HOME/pygpsclient/bin:$PATH"' $PROF
+sed -i '$a# Path to PyGPSClient executable\nexport PATH="${HOME}/pygpsclient/bin:${PATH}"' $PROF
 source $PROF # this will throw an error if running as bash script in zsh shell
 
 echo "Installation complete"

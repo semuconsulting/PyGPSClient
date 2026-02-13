@@ -952,7 +952,7 @@ def parse_rxmspartnkey(msg: UBXMessage) -> list:
         lkey = getattr(msg, f"keyLengthBytes_{i+1:02}")
         wno = getattr(msg, f"validFromWno_{i+1:02}")
         tow = getattr(msg, f"validFromTow_{i+1:02}")
-        dat = wnotow2date(wno, tow)
+        dat = wnotow2utc(wno, int(tow * 1000))
         key = ""
         for n in range(0 + pos, lkey + pos):
             keyb = getattr(msg, f"key_{n+1:02}")
@@ -1447,25 +1447,27 @@ def valid_geom(geom: str) -> bool:
     return regexgeom.match(geom) is not None
 
 
-def wnotow2date(wno: int, tow: int, ls: int | NoneType = None) -> datetime:
+def wnotow2utc(wno: int, tow: int, ls: int | NoneType = None) -> datetime:
     """
-    Get datetime from GPS Week number (Wno), Time of Week (Tow)
-    and leapsecond offset.
+    Get UTC datetime from GPS Week number (wno), Time of Week (tow)
+    in milliseconds and leapsecond offset. If leapsecond is None, it
+    will default to the leapsecond offset applicable on the given date.
 
     GPS Epoch 0 = 6th Jan 1980
 
     :param int wno: week number
-    :param int tow: time of week
+    :param int tow: time of week in ms
     :param int ls: leapsecond offset
     :return: datetime
     :rtype: datetime
     """
 
+    utc = GPSEPOCH0 + timedelta(days=wno * 7)
+    utc += timedelta(milliseconds=tow)
     if ls is None:
-        ls = leapsecond(datetime.now())
-    dat = GPSEPOCH0 + timedelta(days=wno * 7)
-    dat += timedelta(seconds=tow - ls)
-    return dat
+        ls = leapsecond(utc.replace(tzinfo=None))
+    utc -= timedelta(seconds=ls)
+    return utc
 
 
 def xy2ll(width: int, height: int, bounds: Area, xy: tuple) -> Point | NoneType:

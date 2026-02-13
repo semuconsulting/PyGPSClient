@@ -1,5 +1,16 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.6.4
+
+FIXES:
+1. Fix `CFG-VALSET ACK-NAK` error when configuring ZED-X20P as base station.
+1. Fix `AttributeError: ... has no attribute frm_socketserver` error in Server Config panel when configuring Septentrio devices for SVIN.
+
+ENHANCEMENTS:
+1. Improve base station receiver configuration dialog.
+1. Add connected device descriptor to status bar (e.g. "u-blox ZED-F9P", "Unicore UM981S", "Septentrio mosaic-X5" or "Quectel LG290AG03"). Note that some (mainly older) devices may not return a meaningful descriptor, in which case "N/A" will be displayed.
+1. Minor updates to serial port configuration panel (additional timeout values).
+
 ### RELEASE 1.6.3
 
 1. Add support for Unicore UNI binary data output messages via `pyunigps>=0.1.3` and `pygnssutils>=1.1.22`.
@@ -106,7 +117,7 @@ FIXES:
 ENHANCEMENTS:
 
 1. As of October 2025, u-blox have discontinued their MQTT SPARTN service (*having previously discontinued their L-Band SPARTN service earlier in the year*) so this functionality has been disabled by default in PyGPSClient in this release, and will be removed altogether in a subsequent release. It can be re-enabled by manually editing the `lband_enabled_b` configuration setting.
-1. Add provisional support for Quectel QGC binary message protocol (requires pyqgc>=0.1.2). Currently only Quectel LG290P / LG580P / LG680P RAW and LU600 IMU QGC message types are implemented, but this will be enhanced in future releases (contributions welcome).
+1. Add provisional support for Quectel QGC binary message protocol (requires pyqgc>=0.1.2). Currently only Quectel LGSERIES / LG580P / LG680P RAW and LU600 IMU QGC message types are implemented, but this will be enhanced in future releases (contributions welcome).
 1. Add additional IMU message types to IMU widget drop-down.
 1. Enhance performance and look and feel of banner skyview and graphview widgets.
 1. Drop active support for Python 3.9, add 3.14 (3.9 EOL as at 31 October 2025).
@@ -121,7 +132,7 @@ FIXES:
 
 ENHANCEMENTS:
 
-1. Add support for Quectel LC29H base station configuration in NTRIP Caster mode.
+1. Add support for Quectel LCSERIES base station configuration in NTRIP Caster mode.
 1. Enhance support for Quectel PAIR commands in NMEA configuration panel.
 1. Minor refinements to UI on lower resolution screens.
 
@@ -156,7 +167,7 @@ ENHANCEMENTS:
    On Linux platforms which do not support sqlite3 extensions out of the box, it may be possible to compile from source a  suitable version of [Python](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/python_compile.sh) and/or [libspatialite](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/libspatialite_compile.sh).
 2. BSD 3-Clause license attribution clarified in all modules.
 3. Enhance elevation profile and metadata rendering in GPX track viewer. Add support for route and waypoint elements in addition to track.
-4. Enhance NMEA Dynamic Configuration dialog to support additional NMEA command types, including Quectel proprietary $PAIR  (Quectel LC29H/LC79H), Garmin $PGRM, Locosys %PINV (limited) and u-Blox $PUBX (requires pynmeagps>=1.0.53).
+4. Enhance NMEA Dynamic Configuration dialog to support additional NMEA command types, including Quectel proprietary $PAIR  (Quectel LCSERIES/LC79H), Garmin $PGRM, Locosys %PINV (limited) and u-Blox $PUBX (requires pynmeagps>=1.0.53).
 5. Add support 
 5. Various minor improvements to file exception handling.
 
@@ -204,7 +215,7 @@ FIXES:
 
 ENHANCEMENTS:
 
-1. Add support for Septentrio Mosaic X5 Base Station configuration in NTRIP Caster mode (supplementing the existing u-blox ZED-F9P/X20P and Quectel LG290P options). Note that the Mosaic X5 is configured via ASCII TTY commands - to monitor the responses, set the console protocol to "TTY" (remember to set it back to "RTCM" to monitor the RTCM3 output). Note also that the input (ASCII command) UART port may be different to the output (RTCM3) port - ensure you select the appropriate port(s) when configuring the receiver and monitoring the RTCM3 output.
+1. Add support for Septentrio Mosaic X5 Base Station configuration in NTRIP Caster mode (supplementing the existing u-blox ZED-F9P/X20P and Quectel LGSERIES options). Note that the Mosaic X5 is configured via ASCII TTY commands - to monitor the responses, set the console protocol to "TTY" (remember to set it back to "RTCM" to monitor the RTCM3 output). Note also that the input (ASCII command) UART port may be different to the output (RTCM3) port - ensure you select the appropriate port(s) when configuring the receiver and monitoring the RTCM3 output.
 1. Add base station location update - automatically updates NTRIP CASTER Survey-in base station location from RTCM 1005/6 message.
 1. Chart Plot widget streamlined to reduce memory footprint and simplify CSV cut-and-paste (double-right-click) function.
 1. Minor enhancements to ubx2preset() and nmea2preset() helper functions; added \examples\convert_ubx_preset.py example.
@@ -238,7 +249,7 @@ FIXES:
 
 ENHANCEMENTS:
 
-1. Add receiver type option to NTRIP Caster mode - can now utilise either u-blox ZED-F9* or Quectel LG290P as Base Station receiver. NOTE THAT due to quirks in the LG290P firmware, setting Base Station mode with RTCM MSM 7 messages requires two successive restarts - you may see `WARNING - connection error` in the console during those restarts.
+1. Add receiver type option to NTRIP Caster mode - can now utilise either u-blox ZED-F9* or Quectel LGSERIES as Base Station receiver. NOTE THAT due to quirks in the LGSERIES firmware, setting Base Station mode with RTCM MSM 7 messages requires two successive restarts - you may see `WARNING - connection error` in the console during those restarts.
 1. Add new IMU Monitor widget, capable of displaying IMU orientation (roll, pitch, yaw) and status from a variety of NMEA or UBX IMU data sources (e.g. ESF-ALG, HNR-ATT, NAV-ATT, NAV-PVAT, GPFMI).
 1. Add TTY Command Dialog, allowing user to enter/select ASCII TTY commands to the connected serial device. Access via menu bar Options...TTY Commands.
 1. RTCM3 messages types 1002 (GPS L1 observables) & 1010 (GLONASS L1 observables) added to NTRIP Caster configuration.
@@ -265,7 +276,7 @@ ENHANCEMENTS:
 
 ### RELEASE 1.5.5
 
-1. Add new NMEA Configuration panel, complementing and (partly) mirroring the existing UBX Configuration panel. The NMEA configuration panel supports GNSS receivers which can be configured via proprietary NMEA sentences. Currently the only supported receiver is the Quectel LG290P (or other command-compatible Quectel receivers). See [README](https://github.com/semuconsulting/PyGPSClient?tab=readme-ov-file#nmeaconfig) for details. User-defined preset NMEA commands may be added via the `nmeapresets_l` section of the PyGPSClient *.json configuration file.
+1. Add new NMEA Configuration panel, complementing and (partly) mirroring the existing UBX Configuration panel. The NMEA configuration panel supports GNSS receivers which can be configured via proprietary NMEA sentences. Currently the only supported receiver is the Quectel LGSERIES (or other command-compatible Quectel receivers). See [README](https://github.com/semuconsulting/PyGPSClient?tab=readme-ov-file#nmeaconfig) for details. User-defined preset NMEA commands may be added via the `nmeapresets_l` section of the PyGPSClient *.json configuration file.
 1. Two new helper functions added `ubx2preset()` and `nmea2preset()`, to assist users in converting `UBXMessage` or `NMEAMessage` objects into strings which can be copied-and-pasted into the relevant sections of the *.json configuration file (`ubxpresets_l` and `nmeapresets_l`). See [README](https://github.com/semuconsulting/PyGPSClient?tab=readme-ov-file#userdefined) for details.
 
 ### RELEASE 1.5.4

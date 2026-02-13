@@ -248,7 +248,5 @@ class ToplevelDialog(Toplevel):
         if len(message) > 100:
             message = "..." + message[-100:]
 
-        self.status_label.after(
-            0, self.status_label.config, {"text": message, "fg": color}
-        )
-        self.update_idletasks()
+        self.status_label.config(text=message, fg=color)
+        self.status_label.update()

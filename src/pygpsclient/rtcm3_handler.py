@@ -17,6 +17,8 @@ import logging
 from pynmeagps import bearing, ecef2llh, haversine
 from pyrtcm import RTCMMessage
 
+from pygpsclient.dialog_state import DLGTSERVER
+
 
 class RTCM3Handler:
     """
@@ -82,7 +84,7 @@ class RTCM3Handler:
                 lat2, lon2, self.__app.gnss_status.lat, self.__app.gnss_status.lon
             )
             # update Survey-In base station location
-            if self.__app.frm_settings.frm_socketserver is not None:
-                self.__app.frm_settings.frm_socketserver.update_base_location()
+            if self.__app.dialog(DLGTSERVER) is not None:
+                self.__app.dialog(DLGTSERVER).update_base_location()
         except (AttributeError, TypeError, ValueError):
             pass

@@ -18,9 +18,10 @@ Created on 27 Jan 2026
 import logging
 from time import time
 
-from pyunigps import UNIMessage
+from pyunigps import DEVICE, UNIMessage
 
-from pygpsclient.helpers import fix2desc, wnotow2date
+from pygpsclient.helpers import fix2desc, wnotow2utc
+from pygpsclient.strings import NA
 
 SATSINFO_GNSSID = {
     0: 0,  # GPS
@@ -73,6 +74,9 @@ class UNIHandler:
 
         if raw_data is None:
             return
+        if self.__app.gnss_status.version_data["hwversion"] == NA:
+            self.__app.gnss_status.version_data["hwversion"] = "Unicore"
+            self.__app.device_label = self.__app.gnss_status.version_data["hwversion"]
         # self.logger.debug(f"data received {parsed_data.identity}")
         self._process_utc(parsed_data)
         if parsed_data.identity in ("BESTNAV", "BESTNAVH"):
@@ -93,6 +97,8 @@ class UNIHandler:
             self._process_SATELLITE(parsed_data)
         elif parsed_data.identity in ("STADOP", "ADRDOP", "PPPDOP"):
             self._process_STADOP(parsed_data)
+        elif parsed_data.identity == "VERSION":
+            self._process_VERSION(parsed_data)
 
     def _process_utc(self, data: UNIMessage):
         """
@@ -101,9 +107,7 @@ class UNIHandler:
         :param UNIMessage data: parsed message
         """
 
-        self.__app.gnss_status.utc = wnotow2date(
-            data.wno, int(data.tow / 1000), data.leapsecond
-        )
+        self.__app.gnss_status.utc = wnotow2utc(data.wno, data.tow, data.leapsecond)
 
     def _process_pos(self, lat: float, lon: float, hmsl: float, undulation: float):
         """
@@ -247,3 +251,17 @@ class UNIHandler:
         self.__app.gnss_status.pdop = data.pdop
         self.__app.gnss_status.hdop = data.hdop
         self.__app.gnss_status.vdop = data.vdop
+
+    def _process_VERSION(self, data: UNIMessage):
+        """
+        Process VERSION sentences - hardware & software information.
+
+        :param UNIMessage data: VERSION parsed message
+        """
+
+        self.__app.gnss_status.version_data["hwversion"] = (
+            f"Unicore {DEVICE.get(data.device, data.device)}"
+        )
+        self.__app.gnss_status.version_data["swversion"] = data.swversion
+        self.__app.gnss_status.version_data["romversion"] = data.comptime
+        self.__app.device_label = self.__app.gnss_status.version_data["hwversion"]

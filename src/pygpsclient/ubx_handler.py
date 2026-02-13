@@ -25,6 +25,14 @@ from pygpsclient.helpers import corrage2int, fix2desc, ned2vector, svid2gnssid
 from pygpsclient.strings import DLGTSERVER, DLGTSPARTN, DLGTUBX, NA
 from pygpsclient.widget_state import VISIBLE, WDGSIGNALS, WDGSPECTRUM, WDGSYSMON
 
+UBXMODELS = {
+    "00060000": "6th Gen",
+    "00070000": "7th Gen",
+    "00080000": "8th Gen",
+    "00190000": "9th Gen",
+    "000B0000": "20th Gen",
+}
+
 
 class UBXHandler:
     """
@@ -56,6 +64,9 @@ class UBXHandler:
 
         if raw_data is None:
             return
+        if self.__app.gnss_status.version_data["hwversion"] == NA:
+            self.__app.gnss_status.version_data["hwversion"] = "u-blox"
+            self.__app.device_label = self.__app.gnss_status.version_data["hwversion"]
         # self.logger.debug(f"data received {parsed_data.identity}")
         if parsed_data.identity[0:3] in ("ACK", "CFG"):
             self._process_ACK(parsed_data)
@@ -159,7 +170,6 @@ class UBXHandler:
                 rom_version = exts[i].replace("PROTVER ", "")
             if "MOD=" in exts[i]:
                 model = exts[i].replace("MOD=", "")
-                hw_version = f"{model} {hw_version}"
             for gnss in (
                 "GPS",
                 "GLO",
@@ -172,6 +182,11 @@ class UBXHandler:
             ):
                 if gnss in exts[i]:
                     gnss_supported = gnss_supported + gnss + " "
+        if model == "":
+            model = UBXMODELS.get(hw_version, "")
+        if model != "":
+            model += " "
+        hw_version = f"{model}{hw_version}"
 
         self.__app.gnss_status.version_data["swversion"] = sw_version
         self.__app.gnss_status.version_data["hwversion"] = hw_version
@@ -181,6 +196,8 @@ class UBXHandler:
 
         if self.__app.dialog(DLGTUBX) is not None:
             self.__app.dialog(DLGTUBX).update_pending(msg)
+        device = self.__app.gnss_status.version_data["hwversion"].rsplit(" ", 1)[0]
+        self.__app.device_label = f"u-blox {device}"
 
     def _process_MON_SYS(self, data: UBXMessage):
         """

@@ -22,6 +22,7 @@ from pysbf2 import SBFMessage, itow2utc
 
 from pygpsclient.globals import ASCII, BSR
 from pygpsclient.helpers import fix2desc
+from pygpsclient.strings import NA
 
 DNUL = -2 * (10**10)
 DNUS = 65535
@@ -59,6 +60,9 @@ class SBFHandler:
 
         if raw_data is None:
             return
+        if self.__app.gnss_status.version_data["hwversion"] == NA:
+            self.__app.gnss_status.version_data["hwversion"] = "Septentrio"
+            self.__app.device_label = self.__app.gnss_status.version_data["hwversion"]
         # self.logger.debug(f"data received {parsed_data.identity}")
         if parsed_data.identity == "PVTGeodetic":
             self._process_PVTGeodetic(parsed_data)
@@ -115,9 +119,8 @@ class SBFHandler:
         """
 
         verdata = {}
-        verdata["hwversion"] = data.ProductName.decode(ASCII, errors=BSR).replace(
-            "\x00", ""
-        )
+        hwver = data.ProductName.decode(ASCII, errors=BSR).replace("\x00", "")
+        verdata["hwversion"] = f"Septentrio {hwver}"
         verdata["fwversion"] = data.RxVersion.decode(ASCII, errors=BSR).replace(
             "\x00", ""
         )
@@ -125,3 +128,4 @@ class SBFHandler:
             "\x00", ""
         )
         self.__app.gnss_status.version_data = verdata
+        self.__app.device_label = verdata["hwversion"]

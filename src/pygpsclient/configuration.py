@@ -169,7 +169,7 @@ class Configuration:
             "sockclienthttps_b": 0,
             "sockclientselfsign_b": 0,
             "sockclientprotocol_s": "TCP IPv4",
-            # socket server settings from frm_socketserver
+            # socket server settings from server dialog
             "sockserver_b": 0,
             "sockhost_s": SOCKSERVER_HOST,
             "sockport_n": SOCKSERVER_PORT,

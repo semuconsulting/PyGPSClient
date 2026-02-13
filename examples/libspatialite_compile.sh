@@ -2,8 +2,7 @@
 
 # bash shell script to compile and install libspatialite
 # (mod_spatialite.so) on Debian Linux platforms which do not
-# include a suitable binary in their standard repos
-# (e.g. Raspberry Pi OS).
+# include a suitable binary installable in their standard repos.
 #
 # Remember to run chmod +x libspatialite_compile.sh to make this script executable.
 #
