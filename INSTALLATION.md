@@ -2,6 +2,7 @@
 
 [Basics](#basics) |
 [Prerequisites](#prereqs) |
+[User Privileges](#userpriv) |
 [Install with pip](#pip) |
 [Install with pipx](#pipx) |
 [Install with script](#script) |
@@ -113,18 +114,20 @@ sudo pacman -S tk libspatialite
 
 To access the serial port (`/dev/tty*`) on most Linux platforms, you will need to be a member of whichever group or "`Gid`" the `/dev/tty*` device belongs to. Failure to do this will typically result in an error `[Errno 13] could not open port /dev/ttyACM0 [Errno 13] permission denied /dev/ttyACM0`
 
-To check and set the necessary group permissions:
+To check and set the necessary group permissions (*substitute* `ttyACM0` *for your particular serial port*):
 
 ```shell
 stat /dev/ttyACM0 | grep Gid
 ```
-`Access: (0660/crw-rw----)  Uid: (    0/    root)   Gid: (   20/ dialout)` <-- group in this case is `dialout`; add user to this group using usermod (*you may have to log out and in again for this to take effect*):
+`Access: (0660/crw-rw----)  Uid: (    0/    root)   Gid: (   20/ dialout)` <-- group in this case is `dialout`
+
+Add your user to this group using usermod (*you will need to log out and in again for this to take effect*):
 
 ```shell
-sudo usermod -a -G dialout myuser
+sudo usermod -aG dialout myuser
 ```
 
-For Debian-based platforms, the group is normally `dialout`; on Arch-based platforms it may be `uucp` or `tty`.
+For Debian-based platforms, the group is normally `dialout` or `tty`; on Arch-based platforms it is normally `uucp`.
 
 Other than this, no special privileges are required.
 
