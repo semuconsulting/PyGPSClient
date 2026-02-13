@@ -74,13 +74,11 @@ class UNIHandler:
         if raw_data is None:
             return
         # self.logger.debug(f"data received {parsed_data.identity}")
-        self.__app.gnss_status.utc = wnotow2date(
-            parsed_data.wno, int(parsed_data.tow / 1000), parsed_data.leapsecond
-        )  # datetime.time
+        self._process_utc(parsed_data)
         if parsed_data.identity in ("BESTNAV", "BESTNAVH"):
             self._process_BESTNAV(parsed_data)
-        elif parsed_data.identity in ("PVTSLT",):
-            self._process_PVTSLT(parsed_data)
+        elif parsed_data.identity in ("PVTSLN",):
+            self._process_PVTSLN(parsed_data)
         elif parsed_data.identity in (
             "ADRNAV",
             "ADRNAVH",
@@ -95,6 +93,17 @@ class UNIHandler:
             self._process_SATELLITE(parsed_data)
         elif parsed_data.identity in ("STADOP", "ADRDOP", "PPPDOP"):
             self._process_STADOP(parsed_data)
+
+    def _process_utc(self, data: UNIMessage):
+        """
+        Process wno, tow and leapsecond from UNI message header.
+
+        :param UNIMessage data: parsed message
+        """
+
+        self.__app.gnss_status.utc = wnotow2date(
+            data.wno, int(data.tow / 1000), data.leapsecond
+        )
 
     def _process_pos(self, lat: float, lon: float, hmsl: float, undulation: float):
         """
@@ -119,8 +128,8 @@ class UNIHandler:
         """
 
         self.__app.gnss_status.fix = fix2desc("BESTNAV", postype)
-        self.__app.gnss_status.diff_corr = ("RTK" in self.__app.gnss_status.fix) or (
-            "PPP" in self.__app.gnss_status.fix
+        self.__app.gnss_status.diff_corr = (
+            sum(c in self.__app.gnss_status.fix for c in ("RTK", "PPP", "SBAS")) > 0
         )
 
     def _process_BESTNAV(self, data: UNIMessage):
@@ -138,11 +147,11 @@ class UNIHandler:
         self.__app.gnss_status.track = data.trkgnd
         self.__app.gnss_status.diff_station = data.stationid
 
-    def _process_PVTSLT(self, data: UNIMessage):
+    def _process_PVTSLN(self, data: UNIMessage):
         """
-        Process PVTSLT sentence -  Navigation position velocity time solution.
+        Process PVTSLN sentence -  Navigation position velocity time solution.
 
-        :param UNIMessage data: PVTSLT parsed message
+        :param UNIMessage data: PVTSLN parsed message
         """
 
         self._process_pos(
@@ -154,7 +163,7 @@ class UNIHandler:
         self.__app.gnss_status.track = data.headingdegree
         self.__app.gnss_status.pdop = data.pdop
         self.__app.gnss_status.hdop = data.hdop
-        self.__app.gnss_status.diff_age = data.bestpos_diffage
+        self.__app.gnss_status.diff_age = data.bestposdiffage
 
     def _process_ADRNAV(self, data: UNIMessage):
         """

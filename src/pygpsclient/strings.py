@@ -41,6 +41,7 @@ CONFIGOK = "{} command accepted"
 CONFIGRXM = "{} polled, {} key(s) loaded"
 CONFIGTITLE = "Config File"
 CONFIRM = "CONFIRM"
+CONTENTCOPIED = "Contents of {} copied to clipboard"
 DGPSYES = "\u2713"  # tick symbol
 ENDOFFILE = "End of file reached"
 FILEOPENERROR = "Error opening file {}"

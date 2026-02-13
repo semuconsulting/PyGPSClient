@@ -62,7 +62,14 @@ from pyqgc import QGCMessageError, QGCParseError, QGCStreamError
 from pyrtcm import RTCMMessageError, RTCMParseError, RTCMStreamError
 from pysbf2 import SBFMessageError, SBFParseError, SBFStreamError
 from pyubx2 import ERR_LOG, UBXMessageError, UBXParseError, UBXStreamError
-from pyubxutils import UBXSimulator
+
+try:
+    from pyubxutils import UBXSimulator
+
+    HASUBXUTILS = True
+except (ImportError, ModuleNotFoundError):
+    HASUBXUTILS = False
+
 from serial import Serial, SerialException, SerialTimeoutException
 
 from pygpsclient.globals import (
@@ -148,7 +155,7 @@ class StreamHandler:
         conntype = settings["conntype"]
         inactivity_timeout = settings.get("inactivity_timeout", 0)
         if conntype == CONNECTED:
-            if settings["serial_settings"].port == UBXSIMULATOR:
+            if HASUBXUTILS and settings["serial_settings"].port == UBXSIMULATOR:
                 conntype = CONNECTED_SIMULATOR
         ttydelay = (
             self.__app.configuration.get("ttydelay_b")
@@ -238,7 +245,7 @@ class StreamHandler:
                         inactivity_timeout,
                     )
 
-            elif conntype == CONNECTED_SIMULATOR:
+            elif HASUBXUTILS and conntype == CONNECTED_SIMULATOR:
                 with UBXSimulator() as stream:
                     if settings["protocol"] & TTY_PROTOCOL:
                         self._readlooptty(
