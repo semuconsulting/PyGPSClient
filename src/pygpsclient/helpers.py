@@ -42,7 +42,7 @@ from types import NoneType
 from typing import Any, Literal
 
 from pygnssutils import version as PGVERSION
-from pynmeagps import WGS84_SMAJ_AXIS, NMEAMessage, haversine
+from pynmeagps import WGS84_SMAJ_AXIS, NMEAMessage, haversine, leapsecond
 from pynmeagps import version as NMEAVERSION
 from pyqgc import version as QGCVERSION
 from pyrtcm import version as RTCMVERSION
@@ -59,6 +59,7 @@ from pyubx2 import (
     atttyp,
 )
 from pyubx2 import version as UBXVERSION
+from pyunigps import version as UNIVERSION
 from requests import get
 
 from pygpsclient._version import __version__ as VERSION
@@ -107,6 +108,7 @@ LIBVERSIONS = {
     "pygnssutils": PGVERSION,
     "pyubx2": UBXVERSION,
     "pysbf2": SBFVERSION,
+    "pyunigps": UNIVERSION,
     "pyqgc": QGCVERSION,
     "pynmeagps": NMEAVERSION,
     "pyrtcm": RTCMVERSION,
@@ -1445,20 +1447,24 @@ def valid_geom(geom: str) -> bool:
     return regexgeom.match(geom) is not None
 
 
-def wnotow2date(wno: int, tow: int) -> datetime:
+def wnotow2date(wno: int, tow: int, ls: int | NoneType = None) -> datetime:
     """
-    Get datetime from GPS Week number (Wno) and Time of Week (Tow).
+    Get datetime from GPS Week number (Wno), Time of Week (Tow)
+    and leapsecond offset.
 
     GPS Epoch 0 = 6th Jan 1980
 
     :param int wno: week number
     :param int tow: time of week
+    :param int ls: leapsecond offset
     :return: datetime
     :rtype: datetime
     """
 
+    if ls is None:
+        ls = leapsecond(datetime.now())
     dat = GPSEPOCH0 + timedelta(days=wno * 7)
-    dat += timedelta(seconds=tow)
+    dat += timedelta(seconds=tow - ls)
     return dat
 
 

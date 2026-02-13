@@ -20,7 +20,7 @@
 
 PyGPSClient is a free, open-source, multi-platform graphical GNSS/GPS testing, diagnostic and configuration application written entirely by volunteers in Python and tkinter. 
 * Runs on any platform which supports a Python 3 interpreter (>=3.10) and tkinter (>=8.6) GUI framework, including Windows, MacOS, Linux and Raspberry Pi OS. Accommodates low resolution screens (>= 640x480) via resizable and/or scrollable panels.
-* Supports NMEA, UBX, SBF, QGC, RTCM3, NTRIP, SPARTN, MQTT and TTY (ASCII) protocols¹.
+* Supports NMEA, UBX (u-blox binary), SBF (Septentrio binary), UNI (Unicore binary), QGC (Quectel binary), RTCM3, NTRIP, SPARTN, MQTT and TTY (ASCII) protocols¹.
 * Capable of reading from a variety of GNSS data streams: Serial (USB / UART), Socket (TCP / UDP), binary data stream (terminal or file capture) and binary recording (e.g. u-center \*.ubx).
 * Provides [NTRIP](#ntripconfig) client facilities.
 * Can serve as an [NTRIP base station](#basestation) with an RTK-compatible receiver (e.g. u-blox ZED-F9P/ZED-X20P, Quectel LG290P/LG580P/LC29H, Septentrio Mosaic G5/X5 or Unicore UM98n).
@@ -116,7 +116,7 @@ For more comprehensive installation instructions, please refer to [INSTALLATION.
 1. To immediately disconnect and terminate all running threads, click Ctrl-K ("Kill Switch").
 1. To exit the application, click
 ![exit icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-door-6-24.png?raw=true), or press Ctrl-Q, or click the application window's close window icon.
-1. Protocols Shown - Select which protocols to display; NMEA, UBX, SBF, QGC, RTCM3, SPARTN or TTY (NB: this only changes the displayed protocols - to change the actual protocols output by the receiver, use the [UBX Configuration Dialog](#ubxconfig)).
+1. Protocols Shown - Select which protocols to display; NMEA, UBX (*u-blox binary*), SBF (*Septentrio binary*), UNI (*Unicore binary*), QGC (*Quectel binary*), RTCM3, SPARTN or TTY (*ASCII text*) (NB: this only changes the displayed protocols - to change the actual protocols output by the receiver, use the relevant configuration command(s)).
    - **NB:** Serial connection must be stopped before changing to or from TTY (terminal) protocol.
    - **NB:** Enabling TTY (terminal) mode will disable all other protocols.
 1. Console Display - Select console display format (Parsed, Binary, Hex Tabular, Hex String, Parsed+Hex Tabular - see Console Widget below).
@@ -457,7 +457,7 @@ The `pygnssutils` and `pyubxutils` libraries which underpin many of the function
 
 For further details, refer to the `pygnssutils` homepage at [https://github.com/semuconsulting/pygnssutils](https://github.com/semuconsulting/pygnssutils) or `pyubxutils` homepage at [https://github.com/semuconsulting/pyubxutils](https://github.com/semuconsulting/pyubxutils).
 
---
+---
 ## <a name="knownissues">Known Issues</a>
 
 1. Most budget USB-UART adapters (e.g. FT232, CH345, CP2102) have a bandwidth limit of around 3MB/s and may not work reliably above 115200 baud, even if the receiver supports higher baud rates. If you're using an adapter and notice significant message corruption, try reducing the baud rate to a maximum 115200.

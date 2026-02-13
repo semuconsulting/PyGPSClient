@@ -40,6 +40,7 @@ from pygpsclient.globals import (
     BGCOL,
     ERRCOL,
     FGCOL,
+    INFOCOL,
     PLOTCOLS,
     READONLY,
     TRACEMODE_WRITE,
@@ -48,6 +49,7 @@ from pygpsclient.globals import (
     WIDGETU6,
 )
 from pygpsclient.helpers import time2str
+from pygpsclient.strings import CONTENTCOPIED
 
 OL_WID = 1
 LBLCOL = "white"
@@ -623,6 +625,7 @@ class ChartviewFrame(Frame):
         self.__master.clipboard_clear()
         self.__master.clipboard_append(csv)
         self.__master.update()
+        self.__app.status_label = (CONTENTCOPIED.format("chart"), INFOCOL)
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """

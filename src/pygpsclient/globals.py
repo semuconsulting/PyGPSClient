@@ -53,7 +53,6 @@ PLOTCOLS = ("#FFFF00", "#00FFFF", "#FF00FF", "#00BFFF")
 PNTCOL = "#FF8000"  # default plot point color
 
 # Protocols to be used in protocol mask (others defined in pygnssutils.gnss_reader.py)
-UNI_PROTOCOL = 32  # provisional - awaiting pygnssutils.gnssreader updates for Unicore
 SPARTN_PROTOCOL = 256
 MQTT_PROTOCOL = 512
 TTY_PROTOCOL = 1024
@@ -252,7 +251,7 @@ TOPIC_RXM = "/pp/ubx/0236/ip"
 TRACK = "track"
 TRACEMODE_WRITE = "write"
 TTYOK = ("OK", "$R:")
-TTYERR = ("ERROR", "$R?")
+TTYERR = ("ERROR", "$R?", "FAIL", "CAN'T FOUND DEVICE")
 TTYMARKER = "TTY<<"
 UBXPRESETS = "ubxpresets"
 UBXSIMULATOR = "ubxsimulator"
@@ -424,11 +423,31 @@ FIXLOOKUP = {
     "PVTGeodetic7": "RTK FIXED",
     "PVTGeodetic8": "RTK FLOAT",
     "PVTGeodetic10": "PPP",
+    "BESTNAV0": "NO FIX",
+    "BESTNAV1": "FIXEDPOS",  # FIXEDPOS Position fixed by the FIX POSITION command
+    "BESTNAV2": "FIXEDHMSL",  # FIXEDHEIGHT Not supported currently
+    "BESTNAV8": "DOPP",  # DOPPLER_VELOCITY Velocity computed using instantaneous Doppler
+    "BESTNAV16": "3D",  # SINGLE Single point positioning
+    "BESTNAV17": "RTK FLOAT",  # SRDIFF Pseudorange differential solution
+    "BESTNAV18": "SBAS",  # SBAS SBAS positioning
+    "BESTNAV32": "RTK FLOAT",  # L1_FLOAT L1 float solution
+    "BESTNAV33": "RTK FLOAT",  # IONOFREE_FLOAT Ionosphere-free float solution
+    "BESTNAV34": "RTK FLOAT",  # NARROW_FLOAT Narrow-lane float solution
+    "BESTNAV48": "RTK FIXED",  # L1_INT L1 fixed solution
+    "BESTNAV49": "RTK FIXED",  # WIDE_INT Wide-lane fixed solution
+    "BESTNAV50": "RTK FIXED",  # NARROW_INT Narrow-lane fixed solution
+    "BESTNAV52": "DR",  # INS Inertial navigation solution
+    "BESTNAV53": "3D+DR",  # INS_PSRSP Integrated solution of INS and single point pos
+    "BESTNAV54": "RTK+DR",  # INS_PSRDIFF Integrated solution of INS and pseudorange diff pos
+    "BESTNAV55": "RTK FLOAT+DR",  # INS_RTKFLOAT Integrated solution of INS and RTK float
+    "BESTNAV56": "RTK FIXED+DR",  # INS_RTKFIXED Integrated solution of INS and RTK fix
+    "BESTNAV68": "RTK FIXED+DR",  # INS_RTKFIXED Integrated solution of INS and RTK fix
+    "BESTNAV69": "PPP",  # PPP
 }
 """
 Map of fix values to descriptions.
-The keys in this map are a concatenation of NMEA/UBX
-message identifier and attribute value e.g.
+The keys in this map are a concatenation of
+message identity and attribute value e.g.
 GGA1: GGA + quality = 1
 NAV-STATUS3: NAV-STATUS + gpsFix = 3
 (valid for NMEA >=4)

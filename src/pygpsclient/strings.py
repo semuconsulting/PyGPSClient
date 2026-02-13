@@ -25,8 +25,8 @@ HELPTXT = "Help..About - display About dialog."
 
 ABOUTTXT = [
     f"{TITLE} is a free, open-source GNSS diagnostic and configuration",
-    "application written entirely by volunteers in Python and tkinter.",
-    "It supports NMEA, UBX, SBF, QGC, RTCM3, NTRIP & SPARTN protocols.",
+    "application written entirely by volunteers in Python and tkinter. It",
+    "supports NMEA, UBX, SBF, UNI, QGC, RTCM3, NTRIP & SPARTN protocols.",
     "Instructions and source code are available on GitHub at the link below.",
 ]
 NA = "N/A"
@@ -41,6 +41,7 @@ CONFIGOK = "{} command accepted"
 CONFIGRXM = "{} polled, {} key(s) loaded"
 CONFIGTITLE = "Config File"
 CONFIRM = "CONFIRM"
+CONTENTCOPIED = "Contents of {} copied to clipboard"
 DGPSYES = "\u2713"  # tick symbol
 ENDOFFILE = "End of file reached"
 FILEOPENERROR = "Error opening file {}"

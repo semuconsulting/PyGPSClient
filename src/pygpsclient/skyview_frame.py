@@ -110,12 +110,9 @@ class SkyviewFrame(Frame):
         """
 
         data = self.__app.gnss_status.gsv_data
-        show_unused = self.__app.configuration.get("unusedsat_b")
         siv = len(data)
-        siv = siv if show_unused else siv - unused_sats(data)
         sel = sum(1 for (_, _, ele, _, _, _) in data.values() if ele not in ("", None))
-        # ignore if cno are all zero and 'show_unused' is not set,
-        # or if elevation values are all null
+        # ignore if elevation values are all null
         if siv <= 0 or sel <= 0:
             return
 
@@ -125,11 +122,7 @@ class SkyviewFrame(Frame):
         for val in sorted(data.values(), key=lambda x: x[4]):  # sort by ascending C/N0
             try:
                 gnssId, prn, ele, azi, cno, _ = val
-                if (
-                    (cno == 0 and not show_unused)
-                    or ele in ("", None)
-                    or azi in ("", None)
-                ):
+                if ele in ("", None) or azi in ("", None):
                     continue
                 x, y = self._canvas.d2xy(int(azi), int(ele))
                 _, ol_col = GNSS_LIST[gnssId]

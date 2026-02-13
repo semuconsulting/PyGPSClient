@@ -243,11 +243,13 @@ TBC. Anyone conversant with PowerShell is welcome to contribute an equivalent in
 
 ## <a name="troubleshooting">Troubleshooting</a>
 
-1. The optional `rasterio` package is only available as an [sdist](#sdist-vs-wheel) on some Linux / ARM platforms (including Raspberry Pi OS), and the consequent [GDAL](https://gdal.org/en/stable/) build and configuration requirements may be problematic e.g. `WARNING:root:Failed to get options via gdal-config`. Refer to [rasterio installation](https://rasterio.readthedocs.io/en/stable/installation.html) and [GDAL installation](https://gdal.org/en/stable/) for assistance but - *be warned* - the process is **not** for the faint-hearted.
+1. `[Errno 13] could not open port /dev/tty**** [Errno 13] permission denied /dev/tty****` error on Linux when attempting to access serial port. Refer to [User Privileges](#userpriv).
+
+1. The optional `rasterio` package is only available as an [sdist](#sdist-vs-wheel) on some Linux / ARM platforms and the consequent [GDAL](https://gdal.org/en/stable/) build and configuration requirements may be problematic e.g. `WARNING:root:Failed to get options via gdal-config`. Refer to [rasterio installation](https://rasterio.readthedocs.io/en/stable/installation.html) and [GDAL installation](https://gdal.org/en/stable/) for assistance but - *be warned* - the process is **not** for the faint-hearted.
   
    In practice, `rasterio` is only required for automatic extents detection in PyGPSClient's Import Custom Map facility. As a workaround, extents can be entered manually, or you can try importing maps on a different platform and then copy-and-paste the relevant `usermaps_l` extents configuration to the target platform.
 
-1. The optional `cryptography` package is only available as an [sdist](#sdist-vs-wheel) on some 32-bit Linux / ARM platforms (including Raspberry Pi OS), and the consequent OpenSSL build requirements may be problematic e.g. `Building wheel for cryptography (PEP 517): finished with status 'error'`. Refer to [cryptography installation](https://github.com/semuconsulting/pyspartn/blob/main/cryptography_installation/README.md) for assistance.
+1. The optional `cryptography` package is only available as an [sdist](#sdist-vs-wheel) on some 32-bit Linux / ARM platforms and the consequent OpenSSL build requirements may be problematic e.g. `Building wheel for cryptography (PEP 517): finished with status 'error'`. Refer to [cryptography installation](https://github.com/semuconsulting/pyspartn/blob/main/cryptography_installation/README.md) for assistance.
 
 ---
 ## <a name="license">License</a>

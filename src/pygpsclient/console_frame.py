@@ -43,9 +43,10 @@ from pygpsclient.globals import (
     FORMAT_BOTH,
     FORMAT_HEXSTR,
     FORMAT_HEXTAB,
+    INFOCOL,
     WIDGETU3,
 )
-from pygpsclient.strings import HALTTAGWARN
+from pygpsclient.strings import CONTENTCOPIED, HALTTAGWARN
 
 HALT = "HALT"
 CONSOLELINES = 20
@@ -242,6 +243,7 @@ class ConsoleFrame(Frame):
         self.__master.clipboard_clear()
         self.__master.clipboard_append(self.txt_console.get("1.0", END))
         self.__master.update()
+        self.__app.status_label = (CONTENTCOPIED.format("console"), INFOCOL)
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """

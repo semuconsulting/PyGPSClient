@@ -1,5 +1,9 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.6.3
+
+1. Add support for Unicore UNI binary data output messages via `pyunigps>=0.1.3` and `pygnssutils>=1.1.22`.
+
 ### RELEASE 1.6.2
 
 1. Add support for Unicore Secondary Antenna and Attitude (IMU) NMEA sentences e.g. UM98n "GGAH", "HPD" (requires pynmeagps>=1.1.0).
