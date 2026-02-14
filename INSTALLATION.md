@@ -231,6 +231,14 @@ chmod +x pygpsclient_debian_install.sh
 ./pygpsclient_debian_install.sh
 ```
 
+### Arch Linux
+An example [installation shell script](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/pygpsclient_arch_install.sh) is available for use on most vanilla 64-bit Arch-based environments with Python>=3.10. To run this installation script, download it to your Arch-based workstation and - from the download folder - type:
+
+```shell
+chmod +x pygpsclient_arch_install.sh
+./pygpsclient_arch_install.sh
+```
+
 ### MacOS
 A similar [installation shell script](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/pygpsclient_macos_install.sh) is available for MacOS 13 or later running a ZSH shell (*Homebrew or MacPorts are **NOT** required*). This will also install the latest official version of Python 3 with tkinter 8.6. Download the script to your Mac and - from the download folder - type:
 
