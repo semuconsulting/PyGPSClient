@@ -1,10 +1,9 @@
 #!/bin/bash
 
-# Bash shell script to install PyGPSClient on 64-bit Debian-based
-# Linux environments, including Raspberry Pi and Ubuntu.
+# Bash shell script to install PyGPSClient on Raspberry Pi OS (Trixie) or any other
+# up-to-date 64-bit Debian-based Linux desktop environment.
 #
 # Change shebang /bin/bash to /bin/zsh if running from zsh shell.
-# NB: NOT for use on Windows or MacOS!
 #
 # Remember to run chmod +x pygpsclient_debian_install.sh to make this script executable.
 #
@@ -22,24 +21,26 @@ echo "Installed Python version is $PYVER"
 
 echo "PyGPSClient will be installed at $HOME/pygpsclient/bin"
 
-echo "Installing dependencies..."
-sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk \
-     libjpeg-dev zlib1g-dev tk-dev python3-rasterio
+echo "Installing dependencies..."\
+# uncomment any missing dependencies - not normally necessary with RPi OS Trixie
+# sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk \
+#      libjpeg-dev zlib1g-dev tk-dev python3-rasterio
      
 echo "Setting user permissions..."
-sudo usermod -a -G tty $USER
+sudo usermod -a -G dialout $USER
 
 echo "Creating virtual environment..."
 cd $HOME
 python3 -m venv pygpsclient
 source pygpsclient/bin/activate
-python3 -m pip install --upgrade pip pygpsclient
+python3 -m pip install --upgrade pip pygpsclient rasterio
 deactivate
 
 echo "Adding desktop launch icon..."
 # the LD_LIBRARY_PATH env setting allows PyGPSClient to find the 
 # mod_spatialite.so module, which is typically installed in this location
 # you can set other env variables in a similar fashion if required
+mkdir -p $HOME/.local/share/applications
 cat > $HOME/.local/share/applications/pygpsclient.desktop <<EOF
 [Desktop Entry]
 Type=Application

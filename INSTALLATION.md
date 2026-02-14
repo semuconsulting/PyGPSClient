@@ -96,7 +96,7 @@ Note that on MacOS, serial ports may appear as `/dev/tty*` *or* `/dev/cu*`. To u
 
 ### Linux (including Raspberry Pi OS)
 
-Some Linux distributions may not include the necessary pip, venv, tkinter, Pillow or spatialite libraries by default. They may need to be installed separately, e.g. for Debian-based distibutions, a combination of some or all of the following:
+Some older Linux distributions may not include all the necessary pip, venv, tkinter, Pillow or spatialite libraries by default e.g. for Debian-based distibutions, a combination of some or all of the following:
 
 ```shell
 sudo apt install python3-pip python3-tk python3-pil python3-venv python3-pil.imagetk libjpeg-dev zlib1g-dev tk-dev libspatialite
@@ -224,17 +224,25 @@ pipx will typically create a virtual environment in the user's home folder e.g. 
 The following scripts require sudo/admin privileges and will prompt for the sudo password.
 
 ### Debian Linux
-An example [installation shell script](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/pygpsclient_debian_install.sh) is available for use on most vanilla 64-bit Debian-based environments with Python>=3.10, including Raspberry Pi and Ubuntu. To run this installation script, download it to your Raspberry Pi or other Debian-based workstation and - from the download folder - type:
+An example [installation shell script](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/pygpsclient_debian_install.sh) is available for use on most vanilla 64-bit Debian-based desktop environments (e.g. Wayland) with Python>=3.10, including Raspberry Pi OS Trixie and Ubuntu LTS. The script...
+- Installs all necessary Python system libraries.
+- Installs PyGPSClient into a virtual environment in the user's home directory and adds this environment to the user's PATH.
+- Adds user to the relevant /dev/tty* group.
+- Creates a desktop application launcher which can be accessed from the Applications..Other menu.
 
 ```shell
+wget https://raw.githubusercontent.com/semuconsulting/PyGPSClient/refs/heads/master/examples/pygpsclient_debian_install.sh
+# or use curl -O ... if you prefer
 chmod +x pygpsclient_debian_install.sh
 ./pygpsclient_debian_install.sh
 ```
 
 ### Arch Linux
-An example [installation shell script](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/pygpsclient_arch_install.sh) is available for use on most vanilla 64-bit Arch-based environments with Python>=3.10. To run this installation script, download it to your Arch-based workstation and - from the download folder - type:
+An similar example [installation shell script](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/pygpsclient_arch_install.sh) is available for use on most vanilla 64-bit Arch-based desktop environments (e.g. xfce) with Python>=3.10:
 
 ```shell
+wget https://raw.githubusercontent.com/semuconsulting/PyGPSClient/refs/heads/master/examples/pygpsclient_arch_install.sh
+# or use curl -O ... if you prefer
 chmod +x pygpsclient_arch_install.sh
 ./pygpsclient_arch_install.sh
 ```
