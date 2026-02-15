@@ -232,8 +232,8 @@ An [installation shell script](https://github.com/semuconsulting/PyGPSClient/blo
 - Creates a desktop application launcher which can be accessed from the Applications..Other menu.
 
 ```shell
-curl -O https://raw.githubusercontent.com/semuconsulting/PyGPSClient/refs/heads/master/examples/pygpsclient_debian_install.sh
-# or use wget ... if you prefer
+wget https://raw.githubusercontent.com/semuconsulting/PyGPSClient/refs/heads/master/examples/pygpsclient_debian_install.sh
+# or use curl -O ... if you prefer
 chmod +x pygpsclient_debian_install.sh
 ./pygpsclient_debian_install.sh
 ```
@@ -249,7 +249,7 @@ chmod +x pygpsclient_arch_install.sh
 ```
 
 ### MacOS
-A similar [installation shell script](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/pygpsclient_macos_install.sh) is available for MacOS 13 or later running a ZSH shell (*Homebrew or MacPorts are **NOT** required*). This will also install the latest official version of Python 3 with tkinter 8.6. Download the script to your Mac and - from the download folder - type:
+A similar [installation shell script](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/pygpsclient_macos_install.sh) is available for MacOS 13 or later running a ZSH shell (*Homebrew or MacPorts are **NOT** required*). This will also install the latest official version of Python 3 with tkinter 8.6:
 
 ```shell
 curl -O https://raw.githubusercontent.com/semuconsulting/PyGPSClient/refs/heads/master/examples/pygpsclient_macos_install.sh

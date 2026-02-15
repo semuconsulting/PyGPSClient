@@ -29,7 +29,7 @@ echo "Creating virtual environment..."
 cd $HOME
 python3 -m venv pygpsclient
 source pygpsclient/bin/activate
-python3 -m pip install --upgrade pip pygpsclient
+python3 -m pip install --upgrade pip pygpsclient rasterio
 deactivate
 
 echo "Adding directory to PATH..."
