@@ -482,7 +482,7 @@ For further details, refer to the `pygnssutils` homepage at [https://github.com/
 
 [BSD 3-Clause License](https://github.com/semuconsulting/PyGPSClient/blob/master/LICENSE)
 
-Copyright &copy; 2020, semuadmin (Steve Smith)
+Copyright &copy; 2020-2026, semuadmin (Steve Smith)
 
 Application icons from [iconmonstr](https://iconmonstr.com/license/) &copy;.
 

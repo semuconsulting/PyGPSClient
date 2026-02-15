@@ -25,7 +25,7 @@ echo "PyGPSClient will be installed at $HOME/pygpsclient/bin"
 echo "Installing dependencies..."
 sudo pacman -S tk libspatialite
      
-echo "Setting user permissions..."
+echo "Setting user permissions for /dev/tty* devices..."
 sudo usermod -aG uucp $USER
 
 echo "Creating virtual environment..."
@@ -72,3 +72,4 @@ sed -i '$a# Path to PyGPSClient executable\nexport PATH="${HOME}/pygpsclient/bin
 source $PROF # this will throw an error if running as bash script in zsh shell
 
 echo "Installation complete"
+echo "You may need to restart before accessing /dev/tty*"

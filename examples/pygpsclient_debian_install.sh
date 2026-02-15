@@ -21,19 +21,25 @@ echo "Installed Python version is $PYVER"
 
 echo "PyGPSClient will be installed at $HOME/pygpsclient/bin"
 
-echo "Installing dependencies..."\
-# uncomment any missing dependencies - not normally necessary with RPi OS Trixie
-# sudo apt install python3-pip python3-tk python3-pil python3-pil.imagetk \
-#      libjpeg-dev zlib1g-dev tk-dev python3-rasterio
-     
-echo "Setting user permissions..."
+# Raspberry Pi OS Trixie desktop comes with all the necessary Python dependencies included
+# Ubuntu LTS and a few other Debian desktop distros are missing Python pip, venv, tkinter
+# and PIL libraries
+RELEASE="$(lsb_release -d)"
+echo "Installing dependencies for $RELEASE..."
+if [[ $RELEASE == *"Ubuntu"* ]]; then
+sudo apt install python3-pip python3-venv python3-tk python3-pil python3-pil.imagetk
+sudo apt install libjpeg-dev zlib1g-dev tk-dev python3-rasterio || true
+fi
+
+echo "Setting user permissions for /dev/tty* devices..."
 sudo usermod -a -G dialout $USER
 
 echo "Creating virtual environment..."
 cd $HOME
 python3 -m venv pygpsclient
 source pygpsclient/bin/activate
-python3 -m pip install --upgrade pip pygpsclient rasterio
+python3 -m pip install --upgrade pip pygpsclient
+python3 -m pip install --upgrade rasterio || true
 deactivate
 
 echo "Adding desktop launch icon..."
@@ -73,3 +79,4 @@ sed -i '$a# Path to PyGPSClient executable\nexport PATH="$HOME/pygpsclient/bin:$
 source $PROF # this will throw an error if running as bash script in zsh shell
 
 echo "Installation complete"
+echo "You may need to restart before accessing /dev/tty*"

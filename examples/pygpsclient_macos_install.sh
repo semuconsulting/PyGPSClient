@@ -17,7 +17,7 @@
 set -e
 
 echo "PyGPSClient will be installed at $HOME/pygpsclient/bin"
-VER=3.14.2
+VER=3.14.3
 echo "Installing Python $VER from python.org ..."
 curl https://www.python.org/ftp/python/$VER/python-$VER-macos11.pkg --output python-$VER-macos11.pkg
 sudo installer -pkg python-$VER-macos11.pkg -target /

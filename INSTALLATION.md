@@ -61,6 +61,7 @@ The exact location of the site_packages and binary directories will depend on th
 
 In the following, `python3` & `pip` refer to the Python 3 executables. You may need to substitute `python` for `python3`, depending on your particular environment (*on Windows it's generally `python`*). 
 
+- Graphical User Interface (window system / manager)
 - Python >= 3.10⁴
 - Tk (tkinter) >= 8.6⁵ (*tkinter is a commonly used library for developing Graphical User Interfaces (GUI) in Python*)
 - Screen resolution >= 640 x 480 (VGA); Ideally 1920 x 1080, though at lower screen resolutions (<= 1024 width), top level dialogs will be resizable and scrollable.
@@ -224,25 +225,25 @@ pipx will typically create a virtual environment in the user's home folder e.g. 
 The following scripts require sudo/admin privileges and will prompt for the sudo password.
 
 ### Debian Linux
-An example [installation shell script](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/pygpsclient_debian_install.sh) is available for use on most vanilla 64-bit Debian-based desktop environments (e.g. Wayland) with Python>=3.10, including Raspberry Pi OS Trixie and Ubuntu LTS. The script...
+An [installation shell script](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/pygpsclient_debian_install.sh) is available for use on most vanilla 64-bit Debian-based desktop environments, including Raspberry Pi OS Trixie and Ubuntu LTS. The script...
 - Installs all necessary Python system libraries.
 - Installs PyGPSClient into a virtual environment in the user's home directory and adds this environment to the user's PATH.
 - Adds user to the relevant /dev/tty* group.
 - Creates a desktop application launcher which can be accessed from the Applications..Other menu.
 
 ```shell
-wget https://raw.githubusercontent.com/semuconsulting/PyGPSClient/refs/heads/master/examples/pygpsclient_debian_install.sh
-# or use curl -O ... if you prefer
+curl -O https://raw.githubusercontent.com/semuconsulting/PyGPSClient/refs/heads/master/examples/pygpsclient_debian_install.sh
+# or use wget ... if you prefer
 chmod +x pygpsclient_debian_install.sh
 ./pygpsclient_debian_install.sh
 ```
 
 ### Arch Linux
-An similar example [installation shell script](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/pygpsclient_arch_install.sh) is available for use on most vanilla 64-bit Arch-based desktop environments (e.g. xfce) with Python>=3.10:
+A similar [installation shell script](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/pygpsclient_arch_install.sh) is available for use on most vanilla 64-bit Arch-based desktop environments (e.g. Xfce / LightDM):
 
 ```shell
-wget https://raw.githubusercontent.com/semuconsulting/PyGPSClient/refs/heads/master/examples/pygpsclient_arch_install.sh
-# or use curl -O ... if you prefer
+curl -O https://raw.githubusercontent.com/semuconsulting/PyGPSClient/refs/heads/master/examples/pygpsclient_arch_install.sh
+# or use wget ... if you prefer
 chmod +x pygpsclient_arch_install.sh
 ./pygpsclient_arch_install.sh
 ```
@@ -251,6 +252,8 @@ chmod +x pygpsclient_arch_install.sh
 A similar [installation shell script](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/pygpsclient_macos_install.sh) is available for MacOS 13 or later running a ZSH shell (*Homebrew or MacPorts are **NOT** required*). This will also install the latest official version of Python 3 with tkinter 8.6. Download the script to your Mac and - from the download folder - type:
 
 ```shell
+curl -O https://raw.githubusercontent.com/semuconsulting/PyGPSClient/refs/heads/master/examples/pygpsclient_macos_install.sh
+chmod +x pygpsclient_macos_install.sh
 ./pygpsclient_macos_install.sh
 ```
 
