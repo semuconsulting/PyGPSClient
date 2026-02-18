@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Bash shell script to install PyGPSClient on Raspberry Pi OS (Trixie) or any other
-# up-to-date 64-bit Debian-based Linux desktop environment.
+# Bash shell script to install PyGPSClient on any modern 64-bit Debian-based Linux
+# desktop environment, including Ubuntu LTS, Debian Trixie and Raspberry Pi OS.
 #
 # Change shebang /bin/bash to /bin/zsh if running from zsh shell.
 #
@@ -21,15 +21,13 @@ echo "Installed Python version is $PYVER"
 
 echo "PyGPSClient will be installed at $HOME/pygpsclient/bin"
 
-# Raspberry Pi OS Trixie desktop comes with all the necessary Python dependencies included
-# Ubuntu LTS and a few other Debian desktop distros are missing Python pip, venv, tkinter
-# and PIL libraries
+# Raspberry Pi OS (Trixie) desktop comes with all the core Python tkinter dependencies included.
+# Ubuntu LTS and most other Debian desktop distros are missing Python pip, venv, tkinter
+# and PIL libraries.
 RELEASE="$(lsb_release -d)"
 echo "Installing dependencies for $RELEASE..."
-if [[ $RELEASE == *"Ubuntu"* ]]; then
-sudo apt install python3-pip python3-venv python3-tk python3-pil python3-pil.imagetk
-sudo apt install libjpeg-dev zlib1g-dev tk-dev python3-rasterio || true
-fi
+sudo apt install python3-pip python3-venv python3-tk python3-pil python3-pil.imagetk || true
+sudo apt install libjpeg-dev zlib1g-dev tk-dev python3-rasterio libsqlite3-mod-spatialite || true
 
 echo "Setting user permissions for /dev/tty* devices..."
 sudo usermod -a -G dialout $USER
