@@ -18,9 +18,10 @@ Created on 27 Jan 2026
 import logging
 from time import time
 
+from pynmeagps import wnotow2utc
 from pyunigps import DEVICE, UNIMessage
 
-from pygpsclient.helpers import fix2desc, wnotow2utc
+from pygpsclient.helpers import fix2desc
 from pygpsclient.strings import NA
 
 SATSINFO_GNSSID = {
@@ -263,5 +264,7 @@ class UNIHandler:
             f"Unicore {DEVICE.get(data.device, data.device)}"
         )
         self.__app.gnss_status.version_data["swversion"] = data.swversion
-        self.__app.gnss_status.version_data["romversion"] = data.comptime
+        self.__app.gnss_status.version_data["fwversion"] = data.comptime
+        self.__app.gnss_status.version_data["romversion"] = NA
+        self.__app.gnss_status.version_data["gnss"] = NA
         self.__app.device_label = self.__app.gnss_status.version_data["hwversion"]

@@ -20,7 +20,7 @@ from time import time
 
 from pyubx2 import UBXMessage, itow2utc
 
-from pygpsclient.globals import GLONASS_NMEA, UTF8
+from pygpsclient.globals import BSR, GLONASS_NMEA, UTF8
 from pygpsclient.helpers import corrage2int, fix2desc, ned2vector, svid2gnssid
 from pygpsclient.strings import DLGTSERVER, DLGTSPARTN, DLGTUBX, NA
 from pygpsclient.widget_state import VISIBLE, WDGSIGNALS, WDGSPECTRUM, WDGSYSMON
@@ -150,17 +150,19 @@ class UBXHandler:
         fw_version = NA
         rom_version = NA
         gnss_supported = ""
-        model = ""
+        hw_version = ""
         sw_version = getattr(msg, "swVersion", b"N/A")
-        sw_version = sw_version.replace(b"\x00", b"").decode(UTF8)
+        sw_version = sw_version.decode(UTF8, errors=BSR).replace("\x00", "")
         sw_version = sw_version.replace("ROM CORE", "ROM")
         sw_version = sw_version.replace("EXT CORE", "Flash")
-        hw_version = getattr(msg, "hwVersion", b"N/A")
-        hw_version = hw_version.replace(b"\x00", b"").decode(UTF8)
 
         for i in range(9):
-            ext = getattr(msg, f"extension_{i+1:02d}", b"")
-            ext = ext.replace(b"\x00", b"").decode(UTF8)
+            ext = (
+                getattr(msg, f"extension_{i+1:02d}", b"")
+                .decode(UTF8, errors=BSR)
+                .replace("\x00", "")
+            )
+            # ext = ext.replace(b"\x00", b"")
             exts.append(ext)
             if "FWVER=" in exts[i]:
                 fw_version = exts[i].replace("FWVER=", "")
@@ -169,7 +171,7 @@ class UBXHandler:
             if "PROTVER " in exts[i]:
                 rom_version = exts[i].replace("PROTVER ", "")
             if "MOD=" in exts[i]:
-                model = exts[i].replace("MOD=", "")
+                hw_version = exts[i].replace("MOD=", "")
             for gnss in (
                 "GPS",
                 "GLO",
@@ -182,11 +184,13 @@ class UBXHandler:
             ):
                 if gnss in exts[i]:
                     gnss_supported = gnss_supported + gnss + " "
-        if model == "":
-            model = UBXMODELS.get(hw_version, "")
-        if model != "":
-            model += " "
-        hw_version = f"{model}{hw_version}"
+        if hw_version == "":
+            hw_version = (
+                getattr(msg, "hwVersion", b"N/A")
+                .decode(UTF8, errors=BSR)
+                .replace("\x00", "")
+            )
+        hw_version = f"u-blox {UBXMODELS.get(hw_version, hw_version)}"
 
         self.__app.gnss_status.version_data["swversion"] = sw_version
         self.__app.gnss_status.version_data["hwversion"] = hw_version
@@ -196,8 +200,8 @@ class UBXHandler:
 
         if self.__app.dialog(DLGTUBX) is not None:
             self.__app.dialog(DLGTUBX).update_pending(msg)
-        device = self.__app.gnss_status.version_data["hwversion"].rsplit(" ", 1)[0]
-        self.__app.device_label = f"u-blox {device}"
+        # device = self.__app.gnss_status.version_data["hwversion"].rsplit(" ", 1)[0]
+        self.__app.device_label = self.__app.gnss_status.version_data["hwversion"]
 
     def _process_MON_SYS(self, data: UBXMessage):
         """

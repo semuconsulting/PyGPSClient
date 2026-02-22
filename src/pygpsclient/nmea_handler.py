@@ -304,14 +304,18 @@ class NMEAHandler:
         :param pynmeagps.NMEAMessage data: parsed TXT sentence
         """
 
+        hw_version = ""
         if (
             "HW " in data.text
             and self.__app.gnss_status.version_data["hwversion"] == NA
         ):
-            mfr = "U-blox " if "UBX" in data.text else ""
-            self.__app.gnss_status.version_data["hwversion"] = data.text[3:]
-            ver = self.__app.gnss_status.version_data["hwversion"].rsplit(" ", 1)[0]
-            self.__app.device_label = f"{mfr}{ver}"
+            hw_version = data.text.split(" ")
+            for hw in hw_version:
+                if hw not in ("HW", " ", ""):
+                    hw_version = hw.replace("UBX-", "u-blox ")
+                    break
+            self.__app.gnss_status.version_data["hwversion"] = hw_version
+            self.__app.device_label = self.__app.gnss_status.version_data["hwversion"]
         elif (
             "ROM CORE " in data.text
             and self.__app.gnss_status.version_data["fwversion"] == NA
@@ -399,16 +403,17 @@ class NMEAHandler:
         :param pynmeagps.NMEAMessage data: parsed QTMVERNO sentence
         """
 
-        verdata = {}
-        verdata["swversion"] = "N/A"
-        verdata["hwversion"] = f"Quectel {data.verstr}"
-        verdata["fwversion"] = f"{data.builddate}-{data.buildtime}"
-        verdata["romversion"] = "N/A"
-        self.__app.gnss_status.version_data = verdata
+        self.__app.gnss_status.version_data["swversion"] = "N/A"
+        self.__app.gnss_status.version_data["hwversion"] = f"Quectel {data.verstr}"
+        self.__app.gnss_status.version_data["fwversion"] = (
+            f"{data.builddate}-{data.buildtime}"
+        )
+        self.__app.gnss_status.version_data["romversion"] = NA
+        self.__app.gnss_status.version_data["gnss"] = NA
 
         if self.__app.dialog(DLGTNMEA) is not None:
             self.__app.dialog(DLGTNMEA).update_pending(data)
-        self.__app.device_label = verdata["hwversion"]
+        self.__app.device_label = self.__app.gnss_status.version_data["hwversion"]
 
     def _process_QTMVER(self, data: NMEAMessage):
         """

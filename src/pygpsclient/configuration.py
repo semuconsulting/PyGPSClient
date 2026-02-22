@@ -53,12 +53,13 @@ from pygpsclient.globals import (
     SPARTN_OUTPORT,
     SPARTN_PPSERVER_URL,
     TRACK,
+    UBLOX_ZEDF9,
     UMM,
     WORLD,
-    ZED_F9,
 )
 from pygpsclient.init_presets import INIT_PRESETS
 from pygpsclient.mapquest_handler import MAP_UPDATE_INTERVAL
+from pygpsclient.serverconfig_dialog import BASE_SVIN
 from pygpsclient.spartn_lband_frame import D9S_PP_EU as D9S_PP
 from pygpsclient.strings import (
     LOADCONFIGBAD,
@@ -176,8 +177,8 @@ class Configuration:
             "sockportntrip_n": SOCKSERVER_NTRIP_PORT,
             "sockmode_b": 0,
             "sockhttps_b": 0,
-            "ntripcasterbasemode_s": "SURVEY IN",
-            "ntripcasterrcvrtype_s": ZED_F9,
+            "ntripcasterbasemode_s": BASE_SVIN,
+            "ntripcasterrcvrtype_s": UBLOX_ZEDF9,
             "ntripcasteracclimit_f": 100.0,
             "ntripcasterduration_n": 60,
             "ntripcasterposmode_s": "LLH",

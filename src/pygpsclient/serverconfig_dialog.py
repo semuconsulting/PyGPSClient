@@ -53,19 +53,20 @@ from pygpsclient.globals import (
     ICON_EXPAND,
     ICON_SEND,
     INFOCOL,
-    LCSERIES,
-    LGSERIES,
-    MOSAIC_X5,
     OKCOL,
+    QUECTEL_LCSERIES,
+    QUECTEL_LGSERIES,
     READONLY,
+    RTCMSTR,
+    SEPTENTRIO_MOSAIC,
     SERVERCONFIG,
     TRACEMODE_WRITE,
-    UM980,
+    UBLOX_ZEDF9,
+    UBLOX_ZEDX20,
+    UNICORE_UM980,
     VALFLOAT,
     VALINT,
     VALNONBLANK,
-    ZED_F9,
-    ZED_X20,
 )
 from pygpsclient.helpers import (
     MAXPORT,
@@ -73,19 +74,19 @@ from pygpsclient.helpers import (
     publicip,
 )
 from pygpsclient.receiver_config_handler import (
-    config_disable_lc29h,
-    config_disable_lg290p,
+    config_disable_quectel_lcseries,
+    config_disable_quectel_lgseries,
     config_disable_septentrio,
     config_disable_ublox,
     config_disable_unicore,
-    config_fixed_lc29h,
-    config_fixed_lg290p,
+    config_fixed_quectel_lcseries,
+    config_fixed_quectel_lgseries,
     config_fixed_septentrio,
     config_fixed_ublox,
     config_fixed_unicore,
-    config_svin_lc29h,
-    config_svin_lg290p,
     config_svin_quectel,
+    config_svin_quectel_lcseries,
+    config_svin_quectel_lgseries,
     config_svin_septentrio,
     config_svin_ublox,
     config_svin_unicore,
@@ -105,6 +106,7 @@ from pygpsclient.strings import (
     LBLSOCKSERVE,
     QUECTELRST1,
     QUECTELRST2,
+    SEPTENTRIOSVIN,
     SVINERR,
     SVINOK,
     SVINSTART,
@@ -131,11 +133,18 @@ ACCURACIES = (
     20.0,
 )
 
-BASE_DISABLED = "DISABLED"
-BASE_FIXED = "FIXED"
-BASE_SVIN = "SURVEY IN"
+BASE_DISABLED = "ROVER"
+BASE_FIXED = "BASE FIXED"
+BASE_SVIN = "BASE SVIN"
 BASEMODES = (BASE_SVIN, BASE_DISABLED, BASE_FIXED)
-RTKDEVICES = (ZED_F9, UM980, LGSERIES, LCSERIES, MOSAIC_X5, ZED_X20)
+RTKDEVICES = (
+    UBLOX_ZEDF9,
+    UNICORE_UM980,
+    QUECTEL_LGSERIES,
+    QUECTEL_LCSERIES,
+    SEPTENTRIO_MOSAIC,
+    UBLOX_ZEDX20,
+)
 DURATIONS = (60, 1200, 600, 300, 240, 180, 120, 90)
 MAXSVIN = 15
 POS_ECEF = "ECEF"
@@ -308,7 +317,7 @@ class ServerConfigDialog(ToplevelDialog):
         self._spn_rcvrtype = Spinbox(
             self._frm_advanced,
             values=RTKDEVICES,
-            width=18,
+            width=20,
             state=READONLY,
             wrap=True,
             textvariable=self.receiver_type,
@@ -321,7 +330,7 @@ class ServerConfigDialog(ToplevelDialog):
         self._spn_basemode = Spinbox(
             self._frm_advanced,
             values=BASEMODES,
-            width=10,
+            width=12,
             state=READONLY,
             wrap=True,
             textvariable=self.base_mode,
@@ -446,9 +455,27 @@ class ServerConfigDialog(ToplevelDialog):
         self._set_controls()
         self.sock_mode.set(SOCKMODES[cfg.get("sockmode_b")])
         self._on_toggle_advanced()
-        self.base_mode.set(cfg.get("ntripcasterbasemode_s"))
+        basemode = cfg.get("ntripcasterbasemode_s")
+        if basemode == "DISABLED":  # legacy settings
+            basemode = BASE_DISABLED
+        elif basemode == "FIXED":
+            basemode = BASE_FIXED
+        elif basemode == "SURVEY IN":
+            basemode = BASE_SVIN
+        self.base_mode.set(basemode)
+        cfg.set("ntripcasterbasemode_s", basemode)
         self._on_update_basemode(None, None, TRACEMODE_WRITE)
-        self.receiver_type.set(cfg.get("ntripcasterrcvrtype_s"))
+        receiver_type = cfg.get("ntripcasterrcvrtype_s")
+        if receiver_type == "Quectel LC29H":  # legacy settings
+            receiver_type = "Quectel LC Series"
+        elif receiver_type == "Quectel LG29P/LG580P":
+            receiver_type = "Quectel LG Series"
+        elif receiver_type == "Unicore UM98n":
+            receiver_type = "Unicore UM9* Series"
+        elif receiver_type == "Septentrio Mosaic X3/X5":
+            receiver_type = "Septentrio Mosaic Series"
+        self.receiver_type.set(receiver_type)
+        cfg.set("ntripcasterrcvrtype_s", receiver_type)
         self.acclimit.set(cfg.get("ntripcasteracclimit_f"))
         self.duration.set(cfg.get("ntripcasterduration_n"))
         self.pos_mode.set(cfg.get("ntripcasterposmode_s"))
@@ -574,6 +601,7 @@ class ServerConfigDialog(ToplevelDialog):
         """
         Action when socket server is started or stopped.
         """
+        # pylint: disable=line-too-long
 
         if self.valid_settings():
             self.status_label = ("", INFOCOL)
@@ -581,9 +609,24 @@ class ServerConfigDialog(ToplevelDialog):
             self.status_label = ("ERROR - invalid entry", ERRCOL)
             return
 
+        # different receiver models support different RTCM3 output message cohorts
+        if self.receiver_type.get() in (UBLOX_ZEDF9, UBLOX_ZEDX20):
+            ntriprtcmstr = (
+                "1002(5),1006(5),1010(5),1077(1),1087(1),1097(1),1127(1),1230(1)"
+            )
+        elif self.receiver_type.get() == UNICORE_UM980:
+            ntriprtcmstr = "1002(10),1006(10),1012(10),1019(10),1020(10),1033(10),1074(1),1084(1),1094(1),1124(1)"
+        elif self.receiver_type.get() == QUECTEL_LCSERIES:
+            ntriprtcmstr = "1005(10),1012(10),1019(10),1020(10),1033(10),1042(10),1046(10),1077(1),1087(1),1097(1),1127(1)"
+        elif self.receiver_type.get() == QUECTEL_LGSERIES:
+            ntriprtcmstr = "1005(10),1012(10),1019(10),1020(10),1033(10),1077(1),1087(1),1097(1),1127(1),1137(1)"
+        elif self.receiver_type.get() == SEPTENTRIO_MOSAIC:
+            ntriprtcmstr = "1006(5),1013(5),1019(5),1020(5),1033(5),1077(1),1087(1),1097(1),1127(1),1230(1)"
+        else:
+            ntriprtcmstr = RTCMSTR
         if self._socket_serve.get():
             # start server
-            self.__app.sockserver_start()
+            self.__app.sockserver_start(ntriprtcmstr)
             self._fixed_lat_temp = self.fixedlat.get()
             self._fixed_lon_temp = self.fixedlon.get()
             self._fixed_hae_temp = self.fixedhae.get()
@@ -686,7 +729,12 @@ class ServerConfigDialog(ToplevelDialog):
         for i, cmd in enumerate(cmds):
             self.__app.send_to_device(cmd, pause=CMDPAUSE * i)
 
-        if self.receiver_type.get() == LGSERIES:
+        if (
+            self.receiver_type.get() == SEPTENTRIO_MOSAIC
+            and self.base_mode == BASE_SVIN
+        ):
+            self.status_label = SEPTENTRIOSVIN  # receiver surveying message
+        if self.receiver_type.get() == QUECTEL_LGSERIES:
             self.status_label = QUECTELRST1  # receiver will restart message
             # poll for confirmation that rcvr has restarted,
             # then resend configuration commands a 2nd time
@@ -871,12 +919,16 @@ class ServerConfigDialog(ToplevelDialog):
         Set field visibility depending on base mode.
         """
 
+        self.status_label = ""
         if self.base_mode.get() == BASE_SVIN:
+            self.disable_nmea.set(True)
             self._on_update_basemode_svin()
         elif self.base_mode.get() == BASE_FIXED:
+            self.disable_nmea.set(True)
             self._on_update_basemode_fixed()
-        else:  # Disabled
+        else:  # ROVER
             self._on_update_basemode_disabled()
+            self.disable_nmea.set(False)
         self.__app.configuration.set("ntripcasterbasemode_s", self.base_mode.get())
 
     def _on_update_basemode_svin(self):
@@ -1005,13 +1057,13 @@ class ServerConfigDialog(ToplevelDialog):
         :rtype: UBXMessage or list
         """
 
-        if self.receiver_type.get() == LGSERIES:
-            return config_disable_lg290p(disablenmea)
-        if self.receiver_type.get() == LCSERIES:
-            return config_disable_lc29h(disablenmea)
-        if self.receiver_type.get() == MOSAIC_X5:
+        if self.receiver_type.get() == QUECTEL_LGSERIES:
+            return config_disable_quectel_lgseries(disablenmea)
+        if self.receiver_type.get() == QUECTEL_LCSERIES:
+            return config_disable_quectel_lcseries(disablenmea)
+        if self.receiver_type.get() == SEPTENTRIO_MOSAIC:
             return config_disable_septentrio(disablenmea)
-        if self.receiver_type.get() == UM980:
+        if self.receiver_type.get() == UNICORE_UM980:
             return config_disable_unicore(disablenmea)
         return config_disable_ublox(disablenmea)
 
@@ -1028,13 +1080,13 @@ class ServerConfigDialog(ToplevelDialog):
         :rtype: UBXMessage or list
         """
 
-        if self.receiver_type.get() == LGSERIES:
-            return config_svin_lg290p(acc_limit, svin_min_dur, disablenmea)
-        if self.receiver_type.get() == LCSERIES:
-            return config_svin_lc29h(acc_limit, svin_min_dur, disablenmea)
-        if self.receiver_type.get() == MOSAIC_X5:
+        if self.receiver_type.get() == QUECTEL_LGSERIES:
+            return config_svin_quectel_lgseries(acc_limit, svin_min_dur, disablenmea)
+        if self.receiver_type.get() == QUECTEL_LCSERIES:
+            return config_svin_quectel_lcseries(acc_limit, svin_min_dur, disablenmea)
+        if self.receiver_type.get() == SEPTENTRIO_MOSAIC:
             return config_svin_septentrio(acc_limit, svin_min_dur, disablenmea)
-        if self.receiver_type.get() == UM980:
+        if self.receiver_type.get() == UNICORE_UM980:
             return config_svin_unicore(acc_limit, svin_min_dur, disablenmea)
         return config_svin_ublox(acc_limit, svin_min_dur, disablenmea)
 
@@ -1060,17 +1112,19 @@ class ServerConfigDialog(ToplevelDialog):
         :rtype: UBXMessage or list
         """
 
-        if self.receiver_type.get() == LGSERIES:
-            return config_fixed_lg290p(
+        if self.receiver_type.get() == QUECTEL_LGSERIES:
+            return config_fixed_quectel_lgseries(
                 acc_limit, lat, lon, height, posmode, disablenmea
             )
-        if self.receiver_type.get() == LCSERIES:
-            return config_fixed_lc29h(acc_limit, lat, lon, height, posmode, disablenmea)
-        if self.receiver_type.get() == MOSAIC_X5:
+        if self.receiver_type.get() == QUECTEL_LCSERIES:
+            return config_fixed_quectel_lcseries(
+                acc_limit, lat, lon, height, posmode, disablenmea
+            )
+        if self.receiver_type.get() == SEPTENTRIO_MOSAIC:
             return config_fixed_septentrio(
                 acc_limit, lat, lon, height, posmode, disablenmea
             )
-        if self.receiver_type.get() == UM980:
+        if self.receiver_type.get() == UNICORE_UM980:
             return config_fixed_unicore(
                 acc_limit, lat, lon, height, posmode, disablenmea
             )
@@ -1176,6 +1230,7 @@ class ServerConfigDialog(ToplevelDialog):
         """
 
         if self.base_mode.get() in (BASE_FIXED, BASE_SVIN):
+            self.status_label = ""
             if self.pos_mode.get() == POS_ECEF:
                 self.fixedlat.set(self.__app.gnss_status.base_ecefx)
                 self.fixedlon.set(self.__app.gnss_status.base_ecefy)

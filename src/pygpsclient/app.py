@@ -70,11 +70,12 @@ from serial import SerialException, SerialTimeoutException
 from pygpsclient._version import __version__ as VERSION
 from pygpsclient.banner_frame import BannerFrame
 from pygpsclient.configuration import Configuration
-from pygpsclient.dialog_state import DialogState
+from pygpsclient.dialog_state import DLGTNMEA, DLGTTTY, DLGTUBX, DialogState
 from pygpsclient.file_handler import FileHandler
 from pygpsclient.globals import (
     BGCOL,
     CLASS,
+    CMDINITDELAY,
     CMDPAUSE,
     CONFIGFILE,
     CONNECTED_NTRIP,
@@ -94,6 +95,7 @@ from pygpsclient.globals import (
     NOPORTS,
     NTRIP_EVENT,
     OKCOL,
+    RTCMSTR,
     SOCKSERVER_MAX_CLIENTS,
     SPARTN_EVENT,
     SPARTN_PROTOCOL,
@@ -231,6 +233,7 @@ class App(Frame):
         self._recorded_commands = []  # captured by RecorderDialog
         self.recording = False  # RecordDialog status
         self.recording_type = 0  # 0 = TTY ONLY, 1 = UBX/NMEA
+        self.ntriprtcmstr = RTCMSTR
 
         # open database if database recording enabled
         dbpath = self.configuration.get("databasepath_s")
@@ -604,9 +607,11 @@ class App(Frame):
 
         return self.dialog_state.state[dlg][DLG]
 
-    def sockserver_start(self):
+    def sockserver_start(self, ntriprtcmstr: str = RTCMSTR):
         """
         Start socket server thread.
+
+        :param str ntriprtcmstr: source table string indicating RTCM3 types and intervals
         """
 
         cfg = self.configuration
@@ -620,7 +625,6 @@ class App(Frame):
         ntripuser = cfg.get("ntripcasteruser_s")
         ntrippassword = cfg.get("ntripcasterpassword_s")
         tlspempath = cfg.get("tlspempath_s")
-        ntriprtcmstr = "1002(1),1006(5),1077(1),1087(1),1097(1),1127(1),1230(1)"
         self._socket_thread = Thread(
             target=self._sockserver_thread,
             args=(
@@ -1037,16 +1041,18 @@ class App(Frame):
             msgs.append(UBXMessage("MON", "MON-VER", POLL).serialize())
         if protocol & SBF_PROTOCOL:
             msgs.append(b"SSSSSSSSSS\r\n")
-            msgs.append(b"esoc,COM1,ReceiverSetup\r\n")
+            msgs.append(b"exeSBFOnce, COM1, ReceiverSetup\r\n")
         if protocol & UNI_PROTOCOL:
             msgs.append(b"VERSIONB\r\n")
         if protocol & NMEA_PROTOCOL:
             msgs.append(NMEAMessage("P", "QTMVERNO", POLL).serialize())
 
-        # pause for 1 second before sending first command to allow connection to stabilise
+        # pause for n seconds before sending first command to allow connection to stabilise
         # allow a small interval between individual commands to allow receiver time to process
         self.send_to_device(
-            msgs, pause=1000, interval=self.configuration.get("ttydelay_b") * CMDPAUSE
+            msgs,
+            pause=CMDINITDELAY,
+            interval=self.configuration.get("ttydelay_b") * CMDPAUSE,
         )
 
     @property
@@ -1129,6 +1135,12 @@ class App(Frame):
                 {"text": device, "fg": color},
             )
             self.update_idletasks()
+
+        # update configuration panels
+        for dlg in (DLGTTTY, DLGTUBX, DLGTNMEA):
+            if self.dialog(dlg) is not None:
+                if hasattr(self.dialog(dlg), "frm_device_info"):
+                    self.dialog(dlg).frm_device_info.reset()
 
     @property
     def status_label(self) -> Label:

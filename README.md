@@ -9,7 +9,7 @@
 [TTY Commands](#ttycommands) |
 [Load/Save/Record Commands](#recorder) |
 [NTRIP Client](#ntripconfig) |
-[Socket Server / NTRIP Caster](#socketserver) |
+[NTRIP Caster/Socket Server](#socketserver) |
 [GPX Track Viewer](#gpxviewer) |
 [Mapquest API Key](#mapquestapi) |
 [User-defined Presets](#userdefined) |
@@ -108,7 +108,7 @@ For more comprehensive installation instructions, please refer to [INSTALLATION.
 3. To connect to a GNSS receiver via USB or UART port, select the device from the listbox, set the appropriate serial connection parameters and click 
 ![connect icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/usbport-1-24.png?raw=true). The application will endeavour to pre-select a recognised GNSS/GPS device but this is platform and device dependent. Press the ![refresh](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-refresh-6-16.png?raw=true) button to refresh the list of connected devices at any point. 
     - `Rate bps` (baud rate) is typically the only setting that might need adjusting, but tweaking the `timeout` setting may improve performance on certain platforms. 
-    - When the connection is first established, PyGPSClient will send various query messages (*one for each selected protocol*) to the receiver in an attempt to establish its model and firmware version. You may see a handful of 'unknown protocol' warnings in response to some of these queries - these can be disregarded. 
+    - When the connection is first established, PyGPSClient will poll various hardware information messages (*one for each selected protocol*) to the receiver in an attempt to establish its model and firmware version. You may see a handful of 'unknown protocol' warnings in response to some of these queries - these can be disregarded. **NB:** Some receivers will not output hardware information messages at low baud rates (<38,400).
     - If you get a permissions error on attempting to connect to a serial port e.g. `[Errno 13] permission denied /dev/ttyACM0`, refer to the [Installation Guidelines - User Privileges](https://github.com/semuconsulting/PyGPSClient/blob/master/INSTALLATION.md#user-privileges).
     - The `Msg Mode` parameter defaults to `GET` i.e., periodic or poll response messages *from* a receiver. If you wish to parse streams of command or poll messages being sent *to* a receiver, set the `Msg Mode` to `SET` or `POLL`. An optional serial or socket stream inactivity timeout can also be set (in seconds; 0 = no timeout).
 4. A custom user-defined serial port can also be passed via the json configuration file setting `"userport_s":`, via environment variable `PYGPSCLIENT_USERPORT` or as a command line argument `--userport`. A special userport value of "ubxsimulator" invokes the experimental [`pyubxutils.UBXSimulator`](https://github.com/semuconsulting/pyubxutils/blob/main/src/pyubxutils/ubxsimulator.py) utility to emulate a GNSS NMEA/UBX serial stream. 
@@ -212,7 +212,7 @@ For more comprehensive installation instructions, please refer to [INSTALLATION.
 
 The UBX Configuration Dialog currently provides the following UBX configuration panels:
 
-1. Version panel shows current device hardware/firmware versions (*via MON-VER and MON-HW polls*).
+1. Version panel shows current device hardware/firmware versions (*Double-left-click to refresh*).
 1. Protocol Configuration panel (CFG-PRT) sets baud rate and inbound/outbound protocols across all available ports (*legacy protocols only*).
 1. Solution Rate panel (CFG-RATE) sets navigation solution interval in ms (e.g. 1000 = 1/second) and measurement ratio (ratio between the number of measurements and the number of navigation solutions, e.g. 5 = five measurements per navigation solution) (*legacy protocols only*).
 1. For each of the panels above, clicking anywhere in the panel background will refresh the displayed information with the current configuration.
@@ -240,7 +240,7 @@ warning ![warning icon](https://github.com/semuconsulting/PyGPSClient/blob/maste
 **Instructions:**
 
 The NMEA Configuration Dialog currently provides the following NMEA configuration panels:
-1. Version panel shows current device hardware/firmware versions (*via PQTMVERNO polls*).
+1. Version panel shows current device hardware/firmware versions (*Double-left-click to refresh*).
 1. Dynamic configuration panel providing structured updates for supported receivers e.g. Quectel LGSERIES via PQTM* sentences, or LCSERIES via PAIR* sentences. Once a command is selected, the configuration is polled and the current values displayed. The user can then amend these values as required and send the updated configuration. Some polls require input arguments (e.g. portid or msgname) - these are highlighted and will be set at default values initially (e.g. portid = 1), but can be amended by the user and re-polled using the ![refresh](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-refresh-lined-24.png?raw=true) button.
 1. Preset Commands widget supports a variety of user-defined NMEA commands and queries - see [user defined presets](#userdefined).
 
@@ -256,6 +256,8 @@ warning ![warning icon](https://github.com/semuconsulting/PyGPSClient/blob/maste
 ## <a name="ttycommands">TTY Configuration Facilities</a>
 
 ![ttydialog screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/tty_dialog.png?raw=true)
+
+Version panel shows current device hardware/firmware versions (*Double-left-click to refresh*).
 
 The TTY Commands dialog provides a facility to send user-defined ASCII TTY configuration commands (e.g. `AT+` style commands) to the connected serial device. Commands can be entered manually or selected from a list of user-defined presets. The dialog can be accessed via the TTY Config button or Menu..Options..TTY Commands. 
 - CRLF checkbox - if ticked, a CRLF (`b"\x0d\x0a"`) terminator will be added to the command string. 
@@ -356,27 +358,38 @@ By default, the server/caster binds to the host address '0.0.0.0' (IPv4) or '::'
 
 1. Select NTRIP CASTER mode and (if necessary) enter the host IP address and port.
 1. Select 'TLS' to enable an encrypted TLS (HTTPS) connection.
-1. An additional expandable panel is made available to allow the user to configure a connected RTK-compatible receiver to operate in either `FIXED` or `SURVEY-IN` Base Station mode (*NB: parameters can only be amended while the caster is stopped*).
+1. An additional expandable panel is made available to allow the user to configure a connected RTK-compatible receiver to operate in either `BASE FIXED`, `BASE SVIN` (Survey In) or `ROVER` mode (*NB: parameters can only be amended while the caster is stopped*).
 1. Select the receiver type and click the Send button to send the appropriate configuration commands to the receiver. 
-1. **NB** Septentrio Mosaic X5 or Unicore UM980: These receivers are configured via ASCII TTY commands - to monitor the command responses, set the console protocol to "TTY" (*remember to set it back to RTCM when monitoring the RTCM3 output*). Note also that the input (ASCII command) UART port may be different to the output (RTCM3) UART port - make sure to select the appropriate port(s) when configuring the device and monitoring the RTCM3 output.
-1. NMEA messages can be suppressed by checking 'Disable NMEA'.
+1. **Where supported by the receiver**, NMEA messages can be suppressed by checking 'Disable NMEA'.
 1. NTRIP client login credentials are set via the user and password fields. 
 1. Check the Socket Server/NTRIP Caster checkbox to activate the caster.
 1. To stop the caster, uncheck the checkbox.
 
 ### <a name="basestation">Base Station Configuration</a>
 
-**NB:** Some receivers (*e.g. Quectel LG Series*) will require one or more restarts to enable or disable Base Station mode.
+The current version of PyGPSClient supports 'one click' base station configuration for the following receiver types:
+1. u-blox - any modern u-blox RTK model (e.g. XED-F9P, ZED-X20P) configured by binary UBX CFG-VALSET commands.
+1. Septentrio - most Septentrio Mosaic series (e.g. Mosaic X5) configured by ASCII TTY commands.
+1. Unicore - most UM9* series (e.g. UM981S) configured by ASCII TTY commands.
+1. Quectel LG Series - most LG series (e.g. LG290, LG580) configured by NMEA PQTM commands.
+1. Quectel LC Series - most LC series (e.g. LC29H) configured by NMEA PAIR commands.
+
+**NOTE:** 
+1. Some receivers (*e.g. Quectel LG Series*) will require one or more restarts to enable or disable Base Station mode. This may take several seconds.
+1. Different receiver models support different RTCM3 message cohorts, as indicated by the pygnssutils sourcetable entry e.g. `1006(5),1013(5),1019(5),1020(5),1033(5),1077(1),1087(1),1097(1),1127(1),1230(1)`
+1. To monitor ASCII TTY command responses, set the console protocol to "TTY" (*remember to set it back to RTCM when monitoring the RTCM3 output*). Note also that the input (ASCII command) UART port may be different to the output (RTCM3) UART port - make sure to select the appropriate port(s) when configuring the device and monitoring the RTCM3 output.
 
 | Configuration Settings | Base Station Mode    |
 |------------------------------------------------------|---------------------------------------------------------|
-| ![basestation config](https://github.com/semuconsulting/PyGPSClient/blob/master/images/basestation_fixed.png?raw=true) | **FIXED**. In this mode, the known base station coordinates (*Antenna Reference Point or ARP*) are specified in either LLH or ECEF (X,Y,Z) format. The coordinates are pre-populated with the receiver's current navigation solution (if available), but these can (and normally should) be overridden with accurately surveyed values. If the coordinates are accepted, the Fix status will change to `TIME ONLY` and the receiver will start outputting RTCM `1005` or `1006` (*Antenna Reference Point or ARP*) messages containing the base station location in ECEF (X,Y,Z) format. |
-| ![basestation config](https://github.com/semuconsulting/PyGPSClient/blob/master/images/basestation_svin.png?raw=true)  | **SURVEY-IN  (SVIN)**. In this mode, the base station coordinates are derived from a series of observations made by the receiver over a specified survey duration. The minimum duration is 60 seconds, but a longer survey may yield more accurate results. **Where supported by the receiver** in the form of SVIN status messages, survey progress can be monitored via a progress bar. If the survey is successful (*i.e. the requisite level of accuracy is achieved within the specified survey duration*), the Fix status will change to `TIME ONLY` and the receiver will start outputting RTCM `1005` or `1006` messages containing the base station location in ECEF (X,Y,Z) format. The surveyed base station location will be updated from the position provided by these RTCM `1005` or `1006` messages.|
-| ![basestation config](https://github.com/semuconsulting/PyGPSClient/blob/master/images/basestation_off.png?raw=true)  | **DISABLED**. Disable base station and resume standard (Rover) operation. |
+| ![basestation config](https://github.com/semuconsulting/PyGPSClient/blob/master/images/basestation_fixed.png?raw=true) | **BASE FIXED**. In this mode, the known base station coordinates (*Antenna Reference Point or ARP*) are specified in either LLH or ECEF (X,Y,Z) format. The coordinates are pre-populated with the receiver's current navigation solution (if available), but these can (and normally should) be overridden with accurately surveyed values. If the coordinates are accepted, the receiver will start outputting RTCM `1005` or `1006` (*Antenna Reference Point or ARP*) messages containing the base station location in ECEF (X,Y,Z) format. |
+| ![basestation config](https://github.com/semuconsulting/PyGPSClient/blob/master/images/basestation_svin.png?raw=true)  | **BASE SVIN  (Survey In)**. In this mode, the base station coordinates are derived from a series of observations made by the receiver over a specified survey duration. The minimum duration is 60 seconds, but a longer survey may yield more accurate results. **Where supported by the receiver¹** in the form of SVIN status messages, survey progress can be monitored via a progress bar. If the survey is successful (*i.e. the requisite level of accuracy is achieved within the specified survey duration*), the receiver will start outputting RTCM `1005` or `1006` messages containing the base station location in ECEF (X,Y,Z) format. The surveyed base station location will be updated from the position provided by these RTCM `1005` or `1006` messages.|
+| ![basestation config](https://github.com/semuconsulting/PyGPSClient/blob/master/images/basestation_off.png?raw=true)  | **ROVER**. Disable base station and resume standard Rover operation. |
 
 **NB:** To operate effectively as an RTK Base Station, antenna positioning is of paramount importance. Refer to the following links for advice:
 - [u-blox GNSS Antennas Paper](https://www.ardusimple.com/wp-content/uploads/2022/04/GNSS-Antennas_AppNote_UBX-15030289.pdf)
 - [Ardusimple GNSS Antenna Installation Guide](https://www.ardusimple.com/gps-gnss-antenna-installation-guide/)
+
+¹ Unicore and Septentrio devices do not appear to support an SVIN status output message, so Survey-in % completion is not available.
 
 ---
 ## <a name="spartnconfig">SPARTN Client Facilities</a>

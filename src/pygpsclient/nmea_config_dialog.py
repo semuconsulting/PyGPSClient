@@ -68,9 +68,11 @@ class NMEAConfigDialog(ToplevelDialog):
         """
 
         # add configuration widgets
-        self._frm_device_info = Hardware_Info_Frame(self.__app, self, protocol="NMEA")
+        self.frm_device_info = Hardware_Info_Frame(
+            self.__app, self, protocol="NMEA", borderwidth=2, relief="groove"
+        )
         self._frm_config_dynamic = Dynamic_Config_Frame(
-            self.__app, self, protocol="NMEA"
+            self.__app, self, protocol="NMEA", borderwidth=2, relief="groove"
         )
         self._frm_preset = NMEA_PRESET_Frame(
             self.__app,
@@ -88,7 +90,7 @@ class NMEAConfigDialog(ToplevelDialog):
         col = 0
         row = 0
         # left column of grid
-        for frm in (self._frm_device_info, self._frm_preset):
+        for frm in (self.frm_device_info, self._frm_preset):
             colsp, rowsp = frm.grid_size()
             frm.grid(
                 column=col,
@@ -118,7 +120,7 @@ class NMEAConfigDialog(ToplevelDialog):
         """
 
         self._frm_config_dynamic.reset()
-        self._frm_device_info.reset()
+        self.frm_device_info.reset()
         if self.__app.conn_status not in (
             CONNECTED,
             CONNECTED_SOCKET,
@@ -156,7 +158,7 @@ class NMEAConfigDialog(ToplevelDialog):
 
         if nmeafrm is not None:
             if nmeafrm == NMEA_MONHW:
-                self._frm_device_info.update_status(msg)
+                self.frm_device_info.reset()
             elif nmeafrm == NMEA_PRESET:
                 self._frm_preset.update_status(msg)
             elif nmeafrm == NMEA_CFGOTHER:

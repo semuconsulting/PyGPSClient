@@ -118,14 +118,18 @@ class SBFHandler:
         :param SBFMessage data: ReceiverSetup message
         """
 
-        verdata = {}
         hwver = data.ProductName.decode(ASCII, errors=BSR).replace("\x00", "")
-        verdata["hwversion"] = f"Septentrio {hwver}"
-        verdata["fwversion"] = data.RxVersion.decode(ASCII, errors=BSR).replace(
-            "\x00", ""
+        self.__app.gnss_status.version_data["hwversion"] = f"Septentrio {hwver}"
+        self.__app.gnss_status.version_data["swversion"] = (
+            data.RxVersion.decode(ASCII, errors=BSR)
+            .replace("\x00", "")
+            .replace("Unknown", "")
         )
-        verdata["romversion"] = data.GNSSFWVersion.decode(ASCII, errors=BSR).replace(
-            "\x00", ""
+        self.__app.gnss_status.version_data["fwversion"] = (
+            data.GNSSFWVersion.decode(ASCII, errors=BSR)
+            .replace("\x00", "")
+            .replace("Unknown", "")
         )
-        self.__app.gnss_status.version_data = verdata
-        self.__app.device_label = verdata["hwversion"]
+        self.__app.gnss_status.version_data["romversion"] = NA
+        self.__app.gnss_status.version_data["gnss"] = NA
+        self.__app.device_label = self.__app.gnss_status.version_data["hwversion"]

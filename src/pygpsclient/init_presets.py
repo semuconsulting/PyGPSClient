@@ -77,6 +77,7 @@ INIT_PRESETS = {
         "Septentrio X5 Restore Factory Defaults CONFIRM; eccf, RxDefault, Boot",
         "Septentrio X5 Save Current Configuration to NVM CONFIRM; eccf, Current, Boot",
         "Septentrio X5 Soft Reset to Factory Defaults CONFIRM; erst, soft, config",
+        "Septentrio X5 Soft Reset CONFIRM; erst, soft, none",
         "Septentrio X5 Check Current Configuration File; lcf, Current",
         "Septentrio X5 Get Receiver Setup;esoc,COM1,ReceiverSetup",
         "Septentrio X5 List receiver capabilities; grc",
