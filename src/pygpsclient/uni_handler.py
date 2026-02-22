@@ -18,9 +18,10 @@ Created on 27 Jan 2026
 import logging
 from time import time
 
+from pynmeagps import wnotow2utc
 from pyunigps import DEVICE, UNIMessage
 
-from pygpsclient.helpers import fix2desc, wnotow2utc
+from pygpsclient.helpers import fix2desc
 from pygpsclient.strings import NA
 
 SATSINFO_GNSSID = {

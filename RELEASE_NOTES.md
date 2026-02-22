@@ -4,12 +4,13 @@
 
 FIXES:
 1. Fix `CFG-VALSET ACK-NAK` error when configuring ZED-X20P as base station.
-1. Fix `AttributeError: ... has no attribute frm_socketserver` error in Server Config panel when configuring Septentrio devices for SVIN.
+1. Fix `AttributeError: ... has no attribute frm_socketserver` error in Server Config panel when configuring certain devices for SVIN.
 
 ENHANCEMENTS:
-1. Improve base station receiver configuration dialog.
-1. Add connected device descriptor to status bar (e.g. "u-blox ZED-F9P", "Unicore UM981S", "Septentrio mosaic-X5" or "Quectel LG290AG03"). Note that some (mainly older) devices may not return a meaningful descriptor, in which case "N/A" will be displayed.
+1. Improve Base Station receiver configuration handling in the NTRIP Caster/Socket Server dialog, particularly for Septentrio Mosaic devices.
+1. Add connected device descriptor to status bar (e.g. "u-blox ZED-F9P", "Unicore UM981S", "Septentrio mosaic-X5" or "Quectel LG290AG03"). **FYI** This is based on a series of query messages (*one for each enabled protocol*) sent approximately 3 seconds after the connection is started (*you may see 'unknown protocol' warnings in response to some of these messages; these can be ignored)*. Failing this, a generic descriptor is displayed on receipt of a message protocol unique to a particular manufacturer (*e.g. "u-blox" on receipt of a UBX message, "Unicore" on receipt of a UNI message, etc.*). Note that some (mainly older) devices may not return a meaningful descriptor, in which case "N/A" will be displayed.
 1. Minor updates to serial port configuration panel (additional timeout values).
+1. Mininum pynmeagps version updated to v1.1.1.
 
 ### RELEASE 1.6.3
 

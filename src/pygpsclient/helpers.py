@@ -42,8 +42,9 @@ from types import NoneType
 from typing import Any, Literal
 
 from pygnssutils import version as PGVERSION
-from pynmeagps import WGS84_SMAJ_AXIS, NMEAMessage, haversine, leapsecond
+from pynmeagps import WGS84_SMAJ_AXIS, NMEAMessage, haversine
 from pynmeagps import version as NMEAVERSION
+from pynmeagps import wnotow2utc
 from pyqgc import version as QGCVERSION
 from pyrtcm import version as RTCMVERSION
 from pysbf2 import version as SBFVERSION
@@ -1445,29 +1446,6 @@ def valid_geom(geom: str) -> bool:
         return True
     regexgeom = re.compile(r"^([1-9][0-9]*)[x]([1-9][0-9]*)[+]-?\d*[+]-?\d*$")
     return regexgeom.match(geom) is not None
-
-
-def wnotow2utc(wno: int, tow: int, ls: int | NoneType = None) -> datetime:
-    """
-    Get UTC datetime from GPS Week number (wno), Time of Week (tow)
-    in milliseconds and leapsecond offset. If leapsecond is None, it
-    will default to the leapsecond offset applicable on the given date.
-
-    GPS Epoch 0 = 6th Jan 1980
-
-    :param int wno: week number
-    :param int tow: time of week in ms
-    :param int ls: leapsecond offset
-    :return: datetime
-    :rtype: datetime
-    """
-
-    utc = GPSEPOCH0 + timedelta(days=wno * 7)
-    utc += timedelta(milliseconds=tow)
-    if ls is None:
-        ls = leapsecond(utc.replace(tzinfo=None))
-    utc -= timedelta(seconds=ls)
-    return utc
 
 
 def xy2ll(width: int, height: int, bounds: Area, xy: tuple) -> Point | NoneType:

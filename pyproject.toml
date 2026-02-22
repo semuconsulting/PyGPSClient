@@ -54,6 +54,7 @@ dependencies = [
     "Pillow>=9.0.0",
     "pygnssutils>=1.1.22",
     "pyunigps>=0.2.0",
+    "pynmeagps>=1.1.1",
 ]
 
 [project.scripts]

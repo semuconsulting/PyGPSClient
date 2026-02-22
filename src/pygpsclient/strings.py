@@ -15,7 +15,7 @@ Created on 12 Sep 2020
 from pygpsclient.globals import GITHUB_URL, MAPAPI_URL
 
 TITLE = "PyGPSClient"
-COPYRIGHT = "\u00a9 2020 semuadmin (Steve Smith)\nBSD 3-Clause License"
+COPYRIGHT = "\u00a9 2020-2026 semuadmin (Steve Smith)\nBSD 3-Clause License"
 EPILOG = f"{COPYRIGHT} - {GITHUB_URL}"
 
 INTROTXT = f"Welcome to {TITLE}!"
@@ -75,6 +75,7 @@ SAVECONFIGBAD = "Configuration not saved {}"
 SAVECONFIGOK = "Configuration saved OK"
 SAVEERROR = "ERROR! File could not be saved to specified directory"
 SAVETITLE = "Select Directory"
+SEPTENTRIOSVIN = "Survey-in observations in progress..."
 SEROPENERROR = "Error opening serial port {}"
 SETINITTXT = "Settings initialised"
 STOPDATA = "Serial reader process stopped"

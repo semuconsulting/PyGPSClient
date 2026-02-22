@@ -75,6 +75,7 @@ from pygpsclient.file_handler import FileHandler
 from pygpsclient.globals import (
     BGCOL,
     CLASS,
+    CMDINITDELAY,
     CMDPAUSE,
     CONFIGFILE,
     CONNECTED_NTRIP,
@@ -1037,16 +1038,18 @@ class App(Frame):
             msgs.append(UBXMessage("MON", "MON-VER", POLL).serialize())
         if protocol & SBF_PROTOCOL:
             msgs.append(b"SSSSSSSSSS\r\n")
-            msgs.append(b"esoc,COM1,ReceiverSetup\r\n")
+            msgs.append(b"exeSBFOnce, COM1, ReceiverSetup\r\n")
         if protocol & UNI_PROTOCOL:
             msgs.append(b"VERSIONB\r\n")
         if protocol & NMEA_PROTOCOL:
             msgs.append(NMEAMessage("P", "QTMVERNO", POLL).serialize())
 
-        # pause for 1 second before sending first command to allow connection to stabilise
+        # pause for n seconds before sending first command to allow connection to stabilise
         # allow a small interval between individual commands to allow receiver time to process
         self.send_to_device(
-            msgs, pause=1000, interval=self.configuration.get("ttydelay_b") * CMDPAUSE
+            msgs,
+            pause=CMDINITDELAY,
+            interval=self.configuration.get("ttydelay_b") * CMDPAUSE,
         )
 
     @property

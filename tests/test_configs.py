@@ -15,18 +15,18 @@ Created on 3 Oct 2020
 import unittest
 
 from pygpsclient.receiver_config_handler import (
-    config_disable_lc29h,
-    config_disable_lg290p,
+    config_disable_quectel_lcseries,
+    config_disable_quectel_lgseries,
     config_disable_septentrio,
     config_disable_unicore,
     config_disable_ublox,
-    config_fixed_lc29h,
-    config_fixed_lg290p,
+    config_fixed_quectel_lcseries,
+    config_fixed_quectel_lgseries,
     config_fixed_septentrio,
     config_fixed_unicore,
     config_fixed_ublox,
-    config_svin_lc29h,
-    config_svin_lg290p,
+    config_svin_quectel_lcseries,
+    config_svin_quectel_lgseries,
     config_svin_quectel,
     config_svin_septentrio,
     config_svin_unicore,
@@ -41,23 +41,23 @@ class ConfigsTest(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_config_disable_lc29h(self):
+    def test_config_disable_quectel_lcseries(self):
         # EXPECTED_RESULT = "[NMEAMessage('P','AIR062', 1, payload=['-1', '0']), NMEAMessage('P','AIR432', 1, payload=['-1']), NMEAMessage('P','AIR434', 1, payload=['0']), NMEAMessage('P','QTMSAVEPAR', 1, payload=[]), NMEAMessage('P','AIR005', 1, payload=[])]"
         EXPECTED_RESULT = [b'$PAIR062,-1,0*12\r\n', b'$PAIR432,-1*0F\r\n', b'$PAIR434,0*25\r\n', b'$PQTMSAVEPAR*5A\r\n', b'$PAIR005*3F\r\n']
-        res = config_disable_lc29h()
+        res = config_disable_quectel_lcseries()
         # print(res)
         self.assertEqual(res, EXPECTED_RESULT)
 
-    def test_config_disable_lg290p(self):
+    def test_config_disable_quectel_lgseries(self):
         # EXPECTED_RESULT = "[NMEAMessage('P','QTMCFGRCVRMODE', 1, payload=['W', '1']), NMEAMessage('P','QTMSAVEPAR', 1, payload=[]), NMEAMessage('P','QTMSRR', 1, payload=[])]"
         EXPECTED_RESULT = [b'$PQTMCFGRCVRMODE,W,1*2A\r\n', b'$PQTMSAVEPAR*5A\r\n', b'$PQTMSRR*4B\r\n']
-        res = config_disable_lg290p()
+        res = config_disable_quectel_lgseries()
         # print(res)
         self.assertEqual(res, EXPECTED_RESULT)
 
     def test_config_disable_septentrio(self):
         # EXPECTED_RESULT = "['SSSSSSSSSS\\r\\n', 'erst,soft,config\\r\\n']"
-        EXPECTED_RESULT = [b'SSSSSSSSSS\r\n', b'erst,soft,config\r\n']
+        EXPECTED_RESULT =  [b'SSSSSSSSSS\r\n', b'setPVTMode, Rover, all, auto\r\n', b'setRTCMv3Output, COM1, none\r\n', b'setDataInOut, COM1, auto, SBF+NMEA\r\n', b'setNMEAOutput, Stream1, COM1, GGA+GSA+GLL+RMC+VTG, sec1\r\n', b'setNMEAOutput, Stream2, COM1, GSV, sec5\r\n']
         res = config_disable_septentrio()
         # print(res)
         self.assertEqual(res, EXPECTED_RESULT)
@@ -76,23 +76,23 @@ class ConfigsTest(unittest.TestCase):
         # print(res)
         self.assertEqual(res, EXPECTED_RESULT)
 
-    def test_config_fixed_lc29h(self):
+    def test_config_fixed_quectel_lcseries(self):
         # EXPECTED_RESULT = "[NMEAMessage('P','AIR062', 1, payload=['0', '0']), NMEAMessage('P','AIR062', 1, payload=['1', '0']), NMEAMessage('P','AIR062', 1, payload=['2', '0']), NMEAMessage('P','AIR062', 1, payload=['3', '0']), NMEAMessage('P','AIR062', 1, payload=['4', '0']), NMEAMessage('P','AIR062', 1, payload=['5', '0']), NMEAMessage('P','AIR062', 1, payload=['6', '0']), NMEAMessage('P','AIR062', 1, payload=['7', '0']), NMEAMessage('P','AIR062', 1, payload=['8', '0']), NMEAMessage('P','AIR432', 1, payload=['1']), NMEAMessage('P','AIR434', 1, payload=['1']), NMEAMessage('P','QTMSAVEPAR', 1, payload=[]), NMEAMessage('P','AIR005', 1, payload=[])]"
         EXPECTED_RESULT = [b'$PAIR062,0,0*3E\r\n', b'$PAIR062,1,0*3F\r\n', b'$PAIR062,2,0*3C\r\n', b'$PAIR062,3,0*3D\r\n', b'$PAIR062,4,0*3A\r\n', b'$PAIR062,5,0*3B\r\n', b'$PAIR062,6,0*38\r\n', b'$PAIR062,7,0*39\r\n', b'$PAIR062,8,0*36\r\n', b'$PAIR432,1*22\r\n', b'$PAIR434,1*24\r\n', b'$PQTMSAVEPAR*5A\r\n', b'$PAIR005*3F\r\n']
-        res = config_fixed_lc29h(3000, 37.23345, -115.81513, 15.00, "LLH")
+        res = config_fixed_quectel_lcseries(3000, 37.23345, -115.81513, 15.00, "LLH")
         # print(res)
         self.assertEqual(res, EXPECTED_RESULT)
 
-    def test_config_fixed_lg290p(self):
+    def test_config_fixed_quectel_lgseries(self):
         # EXPECTED_RESULT = "[NMEAMessage('P','QTMCFGRCVRMODE', 1, payload=['W', '2']), NMEAMessage('P','QTMCFGRTCM', 1, payload=['W', '7', '0', '-90', '07', '06', '1', '0']), NMEAMessage('P','QTMCFGSVIN', 1, payload=['W', '2', '0', '30.0', '-2214085.0816407623', '-4576970.1248123', '3838061.656193887']), NMEAMessage('P','QTMSAVEPAR', 1, payload=[]), NMEAMessage('P','QTMSRR', 1, payload=[])]"
         EXPECTED_RESULT = [b'$PQTMCFGRCVRMODE,W,2*29\r\n', b'$PQTMCFGRTCM,W,7,0,-90,07,06,1,0*26\r\n', b'$PQTMCFGSVIN,W,2,0,30.0,-2214085.0816407623,-4576970.1248123,3838061.656193887*2E\r\n', b'$PQTMSAVEPAR*5A\r\n', b'$PQTMSRR*4B\r\n']
-        res = config_fixed_lg290p(3000, 37.23345, -115.81513, 15.00, "LLH")
+        res = config_fixed_quectel_lgseries(3000, 37.23345, -115.81513, 15.00, "LLH")
         # print(res)
         self.assertEqual(res, EXPECTED_RESULT)
 
     def test_config_fixed_septentrio(self):
         # EXPECTED_RESULT = "['SSSSSSSSSS\\r\\n', 'setDataInOut,COM1, ,RTCMv3\\r\\n', 'setRTCMv3Formatting,1234\\r\\n', 'setRTCMv3Output,COM1,RTCM1006+RTCM1033+RTCM1077+RTCM1087+RTCM1097+RTCM1107+RTCM1117+RTCM1127+RTCM1137+RTCM1230\\r\\n', 'setStaticPosGeodetic,Geodetic1,37.23345000,-115.81513000,15.0000\\r\\n', 'setPVTMode,Static, ,Geodetic1\\r\\n']"
-        EXPECTED_RESULT = [b'SSSSSSSSSS\r\n', b'setDataInOut,COM1, ,RTCMv3\r\n', b'setRTCMv3Formatting,1234\r\n', b'setRTCMv3Output,COM1,RTCM1006+RTCM1033+RTCM1077+RTCM1087+RTCM1097+RTCM1107+RTCM1117+RTCM1127+RTCM1137+RTCM1230\r\n', b'setStaticPosGeodetic,Geodetic1,37.23345000,-115.81513000,15.0000\r\n', b'setPVTMode,Static, ,Geodetic1\r\n']
+        EXPECTED_RESULT = [b'SSSSSSSSSS\r\n', b'setDataInOut, COM1, auto,RTCMv3+SBF\r\n', b'setRTCMv3Formatting, 1234\r\n', b'setRTCMv3Output, COM1, RTCM1006+RTCM1013+RTCM1019+RTCM1020+RTCM1033+MSM7+RTCM1230\r\n', b'setRTCMv3Interval, MSM7+RTCM1230, 1\r\n', b'setRTCMv3Interval, RTCM1005|6+RTCM1013+RTCM1019+RTCM1020+RTCM1033, 5\r\n', b'setPVTMode, Static, all, auto\r\n', b'setStaticPosGeodetic, Geodetic1, 37.23345000,-115.81513000,15.0000\r\n', b'setPVTMode,Static, ,Geodetic1\r\n']
         res = config_fixed_septentrio(3000, 37.23345, -115.81513, 15.00, "LLH")
         # print(res)
         self.assertEqual(res, EXPECTED_RESULT)
@@ -111,17 +111,17 @@ class ConfigsTest(unittest.TestCase):
         print(res)
         self.assertEqual(res, EXPECTED_RESULT)
 
-    def test_config_svin_lc29h(self):
+    def test_config_svin_quectel_lcseries(self):
         # EXPECTED_RESULT = "[NMEAMessage('P','AIR062', 1, payload=['0', '0']), NMEAMessage('P','AIR062', 1, payload=['1', '0']), NMEAMessage('P','AIR062', 1, payload=['2', '0']), NMEAMessage('P','AIR062', 1, payload=['3', '0']), NMEAMessage('P','AIR062', 1, payload=['4', '0']), NMEAMessage('P','AIR062', 1, payload=['5', '0']), NMEAMessage('P','AIR062', 1, payload=['6', '0']), NMEAMessage('P','AIR062', 1, payload=['7', '0']), NMEAMessage('P','AIR062', 1, payload=['8', '0']), NMEAMessage('P','AIR432', 1, payload=['1']), NMEAMessage('P','AIR434', 1, payload=['1']), NMEAMessage('P','QTMSAVEPAR', 1, payload=[]), NMEAMessage('P','AIR005', 1, payload=[])]"
         EXPECTED_RESULT = [b'$PAIR062,0,0*3E\r\n', b'$PAIR062,1,0*3F\r\n', b'$PAIR062,2,0*3C\r\n', b'$PAIR062,3,0*3D\r\n', b'$PAIR062,4,0*3A\r\n', b'$PAIR062,5,0*3B\r\n', b'$PAIR062,6,0*38\r\n', b'$PAIR062,7,0*39\r\n', b'$PAIR062,8,0*36\r\n', b'$PAIR432,1*22\r\n', b'$PAIR434,1*24\r\n', b'$PQTMSAVEPAR*5A\r\n', b'$PAIR005*3F\r\n']
-        res = config_svin_lc29h(3000, 60)
+        res = config_svin_quectel_lcseries(3000, 60)
         # print(res)
         self.assertEqual(res, EXPECTED_RESULT)
 
-    def test_config_svin_lg290p(self):
+    def test_config_svin_quectel_lgseries(self):
         # EXPECTED_RESULT = "[NMEAMessage('P','QTMCFGRCVRMODE', 1, payload=['W', '2']), NMEAMessage('P','QTMCFGRTCM', 1, payload=['W', '7', '0', '-90', '07', '06', '1', '0']), NMEAMessage('P','QTMCFGSVIN', 1, payload=['W', '1', '60', '30.0', '0.0', '0.0', '0.0']), NMEAMessage('P','QTMSAVEPAR', 1, payload=[]), NMEAMessage('P','QTMSRR', 1, payload=[])]"
         EXPECTED_RESULT = [b'$PQTMCFGRCVRMODE,W,2*29\r\n', b'$PQTMCFGRTCM,W,7,0,-90,07,06,1,0*26\r\n', b'$PQTMCFGSVIN,W,1,60,30.0,0.0,0.0,0.0*27\r\n', b'$PQTMSAVEPAR*5A\r\n', b'$PQTMSRR*4B\r\n']
-        res = config_svin_lg290p(3000, 60)
+        res = config_svin_quectel_lgseries(3000, 60)
         # print(res)
         self.assertEqual(res, EXPECTED_RESULT)
 
@@ -134,9 +134,9 @@ class ConfigsTest(unittest.TestCase):
 
     def test_config_svin_septentrio(self):
         # EXPECTED_RESULT = "['SSSSSSSSSS\\r\\n', 'setDataInOut, COM1, ,RTCMv3\\r\\n', 'setRTCMv3Formatting,1234\\r\\n', 'setRTCMv3Output,COM1,RTCM1006+RTCM1033+RTCM1077+RTCM1087+RTCM1097+RTCM1107+RTCM1117+RTCM1127+RTCM1137+RTCM1230\\r\\n', 'setPVTMode,Static, ,auto\\r\\n']"
-        EXPECTED_RESULT = [b'SSSSSSSSSS\r\n', b'setDataInOut, COM1, ,RTCMv3\r\n', b'setRTCMv3Formatting,1234\r\n', b'setRTCMv3Output,COM1,RTCM1006+RTCM1033+RTCM1077+RTCM1087+RTCM1097+RTCM1107+RTCM1117+RTCM1127+RTCM1137+RTCM1230\r\n', b'setPVTMode,Static, ,auto\r\n']
+        EXPECTED_RESULT = [b'SSSSSSSSSS\r\n', b'setDataInOut, COM1, auto, RTCMv3+SBF\r\n', b'setRTCMv3Formatting, 1234\r\n', b'setRTCMv3Output, COM1, RTCM1006+RTCM1013+RTCM1019+RTCM1020+RTCM1033+MSM7+RTCM1230\r\n', b'setRTCMv3Interval, MSM7+RTCM1230, 1\r\n', b'setRTCMv3Interval, RTCM1005|6+RTCM1013+RTCM1019+RTCM1020+RTCM1033, 5\r\n', b'setPVTMode, Static, all, auto\r\n']
         res = config_svin_septentrio(3000, 60)
-        # print(res)
+        # rint(res)
         self.assertEqual(res, EXPECTED_RESULT)
 
     def test_config_svin_unicore(self):

@@ -66,7 +66,7 @@ def config_disable_ublox(disablenmea: bool = False) -> list[bytes]:
     return msgs
 
 
-def config_disable_lg290p(disablenmea: bool = False) -> list[bytes]:
+def config_disable_quectel_lgseries(disablenmea: bool = False) -> list[bytes]:
     """
     Disable base station mode for Quectel LGSERIES receivers.
 
@@ -85,7 +85,7 @@ def config_disable_lg290p(disablenmea: bool = False) -> list[bytes]:
     return msgs
 
 
-def config_disable_lc29h(disablenmea: bool = False) -> list[bytes]:
+def config_disable_quectel_lcseries(disablenmea: bool = False) -> list[bytes]:
     """
     Disable base station mode for Quectel LCSERIES receivers.
 
@@ -115,9 +115,16 @@ def config_disable_septentrio(disablenmea: bool = False) -> list:
     :rtype: list
     """
 
+    do = "SBF" if disablenmea else "SBF+NMEA"
     msgs = []
     msgs.append(b"SSSSSSSSSS\r\n")
-    msgs.append(b"erst,soft,config\r\n")
+    msgs.append(b"setPVTMode, Rover, all, auto\r\n")
+    msgs.append(b"setRTCMv3Output, COM1, none\r\n")
+    if not disablenmea:
+        msgs.append(f"setDataInOut, COM1, auto, {do}\r\n".encode(ASCII, errors=BSR))
+        msgs.append(b"setNMEAOutput, Stream1, COM1, GGA+GSA+GLL+RMC+VTG, sec1\r\n")
+        msgs.append(b"setNMEAOutput, Stream2, COM1, GSV, sec5\r\n")
+    # msgs.append(b"exeResetReceiver,soft,none\r\n")
     return msgs
 
 
@@ -187,7 +194,7 @@ def config_svin_ublox(
     return msgs
 
 
-def config_svin_lg290p(
+def config_svin_quectel_lgseries(
     acc_limit: int, svin_min_dur: int, disablenmea: bool = True
 ) -> list[bytes]:
     """
@@ -234,7 +241,7 @@ def config_svin_lg290p(
     return msgs
 
 
-def config_svin_lc29h(
+def config_svin_quectel_lcseries(
     acc_limit: int, svin_min_dur: int, disablenmea: bool = True
 ) -> list[bytes]:
     """
@@ -294,15 +301,20 @@ def config_svin_septentrio(
     :rtype: list[bytes]
     """
 
+    do = "RTCMv3+SBF" if disablenmea else "RTCMv3+SBF+NMEA"
     msgs = []
     msgs.append(b"SSSSSSSSSS\r\n")
-    msgs.append(b"setDataInOut, COM1, ,RTCMv3\r\n")
-    msgs.append(b"setRTCMv3Formatting,1234\r\n")
+    msgs.append(f"setDataInOut, COM1, auto, {do}\r\n".encode(ASCII, errors=BSR))
+    msgs.append(b"setRTCMv3Formatting, 1234\r\n")
     msgs.append(
-        b"setRTCMv3Output,COM1,RTCM1006+RTCM1033+RTCM1077+RTCM1087+"
-        b"RTCM1097+RTCM1107+RTCM1117+RTCM1127+RTCM1137+RTCM1230\r\n"
+        b"setRTCMv3Output, COM1, RTCM1006+RTCM1013+RTCM1019+RTCM1020+RTCM1033+MSM7+RTCM1230\r\n"
     )
-    msgs.append(b"setPVTMode,Static, ,auto\r\n")
+    msgs.append(b"setRTCMv3Interval, MSM7+RTCM1230, 1\r\n")
+    msgs.append(
+        b"setRTCMv3Interval, RTCM1005|6+RTCM1013+RTCM1019+RTCM1020+RTCM1033, 5\r\n"
+    )
+    msgs.append(b"setPVTMode, Static, all, auto\r\n")
+    # msgs.append(b"exeResetReceiver,soft,none\r\n")
     return msgs
 
 
@@ -404,7 +416,7 @@ def config_fixed_ublox(
     return msgs
 
 
-def config_fixed_lg290p(
+def config_fixed_quectel_lgseries(
     acc_limit: int,
     lat: float,
     lon: float,
@@ -467,7 +479,7 @@ def config_fixed_lg290p(
     return msgs
 
 
-def config_fixed_lc29h(
+def config_fixed_quectel_lcseries(
     acc_limit: int,
     lat: float,
     lon: float,
@@ -522,20 +534,26 @@ def config_fixed_septentrio(
     :rtype: list[bytes]
     """
 
+    do = "RTCMv3+SBF" if disablenmea else "RTCMv3+SBF+NMEA"
     msgs = []
     msgs.append(b"SSSSSSSSSS\r\n")
-    msgs.append(b"setDataInOut,COM1, ,RTCMv3\r\n")
-    msgs.append(b"setRTCMv3Formatting,1234\r\n")
+    msgs.append(f"setDataInOut, COM1, auto,{do}\r\n".encode(ASCII, errors=BSR))
+    msgs.append(b"setRTCMv3Formatting, 1234\r\n")
     msgs.append(
-        b"setRTCMv3Output,COM1,RTCM1006+RTCM1033+RTCM1077+RTCM1087+"
-        b"RTCM1097+RTCM1107+RTCM1117+RTCM1127+RTCM1137+RTCM1230\r\n"
+        b"setRTCMv3Output, COM1, RTCM1006+RTCM1013+RTCM1019+RTCM1020+RTCM1033+MSM7+RTCM1230\r\n"
     )
+    msgs.append(b"setRTCMv3Interval, MSM7+RTCM1230, 1\r\n")
     msgs.append(
-        f"setStaticPosGeodetic,Geodetic1,{lat:.8f},{lon:.8f},{height:.4f}\r\n".encode(
+        b"setRTCMv3Interval, RTCM1005|6+RTCM1013+RTCM1019+RTCM1020+RTCM1033, 5\r\n"
+    )
+    msgs.append(b"setPVTMode, Static, all, auto\r\n")
+    msgs.append(
+        f"setStaticPosGeodetic, Geodetic1, {lat:.8f},{lon:.8f},{height:.4f}\r\n".encode(
             ASCII, errors=BSR
         )
     )
     msgs.append(b"setPVTMode,Static, ,Geodetic1\r\n")
+    # msgs.append(b"exeResetReceiver,soft,none\r\n")
     return msgs
 
 
