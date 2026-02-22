@@ -4,6 +4,8 @@ receiver_config_handler.py
 Methods to create UBX, NMEA or TTY configuration messages
 for various GNSS receivers.
 
+NB: THESE SHOULD ALL RETURN `bytes` OR `list[bytes]`.
+
 Created on 5 Nov 2025
 
 :author: semuadmin (Steve Smith)
@@ -11,133 +13,165 @@ Created on 5 Nov 2025
 :license: BSD 3-Clause
 """
 
-# pylint: disable=unused-argument
+# pylint: disable=unused-argument, too-many-arguments, too-many-positional-arguments
 
 from pynmeagps import NMEAMessage, llh2ecef
 from pyubx2 import SET, SET_LAYER_RAM, TXN_NONE, UBXMessage
 
+from pygpsclient.globals import ASCII, BSR
 from pygpsclient.helpers import val2sphp
 
-
-def config_nmea(state: int, port_type: str = "USB") -> UBXMessage:
-    """
-    Enable or disable NMEA messages at port level and use minimum UBX
-    instead (NAV-PRT, NAV_SAT, NAV_DOP).
-
-    :param int state: 1 = disable NMEA, 0 = enable NMEA
-    :param str port_type: port that rcvr is connected on
-    """
-
-    nmea_state = 0 if state else 1
-    layers = 1
-    transaction = 0
-    cfg_data = []
-    cfg_data.append((f"CFG_{port_type}OUTPROT_NMEA", nmea_state))
-    cfg_data.append((f"CFG_{port_type}OUTPROT_UBX", 1))
-    cfg_data.append((f"CFG_MSGOUT_UBX_NAV_PVT_{port_type}", state))
-    cfg_data.append((f"CFG_MSGOUT_UBX_NAV_DOP_{port_type}", state))
-    cfg_data.append((f"CFG_MSGOUT_UBX_NAV_SAT_{port_type}", state * 4))
-
-    return UBXMessage.config_set(layers, transaction, cfg_data)
+BASE_SVIN = "SURVEY IN"
+RTCMTYPES = {
+    "1002": 1,
+    "1006": 5,
+    "1010": 1,
+    "1077": 1,
+    "1087": 1,
+    "1097": 1,
+    "1127": 1,
+    "1230": 1,
+}
 
 
-def config_disable_ublox() -> UBXMessage:
+def config_disable_ublox(disablenmea: bool = False) -> list[bytes]:
     """
     Disable base station mode for u-blox receivers.
 
-    :return: UBXMessage
-    :rtype: UBXMessage
+    :param bool disablenmea: disable NMEA sentences
+    :return: list of serialized UBXMessage(s)
+    :rtype: list[bytes]exit
     """
 
+    dn = 1 if disablenmea else 0
+    msgs = []
     layers = SET_LAYER_RAM
     transaction = TXN_NONE
-    cfg_data = [
-        ("CFG_TMODE_MODE", 0),
-    ]
+    msgs.append(
+        UBXMessage.config_set(layers, transaction, [("CFG_TMODE_MODE", 0)]).serialize()
+    )
+    for port_type in ("USB", "UART1"):
+        cfg_data = []
+        cfg = f"CFG_MSGOUT_UBX_NAV_SVIN_{port_type}"
+        cfg_data.append((cfg, 0))
+        for rtcm_type, _ in RTCMTYPES.items():
+            cfg = f"CFG_MSGOUT_RTCM_3X_TYPE{rtcm_type}_{port_type}"
+            cfg_data.append((cfg, 0))
+        cfg_data.append((f"CFG_{port_type}OUTPROT_NMEA", 0 if dn else 1))
+        cfg_data.append((f"CFG_{port_type}OUTPROT_UBX", 1))
+        cfg_data.append((f"CFG_MSGOUT_UBX_NAV_PVT_{port_type}", dn))
+        cfg_data.append((f"CFG_MSGOUT_UBX_NAV_DOP_{port_type}", dn))
+        cfg_data.append((f"CFG_MSGOUT_UBX_NAV_SAT_{port_type}", dn * 4))
+        msgs.append(UBXMessage.config_set(layers, transaction, cfg_data).serialize())
+    return msgs
 
-    return UBXMessage.config_set(layers, transaction, cfg_data)
 
-
-def config_disable_lg290p() -> list:
+def config_disable_quectel_lgseries(disablenmea: bool = False) -> list[bytes]:
     """
-    Disable base station mode for Quectel LG290P receivers.
+    Disable base station mode for Quectel LGSERIES receivers.
 
     NB: A 'feature' of Quectel firmware is that some command sequences
     require multiple restarts before taking effect.
 
-    :return: list of NMEAMessage(s)
-    :rtype: list
+    :param bool disablenmea: disable NMEA sentences
+    :return: list of serialized NMEAMessage(s)
+    :rtype: list[bytes]
     """
 
     msgs = []
-    msgs.append(NMEAMessage("P", "QTMCFGRCVRMODE", SET, rcvrmode=1))
-    msgs.append(NMEAMessage("P", "QTMSAVEPAR", SET))
-    msgs.append(NMEAMessage("P", "QTMSRR", SET))
+    msgs.append(NMEAMessage("P", "QTMCFGRCVRMODE", SET, rcvrmode=1).serialize())
+    msgs.append(NMEAMessage("P", "QTMSAVEPAR", SET).serialize())
+    msgs.append(NMEAMessage("P", "QTMSRR", SET).serialize())
     return msgs
 
 
-def config_disable_lc29h() -> list:
+def config_disable_quectel_lcseries(disablenmea: bool = False) -> list[bytes]:
     """
-    Disable base station mode for Quectel LC29H receivers.
+    Disable base station mode for Quectel LCSERIES receivers.
 
-    :return: list of NMEAMessage(s)
-    :rtype: list
+    :param bool disablenmea: disable NMEA sentences
+    :return: list of serialized NMEAMessage(s)
+    :rtype: list[bytes]
     """
 
     msgs = []
-    msgs.append(NMEAMessage("P", "AIR062", SET, type=-1))
-    msgs.append(NMEAMessage("P", "AIR432", SET, mode=-1))
-    msgs.append(NMEAMessage("P", "AIR434", SET, enabled=0))
-    msgs.append(NMEAMessage("P", "QTMSAVEPAR", SET))
-    msgs.append(NMEAMessage("P", "AIR005", SET))
+    if not disablenmea:
+        msgs.append(
+            NMEAMessage("P", "AIR062", SET, type=-1).serialize()
+        )  # default NMEA
+    msgs.append(NMEAMessage("P", "AIR432", SET, mode=-1).serialize())  # disable RTCM
+    msgs.append(NMEAMessage("P", "AIR434", SET, enabled=0).serialize())  # disable 1005
+    msgs.append(NMEAMessage("P", "QTMSAVEPAR", SET).serialize())
+    msgs.append(NMEAMessage("P", "AIR005", SET).serialize())  # warm start
     return msgs
 
 
-def config_disable_septentrio() -> list:
+def config_disable_septentrio(disablenmea: bool = False) -> list:
     """
     Disable base station mode for Septentrio receivers.
 
+    :param bool disablenmea: disable NMEA sentences
     :return: ASCII TTY commands
     :rtype: list
     """
 
+    do = "SBF" if disablenmea else "SBF+NMEA"
     msgs = []
-    # msgs.append("SSSSSSSSSS\r\n")
-    msgs.append("SSSSSSSSSS\r\n")
-    msgs.append("erst,soft,config\r\n")
+    msgs.append(b"SSSSSSSSSS\r\n")
+    msgs.append(b"setPVTMode, Rover, all, auto\r\n")
+    msgs.append(b"setRTCMv3Output, COM1, none\r\n")
+    if not disablenmea:
+        msgs.append(f"setDataInOut, COM1, auto, {do}\r\n".encode(ASCII, errors=BSR))
+        msgs.append(b"setNMEAOutput, Stream1, COM1, GGA+GSA+GLL+RMC+VTG, sec1\r\n")
+        msgs.append(b"setNMEAOutput, Stream2, COM1, GSV, sec5\r\n")
+    # msgs.append(b"exeResetReceiver,soft,none\r\n")
     return msgs
 
 
-def config_disable_unicore() -> list:
+def config_disable_unicore(disablenmea: bool = False) -> list:
     """
     Disable base station mode for Unicore receivers.
 
+    :param bool disablenmea: disable NMEA sentences
     :return: ASCII TTY commands
     :rtype: list
     """
 
     msgs = []
-    msgs.append("mode rover survey\r\n")
-    msgs.append("rtcm1006 com1 0\r\n")
-    msgs.append("rtcm1033 com1 0\r\n")
-    msgs.append("rtcm1074 com1 0\r\n")
-    msgs.append("rtcm1084 com1 0\r\n")
-    msgs.append("rtcm1094 com1 0\r\n")
-    msgs.append("rtcm1124 com1 0\r\n")
-    msgs.append("saveconfig\r\n")
+    msgs.append(b"unlog\r\n")
+    if disablenmea:
+        msgs.append(b"PVTSLNB 1\r\n")
+        msgs.append(b"SATSINFOB 4\r\n")
+        msgs.append(b"BESTNAVB 1\r\n")
+        msgs.append(b"STADOPB 1\r\n")
+    else:
+        msgs.append(b"gpgsa 1\r\n")
+        msgs.append(b"gpgga 1\r\n")
+        msgs.append(b"gpgll 1\r\n")
+        msgs.append(b"gpgsv 4\r\n")
+        msgs.append(b"gpvtg 1\r\n")
+        msgs.append(b"gprmc 1\r\n")
+    msgs.append(b"mode rover\r\n")
+    msgs.append(b"config pvtalg multi\r\n")
+    msgs.append(b"saveconfig\r\n")
     return msgs
 
 
-def config_svin_ublox(acc_limit: int, svin_min_dur: int) -> UBXMessage:
+def config_svin_ublox(
+    acc_limit: int, svin_min_dur: int, disablenmea: bool = True
+) -> list[bytes]:
     """
     Configure Survey-In mode with specified accuracy limit for u-blox receivers.
 
+    :param bool disablenmea: disable NMEA sentences
     :param int acc_limit: accuracy limit in cm
     :param int svin_min_dur: survey minimimum duration
-    :return: UBXMessage
-    :rtype: UBXMessage
+    :return: list of serialized UBXMessage(s)
+    :rtype: list[bytes]
     """
 
+    dn = 1 if disablenmea else 0
+    msgs = []
     layers = SET_LAYER_RAM
     transaction = TXN_NONE
     acc_limit = int(acc_limit * 100)  # convert to 0.1 mm
@@ -146,25 +180,38 @@ def config_svin_ublox(acc_limit: int, svin_min_dur: int) -> UBXMessage:
         ("CFG_TMODE_SVIN_ACC_LIMIT", acc_limit),
         ("CFG_TMODE_SVIN_MIN_DUR", svin_min_dur),
     ]
+    msgs.append(UBXMessage.config_set(layers, transaction, cfg_data).serialize())
+    for port_type in ("USB", "UART1"):
+        cfg_data = []
+        cfg_data.append((f"CFG_{port_type}OUTPROT_NMEA", 0 if dn else 1))
+        cfg = f"CFG_MSGOUT_UBX_NAV_SVIN_{port_type}"
+        cfg_data.append((cfg, 1))
+        for rtcm_type, mrate in RTCMTYPES.items():
+            cfg = f"CFG_MSGOUT_RTCM_3X_TYPE{rtcm_type}_{port_type}"
+            cfg_data.append((cfg, mrate))
+        msgs.append(UBXMessage.config_set(layers, transaction, cfg_data).serialize())
 
-    return UBXMessage.config_set(layers, transaction, cfg_data)
+    return msgs
 
 
-def config_svin_lg290p(acc_limit: int, svin_min_dur: int) -> list:
+def config_svin_quectel_lgseries(
+    acc_limit: int, svin_min_dur: int, disablenmea: bool = True
+) -> list[bytes]:
     """
-    Configure Survey-In mode with specified accuracy limit for Quectel LG290P receivers.
+    Configure Survey-In mode with specified accuracy limit for Quectel LGSERIES receivers.
 
     NB: A 'feature' of Quectel firmware is that some command sequences
     require multiple restarts before taking effect.
 
+    :param bool disablenmea: disable NMEA sentences
     :param int acc_limit: accuracy limit in cm
     :param int svin_min_dur: survey minimimum duration
-    :return: list of NMEAMessage(s)
-    :rtype: list
+    :return: list of serialized NMEAMessage(s)
+    :rtype: list[bytes]
     """
 
     msgs = []
-    msgs.append(NMEAMessage("P", "QTMCFGRCVRMODE", SET, rcvrmode=2))
+    msgs.append(NMEAMessage("P", "QTMCFGRCVRMODE", SET, rcvrmode=2).serialize())
     msgs.append(
         NMEAMessage(
             "P",
@@ -177,7 +224,7 @@ def config_svin_lg290p(acc_limit: int, svin_min_dur: int) -> list:
             reserved2="06",
             ephmode=1,
             ephinterval=0,
-        )
+        ).serialize()
     )
     msgs.append(
         NMEAMessage(
@@ -187,95 +234,141 @@ def config_svin_lg290p(acc_limit: int, svin_min_dur: int) -> list:
             svinmode=1,
             cfgcnt=svin_min_dur,
             acclimit=acc_limit / 100,  # m
-        )
+        ).serialize()
     )
-    msgs.append(NMEAMessage("P", "QTMSAVEPAR", SET))
-    msgs.append(NMEAMessage("P", "QTMSRR", SET))
+    msgs.append(NMEAMessage("P", "QTMSAVEPAR", SET).serialize())
+    msgs.append(NMEAMessage("P", "QTMSRR", SET).serialize())
     return msgs
 
 
-def config_svin_lc29h(acc_limit: int, svin_min_dur: int) -> list:
+def config_svin_quectel_lcseries(
+    acc_limit: int, svin_min_dur: int, disablenmea: bool = True
+) -> list[bytes]:
     """
-    Configure Survey-In mode with specified accuracy limit for Quectel LC29H receivers.
+    Configure Survey-In mode with specified accuracy limit for Quectel LCSERIES receivers.
 
     NB: A 'feature' of Quectel firmware is that some command sequences
     require multiple restarts before taking effect.
 
+    :param bool disablenmea: disable NMEA sentences
     :param int acc_limit: accuracy limit in cm
     :param int svin_min_dur: survey minimimum duration
-    :return: list of NMEAMessage(s)
-    :rtype: list
+    :return: list of serialized NMEAMessage(s)
+    :rtype: list[bytes]
     """
 
     msgs = []
-    for i in range(9):
-        msgs.append(NMEAMessage("P", "AIR062", SET, type=i, rate=0))
-    msgs.append(NMEAMessage("P", "AIR432", SET, mode=1))
-    msgs.append(NMEAMessage("P", "AIR434", SET, enabled=1))
-    msgs.append(NMEAMessage("P", "QTMSAVEPAR", SET))
-    msgs.append(NMEAMessage("P", "AIR005", SET))
+    if disablenmea:
+        for i in range(9):
+            msgs.append(
+                NMEAMessage("P", "AIR062", SET, type=i, rate=0).serialize()
+            )  # disable NMEA
+    msgs.append(NMEAMessage("P", "AIR432", SET, mode=1).serialize())  # enable RTCM
+    msgs.append(NMEAMessage("P", "AIR434", SET, enabled=1).serialize())  # enable 1005
+    msgs.append(NMEAMessage("P", "QTMSAVEPAR", SET).serialize())
+    msgs.append(NMEAMessage("P", "AIR005", SET).serialize())  # warm start
     return msgs
 
 
-def config_svin_septentrio(acc_limit: int, svin_min_dur: int) -> list:
+def config_svin_quectel() -> bytes:
+    """
+    Configure SVIN enable message for Quectel receivers.
+
+    :return: serialized NMEAMessage
+    :rtype: bytes
+    """
+
+    return NMEAMessage(
+        "P",
+        "QTMCFGMSGRATE",
+        SET,
+        msgname="PQTMSVINSTATUS",
+        rate=1,
+        msgver=1,
+    ).serialize()
+
+
+def config_svin_septentrio(
+    acc_limit: int, svin_min_dur: int, disablenmea: bool = True
+) -> list[bytes]:
     """
     Configure Survey-In mode with specified accuracy limit for Septentrio receivers.
 
+    :param bool disablenmea: disable NMEA sentences
     :param int acc_limit: accuracy limit in cm
     :param int svin_min_dur: survey minimimum duration
     :return: ASCII TTY commands
-    :rtype: list
+    :rtype: list[bytes]
     """
 
+    do = "RTCMv3+SBF" if disablenmea else "RTCMv3+SBF+NMEA"
     msgs = []
-    msgs.append("SSSSSSSSSS\r\n")
-    msgs.append("setDataInOut, COM1, ,RTCMv3\r\n")
-    msgs.append("setRTCMv3Formatting,1234\r\n")
+    msgs.append(b"SSSSSSSSSS\r\n")
+    msgs.append(f"setDataInOut, COM1, auto, {do}\r\n".encode(ASCII, errors=BSR))
+    msgs.append(b"setRTCMv3Formatting, 1234\r\n")
     msgs.append(
-        "setRTCMv3Output,COM1,RTCM1006+RTCM1033+RTCM1077+RTCM1087+"
-        "RTCM1097+RTCM1107+RTCM1117+RTCM1127+RTCM1137+RTCM1230\r\n"
+        b"setRTCMv3Output, COM1, RTCM1006+RTCM1013+RTCM1019+RTCM1020+RTCM1033+MSM7+RTCM1230\r\n"
     )
-    msgs.append("setPVTMode,Static, ,auto\r\n")
+    msgs.append(b"setRTCMv3Interval, MSM7+RTCM1230, 1\r\n")
+    msgs.append(
+        b"setRTCMv3Interval, RTCM1005|6+RTCM1013+RTCM1019+RTCM1020+RTCM1033, 5\r\n"
+    )
+    msgs.append(b"setPVTMode, Static, all, auto\r\n")
+    # msgs.append(b"exeResetReceiver,soft,none\r\n")
     return msgs
 
 
-def config_svin_unicore(acc_limit: int, svin_min_dur: int) -> list:
+def config_svin_unicore(
+    acc_limit: int, svin_min_dur: int, disablenmea: bool = True
+) -> list[bytes]:
     """
     Configure Survey-In mode with specified accuracy limit for Unicore receivers.
 
+    :param bool disablenmea: disable NMEA sentences
     :param int acc_limit: accuracy limit in cm
     :param int svin_min_dur: survey minimimum duration
     :return: ASCII TTY commands
-    :rtype: list
+    :rtype: list[bytes]
     """
 
     msgs = []
-    msgs.append(f"mode base time {svin_min_dur}\r\n")
-    msgs.append("rtcm1006 com1 10\r\n")
-    msgs.append("rtcm1033 com1 10\r\n")
-    msgs.append("rtcm1074 com1 1\r\n")
-    msgs.append("rtcm1084 com1 1\r\n")
-    msgs.append("rtcm1094 com1 1\r\n")
-    msgs.append("rtcm1124 com1 1\r\n")
-    msgs.append("saveconfig\r\n")
+    if disablenmea:
+        msgs.append(b"unlog\r\n")
+    msgs.append(f"mode base time {svin_min_dur}\r\n".encode(ASCII, errors=BSR))
+    msgs.append(b"config pvtalg multi\r\n")
+    msgs.append(b"rtcm1006 10\r\n")
+    msgs.append(b"rtcm1033 10\r\n")
+    msgs.append(b"rtcm1074 1\r\n")
+    msgs.append(b"rtcm1084 1\r\n")
+    msgs.append(b"rtcm1094 1\r\n")
+    msgs.append(b"rtcm1124 1\r\n")
+    msgs.append(b"saveconfig\r\n")
     return msgs
 
 
 def config_fixed_ublox(
-    acc_limit: int, lat: float, lon: float, height: float, posmode: str
-) -> UBXMessage:
+    acc_limit: int,
+    lat: float,
+    lon: float,
+    height: float,
+    posmode: str,
+    disablenmea: bool = True,
+) -> list[bytes]:
     """
     Configure Fixed mode with specified coordinates for u-blox receivers.
 
+    :param bool disablenmea: disable NMEA sentences
     :param int acc_limit: accuracy limit in cm
     :param float lat: lat or X in m
     :param float lon: lon or Y in m
     :param float height: height or Z in m
     :param str posmode: "LLH" or "ECEF"
-    :return: UBXMessage
-    :rtype: UBXMessage
+    :return: list of serialized UBXMessage(s)
+    :rtype: list[bytes]
     """
 
+    dn = 1 if disablenmea else 0
+    msgs = []
     layers = SET_LAYER_RAM
     transaction = TXN_NONE
     acc_limit = int(acc_limit * 100)  # convert to 0.1 mm
@@ -309,26 +402,42 @@ def config_fixed_ublox(
             ("CFG_TMODE_ECEF_Z", z_sp),
             ("CFG_TMODE_ECEF_Z_HP", z_hp),
         ]
+    msgs.append(UBXMessage.config_set(layers, transaction, cfg_data).serialize())
+    for port_type in ("USB", "UART1"):
+        cfg_data = []
+        cfg = f"CFG_MSGOUT_UBX_NAV_SVIN_{port_type}"
+        cfg_data.append((cfg, 0))
+        cfg_data.append((f"CFG_{port_type}OUTPROT_NMEA", 0 if dn else 1))
+        for rtcm_type, mrate in RTCMTYPES.items():
+            cfg = f"CFG_MSGOUT_RTCM_3X_TYPE{rtcm_type}_{port_type}"
+            cfg_data.append((cfg, mrate))
+        msgs.append(UBXMessage.config_set(layers, transaction, cfg_data).serialize())
 
-    return UBXMessage.config_set(layers, transaction, cfg_data)
+    return msgs
 
 
-def config_fixed_lg290p(
-    acc_limit: int, lat: float, lon: float, height: float, posmode: str
-) -> list:
+def config_fixed_quectel_lgseries(
+    acc_limit: int,
+    lat: float,
+    lon: float,
+    height: float,
+    posmode: str,
+    disablenmea: bool = True,
+) -> list[bytes]:
     """
-    Configure Fixed mode with specified coordinates for Quectel LG290P receivers.
+    Configure Fixed mode with specified coordinates for Quectel LGSERIES receivers.
 
     NB: A 'feature' of Quectel firmware is that some command sequences
     require multiple restarts before taking effect.
 
+    :param bool disablenmea: disable NMEA sentences
     :param int acc_limit: accuracy limit in cm
     :param float lat: lat or X in m
     :param float lon: lon or Y in m
     :param float height: height or Z in m
     :param str posmode: "LLH" or "ECEF"
-    :return: list of NMEAMessage(s)
-    :rtype: list
+    :return: list of serialized NMEAMessage(s)
+    :rtype: list[bytes]
     """
 
     if posmode == "LLH":
@@ -337,7 +446,7 @@ def config_fixed_lg290p(
         ecef_x, ecef_y, ecef_z = lat, lon, height
 
     msgs = []
-    msgs.append(NMEAMessage("P", "QTMCFGRCVRMODE", SET, rcvrmode=2))
+    msgs.append(NMEAMessage("P", "QTMCFGRCVRMODE", SET, rcvrmode=2).serialize())
     msgs.append(
         NMEAMessage(
             "P",
@@ -350,7 +459,7 @@ def config_fixed_lg290p(
             reserved2="06",
             ephmode=1,
             ephinterval=0,
-        )
+        ).serialize()
     )
     msgs.append(
         NMEAMessage(
@@ -363,106 +472,122 @@ def config_fixed_lg290p(
             ecefx=ecef_x,
             ecefy=ecef_y,
             ecefz=ecef_z,
-        )
+        ).serialize()
     )
-    msgs.append(NMEAMessage("P", "QTMSAVEPAR", SET))
-    msgs.append(NMEAMessage("P", "QTMSRR", SET))
+    msgs.append(NMEAMessage("P", "QTMSAVEPAR", SET).serialize())
+    msgs.append(NMEAMessage("P", "QTMSRR", SET).serialize())
     return msgs
 
 
-def config_fixed_lc29h(
-    acc_limit: int, lat: float, lon: float, height: float, posmode: str
-) -> list:
+def config_fixed_quectel_lcseries(
+    acc_limit: int,
+    lat: float,
+    lon: float,
+    height: float,
+    posmode: str,
+    disablenmea: bool = True,
+) -> list[bytes]:
     """
-    Configure Fixed mode with specified coordinates for Quectel LC29H receivers.
+    Configure Fixed mode with specified coordinates for Quectel LCSERIES receivers.
 
+    :param bool disablenmea: disable NMEA sentences
     :param int acc_limit: accuracy limit in cm
     :param float lat: lat or X in m
     :param float lon: lon or Y in m
     :param float height: height or Z in m
     :param str posmode: "LLH" or "ECEF"
-    :return: list of NMEAMessage(s)
-    :rtype: list
+    :return: list of serialized NMEAMessage(s)
+    :rtype: list[bytes]
     """
 
     msgs = []
-    for i in range(9):
-        msgs.append(NMEAMessage("P", "AIR062", SET, type=i, rate=0))
-    msgs.append(NMEAMessage("P", "AIR432", SET, mode=1))
-    msgs.append(NMEAMessage("P", "AIR434", SET, enabled=1))
-    msgs.append(NMEAMessage("P", "QTMSAVEPAR", SET))
-    msgs.append(NMEAMessage("P", "AIR005", SET))
+    if disablenmea:
+        for i in range(9):
+            msgs.append(
+                NMEAMessage("P", "AIR062", SET, type=i, rate=0).serialize()
+            )  # disable NMEA
+    msgs.append(NMEAMessage("P", "AIR432", SET, mode=1).serialize())  # enable RTCM
+    msgs.append(NMEAMessage("P", "AIR434", SET, enabled=1).serialize())  # enable 1005
+    msgs.append(NMEAMessage("P", "QTMSAVEPAR", SET).serialize())
+    msgs.append(NMEAMessage("P", "AIR005", SET).serialize())  # warm start
     return msgs
 
 
 def config_fixed_septentrio(
-    acc_limit: int, lat: float, lon: float, height: float, posmode: str
-) -> list:
+    acc_limit: int,
+    lat: float,
+    lon: float,
+    height: float,
+    posmode: str,
+    disablenmea: bool = True,
+) -> list[bytes]:
     """
     Configure Fixed mode with specified coordinates for Septentrio receivers.
 
+    :param bool disablenmea: disable NMEA sentences
     :param int acc_limit: accuracy limit in cm
     :param float lat: lat or X in m
     :param float lon: lon or Y in m
     :param float height: height or Z in m
     :param str posmode: "LLH" or "ECEF"
     :return: ASCII TTY commands
-    :rtype: list
+    :rtype: list[bytes]
     """
 
+    do = "RTCMv3+SBF" if disablenmea else "RTCMv3+SBF+NMEA"
     msgs = []
-    msgs.append("SSSSSSSSSS\r\n")
-    msgs.append("setDataInOut,COM1, ,RTCMv3\r\n")
-    msgs.append("setRTCMv3Formatting,1234\r\n")
+    msgs.append(b"SSSSSSSSSS\r\n")
+    msgs.append(f"setDataInOut, COM1, auto,{do}\r\n".encode(ASCII, errors=BSR))
+    msgs.append(b"setRTCMv3Formatting, 1234\r\n")
     msgs.append(
-        "setRTCMv3Output,COM1,RTCM1006+RTCM1033+RTCM1077+RTCM1087+"
-        "RTCM1097+RTCM1107+RTCM1117+RTCM1127+RTCM1137+RTCM1230\r\n"
+        b"setRTCMv3Output, COM1, RTCM1006+RTCM1013+RTCM1019+RTCM1020+RTCM1033+MSM7+RTCM1230\r\n"
     )
-    msgs.append(f"setStaticPosGeodetic,Geodetic1,{lat:.8f},{lon:.8f},{height:.4f}\r\n")
-    msgs.append("setPVTMode,Static, ,Geodetic1\r\n")
+    msgs.append(b"setRTCMv3Interval, MSM7+RTCM1230, 1\r\n")
+    msgs.append(
+        b"setRTCMv3Interval, RTCM1005|6+RTCM1013+RTCM1019+RTCM1020+RTCM1033, 5\r\n"
+    )
+    msgs.append(b"setPVTMode, Static, all, auto\r\n")
+    msgs.append(
+        f"setStaticPosGeodetic, Geodetic1, {lat:.8f},{lon:.8f},{height:.4f}\r\n".encode(
+            ASCII, errors=BSR
+        )
+    )
+    msgs.append(b"setPVTMode,Static, ,Geodetic1\r\n")
+    # msgs.append(b"exeResetReceiver,soft,none\r\n")
     return msgs
 
 
 def config_fixed_unicore(
-    acc_limit: int, lat: float, lon: float, height: float, posmode: str
-) -> list:
+    acc_limit: int,
+    lat: float,
+    lon: float,
+    height: float,
+    posmode: str,
+    disablenmea: bool = True,
+) -> list[bytes]:
     """
-    Configure Fixed mode with specified coordinates for Septentrio receivers.
+    Configure Fixed mode with specified coordinates for Unicore receivers.
 
+    :param bool disablenmea: disable NMEA sentences
     :param int acc_limit: accuracy limit in cm
     :param float lat: lat or X in m
     :param float lon: lon or Y in m
     :param float height: height or Z in m
     :param str posmode: "LLH" or "ECEF"
     :return: ASCII TTY commands
-    :rtype: list
+    :rtype: list[bytes]
     """
 
     msgs = []
-    msgs.append(f"mode base {lat} {lon} {height}\r\n")
-    msgs.append("rtcm1006 com1 10\r\n")
-    msgs.append("rtcm1033 com1 10\r\n")
-    msgs.append("rtcm1074 com1 1\r\n")
-    msgs.append("rtcm1084 com1 1\r\n")
-    msgs.append("rtcm1094 com1 1\r\n")
-    msgs.append("rtcm1124 com1 1\r\n")
-    msgs.append("saveconfig\r\n")
+    if disablenmea:
+        msgs.append(b"unlog\r\n")
+    msgs.append(f"mode base {lat} {lon} {height}\r\n".encode(ASCII, errors=BSR))
+    msgs.append(b"config pvtalg multi\r\n")
+    msgs.append(b"rtcm1006 10\r\n")
+    msgs.append(b"rtcm1033 10\r\n")
+    msgs.append(b"rtcm1074 1\r\n")
+    msgs.append(b"rtcm1084 1\r\n")
+    msgs.append(b"rtcm1094 1\r\n")
+    msgs.append(b"rtcm1124 1\r\n")
+    msgs.append(b"saveconfig\r\n")
     return msgs
-
-
-def config_svin_quectel() -> NMEAMessage:
-    """
-    Configure SVIN enable message for Quectel receivers.
-
-    :return: command
-    :rtype: NMEAMessage
-    """
-
-    return NMEAMessage(
-        "P",
-        "QTMCFGMSGRATE",
-        SET,
-        msgname="PQTMSVINSTATUS",
-        rate=1,
-        msgver=1,
-    )

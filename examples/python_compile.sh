@@ -1,7 +1,12 @@
 #!/bin/bash
 
-# bash shell script to compile and install specified Python 3 version
-# on Debian Linux platforms e.g. Ubuntu or Raspberry Pi OS.
+# bash shell script to compile and install specified Python3/tkinter
+# version on Debian Linux platforms e.g. Ubuntu or Raspberry Pi OS.
+#
+# Why no Arch (pacman) version? Because Arch Desktop generally includes 
+# the very latest Python3 executables by default - go Arch!
+# (but remember to look for the third-party ARM64/AARCH64 distributables
+# if you're using an ARM SBC like Raspberry Pi)
 #
 # Remember to run chmod +x python_compile.sh to make this script executable.
 #
@@ -18,8 +23,8 @@
 # exit on error
 set -e
 
-# set required Python major and minor version e.g. 3.10.10
-PYVER="3.13.7"
+# set required Python major and minor version e.g. 3.13.10
+PYVER="3.14.3"
 # NB: uncomment this line to install this version alongside existing versions
 # ALTINSTALL=1
 
@@ -53,8 +58,9 @@ sudo apt install liblzma-dev || true
 # liblzma-dev may be lzma-dev on some platforms
 sudo apt install lzma-dev || true
 sudo apt install libspatialite || true
-# libspatialite may not be available as standard on some platforms
-# (e.g. Rasperry PI OS) but it is relatively straightforward to
+sudo apt install libsqlite3-mod-spatialite || true
+# libspatialite may not be available as a binary installable on some
+# platforms (e.g. older Debian) but it is relatively straightforward to
 # compile from source using the libspatialite_compile.sh script
 # in the /examples folder
 

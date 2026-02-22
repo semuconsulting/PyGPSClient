@@ -5,8 +5,8 @@ Socket Server / NTRIP caster configuration panel Dialog class.
 Supports two modes of operation - Socket Server and NTRIP Caster.
 
 If running in NTRIP Caster mode, two base station modes are available -
-Survey-In and Fixed. The panel provides methods to configure RTK-compatible
-receiver (e.g. ZED-F9P or LG290P) to operate in either of these base station modes.
+Survey-In and Fixed. The panel provides methods to configure a selection
+of RTK-compatible receivers to operate in either of these base station modes.
 
 Application icons from https://iconmonstr.com/license/.
 
@@ -17,11 +17,10 @@ Created on 23 Jul 2023
 :license: BSD 3-Clause
 """
 
-# pylint: disable=unused-argument, too-many-lines
+# pylint: disable=unused-argument, too-many-lines, too-many-arguments, too-many-positional-arguments
 
 import logging
 from pathlib import Path
-from time import sleep
 from tkinter import (
     DISABLED,
     EW,
@@ -44,31 +43,29 @@ from tkinter import (
 from tkinter.ttk import Progressbar
 
 from PIL import Image, ImageTk
-from pygnssutils import RTCMTYPES
 from pynmeagps import NMEAMessage, ecef2llh, llh2ecef
-from pyubx2 import SET_LAYER_RAM, TXN_NONE, UBXMessage
 
 from pygpsclient.globals import (
-    ASCII,
-    BSR,
+    CMDPAUSE,
     DISCONNECTED,
     ERRCOL,
     ICON_CONTRACT,
     ICON_EXPAND,
     ICON_SEND,
     INFOCOL,
-    LC29H,
-    LG290P,
-    MOSAIC_X5,
+    OKCOL,
+    QUECTEL_LCSERIES,
+    QUECTEL_LGSERIES,
     READONLY,
+    SEPTENTRIO_MOSAIC,
     SERVERCONFIG,
     TRACEMODE_WRITE,
-    UM980,
+    UBLOX_ZEDF9,
+    UBLOX_ZEDX20,
+    UNICORE_UM980,
     VALFLOAT,
     VALINT,
     VALNONBLANK,
-    ZED_F9,
-    ZED_X20,
 )
 from pygpsclient.helpers import (
     MAXPORT,
@@ -76,20 +73,19 @@ from pygpsclient.helpers import (
     publicip,
 )
 from pygpsclient.receiver_config_handler import (
-    config_disable_lc29h,
-    config_disable_lg290p,
+    config_disable_quectel_lcseries,
+    config_disable_quectel_lgseries,
     config_disable_septentrio,
     config_disable_ublox,
     config_disable_unicore,
-    config_fixed_lc29h,
-    config_fixed_lg290p,
+    config_fixed_quectel_lcseries,
+    config_fixed_quectel_lgseries,
     config_fixed_septentrio,
     config_fixed_ublox,
     config_fixed_unicore,
-    config_nmea,
-    config_svin_lc29h,
-    config_svin_lg290p,
     config_svin_quectel,
+    config_svin_quectel_lcseries,
+    config_svin_quectel_lgseries,
     config_svin_septentrio,
     config_svin_ublox,
     config_svin_unicore,
@@ -107,6 +103,12 @@ from pygpsclient.strings import (
     LBLSERVERMODE,
     LBLSERVERPORT,
     LBLSOCKSERVE,
+    QUECTELRST1,
+    QUECTELRST2,
+    SEPTENTRIOSVIN,
+    SVINERR,
+    SVINOK,
+    SVINSTART,
 )
 from pygpsclient.toplevel_dialog import ToplevelDialog
 
@@ -130,11 +132,18 @@ ACCURACIES = (
     20.0,
 )
 
-BASE_DISABLED = "DISABLED"
-BASE_FIXED = "FIXED"
-BASE_SVIN = "SURVEY IN"
+BASE_DISABLED = "ROVER"
+BASE_FIXED = "BASE FIXED"
+BASE_SVIN = "BASE SVIN"
 BASEMODES = (BASE_SVIN, BASE_DISABLED, BASE_FIXED)
-RTKDEVICES = (ZED_F9, UM980, LG290P, LC29H, MOSAIC_X5, ZED_X20)
+RTKDEVICES = (
+    UBLOX_ZEDF9,
+    UNICORE_UM980,
+    QUECTEL_LGSERIES,
+    QUECTEL_LCSERIES,
+    SEPTENTRIO_MOSAIC,
+    UBLOX_ZEDX20,
+)
 DURATIONS = (60, 1200, 600, 300, 240, 180, 120, 90)
 MAXSVIN = 15
 POS_ECEF = "ECEF"
@@ -171,14 +180,14 @@ class ServerConfigDialog(ToplevelDialog):
         self.sock_mode = StringVar()
         self.receiver_type = StringVar()
         self.base_mode = StringVar()
-        self.https = IntVar()
+        self.https = BooleanVar()
         self.acclimit = IntVar()
         self.duration = IntVar()
         self.pos_mode = StringVar()
         self.fixedlat = DoubleVar()
         self.fixedlon = DoubleVar()
         self.fixedhae = DoubleVar()
-        self.disable_nmea = IntVar()
+        self.disable_nmea = BooleanVar()
         self.user = StringVar()
         self.password = StringVar()
         self._img_expand = ImageTk.PhotoImage(Image.open(ICON_EXPAND))
@@ -295,6 +304,7 @@ class ServerConfigDialog(ToplevelDialog):
         self._lbl_configure_base = Label(
             self._frm_advanced,
             text=LBLCONFIGBASE,
+            anchor=E,
         )
         self._btn_configure_base = Button(
             self._frm_advanced,
@@ -314,6 +324,7 @@ class ServerConfigDialog(ToplevelDialog):
         self._lbl_basemode = Label(
             self._frm_advanced,
             text="Mode",
+            anchor=E,
         )
         self._spn_basemode = Spinbox(
             self._frm_advanced,
@@ -326,6 +337,7 @@ class ServerConfigDialog(ToplevelDialog):
         self._lbl_acclimit = Label(
             self._frm_advanced,
             text=LBLACCURACY,
+            anchor=E,
         )
         self._spn_acclimit = Spinbox(
             self._frm_advanced,
@@ -338,6 +350,7 @@ class ServerConfigDialog(ToplevelDialog):
         self._lbl_duration = Label(
             self._frm_advanced,
             text=LBLDURATIONS,
+            anchor=E,
         )
         self._chk_disablenmea = Checkbutton(
             self._frm_advanced,
@@ -441,7 +454,14 @@ class ServerConfigDialog(ToplevelDialog):
         self._set_controls()
         self.sock_mode.set(SOCKMODES[cfg.get("sockmode_b")])
         self._on_toggle_advanced()
-        self.base_mode.set(cfg.get("ntripcasterbasemode_s"))
+        basemode = cfg.get("ntripcasterbasemode_s")
+        if basemode == "DISABLED":  # legacy settings
+            basemode = BASE_DISABLED
+        elif basemode == "FIXED":
+            basemode = BASE_FIXED
+        elif basemode == "SURVEY_IN":
+            basemode = BASE_SVIN
+        self.base_mode.set(basemode)
         self._on_update_basemode(None, None, TRACEMODE_WRITE)
         self.receiver_type.set(cfg.get("ntripcasterrcvrtype_s"))
         self.acclimit.set(cfg.get("ntripcasteracclimit_f"))
@@ -576,17 +596,14 @@ class ServerConfigDialog(ToplevelDialog):
             self.status_label = ("ERROR - invalid entry", ERRCOL)
             return
 
-        self._quectel_restart = 0
         if self._socket_serve.get():
             # start server
             self.__app.sockserver_start()
-            # self.__app.stream_handler.sock_serve = True
             self._fixed_lat_temp = self.fixedlat.get()
             self._fixed_lon_temp = self.fixedlon.get()
             self._fixed_hae_temp = self.fixedhae.get()
         else:  # stop server
             self.__app.sockserver_stop()
-            # self.__app.stream_handler.sock_serve = False
 
         self._set_controls()
 
@@ -646,13 +663,14 @@ class ServerConfigDialog(ToplevelDialog):
         """
 
         if self.sock_mode.get() == SOCK_NTRIP:
+            self.status_label = ""
+            self._quectel_restart = 0
             self._config_receiver()
 
     def _config_receiver(self):
         """
         Configure receiver as Base Station if in NTRIP caster mode.
         """
-
         # pylint: disable=no-member
 
         # validate settings
@@ -662,48 +680,37 @@ class ServerConfigDialog(ToplevelDialog):
             self.status_label = ("ERROR - invalid entry", ERRCOL)
             return
 
-        delay = self.__app.configuration.get("guiupdateinterval_f") / 2
         # set base station timing mode
         if self.base_mode.get() == BASE_SVIN:
-            cmds = self._config_svin(self.acclimit.get(), self.duration.get())
+            cmds = self._config_svin(
+                self.acclimit.get(), self.duration.get(), self.disable_nmea.get()
+            )
         elif self.base_mode.get() == BASE_FIXED:
             cmds = self._config_fixed(
                 self.acclimit.get(),
                 self.fixedlat.get(),
                 self.fixedlon.get(),
                 self.fixedhae.get(),
+                self._spn_posmode.get(),
+                self.disable_nmea.get(),
             )
         else:  # DISABLED
-            cmds = self._config_disable()
+            cmds = self._config_disable(self.disable_nmea.get())
         if not isinstance(cmds, list):
-            cmds = [
-                cmds,
-            ]
-        for cmd in cmds:
-            # self.logger.debug(f"Base Config Message: {cmd}")
-            if isinstance(cmd, (UBXMessage, NMEAMessage)):
-                self.__app.send_to_device(cmd.serialize())
-            elif isinstance(cmd, str):  # TTY ASCII string
-                self.__app.send_to_device(cmd.encode(ASCII, errors=BSR))
-                sleep(delay)  # add delay between each TTY command
-            else:  # raw bytes
-                self.__app.send_to_device(cmd)
+            cmds = [cmds]
+        for i, cmd in enumerate(cmds):
+            self.__app.send_to_device(cmd, pause=CMDPAUSE * i)
 
-        if self.receiver_type.get() in (ZED_F9, ZED_X20):
-            # set RTCM and UBX NAV-SVIN message output rate
-            rate = 0 if self.base_mode.get() == BASE_DISABLED else 1
-            for port in ("USB", "UART1"):
-                self._config_msg_rates(rate, port)
-                # self.__app.send_to_device(msg.serialize())
-                msg = config_nmea(self.disable_nmea.get(), port)
-                self.__app.send_to_device(msg.serialize())
-        elif self.receiver_type.get() == LG290P:
+        if (
+            self.receiver_type.get() == SEPTENTRIO_MOSAIC
+            and self.base_mode == BASE_SVIN
+        ):
+            self.status_label = SEPTENTRIOSVIN  # receiver surveying message
+        if self.receiver_type.get() == QUECTEL_LGSERIES:
+            self.status_label = QUECTELRST1  # receiver will restart message
             # poll for confirmation that rcvr has restarted,
             # then resend configuration commands a 2nd time
             self._pending_confs[PQTMVER] = SERVERCONFIG
-        elif self.receiver_type.get() == LC29H:
-            # poll for confirmation warm start has finished
-            pass
 
     def _on_update_sockhost(self, var, index, mode):
         """
@@ -884,12 +891,16 @@ class ServerConfigDialog(ToplevelDialog):
         Set field visibility depending on base mode.
         """
 
+        self.status_label = ""
         if self.base_mode.get() == BASE_SVIN:
+            self.disable_nmea.set(True)
             self._on_update_basemode_svin()
         elif self.base_mode.get() == BASE_FIXED:
+            self.disable_nmea.set(True)
             self._on_update_basemode_fixed()
-        else:  # Disabled
+        else:  # ROVER
             self._on_update_basemode_disabled()
+            self.disable_nmea.set(False)
         self.__app.configuration.set("ntripcasterbasemode_s", self.base_mode.get())
 
     def _on_update_basemode_svin(self):
@@ -899,18 +910,20 @@ class ServerConfigDialog(ToplevelDialog):
 
         self._lbl_acclimit.grid(column=0, row=2, padx=2, pady=1, sticky=E)
         self._spn_acclimit.grid(column=1, row=2, padx=2, pady=1, sticky=W)
+        self._lbl_duration.grid(column=0, row=3, padx=2, pady=1, sticky=E)
+        self._spn_duration.grid(column=1, row=3, padx=2, pady=1, sticky=W)
         self._chk_disablenmea.grid(column=2, row=1, padx=2, pady=1, sticky=W)
-        self._spn_posmode.grid(column=0, row=3, rowspan=3, padx=2, pady=1, sticky=E)
-        self._lbl_fixedlat.grid(column=1, row=3, padx=2, pady=1, sticky=E)
-        self._ent_fixedlat.grid(column=2, row=3, columnspan=3, padx=2, pady=1, sticky=W)
-        self._lbl_fixedlon.grid(column=1, row=4, padx=2, pady=1, sticky=E)
-        self._ent_fixedlon.grid(column=2, row=4, columnspan=3, padx=2, pady=1, sticky=W)
-        self._lbl_fixedhae.grid(column=1, row=5, padx=2, pady=1, sticky=E)
-        self._ent_fixedhae.grid(column=2, row=5, columnspan=3, padx=2, pady=1, sticky=W)
-        self._lbl_user.grid(column=0, row=6, padx=2, pady=1, sticky=E)
-        self._ent_user.grid(column=1, row=6, columnspan=2, padx=2, pady=1, sticky=W)
-        self._lbl_password.grid(column=0, row=7, padx=2, pady=1, sticky=E)
-        self._ent_password.grid(column=1, row=7, columnspan=2, padx=2, pady=1, sticky=W)
+        self._spn_posmode.grid(column=0, row=4, rowspan=3, padx=2, pady=1, sticky=E)
+        self._lbl_fixedlat.grid(column=1, row=4, padx=2, pady=1, sticky=E)
+        self._ent_fixedlat.grid(column=2, row=4, columnspan=3, padx=2, pady=1, sticky=W)
+        self._lbl_fixedlon.grid(column=1, row=5, padx=2, pady=1, sticky=E)
+        self._ent_fixedlon.grid(column=2, row=5, columnspan=3, padx=2, pady=1, sticky=W)
+        self._lbl_fixedhae.grid(column=1, row=6, padx=2, pady=1, sticky=E)
+        self._ent_fixedhae.grid(column=2, row=6, columnspan=3, padx=2, pady=1, sticky=W)
+        self._lbl_user.grid(column=0, row=7, padx=2, pady=1, sticky=E)
+        self._ent_user.grid(column=1, row=7, columnspan=2, padx=2, pady=1, sticky=W)
+        self._lbl_password.grid(column=0, row=8, padx=2, pady=1, sticky=E)
+        self._ent_password.grid(column=1, row=8, columnspan=2, padx=2, pady=1, sticky=W)
         for wid in self._ent_fixedlat, self._ent_fixedlon, self._ent_fixedhae:
             wid.config(state=DISABLED)
 
@@ -1007,69 +1020,56 @@ class ServerConfigDialog(ToplevelDialog):
         self.fixedlon.set(lon)
         self.fixedhae.set(hae)
 
-    def _config_msg_rates(self, rate: int, port_type: str):
-        """
-        Configure RTCM3 and UBX NAV-SVIN message rates.
-
-        :param int rate: message rate (0 = off)
-        :param str port_type: port that rcvr is connected on
-        """
-
-        layers = SET_LAYER_RAM
-        transaction = TXN_NONE
-        for rtcm_type, mrate in RTCMTYPES.items():
-            cfg = f"CFG_MSGOUT_RTCM_3X_TYPE{rtcm_type}_{port_type}"
-            cfg_data = [(cfg, mrate if rate else 0)]
-            msg = UBXMessage.config_set(layers, transaction, cfg_data)
-            self.__app.send_to_device(msg.serialize())
-
-        # NAV-SVIN only output in SURVEY-IN mode
-        rate = rate if self.base_mode.get() == BASE_SVIN else 0
-        cfg = f"CFG_MSGOUT_UBX_NAV_SVIN_{port_type}"
-        cfg_data = [(cfg, rate)]
-        msg = UBXMessage.config_set(layers, transaction, cfg_data)
-        self.__app.send_to_device(msg.serialize())
-
-    def _config_disable(self) -> object:
+    def _config_disable(self, disablenmea: bool) -> object:
         """
         Disable base station mode.
 
+        :param bool disablenmea: disable NMEA
         :return: one or more UBXMessage, NMEAMessage or bytes
         :rtype: UBXMessage or list
         """
 
-        if self.receiver_type.get() == LG290P:
-            return config_disable_lg290p()
-        if self.receiver_type.get() == LC29H:
-            return config_disable_lc29h()
-        if self.receiver_type.get() == MOSAIC_X5:
-            return config_disable_septentrio()
-        if self.receiver_type.get() == UM980:
-            return config_disable_unicore()
-        return config_disable_ublox()
+        if self.receiver_type.get() == QUECTEL_LGSERIES:
+            return config_disable_quectel_lgseries(disablenmea)
+        if self.receiver_type.get() == QUECTEL_LCSERIES:
+            return config_disable_quectel_lcseries(disablenmea)
+        if self.receiver_type.get() == SEPTENTRIO_MOSAIC:
+            return config_disable_septentrio(disablenmea)
+        if self.receiver_type.get() == UNICORE_UM980:
+            return config_disable_unicore(disablenmea)
+        return config_disable_ublox(disablenmea)
 
-    def _config_svin(self, acc_limit: int, svin_min_dur: int) -> object:
+    def _config_svin(
+        self, acc_limit: int, svin_min_dur: int, disablenmea: bool
+    ) -> object:
         """
         Configure Survey-In mode with specied accuracy limit.
 
         :param int acc_limit: accuracy limit in cm
         :param int svin_min_dur: survey minimimum duration
+        :param bool disablenmea: disable NMEA
         :return: one or more UBXMessage, NMEAMessage or bytes
         :rtype: UBXMessage or list
         """
 
-        if self.receiver_type.get() == LG290P:
-            return config_svin_lg290p(acc_limit, svin_min_dur)
-        if self.receiver_type.get() == LC29H:
-            return config_svin_lc29h(acc_limit, svin_min_dur)
-        if self.receiver_type.get() == MOSAIC_X5:
-            return config_svin_septentrio(acc_limit, svin_min_dur)
-        if self.receiver_type.get() == UM980:
-            return config_svin_unicore(acc_limit, svin_min_dur)
-        return config_svin_ublox(acc_limit, svin_min_dur)
+        if self.receiver_type.get() == QUECTEL_LGSERIES:
+            return config_svin_quectel_lgseries(acc_limit, svin_min_dur, disablenmea)
+        if self.receiver_type.get() == QUECTEL_LCSERIES:
+            return config_svin_quectel_lcseries(acc_limit, svin_min_dur, disablenmea)
+        if self.receiver_type.get() == SEPTENTRIO_MOSAIC:
+            return config_svin_septentrio(acc_limit, svin_min_dur, disablenmea)
+        if self.receiver_type.get() == UNICORE_UM980:
+            return config_svin_unicore(acc_limit, svin_min_dur, disablenmea)
+        return config_svin_ublox(acc_limit, svin_min_dur, disablenmea)
 
     def _config_fixed(
-        self, acc_limit: int, lat: float, lon: float, height: float
+        self,
+        acc_limit: int,
+        lat: float,
+        lon: float,
+        height: float,
+        posmode: str,
+        disablenmea: bool,
     ) -> object:
         """
         Configure Fixed mode with specified coordinates.
@@ -1078,20 +1078,29 @@ class ServerConfigDialog(ToplevelDialog):
         :param float lat: lat or X in m
         :param float lon: lon or Y in m
         :param float height: height or Z in m
+        :param str posmode: LLH/ECEF
+        :param bool disablenmea: disable NMEA
         :return: one or more UBXMessage, NMEAMessage or bytes
         :rtype: UBXMessage or list
         """
 
-        posmode = self._spn_posmode.get()
-        if self.receiver_type.get() == LG290P:
-            return config_fixed_lg290p(acc_limit, lat, lon, height, posmode)
-        if self.receiver_type.get() == LC29H:
-            return config_fixed_lc29h(acc_limit, lat, lon, height, posmode)
-        if self.receiver_type.get() == MOSAIC_X5:
-            return config_fixed_septentrio(acc_limit, lat, lon, height, posmode)
-        if self.receiver_type.get() == UM980:
-            return config_fixed_unicore(acc_limit, lat, lon, height, posmode)
-        return config_fixed_ublox(acc_limit, lat, lon, height, posmode)
+        if self.receiver_type.get() == QUECTEL_LGSERIES:
+            return config_fixed_quectel_lgseries(
+                acc_limit, lat, lon, height, posmode, disablenmea
+            )
+        if self.receiver_type.get() == QUECTEL_LCSERIES:
+            return config_fixed_quectel_lcseries(
+                acc_limit, lat, lon, height, posmode, disablenmea
+            )
+        if self.receiver_type.get() == SEPTENTRIO_MOSAIC:
+            return config_fixed_septentrio(
+                acc_limit, lat, lon, height, posmode, disablenmea
+            )
+        if self.receiver_type.get() == UNICORE_UM980:
+            return config_fixed_unicore(
+                acc_limit, lat, lon, height, posmode, disablenmea
+            )
+        return config_fixed_ublox(acc_limit, lat, lon, height, posmode, disablenmea)
 
     def _on_quectel_restart(self):
         """
@@ -1099,14 +1108,17 @@ class ServerConfigDialog(ToplevelDialog):
         """
 
         self._quectel_restart += 1
+        self.status_label = ""
         if self.base_mode.get() in (BASE_SVIN, BASE_FIXED):
             # if first restart, send config commands a 2nd time
             if self._quectel_restart == 1:
+                self.status_label = QUECTELRST2  # receiver restart again message
                 self._config_receiver()
+                return
             # if second restart and survey-in mode, enable SVIN status message
-            if self.base_mode.get() == BASE_SVIN and self._quectel_restart == 2:
+            if self.base_mode.get() == BASE_SVIN and self._quectel_restart > 1:
                 cmd = config_svin_quectel()
-                self.__app.send_to_device(cmd.serialize())
+                self.__app.send_to_device(cmd)
 
     def svin_countdown(self, ela: int, valid: bool, active: bool):
         """
@@ -1119,19 +1131,22 @@ class ServerConfigDialog(ToplevelDialog):
         :param bool active: SVIN active status
         """
 
+        dur = self.duration.get()
+        self.status_label = SVINSTART.format(100 * ela / dur)
         if self.base_mode.get() == BASE_SVIN and active and not valid:
             self._lbl_elapsed.grid_forget()
             self._pgb_elapsed.grid(
                 column=2, row=2, columnspan=2, padx=2, pady=1, sticky=W
             )
-            dur = self.duration.get()
             self._pgb_elapsed["value"] = 100 * (dur - ela) / dur
+            if ela >= dur:
+                self.status_label = (SVINERR, ERRCOL)
         elif self.base_mode.get() == BASE_SVIN and valid:
             self._pgb_elapsed.grid_forget()
             self._lbl_elapsed.grid(
                 column=2, row=2, columnspan=2, padx=2, pady=1, sticky=W
             )
-            self._lbl_elapsed.config(text="SVIN Valid")
+            self.status_label = (SVINOK, OKCOL)
         else:
             self._lbl_elapsed.grid_forget()
             self._pgb_elapsed.grid_forget()
@@ -1167,7 +1182,7 @@ class ServerConfigDialog(ToplevelDialog):
 
         self.__app.frm_settings.on_expand()
 
-    def update_pending(self, msg: object):
+    def update_pending(self, msg: NMEAMessage):
         """
         Receives polled confirmation (PQTMVER) message from the nmea
         handler and updates status.
@@ -1187,6 +1202,7 @@ class ServerConfigDialog(ToplevelDialog):
         """
 
         if self.base_mode.get() in (BASE_FIXED, BASE_SVIN):
+            self.status_label = ""
             if self.pos_mode.get() == POS_ECEF:
                 self.fixedlat.set(self.__app.gnss_status.base_ecefx)
                 self.fixedlon.set(self.__app.gnss_status.base_ecefy)

@@ -42,8 +42,9 @@ from types import NoneType
 from typing import Any, Literal
 
 from pygnssutils import version as PGVERSION
-from pynmeagps import WGS84_SMAJ_AXIS, NMEAMessage, haversine, leapsecond
+from pynmeagps import WGS84_SMAJ_AXIS, NMEAMessage, haversine
 from pynmeagps import version as NMEAVERSION
+from pynmeagps import wnotow2utc
 from pyqgc import version as QGCVERSION
 from pyrtcm import version as RTCMVERSION
 from pysbf2 import version as SBFVERSION
@@ -952,7 +953,7 @@ def parse_rxmspartnkey(msg: UBXMessage) -> list:
         lkey = getattr(msg, f"keyLengthBytes_{i+1:02}")
         wno = getattr(msg, f"validFromWno_{i+1:02}")
         tow = getattr(msg, f"validFromTow_{i+1:02}")
-        dat = wnotow2date(wno, tow)
+        dat = wnotow2utc(wno, int(tow * 1000))
         key = ""
         for n in range(0 + pos, lkey + pos):
             keyb = getattr(msg, f"key_{n+1:02}")
@@ -1445,27 +1446,6 @@ def valid_geom(geom: str) -> bool:
         return True
     regexgeom = re.compile(r"^([1-9][0-9]*)[x]([1-9][0-9]*)[+]-?\d*[+]-?\d*$")
     return regexgeom.match(geom) is not None
-
-
-def wnotow2date(wno: int, tow: int, ls: int | NoneType = None) -> datetime:
-    """
-    Get datetime from GPS Week number (Wno), Time of Week (Tow)
-    and leapsecond offset.
-
-    GPS Epoch 0 = 6th Jan 1980
-
-    :param int wno: week number
-    :param int tow: time of week
-    :param int ls: leapsecond offset
-    :return: datetime
-    :rtype: datetime
-    """
-
-    if ls is None:
-        ls = leapsecond(datetime.now())
-    dat = GPSEPOCH0 + timedelta(days=wno * 7)
-    dat += timedelta(seconds=tow - ls)
-    return dat
 
 
 def xy2ll(width: int, height: int, bounds: Area, xy: tuple) -> Point | NoneType:

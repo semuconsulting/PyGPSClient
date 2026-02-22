@@ -38,6 +38,7 @@ from pygpsclient.confirm_box import ConfirmBox
 from pygpsclient.globals import (
     ASCII,
     BSR,
+    CMDPAUSE,
     CRLF,
     ERRCOL,
     INFOCOL,
@@ -283,16 +284,18 @@ class TTYPresetDialog(ToplevelDialog):
         """
 
         try:
+            cmds = []
             for cmd in command.split(";"):
                 cmd = cmd.strip().encode(ASCII, errors=BSR)
                 if self._crlf.get():
                     cmd += CRLF
-                self.__app.send_to_device(cmd)
                 self._record_command(cmd)
                 if self._echo.get():  # echo output command to console
                     self.__app.consoledata.append(
                         (cmd, cmd.decode(ASCII, errors=BSR), TTYMARKER)
                     )
+                cmds.append(cmd)
+            self.__app.send_to_device(cmds, interval=self._delay.get() * CMDPAUSE)
         except Exception as err:  # pylint: disable=broad-except
             self.status_label = (f"Error {err}", ERRCOL)
             self._lbl_send_command.config(image=self.img_warn)

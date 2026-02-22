@@ -26,6 +26,7 @@ from pygpsclient.globals import (
     NMEA_MONHW,
     SBF_MONHW,
     UBX_MONVER,
+    UNI_MONHW,
 )
 from pygpsclient.strings import NA
 
@@ -120,6 +121,9 @@ class Hardware_Info_Frame(Frame):
         Poll Hardware Version and await response.
         """
 
+        msg = None
+        pendmsg = None
+        penddlg = None
         if self._protocol == "NMEA":
             msg = NMEAMessage("P", "QTMVERNO", POLL)
             pendmsg = "PQTMVERNO"
@@ -128,24 +132,29 @@ class Hardware_Info_Frame(Frame):
             msg = b"SSSSSSSSSS\r\nesoc, COM1, ReceiverSetup\r\n"
             pendmsg = "ReceiverSetup"
             penddlg = SBF_MONHW
-        else:
+        elif self._protocol == "UBI":
+            msg = b"VERSIONB\r\n"
+            pendmsg = "VERSION"
+            penddlg = UNI_MONHW
+        elif self._protocol == "UBX":
             msg = UBXMessage("MON", "MON-VER", POLL)
             pendmsg = "MON-VER"
             penddlg = UBX_MONVER
 
         if isinstance(msg, (NMEAMessage, UBXMessage)):
             self.__app.send_to_device(msg.serialize())
-            self.__container.status_label = f"{msg.identity} POLL message sent"
+            # self.__container.status_label = f"{msg.identity} POLL message sent"
         elif isinstance(msg, bytes):
             self.__app.send_to_device(msg)
-            self.__container.status_label = "Setup POLL message sent"
-        self.__container.set_pending(pendmsg, penddlg)
+            # self.__container.status_label = "Setup POLL message sent"
+        if hasattr(self.__container, "set_pending"):
+            self.__container.set_pending(pendmsg, penddlg)
 
-    def update_status(self, msg: UBXMessage | NMEAMessage):
+    def update_status(self, msg: NMEAMessage | UBXMessage | bytes):
         """
         Update pending confirmation status.
 
-        :param UBXMessage | NMEAMessage msg: UBX or NMEA config message
+        :param NMEAMessage | UBXMessage | bytes msg: message containing hardware info
         """
 
         self._lbl_swver.config(

@@ -803,7 +803,6 @@ class SettingsChildFrame(Frame):
             "tlscrtpath": self.__app.configuration.get("tlscrtpath_s"),
         }
 
-        # self.frm_socketserver.status_label = conntype
         if conntype == CONNECTED:
             frm = self.frm_serial
             if frm.status == NOPORTS:

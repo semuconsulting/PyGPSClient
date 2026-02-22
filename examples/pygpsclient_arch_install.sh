@@ -3,6 +3,10 @@
 # Bash shell script to install PyGPSClient on 64-bit Arch-based
 # Linux environments.
 #
+# Arch Desktop generally includes all the necessary Python3 executables by
+# default (but remember to look for the third-party ARM64/AARCH64
+# distributables if you're using an ARM SBC like Raspberry Pi).
+#
 # Change shebang /bin/bash to /bin/zsh if running from zsh shell.
 # NB: NOT for use on Windows or MacOS!
 #
@@ -22,6 +26,7 @@ echo "Installed Python version is $PYVER"
 
 echo "PyGPSClient will be installed at $HOME/pygpsclient/bin"
 
+# this is generally all that's needed - Arch Desktop includes the latest Python3
 echo "Installing dependencies..."
 sudo pacman -S tk libspatialite
      

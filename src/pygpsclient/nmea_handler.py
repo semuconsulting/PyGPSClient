@@ -23,9 +23,10 @@ from time import time
 from pynmeagps import NMEAMessage
 from pyubx2 import itow2utc
 
+from pygpsclient.dialog_state import DLGTSERVER
 from pygpsclient.globals import SAT_EXPIRY, TKGN
 from pygpsclient.helpers import fix2desc, kmph2ms, knots2ms, svid2gnssid
-from pygpsclient.strings import DLGTNMEA
+from pygpsclient.strings import DLGTNMEA, NA
 
 
 class NMEAHandler:
@@ -59,6 +60,14 @@ class NMEAHandler:
         try:
             if raw_data is None:
                 return
+            if (
+                self.__app.gnss_status.version_data["hwversion"] == NA
+                and "QTM" in parsed_data.msgID
+            ):
+                self.__app.gnss_status.version_data["hwversion"] = "Quectel"
+                self.__app.device_label = self.__app.gnss_status.version_data[
+                    "hwversion"
+                ]
             # self.logger.debug(f"data received {parsed_data.identity}")
             if parsed_data.msgID in ("RMC", "RMCH"):  # Recommended minimum data for GPS
                 self._process_RMC(parsed_data)
@@ -85,19 +94,21 @@ class NMEAHandler:
                 self._process_GSV(parsed_data)
             elif parsed_data.msgID == "ZDA":  # ZDA Time
                 self._process_ZDA(parsed_data)
+            elif parsed_data.msgID == "TXT":  # generic information message
+                self._process_TXT(parsed_data)
             # proprietary GPS Lat/Lon & Acc
             elif parsed_data.msgID == "UBX" and parsed_data.msgId == "00":
                 self._process_UBX00(parsed_data)
             # proprietary GPS Lat/Lon & Acc
             elif parsed_data.msgID == "UBX" and parsed_data.msgId == "03":
                 self._process_UBX03(parsed_data)
-            elif parsed_data.msgID == "QTMVERNO":  # LG290P hardware version
+            elif parsed_data.msgID == "QTMVERNO":  # LGSERIES hardware version
                 self._process_QTMVERNO(parsed_data)
-            elif parsed_data.msgID == "QTMVER":  # LG290P hardware version
+            elif parsed_data.msgID == "QTMVER":  # LGSERIES hardware version
                 self._process_QTMVER(parsed_data)
-            elif parsed_data.msgID == "QTMPVT":  # LG290P pos, vel, trk
+            elif parsed_data.msgID == "QTMPVT":  # LGSERIES pos, vel, trk
                 self._process_QTMPVT(parsed_data)
-            elif parsed_data.msgID == "QTMSVINSTATUS":  # LG290P SVIN status
+            elif parsed_data.msgID == "QTMSVINSTATUS":  # LGSERIES SVIN status
                 self._process_QTMSVINSTATUS(parsed_data)
             elif parsed_data.msgID in (
                 "HPR",
@@ -286,6 +297,44 @@ class NMEAHandler:
 
         self.__app.gnss_status.utc = data.time
 
+    def _process_TXT(self, data: NMEAMessage):
+        """
+        Process TXT sentence - Generic Information.
+
+        :param pynmeagps.NMEAMessage data: parsed TXT sentence
+        """
+
+        if (
+            "HW " in data.text
+            and self.__app.gnss_status.version_data["hwversion"] == NA
+        ):
+            mfr = "U-blox " if "UBX" in data.text else ""
+            self.__app.gnss_status.version_data["hwversion"] = data.text[3:]
+            ver = self.__app.gnss_status.version_data["hwversion"].rsplit(" ", 1)[0]
+            self.__app.device_label = f"{mfr}{ver}"
+        elif (
+            "ROM CORE " in data.text
+            and self.__app.gnss_status.version_data["fwversion"] == NA
+        ):
+            self.__app.gnss_status.version_data["fwversion"] = data.text[9:].split(
+                " ", 1
+            )[0]
+        elif (
+            "EXT CORE " in data.text
+            and self.__app.gnss_status.version_data["swversion"] == NA
+        ):
+            self.__app.gnss_status.version_data["swversion"] = data.text[9:]
+        elif (
+            "FWVER=" in data.text
+            and self.__app.gnss_status.version_data["fwversion"] == NA
+        ):
+            self.__app.gnss_status.version_data["fwversion"] = data.text[6:]
+        elif (
+            "PROTVER=" in data.text
+            and self.__app.gnss_status.version_data["romversion"] == NA
+        ):
+            self.__app.gnss_status.version_data["romversion"] = data.text[8:]
+
     def _process_UBX00(self, data: NMEAMessage):
         """
         Process UXB00 sentence - Lat/Long position data.
@@ -352,13 +401,14 @@ class NMEAHandler:
 
         verdata = {}
         verdata["swversion"] = "N/A"
-        verdata["hwversion"] = data.verstr
+        verdata["hwversion"] = f"Quectel {data.verstr}"
         verdata["fwversion"] = f"{data.builddate}-{data.buildtime}"
         verdata["romversion"] = "N/A"
         self.__app.gnss_status.version_data = verdata
 
         if self.__app.dialog(DLGTNMEA) is not None:
             self.__app.dialog(DLGTNMEA).update_pending(data)
+        self.__app.device_label = verdata["hwversion"]
 
     def _process_QTMVER(self, data: NMEAMessage):
         """
@@ -371,8 +421,8 @@ class NMEAHandler:
         self._process_QTMVERNO(data)
 
         # notify socket server frame that receiver has restarted...
-        if self.__app.frm_settings.frm_socketserver is not None:
-            self.__app.frm_settings.frm_socketserver.update_pending(data)
+        if self.__app.dialog(DLGTSERVER) is not None:
+            self.__app.dialog(DLGTSERVER).update_pending(data)
 
     def _process_QTMPVT(self, data: NMEAMessage):
         """
@@ -412,10 +462,8 @@ class NMEAHandler:
 
         valid = 1 if data.valid == 2 else 0
         active = data.valid == 1
-        if self.__app.frm_settings.frm_socketserver is not None:
-            self.__app.frm_settings.frm_socketserver.svin_countdown(
-                data.obs, valid, active
-            )
+        if self.__app.dialog(DLGTSERVER) is not None:
+            self.__app.dialog(DLGTSERVER).svin_countdown(data.obs, valid, active)
 
     def _process_FMI(self, data: NMEAMessage):
         """
@@ -441,6 +489,9 @@ class NMEAHandler:
             ims["status"] = data.status
         except (KeyError, AttributeError):
             pass
+
+        self.__app.gnss_status.version_data["hwversion"] = "Feyman IM19"
+        self.__app.device_label = self.__app.gnss_status.version_data["hwversion"]
 
     def _process_IMU(self, data: NMEAMessage):
         """
