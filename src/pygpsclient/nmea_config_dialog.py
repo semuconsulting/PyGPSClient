@@ -154,6 +154,7 @@ class NMEAConfigDialog(ToplevelDialog):
         :param NMEAMessage msg: NMEA config message
         """
 
+        # self.logger.debug(f"{msg.identity=}")
         nmeafrm = self._pending_confs.get(msg.identity, None)
 
         if nmeafrm is not None:

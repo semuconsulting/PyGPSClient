@@ -413,8 +413,6 @@ class UBXHandler:
                 now,
             )
 
-        # print(f"DEBUG {self.__app.gnss_status.sig_data=}")
-
     def _process_NAV_STATUS(self, data: UBXMessage):
         """
         Process NAV-STATUS sentences - Status Information.

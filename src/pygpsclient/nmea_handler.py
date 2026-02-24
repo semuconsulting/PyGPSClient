@@ -128,6 +128,8 @@ class NMEAHandler:
                 self._process_FMI(parsed_data)
             elif parsed_data.msgID[0:3] == "QTM" and hasattr(parsed_data, "status"):
                 self._process_QTMACK(parsed_data)
+            elif parsed_data.msgID[0:3] == "AIR":
+                self._process_AIR(parsed_data)
         except ValueError:
             pass
 
@@ -404,9 +406,9 @@ class NMEAHandler:
         """
 
         self.__app.gnss_status.version_data["swversion"] = "N/A"
-        self.__app.gnss_status.version_data["hwversion"] = f"Quectel {data.verstr}"
+        self.__app.gnss_status.version_data["hwversion"] = f"Quectel {data.verstr[0:8]}"
         self.__app.gnss_status.version_data["fwversion"] = (
-            f"{data.builddate}-{data.buildtime}"
+            f"{data.verstr[8:]} {data.builddate}-{data.buildtime}"
         )
         self.__app.gnss_status.version_data["romversion"] = NA
         self.__app.gnss_status.version_data["gnss"] = NA
@@ -516,5 +518,20 @@ class NMEAHandler:
             if hasattr(data, "heading"):  # range 0 - 360
                 ims["yaw"] = round(data.heading - 180, 4)
             ims["status"] = str(getattr(data, "quality", ""))
+        except (TypeError, KeyError, AttributeError):
+            pass
+
+    def _process_AIR(self, data: NMEAMessage):
+        """
+        Process PAIR sentences.
+
+        Quectel LC* series configuration or poll message.
+
+        :param NMEAMessage data: PAIR* message
+        """
+
+        try:
+            if self.__app.dialog(DLGTNMEA) is not None:
+                self.__app.dialog(DLGTNMEA).update_pending(data)
         except (TypeError, KeyError, AttributeError):
             pass

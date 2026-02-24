@@ -10,7 +10,7 @@ Created on 22 Dec 2020
 :license: BSD 3-Clause
 """
 
-from tkinter import Frame, Label, W
+from tkinter import EW, Frame, Label, W
 
 from PIL import Image, ImageTk
 
@@ -62,38 +62,31 @@ class Hardware_Info_Frame(Frame):
         """
 
         self._lbl_hwverl = Label(self, text="Hardware")
-        self._lbl_hwver = Label(self)
+        self._lbl_hwver = Label(self, anchor=W)
         self._lbl_swverl = Label(self, text="Software")
-        self._lbl_swver = Label(self)
+        self._lbl_swver = Label(self, anchor=W)
         self._lbl_fwverl = Label(self, text="Firmware")
-        self._lbl_fwver = Label(self)
+        self._lbl_fwver = Label(self, anchor=W)
         self._lbl_romverl = Label(self, text="Protocol")
-        self._lbl_romver = Label(self)
+        self._lbl_romver = Label(self, anchor=W)
         self._lbl_gnssl = Label(self, text="GNSS/AS")
-        self._lbl_gnss = Label(self)
+        self._lbl_gnss = Label(self, anchor=W)
 
     def _do_layout(self):
         """
         Layout widgets.
         """
 
-        self._lbl_hwverl.grid(column=0, row=0, padx=2, sticky=W)
-        self._lbl_hwver.grid(column=1, row=0, columnspan=2, padx=2, sticky=W)
-        self._lbl_swverl.grid(column=3, row=0, padx=2, sticky=W)
-        self._lbl_swver.grid(column=4, row=0, columnspan=2, padx=2, sticky=W)
-        self._lbl_fwverl.grid(column=0, row=1, padx=2, sticky=W)
-        self._lbl_fwver.grid(column=1, row=1, columnspan=2, padx=2, sticky=W)
-        self._lbl_romverl.grid(column=3, row=1, padx=2, sticky=W)
-        self._lbl_romver.grid(column=4, row=1, columnspan=2, padx=2, sticky=W)
-        self._lbl_gnssl.grid(column=0, row=2, columnspan=1, padx=2, sticky=W)
-        self._lbl_gnss.grid(column=1, row=2, columnspan=4, padx=2, sticky=W)
-
-        cols, rows = self.grid_size()
-        for i in range(cols):
-            self.grid_columnconfigure(i, weight=1)
-        for i in range(rows):
-            self.grid_rowconfigure(i, weight=1)
-        # self.option_add("*Font", self.__app.font_sm)
+        self._lbl_hwverl.grid(column=0, row=0, padx=3, pady=3, sticky=W)
+        self._lbl_hwver.grid(column=1, row=0, columnspan=2, padx=3, pady=3, sticky=EW)
+        self._lbl_swverl.grid(column=3, row=0, padx=3, pady=3, sticky=W)
+        self._lbl_swver.grid(column=4, row=0, columnspan=2, padx=3, pady=3, sticky=EW)
+        self._lbl_fwverl.grid(column=0, row=1, padx=3, pady=3, sticky=W)
+        self._lbl_fwver.grid(column=1, row=1, columnspan=2, padx=3, pady=3, sticky=EW)
+        self._lbl_romverl.grid(column=3, row=1, padx=3, pady=3, sticky=W)
+        self._lbl_romver.grid(column=4, row=1, columnspan=2, padx=3, pady=3, sticky=EW)
+        self._lbl_gnssl.grid(column=0, row=2, columnspan=1, padx=3, pady=3, sticky=W)
+        self._lbl_gnss.grid(column=1, row=2, columnspan=4, padx=3, pady=3, sticky=EW)
 
     def _attach_events(self):
         """

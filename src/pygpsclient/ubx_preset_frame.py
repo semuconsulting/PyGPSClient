@@ -18,12 +18,14 @@ from tkinter import (
     VERTICAL,
     Button,
     E,
+    Entry,
     Frame,
     Label,
     Listbox,
     N,
     S,
     Scrollbar,
+    StringVar,
     W,
 )
 
@@ -39,7 +41,9 @@ from pygpsclient.globals import (
     ICON_WARNING,
     OKCOL,
     UBX_PRESET,
+    VALREGEX,
 )
+from pygpsclient.helpers import validate  # pylint: disable=unused-import
 from pygpsclient.strings import (
     CONFIRM,
     DLGACTION,
@@ -50,6 +54,7 @@ from pygpsclient.strings import (
 CANCELLED = 0
 CONFIRMED = 1
 NOMINAL = 2
+UBXPRESETREGEX = r"^(?:(?:[^,]+,){3}\s?[0-2],?)+$"
 
 
 class UBX_PRESET_Frame(Frame):
@@ -80,6 +85,8 @@ class UBX_PRESET_Frame(Frame):
         self._img_warn = ImageTk.PhotoImage(Image.open(ICON_WARNING))
         self._preset_command = None
         self._configfile = None
+        self._command = StringVar()
+        self._confirm = False
         self._body()
         self._do_layout()
         self._attach_events()
@@ -90,12 +97,22 @@ class UBX_PRESET_Frame(Frame):
         Set up frame and widgets.
         """
 
+        self._lbl_command = Label(
+            self,
+            text="Command",
+        )
+        self._ent_command = Entry(
+            self,
+            textvariable=self._command,
+            relief="sunken",
+            width=40,
+        )
         self._lbl_presets = Label(self, text=LBLUBXPRESET, anchor=W)
         self._lbx_preset = Listbox(
             self,
             border=2,
             relief="sunken",
-            height=12,
+            height=10,
             width=40,
             justify=LEFT,
             exportselection=False,
@@ -119,20 +136,20 @@ class UBX_PRESET_Frame(Frame):
         Layout widgets.
         """
 
-        self._lbl_presets.grid(column=0, row=0, columnspan=6, padx=3, sticky=EW)
+        self._lbl_command.grid(column=0, row=0, padx=3, pady=3, sticky=W)
+        self._ent_command.grid(column=1, row=0, columnspan=4, padx=3, pady=3, sticky=EW)
+        self._lbl_presets.grid(column=0, row=1, columnspan=5, padx=3, pady=3, sticky=EW)
         self._lbx_preset.grid(
-            column=0, row=1, columnspan=3, rowspan=12, padx=3, pady=3, sticky=EW
+            column=0, row=2, columnspan=2, rowspan=10, padx=3, pady=3, sticky=EW
         )
-        self._scr_presetv.grid(column=2, row=1, rowspan=12, sticky=(N, S, E))
-        self._scr_preseth.grid(column=0, row=13, columnspan=3, sticky=EW)
-        self._btn_send_command.grid(column=3, row=1, ipadx=3, ipady=3, sticky=EW)
-        self._lbl_send_command.grid(column=3, row=3, ipadx=3, ipady=3, sticky=EW)
-
-        cols, rows = self.grid_size()
-        for i in range(cols):
-            self.grid_columnconfigure(i, weight=1)
-        for i in range(rows):
-            self.grid_rowconfigure(i, weight=1)
+        self._scr_presetv.grid(column=2, row=2, rowspan=10, sticky=(N, S, E))
+        self._scr_preseth.grid(column=0, row=12, columnspan=2, sticky=EW)
+        self._btn_send_command.grid(
+            column=3, row=2, ipadx=3, ipady=3, padx=3, pady=3, sticky=W
+        )
+        self._lbl_send_command.grid(
+            column=3, row=4, ipadx=3, ipady=3, padx=3, pady=3, sticky=EW
+        )
         self.option_add("*Font", self.__app.font_sm)
 
     def _attach_events(self):
@@ -150,29 +167,33 @@ class UBX_PRESET_Frame(Frame):
         self.__app.configuration.init_presets("ubx")
         for i, preset in enumerate(self.__app.configuration.get("ubxpresets_l")):
             self._lbx_preset.insert(i, preset)
+        self._command.set("")
+        self._confirm = False
 
     def _on_select_preset(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
         Preset command has been selected.
         """
 
-        idx = self._lbx_preset.curselection()
-        self._preset_command = self._lbx_preset.get(idx)
+        cmd = self._lbx_preset.get(self._lbx_preset.curselection())
+        self._confirm = CONFIRM in cmd
+        self._command.set(cmd[cmd.find(",", 1) + 1 :].strip())
 
     def _on_send_preset(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
         Preset command send button has been clicked.
         """
 
-        if self._preset_command in ("", None):
-            self.__container.status_label = ("Select preset", ERRCOL)
+        if not self._ent_command.validate(VALREGEX, regex=UBXPRESETREGEX):
+            self.__container.status_label = ("Invalid command format", ERRCOL)
             return
+        self._preset_command = self._command.get()
 
         status = CONFIRMED
         confids = ("MON-VER", "ACK-ACK")
         try:
             confids = ("MON-VER", "ACK-ACK", "ACK-NAK")
-            if CONFIRM in self._preset_command:
+            if self._confirm:
                 if ConfirmBox(self, DLGACTION, DLGACTIONCONFIRM).show():
                     self._format_preset(self._preset_command)
                     status = CONFIRMED
@@ -209,7 +230,7 @@ class UBX_PRESET_Frame(Frame):
 
         try:
             seg = command.split(",")
-            for i in range(1, len(seg), 4):
+            for i in range(0, len(seg), 4):
                 ubx_class = seg[i].strip()
                 ubx_id = seg[i + 1].strip()
                 payload = seg[i + 2].strip()

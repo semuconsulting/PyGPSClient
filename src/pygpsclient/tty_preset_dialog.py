@@ -15,7 +15,6 @@ from tkinter import (
     HORIZONTAL,
     LEFT,
     NE,
-    NS,
     NSEW,
     VERTICAL,
     Button,
@@ -47,8 +46,10 @@ from pygpsclient.globals import (
     TTYERR,
     TTYMARKER,
     TTYOK,
+    VALNONBLANK,
 )
 from pygpsclient.hardware_info_frame import Hardware_Info_Frame
+from pygpsclient.helpers import validate  # pylint: disable=unused-import
 from pygpsclient.strings import (
     CONFIRM,
     DLGACTION,
@@ -67,11 +68,12 @@ class TTYPresetDialog(ToplevelDialog):
     TTY Preset and User-defined configuration command dialog.
     """
 
-    def __init__(self, app, **kwargs):  # pylint: disable=unused-argument
+    def __init__(self, app, *args, **kwargs):  # pylint: disable=unused-argument
         """
         Constructor.
 
         :param Frame app: reference to main tkinter application
+        :param args: optional args to pass to parent class (not currently used)
         :param kwargs: optional kwargs to pass to Frame parent class
         """
 
@@ -129,7 +131,7 @@ class TTYPresetDialog(ToplevelDialog):
             self._frm_body,
             border=2,
             relief="sunken",
-            height=25,
+            height=20,
             width=55,
             justify=LEFT,
             exportselection=False,
@@ -166,29 +168,29 @@ class TTYPresetDialog(ToplevelDialog):
         self._lbl_presets.grid(column=0, row=3, columnspan=3, padx=3, sticky=EW)
         self._lbx_preset.grid(
             column=0,
-            row=3,
+            row=4,
             columnspan=3,
-            rowspan=10,
+            rowspan=20,
             padx=3,
             pady=3,
-            sticky=NS,
+            sticky=NSEW,
         )
-        self._scr_presetv.grid(column=2, row=3, rowspan=21, sticky=(N, S, E))
+        self._scr_presetv.grid(column=2, row=4, rowspan=20, sticky=(N, S, E))
         self._scr_preseth.grid(column=0, row=24, columnspan=3, sticky=EW)
         self._btn_send_command.grid(
-            column=3, row=3, padx=3, ipadx=3, ipady=3, sticky=NE
+            column=3, row=4, padx=3, ipadx=3, ipady=3, sticky=NE
         )
         self._lbl_send_command.grid(
-            column=3, row=4, padx=3, ipadx=3, ipady=3, sticky=EW
+            column=3, row=5, padx=3, ipadx=3, ipady=3, sticky=EW
         )
-        self.container.grid_columnconfigure(0, weight=10)
-        self.container.grid_rowconfigure(0, weight=10)
-        self.grid_columnconfigure(0, weight=10)
-        self.grid_rowconfigure(0, weight=10)
-        colsp, _ = self._frm_body.grid_size()
+
+        self.container.grid_columnconfigure(0, weight=1)
+        self.container.grid_rowconfigure(1, weight=1)
+        colsp, rowsp = self._frm_body.grid_size()
         for col in range(colsp - 1):
-            self._frm_body.grid_columnconfigure(col, weight=10)
-        self._frm_body.grid_rowconfigure(3, weight=10)
+            self._frm_body.grid_columnconfigure(col, weight=1)
+        for row in range(3, rowsp):
+            self._frm_body.grid_rowconfigure(row, weight=1)
 
     def _attach_events(self):
         """
@@ -249,8 +251,8 @@ class TTYPresetDialog(ToplevelDialog):
         Preset command send button has been clicked.
         """
 
-        if self._command.get() in ("", None):
-            self.status_label = ("Enter or select command", ERRCOL)
+        if not self._ent_command.validate(VALNONBLANK):
+            self.status_label = ("Invalid command format", ERRCOL)
             return
 
         try:

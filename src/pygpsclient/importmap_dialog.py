@@ -203,9 +203,9 @@ class ImportMapDialog(ToplevelDialog):
 
         valid = True
         valid = valid & self._ent_minlat.validate(VALFLOAT, -90, 90)
-        valid = valid & self._ent_maxlat.validate(-90, 90)
+        valid = valid & self._ent_maxlat.validate(VALFLOAT, -90, 90)
         valid = valid & self._ent_minlon.validate(VALFLOAT, -180, 180)
-        valid = valid & self._ent_maxlon.validate(-180, 180)
+        valid = valid & self._ent_maxlon.validate(VALFLOAT, -180, 180)
         if valid:
             self.status_label = ""
             self._btn_import.config(state=NORMAL)

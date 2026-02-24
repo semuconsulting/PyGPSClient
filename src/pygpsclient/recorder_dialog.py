@@ -21,7 +21,19 @@ Created on 9 Jan 2023
 from datetime import datetime
 from threading import Event, Thread
 from time import sleep
-from tkinter import CENTER, EW, NSEW, Button, Frame, Label, TclError, W, filedialog
+from tkinter import (
+    CENTER,
+    EW,
+    NSEW,
+    Button,
+    Entry,
+    Frame,
+    Label,
+    StringVar,
+    TclError,
+    W,
+    filedialog,
+)
 
 from PIL import Image, ImageTk
 from pynmeagps import NMEAMessage
@@ -59,7 +71,7 @@ from pygpsclient.globals import (
     UNDO,
 )
 from pygpsclient.helpers import nmea2preset, set_filename, tty2preset, ubx2preset
-from pygpsclient.strings import DLGTRECORD, SAVETITLE
+from pygpsclient.strings import DLGTRECORD, NA, SAVETITLE
 from pygpsclient.toplevel_dialog import ToplevelDialog
 
 CFG = b"\x06"
@@ -72,6 +84,7 @@ STOP = 0
 TTYONLY = 0
 VALSET = b"\x8a"
 VALGET = b"\x8b"
+SAVE = chr(0x1F4BE)
 
 
 class RecorderDialog(ToplevelDialog):
@@ -101,14 +114,17 @@ class RecorderDialog(ToplevelDialog):
         self._img_stop = ImageTk.PhotoImage(Image.open(ICON_STOP))
         self._img_record = ImageTk.PhotoImage(Image.open(ICON_RECORD))
         self._img_import = ImageTk.PhotoImage(Image.open(ICON_IMPORT))
+        self._img_importconfirm = ImageTk.PhotoImage(Image.open(ICON_SEND))
         self._img_undo = ImageTk.PhotoImage(Image.open(ICON_UNDO))
         self._img_delete = ImageTk.PhotoImage(Image.open(ICON_DELETE))
+        self._importdesc = StringVar()
         self._rec_status = STOP
         self._configfile = None
         self._stop_event = Event()
         self._bg = self.cget("bg")  # default background color
         self._configfile = None
         self._configpath = None
+        self._save_to_preset = False
 
         self._body()
         self._do_layout()
@@ -191,6 +207,11 @@ class RecorderDialog(ToplevelDialog):
         self._lbl_activity = Label(
             self._frm_body, text="", anchor=CENTER, bg=BGCOL, fg=FGCOL
         )
+        self._ent_import = Entry(
+            self._frm_body,
+            textvariable=self._importdesc,
+            relief="sunken",
+        )
 
     def _do_layout(self):
         """
@@ -206,7 +227,9 @@ class RecorderDialog(ToplevelDialog):
         self._btn_undo.grid(column=5, row=0, ipadx=3, ipady=3, sticky=W)
         self._btn_delete.grid(column=6, row=0, ipadx=3, ipady=3, sticky=W)
         self._lbl_memory.grid(column=7, row=0, ipadx=3, ipady=3, sticky=W)
-        self._lbl_activity.grid(column=0, row=2, columnspan=7, padx=3, sticky=EW)
+        self._lbl_activity.grid(
+            column=0, row=2, columnspan=8, pady=5, padx=3, sticky=EW
+        )
 
         cols, rows = self.grid_size()
         for i in range(cols):
@@ -230,6 +253,8 @@ class RecorderDialog(ToplevelDialog):
         self._rec_status = STOP if self.__app.recording else RECORD
         self._on_record()
         self.update_count()
+        self._ent_import.grid_forget()
+        self._save_to_preset = False
 
     def _set_configfile_path(self, ext: str = "bin") -> tuple:
         """
@@ -378,7 +403,7 @@ class RecorderDialog(ToplevelDialog):
 
     def _on_save(self):
         """
-        Save commands from in-memory recording to file.
+        Save commands from in-memory recording to file or preset.
         """
 
         if self._rec_status == RECORD:
@@ -386,6 +411,10 @@ class RecorderDialog(ToplevelDialog):
 
         if len(self.__app.recorded_commands) == 0:
             self.status_label = ("Nothing to save", ERRCOL)
+            return
+
+        if self._save_to_preset:  # saving to preset section of json config
+            self._on_import_confirm()
             return
 
         ext = "tty" if self.__app.recording_type == TTYONLY else "bin"
@@ -470,27 +499,45 @@ class RecorderDialog(ToplevelDialog):
         """
 
         if self._rec_status == RECORD:
+            self.status_label = ("Stop recording first", ERRCOL)
             return
 
         if len(self.__app.recorded_commands) == 0:
             self.status_label = ("Nothing to import", ERRCOL)
             return
 
+        self.status_label = (
+            f"Enter preset description, then click Save {SAVE}",
+            INFOCOL,
+        )
+        self._importdesc.set(self._get_preset_desc())
+        self._lbl_activity.grid_forget()
+        self._ent_import.grid(column=0, row=2, columnspan=8, padx=3, sticky=EW)
+        self._save_to_preset = True
+        self.update()
+
+    def _on_import_confirm(self):
+        """
+        Confirm save to preset.
+        """
+
         try:
-            now = f'Recorded commands {datetime.now().strftime("%Y-%m-%d_%H:%M:%S")}'
+            desc = self._importdesc.get().replace(";", " ").replace(",", " ")
+            if desc == "":
+                desc = self._get_preset_desc()
             if isinstance(self.__app.recorded_commands[0], UBXMessage):
                 self.__app.configuration.get("ubxpresets_l").append(
-                    ubx2preset(self.__app.recorded_commands, now)
+                    ubx2preset(self.__app.recorded_commands, desc)
                 )
                 typ = "UBX"
             elif isinstance(self.__app.recorded_commands[0], NMEAMessage):
                 self.__app.configuration.get("nmeapresets_l").append(
-                    nmea2preset(self.__app.recorded_commands, now)
+                    nmea2preset(self.__app.recorded_commands, desc)
                 )
                 typ = "NMEA"
             else:  # tty
                 self.__app.configuration.get("ttypresets_l").append(
-                    tty2preset(self.__app.recorded_commands, now)
+                    tty2preset(self.__app.recorded_commands, desc)
                 )
                 typ = "TTY"
 
@@ -503,6 +550,13 @@ class RecorderDialog(ToplevelDialog):
                 "Recorded commands must be of same type",
                 ERRCOL,
             )
+
+        self._lbl_activity.grid(
+            column=0, row=2, columnspan=7, pady=5, padx=3, sticky=EW
+        )
+        self._ent_import.grid_forget()
+        self.update()
+        self._save_to_preset = False
 
     def _on_undo(self):
         """
@@ -581,3 +635,15 @@ class RecorderDialog(ToplevelDialog):
             self._lbl_activity.config(text="", fg=FGCOL, bg=BGCOL)
         except TclError:  # if dialog closed without stopping recording
             pass
+
+    def _get_preset_desc(self) -> str:
+        """
+        Get default preset description.
+
+        :return: description
+        :rtype: str
+        """
+
+        dev = self.__app.gnss_status.version_data["hwversion"]
+        dev = "Unknown device" if dev == NA else dev.replace(";", " ").replace(",", " ")
+        return f'{dev} {datetime.now().strftime("%Y-%m-%d_%H:%M:%S")}'
