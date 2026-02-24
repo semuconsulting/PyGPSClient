@@ -13,21 +13,16 @@ Created on 22 Dec 2020
 from tkinter import Frame, Label, W
 
 from PIL import Image, ImageTk
-from pynmeagps import POLL, NMEAMessage
-from pyubx2 import UBXMessage
 
 from pygpsclient.globals import (
-    CONNECTED,
-    CONNECTED_SIMULATOR,
     ICON_CONFIRMED,
     ICON_PENDING,
     ICON_SEND,
     ICON_WARNING,
-    NMEA_MONHW,
-    SBF_MONHW,
-    UBX_MONVER,
+    INFOCOL,
+    OKCOL,
 )
-from pygpsclient.strings import NA
+from pygpsclient.strings import HWREPOLL, HWRESET, NA
 
 
 class Hardware_Info_Frame(Frame):
@@ -58,6 +53,7 @@ class Hardware_Info_Frame(Frame):
 
         self._body()
         self._do_layout()
+        self.reset()
         self._attach_events()
 
     def _body(self):
@@ -102,50 +98,25 @@ class Hardware_Info_Frame(Frame):
     def _attach_events(self):
         """
         Bind events to widget.
+
+        Single left click to refresh information.
+        Double left click to re-poll version data.
         """
 
-        # click mouse button to refresh information
-        self.bind("<Button>", self._do_poll_ver)
+        self.bind("<Double-Button-1>", self.repoll)
+        self.bind("<Button>", self.reset)
 
-    def reset(self):
+    def repoll(self, event=None):  # pylint: disable=unused-argument):
+        """
+        Re-poll hardware information.
+        """
+
+        self.__app.poll_version(self.__app.protocol_mask)
+        self.__container.status_label = (HWREPOLL, INFOCOL)
+
+    def reset(self, event=None):  # pylint: disable=unused-argument):):
         """
         Reset panel to initial settings
-        """
-
-        if self.__app.conn_status in (CONNECTED, CONNECTED_SIMULATOR):
-            self._do_poll_ver()
-
-    def _do_poll_ver(self, *args, **kwargs):  # pylint: disable=unused-argument
-        """
-        Poll Hardware Version and await response.
-        """
-
-        if self._protocol == "NMEA":
-            msg = NMEAMessage("P", "QTMVERNO", POLL)
-            pendmsg = "PQTMVERNO"
-            penddlg = NMEA_MONHW
-        elif self._protocol == "SBF":
-            msg = b"SSSSSSSSSS\r\nesoc, COM1, ReceiverSetup\r\n"
-            pendmsg = "ReceiverSetup"
-            penddlg = SBF_MONHW
-        else:
-            msg = UBXMessage("MON", "MON-VER", POLL)
-            pendmsg = "MON-VER"
-            penddlg = UBX_MONVER
-
-        if isinstance(msg, (NMEAMessage, UBXMessage)):
-            self.__app.send_to_device(msg.serialize())
-            self.__container.status_label = f"{msg.identity} POLL message sent"
-        elif isinstance(msg, bytes):
-            self.__app.send_to_device(msg)
-            self.__container.status_label = "Setup POLL message sent"
-        self.__container.set_pending(pendmsg, penddlg)
-
-    def update_status(self, msg: UBXMessage | NMEAMessage):
-        """
-        Update pending confirmation status.
-
-        :param UBXMessage | NMEAMessage msg: UBX or NMEA config message
         """
 
         self._lbl_swver.config(
@@ -162,4 +133,4 @@ class Hardware_Info_Frame(Frame):
         )
         self._lbl_gnss.config(text=self.__app.gnss_status.version_data.get("gnss", NA))
 
-        self.__container.status_label = f"{msg.identity} GET message received"
+        self.__container.status_label = (HWRESET, OKCOL)

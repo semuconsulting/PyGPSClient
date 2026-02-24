@@ -30,7 +30,7 @@ from pygpsclient.globals import (
     GNSS_LIST,
     WIDGETU2,
 )
-from pygpsclient.helpers import col2contrast, snr2col, unused_sats
+from pygpsclient.helpers import col2contrast, snr2col
 from pygpsclient.strings import DLGWAITAZI
 
 OL_WID = 4

@@ -17,6 +17,8 @@ Created on 6 Oct 2025
 
 import logging
 
+from pygpsclient.strings import NA
+
 
 class QGCHandler:
     """
@@ -48,4 +50,7 @@ class QGCHandler:
 
         if raw_data is None:
             pass
+        if self.__app.gnss_status.version_data["hwversion"] == NA:
+            self.__app.gnss_status.version_data["hwversion"] = "Quectel"
+            self.__app.device_label = self.__app.gnss_status.version_data["hwversion"]
         # self.logger.debug(f"data received {parsed_data.identity}")

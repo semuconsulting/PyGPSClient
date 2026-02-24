@@ -22,6 +22,7 @@ from pysbf2 import SBFMessage, itow2utc
 
 from pygpsclient.globals import ASCII, BSR
 from pygpsclient.helpers import fix2desc
+from pygpsclient.strings import NA
 
 DNUL = -2 * (10**10)
 DNUS = 65535
@@ -59,6 +60,9 @@ class SBFHandler:
 
         if raw_data is None:
             return
+        if self.__app.gnss_status.version_data["hwversion"] == NA:
+            self.__app.gnss_status.version_data["hwversion"] = "Septentrio"
+            self.__app.device_label = self.__app.gnss_status.version_data["hwversion"]
         # self.logger.debug(f"data received {parsed_data.identity}")
         if parsed_data.identity == "PVTGeodetic":
             self._process_PVTGeodetic(parsed_data)
@@ -114,14 +118,18 @@ class SBFHandler:
         :param SBFMessage data: ReceiverSetup message
         """
 
-        verdata = {}
-        verdata["hwversion"] = data.ProductName.decode(ASCII, errors=BSR).replace(
-            "\x00", ""
+        hwver = data.ProductName.decode(ASCII, errors=BSR).replace("\x00", "")
+        self.__app.gnss_status.version_data["hwversion"] = f"Septentrio {hwver}"
+        self.__app.gnss_status.version_data["swversion"] = (
+            data.RxVersion.decode(ASCII, errors=BSR)
+            .replace("\x00", "")
+            .replace("Unknown", "")
         )
-        verdata["fwversion"] = data.RxVersion.decode(ASCII, errors=BSR).replace(
-            "\x00", ""
+        self.__app.gnss_status.version_data["fwversion"] = (
+            data.GNSSFWVersion.decode(ASCII, errors=BSR)
+            .replace("\x00", "")
+            .replace("Unknown", "")
         )
-        verdata["romversion"] = data.GNSSFWVersion.decode(ASCII, errors=BSR).replace(
-            "\x00", ""
-        )
-        self.__app.gnss_status.version_data = verdata
+        self.__app.gnss_status.version_data["romversion"] = NA
+        self.__app.gnss_status.version_data["gnss"] = NA
+        self.__app.device_label = self.__app.gnss_status.version_data["hwversion"]

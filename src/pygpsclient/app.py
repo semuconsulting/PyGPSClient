@@ -70,11 +70,13 @@ from serial import SerialException, SerialTimeoutException
 from pygpsclient._version import __version__ as VERSION
 from pygpsclient.banner_frame import BannerFrame
 from pygpsclient.configuration import Configuration
-from pygpsclient.dialog_state import DialogState
+from pygpsclient.dialog_state import DLGTNMEA, DLGTTTY, DLGTUBX, DialogState
 from pygpsclient.file_handler import FileHandler
 from pygpsclient.globals import (
     BGCOL,
     CLASS,
+    CMDINITDELAY,
+    CMDPAUSE,
     CONFIGFILE,
     CONNECTED_NTRIP,
     CONNECTED_SPARTNIP,
@@ -93,6 +95,7 @@ from pygpsclient.globals import (
     NOPORTS,
     NTRIP_EVENT,
     OKCOL,
+    RTCMSTR,
     SOCKSERVER_MAX_CLIENTS,
     SPARTN_EVENT,
     SPARTN_PROTOCOL,
@@ -128,6 +131,7 @@ from pygpsclient.strings import (
     INACTIVE_TIMEOUT,
     INTROTXTNOPORTS,
     KILLSWITCH,
+    NA,
     NOTCONN,
     SAVECONFIGBAD,
     SAVECONFIGOK,
@@ -136,6 +140,7 @@ from pygpsclient.strings import (
     UPDATEINPROG,
     UPDATERESTART,
     VERCHECK,
+    WARNING,
 )
 from pygpsclient.tty_handler import TTYHandler
 from pygpsclient.ubx_handler import UBXHandler
@@ -228,6 +233,7 @@ class App(Frame):
         self._recorded_commands = []  # captured by RecorderDialog
         self.recording = False  # RecordDialog status
         self.recording_type = 0  # 0 = TTY ONLY, 1 = UBX/NMEA
+        self.ntriprtcmstr = RTCMSTR
 
         # open database if database recording enabled
         dbpath = self.configuration.get("databasepath_s")
@@ -601,9 +607,11 @@ class App(Frame):
 
         return self.dialog_state.state[dlg][DLG]
 
-    def sockserver_start(self):
+    def sockserver_start(self, ntriprtcmstr: str = RTCMSTR):
         """
         Start socket server thread.
+
+        :param str ntriprtcmstr: source table string indicating RTCM3 types and intervals
         """
 
         cfg = self.configuration
@@ -617,7 +625,6 @@ class App(Frame):
         ntripuser = cfg.get("ntripcasteruser_s")
         ntrippassword = cfg.get("ntripcasterpassword_s")
         tlspempath = cfg.get("tlspempath_s")
-        ntriprtcmstr = "1002(1),1006(5),1077(1),1087(1),1097(1),1127(1),1230(1)"
         self._socket_thread = Thread(
             target=self._sockserver_thread,
             args=(
@@ -928,7 +935,7 @@ class App(Frame):
             if self.configuration.get("ttyprot_b"):
                 msgprot = TTY_PROTOCOL
             else:
-                marker = "WARNING>>"
+                marker = WARNING
 
         if msgprot == UBX_PROTOCOL and msgprot & protfilter:
             self.ubx_handler.process_data(raw_data, parsed_data)
@@ -981,16 +988,29 @@ class App(Frame):
 
         self.update_idletasks()
 
-    def send_to_device(self, data: bytes):
+    def send_to_device(
+        self, data: bytes | list[bytes], pause: int = 0, interval: int = 0
+    ):
         """
-        Place raw data on output queue (it will be processed when the
-        device next connects).
+        Place one or more binary commands on output queue (they will be
+        processed in sequence when the device next connects).
 
-        :param bytes data: raw GNSS data (NMEA, UBX, TTY, RTCM3, SPARTN)
+        :param bytes | list[bytes] data: raw GNSS data (NMEA, UBX, TTY, RTCM3, SPARTN)
+        :param int pause: pause in ms before sending first command
+            (to allow connection time to to stabilise)
+        :param int interval: interval in ms between individual commands
+            (to allow receiver time to process = see CMDPAUSE global)
         """
 
-        self.logger.debug(f"Sending message {data}")
-        self.gnss_outqueue.put(data)
+        if not isinstance(data, list):
+            data = [
+                data,
+            ]
+        for i, cmd in enumerate(data):
+            self.logger.debug(f"Sending message {cmd}")
+            self.after(
+                int(pause + interval * i), lambda c=cmd: self.gnss_outqueue.put(c)
+            )
 
     def _check_update(self):
         """
@@ -1015,20 +1035,25 @@ class App(Frame):
         :param int protocol: protocol(s)
         """
 
-        msg = None
+        self.device_label = NA
+        msgs = []
         if protocol & UBX_PROTOCOL:
-            msg = UBXMessage("MON", "MON-VER", POLL)
-        elif protocol & SBF_PROTOCOL:
-            msg = b"SSSSSSSSSS\r\nesoc, COM1, ReceiverSetup\r\n"
-        elif protocol & NMEA_PROTOCOL:
-            msg = NMEAMessage("P", "QTMVERNO", POLL)
+            msgs.append(UBXMessage("MON", "MON-VER", POLL).serialize())
+        if protocol & SBF_PROTOCOL:
+            msgs.append(b"SSSSSSSSSS\r\n")
+            msgs.append(b"exeSBFOnce, COM1, ReceiverSetup\r\n")
+        if protocol & UNI_PROTOCOL:
+            msgs.append(b"VERSIONB\r\n")
+        if protocol & NMEA_PROTOCOL:
+            msgs.append(NMEAMessage("P", "QTMVERNO", POLL).serialize())
 
-        if isinstance(msg, (UBXMessage, NMEAMessage)):
-            self.send_to_device(msg.serialize())
-            self.status_label = (f"{msg.identity} POLL message sent", INFOCOL)
-        elif isinstance(msg, bytes):
-            self.send_to_device(msg)
-            self.status_label = ("Setup POLL message sent", INFOCOL)
+        # pause for n seconds before sending first command to allow connection to stabilise
+        # allow a small interval between individual commands to allow receiver time to process
+        self.send_to_device(
+            msgs,
+            pause=CMDINITDELAY,
+            interval=self.configuration.get("ttydelay_b") * CMDPAUSE,
+        )
 
     @property
     def appmaster(self) -> Tk:
@@ -1066,14 +1091,56 @@ class App(Frame):
             color = INFOCOL
 
         # truncate very long connection description
-        if len(connection) > 100:
-            connection = "..." + connection[-100:]
+        if len(connection) > 80:
+            connection = f"{connection[0:80]}..."
 
         if hasattr(self, "frm_status"):
             self.conn_label.after(
                 0, self.conn_label.config, {"text": connection, "fg": color}
             )
             self.update_idletasks()
+
+    @property
+    def device_label(self) -> Label:
+        """
+        Getter for device_label.
+
+        :return: status label
+        :rtype: Label
+        """
+
+        return self.frm_status.lbl_device
+
+    @device_label.setter
+    def device_label(self, device: str | tuple[str, str]):
+        """
+        Sets device description in status bar (if known).
+
+        :param str | tuple connection: (connection, color)
+        """
+
+        if isinstance(device, tuple):
+            device, color = device
+        else:
+            color = INFOCOL
+
+        # truncate long device description
+        if len(device) > 30:
+            device = f"{device[0:30]}..."
+
+        if hasattr(self, "frm_status"):
+            self.device_label.after(
+                0,
+                self.device_label.config,
+                {"text": device, "fg": color},
+            )
+            self.update_idletasks()
+
+        # update configuration panels
+        for dlg in (DLGTTTY, DLGTUBX, DLGTNMEA):
+            if self.dialog(dlg) is not None:
+                if hasattr(self.dialog(dlg), "frm_device_info"):
+                    self.dialog(dlg).frm_device_info.reset()
 
     @property
     def status_label(self) -> Label:
@@ -1109,7 +1176,7 @@ class App(Frame):
         if hasattr(self, "frm_status"):
             color = INFOCOL if color == "blue" else color
             self.status_label.config(text=message, fg=color)
-            self.update_idletasks()
+            self.status_label.update()
         else:  # defer message until frm_status is instantiated
             if isinstance(self._deferredmsg, tuple):
                 defpty = priority(self._deferredmsg[1])
@@ -1142,6 +1209,7 @@ class App(Frame):
         self.frm_settings.frm_settings.enable_controls(status)
         if status == DISCONNECTED:
             self.conn_label = (NOTCONN, INFOCOL)
+            self.device_label = NA
 
     @property
     def server_status(self) -> int:

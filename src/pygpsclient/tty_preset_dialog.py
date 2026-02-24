@@ -38,6 +38,7 @@ from pygpsclient.confirm_box import ConfirmBox
 from pygpsclient.globals import (
     ASCII,
     BSR,
+    CMDPAUSE,
     CRLF,
     ERRCOL,
     INFOCOL,
@@ -47,6 +48,7 @@ from pygpsclient.globals import (
     TTYMARKER,
     TTYOK,
 )
+from pygpsclient.hardware_info_frame import Hardware_Info_Frame
 from pygpsclient.strings import (
     CONFIRM,
     DLGACTION,
@@ -93,7 +95,10 @@ class TTYPresetDialog(ToplevelDialog):
         Set up frame and widgets.
         """
 
-        self._frm_body = Frame(self.container)
+        self.frm_device_info = Hardware_Info_Frame(
+            self.__app, self, protocol="TTY", borderwidth=2, relief="groove"
+        )
+        self._frm_body = Frame(self.container, borderwidth=2, relief="groove")
         self._lbl_command = Label(
             self._frm_body,
             text="Command",
@@ -148,9 +153,8 @@ class TTYPresetDialog(ToplevelDialog):
         Layout widgets.
         """
 
-        self._frm_body.grid(
-            column=0, row=0, padx=5, pady=5, ipadx=5, ipady=5, sticky=NSEW
-        )
+        self.frm_device_info.grid(column=0, row=0, sticky=EW)
+        self._frm_body.grid(column=0, row=1, sticky=NSEW)
         self._lbl_command.grid(column=0, row=0, padx=3, sticky=W)
         self._ent_command.grid(column=1, row=0, columnspan=3, padx=3, sticky=EW)
         self._chk_crlf.grid(column=0, row=1, padx=3, sticky=W)
@@ -202,6 +206,7 @@ class TTYPresetDialog(ToplevelDialog):
         Reset panel - Load user-defined presets if there are any.
         """
 
+        self.frm_device_info.reset()
         self._crlf.set(self.__app.configuration.get("ttycrlf_b"))
         self._echo.set(self.__app.configuration.get("ttyecho_b"))
         self._delay.set(self.__app.configuration.get("ttydelay_b"))
@@ -283,16 +288,18 @@ class TTYPresetDialog(ToplevelDialog):
         """
 
         try:
+            cmds = []
             for cmd in command.split(";"):
                 cmd = cmd.strip().encode(ASCII, errors=BSR)
                 if self._crlf.get():
                     cmd += CRLF
-                self.__app.send_to_device(cmd)
                 self._record_command(cmd)
                 if self._echo.get():  # echo output command to console
                     self.__app.consoledata.append(
                         (cmd, cmd.decode(ASCII, errors=BSR), TTYMARKER)
                     )
+                cmds.append(cmd)
+            self.__app.send_to_device(cmds, interval=self._delay.get() * CMDPAUSE)
         except Exception as err:  # pylint: disable=broad-except
             self.status_label = (f"Error {err}", ERRCOL)
             self._lbl_send_command.config(image=self.img_warn)

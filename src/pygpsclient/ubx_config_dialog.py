@@ -88,7 +88,9 @@ class UBXConfigDialog(ToplevelDialog):
         """
 
         # add configuration widgets
-        self._frm_device_info = Hardware_Info_Frame(self.__app, self, protocol="UBX")
+        self.frm_device_info = Hardware_Info_Frame(
+            self.__app, self, protocol="UBX", borderwidth=2, relief="groove"
+        )
         self._frm_config_port = UBX_PORT_Frame(
             self.__app, self, borderwidth=2, relief="groove"
         )
@@ -99,7 +101,7 @@ class UBXConfigDialog(ToplevelDialog):
             self.__app, self, borderwidth=2, relief="groove"
         )
         self._frm_config_dynamic = Dynamic_Config_Frame(
-            self.__app, self, protocol="UBX"
+            self.__app, self, protocol="UBX", borderwidth=2, relief="groove"
         )
         self._frm_configdb = UBX_CFGVAL_Frame(
             self.__app, self, borderwidth=2, relief="groove"
@@ -121,7 +123,7 @@ class UBXConfigDialog(ToplevelDialog):
         row = 0
         colsp = 0
         for frm in (
-            self._frm_device_info,
+            self.frm_device_info,
             self._frm_config_port,
             self._frm_config_rate,
             self._frm_config_msg,
@@ -171,7 +173,7 @@ class UBXConfigDialog(ToplevelDialog):
         self._frm_config_rate.reset()
         self._frm_config_port.reset()
         self._frm_config_dynamic.reset()
-        self._frm_device_info.reset()
+        self.frm_device_info.reset()
         if self.__app.conn_status not in (
             CONNECTED,
             CONNECTED_SOCKET,
@@ -209,7 +211,7 @@ class UBXConfigDialog(ToplevelDialog):
 
         if ubxfrm is not None:
             if ubxfrm in (UBX_MONVER, UBX_MONHW, UBX_MONRF):
-                self._frm_device_info.update_status(msg)
+                self.frm_device_info.reset()
             elif ubxfrm == UBX_CFGPRT:
                 self._frm_config_port.update_status(msg)
             elif ubxfrm == UBX_CFGRATE:

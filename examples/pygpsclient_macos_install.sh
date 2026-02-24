@@ -3,6 +3,8 @@
 # ZSH shell script to install PyGPSClient on MacOS
 # environments (MacOS 13 or later running zsh shell).
 #
+# NB: Homebrew or Macports are NOT required.
+#
 # NB: Does NOT create an application launcher - use
 # the MacOS Automator tool to create a bin/zsh shell app
 # called PyGPSClient.app with the shell command:

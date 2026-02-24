@@ -48,6 +48,7 @@ class StatusFrame(Frame):
         """
 
         self.lbl_connection = Label(self, anchor=W, bg=BGCOL)
+        self.lbl_device = Label(self, anchor=W, bg=BGCOL)
         self.lbl_status = Label(self, anchor=W, bg=BGCOL)
 
     def _do_layout(self):
@@ -57,7 +58,9 @@ class StatusFrame(Frame):
 
         self.lbl_connection.grid(column=0, row=0, sticky=EW)
         ttk.Separator(self, orient=VERTICAL).grid(column=1, row=0, sticky=NS)
-        self.lbl_status.grid(column=2, row=0, sticky=EW)
+        self.lbl_device.grid(column=2, row=0, sticky=EW)
+        ttk.Separator(self, orient=VERTICAL).grid(column=3, row=0, sticky=NS)
+        self.lbl_status.grid(column=4, row=0, sticky=EW)
 
     def _attach_events(self):
         """

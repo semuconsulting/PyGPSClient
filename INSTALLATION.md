@@ -115,7 +115,7 @@ sudo pacman -S tk libspatialite
 
 To access the serial port (`/dev/tty*`) on most Linux platforms, you will need to be a member of whichever group or "`Gid`" the `/dev/tty*` device belongs to. Failure to do this will typically result in an error `[Errno 13] could not open port /dev/ttyACM0 [Errno 13] permission denied /dev/ttyACM0`
 
-To check and set the necessary group permissions (*substitute* `ttyACM0` *for your particular serial port*):
+To check and set the necessary group permissions (*substitute your particular serial port for* `ttyACM0`):
 
 ```shell
 stat /dev/ttyACM0 | grep Gid
@@ -148,6 +148,7 @@ source pygpsclient/bin/activate # (or .\pygpsclient\Scripts\activate on Windows)
 python3 -m pip install --upgrade pygpsclient
 pygpsclient
 ```
+**NB**: It is recommended to use the form `python3 -m pip install` (*or less ambiguously `python3.*`, where `*` is the Python minor version e.g. `python3.13`*) rather than simply `pip3 install`, particularly if you have multiple Python environments on your platform.
 
 To deactivate the virtual environment:
 
