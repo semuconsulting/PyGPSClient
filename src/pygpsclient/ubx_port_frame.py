@@ -12,9 +12,9 @@ Created on 22 Dec 2020
 
 from tkinter import (
     EW,
+    NE,
     Button,
     Checkbutton,
-    E,
     Frame,
     IntVar,
     Label,
@@ -23,17 +23,12 @@ from tkinter import (
     W,
 )
 
-from PIL import Image, ImageTk
 from pyubx2 import POLL, SET, UBXMessage
 
 from pygpsclient.globals import (
     BPSRATES,
     CONNECTED,
     ERRCOL,
-    ICON_CONFIRMED,
-    ICON_PENDING,
-    ICON_SEND,
-    ICON_WARNING,
     OKCOL,
     PORTIDS,
     READONLY,
@@ -63,10 +58,6 @@ class UBX_PORT_Frame(Frame):
 
         super().__init__(parent.container, *args, **kwargs)
 
-        self._img_send = ImageTk.PhotoImage(Image.open(ICON_SEND))
-        self._img_pending = ImageTk.PhotoImage(Image.open(ICON_PENDING))
-        self._img_confirmed = ImageTk.PhotoImage(Image.open(ICON_CONFIRMED))
-        self._img_warn = ImageTk.PhotoImage(Image.open(ICON_WARNING))
         self._bpsrate = IntVar()
         self._portid = StringVar()
         self._inprot = (1, 1, 0, 1)
@@ -129,10 +120,10 @@ class UBX_PORT_Frame(Frame):
         self._chk_outprot_rtcm3 = Checkbutton(
             self, text="RTCM3", variable=self._outprot_rtcm3
         )
-        self._lbl_send_command = Label(self, image=self._img_pending)
+        self._lbl_send_command = Label(self, image=self.__container.img_none)
         self._btn_send_command = Button(
             self,
-            image=self._img_send,
+            image=self.__container.img_send,
             width=50,
             command=self._on_send_port,
             font=self.__app.font_md,
@@ -143,29 +134,25 @@ class UBX_PORT_Frame(Frame):
         Layout widgets.
         """
 
-        self._lbl_cfg_port.grid(
-            column=0, row=0, columnspan=6, padx=3, pady=3, sticky=EW
-        )
-        self._lbl_ubx_portid.grid(column=0, row=1, rowspan=2, padx=3, pady=3, sticky=W)
-        self._spn_ubx_portid.grid(column=1, row=1, rowspan=2, padx=3, pady=3, sticky=W)
-        self._lbl_ubx_bpsrate.grid(column=2, row=1, rowspan=2, padx=3, pady=3, sticky=W)
-        self._spn_ubx_bpsrate.grid(
-            column=3, row=1, columnspan=2, rowspan=2, padx=3, pady=3, sticky=W
-        )
-        self._lbl_inprot.grid(column=0, row=3, padx=3, pady=3, sticky=W)
-        self._chk_inprot_nmea.grid(column=1, row=3, padx=3, pady=3, sticky=W)
-        self._chk_inprot_ubx.grid(column=2, row=3, padx=3, pady=3, sticky=W)
-        self._chk_inprot_rtcm2.grid(column=3, row=3, padx=3, pady=3, sticky=W)
-        self._chk_inprot_rtcm3.grid(column=4, row=3, padx=3, pady=3, sticky=W)
-        self._lbl_outprot.grid(column=0, row=4, padx=3, pady=3, sticky=W)
-        self._chk_outprot_nmea.grid(column=1, row=4, padx=3, pady=3, sticky=W)
-        self._chk_outprot_ubx.grid(column=2, row=4, padx=3, pady=3, sticky=W)
-        self._chk_outprot_rtcm3.grid(column=3, row=4, padx=3, pady=3, sticky=W)
+        self._lbl_cfg_port.grid(column=0, row=0, columnspan=6, sticky=EW)
+        self._lbl_ubx_portid.grid(column=0, row=1, sticky=W)
+        self._spn_ubx_portid.grid(column=1, row=1, sticky=W)
+        self._lbl_ubx_bpsrate.grid(column=0, row=2, sticky=W)
+        self._spn_ubx_bpsrate.grid(column=1, row=2, sticky=W)
+        self._lbl_inprot.grid(column=0, row=3, sticky=W)
+        self._chk_inprot_nmea.grid(column=1, row=3, sticky=W)
+        self._chk_inprot_ubx.grid(column=2, row=3, sticky=W)
+        self._chk_inprot_rtcm2.grid(column=3, row=3, sticky=W)
+        self._chk_inprot_rtcm3.grid(column=4, row=3, sticky=W)
+        self._lbl_outprot.grid(column=0, row=4, sticky=W)
+        self._chk_outprot_nmea.grid(column=1, row=4, sticky=W)
+        self._chk_outprot_ubx.grid(column=2, row=4, sticky=W)
+        self._chk_outprot_rtcm3.grid(column=3, row=4, sticky=W)
         self._btn_send_command.grid(
-            column=4, row=1, rowspan=2, ipadx=3, ipady=3, padx=3, pady=3, sticky=E
+            column=3, row=1, rowspan=2, ipadx=3, ipady=3, sticky=NE
         )
         self._lbl_send_command.grid(
-            column=5, row=1, rowspan=2, ipadx=3, ipady=3, padx=3, pady=3, sticky=E
+            column=4, row=1, rowspan=2, ipadx=3, ipady=3, sticky=NE
         )
         self.option_add("*Font", self.__app.font_sm)
 
@@ -201,12 +188,12 @@ class UBX_PORT_Frame(Frame):
             self._outprot_ubx.set(msg.outUBX)
             self._outprot_nmea.set(msg.outNMEA)
             self._outprot_rtcm3.set(msg.outRTCM3)
-            self._lbl_send_command.config(image=self._img_confirmed)
+            self._lbl_send_command.config(image=self.__container.img_confirmed)
             self.__container.status_label = ("CFG-PRT GET message received", OKCOL)
 
         elif msg.identity == "ACK-NAK":
             self.__container.status_label = ("CFG-PRT POLL message rejected", ERRCOL)
-            self._lbl_send_command.config(image=self._img_warn)
+            self._lbl_send_command.config(image=self.__container.img_warn)
 
     def _on_select_portid(self):
         """
@@ -247,7 +234,7 @@ class UBX_PORT_Frame(Frame):
             outRTCM3=outRTCM3,
         )
         self.__container.send_command(msg)
-        self._lbl_send_command.config(image=self._img_pending)
+        self._lbl_send_command.config(image=self.__container.img_pending)
         self.__container.status_label = "CFG-PRT SET message sent"
         for msgid in ("ACK-NAK", "ACK-NAK"):
             self.__container.set_pending(msgid, UBX_CFGPRT)
@@ -262,7 +249,7 @@ class UBX_PORT_Frame(Frame):
         portID = int(self._portid.get()[0:1])
         msg = UBXMessage("CFG", "CFG-PRT", POLL, portID=portID)
         self.__container.send_command(msg)
-        self._lbl_send_command.config(image=self._img_pending)
+        self._lbl_send_command.config(image=self.__container.img_pending)
         self.__container.status_label = "CFG-PRT POLL message sent"
         for msgid in ("CFG-PRT", "ACK-NAK"):
             self.__container.set_pending(msgid, UBX_CFGPRT)

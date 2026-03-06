@@ -32,7 +32,6 @@ from pygpsclient.globals import (
     CONNECTED,
     CONNECTED_SIMULATOR,
     CONNECTED_SOCKET,
-    ENABLE_CFG_LEGACY,
     ERRCOL,
     UBX_CFGMSG,
     UBX_CFGOTHER,
@@ -118,52 +117,27 @@ class UBXConfigDialog(ToplevelDialog):
         Position widgets in frame.
         """
 
-        # top of grid
-        col = 0
-        row = 0
-        colsp = 0
-        for frm in (
-            self.frm_device_info,
-            self._frm_config_port,
-            self._frm_config_rate,
-            self._frm_config_msg,
-        ):
-            colsp, rowsp = frm.grid_size()
-            frm.grid(
-                column=col,
-                row=row,
-                columnspan=colsp,
-                rowspan=rowsp,
-                sticky=NSEW,
-            )
-            row += rowsp
-        # middle column of grid
-        row = 0
-        col += colsp
-        for frm in (self._frm_configdb, self._frm_preset):
-            colsp, rowsp = frm.grid_size()
-            frm.grid(
-                column=col,
-                row=row,
-                columnspan=colsp,
-                rowspan=rowsp,
-                sticky=NSEW,
-            )
-            row += rowsp
-        # right column of grid
-        if ENABLE_CFG_LEGACY:
-            row = 0
-            col += colsp
-            for frm in (self._frm_config_dynamic,):
-                colsp, rowsp = frm.grid_size()
-                frm.grid(
-                    column=col,
-                    row=row,
-                    columnspan=colsp,
-                    rowspan=rowsp,
-                    sticky=NSEW,
-                )
-                row += rowsp
+        self.frm_device_info.grid(column=0, row=0, columnspan=3, sticky=NSEW)
+        self._frm_config_port.grid(column=0, row=1, sticky=NSEW)
+        self._frm_config_rate.grid(column=0, row=2, sticky=NSEW)
+        self._frm_config_msg.grid(column=0, row=3, sticky=NSEW)
+        self._frm_configdb.grid(column=1, row=1, rowspan=2, sticky=NSEW)
+        self._frm_preset.grid(column=1, row=3, rowspan=2, sticky=NSEW)
+        self._frm_config_dynamic.grid(column=2, row=1, rowspan=4, sticky=NSEW)
+
+        for col in range(0, 3):
+            self.container.grid_columnconfigure(col, weight=1)
+        for row in range(0, 4):
+            self.container.grid_rowconfigure(row, weight=1)
+        colsp, rowsp = self._frm_preset.grid_size()
+        for col in range(colsp - 2):
+            self._frm_preset.grid_columnconfigure(col, weight=1)
+        self._frm_preset.grid_rowconfigure(2, weight=1)
+        colsp, rowsp = self._frm_config_dynamic.grid_size()
+        for col in range(colsp):
+            self._frm_config_dynamic.grid_columnconfigure(col, weight=1)
+        for row in range(1, rowsp):
+            self._frm_config_dynamic.grid_rowconfigure(row, weight=1)
 
     def _reset(self):
         """

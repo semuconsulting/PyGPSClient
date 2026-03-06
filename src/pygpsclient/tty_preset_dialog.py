@@ -142,7 +142,7 @@ class TTYPresetDialog(ToplevelDialog):
         self._lbx_preset.config(xscrollcommand=self._scr_preseth.set)
         self._scr_presetv.config(command=self._lbx_preset.yview)
         self._scr_preseth.config(command=self._lbx_preset.xview)
-        self._lbl_send_command = Label(self._frm_body)
+        self._lbl_send_command = Label(self._frm_body, image=self.img_none)
         self._btn_send_command = Button(
             self._frm_body,
             image=self.img_send,
@@ -157,40 +157,34 @@ class TTYPresetDialog(ToplevelDialog):
 
         self.frm_device_info.grid(column=0, row=0, sticky=EW)
         self._frm_body.grid(column=0, row=1, sticky=NSEW)
-        self._lbl_command.grid(column=0, row=0, padx=3, sticky=W)
-        self._ent_command.grid(column=1, row=0, columnspan=3, padx=3, sticky=EW)
-        self._chk_crlf.grid(column=0, row=1, padx=3, sticky=W)
-        self._chk_echo.grid(column=1, row=1, padx=3, sticky=W)
-        self._chk_delay.grid(column=2, row=1, padx=3, sticky=W)
-        ttk.Separator(self._frm_body).grid(
-            column=0, row=2, columnspan=4, padx=2, pady=2, sticky=EW
-        )
-        self._lbl_presets.grid(column=0, row=3, columnspan=3, padx=3, sticky=EW)
+        self._lbl_command.grid(column=0, row=0, sticky=W)
+        self._ent_command.grid(column=1, row=0, columnspan=4, sticky=EW)
+        self._chk_crlf.grid(column=0, row=1, sticky=W)
+        self._chk_echo.grid(column=1, row=1, sticky=W)
+        self._chk_delay.grid(column=2, row=1, sticky=W)
+        ttk.Separator(self._frm_body).grid(column=0, row=2, columnspan=5, sticky=EW)
+        self._lbl_presets.grid(column=0, row=3, columnspan=4, sticky=EW)
         self._lbx_preset.grid(
             column=0,
             row=4,
             columnspan=3,
-            rowspan=20,
-            padx=3,
-            pady=3,
             sticky=NSEW,
         )
-        self._scr_presetv.grid(column=2, row=4, rowspan=20, sticky=(N, S, E))
-        self._scr_preseth.grid(column=0, row=24, columnspan=3, sticky=EW)
+        self._scr_presetv.grid(column=2, row=4, sticky=(N, S, E))
+        self._scr_preseth.grid(column=0, row=5, columnspan=4, sticky=EW)
         self._btn_send_command.grid(
             column=3, row=4, padx=3, ipadx=3, ipady=3, sticky=NE
         )
         self._lbl_send_command.grid(
-            column=3, row=5, padx=3, ipadx=3, ipady=3, sticky=EW
+            column=4, row=4, padx=3, ipadx=3, ipady=3, sticky=NE
         )
 
         self.container.grid_columnconfigure(0, weight=1)
         self.container.grid_rowconfigure(1, weight=1)
-        colsp, rowsp = self._frm_body.grid_size()
-        for col in range(colsp - 1):
+        colsp, _ = self._frm_body.grid_size()
+        for col in range(colsp - 2):
             self._frm_body.grid_columnconfigure(col, weight=1)
-        for row in range(3, rowsp):
-            self._frm_body.grid_rowconfigure(row, weight=1)
+        self._frm_body.grid_rowconfigure(4, weight=1)
 
     def _attach_events(self):
         """

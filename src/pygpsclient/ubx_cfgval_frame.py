@@ -202,28 +202,26 @@ class UBX_CFGVAL_Frame(Frame):
         Layout widgets.
         """
 
-        self._lbl_configdb.grid(column=0, row=0, columnspan=5, padx=3, sticky=EW)
-        self._lbl_cat.grid(column=0, row=1, padx=3, sticky=EW)
-        self._lbx_cat.grid(column=0, row=2, rowspan=10, padx=3, pady=3, sticky=EW)
+        self._lbl_configdb.grid(column=0, row=0, columnspan=5, sticky=EW)
+        self._lbl_cat.grid(column=0, row=1, sticky=EW)
+        self._lbx_cat.grid(column=0, row=2, rowspan=10, sticky=EW)
         self._scr_catv.grid(column=0, row=2, rowspan=10, sticky=(N, S, E))
         self._scr_cath.grid(column=0, row=12, sticky=EW)
-        self._lbl_parm.grid(column=1, row=1, columnspan=4, padx=3, sticky=EW)
-        self._lbx_parm.grid(
-            column=1, row=2, columnspan=4, rowspan=10, padx=3, pady=3, sticky=EW
-        )
+        self._lbl_parm.grid(column=1, row=1, columnspan=4, sticky=EW)
+        self._lbx_parm.grid(column=1, row=2, columnspan=4, rowspan=10, sticky=EW)
         self._scr_parmv.grid(column=4, row=2, rowspan=10, sticky=(N, S, E))
         self._scr_parmh.grid(column=1, row=12, columnspan=4, sticky=EW)
-        self._rad_cfgget.grid(column=0, row=13, padx=3, pady=0, sticky=W)
-        self._rad_cfgset.grid(column=0, row=14, padx=3, pady=0, sticky=W)
-        self._rad_cfgdel.grid(column=0, row=15, padx=3, pady=0, sticky=W)
-        self._lbl_key.grid(column=1, row=13, padx=3, pady=0, sticky=E)
-        self._lbl_keyid.grid(column=2, row=13, padx=3, pady=0, sticky=W)
-        self._lbl_type.grid(column=3, row=13, padx=3, pady=0, sticky=E)
-        self._lbl_att.grid(column=4, row=13, padx=3, pady=0, sticky=W)
-        self._lbl_layer.grid(column=1, row=14, padx=3, pady=0, sticky=E)
-        self._spn_layer.grid(column=2, row=14, padx=3, pady=0, sticky=W)
-        self._lbl_val.grid(column=1, row=15, padx=3, pady=0, sticky=E)
-        self._ent_val.grid(column=2, row=15, columnspan=3, padx=3, pady=0, sticky=EW)
+        self._rad_cfgget.grid(column=0, row=13, sticky=W)
+        self._rad_cfgset.grid(column=0, row=14, sticky=W)
+        self._rad_cfgdel.grid(column=0, row=15, sticky=W)
+        self._lbl_key.grid(column=1, row=13, sticky=E)
+        self._lbl_keyid.grid(column=2, row=13, sticky=W)
+        self._lbl_type.grid(column=3, row=13, sticky=E)
+        self._lbl_att.grid(column=4, row=13, sticky=W)
+        self._lbl_layer.grid(column=1, row=14, sticky=E)
+        self._spn_layer.grid(column=2, row=14, sticky=W)
+        self._lbl_val.grid(column=1, row=15, sticky=E)
+        self._ent_val.grid(column=2, row=15, columnspan=3, sticky=EW)
 
         self._btn_send_command.grid(
             column=3, row=16, rowspan=2, ipadx=3, ipady=3, sticky=E

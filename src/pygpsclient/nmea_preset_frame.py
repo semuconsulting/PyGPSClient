@@ -15,6 +15,8 @@ from tkinter import (
     EW,
     HORIZONTAL,
     LEFT,
+    NE,
+    NSEW,
     VERTICAL,
     Button,
     E,
@@ -105,7 +107,7 @@ class NMEA_PRESET_Frame(Frame):
             self,
             textvariable=self._command,
             relief="sunken",
-            width=55,
+            width=40,
         )
         self._lbl_presets = Label(self, text=LBLNMEAPRESET, anchor=W)
         self._lbx_preset = Listbox(
@@ -113,7 +115,7 @@ class NMEA_PRESET_Frame(Frame):
             border=2,
             relief="sunken",
             height=20,
-            width=55,
+            width=40,
             justify=LEFT,
             exportselection=False,
         )
@@ -123,7 +125,7 @@ class NMEA_PRESET_Frame(Frame):
         self._lbx_preset.config(xscrollcommand=self._scr_preseth.set)
         self._scr_presetv.config(command=self._lbx_preset.yview)
         self._scr_preseth.config(command=self._lbx_preset.xview)
-        self._lbl_send_command = Label(self)
+        self._lbl_send_command = Label(self, image=self.__container.img_none)
         self._btn_send_command = Button(
             self,
             image=self._img_send,
@@ -136,16 +138,18 @@ class NMEA_PRESET_Frame(Frame):
         Layout widgets.
         """
 
-        self._lbl_command.grid(column=0, row=0, padx=3, sticky=W)
-        self._ent_command.grid(column=1, row=0, columnspan=3, padx=3, sticky=EW)
-        self._lbl_presets.grid(column=0, row=1, columnspan=4, padx=3, sticky=EW)
-        self._lbx_preset.grid(
-            column=0, row=2, columnspan=2, rowspan=20, padx=3, pady=3, sticky=EW
+        self._lbl_command.grid(column=0, row=0, sticky=W)
+        self._ent_command.grid(column=1, row=0, columnspan=4, sticky=EW)
+        self._lbl_presets.grid(column=0, row=1, columnspan=5, sticky=EW)
+        self._lbx_preset.grid(column=0, row=2, columnspan=3, sticky=NSEW)
+        self._scr_presetv.grid(column=2, row=2, sticky=(N, S, E))
+        self._scr_preseth.grid(column=0, row=3, columnspan=3, sticky=EW)
+        self._btn_send_command.grid(
+            column=3, row=2, padx=3, ipadx=3, ipady=3, sticky=NE
         )
-        self._scr_presetv.grid(column=2, row=2, rowspan=20, sticky=(N, S, E))
-        self._scr_preseth.grid(column=0, row=22, columnspan=2, sticky=EW)
-        self._btn_send_command.grid(column=3, row=2, padx=3, ipadx=3, ipady=3, sticky=W)
-        self._lbl_send_command.grid(column=3, row=3, padx=3, ipadx=3, ipady=3, sticky=W)
+        self._lbl_send_command.grid(
+            column=4, row=2, padx=3, ipadx=3, ipady=3, sticky=NE
+        )
         self.option_add("*Font", self.__app.font_sm)
 
     def _attach_events(self):

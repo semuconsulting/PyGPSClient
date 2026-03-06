@@ -15,6 +15,8 @@ from tkinter import (
     EW,
     HORIZONTAL,
     LEFT,
+    NE,
+    NSEW,
     VERTICAL,
     Button,
     E,
@@ -29,16 +31,11 @@ from tkinter import (
     W,
 )
 
-from PIL import Image, ImageTk
 from pyubx2 import UBXMessage
 
 from pygpsclient.confirm_box import ConfirmBox
 from pygpsclient.globals import (
     ERRCOL,
-    ICON_CONFIRMED,
-    ICON_PENDING,
-    ICON_SEND,
-    ICON_WARNING,
     OKCOL,
     UBX_PRESET,
     VALREGEX,
@@ -79,10 +76,6 @@ class UBX_PRESET_Frame(Frame):
 
         super().__init__(parent.container, *args, **kwargs)
 
-        self._img_send = ImageTk.PhotoImage(Image.open(ICON_SEND))
-        self._img_pending = ImageTk.PhotoImage(Image.open(ICON_PENDING))
-        self._img_confirmed = ImageTk.PhotoImage(Image.open(ICON_CONFIRMED))
-        self._img_warn = ImageTk.PhotoImage(Image.open(ICON_WARNING))
         self._preset_command = None
         self._configfile = None
         self._command = StringVar()
@@ -123,10 +116,10 @@ class UBX_PRESET_Frame(Frame):
         self._lbx_preset.config(xscrollcommand=self._scr_preseth.set)
         self._scr_presetv.config(command=self._lbx_preset.yview)
         self._scr_preseth.config(command=self._lbx_preset.xview)
-        self._lbl_send_command = Label(self)
+        self._lbl_send_command = Label(self, image=self.__container.img_none)
         self._btn_send_command = Button(
             self,
-            image=self._img_send,
+            image=self.__container.img_send,
             width=50,
             command=self._on_send_preset,
         )
@@ -136,20 +129,14 @@ class UBX_PRESET_Frame(Frame):
         Layout widgets.
         """
 
-        self._lbl_command.grid(column=0, row=0, padx=3, pady=3, sticky=W)
-        self._ent_command.grid(column=1, row=0, columnspan=4, padx=3, pady=3, sticky=EW)
-        self._lbl_presets.grid(column=0, row=1, columnspan=5, padx=3, pady=3, sticky=EW)
-        self._lbx_preset.grid(
-            column=0, row=2, columnspan=2, rowspan=10, padx=3, pady=3, sticky=EW
-        )
-        self._scr_presetv.grid(column=2, row=2, rowspan=10, sticky=(N, S, E))
-        self._scr_preseth.grid(column=0, row=12, columnspan=2, sticky=EW)
-        self._btn_send_command.grid(
-            column=3, row=2, ipadx=3, ipady=3, padx=3, pady=3, sticky=W
-        )
-        self._lbl_send_command.grid(
-            column=3, row=4, ipadx=3, ipady=3, padx=3, pady=3, sticky=EW
-        )
+        self._lbl_command.grid(column=0, row=0, sticky=W)
+        self._ent_command.grid(column=1, row=0, columnspan=4, sticky=EW)
+        self._lbl_presets.grid(column=0, row=1, columnspan=5, sticky=EW)
+        self._lbx_preset.grid(column=0, row=2, columnspan=2, sticky=NSEW)
+        self._scr_presetv.grid(column=2, row=2, sticky=(N, S, E))
+        self._scr_preseth.grid(column=0, row=3, columnspan=2, sticky=EW)
+        self._btn_send_command.grid(column=3, row=2, ipadx=3, ipady=3, sticky=NE)
+        self._lbl_send_command.grid(column=4, row=2, ipadx=3, ipady=3, sticky=NE)
         self.option_add("*Font", self.__app.font_sm)
 
     def _attach_events(self):
@@ -204,7 +191,7 @@ class UBX_PRESET_Frame(Frame):
                 status = CONFIRMED
 
             if status == CONFIRMED:
-                self._lbl_send_command.config(image=self._img_pending)
+                self._lbl_send_command.config(image=self.__container.img_pending)
                 self.__container.status_label = "Command(s) sent"
                 for msgid in confids:
                     self.__container.set_pending(msgid, UBX_PRESET)
@@ -215,7 +202,7 @@ class UBX_PRESET_Frame(Frame):
 
         except Exception as err:  # pylint: disable=broad-except
             self.__container.status_label = (f"Error {err}", ERRCOL)
-            self._lbl_send_command.config(image=self._img_warn)
+            self._lbl_send_command.config(image=self.__container.img_warn)
 
     def _format_preset(self, command: str):
         """
@@ -243,7 +230,7 @@ class UBX_PRESET_Frame(Frame):
                 self.__container.send_command(msg)
         except Exception as err:  # pylint: disable=broad-except
             self.__container.status_label = (f"Error {err}", ERRCOL)
-            self._lbl_send_command.config(image=self._img_warn)
+            self._lbl_send_command.config(image=self.__container.img_warn)
 
     def update_status(self, msg: UBXMessage):
         """
@@ -253,8 +240,8 @@ class UBX_PRESET_Frame(Frame):
         """
 
         if msg.identity in ("ACK-ACK", "MON-VER"):
-            self._lbl_send_command.config(image=self._img_confirmed)
+            self._lbl_send_command.config(image=self.__container.img_confirmed)
             self.__container.status_label = ("Preset command(s) acknowledged", OKCOL)
         elif msg.identity == "ACK-NAK":
-            self._lbl_send_command.config(image=self._img_warn)
+            self._lbl_send_command.config(image=self.__container.img_warn)
             self.__container.status_label = ("Preset command(s) rejected", ERRCOL)
