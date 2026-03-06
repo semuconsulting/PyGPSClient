@@ -47,6 +47,7 @@ from pygpsclient.globals import (
     ICON_REDRAW,
     ICON_SEND,
     ICON_START,
+    ICON_UNKNOWN,
     ICON_WARNING,
     INFOCOL,
     RESIZE,
@@ -99,6 +100,7 @@ class ToplevelDialog(Toplevel):
         self.img_send = ImageTk.PhotoImage(Image.open(ICON_SEND))
         self.img_start = ImageTk.PhotoImage(Image.open(ICON_START))
         self.img_warn = ImageTk.PhotoImage(Image.open(ICON_WARNING))
+        self.img_unknown = ImageTk.PhotoImage(Image.open(ICON_UNKNOWN))
 
         self._con_body(self._resizable)
 

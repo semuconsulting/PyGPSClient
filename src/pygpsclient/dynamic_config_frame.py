@@ -23,6 +23,7 @@ from tkinter import (
     END,
     EW,
     LEFT,
+    NE,
     NSEW,
     NW,
     VERTICAL,
@@ -40,7 +41,6 @@ from tkinter import (
     W,
 )
 
-from PIL import Image, ImageTk
 from pynmeagps import (
     NMEA_MSGIDS_PROP,
     NMEA_PAYLOADS_POLL_PROP,
@@ -63,12 +63,6 @@ from pyubx2 import (
 
 from pygpsclient.globals import (
     ERRCOL,
-    ICON_CONFIRMED,
-    ICON_PENDING,
-    ICON_REDRAW,
-    ICON_SEND,
-    ICON_UNKNOWN,
-    ICON_WARNING,
     INFOCOL,
     NMEA_CFGOTHER,
     OKCOL,
@@ -98,6 +92,8 @@ CFG_EXCLUDED = (
 )
 # alternative POLL dictionary names for where POLL command
 # doesn't correspond to SET (fudge for Quectel)
+# e.g. a PAIR864 (set baud rate) command corresponds to PAIR865 (poll baud rate)
+# (for PAIR commands, the poll is typically one digit higher than the set)
 ALT_POLL_NAMES = {
     "AIR050": "AIR051",
     "AIR058": "AIR059",
@@ -111,8 +107,8 @@ ALT_POLL_NAMES = {
     "AIR100": "AIR101",
     "AIR104": "AIR105",
     "AIR400": "AIR401",
-    "AIR410": "AIR421",
-    "AIR420": "AIR411",
+    "AIR410": "AIR411",
+    "AIR420": "AIR421",
     "AIR432": "AIR433",
     "AIR434": "AIR435",
     "AIR436": "AIR437",
@@ -173,12 +169,6 @@ class Dynamic_Config_Frame(Frame):
 
         super().__init__(parent.container, *args, **kwargs)
 
-        self._img_send = ImageTk.PhotoImage(Image.open(ICON_SEND))
-        self._img_pending = ImageTk.PhotoImage(Image.open(ICON_PENDING))
-        self._img_confirmed = ImageTk.PhotoImage(Image.open(ICON_CONFIRMED))
-        self._img_warn = ImageTk.PhotoImage(Image.open(ICON_WARNING))
-        self._img_unknown = ImageTk.PhotoImage(Image.open(ICON_UNKNOWN))
-        self._img_refresh = ImageTk.PhotoImage(Image.open(ICON_REDRAW))
         self._cfg_id = ""  # identity of selected CFG command
         self._cfg_atts = {}  # this holds the attributes of the selected CFG command
         self._expected_response = None
@@ -210,22 +200,22 @@ class Dynamic_Config_Frame(Frame):
             self, orient=VERTICAL, command=self._lbx_cfg_cmd.yview
         )
         self._lbx_cfg_cmd.config(yscrollcommand=self._scr_cfg_cmd.set)
-        self._lbl_send_command = Label(self, image=self._img_pending)
+        self._lbl_send_command = Label(self, image=self.__container.img_none)
         self._btn_send_command = Button(
             self,
-            image=self._img_send,
+            image=self.__container.img_send,
             width=50,
             command=self._on_set_cfg,
             font=self.__app.font_md,
         )
         self._btn_refresh = Button(
             self,
-            image=self._img_refresh,
-            width=50,
+            image=self.__container.img_redraw,
+            width=40,
             command=self._on_refresh,
             font=self.__app.font_md,
         )
-        self._lbl_command = Label(self, text="", width=30, anchor=W)
+        self._lbl_command = Label(self, text="", anchor=W)
         self._frm_container = Frame(self)
         self._can_container = Canvas(self._frm_container)
         self._frm_attrs = Frame(self._can_container)
@@ -246,31 +236,29 @@ class Dynamic_Config_Frame(Frame):
         Layout widgets.
         """
 
-        self._lbl_cfg_dyn.grid(column=0, row=0, columnspan=4, padx=3, sticky=EW)
-        self._lbx_cfg_cmd.grid(
-            column=0, row=1, columnspan=2, rowspan=6, padx=3, pady=3, sticky=EW
-        )
-        self._scr_cfg_cmd.grid(column=1, row=1, rowspan=6, sticky=(N, S, E))
-        self._btn_send_command.grid(column=3, row=1, ipadx=3, ipady=3, sticky=W)
-        self._lbl_send_command.grid(column=3, row=2, ipadx=3, ipady=3, sticky=W)
-        self._btn_refresh.grid(column=3, row=3, ipadx=3, ipady=3, sticky=W)
-        self._lbl_command.grid(column=0, row=7, columnspan=4, padx=3, sticky=EW)
+        self._lbl_cfg_dyn.grid(column=0, row=0, columnspan=3, sticky=EW)
+        self._lbx_cfg_cmd.grid(column=0, row=1, columnspan=1, sticky=EW)
+        self._scr_cfg_cmd.grid(column=1, row=1, sticky=(N, S, W))
+        self._btn_send_command.grid(column=2, row=1, ipadx=3, ipady=3, sticky=NE)
+        self._lbl_send_command.grid(column=3, row=1, ipadx=3, ipady=3, sticky=NE)
+        self._btn_refresh.grid(column=4, row=1, ipadx=3, ipady=3, sticky=NE)
+        self._lbl_command.grid(column=0, row=2, columnspan=5, sticky=EW)
         self._frm_container.grid(
-            column=0, row=8, columnspan=4, rowspan=15, padx=3, sticky=NSEW
+            column=0,
+            row=3,
+            columnspan=5,
+            rowspan=1,
+            sticky=NSEW,
         )
         self._can_container.grid(
-            column=0, row=0, columnspan=3, rowspan=15, padx=3, sticky=NSEW
+            column=0,
+            row=0,
+            columnspan=5,
+            rowspan=1,
+            sticky=NSEW,
         )
-        self._scr_container_ver.grid(column=3, row=0, rowspan=15, sticky=(N, S, E))
-        self._scr_container_hor.grid(
-            column=0, row=15, columnspan=4, rowspan=15, sticky=EW
-        )
-
-        cols, rows = self.grid_size()
-        for i in range(cols):
-            self.grid_columnconfigure(i, weight=1)
-        for i in range(rows):
-            self.grid_rowconfigure(i, weight=1)
+        self._scr_container_ver.grid(column=5, row=0, sticky=(N, S, W))
+        self._scr_container_hor.grid(column=0, row=2, columnspan=5, sticky=EW)
         self.option_add("*Font", self.__app.font_sm)
 
     def _attach_events(self):
@@ -297,7 +285,7 @@ class Dynamic_Config_Frame(Frame):
                     self._lbx_cfg_cmd.insert(i, cmd)
 
         self._clear_widgets()
-        self._lbl_send_command.config(image=self._img_unknown)
+        self._lbl_send_command.config(image=self.__container.img_unknown)
 
     def _setscroll(self, event):  # pylint: disable=unused-argument
         """
@@ -379,7 +367,7 @@ class Dynamic_Config_Frame(Frame):
 
             # send message, update status and await response
             self.__container.send_command(msg)
-            self._lbl_send_command.config(image=self._img_pending)
+            self._lbl_send_command.config(image=self.__container.img_pending)
             self.__container.status_label = f"P{self._cfg_id} SET message sent"
             for msgid in pendcfg:
                 self.__container.set_pending(msgid, penddlg)
@@ -406,7 +394,7 @@ class Dynamic_Config_Frame(Frame):
             return
 
         msg = penddlg = pendcfg = None
-        # use alternate names for some NMEA PAIR/PQTM POLL commands
+        # use alternate name for some NMEA PAIR/PQTM POLL commands
         cfg_id = ALT_POLL_NAMES.get(self._cfg_id, self._cfg_id)
         # set any POLL arguments to specified or default values
         # e.g. portid = "1", msgname="RMC"
@@ -428,13 +416,13 @@ class Dynamic_Config_Frame(Frame):
         if msg is not None:
             self.__container.send_command(msg)
             self.__container.status_label = f"{cp}{cfg_id} POLL message sent"
-            self._lbl_send_command.config(image=self._img_pending)
+            self._lbl_send_command.config(image=self.__container.img_pending)
             for msgid in pendcfg:
                 self.__container.set_pending(msgid, penddlg)
             self._expected_response = POLL
         else:  # CFG cannot be POLLed
             self.__container.status_label = f"{cp}{cfg_id} No POLL available"
-            self._lbl_send_command.config(image=self._img_unknown)
+            self._lbl_send_command.config(image=self.__container.img_unknown)
 
     def _do_poll_args(self, cfg_id: str) -> dict:
         """
@@ -477,23 +465,26 @@ class Dynamic_Config_Frame(Frame):
             pass
         return args
 
-    def update_status(self, msg: object):
+    def update_status(self, msg: NMEAMessage | UBXMessage):
         """
         UBXHandler or NMEAHandler module has received expected command response
         and forwarded it to this module, entry widgets are pre-populated with
         current configuration values and confirmation status is updated.
 
-        :param object msg: UBXMessage or NMEAMessage response
+        :param NMEAMessage | UBXMessage msg: UBXMessage or NMEAMessage response
         """
 
+        # self.logger.debug(f"{msg.identity=}")
         ok = False
-        # strip off any variant suffix from cfg_id
-        # e.g. "QTMCFGUART_CURR" -> "PQTMCFGUART"
-        cfg_id = (
-            "P" + self._cfg_id.rsplit("_", 1)[0]
-            if self._protocol == NMEA
-            else self._cfg_id
-        )
+        if self._protocol == NMEA:
+            # use alternate name for some NMEA PAIR/PQTM POLL commands
+            # e.g. a PAIR864 (set baud rate) command corresponds to PAIR865 (poll baud rate)
+            cfg_id = ALT_POLL_NAMES.get(self._cfg_id, self._cfg_id)
+            # strip off any variant suffix from cfg_id
+            # e.g. "QTMCFGUART_CURR" -> "PQTMCFGUART"
+            cfg_id = "P" + cfg_id.rsplit("_", 1)[0]
+        else:
+            cfg_id = self._cfg_id
 
         # if this message identity matches an expected response
         if msg.identity in (cfg_id, ACK, NAK):
@@ -513,10 +504,10 @@ class Dynamic_Config_Frame(Frame):
                     f"{cfg_id} message acknowledged",
                     OKCOL,
                 )
-                self._lbl_send_command.config(image=self._img_confirmed)
+                self._lbl_send_command.config(image=self.__container.img_confirmed)
             else:
                 self.__container.status_label = (f"{cfg_id} message rejected", ERRCOL)
-                self._lbl_send_command.config(image=self._img_warn)
+                self._lbl_send_command.config(image=self.__container.img_warn)
             self.update()
 
     def _clear_widgets(self):
@@ -530,13 +521,13 @@ class Dynamic_Config_Frame(Frame):
             wdg.destroy()
             wdg = None
         Label(self._frm_attrs, text="Attribute", width=12, anchor=W).grid(
-            column=0, row=0, padx=3, sticky=(W)
+            column=0, row=0, padx=3, sticky=W
         )
         Label(self._frm_attrs, text="Value", width=20, anchor=W).grid(
-            column=1, row=0, padx=3, sticky=(W)
+            column=1, row=0, padx=3, sticky=W
         )
         Label(self._frm_attrs, text="Type", width=5, anchor=W).grid(
-            column=2, row=0, padx=3, sticky=(W)
+            column=2, row=0, padx=3, sticky=W
         )
 
     def _add_widgets(self, pdict: dict, row: int, index: int) -> int:

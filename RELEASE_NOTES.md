@@ -1,5 +1,16 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.6.5
+
+FIXES:
+1. Fix custom map import spurious validation error.
+
+ENHANCEMENTS:
+1. Add preset description entry field to Configuration Command Recorder import facility.
+1. Make TTY Presets dialog fully resizeable.
+1. Update NMEA config panel to allow preset commands to be edited or entered manually before sending.
+1. Update NMEA config panel to recognise correct PAIR responses for some Quectel set and poll commands (e.g. a PAIR864 Set baud rate command corresponds to a PAIR865 poll response).
+
 ### RELEASE 1.6.4
 
 FIXES:
@@ -8,7 +19,7 @@ FIXES:
 
 ENHANCEMENTS:
 1. Improve Base Station receiver configuration handling in the NTRIP Caster/Socket Server dialog.
-1. Add connected device descriptor to status bar (e.g. "u-blox ZED-F9P", "Unicore UM981S", "Septentrio mosaic-X5" or "Quectel LG290AG03"). **FYI** This is based on a series of query messages (*one for each enabled protocol*) sent approximately 3 seconds after the connection is started (*you may see 'unknown protocol' warnings in response to some of these messages; these can be ignored)*. Failing this, a generic descriptor is displayed on receipt of a message protocol unique to a particular manufacturer (*e.g. "u-blox" on receipt of a UBX message, "Unicore" on receipt of a UNI message, etc.*). Note that some (mainly older) devices may not return a meaningful descriptor, in which case "N/A" will be displayed.
+1. Add connected device descriptor to status bar (e.g. "u-blox ZED-F9P", "Unicore UM981S", "Septentrio mosaic-X5" or "Quectel LG290AG03"). **FYI** This is based on a poll of hardware information messages (*one for each enabled protocol*) sent approximately 3 seconds after the connection is started (*you may see 'unknown protocol' warnings in response to some of these messages; these can be ignored)*. Failing this, a generic descriptor is displayed on receipt of a message protocol unique to a particular manufacturer (*e.g. "u-blox" on receipt of a UBX message, "Unicore" on receipt of a UNI message, etc.*). Note that some (mainly older) devices may not return a meaningful descriptor, in which case "N/A" will be displayed. Note also that some receivers will not output hardware information or other status messages at low baud rates (< 38,400)
 1. Minor updates to serial port configuration panel (additional timeout values).
 1. Mininum pynmeagps version updated to v1.1.1.
 

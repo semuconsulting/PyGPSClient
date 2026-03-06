@@ -86,33 +86,22 @@ class NMEAConfigDialog(ToplevelDialog):
         Position widgets in frame.
         """
 
-        # top of grid
-        col = 0
-        row = 0
-        # left column of grid
-        for frm in (self.frm_device_info, self._frm_preset):
-            colsp, rowsp = frm.grid_size()
-            frm.grid(
-                column=col,
-                row=row,
-                columnspan=colsp,
-                rowspan=rowsp,
-                sticky=NSEW,
-            )
-            row += rowsp
-        # right column of grid
-        row = 0
-        col += colsp
-        for frm in (self._frm_config_dynamic,):
-            colsp, rowsp = frm.grid_size()
-            frm.grid(
-                column=col,
-                row=row,
-                columnspan=colsp,
-                rowspan=rowsp,
-                sticky=NSEW,
-            )
-            row += rowsp
+        self.frm_device_info.grid(column=0, row=0, columnspan=2, sticky=NSEW)
+        self._frm_preset.grid(column=0, row=1, sticky=NSEW)
+        self._frm_config_dynamic.grid(column=1, row=1, sticky=NSEW)
+
+        self.container.grid_columnconfigure(0, weight=1)
+        self.container.grid_columnconfigure(1, weight=1)
+        self.container.grid_rowconfigure(1, weight=1)
+        colsp, rowsp = self._frm_preset.grid_size()
+        for col in range(colsp - 2):
+            self._frm_preset.grid_columnconfigure(col, weight=1)
+        self._frm_preset.grid_rowconfigure(2, weight=1)
+        colsp, rowsp = self._frm_config_dynamic.grid_size()
+        for col in range(colsp):
+            self._frm_config_dynamic.grid_columnconfigure(col, weight=1)
+        for row in range(1, rowsp):
+            self._frm_config_dynamic.grid_rowconfigure(row, weight=1)
 
     def _reset(self):
         """
@@ -154,6 +143,7 @@ class NMEAConfigDialog(ToplevelDialog):
         :param NMEAMessage msg: NMEA config message
         """
 
+        # self.logger.debug(f"{msg.identity=}")
         nmeafrm = self._pending_confs.get(msg.identity, None)
 
         if nmeafrm is not None:

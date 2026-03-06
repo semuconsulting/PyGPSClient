@@ -97,7 +97,7 @@ class DialogState:
             DLGTTTY: {
                 CLASS: TTYPresetDialog,
                 DLG: None,
-                RESIZE: False,
+                RESIZE: True,
             },
             DLGTRECORD: {
                 CLASS: RecorderDialog,

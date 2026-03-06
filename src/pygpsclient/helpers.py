@@ -38,7 +38,7 @@ from tkinter import (
     Tk,
     font,
 )
-from types import NoneType
+from types import FunctionType, NoneType
 from typing import Any, Literal
 
 from pygnssutils import version as PGVERSION
@@ -88,6 +88,7 @@ from pygpsclient.globals import (
     UMK,
     VALBLANK,
     VALBOOL,
+    VALCUSTOM,
     VALDMY,
     VALFLOAT,
     VALHEX,
@@ -95,6 +96,7 @@ from pygpsclient.globals import (
     VALLEN,
     VALNONBLANK,
     VALNONSPACE,
+    VALREGEX,
     VALURL,
     Area,
     Point,
@@ -117,20 +119,32 @@ LIBVERSIONS = {
 }
 
 
-def validate(self: Entry, valmode: int, low=MINFLOAT, high=MAXFLOAT) -> bool:
+def validate(
+    self: Entry,
+    valmode: int,
+    low: int | float = MINFLOAT,
+    high: int | float = MAXFLOAT,
+    regex: str | NoneType = None,
+    func: FunctionType | NoneType = None,
+    args: tuple = (),
+) -> bool:
     """
     Extends tkinter.Entry class to add parameterised validation
     and error highlighting.
 
     :param Entry self: tkinter entry widget instance
     :param int valmode: int representing validation type - can be OR'd
-    :param object low: optional min value
-    :param object high: optional max value
+    :param int | float low: optional min value
+    :param int | float high: optional max value
+    :param str | NoneType regex: regex expression
+    :param FunctionType | NoneType func: custom validation function
+    :param Any args: optional function arguments
+
     :return: True/False
     :rtype: bool
     """
 
-    valid = True
+    valid = False
     try:
         val = self.get()
         if valmode == VALBLANK and val == "":
@@ -151,10 +165,16 @@ def validate(self: Entry, valmode: int, low=MINFLOAT, high=MAXFLOAT) -> bool:
             valid = val != "" and not val.isspace()
         elif valmode == VALHEX:  # valid hexadecimal
             bytes.fromhex(val)
+            valid = True
         elif valmode == VALDMY:  # valid date YYYYMMDD
             datetime(int(val[0:4]), int(val[4:6]), int(val[6:8]))
+            valid = True
         elif valmode == VALLEN:  # valid length
             valid = low <= len(val) <= high
+        elif valmode == VALREGEX and regex is not None:  # matches given regex
+            valid = re.compile(regex).search(val) is not None
+        elif valmode == VALCUSTOM and func is not None:  # custom validation function
+            valid = func(val, *args)
     except ValueError:
         valid = False
 

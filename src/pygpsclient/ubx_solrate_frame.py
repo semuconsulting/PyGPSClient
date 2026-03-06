@@ -12,16 +12,11 @@ Created on 19 Feb 2020
 
 from tkinter import EW, Button, E, Frame, IntVar, Label, Spinbox, StringVar, W
 
-from PIL import Image, ImageTk
 from pyubx2 import POLL, SET, UBXMessage
 
 from pygpsclient.globals import (
     CONNECTED,
     ERRCOL,
-    ICON_CONFIRMED,
-    ICON_PENDING,
-    ICON_SEND,
-    ICON_WARNING,
     OKCOL,
     READONLY,
     UBX_CFGRATE,
@@ -58,10 +53,6 @@ class UBX_RATE_Frame(Frame):
 
         super().__init__(parent.container, *args, **kwargs)
 
-        self._img_send = ImageTk.PhotoImage(Image.open(ICON_SEND))
-        self._img_pending = ImageTk.PhotoImage(Image.open(ICON_PENDING))
-        self._img_confirmed = ImageTk.PhotoImage(Image.open(ICON_CONFIRMED))
-        self._img_warn = ImageTk.PhotoImage(Image.open(ICON_WARNING))
         self._measint = IntVar()
         self._navrate = IntVar()
         self._timeref = StringVar()
@@ -104,10 +95,10 @@ class UBX_RATE_Frame(Frame):
             wrap=True,
             textvariable=self._timeref,
         )
-        self._lbl_send_command = Label(self, image=self._img_pending)
+        self._lbl_send_command = Label(self, image=self.__container.img_none)
         self._btn_send_command = Button(
             self,
-            image=self._img_send,
+            image=self.__container.img_send,
             width=50,
             command=self._on_send_rate,
             font=self.__app.font_md,
@@ -118,31 +109,19 @@ class UBX_RATE_Frame(Frame):
         Layout widgets.
         """
 
-        self._lbl_cfg_rate.grid(column=0, row=0, columnspan=6, padx=3, sticky=EW)
-        self._lbl_ubx_measint.grid(
-            column=0, row=1, columnspan=2, rowspan=1, padx=3, pady=3, sticky=W
-        )
-        self._spn_ubx_measint.grid(column=2, row=1, columnspan=1, rowspan=1, sticky=W)
-        self._lbl_ubx_navrate.grid(
-            column=0, row=2, columnspan=2, rowspan=1, padx=3, pady=3, sticky=W
-        )
-        self._spn_ubx_navrate.grid(column=2, row=2, columnspan=2, rowspan=1, sticky=W)
-        self._lbl_ubx_timeref.grid(
-            column=0, row=3, columnspan=2, rowspan=1, padx=3, pady=3, sticky=W
-        )
-        self._spn_ubx_timeref.grid(column=2, row=3, columnspan=2, rowspan=1, sticky=W)
+        self._lbl_cfg_rate.grid(column=0, row=0, columnspan=6, sticky=EW)
+        self._lbl_ubx_measint.grid(column=0, row=1, columnspan=2, sticky=W)
+        self._spn_ubx_measint.grid(column=2, row=1, sticky=W)
+        self._lbl_ubx_navrate.grid(column=0, row=2, columnspan=2, sticky=W)
+        self._spn_ubx_navrate.grid(column=2, row=2, columnspan=2, sticky=W)
+        self._lbl_ubx_timeref.grid(column=0, row=3, columnspan=2, sticky=W)
+        self._spn_ubx_timeref.grid(column=2, row=3, columnspan=2, sticky=W)
         self._btn_send_command.grid(
             column=4, row=1, rowspan=3, ipadx=3, ipady=3, sticky=E
         )
         self._lbl_send_command.grid(
             column=5, row=1, rowspan=3, ipadx=3, ipady=3, sticky=E
         )
-
-        cols, rows = self.grid_size()
-        for i in range(cols):
-            self.grid_columnconfigure(i, weight=1)
-        for i in range(rows):
-            self.grid_rowconfigure(i, weight=1)
         self.option_add("*Font", self.__app.font_sm)
 
     def _attach_events(self):
@@ -172,12 +151,12 @@ class UBX_RATE_Frame(Frame):
             self._measint.set(msg.measRate)
             self._navrate.set(msg.navRate)
             self._timeref.set(TIMEREFS[msg.timeRef])
-            self._lbl_send_command.config(image=self._img_confirmed)
+            self._lbl_send_command.config(image=self.__container.img_confirmed)
             self.__container.status_label = ("CFG-RATE GET message received", OKCOL)
 
         elif msg.identity == "ACK-NAK":
             self.__container.status_label = ("CFG-RATE POLL message rejected", ERRCOL)
-            self._lbl_send_command.config(image=self._img_warn)
+            self._lbl_send_command.config(image=self.__container.img_warn)
 
     def _on_send_rate(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -199,7 +178,7 @@ class UBX_RATE_Frame(Frame):
             timeRef=tref,
         )
         self.__container.send_command(msg)
-        self._lbl_send_command.config(image=self._img_pending)
+        self._lbl_send_command.config(image=self.__container.img_pending)
         self.__container.status_label = "CFG-RATE SET message sent"
         self.__container.set_pending(UBX_CFGRATE, ("ACK-ACK", "ACK-NAK"))
 
@@ -212,7 +191,7 @@ class UBX_RATE_Frame(Frame):
 
         msg = UBXMessage("CFG", "CFG-RATE", POLL)
         self.__container.send_command(msg)
-        self._lbl_send_command.config(image=self._img_pending)
+        self._lbl_send_command.config(image=self.__container.img_pending)
         self.__container.status_label = "CFG-RATE POLL message sent"
         for msgid in ("CFG-RATE", "ACK-NAK"):
             self.__container.set_pending(msgid, UBX_CFGRATE)

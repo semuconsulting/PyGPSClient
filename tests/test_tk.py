@@ -27,9 +27,12 @@ from pygpsclient.globals import (
     VALHEX,
     VALDMY,
     VALLEN,
+    VALREGEX,
+    VALCUSTOM,
 )
 from pygpsclient.helpers import validate
 
+NMEAPREREGEX = r"^(?:(?:[^;]+;){3}\s?[0-2];?)+$"
 
 class TkTest(unittest.TestCase):
     def setUp(self):
@@ -39,6 +42,13 @@ class TkTest(unittest.TestCase):
         pass
 
     def testEntryValidate(self):
+
+        def customfunc(val) -> bool:
+
+            try:
+                return 5 < int(val) < 12
+            except ValueError:
+                return False
 
         try:
 
@@ -81,6 +91,33 @@ class TkTest(unittest.TestCase):
             self.assertTrue(ent.validate(VALURL))
             self.assertTrue(ent.validate(VALLEN, 8, 9))
             self.assertFalse(ent.validate(VALLEN, 3, 4))
+            ent.delete(0 ,'end')
+            ent.insert(0, "P; QTMCFGUART; W,115200; 1")
+            self.assertTrue(ent.validate(VALREGEX, regex=NMEAPREREGEX))
+            ent.delete(0 ,'end')
+            ent.insert(0, "P; QTMCFGUART; W,115200; 1;P; QTMCFGUART; W,230400; 1;P; QTMCFGUART; W,460800; 1")
+            self.assertTrue(ent.validate(VALREGEX, regex=NMEAPREREGEX))
+            ent.delete(0 ,'end')
+            ent.insert(0, "P; QTMCFGUART; W,115200; 1;P; QTMCFGUART; W,230400; 4;P; QTMCFGUART; W,460800; 1")
+            self.assertFalse(ent.validate(VALREGEX, regex=NMEAPREREGEX))
+            ent.delete(0 ,'end')
+            ent.insert(0, "P; QTMCFGUART; W,115200; 4")
+            self.assertFalse(ent.validate(VALREGEX, regex=NMEAPREREGEX))
+            ent.delete(0 ,'end')
+            ent.insert(0, "P, QTMCFGUART, W,115200, 1")
+            self.assertFalse(ent.validate(VALREGEX, regex=NMEAPREREGEX))
+            ent.delete(0 ,'end')
+            ent.insert(0, "")
+            self.assertFalse(ent.validate(VALREGEX, regex=NMEAPREREGEX))
+            ent.delete(0 ,'end')
+            ent.insert(0, '9')
+            self.assertTrue(ent.validate(VALCUSTOM, func=customfunc))
+            ent.delete(0 ,'end')
+            ent.insert(0, '18')
+            self.assertFalse(ent.validate(VALCUSTOM, func=customfunc))
+            ent.delete(0 ,'end')
+            ent.insert(0, 'D')
+            self.assertFalse(ent.validate(VALCUSTOM, func=customfunc))
 
         except TclError as err:
             if str(err) == "no display name and no $DISPLAY environment variable":
