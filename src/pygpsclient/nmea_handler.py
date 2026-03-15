@@ -160,12 +160,14 @@ class NMEAHandler:
         :param pynmeagps.NMEAMessage data: parsed GGA sentence
         """
 
+        alt = data.alt if isinstance(data.alt, (float, int)) else 0
+        sep = data.sep if isinstance(data.sep, (float, int)) else 0
         self.__app.gnss_status.utc = data.time  # datetime.time
         self.__app.gnss_status.sip = data.numSV
         self.__app.gnss_status.lat = data.lat
         self.__app.gnss_status.lon = data.lon
-        self.__app.gnss_status.alt = data.alt
-        self.__app.gnss_status.hae = data.sep + data.alt
+        self.__app.gnss_status.alt = alt
+        self.__app.gnss_status.hae = sep + alt
         self.__app.gnss_status.hdop = data.HDOP
         self.__app.gnss_status.fix = fix2desc("GGA", data.quality)
         self.__app.gnss_status.diff_corr = 0 if data.diffAge == "" else 1
