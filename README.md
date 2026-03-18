@@ -198,7 +198,7 @@ For more comprehensive installation instructions, please refer to [INSTALLATION.
 
 ![ubxconfig widget screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/ubxconfig_widget.png?raw=true)
 
-**Pre-Requisites and Caveats:**
+**Pre-Requisites:**
 
 - u-blox GNSS receiver connected to the workstation via USB or UART port¹².
 - **NOTE:** u-blox introduced a [new configuration mechanism](https://github.com/semuconsulting/pyubx2#configinterface) in 9th generation devices (**ROM protocol >=23.01**). Some UBX configuration commands (e.g. `CFG-PRT`, `CFG-RATE`, `CFG-MSG`) will only work with legacy devices (e.g. NEO-M6S, NEO-M8P); others (e.g. `CFG-VALSET`, `CFG-VALDEL`) will only work with newer devices (e.g. NEO-M9, ZED-F9P, ZED-X20P).
@@ -222,12 +222,6 @@ The UBX Configuration Dialog currently provides the following UBX configuration 
 1. UBX Legacy Command configuration panel providing structured updates for a range of legacy CFG-* configuration commands (*legacy protocols only*). Note: 'X' (byte) type attributes can be entered as integers or hexadecimal strings e.g. 522125312 or 0x1f1f0000. Once a command is selected, the configuration is polled and the current values displayed. The user can then amend these values as required and send the updated configuration. Some polls require input arguments (e.g. portID) - these are highlighted and will be set at default values initially (e.g. portID = 0), but can be amended by the user and re-polled using the ![refresh](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-refresh-lined-24.png?raw=true) button.
 1. Preset Commands widget supports a variety of user-defined UBX commands and queries - see [user-defined presets](#userdefined).
 
-An icon to the right of each 'SEND' 
-![send icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-arrow-12-24.png?raw=true) button indicates the confirmation status of the configuration command; 
-(pending i.e. awaiting confirmation ![pending icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-time-6-24.png?raw=true), 
-confirmed ![confirmed icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-check-mark-8-24.png?raw=true) or 
-warning ![warning icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-warning-1-24.png?raw=true)). 
-
 ---
 ## <a name="nmeaconfig">NMEA Configuration Facilities</a>
 
@@ -235,8 +229,7 @@ warning ![warning icon](https://github.com/semuconsulting/PyGPSClient/blob/maste
 
 **Pre-Requisites:**
 
-- Receiver capable of being configured via proprietary NMEA sentences, connected to the workstation via USB or UART port.
-- The facility includes support for a wide range of Quectel LG and LC series receivers via `PQTM*`, `PSTM*` and `PAIR*` sentences¹ ². Additional types may be supported in the underlying NMEA parser library [pynmeagps](https://github.com/semuconsulting/pynmeagps) in later releases (*contributions welcome*).
+- Receiver capable of being configured via proprietary NMEA sentences, connected to the workstation via USB or UART port. The facility includes support for a wide range of Quectel LG and LC series receivers via `PQTM*`, `PSTM*` and `PAIR*` sentences¹ ². Additional types may be supported in the underlying NMEA parser library [pynmeagps](https://github.com/semuconsulting/pynmeagps) in later releases (*contributions welcome*).
 
    ¹ Note that Quectel receivers implement a bewildering array of different configuration protocols, based on a mixture of proprietary NMEA `PQTM*`, `PSTM*` and `PAIR*` message types. Implementation depends on the *specific model variant and firmware version*, and several models (e.g. LG290 and LC29) exist in a wide range of variants. Refer to the GNSS Protocol Guide for your *specific* variant for details on the available configuration commands.
 
@@ -250,39 +243,35 @@ The NMEA Configuration Dialog currently provides the following NMEA configuratio
 1. Preset Commands widget supports a variety of user-defined NMEA commands and queries - see [user defined presets](#userdefined).
 1. Preset commands, once selected, can be edited or overwritten in the 'Commands' field before sending, but commands must observe the format `<talker>; <message id>; <payload as comma-separated string>; <msgmode>` (e.g. `P; QTMCFGUART; W,115200; 1` - see [user-defined presets](#userdefined)).
 
-An icon to the right of each 'SEND' 
-![send icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-arrow-12-24.png?raw=true) button indicates the confirmation status of the configuration command; 
-(pending i.e. awaiting confirmation ![pending icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-time-6-24.png?raw=true), 
-confirmed ![confirmed icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-check-mark-8-24.png?raw=true) or 
-warning ![warning icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-warning-1-24.png?raw=true)).
-
 ---
 ## <a name="ttycommands">TTY Configuration Facilities</a>
 
 ![ttydialog screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/tty_dialog.png?raw=true)
 
-Version panel shows current device hardware/firmware versions (*Double-left-click to refresh*).
+**Pre-Requisites:**
 
-The TTY Commands dialog provides a facility to send user-defined ASCII TTY configuration commands (e.g. `AT+` style commands) to the connected serial device. Commands can be entered manually or selected from a list of user-defined presets. The dialog can be accessed via the TTY Config button or Menu..Options..TTY Commands. 
-- CRLF checkbox - if ticked, a CRLF (`b"\x0d\x0a"`) terminator will be added to the command string. 
-- Echo checkbox - if ticked, outgoing TTY commands will be echoed on the console with the marker `"TTY<<"`.
-- Delay checkbox - if ticked, a small delay will be added between each outgoing command to allow time for the receiving device to process the command.
+- Receiver capable of being configured via ASCII text messages over a USB or UART port. This includes, for example, most Septentrio and Unicore GNSS devices.
+- Some GNSS devices (e.g. Septentrio X5 or Unicore UM980) can use separate UART ports for configuration and navigation/monitoring - ensure you are using the appropriate UART port when sending TTY commands. Septentrio devices also require an 'Initialise Command Mode' sequence (`SSSSSSSSSS`) to be sent before accepting TTY commands.
 
-Preset commands can be set up by adding appropriate semicolon-delimited message descriptions and payload definitions to the `"ttypresets_l":` list in your json configuration file. See [User Defined Presets](#user-defined-presets) above and [example provided](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient.json#L302).
+**Instructions:**
 
-**NOTE:** Some GNSS devices (e.g. Septentrio X5 or Unicore UM980) can use separate UART ports for configuration and navigation/monitoring - ensure you are using the appropriate UART port when sending TTY commands. Septentrio devices also require an 'Initialise Command Mode' sequence (`SSSSSSSSSS`) to be sent before accepting TTY commands.
+- Version panel shows current device hardware/firmware versions (*Double-left-click to refresh*).
 
-The following example illustrates a series of ASCII configuration commands being sent to a Septentrio Mosaic X5 receiver, followed by successful acknowledgements:
+- The TTY Commands dialog provides a facility to send user-defined ASCII TTY configuration commands (e.g. `AT+` style commands) to the connected serial device. Commands can be entered manually or selected from a list of user-defined presets. The dialog can be accessed via the TTY Config button or Menu..Options..TTY Commands. 
+   - CRLF checkbox - if ticked, a CRLF (`b"\x0d\x0a"`) terminator will be added to the command string. 
+   - Echo checkbox - if ticked, outgoing TTY commands will be echoed on the console with the marker `"TTY<<"`.
+   - Delay checkbox - if ticked, a small delay will be added between each outgoing command to allow time for the receiving device to process the command.
 
-![ttyconsole screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/tty_console.png?raw=true)
+- Preset commands can be set up by adding appropriate semicolon-delimited message descriptions and payload definitions to the `"ttypresets_l":` list in your json configuration file. See [User Defined Presets](#user-defined-presets) above and [example provided](https://github.com/semuconsulting/PyGPSClient/blob/master/pygpsclient.json#L302).
 
 ---
 ## <a name="recorder">Configuration Command Load/Save/Record Facility</a>
 
 ![recorder screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/recorder_dialog.png?raw=true)
 
-The Configuration Command Load/Save/Record facility supports the following functionality:
-1. It allows users to record ![record icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-record-24.png?raw=true) a sequence of UBX, NMEA or TTY configuration commands as they are sent to a device, and to save ![save icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-save-14-24.png?raw=true) this recording to a binary file.
+To display the Configuration Command Load/Save/Record Dialog, select Menu..Options..Configuration Commmand Recorder.
+
+1. The Configuration Command Load/Save/Record facility allows users to record ![record icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-record-24.png?raw=true) a sequence of UBX, NMEA or TTY configuration commands as they are sent to a device, and to save ![save icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-save-14-24.png?raw=true) this recording to a binary file.
 1. Saved recordings can be reloaded ![load icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-folder-18-24.png?raw=true) and the configuration commands replayed ![play icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-arrow-12-24.png?raw=true). This provides a means to easily reproduce a given sequence of configuration commands, or copy a saved configuration between compatible devices.
 1. Recorded commands of a similar type (UBX, NMEA or TTY) can also be imported ![import icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-import-24.png?raw=true) into PyGPSClient's json configuration file as [user defined presets](#user-defined-presets) - you will be prompted to enter a preset description (*defaults to current timestamp if blank*). The preset can then be replayed from the Presets panel via a single click.
 1. The Configuration Load facility can accept configuration files in either UBX/NMEA binary (\*.bin), TTY (\*.tty) or u-center UBX text format (\*.txt) (as also used by [Ardusimple](https://www.ardusimple.com/configuration-files/?wmc-currency=EUR)).
@@ -341,13 +330,18 @@ By default, the server/caster binds to the host address '0.0.0.0' (IPv4) or '::'
 
 **Pre-Requisites:**
 
-1. Running in NTRIP CASTER mode is predicated on the host being connected to an RTK-compatible GNSS receiver **operating in Base Station mode** (either `FIXED` or `SURVEY_IN`) and outputting the requisite RTCM3 message types (1005/6, 1077, 1087, 1097, etc.). 
+1. Running in NTRIP CASTER mode is predicated on the host being connected to an RTK-compatible GNSS receiver **operating in Base Station mode** (either `FIXED` or `SURVEY_IN`) and outputting the requisite RTCM3 message types (1005/6, 1077, 1087, 1097, etc.). PyGPSClient supports 'one click' base station configuration for the following receiver types:
+   - u-blox - any modern u-blox RTK model (e.g. ZED-F9P, ZED-X20P) configured by binary UBX CFG-VALSET commands.
+   - Septentrio - most Septentrio Mosaic series (e.g. Mosaic X5) configured by ASCII TTY commands.
+   - Unicore - most UM9* series (e.g. UM981S) configured by ASCII TTY commands.
+   - Quectel LG Series - most LG series (e.g. LG290, LG580) configured by NMEA PQTM commands.
+   - Quectel LC Series - most LC series (e.g. LC29H) configured by NMEA PAIR commands.
 1. It may be necessary to add a firewall rule and/or enable port-forwarding on the host machine or router to allow remote traffic on the specified address:port.
 1. The server supports encrypted TLS (HTTPS) connections. The TLS server private key / certificate location can be set via environment variable `PYGNSSUTILS_PEMPATH`; the default is `$HOME/pygnssutils.pem`. A self-signed pem file suitable for test and demonstration purposes can be created interactively thus:
    ```shell
    openssl req -x509 -newkey rsa:4096 -keyout pygnssutils.pem -out pygnssutils.pem -sha256 -days 3650 -nodes
    ```
-   The TLS Client will only require the certificate from this file, which can be set via environment variable `PYGNSSUTILS_CRTPATH`; the default is `$HOME\pygnssutils.crt`.
+   The TLS Client will only require the certificate from this file, which can be set via environment variable `PYGNSSUTILS_CRTPATH`; the default is `$HOME/pygnssutils.crt`.
 
 **Instructions:**
 
@@ -370,13 +364,6 @@ By default, the server/caster binds to the host address '0.0.0.0' (IPv4) or '::'
 1. To stop the caster, uncheck the checkbox.
 
 ### <a name="basestation">Base Station Configuration</a>
-
-The current version of PyGPSClient supports 'one click' base station configuration for the following receiver types:
-1. u-blox - any modern u-blox RTK model (e.g. XED-F9P, ZED-X20P) configured by binary UBX CFG-VALSET commands.
-1. Septentrio - most Septentrio Mosaic series (e.g. Mosaic X5) configured by ASCII TTY commands.
-1. Unicore - most UM9* series (e.g. UM981S) configured by ASCII TTY commands.
-1. Quectel LG Series - most LG series (e.g. LG290, LG580) configured by NMEA PQTM commands.
-1. Quectel LC Series - most LC series (e.g. LC29H) configured by NMEA PAIR commands.
 
 **NOTE:** 
 1. Some receivers (*e.g. Quectel LG Series*) will require one or more restarts to enable or disable Base Station mode. This may take several seconds.
@@ -409,7 +396,7 @@ Please refer to [SPARTN.md](https://github.com/semuconsulting/PyGPSClient/blob/m
 
 ![gpxviewer screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/gpxviewer.png?raw=true)
 
-*GPX Track Viewer screenshot*
+To display the GPX Track Viewer Dialog, select Menu..Options..GPX Track Viewer.
 
 The GPX Track Viewer can display any valid GPX file containing track point (`trkpt`), route point (`rtept`) or waypoint (`wpt`) elements against either an ["custom" offline map image](#custommap), or an online MapQuest "map", "sat" or "hyb" view. The "map", "sat" and "hyb" options require a free [MapQuest API key](#mapquestapi). The Y axis scales will reflect the current choice of units (metric or imperial). If the GPX track omits a time element, the time and speed axes will be flagged as nominal. GPX track metadata, including min, max, average (mean) and median elevation and speed values, is displayed in the selected units. 
 Click ![refresh icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-refresh-lined-24.png?raw=true) to refresh the display after any changes (e.g. resizing, zooming or change of units). The location marker indicates the nominal center point of the track.

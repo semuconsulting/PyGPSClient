@@ -559,8 +559,6 @@ class NTRIPConfigDialog(ToplevelDialog):
             self._settings["refsep"] = cfg.get("ntripclientrefsep_f")
             self._settings["spartndecode"] = cfg.get("spartndecode_b")
             self._settings["spartnkey"] = cfg.get("spartnkey_s")
-            if self._settings["spartnkey"] == "":
-                self._settings["spartndecode"] = 0
             # if basedate is provided in config file, it must be an integer gnssTimetag
             self._settings["spartnbasedate"] = cfg.get("spartnbasedate_n")
 
@@ -613,6 +611,11 @@ class NTRIPConfigDialog(ToplevelDialog):
         self._settings["reflon"] = float(self._ntrip_gga_lon.get())
         self._settings["refalt"] = float(self._ntrip_gga_alt.get())
         self._settings["refsep"] = float(self._ntrip_gga_sep.get())
+        self._settings["spartndecode"] = self.__app.configuration.get("spartndecode_b")
+        self._settings["spartnkey"] = self.__app.configuration.get("spartnkey_s")
+        self._settings["spartnbasedate"] = self.__app.configuration.get(
+            "spartnbasedate_n"
+        )
 
     def update_sourcetable(self, stable: list):
         """
@@ -655,7 +658,8 @@ class NTRIPConfigDialog(ToplevelDialog):
                 reflon=self._settings["reflon"],
                 refalt=self._settings["refalt"],
                 refsep=self._settings["refsep"],
-                spartndecode=self._settings["spartndecode"],
+                # NTRIP SPARTN is unencrypted so key not needed
+                spartndecode=1,  # self._settings["spartndecode"],
                 spartnkey=self._settings["spartnkey"],
                 spartnbasedate=self._settings["spartnbasedate"],
                 output=self.__app.ntrip_inqueue,

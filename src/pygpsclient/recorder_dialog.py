@@ -513,6 +513,7 @@ class RecorderDialog(ToplevelDialog):
         self._importdesc.set(self._get_preset_desc())
         self._lbl_activity.grid_forget()
         self._ent_import.grid(column=0, row=2, columnspan=8, padx=3, sticky=EW)
+        self._ent_import.focus_set()
         self._save_to_preset = True
         self.update()
 

@@ -1,8 +1,19 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.6.6
+
+FIXES:
+
+1. Update nmeahandler to cater for mixed float/null NMEA GGA alt/sep data - Fixes #244.
+
+ENHANCEMENTS:
+
+1. Minor internal updates to NTRIP SPARTN handling - no longer requires a 'dummy' key for unencrypted Point Perfect Flex SPARTN NTRIP services. To decode SPARTN messages in the console, set `"spartndecode_b": 1` in your json configuration file.
+
 ### RELEASE 1.6.5
 
 FIXES:
+
 1. Fix custom map import spurious validation error.
 
 ENHANCEMENTS:
