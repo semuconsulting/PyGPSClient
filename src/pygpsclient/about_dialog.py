@@ -224,8 +224,8 @@ class AboutDialog(ToplevelDialog):
         Check for updates.
         """
 
-        versions = check_for_updates()
         self.status_label = ("Checking for updates...", INFOCOL)
+        versions = check_for_updates()
         for i, (nam, current, latest) in enumerate(versions):
             txt = f"{nam}: {current}"
             if latest == current:

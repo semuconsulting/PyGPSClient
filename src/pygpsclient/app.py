@@ -1018,13 +1018,16 @@ class App(Frame):
         """
 
         latest = check_latest(TITLE)
-        if latest not in (VERSION, "N/A"):
-            shortcut = "" if brew_installed() else " CTRL-U to update."
+        if latest not in (VERSION, NA):
+            if brew_installed():
+                hotkey = ""
+            else:
+                hotkey = " CTRL-U to update."
+                self.__master.bind_all("<Control-u>", self.do_app_update)
             self.status_label = (
-                VERCHECK.format(title=TITLE, version=latest, shortcut=shortcut),
+                VERCHECK.format(title=TITLE, version=latest, hotkey=hotkey),
                 ERRCOL,
             )
-            self.__master.bind_all("<Control-u>", self.do_app_update)
         else:
             self.__master.unbind("<Control-u>")
 

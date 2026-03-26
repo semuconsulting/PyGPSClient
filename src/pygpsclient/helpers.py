@@ -109,13 +109,13 @@ MAXALT = 10000.0  # meters arbitrary
 LIBVERSIONS = {
     "PyGPSClient": VERSION,
     "pygnssutils": PGVERSION,
-    "pyubx2": UBXVERSION,
-    "pysbf2": SBFVERSION,
-    "pyunigps": UNIVERSION,
-    "pyqgc": QGCVERSION,
     "pynmeagps": NMEAVERSION,
+    "pyqgc": QGCVERSION,
     "pyrtcm": RTCMVERSION,
+    "pysbf2": SBFVERSION,
     "pyspartn": SPARTNVERSION,
+    "pyubx2": UBXVERSION,
+    "pyunigps": UNIVERSION,
 }
 
 

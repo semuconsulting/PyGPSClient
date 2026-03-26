@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.6.7
+
+ENHANCEMENTS:
+
+1. Minor internal enhancements to Import Custom Map exception handling.
+
 ### RELEASE 1.6.6
 
 FIXES:
