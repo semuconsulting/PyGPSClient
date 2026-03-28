@@ -222,6 +222,20 @@ The UBX Configuration Dialog currently provides the following UBX configuration 
 1. UBX Legacy Command configuration panel providing structured updates for a range of legacy CFG-* configuration commands (*legacy protocols only*). Note: 'X' (byte) type attributes can be entered as integers or hexadecimal strings e.g. 522125312 or 0x1f1f0000. Once a command is selected, the configuration is polled and the current values displayed. The user can then amend these values as required and send the updated configuration. Some polls require input arguments (e.g. portID) - these are highlighted and will be set at default values initially (e.g. portID = 0), but can be amended by the user and re-polled using the ![refresh](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-refresh-lined-24.png?raw=true) button.
 1. Preset Commands widget supports a variety of user-defined UBX commands and queries - see [user-defined presets](#userdefined).
 
+### <a name="rtklib">Configuring u-blox receivers for Post-Processing Kinematics (PPK) using the RTKLIB suite</a>
+
+PyGPSClient cannot currently perform UBX to RINEX conversion itself, but it can be used to enable and log the necessary raw navigation and observation data for input into [RTKLIB's RINEX conversion and processing utilities RTKCONV and RTKPOST](https://github.com/tomojitakasu/RTKLIB_bin):
+
+1. Set the output baud rate to at least 115200 to ensure there is sufficient serial port bandwidth.
+2. Enable UBX RXM-RAWX and RXM-SFRBX message types at a rate of 1 Hz (*a preset CFG-VALSET command is provided for this purpose*). Optionally, disable all other message types and protocols.
+3. Enable PyGPSClient's binary data log option (*alternatively, use RTKLIB's STRSVR utility to create a similar log file*).
+4. **Record at least 15 to 30 minutes of data** (approximately 3.4 MB).
+5. Open RTKLIB's RTKCONV conversion utility and select the binary log file from (4) above. Click 'Options...' and select the required satellite, frequency and observation types, then click OK. Finally, click 'Convert'.
+
+   ![rtkconv screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/rtkconv_screenshot.png?raw=true)
+
+5. The various RINEX output files (*.obs, *.nav, etc.) can then be used as inputs to RTKLIB's RTKPOST PPK utility.
+
 ---
 ## <a name="nmeaconfig">NMEA Configuration Facilities</a>
 
