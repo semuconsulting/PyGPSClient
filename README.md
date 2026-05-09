@@ -425,7 +425,7 @@ Click ![refresh icon](https://github.com/semuconsulting/PyGPSClient/blob/master/
 
 ![rinex screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/rinex_dialog.png?raw=true)
 
-The RINEX Conversion Dialog supports the conversion of raw observation, navigation CEI (clock, ephemerides, integrity) and meterology data from receiver or NTRIP sources.
+The RINEX Conversion Dialog supports the conversion of raw observation, navigation (CEI - clock, ephemerides, integrity) and meteorology data from a variety of sources.
 
 **Pre-Requisites:**
 
