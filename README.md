@@ -11,6 +11,7 @@
 [NTRIP Client](#ntripconfig) |
 [NTRIP Caster/Socket Server](#socketserver) |
 [GPX Track Viewer](#gpxviewer) |
+[RINEX Conversion](#rinex) |
 [Mapquest API Key](#mapquestapi) |
 [User-defined Presets](#userdefined) |
 [CLI Utilities](#cli) |
@@ -19,12 +20,13 @@
 [Author Information](#author)
 
 PyGPSClient is a free, open-source, multi-platform graphical GNSS/GPS testing, diagnostic and configuration application written entirely by volunteers in Python and tkinter. 
-* Runs on any platform which supports a Python 3 interpreter (>=3.10) and tkinter (>=8.6) GUI framework, including Windows, MacOS, Linux and Raspberry Pi OS. Accommodates low resolution screens (>= 640x480) via resizable and/or scrollable panels.
+* Runs on any platform which supports a Python 3 interpreter (>=3.10) and tkinter (>=8.6) GUI framework, including Windows, MacOS and Linux.
 * Supports NMEA, UBX (u-blox binary), SBF (Septentrio binary), UNI (Unicore binary), QGC (Quectel binary), RTCM3, NTRIP, SPARTN, MQTT and TTY (ASCII text) protocols¹.
 * Capable of reading from a variety of GNSS data streams: Serial (USB / UART), Socket (TCP / UDP), binary data stream (terminal or file capture) and binary recording (e.g. u-center \*.ubx).
-* Provides [NTRIP](#ntripconfig) client facilities.
+* Provides [NTRIP client](#ntripconfig) facilities for both RTCM3 and SPARTN NTRIP services.
 * Can serve as an [NTRIP base station](#basestation) with an RTK-compatible receiver (e.g. u-blox ZED-F9P/ZED-X20P, Quectel LG/LC Series, Septentrio Mosaic Series or Unicore UM9** Series).
 * Supports GNSS (*and related*) device configuration via proprietary UBX, NMEA and ASCII TTY protocols, including most u-blox, Quectel, Septentrio, Unicore and Feyman GNSS devices.
+* **New in v1.6.7** - Experimental support for RINEX conversion of raw observation, navigation (CEI) and meteorology data.
 * Can be installed using the standard `pip` Python package manager - see [installation instructions](#installation) below.
 
 This is an independent project and we have no affiliation whatsoever with any GNSS manufacturer or distributor.
@@ -35,7 +37,7 @@ This is an independent project and we have no affiliation whatsoever with any GN
 
 *Screenshot showing mixed-protocol stream from u-blox ZED-F9P receiver, using PyGPSClient's [NTRIP Client](#ntripconfig) with a base station 26 km to the west to achieve better than 2 cm accuracy*
 
-#### References
+### References
 
 1. [Glossary of GNSS Terms and Abbreviations](https://www.semuconsulting.com/gnsswiki/glossary/).
 1. [GNSS Positioning - A Reviser](https://www.semuconsulting.com/gnsswiki/) - a general overview of GNSS, OSR, SSR, RTK, NTRIP and SPARTN positioning and error correction technologies and terminology.
@@ -142,10 +144,10 @@ For more comprehensive installation instructions, please refer to [INSTALLATION.
 
 17. DataLogging - Turn Data logging in the selected format (Binary, Parsed, Hex Tabular, Hex String, Parsed+Hex Tabular) on or off. On first selection, you will be prompted to select the directory into which timestamped log files are saved. Log files are cycled when a maximum size is reached (default is 10 MB, manually configurable via `logsize_n` setting).
 18. GPX Track - Turn track recording (in GPX format) on or off. On first selection, you will be prompted to select the directory into which timestamped GPX track files are saved. See also [GPX Track Viewer](#gpxviewer).
-19. Database - Turn spatialite database recording (*where available*) on or off. On first selection, you will be prompted to select the directory into which the `pygpsclient.sqlite` database is saved. Note that, when first created, the database's spatial metadata will take a few seconds to initialise (*up to a minute or so on some platforms e.g. Raspberry Pi*). 
+19. Database - Turn spatialite database recording (*where available*) on or off. On first selection, you will be prompted to select the directory into which the `pygpsclient.sqlite` database is saved. *Note that, when first created, the database's spatial metadata may take up to a minute or so to initialise*. 
     - Database logging is dependent on your Python environment supporting the requisite [sqlite3 `mod_spatialite` extension](https://www.gaia-gis.it/fossil/libspatialite/index) - see [INSTALLATION.md](https://github.com/semuconsulting/PyGPSClient/blob/master/INSTALLATION.md#prereqs) for further details. If not supported, the option will be greyed out. Check the Menu..Help..About dialog for an indication of the current spatialite support status - `no-ext` means the spatialite extension is not supported; `no-ms` means spatialite *is* supported but the necessary `mod_spatialite` extension module cannot be found in the PATH; a numeric version number like `3.51.2` indicates spatialite is fully supported.
     - Spatialite databases can be utilised by a wide range of GIS analysis and visualisation tools, including GRASS, QGIS, MapInfo, ArcGIS, etc. 
-    - *FYI* a helper method `retrieve_data()` is available to retrieve data from this database - see [Sphinx documentation](https://www.semuconsulting.com/pygpsclient/pygpsclient.html#pygpsclient.sqllite_handler.retrieve_data) and [retrieve_data.py](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/retrieve_data.py) example for details.
+    - A helper method `retrieve_data()` is available to retrieve data from this database - see [Sphinx documentation](https://www.semuconsulting.com/pygpsclient/pygpsclient.html#pygpsclient.sqllite_handler.retrieve_data) and [retrieve_data.py](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/retrieve_data.py) example for details.
 
 #### <a name="config">Pop-up Configuration Dialogs</a>
 
@@ -165,7 +167,7 @@ For more comprehensive installation instructions, please refer to [INSTALLATION.
 
 #### <a name="refreshrate">GUI refresh rate setting</a>
 
-29. PyGPSClient processes all incoming GNSS data in 'real time' but, by default, the GUI is only refreshed every 0.5 seconds. The refresh rate can be configured via the `guiupdateinterval_f` setting in the json configuration file. **NB:** PyGPSClient may become unresponsive on slower platforms (e.g. Raspberry Pi) at high message rates if the GUI update interval is less than 0.1 seconds, though lower intervals (<= 0.1 secs) can be accommodated on more powerful platforms.
+29. PyGPSClient processes all incoming GNSS data in 'real time' but, by default, the GUI is only refreshed every 0.5 seconds. The refresh rate can be manually configured via the `guiupdateinterval_f` setting in the json configuration file. **NB:** PyGPSClient may become unresponsive on slower platforms (e.g. Raspberry Pi) at high message rates if the GUI update interval is less than 0.1 seconds, though lower intervals (<= 0.1 secs) can be accommodated on more powerful platforms.
 
 #### <a name="transient">Toplevel ('pop-up') dialog setting</a>
 
@@ -222,19 +224,20 @@ The UBX Configuration Dialog currently provides the following UBX configuration 
 1. UBX Legacy Command configuration panel providing structured updates for a range of legacy CFG-* configuration commands (*legacy protocols only*). Note: 'X' (byte) type attributes can be entered as integers or hexadecimal strings e.g. 522125312 or 0x1f1f0000. Once a command is selected, the configuration is polled and the current values displayed. The user can then amend these values as required and send the updated configuration. Some polls require input arguments (e.g. portID) - these are highlighted and will be set at default values initially (e.g. portID = 0), but can be amended by the user and re-polled using the ![refresh](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-refresh-lined-24.png?raw=true) button.
 1. Preset Commands widget supports a variety of user-defined UBX commands and queries - see [user-defined presets](#userdefined).
 
-### <a name="rtklib">Configuring u-blox receivers for Post-Processing Kinematics (PPK) using the RTKLIB suite</a>
+### <a name="rtklib">Configuring u-blox receivers for Post-Processing Kinematics (PPK)</a>
 
-PyGPSClient cannot currently perform UBX to RINEX conversion itself, but it can be used to enable and log the necessary raw navigation and observation data for input into [RTKLIB's RINEX conversion and processing utilities RTKCONV and RTKPOST](https://github.com/tomojitakasu/RTKLIB_bin):
+PyGPSClient can be used to enable and log the necessary raw observation and navigation (CEI) data for input into either PYGPSClient's experimental [RINEX Conversion dialog](#rinex) or [RTKLIB's RINEX conversion utility RTKCONV](https://github.com/tomojitakasu/RTKLIB_bin):
 
 1. Set the output baud rate to at least 115200 to ensure there is sufficient serial port bandwidth.
 2. Enable UBX RXM-RAWX and RXM-SFRBX message types at a rate of 1 Hz (*a preset CFG-VALSET command is provided for this purpose*). Optionally, disable all other message types and protocols.
 3. Enable PyGPSClient's binary data log option (*alternatively, use RTKLIB's STRSVR utility to create a similar log file*).
 4. **Record at least 15 to 30 minutes of data** (approximately 3.4 MB).
-5. Open RTKLIB's RTKCONV conversion utility and select the binary log file from (4) above. Click 'Options...' and select the required satellite, frequency and observation types, then click OK. Finally, click 'Convert'.
+5. Open PyGPSClient's [RINEX Conversion dialog](#rinex) and select the binary log file from (4) above, or...
+6. Open RTKLIB's RTKCONV conversion utility and select the binary log file from (4) above. Click 'Options...' and select the required satellite, frequency and observation types, then click OK. Finally, click 'Convert'.
 
    ![rtkconv screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/rtkconv_screenshot.png?raw=true)
 
-5. The various RINEX output files (*.obs, *.nav, etc.) can then be used as inputs to RTKLIB's RTKPOST PPK utility.
+7. The various RINEX output files (*.rnx or *.obs, *.nav, etc.) can then be used as inputs to RTKLIB's RTKPOST PPK utility.
 
 ---
 ## <a name="nmeaconfig">NMEA Configuration Facilities</a>
@@ -313,7 +316,7 @@ The NTRIP Configuration utility allows users to receive and process NTRIP RTK Co
 
 1. Enter the required NTRIP server URL (or IP address) and port (defaults to 2101). For SSL/TLS (HTTPS) connections (*typically on ports \*443 or 2102*), tick the TLS checkbox. Tick the Self-Sign checkbox to tolerate self-signed TLS certification (*typically for test or demonstration services*); the path to the self-sign TLS certificate can be set via environment variable `PYGNSSUTILS_CRTPATH`; the default is `$HOME\pygnssutils.crt`.
 1. For services which require authorisation, enter your assigned login username and password.
-1. Select the Data Type (defaults to RTCM, but can be set to SPARTN).
+1. Select the Data Type (defaults to RTCM3, but can be set to SPARTN).
 1. To retrieve the sourcetable, leave the mountpoint field blank and click connect (*response may take a few seconds*). The required mountpoint may then be selected from the list, or entered manually. Where possible, `PyGPSClient` will automatically identify the closest mountpoint to the current location.
 1. For NTRIP services which require client position data via NMEA GGA sentences, select the appropriate sentence transmission interval in seconds. The default is 'None' (no GGA sentences sent). A value of 10 or 60 seconds is typical.
 1. If GGA sentence transmission is enabled, GGA sentences can either be populated from live navigation data (*assuming a receiver is connected and outputting valid position data*) or from fixed reference settings entered in the NTRIP configuration panel (latitude, longitude, elevation and geoid separation - all four reference settings must be provided).
@@ -414,6 +417,33 @@ To display the GPX Track Viewer Dialog, select Menu..Options..GPX Track Viewer.
 
 The GPX Track Viewer can display any valid GPX file containing track point (`trkpt`), route point (`rtept`) or waypoint (`wpt`) elements against either an ["custom" offline map image](#custommap), or an online MapQuest "map", "sat" or "hyb" view. The "map", "sat" and "hyb" options require a free [MapQuest API key](#mapquestapi). The Y axis scales will reflect the current choice of units (metric or imperial). If the GPX track omits a time element, the time and speed axes will be flagged as nominal. GPX track metadata, including min, max, average (mean) and median elevation and speed values, is displayed in the selected units. 
 Click ![refresh icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-refresh-lined-24.png?raw=true) to refresh the display after any changes (e.g. resizing, zooming or change of units). The location marker indicates the nominal center point of the track.
+
+---
+## <a name="rinex">RINEX Conversion</a>
+
+**NB: RINEX conversion is currently an experimental facility based on the [pygnssutils pyrinexconv CLI utility](https://github.com/semuconsulting/pygnssutils#rinexconvert). See [pygnssutils release notes](https://github.com/semuconsulting/pygnssutils/releases/tag/v1.2.0) for details of current functionality and limitations**. The intention is to enhance functionality in future releases.
+
+![rinex screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/rinex_dialog.png?raw=true)
+
+The RINEX Conversion Dialog supports the conversion of raw observation, navigation (CEI - clock, ephemerides, integrity) and meteorology data from a variety of sources.
+
+**Pre-Requisites:**
+
+1. A previously-saved binary datalog containing raw observation, navigation and/or meteorology data e.g. UBX RXM-RAWX and RXM-SFRBX¹ messages or RTCM3 ephemerides (1019, 1020, 1042-1046) messages. A suitable datalog can be recorded using PyGPSClient's [binary datalogging](#datalog) facility. **NB**: The file should contain at least 15-30 minutes of continuous data.
+
+   ¹ Only GPS LNAV data is supported in this experimental release, though the underlying pygnssutils classes are readily extensible.
+
+**Instructions:**
+
+1. Click the ![folder icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-folder-18-24.png?raw=true) to select the required binary datalog file.
+2. Select the required RINEX protocol version (*only 3.05 supported in this experimental release*).
+3. Select the required RINEX output file types - O observation, N navigation or M meteorology.
+4. Select the datasource for each RINEX output type e.g. R Receiver, N RTCM3 (NTRIP), etc.
+5. (Optional) Select the GNSS to be included e.g. GPS, GAL, BDS, etc.
+6. (Optional) Select the RINEX observation (frequency / signal) codes to be included e.g. 1C, 2L, etc.
+7. (Optional) Expand the advanced panel ![start icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-caret-right-filled-32.png?raw=true) to enter details of the marker, antenna, receiver, observer and any user-defined comments.
+8. Click ![start icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-media-control-48-24.png?raw=true) to process the file. A progress bar will be displayed and, when complete, the output file names (*.rnx) and record counts will be displayed at the foot of the dialog.
+9. Processing can be cancelled by clicking ![cancel icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-x-mark-9-24.png?raw=true).
 
 ---
 ## <a name="mapquestapi">MapQuest API Key</a>

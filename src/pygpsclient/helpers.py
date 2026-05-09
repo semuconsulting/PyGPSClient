@@ -38,7 +38,7 @@ from tkinter import (
     Tk,
     font,
 )
-from types import FunctionType, NoneType
+from types import FunctionType, MethodType, NoneType
 from typing import Any, Literal
 
 from pygnssutils import version as PGVERSION
@@ -109,13 +109,13 @@ MAXALT = 10000.0  # meters arbitrary
 LIBVERSIONS = {
     "PyGPSClient": VERSION,
     "pygnssutils": PGVERSION,
-    "pyubx2": UBXVERSION,
-    "pysbf2": SBFVERSION,
-    "pyunigps": UNIVERSION,
-    "pyqgc": QGCVERSION,
     "pynmeagps": NMEAVERSION,
+    "pyqgc": QGCVERSION,
     "pyrtcm": RTCMVERSION,
+    "pysbf2": SBFVERSION,
     "pyspartn": SPARTNVERSION,
+    "pyubx2": UBXVERSION,
+    "pyunigps": UNIVERSION,
 }
 
 
@@ -125,7 +125,7 @@ def validate(
     low: int | float = MINFLOAT,
     high: int | float = MAXFLOAT,
     regex: str | NoneType = None,
-    func: FunctionType | NoneType = None,
+    func: MethodType | FunctionType | NoneType = None,
     args: tuple = (),
 ) -> bool:
     """
@@ -137,7 +137,7 @@ def validate(
     :param int | float low: optional min value
     :param int | float high: optional max value
     :param str | NoneType regex: regex expression
-    :param FunctionType | NoneType func: custom validation function
+    :param MethodType | FunctionType | NoneType func: custom validation function
     :param Any args: optional function arguments
 
     :return: True/False
@@ -973,7 +973,7 @@ def parse_rxmspartnkey(msg: UBXMessage) -> list:
         lkey = getattr(msg, f"keyLengthBytes_{i+1:02}")
         wno = getattr(msg, f"validFromWno_{i+1:02}")
         tow = getattr(msg, f"validFromTow_{i+1:02}")
-        dat = wnotow2utc(wno, int(tow * 1000))
+        dat = wnotow2utc(wno, int(tow * 1000), None, "G", True)
         key = ""
         for n in range(0 + pos, lkey + pos):
             keyb = getattr(msg, f"key_{n+1:02}")

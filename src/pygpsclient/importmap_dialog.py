@@ -31,6 +31,7 @@ from tkinter import (
 
 try:
     from rasterio import open as openraster  # pylint: disable=import-error
+    from rasterio.errors import RasterioIOError  # pylint: disable=import-error
     from rasterio.warp import transform_bounds  # pylint: disable=import-error
 
     HASRASTERIO = True
@@ -42,8 +43,8 @@ from pygpsclient.globals import (
     BGCOL,
     ERRCOL,
     IMPORT,
+    INFOCOL,
     OKCOL,
-    TRACEMODE_WRITE,
     VALFLOAT,
     Area,
 )
@@ -162,13 +163,6 @@ class ImportMapDialog(ToplevelDialog):
         """
 
         self.container.bind("<Configure>", self._on_resize)
-        for ent in (
-            self._lonmin,
-            self._lonmax,
-            self._latmin,
-            self._latmax,
-        ):
-            ent.trace_update(TRACEMODE_WRITE, self._on_update)
 
     def _reset(self):
         """
@@ -180,18 +174,12 @@ class ImportMapDialog(ToplevelDialog):
         # self._btn_import.config(state=DISABLED)
         if not HASRASTERIO:
             self.status_label = (
-                "Warning: rasterio library is not installed - "
-                "bounds must be entered manually"
+                "Rasterio library is not installed - "
+                "extents must be entered manually",
+                INFOCOL,
             )
         else:
             self.status_label = ""
-
-    def _on_update(self, var, index, mode):
-        """
-        Action on updating bounds.
-        """
-
-        self._valid_entries()
 
     def _valid_entries(self) -> bool:
         """
@@ -271,14 +259,17 @@ class ImportMapDialog(ToplevelDialog):
         if HASRASTERIO:
             try:
                 ras = openraster(mappath)
-                lonmin, latmin, lonmax, latmax = transform_bounds(
-                    ras.crs.to_epsg(), 4326, *ras.bounds
-                )
-            except Exception:  # pylint: disable=broad-exception-caught
+                extents = transform_bounds(ras.crs.to_epsg(), 4326, *ras.bounds)
+                lonmin, latmin, lonmax, latmax = extents
+            except AttributeError:
                 self.status_label = (
-                    "Warning: image is not georeferenced - bounds must be entered manually",
+                    "Image is not georeferenced - extents must be entered manually",
                     ERRCOL,
                 )
+            except RasterioIOError:
+                self.status_label = ("Image is not a supported file format", ERRCOL)
+            except Exception as err:  # pylint: disable=broad-exception-caught
+                self.status_label = (str(err), ERRCOL)
 
         self._lonmin.set(str(round(lonmin, 8)))
         self._latmin.set(str(round(latmin, 8)))

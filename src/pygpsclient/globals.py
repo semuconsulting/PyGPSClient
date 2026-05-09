@@ -38,11 +38,11 @@ GNSS_LIST = {
     0: ("GPS", "#6495ED"),
     1: ("SBA", "#FF8000"),
     2: ("GAL", "#008B00"),
-    3: ("BEI", "#9F79EE"),
+    3: ("BDS", "#9F79EE"),
     4: ("IME", "#EE82EE"),
     5: ("QZS", "#CDCD00"),
     6: ("GLO", "#CD5C5C"),
-    7: ("NAV", "#D2B48C"),
+    7: ("IRN", "#D2B48C"),
 }
 GRIDLEGEND = "#B0B0B0"  # default grid legend color
 GRIDMAJCOL = "#666666"  # default grid major tick color
@@ -146,6 +146,7 @@ GPX_TRACK_INTERVAL = 1  # minimum GPS track update interval (seconds)
 GUI_UPDATE_INTERVAL = 0.5  # GUI widget update interval (seconds)
 ICON_APP128 = path.join(DIRNAME, "resources/app-128.png")
 ICON_BLANK = path.join(DIRNAME, "resources/blank-1-24.png")
+ICON_CANCEL = path.join(DIRNAME, "resources/iconmonstr-x-mark-9-24.png")
 ICON_CONFIRMED = path.join(DIRNAME, "resources/iconmonstr-check-mark-8-24.png")
 ICON_CONN = path.join(DIRNAME, "resources/iconmonstr-media-control-48-24.png")
 ICON_CONTRACT = path.join(DIRNAME, "resources/iconmonstr-triangle-1-16.png")
@@ -156,6 +157,7 @@ ICON_EXIT = path.join(DIRNAME, "resources/iconmonstr-door-6-24.png")
 ICON_EXPAND = path.join(DIRNAME, "resources/iconmonstr-arrow-80-16.png")
 ICON_GITHUB = path.join(DIRNAME, "resources/github-256.png")
 ICON_IMPORT = path.join(DIRNAME, "resources/iconmonstr-import-24.png")
+ICON_LEFT = path.join(DIRNAME, "resources/iconmonstr-caret-left-filled-32.png")
 ICON_LOAD = path.join(DIRNAME, "resources/iconmonstr-folder-18-24.png")
 ICON_LOGREAD = path.join(DIRNAME, "resources/binary-1-24.png")
 ICON_NMEACONFIG = path.join(DIRNAME, "resources/iconmonstr-gear-2-24-nmea.png")
@@ -169,6 +171,7 @@ ICON_POWEROFF = path.join(DIRNAME, "resources/iconmonstr-poweroff-8-24.png")
 ICON_RECORD = path.join(DIRNAME, "resources/iconmonstr-record-24.png")
 ICON_REDRAW = path.join(DIRNAME, "resources/iconmonstr-refresh-lined-24.png")
 ICON_REFRESH = path.join(DIRNAME, "resources/iconmonstr-refresh-6-16.png")
+ICON_RIGHT = path.join(DIRNAME, "resources/iconmonstr-caret-right-filled-32.png")
 ICON_SAVE = path.join(DIRNAME, "resources/iconmonstr-save-14-24.png")
 ICON_SEND = path.join(DIRNAME, "resources/iconmonstr-arrow-12-24.png")
 ICON_SERIAL = path.join(DIRNAME, "resources/usbport-1-24.png")
@@ -365,7 +368,7 @@ FIXLOOKUP = {
     "GGA5": "RTK FLOAT",
     "GGA6": "DR",
     "GLLA": "3D",  # posMode
-    "GLLD": "RTK",
+    "GLLD": "3D",
     "GLLE": "DR",
     "GNSA": "3D",  # posMode
     "GNSD": "3D",
