@@ -406,15 +406,17 @@ Click ![refresh icon](https://github.com/semuconsulting/PyGPSClient/blob/master/
 ---
 ## <a name="rinex">RINEX Conversion</a>
 
-**NB: RINEX conversion is currently an experimental facility which will be enhanced in future releases.**
+**NB: RINEX conversion is currently an experimental facility based on the [pygnssutils pyrinexconv CLI utility](https://github.com/semuconsulting/pygnssutils#rinexconvert). See [pygnssutils release notes](https://github.com/semuconsulting/pygnssutils/releases/tag/v1.2.0) for details of current functionality and limitations**. The intention is to enhance functionality in future releases.
 
 ![rinex screenshot](/images/rinex_dialog.png?raw=true)
 
-The RINEX Conversion Dialog supports the conversion of raw observation, navigation CEI (clock, ephemerides, integrity) and meterology data from receiver or NTRIP sources 
+The RINEX Conversion Dialog supports the conversion of raw observation, navigation CEI (clock, ephemerides, integrity) and meterology data from receiver or NTRIP sources.
 
 **Pre-Requisites:**
 
-1. A previously-saved binary datalog containing raw observation, navigation and/or meteorology data e.g. UBX RXM-RAWX and RXM-SFRBX messages or RTCM3 ephemerides (1019, 1020, 1042-1046) messages. A suitable datalog can be recorded using PyGPSClient's [binary datalogging](#datalog) facility. **NB**: The file should contain at least 15-30 minutes of continuous data.
+1. A previously-saved binary datalog containing raw observation, navigation and/or meteorology data e.g. UBX RXM-RAWX and RXM-SFRBX¹ messages or RTCM3 ephemerides (1019, 1020, 1042-1046) messages. A suitable datalog can be recorded using PyGPSClient's [binary datalogging](#datalog) facility. **NB**: The file should contain at least 15-30 minutes of continuous data.
+
+   ¹ Only GPS LNAV data is supported in this experimental release, though the underlying pygnssutils classes are readily extensible.
 
 **Instructions:**
 
