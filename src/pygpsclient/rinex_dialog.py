@@ -15,7 +15,6 @@ from logging import getLogger
 from pathlib import Path
 from threading import Event, Thread
 from tkinter import (
-    DISABLED,
     EW,
     NORMAL,
     NSEW,
@@ -35,15 +34,27 @@ from tkinter import (
 from tkinter.ttk import Progressbar
 from types import MethodType
 
-from pygnssutils.gnssreader import GNSSReader
+from pygnssutils.gnssreader import (
+    NMEA_PROTOCOL,
+    RTCM3_PROTOCOL,
+    UBX_PROTOCOL,
+    GNSSReader,
+)
 from pygnssutils.rinex_conv import RinexConverter
 from pygnssutils.rinex_globals import (
+    BDS,
+    GAL,
+    GLO,
+    GPS,
+    IRN,
     MET,
     NAV,
     OBS,
+    QZS,
     RINEX_CANCELLED,
     RINEX_NORECS,
     RINEX_OK,
+    SBA,
 )
 
 from pygpsclient.globals import (
@@ -686,21 +697,50 @@ class RINEXDialog(ToplevelDialog):
         :rtype: int
         """
 
-        valid = True
-        valid = valid & validate(
-            self._ent_starttime, valmode=VALCUSTOM, func=self._validtime
-        )
-        valid = valid & validate(self._ent_infilepath, valmode=VALNONBLANK)
-        if not valid:
-            self.status_label = "Invalid Parameters"
-            return
-
         try:
-            self._stopevent.clear()
+
+            valid = True
+            valid = valid & validate(
+                self._ent_starttime, valmode=VALCUSTOM, func=self._validtime
+            )
+            valid = valid & validate(self._ent_infilepath, valmode=VALNONBLANK)
+            if not valid:
+                self.status_label = ("Invalid Parameters", ERRCOL)
+                return
+
             rinex_version = self._rinexver.get()
-            rinex_types = [""]
-            gnss_filter = [""]
-            obs_filter = [""]
+            rinex_types = []
+            if self._rinexobs.get():
+                rinex_types.append(OBS)
+            if self._rinexnav.get():
+                rinex_types.append(NAV)
+            if self._rinexmet.get():
+                rinex_types.append(MET)
+            if rinex_types == []:
+                self.status_label = ("Select at least one RINEX output type", ERRCOL)
+                valid = False
+            gnss_filter = []
+            if self._rxgps.get():
+                gnss_filter.append(GPS)
+            if self._rxgalileo.get():
+                gnss_filter.append(GAL)
+            if self._rxglonass.get():
+                gnss_filter.append(GLO)
+            if self._rxbeidou.get():
+                gnss_filter.append(BDS)
+            if self._rxqzss.get():
+                gnss_filter.append(QZS)
+            if self._rxnavic.get():
+                gnss_filter.append(IRN)
+            if self._rxsbas.get():
+                gnss_filter.append(SBA)
+            if gnss_filter == []:
+                self.status_label = ("Select at least one GNSS", ERRCOL)
+                valid = False
+            if not valid:
+                return
+
+            obs_filter = self._obstypes.get().split(",")
             starttime = self._starttime.get()
             minobs = 10
             marker = [
@@ -720,7 +760,7 @@ class RINEXDialog(ToplevelDialog):
                 cval = cvar.get()
                 if cval != "":
                     comments.append(cval)
-            protfilter = 7
+            protfilter = NMEA_PROTOCOL | RTCM3_PROTOCOL | UBX_PROTOCOL
             datasource = [
                 self._obssource.get()[0:1],
                 self._navsource.get()[0:1],
@@ -743,6 +783,7 @@ class RINEXDialog(ToplevelDialog):
                 protfilter=protfilter,
                 **kwargs,
             )
+            self._stopevent.clear()
             rct = Thread(
                 target=self._process_input,
                 args=(
@@ -783,10 +824,12 @@ class RINEXDialog(ToplevelDialog):
             outputs = rc.outputs
             tot = 0
             for rt in RINEXTYPES:
-                tot += outputs[rt][1]
-                self._outputlabels[rt].set(
-                    f"{rt}: {outputs[rt][0].name}: {outputs[rt][1]}"
-                )
+                rtc = outputs.get(rt, None)
+                if rtc is not None:
+                    tot += rtc[1]
+                    self._outputlabels[rt].set(
+                        f"{rt}: {outputs[rt][0].name}: {outputs[rt][1]}"
+                    )
             if tot > 1:
                 self.status_label = ("Conversion successful", OKCOL)
             else:

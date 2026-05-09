@@ -423,7 +423,7 @@ Click ![refresh icon](https://github.com/semuconsulting/PyGPSClient/blob/master/
 
 **NB: RINEX conversion is currently an experimental facility based on the [pygnssutils pyrinexconv CLI utility](https://github.com/semuconsulting/pygnssutils#rinexconvert). See [pygnssutils release notes](https://github.com/semuconsulting/pygnssutils/releases/tag/v1.2.0) for details of current functionality and limitations**. The intention is to enhance functionality in future releases.
 
-![rinex screenshot](/images/rinex_dialog.png?raw=true)
+![rinex screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/rinex_dialog.png?raw=true)
 
 The RINEX Conversion Dialog supports the conversion of raw observation, navigation CEI (clock, ephemerides, integrity) and meterology data from receiver or NTRIP sources.
 
