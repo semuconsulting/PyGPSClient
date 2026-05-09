@@ -11,6 +11,7 @@
 [NTRIP Client](#ntripconfig) |
 [NTRIP Caster/Socket Server](#socketserver) |
 [GPX Track Viewer](#gpxviewer) |
+[RINEX Conversion](#rinex) |
 [Mapquest API Key](#mapquestapi) |
 [User-defined Presets](#userdefined) |
 [CLI Utilities](#cli) |
@@ -25,6 +26,7 @@ PyGPSClient is a free, open-source, multi-platform graphical GNSS/GPS testing, d
 * Provides [NTRIP client](#ntripconfig) facilities for both RTCM3 and SPARTN NTRIP services.
 * Can serve as an [NTRIP base station](#basestation) with an RTK-compatible receiver (e.g. u-blox ZED-F9P/ZED-X20P, Quectel LG/LC Series, Septentrio Mosaic Series or Unicore UM9** Series).
 * Supports GNSS (*and related*) device configuration via proprietary UBX, NMEA and ASCII TTY protocols, including most u-blox, Quectel, Septentrio, Unicore and Feyman GNSS devices.
+* **New in v1.6.7** - Experimental support for RINEX conversion of raw observation, navigation (CEI) and meteorology data.
 * Can be installed using the standard `pip` Python package manager - see [installation instructions](#installation) below.
 
 This is an independent project and we have no affiliation whatsoever with any GNSS manufacturer or distributor.
@@ -400,6 +402,31 @@ To display the GPX Track Viewer Dialog, select Menu..Options..GPX Track Viewer.
 
 The GPX Track Viewer can display any valid GPX file containing track point (`trkpt`), route point (`rtept`) or waypoint (`wpt`) elements against either an ["custom" offline map image](#custommap), or an online MapQuest "map", "sat" or "hyb" view. The "map", "sat" and "hyb" options require a free [MapQuest API key](#mapquestapi). The Y axis scales will reflect the current choice of units (metric or imperial). If the GPX track omits a time element, the time and speed axes will be flagged as nominal. GPX track metadata, including min, max, average (mean) and median elevation and speed values, is displayed in the selected units. 
 Click ![refresh icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-refresh-lined-24.png?raw=true) to refresh the display after any changes (e.g. resizing, zooming or change of units). The location marker indicates the nominal center point of the track.
+
+---
+## <a name="rinex">RINEX Conversion</a>
+
+**NB: RINEX conversion is currently an experimental facility which will be enhanced in future releases.**
+
+![rinex screenshot](/images/rinex_dialog.png?raw=true)
+
+The RINEX Conversion Dialog supports the conversion of raw observation, navigation CEI (clock, ephemerides, integrity) and meterology data from receiver or NTRIP sources 
+
+**Pre-Requisites:**
+
+1. A previously-saved binary datalog containing raw observation, navigation and/or meteorology data e.g. UBX RXM-RAWX and RXM-SFRBX messages or RTCM3 ephemerides (1019, 1020, 1042-1046) messages. A suitable datalog can be recorded using PyGPSClient's [binary datalogging](#datalog) facility. **NB**: The file should contain at least 15-30 minutes of continuous data.
+
+**Instructions:**
+
+1. Click the ![folder icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-folder-18-24.png?raw=true) to select the required binary datalog file.
+2. Select the required RINEX protocol version (*only 3.05 supported in this experimental release*).
+3. Select the required RINEX output file types - O observation, N navigation or M meteorology.
+4. Select the datasource for each RINEX output type e.g. R Receiver, N RTCM3 (NTRIP), etc.
+5. (Optional) Select the GNSS to be included e.g. GPS, GAL, BDS, etc.
+6. (Optional) Select the RINEX observation (frequency / signal) codes to be included e.g. 1C, 2L, etc.
+7. (Optional) Expand the advanced panel ![start icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-caret-right-filled-32.png?raw=true) to enter details of the marker, antenna, receiver, observer and any user-defined comments.
+8. Click ![start icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-media-control-48-24.png?raw=true) to process the file. A progress bar will be displayed and, when complete, the output file names (*.rnx) and record counts will be displayed at the foot of the dialog.
+9. Processing can be cancelled by clicking ![cancel icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-x-mark-9-24.png?raw=true).
 
 ---
 ## <a name="mapquestapi">MapQuest API Key</a>

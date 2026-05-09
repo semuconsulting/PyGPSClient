@@ -252,6 +252,14 @@ pygpsclient.recorder\_dialog module
    :undoc-members:
    :show-inheritance:
 
+pygpsclient.rinex\_dialog module
+--------------------------------
+
+.. automodule:: pygpsclient.rinex_dialog
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pygpsclient.rover\_frame module
 -------------------------------
 

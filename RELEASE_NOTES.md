@@ -4,6 +4,7 @@
 
 ENHANCEMENTS:
 
+1. Add preliminary support for RINEX conversion of raw observation, navigation and meteorology data from previously-saved binary data logs. Based on the [pyrinexconv CLI utility in pygnssutils](https://github.com/semuconsulting/pygnssutils#rinexconvert). **NB:** This is currently an experimental facility which will be enhanced in future releases - see [pygnssutils release notes](https://github.com/semuconsulting/pygnssutils/releases/tag/v1.2.0) for further details.
 1. Minor internal enhancements to Import Custom Map exception handling.
 
 ### RELEASE 1.6.6

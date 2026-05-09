@@ -17,7 +17,7 @@
     "C_Cpp.copilotHover": "disabled",
     "chat.agent.enabled": false,
     "chat.commandCenter.enabled": false,
-    "chat.notifyWindowOnConfirmation": false,
+    "chat.notifyWindowOnConfirmation": "off",
     "telemetry.feedback.enabled": false,
     "python.analysis.addHoverSummaries": false,
     "python-envs.defaultEnvManager": "ms-python.python:venv",

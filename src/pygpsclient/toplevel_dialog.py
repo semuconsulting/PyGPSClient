@@ -26,6 +26,7 @@ from tkinter import (
     E,
     Frame,
     Label,
+    TclError,
     Toplevel,
     W,
 )
@@ -37,14 +38,17 @@ from pygpsclient.globals import (
     APPNAME,
     ERRCOL,
     ICON_BLANK,
+    ICON_CANCEL,
     ICON_CONFIRMED,
     ICON_CONN,
     ICON_DISCONN,
     ICON_END,
     ICON_EXIT,
+    ICON_LEFT,
     ICON_LOAD,
     ICON_PENDING,
     ICON_REDRAW,
+    ICON_RIGHT,
     ICON_SEND,
     ICON_START,
     ICON_UNKNOWN,
@@ -89,6 +93,7 @@ class ToplevelDialog(Toplevel):
         self.resizable(self._resizable, self._resizable)
         self.protocol("WM_DELETE_WINDOW", self.on_exit)
         self.img_none = ImageTk.PhotoImage(Image.open(ICON_BLANK))
+        self.img_cancel = ImageTk.PhotoImage(Image.open(ICON_CANCEL))
         self.img_confirmed = ImageTk.PhotoImage(Image.open(ICON_CONFIRMED))
         self.img_conn = ImageTk.PhotoImage(Image.open(ICON_CONN))
         self.img_disconn = ImageTk.PhotoImage(Image.open(ICON_DISCONN))
@@ -101,6 +106,8 @@ class ToplevelDialog(Toplevel):
         self.img_start = ImageTk.PhotoImage(Image.open(ICON_START))
         self.img_warn = ImageTk.PhotoImage(Image.open(ICON_WARNING))
         self.img_unknown = ImageTk.PhotoImage(Image.open(ICON_UNKNOWN))
+        self._img_expandh = ImageTk.PhotoImage(Image.open(ICON_RIGHT))
+        self._img_contracth = ImageTk.PhotoImage(Image.open(ICON_LEFT))
 
         self._con_body(self._resizable)
 
@@ -241,14 +248,17 @@ class ToplevelDialog(Toplevel):
         :param tuple | str message: (message, color))
         """
 
-        if isinstance(message, tuple):
-            message, color = message
-        else:
-            color = INFOCOL
+        try:
+            if isinstance(message, tuple):
+                message, color = message
+            else:
+                color = INFOCOL
 
-        # truncate very long messages
-        if len(message) > 100:
-            message = "..." + message[-100:]
+            # truncate very long messages
+            if len(message) > 100:
+                message = "..." + message[-100:]
 
-        self.status_label.config(text=message, fg=color)
-        self.status_label.update()
+            self.status_label.config(text=message, fg=color)
+            self.status_label.update()
+        except TclError:
+            pass
