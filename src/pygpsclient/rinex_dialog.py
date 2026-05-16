@@ -69,27 +69,33 @@ from pygpsclient.strings import (
     DLGTRINEX,
     LBLRINEXANTENNA,
     LBLRINEXCOMMENT,
+    LBLRINEXCOUNTRY,
+    LBLRINEXDOI,
     LBLRINEXGNSSTYPES,
     LBLRINEXINPUTFILE,
+    LBLRINEXLICENSE,
     LBLRINEXMARKER,
     LBLRINEXOBSERVER,
     LBLRINEXOBSTYPES,
     LBLRINEXOUTPUTS,
     LBLRINEXRCVR,
     LBLRINEXSTARTTIME,
+    LBLRINEXSTATION,
     LBLRINEXTYPES,
     LBLRINEXVER,
+    NA,
     RINEXFILEINVALID,
     RINEXFILEVALID,
     RINEXFILEVALIDATING,
 )
 from pygpsclient.toplevel_dialog import ToplevelDialog
 
-RINEXVERSIONS = [
-    "3.05",
-]  # "4.02"]
+RINEXVERSIONS = ("3.05", "4.02")
 RINEXTYPES = (OBS, NAV, MET)
-RINEXSOURCES = ("R Receiver", "S Stream", "N RTCM3", "U Unknown")
+NMEASOURCE = "NMEA 0183"
+RTCMSOURCE = "RTCM 3"
+UBXSOURCE = "UBX (u-blox)"
+RINEXSOURCES = {UBXSOURCE: "R", NMEASOURCE: "R", RTCMSOURCE: "N"}
 RINEXMARKERTYPES = (
     "GEODETIC",
     "HUMAN",
@@ -134,6 +140,7 @@ class RINEXDialog(ToplevelDialog):
         self._navsource = StringVar()
         self._metsource = StringVar()
         self._rinexver = StringVar()
+        self._countrycode = StringVar()
         self._rinexobs = IntVar()
         self._rinexnav = IntVar()
         self._rinexmet = IntVar()
@@ -161,6 +168,9 @@ class RINEXDialog(ToplevelDialog):
         self._outputlabels = {}
         for rt in (OBS, NAV, MET):
             self._outputlabels[rt] = StringVar()
+        self._doi = StringVar()
+        self._license = StringVar()
+        self._station = StringVar()
         self._settings = {}
         self._status = False
         self._filecount = 0
@@ -238,8 +248,8 @@ class RINEXDialog(ToplevelDialog):
         )
         self._spn_obssource = Spinbox(
             self._frm_basic,
-            values=RINEXSOURCES,
-            width=10,
+            values=list(RINEXSOURCES),
+            width=14,
             wrap=True,
             textvariable=self._obssource,
             state=READONLY,
@@ -254,8 +264,8 @@ class RINEXDialog(ToplevelDialog):
         )
         self._spn_navsource = Spinbox(
             self._frm_basic,
-            values=RINEXSOURCES,
-            width=10,
+            values=list(RINEXSOURCES),
+            width=14,
             wrap=True,
             textvariable=self._navsource,
             state=READONLY,
@@ -270,8 +280,8 @@ class RINEXDialog(ToplevelDialog):
         )
         self._spn_metsource = Spinbox(
             self._frm_basic,
-            values=RINEXSOURCES,
-            width=10,
+            values=list(RINEXSOURCES),
+            width=14,
             wrap=True,
             textvariable=self._metsource,
             state=READONLY,
@@ -407,8 +417,40 @@ class RINEXDialog(ToplevelDialog):
         self._lbl_observer = Label(self._frm_advanced, text=LBLRINEXOBSERVER, anchor=W)
         self._ent_observer = Entry(
             self._frm_advanced,
-            width=60,
+            width=30,
             textvariable=self._observer,
+            state=NORMAL,
+            relief="sunken",
+        )
+        self._lbl_country = Label(self._frm_advanced, text=LBLRINEXCOUNTRY, anchor=W)
+        self._ent_country = Entry(
+            self._frm_advanced,
+            width=5,
+            textvariable=self._countrycode,
+            state=NORMAL,
+            relief="sunken",
+        )
+        self._lbl_doi = Label(self._frm_advanced, text=LBLRINEXDOI, anchor=W)
+        self._ent_doi = Entry(
+            self._frm_advanced,
+            width=60,
+            textvariable=self._doi,
+            state=NORMAL,
+            relief="sunken",
+        )
+        self._lbl_license = Label(self._frm_advanced, text=LBLRINEXLICENSE, anchor=W)
+        self._ent_license = Entry(
+            self._frm_advanced,
+            width=60,
+            textvariable=self._license,
+            state=NORMAL,
+            relief="sunken",
+        )
+        self._lbl_station = Label(self._frm_advanced, text=LBLRINEXSTATION, anchor=W)
+        self._ent_station = Entry(
+            self._frm_advanced,
+            width=60,
+            textvariable=self._station,
             state=NORMAL,
             relief="sunken",
         )
@@ -442,90 +484,107 @@ class RINEXDialog(ToplevelDialog):
         self._frm_body.grid(column=0, row=0, sticky=NSEW)
         self._frm_basic.grid(column=0, row=0, sticky=NSEW)
 
-        self._lbl_infile.grid(column=0, row=0, columnspan=6, padx=3, pady=3, sticky=W)
-        self._btn_toggle.grid(column=6, row=0, padx=3, pady=3, rowspan=2, sticky=E)
-        self._ent_infilepath.grid(
-            column=0, row=1, columnspan=6, padx=3, pady=3, sticky=EW
-        )
-        self._btn_load.grid(column=0, row=2, padx=3, pady=3, sticky=W)
-        self._btn_convert.grid(column=5, row=2, padx=3, pady=3, sticky=E)
-        self._btn_cancel.grid(column=6, row=2, padx=3, pady=3, sticky=E)
+        self._lbl_infile.grid(column=0, row=0, columnspan=6, padx=3, sticky=W)
+        self._btn_toggle.grid(column=6, row=0, padx=3, rowspan=2, sticky=E)
+        self._ent_infilepath.grid(column=0, row=1, columnspan=6, padx=3, sticky=EW)
+        self._btn_load.grid(column=0, row=2, padx=3, sticky=W)
+        self._btn_convert.grid(column=5, row=2, padx=3, sticky=E)
+        self._btn_cancel.grid(column=6, row=2, padx=3, sticky=E)
 
         ttk.Separator(self._frm_basic).grid(
-            column=0, row=3, columnspan=7, padx=3, pady=3, sticky=EW
+            column=0, row=3, columnspan=7, padx=3, sticky=EW
         )
-        self._lbl_rinexver.grid(column=0, row=4, padx=3, columnspan=2, pady=3, sticky=W)
-        self._spn_rinexver.grid(column=2, row=4, padx=3, columnspan=2, pady=3, sticky=W)
-        self._lbl_outtypes.grid(column=0, row=5, columnspan=7, padx=3, pady=3, sticky=W)
-        self._chk_rinexobs.grid(column=0, row=6, columnspan=2, padx=3, pady=3, sticky=W)
-        self._chk_rinexnav.grid(column=2, row=6, columnspan=2, padx=3, pady=3, sticky=W)
-        self._chk_rinexmet.grid(column=4, row=6, columnspan=2, padx=3, pady=3, sticky=W)
-        self._spn_obssource.grid(
-            column=0, row=7, padx=3, columnspan=2, pady=3, sticky=W
-        )
-        self._spn_navsource.grid(
-            column=2, row=7, padx=3, columnspan=2, pady=3, sticky=W
-        )
-        self._spn_metsource.grid(
-            column=4, row=7, padx=3, columnspan=2, pady=3, sticky=W
-        )
-        self._lbl_gnsstypes.grid(
-            column=0, row=8, columnspan=7, padx=3, pady=3, sticky=W
-        )
-        self._chk_rxgps.grid(column=0, row=9, padx=3, pady=3, sticky=W)
-        self._chk_rxsbas.grid(column=1, row=9, padx=3, pady=3, sticky=W)
-        self._chk_rxgalileo.grid(column=2, row=9, padx=3, pady=3, sticky=W)
-        self._chk_rxbeidou.grid(column=3, row=9, padx=3, pady=3, sticky=W)
-        self._chk_rxqzss.grid(column=4, row=9, padx=3, pady=3, sticky=W)
-        self._chk_rxglonass.grid(column=5, row=9, padx=3, pady=3, sticky=W)
-        self._chk_rxnavic.grid(column=6, row=9, padx=3, pady=3, sticky=W)
-        self._lbl_obstypes.grid(
-            column=0, row=10, columnspan=7, padx=3, pady=3, sticky=W
-        )
-        self._ent_obstypes.grid(
-            column=0, row=11, columnspan=7, padx=3, pady=3, sticky=EW
-        )
-        self._pgb_elapsed.grid(
-            column=0, row=12, columnspan=7, padx=3, pady=3, sticky=EW
-        )
+        self._lbl_rinexver.grid(column=0, row=4, padx=3, columnspan=2, sticky=W)
+        self._spn_rinexver.grid(column=2, row=4, padx=3, columnspan=2, sticky=W)
+        self._lbl_country.grid(column=4, row=4, padx=3, sticky=W)
+        self._ent_country.grid(column=5, row=4, padx=3, sticky=W)
+        self._lbl_outtypes.grid(column=0, row=5, columnspan=7, padx=3, sticky=W)
+        self._chk_rinexobs.grid(column=0, row=6, columnspan=2, padx=3, sticky=W)
+        self._chk_rinexnav.grid(column=2, row=6, columnspan=2, padx=3, sticky=W)
+        self._chk_rinexmet.grid(column=4, row=6, columnspan=2, padx=3, sticky=W)
+        self._spn_obssource.grid(column=0, row=7, padx=3, columnspan=2, sticky=W)
+        self._spn_navsource.grid(column=2, row=7, padx=3, columnspan=2, sticky=W)
+        self._spn_metsource.grid(column=4, row=7, padx=3, columnspan=2, sticky=W)
+        self._lbl_gnsstypes.grid(column=0, row=8, columnspan=7, padx=3, sticky=W)
+        self._chk_rxgps.grid(column=0, row=9, padx=3, sticky=W)
+        self._chk_rxsbas.grid(column=1, row=9, padx=3, sticky=W)
+        self._chk_rxgalileo.grid(column=2, row=9, padx=3, sticky=W)
+        self._chk_rxbeidou.grid(column=3, row=9, padx=3, sticky=W)
+        self._chk_rxqzss.grid(column=4, row=9, padx=3, sticky=W)
+        self._chk_rxglonass.grid(column=5, row=9, padx=3, sticky=W)
+        self._chk_rxnavic.grid(column=6, row=9, padx=3, sticky=W)
+        self._lbl_obstypes.grid(column=0, row=10, columnspan=7, padx=3, sticky=W)
+        self._ent_obstypes.grid(column=0, row=11, columnspan=7, padx=3, sticky=EW)
+        self._pgb_elapsed.grid(column=0, row=12, columnspan=7, padx=3, sticky=EW)
         ttk.Separator(self._frm_basic).grid(
-            column=0, row=13, columnspan=7, padx=3, pady=3, sticky=EW
+            column=0, row=13, columnspan=7, padx=3, sticky=EW
         )
         self._lbl_outputs.grid(column=0, row=14, columnspan=7, padx=3, pady=1, sticky=W)
         for i, lbl in enumerate(self._lbl_output_labels.values()):
             lbl.grid(column=0, row=15 + i, columnspan=7, padx=3, pady=1, sticky=EW)
 
-        self._lbl_marker.grid(column=0, row=0, columnspan=3, padx=3, pady=3, sticky=W)
-        self._ent_markernum.grid(column=0, row=1, padx=3, pady=3, sticky=W)
-        self._ent_markername.grid(column=1, row=1, padx=3, pady=3, sticky=W)
-        self._spn_markertype.grid(column=2, row=1, padx=3, pady=3, sticky=W)
-        self._lbl_antenna.grid(column=0, row=2, columnspan=3, padx=3, pady=3, sticky=W)
-        self._ent_antennanum.grid(column=0, row=3, padx=3, pady=3, sticky=W)
-        self._ent_antennatype.grid(column=1, row=3, padx=3, pady=3, sticky=W)
-        self._lbl_receiver.grid(column=0, row=4, columnspan=3, padx=3, pady=3, sticky=W)
-        self._ent_rcvrnum.grid(column=0, row=5, padx=3, pady=3, sticky=W)
-        self._ent_rcvrtype.grid(column=1, row=5, padx=3, pady=3, sticky=W)
-        self._ent_rcvrversion.grid(column=2, row=5, padx=3, pady=3, sticky=W)
-        self._lbl_observer.grid(column=0, row=6, columnspan=3, padx=3, pady=3, sticky=W)
-        self._ent_observer.grid(
-            column=0, row=7, columnspan=3, padx=3, pady=3, sticky=EW
-        )
-        self._lbl_starttime.grid(
-            column=0, row=8, columnspan=2, padx=3, pady=3, sticky=W
-        )
-        self._ent_starttime.grid(column=2, row=8, padx=3, pady=3, sticky=W)
-        self._lbl_comments.grid(column=0, row=9, columnspan=3, padx=3, pady=3, sticky=W)
+        self._lbl_marker.grid(column=0, row=0, columnspan=3, padx=3, sticky=W)
+        self._ent_markernum.grid(column=0, row=1, padx=3, sticky=W)
+        self._ent_markername.grid(column=1, row=1, padx=3, sticky=W)
+        self._spn_markertype.grid(column=2, row=1, padx=3, sticky=W)
+        self._lbl_antenna.grid(column=0, row=2, columnspan=3, padx=3, sticky=W)
+        self._ent_antennanum.grid(column=0, row=3, padx=3, sticky=W)
+        self._ent_antennatype.grid(column=1, row=3, padx=3, sticky=W)
+        self._lbl_receiver.grid(column=0, row=4, columnspan=3, padx=3, sticky=W)
+        self._ent_rcvrnum.grid(column=0, row=5, padx=3, sticky=W)
+        self._ent_rcvrtype.grid(column=1, row=5, padx=3, sticky=W)
+        self._ent_rcvrversion.grid(column=2, row=5, padx=3, sticky=W)
+        self._lbl_observer.grid(column=0, row=6, columnspan=3, padx=3, sticky=W)
+        self._lbl_country.grid(column=2, row=6, columnspan=3, padx=3, sticky=W)
+        self._ent_observer.grid(column=0, row=7, columnspan=2, padx=3, sticky=EW)
+        self._ent_country.grid(column=2, row=7, padx=3, sticky=W)
+        self._lbl_starttime.grid(column=0, row=8, columnspan=2, padx=3, sticky=W)
+        self._ent_starttime.grid(column=2, row=8, padx=3, sticky=W)
+        self._lbl_comments.grid(column=0, row=9, columnspan=3, padx=3, sticky=W)
         for i, ec in enumerate(self._entcomments):
-            ec.grid(column=0, row=10 + i, columnspan=3, padx=3, pady=1, sticky=EW)
+            ec.grid(column=0, row=10 + i, columnspan=3, padx=3, sticky=EW)
 
         for col in range(7):  # make columns equal width
             self._frm_basic.grid_columnconfigure(col, weight=1, uniform="col")
+
+    def _do_layout_rinex4(self, show: bool, startrow: int = 10 + USERCOMMENTS):
+        """
+        Position optional RINEX 4 widgets in frame.
+        """
+
+        if show:
+            self._lbl_doi.grid(
+                column=0, row=startrow + 1, columnspan=3, padx=3, sticky=W
+            )
+            self._ent_doi.grid(
+                column=0, row=startrow + 2, columnspan=3, padx=3, sticky=EW
+            )
+            self._lbl_license.grid(
+                column=0, row=startrow + 3, columnspan=3, padx=3, sticky=W
+            )
+            self._ent_license.grid(
+                column=0, row=startrow + 4, columnspan=3, padx=3, sticky=EW
+            )
+            self._lbl_station.grid(
+                column=0, row=startrow + 5, columnspan=3, padx=3, sticky=W
+            )
+            self._ent_station.grid(
+                column=0, row=startrow + 6, columnspan=3, padx=3, sticky=EW
+            )
+        else:
+            self._lbl_doi.grid_forget()
+            self._ent_doi.grid_forget()
+            self._lbl_license.grid_forget()
+            self._ent_license.grid_forget()
+            self._lbl_station.grid_forget()
+            self._ent_station.grid_forget()
 
     def _attach_events(self):
         """
         Set up event listeners.
         """
 
+        self._rinexver.trace_add(TRACEMODE_WRITE, self._on_update_rinexver)
         for setting in (
             self._rinexobs,
             self._rinexnav,
@@ -542,7 +601,7 @@ class RINEXDialog(ToplevelDialog):
 
     def _reset(self):
         """
-        Reset configuration widgets.
+        Reset dialog widgets.
         """
 
         for chk in (
@@ -558,8 +617,22 @@ class RINEXDialog(ToplevelDialog):
             self._rxnavic,
         ):
             chk.set(1)
+        self._obssource.set(UBXSOURCE)
+        self._navsource.set(UBXSOURCE)
+        self._metsource.set(NMEASOURCE)
+        rcvrname = self.__app.gnss_status.version_data.get("hwversion", NA)
+        self._rcvrname.set("" if rcvrname == NA else rcvrname)
+        rcvrversion = self.__app.gnss_status.version_data.get("fwversion", NA)
+        self._rcvrversion.set("" if rcvrversion == NA else rcvrversion)
         self._starttime.set(datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S%z"))
         self.set_controls(self._status)
+
+    def _on_update_rinexver(self, var, index, mode):  # pylint: disable=unused-argument
+        """
+        Update RINEX version.
+        """
+
+        self._do_layout_rinex4(self._rinexver.get() >= "4.00", 10 + USERCOMMENTS)
 
     def _on_update_config(self, var, index, mode):  # pylint: disable=unused-argument
         """
@@ -755,16 +828,20 @@ class RINEXDialog(ToplevelDialog):
                 self._rcvrversion.get(),
             ]
             observer = self._observer.get()
+            doi = self._doi.get()
+            license = self._license.get()
+            station = self._station.get()
             comments = ["PyGPSClient RINEX Converter Dialog"]
+            country = self._countrycode.get()
             for cvar in self._usercommentvar:
                 cval = cvar.get()
                 if cval != "":
                     comments.append(cval)
             protfilter = NMEA_PROTOCOL | RTCM3_PROTOCOL | UBX_PROTOCOL
             datasource = [
-                self._obssource.get()[0:1],
-                self._navsource.get()[0:1],
-                self._metsource.get()[0:1],
+                RINEXSOURCES[self._obssource.get()],
+                RINEXSOURCES[self._navsource.get()],
+                RINEXSOURCES[self._metsource.get()],
             ]
             rc = RinexConverter(
                 self.__app,
@@ -781,6 +858,10 @@ class RINEXDialog(ToplevelDialog):
                 observer=observer,
                 comments=comments,
                 protfilter=protfilter,
+                doi=doi,
+                license=license,
+                station=station,
+                country=country,
                 **kwargs,
             )
             self._stopevent.clear()

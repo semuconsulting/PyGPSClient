@@ -161,17 +161,18 @@ For more comprehensive installation instructions, please refer to [INSTALLATION.
 24. [Server Config](#socketserver) facility with the ability to act as an NTRIP caster (mountpoint = `pygnssutils`) or generic socket server. To display the Server Configuration Dialog, click
 ![server icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-transmit-10-24.png?raw=true), or go to Menu..Options..Server Configuration Dialog.
 25. [GPX Track Viewer](#gpxviewer) facility with the ability to map GPX files containing track, route or waypoint data and show elevation and speed profiles and other metadata. To display the GPX Track viewer, go to Menu..Options..GPX Track Viewer.
-26. [Import Custom Map](#custommap) facility which allows the user to import geo-referenced images for use as background maps. To display the Import Custom Map dialog, go to Menu..Options..Import Custom Map.
-27. [Configuration Command Recorder](#recorder) facility which allows the user to record, save, load, import (*as a preset*) and replay UBX, NMEA or TTY configuration commands sent to a receiver. To display the Command Record Facility dialog, go to Menu..Options..Configuration Command Recorder.
-28. [SPARTN Client](#spartnconfig) facility with the ability to configure an IP or L-Band SPARTN Correction source and SPARTN-compatible GNSS receiver (e.g. ZED-F9P) and pass the incoming correction data to the GNSS receiver (*requires an Internet connection and access to a SPARTN location service*). To display the SPARTN Client Configuration Dialog, go to Menu..Options..SPARTN Configuration Dialog.
+26. [RINEX Conversion](#rinex) facility which supports conversion of previously-saved binary datalogs to RINEX observation and navigation format. To display the RINEX Conversion dialog, go to Menu..Options..RINEX Conversion.
+27. [Import Custom Map](#custommap) facility which allows the user to import geo-referenced images for use as background maps. To display the Import Custom Map dialog, go to Menu..Options..Import Custom Map.
+28. [Configuration Command Recorder](#recorder) facility which allows the user to record, save, load, import (*as a preset*) and replay UBX, NMEA or TTY configuration commands sent to a receiver. To display the Command Record Facility dialog, go to Menu..Options..Configuration Command Recorder.
+29. [SPARTN Client](#spartnconfig) facility with the ability to configure an IP or L-Band SPARTN Correction source and SPARTN-compatible GNSS receiver (e.g. ZED-F9P) and pass the incoming correction data to the GNSS receiver (*requires an Internet connection and access to a SPARTN location service*). To display the SPARTN Client Configuration Dialog, go to Menu..Options..SPARTN Configuration Dialog.
 
 #### <a name="refreshrate">GUI refresh rate setting</a>
 
-29. PyGPSClient processes all incoming GNSS data in 'real time' but, by default, the GUI is only refreshed every 0.5 seconds. The refresh rate can be manually configured via the `guiupdateinterval_f` setting in the json configuration file. **NB:** PyGPSClient may become unresponsive on slower platforms (e.g. Raspberry Pi) at high message rates if the GUI update interval is less than 0.1 seconds, though lower intervals (<= 0.1 secs) can be accommodated on more powerful platforms.
+30. PyGPSClient processes all incoming GNSS data in 'real time' but, by default, the GUI is only refreshed every 0.5 seconds. The refresh rate can be manually configured via the `guiupdateinterval_f` setting in the json configuration file. **NB:** PyGPSClient may become unresponsive on slower platforms (e.g. Raspberry Pi) at high message rates if the GUI update interval is less than 0.1 seconds, though lower intervals (<= 0.1 secs) can be accommodated on more powerful platforms.
 
 #### <a name="transient">Toplevel ('pop-up') dialog setting</a>
 
-30. The behaviour of Toplevel ('pop-up') dialogs will depend on the screen resolution and 'transient' setting. If the width or height of a Toplevel dialog exceeds the screen resolution, the dialog will be displayed in a scrollable, resizeable window. Otherwise, the dialog is displayed as a fixed, non-resizeable panel.
+31. The behaviour of Toplevel ('pop-up') dialogs will depend on the screen resolution and 'transient' setting. If the width or height of a Toplevel dialog exceeds the screen resolution, the dialog will be displayed in a scrollable, resizeable window. Otherwise, the dialog is displayed as a fixed, non-resizeable panel.
     - A boolean configuration setting `transient_dialog_b` governs whether Toplevel dialogs are 'transient' (i.e. always on top of main application dialog) or not. Changing this setting to `0` allows Toplevel dialogs to be minimised independently of the main application window, but be mindful that some dialogs may end up hidden behind others e.g. "Open file/folder" dialogs. **If a file open button appears unresponsive, check that the "Open file/folder" panel isn't already open but obscured**. 
     - If you're accessing the desktop via a VNC session (e.g. to a headless Raspberry Pi) it is recommended to keep the setting at the default `1`, as VNC may not recognise keystrokes on overlaid non-transient windows.
    
@@ -421,7 +422,7 @@ Click ![refresh icon](https://github.com/semuconsulting/PyGPSClient/blob/master/
 ---
 ## <a name="rinex">RINEX Conversion</a>
 
-**NB: RINEX conversion is currently an experimental facility based on the [pygnssutils pyrinexconv CLI utility](https://github.com/semuconsulting/pygnssutils#rinexconvert). See [pygnssutils release notes](https://github.com/semuconsulting/pygnssutils/releases/tag/v1.2.0) for details of current functionality and limitations**. The intention is to enhance functionality in future releases.
+**NB: RINEX conversion is currently an experimental facility based on the [pygnssutils pyrinexconv CLI utility](https://github.com/semuconsulting/pygnssutils#rinexconvert). See [pygnssutils release notes](https://github.com/semuconsulting/pygnssutils/releases/tag/v1.2.1) for details of current functionality and limitations**. The intention is to enhance functionality in future releases.
 
 ![rinex screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/rinex_dialog.png?raw=true)
 
@@ -429,18 +430,18 @@ The RINEX Conversion Dialog supports the conversion of raw observation, navigati
 
 **Pre-Requisites:**
 
-1. A previously-saved binary datalog containing raw observation, navigation and/or meteorology data e.g. UBX RXM-RAWX and RXM-SFRBX¹ messages or RTCM3 ephemerides (1019, 1020, 1042-1046) messages. A suitable datalog can be recorded using PyGPSClient's [binary datalogging](#datalog) facility. **NB**: The file should contain at least 15-30 minutes of continuous data.
+1. A previously-saved binary datalog containing raw observation, navigation and/or meteorology data e.g. UBX RXM-RAWX and RXM-SFRBX¹ messages or RTCM3 ephemerides (1019, 1020, 1041-1046) messages. A suitable datalog can be recorded using PyGPSClient's [binary datalogging](#datalog) facility. **NB**: The file should contain at least 15-30 minutes of continuous data.
 
-   ¹ Only GPS LNAV data is supported in this experimental release, though the underlying pygnssutils classes are readily extensible.
+   ¹ Only GPS LNAV & CNAV data is supported in this experimental release, though the underlying pygnssutils classes are readily extensible.
 
 **Instructions:**
 
 1. Click the ![folder icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-folder-18-24.png?raw=true) to select the required binary datalog file.
-2. Select the required RINEX protocol version (*only 3.05 supported in this experimental release*).
+2. Select the required RINEX protocol version (3.05 or 4.02).
 3. Select the required RINEX output file types - O observation, N navigation or M meteorology.
-4. Select the datasource for each RINEX output type e.g. R Receiver, N RTCM3 (NTRIP), etc.
+4. Select the datasource for each RINEX output type e.g. UBX (u-blox), RTCM3, NMEA 0183.
 5. (Optional) Select the GNSS to be included e.g. GPS, GAL, BDS, etc.
-6. (Optional) Select the RINEX observation (frequency / signal) codes to be included e.g. 1C, 2L, etc.
+6. (Optional) Select the RINEX observation (frequency / signal) codes to be included e.g. 1C, 2L, 5I, etc.
 7. (Optional) Expand the advanced panel ![start icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-caret-right-filled-32.png?raw=true) to enter details of the marker, antenna, receiver, observer and any user-defined comments.
 8. Click ![start icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-media-control-48-24.png?raw=true) to process the file. A progress bar will be displayed and, when complete, the output file names (*.rnx) and record counts will be displayed at the foot of the dialog.
 9. Processing can be cancelled by clicking ![cancel icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/iconmonstr-x-mark-9-24.png?raw=true).
