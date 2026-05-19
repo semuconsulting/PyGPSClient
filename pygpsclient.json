@@ -15,6 +15,7 @@
     "IMU Monitor": false,
     "checkforupdate_b": 0,
     "transient_dialog_b": 1,
+    "resize_dialog_b": 0,
     "guiupdateinterval_f": 0.2,
     "mapupdateinterval_n": 60,
     "defaultport_s": "USB",

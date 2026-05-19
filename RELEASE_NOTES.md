@@ -1,5 +1,9 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.6.9
+
+1. Add manually-editable `resizeable_dialog_b` configuration setting as a workaround for screen scaling issues on some platforms (e.g. Ubuntu Wayland). Fixes #250.
+
 ### RELEASE 1.6.8
 
 1. Updates to experimental RINEX conversion dialog for pygnssutils >=1.2.1. Provisional support for RINEX 4.02 and GPS CNAV added.

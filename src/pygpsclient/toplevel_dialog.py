@@ -78,9 +78,13 @@ class ToplevelDialog(Toplevel):
         self._dlgname = dlgname
         self.logger = logging.getLogger(f"{APPNAME}.{dlgname}")
         self.width, self.height = 300, 300  # initial, updated in finalise()
-        self._resizable = kwargs.pop(
-            "resizable", self.__app.dialog_state.state[self._dlgname].get(RESIZE, False)
-        )
+        if self.__app.configuration.get("resizeable_dialog_b") == 1:
+            self._resizable = True
+        else:
+            self._resizable = kwargs.pop(
+                "resizable",
+                self.__app.dialog_state.state[self._dlgname].get(RESIZE, False),
+            )
         transient = kwargs.pop(
             "transient", self.__app.configuration.get("transient_dialog_b")
         )
