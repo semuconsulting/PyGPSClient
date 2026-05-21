@@ -21,7 +21,7 @@ from time import time
 from pyubx2 import UBXMessage, itow2utc
 
 from pygpsclient.globals import BSR, GLONASS_NMEA, UTF8
-from pygpsclient.helpers import corrage2int, fix2desc, ned2vector, svid2gnssid
+from pygpsclient.helpers import corrage2int, fix2desc, hdg2yaw, ned2vector, svid2gnssid
 from pygpsclient.strings import DLGTSERVER, DLGTSPARTN, DLGTUBX, NA
 from pygpsclient.widget_state import VISIBLE, WDGSIGNALS, WDGSPECTRUM, WDGSYSMON
 
@@ -288,6 +288,7 @@ class UBXHandler:
         self.__app.gnss_status.sip = data.numSV
         self.__app.gnss_status.speed = data.gSpeed / 1000  # m/s
         self.__app.gnss_status.track = data.headMot
+        self.__app.gnss_status.headvehvalid = data.headVehValid
         self.__app.gnss_status.hae = data.height / 1000  # meters
         self.__app.gnss_status.fix = fix2desc("NAV-PVT", data.fixType)
         if data.carrSoln > 0:
@@ -299,6 +300,27 @@ class UBXHandler:
             self.__app.gnss_status.diff_corr = data.diffSoln
         if data.lastCorrectionAge != 0:
             self.__app.gnss_status.diff_age = corrage2int(data.lastCorrectionAge)
+
+        ims = self.__app.gnss_status.imu_data
+        if data.headVehValid == 1:
+            # self.__app.gnss_status.track = data.headVeh
+            ims["source"] = data.identity
+            ims["roll"] = 0
+            ims["pitch"] = 0
+            ims["yaw"] = round(hdg2yaw(data.headVeh), 4)
+            ims["status"] = "HEADVEHVALID"
+            self.__app.gnss_status.imu_data = ims
+        else:
+            if (
+                ims.get("source", "") == "NAV-PVT"
+                and ims.get("status", "") == "HEADVEHVALID"
+            ):
+                ims["source"] = NA
+                ims["roll"] = 0
+                ims["pitch"] = 0
+                ims["yaw"] = 0
+                ims["status"] = ""
+                self.__app.gnss_status.imu_data = ims
 
     def _process_NAV_PVAT(self, data: UBXMessage):
         """
@@ -316,9 +338,9 @@ class UBXHandler:
         self.__app.gnss_status.hae = data.height / 1000  # meters
         ims = self.__app.gnss_status.imu_data
         ims["source"] = data.identity
-        ims["roll"] = data.vehRoll
-        ims["pitch"] = data.vehPitch
-        ims["yaw"] = data.vehHeading
+        ims["roll"] = round(data.vehRoll, 4)
+        ims["pitch"] = round(data.vehPitch, 4)
+        ims["yaw"] = round(hdg2yaw(data.vehHeading), 4)
         ims["status"] = (
             (data.vehRollValid << 3) + (data.vehPitchValid << 2) + data.vehHeadingValid
         )
@@ -632,9 +654,9 @@ class UBXHandler:
 
         ims = self.__app.gnss_status.imu_data
         ims["source"] = data.identity
-        ims["roll"] = data.roll
-        ims["pitch"] = data.pitch
-        ims["yaw"] = data.heading
+        ims["roll"] = round(data.roll, 4)
+        ims["pitch"] = round(data.pitch, 4)
+        ims["yaw"] = round(hdg2yaw(data.heading), 4)
         ims["status"] = ""
 
     def _process_HNR_ATT(self, data: UBXMessage):
@@ -646,7 +668,7 @@ class UBXHandler:
 
         ims = self.__app.gnss_status.imu_data
         ims["source"] = data.identity
-        ims["roll"] = data.roll
-        ims["pitch"] = data.pitch
-        ims["yaw"] = data.heading
+        ims["roll"] = round(data.roll, 4)
+        ims["pitch"] = round(data.pitch, 4)
+        ims["yaw"] = round(hdg2yaw(data.heading), 4)
         ims["status"] = ""

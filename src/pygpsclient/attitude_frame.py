@@ -1,10 +1,10 @@
 """
-imu_frame.py
+attitude_frame.py
 
-IMU (Inertial Management Unit) frame class for PyGPSClient Application.
+Attitude (3D orientation) frame class for PyGPSClient Application.
 
 This show orientiation (Pitch, Roll, Yaw) and calibration status of
-any UBX or NMEA IMU source.
+a variety of sources.
 
 Created 23 March 2023
 
@@ -43,7 +43,7 @@ from pygpsclient.globals import (
     WIDGETU2,
 )
 from pygpsclient.helpers import rgb2str, scale_font
-from pygpsclient.strings import DLGWAITIMU
+from pygpsclient.strings import DLGWAITATTITUDE
 
 OFFSETX = 5
 OFFSETY = 10
@@ -68,9 +68,9 @@ RANGES = (
 OPTIONS = ("N/A",)
 
 
-class IMUFrame(Frame):
+class AttitudeFrame(Frame):
     """
-    IMU (Inertial Management Unit) frame class.
+    Attitude (3D orientation) frame class.
     """
 
     def __init__(self, app: Frame, parent: Frame, *args, **kwargs):
@@ -403,7 +403,7 @@ class IMUFrame(Frame):
         """
 
         if self._waiting:
-            self._canvas.create_alert(DLGWAITIMU, tags=TAG_WAIT)
+            self._canvas.create_alert(DLGWAITATTITUDE, tags=TAG_WAIT)
 
     def get_size(self) -> tuple:
         """

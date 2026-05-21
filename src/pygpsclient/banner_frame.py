@@ -453,6 +453,8 @@ class BannerFrame(Frame):
         else:
             self._lbl_spd.config(text=NA)
         track = self.__app.gnss_status.track
+        # ltrk = "  hdg:" if self.__app.gnss_status.headvehvalid else "  track:"
+        # self._lbl_ltrk.config(text=ltrk)
         if isinstance(track, (int, float)):
             self._lbl_trk.config(text=f"{track:05.1f} °")
         else:

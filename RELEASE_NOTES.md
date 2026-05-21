@@ -3,6 +3,7 @@
 ### RELEASE 1.6.9
 
 1. Add manually-editable `resizeable_dialog_b` configuration setting as a workaround for screen scaling issues on some platforms (e.g. Ubuntu Wayland). Fixes #250.
+1. IMU Monitor renamed to Attitude Monitor, and various internal enhancements including explicit display of NAV-PVT `headVehValid` status.
 
 ### RELEASE 1.6.8
 
