@@ -24,7 +24,7 @@ from pygpsclient.globals import ASCII, BSR
 from pygpsclient.helpers import fix2desc
 from pygpsclient.strings import NA
 
-DNUL = -2 * (10**10)
+DNUL = -20000000000  # -2 * (10**10)
 DNUS = 65535
 
 

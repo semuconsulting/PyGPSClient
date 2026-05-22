@@ -22,10 +22,10 @@ Created on 30 Apr 2023
 :license: BSD 3-Clause
 """
 
+from pygpsclient.attitude_frame import AttitudeFrame
 from pygpsclient.chart_frame import ChartviewFrame
 from pygpsclient.console_frame import ConsoleFrame
 from pygpsclient.globals import CLASS, FRAME
-from pygpsclient.imu_frame import IMUFrame
 from pygpsclient.levelsview_frame import LevelsviewFrame
 from pygpsclient.map_frame import MapviewFrame
 from pygpsclient.rover_frame import RoverFrame
@@ -55,7 +55,7 @@ WDGSCATTER = "Scatter Plot"
 WDGSPECTRUM = "Spectrum"
 WDGSYSMON = "System Monitor"
 WDGCHART = "Chart Plot"
-WDGIMUMON = "IMU Monitor"
+WDGATTMON = "Attitude Monitor"
 WDGSIGNALS = "Signals"
 
 
@@ -130,9 +130,9 @@ class WidgetState:
                 FRAME: "frm_sysmon",
                 VISIBLE: False,
             },
-            WDGIMUMON: {
-                CLASS: IMUFrame,
-                FRAME: "frm_imumon",
+            WDGATTMON: {
+                CLASS: AttitudeFrame,
+                FRAME: "frm_attitudemon",
                 VISIBLE: False,
             },
             # add any new widgets here

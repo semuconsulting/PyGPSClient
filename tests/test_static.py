@@ -47,6 +47,7 @@ from pygpsclient.helpers import (
     get_point_at_vector,
     get_track_bounds,
     haversine,
+    hdg2yaw,
     hsv2rgb,
     isot2dt,
     kmph2ms,
@@ -141,7 +142,7 @@ class StaticTest(unittest.TestCase):
         self.assertEqual(cfg.get("lbandclientdrat_n"), 2400)
         self.assertEqual(cfg.get("userport_s"), "")
         self.assertEqual(cfg.get("spartnport_s"), "")
-        self.assertEqual(len(cfg.settings), 156)
+        self.assertEqual(len(cfg.settings), 157)
         kwargs = {"userport": "/dev/ttyACM0", "spartnport": "/dev/ttyACM1"}
         cfg.loadcli(**kwargs)
         self.assertEqual(cfg.get("userport_s"), "/dev/ttyACM0")
@@ -951,6 +952,16 @@ class StaticTest(unittest.TestCase):
         for geom in GEOMS:
             self.assertEqual(valid_geom(geom[0]), geom[1])
 
+    def testhdg2yaw(self):
+        self.assertEqual(hdg2yaw(45.0),45.0)
+        self.assertEqual(hdg2yaw(170.0),170.0)
+        self.assertEqual(hdg2yaw(270.0),-90.0)
+        self.assertEqual(hdg2yaw(300.0),-60.0)
+        self.assertEqual(hdg2yaw(0),0)
+        self.assertEqual(hdg2yaw(180.0),180.0)
+        self.assertEqual(hdg2yaw(181.0),-179.0)
+        self.assertEqual(hdg2yaw(375.0),15.0)
+        self.assertEqual(hdg2yaw(715.0),-5.0)
 
 if __name__ == "__main__":
     # import sys;sys.argv = ['', 'Test.testName']

@@ -20,6 +20,14 @@ pygpsclient.app module
    :undoc-members:
    :show-inheritance:
 
+pygpsclient.attitude\_frame module
+----------------------------------
+
+.. automodule:: pygpsclient.attitude_frame
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pygpsclient.banner\_frame module
 --------------------------------
 
@@ -144,14 +152,6 @@ pygpsclient.importmap\_dialog module
 ------------------------------------
 
 .. automodule:: pygpsclient.importmap_dialog
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-pygpsclient.imu\_frame module
------------------------------
-
-.. automodule:: pygpsclient.imu_frame
    :members:
    :undoc-members:
    :show-inheritance:

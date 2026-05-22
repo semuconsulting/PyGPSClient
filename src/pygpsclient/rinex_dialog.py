@@ -10,6 +10,8 @@ Created on 2 Apr 2026
 :license: BSD 3-Clause
 """
 
+# pylint: disable=use-implicit-booleaness-not-comparison
+
 from datetime import datetime, timezone
 from logging import getLogger
 from pathlib import Path
@@ -829,7 +831,7 @@ class RINEXDialog(ToplevelDialog):
             ]
             observer = self._observer.get()
             doi = self._doi.get()
-            license = self._license.get()
+            licen = self._license.get()
             station = self._station.get()
             comments = ["PyGPSClient RINEX Converter Dialog"]
             country = self._countrycode.get()
@@ -859,7 +861,7 @@ class RINEXDialog(ToplevelDialog):
                 comments=comments,
                 protfilter=protfilter,
                 doi=doi,
-                license=license,
+                license=licen,
                 station=station,
                 country=country,
                 **kwargs,

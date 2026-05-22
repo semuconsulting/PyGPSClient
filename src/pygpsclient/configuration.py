@@ -109,6 +109,7 @@ class Configuration:
             **self.widget_config,
             "checkforupdate_b": 1,
             "transient_dialog_b": 1,  # whether pop-up dialogs are on top of main app window
+            "resizeable_dialog_b": 0,  # whether pop-up dialogs are all resizeable
             "guiupdateinterval_f": GUI_UPDATE_INTERVAL,  # GUI widget update interval in seconds
             "mapupdateinterval_n": MAP_UPDATE_INTERVAL,
             "defaultport_s": RCVR_CONNECTION,

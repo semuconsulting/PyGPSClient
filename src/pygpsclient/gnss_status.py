@@ -41,7 +41,8 @@ class GNSSStatus:
         self.alt = 0.0  # height above sea level m
         self.hae = 0.0  # height above ellipsoid m
         self.speed = 0.0  # speed m/s
-        self.track = 0.0  # track degrees
+        self.track = 0.0  # track (heading of motion or course over ground) degrees
+        self.headvehvalid = 0  # 0 = heading of motion, 1 = static heading (yaw)
         self.fix = "NO FIX"  # fix type e.g. "3D"
         self.siv = 0  # satellites in view
         self.sip = 0  # satellites in position solution

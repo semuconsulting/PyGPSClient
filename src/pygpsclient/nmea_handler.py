@@ -25,7 +25,7 @@ from pyubx2 import itow2utc
 
 from pygpsclient.dialog_state import DLGTSERVER
 from pygpsclient.globals import SAT_EXPIRY, TKGN
-from pygpsclient.helpers import fix2desc, kmph2ms, knots2ms, svid2gnssid
+from pygpsclient.helpers import fix2desc, hdg2yaw, kmph2ms, knots2ms, svid2gnssid
 from pygpsclient.strings import DLGTNMEA, NA
 
 
@@ -152,6 +152,7 @@ class NMEAHandler:
             self.__app.gnss_status.speed = knots2ms(data.spd)  # convert to m/s
         if data.cog != "":
             self.__app.gnss_status.track = data.cog
+        self.__app.gnss_status.headvehvalid = 0
 
     def _process_GGA(self, data: NMEAMessage):
         """
@@ -289,6 +290,7 @@ class NMEAHandler:
         if data.sogk is not None:
             self.__app.gnss_status.speed = kmph2ms(data.sogk)  # convert to m/s
         self.__app.gnss_status.fix = fix2desc("VTG", data.posMode)
+        self.__app.gnss_status.headvehvalid = 0
         # only works for NMEA 4.10 and later...
         # self.__app.gnss_status.diff_corr = 1 if data.posMode == "D" else 0
 
@@ -518,7 +520,7 @@ class NMEAHandler:
             ims["pitch"] = round(getattr(data, "pitch", 0), 4)
             ims["yaw"] = round(getattr(data, "yaw", 0), 4)
             if hasattr(data, "heading"):  # range 0 - 360
-                ims["yaw"] = round(data.heading - 180, 4)
+                ims["yaw"] = round(hdg2yaw(data.heading), 4)
             ims["status"] = str(getattr(data, "quality", ""))
         except (TypeError, KeyError, AttributeError):
             pass

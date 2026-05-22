@@ -684,6 +684,21 @@ def get_units(units: str) -> tuple:
     return dst_u, dst_c, ele_u, ele_c, spd_u, spd_c
 
 
+def hdg2yaw(heading: float) -> float:
+    """
+    Convert heading (0 - 360) to yaw (-180 - 180)
+
+    :param float heading: heading in range 0 - 360
+    :return: yaw in range -180 to 180
+    :rtype: float
+    """
+
+    heading %= 360
+    if heading > 180:
+        heading -= 360
+    return heading
+
+
 def hsv2rgb(h: float, s: float, v: float) -> str:
     """
     Convert HSV values (in range 0-1) to RGB color string.
