@@ -303,7 +303,6 @@ class UBXHandler:
 
         ims = self.__app.gnss_status.imu_data
         if data.headVehValid == 1:
-            # self.__app.gnss_status.track = data.headVeh
             ims["source"] = data.identity
             ims["roll"] = 0
             ims["pitch"] = 0
