@@ -1483,6 +1483,23 @@ def valid_geom(geom: str) -> bool:
     return regexgeom.match(geom) is not None
 
 
+def valid_hex(val: str, *args) -> bool:
+    """
+    Validate hex string in Entry field.
+
+    :param str val: hexadecimal value
+    :return: Valid/Invalid
+    :rtype: bool
+    """
+
+    try:
+        atts = args[0]
+        int.to_bytes(int(val, 16), atts, "little")
+        return True
+    except (TypeError, ValueError, OverflowError):
+        return False
+
+
 def xy2ll(width: int, height: int, bounds: Area, xy: tuple) -> Point | NoneType:
     """
     Convert canvas x/y to lat/lon.

@@ -77,6 +77,7 @@ from pygpsclient.helpers import (
     unused_sats,
     val2sphp,
     valid_geom,
+    valid_hex,
     xy2ll,
 )
 from pygpsclient.mapquest_handler import (
@@ -962,6 +963,15 @@ class StaticTest(unittest.TestCase):
         self.assertEqual(hdg2yaw(181.0),-179.0)
         self.assertEqual(hdg2yaw(375.0),15.0)
         self.assertEqual(hdg2yaw(715.0),-5.0)
+
+    def testvalidhex(self):
+
+        self.assertTrue(valid_hex("0x11223344", 4))
+        self.assertFalse(valid_hex("0x112233zz", 4))
+        self.assertFalse(valid_hex("0x1122334455667788", 4))
+        self.assertTrue(valid_hex("0x1122334455667788", 8))
+        self.assertFalse(valid_hex("asdfttwergazz", 4))
+        self.assertFalse(valid_hex("", 4))
 
 if __name__ == "__main__":
     # import sys;sys.argv = ['', 'Test.testName']
