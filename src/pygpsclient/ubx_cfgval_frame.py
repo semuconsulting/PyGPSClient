@@ -41,6 +41,7 @@ from pyubx2.ubxhelpers import attsiz, atttyp, cfgname2key
 
 from pygpsclient.globals import (
     ERRCOL,
+    ICON_BLANK,
     ICON_CONFIRMED,
     ICON_PENDING,
     ICON_SEND,
@@ -50,10 +51,12 @@ from pygpsclient.globals import (
     TRACEMODE_WRITE,
     UBX_CFGVAL,
     VALBOOL,
+    VALCUSTOM,
     VALFLOAT,
     VALINT,
     VALNONBLANK,
 )
+from pygpsclient.helpers import valid_hex
 
 VALSET = 0
 VALDEL = 1
@@ -94,6 +97,7 @@ class UBX_CFGVAL_Frame(Frame):
         self._img_pending = ImageTk.PhotoImage(Image.open(ICON_PENDING))
         self._img_confirmed = ImageTk.PhotoImage(Image.open(ICON_CONFIRMED))
         self._img_warn = ImageTk.PhotoImage(Image.open(ICON_WARNING))
+        self._img_blank = ImageTk.PhotoImage(Image.open(ICON_BLANK))
         self._cfgval_cat = None
         self._cfgval_keyname = None
         self._cfgval_keyid = None
@@ -257,6 +261,7 @@ class UBX_CFGVAL_Frame(Frame):
         for i, cat in enumerate(cdb_cats):
             self._lbx_cat.insert(i, cat)
         self._cfgmode.set(2)
+        self._lbl_send_command.config(image=self._img_blank)
 
     def _on_select_mode(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -267,6 +272,7 @@ class UBX_CFGVAL_Frame(Frame):
             self._ent_val.config(state=NORMAL)
         else:
             self._ent_val.config(state=READONLY)
+        self._lbl_send_command.config(image=self._img_blank)
 
     def _on_select_cat(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -285,6 +291,7 @@ class UBX_CFGVAL_Frame(Frame):
                 self._lbx_parm.insert(idx, keyname)
                 idx += 1
         self._cfgval.set("")
+        self._lbl_send_command.config(image=self._img_blank)
 
     def _on_select_parm(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -299,6 +306,7 @@ class UBX_CFGVAL_Frame(Frame):
             self._cfgkeyid.set(hex(keyid))
             self._cfgatt.set(att)
             self._cfgval.set("")
+            self._lbl_send_command.config(image=self._img_blank)
         except TclError:
             pass
 
@@ -307,6 +315,7 @@ class UBX_CFGVAL_Frame(Frame):
         Config interface send button has been clicked.
         """
 
+        self._lbl_send_command.config(image=self._img_blank)
         if self._cfgval_keyname is not None:
             if self._cfgmode.get() == VALSET:
                 self._do_valset()
@@ -341,12 +350,15 @@ class UBX_CFGVAL_Frame(Frame):
             layers = 1
         try:
             if att in ("C", "X"):  # byte or char
-                self._ent_val.validate(VALNONBLANK)
-                if len(val) == atts * 2:  # 2 hex chars per byte
-                    val = bytearray.fromhex(val)
-                else:
-                    valid = False
-
+                valid = self._ent_val.validate(
+                    VALCUSTOM,
+                    func=valid_hex,
+                    args=[
+                        atts,
+                    ],
+                )
+                if valid:
+                    val = int.to_bytes(int(val, 16), atts, "little")
             elif att in ("E", "U"):  # unsigned integer
                 self._ent_val.validate(VALINT)
                 val = int(val)
@@ -451,7 +463,9 @@ class UBX_CFGVAL_Frame(Frame):
             val = getattr(msg, self._cfgval_keyname, None)
             if val is not None:
                 if isinstance(val, bytes):
-                    val = val.hex()
+                    atts = attsiz(self._cfgatt.get())
+                    vali = int.from_bytes(val, "little")
+                    val = f"0x{vali:0{atts*2}x}"
                 self._cfgval.set(val)
             self.__container.status_label = ("CFG-VALGET GET message received", OKCOL)
 

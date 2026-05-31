@@ -1,5 +1,13 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.6.10
+
+1. Minor enhancements to UBX Config Dialog confirmation signalling. 
+1. Amend CFG-VALSET/GET/DEL Configuration Interface panel; X-type attributes (`X004`, `X008`, etc.) are now entered in 
+conventional hexadecimal integer notation rather than little-endian hex strings, consistent with values illustrated in the Interface
+Specifications e.g. value for CFG_SBAS_PRNSCANMASK (`X008`) would now be entered `0x000000000003ab88` rather than `88ab030000000000`.
+1. Make 'Check for update on startup' 'opt-in' rather than 'opt-out'. Setting available via About dialog.
+
 ### RELEASE 1.6.9
 
 1. Add manually-editable `resizeable_dialog_b` configuration setting as a workaround for screen scaling issues on some platforms (e.g. Ubuntu Wayland). Fixes #250.
