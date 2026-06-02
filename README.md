@@ -26,7 +26,7 @@ PyGPSClient is a free, open-source, multi-platform graphical GNSS/GPS testing, d
 * Provides [NTRIP client](#ntripconfig) facilities for both RTCM3 and SPARTN NTRIP services.
 * Can serve as an [NTRIP base station](#basestation) with an RTK-compatible receiver (e.g. u-blox ZED-F9P/ZED-X20P, Quectel LG/LC Series, Septentrio Mosaic Series or Unicore UM9** Series).
 * Supports GNSS (*and related*) device configuration via proprietary UBX, NMEA and ASCII TTY protocols, including most u-blox, Quectel, Septentrio, Unicore and Feyman GNSS devices.
-* **New in v1.6.7** - Experimental support for RINEX conversion of raw observation, navigation (CEI) and meteorology data.
+* **New in v1.6.7** - Experimental support for RINEX conversion of raw observation, navigation and meteorology data.
 * Can be installed using the standard `pip` Python package manager - see [installation instructions](#installation) below.
 
 This is an independent project and we have no affiliation whatsoever with any GNSS manufacturer or distributor.
@@ -93,6 +93,8 @@ source pygpsclient/bin/activate # (or .\pygpsclient\Scripts\activate on Windows)
 python3 -m pip install --upgrade pygpsclient
 deactivate
 ```
+
+Quick [installation shell scripts](https://github.com/semuconsulting/PyGPSClient/blob/master/INSTALLATION.md#script) are available for Linux and MacOS platforms.
 
 ## The Longer Version
 
@@ -228,7 +230,7 @@ The UBX Configuration Dialog currently provides the following UBX configuration 
 
 ### <a name="rtklib">Configuring u-blox receivers for Post-Processing Kinematics (PPK)</a>
 
-PyGPSClient can be used to enable and log the necessary raw observation and navigation (CEI) data for input into either PYGPSClient's experimental [RINEX Conversion dialog](#rinex) or [RTKLIB's RINEX conversion utility RTKCONV](https://github.com/tomojitakasu/RTKLIB_bin):
+PyGPSClient can be used to enable and log the necessary raw observation and navigation data for input into either PYGPSClient's experimental [RINEX Conversion dialog](#rinex) or [RTKLIB's RINEX conversion utility RTKCONV](https://github.com/tomojitakasu/RTKLIB_bin):
 
 1. Set the output baud rate to at least 115200 to ensure there is sufficient serial port bandwidth.
 2. Enable UBX RXM-RAWX and RXM-SFRBX message types at a rate of 1 Hz (*a preset CFG-VALSET command is provided for this purpose*). Optionally, disable all other message types and protocols.
@@ -236,9 +238,6 @@ PyGPSClient can be used to enable and log the necessary raw observation and navi
 4. **Record at least 15 to 30 minutes of data** (approximately 3.4 MB).
 5. Open PyGPSClient's [RINEX Conversion dialog](#rinex) and select the binary log file from (4) above, or...
 6. Open RTKLIB's RTKCONV conversion utility and select the binary log file from (4) above. Click 'Options...' and select the required satellite, frequency and observation types, then click OK. Finally, click 'Convert'.
-
-   ![rtkconv screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/rtkconv_screenshot.png?raw=true)
-
 7. The various RINEX output files (*.rnx or *.obs, *.nav, etc.) can then be used as inputs to RTKLIB's RTKPOST PPK utility.
 
 ---
@@ -423,17 +422,15 @@ Click ![refresh icon](https://github.com/semuconsulting/PyGPSClient/blob/master/
 ---
 ## <a name="rinex">RINEX Conversion</a>
 
-**NB: RINEX conversion is currently an experimental facility based on the [pygnssutils pyrinexconv CLI utility](https://github.com/semuconsulting/pygnssutils#rinexconvert). See [pygnssutils release notes](https://github.com/semuconsulting/pygnssutils/releases/tag/v1.2.1) for details of current functionality and limitations**. The intention is to enhance functionality in future releases.
-
 ![rinex screenshot](https://github.com/semuconsulting/PyGPSClient/blob/master/images/rinex_dialog.png?raw=true)
 
-The RINEX Conversion Dialog supports the conversion of raw observation, navigation (CEI - clock, ephemerides, integrity) and meteorology data from a variety of sources.
+The RINEX Conversion Dialog supports the conversion of raw observation, navigation and meteorology data from a variety of sources.
 
 **Pre-Requisites:**
 
-1. A previously-saved binary datalog containing raw observation, navigation and/or meteorology data e.g. UBX RXM-RAWX and RXM-SFRBX¹ messages or RTCM3 ephemerides (1019, 1020, 1041-1046) messages. A suitable datalog can be recorded using PyGPSClient's [binary datalogging](#datalog) facility. **NB**: The file should contain at least 15-30 minutes of continuous data.
+1. A previously-saved binary datalog containing raw observation (UBX RXM-RAWX), navigation (UBX RXM-SFRBX¹) and/or meteorology (NMEA) data or RTCM3 ephemerides (1019, 1020, 1041-1046) messages. A suitable datalog can be recorded using PyGPSClient's [binary datalogging](#datalog) facility. **NB**: The file should contain at least 15-30 minutes of continuous data.
 
-   ¹ Only GPS LNAV & CNAV data is supported in this experimental release, though the underlying pygnssutils classes are readily extensible.
+   ¹ Currently only GPS LNAV/CNAV, Galileo FNAV/CNAV and Beidou D1/D2 data is supported by the RINEX NAV conversion utility. This will be enhanced in future releases.
 
 **Instructions:**
 
