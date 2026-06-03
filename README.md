@@ -26,7 +26,7 @@ PyGPSClient is a free, open-source, multi-platform graphical GNSS/GPS testing, d
 * Provides [NTRIP client](#ntripconfig) facilities for both RTCM3 and SPARTN NTRIP services.
 * Can serve as an [NTRIP base station](#basestation) with an RTK-compatible receiver (e.g. u-blox ZED-F9P/ZED-X20P, Quectel LG/LC Series, Septentrio Mosaic Series or Unicore UM9** Series).
 * Supports GNSS (*and related*) device configuration via proprietary UBX, NMEA and ASCII TTY protocols, including most u-blox, Quectel, Septentrio, Unicore and Feyman GNSS devices.
-* **New in v1.6.7** - Experimental support for RINEX conversion of raw observation, navigation and meteorology data.
+* **New in v1.6.7** - Experimental support for [RINEX conversion](#rinex) of raw observation, navigation and meteorology data.
 * Can be installed using the standard `pip` Python package manager - see [installation instructions](#installation) below.
 
 This is an independent project and we have no affiliation whatsoever with any GNSS manufacturer or distributor.
@@ -430,7 +430,7 @@ The RINEX Conversion Dialog supports the conversion of raw observation, navigati
 
 1. A previously-saved binary datalog containing raw observation (UBX RXM-RAWX), navigation (UBX RXM-SFRBX¹) and/or meteorology (NMEA) data or RTCM3 ephemerides (1019, 1020, 1041-1046) messages. A suitable datalog can be recorded using PyGPSClient's [binary datalogging](#datalog) facility. **NB**: The file should contain at least 15-30 minutes of continuous data.
 
-   ¹ Currently only GPS LNAV/CNAV, Galileo FNAV/CNAV and Beidou D1/D2 data is supported by the RINEX NAV conversion utility. This will be enhanced in future releases.
+   ¹ Currently only GPS LNAV/CNAV, Galileo FNAV/INAV and Beidou D1/D2 data is supported by the [pygnssutils RINEX NAV conversion utility](https://github.com/semuconsulting/pygnssutils#rinexconvert). This will be enhanced in future releases.
 
 **Instructions:**
 
