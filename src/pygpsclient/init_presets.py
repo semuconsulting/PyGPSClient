@@ -60,6 +60,7 @@ INIT_PRESETS = {
         "Set UART1 Baudrate to 115200, CFG, CFG-VALSET, 000100000100524000c20100, 1",
         "Set UART2 Baudrate to 115200, CFG, CFG-VALSET, 000100000100534000c20100, 1",
         "Poll UART1/2 Baudrates, CFG, CFG-VALGET, 000000000100524001005340, 2",
+        "ZED-X20 Enable Galileo HAS, CFG, CFG-VALSET, 0001000001000d1000, 1, CFG, CFG-VALSET, 0001000002000d1001, 1",
     ],
     "nmeapresets_l": [
         "Quectel LG* Restore Factory Defaults CONFIRM; P; QTMRESTOREPAR; ; 1",

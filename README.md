@@ -430,7 +430,7 @@ The RINEX Conversion Dialog supports the conversion of raw observation, navigati
 
 1. A previously-saved binary datalog containing raw observation (UBX RXM-RAWX), navigation (UBX RXM-SFRBX¹) and/or meteorology (NMEA) data or RTCM3 ephemerides (1019, 1020, 1041-1046) messages. A suitable datalog can be recorded using PyGPSClient's [binary datalogging](#datalog) facility. **NB**: The file should contain at least 15-30 minutes of continuous data.
 
-   ¹ Currently only GPS LNAV/CNAV, Galileo FNAV/INAV and Beidou D1/D2 data is supported by the [pygnssutils RINEX NAV conversion utility](https://github.com/semuconsulting/pygnssutils#rinexconvert). This will be enhanced in future releases.
+   ¹ The alpha release of the [pygnssutils RINEX NAV conversion utility](https://github.com/semuconsulting/pygnssutils#rinexconvert) currently implements GPS LNAV/CNAV, Galileo FNAV/INAV,  Beidou D1/D2 and Glonass L1OF signal types. This will be enhanced in future releases.
 
 **Instructions:**
 

@@ -66,10 +66,11 @@ from pygpsclient.globals import (
     READONLY,
     TRACEMODE_WRITE,
 )
-from pygpsclient.helpers import VALCUSTOM, VALNONBLANK, validate
+from pygpsclient.helpers import VALCUSTOM, VALFLOAT, VALNONBLANK, validate
 from pygpsclient.strings import (
     DLGTRINEX,
     LBLRINEXANTENNA,
+    LBLRINEXANTENNAHED,
     LBLRINEXCOMMENT,
     LBLRINEXCOUNTRY,
     LBLRINEXDOI,
@@ -142,11 +143,17 @@ class RINEXDialog(ToplevelDialog):
         self._navsource = StringVar()
         self._metsource = StringVar()
         self._rinexver = StringVar()
+        self._antennah = StringVar()
+        self._antennae = StringVar()
+        self._antennad = StringVar()
         self._countrycode = StringVar()
         self._rinexobs = IntVar()
         self._rinexnav = IntVar()
         self._rinexmet = IntVar()
         self._rxgps = IntVar()
+        self._timecorrflag = IntVar()
+        self._ionocorrflag = IntVar()
+        self._eopcorrflag = IntVar()
         self._rxglonass = IntVar()
         self._rxgalileo = IntVar()
         self._rxbeidou = IntVar()
@@ -333,6 +340,25 @@ class RINEXDialog(ToplevelDialog):
             variable=self._rxnavic,
             state=NORMAL,
         )
+        self._lbl_corr = Label(self._frm_basic, text="Corrections:", anchor=W)
+        self._chk_timecorr = Checkbutton(
+            self._frm_basic,
+            text="Time",
+            variable=self._timecorrflag,
+            state=NORMAL,
+        )
+        self._chk_ionocorr = Checkbutton(
+            self._frm_basic,
+            text="Iono",
+            variable=self._ionocorrflag,
+            state=NORMAL,
+        )
+        self._chk_eopcorr = Checkbutton(
+            self._frm_basic,
+            text="EOP",
+            variable=self._eopcorrflag,
+            state=NORMAL,
+        )
         self._lbl_obstypes = Label(self._frm_basic, text=LBLRINEXOBSTYPES)
         self._ent_obstypes = Entry(
             self._frm_basic,
@@ -357,7 +383,7 @@ class RINEXDialog(ToplevelDialog):
         self._lbl_marker = Label(self._frm_advanced, text=LBLRINEXMARKER, anchor=W)
         self._ent_markernum = Entry(
             self._frm_advanced,
-            width=5,
+            width=10,
             textvariable=self._markernum,
             state=NORMAL,
             relief="sunken",
@@ -372,7 +398,7 @@ class RINEXDialog(ToplevelDialog):
         self._spn_markertype = Spinbox(
             self._frm_advanced,
             values=RINEXMARKERTYPES,
-            width=20,
+            width=15,
             wrap=True,
             textvariable=self._markertype,
             state=NORMAL,
@@ -382,7 +408,7 @@ class RINEXDialog(ToplevelDialog):
         self._lbl_antenna = Label(self._frm_advanced, text=LBLRINEXANTENNA, anchor=W)
         self._ent_antennanum = Entry(
             self._frm_advanced,
-            width=5,
+            width=10,
             textvariable=self._antennanum,
             state=NORMAL,
             relief="sunken",
@@ -394,10 +420,34 @@ class RINEXDialog(ToplevelDialog):
             state=NORMAL,
             relief="sunken",
         )
+        self._lbl_antennahed = Label(
+            self._frm_advanced, text=LBLRINEXANTENNAHED, anchor=W
+        )
+        self._ent_antennah = Entry(
+            self._frm_advanced,
+            width=10,
+            textvariable=self._antennah,
+            state=NORMAL,
+            relief="sunken",
+        )
+        self._ent_antennae = Entry(
+            self._frm_advanced,
+            width=10,
+            textvariable=self._antennae,
+            state=NORMAL,
+            relief="sunken",
+        )
+        self._ent_antennad = Entry(
+            self._frm_advanced,
+            width=10,
+            textvariable=self._antennad,
+            state=NORMAL,
+            relief="sunken",
+        )
         self._lbl_receiver = Label(self._frm_advanced, text=LBLRINEXRCVR, anchor=W)
         self._ent_rcvrnum = Entry(
             self._frm_advanced,
-            width=5,
+            width=10,
             textvariable=self._rcvrnum,
             state=NORMAL,
             relief="sunken",
@@ -411,7 +461,7 @@ class RINEXDialog(ToplevelDialog):
         )
         self._ent_rcvrversion = Entry(
             self._frm_advanced,
-            width=20,
+            width=15,
             textvariable=self._rcvrversion,
             state=NORMAL,
             relief="sunken",
@@ -517,62 +567,73 @@ class RINEXDialog(ToplevelDialog):
         self._chk_rxnavic.grid(column=6, row=9, padx=3, sticky=W)
         self._lbl_obstypes.grid(column=0, row=10, columnspan=7, padx=3, sticky=W)
         self._ent_obstypes.grid(column=0, row=11, columnspan=7, padx=3, sticky=EW)
-        self._pgb_elapsed.grid(column=0, row=12, columnspan=7, padx=3, sticky=EW)
+        self._lbl_corr.grid(column=0, row=12, columnspan=2, padx=3, sticky=W)
+        self._chk_timecorr.grid(column=2, row=12, padx=3, sticky=W)
+        self._chk_ionocorr.grid(column=3, row=12, padx=3, sticky=W)
+        self._pgb_elapsed.grid(column=0, row=13, columnspan=7, padx=3, sticky=EW)
         ttk.Separator(self._frm_basic).grid(
-            column=0, row=13, columnspan=7, padx=3, sticky=EW
+            column=0, row=14, columnspan=7, padx=3, sticky=EW
         )
-        self._lbl_outputs.grid(column=0, row=14, columnspan=7, padx=3, pady=1, sticky=W)
+        self._lbl_outputs.grid(column=0, row=15, columnspan=7, padx=3, pady=1, sticky=W)
         for i, lbl in enumerate(self._lbl_output_labels.values()):
-            lbl.grid(column=0, row=15 + i, columnspan=7, padx=3, pady=1, sticky=EW)
+            lbl.grid(column=0, row=16 + i, columnspan=7, padx=3, pady=1, sticky=EW)
 
-        self._lbl_marker.grid(column=0, row=0, columnspan=3, padx=3, sticky=W)
+        self._lbl_marker.grid(column=0, row=0, columnspan=5, padx=3, sticky=W)
         self._ent_markernum.grid(column=0, row=1, padx=3, sticky=W)
-        self._ent_markername.grid(column=1, row=1, padx=3, sticky=W)
-        self._spn_markertype.grid(column=2, row=1, padx=3, sticky=W)
-        self._lbl_antenna.grid(column=0, row=2, columnspan=3, padx=3, sticky=W)
+        self._ent_markername.grid(column=1, row=1, columnspan=2, padx=3, sticky=W)
+        self._spn_markertype.grid(column=3, row=1, padx=3, sticky=W)
+        self._lbl_antenna.grid(column=0, row=2, columnspan=5, padx=3, sticky=W)
         self._ent_antennanum.grid(column=0, row=3, padx=3, sticky=W)
-        self._ent_antennatype.grid(column=1, row=3, padx=3, sticky=W)
-        self._lbl_receiver.grid(column=0, row=4, columnspan=3, padx=3, sticky=W)
-        self._ent_rcvrnum.grid(column=0, row=5, padx=3, sticky=W)
-        self._ent_rcvrtype.grid(column=1, row=5, padx=3, sticky=W)
-        self._ent_rcvrversion.grid(column=2, row=5, padx=3, sticky=W)
-        self._lbl_observer.grid(column=0, row=6, columnspan=3, padx=3, sticky=W)
-        self._lbl_country.grid(column=2, row=6, columnspan=3, padx=3, sticky=W)
-        self._ent_observer.grid(column=0, row=7, columnspan=2, padx=3, sticky=EW)
-        self._ent_country.grid(column=2, row=7, padx=3, sticky=W)
-        self._lbl_starttime.grid(column=0, row=8, columnspan=2, padx=3, sticky=W)
-        self._ent_starttime.grid(column=2, row=8, padx=3, sticky=W)
-        self._lbl_comments.grid(column=0, row=9, columnspan=3, padx=3, sticky=W)
+        self._ent_antennatype.grid(column=1, row=3, columnspan=2, padx=3, sticky=W)
+        self._lbl_antennahed.grid(column=0, row=4, columnspan=5, padx=3, sticky=W)
+        self._ent_antennah.grid(column=0, row=5, padx=3, sticky=W)
+        self._ent_antennae.grid(column=1, row=5, padx=3, sticky=W)
+        self._ent_antennad.grid(column=2, row=5, padx=3, sticky=W)
+        self._lbl_receiver.grid(column=0, row=6, columnspan=5, padx=3, sticky=W)
+        self._ent_rcvrnum.grid(column=0, row=7, padx=3, sticky=W)
+        self._ent_rcvrtype.grid(column=1, row=7, columnspan=2, padx=3, sticky=W)
+        self._ent_rcvrversion.grid(column=3, row=7, columnspan=2, padx=3, sticky=W)
+        self._lbl_observer.grid(column=0, row=8, columnspan=3, padx=3, sticky=W)
+        self._lbl_country.grid(column=3, row=8, columnspan=2, padx=3, sticky=W)
+        self._ent_observer.grid(column=0, row=9, columnspan=3, padx=3, sticky=EW)
+        self._ent_country.grid(column=3, row=9, padx=3, sticky=W)
+        self._lbl_starttime.grid(column=0, row=10, columnspan=2, padx=3, sticky=W)
+        self._ent_starttime.grid(column=2, row=10, columnspan=2, padx=3, sticky=W)
+        self._lbl_comments.grid(column=0, row=11, columnspan=5, padx=3, sticky=W)
         for i, ec in enumerate(self._entcomments):
-            ec.grid(column=0, row=10 + i, columnspan=3, padx=3, sticky=EW)
+            ec.grid(column=0, row=12 + i, columnspan=5, padx=3, sticky=EW)
 
         for col in range(7):  # make columns equal width
             self._frm_basic.grid_columnconfigure(col, weight=1, uniform="col")
 
-    def _do_layout_rinex4(self, show: bool, startrow: int = 10 + USERCOMMENTS):
+    def _do_layout_rinex4(self, show: bool, startrow: int):
         """
         Position optional RINEX 4 widgets in frame.
+
+        :param bool show: show/hide
+        :param int startrow: starting grid row
         """
 
         if show:
             self._lbl_doi.grid(
-                column=0, row=startrow + 1, columnspan=3, padx=3, sticky=W
+                column=0, row=startrow + 1, columnspan=5, padx=3, sticky=W
             )
             self._ent_doi.grid(
-                column=0, row=startrow + 2, columnspan=3, padx=3, sticky=EW
+                column=0, row=startrow + 2, columnspan=5, padx=3, sticky=EW
             )
             self._lbl_license.grid(
-                column=0, row=startrow + 3, columnspan=3, padx=3, sticky=W
+                column=0, row=startrow + 3, columnspan=5, padx=3, sticky=W
             )
             self._ent_license.grid(
-                column=0, row=startrow + 4, columnspan=3, padx=3, sticky=EW
+                column=0, row=startrow + 4, columnspan=5, padx=3, sticky=EW
             )
             self._lbl_station.grid(
-                column=0, row=startrow + 5, columnspan=3, padx=3, sticky=W
+                column=0, row=startrow + 5, columnspan=5, padx=3, sticky=W
             )
             self._ent_station.grid(
-                column=0, row=startrow + 6, columnspan=3, padx=3, sticky=EW
+                column=0, row=startrow + 6, columnspan=5, padx=3, sticky=EW
             )
+            self._chk_eopcorr.grid(column=4, row=12, padx=3, sticky=W)
         else:
             self._lbl_doi.grid_forget()
             self._ent_doi.grid_forget()
@@ -580,6 +641,7 @@ class RINEXDialog(ToplevelDialog):
             self._ent_license.grid_forget()
             self._lbl_station.grid_forget()
             self._ent_station.grid_forget()
+            self._chk_eopcorr.grid_forget()
 
     def _attach_events(self):
         """
@@ -622,6 +684,12 @@ class RINEXDialog(ToplevelDialog):
         self._obssource.set(UBXSOURCE)
         self._navsource.set(UBXSOURCE)
         self._metsource.set(NMEASOURCE)
+        self._antennah.set("0.0")
+        self._antennae.set("0.0")
+        self._antennad.set("0.0")
+        self._timecorrflag.set(1)
+        self._ionocorrflag.set(1)
+        self._eopcorrflag.set(1)
         rcvrname = self.__app.gnss_status.version_data.get("hwversion", NA)
         self._rcvrname.set("" if rcvrname == NA else rcvrname)
         rcvrversion = self.__app.gnss_status.version_data.get("fwversion", NA)
@@ -634,7 +702,7 @@ class RINEXDialog(ToplevelDialog):
         Update RINEX version.
         """
 
-        self._do_layout_rinex4(self._rinexver.get() >= "4.00", 10 + USERCOMMENTS)
+        self._do_layout_rinex4(self._rinexver.get() >= "4.00", 12 + USERCOMMENTS)
 
     def _on_update_config(self, var, index, mode):  # pylint: disable=unused-argument
         """
@@ -735,19 +803,19 @@ class RINEXDialog(ToplevelDialog):
             self._frm_advanced.grid_forget()
             self._btn_toggle.config(image=self._img_expandh)
 
-    def _valid_settings(self) -> bool:
-        """
-        Validate settings.
+    # def _valid_settings(self) -> bool:
+    #     """
+    #     Validate settings.
 
-        :return: valid True/False
-        :rtype: bool
-        """
+    #     :return: valid True/False
+    #     :rtype: bool
+    #     """
 
-        valid = True
-        if not valid:
-            self.status_label = ("ERROR - invalid settings", ERRCOL)
+    #     valid = True
+    #     if not valid:
+    #         self.status_label = ("ERROR - invalid settings", ERRCOL)
 
-        return valid
+    #     return valid
 
     def _validtime(self, val: str) -> bool:
         """
@@ -779,6 +847,9 @@ class RINEXDialog(ToplevelDialog):
                 self._ent_starttime, valmode=VALCUSTOM, func=self._validtime
             )
             valid = valid & validate(self._ent_infilepath, valmode=VALNONBLANK)
+            valid = valid & validate(self._ent_antennah, valmode=VALFLOAT)
+            valid = valid & validate(self._ent_antennae, valmode=VALFLOAT)
+            valid = valid & validate(self._ent_antennad, valmode=VALFLOAT)
             if not valid:
                 self.status_label = ("Invalid Parameters", ERRCOL)
                 return
@@ -824,12 +895,20 @@ class RINEXDialog(ToplevelDialog):
                 self._markertype.get(),
             ]
             antenna = [self._antennanum.get(), self._antennatype.get()]
+            antennahed = [
+                self._antennah.get(),
+                self._antennae.get(),
+                self._antennad.get(),
+            ]
             receiver = [
                 self._rcvrnum.get(),
                 self._rcvrname.get(),
                 self._rcvrversion.get(),
             ]
             observer = self._observer.get()
+            timecorr = self._timecorrflag.get()
+            ionocorr = self._ionocorrflag.get()
+            eopcorr = self._eopcorrflag.get()
             doi = self._doi.get()
             licen = self._license.get()
             station = self._station.get()
@@ -856,6 +935,10 @@ class RINEXDialog(ToplevelDialog):
                 minobs=minobs,
                 marker=marker,
                 antenna=antenna,
+                antennahed=antennahed,
+                timecorr=timecorr,
+                ionocorr=ionocorr,
+                eopcorr=eopcorr,
                 receiver=receiver,
                 observer=observer,
                 comments=comments,
@@ -926,7 +1009,7 @@ class RINEXDialog(ToplevelDialog):
         elif res == RINEX_NORECS:
             self.status_label = ("No parsable records in input", ERRCOL)
         else:
-            self.status_label = ("Conversion failed", ERRCOL)
+            self.status_label = ("Conversion failed - see log", ERRCOL)
 
     def _prog_callback_threaded(self, progress: int):
         """

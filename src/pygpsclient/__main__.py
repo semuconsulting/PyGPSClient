@@ -129,7 +129,7 @@ def main():
             VERBOSITY_DEBUG,
             VERBOSITY_CRITICAL,
         ],
-        default=VERBOSITY_CRITICAL,
+        default=VERBOSITY_LOW,
     )
     ap.add_argument(
         "--logtofile",
@@ -139,7 +139,7 @@ def main():
     kwargs = vars(ap.parse_args())
 
     # set up global logging configuration
-    verbosity = int(kwargs.pop("verbosity", VERBOSITY_CRITICAL))
+    verbosity = int(kwargs.pop("verbosity", VERBOSITY_LOW))
     logtofile = kwargs.pop("logtofile", "")
     logger = getLogger(APPNAME)  # "pygpsclient"
     logger_utils = getLogger("pygnssutils")
