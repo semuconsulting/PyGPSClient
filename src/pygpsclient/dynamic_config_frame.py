@@ -62,6 +62,7 @@ from pyubx2 import (
 )
 
 from pygpsclient.globals import (
+    CLICK_CURSOR,
     ERRCOL,
     INFOCOL,
     NMEA_CFGOTHER,
@@ -207,6 +208,7 @@ class Dynamic_Config_Frame(Frame):
             width=50,
             command=self._on_set_cfg,
             font=self.__app.font_md,
+            cursor=CLICK_CURSOR,
         )
         self._btn_refresh = Button(
             self,
@@ -214,6 +216,7 @@ class Dynamic_Config_Frame(Frame):
             width=40,
             command=self._on_refresh,
             font=self.__app.font_md,
+            cursor=CLICK_CURSOR,
         )
         self._lbl_command = Label(self, text="", anchor=W)
         self._frm_container = Frame(self)

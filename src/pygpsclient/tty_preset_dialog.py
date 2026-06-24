@@ -37,6 +37,7 @@ from pygpsclient.confirm_box import ConfirmBox
 from pygpsclient.globals import (
     ASCII,
     BSR,
+    CLICK_CURSOR,
     CMDPAUSE,
     CRLF,
     ERRCOL,
@@ -148,6 +149,7 @@ class TTYPresetDialog(ToplevelDialog):
             image=self.img_send,
             width=50,
             command=self._on_send_command,
+            cursor=CLICK_CURSOR,
         )
 
     def _do_layout(self):

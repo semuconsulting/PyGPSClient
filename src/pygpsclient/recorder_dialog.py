@@ -54,6 +54,7 @@ from pyubx2 import (
 
 from pygpsclient.globals import (
     BGCOL,
+    CLICK_CURSOR,
     ERRCOL,
     FGCOL,
     HOME,
@@ -146,6 +147,7 @@ class RecorderDialog(ToplevelDialog):
             font=self.__app.font_md,
             highlightbackground=BGCOL,
             highlightthickness=2,
+            cursor=CLICK_CURSOR,
         )
         self._btn_save = Button(
             self._frm_body,
@@ -154,6 +156,7 @@ class RecorderDialog(ToplevelDialog):
             command=self._on_save,
             highlightbackground=BGCOL,
             highlightthickness=2,
+            cursor=CLICK_CURSOR,
         )
         self._btn_import = Button(
             self._frm_body,
@@ -162,6 +165,7 @@ class RecorderDialog(ToplevelDialog):
             command=self._on_import,
             highlightbackground=BGCOL,
             highlightthickness=2,
+            cursor=CLICK_CURSOR,
         )
         self._btn_play = Button(
             self._frm_body,
@@ -170,6 +174,7 @@ class RecorderDialog(ToplevelDialog):
             command=self._on_play,
             highlightbackground=BGCOL,
             highlightthickness=2,
+            cursor=CLICK_CURSOR,
         )
         self._btn_record = Button(
             self._frm_body,
@@ -178,6 +183,7 @@ class RecorderDialog(ToplevelDialog):
             command=self._on_record,
             highlightbackground=BGCOL,
             highlightthickness=2,
+            cursor=CLICK_CURSOR,
         )
         self._btn_undo = Button(
             self._frm_body,
@@ -186,6 +192,7 @@ class RecorderDialog(ToplevelDialog):
             command=self._on_undo,
             highlightbackground=BGCOL,
             highlightthickness=2,
+            cursor=CLICK_CURSOR,
         )
         self._btn_delete = Button(
             self._frm_body,
@@ -194,6 +201,7 @@ class RecorderDialog(ToplevelDialog):
             command=self._on_delete,
             highlightbackground=BGCOL,
             highlightthickness=2,
+            cursor=CLICK_CURSOR,
         )
         self._lbl_memory = Label(
             self._frm_body,

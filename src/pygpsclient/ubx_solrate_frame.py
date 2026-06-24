@@ -15,6 +15,7 @@ from tkinter import EW, Button, E, Frame, IntVar, Label, Spinbox, StringVar, W
 from pyubx2 import POLL, SET, UBXMessage
 
 from pygpsclient.globals import (
+    CLICK_CURSOR,
     CONNECTED,
     ERRCOL,
     OKCOL,
@@ -102,6 +103,7 @@ class UBX_RATE_Frame(Frame):
             width=50,
             command=self._on_send_rate,
             font=self.__app.font_md,
+            cursor=CLICK_CURSOR,
         )
 
     def _do_layout(self):

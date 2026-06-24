@@ -19,6 +19,7 @@ from pynmeagps.nmeahelpers import latlon2dmm, latlon2dms, llh2ecef
 
 from pygpsclient.globals import (
     BGCOL,
+    CLICK_CURSOR,
     CONNECTED,
     CONNECTED_FILE,
     CONNECTED_NTRIP,
@@ -94,6 +95,7 @@ class BannerFrame(Frame):
         self._img_ntrip = ImageTk.PhotoImage(Image.open(ICON_NTRIPCONFIG))
         self._img_spartn = ImageTk.PhotoImage(Image.open(ICON_SPARTNCONFIG))
         self._img_blank = ImageTk.PhotoImage(Image.open(ICON_BLANK))
+        self._sep = False
 
         super().__init__(parent, *args, **kwargs)
 
@@ -143,12 +145,18 @@ class BannerFrame(Frame):
             height=22,
             command=self._toggle_advanced,
             image=self._img_expand,
+            cursor=CLICK_CURSOR,
         )
         self._lbl_lhmsl = Label(
             self._frm_advanced, text="hmsl:", bg=BGCOL, fg=FGCOL, anchor=N
         )
         self._lbl_lhae = Label(
-            self._frm_advanced, text="hae:", bg=BGCOL, fg=FGCOL, anchor=N
+            self._frm_advanced,
+            text="hae:",
+            bg=BGCOL,
+            fg=FGCOL,
+            anchor=N,
+            cursor=CLICK_CURSOR,
         )
         self._lbl_lspd = Label(
             self._frm_advanced, text="speed:", bg=BGCOL, fg=FGCOL, anchor=N
@@ -195,7 +203,12 @@ class BannerFrame(Frame):
             self._frm_advanced, bg=BGCOL, fg="orange", width=13, anchor=W
         )
         self._lbl_hae = Label(
-            self._frm_advanced, bg=BGCOL, fg="orange", width=13, anchor=W
+            self._frm_advanced,
+            bg=BGCOL,
+            fg="orange",
+            width=13,
+            anchor=W,
+            cursor=CLICK_CURSOR,
         )
         self._lbl_spd = Label(
             self._frm_advanced, bg=BGCOL, fg="deepskyblue", width=12, anchor=W
@@ -283,6 +296,8 @@ class BannerFrame(Frame):
         """
 
         self.bind("<Configure>", self._on_resize)
+        self._lbl_lhae.bind("<Double-Button-1>", self._on_sep)
+        self._lbl_hae.bind("<Double-Button-1>", self._on_sep)
 
     def _toggle_advanced(self):
         """
@@ -396,7 +411,8 @@ class BannerFrame(Frame):
         self._lbl_llat.config(text="lat:")
         self._lbl_llon.config(text="lon:")
         self._lbl_lhmsl.config(text="hmsl:")
-        self._lbl_lhae.config(text="hae:")
+        lhae = "sep:" if self._sep else "hae:"
+        self._lbl_lhae.config(text=lhae)
         alt_u = "ft" if units in (UI, UIK) else "m"
 
         try:
@@ -423,7 +439,8 @@ class BannerFrame(Frame):
                 self._lbl_lat.config(text=f"{lat:{deg_f}}")
                 self._lbl_lon.config(text=f"{lon:{deg_f}}")
             self._lbl_hmsl.config(text=f"{alt:.4f} {alt_u}")
-            self._lbl_hae.config(text=f"{hae:.4f} {alt_u}")
+            haev = hae - alt if self._sep else hae
+            self._lbl_hae.config(text=f"{haev:.4f} {alt_u}")
         except (TypeError, ValueError):
             self._lbl_lat.config(text=NA)
             self._lbl_lon.config(text=NA)
@@ -623,9 +640,18 @@ class BannerFrame(Frame):
         ):
             ctl.config(font=scale_font(self.width, FONTBASE - 4, FONTSCALE)[0])
 
+    def _on_sep(self, event):  # pylint: disable=unused-argument
+        """
+        Toggle hae/sep display.
+
+        :param event event: mouse click event
+        """
+
+        self._sep = not self._sep
+
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """
-        Resize frame
+        Resize frame.
 
         :param event event: resize event
         """

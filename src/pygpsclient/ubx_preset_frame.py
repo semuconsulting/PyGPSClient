@@ -35,6 +35,7 @@ from pyubx2 import UBXMessage
 
 from pygpsclient.confirm_box import ConfirmBox
 from pygpsclient.globals import (
+    CLICK_CURSOR,
     ERRCOL,
     OKCOL,
     UBX_PRESET,
@@ -122,6 +123,7 @@ class UBX_PRESET_Frame(Frame):
             image=self.__container.img_send,
             width=50,
             command=self._on_send_preset,
+            cursor=CLICK_CURSOR,
         )
 
     def _do_layout(self):

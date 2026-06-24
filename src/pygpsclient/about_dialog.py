@@ -18,6 +18,7 @@ from webbrowser import open_new_tab
 from PIL import Image, ImageTk
 
 from pygpsclient.globals import (
+    CLICK_CURSOR,
     ERRCOL,
     ICON_APP128,
     ICON_GITHUB,
@@ -112,7 +113,7 @@ class AboutDialog(ToplevelDialog):
             self._frm_body,
             text="",
             width=16,
-            cursor="hand2",
+            cursor=CLICK_CURSOR,
         )
         self._chk_checkupdate = Checkbutton(
             self._frm_body,
@@ -122,18 +123,18 @@ class AboutDialog(ToplevelDialog):
         self._lbl_sponsoricon = Label(
             self._frm_body,
             image=self._img_sponsor,
-            cursor="hand2",
+            cursor=CLICK_CURSOR,
         )
         self._lbl_github = Label(
             self._frm_body,
             text=GITHUB_URL,
             fg=INFOCOL,
-            cursor="hand2",
+            cursor=CLICK_CURSOR,
         )
         self._lbl_copyright = Label(
             self._frm_body,
             text=COPYRIGHT,
-            cursor="hand2",
+            cursor=CLICK_CURSOR,
         )
 
     def _do_layout(self):

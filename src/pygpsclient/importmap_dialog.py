@@ -41,6 +41,7 @@ except (ImportError, ModuleNotFoundError):
 from pygpsclient.canvas_map import CanvasMap
 from pygpsclient.globals import (
     BGCOL,
+    CLICK_CURSOR,
     ERRCOL,
     IMPORT,
     INFOCOL,
@@ -92,18 +93,21 @@ class ImportMapDialog(ToplevelDialog):
             image=self.img_load,
             width=40,
             command=self._on_load,
+            cursor=CLICK_CURSOR,
         )
         self._btn_import = Button(
             self._frm_controls,
             image=self.img_send,
             width=40,
             command=self._on_import,
+            cursor=CLICK_CURSOR,
         )
         self._btn_redraw = Button(
             self._frm_controls,
             image=self.img_redraw,
             width=40,
             command=self._on_redraw,
+            cursor=CLICK_CURSOR,
         )
         self._chk_first = Checkbutton(
             self._frm_controls, text="First?", variable=self._first

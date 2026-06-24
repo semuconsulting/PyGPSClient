@@ -60,6 +60,7 @@ from pygnssutils.rinex_globals import (
 )
 
 from pygpsclient.globals import (
+    CLICK_CURSOR,
     ERRCOL,
     INFOCOL,
     OKCOL,
@@ -215,6 +216,7 @@ class RINEXDialog(ToplevelDialog):
             height=35,
             image=self.img_load,
             command=lambda: self._on_load(),
+            cursor=CLICK_CURSOR,
         )
         self._btn_convert = Button(
             self._frm_basic,
@@ -222,6 +224,7 @@ class RINEXDialog(ToplevelDialog):
             height=35,
             image=self.img_conn,
             command=lambda: self._on_convert(),
+            cursor=CLICK_CURSOR,
         )
         self._btn_cancel = Button(
             self._frm_basic,
@@ -229,6 +232,7 @@ class RINEXDialog(ToplevelDialog):
             height=35,
             image=self.img_cancel,
             command=lambda: self._on_cancel(),
+            cursor=CLICK_CURSOR,
         )
         self._btn_toggle = Button(
             self._frm_basic,
@@ -236,6 +240,7 @@ class RINEXDialog(ToplevelDialog):
             height=28,
             command=self._toggle_advanced,
             image=self._img_expandh,
+            cursor=CLICK_CURSOR,
         )
         self._lbl_rinexver = Label(self._frm_basic, text=LBLRINEXVER)
         self._spn_rinexver = Spinbox(
@@ -615,6 +620,8 @@ class RINEXDialog(ToplevelDialog):
         """
 
         if show:
+            self._chk_timecorr.config(text="STO")
+            self._chk_ionocorr.config(text="ION")
             self._lbl_doi.grid(
                 column=0, row=startrow + 1, columnspan=5, padx=3, sticky=W
             )
@@ -635,6 +642,8 @@ class RINEXDialog(ToplevelDialog):
             )
             self._chk_eopcorr.grid(column=4, row=12, padx=3, sticky=W)
         else:
+            self._chk_timecorr.config(text="Time")
+            self._chk_ionocorr.config(text="Iono")
             self._lbl_doi.grid_forget()
             self._ent_doi.grid_forget()
             self._lbl_license.grid_forget()

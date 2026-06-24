@@ -46,6 +46,7 @@ from PIL import Image, ImageTk
 from pynmeagps import NMEAMessage, ecef2llh, llh2ecef
 
 from pygpsclient.globals import (
+    CLICK_CURSOR,
     CMDPAUSE,
     DISCONNECTED,
     ERRCOL,
@@ -279,6 +280,7 @@ class ServerConfigDialog(ToplevelDialog):
             image=self._img_expand,
             width=28,
             height=22,
+            cursor=CLICK_CURSOR,
             # state=DISABLED,
         )
         self._frm_advanced = Frame(self._frm_body)
@@ -313,6 +315,7 @@ class ServerConfigDialog(ToplevelDialog):
             image=self._img_send,
             width=40,
             height=22,
+            cursor=CLICK_CURSOR,
         )
         self._spn_rcvrtype = Spinbox(
             self._frm_advanced,
