@@ -99,7 +99,8 @@ from pygpsclient.globals import (
     SOCKSERVER_MAX_CLIENTS,
     SPARTN_EVENT,
     SPARTN_PROTOCOL,
-    STATUSPRIORITY,
+    STATUS_PRIORITY,
+    STATUS_TIMEOUT,
     TTY_PROTOCOL,
     UNDO,
 )
@@ -225,7 +226,9 @@ class App(Frame):
         self.frm_settings = None
         self._conn_status = DISCONNECTED
         self._rtk_conn_status = DISCONNECTED
-        self._last_gui_update = datetime.now()
+        now = datetime.now()
+        self._last_gui_update = now
+        self._last_status_update = now
         self._socket_thread = None
         self._socket_server = None
         self.consoledata = []
@@ -969,7 +972,8 @@ class App(Frame):
             self.consoledata.append((raw_data, parsed_data, marker))
 
         # periodically update widgets if visible
-        if datetime.now() > self._last_gui_update + timedelta(
+        now = datetime.now()
+        if now > self._last_gui_update + timedelta(
             seconds=self.configuration.get("guiupdateinterval_f")
         ):
             self._refresh_widgets()
@@ -977,6 +981,10 @@ class App(Frame):
             if self.configuration.get("database_b"):
                 self.sqlite_handler.load_data()
             self._last_gui_update = datetime.now()
+
+        # remove stale status messages
+        if now > self._last_status_update + timedelta(seconds=STATUS_TIMEOUT):
+            self.status_label = ("", INFOCOL)
 
         # update GPX track file if enabled
         if self.configuration.get("recordtrack_b"):
@@ -1165,7 +1173,7 @@ class App(Frame):
         """
 
         def priority(col):
-            return STATUSPRIORITY.get(col, 0)
+            return STATUS_PRIORITY.get(col, 0)
 
         if isinstance(message, tuple):
             message, color = message
@@ -1180,6 +1188,7 @@ class App(Frame):
             color = INFOCOL if color == "blue" else color
             self.status_label.config(text=message, fg=color)
             self.status_label.update()
+            self._last_status_update = datetime.now()
         else:  # defer message until frm_status is instantiated
             if isinstance(self._deferredmsg, tuple):
                 defpty = priority(self._deferredmsg[1])

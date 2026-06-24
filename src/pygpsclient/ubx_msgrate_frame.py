@@ -33,6 +33,7 @@ from pyubx2 import POLL, SET, UBX_MSGIDS, UBXMessage
 from pyubx2.ubxhelpers import key_from_val
 
 from pygpsclient.globals import (
+    CLICK_CURSOR,
     ERRCOL,
     OKCOL,
     READONLY,
@@ -146,6 +147,7 @@ class UBX_MSGRATE_Frame(Frame):
             fg=OKCOL,
             command=self._on_send_cfg_msg,
             font=self.__app.font_md,
+            cursor=CLICK_CURSOR,
         )
 
     def _do_layout(self):

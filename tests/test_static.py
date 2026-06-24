@@ -164,7 +164,7 @@ class StaticTest(unittest.TestCase):
     def testinitpresets(self):
         cfg = Configuration(DummyApp())
         cfg.init_presets("ubx")
-        self.assertEqual(len(cfg.get("ubxpresets_l")), 46)
+        self.assertEqual(len(cfg.get("ubxpresets_l")), 47)
         cfg.set(
             "ubxpresets_l",
             [
@@ -175,7 +175,7 @@ class StaticTest(unittest.TestCase):
             ],
         )
         cfg.init_presets("ubx")
-        self.assertEqual(len(cfg.get("ubxpresets_l")), 49)
+        self.assertEqual(len(cfg.get("ubxpresets_l")), 50)
 
     def testmakeval(self):
         self.assertEqual(makeval(""), 0.0)

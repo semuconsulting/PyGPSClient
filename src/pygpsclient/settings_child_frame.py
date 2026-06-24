@@ -41,6 +41,7 @@ from PIL import Image, ImageTk
 
 from pygpsclient.globals import (
     BPSRATES,
+    CLICK_CURSOR,
     CONNECTED,
     CONNECTED_FILE,
     CONNECTED_SOCKET,
@@ -198,6 +199,7 @@ class SettingsChildFrame(Frame):
             image=self._img_serial,
             command=lambda: self._on_connect(CONNECTED),
             state=NORMAL,
+            cursor=CLICK_CURSOR,
         )
         self._lbl_connect = Label(self._frm_buttons, text="USB/UART")
         self._btn_connect_socket = Button(
@@ -207,6 +209,7 @@ class SettingsChildFrame(Frame):
             image=self._img_socket,
             command=lambda: self._on_connect(CONNECTED_SOCKET),
             state=NORMAL,
+            cursor=CLICK_CURSOR,
         )
         self._lbl_connect_socket = Label(self._frm_buttons, text="TCP/UDP")
         self._btn_connect_file = Button(
@@ -216,6 +219,7 @@ class SettingsChildFrame(Frame):
             image=self._img_dataread,
             command=lambda: self._on_connect(CONNECTED_FILE),
             state=NORMAL,
+            cursor=CLICK_CURSOR,
         )
         self._lbl_connect_file = Label(self._frm_buttons, text="FILE")
         self._btn_disconnect = Button(
@@ -225,6 +229,7 @@ class SettingsChildFrame(Frame):
             image=self._img_disconn,
             command=lambda: self._on_connect(DISCONNECTED),
             state=DISABLED,
+            cursor=CLICK_CURSOR,
         )
         self._lbl_disconnect = Label(self._frm_buttons, text="STOP")
         self._btn_exit = Button(
@@ -234,6 +239,7 @@ class SettingsChildFrame(Frame):
             image=self._img_exit,
             command=lambda: self.__app.on_exit(),
             state=NORMAL,
+            cursor=CLICK_CURSOR,
         )
 
         self._lbl_status_preset = Label(
@@ -373,6 +379,7 @@ class SettingsChildFrame(Frame):
             width=45,
             image=self._img_ubxconfig,
             command=lambda: self.__app.start_dialog(DLGTUBX),
+            cursor=CLICK_CURSOR,
         )
         self._lbl_nmeaconfig = Label(
             self._frm_options_btns,
@@ -384,6 +391,7 @@ class SettingsChildFrame(Frame):
             image=self._img_nmeaconfig,
             command=lambda: self.__app.start_dialog(DLGTNMEA),
             state=NORMAL,
+            cursor=CLICK_CURSOR,
         )
         self._lbl_ttyconfig = Label(
             self._frm_options_btns,
@@ -395,6 +403,7 @@ class SettingsChildFrame(Frame):
             image=self._img_ttyconfig,
             command=lambda: self.__app.start_dialog(DLGTTTY),
             state=NORMAL,
+            cursor=CLICK_CURSOR,
         )
         self._lbl_ntripconfig = Label(
             self._frm_options_btns,
@@ -406,6 +415,7 @@ class SettingsChildFrame(Frame):
             image=self._img_ntripconfig,
             command=lambda: self.__app.start_dialog(DLGTNTRIP),
             state=NORMAL,
+            cursor=CLICK_CURSOR,
         )
         self._lbl_serverconfig = Label(
             self._frm_options_btns,
@@ -417,6 +427,7 @@ class SettingsChildFrame(Frame):
             image=self._img_serverconfig,
             command=lambda: self.__app.start_dialog(DLGTSERVER),
             state=NORMAL,
+            cursor=CLICK_CURSOR,
         )
 
     def _do_layout(self):

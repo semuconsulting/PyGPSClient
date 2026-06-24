@@ -39,6 +39,7 @@ from pyspartn import date2timetag
 from pyubx2 import POLL, SET, SET_LAYER_RAM, TXN_NONE, U1, U2, U4, UBXMessage, val2bytes
 
 from pygpsclient.globals import (
+    CLICK_CURSOR,
     CONNECTED,
     ERRCOL,
     ICON_BLANK,
@@ -215,6 +216,7 @@ class SPARTNGNSSDialog(Frame):
             width=45,
             image=self._img_load,
             command=lambda: self._on_load_json(),
+            cursor=CLICK_CURSOR,
         )
         self._chk_upload_keys = Checkbutton(
             self,
@@ -237,6 +239,7 @@ class SPARTNGNSSDialog(Frame):
             fg=OKCOL,
             command=self._on_send_gnss_config,
             font=self.__app.font_md,
+            cursor=CLICK_CURSOR,
         )
 
     def _do_layout(self):

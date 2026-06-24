@@ -36,6 +36,7 @@ from PIL import Image, ImageTk
 from pygpsclient.canvas_subclasses import CanvasContainer
 from pygpsclient.globals import (
     APPNAME,
+    CLICK_CURSOR,
     ERRCOL,
     ICON_BLANK,
     ICON_CANCEL,
@@ -139,6 +140,7 @@ class ToplevelDialog(Toplevel):
             width=45,
             fg=ERRCOL,
             command=self.on_exit,
+            cursor=CLICK_CURSOR,
         )
         self._frm_status.grid(column=0, row=2, sticky=EW)
         self._lbl_status.grid(column=0, row=0, sticky=EW)

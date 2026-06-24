@@ -51,6 +51,7 @@ from pygnssutils import NOGGA
 from pygnssutils.helpers import find_mp_distance
 
 from pygpsclient.globals import (
+    CLICK_CURSOR,
     CONNECTED_NTRIP,
     DISCONNECTED,
     ERRCOL,
@@ -280,6 +281,7 @@ class NTRIPConfigDialog(ToplevelDialog):
             height=35,
             image=self.img_conn,
             command=lambda: self._connect(),
+            cursor=CLICK_CURSOR,
         )
         self._btn_disconnect = Button(
             self._frm_body,
@@ -287,6 +289,7 @@ class NTRIPConfigDialog(ToplevelDialog):
             height=35,
             image=self.img_disconn,
             command=lambda: self._disconnect(),
+            cursor=CLICK_CURSOR,
             state=DISABLED,
         )
 

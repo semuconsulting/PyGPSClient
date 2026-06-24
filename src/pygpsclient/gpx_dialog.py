@@ -37,6 +37,7 @@ from pygpsclient.canvas_map import HYB, MAP, SAT, CanvasMap
 from pygpsclient.canvas_subclasses import CanvasGraph
 from pygpsclient.globals import (
     BGCOL,
+    CLICK_CURSOR,
     CUSTOM,
     ERRCOL,
     FGCOL,
@@ -170,6 +171,7 @@ class GPXViewerDialog(ToplevelDialog):
             image=self.img_load,
             width=40,
             command=self._on_load,
+            cursor=CLICK_CURSOR,
         )
         self._lbl_maptype = Label(self._frm_controls, text="Map Type")
         self._spn_maptype = Spinbox(
@@ -203,6 +205,7 @@ class GPXViewerDialog(ToplevelDialog):
             image=self.img_redraw,
             width=40,
             command=self._on_redraw,
+            cursor=CLICK_CURSOR,
         )
 
     def _do_layout(self):

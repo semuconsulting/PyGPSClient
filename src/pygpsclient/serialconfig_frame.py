@@ -49,6 +49,7 @@ from serial import PARITY_EVEN, PARITY_MARK, PARITY_NONE, PARITY_ODD, PARITY_SPA
 from serial.tools.list_ports import comports
 
 from pygpsclient.globals import (
+    CLICK_CURSOR,
     ICON_CONTRACT,
     ICON_EXPAND,
     ICON_REFRESH,
@@ -177,6 +178,7 @@ class SerialConfigFrame(Frame):
             image=self._img_refresh,
             width=28,
             height=22,
+            cursor=CLICK_CURSOR,
         )
         self._btn_toggle = Button(
             self._frm_basic,
@@ -184,6 +186,7 @@ class SerialConfigFrame(Frame):
             image=self._img_expand,
             width=28,
             height=22,
+            cursor=CLICK_CURSOR,
         )
 
         self._frm_advanced = Frame(self)

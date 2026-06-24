@@ -49,6 +49,7 @@ except ImportError:
 from pyubx2 import UBXMessage
 
 from pygpsclient.globals import (
+    CLICK_CURSOR,
     CONNECTED_SPARTNIP,
     CONNECTED_SPARTNLB,
     DISCONNECTED,
@@ -209,6 +210,7 @@ class SPARTNMQTTDialog(Frame):
             width=45,
             image=self._img_load,
             command=lambda: self._get_spartncerts("crt"),
+            cursor=CLICK_CURSOR,
         )
         self._lbl_mqttcrt = Label(self, text="CRT File")
         self._ent_mqttcrt = Entry(
@@ -223,6 +225,7 @@ class SPARTNMQTTDialog(Frame):
             width=45,
             image=self._img_load,
             command=lambda: self._get_spartncerts("pem"),
+            cursor=CLICK_CURSOR,
         )
         self._lbl_mqttpem = Label(self, text="PEM File")
         self._ent_mqttpem = Entry(
@@ -243,6 +246,7 @@ class SPARTNMQTTDialog(Frame):
             width=45,
             image=self._img_socket,
             command=lambda: self.on_connect(),
+            cursor=CLICK_CURSOR,
         )
         self._btn_disconnect = Button(
             self,
@@ -250,6 +254,7 @@ class SPARTNMQTTDialog(Frame):
             image=self._img_disconn,
             command=lambda: self.on_disconnect(),
             state=DISABLED,
+            cursor=CLICK_CURSOR,
         )
 
     def _do_layout(self):

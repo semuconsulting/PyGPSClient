@@ -40,6 +40,7 @@ from pyubx2 import UBX_CONFIG_DATABASE, UBXMessage
 from pyubx2.ubxhelpers import attsiz, atttyp, cfgname2key
 
 from pygpsclient.globals import (
+    CLICK_CURSOR,
     ERRCOL,
     ICON_BLANK,
     ICON_CONFIRMED,
@@ -199,6 +200,7 @@ class UBX_CFGVAL_Frame(Frame):
             image=self._img_send,
             width=50,
             command=self._on_send_config,
+            cursor=CLICK_CURSOR,
         )
 
     def _do_layout(self):

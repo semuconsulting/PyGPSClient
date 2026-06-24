@@ -36,6 +36,7 @@ from pynmeagps import NMEAMessage
 
 from pygpsclient.confirm_box import ConfirmBox
 from pygpsclient.globals import (
+    CLICK_CURSOR,
     ERRCOL,
     ICON_CONFIRMED,
     ICON_PENDING,
@@ -131,6 +132,7 @@ class NMEA_PRESET_Frame(Frame):
             image=self._img_send,
             width=50,
             command=self._on_send_preset,
+            cursor=CLICK_CURSOR,
         )
 
     def _do_layout(self):

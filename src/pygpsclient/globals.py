@@ -75,6 +75,7 @@ BPSRATES = (
 )
 BSR = "backslashreplace"
 CLASS = "cls"
+CLICK_CURSOR = "hand2"  # cursor displayed for clickable widgets
 CMDINITDELAY = 3000  # initial delay before sending commands to new connection
 CMDPAUSE = 100  # pause between sent commands in ms
 COLORTAGS = "colortags"
@@ -246,7 +247,8 @@ SPARTN_SOURCE_IP = 0
 SPARTN_SOURCE_LB = 1
 SPONSOR_URL = "https://buymeacoffee.com/semuconsulting"
 SQRT2 = 0.7071067811865476  # square root of 2
-STATUSPRIORITY = {INFOCOL: 0, "blue": 0, OKCOL: 2, "green": 1, ERRCOL: 3, "red": 3}
+STATUS_PRIORITY = {INFOCOL: 0, "blue": 0, OKCOL: 2, "green": 1, ERRCOL: 3, "red": 3}
+STATUS_TIMEOUT = 15  # timeout for stale status messages in seconds
 TIME0 = datetime(1970, 1, 1)  # basedate for time()
 TIMEOUTS = ("0.1", "0.2", "0.5", "1", "2", "5", "10", "20", "None", "0")
 # map nmea talker to gnss_id

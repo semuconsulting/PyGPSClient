@@ -38,6 +38,7 @@ from pyubx2 import POLL_LAYER_RAM, SET, SET_LAYER_RAM, TXN_NONE, UBXMessage
 
 from pygpsclient.globals import (
     BPSRATES,
+    CLICK_CURSOR,
     CONNECTED,
     CONNECTED_SPARTNIP,
     CONNECTED_SPARTNLB,
@@ -283,6 +284,7 @@ class SpartnLbandDialog(Frame):
             width=45,
             image=self._img_serial,
             command=lambda: self.on_connect(),
+            cursor=CLICK_CURSOR,
         )
         self._btn_disconnect = Button(
             self,
@@ -290,6 +292,7 @@ class SpartnLbandDialog(Frame):
             image=self._img_disconn,
             command=lambda: self.on_disconnect(),
             state=DISABLED,
+            cursor=CLICK_CURSOR,
         )
         self._lbl_send = Label(self, image=self._img_blank)
         self._btn_send = Button(
@@ -297,6 +300,7 @@ class SpartnLbandDialog(Frame):
             image=self._img_send,
             width=45,
             command=self._on_send_config,
+            cursor=CLICK_CURSOR,
         )
 
     def _do_layout(self):

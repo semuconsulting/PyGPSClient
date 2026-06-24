@@ -1,5 +1,12 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.7.0
+
+1. Can now double-click to toggle between 'hae' (height above ellipsoid) and 'sep' (separation) values in banner panel.
+1. Minimum pyubx2 version updated to 1.3.3 (adds new firmware configuration database items for u-blox X20 HPG 2.10).
+1. Default log level amended to '0' (ERROR) rather than '-1' (CRITICAL). Any logged exception tracebacks will now appear in terminal logs by default.
+1. Updates to RINEX conversion dialog for pygnssutil>=1.2.5 (incorporates various bug fixes to RINEX conversion routines, but remains an experimental facility).
+
 ### RELEASE 1.6.10
 
 1. Minor enhancements to UBX Config Dialog confirmation signalling. 
