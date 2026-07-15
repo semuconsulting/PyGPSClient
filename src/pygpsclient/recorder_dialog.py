@@ -31,6 +31,7 @@ from tkinter import (
     Label,
     StringVar,
     TclError,
+    Tk,
     W,
     filedialog,
 )
@@ -93,18 +94,16 @@ class RecorderDialog(ToplevelDialog):
     Configuration command recorder panel.
     """
 
-    def __init__(self, app, *args, **kwargs):
+    def __init__(self, app: Tk, *args, **kwargs):
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
-        :param Frame container: reference to container frame (config-dialog)
+        :param Tk app: reference to main tkinter application
         :param args: optional args to pass to Frame parent class
         :param kwargs: optional kwargs to pass to Frame parent class
         """
 
         self.__app = app
-        # self.__master = self.__app.appmaster  # link to root Tk window
         super().__init__(app, DLGTRECORD)
         self.width = int(kwargs.get("width", 500))
         self.height = int(kwargs.get("height", 300))
@@ -307,7 +306,7 @@ class RecorderDialog(ToplevelDialog):
             return
 
         self.__app.recorded_commands = None
-        self.status_label = ("Loading commands...", INFOCOL)
+        self.set_status_label("Loading commands...", INFOCOL)
 
         try:
             if self._configfile[-3:] == "txt":
@@ -318,12 +317,12 @@ class RecorderDialog(ToplevelDialog):
                 i = self._on_load_ubx(self._configfile)
         except Exception:  # pylint: disable=broad-exception-caught
             i = 0
-            self.status_label = (f"ERROR parsing {self._configfile}!", ERRCOL)
+            self.set_status_label(f"ERROR parsing {self._configfile}!", ERRCOL)
 
         self.update_count()
         if i > 0:
             fname = self._configfile.split("/")[-1]
-            self.status_label = (
+            self.set_status_label(
                 f"{i} Command{'s' if i > 1 else ''} loaded from {fname}",
                 OKCOL,
             )
@@ -418,7 +417,7 @@ class RecorderDialog(ToplevelDialog):
             return
 
         if len(self.__app.recorded_commands) == 0:
-            self.status_label = ("Nothing to save", ERRCOL)
+            self.set_status_label("Nothing to save", ERRCOL)
             return
 
         if self._save_to_preset:  # saving to preset section of json config
@@ -430,7 +429,7 @@ class RecorderDialog(ToplevelDialog):
         if self._configfile is None:  # user cancelled
             return
 
-        self.status_label = ("Saving commands...", INFOCOL)
+        self.set_status_label("Saving commands...", INFOCOL)
         i = 0
         with open(self._configfile, "wb") as file:
             for i, msg in enumerate(self.__app.recorded_commands):
@@ -439,7 +438,7 @@ class RecorderDialog(ToplevelDialog):
                 file.write(msg)
         self.__app.recorded_commands = None
         self.update_count()
-        self.status_label = (
+        self.set_status_label(
             f"{i + 1} command{'s' if i > 0 else ''} saved to {fname}",
             OKCOL,
         )
@@ -453,7 +452,7 @@ class RecorderDialog(ToplevelDialog):
             return
 
         if len(self.__app.recorded_commands) == 0:
-            self.status_label = ("Nothing to send", ERRCOL)
+            self.set_status_label("Nothing to send", ERRCOL)
             return
 
         i = 0
@@ -461,13 +460,13 @@ class RecorderDialog(ToplevelDialog):
             self._rec_status = PLAY
             for i, msg in enumerate(self.__app.recorded_commands):
                 mid = getattr(self.__app.recorded_commands[-1], "identity", "tty")
-                self.status_label = (f"{i} Sending {mid}", INFOCOL)
+                self.set_status_label(f"{i} Sending {mid}", INFOCOL)
                 if isinstance(msg, (UBXMessage, NMEAMessage)):
                     msg = msg.serialize()
                 self.__app.send_to_device(msg)
                 sleep(0.01)
             self._rec_status = STOP
-        self.status_label = (
+        self.set_status_label(
             f"{i + 1} command{'s' if i > 0 else ''} sent to device",
             OKCOL,
         )
@@ -495,7 +494,7 @@ class RecorderDialog(ToplevelDialog):
             self.__app.recording = False
 
         stat = "started" if self._rec_status else "stopped"
-        self.status_label = (f"Recording {stat}", INFOCOL)
+        self.set_status_label(f"Recording {stat}", INFOCOL)
         self._update_status()
 
     def _on_import(self):
@@ -507,14 +506,14 @@ class RecorderDialog(ToplevelDialog):
         """
 
         if self._rec_status == RECORD:
-            self.status_label = ("Stop recording first", ERRCOL)
+            self.set_status_label("Stop recording first", ERRCOL)
             return
 
         if len(self.__app.recorded_commands) == 0:
-            self.status_label = ("Nothing to import", ERRCOL)
+            self.set_status_label("Nothing to import", ERRCOL)
             return
 
-        self.status_label = (
+        self.set_status_label(
             f"Enter preset description, then click Save {SAVE}",
             INFOCOL,
         )
@@ -550,12 +549,12 @@ class RecorderDialog(ToplevelDialog):
                 )
                 typ = "TTY"
 
-            self.status_label = (
+            self.set_status_label(
                 f"{len(self.__app.recorded_commands)} commands imported as {typ} presets",
                 OKCOL,
             )
         except AttributeError:
-            self.status_label = (
+            self.set_status_label(
                 "Recorded commands must be of same type",
                 ERRCOL,
             )
@@ -573,13 +572,13 @@ class RecorderDialog(ToplevelDialog):
         """
 
         if len(self.__app.recorded_commands) == 0:
-            self.status_label = ("Nothing to undo", ERRCOL)
+            self.set_status_label("Nothing to undo", ERRCOL)
             return
 
         if self._rec_status == STOP:
             if len(self.__app.recorded_commands) > 0:
                 self.__app.recorded_commands = UNDO
-                self.status_label = ("Last command undone", INFOCOL)
+                self.set_status_label("Last command undone", INFOCOL)
 
         self.update_count()
 
@@ -593,11 +592,11 @@ class RecorderDialog(ToplevelDialog):
 
         lcs = len(self.__app.recorded_commands)
         if lcs == 0:
-            self.status_label = ("Nothing to delete", ERRCOL)
+            self.set_status_label("Nothing to delete", ERRCOL)
             return
 
         self.__app.recorded_commands = None
-        self.status_label = (f"{lcs} command{'s' if lcs > 1 else ''} deleted", INFOCOL)
+        self.set_status_label(f"{lcs} command{'s' if lcs > 1 else ''} deleted", INFOCOL)
 
         self.update_count()
 
@@ -616,15 +615,15 @@ class RecorderDialog(ToplevelDialog):
         elif self._rec_status == RECORD:
             pimg = self._img_play
             rimg = self._img_stop
-        self._btn_play.config(image=pimg)
-        self._btn_record.config(image=rimg)
+        self._btn_play["image"] = pimg
+        self._btn_record["image"] = rimg
 
     def update_count(self):
         """
         Update command count.
         """
 
-        self._lbl_memory.config(text=len(self.__app.recorded_commands))
+        self._lbl_memory["text"] = len(self.__app.recorded_commands)
 
     def _flash_record(self, stop: Event):
         """
@@ -637,11 +636,13 @@ class RecorderDialog(ToplevelDialog):
             i = 0
             while not stop.is_set():
                 i = not i
-                self._lbl_activity.config(
-                    text="RECORDING", fg=cols[i][0], bg=cols[i][1]
-                )
+                self._lbl_activity["text"] = "RECORDING"
+                self._lbl_activity["fg"] = cols[i][0]
+                self._lbl_activity["bg"] = cols[i][1]
                 sleep(FLASH)
-            self._lbl_activity.config(text="", fg=FGCOL, bg=BGCOL)
+            self._lbl_activity["text"] = ""
+            self._lbl_activity["fg"] = FGCOL
+            self._lbl_activity["bg"] = BGCOL
         except TclError:  # if dialog closed without stopping recording
             pass
 

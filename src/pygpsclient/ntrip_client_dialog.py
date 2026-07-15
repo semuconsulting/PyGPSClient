@@ -42,6 +42,7 @@ from tkinter import (
     Spinbox,
     StringVar,
     TclError,
+    Tk,
     W,
     ttk,
 )
@@ -102,18 +103,17 @@ class NTRIPConfigDialog(ToplevelDialog):
     NTRIPConfigDialog class.
     """
 
-    def __init__(self, app, *args, **kwargs):  # pylint: disable=unused-argument
+    def __init__(self, app: Tk, *args, **kwargs):  # pylint: disable=unused-argument
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         :param args: optional args to pass to parent class (not currently used)
         :param kwargs: optional kwargs to pass to parent class (not currently used)
         """
 
         self.__app = app  # Reference to main application class
         self.logger = getLogger(__name__)
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
 
         super().__init__(app, DLGTNTRIP)
         self._cfg_msg_command = None
@@ -184,10 +184,10 @@ class NTRIPConfigDialog(ToplevelDialog):
         )
         self._scr_sourcetablev = Scrollbar(self._frm_body, orient=VERTICAL)
         self._scr_sourcetableh = Scrollbar(self._frm_body, orient=HORIZONTAL)
-        self._lbx_sourcetable.config(yscrollcommand=self._scr_sourcetablev.set)
-        self._lbx_sourcetable.config(xscrollcommand=self._scr_sourcetableh.set)
-        self._scr_sourcetablev.config(command=self._lbx_sourcetable.yview)
-        self._scr_sourcetableh.config(command=self._lbx_sourcetable.xview)
+        self._lbx_sourcetable["yscrollcommand"] = self._scr_sourcetablev.set
+        self._lbx_sourcetable["xscrollcommand"] = self._scr_sourcetableh.set
+        self._scr_sourcetablev["command"] = self._lbx_sourcetable.yview
+        self._scr_sourcetableh["command"] = self._lbx_sourcetable.xview
 
         self._lbl_ntripversion = Label(self._frm_body, text=LBLNTRIPVERSION)
         self._spn_ntripversion = Spinbox(
@@ -435,21 +435,21 @@ class NTRIPConfigDialog(ToplevelDialog):
                     else "Disconnected"
                 )
             if msgt is None:
-                self.status_label = (msg, INFOCOL)
+                self.set_status_label(msg, INFOCOL)
             else:
                 msg, col = msgt
-                self.status_label = (msg, col)
+                self.set_status_label(msg, col)
 
             self._frm_socket.status_label = connected
 
-            self._btn_disconnect.config(state=(NORMAL if connected else DISABLED))
+            self._btn_disconnect["state"] = NORMAL if connected else DISABLED
 
             for ctl in (
                 self._spn_ntripversion,
                 self._spn_ntripggaint,
                 self._spn_datatype,
             ):
-                ctl.config(state=(DISABLED if connected else READONLY))
+                ctl["state"] = DISABLED if connected else READONLY
 
             for ctl in (
                 self._btn_connect,
@@ -464,7 +464,7 @@ class NTRIPConfigDialog(ToplevelDialog):
                 self._rad_ggafixed,
                 self._lbx_sourcetable,
             ):
-                ctl.config(state=(DISABLED if connected else NORMAL))
+                ctl["state"] = DISABLED if connected else NORMAL
             # refresh sourcetable listbox ! NB PLACEMENT OF THIS CALL IS IMPORTANT !
             self.update_sourcetable(self._settings["sourcetable"])
             # update closest mountpoint name and distance (if available)
@@ -694,7 +694,7 @@ class NTRIPConfigDialog(ToplevelDialog):
             valid = valid & self._ent_sep.validate(VALFLOAT, -MAXALT, MAXALT)
 
         if not valid:
-            self.status_label = ("ERROR - invalid settings", ERRCOL)
+            self.set_status_label("ERROR - invalid settings", ERRCOL)
 
         return valid
 
@@ -716,7 +716,7 @@ class NTRIPConfigDialog(ToplevelDialog):
                 dist_u = "miles"
             dist_l = f"Baseline: {dist:,.1f} {dist_u}"
         self._ntrip_mountpoint.set(name)
-        self._lbl_mpdist.config(text=dist_l)
+        self._lbl_mpdist["text"] = dist_l
 
     def _get_coordinates(self) -> tuple[float, float]:
         """

@@ -103,12 +103,11 @@ class SqliteHandler:
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
 
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.logger = logging.getLogger(__name__)
 
         self._db = None
@@ -132,7 +131,7 @@ class SqliteHandler:
         """
 
         try:
-            self.__app.status_label = (DLGDBINIT.format(self._db), INFOCOL)
+            self.__app.set_status_label(DLGDBINIT.format(self._db), INFOCOL)
             self.logger.debug("Spatial metadata initialisation in progress...")
             self._connection.execute(SQLINIT)
             self.logger.debug("Spatial metadata initialisation complete")
@@ -140,7 +139,7 @@ class SqliteHandler:
             self._cursor.executescript(SQLC1.format(table=tbname))
             return SQLOK
         except sqlite3.Error as err:
-            self.__app.status_label = (DLGDBINITERR.format(err), ERRCOL)
+            self.__app.set_status_label(DLGDBINITERR.format(err), ERRCOL)
             self.logger.debug(traceback.format_exc())
             return SQLERR
 
@@ -184,18 +183,18 @@ class SqliteHandler:
             if testing:
                 self._connection.close()
             else:
-                self.__app.status_label = (DLGDBOPEN.format(self._db), OKCOL)
+                self.__app.set_status_label(DLGDBOPEN.format(self._db), OKCOL)
             return SQLOK
         except AttributeError as err:
-            self.__app.status_label = (DLGDBSQLERR.format(err), errcol)
+            self.__app.set_status_label(DLGDBSQLERR.format(err), errcol)
             self.logger.debug(traceback.format_exc())
             return NOEXT  # extensions not supported
         except sqlite3.OperationalError as err:
-            self.__app.status_label = (DLGDBSQLERR.format(err), errcol)
+            self.__app.set_status_label(DLGDBSQLERR.format(err), errcol)
             self.logger.debug(traceback.format_exc())
             return NOMODS  # no mod_spatial extension found
         except sqlite3.Error as err:
-            self.__app.status_label = (DLGDBSQLERR.format(err), errcol)
+            self.__app.set_status_label(DLGDBSQLERR.format(err), errcol)
             self.logger.debug(traceback.format_exc())
             return SQLERR  # other sqlite error
 
@@ -260,7 +259,7 @@ class SqliteHandler:
             self.logger.debug(f"Executed SQL statement {sql}")
             return SQLOK
         except sqlite3.Error as err:
-            self.__app.status_label = (DLGDBSQLERR.format(err), ERRCOL)
+            self.__app.set_status_label(DLGDBSQLERR.format(err), ERRCOL)
             self.logger.debug(traceback.format_exc())
             return SQLERR
 

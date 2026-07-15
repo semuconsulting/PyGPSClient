@@ -30,6 +30,7 @@ from tkinter import (
     Spinbox,
     StringVar,
     TclError,
+    Tk,
     W,
     ttk,
 )
@@ -59,6 +60,13 @@ from pygnssutils.rinex_globals import (
     SBA,
 )
 
+try:
+    from pygnssutils.rinex_globals import NMEA, RTCM3, UBLOX
+except ImportError:
+    NMEA = "nmea"
+    RTCM3 = "rtcm3"
+    UBLOX = "u-blox"
+
 from pygpsclient.globals import (
     CLICK_CURSOR,
     ERRCOL,
@@ -85,6 +93,7 @@ from pygpsclient.strings import (
     LBLRINEXRCVR,
     LBLRINEXSTARTTIME,
     LBLRINEXSTATION,
+    LBLRINEXSVCODES,
     LBLRINEXTYPES,
     LBLRINEXVER,
     NA,
@@ -96,10 +105,6 @@ from pygpsclient.toplevel_dialog import ToplevelDialog
 
 RINEXVERSIONS = ("3.05", "4.02")
 RINEXTYPES = (OBS, NAV, MET)
-NMEASOURCE = "NMEA 0183"
-RTCMSOURCE = "RTCM 3"
-UBXSOURCE = "UBX (u-blox)"
-RINEXSOURCES = {UBXSOURCE: "R", NMEASOURCE: "R", RTCMSOURCE: "N"}
 RINEXMARKERTYPES = (
     "GEODETIC",
     "HUMAN",
@@ -124,18 +129,17 @@ class RINEXDialog(ToplevelDialog):
     RINEXDialog class.
     """
 
-    def __init__(self, app, *args, **kwargs):  # pylint: disable=unused-argument
+    def __init__(self, app: Tk, *args, **kwargs):  # pylint: disable=unused-argument
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         :param args: optional args to pass to parent class (not currently used)
         :param kwargs: optional kwargs to pass to parent class (not currently used)
         """
 
         self.__app = app  # Reference to main application class
         self.logger = getLogger(__name__)
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
 
         super().__init__(app, DLGTRINEX)
         self._infile_path = Path(".")
@@ -162,6 +166,7 @@ class RINEXDialog(ToplevelDialog):
         self._rxqzss = IntVar()
         self._rxnavic = IntVar()
         self._obstypes = StringVar()
+        self._svcodes = StringVar()
         self._markernum = StringVar()
         self._markername = StringVar()
         self._markertype = StringVar()
@@ -262,7 +267,7 @@ class RINEXDialog(ToplevelDialog):
         )
         self._spn_obssource = Spinbox(
             self._frm_basic,
-            values=list(RINEXSOURCES),
+            values=(UBLOX,),
             width=14,
             wrap=True,
             textvariable=self._obssource,
@@ -278,7 +283,7 @@ class RINEXDialog(ToplevelDialog):
         )
         self._spn_navsource = Spinbox(
             self._frm_basic,
-            values=list(RINEXSOURCES),
+            values=(UBLOX, RTCM3),
             width=14,
             wrap=True,
             textvariable=self._navsource,
@@ -294,7 +299,7 @@ class RINEXDialog(ToplevelDialog):
         )
         self._spn_metsource = Spinbox(
             self._frm_basic,
-            values=list(RINEXSOURCES),
+            values=(NMEA,),
             width=14,
             wrap=True,
             textvariable=self._metsource,
@@ -368,6 +373,13 @@ class RINEXDialog(ToplevelDialog):
         self._ent_obstypes = Entry(
             self._frm_basic,
             textvariable=self._obstypes,
+            state=NORMAL,
+            relief="sunken",
+        )
+        self._lbl_svcodes = Label(self._frm_basic, text=LBLRINEXSVCODES)
+        self._ent_svcodes = Entry(
+            self._frm_basic,
+            textvariable=self._svcodes,
             state=NORMAL,
             relief="sunken",
         )
@@ -572,16 +584,20 @@ class RINEXDialog(ToplevelDialog):
         self._chk_rxnavic.grid(column=6, row=9, padx=3, sticky=W)
         self._lbl_obstypes.grid(column=0, row=10, columnspan=7, padx=3, sticky=W)
         self._ent_obstypes.grid(column=0, row=11, columnspan=7, padx=3, sticky=EW)
-        self._lbl_corr.grid(column=0, row=12, columnspan=2, padx=3, sticky=W)
-        self._chk_timecorr.grid(column=2, row=12, padx=3, sticky=W)
-        self._chk_ionocorr.grid(column=3, row=12, padx=3, sticky=W)
-        self._pgb_elapsed.grid(column=0, row=13, columnspan=7, padx=3, sticky=EW)
+
+        self._lbl_svcodes.grid(column=0, row=12, columnspan=7, padx=3, sticky=W)
+        self._ent_svcodes.grid(column=0, row=13, columnspan=7, padx=3, sticky=EW)
+
+        self._lbl_corr.grid(column=0, row=14, columnspan=2, padx=3, sticky=W)
+        self._chk_timecorr.grid(column=2, row=14, padx=3, sticky=W)
+        self._chk_ionocorr.grid(column=3, row=14, padx=3, sticky=W)
+        self._pgb_elapsed.grid(column=0, row=15, columnspan=7, padx=3, sticky=EW)
         ttk.Separator(self._frm_basic).grid(
-            column=0, row=14, columnspan=7, padx=3, sticky=EW
+            column=0, row=15, columnspan=7, padx=3, sticky=EW
         )
-        self._lbl_outputs.grid(column=0, row=15, columnspan=7, padx=3, pady=1, sticky=W)
+        self._lbl_outputs.grid(column=0, row=16, columnspan=7, padx=3, pady=1, sticky=W)
         for i, lbl in enumerate(self._lbl_output_labels.values()):
-            lbl.grid(column=0, row=16 + i, columnspan=7, padx=3, pady=1, sticky=EW)
+            lbl.grid(column=0, row=17 + i, columnspan=7, padx=3, pady=1, sticky=EW)
 
         self._lbl_marker.grid(column=0, row=0, columnspan=5, padx=3, sticky=W)
         self._ent_markernum.grid(column=0, row=1, padx=3, sticky=W)
@@ -620,8 +636,8 @@ class RINEXDialog(ToplevelDialog):
         """
 
         if show:
-            self._chk_timecorr.config(text="STO")
-            self._chk_ionocorr.config(text="ION")
+            self._chk_timecorr["text"] = "STO"
+            self._chk_ionocorr["text"] = "ION"
             self._lbl_doi.grid(
                 column=0, row=startrow + 1, columnspan=5, padx=3, sticky=W
             )
@@ -640,10 +656,10 @@ class RINEXDialog(ToplevelDialog):
             self._ent_station.grid(
                 column=0, row=startrow + 6, columnspan=5, padx=3, sticky=EW
             )
-            self._chk_eopcorr.grid(column=4, row=12, padx=3, sticky=W)
+            self._chk_eopcorr.grid(column=4, row=14, padx=3, sticky=W)
         else:
-            self._chk_timecorr.config(text="Time")
-            self._chk_ionocorr.config(text="Iono")
+            self._chk_timecorr["text"] = "Time"
+            self._chk_ionocorr["text"] = "Iono"
             self._lbl_doi.grid_forget()
             self._ent_doi.grid_forget()
             self._lbl_license.grid_forget()
@@ -690,9 +706,9 @@ class RINEXDialog(ToplevelDialog):
             self._rxnavic,
         ):
             chk.set(1)
-        self._obssource.set(UBXSOURCE)
-        self._navsource.set(UBXSOURCE)
-        self._metsource.set(NMEASOURCE)
+        self._obssource.set(UBLOX)
+        self._navsource.set(UBLOX)
+        self._metsource.set(NMEA)
         self._antennah.set("0.0")
         self._antennae.set("0.0")
         self._antennad.set("0.0")
@@ -737,7 +753,7 @@ class RINEXDialog(ToplevelDialog):
         Run conversion.
         """
 
-        self.status_label = f"Processing {self._infile_path.name}"
+        self.set_status_label(f"Processing {self._infile_path.name}")
         for rt in RINEXTYPES:
             self._outputlabels[rt].set("")
         self._do_conversion()
@@ -773,7 +789,7 @@ class RINEXDialog(ToplevelDialog):
         self._infilepath.set(sfp)
         self._ent_infilepath.update()
         validate(self._ent_infilepath, valmode=VALNONBLANK)
-        self.status_label = (
+        self.set_status_label(
             RINEXFILEVALIDATING.format(path=self._infile_path.name),
             OKCOL,
         )
@@ -785,19 +801,19 @@ class RINEXDialog(ToplevelDialog):
                     if raw is not None:
                         i += 1
             if i == 0:
-                self.status_label = (
+                self.set_status_label(
                     RINEXFILEINVALID.format(path=self._infile_path.name),
                     ERRCOL,
                 )
             else:
-                self.status_label = (
+                self.set_status_label(
                     RINEXFILEVALID.format(path=self._infile_path.name, count=i),
                     INFOCOL,
                 )
             self._filecount = i
         except Exception as err:  # pylint: disable=broad-exception-caught
             self.logger.error(f"Error processing  {self._infile_path} - {err}")
-            self.status_label = (f"Error processing {self._infile_path.name}", ERRCOL)
+            self.set_status_label(f"Error processing {self._infile_path.name}", ERRCOL)
 
     def _toggle_advanced(self):
         """
@@ -807,10 +823,10 @@ class RINEXDialog(ToplevelDialog):
         self._show_advanced = not self._show_advanced
         if self._show_advanced:
             self._frm_advanced.grid(column=1, row=0, sticky=NSEW)
-            self._btn_toggle.config(image=self._img_contracth)
+            self._btn_toggle["image"] = self._img_contracth
         else:
             self._frm_advanced.grid_forget()
-            self._btn_toggle.config(image=self._img_expandh)
+            self._btn_toggle["image"] = self._img_expandh
 
     # def _valid_settings(self) -> bool:
     #     """
@@ -822,7 +838,7 @@ class RINEXDialog(ToplevelDialog):
 
     #     valid = True
     #     if not valid:
-    #         self.status_label = ("ERROR - invalid settings", ERRCOL)
+    #         self.set_status_label("ERROR - invalid settings", ERRCOL)
 
     #     return valid
 
@@ -860,60 +876,63 @@ class RINEXDialog(ToplevelDialog):
             valid = valid & validate(self._ent_antennae, valmode=VALFLOAT)
             valid = valid & validate(self._ent_antennad, valmode=VALFLOAT)
             if not valid:
-                self.status_label = ("Invalid Parameters", ERRCOL)
+                self.set_status_label("Invalid Parameters", ERRCOL)
                 return
 
             rinex_version = self._rinexver.get()
-            rinex_types = []
+            rinex_types = ()
             if self._rinexobs.get():
-                rinex_types.append(OBS)
+                rinex_types += (OBS,)
             if self._rinexnav.get():
-                rinex_types.append(NAV)
+                rinex_types += (NAV,)
             if self._rinexmet.get():
-                rinex_types.append(MET)
-            if rinex_types == []:
-                self.status_label = ("Select at least one RINEX output type", ERRCOL)
+                rinex_types += (MET,)
+            if rinex_types == ():
+                self.set_status_label("Select at least one RINEX output type", ERRCOL)
                 valid = False
-            gnss_filter = []
+            gnss_filter = ()
             if self._rxgps.get():
-                gnss_filter.append(GPS)
+                gnss_filter += (GPS,)
             if self._rxgalileo.get():
-                gnss_filter.append(GAL)
+                gnss_filter += (GAL,)
             if self._rxglonass.get():
-                gnss_filter.append(GLO)
+                gnss_filter += (GLO,)
             if self._rxbeidou.get():
-                gnss_filter.append(BDS)
+                gnss_filter += (BDS,)
             if self._rxqzss.get():
-                gnss_filter.append(QZS)
+                gnss_filter += (QZS,)
             if self._rxnavic.get():
-                gnss_filter.append(IRN)
+                gnss_filter += (IRN,)
             if self._rxsbas.get():
-                gnss_filter.append(SBA)
-            if gnss_filter == []:
-                self.status_label = ("Select at least one GNSS", ERRCOL)
+                gnss_filter += (SBA,)
+            if len(gnss_filter) == 7:
+                gnss_filter = ("",)
+            if gnss_filter == ():
+                self.set_status_label("Select at least one GNSS", ERRCOL)
                 valid = False
             if not valid:
                 return
 
-            obs_filter = self._obstypes.get().split(",")
+            obs_filter = tuple(self._obstypes.get().split(","))
+            sv_filter = tuple(self._svcodes.get().split(","))
             starttime = self._starttime.get()
             minobs = 10
-            marker = [
+            marker = (
                 self._markername.get(),
                 self._markernum.get(),
                 self._markertype.get(),
-            ]
-            antenna = [self._antennanum.get(), self._antennatype.get()]
-            antennahed = [
+            )
+            antenna = (self._antennanum.get(), self._antennatype.get())
+            antennahed = (
                 self._antennah.get(),
                 self._antennae.get(),
                 self._antennad.get(),
-            ]
-            receiver = [
+            )
+            receiver = (
                 self._rcvrnum.get(),
                 self._rcvrname.get(),
                 self._rcvrversion.get(),
-            ]
+            )
             observer = self._observer.get()
             timecorr = self._timecorrflag.get()
             ionocorr = self._ionocorrflag.get()
@@ -921,25 +940,27 @@ class RINEXDialog(ToplevelDialog):
             doi = self._doi.get()
             licen = self._license.get()
             station = self._station.get()
-            comments = ["PyGPSClient RINEX Converter Dialog"]
+            comments = ("PyGPSClient RINEX Converter Dialog",)
             country = self._countrycode.get()
             for cvar in self._usercommentvar:
                 cval = cvar.get()
                 if cval != "":
-                    comments.append(cval)
+                    comments += (cval,)
             protfilter = NMEA_PROTOCOL | RTCM3_PROTOCOL | UBX_PROTOCOL
-            datasource = [
-                RINEXSOURCES[self._obssource.get()],
-                RINEXSOURCES[self._navsource.get()],
-                RINEXSOURCES[self._metsource.get()],
-            ]
+            obssource = self._obssource.get()
+            navsource = self._navsource.get()
+            metsource = self._metsource.get()
+
             rc = RinexConverter(
                 self.__app,
                 rinex_version=rinex_version,
                 rinex_types=rinex_types,
                 gnssfilter=gnss_filter,
                 obsfilter=obs_filter,
-                datasource=datasource,
+                svfilter=sv_filter,
+                obssource=obssource,
+                navsource=navsource,
+                metsource=metsource,
                 starttime=starttime,
                 minobs=minobs,
                 marker=marker,
@@ -956,6 +977,7 @@ class RINEXDialog(ToplevelDialog):
                 license=licen,
                 station=station,
                 country=country,
+                datasource=["R", "R", "R"],  # for pygnssutils <= 1.3.5
                 **kwargs,
             )
             self._stopevent.clear()
@@ -973,7 +995,7 @@ class RINEXDialog(ToplevelDialog):
             rct.start()
 
         except (TclError, KeyboardInterrupt):
-            self.status_label = ("Conversion Failed", ERRCOL)
+            self.set_status_label("Conversion Failed", ERRCOL)
 
     def _process_input(
         self,
@@ -1006,19 +1028,19 @@ class RINEXDialog(ToplevelDialog):
                         f"{rt}: {outputs[rt][0].name}: {outputs[rt][1]}"
                     )
             if tot > 1:
-                self.status_label = ("Conversion successful", OKCOL)
+                self.set_status_label("Conversion successful", OKCOL)
             else:
-                self.status_label = ("No usable information in input", ERRCOL)
+                self.set_status_label("No usable information in input", ERRCOL)
             parts = self._infile_path.parts
             path = f" (...{parts[-2]}/) " if len(parts) > 1 else " (.../)"
-            self._lbl_outputs.config(text=LBLRINEXOUTPUTS.format(path=path))
+            self._lbl_outputs["text"] = LBLRINEXOUTPUTS.format(path=path)
 
         elif res == RINEX_CANCELLED:
-            self.status_label = ("Conversion cancelled", ERRCOL)
+            self.set_status_label("Conversion cancelled", ERRCOL)
         elif res == RINEX_NORECS:
-            self.status_label = ("No parsable records in input", ERRCOL)
+            self.set_status_label("No parsable records in input", ERRCOL)
         else:
-            self.status_label = ("Conversion failed - see log", ERRCOL)
+            self.set_status_label("Conversion failed - see log", ERRCOL)
 
     def _prog_callback_threaded(self, progress: int):
         """

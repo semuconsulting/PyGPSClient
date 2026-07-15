@@ -26,6 +26,7 @@ from tkinter import (
     S,
     Scrollbar,
     Spinbox,
+    Tk,
     W,
 )
 
@@ -49,18 +50,17 @@ class UBX_MSGRATE_Frame(Frame):
     UBX Message Rate configuration command panel.
     """
 
-    def __init__(self, app: Frame, parent: Frame, *args, **kwargs):
+    def __init__(self, app: Tk, parent: Frame, *args, **kwargs):
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         :param Frame parent: reference to parent frame (config-dialog)
         :param args: optional args to pass to Frame parent class
         :param kwargs: optional kwargs to pass to Frame parent class
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.__container = parent
 
         super().__init__(parent.container, *args, **kwargs)
@@ -92,8 +92,8 @@ class UBX_MSGRATE_Frame(Frame):
             exportselection=False,
         )
         self._scr_cfg_msg = Scrollbar(self, orient=VERTICAL)
-        self._lbx_cfg_msg.config(yscrollcommand=self._scr_cfg_msg.set)
-        self._scr_cfg_msg.config(command=self._lbx_cfg_msg.yview)
+        self._lbx_cfg_msg["yscrollcommand"] = self._scr_cfg_msg.set
+        self._scr_cfg_msg["command"] = self._lbx_cfg_msg.yview
         self._lbl_ddc = Label(self, text="I2C")
         self._spn_ddc = Spinbox(
             self,
@@ -209,11 +209,11 @@ class UBX_MSGRATE_Frame(Frame):
             self._uart2_rate.set(msg.rateUART2)
             self._usb_rate.set(msg.rateUSB)
             self._spi_rate.set(msg.rateSPI)
-            self._lbl_send_command.config(image=self.__container.img_confirmed)
+            self._lbl_send_command["image"] = self.__container.img_confirmed
 
         elif msg.identity == "ACK-NAK":
             self.__container.status_label = ("CFG-MSG POLL message rejected", ERRCOL)
-            self._lbl_send_command.config(image=self.__container.img_warn)
+            self._lbl_send_command["image"] = self.__container.img_warn
 
     def _on_select_cfg_msg(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -253,7 +253,7 @@ class UBX_MSGRATE_Frame(Frame):
             rateSPI=rateSPI,
         )
         self.__container.send_command(msg)
-        self._lbl_send_command.config(image=self.__container.img_pending)
+        self._lbl_send_command["image"] = self.__container.img_pending
         self.__container.status_label = "CFG-MSG SET message sent"
         for msgid in ("ACK-ACK", "ACK-NAK"):
             self.__container.set_pending(msgid, UBX_CFGMSG)
@@ -269,7 +269,7 @@ class UBX_MSGRATE_Frame(Frame):
 
         msg = UBXMessage("CFG", "CFG-MSG", POLL, payload=msgtyp)
         self.__container.send_command(msg)
-        self._lbl_send_command.config(image=self.__container.img_pending)
+        self._lbl_send_command["image"] = self.__container.img_pending
         self.__container.status_label = "CFG-MSG POLL message sent"
         for msgid in ("CFG-MSG", "ACK-NAK"):
             self.__container.set_pending(msgid, UBX_CFGMSG)

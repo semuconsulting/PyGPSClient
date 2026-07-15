@@ -27,6 +27,7 @@ from tkinter import (
     Frame,
     Label,
     TclError,
+    Tk,
     Toplevel,
     W,
 )
@@ -66,16 +67,16 @@ class ToplevelDialog(Toplevel):
     ToplevelDialog class.
     """
 
-    def __init__(self, app, dlgname: str, *args, **kwargs):
+    def __init__(self, app: Tk, dlgname: str, *args, **kwargs):
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         :param str dlgname: dialog name
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
+
         self._dlgname = dlgname
         self.logger = logging.getLogger(f"{APPNAME}.{dlgname}")
         self.width, self.height = 300, 300  # initial, updated in finalise()
@@ -90,7 +91,7 @@ class ToplevelDialog(Toplevel):
             "transient", self.__app.configuration.get("transient_dialog_b")
         )
 
-        super().__init__(self.__master, *args, **kwargs)
+        super().__init__(self.__app, *args, **kwargs)
 
         if transient:
             self.transient(self.__app)
@@ -175,14 +176,14 @@ class ToplevelDialog(Toplevel):
             self._frm_container.update_idletasks()
             fh = self._frm_container.winfo_height()
             fw = self._frm_container.winfo_width()
-            lowres, (sh, sw) = check_lowres(self.__master, (fh, fw))
+            lowres, (sh, sw) = check_lowres(self.__app, (fh, fw))
             if lowres:
-                self._can_container.config(
-                    height=min(int(sh * 0.75), fh), width=min(int(sw * 0.75), fw)
-                )
+                self._can_container["height"] = min(int(sh * 0.75), fh)
+                self._can_container["width"] = min(int(sw * 0.75), fw)
                 self.resizable(True, True)
             else:
-                self._can_container.config(height=fh, width=fw)
+                self._can_container["height"] = fh
+                self._can_container["width"] = fw
                 self._can_container.show_scroll(False)
                 self.resizable(self._resizable, self._resizable)
 
@@ -219,7 +220,7 @@ class ToplevelDialog(Toplevel):
         :rtype: tuple[int,int]
         """
 
-        self.__master.update_idletasks()  # Make sure we know about any resizing
+        self.__app.update_idletasks()  # Make sure we know about any resizing
         return self.winfo_width(), self.winfo_height()
 
     @property
@@ -233,38 +234,21 @@ class ToplevelDialog(Toplevel):
 
         return self._frm_container
 
-    @property
-    def status_label(self) -> Label:
-        """
-        Getter for status_label.
-
-        :param self: Description
-        :return: Description
-        :rtype: Label
-        """
-
-        return self._lbl_status
-
-    @status_label.setter
-    def status_label(self, message: str | tuple[str, str]):
+    def set_status_label(self, msg: str, col: str = INFOCOL):
         """
         Setter for status_label.
 
-        :param self: Description
-        :param tuple | str message: (message, color))
+        :param str msg: message
+        :param str col: color
         """
 
         try:
-            if isinstance(message, tuple):
-                message, color = message
-            else:
-                color = INFOCOL
-
             # truncate very long messages
-            if len(message) > 100:
-                message = "..." + message[-100:]
+            if len(msg) > 100:
+                msg = "..." + msg[-100:]
 
-            self.status_label.config(text=message, fg=color)
-            self.status_label.update()
+            self._lbl_status["text"] = msg
+            self._lbl_status["fg"] = col
+            self._lbl_status.update()
         except TclError:
             pass

@@ -52,10 +52,10 @@ classifiers = [
 dependencies = [
     "requests>=2.34.0",
     "Pillow>=12.0.0",
-    "pygnssutils>=1.2.5",
+    "pygnssutils>=1.2.5", # TODO requires >=1.2.6 when available
     "pyunigps>=1.0.0",
     "pynmeagps>=1.1.5",
-    "pyubx2>=1.3.3",
+    "pyubx2>=1.3.5",
 ]
 
 [project.scripts]

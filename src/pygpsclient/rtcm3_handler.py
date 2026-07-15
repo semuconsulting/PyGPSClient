@@ -19,6 +19,8 @@ from pyrtcm import RTCMMessage
 
 from pygpsclient.dialog_state import DLGTSERVER
 
+RTCM56 = "RTCM 1005/6"  # antenna reference point message used by Rover Plot
+
 
 class RTCM3Handler:
     """
@@ -29,11 +31,10 @@ class RTCM3Handler:
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.logger = logging.getLogger(__name__)
 
         self._raw_data = None
@@ -70,6 +71,18 @@ class RTCM3Handler:
             self.__app.gnss_status.base_ecefx = parsed.DF025
             self.__app.gnss_status.base_ecefy = parsed.DF026
             self.__app.gnss_status.base_ecefz = parsed.DF027
+
+            # update Survey-In base station location
+            if self.__app.dialog(DLGTSERVER) is not None:
+                self.__app.dialog(DLGTSERVER).update_base_location()
+
+            if (
+                self.__app.configuration.get("relposnedsettings_d")["source_s"]
+                != RTCM56
+            ):
+                return
+
+            self.__app.gnss_status.rel_pos_source = RTCM56
             lat2, lon2, _ = ecef2llh(parsed.DF025, parsed.DF026, parsed.DF027)
             self.__app.gnss_status.rel_pos_length = (
                 haversine(
@@ -83,8 +96,6 @@ class RTCM3Handler:
             self.__app.gnss_status.rel_pos_heading = bearing(
                 lat2, lon2, self.__app.gnss_status.lat, self.__app.gnss_status.lon
             )
-            # update Survey-In base station location
-            if self.__app.dialog(DLGTSERVER) is not None:
-                self.__app.dialog(DLGTSERVER).update_base_location()
+
         except (AttributeError, TypeError, ValueError):
             pass

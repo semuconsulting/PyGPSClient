@@ -44,6 +44,7 @@ from pygpsclient.helpers import set_filename, valid_geom
 from pygpsclient.strings import CONFIGTITLE, GITHUB_URL, SAVETITLE
 
 DEFEXT = ("all files", "*.*")
+FLUSHINT = 100  # flush log file every 100 updates
 
 
 class FileHandler:
@@ -55,11 +56,10 @@ class FileHandler:
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.logger = logging.getLogger(__name__)
         self._in_filepath = None
         self._in_filename = None
@@ -75,6 +75,7 @@ class FileHandler:
         self._initdir = {}
         self._logsize = 0
         self._last_track_update = datetime.fromordinal(1)
+        self._flushcount = 0
 
     def __del__(self):
         """
@@ -111,12 +112,12 @@ class FileHandler:
         self._initdir[mode] = Path(fil).parent  # remember last directory
         return fil
 
-    def load_config(self, filename: Path = CONFIGFILE) -> tuple:
+    def load_config(self, filename: Path | str = CONFIGFILE) -> tuple:
         """
         Load configuration file. If filename is not provided, defaults
         to $HOME/pygpsclient.json, otherwise user is prompted for path.
 
-        :param Path filename: fully qualified filename, or None for prompt
+        :param Path | str filename: fully qualified filename, or None for prompt
         :return: filename, saved settings as dictionary and any error message
         :rtype: tuple
         """
@@ -183,13 +184,13 @@ class FileHandler:
                 break
         return err
 
-    def save_config(self, config: dict, filename: Path = CONFIGFILE) -> str:
+    def save_config(self, config: dict, filename: Path | str = CONFIGFILE) -> str:
         """
         Save configuration file. If filename is not provided, defaults to
         $HOME/pygpsclient.json, otherwise user is prompted for filename.
 
         :param dict config: configuration settings as dictionary
-        :param Path filename: fully qualified path to config file, or None for prompt
+        :param Path | str filename: fully qualified path to config file, or None for prompt
         :return: return code "" = success, err str = failure
         :rtype: str
         """
@@ -215,7 +216,7 @@ class FileHandler:
         except (OSError, json.JSONDecodeError) as err:
             return str(err)
 
-    def set_logfile_path(self, initdir=HOME) -> Path | NoneType:
+    def set_logfile_path(self, initdir=HOME) -> Path | str | NoneType:
         """
         Set file path.
 
@@ -248,7 +249,7 @@ class FileHandler:
             self._logfile = open(self._logname, "a+b")
             return 1
         except FileNotFoundError as err:
-            self.__app.status_label = (f"{err}", ERRCOL)
+            self.__app.set_status_label(f"{err}", ERRCOL)
             return 0
 
     def write_logfile(self, raw_data, parsed_data):
@@ -279,7 +280,10 @@ class FileHandler:
                 datum = (str(datum) + "\r").encode("utf-8")
             try:
                 self._logfile.write(datum)
-                self._logfile.flush()
+                self._flushcount += 1
+                if self._flushcount >= FLUSHINT:
+                    self._logfile.flush()
+                    self._flushcount = 0
                 self._logsize += len(datum)
             except ValueError:
                 pass
@@ -330,7 +334,7 @@ class FileHandler:
             _, self._trackname = set_filename(self._trackpath, "track", "gpx")
             self._trackfile = open(self._trackname, "a", encoding="utf-8")
         except FileNotFoundError as err:
-            self.__app.status_label = (f"{err}", ERRCOL)
+            self.__app.set_status_label(f"{err}", ERRCOL)
             return 0
 
         date = datetime.now().isoformat() + "Z"

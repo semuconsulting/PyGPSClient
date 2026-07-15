@@ -31,7 +31,9 @@ from tkinter import (
     ALL,
     CENTER,
     Canvas,
+    Frame,
     S,
+    Tk,
 )
 
 from PIL import Image, ImageTk, UnidentifiedImageError
@@ -106,18 +108,17 @@ class CanvasMap(Canvas):  # pylint: disable=too-many-ancestors
     Canvas Map class.
     """
 
-    def __init__(self, app, container, *args, **kwargs):
+    def __init__(self, app: Tk, container: Frame, *args, **kwargs):
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         :param Frame container: reference to container frame
         :param args: optional args to pass to Frame parent class
         :param kwargs: optional kwargs to pass to Frame parent class
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.__container = container  # container frame
         self.width = kwargs.get("width", 400)
         self.height = kwargs.get("height", 400)
@@ -141,7 +142,7 @@ class CanvasMap(Canvas):  # pylint: disable=too-many-ancestors
 
         super().__init__(self.__container, *args, **kwargs)
 
-        self.config(background=BGCOL)
+        self["background"] = BGCOL
         self.bind("<Configure>", self._on_resize)
         self.bind("<Double-Button-2>", self.on_clear)
         self.bind("<Double-Button-3>", self.on_clear)

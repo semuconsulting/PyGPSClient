@@ -34,8 +34,8 @@ class ConfirmBox(Toplevel):
         :param string prompt: prompt to be displayed
         """
 
-        self.__master = parent
-        Toplevel.__init__(self, parent)
+        self.__parent = parent
+        super().__init__(parent)
         self.title(title)  # pylint: disable=E1102
         self.attributes("-topmost", True)  # keep on top
         self.resizable(False, False)
@@ -78,10 +78,10 @@ class ConfirmBox(Toplevel):
         # self.update_idletasks()
         dw = self.winfo_width()
         dh = self.winfo_height()
-        mx = self.__master.winfo_x()
-        my = self.__master.winfo_y()
-        mw = self.__master.winfo_width()
-        mh = self.__master.winfo_height()
+        mx = self.__parent.winfo_x()
+        my = self.__parent.winfo_y()
+        mw = self.__parent.winfo_width()
+        mh = self.__parent.winfo_height()
         self.geometry(f"+{int(mx + (mw/2 - dw/2))}+{int(my + (mh/2 - dh/2))}")
 
     def show(self):

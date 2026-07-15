@@ -106,17 +106,11 @@ class DummyApp:  # Dummy App class
 
     def __init__(self):
 
-        self.appmaster = "appmaster"
         self.widget_state = WidgetState()
         self.file_handler = DummyFileHandler()
         self.label_status = ""
 
-    @property
-    def status_label(self) -> str:
-        return self.label_status
-
-    @status_label.setter
-    def status_label(self, message):
+    def set_status_label(self, message, col="blue"):
         print(message)
 
 
@@ -143,7 +137,7 @@ class StaticTest(unittest.TestCase):
         self.assertEqual(cfg.get("lbandclientdrat_n"), 2400)
         self.assertEqual(cfg.get("userport_s"), "")
         self.assertEqual(cfg.get("spartnport_s"), "")
-        self.assertEqual(len(cfg.settings), 157)
+        self.assertEqual(len(cfg.settings), 159)
         kwargs = {"userport": "/dev/ttyACM0", "spartnport": "/dev/ttyACM1"}
         cfg.loadcli(**kwargs)
         self.assertEqual(cfg.get("userport_s"), "/dev/ttyACM0")

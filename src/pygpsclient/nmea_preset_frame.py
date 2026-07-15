@@ -28,6 +28,7 @@ from tkinter import (
     S,
     Scrollbar,
     StringVar,
+    Tk,
     W,
 )
 
@@ -65,18 +66,17 @@ class NMEA_PRESET_Frame(Frame):
     NMEA Preset and User-defined configuration command panel.
     """
 
-    def __init__(self, app: Frame, parent: Frame, *args, **kwargs):
+    def __init__(self, app: Tk, parent: Frame, *args, **kwargs):
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         :param Frame parent: reference to parent frame (config-dialog)
         :param args: optional args to pass to Frame parent class
         :param kwargs: optional kwargs to pass to Frame parent class
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.logger = logging.getLogger(__name__)
         self.__container = parent
 
@@ -122,10 +122,10 @@ class NMEA_PRESET_Frame(Frame):
         )
         self._scr_presetv = Scrollbar(self, orient=VERTICAL)
         self._scr_preseth = Scrollbar(self, orient=HORIZONTAL)
-        self._lbx_preset.config(yscrollcommand=self._scr_presetv.set)
-        self._lbx_preset.config(xscrollcommand=self._scr_preseth.set)
-        self._scr_presetv.config(command=self._lbx_preset.yview)
-        self._scr_preseth.config(command=self._lbx_preset.xview)
+        self._lbx_preset["yscrollcommand"] = self._scr_presetv.set
+        self._lbx_preset["xscrollcommand"] = self._scr_preseth.set
+        self._scr_presetv["command"] = self._lbx_preset.yview
+        self._scr_preseth["command"] = self._lbx_preset.xview
         self._lbl_send_command = Label(self, image=self.__container.img_none)
         self._btn_send_command = Button(
             self,
@@ -204,7 +204,7 @@ class NMEA_PRESET_Frame(Frame):
                 status = CONFIRMED
 
             if status == CONFIRMED:
-                self._lbl_send_command.config(image=self._img_pending)
+                self._lbl_send_command["image"] = self._img_pending
                 self.__container.status_label = "Command(s) sent"
                 for msgid in confids:
                     self.__container.set_pending(msgid, NMEA_PRESET)
@@ -215,7 +215,7 @@ class NMEA_PRESET_Frame(Frame):
 
         except Exception as err:  # pylint: disable=broad-except
             self.__container.status_label = (f"Error {err}", ERRCOL)
-            self._lbl_send_command.config(image=self._img_warn)
+            self._lbl_send_command["image"] = self._img_warn
 
     def _do_user_defined(self, command: str) -> list:
         """
@@ -248,7 +248,7 @@ class NMEA_PRESET_Frame(Frame):
                 self.__container.send_command(msg)
         except Exception as err:  # pylint: disable=broad-except
             self.__container.status_label = (f"Error {err}", ERRCOL)
-            self._lbl_send_command.config(image=self._img_warn)
+            self._lbl_send_command["image"] = self._img_warn
 
         return confids
 
@@ -261,8 +261,8 @@ class NMEA_PRESET_Frame(Frame):
 
         status = getattr(msg, "status", "OK")
         if status == "OK":
-            self._lbl_send_command.config(image=self._img_confirmed)
+            self._lbl_send_command["image"] = self._img_confirmed
             self.__container.status_label = ("Preset command(s) acknowledged", OKCOL)
         elif status == "ERROR":
-            self._lbl_send_command.config(image=self._img_warn)
+            self._lbl_send_command["image"] = self._img_warn
             self.__container.status_label = ("Preset command(s) rejected", ERRCOL)

@@ -29,11 +29,10 @@ class QGCHandler:
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.logger = logging.getLogger(__name__)
 
         self._raw_data = None
@@ -52,5 +51,7 @@ class QGCHandler:
             pass
         if self.__app.gnss_status.version_data["hwversion"] == NA:
             self.__app.gnss_status.version_data["hwversion"] = "Quectel"
-            self.__app.device_label = self.__app.gnss_status.version_data["hwversion"]
+            self.__app.set_device_label(
+                self.__app.gnss_status.version_data["hwversion"]
+            )
         # self.logger.debug(f"data received {parsed_data.identity}")

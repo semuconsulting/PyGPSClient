@@ -32,6 +32,7 @@ from tkinter import (
     Spinbox,
     StringVar,
     TclError,
+    Tk,
     W,
 )
 
@@ -78,18 +79,17 @@ class UBX_CFGVAL_Frame(Frame):
     UBX CFG-VAL configuration command panel.
     """
 
-    def __init__(self, app: Frame, parent: Frame, *args, **kwargs):
+    def __init__(self, app: Tk, parent: Frame, *args, **kwargs):
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         :param Frame parent: reference to parent frame (config-dialog)
         :param args: optional args to pass to Frame parent class
         :param kwargs: optional kwargs to pass to Frame parent class
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.__container = parent
 
         super().__init__(parent.container, *args, **kwargs)
@@ -132,10 +132,10 @@ class UBX_CFGVAL_Frame(Frame):
         )
         self._scr_catv = Scrollbar(self, orient=VERTICAL)
         self._scr_cath = Scrollbar(self, orient=HORIZONTAL)
-        self._lbx_cat.config(yscrollcommand=self._scr_catv.set)
-        self._lbx_cat.config(xscrollcommand=self._scr_cath.set)
-        self._scr_catv.config(command=self._lbx_cat.yview)
-        self._scr_cath.config(command=self._lbx_cat.xview)
+        self._lbx_cat["yscrollcommand"] = self._scr_catv.set
+        self._lbx_cat["xscrollcommand"] = self._scr_cath.set
+        self._scr_catv["command"] = self._lbx_cat.yview
+        self._scr_cath["command"] = self._lbx_cat.xview
         self._lbl_parm = Label(self, text="Keyname", anchor=W)
         self._lbx_parm = Listbox(
             self,
@@ -147,10 +147,10 @@ class UBX_CFGVAL_Frame(Frame):
         )
         self._scr_parmv = Scrollbar(self, orient=VERTICAL)
         self._scr_parmh = Scrollbar(self, orient=HORIZONTAL)
-        self._lbx_parm.config(yscrollcommand=self._scr_parmv.set)
-        self._lbx_parm.config(xscrollcommand=self._scr_parmh.set)
-        self._scr_parmv.config(command=self._lbx_parm.yview)
-        self._scr_parmh.config(command=self._lbx_parm.xview)
+        self._lbx_parm["yscrollcommand"] = self._scr_parmv.set
+        self._lbx_parm["xscrollcommand"] = self._scr_parmh.set
+        self._scr_parmv["command"] = self._lbx_parm.yview
+        self._scr_parmh["command"] = self._lbx_parm.xview
 
         self._rad_cfgset = Radiobutton(
             self, text="CFG-VALSET", variable=self._cfgmode, value=0
@@ -263,7 +263,7 @@ class UBX_CFGVAL_Frame(Frame):
         for i, cat in enumerate(cdb_cats):
             self._lbx_cat.insert(i, cat)
         self._cfgmode.set(2)
-        self._lbl_send_command.config(image=self._img_blank)
+        self._lbl_send_command["image"] = self._img_blank
 
     def _on_select_mode(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -271,10 +271,10 @@ class UBX_CFGVAL_Frame(Frame):
         """
 
         if self._cfgmode.get() == VALSET:
-            self._ent_val.config(state=NORMAL)
+            self._ent_val["state"] = NORMAL
         else:
-            self._ent_val.config(state=READONLY)
-        self._lbl_send_command.config(image=self._img_blank)
+            self._ent_val["state"] = READONLY
+        self._lbl_send_command["image"] = self._img_blank
 
     def _on_select_cat(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -293,7 +293,7 @@ class UBX_CFGVAL_Frame(Frame):
                 self._lbx_parm.insert(idx, keyname)
                 idx += 1
         self._cfgval.set("")
-        self._lbl_send_command.config(image=self._img_blank)
+        self._lbl_send_command["image"] = self._img_blank
 
     def _on_select_parm(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -308,7 +308,7 @@ class UBX_CFGVAL_Frame(Frame):
             self._cfgkeyid.set(hex(keyid))
             self._cfgatt.set(att)
             self._cfgval.set("")
-            self._lbl_send_command.config(image=self._img_blank)
+            self._lbl_send_command["image"] = self._img_blank
         except TclError:
             pass
 
@@ -317,7 +317,7 @@ class UBX_CFGVAL_Frame(Frame):
         Config interface send button has been clicked.
         """
 
-        self._lbl_send_command.config(image=self._img_blank)
+        self._lbl_send_command["image"] = self._img_blank
         if self._cfgval_keyname is not None:
             if self._cfgmode.get() == VALSET:
                 self._do_valset()
@@ -388,12 +388,12 @@ class UBX_CFGVAL_Frame(Frame):
         if valid:
             msg = UBXMessage.config_set(layers, transaction, cfgData)
             self.__container.send_command(msg)
-            self._lbl_send_command.config(image=self._img_pending)
+            self._lbl_send_command["image"] = self._img_pending
             self.__container.status_label = "CFG-VALSET SET message sent"
             for msgid in ("ACK-ACK", "ACK-NAK"):
                 self.__container.set_pending(msgid, UBX_CFGVAL)
         else:
-            self._lbl_send_command.config(image=self._img_warn)
+            self._lbl_send_command["image"] = self._img_warn
             typ = ATTDICT[att]
             self.__container.status_label = (
                 (
@@ -423,7 +423,7 @@ class UBX_CFGVAL_Frame(Frame):
         ]
         msg = UBXMessage.config_del(layers, transaction, key)
         self.__container.send_command(msg)
-        self._lbl_send_command.config(image=self._img_pending)
+        self._lbl_send_command["image"] = self._img_pending
         self.__container.status_label = "CFG-VALDEL SET message sent"
         for msgid in ("ACK-ACK", "ACK-NAK"):
             self.__container.set_pending(msgid, UBX_CFGVAL)
@@ -448,7 +448,7 @@ class UBX_CFGVAL_Frame(Frame):
         ]
         msg = UBXMessage.config_poll(layers, transaction, keys)
         self.__container.send_command(msg)
-        self._lbl_send_command.config(image=self._img_pending)
+        self._lbl_send_command["image"] = self._img_pending
         self.__container.status_label = "CFG-VALGET POLL message sent"
         for msgid in ("CFG-VALGET", "ACK-ACK", "ACK-NAK"):
             self.__container.set_pending(msgid, UBX_CFGVAL)
@@ -461,7 +461,7 @@ class UBX_CFGVAL_Frame(Frame):
         """
 
         if msg.identity == "CFG-VALGET":
-            self._lbl_send_command.config(image=self._img_confirmed)
+            self._lbl_send_command["image"] = self._img_confirmed
             val = getattr(msg, self._cfgval_keyname, None)
             if val is not None:
                 if isinstance(val, bytes):
@@ -472,9 +472,9 @@ class UBX_CFGVAL_Frame(Frame):
             self.__container.status_label = ("CFG-VALGET GET message received", OKCOL)
 
         elif msg.identity == "ACK-ACK":
-            self._lbl_send_command.config(image=self._img_confirmed)
+            self._lbl_send_command["image"] = self._img_confirmed
             self.__container.status_label = ("CFG-VAL command acknowledged", OKCOL)
 
         elif msg.identity == "ACK-NAK":
-            self._lbl_send_command.config(image=self._img_warn)
+            self._lbl_send_command["image"] = self._img_warn
             self.__container.status_label = ("CFG-VAL command rejected", ERRCOL)

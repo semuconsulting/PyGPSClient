@@ -92,12 +92,11 @@ class Configuration:
         """
         Set up initial configuration.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         :param str filename: configuration file name
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.logger = logging.getLogger(__name__)
 
         # Set initial default configuration
@@ -122,6 +121,7 @@ class Configuration:
             "spartnprot_b": 0,
             "mqttprot_b": 1,
             "ttyprot_b": 0,
+            "metaprot_b": 0,
             "ttycrlf_b": 1,
             "ttyecho_b": 0,
             "ttydelay_b": 1,
@@ -247,6 +247,9 @@ class Configuration:
             "lbandclientunqword_s": D9S_PP["unqword"],
             "lbandclientoutport_s": PASSTHRU,
             "lbandclientdebug_b": 0,
+            "relposnedsettings_d": {
+                "source_s": "NAV-RELPOSNED",
+            },
             "scattersettings_d": {
                 "scatterautorange_b": 1,
                 "scattercenter_s": "Average",
@@ -307,9 +310,9 @@ class Configuration:
 
         if err == "":  # config valid
             rs = LOADCONFIGRESAVE if resave else ""
-            self.__app.status_label = (LOADCONFIGOK.format(fname, rs), OKCOL)
+            self.__app.set_status_label(LOADCONFIGOK.format(fname, rs), OKCOL)
         else:
-            self.__app.status_label = (err, ERRCOL)
+            self.__app.set_status_label(err, ERRCOL)
 
         return fname, err
 

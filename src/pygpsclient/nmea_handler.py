@@ -19,6 +19,7 @@ Created on 30 Sep 2020
 import logging
 from math import degrees
 from time import time
+from tkinter import Tk
 
 from pynmeagps import NMEAMessage
 from pyubx2 import itow2utc
@@ -34,15 +35,14 @@ class NMEAHandler:
     NMEA handler class.
     """
 
-    def __init__(self, app):
+    def __init__(self, app: Tk):
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.logger = logging.getLogger(__name__)
 
         self._raw_data = None
@@ -65,9 +65,9 @@ class NMEAHandler:
                 and "QTM" in parsed_data.msgID
             ):
                 self.__app.gnss_status.version_data["hwversion"] = "Quectel"
-                self.__app.device_label = self.__app.gnss_status.version_data[
-                    "hwversion"
-                ]
+                self.__app.set_device_label(
+                    self.__app.gnss_status.version_data["hwversion"]
+                )
             # self.logger.debug(f"data received {parsed_data.identity}")
             if parsed_data.msgID in ("RMC", "RMCH"):  # Recommended minimum data for GPS
                 self._process_RMC(parsed_data)
@@ -246,6 +246,7 @@ class NMEAHandler:
         :param pynmeagps.NMEAMessage data: parsed GSV sentence
         """
 
+        show_unused = self.__app.configuration.get("unusedsat_b")
         gnss = TKGN.get(data.talker, 0)
         now = time()
 
@@ -257,6 +258,8 @@ class NMEAHandler:
             cno = getattr(data, "cno" + idx, 0)
             if not isinstance(cno, (int, float)):
                 cno = 0
+            if cno == 0 and not show_unused:  # ignore sats with zero cno
+                continue
             if svid != "":
                 svid = int(svid)
                 if gnss == 0 and (120 <= svid <= 158):
@@ -321,7 +324,9 @@ class NMEAHandler:
                     hw_version = hw.replace("UBX-", "u-blox ")
                     break
             self.__app.gnss_status.version_data["hwversion"] = hw_version
-            self.__app.device_label = self.__app.gnss_status.version_data["hwversion"]
+            self.__app.set_device_label(
+                self.__app.gnss_status.version_data["hwversion"]
+            )
         elif (
             "ROM CORE " in data.text
             and self.__app.gnss_status.version_data["fwversion"] == NA
@@ -375,6 +380,7 @@ class NMEAHandler:
         """
         # pylint: disable=consider-using-dict-items
 
+        show_unused = self.__app.configuration.get("unusedsat_b")
         self.__app.gnss_status.gsv_data = {}
         now = time()
         for i in range(data.numSv):
@@ -386,6 +392,8 @@ class NMEAHandler:
             cno = getattr(data, "cno" + idx)
             if not isinstance(cno, (int, float)):
                 cno = 0
+            if cno == 0 and not show_unused:
+                continue
             # fudge to make PUBX03 svid numbering consistent with GSV
             if gnss == 2 and svid > 210:  # Galileo
                 svid -= 210
@@ -419,7 +427,7 @@ class NMEAHandler:
 
         if self.__app.dialog(DLGTNMEA) is not None:
             self.__app.dialog(DLGTNMEA).update_pending(data)
-        self.__app.device_label = self.__app.gnss_status.version_data["hwversion"]
+        self.__app.set_device_label(self.__app.gnss_status.version_data["hwversion"])
 
     def _process_QTMVER(self, data: NMEAMessage):
         """
@@ -502,7 +510,7 @@ class NMEAHandler:
             pass
 
         self.__app.gnss_status.version_data["hwversion"] = "Feyman IM19"
-        self.__app.device_label = self.__app.gnss_status.version_data["hwversion"]
+        self.__app.set_device_label(self.__app.gnss_status.version_data["hwversion"])
 
     def _process_IMU(self, data: NMEAMessage):
         """

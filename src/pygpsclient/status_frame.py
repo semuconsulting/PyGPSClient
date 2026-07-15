@@ -12,7 +12,7 @@ Created on 12 Sep 2020
 :license: BSD 3-Clause
 """
 
-from tkinter import EW, NS, VERTICAL, Frame, Label, W, ttk
+from tkinter import EW, NS, VERTICAL, Frame, Label, Tk, W, ttk
 
 from pygpsclient.globals import BGCOL
 
@@ -22,20 +22,18 @@ class StatusFrame(Frame):
     Status bar frame class.
     """
 
-    def __init__(self, app: Frame, parent: Frame, *args, **kwargs):
+    def __init__(self, app: Tk, *args, **kwargs):
         """
         Constructor
 
-        :param Frame app: reference to main tkinter application
-        :param Frame parent: reference to parent frame
+        :param Tk app: reference to main tkinter application
         :param args: optional args to pass to Frame parent class
         :param kwargs: optional kwargs to pass to Frame parent class
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
 
-        super().__init__(parent, *args, **kwargs)
+        super().__init__(app, *args, **kwargs)
 
         self.width, self.height = self.get_size()
         self._body()

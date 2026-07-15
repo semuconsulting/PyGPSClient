@@ -14,7 +14,7 @@ Created on 30 Apr 2023
 :license: BSD 3-Clause
 """
 
-from tkinter import EW, NSEW, NW, Canvas, E, Frame, IntVar, Radiobutton, W
+from tkinter import EW, NSEW, NW, Canvas, E, Frame, IntVar, Radiobutton, Tk, W
 
 from pyubx2 import BOOTTYPE, UBXMessage
 
@@ -36,13 +36,21 @@ INSET = 4
 MAXLINES = 19
 MAXTEMP = 100  # °C
 PORTIDS = {
-    0x0000: "I2C",  # 0 I2C
-    0x0100: "UART1",  # 256 UART1
-    0x0101: "INT1",  # 257 inter-cpu connect
-    0x0200: "INT2",  # 512 inter-cpu connect
-    0x0201: "UART2",  # 513 UART2
-    0x0300: "USB",  # 768 USB
-    0x0400: "SPI",  # 1024 SPI
+    ("F9", 0x0000): "I2C",  # 0 I2C
+    ("F9", 0x0100): "UART1",  # 256 UART1
+    ("F9", 0x0101): "INT1",  # 257 inter-cpu connect
+    ("F9", 0x0200): "INT2",  # 512 inter-cpu connect
+    ("F9", 0x0201): "UART2",  # 513 UART2
+    ("F9", 0x0300): "USB",  # 768 USB
+    ("F9", 0x0400): "SPI",  # 1024 SPI
+    ("X20", 0x0000): "I2C",  # 0 I2C
+    ("X20", 0x0100): "UART1",  # 256 UART1
+    ("X20", 0x0101): "INT1",  # 257 inter-cpu connect
+    ("X20", 0x0200): "UART2",  # 512 UART2
+    ("X20", 0x0201): "INT2",  # 513 inter-cpu connect
+    ("X20", 0x0300): "USB",  # 768 USB
+    ("X20", 0x0400): "SPI",  # 1024 SPI
+    ("X20", 0x0500): "INT3",  # 1280 inter-cpu connect
 }
 SPACING = 2
 
@@ -52,18 +60,17 @@ class SysmonFrame(Frame):
     SysmonFrame class.
     """
 
-    def __init__(self, app: Frame, parent: Frame, *args, **kwargs):
+    def __init__(self, app: Tk, parent: Frame, *args, **kwargs):
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         :param Frame parent: reference to parent frame
         :param args: optional args to pass to Frame parent class
         :param kwargs: optional kwargs to pass to Frame parent class
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
 
         super().__init__(parent, *args, **kwargs)
 
@@ -249,6 +256,8 @@ class SysmonFrame(Frame):
                 font=self._font,
                 tags=TAG_DATA,
             )
+
+            self.update_idletasks()
         except KeyError:  # invalid sysmon-data or comms-data
             self.init_chart()
 
@@ -323,7 +332,10 @@ class SysmonFrame(Frame):
         txf = "d" if txbu == "" else ".02f"
         rxb, rxbu = bytes2unit(pdata[7 if mod else 6])
         rxf = "d" if rxbu == "" else ".02f"
-        txt = f"{PORTIDS.get(port, NA)} → {txb:{txf}} {txbu} ← {rxb:{rxf}} {rxbu}:"
+        hw = (
+            "X20" if "X20" in self.__app.gnss_status.version_data["hwversion"] else "F9"
+        )
+        txt = f"{PORTIDS.get((hw,port), NA)} → {txb:{txf}} {txbu} ← {rxb:{rxf}} {rxbu}:"
         self._canvas.create_text(  # port
             x,
             y,

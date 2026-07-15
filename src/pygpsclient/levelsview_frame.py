@@ -14,7 +14,7 @@ Created on 14 Sep 2020
 
 # pylint: disable=no-member
 
-from tkinter import NE, NSEW, Frame, font
+from tkinter import NE, NSEW, Frame, Tk, font
 
 from pygpsclient.canvas_subclasses import (
     TAG_DATA,
@@ -46,18 +46,17 @@ class LevelsviewFrame(Frame):
     Levelsview frame class.
     """
 
-    def __init__(self, app: Frame, parent: Frame, *args, **kwargs):
+    def __init__(self, app: Tk, parent: Frame, *args, **kwargs):
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         :param Frame parent: reference to parent frame
         :param args: optional args to pass to Frame parent class
         :param kwargs: optional kwargs to pass to Frame parent class
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
 
         super().__init__(parent, *args, **kwargs)
 
@@ -88,8 +87,6 @@ class LevelsviewFrame(Frame):
 
         self.bind("<Configure>", self._on_resize)
         self._canvas.bind("<Double-Button-1>", self._on_legend)
-        self._canvas.bind("<Double-Button-2>", self._on_cno0)
-        self._canvas.bind("<Double-Button-3>", self._on_cno0)
 
     def _on_legend(self, event):  # pylint: disable=unused-argument
         """
@@ -100,18 +97,6 @@ class LevelsviewFrame(Frame):
 
         self.__app.configuration.set(
             "legend_b", not self.__app.configuration.get("legend_b")
-        )
-        self._redraw = True
-
-    def _on_cno0(self, event):  # pylint: disable=unused-argument
-        """
-        On double-right-click - include levels where C/No = 0.
-
-        :param event: event
-        """
-
-        self.__app.configuration.set(
-            "unusedsat_b", not self.__app.configuration.get("unusedsat_b")
         )
         self._redraw = True
 
@@ -173,8 +158,8 @@ class LevelsviewFrame(Frame):
         Automatically adjust y axis according to number of satellites in view.
         """
 
-        data = self.__app.gnss_status.gsv_data
         show_unused = self.__app.configuration.get("unusedsat_b")
+        data = self.__app.gnss_status.gsv_data
         siv = len(data)
         siv = siv if show_unused else siv - unused_sats(data)
         if siv <= 0:
@@ -189,8 +174,6 @@ class LevelsviewFrame(Frame):
         xfnt, _, _, _ = fitfont(XLBLFMT, colwidth, self._canvas.yoffb, XLBLANGLE)
         for val in sorted(data.values()):  # sort by ascending gnssid, svid
             gnssId, prn, _, _, cno, _ = val
-            if cno == 0 and not show_unused:
-                continue
             snr_y = int(cno) * (h - self._canvas.yoffb - 1) / MAX_SNR
             _, ol_col = GNSS_LIST[gnssId]
             self._canvas.create_rectangle(
@@ -214,10 +197,10 @@ class LevelsviewFrame(Frame):
                 tags=TAG_DATA,
             )
             offset += colwidth
+            self.update_idletasks()
 
         if self.__app.configuration.get("legend_b"):
             self._draw_legend()
-        self.update_idletasks()
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """

@@ -38,6 +38,7 @@ from tkinter import (
     Spinbox,
     StringVar,
     TclError,
+    Tk,
     W,
 )
 from tkinter.ttk import Progressbar
@@ -162,11 +163,11 @@ class ServerConfigDialog(ToplevelDialog):
     Server configuration dialog class.
     """
 
-    def __init__(self, app, *args, **kwargs):
+    def __init__(self, app: Tk, *args, **kwargs):
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         :param args: optional args to pass to Frame parent class
         :param kwargs: optional kwargs for value ranges, or to pass to Frame parent class
         """
@@ -492,10 +493,10 @@ class ServerConfigDialog(ToplevelDialog):
         pem = cfg.get("tlspempath_s")
         if https and not Path(pem).exists():
             err = DLGNOTLS.format(hostpem=pem)
-            self.status_label = (err, ERRCOL)
+            self.set_status_label(err, ERRCOL)
             self.logger.error(err)
             cfg.set("sockhttps_b", 0)
-            self._chk_https.config(state=DISABLED)
+            self._chk_https["state"] = DISABLED
             https = 0
         self.https.set(https)
         self.after(5, lambda: self._lbl_publicip.config(text=publicip()))
@@ -581,10 +582,10 @@ class ServerConfigDialog(ToplevelDialog):
 
         if self._show_advanced:
             self._frm_advanced.grid(column=0, row=1, columnspan=5, sticky=EW)
-            self._btn_toggle.config(image=self._img_contract)
+            self._btn_toggle["image"] = self._img_contract
         else:
             self._frm_advanced.grid_forget()
-            self._btn_toggle.config(image=self._img_expand)
+            self._btn_toggle["image"] = self._img_expand
 
     def set_status(self, status: int):
         """
@@ -607,9 +608,9 @@ class ServerConfigDialog(ToplevelDialog):
         # pylint: disable=line-too-long
 
         if self.valid_settings():
-            self.status_label = ("", INFOCOL)
+            self.set_status_label("", INFOCOL)
         else:
-            self.status_label = ("ERROR - invalid entry", ERRCOL)
+            self.set_status_label("ERROR - invalid entry", ERRCOL)
             return
 
         # different receiver models support different RTCM3 output message cohorts
@@ -669,7 +670,7 @@ class ServerConfigDialog(ToplevelDialog):
                 state = DISABLED
             else:
                 state = READONLY if isinstance(wid, Spinbox) else NORMAL
-            wid.config(state=state)
+            wid["state"] = state
         for wid in (
             self._ent_fixedlat,
             self._ent_fixedlon,
@@ -679,14 +680,14 @@ class ServerConfigDialog(ToplevelDialog):
                 state = DISABLED
             else:
                 state = READONLY if self.base_mode.get() == BASE_SVIN else NORMAL
-            wid.config(state=state)
+            wid["state"] = state
         for wid in (self._btn_configure_base,):
             if self._socket_serve.get():
                 state = DISABLED
             else:
                 state = NORMAL
-            wid.config(state=state)
-        self._lbl_elapsed.config(text="")
+            wid["state"] = state
+        self._lbl_elapsed["text"] = ""
 
     def _on_configure_base(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -694,7 +695,7 @@ class ServerConfigDialog(ToplevelDialog):
         """
 
         if self.sock_mode.get() == SOCK_NTRIP:
-            self.status_label = ""
+            self.set_status_label("")
             self._quectel_restart = 0
             self._config_receiver()
 
@@ -706,9 +707,9 @@ class ServerConfigDialog(ToplevelDialog):
 
         # validate settings
         if self.valid_settings():
-            self.status_label = ("", INFOCOL)
+            self.set_status_label("", INFOCOL)
         else:
-            self.status_label = ("ERROR - invalid entry", ERRCOL)
+            self.set_status_label("ERROR - invalid entry", ERRCOL)
             return
 
         # set base station timing mode
@@ -736,9 +737,9 @@ class ServerConfigDialog(ToplevelDialog):
             self.receiver_type.get() == SEPTENTRIO_MOSAIC
             and self.base_mode == BASE_SVIN
         ):
-            self.status_label = SEPTENTRIOSVIN  # receiver surveying message
+            self.set_status_label(SEPTENTRIOSVIN)  # receiver surveying message
         if self.receiver_type.get() == QUECTEL_LGSERIES:
-            self.status_label = QUECTELRST1  # receiver will restart message
+            self.set_status_label(QUECTELRST1)  # receiver will restart message
             # poll for confirmation that rcvr has restarted,
             # then resend configuration commands a 2nd time
             self._pending_confs[PQTMVER] = SERVERCONFIG
@@ -749,9 +750,9 @@ class ServerConfigDialog(ToplevelDialog):
         """
 
         if self._ent_sockhost.validate(VALNONBLANK):
-            self._chk_socketserve.config(state=NORMAL)
+            self._chk_socketserve["state"] = NORMAL
         else:
-            self._chk_socketserve.config(state=DISABLED)
+            self._chk_socketserve["state"] = DISABLED
             return
         self.__app.configuration.set("sockhost_s", self.sock_host.get())
 
@@ -761,9 +762,9 @@ class ServerConfigDialog(ToplevelDialog):
         """
 
         if self._ent_sockport.validate(VALINT, 1, MAXPORT):
-            self._chk_socketserve.config(state=NORMAL)
+            self._chk_socketserve["state"] = NORMAL
         else:
-            self._chk_socketserve.config(state=DISABLED)
+            self._chk_socketserve["state"] = DISABLED
             return
 
         try:
@@ -808,9 +809,9 @@ class ServerConfigDialog(ToplevelDialog):
 
         try:
             if self._ent_fixedlat.validate(VALFLOAT):
-                self._btn_configure_base.config(state=NORMAL)
+                self._btn_configure_base["state"] = NORMAL
             else:
-                self._btn_configure_base.config(state=DISABLED)
+                self._btn_configure_base["state"] = DISABLED
                 return
             self.__app.configuration.set(
                 "ntripcasterfixedlat_f", float(self.fixedlat.get())
@@ -825,9 +826,9 @@ class ServerConfigDialog(ToplevelDialog):
 
         try:
             if self._ent_fixedlon.validate(VALFLOAT):
-                self._btn_configure_base.config(state=NORMAL)
+                self._btn_configure_base["state"] = NORMAL
             else:
-                self._btn_configure_base.config(state=DISABLED)
+                self._btn_configure_base["state"] = DISABLED
                 return
             self.__app.configuration.set(
                 "ntripcasterfixedlon_f", float(self.fixedlon.get())
@@ -842,9 +843,9 @@ class ServerConfigDialog(ToplevelDialog):
 
         try:
             if self._ent_fixedhae.validate(VALFLOAT):
-                self._btn_configure_base.config(state=NORMAL)
+                self._btn_configure_base["state"] = NORMAL
             else:
-                self._btn_configure_base.config(state=DISABLED)
+                self._btn_configure_base["state"] = DISABLED
                 return
             self.__app.configuration.set(
                 "ntripcasterfixedalt_f", float(self.fixedhae.get())
@@ -889,12 +890,12 @@ class ServerConfigDialog(ToplevelDialog):
         """
 
         if self.sock_mode.get() == SOCK_NTRIP:
-            self._btn_toggle.config(state=NORMAL)
+            self._btn_toggle["state"] = NORMAL
             self._show_advanced = True
             self.__app.configuration.set("sockmode_b", 1)
             self.sock_port.set(self.__app.configuration.get("sockportntrip_n"))
         else:
-            self._btn_toggle.config(state=DISABLED)
+            self._btn_toggle["state"] = DISABLED
             self._show_advanced = False
             self.__app.configuration.set("sockmode_b", 0)
             self.sock_port.set(self.__app.configuration.get("sockport_n"))
@@ -908,11 +909,11 @@ class ServerConfigDialog(ToplevelDialog):
         pem = self.__app.configuration.get("tlspempath_s")
         if self.https.get() and not Path(pem).exists():
             err = DLGNOTLS.format(hostpem=pem)
-            self.status_label = (err, ERRCOL)
+            self.set_status_label(err, ERRCOL)
             self.logger.error(err)
             self._attach_events(False)
             self.https.set(0)
-            self._chk_https.config(state=DISABLED)
+            self._chk_https["state"] = DISABLED
             self._attach_events(True)
         self.__app.configuration.set("sockhttps_b", self.https.get())
 
@@ -922,7 +923,7 @@ class ServerConfigDialog(ToplevelDialog):
         Set field visibility depending on base mode.
         """
 
-        self.status_label = ""
+        self.set_status_label("")
         if self.base_mode.get() == BASE_SVIN:
             self.disable_nmea.set(True)
             self._on_update_basemode_svin()
@@ -956,7 +957,7 @@ class ServerConfigDialog(ToplevelDialog):
         self._lbl_password.grid(column=0, row=8, padx=2, pady=1, sticky=E)
         self._ent_password.grid(column=1, row=8, columnspan=2, padx=2, pady=1, sticky=W)
         for wid in self._ent_fixedlat, self._ent_fixedlon, self._ent_fixedhae:
-            wid.config(state=DISABLED)
+            wid["state"] = DISABLED
 
     def _on_update_basemode_fixed(self):
         """
@@ -982,7 +983,7 @@ class ServerConfigDialog(ToplevelDialog):
         self._pgb_elapsed.grid_forget()
         self._lbl_elapsed.grid_forget()
         for wid in self._ent_fixedlat, self._ent_fixedlon, self._ent_fixedhae:
-            wid.config(state=NORMAL)
+            wid["state"] = NORMAL
         self._set_coords(self.pos_mode.get())
 
     def _on_update_basemode_disabled(self):
@@ -1020,9 +1021,9 @@ class ServerConfigDialog(ToplevelDialog):
             if self.pos_mode.get() == POS_LLH
             else ("X (m)", "Y (m)", "Z (m)")
         )
-        self._lbl_fixedlat.config(text=lbls[0])
-        self._lbl_fixedlon.config(text=lbls[1])
-        self._lbl_fixedhae.config(text=lbls[2])
+        self._lbl_fixedlat["text"] = lbls[0]
+        self._lbl_fixedlon["text"] = lbls[1]
+        self._lbl_fixedhae["text"] = lbls[2]
         self._set_coords(self.pos_mode.get())
         self.__app.configuration.set("ntripcasterposmode_s", self.pos_mode.get())
 
@@ -1139,11 +1140,11 @@ class ServerConfigDialog(ToplevelDialog):
         """
 
         self._quectel_restart += 1
-        self.status_label = ""
+        self.set_status_label("")
         if self.base_mode.get() in (BASE_SVIN, BASE_FIXED):
             # if first restart, send config commands a 2nd time
             if self._quectel_restart == 1:
-                self.status_label = QUECTELRST2  # receiver restart again message
+                self.set_status_label(QUECTELRST2)  # receiver restart again message
                 self._config_receiver()
                 return
             # if second restart and survey-in mode, enable SVIN status message
@@ -1163,7 +1164,7 @@ class ServerConfigDialog(ToplevelDialog):
         """
 
         dur = self.duration.get()
-        self.status_label = SVINSTART.format(100 * ela / dur)
+        self.after(0, self.set_status_label(SVINSTART.format(100 * ela / dur)))
         if self.base_mode.get() == BASE_SVIN and active and not valid:
             self._lbl_elapsed.grid_forget()
             self._pgb_elapsed.grid(
@@ -1171,13 +1172,13 @@ class ServerConfigDialog(ToplevelDialog):
             )
             self._pgb_elapsed["value"] = 100 * (dur - ela) / dur
             if ela >= dur:
-                self.status_label = (SVINERR, ERRCOL)
+                self.set_status_label(SVINERR, ERRCOL)
         elif self.base_mode.get() == BASE_SVIN and valid:
             self._pgb_elapsed.grid_forget()
             self._lbl_elapsed.grid(
                 column=2, row=2, columnspan=2, padx=2, pady=1, sticky=W
             )
-            self.status_label = (SVINOK, OKCOL)
+            self.set_status_label(SVINOK, OKCOL)
         else:
             self._lbl_elapsed.grid_forget()
             self._pgb_elapsed.grid_forget()
@@ -1233,7 +1234,7 @@ class ServerConfigDialog(ToplevelDialog):
         """
 
         if self.base_mode.get() in (BASE_FIXED, BASE_SVIN):
-            self.status_label = ""
+            self.set_status_label("")
             if self.pos_mode.get() == POS_ECEF:
                 self.fixedlat.set(self.__app.gnss_status.base_ecefx)
                 self.fixedlon.set(self.__app.gnss_status.base_ecefy)

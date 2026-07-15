@@ -13,7 +13,7 @@ Created on 24 Dec 2020
 
 # pylint: disable=unused-argument
 
-from tkinter import Frame
+from tkinter import Frame, Tk
 
 from pygpsclient.serialconfig_frame import MSGMODED, PARITIES, SerialConfigFrame
 
@@ -23,11 +23,11 @@ class SerialConfigLbandFrame(SerialConfigFrame):
     L-BAND Serial port configuration frame class.
     """
 
-    def __init__(self, app: Frame, parent: Frame, *args, **kwargs):
+    def __init__(self, app: Tk, parent: Frame, *args, **kwargs):
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         :param Frame parent: reference to parent frame
         :param args: optional args to pass to Frame parent class
         :param kwargs: optional kwargs for value ranges, or to pass to Frame parent class

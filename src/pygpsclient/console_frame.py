@@ -17,6 +17,7 @@ Created on 12 Sep 2020
 :license: BSD 3-Clause
 """
 
+from queue import Empty
 from tkinter import (
     END,
     EW,
@@ -28,6 +29,7 @@ from tkinter import (
     Frame,
     Scrollbar,
     Text,
+    Tk,
 )
 
 from pyubx2 import hextable
@@ -57,18 +59,17 @@ class ConsoleFrame(Frame):
     Console frame class.
     """
 
-    def __init__(self, app: Frame, parent: Frame, *args, **kwargs):
+    def __init__(self, app: Tk, parent: Frame, *args, **kwargs):
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         :param Frame parent: reference to parent frame
         :param args: optional args to pass to Frame parent class
         :param kwargs: optional kwargs to pass to Frame parent class
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
 
         super().__init__(parent, *args, **kwargs)
 
@@ -104,8 +105,8 @@ class ConsoleFrame(Frame):
             wrap=NONE,
             height=15,
         )
-        self.sblogh.config(command=self.txt_console.xview)
-        self.sblogv.config(command=self.txt_console.yview)
+        self.sblogh["command"] = self.txt_console.xview
+        self.sblogv["command"] = self.txt_console.yview
 
         # making the textbox read only and fixed width font
         self.txt_console.configure(state="disabled")
@@ -137,7 +138,7 @@ class ConsoleFrame(Frame):
         self.txt_console.bind("<Double-Button-3>", self._on_clipboard)
         # self.txt_console.tag_bind(HALT, "<1>", self._on_halt) # doesn't seem to work on MacOS
 
-    def update_frame(self, consoledata: list):
+    def update_frame(self):
         """
         Print the formatted data stream to the console.
 
@@ -157,21 +158,28 @@ class ConsoleFrame(Frame):
         self._halt = ""
         consolestr = ""
         self.txt_console.configure(font=FONT_TEXT)
-        for raw_data, parsed_data, marker in consoledata:
-            if consoleformat == FORMAT_BINARY:
-                data = f"{marker}{raw_data}\n"
-            elif consoleformat == FORMAT_HEXSTR:
-                data = f"{marker}{raw_data.hex()}\n"
-            elif consoleformat == FORMAT_HEXTAB:
-                self.txt_console.configure(font=FONT_FIXED)
-                data = hextable(raw_data)
-            elif consoleformat == FORMAT_BOTH:
-                self.txt_console.configure(font=FONT_FIXED)
-                data = f"{marker}{parsed_data}\n{hextable(raw_data)}"
-            else:
-                data = f"{marker}{parsed_data}\n"
 
-            consolestr += data
+        raw_data = None
+        parsed_data = None
+        while True:
+            try:
+                raw_data, parsed_data, marker = self.__app.console_outqueue.get(False)
+                if consoleformat == FORMAT_BINARY:
+                    data = f"{marker}{raw_data}\n"
+                elif consoleformat == FORMAT_HEXSTR:
+                    data = f"{marker}{raw_data.hex()}\n"
+                elif consoleformat == FORMAT_HEXTAB:
+                    self.txt_console.configure(font=FONT_FIXED)
+                    data = hextable(raw_data)
+                elif consoleformat == FORMAT_BOTH:
+                    self.txt_console.configure(font=FONT_FIXED)
+                    data = f"{marker}{parsed_data}\n{hextable(raw_data)}"
+                else:
+                    data = f"{marker}{parsed_data}\n"
+                consolestr += data
+                self.__app.console_outqueue.task_done()
+            except Empty:
+                break
 
         numlinesbefore = self.numlines
         self.txt_console.configure(state="normal")
@@ -187,7 +195,7 @@ class ConsoleFrame(Frame):
 
         self.txt_console.see("end")
         self.txt_console.configure(state="disabled")
-        self.txt_console.update_idletasks()
+        self.update_idletasks()
 
     def _tag_line(self, con, startline: int, endline: int):
         """
@@ -231,7 +239,7 @@ class ConsoleFrame(Frame):
         """
 
         self.__app.stream_handler.stop()
-        self.__app.status_label = (HALTTAGWARN.format(self._halt), ERRCOL)
+        self.__app.set_status_label(HALTTAGWARN.format(self._halt), ERRCOL)
         self.__app.conn_status = DISCONNECTED
 
     def _on_clipboard(self, event):  # pylint: disable=unused-argument
@@ -241,10 +249,10 @@ class ConsoleFrame(Frame):
         :param event event: double click event
         """
 
-        self.__master.clipboard_clear()
-        self.__master.clipboard_append(self.txt_console.get("1.0", END))
-        self.__master.update()
-        self.__app.status_label = (CONTENTCOPIED.format("console"), INFOCOL)
+        self.__app.clipboard_clear()
+        self.__app.clipboard_append(self.txt_console.get("1.0", END))
+        self.__app.update()
+        self.__app.set_status_label(CONTENTCOPIED.format("console"), INFOCOL)
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """

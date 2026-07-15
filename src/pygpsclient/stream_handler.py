@@ -44,7 +44,9 @@ from socket import (
 )
 from threading import Event, Thread
 from time import sleep
-from tkinter import Frame, Label, Tk
+from tkinter import Frame, Tk
+from types import NoneType
+from typing import Any
 
 from certifi import where as findcacerts
 from pygnssutils import (
@@ -56,12 +58,22 @@ from pygnssutils import (
     UNI_PROTOCOL,
     GNSSError,
     GNSSReader,
+    MQTTMessage,
 )
-from pynmeagps import NMEAMessageError, NMEAParseError, NMEAStreamError
-from pyqgc import QGCMessageError, QGCParseError, QGCStreamError
-from pyrtcm import RTCMMessageError, RTCMParseError, RTCMStreamError
-from pysbf2 import SBFMessageError, SBFParseError, SBFStreamError
-from pyubx2 import ERR_LOG, UBXMessageError, UBXParseError, UBXStreamError
+
+try:
+    from pygnssutils.gnssreader import PARSE_FULL, PARSE_META, GNSSMessage
+except ImportError:
+    PARSE_FULL = 1
+    PARSE_META = 2
+    GNSSMessage = None
+from pynmeagps import NMEAMessage, NMEAMessageError, NMEAParseError, NMEAStreamError
+from pyqgc import QGCMessage, QGCMessageError, QGCParseError, QGCStreamError
+from pyrtcm import RTCMMessage, RTCMMessageError, RTCMParseError, RTCMStreamError
+from pysbf2 import SBFMessage, SBFMessageError, SBFParseError, SBFStreamError
+from pyspartn import SPARTNMessage
+from pyubx2 import ERR_LOG, UBXMessage, UBXMessageError, UBXParseError, UBXStreamError
+from pyunigps import UNIMessage, UNIMessageError, UNIParseError, UNIStreamError
 
 try:
     from pyubxutils import UBXSimulator
@@ -80,10 +92,15 @@ from pygpsclient.globals import (
     CONNECTED_SIMULATOR,
     CONNECTED_SOCKET,
     DEFAULT_BUFSIZE,
-    ERRCOL,
+    GNSS_PROTOCOL,
+    MQTT_PROTOCOL,
+    SPARTN_PROTOCOL,
+    STREAMDELAY,
     TTY_PROTOCOL,
     UBXSIMULATOR,
 )
+from pygpsclient.strings import WARNING
+from pygpsclient.widget_state import VISIBLE, WDGCONSOLE
 
 
 class StreamHandler:
@@ -95,12 +112,11 @@ class StreamHandler:
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
 
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.logger = logging.getLogger(__name__)
 
         self._stream_thread = None
@@ -119,10 +135,9 @@ class StreamHandler:
         self._stream_thread = Thread(
             target=self._read_thread,
             args=(
-                self.__master,
+                self.__app,
                 self._stopevent,
                 settings,
-                caller.status_label,  # for status update messages
             ),
             daemon=True,
         )
@@ -141,7 +156,6 @@ class StreamHandler:
         master: Tk,
         stopevent: Event,
         settings: dict,
-        status: Label,
     ):
         """
         THREADED PROCESS
@@ -182,7 +196,6 @@ class StreamHandler:
                 ) as stream:
                     if settings["protocol"] & TTY_PROTOCOL:
                         self._readlooptty(
-                            master,
                             stopevent,
                             stream,
                             settings,
@@ -190,7 +203,6 @@ class StreamHandler:
                         )
                     else:
                         self._readloop(
-                            master,
                             stopevent,
                             stream,
                             settings,
@@ -201,7 +213,6 @@ class StreamHandler:
                 in_filepath = settings["in_filepath"]
                 with open(in_filepath, "rb") as stream:
                     self._readloop(
-                        master,
                         stopevent,
                         stream,
                         settings,
@@ -238,7 +249,6 @@ class StreamHandler:
                     if socktype == SOCK_DGRAM:
                         stream.send(b"")  # send empty datagram to establish connection
                     self._readloop(
-                        master,
                         stopevent,
                         stream,
                         settings,
@@ -249,7 +259,6 @@ class StreamHandler:
                 with UBXSimulator() as stream:
                     if settings["protocol"] & TTY_PROTOCOL:
                         self._readlooptty(
-                            master,
                             stopevent,
                             stream,
                             settings,
@@ -257,7 +266,6 @@ class StreamHandler:
                         )
                     else:
                         self._readloop(
-                            master,
                             stopevent,
                             stream,
                             settings,
@@ -288,11 +296,10 @@ class StreamHandler:
                 stopevent.set()
                 master.event_generate(settings["error_event"])
                 # use after(0) to avoid tkinter main thread contention
-                status.after(0, status.config, {"text": f"{err} {fnam}", "fg": ERRCOL})
+                # status.after(0, status.config, {"text": f"{err} {fnam}", "fg": ERRCOL})
 
     def _readloop(
         self,
-        master: Tk,
         stopevent: Event,
         stream: Serial | BufferedReader | socket,
         settings: dict,
@@ -319,10 +326,14 @@ class StreamHandler:
             """
 
             parsed_data = f"Error parsing data stream {err}"
-            settings["inqueue"].put((raw_data, parsed_data))
-            master.event_generate(settings["read_event"])
+            self._process_message(None, parsed_data)
 
         conntype = settings["conntype"]
+        parsing = (
+            PARSE_META
+            if self.__app.configuration.get("metaprot_b") == 1
+            else PARSE_FULL
+        )
 
         ubr = GNSSReader(
             stream,
@@ -333,6 +344,7 @@ class StreamHandler:
             | RTCM3_PROTOCOL
             | UNI_PROTOCOL,
             quitonerror=ERR_LOG,
+            parsing=parsing,
             bufsize=DEFAULT_BUFSIZE,
             msgmode=settings["msgmode"],
             errorhandler=_errorhandler,
@@ -340,22 +352,13 @@ class StreamHandler:
 
         raw_data = None
         parsed_data = None
-        lastread = datetime.now()
         lastevent = datetime.now()
         while not stopevent.is_set():
             try:
-                if conntype in (CONNECTED, CONNECTED_SOCKET) or (
-                    conntype == CONNECTED_FILE
-                    and datetime.now()
-                    > lastread
-                    + timedelta(
-                        milliseconds=self.__app.configuration.get("filedelay_n")
-                    )
-                ):
+                if conntype in (CONNECTED, CONNECTED_SOCKET, CONNECTED_FILE):
                     raw_data, parsed_data = ubr.read()
                     if raw_data is not None:
-                        settings["inqueue"].put((raw_data, parsed_data))
-                        master.event_generate(settings["read_event"])
+                        self._process_message(raw_data, parsed_data)
                         lastevent = datetime.now()
                     else:  # timeout or eof
                         if conntype == CONNECTED_FILE:
@@ -365,9 +368,11 @@ class StreamHandler:
                         ):
                             raise TimeoutError
                     if conntype == CONNECTED_FILE:
-                        lastread = datetime.now()
+                        # sleep between file reads to keep UI responsive
+                        sleep(self.__app.configuration.get("filedelay_n") / 1000)
 
                     # write any queued output data to serial stream
+                    # e.g. receiver configuration commands or polls
                     if conntype in (CONNECTED, CONNECTED_SOCKET):
                         try:
                             while not settings["outqueue"].empty():
@@ -377,6 +382,8 @@ class StreamHandler:
                                 settings["outqueue"].task_done()
                         except Empty:
                             pass
+
+                    sleep(STREAMDELAY)
 
             except (
                 UBXMessageError,
@@ -394,20 +401,16 @@ class StreamHandler:
                 QGCMessageError,
                 QGCParseError,
                 QGCStreamError,
-                # UNIMessageError,
-                # UNIParseError,
-                # UNIStreamError,
+                UNIMessageError,
+                UNIParseError,
+                UNIStreamError,
                 GNSSError,
             ) as err:
                 _errorhandler(err)
                 continue
 
-            # allow for any tkinter events e.g. dialogs
-            self.__app.update_idletasks()
-
     def _readlooptty(
         self,
-        master: Tk,
         stopevent: Event,
         stream: Serial,
         settings: dict,
@@ -431,8 +434,7 @@ class StreamHandler:
             """
 
             parsed_data = f"Error parsing data stream {err}"
-            settings["inqueue"].put((raw_data, parsed_data))
-            master.event_generate(settings["read_event"])
+            self._process_message(None, parsed_data)
 
         raw_data = None
         while not stopevent.is_set():
@@ -459,11 +461,86 @@ class StreamHandler:
 
                 # place ascii data on input queue
                 if raw_data != b"":
-                    settings["inqueue"].put(
-                        (raw_data, raw_data.decode(ASCII, errors=BSR))
-                    )
-                    master.event_generate(settings["read_event"])
+                    self._process_message(raw_data, raw_data.decode(ASCII, errors=BSR))
+
+                sleep(STREAMDELAY)
 
             except (ValueError, SerialException) as err:
                 _errorhandler(err)
                 continue
+
+    def _process_message(
+        self, raw_data: bytes | NoneType, parsed_data: Any, marker: str = ""
+    ):
+        """
+        THREADED PROCESS
+
+        NB: NO LONG-RUNNING PROCESSES OR DIRECT UPDATES TO TKINTER WIDGETS IN THIS FUNCTION!!!
+
+        Update the gnss_status dictionary with parsed attribute values.
+
+        :param bytes | NoneType raw_data: raw message data
+        :param object parsed data: NMEAMessage, UBXMessage or RTCMMessage
+        :param str marker: string prepended to console entries e.g. "NTRIP>>"
+        """
+
+        msgprot = 0
+        protfilter = self.__app.protocol_mask
+        parsing = self.__app.configuration.get("metaprot_b") == 0
+        tty = self.__app.configuration.get("ttyprot_b")
+        console = self.__app.widget_state.state[WDGCONSOLE][VISIBLE]
+
+        if parsing:
+            if isinstance(parsed_data, NMEAMessage) and protfilter & NMEA_PROTOCOL:
+                self.__app.nmea_handler.process_data(raw_data, parsed_data)
+                msgprot = NMEA_PROTOCOL
+            elif isinstance(parsed_data, UBXMessage) and protfilter & UBX_PROTOCOL:
+                self.__app.ubx_handler.process_data(raw_data, parsed_data)
+                msgprot = UBX_PROTOCOL
+            elif isinstance(parsed_data, RTCMMessage) and protfilter & RTCM3_PROTOCOL:
+                self.__app.rtcm_handler.process_data(raw_data, parsed_data)
+                msgprot = RTCM3_PROTOCOL
+            elif isinstance(parsed_data, SBFMessage) and protfilter & SBF_PROTOCOL:
+                self.__app.sbf_handler.process_data(raw_data, parsed_data)
+                msgprot = SBF_PROTOCOL
+            elif isinstance(parsed_data, QGCMessage) and protfilter & QGC_PROTOCOL:
+                self.__app.qgc_handler.process_data(raw_data, parsed_data)
+                msgprot = QGC_PROTOCOL
+            elif isinstance(parsed_data, UNIMessage) and protfilter & UNI_PROTOCOL:
+                self.__app.uni_handler.process_data(raw_data, parsed_data)
+                msgprot = UNI_PROTOCOL
+            elif (
+                isinstance(parsed_data, SPARTNMessage) and protfilter & SPARTN_PROTOCOL
+            ):
+                msgprot = SPARTN_PROTOCOL
+            elif isinstance(parsed_data, MQTTMessage):
+                msgprot = MQTT_PROTOCOL
+            elif isinstance(parsed_data, GNSSMessage):
+                msgprot = GNSS_PROTOCOL
+            elif isinstance(parsed_data, str):
+                if tty:
+                    msgprot = TTY_PROTOCOL
+                    self.__app.tty_handler.process_data(raw_data, parsed_data)
+                else:
+                    msgprot = -1
+                    marker = WARNING
+
+        # update consoledata if console is visible and protocol not filtered
+        if console and msgprot:
+            self.__app.console_outqueue.put((raw_data, parsed_data, marker))
+
+        # if socket server is running and has clients, output raw data to socket
+        if self.__app.server_status > 0:
+            self.__app.socket_outqueue.put(raw_data)
+
+        # update log file if enabled
+        if self.__app.configuration.get("datalog_b"):
+            self.__app.file_handler.write_logfile(raw_data, parsed_data)
+
+        # update GPX track file if enabled
+        if self.__app.configuration.get("recordtrack_b"):
+            self.__app.file_handler.update_gpx_track()
+
+        # update database if enabled
+        if self.__app.configuration.get("database_b"):
+            self.__app.sqlite_handler.load_data()

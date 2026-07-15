@@ -44,7 +44,7 @@ class NMEAConfigDialog(ToplevelDialog):
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         :param args: optional args to pass to parent class (not currently used)
         :param kwargs: optional kwargs to pass to parent class (not currently used)
         """
@@ -115,7 +115,7 @@ class NMEAConfigDialog(ToplevelDialog):
             CONNECTED_SOCKET,
             CONNECTED_SIMULATOR,
         ):
-            self.status_label = ("Device not connected", ERRCOL)
+            self.set_status_label("Device not connected", ERRCOL)
 
     def _attach_events(self):
         """

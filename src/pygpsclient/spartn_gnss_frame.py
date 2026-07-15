@@ -30,6 +30,7 @@ from tkinter import (
     Radiobutton,
     Spinbox,
     StringVar,
+    Tk,
     W,
     ttk,
 )
@@ -103,18 +104,17 @@ class SPARTNGNSSDialog(Frame):
     SPARTNConfigDialog class.
     """
 
-    def __init__(self, app: Frame, parent: Frame, *args, **kwargs):
+    def __init__(self, app: Tk, parent: Frame, *args, **kwargs):
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         :param Frame container: reference to container frame
         :param args: optional args to pass to parent class (not currently used)
         :param kwargs: optional kwargs to pass to parent class (not currently used)
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.__container = parent  # container frame
 
         super().__init__(parent.container, *args, **kwargs)
@@ -450,7 +450,7 @@ class SPARTNGNSSDialog(Frame):
         else:
             msga = ""
         self.__container.status_label = f"{(msgk + msga + msgc).capitalize()} sent"
-        self._lbl_send_command.config(image=self._img_pending)
+        self._lbl_send_command["image"] = self._img_pending
         for msgid in ("RXM-SPARTNKEY", "CFG-VALGET", "ACK-ACK", "ACK-NAK"):
             self.__container.set_pending(msgid, SPARTN_GNSS)
 
@@ -492,7 +492,7 @@ class SPARTNGNSSDialog(Frame):
         """
 
         if msg.identity == RXMMSG:
-            self._lbl_send_command.config(image=self._img_confirmed)
+            self._lbl_send_command["image"] = self._img_confirmed
             if msg.numKeys == 2:
                 keydata = parse_rxmspartnkey(msg)  # key1, date1, key2, date2
                 self._spartn_key1.set(keydata[0][0])
@@ -506,10 +506,10 @@ class SPARTNGNSSDialog(Frame):
                 col = ERRCOL
             self.__container.status_label = (CONFIGRXM.format(RXMMSG, msg.numKeys), col)
         elif msg.identity == "ACK-ACK":
-            self._lbl_send_command.config(image=self._img_confirmed)
+            self._lbl_send_command["image"] = self._img_confirmed
             self.__container.status_label = (CONFIGOK.format(CFGSET), OKCOL)
         elif msg.identity == "ACK-NAK":
-            self._lbl_send_command.config(image=self._img_warn)
+            self._lbl_send_command["image"] = self._img_warn
             self.__container.status_label = (CONFIGBAD.format(CFGSET), ERRCOL)
         self.update_idletasks()
 

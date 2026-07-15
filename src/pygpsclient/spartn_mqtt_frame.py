@@ -35,6 +35,7 @@ from tkinter import (
     Spinbox,
     StringVar,
     TclError,
+    Tk,
     W,
     ttk,
 )
@@ -87,18 +88,17 @@ class SPARTNMQTTDialog(Frame):
     SPARTNConfigDialog class.
     """
 
-    def __init__(self, app: Frame, parent: Frame, *args, **kwargs):
+    def __init__(self, app: Tk, parent: Frame, *args, **kwargs):
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         :param Frame parent: reference to parent frame
         :param args: optional args to pass to parent class (not currently used)
         :param kwargs: optional kwargs to pass to parent class (not currently used)
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.__container = parent  # container frame
 
         super().__init__(parent.container, *args, **kwargs)
@@ -331,8 +331,8 @@ class SPARTNMQTTDialog(Frame):
             self.set_controls(DISCONNECTED)
 
         if not HASCRYPTO:
-            self._lbl_spartndecode.config(state=DISABLED)
-            self._chk_spartndecode.config(state=DISABLED)
+            self._lbl_spartndecode["state"] = DISABLED
+            self._chk_spartndecode["state"] = DISABLED
 
     def _reset_keypaths(self, clientid):
         """
@@ -354,13 +354,13 @@ class SPARTNMQTTDialog(Frame):
         self.update()
         cfg = self.__app.configuration
         if self._mqtt_source.get() == MQTTLBANDMODE:
-            self._chk_mqtt_iptopic.config(state=DISABLED)
-            self._chk_mqtt_freqtopic.config(state=NORMAL)
+            self._chk_mqtt_iptopic["state"] = DISABLED
+            self._chk_mqtt_freqtopic["state"] = NORMAL
             self._mqtt_iptopic.set(0)
             self._mqtt_freqtopic.set(1)
         else:  # MQTTIPMODE
-            self._chk_mqtt_iptopic.config(state=NORMAL)
-            self._chk_mqtt_freqtopic.config(state=DISABLED)
+            self._chk_mqtt_iptopic["state"] = NORMAL
+            self._chk_mqtt_freqtopic["state"] = DISABLED
             self._mqtt_iptopic.set(1)
             self._mqtt_freqtopic.set(0)
         cfg.set("mqttclientmode_n", self._mqtt_source.get())
@@ -467,7 +467,7 @@ class SPARTNMQTTDialog(Frame):
 
         stat = NORMAL if status == CONNECTED_SPARTNIP else DISABLED
         for wdg in (self._btn_disconnect,):
-            wdg.config(state=stat)
+            wdg["state"] = stat
         stat = DISABLED if status == CONNECTED_SPARTNIP else NORMAL
         for wdg in (
             self._ent_mqttserver,
@@ -485,10 +485,10 @@ class SPARTNMQTTDialog(Frame):
             self._btn_opencrt,
             self._btn_openpem,
         ):
-            wdg.config(state=stat)
+            wdg["state"] = stat
         stat = DISABLED if status == CONNECTED_SPARTNIP else READONLY
         for wdg in (self._spn_mqttregion,):
-            wdg.config(state=stat)
+            wdg["state"] = stat
 
         if status == DISCONNECTED:
             self._on_source(None, None, TRACEMODE_WRITE)

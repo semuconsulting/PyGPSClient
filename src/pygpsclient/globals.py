@@ -56,6 +56,7 @@ PNTCOL = "#FF8000"  # default plot point color
 SPARTN_PROTOCOL = 256
 MQTT_PROTOCOL = 512
 TTY_PROTOCOL = 1024
+GNSS_PROTOCOL = 2048
 
 # Various global constants - please keep in ascending alphabetical order
 HOME = Path.home()
@@ -247,8 +248,9 @@ SPARTN_SOURCE_IP = 0
 SPARTN_SOURCE_LB = 1
 SPONSOR_URL = "https://buymeacoffee.com/semuconsulting"
 SQRT2 = 0.7071067811865476  # square root of 2
+STREAMDELAY = 0.001  # sleep period between stream reads, in seconds
 STATUS_PRIORITY = {INFOCOL: 0, "blue": 0, OKCOL: 2, "green": 1, ERRCOL: 3, "red": 3}
-STATUS_TIMEOUT = 15  # timeout for stale status messages in seconds
+STATUS_TIMEOUT = 15000  # timeout for stale status messages in milliseconds
 TIME0 = datetime(1970, 1, 1)  # basedate for time()
 TIMEOUTS = ("0.1", "0.2", "0.5", "1", "2", "5", "10", "20", "None", "0")
 # map nmea talker to gnss_id
@@ -370,10 +372,10 @@ FIXLOOKUP = {
     "GGA5": "RTK FLOAT",
     "GGA6": "DR",
     "GLLA": "3D",  # posMode
-    "GLLD": "3D",
+    "GLLD": "RTK",
     "GLLE": "DR",
     "GNSA": "3D",  # posMode
-    "GNSD": "3D",
+    "GNSD": "RTK",
     "GNSF": "RTK FLOAT",
     "GNSR": "RTK FIXED",
     "GNSE": "DR",

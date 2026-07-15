@@ -10,7 +10,7 @@ Created on 22 Dec 2020
 :license: BSD 3-Clause
 """
 
-from tkinter import EW, Frame, Label, W
+from tkinter import EW, Frame, Label, Tk, W
 
 from PIL import Image, ImageTk
 
@@ -30,11 +30,11 @@ class Hardware_Info_Frame(Frame):
     Hardware & firmware information panel.
     """
 
-    def __init__(self, app: Frame, parent: Frame, *args, **kwargs):
+    def __init__(self, app: Tk, parent: Frame, *args, **kwargs):
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         :param Frame parent: reference to parent frame (config-dialog)
         :param args: optional args to pass to Frame parent class
         :param kwargs: optional kwargs to pass to Frame parent class
@@ -112,18 +112,17 @@ class Hardware_Info_Frame(Frame):
         Reset panel to initial settings
         """
 
-        self._lbl_swver.config(
-            text=self.__app.gnss_status.version_data.get("swversion", NA)
+        self._lbl_swver["text"] = self.__app.gnss_status.version_data.get(
+            "swversion", NA
         )
-        self._lbl_hwver.config(
-            text=self.__app.gnss_status.version_data.get("hwversion", NA)
+        self._lbl_hwver["text"] = self.__app.gnss_status.version_data.get(
+            "hwversion", NA
         )
-        self._lbl_fwver.config(
-            text=self.__app.gnss_status.version_data.get("fwversion", NA)
+        self._lbl_fwver["text"] = self.__app.gnss_status.version_data.get(
+            "fwversion", NA
         )
-        self._lbl_romver.config(
-            text=self.__app.gnss_status.version_data.get("romversion", NA)
+        self._lbl_romver["text"] = self.__app.gnss_status.version_data.get(
+            "romversion", NA
         )
-        self._lbl_gnss.config(text=self.__app.gnss_status.version_data.get("gnss", NA))
-
+        self._lbl_gnss["text"] = self.__app.gnss_status.version_data.get("gnss", NA)
         self.__container.status_label = (HWRESET, OKCOL)

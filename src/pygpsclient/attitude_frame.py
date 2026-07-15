@@ -24,6 +24,7 @@ from tkinter import (
     Spinbox,
     StringVar,
     TclError,
+    Tk,
     W,
 )
 
@@ -73,17 +74,16 @@ class AttitudeFrame(Frame):
     Attitude (3D orientation) frame class.
     """
 
-    def __init__(self, app: Frame, parent: Frame, *args, **kwargs):
+    def __init__(self, app: Tk, parent: Frame, *args, **kwargs):
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         :param Frame parent: reference to parent frame
         :param args: Optional args to pass to Frame parent class
         :param kwargs: Optional kwargs to pass to Frame parent class
         """
         self.__app = app
-        self.__master = self.__app.appmaster
 
         super().__init__(parent, *args, **kwargs)
 
@@ -236,7 +236,7 @@ class AttitudeFrame(Frame):
 
     def update_frame(self):
         """
-        Collect scatterplot data and update the plot.
+        Collect attitude data and update the plot.
         """
         self._canvas.delete(DATA)
         width, _ = self.get_size()
@@ -350,9 +350,10 @@ class AttitudeFrame(Frame):
                 tag=DATA,
             )
 
+            self.update_idletasks()
+
         except (KeyError, ValueError):
             self._canvas.delete(DATA)
-        self._canvas.update_idletasks()
 
     def _flag_range(self, over: bool = False):
         """

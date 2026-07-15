@@ -14,7 +14,7 @@ Created on 13 Sep 2020
 
 # pylint: disable = no-member
 
-from tkinter import NSEW, Frame
+from tkinter import NSEW, Frame, Tk
 
 from pygpsclient.canvas_subclasses import (
     MODE_CEL,
@@ -42,18 +42,17 @@ class SkyviewFrame(Frame):
     Skyview frame class.
     """
 
-    def __init__(self, app: Frame, parent: Frame, *args, **kwargs):
+    def __init__(self, app: Tk, parent: Frame, *args, **kwargs):
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         :param Frame parent: reference to parent frame
         :param args: optional args to pass to Frame parent class
         :param kwargs: optional kwargs to pass to Frame parent class
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
 
         super().__init__(parent, *args, **kwargs)
 
@@ -145,10 +144,9 @@ class SkyviewFrame(Frame):
                     font=self._canvas.font,
                     tags=TAG_DATA,
                 )
+                self.update_idletasks()
             except ValueError:
                 pass
-
-            self.update_idletasks()
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """
