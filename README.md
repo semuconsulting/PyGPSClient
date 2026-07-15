@@ -145,6 +145,12 @@ For more comprehensive installation instructions, please refer to [INSTALLATION.
 #### <a name="datalog">Datalogging, GPX Track Recording and Database</a>
 
 17. DataLogging - Turn Data logging in the selected format (Binary, Parsed, Hex Tabular, Hex String, Parsed+Hex Tabular) on or off. On first selection, you will be prompted to select the directory into which timestamped log files are saved. Log files are cycled when a maximum size is reached (default is 10 MB, manually configurable via `logsize_n` setting).
+
+    **NB**: For extended datalogging (> 2 hours or more) it is **strongly** recommended to use an unattended (i.e. CLI) tool like [GNSStreamer](https://github.com/semuconsulting/pygnssutils#gnssstreamer) rather than an attended GUI tool like PyGPSClient (*especially if you're running 'headless'*), e.g.:
+    ```shell
+    gnssstreamer --port /dev/ttyACM0 --baudrate 115200 --timeout 3 --format 2 --clioutput 1 --output pygpsdata.log --verbosity 2
+    ```
+
 18. GPX Track - Turn track recording (in GPX format) on or off. On first selection, you will be prompted to select the directory into which timestamped GPX track files are saved. See also [GPX Track Viewer](#gpxviewer).
 19. Database - Turn spatialite database recording (*where available*) on or off. On first selection, you will be prompted to select the directory into which the `pygpsclient.sqlite` database is saved. *Note that, when first created, the database's spatial metadata may take up to a minute or so to initialise*. 
     - Database logging is dependent on your Python environment supporting the requisite [sqlite3 `mod_spatialite` extension](https://www.gaia-gis.it/fossil/libspatialite/index) - see [INSTALLATION.md](https://github.com/semuconsulting/PyGPSClient/blob/master/INSTALLATION.md#prereqs) for further details. If not supported, the option will be greyed out. Check the Menu..Help..About dialog for an indication of the current spatialite support status - `no-ext` means the spatialite extension is not supported; `no-ms` means spatialite *is* supported but the necessary `mod_spatialite` extension module cannot be found in the PATH; a numeric version number like `3.51.2` indicates spatialite is fully supported.
