@@ -117,8 +117,8 @@ def main():
             f"{VERBOSITY_CRITICAL} = critical, "
             f"{VERBOSITY_LOW} = low (error), "
             f"{VERBOSITY_MEDIUM} = medium (warning), "
-            f"{VERBOSITY_HIGH} = high (info), {VERBOSITY_DEBUG} = debug, "
-            f"default = {VERBOSITY_CRITICAL}"
+            f"{VERBOSITY_HIGH} = high (info), "
+            f"{VERBOSITY_DEBUG} = debug"
         ),
         type=int,
         choices=[
@@ -128,7 +128,7 @@ def main():
             VERBOSITY_DEBUG,
             VERBOSITY_CRITICAL,
         ],
-        default=VERBOSITY_LOW,
+        default=VERBOSITY_CRITICAL,
     )
     ap.add_argument(
         "--logtofile",

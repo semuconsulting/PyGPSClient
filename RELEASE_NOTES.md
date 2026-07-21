@@ -4,7 +4,8 @@
 
 FIXES:
 
-1. Internal refactoring to improve long-term stability and responsiveness and reliability of extended datalogging.
+1. Fix 'memory leak' issue (socket server message queue filling up when server not active).
+1. Internal refactoring and performance enhancements to improve long-term UI responsiveness and stability.
 1. Fix u-blox preset configuration validation which was preventing some valid preset commands.
 
 ENHANCEMENTS:
