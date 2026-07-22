@@ -184,7 +184,7 @@ For more comprehensive installation instructions, please refer to [INSTALLATION.
 31. The behaviour of Toplevel ('pop-up') dialogs will depend on the screen resolution and 'transient' setting. If the width or height of a Toplevel dialog exceeds the screen resolution, the dialog will be displayed in a scrollable, resizeable window. Otherwise, the dialog is displayed as a fixed, non-resizeable panel.
     - A boolean configuration setting `transient_dialog_b` governs whether Toplevel dialogs are 'transient' (i.e. always on top of main application dialog) or not. Changing this setting to `0` allows Toplevel dialogs to be minimised independently of the main application window, but be mindful that some dialogs may end up hidden behind others e.g. "Open file/folder" dialogs. **If a file open button appears unresponsive, check that the "Open file/folder" panel isn't already open but obscured**. 
     - If you're accessing the desktop via a VNC session (e.g. to a headless Raspberry Pi) it is recommended to keep the setting at the default `1`, as VNC may not recognise keystrokes on overlaid non-transient windows.
-    - A boolean configuration setting `resizeable_dialog_b` governs whether *all* Toplevel dialogs are resizeable, irrespective of the default setting in `DialogState`.
+    - A boolean configuration setting `resizeable_dialog_b` governs whether *all* Toplevel dialogs are resizeable, irrespective of the default setting in `DialogState`. Setting this to '1' provides a workaround for issues with some scaled Linux Wayland displays.
    
 #### <a name="widgets">User-selectable widgets</a>
 ---

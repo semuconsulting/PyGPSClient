@@ -697,6 +697,8 @@ def hextable(raw: bytes, cols: int = 8) -> list:
     """
 
     lines = []
+    if raw is None:
+        return lines
     colw = cols * 4
     rawh = raw.hex()
     for i in range(0, len(rawh), colw):
