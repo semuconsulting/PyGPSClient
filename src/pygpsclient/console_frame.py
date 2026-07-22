@@ -32,8 +32,6 @@ from tkinter import (
     Tk,
 )
 
-from pyubx2 import hextable
-
 from pygpsclient.globals import (
     BGCOL,
     DISCONNECTED,
@@ -45,9 +43,11 @@ from pygpsclient.globals import (
     FORMAT_BOTH,
     FORMAT_HEXSTR,
     FORMAT_HEXTAB,
+    FORMAT_PARSED,
     INFOCOL,
     WIDGETU3,
 )
+from pygpsclient.helpers import hextable
 from pygpsclient.strings import CONTENTCOPIED, HALTTAGWARN
 
 HALT = "HALT"
@@ -145,6 +145,9 @@ class ConsoleFrame(Frame):
         'maxlines' defines the maximum number of scrollable lines that are
         retained in the text box on a FIFO basis.
 
+        To minimise refresh latency, only the last 'maxlines' of queued
+        messages are written to the console; the remainder are discarded.
+
         :param list consoledata: list of tuples (raw, parsed, marker) \
             accumulated since last console update
         """
@@ -153,39 +156,49 @@ class ConsoleFrame(Frame):
             return
 
         consoleformat = self.__app.configuration.get("consoleformat_s")
-        colortagging = self.__app.configuration.get("colortag_b")
         maxlines = self.__app.configuration.get("maxlines_n")
         self._halt = ""
-        consolestr = ""
-        self.txt_console.configure(font=FONT_TEXT)
-
+        self.txt_console["font"] = (
+            FONT_TEXT if consoleformat in (FORMAT_BINARY, FORMAT_PARSED) else FONT_FIXED
+        )
         raw_data = None
         parsed_data = None
+        lines = []
         while True:
             try:
                 raw_data, parsed_data, marker = self.__app.console_outqueue.get(False)
-                if consoleformat == FORMAT_BINARY:
-                    data = f"{marker}{raw_data}\n"
-                elif consoleformat == FORMAT_HEXSTR:
-                    data = f"{marker}{raw_data.hex()}\n"
-                elif consoleformat == FORMAT_HEXTAB:
-                    self.txt_console.configure(font=FONT_FIXED)
-                    data = hextable(raw_data)
-                elif consoleformat == FORMAT_BOTH:
-                    self.txt_console.configure(font=FONT_FIXED)
-                    data = f"{marker}{parsed_data}\n{hextable(raw_data)}"
-                else:
-                    data = f"{marker}{parsed_data}\n"
-                consolestr += data
+                if self.__app.console_outqueue.qsize() < maxlines:
+                    if consoleformat == FORMAT_BINARY:
+                        lines.append(f"{marker}{raw_data}\n")
+                    elif consoleformat == FORMAT_HEXSTR:
+                        lines.append(f"{marker}{raw_data.hex()}\n")
+                    elif consoleformat == FORMAT_HEXTAB:
+                        lines += hextable(raw_data)
+                    elif consoleformat == FORMAT_BOTH:
+                        lines.append(f"{marker}{parsed_data}\n")
+                        lines += hextable(raw_data)
+                    else:
+                        lines.append(f"{marker}{parsed_data}\n")
                 self.__app.console_outqueue.task_done()
             except Empty:
                 break
 
+        consolestr = "".join(lines[-maxlines:])
         numlinesbefore = self.numlines
         self.txt_console.configure(state="normal")
-        self.txt_console.insert(END, consolestr)
 
-        if colortagging:
+        if len(lines) >= maxlines:
+            self.txt_console.delete("1.0", "end")
+            self.txt_console.insert("1.0", consolestr)
+            numlinesbefore = 0
+        else:
+            excess = self.numlines + len(lines) - maxlines
+            if excess > 0:
+                self.txt_console.delete("1.0", f"{excess}.0")
+                numlinesbefore -= excess
+            self.txt_console.insert(END, consolestr)
+
+        if self.__app.configuration.get("colortag_b"):
             self._tag_line(self.txt_console, numlinesbefore, self.numlines)
             if self._halt != "":
                 self._on_halt(None)

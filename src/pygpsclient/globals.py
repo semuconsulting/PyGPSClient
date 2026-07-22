@@ -372,7 +372,7 @@ FIXLOOKUP = {
     "GGA5": "RTK FLOAT",
     "GGA6": "DR",
     "GLLA": "3D",  # posMode
-    "GLLD": "RTK",
+    "GLLD": "3D",
     "GLLE": "DR",
     "GNSA": "3D",  # posMode
     "GNSD": "RTK",
@@ -385,7 +385,7 @@ FIXLOOKUP = {
     "RMCR": "RTK FIXED",
     "RMCE": "DR",
     "VTGA": "3D",  # posMode
-    "VTGD": "RTK",
+    "VTGD": "3D",
     "VTGE": "DR",
     "NAV-PVT1": "DR",  # fixType
     "NAV-PVT2": "2D",
