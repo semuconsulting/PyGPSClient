@@ -207,7 +207,6 @@ class Dynamic_Config_Frame(Frame):
             image=self.__container.img_send,
             width=50,
             command=self._on_set_cfg,
-            font=self.__app.font_md,
             cursor=CLICK_CURSOR,
         )
         self._btn_refresh = Button(
@@ -215,7 +214,6 @@ class Dynamic_Config_Frame(Frame):
             image=self.__container.img_redraw,
             width=40,
             command=self._on_refresh,
-            font=self.__app.font_md,
             cursor=CLICK_CURSOR,
         )
         self._lbl_command = Label(self, text="", anchor=W)
@@ -238,7 +236,7 @@ class Dynamic_Config_Frame(Frame):
         """
 
         self._lbl_cfg_dyn.grid(column=0, row=0, columnspan=3, sticky=EW)
-        self._lbx_cfg_cmd.grid(column=0, row=1, columnspan=1, sticky=EW)
+        self._lbx_cfg_cmd.grid(column=0, row=1, columnspan=1, sticky=NSEW)
         self._scr_cfg_cmd.grid(column=1, row=1, sticky=(N, S, W))
         self._btn_send_command.grid(column=2, row=1, ipadx=3, ipady=3, sticky=NE)
         self._lbl_send_command.grid(column=3, row=1, ipadx=3, ipady=3, sticky=NE)
@@ -260,7 +258,7 @@ class Dynamic_Config_Frame(Frame):
         )
         self._scr_container_ver.grid(column=5, row=0, sticky=(N, S, W))
         self._scr_container_hor.grid(column=0, row=2, columnspan=5, sticky=EW)
-        self.option_add("*Font", self.__app.font_sm)
+        self.grid_rowconfigure(1, weight=1)
 
     def _attach_events(self):
         """
@@ -546,22 +544,23 @@ class Dynamic_Config_Frame(Frame):
         for nam, att in pdict.items():  # process each attribute in dict
             if isinstance(att, tuple):  # repeating group or bitfield
                 numr, attd = att
-                if numr in (
-                    X1,
-                    X2,
-                    X4,
-                    X6,
-                    X8,
-                    X24,
-                ):  # bitfield
-                    row = self._add_widgets(attd, row, index)
-                else:  # repeating group
-                    if isinstance(numr, int):  # fixed length group
-                        nr = numr
-                    else:
-                        nr = 1
-                    for idx in range(nr):
-                        row = self._add_widgets_group(att, row, idx + 1)
+                if isinstance(attd, dict):
+                    if numr in (
+                        X1,
+                        X2,
+                        X4,
+                        X6,
+                        X8,
+                        X24,
+                    ):  # bitfield
+                        row = self._add_widgets(attd, row, index)
+                    else:  # repeating group
+                        if isinstance(numr, int):  # fixed length group
+                            nr = numr
+                        else:
+                            nr = 1
+                        for idx in range(nr):
+                            row = self._add_widgets_group(att, row, idx + 1)
             else:  # single attribute
                 row = self._add_widgets_single(nam, att, row, index)
 

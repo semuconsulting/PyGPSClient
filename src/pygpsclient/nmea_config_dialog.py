@@ -93,15 +93,12 @@ class NMEAConfigDialog(ToplevelDialog):
         self.container.grid_columnconfigure(0, weight=1)
         self.container.grid_columnconfigure(1, weight=1)
         self.container.grid_rowconfigure(1, weight=1)
-        colsp, rowsp = self._frm_preset.grid_size()
+        colsp, _ = self._frm_preset.grid_size()
         for col in range(colsp - 2):
             self._frm_preset.grid_columnconfigure(col, weight=1)
         self._frm_preset.grid_rowconfigure(2, weight=1)
-        colsp, rowsp = self._frm_config_dynamic.grid_size()
-        for col in range(colsp):
-            self._frm_config_dynamic.grid_columnconfigure(col, weight=1)
-        for row in range(1, rowsp):
-            self._frm_config_dynamic.grid_rowconfigure(row, weight=1)
+        self._frm_config_dynamic.grid_columnconfigure(0, weight=1)
+        self._frm_config_dynamic.grid_rowconfigure(1, weight=1)
 
     def _reset(self):
         """

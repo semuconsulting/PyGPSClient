@@ -26,6 +26,7 @@ from pygpsclient.strings import (
     DLGTSERVER,
     DLGTTTY,
     DLGTUBX,
+    DLGTUBXLEGACY,
     MENUABOUT,
     MENUEXIT,
     MENUFILE,
@@ -39,6 +40,7 @@ from pygpsclient.strings import (
 
 DIALOGS = (
     DLGTUBX,
+    DLGTUBXLEGACY,
     DLGTNMEA,
     DLGTNTRIP,
     DLGTSERVER,

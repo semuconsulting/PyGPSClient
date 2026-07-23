@@ -101,7 +101,6 @@ class UBX_RATE_Frame(Frame):
             image=self.__container.img_send,
             width=50,
             command=self._on_send_rate,
-            font=self.__app.font_md,
             cursor=CLICK_CURSOR,
         )
 
@@ -123,7 +122,6 @@ class UBX_RATE_Frame(Frame):
         self._lbl_send_command.grid(
             column=5, row=1, rowspan=3, ipadx=3, ipady=3, sticky=E
         )
-        self.option_add("*Font", self.__app.font_sm)
 
     def _attach_events(self):
         """

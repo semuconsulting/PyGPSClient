@@ -159,13 +159,13 @@ class TTYPresetDialog(ToplevelDialog):
 
         self.frm_device_info.grid(column=0, row=0, sticky=EW)
         self._frm_body.grid(column=0, row=1, sticky=NSEW)
-        self._lbl_command.grid(column=0, row=0, sticky=W)
-        self._ent_command.grid(column=1, row=0, columnspan=4, sticky=EW)
-        self._chk_crlf.grid(column=0, row=1, sticky=W)
-        self._chk_echo.grid(column=1, row=1, sticky=W)
-        self._chk_delay.grid(column=2, row=1, sticky=W)
-        ttk.Separator(self._frm_body).grid(column=0, row=2, columnspan=5, sticky=EW)
-        self._lbl_presets.grid(column=0, row=3, columnspan=4, sticky=EW)
+        self._lbl_presets.grid(column=0, row=0, columnspan=4, sticky=EW)
+        self._lbl_command.grid(column=0, row=1, sticky=W)
+        self._ent_command.grid(column=1, row=1, columnspan=4, sticky=EW)
+        self._chk_crlf.grid(column=0, row=2, sticky=W)
+        self._chk_echo.grid(column=1, row=2, sticky=W)
+        self._chk_delay.grid(column=2, row=2, sticky=W)
+        ttk.Separator(self._frm_body).grid(column=0, row=3, columnspan=5, sticky=EW)
         self._lbx_preset.grid(
             column=0,
             row=4,

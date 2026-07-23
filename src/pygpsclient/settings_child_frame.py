@@ -69,6 +69,7 @@ from pygpsclient.globals import (
     ICON_TRANSMIT,
     ICON_TTYCONFIG,
     ICON_UBXCONFIG,
+    ICON_UBXCONFIGLEGACY,
     INFOCOL,
     KNOWNGPS,
     MSGMODES,
@@ -91,6 +92,7 @@ from pygpsclient.strings import (
     DLGTSERVER,
     DLGTTTY,
     DLGTUBX,
+    DLGTUBXLEGACY,
     LBLAUTOSCROLL,
     LBLDATABASERECORD,
     LBLDATADISP,
@@ -104,6 +106,7 @@ from pygpsclient.strings import (
     LBLTRACKRECORD,
     LBLTTYCONFIG,
     LBLUBXCONFIG,
+    LBLUBXLEGACYCONFIG,
 )
 
 MAXLINES = ("200", "500", "1000", "2000", "100")
@@ -162,6 +165,7 @@ class SettingsChildFrame(Frame):
         self._img_disconn = ImageTk.PhotoImage(Image.open(ICON_DISCONN))
         self._img_exit = ImageTk.PhotoImage(Image.open(ICON_POWEROFF))
         self._img_ubxconfig = ImageTk.PhotoImage(Image.open(ICON_UBXCONFIG))
+        self._img_ubxconfiglegacy = ImageTk.PhotoImage(Image.open(ICON_UBXCONFIGLEGACY))
         self._img_nmeaconfig = ImageTk.PhotoImage(Image.open(ICON_NMEACONFIG))
         self._img_ttyconfig = ImageTk.PhotoImage(Image.open(ICON_TTYCONFIG))
         self._img_ntripconfig = ImageTk.PhotoImage(Image.open(ICON_NTRIPCONFIG))
@@ -387,6 +391,17 @@ class SettingsChildFrame(Frame):
             command=lambda: self.__app.start_dialog(DLGTUBX),
             cursor=CLICK_CURSOR,
         )
+        self._lbl_ubxlegacyconfig = Label(
+            self._frm_options_btns,
+            text=LBLUBXLEGACYCONFIG,
+        )
+        self._btn_ubxlegacyconfig = Button(
+            self._frm_options_btns,
+            width=45,
+            image=self._img_ubxconfiglegacy,
+            command=lambda: self.__app.start_dialog(DLGTUBXLEGACY),
+            cursor=CLICK_CURSOR,
+        )
         self._lbl_nmeaconfig = Label(
             self._frm_options_btns,
             text=LBLNMEACONFIG,
@@ -502,14 +517,16 @@ class SettingsChildFrame(Frame):
         self._frm_options_btns.grid(column=0, row=10, columnspan=4, sticky=EW)
         self._btn_ubxconfig.grid(column=0, row=0, padx=2, pady=1)
         self._lbl_ubxconfig.grid(column=0, row=1)
-        self._btn_nmeaconfig.grid(column=1, row=0, padx=2, pady=1)
-        self._lbl_nmeaconfig.grid(column=1, row=1)
-        self._btn_ttyconfig.grid(column=2, row=0, padx=2, pady=1)
-        self._lbl_ttyconfig.grid(column=2, row=1)
-        self._btn_ntripconfig.grid(column=3, row=0, padx=2, pady=1)
-        self._lbl_ntripconfig.grid(column=3, row=1)
-        self._btn_serverconfig.grid(column=4, row=0, padx=2, pady=1)
-        self._lbl_serverconfig.grid(column=4, row=1)
+        self._btn_ubxlegacyconfig.grid(column=1, row=0, padx=2, pady=1)
+        self._lbl_ubxlegacyconfig.grid(column=1, row=1)
+        self._btn_nmeaconfig.grid(column=2, row=0, padx=2, pady=1)
+        self._lbl_nmeaconfig.grid(column=2, row=1)
+        self._btn_ttyconfig.grid(column=3, row=0, padx=2, pady=1)
+        self._lbl_ttyconfig.grid(column=3, row=1)
+        self._btn_ntripconfig.grid(column=4, row=0, padx=2, pady=1)
+        self._lbl_ntripconfig.grid(column=4, row=1)
+        self._btn_serverconfig.grid(column=5, row=0, padx=2, pady=1)
+        self._lbl_serverconfig.grid(column=5, row=1)
 
     def _attach_events(self, add: bool = True):
         """
@@ -818,13 +835,6 @@ class SettingsChildFrame(Frame):
 
         :param int conntype: connection type
         """
-
-        # start or stop widget update process timer
-        # if conntype == DISCONNECTED:
-        #     if self.__app.process_data_timer is not None:
-        #         self.__app.after_cancel(self.__app.process_data_timer)
-        # else:
-        #     self.__app.process_data()
 
         connstr = ""
         conndict = {

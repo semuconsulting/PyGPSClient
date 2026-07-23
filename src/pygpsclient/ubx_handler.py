@@ -22,7 +22,7 @@ from pyubx2 import UBXMessage, itow2utc
 
 from pygpsclient.globals import BSR, GLONASS_NMEA, UTF8
 from pygpsclient.helpers import corrage2int, fix2desc, hdg2yaw, ned2vector, svid2gnssid
-from pygpsclient.strings import DLGTSERVER, DLGTSPARTN, DLGTUBX, NA
+from pygpsclient.strings import DLGTSERVER, DLGTSPARTN, DLGTUBX, DLGTUBXLEGACY, NA
 from pygpsclient.widget_state import VISIBLE, WDGSIGNALS, WDGSPECTRUM, WDGSYSMON
 
 UBXMODELS = {
@@ -129,6 +129,8 @@ class UBXHandler:
 
         if self.__app.dialog(DLGTUBX) is not None:
             self.__app.dialog(DLGTUBX).update_pending(msg)
+        if self.__app.dialog(DLGTUBXLEGACY) is not None:
+            self.__app.dialog(DLGTUBXLEGACY).update_pending(msg)
 
         # if SPARTN config dialog is open, send CFG & ACKs there
         if self.__app.dialog(DLGTSPARTN) is not None:

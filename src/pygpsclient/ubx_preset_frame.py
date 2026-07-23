@@ -129,15 +129,14 @@ class UBX_PRESET_Frame(Frame):
         Layout widgets.
         """
 
-        self._lbl_command.grid(column=0, row=0, sticky=W)
-        self._ent_command.grid(column=1, row=0, columnspan=4, sticky=EW)
-        self._lbl_presets.grid(column=0, row=1, columnspan=5, sticky=EW)
+        self._lbl_presets.grid(column=0, row=0, columnspan=5, sticky=EW)
+        self._lbl_command.grid(column=0, row=1, sticky=W)
+        self._ent_command.grid(column=1, row=1, columnspan=4, sticky=EW)
         self._lbx_preset.grid(column=0, row=2, columnspan=2, sticky=NSEW)
         self._scr_presetv.grid(column=2, row=2, sticky=(N, S, E))
         self._scr_preseth.grid(column=0, row=3, columnspan=2, sticky=EW)
         self._btn_send_command.grid(column=3, row=2, ipadx=3, ipady=3, sticky=NE)
         self._lbl_send_command.grid(column=4, row=2, ipadx=3, ipady=3, sticky=NE)
-        self.option_add("*Font", self.__app.font_sm)
 
     def _attach_events(self):
         """

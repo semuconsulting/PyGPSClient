@@ -27,27 +27,31 @@ from tkinter import NSEW
 
 from pyubx2 import SET, UBXMessage
 
+from pygpsclient.dynamic_config_frame import Dynamic_Config_Frame
 from pygpsclient.globals import (
     CONNECTED,
     CONNECTED_SIMULATOR,
     CONNECTED_SOCKET,
     ERRCOL,
-    UBX_CFGVAL,
+    UBX_CFGMSG,
+    UBX_CFGOTHER,
+    UBX_CFGPRT,
+    UBX_CFGRATE,
     UBX_MONHW,
     UBX_MONRF,
     UBX_MONVER,
-    UBX_PRESET,
 )
 from pygpsclient.hardware_info_frame import Hardware_Info_Frame
-from pygpsclient.strings import DLGTUBX
+from pygpsclient.strings import DLGTUBXLEGACY
 from pygpsclient.toplevel_dialog import ToplevelDialog
-from pygpsclient.ubx_cfgval_frame import UBX_CFGVAL_Frame
-from pygpsclient.ubx_preset_frame import UBX_PRESET_Frame
+from pygpsclient.ubx_msgrate_frame import UBX_MSGRATE_Frame
+from pygpsclient.ubx_port_frame import UBX_PORT_Frame
+from pygpsclient.ubx_solrate_frame import UBX_RATE_Frame
 
 
-class UBXConfigDialog(ToplevelDialog):
+class UBXLegacyConfigDialog(ToplevelDialog):
     """,
-    UBXConfigDialog class.
+    UBXLegacyConfigDialog class.
     """
 
     def __init__(self, app, *args, **kwargs):  # pylint: disable=unused-argument
@@ -61,7 +65,7 @@ class UBXConfigDialog(ToplevelDialog):
 
         self.__app = app  # Reference to main application class
 
-        super().__init__(app, DLGTUBX)
+        super().__init__(app, DLGTUBXLEGACY)
 
         self._cfg_msg_command = None
         self._pending_confs = {}
@@ -82,14 +86,17 @@ class UBXConfigDialog(ToplevelDialog):
         self.frm_device_info = Hardware_Info_Frame(
             self.__app, self, protocol="UBX", borderwidth=2, relief="groove"
         )
-        self._frm_configdb = UBX_CFGVAL_Frame(
+        self._frm_config_port = UBX_PORT_Frame(
             self.__app, self, borderwidth=2, relief="groove"
         )
-        self._frm_preset = UBX_PRESET_Frame(
-            self.__app,
-            self,
-            borderwidth=2,
-            relief="groove",
+        self._frm_config_rate = UBX_RATE_Frame(
+            self.__app, self, borderwidth=2, relief="groove"
+        )
+        self._frm_config_msg = UBX_MSGRATE_Frame(
+            self.__app, self, borderwidth=2, relief="groove"
+        )
+        self._frm_config_dynamic = Dynamic_Config_Frame(
+            self.__app, self, protocol="UBX", borderwidth=2, relief="groove"
         )
 
     def _do_layout(self):
@@ -98,24 +105,27 @@ class UBXConfigDialog(ToplevelDialog):
         """
 
         self.frm_device_info.grid(column=0, row=0, columnspan=3, sticky=NSEW)
-        self._frm_configdb.grid(column=0, row=1, rowspan=1, sticky=NSEW)
-        self._frm_preset.grid(column=1, row=1, rowspan=1, sticky=NSEW)
+        self._frm_config_port.grid(column=0, row=1, sticky=NSEW)
+        self._frm_config_rate.grid(column=0, row=2, sticky=NSEW)
+        self._frm_config_msg.grid(column=0, row=3, sticky=NSEW)
+        self._frm_config_dynamic.grid(column=1, row=1, rowspan=3, sticky=NSEW)
 
-        for col in range(0, 2):
-            self.container.grid_columnconfigure(col, weight=1)
-        for row in range(1, 2):
+        for row in range(0, 2):
+            self.container.grid_columnconfigure(row, weight=1)
+        for row in range(1, 4):
             self.container.grid_rowconfigure(row, weight=1)
-        self._frm_configdb.grid_columnconfigure(0, weight=1)
-        self._frm_configdb.grid_columnconfigure(1, weight=2)
-        self._frm_configdb.grid_rowconfigure(2, weight=1)
-        self._frm_preset.grid_columnconfigure(0, weight=1)
-        self._frm_preset.grid_rowconfigure(2, weight=1)
+        self._frm_config_msg.grid_rowconfigure(3, weight=1)
+        self._frm_config_dynamic.grid_columnconfigure(0, weight=1)
+        self._frm_config_dynamic.grid_rowconfigure(1, weight=1)
 
     def _reset(self):
         """
         Reset configuration widgets.
         """
 
+        self._frm_config_rate.reset()
+        self._frm_config_port.reset()
+        self._frm_config_dynamic.reset()
         self.frm_device_info.reset()
         if self.__app.conn_status not in (
             CONNECTED,
@@ -155,10 +165,14 @@ class UBXConfigDialog(ToplevelDialog):
         if ubxfrm is not None:
             if ubxfrm in (UBX_MONVER, UBX_MONHW, UBX_MONRF):
                 self.frm_device_info.reset()
-            elif ubxfrm == UBX_CFGVAL:
-                self._frm_configdb.update_status(msg)
-            elif ubxfrm == UBX_PRESET:
-                self._frm_preset.update_status(msg)
+            elif ubxfrm == UBX_CFGPRT:
+                self._frm_config_port.update_status(msg)
+            elif ubxfrm == UBX_CFGRATE:
+                self._frm_config_rate.update_status(msg)
+            elif ubxfrm == UBX_CFGMSG:
+                self._frm_config_msg.update_status(msg)
+            elif ubxfrm == UBX_CFGOTHER:
+                self._frm_config_dynamic.update_status(msg)
 
             # reset all confirmation flags for this frame
             for msgid in (msg.identity, "ACK-ACK", "ACK-NAK"):

@@ -15,9 +15,9 @@ Created on 22 Sep 2020
 from tkinter import (
     EW,
     LEFT,
+    NSEW,
     VERTICAL,
     Button,
-    E,
     Frame,
     IntVar,
     Label,
@@ -87,7 +87,7 @@ class UBX_MSGRATE_Frame(Frame):
             self,
             border=2,
             relief="sunken",
-            height=10,
+            height=8,
             justify=LEFT,
             exportselection=False,
         )
@@ -146,7 +146,6 @@ class UBX_MSGRATE_Frame(Frame):
             width=50,
             fg=OKCOL,
             command=self._on_send_cfg_msg,
-            font=self.__app.font_md,
             cursor=CLICK_CURSOR,
         )
 
@@ -154,28 +153,22 @@ class UBX_MSGRATE_Frame(Frame):
         """
         Layout widgets.
         """
-        self._lbl_cfg_msg.grid(column=0, row=0, columnspan=6, sticky=EW)
-        self._lbx_cfg_msg.grid(
-            column=0, row=1, columnspan=2, rowspan=10, padx=3, sticky=EW
-        )
-        self._scr_cfg_msg.grid(column=1, row=1, rowspan=10, sticky=(N, S, E))
-        self._lbl_usb.grid(column=2, row=1, rowspan=2, sticky=E)
-        self._spn_usb.grid(column=3, row=1, rowspan=2, sticky=W)
-        self._lbl_uart1.grid(column=2, row=3, rowspan=2, sticky=E)
-        self._spn_uart1.grid(column=3, row=3, rowspan=2, sticky=W)
-        self._lbl_uart2.grid(column=2, row=5, rowspan=2, sticky=E)
-        self._spn_uart2.grid(column=3, row=5, rowspan=2, sticky=W)
-        self._lbl_ddc.grid(column=2, row=7, rowspan=2, sticky=E)
-        self._spn_ddc.grid(column=3, row=7, rowspan=2, sticky=W)
-        self._lbl_spi.grid(column=2, row=9, rowspan=2, sticky=E)
-        self._spn_spi.grid(column=3, row=9, rowspan=2, sticky=W)
-        self._btn_send_command.grid(
-            column=4, row=1, rowspan=10, ipadx=3, ipady=3, sticky=E
-        )
-        self._lbl_send_command.grid(
-            column=5, row=1, rowspan=10, ipadx=3, ipady=3, sticky=E
-        )
-        self.option_add("*Font", self.__app.font_sm)
+        self._lbl_cfg_msg.grid(column=0, row=0, columnspan=5, sticky=EW)
+        self._lbl_usb.grid(column=0, row=1, pady=0)
+        self._spn_usb.grid(column=0, row=2, pady=0)
+        self._lbl_uart1.grid(column=1, row=1, pady=0)
+        self._spn_uart1.grid(column=1, row=2, pady=0)
+        self._lbl_uart2.grid(column=2, row=1, pady=0)
+        self._spn_uart2.grid(column=2, row=2, pady=0)
+        self._lbl_ddc.grid(column=3, row=1, pady=0)
+        self._spn_ddc.grid(column=3, row=2, pady=0)
+        self._lbl_spi.grid(column=4, row=1, pady=0)
+        self._spn_spi.grid(column=4, row=2, pady=0)
+        self._btn_send_command.grid(column=5, row=0, ipadx=3, ipady=3, rowspan=2)
+        self._lbl_send_command.grid(column=6, row=0, rowspan=2)
+        self._lbx_cfg_msg.grid(column=0, row=3, columnspan=5, pady=2, sticky=NSEW)
+        self._scr_cfg_msg.grid(column=5, row=3, sticky=(N, S, W))
+        self.grid_rowconfigure(3, weight=1)
 
     def _attach_events(self):
         """

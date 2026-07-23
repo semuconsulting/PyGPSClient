@@ -10,6 +10,7 @@ FIXES:
 
 ENHANCEMENTS:
 
+1. Split UBX Configuration panel into two separate panels - one for modern (Gen9+) receivers and one for legacy (Gen8-) receivers. The intention is to make the panels easier to use on lower-resolution or scaled displays.
 1. Display UBX NAV-DAHEADING data from dual-antenna receivers such as the u-blox ZED-X20D in the "Rover Plot" widget.
 1. Update portid designation in System Monitor I/O widget (X20 assigns different MON-COMMS.portids to F9P).
 1. Add satellite filter entry field to RINEX conversion dialog (requires pygnssutils>=1.2.6).

@@ -185,6 +185,9 @@ ICON_STOP = path.join(DIRNAME, "resources/iconmonstr-stop-1-24.png")
 ICON_TRANSMIT = path.join(DIRNAME, "resources/iconmonstr-transmit-10-24.png")
 ICON_TTYCONFIG = path.join(DIRNAME, "resources/iconmonstr-gear-2-24-tty.png")
 ICON_UBXCONFIG = path.join(DIRNAME, "resources/iconmonstr-gear-2-24-ubx.png")
+ICON_UBXCONFIGLEGACY = path.join(
+    DIRNAME, "resources/iconmonstr-gear-2-24-ubxlegacy.png"
+)
 ICON_UNDO = path.join(DIRNAME, "resources/iconmonstr-undo-24.png")
 ICON_UNKNOWN = path.join(DIRNAME, "resources/clear-1-24.png")
 ICON_WARNING = path.join(DIRNAME, "resources/iconmonstr-warning-1-24.png")

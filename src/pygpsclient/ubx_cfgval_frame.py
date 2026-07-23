@@ -17,6 +17,7 @@ from tkinter import (
     HORIZONTAL,
     LEFT,
     NORMAL,
+    NSEW,
     VERTICAL,
     Button,
     E,
@@ -210,11 +211,11 @@ class UBX_CFGVAL_Frame(Frame):
 
         self._lbl_configdb.grid(column=0, row=0, columnspan=5, sticky=EW)
         self._lbl_cat.grid(column=0, row=1, sticky=EW)
-        self._lbx_cat.grid(column=0, row=2, rowspan=10, sticky=EW)
+        self._lbx_cat.grid(column=0, row=2, rowspan=10, sticky=NSEW)
         self._scr_catv.grid(column=0, row=2, rowspan=10, sticky=(N, S, E))
         self._scr_cath.grid(column=0, row=12, sticky=EW)
         self._lbl_parm.grid(column=1, row=1, columnspan=4, sticky=EW)
-        self._lbx_parm.grid(column=1, row=2, columnspan=4, rowspan=10, sticky=EW)
+        self._lbx_parm.grid(column=1, row=2, columnspan=4, rowspan=10, sticky=NSEW)
         self._scr_parmv.grid(column=4, row=2, rowspan=10, sticky=(N, S, E))
         self._scr_parmh.grid(column=1, row=12, columnspan=4, sticky=EW)
         self._rad_cfgget.grid(column=0, row=13, sticky=W)
@@ -235,7 +236,6 @@ class UBX_CFGVAL_Frame(Frame):
         self._lbl_send_command.grid(
             column=4, row=16, rowspan=2, ipadx=3, ipady=3, sticky=E
         )
-        self.option_add("*Font", self.__app.font_sm)
 
     def _attach_events(self):
         """

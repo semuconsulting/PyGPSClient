@@ -127,7 +127,6 @@ class UBX_PORT_Frame(Frame):
             image=self.__container.img_send,
             width=50,
             command=self._on_send_port,
-            font=self.__app.font_md,
             cursor=CLICK_CURSOR,
         )
 
@@ -156,7 +155,6 @@ class UBX_PORT_Frame(Frame):
         self._lbl_send_command.grid(
             column=4, row=1, rowspan=2, ipadx=3, ipady=3, sticky=NE
         )
-        self.option_add("*Font", self.__app.font_sm)
 
     def _attach_events(self):
         """

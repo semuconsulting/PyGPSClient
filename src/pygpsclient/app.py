@@ -135,7 +135,6 @@ from pygpsclient.strings import (
     UPDATEINPROG,
     UPDATERESTART,
     VERCHECK,
-    WARNING,
 )
 from pygpsclient.tty_handler import TTYHandler
 from pygpsclient.ubx_handler import UBXHandler
