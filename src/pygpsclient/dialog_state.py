@@ -66,7 +66,7 @@ class DialogState:
             DLGTUBX: {
                 CLASS: UBXConfigDialog,
                 DLG: None,
-                RESIZE: False,
+                RESIZE: True,
             },
             DLGTUBXLEGACY: {
                 CLASS: UBXLegacyConfigDialog,
