@@ -48,13 +48,12 @@ class SPARTNConfigDialog(ToplevelDialog):
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         :param args: optional args to pass to parent class (not currently used)
         :param kwargs: optional kwargs to pass to parent class (not currently used)
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
 
         super().__init__(app, DLGTSPARTN)
         self._pending_confs = {}
@@ -186,7 +185,7 @@ class SPARTNConfigDialog(ToplevelDialog):
         elif status == CONNECTED_SPARTNLB:
             self.frm_corrlband.set_controls(status)
         if msgt is not None:
-            self.status_label = msgt
+            self.set_status_label(msgt)
 
     def disconnect_ip(self, msg: str = ""):
         """

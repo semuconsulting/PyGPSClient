@@ -26,6 +26,7 @@ from tkinter import (
     IntVar,
     Label,
     StringVar,
+    Tk,
     W,
 )
 
@@ -57,11 +58,11 @@ from pygpsclient.toplevel_dialog import ToplevelDialog
 class ImportMapDialog(ToplevelDialog):
     """ImportMapDialog class."""
 
-    def __init__(self, app, *args, **kwargs):
+    def __init__(self, app: Tk, *args, **kwargs):
         """Constructor."""
 
         self.__app = app
-        # self.__master = self.__app.appmaster  # link to root Tk window
+
         super().__init__(app, DLGTIMPORTMAP)
         self.width = int(kwargs.get("width", 400))
         self.height = int(kwargs.get("height", 400))
@@ -175,9 +176,9 @@ class ImportMapDialog(ToplevelDialog):
 
         self._first.set(0)
         self._can_mapview.delete(ALL)
-        # self._btn_import.config(state=DISABLED)
+        # self._btn_import["state"]=DISABLED
         if not HASRASTERIO:
-            self.status_label = (
+            self.set_status_label(
                 "Rasterio library is not installed - "
                 "extents must be entered manually",
                 INFOCOL,
@@ -199,11 +200,11 @@ class ImportMapDialog(ToplevelDialog):
         valid = valid & self._ent_minlon.validate(VALFLOAT, -180, 180)
         valid = valid & self._ent_maxlon.validate(VALFLOAT, -180, 180)
         if valid:
-            self.status_label = ""
-            self._btn_import.config(state=NORMAL)
+            self.set_status_label("")
+            self._btn_import["state"] = NORMAL
         else:
-            self.status_label = ("Error: invalid entry", ERRCOL)
-            self._btn_import.config(state=DISABLED)
+            self.set_status_label("Error: invalid entry", ERRCOL)
+            self._btn_import["state"] = DISABLED
         return valid
 
     def _on_load(self):
@@ -211,16 +212,16 @@ class ImportMapDialog(ToplevelDialog):
         Load custom map from file.
         """
 
-        self.status_label = ""
+        self.set_status_label("")
         self._custommap = self._open_mapfile()
         if self._custommap is not None:
             bounds = self._get_bounds(self._custommap)
             self._can_mapview.draw_map(
                 maptype=IMPORT, mappath=self._custommap, bounds=bounds, zoom=None
             )
-            self._btn_import.config(state=NORMAL)
+            self._btn_import["state"] = NORMAL
         else:
-            self._btn_import.config(state=DISABLED)
+            self._btn_import["state"] = DISABLED
 
     def _on_redraw(self, *args, **kwargs):
         """
@@ -266,14 +267,14 @@ class ImportMapDialog(ToplevelDialog):
                 extents = transform_bounds(ras.crs.to_epsg(), 4326, *ras.bounds)
                 lonmin, latmin, lonmax, latmax = extents
             except AttributeError:
-                self.status_label = (
+                self.set_status_label(
                     "Image is not georeferenced - extents must be entered manually",
                     ERRCOL,
                 )
             except RasterioIOError:
-                self.status_label = ("Image is not a supported file format", ERRCOL)
+                self.set_status_label("Image is not a supported file format", ERRCOL)
             except Exception as err:  # pylint: disable=broad-exception-caught
-                self.status_label = (str(err), ERRCOL)
+                self.set_status_label(str(err), ERRCOL)
 
         self._lonmin.set(str(round(lonmin, 8)))
         self._latmin.set(str(round(latmin, 8)))
@@ -300,10 +301,10 @@ class ImportMapDialog(ToplevelDialog):
         latmax = float(self._latmax.get())
 
         if lonmax + 180 <= lonmin + 180 or latmax + 90 <= latmin + 90:
-            self.status_label = ("Error: minimum must be less than maximum", ERRCOL)
+            self.set_status_label("Error: minimum must be less than maximum", ERRCOL)
         else:
             usermaps = self.__app.configuration.get("usermaps_l")
             idx = 0 if self._first.get() else len(usermaps) + 1
             usermaps.insert(idx, [self._custommap, [latmin, lonmin, latmax, lonmax]])
             self.__app.configuration.set("usermaps_l", usermaps)
-            self.status_label = ("Custom map imported", OKCOL)
+            self.set_status_label("Custom map imported", OKCOL)

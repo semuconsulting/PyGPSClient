@@ -57,6 +57,7 @@ class GNSSStatus:
         self.base_ecefx = 0.0  # base station ECEF X
         self.base_ecefy = 0.0  # base station ECEF Y
         self.base_ecefz = 0.0  # base station ECEF Z
+        self.rel_pos_source = ""  # relative position data source
         self.rel_pos_heading = 0.0  # rover relative position heading
         self.rel_pos_length = 0.0  # rover relative position distance
         self.acc_heading = 0.0  # rover relative position heading accuracy

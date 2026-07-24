@@ -10,7 +10,6 @@ Created on 12 Sep 2020
 
 from argparse import SUPPRESS, ArgumentDefaultsHelpFormatter, ArgumentParser
 from logging import getLogger
-from tkinter import Tk
 
 from pygnssutils import (
     VERBOSITY_CRITICAL,
@@ -118,8 +117,8 @@ def main():
             f"{VERBOSITY_CRITICAL} = critical, "
             f"{VERBOSITY_LOW} = low (error), "
             f"{VERBOSITY_MEDIUM} = medium (warning), "
-            f"{VERBOSITY_HIGH} = high (info), {VERBOSITY_DEBUG} = debug, "
-            f"default = {VERBOSITY_CRITICAL}"
+            f"{VERBOSITY_HIGH} = high (info), "
+            f"{VERBOSITY_DEBUG} = debug"
         ),
         type=int,
         choices=[
@@ -129,7 +128,7 @@ def main():
             VERBOSITY_DEBUG,
             VERBOSITY_CRITICAL,
         ],
-        default=VERBOSITY_LOW,
+        default=VERBOSITY_CRITICAL,
     )
     ap.add_argument(
         "--logtofile",
@@ -139,7 +138,7 @@ def main():
     kwargs = vars(ap.parse_args())
 
     # set up global logging configuration
-    verbosity = int(kwargs.pop("verbosity", VERBOSITY_LOW))
+    verbosity = int(kwargs.pop("verbosity", VERBOSITY_CRITICAL))
     logtofile = kwargs.pop("logtofile", "")
     logger = getLogger(APPNAME)  # "pygpsclient"
     logger_utils = getLogger("pygnssutils")
@@ -147,10 +146,10 @@ def main():
     for logr in (logger, logger_utils, logger_pyubx2):
         set_logging(logr, verbosity, logtofile)
 
-    root = Tk()
-    App(root, **kwargs)
-    root.mainloop()
+    app = App(**kwargs)
+    app.mainloop()
 
 
 if __name__ == "__main__":
+
     main()

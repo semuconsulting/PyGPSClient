@@ -15,9 +15,9 @@ Created on 22 Sep 2020
 from tkinter import (
     EW,
     LEFT,
+    NSEW,
     VERTICAL,
     Button,
-    E,
     Frame,
     IntVar,
     Label,
@@ -26,6 +26,7 @@ from tkinter import (
     S,
     Scrollbar,
     Spinbox,
+    Tk,
     W,
 )
 
@@ -49,18 +50,17 @@ class UBX_MSGRATE_Frame(Frame):
     UBX Message Rate configuration command panel.
     """
 
-    def __init__(self, app: Frame, parent: Frame, *args, **kwargs):
+    def __init__(self, app: Tk, parent: Frame, *args, **kwargs):
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         :param Frame parent: reference to parent frame (config-dialog)
         :param args: optional args to pass to Frame parent class
         :param kwargs: optional kwargs to pass to Frame parent class
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.__container = parent
 
         super().__init__(parent.container, *args, **kwargs)
@@ -87,13 +87,13 @@ class UBX_MSGRATE_Frame(Frame):
             self,
             border=2,
             relief="sunken",
-            height=10,
+            height=8,
             justify=LEFT,
             exportselection=False,
         )
         self._scr_cfg_msg = Scrollbar(self, orient=VERTICAL)
-        self._lbx_cfg_msg.config(yscrollcommand=self._scr_cfg_msg.set)
-        self._scr_cfg_msg.config(command=self._lbx_cfg_msg.yview)
+        self._lbx_cfg_msg["yscrollcommand"] = self._scr_cfg_msg.set
+        self._scr_cfg_msg["command"] = self._lbx_cfg_msg.yview
         self._lbl_ddc = Label(self, text="I2C")
         self._spn_ddc = Spinbox(
             self,
@@ -146,7 +146,6 @@ class UBX_MSGRATE_Frame(Frame):
             width=50,
             fg=OKCOL,
             command=self._on_send_cfg_msg,
-            font=self.__app.font_md,
             cursor=CLICK_CURSOR,
         )
 
@@ -154,28 +153,22 @@ class UBX_MSGRATE_Frame(Frame):
         """
         Layout widgets.
         """
-        self._lbl_cfg_msg.grid(column=0, row=0, columnspan=6, sticky=EW)
-        self._lbx_cfg_msg.grid(
-            column=0, row=1, columnspan=2, rowspan=10, padx=3, sticky=EW
-        )
-        self._scr_cfg_msg.grid(column=1, row=1, rowspan=10, sticky=(N, S, E))
-        self._lbl_usb.grid(column=2, row=1, rowspan=2, sticky=E)
-        self._spn_usb.grid(column=3, row=1, rowspan=2, sticky=W)
-        self._lbl_uart1.grid(column=2, row=3, rowspan=2, sticky=E)
-        self._spn_uart1.grid(column=3, row=3, rowspan=2, sticky=W)
-        self._lbl_uart2.grid(column=2, row=5, rowspan=2, sticky=E)
-        self._spn_uart2.grid(column=3, row=5, rowspan=2, sticky=W)
-        self._lbl_ddc.grid(column=2, row=7, rowspan=2, sticky=E)
-        self._spn_ddc.grid(column=3, row=7, rowspan=2, sticky=W)
-        self._lbl_spi.grid(column=2, row=9, rowspan=2, sticky=E)
-        self._spn_spi.grid(column=3, row=9, rowspan=2, sticky=W)
-        self._btn_send_command.grid(
-            column=4, row=1, rowspan=10, ipadx=3, ipady=3, sticky=E
-        )
-        self._lbl_send_command.grid(
-            column=5, row=1, rowspan=10, ipadx=3, ipady=3, sticky=E
-        )
-        self.option_add("*Font", self.__app.font_sm)
+        self._lbl_cfg_msg.grid(column=0, row=0, columnspan=5, sticky=EW)
+        self._lbl_usb.grid(column=0, row=1, pady=0)
+        self._spn_usb.grid(column=0, row=2, pady=0)
+        self._lbl_uart1.grid(column=1, row=1, pady=0)
+        self._spn_uart1.grid(column=1, row=2, pady=0)
+        self._lbl_uart2.grid(column=2, row=1, pady=0)
+        self._spn_uart2.grid(column=2, row=2, pady=0)
+        self._lbl_ddc.grid(column=3, row=1, pady=0)
+        self._spn_ddc.grid(column=3, row=2, pady=0)
+        self._lbl_spi.grid(column=4, row=1, pady=0)
+        self._spn_spi.grid(column=4, row=2, pady=0)
+        self._btn_send_command.grid(column=5, row=0, ipadx=3, ipady=3, rowspan=2)
+        self._lbl_send_command.grid(column=6, row=0, rowspan=2)
+        self._lbx_cfg_msg.grid(column=0, row=3, columnspan=5, pady=2, sticky=NSEW)
+        self._scr_cfg_msg.grid(column=5, row=3, sticky=(N, S, W))
+        self.grid_rowconfigure(3, weight=1)
 
     def _attach_events(self):
         """
@@ -209,11 +202,11 @@ class UBX_MSGRATE_Frame(Frame):
             self._uart2_rate.set(msg.rateUART2)
             self._usb_rate.set(msg.rateUSB)
             self._spi_rate.set(msg.rateSPI)
-            self._lbl_send_command.config(image=self.__container.img_confirmed)
+            self._lbl_send_command["image"] = self.__container.img_confirmed
 
         elif msg.identity == "ACK-NAK":
             self.__container.status_label = ("CFG-MSG POLL message rejected", ERRCOL)
-            self._lbl_send_command.config(image=self.__container.img_warn)
+            self._lbl_send_command["image"] = self.__container.img_warn
 
     def _on_select_cfg_msg(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -253,7 +246,7 @@ class UBX_MSGRATE_Frame(Frame):
             rateSPI=rateSPI,
         )
         self.__container.send_command(msg)
-        self._lbl_send_command.config(image=self.__container.img_pending)
+        self._lbl_send_command["image"] = self.__container.img_pending
         self.__container.status_label = "CFG-MSG SET message sent"
         for msgid in ("ACK-ACK", "ACK-NAK"):
             self.__container.set_pending(msgid, UBX_CFGMSG)
@@ -269,7 +262,7 @@ class UBX_MSGRATE_Frame(Frame):
 
         msg = UBXMessage("CFG", "CFG-MSG", POLL, payload=msgtyp)
         self.__container.send_command(msg)
-        self._lbl_send_command.config(image=self.__container.img_pending)
+        self._lbl_send_command["image"] = self.__container.img_pending
         self.__container.status_label = "CFG-MSG POLL message sent"
         for msgid in ("CFG-MSG", "ACK-NAK"):
             self.__container.set_pending(msgid, UBX_CFGMSG)

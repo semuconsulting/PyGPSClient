@@ -16,7 +16,7 @@ Created on 23 Dec 2022
 # pylint: disable=no-member, unused-argument
 
 import logging
-from tkinter import ALL, CENTER, EW, NSEW, NW, Checkbutton, Frame, IntVar, N, S, W
+from tkinter import ALL, CENTER, EW, NSEW, NW, Checkbutton, Frame, IntVar, N, S, Tk, W
 from types import NoneType
 
 from pyubx2 import UBXMessage
@@ -96,18 +96,17 @@ class SpectrumviewFrame(Frame):
     Spectrumview frame class.
     """
 
-    def __init__(self, app: Frame, parent: Frame, *args, **kwargs):
+    def __init__(self, app: Tk, parent: Frame, *args, **kwargs):
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         :param Frame parent: reference to parent frame
         :param args: optional args to pass to Frame parent class
         :param kwargs: optional kwargs to pass to Frame parent class
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.logger = logging.getLogger(__name__)
 
         super().__init__(parent, *args, **kwargs)

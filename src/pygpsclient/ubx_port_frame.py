@@ -20,6 +20,7 @@ from tkinter import (
     Label,
     Spinbox,
     StringVar,
+    Tk,
     W,
 )
 
@@ -43,18 +44,17 @@ class UBX_PORT_Frame(Frame):
     UBX Port and Protocol configuration command panel.
     """
 
-    def __init__(self, app: Frame, parent: Frame, *args, **kwargs):
+    def __init__(self, app: Tk, parent: Frame, *args, **kwargs):
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         :param Frame parent: reference to parent frame (config-dialog)
         :param args: optional args to pass to Frame parent class
         :param kwargs: optional kwargs to pass to Frame parent class
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.__container = parent
 
         super().__init__(parent.container, *args, **kwargs)
@@ -127,7 +127,6 @@ class UBX_PORT_Frame(Frame):
             image=self.__container.img_send,
             width=50,
             command=self._on_send_port,
-            font=self.__app.font_md,
             cursor=CLICK_CURSOR,
         )
 
@@ -156,7 +155,6 @@ class UBX_PORT_Frame(Frame):
         self._lbl_send_command.grid(
             column=4, row=1, rowspan=2, ipadx=3, ipady=3, sticky=NE
         )
-        self.option_add("*Font", self.__app.font_sm)
 
     def _attach_events(self):
         """
@@ -190,12 +188,12 @@ class UBX_PORT_Frame(Frame):
             self._outprot_ubx.set(msg.outUBX)
             self._outprot_nmea.set(msg.outNMEA)
             self._outprot_rtcm3.set(msg.outRTCM3)
-            self._lbl_send_command.config(image=self.__container.img_confirmed)
+            self._lbl_send_command["image"] = self.__container.img_confirmed
             self.__container.status_label = ("CFG-PRT GET message received", OKCOL)
 
         elif msg.identity == "ACK-NAK":
             self.__container.status_label = ("CFG-PRT POLL message rejected", ERRCOL)
-            self._lbl_send_command.config(image=self.__container.img_warn)
+            self._lbl_send_command["image"] = self.__container.img_warn
 
     def _on_select_portid(self):
         """
@@ -236,7 +234,7 @@ class UBX_PORT_Frame(Frame):
             outRTCM3=outRTCM3,
         )
         self.__container.send_command(msg)
-        self._lbl_send_command.config(image=self.__container.img_pending)
+        self._lbl_send_command["image"] = self.__container.img_pending
         self.__container.status_label = "CFG-PRT SET message sent"
         for msgid in ("ACK-NAK", "ACK-NAK"):
             self.__container.set_pending(msgid, UBX_CFGPRT)
@@ -251,7 +249,7 @@ class UBX_PORT_Frame(Frame):
         portID = int(self._portid.get()[0:1])
         msg = UBXMessage("CFG", "CFG-PRT", POLL, portID=portID)
         self.__container.send_command(msg)
-        self._lbl_send_command.config(image=self.__container.img_pending)
+        self._lbl_send_command["image"] = self.__container.img_pending
         self.__container.status_label = "CFG-PRT POLL message sent"
         for msgid in ("CFG-PRT", "ACK-NAK"):
             self.__container.set_pending(msgid, UBX_CFGPRT)

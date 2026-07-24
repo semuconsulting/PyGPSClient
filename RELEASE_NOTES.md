@@ -1,5 +1,21 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.7.1
+
+FIXES:
+
+1. Fix 'memory leak' issue (socket server message queue filling up when server not active).
+1. Internal refactoring and performance enhancements to improve long-term UI responsiveness and stability.
+1. Fix u-blox preset configuration validation which was preventing some valid preset commands.
+
+ENHANCEMENTS:
+
+1. Split UBX Configuration panel into two separate panels - one for modern (Gen9+) receivers and one for legacy (Gen8-) receivers. The intention is to make the panels easier to use on lower-resolution or scaled displays.
+1. Display UBX NAV-DAHEADING data from dual-antenna receivers such as the u-blox ZED-X20D in the "Rover Plot" widget.
+1. Update portid designation in System Monitor I/O widget (X20 assigns different MON-COMMS.portids to F9P).
+1. Add satellite filter entry field to RINEX conversion dialog (requires pygnssutils>=1.2.6).
+1. "Meta Only" parsing mode added. When enabled, incoming raw data will *only* be parsed for basic metadata (protocol, identity, length) rather than individual data attributes. This mode is significantly quicker than full parsing, but individual data attributes *will no longer be available* and PyGPSClient's widgets other than the console will *not* be updated. Utilises the new [GNSSReader](https://github.com/semuconsulting/pygnssutils#gnssreader) `parsing=2` argument. Requires pygnssutils>=1.2.6.
+
 ### RELEASE 1.7.0
 
 1. Can now double-click to toggle between 'hae' (height above ellipsoid) and 'sep' (separation) values in banner panel.

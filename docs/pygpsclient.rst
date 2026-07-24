@@ -508,6 +508,14 @@ pygpsclient.ubx\_handler module
    :undoc-members:
    :show-inheritance:
 
+pygpsclient.ubx\_legacy\_config\_dialog module
+----------------------------------------------
+
+.. automodule:: pygpsclient.ubx_legacy_config_dialog
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pygpsclient.ubx\_msgrate\_frame module
 --------------------------------------
 

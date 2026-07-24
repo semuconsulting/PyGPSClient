@@ -26,6 +26,7 @@ from tkinter import (
     N,
     Spinbox,
     StringVar,
+    Tk,
     W,
 )
 from xml.dom import minidom
@@ -84,12 +85,11 @@ OL_WID = 1
 class GPXViewerDialog(ToplevelDialog):
     """GPXViewerDialog class."""
 
-    def __init__(self, app, *args, **kwargs):
+    def __init__(self, app: Tk, *args, **kwargs):
         """Constructor."""
 
         self.__app = app
         self.logger = logging.getLogger(__name__)
-        # self.__master = self.__app.appmaster  # link to root Tk window
         super().__init__(app, DLGTGPX)
         self._mapzoom = IntVar()
         self._maptype = StringVar()
@@ -338,10 +338,11 @@ class GPXViewerDialog(ToplevelDialog):
         Handle redraw button press.
         """
 
-        self.status_label = (DLGGPXWAIT, INFOCOL)
+        self.set_status_label(DLGGPXWAIT, INFOCOL)
         self._detach_events()
         self._reset()
-        self._spn_zoom.config(highlightbackground="gray90", highlightthickness=3)
+        self._spn_zoom["highlightbackground"] = "gray90"
+        self._spn_zoom["highlightthickness"] = 3
         self._parse_gpx()
         self._draw_map()
         self._draw_profile()
@@ -367,7 +368,7 @@ class GPXViewerDialog(ToplevelDialog):
         self._gpxfile = self._open_gpxfile()
         if self._gpxfile is None:  # user cancelled
             return
-        self.status_label = (DLGGPXLOAD, INFOCOL)
+        self.set_status_label(DLGGPXLOAD, INFOCOL)
         self._parse_gpx()
 
     def _parse_gpx(self):
@@ -381,7 +382,7 @@ class GPXViewerDialog(ToplevelDialog):
                 trkpts = parser.getElementsByTagName(f"{ptyp}")
                 self._process_track(trkpts, ptyp)
             except (TypeError, AttributeError, expat.ExpatError) as err:
-                self.status_label = (f"{DLGGPXERROR}\n{repr(err)}", ERRCOL)
+                self.set_status_label(f"{DLGGPXERROR}\n{repr(err)}", ERRCOL)
                 self.logger.error(traceback.format_exc())
 
     def _process_track(self, trkpts: list, ptyp: str):
@@ -396,7 +397,7 @@ class GPXViewerDialog(ToplevelDialog):
         self._no_time = False
         self._no_ele = False
         if self._rng == 0:
-            self.status_label = (DLGGPXNULL.format(ptyp), ERRCOL)
+            self.set_status_label(DLGGPXNULL.format(ptyp), ERRCOL)
             return
 
         minlat = minlon = 400
@@ -458,7 +459,7 @@ class GPXViewerDialog(ToplevelDialog):
         self._draw_map()
         self._draw_profile()
         self._draw_metadata()
-        self.status_label = (DLGGPXLOADED, INFOCOL)
+        self.set_status_label(DLGGPXLOADED, INFOCOL)
 
     def _draw_map(self):
         """
@@ -484,9 +485,11 @@ class GPXViewerDialog(ToplevelDialog):
         )
 
         if self._can_mapview.zoommin:
-            self._spn_zoom.config(highlightbackground=ERRCOL, highlightthickness=3)
+            self._spn_zoom["highlightbackground"] = ERRCOL
+            self._spn_zoom["highlightthickness"] = 3
         else:
-            self._spn_zoom.config(highlightbackground="gray90", highlightthickness=3)
+            self._spn_zoom["highlightbackground"] = "gray90"
+            self._spn_zoom["highlightthickness"] = 3
 
     def _draw_profile(self):
         """

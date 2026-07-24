@@ -17,6 +17,7 @@ Created on 12 Sep 2020
 :license: BSD 3-Clause
 """
 
+from queue import Empty
 from tkinter import (
     END,
     EW,
@@ -28,9 +29,8 @@ from tkinter import (
     Frame,
     Scrollbar,
     Text,
+    Tk,
 )
-
-from pyubx2 import hextable
 
 from pygpsclient.globals import (
     BGCOL,
@@ -43,9 +43,11 @@ from pygpsclient.globals import (
     FORMAT_BOTH,
     FORMAT_HEXSTR,
     FORMAT_HEXTAB,
+    FORMAT_PARSED,
     INFOCOL,
     WIDGETU3,
 )
+from pygpsclient.helpers import hextable
 from pygpsclient.strings import CONTENTCOPIED, HALTTAGWARN
 
 HALT = "HALT"
@@ -57,18 +59,17 @@ class ConsoleFrame(Frame):
     Console frame class.
     """
 
-    def __init__(self, app: Frame, parent: Frame, *args, **kwargs):
+    def __init__(self, app: Tk, parent: Frame, *args, **kwargs):
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         :param Frame parent: reference to parent frame
         :param args: optional args to pass to Frame parent class
         :param kwargs: optional kwargs to pass to Frame parent class
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
 
         super().__init__(parent, *args, **kwargs)
 
@@ -104,8 +105,8 @@ class ConsoleFrame(Frame):
             wrap=NONE,
             height=15,
         )
-        self.sblogh.config(command=self.txt_console.xview)
-        self.sblogv.config(command=self.txt_console.yview)
+        self.sblogh["command"] = self.txt_console.xview
+        self.sblogv["command"] = self.txt_console.yview
 
         # making the textbox read only and fixed width font
         self.txt_console.configure(state="disabled")
@@ -137,12 +138,15 @@ class ConsoleFrame(Frame):
         self.txt_console.bind("<Double-Button-3>", self._on_clipboard)
         # self.txt_console.tag_bind(HALT, "<1>", self._on_halt) # doesn't seem to work on MacOS
 
-    def update_frame(self, consoledata: list):
+    def update_frame(self):
         """
         Print the formatted data stream to the console.
 
         'maxlines' defines the maximum number of scrollable lines that are
         retained in the text box on a FIFO basis.
+
+        To minimise refresh latency, only the last 'maxlines' of queued
+        messages are written to the console; the remainder are discarded.
 
         :param list consoledata: list of tuples (raw, parsed, marker) \
             accumulated since last console update
@@ -152,32 +156,49 @@ class ConsoleFrame(Frame):
             return
 
         consoleformat = self.__app.configuration.get("consoleformat_s")
-        colortagging = self.__app.configuration.get("colortag_b")
         maxlines = self.__app.configuration.get("maxlines_n")
         self._halt = ""
-        consolestr = ""
-        self.txt_console.configure(font=FONT_TEXT)
-        for raw_data, parsed_data, marker in consoledata:
-            if consoleformat == FORMAT_BINARY:
-                data = f"{marker}{raw_data}\n"
-            elif consoleformat == FORMAT_HEXSTR:
-                data = f"{marker}{raw_data.hex()}\n"
-            elif consoleformat == FORMAT_HEXTAB:
-                self.txt_console.configure(font=FONT_FIXED)
-                data = hextable(raw_data)
-            elif consoleformat == FORMAT_BOTH:
-                self.txt_console.configure(font=FONT_FIXED)
-                data = f"{marker}{parsed_data}\n{hextable(raw_data)}"
-            else:
-                data = f"{marker}{parsed_data}\n"
+        self.txt_console["font"] = (
+            FONT_TEXT if consoleformat in (FORMAT_BINARY, FORMAT_PARSED) else FONT_FIXED
+        )
+        raw_data = None
+        parsed_data = None
+        lines = []
+        while True:
+            try:
+                raw_data, parsed_data, marker = self.__app.console_outqueue.get(False)
+                if self.__app.console_outqueue.qsize() < maxlines:
+                    if consoleformat == FORMAT_BINARY:
+                        lines.append(f"{marker}{raw_data}\n")
+                    elif consoleformat == FORMAT_HEXSTR:
+                        lines.append(f"{marker}{raw_data.hex()}\n")
+                    elif consoleformat == FORMAT_HEXTAB:
+                        lines += hextable(raw_data)
+                    elif consoleformat == FORMAT_BOTH:
+                        lines.append(f"{marker}{parsed_data}\n")
+                        lines += hextable(raw_data)
+                    else:
+                        lines.append(f"{marker}{parsed_data}\n")
+                self.__app.console_outqueue.task_done()
+            except Empty:
+                break
 
-            consolestr += data
-
+        consolestr = "".join(lines[-maxlines:])
         numlinesbefore = self.numlines
         self.txt_console.configure(state="normal")
-        self.txt_console.insert(END, consolestr)
 
-        if colortagging:
+        if len(lines) >= maxlines:
+            self.txt_console.delete("1.0", "end")
+            self.txt_console.insert("1.0", consolestr)
+            numlinesbefore = 0
+        else:
+            excess = self.numlines + len(lines) - maxlines
+            if excess > 0:
+                self.txt_console.delete("1.0", f"{excess}.0")
+                numlinesbefore -= excess
+            self.txt_console.insert(END, consolestr)
+
+        if self.__app.configuration.get("colortag_b"):
             self._tag_line(self.txt_console, numlinesbefore, self.numlines)
             if self._halt != "":
                 self._on_halt(None)
@@ -187,7 +208,7 @@ class ConsoleFrame(Frame):
 
         self.txt_console.see("end")
         self.txt_console.configure(state="disabled")
-        self.txt_console.update_idletasks()
+        self.update_idletasks()
 
     def _tag_line(self, con, startline: int, endline: int):
         """
@@ -231,7 +252,7 @@ class ConsoleFrame(Frame):
         """
 
         self.__app.stream_handler.stop()
-        self.__app.status_label = (HALTTAGWARN.format(self._halt), ERRCOL)
+        self.__app.set_status_label(HALTTAGWARN.format(self._halt), ERRCOL)
         self.__app.conn_status = DISCONNECTED
 
     def _on_clipboard(self, event):  # pylint: disable=unused-argument
@@ -241,10 +262,10 @@ class ConsoleFrame(Frame):
         :param event event: double click event
         """
 
-        self.__master.clipboard_clear()
-        self.__master.clipboard_append(self.txt_console.get("1.0", END))
-        self.__master.update()
-        self.__app.status_label = (CONTENTCOPIED.format("console"), INFOCOL)
+        self.__app.clipboard_clear()
+        self.__app.clipboard_append(self.txt_console.get("1.0", END))
+        self.__app.update()
+        self.__app.set_status_label(CONTENTCOPIED.format("console"), INFOCOL)
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """

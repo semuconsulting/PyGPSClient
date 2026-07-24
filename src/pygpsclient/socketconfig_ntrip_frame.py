@@ -13,7 +13,7 @@ Created on 27 Apr 2022
 
 # pylint: disable=unused-argument
 
-from tkinter import Frame, TclError
+from tkinter import Frame, TclError, Tk
 
 from pygpsclient.globals import DEFAULT_TLS_PORTS, VALINT, VALURL
 from pygpsclient.helpers import MAXPORT
@@ -25,11 +25,11 @@ class SocketConfigNtripFrame(SocketConfigFrame):
     Socket configuration frame class.
     """
 
-    def __init__(self, app: Frame, parent: Frame, *args, **kwargs):
+    def __init__(self, app: Tk, parent: Frame, *args, **kwargs):
         """
         Constructor.
 
-        :param tkinter.Frame container: reference to container frame
+        :param Tk app: reference to container frame
         :param Frame parent: reference to parent frame
         :param args: optional args to pass to Frame parent class
         :param kwargs: optional kwargs for value ranges, or to pass to Frame parent class

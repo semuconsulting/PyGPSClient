@@ -63,7 +63,7 @@ In the following, `python3` & `pip` refer to the Python 3 executables. You may n
 
 - Graphical User Interface (window system / manager)
 - Python >= 3.10⁴
-- Tk (tkinter) >= 8.6⁵ (*tkinter is a commonly used library for developing Graphical User Interfaces (GUI) in Python*)
+- Tk (tkinter) >= 8.6⁵⁶ (*tkinter is a commonly used library for developing Graphical User Interfaces (GUI) in Python*)
 - Screen resolution >= 640 x 480 (VGA); Ideally 1920 x 1080, though at lower screen resolutions (<= 1024 width), top level dialogs will be resizable and scrollable.
 
 **NB** It is highly recommended to use the latest official [Python.org](https://www.python.org/downloads/) installation package for your platform, rather than any pre-installed version.
@@ -81,17 +81,17 @@ Normally installs without any additional steps.
 
 ### MacOS 13 or later
 
-⁵ The version of Python supplied with some older Apple MacOS platforms includes a [deprecated version of tkinter](https://www.python.org/download/mac/tcltk/) (8.5). Use an official [Python.org](https://www.python.org/downloads/macos) installation package instead. 
+**NB:** PyGPSClient does ***NOT*** normally require Homebrew or MacPorts to be installed on MacOS (either Intel or Apple Silicon). The Python organisation provides serviceable [64-bit universal MacOS installation packages](https://www.python.org/downloads/macos/) for all current and legacy versions of Python, including release candidates. Note, however, the following caveats:
 
-**NB:** Python does ***NOT*** normally require Homebrew or MacPorts to be installed on MacOS. The Python organisation provides serviceable [64-bit universal installation packages](https://www.python.org/downloads/macos/) for all current and legacy versions of Python, including release candidates. 
+⁵ The version of Python supplied with some older Apple MacOS platforms includes a [deprecated version of tkinter](https://www.python.org/download/mac/tcltk/) (8.5). Use an official [Python for MacOS](https://www.python.org/downloads/macos) installation package instead. 
 
-However, if you wish to install Python using [Homebrew](https://brew.sh/) to take advantage of certain non-default configurations (*e.g. support for sqlite3 extensions*), use the `python-tk` formula rather than `python`, e.g. 
+⁶ The version of tkinter supplied with the very latest official versions of [Python for MacOS](https://www.python.org/downloads/macos) (`>= 3.14.5`), and with Homebrew formula `python-tk >= 3.12`, include a new version of tkinter (9.0). There appear to be some performance and compatibility issues with this version on MacOS Sonoma and Tahoe which may render the PyGPSClient UI somewhat sluggish or unresponsive. Until this is resolved, MacOS users are recommended to use official Python <= 3.14.4 or Homebrew formula `python-tk = 3.11`.
+
+If you wish to install Python using [Homebrew](https://brew.sh/) to take advantage of certain non-default configurations (*e.g. support for sqlite3 extensions*), use the `python-tk` formula rather than `python`, e.g. 
 
 ```shell
-brew install python-tk@3.13 libspatialite
+brew install python-tk@3.11 libspatialite
 ```
-
-Note also that the Homebrew formulae for python-tk>=3.12 include the latest tkinter 9.0 (rather than 8.6). There are known compatibility issues between tkinter 9.0 and other Python packages (*e.g. ImageTk*) on some platform configurations, which may result in PyGPSClient being unable to load. If you encounter these issues, consider using `brew install python-tk@3.11` or an official [Python.org](https://www.python.org/downloads/macos) installation package instead.
 
 Note that on MacOS, serial ports may appear as `/dev/tty*` *or* `/dev/cu*`. To understand the differences between the two, see [here](https://www.codegenes.net/blog/what-s-the-difference-between-dev-tty-and-dev-cu-on-macos/).
 
@@ -128,7 +128,7 @@ Add your user to this group using usermod (*you will need to log out and in agai
 sudo usermod -aG dialout myuser
 ```
 
-For Debian-based platforms, the group is normally `dialout` or `tty`; on Arch-based platforms it is normally `uucp`.
+For Debian-based platforms, the group is normally `dialout`; on Arch-based platforms it is normally `uucp`.
 
 Other than this, no special privileges are required.
 

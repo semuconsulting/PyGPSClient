@@ -26,6 +26,7 @@ from tkinter import (
     Spinbox,
     StringVar,
     TclError,
+    Tk,
     font,
 )
 
@@ -100,18 +101,17 @@ class ChartviewFrame(Frame):
     CHartview frame class.
     """
 
-    def __init__(self, app, parent, *args, **kwargs):
+    def __init__(self, app: Tk, parent: Frame, *args, **kwargs):
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         :param Frame parent: reference to parent frame
         :param args: optional args to pass to Frame parent class
         :param kwargs: optional kwargs to pass to Frame parent class
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
 
         super().__init__(parent, *args, **kwargs)
 
@@ -499,6 +499,7 @@ class ChartviewFrame(Frame):
         """
 
         self._update_plot(self._chart_data)
+        self.update_idletasks()
 
     def init_frame(self):
         """
@@ -622,10 +623,10 @@ class ChartviewFrame(Frame):
                 except KeyError:
                     csv += ","
             csv += "\n"
-        self.__master.clipboard_clear()
-        self.__master.clipboard_append(csv)
-        self.__master.update()
-        self.__app.status_label = (CONTENTCOPIED.format("chart"), INFOCOL)
+        self.__app.clipboard_clear()
+        self.__app.clipboard_append(csv)
+        self.__app.update()
+        self.__app.set_status_label(CONTENTCOPIED.format("chart"), INFOCOL)
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """

@@ -12,7 +12,8 @@ Created on 13 Sep 2020
 :license: BSD 3-Clause
 """
 
-from tkinter import NE, NW, SUNKEN, Button, Frame, Label, N, W
+from os import getenv, getpid
+from tkinter import NE, NW, SUNKEN, Button, Frame, Label, N, Tk, W
 
 from PIL import Image, ImageTk
 from pynmeagps.nmeahelpers import latlon2dmm, latlon2dms, llh2ecef
@@ -58,6 +59,15 @@ from pygpsclient.helpers import (
 )
 from pygpsclient.strings import DGPSYES, NA
 
+PSSTATS = False
+try:
+    from psutil import Process
+
+    if int(getenv("PYGPSCLIENT_PSSTATS", "0")) & 1:
+        PSSTATS = True
+except ModuleNotFoundError:
+    pass
+
 M2MILES = 5280
 FONTBASE = 12
 FONTSCALE = 90
@@ -68,18 +78,16 @@ class BannerFrame(Frame):
     Banner frame class.
     """
 
-    def __init__(self, app: Frame, parent: Frame, *args, **kwargs):
+    def __init__(self, app: Tk, *args, **kwargs):
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
-        :param Frame parent: reference to parent frame
+        :param Tk app: reference to main tkinter application
         :param args: optional args to pass to Frame parent class
         :param kwargs: optional kwargs to pass to Frame parent class
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
 
         self._status = False
         self._show_advanced = False
@@ -96,8 +104,9 @@ class BannerFrame(Frame):
         self._img_spartn = ImageTk.PhotoImage(Image.open(ICON_SPARTNCONFIG))
         self._img_blank = ImageTk.PhotoImage(Image.open(ICON_BLANK))
         self._sep = False
+        self._old_vms = 0
 
-        super().__init__(parent, *args, **kwargs)
+        super().__init__(app, *args, **kwargs)
 
         self.width, self.height = self.get_size()
 
@@ -199,6 +208,7 @@ class BannerFrame(Frame):
             self._frm_basic, bg=BGCOL, fg="orange", width=17, anchor=W
         )
         self._lbl_fix = Label(self._frm_basic, bg=BGCOL, fg="white", width=10, anchor=W)
+        self._lbl_psstats = Label(self._frm_basic, bg=BGCOL, fg="yellow", anchor=W)
         self._lbl_hmsl = Label(
             self._frm_advanced, bg=BGCOL, fg="orange", width=13, anchor=W
         )
@@ -263,6 +273,7 @@ class BannerFrame(Frame):
         self._lbl_lon.grid(column=6, row=0, pady=0, padx=0, sticky=W)
         self._lbl_lfix.grid(column=7, row=0, pady=0, padx=0, sticky=W)
         self._lbl_fix.grid(column=8, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_psstats.grid(column=9, row=0, pady=0, padx=0, sticky=W)
 
         self._lbl_lhmsl.grid(column=0, row=0, pady=0, padx=0, sticky=W)
         self._lbl_hmsl.grid(column=1, row=0, pady=0, padx=0, sticky=W)
@@ -313,11 +324,11 @@ class BannerFrame(Frame):
         if self._show_advanced:
             self._frm_advanced.grid(column=1, row=1, pady=2, sticky=W)
             self._frm_advanced2.grid(column=1, row=2, pady=2, sticky=W)
-            self._btn_toggle.config(image=self._img_contract)
+            self._btn_toggle["image"] = self._img_contract
         else:
             self._frm_advanced.grid_forget()
             self._frm_advanced2.grid_forget()
-            self._btn_toggle.config(image=self._img_expand)
+            self._btn_toggle["image"] = self._img_expand
 
     def update_conn_status(self, status: int):
         """
@@ -361,13 +372,16 @@ class BannerFrame(Frame):
 
         if transmit > 0:
             self._lbl_transmit_preset.configure(image=self._img_transmit)
-            self._lbl_clients.config(text=transmit, fg="#6b8839")
+            self._lbl_clients["text"] = transmit
+            self._lbl_clients["fg"] = "#6b8839"
         elif transmit == 0:
             self._lbl_transmit_preset.configure(image=self._img_noclient)
-            self._lbl_clients.config(text=transmit, fg="#e7b03e")
+            self._lbl_clients["text"] = transmit
+            self._lbl_clients["fg"] = "#e7b03e"
         else:
             self._lbl_transmit_preset.configure(image=self._img_blank)
-            self._lbl_clients.config(text=" ", fg=BGCOL)
+            self._lbl_clients["text"] = " "
+            self._lbl_clients["fg"] = BGCOL
 
     def update_frame(self):
         """
@@ -384,17 +398,15 @@ class BannerFrame(Frame):
         self._update_siv()
         self._update_dop(units)
         self._update_dgps(units)
+        self._update_psstats()
+        self.update_idletasks()
 
     def _update_time(self):
         """
         Update GNSS time of week
         """
 
-        tim = self.__app.gnss_status.utc
-        if tim in (None, ""):
-            self._lbl_time.config(text=NA)
-        else:
-            self._lbl_time.config(text=f"{tim:%H:%M:%S.%f}")
+        self._lbl_time["text"] = str(self.__app.gnss_status.utc)
 
     def _update_pos(self, pos_format, units):
         """
@@ -408,11 +420,11 @@ class BannerFrame(Frame):
         lon = self.__app.gnss_status.lon
         alt = self.__app.gnss_status.alt  # hMSL
         hae = self.__app.gnss_status.hae
-        self._lbl_llat.config(text="lat:")
-        self._lbl_llon.config(text="lon:")
-        self._lbl_lhmsl.config(text="hmsl:")
+        self._lbl_llat["text"] = "lat:"
+        self._lbl_llon["text"] = "lon:"
+        self._lbl_lhmsl["text"] = "hmsl:"
         lhae = "sep:" if self._sep else "hae:"
-        self._lbl_lhae.config(text=lhae)
+        self._lbl_lhae["text"] = lhae
         alt_u = "ft" if units in (UI, UIK) else "m"
 
         try:
@@ -420,11 +432,11 @@ class BannerFrame(Frame):
                 lat, lon, alt = llh2ecef(lat, lon, alt)
                 if units in (UI, UIK):
                     lat, lon = (m2ft(x) for x in (lat, lon))
-                self._lbl_llat.config(text="X:")
-                self._lbl_llon.config(text="Y:")
-                self._lbl_lhmsl.config(text="Z:")
-                self._lbl_lat.config(text=f"{lat:.4f}")
-                self._lbl_lon.config(text=f"{lon:.4f}")
+                self._lbl_llat["text"] = "X:"
+                self._lbl_llon["text"] = "Y:"
+                self._lbl_lhmsl["text"] = "Z:"
+                self._lbl_lat["text"] = f"{lat:.4f}"
+                self._lbl_lon["text"] = f"{lon:.4f}"
             else:
                 deg_f = "<15"
                 if pos_format == DMS:
@@ -436,16 +448,16 @@ class BannerFrame(Frame):
                 if units in (UI, UIK):
                     alt = m2ft(alt)
                     hae = m2ft(hae)
-                self._lbl_lat.config(text=f"{lat:{deg_f}}")
-                self._lbl_lon.config(text=f"{lon:{deg_f}}")
-            self._lbl_hmsl.config(text=f"{alt:.4f} {alt_u}")
+                self._lbl_lat["text"] = f"{lat:{deg_f}}"
+                self._lbl_lon["text"] = f"{lon:{deg_f}}"
+            self._lbl_hmsl["text"] = f"{alt:.4f} {alt_u}"
             haev = hae - alt if self._sep else hae
-            self._lbl_hae.config(text=f"{haev:.4f} {alt_u}")
+            self._lbl_hae["text"] = f"{haev:.4f} {alt_u}"
         except (TypeError, ValueError):
-            self._lbl_lat.config(text=NA)
-            self._lbl_lon.config(text=NA)
-            self._lbl_hmsl.config(text=NA)
-            self._lbl_hae.config(text=NA)
+            self._lbl_lat["text"] = NA
+            self._lbl_lon["text"] = NA
+            self._lbl_hmsl["text"] = NA
+            self._lbl_hae["text"] = NA
 
     def _update_track(self, units):
         """
@@ -466,14 +478,14 @@ class BannerFrame(Frame):
             elif units == UMK:
                 speed = ms2kmph(speed)
                 speed_u = "kmph"
-            self._lbl_spd.config(text=f"{speed:.2f} {speed_u}")
+            self._lbl_spd["text"] = f"{speed:.2f} {speed_u}"
         else:
-            self._lbl_spd.config(text=NA)
+            self._lbl_spd["text"] = NA
         track = self.__app.gnss_status.track
         if isinstance(track, (int, float)):
-            self._lbl_trk.config(text=f"{track:05.1f} °")
+            self._lbl_trk["text"] = f"{track:05.1f} °"
         else:
-            self._lbl_trk.config(text=NA)
+            self._lbl_trk["text"] = NA
 
     def _update_fix(self):
         """
@@ -482,12 +494,12 @@ class BannerFrame(Frame):
 
         fix = self.__app.gnss_status.fix
         if fix in ("3D", "GNSS+DR", "RTK", "RTK FIXED", "RTK FLOAT"):
-            self._lbl_fix.config(fg="green2")
+            self._lbl_fix["fg"] = "green2"
         elif fix in ("2D", "DR"):
-            self._lbl_fix.config(fg="orange")
+            self._lbl_fix["fg"] = "orange"
         else:
-            self._lbl_fix.config(fg=ERRCOL)
-        self._lbl_fix.config(text=fix)
+            self._lbl_fix["fg"] = ERRCOL
+        self._lbl_fix["text"] = fix
 
     def _update_siv(self):
         """
@@ -503,11 +515,11 @@ class BannerFrame(Frame):
             else siv - unused_sats(self.__app.gnss_status.gsv_data)
         )
         try:
-            self._lbl_siv.config(text=f"{siv:02d}")
-            self._lbl_sip.config(text=f"{self.__app.gnss_status.sip:02d}")
+            self._lbl_siv["text"] = f"{siv:02d}"
+            self._lbl_sip["text"] = f"{self.__app.gnss_status.sip:02d}"
         except (TypeError, ValueError):
-            self._lbl_siv.config(text=NA)
-            self._lbl_sip.config(text=NA)
+            self._lbl_siv["text"] = NA
+            self._lbl_sip["text"] = NA
 
     def _update_dop(self, units):
         """
@@ -518,33 +530,33 @@ class BannerFrame(Frame):
 
         try:
             pdop = self.__app.gnss_status.pdop
-            self._lbl_pdop.config(text=f"{pdop:.2f} {dop2str(pdop)}")
+            self._lbl_pdop["text"] = f"{pdop:.2f} {dop2str(pdop)}"
         except (TypeError, ValueError):
-            self._lbl_pdop.config(text=NA)
+            self._lbl_pdop["text"] = NA
 
         try:
-            self._lbl_hvdop.config(
-                text=f"hdop {self.__app.gnss_status.hdop:.2f}\n"
+            self._lbl_hvdop["text"] = (
+                f"hdop {self.__app.gnss_status.hdop:.2f}\n"
                 + f"vdop {self.__app.gnss_status.vdop:.2f}"
             )
         except (TypeError, ValueError):
-            self._lbl_hvdop.config(text=f"hdop {NA}\nvdop {NA}")
+            self._lbl_hvdop["text"] = f"hdop {NA}\nvdop {NA}"
 
         try:
             if units in (UI, UIK):
-                self._lbl_hvacc.config(
-                    text=f"hacc {m2ft(self.__app.gnss_status.hacc):.3f}\n"
+                self._lbl_hvacc["text"] = (
+                    f"hacc {m2ft(self.__app.gnss_status.hacc):.3f}\n"
                     + f"vacc {m2ft(self.__app.gnss_status.vacc):.3f}"
                 )
-                self._lbl_lacc_u.config(text="ft")
+                self._lbl_lacc_u["text"] = "ft"
             else:
-                self._lbl_hvacc.config(
-                    text=f"hacc {self.__app.gnss_status.hacc:.3f}\n"
+                self._lbl_hvacc["text"] = (
+                    f"hacc {self.__app.gnss_status.hacc:.3f}\n"
                     + f"vacc {self.__app.gnss_status.vacc:.3f}"
                 )
-                self._lbl_lacc_u.config(text="m")
+                self._lbl_lacc_u["text"] = "m"
         except (TypeError, ValueError):
-            self._lbl_hvacc.config(text=f"hacc {NA}\nvacc {NA}")
+            self._lbl_hvacc["text"] = f"hacc {NA}\nvacc {NA}"
 
     def _update_dgps(self, units):
         """
@@ -553,9 +565,7 @@ class BannerFrame(Frame):
         :param str units: distance units as string (UMM, UMK, UI, UIK)
         """
 
-        self._lbl_diffcorr.config(
-            text=DGPSYES if self.__app.gnss_status.diff_corr else NA
-        )
+        self._lbl_diffcorr["text"] = DGPSYES if self.__app.gnss_status.diff_corr else NA
         baseline = self.__app.gnss_status.rel_pos_length
         bl = NA
         bl_u = ""
@@ -586,13 +596,27 @@ class BannerFrame(Frame):
             if station in [None, "", 0]:
                 station = NA
             if bl == NA:
-                self._lbl_diffstat.config(text=f"age {age}\nid {station} - {bl}")
+                self._lbl_diffstat["text"] = f"age {age}\nid {station} - {bl}"
             else:
-                self._lbl_diffstat.config(
-                    text=f"age {age}\nid {station} - {bl:.2f} {bl_u}"
+                self._lbl_diffstat["text"] = (
+                    f"age {age}\nid {station} - {bl:.2f} {bl_u}"
                 )
         else:
-            self._lbl_diffstat.config(text="")
+            self._lbl_diffstat["text"] = ""
+
+    def _update_psstats(self):
+        """
+        Update process statistics.
+        """
+
+        if PSSTATS:
+            pid = getpid()
+            process = Process(pid)
+            vms = int(process.memory_info().vms / 1024)
+            if self._old_vms == 0:
+                self._old_vms = vms
+            deltavms = vms - self._old_vms
+            self._lbl_psstats["text"] = f"pid: {pid}, vmsᵢ: {vms:,}, Δvms: {deltavms:,}"
 
     def _set_fontsize(self):
         """
@@ -614,7 +638,7 @@ class BannerFrame(Frame):
             self._lbl_siv,
             self._lbl_diffcorr,
         ):
-            ctl.config(font=scale_font(self.width, FONTBASE, FONTSCALE)[0])
+            ctl["font"] = scale_font(self.width, FONTBASE, FONTSCALE)[0]
 
         for ctl in (
             self._lbl_ltime,
@@ -630,15 +654,16 @@ class BannerFrame(Frame):
             self._lbl_lsiv,
             self._lbl_lacc,
             self._lbl_lcorr,
+            self._lbl_psstats,
         ):
-            ctl.config(font=scale_font(self.width, FONTBASE - 2, FONTSCALE)[0])
+            ctl["font"] = scale_font(self.width, FONTBASE - 2, FONTSCALE)[0]
 
         for ctl in (
             self._lbl_hvdop,
             self._lbl_hvacc,
             self._lbl_diffstat,
         ):
-            ctl.config(font=scale_font(self.width, FONTBASE - 4, FONTSCALE)[0])
+            ctl["font"] = scale_font(self.width, FONTBASE - 4, FONTSCALE)[0]
 
     def _on_sep(self, event):  # pylint: disable=unused-argument
         """

@@ -15,7 +15,7 @@ Created on 22 Aug 2023
 
 # pylint: disable=invalid-name, no-member
 
-from tkinter import NSEW, NW, SW, Frame
+from tkinter import EW, NSEW, NW, SW, Frame, Label, Spinbox, StringVar, Tk, W
 
 from pygpsclient.canvas_subclasses import (
     MODE_POL,
@@ -28,12 +28,15 @@ from pygpsclient.canvas_subclasses import (
 from pygpsclient.globals import (
     BGCOL,
     PNTCOL,
+    READONLY,
+    TRACEMODE_WRITE,
     WIDGETU2,
 )
 from pygpsclient.helpers import setubxrate
+from pygpsclient.rtcm3_handler import RTCM56
 from pygpsclient.strings import DLGWAITRELPOS, NA
 
-MAXPOINTS = 100
+MAXPOINTS = 500
 INSET = 4
 TRKCOL = "#CD6600"
 TRKTOL = 5
@@ -46,23 +49,23 @@ class RoverFrame(Frame):
     Rover view frame class.
     """
 
-    def __init__(self, app: Frame, parent: Frame, *args, **kwargs):
+    def __init__(self, app: Tk, parent: Frame, *args, **kwargs):
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         :param Frame parent: reference to parent frame
         :param args: Optional args to pass to Frame parent class
         :param kwargs: Optional kwargs to pass to Frame parent class
         """
         self.__app = app
-        self.__master = self.__app.appmaster
 
         super().__init__(parent, *args, **kwargs)
 
         def_w, def_h = WIDGETU2
         self.width = kwargs.get("width", def_w)
         self.height = kwargs.get("height", def_h)
+        self._source = StringVar()
         self._range = 1
         self._temprange = 1
         self._scale_c = 1
@@ -72,6 +75,7 @@ class RoverFrame(Frame):
         self._maxdist = 0
         self._waiting = True
         self._body()
+        self.reset()
         self._attach_events()
         self.enable_messages(True)
 
@@ -83,7 +87,33 @@ class RoverFrame(Frame):
         self._canvas = CanvasCompass(
             self.__app, self, MODE_POL, width=self.width, height=self.height, bg=BGCOL
         )
+        self._frm_options = Frame(self, bg=BGCOL)
+        self._lbl_options = Label(self._frm_options, text="Source", fg=PNTCOL, bg=BGCOL)
+        self._spn_options = Spinbox(
+            self._frm_options,
+            values=["NAV-RELPOSNED", "NAV-DAHEADING", RTCM56],
+            width=16,
+            wrap=True,
+            background=BGCOL,
+            readonlybackground=BGCOL,
+            foreground=PNTCOL,
+            buttonbackground=BGCOL,
+            textvariable=self._source,
+            state=READONLY,
+        )
         self._canvas.grid(column=0, row=0, sticky=NSEW)
+        self._frm_options.grid(column=0, row=1, sticky=EW)
+        self._lbl_options.grid(column=0, row=0, sticky=W)
+        self._spn_options.grid(column=1, row=0, sticky=EW)
+
+    def reset(self):
+        """
+        Reset settings to saved configuration.
+        """
+
+        self._source.set(
+            self.__app.configuration.get("relposnedsettings_d")["source_s"]
+        )
 
     def _attach_events(self):
         """
@@ -92,6 +122,7 @@ class RoverFrame(Frame):
 
         self.bind("<Configure>", self._on_resize)
         self._canvas.bind("<Double-Button-1>", self._on_clear)
+        self._source.trace_add(TRACEMODE_WRITE, self._on_source)
 
     def init_frame(self):
         """
@@ -105,7 +136,7 @@ class RoverFrame(Frame):
         self._canvas.create_compass(
             radii=range(maxgrid, 1, -2),
             unit=self._scale_u,
-            dp=0,
+            dp=1 if self._scale_u in ("m", "cm") else 0,
             scale=scale,
             tags=tags,
         )
@@ -115,6 +146,11 @@ class RoverFrame(Frame):
         """
         Collect relative position data and update the plot.
         """
+
+        src = self.__app.gnss_status.rel_pos_source
+        if src != self._source.get():
+            self._on_clear(None)
+            return
 
         center_x = self.width / 2
         center_y = self.height / 2
@@ -160,7 +196,7 @@ class RoverFrame(Frame):
         self._canvas.create_text(
             INSET,
             INSET,
-            text=f"Len {dis:,.2f} ± {accdis:.2f} cm",
+            text=f"Src {self.__app.gnss_status.rel_pos_source}",
             fill=PNTCOL,
             anchor=NW,
             font=self._canvas.font,
@@ -169,6 +205,15 @@ class RoverFrame(Frame):
         self._canvas.create_text(
             INSET,
             INSET + fh,
+            text=f"Len {dis:,.2f} ± {accdis:.2f} cm",
+            fill=PNTCOL,
+            anchor=NW,
+            font=self._canvas.font,
+            tags=TAG_DATA,
+        )
+        self._canvas.create_text(
+            INSET,
+            INSET + fh * 2,
             text=f"Hdg {hdg:.2f} ± {acchdg:.2f}",
             fill=PNTCOL,
             anchor=NW,
@@ -202,7 +247,6 @@ class RoverFrame(Frame):
                 outline=TRKCOL,
                 tags=TAG_DATA,
             )
-            self.update_idletasks()
 
         # plot latest relative position with accuracy radius
         x, y = self._canvas.d2xy(hdg, dis / self._scale_c)
@@ -223,6 +267,8 @@ class RoverFrame(Frame):
             tags=TAG_DATA,
         )
         self._canvas.create_circle(x, y, 3, fill=PNTCOL, outline=PNTCOL, tags=TAG_DATA)
+
+        self.update_idletasks()
 
     def _set_range(self, distance: float):
         """
@@ -288,7 +334,21 @@ class RoverFrame(Frame):
         :param int status: 0 = off, 1 = on
         """
 
-        setubxrate(self.__app, "NAV-RELPOSNED", status)
+        source = self.__app.configuration.get("relposnedsettings_d")["source_s"]
+        if source in ("NAV-RELPOSNED", "NAV-DAHEADING"):
+            setubxrate(self.__app, source, status, "UBX")
+        elif source == RTCM56:
+            setubxrate(self.__app, "TYPE1006", status, "RTCM_3X_TYPE")
+
+    def _on_source(self, var, index, mode):  # pylint: disable=unused-argument
+        """
+        Action on updating data source.
+        """
+
+        self.update()
+        self.__app.configuration.set(
+            "relposnedsettings_d", {"source_s": self._source.get()}
+        )
 
     def _on_clear(self, event):  # pylint: disable=unused-argument
         """ "

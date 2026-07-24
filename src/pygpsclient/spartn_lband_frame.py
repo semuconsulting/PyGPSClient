@@ -29,6 +29,7 @@ from tkinter import (
     Spinbox,
     StringVar,
     TclError,
+    Tk,
     W,
     ttk,
 )
@@ -131,18 +132,17 @@ class SpartnLbandDialog(Frame):
     SPARTNConfigDialog class.
     """
 
-    def __init__(self, app: Frame, parent: Frame, *args, **kwargs):
+    def __init__(self, app: Tk, parent: Frame, *args, **kwargs):
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         :param Frame parent: reference to parent frame
         :param args: optional args to pass to parent class (not currently used)
         :param kwargs: optional kwargs to pass to parent class (not currently used)
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.__container = parent  # container frame
 
         super().__init__(parent.container, *args, **kwargs)
@@ -351,7 +351,7 @@ class SpartnLbandDialog(Frame):
         Bind events to frame.
         """
 
-        self.__master.bind(SPARTN_ERR_EVENT, self.on_error)
+        self.__app.bind(SPARTN_ERR_EVENT, self.on_error)
         for setting in (
             self._enabledbg,
             self._spartn_freq,
@@ -423,7 +423,7 @@ class SpartnLbandDialog(Frame):
         self._frm_spartn_serial.status_label = status
         stat = DISABLED if status == CONNECTED_SPARTNLB else NORMAL
         for wdg in (self._btn_connect,):
-            wdg.config(state=stat)
+            wdg["state"] = stat
         stat = NORMAL if status == CONNECTED_SPARTNLB else DISABLED
         for wdg in (
             self._ent_freq,
@@ -439,13 +439,13 @@ class SpartnLbandDialog(Frame):
             self._btn_disconnect,
             self._btn_send,
         ):
-            wdg.config(state=stat)
+            wdg["state"] = stat
         stat = READONLY if status == CONNECTED_SPARTNLB else DISABLED
         for wdg in (
             self._spn_drat,
             self._spn_outport,
         ):
-            wdg.config(state=stat)
+            wdg["state"] = stat
 
     def _valid_settings(self) -> bool:
         """
@@ -627,7 +627,7 @@ class SpartnLbandDialog(Frame):
         msg = self._format_cfgcorr()
         self._send_command(msg)
         self.__container.status_label = f"{CFGSET} command sent"
-        self._lbl_send.config(image=self._img_pending)
+        self._lbl_send["image"] = self._img_pending
 
         # save config to persistent memory
         if self._saveconfig.get():
@@ -680,16 +680,16 @@ class SpartnLbandDialog(Frame):
             if hasattr(msg, "CFG_PMP_UNIQUE_WORD"):
                 self._spartn_unqword.set(msg.CFG_PMP_UNIQUE_WORD)
             self.__container.status_label = (f"{CFGPOLL} received", OKCOL)
-            self._lbl_send.config(image=self._img_confirmed)
+            self._lbl_send["image"] = self._img_confirmed
         elif msg.identity == "ACK-ACK":
-            self._lbl_send.config(image=self._img_confirmed)
+            self._lbl_send["image"] = self._img_confirmed
             self.__container.status_label = (CONFIGOK.format(CFGSET), OKCOL)
         elif msg.identity == "ACK-NAK":
-            self._lbl_send.config(image=self._img_warn)
+            self._lbl_send["image"] = self._img_warn
             self.__container.status_label = (CONFIGBAD.format(CFGSET), ERRCOL)
         elif msg.identity == "RXM-PMP":
-            self._lbl_ebno.config(text=f"Eb/N0: {msg.ebno} dB")
-            self._lbl_fec.config(text=f"FEC Bits: {msg.fecBits}")
+            self._lbl_ebno["text"] = f"Eb/N0: {msg.ebno} dB"
+            self._lbl_fec["text"] = f"FEC Bits: {msg.fecBits}"
 
         self.update_idletasks()
 

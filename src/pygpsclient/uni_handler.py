@@ -54,11 +54,10 @@ class UNIHandler:
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.logger = logging.getLogger(__name__)
 
         self._raw_data = None
@@ -77,7 +76,9 @@ class UNIHandler:
             return
         if self.__app.gnss_status.version_data["hwversion"] == NA:
             self.__app.gnss_status.version_data["hwversion"] = "Unicore"
-            self.__app.device_label = self.__app.gnss_status.version_data["hwversion"]
+            self.__app.set_device_label(
+                self.__app.gnss_status.version_data["hwversion"]
+            )
         # self.logger.debug(f"data received {parsed_data.identity}")
         self._process_utc(parsed_data)
         if parsed_data.identity in ("BESTNAV", "BESTNAVH"):
@@ -188,6 +189,7 @@ class UNIHandler:
         :param UNIMessage data: SATSINFO parsed message
         """
 
+        show_unused = self.__app.configuration.get("unusedsat_b")
         self.__app.gnss_status.gsv_data = {}
         num_siv = int(data.numsat)
         now = time()
@@ -199,6 +201,8 @@ class UNIHandler:
             elev = getattr(data, "elev" + idx)
             azim = getattr(data, "azi" + idx)
             cno = getattr(data, "cno" + idx + "_01")
+            if cno == 0 and not show_unused:
+                continue
             self.__app.gnss_status.gsv_data[(gnssId, svid)] = (
                 gnssId,
                 svid,
@@ -267,4 +271,4 @@ class UNIHandler:
         self.__app.gnss_status.version_data["fwversion"] = data.comptime
         self.__app.gnss_status.version_data["romversion"] = NA
         self.__app.gnss_status.version_data["gnss"] = NA
-        self.__app.device_label = self.__app.gnss_status.version_data["hwversion"]
+        self.__app.set_device_label(self.__app.gnss_status.version_data["hwversion"])

@@ -33,11 +33,10 @@ class TTYHandler:
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.logger = logging.getLogger(__name__)
 
     def process_data(self, raw_data: bytes, parsed_data: str):

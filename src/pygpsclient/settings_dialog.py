@@ -12,7 +12,7 @@ Created on 14 Jan 2026
 :license: BSD 3-Clause
 """
 
-from tkinter import NSEW, Frame
+from tkinter import NSEW, Tk
 
 from pygpsclient.settings_child_frame import SettingsChildFrame
 from pygpsclient.strings import DLGTSETTINGS
@@ -24,17 +24,16 @@ class SettingsDialog(ToplevelDialog):
     Settings frame class.
     """
 
-    def __init__(self, app: Frame, *args, **kwargs):
+    def __init__(self, app: Tk, *args, **kwargs):
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         :param args: optional args to pass to Frame parent class
         :param kwargs: optional kwargs to pass to Frame parent class
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
 
         super().__init__(app, DLGTSETTINGS)
 

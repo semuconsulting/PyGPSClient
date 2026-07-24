@@ -35,6 +35,7 @@ from tkinter import (
     Spinbox,
     StringVar,
     TclError,
+    Tk,
 )
 
 try:
@@ -92,17 +93,16 @@ class ScatterViewFrame(Frame):
     Scatterplot view frame class.
     """
 
-    def __init__(self, app: Frame, parent: Frame, *args, **kwargs):
+    def __init__(self, app: Tk, parent: Frame, *args, **kwargs):
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         :param Frame parent: reference to parent frame
         :param args: Optional args to pass to Frame parent class
         :param kwargs: Optional kwargs to pass to Frame parent class
         """
         self.__app = app
-        self.__master = self.__app.appmaster
 
         super().__init__(parent, *args, **kwargs)
 

@@ -26,6 +26,7 @@ from pygpsclient.strings import (
     DLGTSERVER,
     DLGTTTY,
     DLGTUBX,
+    DLGTUBXLEGACY,
     MENUABOUT,
     MENUEXIT,
     MENUFILE,
@@ -39,6 +40,7 @@ from pygpsclient.strings import (
 
 DIALOGS = (
     DLGTUBX,
+    DLGTUBXLEGACY,
     DLGTNMEA,
     DLGTNTRIP,
     DLGTSERVER,
@@ -60,14 +62,13 @@ class MenuBar(Menu):
         """
         Constructor
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         :param args: optional args to pass to Menu parent class
         :param kwargs: optional kwargs to pass to Menu parent class
         """
 
-        self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
-        Menu.__init__(self, self.__master, *args, **kwargs)
+        self.__app = app  # Reference to main Tk application class
+        super().__init__(self.__app, *args, **kwargs)
 
         self.option_add("*Font", "TkMenuFont")
         # Create a pull-down menu for file operations

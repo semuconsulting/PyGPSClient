@@ -10,7 +10,7 @@ Created on 19 Feb 2020
 :license: BSD 3-Clause
 """
 
-from tkinter import EW, Button, E, Frame, IntVar, Label, Spinbox, StringVar, W
+from tkinter import EW, Button, E, Frame, IntVar, Label, Spinbox, StringVar, Tk, W
 
 from pyubx2 import POLL, SET, UBXMessage
 
@@ -38,18 +38,17 @@ class UBX_RATE_Frame(Frame):
     UBX Navigation Solution Rate configuration command panel.
     """
 
-    def __init__(self, app: Frame, parent: Frame, *args, **kwargs):
+    def __init__(self, app: Tk, parent: Frame, *args, **kwargs):
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         :param Frame parent: reference to parent frame (config-dialog)
         :param args: optional args to pass to Frame parent class
         :param kwargs: optional kwargs to pass to Frame parent class
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.__container = parent
 
         super().__init__(parent.container, *args, **kwargs)
@@ -102,7 +101,6 @@ class UBX_RATE_Frame(Frame):
             image=self.__container.img_send,
             width=50,
             command=self._on_send_rate,
-            font=self.__app.font_md,
             cursor=CLICK_CURSOR,
         )
 
@@ -124,7 +122,6 @@ class UBX_RATE_Frame(Frame):
         self._lbl_send_command.grid(
             column=5, row=1, rowspan=3, ipadx=3, ipady=3, sticky=E
         )
-        self.option_add("*Font", self.__app.font_sm)
 
     def _attach_events(self):
         """
@@ -153,12 +150,12 @@ class UBX_RATE_Frame(Frame):
             self._measint.set(msg.measRate)
             self._navrate.set(msg.navRate)
             self._timeref.set(TIMEREFS[msg.timeRef])
-            self._lbl_send_command.config(image=self.__container.img_confirmed)
+            self._lbl_send_command["image"] = self.__container.img_confirmed
             self.__container.status_label = ("CFG-RATE GET message received", OKCOL)
 
         elif msg.identity == "ACK-NAK":
             self.__container.status_label = ("CFG-RATE POLL message rejected", ERRCOL)
-            self._lbl_send_command.config(image=self.__container.img_warn)
+            self._lbl_send_command["image"] = self.__container.img_warn
 
     def _on_send_rate(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -180,7 +177,7 @@ class UBX_RATE_Frame(Frame):
             timeRef=tref,
         )
         self.__container.send_command(msg)
-        self._lbl_send_command.config(image=self.__container.img_pending)
+        self._lbl_send_command["image"] = self.__container.img_pending
         self.__container.status_label = "CFG-RATE SET message sent"
         self.__container.set_pending(UBX_CFGRATE, ("ACK-ACK", "ACK-NAK"))
 
@@ -193,7 +190,7 @@ class UBX_RATE_Frame(Frame):
 
         msg = UBXMessage("CFG", "CFG-RATE", POLL)
         self.__container.send_command(msg)
-        self._lbl_send_command.config(image=self.__container.img_pending)
+        self._lbl_send_command["image"] = self.__container.img_pending
         self.__container.status_label = "CFG-RATE POLL message sent"
         for msgid in ("CFG-RATE", "ACK-NAK"):
             self.__container.set_pending(msgid, UBX_CFGRATE)

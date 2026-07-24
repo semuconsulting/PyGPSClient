@@ -22,7 +22,7 @@ from pyubx2 import UBXMessage, itow2utc
 
 from pygpsclient.globals import BSR, GLONASS_NMEA, UTF8
 from pygpsclient.helpers import corrage2int, fix2desc, hdg2yaw, ned2vector, svid2gnssid
-from pygpsclient.strings import DLGTSERVER, DLGTSPARTN, DLGTUBX, NA
+from pygpsclient.strings import DLGTSERVER, DLGTSPARTN, DLGTUBX, DLGTUBXLEGACY, NA
 from pygpsclient.widget_state import VISIBLE, WDGSIGNALS, WDGSPECTRUM, WDGSYSMON
 
 UBXMODELS = {
@@ -43,11 +43,10 @@ class UBXHandler:
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.logger = logging.getLogger(__name__)
 
         self._cdb = 0
@@ -66,7 +65,9 @@ class UBXHandler:
             return
         if self.__app.gnss_status.version_data["hwversion"] == NA:
             self.__app.gnss_status.version_data["hwversion"] = "u-blox"
-            self.__app.device_label = self.__app.gnss_status.version_data["hwversion"]
+            self.__app.set_device_label(
+                self.__app.gnss_status.version_data["hwversion"]
+            )
         # self.logger.debug(f"data received {parsed_data.identity}")
         if parsed_data.identity[0:3] in ("ACK", "CFG"):
             self._process_ACK(parsed_data)
@@ -86,8 +87,10 @@ class UBXHandler:
             self._process_NAV_PVT(parsed_data)
         elif parsed_data.identity in ("NAV-PVAT", "NAV2-PVAT"):
             self._process_NAV_PVAT(parsed_data)
-        elif parsed_data.identity == "NAV-RELPOSNED":
+        elif parsed_data.identity in ("NAV-RELPOSNED",):
             self._process_NAV_RELPOSNED(parsed_data)
+        elif parsed_data.identity in ("NAV-DAHEADING",):
+            self._process_NAV_DAHEADING(parsed_data)
         elif parsed_data.identity in ("NAV-SAT", "NAV2-SAT"):
             self._process_NAV_SAT(parsed_data)
         elif parsed_data.identity in ("NAV-SIG", "NAV2-SIG"):
@@ -126,6 +129,8 @@ class UBXHandler:
 
         if self.__app.dialog(DLGTUBX) is not None:
             self.__app.dialog(DLGTUBX).update_pending(msg)
+        if self.__app.dialog(DLGTUBXLEGACY) is not None:
+            self.__app.dialog(DLGTUBXLEGACY).update_pending(msg)
 
         # if SPARTN config dialog is open, send CFG & ACKs there
         if self.__app.dialog(DLGTSPARTN) is not None:
@@ -201,7 +206,7 @@ class UBXHandler:
         if self.__app.dialog(DLGTUBX) is not None:
             self.__app.dialog(DLGTUBX).update_pending(msg)
         # device = self.__app.gnss_status.version_data["hwversion"].rsplit(" ", 1)[0]
-        self.__app.device_label = self.__app.gnss_status.version_data["hwversion"]
+        self.__app.set_device_label(self.__app.gnss_status.version_data["hwversion"])
 
     def _process_MON_SYS(self, data: UBXMessage):
         """
@@ -366,6 +371,7 @@ class UBXHandler:
         :param UBXMessage data: NAV-SAT parsed message
         """
 
+        show_unused = self.__app.configuration.get("unusedsat_b")
         self.__app.gnss_status.gsv_data = {}
         num_siv = int(data.numSvs)
         now = time()
@@ -384,6 +390,8 @@ class UBXHandler:
                 elev = ""
                 azim = ""
             cno = getattr(data, "cno" + idx)
+            if cno == 0 and not show_unused:  # ignore sats with zero cno
+                continue
             self.__app.gnss_status.gsv_data[(gnssId, svid)] = (
                 gnssId,
                 svid,
@@ -407,6 +415,7 @@ class UBXHandler:
         :param UBXMessage data: NAV-SIG parsed message
         """
 
+        show_unused = self.__app.configuration.get("unusedsat_b")
         self.__app.gnss_status.sig_data = {}
         num_sig = int(data.numSigs)
         now = time()
@@ -420,6 +429,8 @@ class UBXHandler:
             if gnssId == 6 and svid < 25 and svid != 255 and GLONASS_NMEA:
                 svid += 64
             cno = getattr(data, "cno" + idx)
+            if cno == 0 and not show_unused:  # ignore sats with zero cno
+                continue
             corrsource = getattr(data, "corrSource" + idx)
             quality = getattr(data, "qualityInd" + idx)
             sigflags = 0
@@ -515,7 +526,7 @@ class UBXHandler:
         """
         Process NAV-RELPOSNED sentence - Relative position of rover.
 
-        Two version of this message:
+        Two versions of this message:
         - version 0 has no heading or length attributes, so these
           must be derived from the NED values
         - version 1 has heading and length attributes
@@ -525,6 +536,12 @@ class UBXHandler:
 
         :param UBXMessage data: NAV-RELPOSNED parsed message
         """
+
+        if (
+            self.__app.configuration.get("relposnedsettings_d")["source_s"]
+            != data.identity
+        ):
+            return
 
         if data.version == 0x00:
             n = data.relPosN
@@ -544,6 +561,7 @@ class UBXHandler:
                 data.accHeading,
             )
 
+        self.__app.gnss_status.rel_pos_source = data.identity
         self.__app.gnss_status.rel_pos_heading = relPosHeading
         self.__app.gnss_status.rel_pos_length = relPosLength
         self.__app.gnss_status.acc_heading = accHeading
@@ -558,6 +576,55 @@ class UBXHandler:
             data.refObsMiss,
             data.relPosHeadingValid,
             data.relPosNormalized,
+        ]
+
+    def _process_NAV_DAHEADING(self, data: UBXMessage):
+        """
+        Process NAV-DAHEADING sentence - Relative position of dual antenna.
+
+        Two versions of this message:
+        - version 1 (HDG 2.00B1 pre-production) outputs in cm
+        - version 2 (HDG 2.00 production) outputs in mm
+
+        :param UBXMessage data: NAV-DAHEADING parsed message
+        """
+
+        if (
+            self.__app.configuration.get("relposnedsettings_d")["source_s"]
+            != data.identity
+        ):
+            return
+
+        if data.version == 0x01:
+            relPosLength, relPosHeading, accLength, accHeading = (
+                data.relPosLength,  # cm
+                data.relPosHeading,
+                data.accLength * 1e-2,
+                data.accHeading,
+            )
+        else:
+            relPosLength, relPosHeading, accLength, accHeading = (
+                data.relPosLength / 10,  # mm/10 = cm
+                data.relPosHeading,
+                data.accLength / 10,
+                data.accHeading,
+            )
+
+        self.__app.gnss_status.rel_pos_source = data.identity
+        self.__app.gnss_status.rel_pos_heading = relPosHeading
+        self.__app.gnss_status.rel_pos_length = relPosLength
+        self.__app.gnss_status.acc_heading = accHeading
+        self.__app.gnss_status.acc_length = accLength
+        self.__app.gnss_status.rel_pos_flags = [
+            data.gnssFixOK,
+            data.diffSoln,
+            data.relPosValid,
+            data.carrSoln,
+            0,
+            0,
+            0,
+            data.relPosHeadingValid,
+            0,
         ]
 
     def _process_HNR_PVT(self, data: UBXMessage):

@@ -33,6 +33,7 @@ from tkinter import (
     Label,
     Spinbox,
     StringVar,
+    Tk,
     W,
 )
 
@@ -67,18 +68,17 @@ class MapviewFrame(Frame):
     Map frame class.
     """
 
-    def __init__(self, app: Frame, parent: Frame, *args, **kwargs):
+    def __init__(self, app: Tk, parent: Frame, *args, **kwargs):
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         :param Frame parent: reference to parent frame
         :param args: optional args to pass to Frame parent class
         :param kwargs: optional kwargs to pass to Frame parent class
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
 
         super().__init__(parent, *args, **kwargs)
 
@@ -220,11 +220,11 @@ class MapviewFrame(Frame):
             return
 
         if self._maptype.get() == WORLD:
-            self._lbl_zoom.config(state=DISABLED)
-            self._spn_zoom.config(state=DISABLED)
+            self._lbl_zoom["state"] = DISABLED
+            self._spn_zoom["state"] = DISABLED
         else:
-            self._lbl_zoom.config(state=NORMAL)
-            self._spn_zoom.config(state=READONLY)
+            self._lbl_zoom["state"] = NORMAL
+            self._spn_zoom["state"] = READONLY
 
         self.__app.configuration.set("maptype_s", self._maptype.get())
         self._lastmaptype = self._maptype.get()
@@ -307,9 +307,13 @@ class MapviewFrame(Frame):
         self._bounds = self._canvas.bounds
 
         if self._canvas.zoommin:
-            self._spn_zoom.config(highlightbackground=ERRCOL, highlightthickness=3)
+            self._spn_zoom["highlightbackground"] = ERRCOL
+            self._spn_zoom["highlightthickness"] = 3
         else:
-            self._spn_zoom.config(highlightbackground="gray90", highlightthickness=3)
+            self._spn_zoom["highlightbackground"] = "gray90"
+            self._spn_zoom["highlightthickness"] = 3
+
+        self.update_idletasks()
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """

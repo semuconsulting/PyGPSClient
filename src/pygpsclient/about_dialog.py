@@ -55,11 +55,10 @@ class AboutDialog(ToplevelDialog):
         """
         Initialise Toplevel dialog
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.logger = logging.getLogger(__name__)
         self._img_icon = ImageTk.PhotoImage(Image.open(ICON_APP128).resize((64, 64)))
         self._img_github = ImageTk.PhotoImage(Image.open(ICON_GITHUB).resize((32, 32)))
@@ -190,7 +189,7 @@ class AboutDialog(ToplevelDialog):
         """
 
         if brew_installed():
-            self.status_label = (BREWWARN, INFOCOL)
+            self.set_status_label(BREWWARN, INFOCOL)
             return
 
         open_new_tab(GITHUB_URL)
@@ -202,7 +201,7 @@ class AboutDialog(ToplevelDialog):
         """
 
         if brew_installed():
-            self.status_label = (BREWWARN, INFOCOL)
+            self.set_status_label(BREWWARN, INFOCOL)
             return
 
         open_new_tab(SPONSOR_URL)
@@ -214,7 +213,7 @@ class AboutDialog(ToplevelDialog):
         """
 
         if brew_installed():
-            self.status_label = (BREWWARN, INFOCOL)
+            self.set_status_label(BREWWARN, INFOCOL)
             return
 
         open_new_tab(LICENSE_URL)
@@ -225,7 +224,7 @@ class AboutDialog(ToplevelDialog):
         Check for updates.
         """
 
-        self.status_label = ("Checking for updates...", INFOCOL)
+        self.set_status_label("Checking for updates...", INFOCOL)
         versions = check_for_updates()
         for i, (nam, current, latest) in enumerate(versions):
             txt = f"{nam}: {current}"
@@ -238,14 +237,14 @@ class AboutDialog(ToplevelDialog):
             else:
                 txt += f" - Latest version is {latest}"
                 col = ERRCOL
-            self._lbl_lib_versions[i].config(text=txt, fg=col)
-
+            self._lbl_lib_versions[i]["text"] = txt
+            self._lbl_lib_versions[i]["fg"] = col
         updates = [nam for (nam, current, latest) in versions if latest != current]
         if len(updates) > 0:
-            self.status_label = ("Updates available", OKCOL)
+            self.set_status_label("Updates available", OKCOL)
             self._set_update_btn_mode(True)
         else:
-            self.status_label = ("No updates available", INFOCOL)
+            self.set_status_label("No updates available", INFOCOL)
 
     def _do_update(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -253,15 +252,15 @@ class AboutDialog(ToplevelDialog):
         """
 
         if brew_installed():
-            self.status_label = (BREWUPDATE, INFOCOL)
+            self.set_status_label(BREWUPDATE, INFOCOL)
             return
 
-        self.status_label = (UPDATEINPROG, INFOCOL)
+        self.set_status_label(UPDATEINPROG, INFOCOL)
         rc = self.__app.do_app_update()
         if rc:
-            self.status_label = (UPDATERESTART, OKCOL)
+            self.set_status_label(UPDATERESTART, OKCOL)
         else:
-            self.status_label = (UPDATEERR.format(err=rc), ERRCOL)
+            self.set_status_label(UPDATEERR.format(err=rc), ERRCOL)
         self._set_update_btn_mode(False)
 
     def _set_update_btn_mode(self, update: bool):
@@ -272,9 +271,11 @@ class AboutDialog(ToplevelDialog):
         """
 
         if update:
-            self._btn_checkupdate.config(text="UPDATE", fg=OKCOL)
+            self._btn_checkupdate["text"] = "UPDATE"
+            self._btn_checkupdate["fg"] = OKCOL
             self._btn_checkupdate.bind("<Button>", self._do_update)
         else:
-            self._btn_checkupdate.config(text="CHECK FOR UPDATES", fg=INFOCOL)
+            self._btn_checkupdate["text"] = "CHECK FOR UPDATES"
+            self._btn_checkupdate["fg"] = INFOCOL
             self._btn_checkupdate.bind("<Button>", self._check_for_update)
-        self.update_idletasks()
+        self.__app.update_idletasks()

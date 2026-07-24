@@ -38,6 +38,7 @@ from tkinter import (
     S,
     Scrollbar,
     StringVar,
+    Tk,
     W,
 )
 
@@ -74,7 +75,7 @@ from pygpsclient.strings import LBLCFGGENERIC, LBLCFGGENERICNMEA
 
 # dimensions of scrollable attribute window
 SCROLLX = 370
-SCROLLY = 300
+SCROLLY = 200
 NMEA = "NMEA"
 UBX = "UBX"
 ACK = "ACK-ACK"
@@ -152,18 +153,17 @@ class Dynamic_Config_Frame(Frame):
     Dynamic configuration command panel.
     """
 
-    def __init__(self, app: Frame, parent: Frame, *args, **kwargs):
+    def __init__(self, app: Tk, parent: Frame, *args, **kwargs):
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         :param Frame parent: reference to parent frame (config-dialog)
         :param args: optional args to pass to Frame parent class
         :param kwargs: optional kwargs to pass to Frame parent class
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.__container = parent
         self.logger = logging.getLogger(__name__)
         self._protocol = kwargs.pop("protocol", "UBX")
@@ -200,14 +200,13 @@ class Dynamic_Config_Frame(Frame):
         self._scr_cfg_cmd = Scrollbar(
             self, orient=VERTICAL, command=self._lbx_cfg_cmd.yview
         )
-        self._lbx_cfg_cmd.config(yscrollcommand=self._scr_cfg_cmd.set)
+        self._lbx_cfg_cmd["yscrollcommand"] = self._scr_cfg_cmd.set
         self._lbl_send_command = Label(self, image=self.__container.img_none)
         self._btn_send_command = Button(
             self,
             image=self.__container.img_send,
             width=50,
             command=self._on_set_cfg,
-            font=self.__app.font_md,
             cursor=CLICK_CURSOR,
         )
         self._btn_refresh = Button(
@@ -215,7 +214,6 @@ class Dynamic_Config_Frame(Frame):
             image=self.__container.img_redraw,
             width=40,
             command=self._on_refresh,
-            font=self.__app.font_md,
             cursor=CLICK_CURSOR,
         )
         self._lbl_command = Label(self, text="", anchor=W)
@@ -228,10 +226,8 @@ class Dynamic_Config_Frame(Frame):
         self._scr_container_hor = Scrollbar(
             self._frm_container, orient="horizontal", command=self._can_container.xview
         )
-        self._can_container.config(
-            yscrollcommand=self._scr_container_ver.set,
-            xscrollcommand=self._scr_container_hor.set,
-        )
+        self._can_container["yscrollcommand"] = self._scr_container_ver.set
+        self._can_container["xscrollcommand"] = self._scr_container_hor.set
         self._can_container.create_window(0, 0, window=self._frm_attrs, anchor=NW)
 
     def _do_layout(self):
@@ -240,7 +236,7 @@ class Dynamic_Config_Frame(Frame):
         """
 
         self._lbl_cfg_dyn.grid(column=0, row=0, columnspan=3, sticky=EW)
-        self._lbx_cfg_cmd.grid(column=0, row=1, columnspan=1, sticky=EW)
+        self._lbx_cfg_cmd.grid(column=0, row=1, columnspan=1, sticky=NSEW)
         self._scr_cfg_cmd.grid(column=1, row=1, sticky=(N, S, W))
         self._btn_send_command.grid(column=2, row=1, ipadx=3, ipady=3, sticky=NE)
         self._lbl_send_command.grid(column=3, row=1, ipadx=3, ipady=3, sticky=NE)
@@ -262,7 +258,7 @@ class Dynamic_Config_Frame(Frame):
         )
         self._scr_container_ver.grid(column=5, row=0, sticky=(N, S, W))
         self._scr_container_hor.grid(column=0, row=2, columnspan=5, sticky=EW)
-        self.option_add("*Font", self.__app.font_sm)
+        self.grid_rowconfigure(1, weight=1)
 
     def _attach_events(self):
         """
@@ -288,7 +284,7 @@ class Dynamic_Config_Frame(Frame):
                     self._lbx_cfg_cmd.insert(i, cmd)
 
         self._clear_widgets()
-        self._lbl_send_command.config(image=self.__container.img_unknown)
+        self._lbl_send_command["image"] = self.__container.img_unknown
 
     def _setscroll(self, event):  # pylint: disable=unused-argument
         """
@@ -327,7 +323,7 @@ class Dynamic_Config_Frame(Frame):
             self._cfg_id = self._lbx_cfg_cmd.get(idx)
             pdesc = self._cfg_id
             pdic = UBX_PAYLOADS_SET[self._cfg_id]
-        self._lbl_command.config(text=f"{pdesc}")
+        self._lbl_command["text"] = f"{pdesc}"
         self._clear_widgets()
         self._add_widgets(pdic, 1, 0)
         self.update()
@@ -370,7 +366,7 @@ class Dynamic_Config_Frame(Frame):
 
             # send message, update status and await response
             self.__container.send_command(msg)
-            self._lbl_send_command.config(image=self.__container.img_pending)
+            self._lbl_send_command["image"] = self.__container.img_pending
             self.__container.status_label = f"P{self._cfg_id} SET message sent"
             for msgid in pendcfg:
                 self.__container.set_pending(msgid, penddlg)
@@ -419,13 +415,13 @@ class Dynamic_Config_Frame(Frame):
         if msg is not None:
             self.__container.send_command(msg)
             self.__container.status_label = f"{cp}{cfg_id} POLL message sent"
-            self._lbl_send_command.config(image=self.__container.img_pending)
+            self._lbl_send_command["image"] = self.__container.img_pending
             for msgid in pendcfg:
                 self.__container.set_pending(msgid, penddlg)
             self._expected_response = POLL
         else:  # CFG cannot be POLLed
             self.__container.status_label = f"{cp}{cfg_id} No POLL available"
-            self._lbl_send_command.config(image=self.__container.img_unknown)
+            self._lbl_send_command["image"] = self.__container.img_unknown
 
     def _do_poll_args(self, cfg_id: str) -> dict:
         """
@@ -507,10 +503,10 @@ class Dynamic_Config_Frame(Frame):
                     f"{cfg_id} message acknowledged",
                     OKCOL,
                 )
-                self._lbl_send_command.config(image=self.__container.img_confirmed)
+                self._lbl_send_command["image"] = self.__container.img_confirmed
             else:
                 self.__container.status_label = (f"{cfg_id} message rejected", ERRCOL)
-                self._lbl_send_command.config(image=self.__container.img_warn)
+                self._lbl_send_command["image"] = self.__container.img_warn
             self.update()
 
     def _clear_widgets(self):
@@ -548,22 +544,23 @@ class Dynamic_Config_Frame(Frame):
         for nam, att in pdict.items():  # process each attribute in dict
             if isinstance(att, tuple):  # repeating group or bitfield
                 numr, attd = att
-                if numr in (
-                    X1,
-                    X2,
-                    X4,
-                    X6,
-                    X8,
-                    X24,
-                ):  # bitfield
-                    row = self._add_widgets(attd, row, index)
-                else:  # repeating group
-                    if isinstance(numr, int):  # fixed length group
-                        nr = numr
-                    else:
-                        nr = 1
-                    for idx in range(nr):
-                        row = self._add_widgets_group(att, row, idx + 1)
+                if isinstance(attd, dict):
+                    if numr in (
+                        X1,
+                        X2,
+                        X4,
+                        X6,
+                        X8,
+                        X24,
+                    ):  # bitfield
+                        row = self._add_widgets(attd, row, index)
+                    else:  # repeating group
+                        if isinstance(numr, int):  # fixed length group
+                            nr = numr
+                        else:
+                            nr = 1
+                        for idx in range(nr):
+                            row = self._add_widgets_group(att, row, idx + 1)
             else:  # single attribute
                 row = self._add_widgets_single(nam, att, row, index)
 

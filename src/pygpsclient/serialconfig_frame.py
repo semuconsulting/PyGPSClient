@@ -40,6 +40,7 @@ from tkinter import (
     Spinbox,
     StringVar,
     TclError,
+    Tk,
     W,
 )
 
@@ -94,11 +95,11 @@ class SerialConfigFrame(Frame):
     Serial port configuration frame class.
     """
 
-    def __init__(self, app: Frame, parent: Frame, *args, **kwargs):
+    def __init__(self, app: Tk, parent: Frame, *args, **kwargs):
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         :param Frame parent: reference to parent frame
         :param args: optional args to pass to Frame parent class
         :param kwargs: optional kwargs for value ranges, or to pass to Frame parent class
@@ -159,10 +160,10 @@ class SerialConfigFrame(Frame):
         )
         self._scr_portv = Scrollbar(self._frm_basic, orient=VERTICAL)
         self._scr_porth = Scrollbar(self._frm_basic, orient=HORIZONTAL)
-        self._lbx_port.config(yscrollcommand=self._scr_portv.set)
-        self._lbx_port.config(xscrollcommand=self._scr_porth.set)
-        self._scr_portv.config(command=self._lbx_port.yview)
-        self._scr_porth.config(command=self._lbx_port.xview)
+        self._lbx_port["yscrollcommand"] = self._scr_portv.set
+        self._lbx_port["xscrollcommand"] = self._scr_porth.set
+        self._scr_portv["command"] = self._lbx_port.yview
+        self._scr_porth["command"] = self._lbx_port.xview
         self._lbl_bpsrate = Label(self._frm_basic, text="Rate bps")
         self._spn_bpsrate = Spinbox(
             self._frm_basic,
@@ -359,10 +360,10 @@ class SerialConfigFrame(Frame):
         self._show_advanced = not self._show_advanced
         if self._show_advanced:
             self._frm_advanced.grid(column=0, row=1, sticky=NSEW)
-            self._btn_toggle.config(image=self._img_contract)
+            self._btn_toggle["image"] = self._img_contract
         else:
             self._frm_advanced.grid_forget()
-            self._btn_toggle.config(image=self._img_expand)
+            self._btn_toggle["image"] = self._img_expand
 
     def _get_ports(self):
         """

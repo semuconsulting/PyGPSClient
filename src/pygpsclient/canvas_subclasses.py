@@ -35,6 +35,7 @@ from tkinter import (
     N,
     S,
     Scrollbar,
+    Tk,
     W,
     font,
 )
@@ -119,7 +120,6 @@ class CanvasContainer(Canvas):
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self.x_scrollbar = Scrollbar(parent, orient=HORIZONTAL)
         self.y_scrollbar = Scrollbar(parent, orient=VERTICAL)
 
@@ -134,8 +134,8 @@ class CanvasContainer(Canvas):
         self.frm_container = Frame(self, borderwidth=2, relief="groove")
         self.grid(column=0, row=0, sticky=NSEW)
         self.show_scroll()
-        self.x_scrollbar.config(command=self.xview)
-        self.y_scrollbar.config(command=self.yview)
+        self.x_scrollbar["command"] = self.xview
+        self.y_scrollbar["command"] = self.yview
         # ensure container canvas expands to accommodate child frames
         self.create_window((0, 0), window=self.frm_container, anchor=NW)
         self.bind("<Configure>", lambda e: self.config(scrollregion=self.bbox(ALL)))
@@ -171,7 +171,6 @@ class CanvasGraph(Canvas):
         """
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         super().__init__(parent, *args, **kwargs)
 
     def create_graph(
@@ -499,7 +498,7 @@ class CanvasCompass(Canvas):
 
     def __init__(
         self,
-        app: object,
+        app: Tk,
         parent: Frame,
         mode: Literal["ele", "lin"],
         *args,
@@ -508,8 +507,8 @@ class CanvasCompass(Canvas):
         """
         Constructor.
 
-        :param app: Application
-        :param parent: Parent frame
+        :param Tk app: main Tk Application
+        :param Frame parent: Parent frame
         :param int mode: ele (celestial) or lin (polar) coordinate system
         """
 
@@ -519,7 +518,6 @@ class CanvasCompass(Canvas):
             )
 
         self.__app = app  # Reference to main application class
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
         self._mode = mode
         super().__init__(parent, *args, **kwargs)
 

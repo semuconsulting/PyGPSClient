@@ -40,9 +40,11 @@ from pygpsclient.strings import (
     DLGTSPARTN,
     DLGTTTY,
     DLGTUBX,
+    DLGTUBXLEGACY,
 )
 from pygpsclient.tty_preset_dialog import TTYPresetDialog
 from pygpsclient.ubx_config_dialog import UBXConfigDialog
+from pygpsclient.ubx_legacy_config_dialog import UBXLegacyConfigDialog
 
 
 class DialogState:
@@ -63,6 +65,11 @@ class DialogState:
             },
             DLGTUBX: {
                 CLASS: UBXConfigDialog,
+                DLG: None,
+                RESIZE: True,
+            },
+            DLGTUBXLEGACY: {
+                CLASS: UBXLegacyConfigDialog,
                 DLG: None,
                 RESIZE: False,
             },

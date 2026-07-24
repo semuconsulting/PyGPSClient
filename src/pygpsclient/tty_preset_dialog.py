@@ -29,6 +29,7 @@ from tkinter import (
     S,
     Scrollbar,
     StringVar,
+    Tk,
     W,
     ttk,
 )
@@ -69,17 +70,16 @@ class TTYPresetDialog(ToplevelDialog):
     TTY Preset and User-defined configuration command dialog.
     """
 
-    def __init__(self, app, *args, **kwargs):  # pylint: disable=unused-argument
+    def __init__(self, app: Tk, *args, **kwargs):  # pylint: disable=unused-argument
         """
         Constructor.
 
-        :param Frame app: reference to main tkinter application
+        :param Tk app: reference to main tkinter application
         :param args: optional args to pass to parent class (not currently used)
         :param kwargs: optional kwargs to pass to Frame parent class
         """
 
         self.__app = app
-        self.__master = self.__app.appmaster  # Reference to root class (Tk)
 
         super().__init__(app, DLGTTTY)
         self._confirm = False
@@ -139,10 +139,10 @@ class TTYPresetDialog(ToplevelDialog):
         )
         self._scr_presetv = Scrollbar(self._frm_body, orient=VERTICAL)
         self._scr_preseth = Scrollbar(self._frm_body, orient=HORIZONTAL)
-        self._lbx_preset.config(yscrollcommand=self._scr_presetv.set)
-        self._lbx_preset.config(xscrollcommand=self._scr_preseth.set)
-        self._scr_presetv.config(command=self._lbx_preset.yview)
-        self._scr_preseth.config(command=self._lbx_preset.xview)
+        self._lbx_preset["yscrollcommand"] = self._scr_presetv.set
+        self._lbx_preset["xscrollcommand"] = self._scr_preseth.set
+        self._scr_presetv["command"] = self._lbx_preset.yview
+        self._scr_preseth["command"] = self._lbx_preset.xview
         self._lbl_send_command = Label(self._frm_body, image=self.img_none)
         self._btn_send_command = Button(
             self._frm_body,
@@ -159,13 +159,13 @@ class TTYPresetDialog(ToplevelDialog):
 
         self.frm_device_info.grid(column=0, row=0, sticky=EW)
         self._frm_body.grid(column=0, row=1, sticky=NSEW)
-        self._lbl_command.grid(column=0, row=0, sticky=W)
-        self._ent_command.grid(column=1, row=0, columnspan=4, sticky=EW)
-        self._chk_crlf.grid(column=0, row=1, sticky=W)
-        self._chk_echo.grid(column=1, row=1, sticky=W)
-        self._chk_delay.grid(column=2, row=1, sticky=W)
-        ttk.Separator(self._frm_body).grid(column=0, row=2, columnspan=5, sticky=EW)
-        self._lbl_presets.grid(column=0, row=3, columnspan=4, sticky=EW)
+        self._lbl_presets.grid(column=0, row=0, columnspan=4, sticky=EW)
+        self._lbl_command.grid(column=0, row=1, sticky=W)
+        self._ent_command.grid(column=1, row=1, columnspan=4, sticky=EW)
+        self._chk_crlf.grid(column=0, row=2, sticky=W)
+        self._chk_echo.grid(column=1, row=2, sticky=W)
+        self._chk_delay.grid(column=2, row=2, sticky=W)
+        ttk.Separator(self._frm_body).grid(column=0, row=3, columnspan=5, sticky=EW)
         self._lbx_preset.grid(
             column=0,
             row=4,
@@ -217,7 +217,7 @@ class TTYPresetDialog(ToplevelDialog):
         Command has been updated.
         """
 
-        self._lbl_send_command.config(image=self.img_none)
+        self._lbl_send_command["image"] = self.img_none
 
     def _on_update_settings(self, var, index, mode):  # pylint: disable=unused-argument
         """
@@ -234,13 +234,13 @@ class TTYPresetDialog(ToplevelDialog):
         """
 
         try:
-            self.status_label = ("", INFOCOL)
+            self.set_status_label("", INFOCOL)
             idx = self._lbx_preset.curselection()
             preset = self._lbx_preset.get(idx).split(";", 1)
             self._confirm = CONFIRM in preset[0]
             self._command.set(preset[1])
         except IndexError:
-            self.status_label = ("Invalid preset format", ERRCOL)
+            self.set_status_label("Invalid preset format", ERRCOL)
 
     def _on_send_command(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -248,7 +248,7 @@ class TTYPresetDialog(ToplevelDialog):
         """
 
         if not self._ent_command.validate(VALNONBLANK):
-            self.status_label = ("Invalid command format", ERRCOL)
+            self.set_status_label("Invalid command format", ERRCOL)
             return
 
         try:
@@ -262,17 +262,17 @@ class TTYPresetDialog(ToplevelDialog):
                 self._parse_command(self._command.get())
                 status = CONFIRMED
             if status == CONFIRMED:
-                self._lbl_send_command.config(image=self.img_pending)
-                self.status_label = "Command(s) sent"
+                self._lbl_send_command["image"] = self.img_pending
+                self.set_status_label("Command(s) sent")
             elif status == CANCELLED:
-                self.status_label = "Command(s) cancelled"
+                self.set_status_label("Command(s) cancelled")
             elif status == NOMINAL:
-                self.status_label = "Command(s) sent, no results"
+                self.set_status_label("Command(s) sent, no results")
             self._confirm = False
 
         except Exception as err:  # pylint: disable=broad-except
-            self.status_label = (f"Error {err}", ERRCOL)
-            self._lbl_send_command.config(image=self.img_warn)
+            self.set_status_label(f"Error {err}", ERRCOL)
+            self._lbl_send_command["image"] = self.img_warn
 
     def _parse_command(self, command: str):
         """
@@ -299,8 +299,8 @@ class TTYPresetDialog(ToplevelDialog):
                 cmds.append(cmd)
             self.__app.send_to_device(cmds, interval=self._delay.get() * CMDPAUSE)
         except Exception as err:  # pylint: disable=broad-except
-            self.status_label = (f"Error {err}", ERRCOL)
-            self._lbl_send_command.config(image=self.img_warn)
+            self.set_status_label(f"Error {err}", ERRCOL)
+            self._lbl_send_command["image"] = self.img_warn
 
     def _record_command(self, msg: bytes):
         """
@@ -322,11 +322,11 @@ class TTYPresetDialog(ToplevelDialog):
         msgstr = msg.decode(ASCII, errors=BSR).upper()
         for ack in TTYOK:
             if ack in msgstr:
-                self._lbl_send_command.config(image=self.img_confirmed)
-                self.status_label = ("Command(s) acknowledged", OKCOL)
+                self._lbl_send_command["image"] = self.img_confirmed
+                self.set_status_label("Command(s) acknowledged", OKCOL)
                 return
         for nak in TTYERR:
             if nak in msgstr:
-                self._lbl_send_command.config(image=self.img_warn)
-                self.status_label = ("Command(s) rejected", ERRCOL)
+                self._lbl_send_command["image"] = self.img_warn
+                self.set_status_label("Command(s) rejected", ERRCOL)
                 break
