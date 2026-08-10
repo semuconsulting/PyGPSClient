@@ -44,7 +44,6 @@ from pygpsclient.helpers import set_filename, valid_geom
 from pygpsclient.strings import CONFIGTITLE, GITHUB_URL, SAVETITLE
 
 DEFEXT = ("all files", "*.*")
-FLUSHINT = 100  # flush log file every 100 updates
 
 
 class FileHandler:
@@ -280,10 +279,7 @@ class FileHandler:
                 datum = (str(datum) + "\r").encode("utf-8")
             try:
                 self._logfile.write(datum)
-                self._flushcount += 1
-                if self._flushcount >= FLUSHINT:
-                    self._logfile.flush()
-                    self._flushcount = 0
+                self._logfile.flush()
                 self._logsize += len(datum)
             except ValueError:
                 pass

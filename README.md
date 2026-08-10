@@ -59,7 +59,7 @@ This is an independent project and we have no affiliation whatsoever with any GN
 
 The PyGPSClient home page is at [PyGPSClient](https://github.com/semuconsulting/PyGPSClient). 
 
-Contributions from human beings welcome - please refer to [CONTRIBUTING.MD](https://github.com/semuconsulting/PyGPSClient/blob/master/CONTRIBUTING.md).
+Contributions **_from human beings_** welcome - please refer to [CONTRIBUTING.MD](https://github.com/semuconsulting/PyGPSClient/blob/master/CONTRIBUTING.md).
 
 For [Bug reports](https://github.com/semuconsulting/PyGPSClient/blob/master/.github/ISSUE_TEMPLATE/bug_report.md), please use the template provided. For feature requests and general queries and advice, post a message to one of the [PyGPSClient Discussions](https://github.com/semuconsulting/PyGPSClient/discussions) channels in the first instance.
 
@@ -91,7 +91,8 @@ To install into a virtual environment (*which may be necessary if you have an [`
 python3 -m venv pygpsclient
 source pygpsclient/bin/activate # (or .\pygpsclient\Scripts\activate on Windows)
 python3 -m pip install --upgrade pygpsclient
-deactivate
+pygpsclient
+deactivate # to deactivate virtual environment when finished
 ```
 
 Quick [installation shell scripts](https://github.com/semuconsulting/PyGPSClient/blob/master/INSTALLATION.md#script) are available for Linux and MacOS platforms.
@@ -149,6 +150,7 @@ For more comprehensive installation instructions, please refer to [INSTALLATION.
     gnssstreamer --port /dev/ttyACM0 --baudrate 115200 --timeout 3 --format 2 --clioutput 1 --output pygpsdata.log --verbosity 2
     ```
 
+    Datalogs will include both receiver output and (_if the relevant protocol is enabled in settings_) any incoming NTRIP RTK data stream.
 18. GPX Track - Turn track recording (in GPX format) on or off. On first selection, you will be prompted to select the directory into which timestamped GPX track files are saved. See also [GPX Track Viewer](#gpxviewer).
 19. Database - Turn spatialite database recording (*where available*) on or off. On first selection, you will be prompted to select the directory into which the `pygpsclient.sqlite` database is saved. *Note that, when first created, the database's spatial metadata may take up to a minute or so to initialise*. 
     - Database logging is dependent on your Python environment supporting the requisite [sqlite3 `mod_spatialite` extension](https://www.gaia-gis.it/fossil/libspatialite/index) - see [INSTALLATION.md](https://github.com/semuconsulting/PyGPSClient/blob/master/INSTALLATION.md#prereqs) for further details. If not supported, the option will be greyed out. Check the Menu..Help..About dialog for an indication of the current spatialite support status - `no-ext` means the spatialite extension is not supported; `no-ms` means spatialite *is* supported but the necessary `mod_spatialite` extension module cannot be found in the PATH; a numeric version number like `3.51.2` indicates spatialite is fully supported.

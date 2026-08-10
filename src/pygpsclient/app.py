@@ -40,11 +40,11 @@ from os import getenv, path
 from queue import Empty, Queue
 from subprocess import CalledProcessError, run
 from sys import executable
-from threading import Thread
+from threading import Lock, Thread
 from tkinter import EW, NSEW, NW, Frame, PhotoImage, Tk, Toplevel, font
 from types import NoneType
 
-from pygnssutils import GNSSMQTTClient, GNSSNTRIPClient
+from pygnssutils import GNSSNTRIPClient
 from pygnssutils.gnssreader import (
     NMEA_PROTOCOL,
     POLL,
@@ -81,7 +81,6 @@ from pygpsclient.globals import (
     ICON_APP128,
     INFOCOL,
     MAINSCALE,
-    MQTT_PROTOCOL,
     NOPORTS,
     NTRIP_EVENT,
     OKCOL,
@@ -172,7 +171,6 @@ class App(Tk):
         super().__init__()
 
         # load config from json file
-        self.refresh_widget_timer = None
         self.status_msg_timer = None
         self._deferredmsg = None
         self.widget_state = WidgetState()  # widget state
@@ -200,6 +198,9 @@ class App(Tk):
         self.socket_inqueue = Queue()  # message from socket
         self.socket_outqueue = Queue()  # message to socket
         self.console_outqueue = Queue()  # message to console
+        self.gnssstatus_lock = Lock()  # thread lock for GNSS status data
+        self.datalog_lock = Lock()  # thread lock for datalog file
+        self.gpx_lock = Lock()  # thread lock for gpx file
         self.dialog_state = DialogState()  # dialog state
         self.gnss_status = GNSSStatus()  # holds latest GNSS readings
         self.stream_handler = StreamHandler(self)
@@ -212,7 +213,6 @@ class App(Tk):
         self.rtcm_handler = RTCM3Handler(self)
         self.tty_handler = TTYHandler(self)
         self.ntrip_handler = GNSSNTRIPClient(self)
-        self.spartn_handler = GNSSMQTTClient(self)
         self.sqlite_handler = SqliteHandler(self)
         self.frm_settings = None
         self._conn_status = DISCONNECTED
@@ -568,7 +568,8 @@ class App(Tk):
     def refresh_widgets(self):
         """
         TIMER PROCESS WHILE CONNECTED
-        Refresh visible widgets.
+
+        Refresh visible widgets with latest GNSSStatus data.
         """
 
         self.frm_banner.update_frame()
@@ -585,9 +586,7 @@ class App(Tk):
             self.sqlite_handler.load_data()
 
         if self.conn_status != DISCONNECTED or self.rtk_conn_status != DISCONNECTED:
-            self.refresh_widget_timer = self.after(
-                self._gui_refresh_int, self.refresh_widgets
-            )
+            self.after(self._gui_refresh_int, self.refresh_widgets)
 
     def start_dialog(self, dlg: str):
         """
@@ -795,25 +794,42 @@ class App(Tk):
         :param event event: read event
         """
 
+        inmask = False
         try:
-            raw_data, parsed_data = self.ntrip_inqueue.get(False)
-            if (
-                raw_data is not None
-                and parsed_data is not None
-                and isinstance(raw_data, bytes)
-            ):
-                if isinstance(parsed_data, RTCMMessage):
-                    self.send_to_device(raw_data)
-                    if self.protocol_mask & RTCM3_PROTOCOL:
-                        self.console_outqueue.put((raw_data, parsed_data, "NTRIP>>"))
-                elif isinstance(parsed_data, SPARTNMessage):
-                    self.send_to_device(raw_data)
-                    if self.protocol_mask & SPARTN_PROTOCOL:
-                        self.console_outqueue.put((raw_data, parsed_data, "NTRIP>>"))
-                elif isinstance(parsed_data, NMEAMessage):
-                    if self.protocol_mask & NMEA_PROTOCOL:
-                        self.console_outqueue.put((raw_data, parsed_data, "NTRIP<<"))
-            self.ntrip_inqueue.task_done()
+            while True:
+                raw_data, parsed_data = self.ntrip_inqueue.get(False)
+                if (
+                    raw_data is not None
+                    and parsed_data is not None
+                    and isinstance(raw_data, bytes)
+                ):
+                    inmask = False
+                    if isinstance(parsed_data, RTCMMessage):
+                        self.send_to_device(raw_data)
+                        if self.protocol_mask & RTCM3_PROTOCOL:
+                            self.console_outqueue.put(
+                                (raw_data, parsed_data, "NTRIP>>")
+                            )
+                            inmask = True
+                    elif isinstance(parsed_data, SPARTNMessage):
+                        self.send_to_device(raw_data)
+                        if self.protocol_mask & SPARTN_PROTOCOL:
+                            self.console_outqueue.put(
+                                (raw_data, parsed_data, "NTRIP>>")
+                            )
+                            inmask = True
+                    elif isinstance(parsed_data, NMEAMessage):
+                        if self.protocol_mask & NMEA_PROTOCOL:
+                            self.console_outqueue.put(
+                                (raw_data, parsed_data, "NTRIP<<")
+                            )
+
+                # update log file if enabled
+                if self.configuration.get("datalog_b") and inmask:
+                    with self.datalog_lock:
+                        self.file_handler.write_logfile(raw_data, parsed_data)
+
+                self.ntrip_inqueue.task_done()
         except Empty:
             pass
         except (SerialException, SerialTimeoutException) as err:
@@ -1134,7 +1150,6 @@ class App(Tk):
             + (cfg.get("qgcprot_b") * QGC_PROTOCOL)  # 16
             + (cfg.get("uniprot_b") * UNI_PROTOCOL)  # 32
             + (cfg.get("spartnprot_b") * SPARTN_PROTOCOL)  # 256
-            + (cfg.get("mqttprot_b") * MQTT_PROTOCOL)  # 512
             + (cfg.get("ttyprot_b") * TTY_PROTOCOL)  # 1024
         )
         return mask

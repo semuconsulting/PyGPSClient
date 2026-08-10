@@ -4,8 +4,12 @@
 
 FIXES:
 
-1. Fix for unattended UI lag issue.
+1. Enhancement for unattended UI lag issue.
 1. Remove redundant CLI arguments relating to disused SPARTN client.
+
+CHANGES:
+
+1. When datalogging is enabled, any incoming NTRIP RTK stream (RTCM3 or SPARTN) will _only_ be logged if its protocol is enabled in settings; otherwise logging will be restricted to receiver output.
 
 ### RELEASE 1.7.2
 
