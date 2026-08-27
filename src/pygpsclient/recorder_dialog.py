@@ -19,7 +19,6 @@ Created on 9 Jan 2023
 # pylint: disable=unused-argument
 
 from datetime import datetime
-from threading import Event, Thread
 from time import sleep
 from tkinter import (
     CENTER,
@@ -77,7 +76,8 @@ from pygpsclient.strings import DLGTRECORD, NA, SAVETITLE
 from pygpsclient.toplevel_dialog import ToplevelDialog
 
 CFG = b"\x06"
-FLASH = 0.7
+FLASH = 1000
+FLASHCOLS = (("white", ERRCOL), (ERRCOL, "white"))
 MSG = b"\x01"
 PLAY = 1
 PRT = b"\x00"
@@ -120,11 +120,11 @@ class RecorderDialog(ToplevelDialog):
         self._importdesc = StringVar()
         self._rec_status = STOP
         self._configfile = None
-        self._stop_event = Event()
         self._bg = self.cget("bg")  # default background color
         self._configfile = None
         self._configpath = None
         self._save_to_preset = False
+        self._flash = 0
 
         self._body()
         self._do_layout()
@@ -481,15 +481,8 @@ class RecorderDialog(ToplevelDialog):
         if self._rec_status == STOP:
             self._rec_status = RECORD
             self.__app.recording = True
-            # start flashing record label...
-            self._stop_event.clear()
-            Thread(
-                target=self._flash_record,
-                daemon=True,
-                args=(self._stop_event,),
-            ).start()
+            self._flash_record()
         elif self._rec_status == RECORD:
-            self._stop_event.set()
             self._rec_status = STOP
             self.__app.recording = False
 
@@ -625,24 +618,22 @@ class RecorderDialog(ToplevelDialog):
 
         self._lbl_memory["text"] = len(self.__app.recorded_commands)
 
-    def _flash_record(self, stop: Event):
+    def _flash_record(self):
         """
-        THREADED
         Flash record indicator for conspicuity.
         """
 
         try:
-            cols = [("white", ERRCOL), (ERRCOL, "white")]
-            i = 0
-            while not stop.is_set():
-                i = not i
+            if self._rec_status == RECORD:
+                self._flash = not self._flash
                 self._lbl_activity["text"] = "RECORDING"
-                self._lbl_activity["fg"] = cols[i][0]
-                self._lbl_activity["bg"] = cols[i][1]
-                sleep(FLASH)
-            self._lbl_activity["text"] = ""
-            self._lbl_activity["fg"] = FGCOL
-            self._lbl_activity["bg"] = BGCOL
+                self._lbl_activity["fg"] = FLASHCOLS[self._flash][0]
+                self._lbl_activity["bg"] = FLASHCOLS[self._flash][1]
+                self.after(FLASH, self._flash_record)
+            else:
+                self._lbl_activity["text"] = ""
+                self._lbl_activity["fg"] = FGCOL
+                self._lbl_activity["bg"] = BGCOL
         except TclError:  # if dialog closed without stopping recording
             pass
 

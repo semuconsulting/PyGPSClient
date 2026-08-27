@@ -696,7 +696,7 @@ class RINEXDialog(ToplevelDialog):
         for chk in (
             self._rinexobs,
             self._rinexnav,
-            self._rinexmet,
+            # self._rinexmet,
             self._rxgps,
             self._rxglonass,
             self._rxgalileo,
@@ -706,6 +706,7 @@ class RINEXDialog(ToplevelDialog):
             self._rxnavic,
         ):
             chk.set(1)
+        self._rinexmet.set(0)
         self._obssource.set(UBLOX)
         self._navsource.set(UBLOX)
         self._metsource.set(NMEA)

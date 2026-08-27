@@ -22,12 +22,7 @@ from pygnssutils import (
 
 from pygpsclient._version import __version__ as VERSION
 from pygpsclient.app import App
-from pygpsclient.globals import (
-    APPNAME,
-    CONFIGFILE,
-    SPARTN_BASEDATE_CURRENT,
-    SPARTN_BASEDATE_DATASTREAM,
-)
+from pygpsclient.globals import APPNAME, CONFIGFILE
 from pygpsclient.strings import EPILOG
 
 
@@ -53,29 +48,8 @@ def main():
         default=SUPPRESS,
     )
     ap.add_argument(
-        "-S",
-        "--spartnport",
-        help="User-defined SPARTN receiver port",
-        default=SUPPRESS,
-    )
-    ap.add_argument(
         "--mqapikey",
         help="MapQuest API Key",
-        default=SUPPRESS,
-    )
-    ap.add_argument(
-        "--mqttclientid",
-        help="MQTT Client ID",
-        default=SUPPRESS,
-    )
-    ap.add_argument(
-        "--mqttclientregion",
-        help="MQTT Client Region",
-        default=SUPPRESS,
-    )
-    ap.add_argument(
-        "--mqttclientmode",
-        help="MQTT Client Mode (0 - IP, 1 - L-Band)",
         default=SUPPRESS,
     )
     ap.add_argument(
@@ -89,25 +63,13 @@ def main():
         default=SUPPRESS,
     )
     ap.add_argument(
-        "--spartnkey",
-        help="SPARTN message decryption key",
-        default=SUPPRESS,
-    )
-    ap.add_argument(
-        "--spartnbasedate",
-        help=f"SPARTN message decryption timetag ({SPARTN_BASEDATE_CURRENT} = \
-            current datetime, {SPARTN_BASEDATE_DATASTREAM} = use timetags from data stream)",
-        type=int,
-        default=SUPPRESS,
-    )
-    ap.add_argument(
         "--tlspempath",
-        help="Fully qualified path to TLS PEM (private key/certificate) file",
+        help="Fully qualified path to TLS PEM (private key/certificate) file used by socket server",
         default=SUPPRESS,
     )
     ap.add_argument(
         "--tlscrtpath",
-        help="Fully qualified path to TLS CRT (certificate) file",
+        help="Fully qualified path to TLS CRT (certificate) file used by socket client",
         default=SUPPRESS,
     )
     ap.add_argument(

@@ -3,21 +3,14 @@ stream_handler.py
 
 StreamHandler class for PyGPSClient application.
 
-This handles all the serial stream i/o. It uses the pyubx2.UBXReader
-class to read and parse incoming data from the receiver. It places
-this data on an input message queue and generates a <<read-event>>
-which triggers the main App class to process the data.
+This handles all the serial stream i/o.
 
-It also reads any command and poll messages placed on an output
-message queue and sends these to the receiver.
-
-The StreamHandler class is used by two PyGPSClient 'caller' objects:
-
-- SettingsFrame - i/o with the main GNSS receiver.
-- SpartnLbandDialog - i/o with a SPARTN L-Band receiver when SPARTN Client active.
-
-The caller object can implement a 'status_label = ()' method to
-display any status messages output by StreamHandler.
+- uses the pygnssutils.GNSSReader class to read and parse incoming data \
+    from the receiver.
+- updates the GNSSStatus object with parsed GNSS data. GNSSStatus is used \
+    by the various user-selectable widgets to display current status.
+- reads any command and poll messages placed on an output message queue \
+    and sends these to the receiver.
 
 Created on 16 Sep 2020
 
@@ -25,8 +18,6 @@ Created on 16 Sep 2020
 :copyright: 2020 semuadmin
 :license: BSD 3-Clause
 """
-
-# pylint: disable=fixme
 
 import logging
 import ssl
@@ -482,48 +473,55 @@ class StreamHandler:
         tty = self.__app.configuration.get("ttyprot_b")
         console = self.__app.widget_state.state[WDGCONSOLE][VISIBLE]
 
-        if isinstance(parsed_data, NMEAMessage) and protfilter & NMEA_PROTOCOL:
-            self.__app.nmea_handler.process_data(raw_data, parsed_data)
-            msgprot = NMEA_PROTOCOL
-        elif isinstance(parsed_data, UBXMessage) and protfilter & UBX_PROTOCOL:
-            self.__app.ubx_handler.process_data(raw_data, parsed_data)
-            msgprot = UBX_PROTOCOL
-        elif isinstance(parsed_data, RTCMMessage) and protfilter & RTCM3_PROTOCOL:
-            self.__app.rtcm_handler.process_data(raw_data, parsed_data)
-            msgprot = RTCM3_PROTOCOL
-        elif isinstance(parsed_data, SBFMessage) and protfilter & SBF_PROTOCOL:
-            self.__app.sbf_handler.process_data(raw_data, parsed_data)
-            msgprot = SBF_PROTOCOL
-        elif isinstance(parsed_data, QGCMessage) and protfilter & QGC_PROTOCOL:
-            self.__app.qgc_handler.process_data(raw_data, parsed_data)
-            msgprot = QGC_PROTOCOL
-        elif isinstance(parsed_data, UNIMessage) and protfilter & UNI_PROTOCOL:
-            self.__app.uni_handler.process_data(raw_data, parsed_data)
-            msgprot = UNI_PROTOCOL
-        elif isinstance(parsed_data, SPARTNMessage) and protfilter & SPARTN_PROTOCOL:
-            msgprot = SPARTN_PROTOCOL
-        elif isinstance(parsed_data, GNSSMessage):
-            msgprot = GNSS_PROTOCOL
-        elif isinstance(parsed_data, str):
-            if tty:
-                msgprot = TTY_PROTOCOL
-                self.__app.tty_handler.process_data(raw_data, parsed_data)
-            else:
-                msgprot = -1
-                marker = WARNING
+        with self.__app.gnssstatus_lock:
+            if isinstance(parsed_data, NMEAMessage) and protfilter & NMEA_PROTOCOL:
+                self.__app.nmea_handler.process_data(raw_data, parsed_data)
+                msgprot = NMEA_PROTOCOL
+            elif isinstance(parsed_data, UBXMessage) and protfilter & UBX_PROTOCOL:
+                self.__app.ubx_handler.process_data(raw_data, parsed_data)
+                msgprot = UBX_PROTOCOL
+            elif isinstance(parsed_data, RTCMMessage) and protfilter & RTCM3_PROTOCOL:
+                self.__app.rtcm_handler.process_data(raw_data, parsed_data)
+                msgprot = RTCM3_PROTOCOL
+            elif isinstance(parsed_data, SBFMessage) and protfilter & SBF_PROTOCOL:
+                self.__app.sbf_handler.process_data(raw_data, parsed_data)
+                msgprot = SBF_PROTOCOL
+            elif isinstance(parsed_data, QGCMessage) and protfilter & QGC_PROTOCOL:
+                self.__app.qgc_handler.process_data(raw_data, parsed_data)
+                msgprot = QGC_PROTOCOL
+            elif isinstance(parsed_data, UNIMessage) and protfilter & UNI_PROTOCOL:
+                self.__app.uni_handler.process_data(raw_data, parsed_data)
+                msgprot = UNI_PROTOCOL
+            elif (
+                isinstance(parsed_data, SPARTNMessage) and protfilter & SPARTN_PROTOCOL
+            ):
+                msgprot = SPARTN_PROTOCOL
+            elif isinstance(parsed_data, GNSSMessage):
+                msgprot = GNSS_PROTOCOL
+            elif isinstance(parsed_data, str):
+                if tty:
+                    msgprot = TTY_PROTOCOL
+                    self.__app.tty_handler.process_data(raw_data, parsed_data)
+                else:
+                    msgprot = -1
+                    marker = WARNING
 
-        # update consoledata if console is visible and protocol not filtered
+        # if console is visible and protocol not filtered, place raw and parsed
+        # data on console input queue
         if console and msgprot:
             self.__app.console_outqueue.put((raw_data, parsed_data, marker))
 
-        # if socket server is running and has clients, output raw data to socket
+        # if socket server is running and has clients, place raw data on socket
+        # output queue
         if self.__app.server_status > 0:
             self.__app.socket_outqueue.put(raw_data)
 
         # update log file if enabled
         if self.__app.configuration.get("datalog_b"):
-            self.__app.file_handler.write_logfile(raw_data, parsed_data)
+            with self.__app.datalog_lock:
+                self.__app.file_handler.write_logfile(raw_data, parsed_data)
 
         # update GPX track file if enabled
         if self.__app.configuration.get("recordtrack_b"):
-            self.__app.file_handler.update_gpx_track()
+            with self.__app.gpx_lock:
+                self.__app.file_handler.update_gpx_track()
