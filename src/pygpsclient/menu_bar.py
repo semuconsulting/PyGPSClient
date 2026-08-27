@@ -15,6 +15,7 @@ Created on 12 Sep 2020
 from tkinter import Menu
 
 from pygpsclient.strings import (
+    DLGGUIOPTIONS,
     DLGTABOUT,
     DLGTGPX,
     DLGTIMPORTMAP,
@@ -48,6 +49,7 @@ DIALOGS = (
     DLGTTTY,
     DLGTRECORD,
     DLGTRINEX,
+    DLGGUIOPTIONS,
 )
 
 

@@ -18,6 +18,7 @@ Created on 16 Aug 2023
 from pygpsclient.about_dialog import AboutDialog
 from pygpsclient.globals import CLASS, RESIZE
 from pygpsclient.gpx_dialog import GPXViewerDialog
+from pygpsclient.gui_config_dialog import GUIConfigDialog
 from pygpsclient.importmap_dialog import ImportMapDialog
 from pygpsclient.nmea_config_dialog import NMEAConfigDialog
 from pygpsclient.ntrip_client_dialog import NTRIPConfigDialog
@@ -27,6 +28,7 @@ from pygpsclient.serverconfig_dialog import ServerConfigDialog
 from pygpsclient.settings_dialog import SettingsDialog
 from pygpsclient.strings import (
     DLG,
+    DLGGUIOPTIONS,
     DLGTABOUT,
     DLGTGPX,
     DLGTIMPORTMAP,
@@ -113,6 +115,11 @@ class DialogState:
             },
             DLGTSETTINGS: {
                 CLASS: SettingsDialog,
+                DLG: None,
+                RESIZE: False,
+            },
+            DLGGUIOPTIONS: {
+                CLASS: GUIConfigDialog,
                 DLG: None,
                 RESIZE: False,
             },

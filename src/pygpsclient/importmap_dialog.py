@@ -184,7 +184,7 @@ class ImportMapDialog(ToplevelDialog):
                 INFOCOL,
             )
         else:
-            self.status_label = ""
+            self.set_status_label("")
 
     def _valid_entries(self) -> bool:
         """

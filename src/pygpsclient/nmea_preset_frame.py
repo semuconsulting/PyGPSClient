@@ -186,7 +186,7 @@ class NMEA_PRESET_Frame(Frame):
         """
 
         if not self._ent_command.validate(VALREGEX, regex=NMEAPRESETREGEX):
-            self.__container.status_label = ("Invalid command format", ERRCOL)
+            self.__container.set_status_label("Invalid command format", ERRCOL)
             return
         self._preset_command = self._command.get()
 
@@ -204,16 +204,16 @@ class NMEA_PRESET_Frame(Frame):
 
             if status == CONFIRMED:
                 self._lbl_send_command["image"] = self._img_pending
-                self.__container.status_label = "Command(s) sent"
+                self.__container.set_status_label("Command(s) sent")
                 for msgid in confids:
                     self.__container.set_pending(msgid, NMEA_PRESET)
             elif status == CANCELLED:
-                self.__container.status_label = "Command(s) cancelled"
+                self.__container.set_status_label("Command(s) cancelled")
             elif status == NOMINAL:
-                self.__container.status_label = "Command(s) sent, no results"
+                self.__container.set_status_label("Command(s) sent, no results")
 
         except Exception as err:  # pylint: disable=broad-except
-            self.__container.status_label = (f"Error {err}", ERRCOL)
+            self.__container.set_status_label(f"Error {err}", ERRCOL)
             self._lbl_send_command["image"] = self._img_warn
 
     def _do_user_defined(self, command: str) -> list:
@@ -246,7 +246,7 @@ class NMEA_PRESET_Frame(Frame):
                 # self.logger.debug(f"{str(msg)=} - {msg.serialize()=} {confids=}")
                 self.__container.send_command(msg)
         except Exception as err:  # pylint: disable=broad-except
-            self.__container.status_label = (f"Error {err}", ERRCOL)
+            self.__container.set_status_label(f"Error {err}", ERRCOL)
             self._lbl_send_command["image"] = self._img_warn
 
         return confids
@@ -261,7 +261,7 @@ class NMEA_PRESET_Frame(Frame):
         status = getattr(msg, "status", "OK")
         if status == "OK":
             self._lbl_send_command["image"] = self._img_confirmed
-            self.__container.status_label = ("Preset command(s) acknowledged", OKCOL)
+            self.__container.set_status_label("Preset command(s) acknowledged", OKCOL)
         elif status == "ERROR":
             self._lbl_send_command["image"] = self._img_warn
-            self.__container.status_label = ("Preset command(s) rejected", ERRCOL)
+            self.__container.set_status_label("Preset command(s) rejected", ERRCOL)

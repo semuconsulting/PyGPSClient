@@ -151,10 +151,10 @@ class UBX_RATE_Frame(Frame):
             self._navrate.set(msg.navRate)
             self._timeref.set(TIMEREFS[msg.timeRef])
             self._lbl_send_command["image"] = self.__container.img_confirmed
-            self.__container.status_label = ("CFG-RATE GET message received", OKCOL)
+            self.__container.set_status_label("CFG-RATE GET message received", OKCOL)
 
         elif msg.identity == "ACK-NAK":
-            self.__container.status_label = ("CFG-RATE POLL message rejected", ERRCOL)
+            self.__container.set_status_label("CFG-RATE POLL message rejected", ERRCOL)
             self._lbl_send_command["image"] = self.__container.img_warn
 
     def _on_send_rate(self, *args, **kwargs):  # pylint: disable=unused-argument
@@ -178,7 +178,7 @@ class UBX_RATE_Frame(Frame):
         )
         self.__container.send_command(msg)
         self._lbl_send_command["image"] = self.__container.img_pending
-        self.__container.status_label = "CFG-RATE SET message sent"
+        self.__container.set_status_label("CFG-RATE SET message sent")
         self.__container.set_pending(UBX_CFGRATE, ("ACK-ACK", "ACK-NAK"))
 
         self._do_poll_rate()
@@ -191,6 +191,6 @@ class UBX_RATE_Frame(Frame):
         msg = UBXMessage("CFG", "CFG-RATE", POLL)
         self.__container.send_command(msg)
         self._lbl_send_command["image"] = self.__container.img_pending
-        self.__container.status_label = "CFG-RATE POLL message sent"
+        self.__container.set_status_label("CFG-RATE POLL message sent")
         for msgid in ("CFG-RATE", "ACK-NAK"):
             self.__container.set_pending(msgid, UBX_CFGRATE)
