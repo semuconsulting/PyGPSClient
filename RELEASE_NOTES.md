@@ -1,5 +1,13 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.7.4
+
+ENHANCEMENTS:
+
+1. Add GUI Configuration Options panel to set internal GUI configuration parameters (*previously only available via manual edits of json file*). **NB**: User must save configuration and restart app after any changes.
+1. Add "Toggle Settings" button to Banner panel for quick access to Settings (docked or undocked).
+1. Enhanced validation messaging in UBX and NMEA configuration panels.
+
 ### RELEASE 1.7.3
 
 FIXES:

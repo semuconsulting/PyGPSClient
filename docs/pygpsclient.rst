@@ -132,6 +132,14 @@ pygpsclient.gpx\_dialog module
    :undoc-members:
    :show-inheritance:
 
+pygpsclient.gui\_config\_dialog module
+--------------------------------------
+
+.. automodule:: pygpsclient.gui_config_dialog
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pygpsclient.hardware\_info\_frame module
 ----------------------------------------
 

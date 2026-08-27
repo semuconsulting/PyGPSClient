@@ -33,6 +33,7 @@ from pygpsclient.globals import (
     CONNECTED_SIMULATOR,
     CONNECTED_SOCKET,
     ERRCOL,
+    ROMVER_NEW,
     UBX_CFGMSG,
     UBX_CFGOTHER,
     UBX_CFGPRT,
@@ -42,7 +43,7 @@ from pygpsclient.globals import (
     UBX_MONVER,
 )
 from pygpsclient.hardware_info_frame import Hardware_Info_Frame
-from pygpsclient.strings import DLGTUBXLEGACY
+from pygpsclient.strings import DLGTUBXLEGACY, NA, NOTCONN, ROMVERWARN
 from pygpsclient.toplevel_dialog import ToplevelDialog
 from pygpsclient.ubx_msgrate_frame import UBX_MSGRATE_Frame
 from pygpsclient.ubx_port_frame import UBX_PORT_Frame
@@ -122,16 +123,24 @@ class UBXLegacyConfigDialog(ToplevelDialog):
         Reset configuration widgets.
         """
 
-        self._frm_config_rate.reset()
-        self._frm_config_port.reset()
-        self._frm_config_dynamic.reset()
-        self.frm_device_info.reset()
         if self.__app.conn_status not in (
             CONNECTED,
             CONNECTED_SOCKET,
             CONNECTED_SIMULATOR,
         ):
-            self.set_status_label("Device not connected", ERRCOL)
+            self.set_status_label(NOTCONN, ERRCOL)
+            return
+
+        # check for legacy ROM version
+        hwver = self.__app.gnss_status.version_data["hwversion"]
+        romver = self.__app.gnss_status.version_data["romversion"]
+        if "u-blox" not in hwver or (romver >= ROMVER_NEW and romver != NA):
+            self.set_status_label(ROMVERWARN.format(generation="legacy"), ERRCOL)
+        else:
+            self._frm_config_rate.reset()
+            self._frm_config_port.reset()
+            self._frm_config_dynamic.reset()
+            self.frm_device_info.reset()
 
     def _attach_events(self):
         """

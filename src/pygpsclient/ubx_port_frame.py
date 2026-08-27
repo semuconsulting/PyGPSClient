@@ -189,10 +189,10 @@ class UBX_PORT_Frame(Frame):
             self._outprot_nmea.set(msg.outNMEA)
             self._outprot_rtcm3.set(msg.outRTCM3)
             self._lbl_send_command["image"] = self.__container.img_confirmed
-            self.__container.status_label = ("CFG-PRT GET message received", OKCOL)
+            self.__container.set_status_label("CFG-PRT GET message received", OKCOL)
 
         elif msg.identity == "ACK-NAK":
-            self.__container.status_label = ("CFG-PRT POLL message rejected", ERRCOL)
+            self.__container.set_status_label("CFG-PRT POLL message rejected", ERRCOL)
             self._lbl_send_command["image"] = self.__container.img_warn
 
     def _on_select_portid(self):
@@ -235,7 +235,7 @@ class UBX_PORT_Frame(Frame):
         )
         self.__container.send_command(msg)
         self._lbl_send_command["image"] = self.__container.img_pending
-        self.__container.status_label = "CFG-PRT SET message sent"
+        self.__container.set_status_label("CFG-PRT SET message sent")
         for msgid in ("ACK-NAK", "ACK-NAK"):
             self.__container.set_pending(msgid, UBX_CFGPRT)
 
@@ -250,6 +250,6 @@ class UBX_PORT_Frame(Frame):
         msg = UBXMessage("CFG", "CFG-PRT", POLL, portID=portID)
         self.__container.send_command(msg)
         self._lbl_send_command["image"] = self.__container.img_pending
-        self.__container.status_label = "CFG-PRT POLL message sent"
+        self.__container.set_status_label("CFG-PRT POLL message sent")
         for msgid in ("CFG-PRT", "ACK-NAK"):
             self.__container.set_pending(msgid, UBX_CFGPRT)

@@ -110,7 +110,7 @@ from pygpsclient.strings import (
 )
 
 MAXLINES = ("200", "500", "1000", "2000", "100")
-FILEDELAYS = (5, 10, 20, 50, 100, 200, 500, 1000, 2000)  # ms
+FILEDELAYS = ("5", "10", "20", "50", "100", "200", "500", "1000", "2000")  # ms
 
 
 class SettingsChildFrame(Frame):
@@ -342,7 +342,7 @@ class SettingsChildFrame(Frame):
         )
         self._spn_filedelay = Spinbox(
             self._frm_options,
-            value=FILEDELAYS,
+            values=FILEDELAYS,
             width=4,
             wrap=True,
             textvariable=self._filedelay,
@@ -357,7 +357,7 @@ class SettingsChildFrame(Frame):
         )
         self._spn_datalog = Spinbox(
             self._frm_options,
-            values=(FORMATS),
+            values=FORMATS,
             width=20,
             wrap=True,
             textvariable=self._logformat,
@@ -692,14 +692,14 @@ class SettingsChildFrame(Frame):
         Action on updating console maxlines.
         """
 
-        self.__app.configuration.set("maxlines_n", self._maxlines.get())
+        self.__app.configuration.set("maxlines_n", int(self._maxlines.get()))
 
     def _on_update_filedelay(self, var, index, mode):
         """
         Action on updating filedelay.
         """
 
-        self.__app.configuration.set("filedelay_n", self._filedelay.get())
+        self.__app.configuration.set("filedelay_n", int(self._filedelay.get()))
 
     def _on_update_degreesformat(self, var, index, mode):
         """

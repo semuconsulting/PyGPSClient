@@ -131,7 +131,7 @@ class SerialConfigFrame(Frame):
         self._xonxoff = IntVar()
         self._timeout = DoubleVar()
         self._msgmode_name = StringVar()
-        self._inactivity_timeout = IntVar()
+        self._inactivity_timeout = StringVar()
         self._img_refresh = ImageTk.PhotoImage(Image.open(ICON_REFRESH))
         self._img_expand = ImageTk.PhotoImage(Image.open(ICON_EXPAND))
         self._img_contract = ImageTk.PhotoImage(Image.open(ICON_CONTRACT))
@@ -254,7 +254,7 @@ class SerialConfigFrame(Frame):
         self._lbl_inactivity = Label(self._frm_advanced, text="Inactivity Timeout (s)")
         self._spn_inactivity = Spinbox(
             self._frm_advanced,
-            values=(0, 1, 5, 10, 30, 60, 300),
+            values=("0", "1", "5", "10", "30", "60", "300"),
             width=4,
             state=READONLY,
             wrap=True,
@@ -347,7 +347,7 @@ class SerialConfigFrame(Frame):
         self._xonxoff.set(cfg.get("xonxoff_b"))
         self._timeout.set(cfg.get("timeout_f"))
         self._msgmode_name.set(MSGMODED[cfg.get("msgmode_n")])
-        self._inactivity_timeout.set(cfg.get("inactivity_timeout_n"))
+        self._inactivity_timeout.set(int(cfg.get("inactivity_timeout_n")))
         self.user_defined_port.set(cfg.get("userport_s"))
         self._on_refresh_ports()
         self._attach_events(True)
@@ -712,7 +712,7 @@ class SerialConfigFrame(Frame):
         :rtype: int
         """
 
-        return self._inactivity_timeout.get()
+        return int(self._inactivity_timeout.get())
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """

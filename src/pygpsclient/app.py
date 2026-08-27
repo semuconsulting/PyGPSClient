@@ -323,7 +323,8 @@ class App(Tk):
         # dynamically instantiate and position widgets in frm_widgets
         col = 0
         row = 0
-        for i, (name, state) in enumerate(self.widget_state.state.items()):
+        i = 0
+        for name, state in self.widget_state.state.items():
             # setup widget
             frm = self.widget_setup(state)
             # set corresponding View menu label to 'Show' or 'Hide'
@@ -345,6 +346,7 @@ class App(Tk):
                     row += 1
                 else:
                     col += c
+            i += 1
 
         # set column and row weights to control 'pack' behaviour of main layout
         self.grid_columnconfigure(0, weight=1)
@@ -509,9 +511,12 @@ class App(Tk):
 
         self.event_generate(evt)
 
-    def load_config(self):
+    def load_config(self) -> str:
         """
         Load configuration file menu option.
+
+        :return: error code
+        :rtype: str
         """
 
         # Warn if Streaming, NTRIP or SPARTN clients are running
@@ -519,7 +524,7 @@ class App(Tk):
             self.set_status_label("", OKCOL)
         else:
             self.set_status_label(DLGSTOPRTK, ERRCOL)
-            return
+            return "cancelled"
 
         _, err = self.configuration.loadfile()
         if err == "":  # load succeeded
@@ -533,10 +538,14 @@ class App(Tk):
             self._do_layout()
         elif err == "cancelled":
             pass
+        return err
 
-    def save_config(self):
+    def save_config(self) -> str:
         """
         Save configuration file menu option.
+
+        :return: error code
+        :rtype: str
         """
 
         # save current screen geometry
@@ -549,6 +558,7 @@ class App(Tk):
             pass
         else:  # save failed
             self.set_status_label(SAVECONFIGBAD.format(err), ERRCOL)
+        return err
 
     def update_widgets(self):
         """
