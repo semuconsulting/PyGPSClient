@@ -31,6 +31,7 @@ from PIL import Image, ImageTk
 from pygpsclient.globals import (
     CLICK_CURSOR,
     ERRCOL,
+    ICON_APP128,
     ICON_SPONSOR,
     INFOCOL,
     LICENSE_URL,
@@ -69,6 +70,7 @@ class AboutDialog(ToplevelDialog):
 
         self.__app = app  # Reference to main application class
         self.logger = logging.getLogger(__name__)
+        self._img_icon = ImageTk.PhotoImage(Image.open(ICON_APP128).resize((64, 64)))
         self._img_sponsor = ImageTk.PhotoImage(Image.open(ICON_SPONSOR))
         self._checkonstartup = IntVar()
         self._checkonstartup.set(self.__app.configuration.get("checkforupdate_b"))
@@ -86,6 +88,9 @@ class AboutDialog(ToplevelDialog):
         """
 
         self._frm_body = Frame(self.container)
+        self._lbl_icon = Label(
+            self._frm_body, image=self._img_icon, borderwidth=0, anchor=CENTER
+        )
         self._lbl_desc = Label(
             self._frm_body,
             text=ABOUTTXT,
@@ -152,6 +157,7 @@ class AboutDialog(ToplevelDialog):
         """
 
         self._frm_body.grid(column=0, row=0, ipadx=2, ipady=2, sticky=NSEW)
+        self._lbl_icon.grid(column=0, row=0, columnspan=2, padx=3, pady=0, sticky=EW)
         self._lbl_desc.grid(column=0, row=1, columnspan=2, padx=3, pady=0, sticky=EW)
         self._lbl_github.grid(column=0, row=2, columnspan=2, padx=3, pady=0, sticky=EW)
         ttk.Separator(self._frm_body).grid(

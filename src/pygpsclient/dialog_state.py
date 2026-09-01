@@ -71,7 +71,7 @@ class DialogState:
             DLGTUBXLEGACY: {
                 CLASS: UBXLegacyConfigDialog,
                 DLG: None,
-                RESIZE: False,
+                RESIZE: True,
             },
             DLGTNMEA: {
                 CLASS: NMEAConfigDialog,
