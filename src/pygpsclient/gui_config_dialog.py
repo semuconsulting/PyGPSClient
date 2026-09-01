@@ -126,7 +126,7 @@ class GUIConfigDialog(ToplevelDialog):
         self._lbl_mapkey = Label(self._frm_body, text="MapQuest API Key", anchor=W)
         self._ent_mapkey = Entry(
             self._frm_body,
-            width=28,
+            width=35,
             textvariable=self._mapkey,
         )
         self._lbl_resizedialog = Label(
