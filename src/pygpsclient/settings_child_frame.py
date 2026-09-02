@@ -246,10 +246,6 @@ class SettingsChildFrame(Frame):
             cursor=CLICK_CURSOR,
         )
 
-        self._lbl_status_preset = Label(
-            self._frm_buttons, font=self.__app.font_md2, text=""
-        )
-
         # Other configuration options
         self._frm_options = Frame(self.__container)
         self._frm_options_btns = Frame(self._frm_options)
