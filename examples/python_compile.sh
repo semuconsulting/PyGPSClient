@@ -24,7 +24,7 @@
 set -e
 
 # set required Python major and minor version e.g. 3.13.10
-PYVER="3.14.3"
+PYVER="3.14.7"
 # NB: uncomment this line to install this version alongside existing versions
 # ALTINSTALL=1
 
@@ -33,10 +33,11 @@ sudo apt install vim wget screen -y
 wget https://www.python.org/ftp/python/${PYVER}/Python-${PYVER}.tgz
 tar zvxf Python-${PYVER}.tgz
 
-# enable the Debian source repos
+# enable the relevant source repo(s)
 SRCDEB="/etc/apt/sources.list"
 SRCUBU="/etc/apt/sources.list.d/ubuntu.sources"
-# Debian, including Raspberry Pi OS:
+SRCRPI="/etc/apt/sources.list.d/raspi.sources"
+# Debian:
 if test -f $SRCDEB
 then
 sudo sed -i -e 's/#deb-src/deb-src/g' $SRCDEB
@@ -46,10 +47,15 @@ if test -f $SRCUBU
 then
 sudo sed -i 's/^Types: deb$/Types: deb deb-src/' $SRCUBU 
 fi
+# Raspberry Pi OS:
+if test -f $SRCRPI
+then
+sudo sed -i 's/^Types: deb$/Types: deb deb-src/' $SRCRPI 
+fi
 
 # install build dependencies
 sudo apt update
-sudo apt build-dep python3
+sudo apt build-dep python3 || true
 sudo apt install build-essential gdb lcov pkg-config \
       libbz2-dev libffi-dev libgdbm-dev libgdbm-compat-dev \
       libncurses5-dev libreadline6-dev libsqlite3-dev libssl-dev \

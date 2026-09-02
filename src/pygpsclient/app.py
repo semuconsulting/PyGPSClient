@@ -892,7 +892,7 @@ class App(Tk):
                 data,
             ]
         for i, cmd in enumerate(data):
-            self.logger.debug(f"Sending message {cmd}")
+            # self.logger.debug(f"Sending message {cmd}")
             self.after(
                 int(pause + interval * i), lambda c=cmd: self.gnss_outqueue.put(c)
             )

@@ -4,7 +4,7 @@
 
 FIXES:
 
-1. Fix memory leak in levelsview_frame if legend toggled.
+1. Fix memory leaks in levelsview_frame and spectrum_frame if legend toggled.
 
 ENHANCEMENTS:
 
