@@ -53,6 +53,8 @@ from pygpsclient.globals import (
     ERRCOL,
     ICON_CONTRACT,
     ICON_EXPAND,
+    ICON_EYEOFF,
+    ICON_EYEON,
     ICON_SEND,
     INFOCOL,
     OKCOL,
@@ -193,9 +195,12 @@ class ServerConfigDialog(ToplevelDialog):
         self.disable_nmea = BooleanVar()
         self.user = StringVar()
         self.password = StringVar()
+        self._img_eyeon = ImageTk.PhotoImage(Image.open(ICON_EYEON))
+        self._img_eyeoff = ImageTk.PhotoImage(Image.open(ICON_EYEOFF))
         self._img_expand = ImageTk.PhotoImage(Image.open(ICON_EXPAND))
         self._img_contract = ImageTk.PhotoImage(Image.open(ICON_CONTRACT))
         self._img_send = ImageTk.PhotoImage(Image.open(ICON_SEND))
+        self._show_password = False
         self._fixed_lat_temp = 0
         self._fixed_lon_temp = 0
         self._fixed_hae_temp = 0
@@ -293,7 +298,7 @@ class ServerConfigDialog(ToplevelDialog):
             self._frm_advanced,
             textvariable=self.user,
             relief="sunken",
-            width=15,
+            width=25,
         )
         self._lbl_password = Label(
             self._frm_advanced,
@@ -303,7 +308,16 @@ class ServerConfigDialog(ToplevelDialog):
             self._frm_advanced,
             textvariable=self.password,
             relief="sunken",
-            width=15,
+            width=25,
+            show="*",
+        )
+        self._btn_password = Button(
+            self._frm_advanced,
+            width=20,
+            height=20,
+            image=self._img_eyeon,
+            command=self._on_hide_password,
+            cursor=CLICK_CURSOR,
         )
         self._lbl_configure_base = Label(
             self._frm_advanced,
@@ -563,6 +577,19 @@ class ServerConfigDialog(ToplevelDialog):
         valid = valid & self._ent_user.validate(VALNONBLANK)
         valid = valid & self._ent_password.validate(VALNONBLANK)
         return valid
+
+    def _on_hide_password(self):
+        """
+        Toggle NTRIP password visibility.
+        """
+
+        self._show_password = not self._show_password
+        if self._show_password:
+            self._ent_password["show"] = ""
+            self._btn_password["image"] = self._img_eyeoff
+        else:
+            self._ent_password["show"] = "*"
+            self._btn_password["image"] = self._img_eyeon
 
     def _on_toggle_advanced(self):
         """
@@ -956,6 +983,7 @@ class ServerConfigDialog(ToplevelDialog):
         self._ent_user.grid(column=1, row=7, columnspan=2, padx=2, pady=1, sticky=W)
         self._lbl_password.grid(column=0, row=8, padx=2, pady=1, sticky=E)
         self._ent_password.grid(column=1, row=8, columnspan=2, padx=2, pady=1, sticky=W)
+        self._btn_password.grid(column=3, row=8, padx=2, pady=1, sticky=W)
         for wid in self._ent_fixedlat, self._ent_fixedlon, self._ent_fixedhae:
             wid["state"] = DISABLED
 
@@ -978,6 +1006,7 @@ class ServerConfigDialog(ToplevelDialog):
         self._ent_user.grid(column=1, row=6, columnspan=2, padx=2, pady=1, sticky=W)
         self._lbl_password.grid(column=0, row=7, padx=2, pady=1, sticky=E)
         self._ent_password.grid(column=1, row=7, columnspan=2, padx=2, pady=1, sticky=W)
+        self._btn_password.grid(column=3, row=7, padx=2, pady=1, sticky=W)
         self._lbl_duration.grid_forget()
         self._spn_duration.grid_forget()
         self._pgb_elapsed.grid_forget()
@@ -1009,6 +1038,7 @@ class ServerConfigDialog(ToplevelDialog):
         self._ent_user.grid_forget()
         self._lbl_password.grid_forget()
         self._ent_password.grid_forget()
+        self._btn_password.grid_forget()
 
     def _on_update_posmode(self, var, index, mode):
         """

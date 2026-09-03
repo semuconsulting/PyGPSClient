@@ -48,6 +48,7 @@ from tkinter import (
 )
 from types import NoneType
 
+from PIL import Image, ImageTk
 from pygnssutils import NOGGA
 from pygnssutils.helpers import find_mp_distance
 
@@ -56,6 +57,8 @@ from pygpsclient.globals import (
     CONNECTED_NTRIP,
     DISCONNECTED,
     ERRCOL,
+    ICON_EYEOFF,
+    ICON_EYEON,
     INFOCOL,
     READONLY,
     TRACEMODE_WRITE,
@@ -126,6 +129,8 @@ class NTRIPConfigDialog(ToplevelDialog):
             UBX_PRESET: (),
             UBX_CFGRATE: (),
         }
+        self._img_eyeon = ImageTk.PhotoImage(Image.open(ICON_EYEON))
+        self._img_eyeoff = ImageTk.PhotoImage(Image.open(ICON_EYEOFF))
         self._ntrip_datatype = StringVar()
         self._ntrip_https = IntVar()
         self._ntrip_version = StringVar()
@@ -138,6 +143,7 @@ class NTRIPConfigDialog(ToplevelDialog):
         self._ntrip_gga_lon = StringVar()
         self._ntrip_gga_alt = StringVar()
         self._ntrip_gga_sep = StringVar()
+        self._show_password = False
         self._settings = {}
         self._connected = False
         self._sourcetable = None
@@ -213,7 +219,7 @@ class NTRIPConfigDialog(ToplevelDialog):
             textvariable=self._ntrip_user,
             state=NORMAL,
             relief="sunken",
-            width=40,
+            width=30,
         )
         self._lbl_password = Label(self._frm_body, text=LBLNTRIPPWD)
         self._ent_password = Entry(
@@ -221,8 +227,16 @@ class NTRIPConfigDialog(ToplevelDialog):
             textvariable=self._ntrip_password,
             state=NORMAL,
             relief="sunken",
-            width=40,
+            width=30,
             show="*",
+        )
+        self._btn_password = Button(
+            self._frm_body,
+            width=20,
+            height=20,
+            image=self._img_eyeon,
+            command=self._on_hide_password,
+            cursor=CLICK_CURSOR,
         )
         self._lbl_ntripggaint = Label(self._frm_body, text=LBLNTRIPGGAINT)
         self._spn_ntripggaint = Spinbox(
@@ -322,11 +336,12 @@ class NTRIPConfigDialog(ToplevelDialog):
         self._lbl_datatype.grid(column=2, row=10, padx=3, pady=3, sticky=W)
         self._spn_datatype.grid(column=3, row=10, padx=3, pady=3, sticky=W)
         self._lbl_user.grid(column=0, row=11, padx=3, pady=3, sticky=W)
-        self._ent_user.grid(column=1, row=11, columnspan=3, padx=3, pady=3, sticky=W)
+        self._ent_user.grid(column=1, row=11, columnspan=2, padx=3, pady=3, sticky=W)
         self._lbl_password.grid(column=0, row=12, padx=3, pady=3, sticky=W)
         self._ent_password.grid(
-            column=1, row=12, columnspan=3, padx=3, pady=3, sticky=W
+            column=1, row=12, columnspan=2, padx=3, pady=3, sticky=W
         )
+        self._btn_password.grid(column=3, row=12, padx=3, pady=3, sticky=W)
         ttk.Separator(self._frm_body).grid(
             column=0, row=13, columnspan=5, padx=3, pady=3, sticky=EW
         )
@@ -378,6 +393,19 @@ class NTRIPConfigDialog(ToplevelDialog):
 
         self._get_settings()
         self.set_controls(self._connected)
+
+    def _on_hide_password(self):
+        """
+        Toggle NTRIP password visibility.
+        """
+
+        self._show_password = not self._show_password
+        if self._show_password:
+            self._ent_password["show"] = ""
+            self._btn_password["image"] = self._img_eyeoff
+        else:
+            self._ent_password["show"] = "*"
+            self._btn_password["image"] = self._img_eyeon
 
     def _on_update_config(self, var, index, mode):  # pylint: disable=unused-argument
         """

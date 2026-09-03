@@ -1,5 +1,9 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.7.5
+
+1. Minor cosmetic updates to NTRIP client panel.
+
 ### RELEASE 1.7.4
 
 FIXES:
