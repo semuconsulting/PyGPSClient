@@ -133,19 +133,23 @@ For more comprehensive installation instructions, please refer to [INSTALLATION.
 
 #### <a name="config">Saving and loading configuration settings</a>
 
-15. Configuration settings for PyGPSClient can be saved and recalled via the Menu..File..Save/Load Configuration options. By default, PyGPSClient will look for a file named `pygpsclient.json` in the user's home directory. Certain configuration settings require manual editing e.g. console tagging colour schemes - see details below.
+15. Configuration settings for PyGPSClient can be saved and recalled via the Menu..File..Save/Load Configuration options. By default, PyGPSClient will look for a file named `pygpsclient.json` in the user's home directory. PyGPSClient will prompt you to stop all running input and output streams before loading a new configuration. Certain configuration settings require manual editing e.g. console tagging colour schemes - see details below.
     - It is recommended to re-save the configuration settings after each PyGPSClient version update, or if you see the warning "Consider re-saving" on startup.
-    - PyGPSClient will prompt you to stop all running input and output streams before loading a new configuration.
+    - PyGPSClient can be started with a non-default configuration file using the `-C` or `--config` command line argument e.g.
+
+      ```shell
+      pygpsclient -C myconfig.json
+      ```
 
 #### <a name="updates">Checking for the latest version</a>
 
-16. The About dialog (Menu..Help..About) includes a facility to check the latest available versions of PyGPSClient and its subsidiary modules, and initiate an automatic update. Tick the 'Check on startup' box to perform this check on startup (*note that this requires internet access, which may result in slower startup times on platforms with low bandwidth / high latency internet connections*). The facility may be unavailable in certain Homebrew-installed Python environments due to technical constraints. The application must be closed and restarted for any update to take effect.
+16. The About dialog (Menu..Help..About) includes a facility to check the latest available versions of PyGPSClient and its subsidiary modules, and initiate an automatic update. Tick the 'Check on startup' box to perform this check on startup (*note that this requires internet access, which may result in slower startup times on platforms with low bandwidth / high latency internet connections*). The facility may be unavailable in certain Homebrew-installed Python environments due to security constraints. The application must be closed and restarted for any update to take effect.
 
 #### <a name="datalog">Datalogging, GPX Track Recording and Database</a>
 
 17. DataLogging - Turn Data logging in the selected format (Binary, Parsed, Hex Tabular, Hex String, Parsed+Hex Tabular) on or off. On first selection, you will be prompted to select the directory into which timestamped log files are saved. Log files are cycled when a maximum size is reached (default is 10 MB, manually configurable via `logsize_n` setting or Menu..Options..App Configuration dialog - *save configuration and restart after any changes*).
 
-    **NB**: For extended datalogging (> 12 hours or more), you may want to consider using an unattended (e.g. CLI) tool like [GNSSStreamer](https://github.com/semuconsulting/pygnssutils#gnssstreamer) (installed with PyGPSClient) rather than an attended GUI tool like PyGPSClient (*especially if you're running 'headless'*), e.g.:
+    **NB**: For extended datalogging (> 12 hours or more), you may want to consider using an unattended (e.g. CLI) tool like [GNSSStreamer](https://github.com/semuconsulting/pygnssutils#gnssstreamer) (installed with PyGPSClient) rather than an attended GUI tool like PyGPSClient (*especially if you're running 'headless'*), e.g.
     ```shell
     gnssstreamer --port /dev/ttyACM0 --baudrate 115200 --timeout 3 --format 2 --clioutput 1 --output pygpsdata.log --verbosity 2
     ```
@@ -174,14 +178,15 @@ For more comprehensive installation instructions, please refer to [INSTALLATION.
 27. [RINEX Conversion](#rinex) facility which supports conversion of previously-saved binary datalogs to RINEX observation and navigation format. To display the RINEX Conversion dialog, go to Menu..Options..RINEX Conversion.
 28. [Import Custom Map](#custommap) facility which allows the user to import geo-referenced images for use as background maps. To display the Import Custom Map dialog, go to Menu..Options..Import Custom Map.
 29. [Configuration Command Recorder](#recorder) facility which allows the user to record, save, load, import (*as a preset*) and replay UBX, NMEA or TTY configuration commands sent to a receiver. To display the Command Record Facility dialog, go to Menu..Options..Configuration Command Recorder.
+30. App Configuration facility which allows the user to amend certain internal configuration parameters, such as the GUI refresh interval, Toplevel window behaviour and maximum log file size. Updates must be saved and the application restarted for any changes to take effect. **NB:** Exercise caution when updating these values and any ensure settings are commensurate with your platform's performance and capacity constraints.
 
 #### <a name="refreshrate">GUI refresh rate setting</a>
 
-30. PyGPSClient processes all incoming GNSS data in 'real time' but, by default, the GUI is only refreshed every 0.5 seconds. The refresh rate can be manually configured via the `guiupdateinterval_f` setting in the json configuration file or Menu..Options..App Configuration dialog (*save configuration and restart after any changes*). **NB:** PyGPSClient may become unresponsive on slower platforms (e.g. Raspberry Pi and similar SBCs) at high message rates if the GUI update interval is less than 0.2 seconds - set a value commensurate with the performance of your platform.
+31. PyGPSClient processes all incoming GNSS data in 'real time' but, by default, the GUI is only refreshed every 0.5 seconds. The refresh rate can be manually configured via the `guiupdateinterval_f` setting in the json configuration file or Menu..Options..App Configuration dialog (*save configuration and restart after any changes*). **NB:** PyGPSClient may become unresponsive on slower platforms (e.g. Raspberry Pi and similar SBCs) at high message rates if the GUI update interval is less than 0.2 seconds - set a value commensurate with the performance of your platform.
 
 #### <a name="transient">Toplevel ('pop-up') dialog setting</a>
 
-31. The behaviour of Toplevel ('pop-up') dialogs will depend on the screen resolution and 'transient' setting. If the width or height of a Toplevel dialog exceeds the screen resolution, the dialog will be displayed in a scrollable, resizeable window. Otherwise, the dialog is displayed as a fixed, non-resizeable panel.
+32. The behaviour of Toplevel ('pop-up') dialogs will depend on the screen resolution and 'transient' setting. If the width or height of a Toplevel dialog exceeds the screen resolution, the dialog will be displayed in a scrollable, resizeable window. Otherwise, the dialog is displayed as a fixed, non-resizeable panel.
     - A boolean configuration setting `transient_dialog_b` governs whether Toplevel dialogs are 'transient' (i.e. always on top of main application dialog) or not. Changing this setting to `0` allows Toplevel dialogs to be minimised independently of the main application window, but be mindful that some dialogs may end up hidden behind others e.g. "Open file/folder" dialogs. **If a file open button appears unresponsive, check that the "Open file/folder" panel isn't already open but obscured**. 
     - If you're accessing the desktop via a VNC session (e.g. to a headless Raspberry Pi) it is recommended to keep the setting at the default `1`, as VNC may not recognise keystrokes on overlaid non-transient windows.
     - A boolean configuration setting `resizeable_dialog_b` governs whether *all* Toplevel dialogs are resizeable, irrespective of the default setting in `DialogState`. Setting this to '1' provides a workaround for issues with some scaled Linux Wayland displays.
@@ -511,7 +516,7 @@ For further details, refer to the `pygnssutils` homepage at [https://github.com/
 ---
 ## <a name="troubleshoot">Troubleshooting and Known Issues</a>
 
-1. **NB:** The latest version of Python for MacOS (>=3.14.5) comes with a new version of tkinter (9.0). Early iterations of this version (3.14.5, 3.14.6) displayed fairly serious performance issues on MacOS Sonoma & Tahoe. The issues appear to have been resolved in version >=3.14.7 (tkinter 9.0.4), but if you experience any compatibility or performance problems with tkinter 9.0, consider reverting to Python <=3.14.4 (tkinter 8.6). The issues do *not* appear to affect other operating systems or Python apps not using tkinter.
+1. Recent versions of Python for MacOS (>=3.14.5) come with a new version of tkinter (9.0). Early iterations (3.14.5, 3.14.6) exhibited various performance issues on MacOS. The issues appear to have been resolved in version >=3.14.7 (tkinter 9.0.4), but if you experience any compatibility or performance problems, consider reverting to Python <=3.14.4 (tkinter 8.6). The issues do *not* appear to affect other operating systems or Python apps not using tkinter.
 
 2. If you encounter persistent `WARNING>>Error parsing data stream Serial stream terminated unexpectedly` messages in the console, this may be indicative of insufficient serial port bandwidth (baudrate or timeout) for the current output message cohort (*particularly if this includes raw Ephemerides or Observation data*). Try increasing the baudrate in the first instance.
 
@@ -521,7 +526,7 @@ For further details, refer to the `pygnssutils` homepage at [https://github.com/
 
 5. Applying a display scale factor on some Linux Wayland platforms (e.g. Ubuntu, but *not* Arch) may cause tkinter rendering artefacts e.g. non-resizeable panels exceeding the display dimensions. Setting `resizeable_dialog_b` to '1' provides a workaround for such issues. 
 
-6. Some Homebrew-installed Python environments on MacOS can give rise to critical segmentation errors (*illegal memory access*) when shell subprocesses are invoked, due to the way permissions are implemented. For this reason, application updates via the  About..Update button are disabled on MacOS Homebrew environments; use the CLI `python3 -m pip install --upgrade pygpsclient` command instead.
+6. Some Homebrew-installed Python environments on MacOS can give rise to critical segmentation errors (*illegal memory access*) when shell subprocesses are invoked, due to MacOS security constraints. For this reason, application updates via the  About..Update button are disabled on MacOS Homebrew environments; use the CLI `python3 -m pip install --upgrade pygpsclient` command instead.
 
 ---
 ## <a name="license">License</a>
