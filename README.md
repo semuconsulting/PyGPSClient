@@ -106,7 +106,7 @@ For more comprehensive installation instructions, please refer to [INSTALLATION.
 
 #### <a name="settings">Settings panel</a>
 
-1. By default, the Settings panel is displayed to the right of the main application window. It can be hidden or shown via Menu..View..Hide/Show Settings. The panel can also be 'undocked' from the main application window via Menu..View..Undock Settings and - if [non-transient](#transient) (`transient_dialog_b: 0`) - minimized independently of the main window. Exiting the undocked dialog, or selecting Menu..View..Dock Settings, will 'dock' the panel.
+1. By default, the Settings panel is displayed to the right of the main application window. It can be hidden or shown via Menu..View..Hide/Show Settings. The panel can also be 'undocked' from the main application window via Menu..View..Undock Settings. Exiting the undocked dialog, or selecting Menu..View..Dock Settings, or clicking the ![dock icon](https://github.com/semuconsulting/PyGPSClient/blob/master/src/pygpsclient/resources/gear_2_24.png?raw=true) in the topmost banner panel, will toggle the docked state.
 2. Protocols Shown - Select which message protocols to display in the console; NMEA, UBX (*u-blox binary*), SBF (*Septentrio binary*), UNI (*Unicore binary*), QGC (*Quectel binary*), RTCM3, SPARTN or TTY (*terminal*). NB: this only changes the *displayed* protocols - to change the actual protocols output by the receiver, use the relevant configuration command(s).
     - **NB:** Serial connection must be stopped before changing to or from TTY (terminal) protocol mode. Enabling TTY (terminal) mode will disable all other protocols.
 3. To connect to a GNSS receiver via USB or UART port, select the device from the listbox, set the appropriate serial connection parameters and click 
@@ -143,9 +143,9 @@ For more comprehensive installation instructions, please refer to [INSTALLATION.
 
 #### <a name="datalog">Datalogging, GPX Track Recording and Database</a>
 
-17. DataLogging - Turn Data logging in the selected format (Binary, Parsed, Hex Tabular, Hex String, Parsed+Hex Tabular) on or off. On first selection, you will be prompted to select the directory into which timestamped log files are saved. Log files are cycled when a maximum size is reached (default is 10 MB, manually configurable via `logsize_n` setting).
+17. DataLogging - Turn Data logging in the selected format (Binary, Parsed, Hex Tabular, Hex String, Parsed+Hex Tabular) on or off. On first selection, you will be prompted to select the directory into which timestamped log files are saved. Log files are cycled when a maximum size is reached (default is 10 MB, manually configurable via `logsize_n` setting or Menu..Options..App Configuration dialog - *save configuration and restart after any changes*).
 
-    **NB**: For extended datalogging (> 2 hours or more), you may want to consider using an unattended (e.g. CLI) tool like [GNSSStreamer](https://github.com/semuconsulting/pygnssutils#gnssstreamer) (installed with PyGPSClient) rather than an attended GUI tool like PyGPSClient (*especially if you're running 'headless'*), e.g.:
+    **NB**: For extended datalogging (> 12 hours or more), you may want to consider using an unattended (e.g. CLI) tool like [GNSSStreamer](https://github.com/semuconsulting/pygnssutils#gnssstreamer) (installed with PyGPSClient) rather than an attended GUI tool like PyGPSClient (*especially if you're running 'headless'*), e.g.:
     ```shell
     gnssstreamer --port /dev/ttyACM0 --baudrate 115200 --timeout 3 --format 2 --clioutput 1 --output pygpsdata.log --verbosity 2
     ```
@@ -177,7 +177,7 @@ For more comprehensive installation instructions, please refer to [INSTALLATION.
 
 #### <a name="refreshrate">GUI refresh rate setting</a>
 
-30. PyGPSClient processes all incoming GNSS data in 'real time' but, by default, the GUI is only refreshed every 0.5 seconds. The refresh rate can be manually configured via the `guiupdateinterval_f` setting in the json configuration file or Menu..Options..GUI Configuration dialog (*save configuration and restart after any changes*). **NB:** PyGPSClient may become unresponsive on slower platforms (e.g. Raspberry Pi) at high message rates if the GUI update interval is less than 0.2 seconds.
+30. PyGPSClient processes all incoming GNSS data in 'real time' but, by default, the GUI is only refreshed every 0.5 seconds. The refresh rate can be manually configured via the `guiupdateinterval_f` setting in the json configuration file or Menu..Options..App Configuration dialog (*save configuration and restart after any changes*). **NB:** PyGPSClient may become unresponsive on slower platforms (e.g. Raspberry Pi and similar SBCs) at high message rates if the GUI update interval is less than 0.2 seconds - set a value commensurate with the performance of your platform.
 
 #### <a name="transient">Toplevel ('pop-up') dialog setting</a>
 
@@ -185,7 +185,7 @@ For more comprehensive installation instructions, please refer to [INSTALLATION.
     - A boolean configuration setting `transient_dialog_b` governs whether Toplevel dialogs are 'transient' (i.e. always on top of main application dialog) or not. Changing this setting to `0` allows Toplevel dialogs to be minimised independently of the main application window, but be mindful that some dialogs may end up hidden behind others e.g. "Open file/folder" dialogs. **If a file open button appears unresponsive, check that the "Open file/folder" panel isn't already open but obscured**. 
     - If you're accessing the desktop via a VNC session (e.g. to a headless Raspberry Pi) it is recommended to keep the setting at the default `1`, as VNC may not recognise keystrokes on overlaid non-transient windows.
     - A boolean configuration setting `resizeable_dialog_b` governs whether *all* Toplevel dialogs are resizeable, irrespective of the default setting in `DialogState`. Setting this to '1' provides a workaround for issues with some scaled Linux Wayland displays.
-    - Settings can be updated via the Menu..Options..GUI Configuration dialog (*save configuration and restart after any changes*).
+    - Settings can be updated via the Menu..Options..App Configuration dialog (*save configuration and restart after any changes*).
    
 #### <a name="widgets">User-selectable widgets</a>
 ---
@@ -453,12 +453,12 @@ facility is *not* intended to be used for real time navigational purposes.
 
 Once you have received the API key (a 32-character alphanumeric string), you can (in order of precedence):
 
-1. Copy it to the `"mqapikey_s":` value in your json configuration file (see example provided), or via the Menu..Options..GUI Configuration dialog.
+1. Copy it to the `"mqapikey_s":` value in your json configuration file (see example provided), or via the Menu..Options..App Configuration dialog.
 2. Create an environment variable named `MQAPIKEY` (all upper case) and set this to the API key value. It is recommended 
 that this is a User variable rather than a System/Global variable.
 3. Pass it via command line argument `--mqapikey`.
 
-\*The web map refresh rate can be amended if required by changing the `mapupdateinterval_n:` value in your json configuration file, or via the Menu..Options..GUI Configuration Options dialog (*save configuration and restart after any changes*).
+\*The web map refresh rate can be amended if required by changing the `mapupdateinterval_n:` value in your json configuration file, or via the Menu..Options..App Configuration Options dialog (*save configuration and restart after any changes*).
 
 ---
 ## <a name="userdefined">User Defined Presets</a>
@@ -519,7 +519,9 @@ For further details, refer to the `pygnssutils` homepage at [https://github.com/
 
 4. Some Linux Wayland platforms appear to require Toplevel dialog windows to be non-transient (`transient_dialog_b: 0`) for the window 'maximise' icon to work properly.
 
-5. Some Homebrew-installed Python environments on MacOS can give rise to critical segmentation errors (*illegal memory access*) when shell subprocesses are invoked, due to the way permissions are implemented. For this reason, application updates via the  About..Update button are disabled on Homebrew environments; use the CLI `python3 -m pip install --upgrade pygpsclient` command instead.
+5. Applying a display scale factor on some Linux Wayland platforms (e.g. Ubuntu, but *not* Arch) may cause tkinter rendering artefacts e.g. non-resizeable panels exceeding the display dimensions. Setting `resizeable_dialog_b` to '1' provides a workaround for such issues. 
+
+6. Some Homebrew-installed Python environments on MacOS can give rise to critical segmentation errors (*illegal memory access*) when shell subprocesses are invoked, due to the way permissions are implemented. For this reason, application updates via the  About..Update button are disabled on MacOS Homebrew environments; use the CLI `python3 -m pip install --upgrade pygpsclient` command instead.
 
 ---
 ## <a name="license">License</a>

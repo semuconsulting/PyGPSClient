@@ -1,7 +1,7 @@
 """
-gui_config_dialog.py
+app_config_dialog.py
 
-GUI Configuration setting dialog.
+App Configuration setting dialog.
 
 Created on 27 Aug 2026
 
@@ -59,11 +59,12 @@ GUI_INTERVALS = (
     "10000",
 )
 MAP_INTERVALS = ("1", "2", "5", "10", "30", "60", "120", "240", "360")
+LOG_SIZES = ("1", "2", "5", "10", "20", "50", "100", "200", "500", "1000")
 
 
-class GUIConfigDialog(ToplevelDialog):
+class AppConfigDialog(ToplevelDialog):
     """
-    GUI Configuration Options panel.
+    App Configuration Options panel.
     """
 
     def __init__(self, app: Tk, *args, **kwargs):
@@ -84,6 +85,7 @@ class GUIConfigDialog(ToplevelDialog):
         self._guirefresh = StringVar()
         self._maprefresh = StringVar()
         self._mapkey = StringVar()
+        self._logsize = StringVar()
         self._resizedialog = BooleanVar()
         self._transientdialog = BooleanVar()
 
@@ -129,6 +131,18 @@ class GUIConfigDialog(ToplevelDialog):
             width=35,
             textvariable=self._mapkey,
         )
+        self._lbl_logsize = Label(
+            self._frm_body, text="Datalog Max File Size", anchor=W
+        )
+        self._lbl_logsizeu = Label(self._frm_body, text="MB", anchor=W)
+        self._spn_logsize = Spinbox(
+            self._frm_body,
+            values=LOG_SIZES,
+            width=6,
+            state=READONLY,
+            wrap=True,
+            textvariable=self._logsize,
+        )
         self._lbl_resizedialog = Label(
             self._frm_body, text="Resizeable TopLevel Dialogs", anchor=W
         )
@@ -164,13 +178,16 @@ class GUIConfigDialog(ToplevelDialog):
         self._lbl_maprefresh.grid(column=0, row=1, sticky=W)
         self._spn_maprefresh.grid(column=1, row=1, sticky=W)
         self._lbl_maprefreshu.grid(column=2, row=1, padx=2, sticky=W)
-        self._lbl_mapkey.grid(column=0, row=2, sticky=W)
-        self._ent_mapkey.grid(column=1, row=2, columnspan=2, sticky=EW)
-        self._lbl_resizedialog.grid(column=0, row=3, sticky=W)
-        self._chk_resizedialog.grid(column=1, row=3, columnspan=2, sticky=W)
-        self._lbl_transientdialog.grid(column=0, row=4, sticky=W)
-        self._chk_transientdialog.grid(column=1, row=4, columnspan=2, sticky=W)
-        self._btn_save.grid(column=1, row=5, columnspan=2, padx=4, pady=3, sticky=E)
+        self._lbl_logsize.grid(column=0, row=2, sticky=W)
+        self._spn_logsize.grid(column=1, row=2, sticky=W)
+        self._lbl_logsizeu.grid(column=2, row=2, padx=2, sticky=W)
+        self._lbl_mapkey.grid(column=0, row=3, sticky=W)
+        self._ent_mapkey.grid(column=1, row=3, columnspan=2, sticky=EW)
+        self._lbl_resizedialog.grid(column=0, row=4, sticky=W)
+        self._chk_resizedialog.grid(column=1, row=4, columnspan=2, sticky=W)
+        self._lbl_transientdialog.grid(column=0, row=5, sticky=W)
+        self._chk_transientdialog.grid(column=1, row=5, columnspan=2, sticky=W)
+        self._btn_save.grid(column=1, row=6, columnspan=2, padx=4, pady=3, sticky=E)
         self._frm_body.columnconfigure(2, weight=1)
 
     def _attach_events(self):
@@ -182,6 +199,7 @@ class GUIConfigDialog(ToplevelDialog):
         for var in (
             self._guirefresh,
             self._maprefresh,
+            self._logsize,
             self._resizedialog,
             self._transientdialog,
             self._mapkey,
@@ -197,6 +215,7 @@ class GUIConfigDialog(ToplevelDialog):
             int(self.__app.configuration.get("guiupdateinterval_f") * 1000)
         )
         self._maprefresh.set(self.__app.configuration.get("mapupdateinterval_n"))
+        self._logsize.set(int(self.__app.configuration.get("logsize_n") / 1048576))
         self._mapkey.set(self.__app.configuration.get("mqapikey_s"))
         self._resizedialog.set(int(self.__app.configuration.get("resizeable_dialog_b")))
         self._transientdialog.set(
@@ -218,6 +237,10 @@ class GUIConfigDialog(ToplevelDialog):
             | (
                 self.__app.configuration.get("mapupdateinterval_n")
                 != int(self._maprefresh.get())
+            )
+            | (
+                self.__app.configuration.get("logsize_n")
+                != int(self._logsize.get()) * 1048576
             )
             | (self.__app.configuration.get("mqapikey_s") != self._mapkey.get())
             | (
@@ -263,6 +286,7 @@ class GUIConfigDialog(ToplevelDialog):
             "guiupdateinterval_f", float(self._guirefresh.get()) / 1000
         )
         self.__app.configuration.set("mapupdateinterval_n", int(self._maprefresh.get()))
+        self.__app.configuration.set("logsize_n", int(self._logsize.get()) * 1048576)
         self.__app.configuration.set("mqapikey_s", self._mapkey.get())
         self.__app.configuration.set(
             "resizeable_dialog_b", int(self._resizedialog.get())
