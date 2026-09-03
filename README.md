@@ -178,7 +178,7 @@ For more comprehensive installation instructions, please refer to [INSTALLATION.
 27. [RINEX Conversion](#rinex) facility which supports conversion of previously-saved binary datalogs to RINEX observation and navigation format. To display the RINEX Conversion dialog, go to Menu..Options..RINEX Conversion.
 28. [Import Custom Map](#custommap) facility which allows the user to import geo-referenced images for use as background maps. To display the Import Custom Map dialog, go to Menu..Options..Import Custom Map.
 29. [Configuration Command Recorder](#recorder) facility which allows the user to record, save, load, import (*as a preset*) and replay UBX, NMEA or TTY configuration commands sent to a receiver. To display the Command Record Facility dialog, go to Menu..Options..Configuration Command Recorder.
-30. App Configuration facility which allows the user to amend certain internal configuration parameters, such as the GUI refresh interval, Toplevel window behaviour and maximum log file size. Updates must be saved and the application restarted for any changes to take effect. **NB:** Exercise caution when updating these values and any ensure settings are commensurate with your platform's performance and capacity constraints.
+30. App Configuration facility which allows the user to amend certain internal configuration parameters, such as the GUI refresh interval, Toplevel window behaviour and maximum log file size. Updates must be saved and the application restarted for any changes to take effect. **NB:** Exercise caution when updating these values and ensure settings are commensurate with your platform's performance and capacity constraints.
 
 #### <a name="refreshrate">GUI refresh rate setting</a>
 
