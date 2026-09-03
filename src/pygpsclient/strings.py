@@ -15,7 +15,7 @@ Created on 12 Sep 2020
 from pygpsclient.globals import GITHUB_URL, MAPAPI_URL
 
 TITLE = "PyGPSClient"
-COPYRIGHT = "\u00a9 2020-2026 semuadmin (Steve Smith)\nBSD 3-Clause License"
+COPYRIGHT = "\u00a9 2020-2026 semuadmin (Steve Smith) BSD 3-Clause License"
 EPILOG = f"{COPYRIGHT} - {GITHUB_URL}"
 
 INTROTXT = f"Welcome to {TITLE}!"
@@ -23,12 +23,11 @@ INTROTXTNOPORTS = INTROTXT
 
 HELPTXT = "Help..About - display About dialog."
 
-ABOUTTXT = [
-    f"{TITLE} is a free, open-source GNSS diagnostic and configuration",
-    "application written entirely by volunteers in Python and tkinter. It",
-    "supports NMEA, UBX, SBF, UNI, QGC, RTCM3, NTRIP & SPARTN protocols.",
-    "Instructions and source code are available on GitHub at the link below.",
-]
+ABOUTTXT = (
+    f"{TITLE} is a free, open-source GNSS diagnostic and configuration "
+    "application written entirely by human volunteers in Python and tkinter. "
+    "It supports NMEA, UBX, SBF, UNI, QGC, RTCM3, NTRIP & SPARTN protocols."
+)
 NA = "N/A"
 
 # Message text
@@ -77,6 +76,7 @@ RINEXFILEINVALID = "{path} invalid; contains 0 records"
 RINEXFILEVALID = "{path} validated; {count:,} records"
 RINEXFILEVALIDATING = "Validating {path} ..."
 RINEXOUTPUT = "Data converted, *.rnx output(s) in {parent}"
+ROMVERWARN = "Warning - this device may not support {generation} UBX configuration"
 SAVECONFIGBAD = "Configuration not saved {}"
 SAVECONFIGOK = "Configuration saved OK"
 SAVEERROR = "ERROR! File could not be saved to specified directory"
@@ -215,6 +215,7 @@ DLGGPXNULL = "No <{}> elements in GPX File!"
 DLGGPXOOB = "Map out of bounds\nTry increasing zoom level"
 DLGGPXOPEN = "Click folder icon to open GPX Track file"
 DLGGPXWAIT = "Redrawing..."
+DLGGUIOPTIONS = "App Configuration"
 DLGHOWTO = f"How To Use {TITLE}"
 DLGJSONERR = "Error! {}"
 DLGJSONOK = "Keys loaded from {}"

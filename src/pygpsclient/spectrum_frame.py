@@ -15,7 +15,7 @@ Created on 23 Dec 2022
 
 # pylint: disable=no-member, unused-argument
 
-import logging
+# import logging
 from tkinter import ALL, CENTER, EW, NSEW, NW, Checkbutton, Frame, IntVar, N, S, Tk, W
 from types import NoneType
 
@@ -107,7 +107,7 @@ class SpectrumviewFrame(Frame):
         """
 
         self.__app = app  # Reference to main application class
-        self.logger = logging.getLogger(__name__)
+        # self.logger = logging.getLogger(__name__)
 
         super().__init__(parent, *args, **kwargs)
 
@@ -257,6 +257,13 @@ class SpectrumviewFrame(Frame):
         if self._spectrum_snapshot != []:
             self._update_plot(self._spectrum_snapshot, MODESNAP, RF_LIST_SNAPSHOT)
 
+        # MEMORY LEAK DEBUG
+        # tot = len(self._canvas.find_all())
+        # tags = {}
+        # for tag in (TAG_DATA, TAG_GRID, TAG_WAIT, TAG_XLABEL, TAG_YLABEL):
+        #     tags[tag] = len(self._canvas.find_withtag(tag))
+        # self.logger.debug((tot, tags))
+
     def init_frame(self):
         """
         Initialise spectrum chart.
@@ -283,7 +290,7 @@ class SpectrumviewFrame(Frame):
             fontscale=FONTSCALE,
             tags=tags,
         )
-        self._redraw = False
+        # self._redraw = False
 
     def _update_plot(
         self, rfblocks: list, mode: str = MODELIVE, colors: dict | NoneType = None
@@ -305,7 +312,7 @@ class SpectrumviewFrame(Frame):
         else:
             self.init_frame()
             # plot frequency bands
-            if self._showrf:
+            if self._showrf and self._redraw:
                 self._plot_RF_FREQS(mode)
 
         # for each RF block in MON-SPAN message
@@ -314,7 +321,8 @@ class SpectrumviewFrame(Frame):
             col = colors[rf % len(colors)]
 
             # draw legend for this RF block
-            self._plot_rf_legend(col, mode, rf, i)
+            if self._redraw:
+                self._plot_rf_legend(col, mode, rf, i)
 
             # plot spectrum for this RF block
             hz2 = self._minhz / GHZ
@@ -335,8 +343,10 @@ class SpectrumviewFrame(Frame):
             self.update_idletasks()
 
         # display any marked db/hz coordinate
-        if self._chartpos is not None:
+        if self._chartpos is not None and self._redraw:
             self._plot_marker(mode)
+
+        self._redraw = False
 
     def _plot_rf_legend(self, col: str, mode: str, rf: int, index: int):
         """

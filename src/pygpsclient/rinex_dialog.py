@@ -941,7 +941,7 @@ class RINEXDialog(ToplevelDialog):
             doi = self._doi.get()
             licen = self._license.get()
             station = self._station.get()
-            comments = ("PyGPSClient RINEX Converter Dialog",)
+            comments = ("PyGPSClient RINEX Converter",)
             country = self._countrycode.get()
             for cvar in self._usercommentvar:
                 cval = cvar.get()

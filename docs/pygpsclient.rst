@@ -20,6 +20,14 @@ pygpsclient.app module
    :undoc-members:
    :show-inheritance:
 
+pygpsclient.app\_config\_dialog module
+--------------------------------------
+
+.. automodule:: pygpsclient.app_config_dialog
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pygpsclient.attitude\_frame module
 ----------------------------------
 
@@ -496,14 +504,6 @@ pygpsclient.ubx\_preset\_frame module
 -------------------------------------
 
 .. automodule:: pygpsclient.ubx_preset_frame
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-pygpsclient.ubx\_solrate\_frame module
---------------------------------------
-
-.. automodule:: pygpsclient.ubx_solrate_frame
    :members:
    :undoc-members:
    :show-inheritance:

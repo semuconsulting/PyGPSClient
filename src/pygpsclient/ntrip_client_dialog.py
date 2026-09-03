@@ -418,6 +418,7 @@ class NTRIPConfigDialog(ToplevelDialog):
         self.__app.rtk_conn_status = CONNECTED_NTRIP if connected else DISCONNECTED
 
         try:
+            msg = ""
             self._settings = self.__app.ntrip_handler.settings
             self._connected = connected
             if msgt is None:

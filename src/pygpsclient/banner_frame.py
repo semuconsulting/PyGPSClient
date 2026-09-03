@@ -25,8 +25,6 @@ from pygpsclient.globals import (
     CONNECTED_FILE,
     CONNECTED_NTRIP,
     CONNECTED_SOCKET,
-    CONNECTED_SPARTNIP,
-    CONNECTED_SPARTNLB,
     DMM,
     DMS,
     ECEF,
@@ -41,8 +39,8 @@ from pygpsclient.globals import (
     ICON_NOCLIENT,
     ICON_NTRIPCONFIG,
     ICON_SERIAL,
+    ICON_SETTINGS,
     ICON_SOCKET,
-    ICON_SPARTNCONFIG,
     ICON_TRANSMIT,
     UI,
     UIK,
@@ -101,8 +99,8 @@ class BannerFrame(Frame):
         self._img_transmit = ImageTk.PhotoImage(Image.open(ICON_TRANSMIT))
         self._img_noclient = ImageTk.PhotoImage(Image.open(ICON_NOCLIENT))
         self._img_ntrip = ImageTk.PhotoImage(Image.open(ICON_NTRIPCONFIG))
-        self._img_spartn = ImageTk.PhotoImage(Image.open(ICON_SPARTNCONFIG))
         self._img_blank = ImageTk.PhotoImage(Image.open(ICON_BLANK))
+        self._img_settings = ImageTk.PhotoImage(Image.open(ICON_SETTINGS))
         self._sep = False
         self._old_vms = 0
 
@@ -147,6 +145,14 @@ class BannerFrame(Frame):
         )
         self._lbl_lfix = Label(
             self._frm_basic, text="fix:", bg=BGCOL, fg=FGCOL, anchor=N
+        )
+        self._btn_settings = Button(
+            self._frm_toggle,
+            width=28,
+            height=22,
+            command=self._toggle_settings,
+            image=self._img_settings,
+            cursor=CLICK_CURSOR,
         )
         self._btn_toggle = Button(
             self._frm_toggle,
@@ -297,7 +303,8 @@ class BannerFrame(Frame):
         self._lbl_diffcorr.grid(column=11, row=0, pady=0, padx=0, sticky=W)
         self._lbl_diffstat.grid(column=12, row=0, pady=0, padx=0, sticky=W)
 
-        self._btn_toggle.grid(column=0, row=0, padx=0, pady=0, sticky=NE)
+        self._btn_settings.grid(column=0, row=0, padx=4, pady=0, sticky=NE)
+        self._btn_toggle.grid(column=1, row=0, padx=0, pady=0, sticky=NE)
 
         self._toggle_advanced()
 
@@ -330,6 +337,13 @@ class BannerFrame(Frame):
             self._frm_advanced2.grid_forget()
             self._btn_toggle["image"] = self._img_expand
 
+    def _toggle_settings(self):
+        """
+        Toggle settings panel on or off.
+        """
+
+        self.__app.settings_dock()
+
     def update_conn_status(self, status: int):
         """
         Update connection status icon
@@ -355,8 +369,6 @@ class BannerFrame(Frame):
 
         if rtk == CONNECTED_NTRIP:
             self._lbl_rtk_preset.configure(image=self._img_ntrip)
-        elif rtk in (CONNECTED_SPARTNIP, CONNECTED_SPARTNLB):
-            self._lbl_rtk_preset.configure(image=self._img_spartn)
         else:
             self._lbl_rtk_preset.configure(image=self._img_blank)
 

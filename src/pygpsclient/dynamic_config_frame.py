@@ -335,7 +335,7 @@ class Dynamic_Config_Frame(Frame):
         """
 
         if self._cfg_id in ("", None):
-            self.__container.status_label = ("Select command", ERRCOL)
+            self.__container.set_status_label("Select command", ERRCOL)
             return
 
         nam = ""
@@ -367,15 +367,15 @@ class Dynamic_Config_Frame(Frame):
             # send message, update status and await response
             self.__container.send_command(msg)
             self._lbl_send_command["image"] = self.__container.img_pending
-            self.__container.status_label = f"P{self._cfg_id} SET message sent"
+            self.__container.set_status_label(f"P{self._cfg_id} SET message sent")
             for msgid in pendcfg:
                 self.__container.set_pending(msgid, penddlg)
             self._expected_response = SET
 
         except ValueError as err:
             self.logger.debug(traceback.format_exc())
-            self.__container.status_label = (
-                f"INVALID! {nam}, {att}: {err}",
+            self.__container.set_status_label(
+                f"Invalid - {nam}, {att}: {err}",
                 ERRCOL,
             )
 
@@ -389,7 +389,7 @@ class Dynamic_Config_Frame(Frame):
         """
 
         if self._cfg_id in ("", None):
-            self.__container.status_label = ("Select command", ERRCOL)
+            self.__container.set_status_label("Select command", ERRCOL)
             return
 
         msg = penddlg = pendcfg = None
@@ -414,13 +414,13 @@ class Dynamic_Config_Frame(Frame):
         cp = "P" if self._protocol == NMEA else ""
         if msg is not None:
             self.__container.send_command(msg)
-            self.__container.status_label = f"{cp}{cfg_id} POLL message sent"
+            self.__container.set_status_label(f"{cp}{cfg_id} POLL message sent")
             self._lbl_send_command["image"] = self.__container.img_pending
             for msgid in pendcfg:
                 self.__container.set_pending(msgid, penddlg)
             self._expected_response = POLL
         else:  # CFG cannot be POLLed
-            self.__container.status_label = f"{cp}{cfg_id} No POLL available"
+            self.__container.set_status_label(f"{cp}{cfg_id} No POLL available")
             self._lbl_send_command["image"] = self.__container.img_unknown
 
     def _do_poll_args(self, cfg_id: str) -> dict:
@@ -499,13 +499,13 @@ class Dynamic_Config_Frame(Frame):
                     self._update_widgets(msg)
 
             if ok:
-                self.__container.status_label = (
+                self.__container.set_status_label(
                     f"{cfg_id} message acknowledged",
                     OKCOL,
                 )
                 self._lbl_send_command["image"] = self.__container.img_confirmed
             else:
-                self.__container.status_label = (f"{cfg_id} message rejected", ERRCOL)
+                self.__container.set_status_label(f"{cfg_id} message rejected", ERRCOL)
                 self._lbl_send_command["image"] = self.__container.img_warn
             self.update()
 

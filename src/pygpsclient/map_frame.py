@@ -281,6 +281,7 @@ class MapviewFrame(Frame):
         self._waiting = False
         # record track if Show Track checkbox ticked
         if self._showtrack.get():
+            # remember this is a setter method, not a list variable
             self._canvas.track = Point(lat, lon)
 
         # limit mapquest calls to specified interval to avoid cost
