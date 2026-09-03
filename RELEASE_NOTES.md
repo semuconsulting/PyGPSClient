@@ -1,5 +1,18 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.7.4
+
+FIXES:
+
+1. Fix memory leaks in levelsview_frame and spectrum_frame if legend toggled.
+
+ENHANCEMENTS:
+
+1. Add GUI Configuration Options panel to set internal GUI configuration parameters (*previously only available via manual edits of json file*). **NB**: User must save configuration and restart app after any changes.
+1. Add "Toggle Settings" button to Banner panel for quick access to Settings (docked or undocked).
+1. Streamline UBX Legacy Configuration panel for improved access on low res displays.
+1. Enhanced validation messaging in UBX and NMEA configuration panels.
+
 ### RELEASE 1.7.3
 
 FIXES:

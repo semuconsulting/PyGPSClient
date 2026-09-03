@@ -33,20 +33,19 @@ from pygpsclient.globals import (
     CONNECTED_SIMULATOR,
     CONNECTED_SOCKET,
     ERRCOL,
+    ROMVER_NEW,
     UBX_CFGMSG,
     UBX_CFGOTHER,
     UBX_CFGPRT,
-    UBX_CFGRATE,
     UBX_MONHW,
     UBX_MONRF,
     UBX_MONVER,
 )
 from pygpsclient.hardware_info_frame import Hardware_Info_Frame
-from pygpsclient.strings import DLGTUBXLEGACY
+from pygpsclient.strings import DLGTUBXLEGACY, NA, NOTCONN, ROMVERWARN
 from pygpsclient.toplevel_dialog import ToplevelDialog
 from pygpsclient.ubx_msgrate_frame import UBX_MSGRATE_Frame
 from pygpsclient.ubx_port_frame import UBX_PORT_Frame
-from pygpsclient.ubx_solrate_frame import UBX_RATE_Frame
 
 
 class UBXLegacyConfigDialog(ToplevelDialog):
@@ -88,9 +87,6 @@ class UBXLegacyConfigDialog(ToplevelDialog):
         self._frm_config_port = UBX_PORT_Frame(
             self.__app, self, borderwidth=2, relief="groove"
         )
-        self._frm_config_rate = UBX_RATE_Frame(
-            self.__app, self, borderwidth=2, relief="groove"
-        )
         self._frm_config_msg = UBX_MSGRATE_Frame(
             self.__app, self, borderwidth=2, relief="groove"
         )
@@ -105,14 +101,11 @@ class UBXLegacyConfigDialog(ToplevelDialog):
 
         self.frm_device_info.grid(column=0, row=0, columnspan=3, sticky=NSEW)
         self._frm_config_port.grid(column=0, row=1, sticky=NSEW)
-        self._frm_config_rate.grid(column=0, row=2, sticky=NSEW)
-        self._frm_config_msg.grid(column=0, row=3, sticky=NSEW)
-        self._frm_config_dynamic.grid(column=1, row=1, rowspan=3, sticky=NSEW)
+        self._frm_config_msg.grid(column=0, row=2, sticky=NSEW)
+        self._frm_config_dynamic.grid(column=1, row=1, rowspan=2, sticky=NSEW)
 
-        for row in range(0, 2):
-            self.container.grid_columnconfigure(row, weight=1)
-        for row in range(1, 4):
-            self.container.grid_rowconfigure(row, weight=1)
+        self.container.grid_columnconfigure(1, weight=1)
+        self.container.grid_rowconfigure(2, weight=1)
         self._frm_config_msg.grid_rowconfigure(3, weight=1)
         self._frm_config_dynamic.grid_columnconfigure(0, weight=1)
         self._frm_config_dynamic.grid_rowconfigure(1, weight=1)
@@ -122,16 +115,23 @@ class UBXLegacyConfigDialog(ToplevelDialog):
         Reset configuration widgets.
         """
 
-        self._frm_config_rate.reset()
-        self._frm_config_port.reset()
-        self._frm_config_dynamic.reset()
-        self.frm_device_info.reset()
         if self.__app.conn_status not in (
             CONNECTED,
             CONNECTED_SOCKET,
             CONNECTED_SIMULATOR,
         ):
-            self.set_status_label("Device not connected", ERRCOL)
+            self.set_status_label(NOTCONN, ERRCOL)
+            return
+
+        # check for legacy ROM version
+        hwver = self.__app.gnss_status.version_data["hwversion"]
+        romver = self.__app.gnss_status.version_data["romversion"]
+        if "u-blox" not in hwver or (romver >= ROMVER_NEW and romver != NA):
+            self.set_status_label(ROMVERWARN.format(generation="legacy"), ERRCOL)
+        else:
+            self._frm_config_port.reset()
+            self._frm_config_dynamic.reset()
+            self.frm_device_info.reset()
 
     def _attach_events(self):
         """
@@ -166,8 +166,6 @@ class UBXLegacyConfigDialog(ToplevelDialog):
                 self.frm_device_info.reset()
             elif ubxfrm == UBX_CFGPRT:
                 self._frm_config_port.update_status(msg)
-            elif ubxfrm == UBX_CFGRATE:
-                self._frm_config_rate.update_status(msg)
             elif ubxfrm == UBX_CFGMSG:
                 self._frm_config_msg.update_status(msg)
             elif ubxfrm == UBX_CFGOTHER:

@@ -209,7 +209,6 @@ class RecorderDialog(ToplevelDialog):
             width=4,
             fg=PNTCOL,
             bg=BGCOL,
-            font=self.__app.font_lg,
         )
         self._lbl_activity = Label(
             self._frm_body, text="", anchor=CENTER, bg=BGCOL, fg=FGCOL

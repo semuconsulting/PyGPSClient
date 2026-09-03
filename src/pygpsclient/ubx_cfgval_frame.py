@@ -56,8 +56,9 @@ from pygpsclient.globals import (
     VALBOOL,
     VALCUSTOM,
     VALFLOAT,
-    VALINT,
     VALNONBLANK,
+    VALSIGNED,
+    VALUNSIGNED,
 )
 from pygpsclient.helpers import valid_hex
 
@@ -340,7 +341,7 @@ class UBX_CFGVAL_Frame(Frame):
             atts = attsiz(self._cfgatt.get())
         except ValueError as err:
             self._ent_val.validate(VALNONBLANK)
-            self.__container.status_label = (f"INVALID ENTRY - {err}", ERRCOL)
+            self.__container.set_status_label(f"INVALID ENTRY - {err}", ERRCOL)
             return False
         val = self._cfgval.get()
         layers = self._cfglayer.get()
@@ -362,22 +363,21 @@ class UBX_CFGVAL_Frame(Frame):
                 if valid:
                     val = int.to_bytes(int(val, 16), atts, "little")
             elif att in ("E", "U"):  # unsigned integer
-                self._ent_val.validate(VALINT)
-                val = int(val)
-                if val < 0:
-                    valid = False
-
-            elif att == "L":  # bool
-                self._ent_val.validate(VALBOOL)
-                val = int(val)
-                if val not in (0, 1):
-                    valid = False
+                valid = self._ent_val.validate(VALUNSIGNED, atts * 8)
+                if valid:
+                    val = int(val)
             elif att == "I":  # signed integer
-                self._ent_val.validate(VALINT)
-                val = int(val)
+                valid = self._ent_val.validate(VALSIGNED, atts * 8)
+                if valid:
+                    val = int(val)
+            elif att == "L":  # bool
+                valid = self._ent_val.validate(VALBOOL)
+                if valid:
+                    val = int(val)
             elif att == "R":  # floating point
-                self._ent_val.validate(VALFLOAT)
-                val = float(val)
+                valid = self._ent_val.validate(VALFLOAT)
+                if valid:
+                    val = float(val)
             transaction = 0
             cfgData = [
                 (self._cfgval_keyname, val),
@@ -389,13 +389,13 @@ class UBX_CFGVAL_Frame(Frame):
             msg = UBXMessage.config_set(layers, transaction, cfgData)
             self.__container.send_command(msg)
             self._lbl_send_command["image"] = self._img_pending
-            self.__container.status_label = "CFG-VALSET SET message sent"
+            self.__container.set_status_label("CFG-VALSET SET message sent")
             for msgid in ("ACK-ACK", "ACK-NAK"):
                 self.__container.set_pending(msgid, UBX_CFGVAL)
         else:
-            self._lbl_send_command["image"] = self._img_warn
+            # self._lbl_send_command["image"] = self._img_warn
             typ = ATTDICT[att]
-            self.__container.status_label = (
+            self.__container.set_status_label(
                 (
                     "INVALID ENTRY - must conform to parameter "
                     f"type {att} ({typ}) and size {atts} bytes"
@@ -424,7 +424,7 @@ class UBX_CFGVAL_Frame(Frame):
         msg = UBXMessage.config_del(layers, transaction, key)
         self.__container.send_command(msg)
         self._lbl_send_command["image"] = self._img_pending
-        self.__container.status_label = "CFG-VALDEL SET message sent"
+        self.__container.set_status_label("CFG-VALDEL SET message sent")
         for msgid in ("ACK-ACK", "ACK-NAK"):
             self.__container.set_pending(msgid, UBX_CFGVAL)
 
@@ -449,7 +449,7 @@ class UBX_CFGVAL_Frame(Frame):
         msg = UBXMessage.config_poll(layers, transaction, keys)
         self.__container.send_command(msg)
         self._lbl_send_command["image"] = self._img_pending
-        self.__container.status_label = "CFG-VALGET POLL message sent"
+        self.__container.set_status_label("CFG-VALGET POLL message sent")
         for msgid in ("CFG-VALGET", "ACK-ACK", "ACK-NAK"):
             self.__container.set_pending(msgid, UBX_CFGVAL)
 
@@ -469,12 +469,12 @@ class UBX_CFGVAL_Frame(Frame):
                     vali = int.from_bytes(val, "little")
                     val = f"0x{vali:0{atts*2}x}"
                 self._cfgval.set(val)
-            self.__container.status_label = ("CFG-VALGET GET message received", OKCOL)
+            self.__container.set_status_label("CFG-VALGET GET message received", OKCOL)
 
         elif msg.identity == "ACK-ACK":
             self._lbl_send_command["image"] = self._img_confirmed
-            self.__container.status_label = ("CFG-VAL command acknowledged", OKCOL)
+            self.__container.set_status_label("CFG-VAL command acknowledged", OKCOL)
 
         elif msg.identity == "ACK-NAK":
             self._lbl_send_command["image"] = self._img_warn
-            self.__container.status_label = ("CFG-VAL command rejected", ERRCOL)
+            self.__container.set_status_label("CFG-VAL command rejected", ERRCOL)

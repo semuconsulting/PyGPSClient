@@ -15,6 +15,7 @@ Created on 24 Dec 2025
 
 # pylint: disable=no-member, unused-variable, duplicate-code
 
+import logging
 from tkinter import ALL, NSEW, NW, SE, Frame, N, S, Tk, font
 
 from pyubx2 import CORRSOURCE, SIGID, UBXMessage
@@ -80,6 +81,7 @@ class SignalsviewFrame(Frame):
         """
 
         self.__app = app  # Reference to main application class
+        self.logger = logging.getLogger(__name__)
 
         super().__init__(parent, *args, **kwargs)
 
@@ -217,6 +219,10 @@ class SignalsviewFrame(Frame):
             fontscale=FONTSCALELG,
             tags=tags,
         )
+
+        if self.__app.configuration.get("legend_b") and self._redraw:
+            self._draw_legend()
+
         self._redraw = False
 
     def _draw_legend(self):
@@ -261,7 +267,7 @@ class SignalsviewFrame(Frame):
             fill=FGCOL,
             font=xfnt,
             anchor=NW,
-            tags=TAG_DATA,
+            tags=TAG_XLABEL,
         )
 
     def update_frame(self):
@@ -338,9 +344,6 @@ class SignalsviewFrame(Frame):
                 )
             offset += colwidth
             self.update_idletasks()
-
-        if self.__app.configuration.get("legend_b"):
-            self._draw_legend()
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """

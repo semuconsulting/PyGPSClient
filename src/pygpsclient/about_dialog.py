@@ -12,7 +12,18 @@ Created on 20 Sep 2020
 
 import logging
 from platform import machine, python_version
-from tkinter import Button, Checkbutton, Frame, IntVar, Label, Tcl
+from tkinter import (
+    CENTER,
+    EW,
+    NSEW,
+    Button,
+    Checkbutton,
+    Frame,
+    IntVar,
+    Label,
+    Tcl,
+    ttk,
+)
 from webbrowser import open_new_tab
 
 from PIL import Image, ImageTk
@@ -21,7 +32,6 @@ from pygpsclient.globals import (
     CLICK_CURSOR,
     ERRCOL,
     ICON_APP128,
-    ICON_GITHUB,
     ICON_SPONSOR,
     INFOCOL,
     LICENSE_URL,
@@ -61,7 +71,6 @@ class AboutDialog(ToplevelDialog):
         self.__app = app  # Reference to main application class
         self.logger = logging.getLogger(__name__)
         self._img_icon = ImageTk.PhotoImage(Image.open(ICON_APP128).resize((64, 64)))
-        self._img_github = ImageTk.PhotoImage(Image.open(ICON_GITHUB).resize((32, 32)))
         self._img_sponsor = ImageTk.PhotoImage(Image.open(ICON_SPONSOR))
         self._checkonstartup = IntVar()
         self._checkonstartup.set(self.__app.configuration.get("checkforupdate_b"))
@@ -79,16 +88,23 @@ class AboutDialog(ToplevelDialog):
         """
 
         self._frm_body = Frame(self.container)
-        self._lbl_icon = Label(self._frm_body, image=self._img_icon, borderwidth=0)
-        self._lbl_descs = []
-        for txt in ABOUTTXT:
-            self._lbl_descs.append(
-                Label(
-                    self._frm_body,
-                    text=txt,
-                    borderwidth=0,
-                )
-            )
+        self._lbl_icon = Label(
+            self._frm_body, image=self._img_icon, borderwidth=0, anchor=CENTER
+        )
+        self._lbl_desc = Label(
+            self._frm_body,
+            text=ABOUTTXT,
+            wraplength=400,
+            justify=CENTER,
+            anchor=CENTER,
+        )
+        self._lbl_github = Label(
+            self._frm_body,
+            text=GITHUB_URL,
+            foreground=INFOCOL,
+            cursor=CLICK_CURSOR,
+            anchor=CENTER,
+        )
         tkv = Tcl().call("info", "patchlevel")
         self._lbl_python_version = Label(
             self._frm_body,
@@ -97,6 +113,7 @@ class AboutDialog(ToplevelDialog):
                 f"Python: {python_version()}  Tk: {tkv}  "
                 f"Spatial: {SQLSTATUS[self.__app.db_enabled]}"
             ),
+            anchor=CENTER,
         )
         self._lbl_lib_versions = []
         for nam, ver in LIBVERSIONS.items():
@@ -104,7 +121,8 @@ class AboutDialog(ToplevelDialog):
                 Label(
                     self._frm_body,
                     text=f"{nam}: {ver}",
-                    borderwidth=0,
+                    anchor=CENTER,
+                    border=0,
                     highlightthickness=0,
                 )
             )
@@ -123,17 +141,14 @@ class AboutDialog(ToplevelDialog):
             self._frm_body,
             image=self._img_sponsor,
             cursor=CLICK_CURSOR,
-        )
-        self._lbl_github = Label(
-            self._frm_body,
-            text=GITHUB_URL,
-            fg=INFOCOL,
-            cursor=CLICK_CURSOR,
+            anchor=CENTER,
         )
         self._lbl_copyright = Label(
             self._frm_body,
             text=COPYRIGHT,
+            foreground=INFOCOL,
             cursor=CLICK_CURSOR,
+            anchor=CENTER,
         )
 
     def _do_layout(self):
@@ -141,26 +156,34 @@ class AboutDialog(ToplevelDialog):
         Arrange widgets in dialog.
         """
 
-        i = 0
-        self._frm_body.grid(column=0, row=0, padx=5, pady=5, ipadx=5, ipady=5)
-        self._lbl_icon.grid(column=0, row=1, columnspan=2, padx=3, pady=0)
-        for i, lbl in enumerate(self._lbl_descs):
-            lbl.grid(column=0, row=2 + i, columnspan=2, padx=3, pady=0)
-        self._lbl_python_version.grid(column=0, row=3 + i, columnspan=2, padx=3, pady=1)
-        n = 4 + i
+        self._frm_body.grid(column=0, row=0, ipadx=2, ipady=2, sticky=NSEW)
+        self._lbl_icon.grid(column=0, row=0, columnspan=2, padx=3, pady=0, sticky=EW)
+        self._lbl_desc.grid(column=0, row=1, columnspan=2, padx=3, pady=0, sticky=EW)
+        self._lbl_github.grid(column=0, row=2, columnspan=2, padx=3, pady=0, sticky=EW)
+        ttk.Separator(self._frm_body).grid(
+            column=0, row=3, columnspan=2, padx=3, pady=3, sticky=EW
+        )
+        self._lbl_python_version.grid(
+            column=0, row=4, columnspan=2, padx=3, pady=1, sticky=EW
+        )
         for i, lbl in enumerate(self._lbl_lib_versions):
-            lbl.grid(column=0, row=n + i, columnspan=2, padx=2)
+            lbl.grid(column=0, row=5 + i, columnspan=2, padx=2, pady=0, sticky=EW)
+        lv = len(self._lbl_lib_versions)
         self._btn_checkupdate.grid(
-            column=0, row=1 + n + i, ipadx=3, ipady=3, padx=3, pady=3
+            column=0, row=6 + lv, ipadx=3, ipady=3, padx=3, pady=3
         )
         self._chk_checkupdate.grid(
-            column=1, row=1 + n + i, ipadx=3, ipady=3, padx=3, pady=3
+            column=1, row=6 + lv, ipadx=3, ipady=3, padx=3, pady=3
+        )
+        ttk.Separator(self._frm_body).grid(
+            column=0, row=7 + lv, columnspan=2, padx=3, pady=3, sticky=EW
         )
         self._lbl_sponsoricon.grid(
-            column=0, row=2 + n + i, columnspan=2, padx=3, pady=3
+            column=0, row=8 + lv, columnspan=2, padx=3, pady=3, sticky=EW
         )
-        self._lbl_github.grid(column=0, row=3 + n + i, columnspan=2, padx=3, pady=0)
-        self._lbl_copyright.grid(column=0, row=4 + n + i, columnspan=2, padx=3, pady=0)
+        self._lbl_copyright.grid(
+            column=0, row=9 + lv, columnspan=2, padx=3, pady=3, sticky=EW
+        )
 
     def _attach_events(self):
         """
@@ -238,7 +261,7 @@ class AboutDialog(ToplevelDialog):
                 txt += f" - Latest version is {latest}"
                 col = ERRCOL
             self._lbl_lib_versions[i]["text"] = txt
-            self._lbl_lib_versions[i]["fg"] = col
+            self._lbl_lib_versions[i]["foreground"] = col
         updates = [nam for (nam, current, latest) in versions if latest != current]
         if len(updates) > 0:
             self.set_status_label("Updates available", OKCOL)
@@ -272,10 +295,10 @@ class AboutDialog(ToplevelDialog):
 
         if update:
             self._btn_checkupdate["text"] = "UPDATE"
-            self._btn_checkupdate["fg"] = OKCOL
+            self._btn_checkupdate["foreground"] = OKCOL
             self._btn_checkupdate.bind("<Button>", self._do_update)
         else:
             self._btn_checkupdate["text"] = "CHECK FOR UPDATES"
-            self._btn_checkupdate["fg"] = INFOCOL
+            self._btn_checkupdate["foreground"] = INFOCOL
             self._btn_checkupdate.bind("<Button>", self._check_for_update)
         self.__app.update_idletasks()

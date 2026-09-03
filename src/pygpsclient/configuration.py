@@ -102,7 +102,7 @@ class Configuration:
             "transient_dialog_b": 1,  # whether pop-up dialogs are on top of main app window
             "resizeable_dialog_b": 0,  # whether pop-up dialogs are all resizeable
             "guiupdateinterval_f": GUI_UPDATE_INTERVAL,  # GUI widget update interval in seconds
-            "mapupdateinterval_n": MAP_UPDATE_INTERVAL,
+            "mapupdateinterval_n": MAP_UPDATE_INTERVAL,  # MAPQUEST map update interval in seconds
             "defaultport_s": RCVR_CONNECTION,
             "nmeaprot_b": 1,
             "ubxprot_b": 1,

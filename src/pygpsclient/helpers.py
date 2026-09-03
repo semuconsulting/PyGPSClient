@@ -97,6 +97,8 @@ from pygpsclient.globals import (
     VALNONBLANK,
     VALNONSPACE,
     VALREGEX,
+    VALSIGNED,
+    VALUNSIGNED,
     VALURL,
     Area,
     Point,
@@ -134,7 +136,8 @@ def validate(
 
     :param Entry self: tkinter entry widget instance
     :param int valmode: int representing validation type - can be OR'd
-    :param int | float low: optional min value
+    :param int | float low: optional min value, or length of field in \
+        bits for VALSIGNED/VALUNSIGNED
     :param int | float high: optional max value
     :param str | NoneType regex: regex expression
     :param MethodType | FunctionType | NoneType func: custom validation function
@@ -154,11 +157,17 @@ def validate(
         elif valmode == VALNONSPACE:  # non-blank
             valid = not val.isspace()
         elif valmode == VALINT:  # int in range
-            valid = low < int(val) < high
+            valid = low <= int(val) <= high
         elif valmode == VALBOOL:  # boolean
             valid = val in ("0", "1", 1, 0)
         elif valmode == VALFLOAT:  # float in range
-            valid = low < float(val) < high
+            valid = low <= float(val) <= high
+        elif valmode == VALSIGNED:  # signed integer (two's complement)
+            maxval = 2 ** (low - 1)  # low = field length in bits
+            valid = -maxval <= int(val) <= maxval
+        elif valmode == VALUNSIGNED:  # unsigned integer
+            maxval = (2**low) - 1  # low = field length in bits
+            valid = 0 <= int(val) <= maxval
         elif valmode == VALURL:  # valid URL
             # none of the clever RFC 3986 regexes
             # seem to work 100% of the time
@@ -196,7 +205,7 @@ def trace_update(
     mode: Literal["array", "read", "write", "unset"],
     callback: object,
     add: bool = True,
-) -> str:
+) -> str | NoneType:
     """
     Extends tkinter.*Var classes with trace_update method.
 

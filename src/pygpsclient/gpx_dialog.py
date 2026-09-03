@@ -112,8 +112,6 @@ class GPXViewerDialog(ToplevelDialog):
         self._no_ele = False
 
         # elevation/speed profile parameters
-        self._font = self.__app.font_vsm
-        self._fonth = self._font.metrics("linespace")
         self._num_chans = 2
         self._plotcols = PLOTCOLS
         self._mintim = 1e20

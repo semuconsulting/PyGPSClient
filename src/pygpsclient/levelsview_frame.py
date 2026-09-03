@@ -120,6 +120,10 @@ class LevelsviewFrame(Frame):
             fontscale=FONTSCALELG,
             tags=tags,
         )
+
+        if self.__app.configuration.get("legend_b") and self._redraw:
+            self._draw_legend()
+
         self._redraw = False
 
     def _draw_legend(self):
@@ -173,7 +177,7 @@ class LevelsviewFrame(Frame):
         colwidth = (w - self._canvas.xoffl - self._canvas.xoffr + 1) / siv
         xfnt, _, _, _ = fitfont(XLBLFMT, colwidth, self._canvas.yoffb, XLBLANGLE)
         for val in sorted(data.values()):  # sort by ascending gnssid, svid
-            gnssId, prn, _, _, cno, _ = val
+            gnssId, svid, _, _, cno, _ = val
             snr_y = int(cno) * (h - self._canvas.yoffb - 1) / MAX_SNR
             _, ol_col = GNSS_LIST[gnssId]
             self._canvas.create_rectangle(
@@ -189,7 +193,7 @@ class LevelsviewFrame(Frame):
             self._canvas.create_text(
                 offset + colwidth / 2,
                 h - self._canvas.yoffb - 1,
-                text=f"{int(prn):02}",
+                text=f"{int(svid):02}",
                 fill=FGCOL,
                 font=xfnt,
                 angle=XLBLANGLE,
@@ -198,9 +202,6 @@ class LevelsviewFrame(Frame):
             )
             offset += colwidth
             self.update_idletasks()
-
-        if self.__app.configuration.get("legend_b"):
-            self._draw_legend()
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """

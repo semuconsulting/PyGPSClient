@@ -183,15 +183,7 @@ class App(Tk):
         if configerr == "":
             self.update_widgets()  # set initial widget state
 
-        # setup main application window
-        geom = self.configuration.get("screengeom_s")
-        if geom == "":
-            geom = set_geom(self, MAINSCALE)
-        self.geometry(geom)
-        self.protocol("WM_DELETE_WINDOW", self.on_exit)
-        self.title(TITLE)
-        self.iconphoto(True, PhotoImage(file=ICON_APP128))
-
+        # initialise queues and protocol handlers
         self._server_status = -1  # socket server status -1 = inactive
         self.gnss_outqueue = Queue()  # messages to GNSS receiver
         self.ntrip_inqueue = Queue()  # messages from NTRIP source
@@ -214,6 +206,8 @@ class App(Tk):
         self.tty_handler = TTYHandler(self)
         self.ntrip_handler = GNSSNTRIPClient(self)
         self.sqlite_handler = SqliteHandler(self)
+        self.font_sm = font.Font(size=10)
+        self.font_md = font.Font(size=12)
         self.frm_settings = None
         self._conn_status = DISCONNECTED
         self._rtk_conn_status = DISCONNECTED
@@ -238,6 +232,7 @@ class App(Tk):
         if self._db_enabled != SQLOK:
             self.configuration.set("database_b", 0)
 
+        # create main application window
         self._body()
         self._do_layout()
         self._attach_events()
@@ -249,7 +244,7 @@ class App(Tk):
         if self.frm_settings.frm_serial.status == NOPORTS:
             self.set_status_label(INTROTXTNOPORTS, ERRCOL)
 
-        # display any deferred messages
+        # display any deferred status messages
         if isinstance(self._deferredmsg, tuple):
             msg, col = self._deferredmsg
             self.set_status_label(msg, col)
@@ -265,10 +260,16 @@ class App(Tk):
 
     def _body(self):
         """
-        Set up frame and widgets.
+        Set up main application frame and widgets.
         """
 
-        self._set_default_fonts()
+        geom = self.configuration.get("screengeom_s")
+        if geom == "":
+            geom = set_geom(self, MAINSCALE)
+        self.geometry(geom)
+        self.protocol("WM_DELETE_WINDOW", self.on_exit)
+        self.title(TITLE)
+        self.iconphoto(True, PhotoImage(file=ICON_APP128))
         self.menu = MenuBar(self)
         self["menu"] = self.menu
         self["bg"] = BGCOL
@@ -323,7 +324,8 @@ class App(Tk):
         # dynamically instantiate and position widgets in frm_widgets
         col = 0
         row = 0
-        for i, (name, state) in enumerate(self.widget_state.state.items()):
+        i = 0
+        for name, state in self.widget_state.state.items():
             # setup widget
             frm = self.widget_setup(state)
             # set corresponding View menu label to 'Show' or 'Hide'
@@ -345,6 +347,7 @@ class App(Tk):
                     row += 1
                 else:
                     col += c
+            i += 1
 
         # set column and row weights to control 'pack' behaviour of main layout
         self.grid_columnconfigure(0, weight=1)
@@ -488,18 +491,6 @@ class App(Tk):
         self.configuration.set("docksettings_b", True)
         self._do_layout()
 
-    def _set_default_fonts(self):
-        """
-        Set default fonts for entire application.
-        """
-        # pylint: disable=attribute-defined-outside-init
-
-        self.font_vsm = font.Font(size=8)
-        self.font_sm = font.Font(size=10)
-        self.font_md = font.Font(size=12)
-        self.font_md2 = font.Font(size=14)
-        self.font_lg = font.Font(size=18)
-
     def set_event(self, evt: str):
         """
         Generate master event.
@@ -509,9 +500,12 @@ class App(Tk):
 
         self.event_generate(evt)
 
-    def load_config(self):
+    def load_config(self) -> str:
         """
         Load configuration file menu option.
+
+        :return: error code
+        :rtype: str
         """
 
         # Warn if Streaming, NTRIP or SPARTN clients are running
@@ -519,7 +513,7 @@ class App(Tk):
             self.set_status_label("", OKCOL)
         else:
             self.set_status_label(DLGSTOPRTK, ERRCOL)
-            return
+            return "cancelled"
 
         _, err = self.configuration.loadfile()
         if err == "":  # load succeeded
@@ -533,10 +527,14 @@ class App(Tk):
             self._do_layout()
         elif err == "cancelled":
             pass
+        return err
 
-    def save_config(self):
+    def save_config(self) -> str:
         """
         Save configuration file menu option.
+
+        :return: error code
+        :rtype: str
         """
 
         # save current screen geometry
@@ -549,6 +547,7 @@ class App(Tk):
             pass
         else:  # save failed
             self.set_status_label(SAVECONFIGBAD.format(err), ERRCOL)
+        return err
 
     def update_widgets(self):
         """
@@ -883,7 +882,7 @@ class App(Tk):
 
         :param bytes | list[bytes] data: raw GNSS data (NMEA, UBX, TTY, RTCM3, SPARTN)
         :param int pause: pause in ms before sending first command
-            (to allow connection time to to stabilise)
+            (to allow connection time to stabilise)
         :param int interval: interval in ms between individual commands
             (to allow receiver time to process = see CMDPAUSE global)
         """
@@ -893,7 +892,7 @@ class App(Tk):
                 data,
             ]
         for i, cmd in enumerate(data):
-            self.logger.debug(f"Sending message {cmd}")
+            # self.logger.debug(f"Sending message {cmd}")
             self.after(
                 int(pause + interval * i), lambda c=cmd: self.gnss_outqueue.put(c)
             )

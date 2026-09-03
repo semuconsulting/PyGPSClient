@@ -15,6 +15,8 @@ Created on 22 Aug 2023
 
 # pylint: disable=invalid-name, no-member
 
+# import logging
+from random import randrange
 from tkinter import EW, NSEW, NW, SW, Frame, Label, Spinbox, StringVar, Tk, W
 
 from pygpsclient.canvas_subclasses import (
@@ -36,7 +38,8 @@ from pygpsclient.helpers import setubxrate
 from pygpsclient.rtcm3_handler import RTCM56
 from pygpsclient.strings import DLGWAITRELPOS, NA
 
-MAXPOINTS = 500
+CULLMID = True  # whether to cull random points from middle of array
+MAXPOINTS = 100
 INSET = 4
 TRKCOL = "#CD6600"
 TRKTOL = 5
@@ -58,7 +61,9 @@ class RoverFrame(Frame):
         :param args: Optional args to pass to Frame parent class
         :param kwargs: Optional kwargs to pass to Frame parent class
         """
+
         self.__app = app
+        # self.logger = logging.getLogger(__name__)
 
         super().__init__(parent, *args, **kwargs)
 
@@ -267,8 +272,14 @@ class RoverFrame(Frame):
             tags=TAG_DATA,
         )
         self._canvas.create_circle(x, y, 3, fill=PNTCOL, outline=PNTCOL, tags=TAG_DATA)
-
         self.update_idletasks()
+
+        # MEMORY LEAK DEBUG
+        # tot = len(self._canvas.find_all())
+        # tags = {}
+        # for tag in (TAG_DATA, TAG_GRID, TAG_WAIT, TAG_XLABEL):
+        #     tags[tag] = len(self._canvas.find_withtag(tag))
+        # self.logger.debug((tot, tags))
 
     def _set_range(self, distance: float):
         """
@@ -314,17 +325,23 @@ class RoverFrame(Frame):
         :param int dp: decimal places tolerance
         """
 
-        nth = 3
-        numpt = len(self.points)
-        if numpt > 0:
+        if len(self.points) > 0:
             hdg_1, dis_1 = self.points[-1]
-            if round(hdg, dp) == round(hdg_1, dp) and round(dis, dp) == round(
-                dis_1, dp
-            ):
+            if int(hdg) == int(hdg_1) and int(dis / 100) == int(dis_1 / 100):
                 return
         self.points.append((hdg, dis))
-        if numpt > mx:
-            del self.points[nth - 1 :: nth]
+        if len(self.points) > mx:
+            self._limit_points()
+
+    def _limit_points(self):
+        """
+        Limit number of points in in-memory array.
+        """
+
+        if CULLMID:  # cull randomly from middle
+            self.points.pop(randrange(1, len(self.points) - int(MAXPOINTS / 10)))
+        else:  # cull from start
+            self.points.pop(0)
 
     def enable_messages(self, status: int):
         """

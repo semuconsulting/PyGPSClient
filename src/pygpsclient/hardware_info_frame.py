@@ -105,7 +105,7 @@ class Hardware_Info_Frame(Frame):
         """
 
         self.__app.poll_version(self.__app.protocol_mask)
-        self.__container.status_label = (HWREPOLL, INFOCOL)
+        self.__container.set_status_label(HWREPOLL, INFOCOL)
 
     def reset(self, event=None):  # pylint: disable=unused-argument):):
         """
@@ -125,4 +125,4 @@ class Hardware_Info_Frame(Frame):
             "romversion", NA
         )
         self._lbl_gnss["text"] = self.__app.gnss_status.version_data.get("gnss", NA)
-        self.__container.status_label = (HWRESET, OKCOL)
+        self.__container.set_status_label(HWRESET, OKCOL)
