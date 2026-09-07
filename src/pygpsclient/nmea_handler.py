@@ -185,7 +185,7 @@ class NMEAHandler:
         self.__app.gnss_status.utc = data.time  # datetime.time
         self.__app.gnss_status.lat = data.lat
         self.__app.gnss_status.lon = data.lon
-        self.__app.gnss_status.fix = fix2desc("GLL", data.posMode)
+        # self.__app.gnss_status.fix = fix2desc("GLL", data.posMode)
         # only works for NMEA 4.10 and later...
         # self.__app.gnss_status.diff_corr = 1 if data.posMode == "D" else 0
 

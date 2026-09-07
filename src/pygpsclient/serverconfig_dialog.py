@@ -53,8 +53,6 @@ from pygpsclient.globals import (
     ERRCOL,
     ICON_CONTRACT,
     ICON_EXPAND,
-    ICON_EYEOFF,
-    ICON_EYEON,
     ICON_SEND,
     INFOCOL,
     OKCOL,
@@ -74,6 +72,7 @@ from pygpsclient.globals import (
 )
 from pygpsclient.helpers import (
     MAXPORT,
+    PasswordButton,
     lanip,
     publicip,
 )
@@ -195,8 +194,6 @@ class ServerConfigDialog(ToplevelDialog):
         self.disable_nmea = BooleanVar()
         self.user = StringVar()
         self.password = StringVar()
-        self._img_eyeon = ImageTk.PhotoImage(Image.open(ICON_EYEON))
-        self._img_eyeoff = ImageTk.PhotoImage(Image.open(ICON_EYEOFF))
         self._img_expand = ImageTk.PhotoImage(Image.open(ICON_EXPAND))
         self._img_contract = ImageTk.PhotoImage(Image.open(ICON_CONTRACT))
         self._img_send = ImageTk.PhotoImage(Image.open(ICON_SEND))
@@ -311,14 +308,7 @@ class ServerConfigDialog(ToplevelDialog):
             width=25,
             show="*",
         )
-        self._btn_password = Button(
-            self._frm_advanced,
-            width=20,
-            height=20,
-            image=self._img_eyeon,
-            command=self._on_hide_password,
-            cursor=CLICK_CURSOR,
-        )
+        self._btn_password = PasswordButton(self._frm_advanced, self._ent_password)
         self._lbl_configure_base = Label(
             self._frm_advanced,
             text=LBLCONFIGBASE,
@@ -577,19 +567,6 @@ class ServerConfigDialog(ToplevelDialog):
         valid = valid & self._ent_user.validate(VALNONBLANK)
         valid = valid & self._ent_password.validate(VALNONBLANK)
         return valid
-
-    def _on_hide_password(self):
-        """
-        Toggle NTRIP password visibility.
-        """
-
-        self._show_password = not self._show_password
-        if self._show_password:
-            self._ent_password["show"] = ""
-            self._btn_password["image"] = self._img_eyeoff
-        else:
-            self._ent_password["show"] = "*"
-            self._btn_password["image"] = self._img_eyeon
 
     def _on_toggle_advanced(self):
         """

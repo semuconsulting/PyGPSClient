@@ -48,7 +48,6 @@ from tkinter import (
 )
 from types import NoneType
 
-from PIL import Image, ImageTk
 from pygnssutils import NOGGA
 from pygnssutils.helpers import find_mp_distance
 
@@ -57,8 +56,6 @@ from pygpsclient.globals import (
     CONNECTED_NTRIP,
     DISCONNECTED,
     ERRCOL,
-    ICON_EYEOFF,
-    ICON_EYEON,
     INFOCOL,
     READONLY,
     TRACEMODE_WRITE,
@@ -73,7 +70,7 @@ from pygpsclient.globals import (
     UIK,
     VALFLOAT,
 )
-from pygpsclient.helpers import MAXALT, get_mp_info
+from pygpsclient.helpers import MAXALT, PasswordButton, get_mp_info
 from pygpsclient.socketconfig_ntrip_frame import SocketConfigNtripFrame
 from pygpsclient.strings import (
     DLGTNTRIP,
@@ -129,8 +126,6 @@ class NTRIPConfigDialog(ToplevelDialog):
             UBX_PRESET: (),
             UBX_CFGRATE: (),
         }
-        self._img_eyeon = ImageTk.PhotoImage(Image.open(ICON_EYEON))
-        self._img_eyeoff = ImageTk.PhotoImage(Image.open(ICON_EYEOFF))
         self._ntrip_datatype = StringVar()
         self._ntrip_https = IntVar()
         self._ntrip_version = StringVar()
@@ -230,14 +225,7 @@ class NTRIPConfigDialog(ToplevelDialog):
             width=30,
             show="*",
         )
-        self._btn_password = Button(
-            self._frm_body,
-            width=20,
-            height=20,
-            image=self._img_eyeon,
-            command=self._on_hide_password,
-            cursor=CLICK_CURSOR,
-        )
+        self._btn_password = PasswordButton(self._frm_body, self._ent_password)
         self._lbl_ntripggaint = Label(self._frm_body, text=LBLNTRIPGGAINT)
         self._spn_ntripggaint = Spinbox(
             self._frm_body,
@@ -394,18 +382,18 @@ class NTRIPConfigDialog(ToplevelDialog):
         self._get_settings()
         self.set_controls(self._connected)
 
-    def _on_hide_password(self):
-        """
-        Toggle NTRIP password visibility.
-        """
+    # def _on_hide_password(self):
+    #     """
+    #     Toggle NTRIP password visibility.
+    #     """
 
-        self._show_password = not self._show_password
-        if self._show_password:
-            self._ent_password["show"] = ""
-            self._btn_password["image"] = self._img_eyeoff
-        else:
-            self._ent_password["show"] = "*"
-            self._btn_password["image"] = self._img_eyeon
+    #     self._show_password = not self._show_password
+    #     if self._show_password:
+    #         self._ent_password["show"] = ""
+    #         self._btn_password["image"] = self._img_eyeoff
+    #     else:
+    #         self._ent_password["show"] = "*"
+    #         self._btn_password["image"] = self._img_eyeon
 
     def _on_update_config(self, var, index, mode):  # pylint: disable=unused-argument
         """

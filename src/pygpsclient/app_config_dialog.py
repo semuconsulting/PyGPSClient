@@ -42,7 +42,10 @@ from pygpsclient.globals import (
     READONLY,
     TRACEMODE_WRITE,
 )
-from pygpsclient.helpers import trace_update  # pylint: disable=unused-import
+from pygpsclient.helpers import (  # pylint: disable=unused-import
+    PasswordButton,
+    trace_update,
+)
 from pygpsclient.strings import DLGGUIOPTIONS
 from pygpsclient.toplevel_dialog import ToplevelDialog
 
@@ -125,12 +128,15 @@ class AppConfigDialog(ToplevelDialog):
             wrap=True,
             textvariable=self._maprefresh,
         )
-        self._lbl_mapkey = Label(self._frm_body, text="MapQuest API Key", anchor=W)
+        self._frm_mapkey = Frame(self._frm_body)
+        self._lbl_mapkey = Label(self._frm_mapkey, text="MapQuest API Key", anchor=W)
         self._ent_mapkey = Entry(
             self._frm_body,
             width=35,
             textvariable=self._mapkey,
+            show="*",
         )
+        self._btn_mapkey = PasswordButton(self._frm_mapkey, self._ent_mapkey)
         self._lbl_logsize = Label(
             self._frm_body, text="Datalog Max File Size", anchor=W
         )
@@ -181,7 +187,9 @@ class AppConfigDialog(ToplevelDialog):
         self._lbl_logsize.grid(column=0, row=2, sticky=W)
         self._spn_logsize.grid(column=1, row=2, sticky=W)
         self._lbl_logsizeu.grid(column=2, row=2, padx=2, sticky=W)
-        self._lbl_mapkey.grid(column=0, row=3, sticky=W)
+        self._frm_mapkey.grid(column=0, row=3, sticky=EW)
+        self._lbl_mapkey.grid(column=0, row=0, sticky=W)
+        self._btn_mapkey.grid(column=1, row=0, sticky=E)
         self._ent_mapkey.grid(column=1, row=3, columnspan=2, sticky=EW)
         self._lbl_resizedialog.grid(column=0, row=4, sticky=W)
         self._chk_resizedialog.grid(column=1, row=4, columnspan=2, sticky=W)
