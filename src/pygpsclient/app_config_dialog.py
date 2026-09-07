@@ -63,6 +63,7 @@ GUI_INTERVALS = (
 )
 MAP_INTERVALS = ("1", "2", "5", "10", "30", "60", "120", "240", "360")
 LOG_SIZES = ("1", "2", "5", "10", "20", "50", "100", "200", "500", "1000")
+PLOT_CHANS = [str(i) for i in range(4, 21, 2)]
 
 
 class AppConfigDialog(ToplevelDialog):
@@ -89,6 +90,7 @@ class AppConfigDialog(ToplevelDialog):
         self._maprefresh = StringVar()
         self._mapkey = StringVar()
         self._logsize = StringVar()
+        self._plotchans = StringVar()
         self._resizedialog = BooleanVar()
         self._transientdialog = BooleanVar()
 
@@ -149,6 +151,17 @@ class AppConfigDialog(ToplevelDialog):
             wrap=True,
             textvariable=self._logsize,
         )
+        self._lbl_plotchans = Label(
+            self._frm_body, text="Chart Plotter Channels", anchor=W
+        )
+        self._spn_plotchans = Spinbox(
+            self._frm_body,
+            values=PLOT_CHANS,
+            width=6,
+            state=READONLY,
+            wrap=True,
+            textvariable=self._plotchans,
+        )
         self._lbl_resizedialog = Label(
             self._frm_body, text="Resizeable TopLevel Dialogs", anchor=W
         )
@@ -187,15 +200,17 @@ class AppConfigDialog(ToplevelDialog):
         self._lbl_logsize.grid(column=0, row=2, sticky=W)
         self._spn_logsize.grid(column=1, row=2, sticky=W)
         self._lbl_logsizeu.grid(column=2, row=2, padx=2, sticky=W)
-        self._frm_mapkey.grid(column=0, row=3, sticky=EW)
+        self._lbl_plotchans.grid(column=0, row=3, sticky=W)
+        self._spn_plotchans.grid(column=1, row=3, sticky=W)
+        self._frm_mapkey.grid(column=0, row=4, sticky=EW)
         self._lbl_mapkey.grid(column=0, row=0, sticky=W)
         self._btn_mapkey.grid(column=1, row=0, sticky=E)
-        self._ent_mapkey.grid(column=1, row=3, columnspan=2, sticky=EW)
-        self._lbl_resizedialog.grid(column=0, row=4, sticky=W)
-        self._chk_resizedialog.grid(column=1, row=4, columnspan=2, sticky=W)
-        self._lbl_transientdialog.grid(column=0, row=5, sticky=W)
-        self._chk_transientdialog.grid(column=1, row=5, columnspan=2, sticky=W)
-        self._btn_save.grid(column=1, row=6, columnspan=2, padx=4, pady=3, sticky=E)
+        self._ent_mapkey.grid(column=1, row=4, columnspan=2, sticky=EW)
+        self._lbl_resizedialog.grid(column=0, row=5, sticky=W)
+        self._chk_resizedialog.grid(column=1, row=5, columnspan=2, sticky=W)
+        self._lbl_transientdialog.grid(column=0, row=6, sticky=W)
+        self._chk_transientdialog.grid(column=1, row=6, columnspan=2, sticky=W)
+        self._btn_save.grid(column=1, row=7, columnspan=2, padx=4, pady=3, sticky=E)
         self._frm_body.columnconfigure(2, weight=1)
 
     def _attach_events(self):
@@ -208,6 +223,7 @@ class AppConfigDialog(ToplevelDialog):
             self._guirefresh,
             self._maprefresh,
             self._logsize,
+            self._plotchans,
             self._resizedialog,
             self._transientdialog,
             self._mapkey,
@@ -224,6 +240,9 @@ class AppConfigDialog(ToplevelDialog):
         )
         self._maprefresh.set(self.__app.configuration.get("mapupdateinterval_n"))
         self._logsize.set(int(self.__app.configuration.get("logsize_n") / 1048576))
+        self._plotchans.set(
+            int(self.__app.configuration.get("chartsettings_d")["numchn_n"])
+        )
         self._mapkey.set(self.__app.configuration.get("mqapikey_s"))
         self._resizedialog.set(int(self.__app.configuration.get("resizeable_dialog_b")))
         self._transientdialog.set(
@@ -249,6 +268,10 @@ class AppConfigDialog(ToplevelDialog):
             | (
                 self.__app.configuration.get("logsize_n")
                 != int(self._logsize.get()) * 1048576
+            )
+            | (
+                self.__app.configuration.get("chartsettings_d")["numchn_n"]
+                != int(self._plotchans.get())
             )
             | (self.__app.configuration.get("mqapikey_s") != self._mapkey.get())
             | (
@@ -295,6 +318,15 @@ class AppConfigDialog(ToplevelDialog):
         )
         self.__app.configuration.set("mapupdateinterval_n", int(self._maprefresh.get()))
         self.__app.configuration.set("logsize_n", int(self._logsize.get()) * 1048576)
+        chartsettings = self.__app.configuration.get("chartsettings_d")
+        self.__app.configuration.set(
+            "chartsettings_d",
+            {
+                "numchn_n": int(self._plotchans.get()),
+                "timrng_n": chartsettings["timrng_n"],
+                "maxpoints_n": chartsettings["maxpoints_n"],
+            },
+        )
         self.__app.configuration.set("mqapikey_s", self._mapkey.get())
         self.__app.configuration.set(
             "resizeable_dialog_b", int(self._resizedialog.get())

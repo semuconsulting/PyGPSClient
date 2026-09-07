@@ -4,6 +4,7 @@
 
 1. Add Python 3.15 classifier to pyproject.toml.
 1. Update github actions to latest versions.
+1. Add Chart plotter channels to App Configuration dialog.
 
 ### RELEASE 1.7.5
 
