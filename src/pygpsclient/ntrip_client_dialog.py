@@ -70,7 +70,7 @@ from pygpsclient.globals import (
     UIK,
     VALFLOAT,
 )
-from pygpsclient.helpers import MAXALT, get_mp_info
+from pygpsclient.helpers import MAXALT, PasswordButton, get_mp_info
 from pygpsclient.socketconfig_ntrip_frame import SocketConfigNtripFrame
 from pygpsclient.strings import (
     DLGTNTRIP,
@@ -138,6 +138,7 @@ class NTRIPConfigDialog(ToplevelDialog):
         self._ntrip_gga_lon = StringVar()
         self._ntrip_gga_alt = StringVar()
         self._ntrip_gga_sep = StringVar()
+        self._show_password = False
         self._settings = {}
         self._connected = False
         self._sourcetable = None
@@ -213,7 +214,7 @@ class NTRIPConfigDialog(ToplevelDialog):
             textvariable=self._ntrip_user,
             state=NORMAL,
             relief="sunken",
-            width=40,
+            width=30,
         )
         self._lbl_password = Label(self._frm_body, text=LBLNTRIPPWD)
         self._ent_password = Entry(
@@ -221,9 +222,10 @@ class NTRIPConfigDialog(ToplevelDialog):
             textvariable=self._ntrip_password,
             state=NORMAL,
             relief="sunken",
-            width=40,
+            width=30,
             show="*",
         )
+        self._btn_password = PasswordButton(self._frm_body, self._ent_password)
         self._lbl_ntripggaint = Label(self._frm_body, text=LBLNTRIPGGAINT)
         self._spn_ntripggaint = Spinbox(
             self._frm_body,
@@ -322,11 +324,12 @@ class NTRIPConfigDialog(ToplevelDialog):
         self._lbl_datatype.grid(column=2, row=10, padx=3, pady=3, sticky=W)
         self._spn_datatype.grid(column=3, row=10, padx=3, pady=3, sticky=W)
         self._lbl_user.grid(column=0, row=11, padx=3, pady=3, sticky=W)
-        self._ent_user.grid(column=1, row=11, columnspan=3, padx=3, pady=3, sticky=W)
+        self._ent_user.grid(column=1, row=11, columnspan=2, padx=3, pady=3, sticky=W)
         self._lbl_password.grid(column=0, row=12, padx=3, pady=3, sticky=W)
         self._ent_password.grid(
-            column=1, row=12, columnspan=3, padx=3, pady=3, sticky=W
+            column=1, row=12, columnspan=2, padx=3, pady=3, sticky=W
         )
+        self._btn_password.grid(column=3, row=12, padx=3, pady=3, sticky=W)
         ttk.Separator(self._frm_body).grid(
             column=0, row=13, columnspan=5, padx=3, pady=3, sticky=EW
         )
@@ -378,6 +381,19 @@ class NTRIPConfigDialog(ToplevelDialog):
 
         self._get_settings()
         self.set_controls(self._connected)
+
+    # def _on_hide_password(self):
+    #     """
+    #     Toggle NTRIP password visibility.
+    #     """
+
+    #     self._show_password = not self._show_password
+    #     if self._show_password:
+    #         self._ent_password["show"] = ""
+    #         self._btn_password["image"] = self._img_eyeoff
+    #     else:
+    #         self._ent_password["show"] = "*"
+    #         self._btn_password["image"] = self._img_eyeon
 
     def _on_update_config(self, var, index, mode):  # pylint: disable=unused-argument
         """

@@ -1,5 +1,15 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.7.5
+
+FIXES:
+
+1. Fix chart plotter updates, and make chart widget a full-width frame.
+
+ENHANCEMENTS:
+
+1. Add password hide/show button to panels with passwords.
+
 ### RELEASE 1.7.4
 
 FIXES:

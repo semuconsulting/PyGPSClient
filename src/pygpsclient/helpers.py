@@ -30,8 +30,10 @@ from socket import AF_INET, SOCK_DGRAM, socket
 from time import strftime
 from tkinter import (
     BooleanVar,
+    Button,
     DoubleVar,
     Entry,
+    Frame,
     IntVar,
     Spinbox,
     StringVar,
@@ -41,6 +43,7 @@ from tkinter import (
 from types import FunctionType, MethodType, NoneType
 from typing import Any, Literal
 
+from PIL import Image, ImageTk
 from pygnssutils import version as PGVERSION
 from pynmeagps import WGS84_SMAJ_AXIS, NMEAMessage, haversine
 from pynmeagps import version as NMEAVERSION
@@ -66,9 +69,12 @@ from requests import get
 from pygpsclient._version import __version__ as VERSION
 from pygpsclient.globals import (
     BSR,
+    CLICK_CURSOR,
     ERRCOL,
     FIXLOOKUP,
     GPSEPOCH0,
+    ICON_EYEOFF,
+    ICON_EYEON,
     M2FT,
     M2KM,
     M2MIL,
@@ -119,6 +125,10 @@ LIBVERSIONS = {
     "pyubx2": UBXVERSION,
     "pyunigps": UNIVERSION,
 }
+
+# ****************************************************************
+# Start of Custom Tkinter Class Extensions
+# ****************************************************************
 
 
 def validate(
@@ -226,8 +236,51 @@ def trace_update(
 for var in (BooleanVar, DoubleVar, IntVar, StringVar):
     var.trace_update = trace_update
 
+
+class PasswordButton(Button):
+    """
+    Custom password show/hide button.
+    """
+
+    def __init__(self, parent: Frame, password: Entry, **kwargs):
+        """
+        Constructor.
+
+        :param Frame parent: parent Frame
+        :param Entry password: associated password Entry field
+        """
+
+        self._ent_password = password
+        self._show_password = False
+        self._img_eyeon = ImageTk.PhotoImage(Image.open(ICON_EYEON))
+        self._img_eyeoff = ImageTk.PhotoImage(Image.open(ICON_EYEOFF))
+
+        super().__init__(
+            parent,
+            width=20,
+            height=20,
+            command=self.toggle_password,
+            cursor=CLICK_CURSOR,
+            image=self._img_eyeon,
+            **kwargs,
+        )
+
+    def toggle_password(self):
+        """
+        Toggle password visibility.
+        """
+
+        self._show_password = not self._show_password
+        if self._show_password:
+            self._ent_password["show"] = ""
+            self["image"] = self._img_eyeoff
+        else:
+            self._ent_password["show"] = "*"
+            self["image"] = self._img_eyeon
+
+
 # ****************************************************************
-# End of Custom Class Extensions
+# End of Custom Tkinter Class Extensions
 # ****************************************************************
 
 

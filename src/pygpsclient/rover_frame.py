@@ -15,7 +15,6 @@ Created on 22 Aug 2023
 
 # pylint: disable=invalid-name, no-member
 
-# import logging
 from random import randrange
 from tkinter import EW, NSEW, NW, SW, Frame, Label, Spinbox, StringVar, Tk, W
 
@@ -63,7 +62,6 @@ class RoverFrame(Frame):
         """
 
         self.__app = app
-        # self.logger = logging.getLogger(__name__)
 
         super().__init__(parent, *args, **kwargs)
 
@@ -273,13 +271,6 @@ class RoverFrame(Frame):
         )
         self._canvas.create_circle(x, y, 3, fill=PNTCOL, outline=PNTCOL, tags=TAG_DATA)
         self.update_idletasks()
-
-        # MEMORY LEAK DEBUG
-        # tot = len(self._canvas.find_all())
-        # tags = {}
-        # for tag in (TAG_DATA, TAG_GRID, TAG_WAIT, TAG_XLABEL):
-        #     tags[tag] = len(self._canvas.find_withtag(tag))
-        # self.logger.debug((tot, tags))
 
     def _set_range(self, distance: float):
         """

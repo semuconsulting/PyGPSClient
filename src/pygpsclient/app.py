@@ -185,11 +185,12 @@ class App(Tk):
 
         # initialise queues and protocol handlers
         self._server_status = -1  # socket server status -1 = inactive
-        self.gnss_outqueue = Queue()  # messages to GNSS receiver
-        self.ntrip_inqueue = Queue()  # messages from NTRIP source
-        self.socket_inqueue = Queue()  # message from socket
-        self.socket_outqueue = Queue()  # message to socket
-        self.console_outqueue = Queue()  # message to console
+        self.gnss_outqueue = Queue()  # data to GNSS receiver
+        self.ntrip_inqueue = Queue()  # data from NTRIP source
+        self.socket_inqueue = Queue()  # data from socket
+        self.socket_outqueue = Queue()  # data to socket
+        self.console_outqueue = Queue()  # data to console
+        self.chart_outqueue = Queue()  # data to chart plotter
         self.gnssstatus_lock = Lock()  # thread lock for GNSS status data
         self.datalog_lock = Lock()  # thread lock for datalog file
         self.gpx_lock = Lock()  # thread lock for gpx file

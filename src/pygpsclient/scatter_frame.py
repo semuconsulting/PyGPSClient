@@ -22,7 +22,6 @@ fixed reference selection.
 
 # pylint: disable=no-member
 
-# import logging
 from tkinter import (
     EW,
     HORIZONTAL,
@@ -105,7 +104,6 @@ class ScatterViewFrame(Frame):
         """
 
         self.__app = app
-        # self.logger = logging.getLogger(__name__)
 
         super().__init__(parent, *args, **kwargs)
 
@@ -556,13 +554,6 @@ class ScatterViewFrame(Frame):
 
         self.init_frame()
         self._update_plot()
-
-        # MEMORY LEAK DEBUG
-        # tot = len(self._canvas.find_all())
-        # tags = {}
-        # for tag in (TAG_DATA, TAG_GRID, TAG_WAIT, TAG_XLABEL):
-        #     tags[tag] = len(self._canvas.find_withtag(tag))
-        # self.logger.debug((tot, tags))
 
     def _limit_points(self):
         """

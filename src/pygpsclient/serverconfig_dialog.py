@@ -72,6 +72,7 @@ from pygpsclient.globals import (
 )
 from pygpsclient.helpers import (
     MAXPORT,
+    PasswordButton,
     lanip,
     publicip,
 )
@@ -196,6 +197,7 @@ class ServerConfigDialog(ToplevelDialog):
         self._img_expand = ImageTk.PhotoImage(Image.open(ICON_EXPAND))
         self._img_contract = ImageTk.PhotoImage(Image.open(ICON_CONTRACT))
         self._img_send = ImageTk.PhotoImage(Image.open(ICON_SEND))
+        self._show_password = False
         self._fixed_lat_temp = 0
         self._fixed_lon_temp = 0
         self._fixed_hae_temp = 0
@@ -293,7 +295,7 @@ class ServerConfigDialog(ToplevelDialog):
             self._frm_advanced,
             textvariable=self.user,
             relief="sunken",
-            width=15,
+            width=25,
         )
         self._lbl_password = Label(
             self._frm_advanced,
@@ -303,8 +305,10 @@ class ServerConfigDialog(ToplevelDialog):
             self._frm_advanced,
             textvariable=self.password,
             relief="sunken",
-            width=15,
+            width=25,
+            show="*",
         )
+        self._btn_password = PasswordButton(self._frm_advanced, self._ent_password)
         self._lbl_configure_base = Label(
             self._frm_advanced,
             text=LBLCONFIGBASE,
@@ -956,6 +960,7 @@ class ServerConfigDialog(ToplevelDialog):
         self._ent_user.grid(column=1, row=7, columnspan=2, padx=2, pady=1, sticky=W)
         self._lbl_password.grid(column=0, row=8, padx=2, pady=1, sticky=E)
         self._ent_password.grid(column=1, row=8, columnspan=2, padx=2, pady=1, sticky=W)
+        self._btn_password.grid(column=3, row=8, padx=2, pady=1, sticky=W)
         for wid in self._ent_fixedlat, self._ent_fixedlon, self._ent_fixedhae:
             wid["state"] = DISABLED
 
@@ -978,6 +983,7 @@ class ServerConfigDialog(ToplevelDialog):
         self._ent_user.grid(column=1, row=6, columnspan=2, padx=2, pady=1, sticky=W)
         self._lbl_password.grid(column=0, row=7, padx=2, pady=1, sticky=E)
         self._ent_password.grid(column=1, row=7, columnspan=2, padx=2, pady=1, sticky=W)
+        self._btn_password.grid(column=3, row=7, padx=2, pady=1, sticky=W)
         self._lbl_duration.grid_forget()
         self._spn_duration.grid_forget()
         self._pgb_elapsed.grid_forget()
@@ -1009,6 +1015,7 @@ class ServerConfigDialog(ToplevelDialog):
         self._ent_user.grid_forget()
         self._lbl_password.grid_forget()
         self._ent_password.grid_forget()
+        self._btn_password.grid_forget()
 
     def _on_update_posmode(self, var, index, mode):
         """

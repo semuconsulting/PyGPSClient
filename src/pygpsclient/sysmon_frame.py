@@ -14,7 +14,6 @@ Created on 30 Apr 2023
 :license: BSD 3-Clause
 """
 
-# import logging
 from tkinter import EW, NSEW, NW, Canvas, E, Frame, IntVar, Radiobutton, Tk, W
 
 from pyubx2 import BOOTTYPE, UBXMessage
@@ -72,7 +71,6 @@ class SysmonFrame(Frame):
         """
 
         self.__app = app  # Reference to main application class
-        # self.logger = logging.getLogger(__name__)
 
         super().__init__(parent, *args, **kwargs)
 
@@ -262,13 +260,6 @@ class SysmonFrame(Frame):
             self.update_idletasks()
         except KeyError:  # invalid sysmon-data or comms-data
             self.init_chart()
-
-        # MEMORY LEAK DEBUG
-        # tot = len(self._canvas.find_all())
-        # tags = {}
-        # for tag in (TAG_DATA, TAG_WAIT):
-        #     tags[tag] = len(self._canvas.find_withtag(tag))
-        # self.logger.debug((tot, tags))
 
     def _chart_parm(
         self,

@@ -15,7 +15,6 @@ Created on 23 Dec 2022
 
 # pylint: disable=no-member, unused-argument
 
-# import logging
 from tkinter import ALL, CENTER, EW, NSEW, NW, Checkbutton, Frame, IntVar, N, S, Tk, W
 from types import NoneType
 
@@ -107,7 +106,6 @@ class SpectrumviewFrame(Frame):
         """
 
         self.__app = app  # Reference to main application class
-        # self.logger = logging.getLogger(__name__)
 
         super().__init__(parent, *args, **kwargs)
 
@@ -256,13 +254,6 @@ class SpectrumviewFrame(Frame):
 
         if self._spectrum_snapshot != []:
             self._update_plot(self._spectrum_snapshot, MODESNAP, RF_LIST_SNAPSHOT)
-
-        # MEMORY LEAK DEBUG
-        # tot = len(self._canvas.find_all())
-        # tags = {}
-        # for tag in (TAG_DATA, TAG_GRID, TAG_WAIT, TAG_XLABEL, TAG_YLABEL):
-        #     tags[tag] = len(self._canvas.find_withtag(tag))
-        # self.logger.debug((tot, tags))
 
     def init_frame(self):
         """

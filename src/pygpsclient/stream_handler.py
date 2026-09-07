@@ -89,7 +89,7 @@ from pygpsclient.globals import (
     UBXSIMULATOR,
 )
 from pygpsclient.strings import WARNING
-from pygpsclient.widget_state import VISIBLE, WDGCONSOLE
+from pygpsclient.widget_state import FRAME, VISIBLE, WDGCHART, WDGCONSOLE
 
 
 class StreamHandler:
@@ -472,6 +472,7 @@ class StreamHandler:
         protfilter = self.__app.protocol_mask
         tty = self.__app.configuration.get("ttyprot_b")
         console = self.__app.widget_state.state[WDGCONSOLE][VISIBLE]
+        chart = self.__app.widget_state.state[WDGCHART][VISIBLE]
 
         with self.__app.gnssstatus_lock:
             if isinstance(parsed_data, NMEAMessage) and protfilter & NMEA_PROTOCOL:
@@ -510,6 +511,12 @@ class StreamHandler:
         # data on console input queue
         if console and msgprot:
             self.__app.console_outqueue.put((raw_data, parsed_data, marker))
+
+        # if chart is visible and protocol not filtered, place parsed data
+        # on chart input queue
+        if chart and msgprot:
+            if parsed_data is not None:
+                self.__app.chart_outqueue.put(parsed_data)
 
         # if socket server is running and has clients, place raw data on socket
         # output queue
