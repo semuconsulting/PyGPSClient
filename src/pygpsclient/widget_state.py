@@ -123,7 +123,7 @@ class WidgetState:
                 CLASS: ChartviewFrame,
                 FRAME: "frm_chartview",
                 VISIBLE: False,
-                COLSPAN: 2,
+                COLSPAN: MAXSPAN,
             },
             WDGSYSMON: {
                 CLASS: SysmonFrame,

@@ -14,6 +14,7 @@ Created on 24 Nov 2024
 :license: BSD 3-Clause
 """
 
+from queue import Empty
 from random import choice
 from time import time
 from tkinter import (
@@ -497,6 +498,14 @@ class ChartviewFrame(Frame):
         """
         Plot selected chart data.
         """
+
+        while True:
+            try:
+                parsed_data = self.__app.chart_outqueue.get(False)
+                self.update_data(parsed_data)
+                self.__app.chart_outqueue.task_done()
+            except Empty:
+                break
 
         self._update_plot(self._chart_data)
         self.update_idletasks()

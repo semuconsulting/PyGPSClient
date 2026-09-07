@@ -2,7 +2,13 @@
 
 ### RELEASE 1.7.5
 
-1. Minor cosmetic updates to NTRIP client panel.
+FIXES:
+
+1. Fix chart plotter updates, and make chart widget a full-width frame.
+
+ENHANCEMENTS:
+
+1. Add password hide/show button to panels with passwords.
 
 ### RELEASE 1.7.4
 
