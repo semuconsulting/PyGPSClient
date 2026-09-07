@@ -119,12 +119,6 @@ class WidgetState:
                 FRAME: "frm_roverview",
                 VISIBLE: False,
             },
-            WDGCHART: {
-                CLASS: ChartviewFrame,
-                FRAME: "frm_chartview",
-                VISIBLE: False,
-                COLSPAN: MAXSPAN,
-            },
             WDGSYSMON: {
                 CLASS: SysmonFrame,
                 FRAME: "frm_sysmon",
@@ -134,6 +128,12 @@ class WidgetState:
                 CLASS: AttitudeFrame,
                 FRAME: "frm_attitudemon",
                 VISIBLE: False,
+            },
+            WDGCHART: {
+                CLASS: ChartviewFrame,
+                FRAME: "frm_chartview",
+                VISIBLE: False,
+                COLSPAN: MAXSPAN,
             },
             # add any new widgets here
         }
