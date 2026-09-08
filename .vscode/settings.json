@@ -25,5 +25,12 @@
     "python.systemPath": "/usr/local/bin/python3.14",
     "python.defaultInterpreterPath": "${userHome}/pygpsclient/bin/python3",
     //"python.defaultInterpreterPath": "C:/Users/steve/pygpsclient/Scripts/python.exe",
-    "python.testing.unittestEnabled": false
+    "python.testing.unittestEnabled": false,
+    "python-envs.pythonProjects": [
+        {
+            "path": ".",
+            "envManager": "ms-python.python:venv",
+            "packageManager": "ms-python.python:pip"
+        }
+    ]
 }
