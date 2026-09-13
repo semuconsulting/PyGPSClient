@@ -537,6 +537,8 @@ For further details, refer to the `pygnssutils` homepage at [https://github.com/
 
 Copyright &copy; 2020-2026, semuadmin (Steve Smith)
 
+[![ORCID iD icon](https://orcid.org/sites/default/files/images/orcid_16x16.png) https://orcid.org/0009-0002-5751-8719](https://orcid.org/0009-0002-5751-8719)
+
 Application icons from [iconmonstr](https://iconmonstr.com/license/) &copy;.
 
 ---

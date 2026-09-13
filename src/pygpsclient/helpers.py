@@ -45,9 +45,8 @@ from typing import Any, Literal
 
 from PIL import Image, ImageTk
 from pygnssutils import version as PGVERSION
-from pynmeagps import WGS84_SMAJ_AXIS, NMEAMessage, haversine
+from pynmeagps import WGS84_SMAJ_AXIS, NMEAMessage
 from pynmeagps import version as NMEAVERSION
-from pynmeagps import wnotow2utc
 from pyqgc import version as QGCVERSION
 from pyrtcm import version as RTCMVERSION
 from pysbf2 import version as SBFVERSION
@@ -72,7 +71,6 @@ from pygpsclient.globals import (
     CLICK_CURSOR,
     ERRCOL,
     FIXLOOKUP,
-    GPSEPOCH0,
     ICON_EYEOFF,
     ICON_EYEON,
     M2FT,
@@ -145,7 +143,7 @@ def validate(
     and error highlighting.
 
     :param Entry self: tkinter entry widget instance
-    :param int valmode: int representing validation type - can be OR'd
+    :param int valmode: int representing validation type
     :param int | float low: optional min value, or length of field in \
         bits for VALSIGNED/VALUNSIGNED
     :param int | float high: optional max value
@@ -427,51 +425,7 @@ def col2contrast(col: str) -> str:
 
     r, g, b = str2rgb(col)
     luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
-    return "black" if luminance > 0.5 else "white"
-
-
-def corrage2int(code: int) -> int:
-    """
-    Convert NAV-PVT lastCorrectionAge value to age in seconds.
-
-    :param int code: diff age code from NAV-PVT
-    :return: string indicating diff age in seconds
-    :rtype: int
-    """
-
-    lookup = {
-        0: 0,
-        1: 1,
-        2: 2,
-        3: 5,
-        4: 10,
-        5: 15,
-        6: 20,
-        7: 30,
-        8: 45,
-        9: 60,
-        10: 90,
-        11: 120,
-    }
-
-    return lookup.get(code, 0)
-
-
-def date2wnotow(dat: datetime) -> tuple:
-    """
-    Get GPS Week number (Wno) and Time of Week (Tow)
-    for given datetime.
-
-    GPS Epoch 0 = 6th Jan 1980
-
-    :param datetime dat: calendar date
-    :return: tuple of (Wno, Tow)
-    :rtype: tuple
-    """
-
-    wno = int((dat - GPSEPOCH0).days / 7)
-    tow = ((dat.weekday() + 1) % 7) * 86400
-    return wno, tow
+    return "#000000" if luminance > 0.5 else "#ffffff"
 
 
 def dop2str(dop: float) -> str:
@@ -581,33 +535,6 @@ def fontdim(fmt: str, fnt: font.Font, angle: int = 0) -> tuple[float, float]:
     rw = abs(fw * cos(theta)) + abs(fh * sin(theta))
     rh = abs(fh * cos(theta)) + abs(fw * sin(theta))
     return rw, rh
-
-
-def get_mp_distance(lat: float, lon: float, mp: list) -> float:
-    """
-    Get distance to mountpoint from current location (if known).
-
-    The sourcetable mountpoint entry is a list where index [0]
-    is the name and indices [8] & [9] are the lat/lon. Not all
-    sourcetable entries provide this information.
-
-    :param float lat: current latitude
-    :param float lon: current longitude
-    :param list mp: sourcetable mountpoint entry
-    :return: distance to mountpoint in km, or None if n/a
-    :rtype: float or None
-    """
-
-    dist = None
-    try:
-        if len(mp) > 9:  # if location provided for this mountpoint
-            lat2 = float(mp[8])
-            lon2 = float(mp[9])
-            dist = haversine(lat, lon, lat2, lon2)
-    except (ValueError, TypeError):
-        pass
-
-    return dist
 
 
 def get_mp_info(srt: list) -> dict:
@@ -1063,32 +990,6 @@ def normalise_area(points: tuple) -> Area:
     return Area(minlat, minlon, maxlat, maxlon)
 
 
-def parse_rxmspartnkey(msg: UBXMessage) -> list:
-    """
-    Extract dates and keys from RXM-SPARTNKEY message.
-
-    :param UBXMessage msg: RXM-SPARTNKEY message
-    :return: list of (key, valid from date) tuples
-    :rtype: list
-    """
-
-    keys = []
-    pos = 0
-    for i in range(msg.numKeys):
-        lkey = getattr(msg, f"keyLengthBytes_{i+1:02}")
-        wno = getattr(msg, f"validFromWno_{i+1:02}")
-        tow = getattr(msg, f"validFromTow_{i+1:02}")
-        dat = wnotow2utc(wno, int(tow * 1000), None, "G", True)
-        key = ""
-        for n in range(0 + pos, lkey + pos):
-            keyb = getattr(msg, f"key_{n+1:02}")
-            key += f"{keyb:02x}"
-        keys.append((key, dat))
-        pos += lkey
-
-    return keys
-
-
 def point_in_bounds(bounds: Area, point: Point) -> bool:
     """
     Check if given point is within canvas bounding box.
@@ -1108,42 +1009,6 @@ def point_in_bounds(bounds: Area, point: Point) -> bool:
         and point.lon >= bounds.lon1
         and point.lon <= bounds.lon2
     )
-
-
-def pos2iso6709(lat: float, lon: float, alt: float, crs: str = "WGS_84") -> str:
-    """
-    convert decimal degrees and alt to iso6709 format.
-
-    :param float lat: latitude
-    :param float lon: longitude
-    :param float alt: altitude
-    :param float crs: coordinate reference system (default = WGS_84)
-    :return: position in iso6709 format
-    :rtype: str
-
-    """
-
-    if not (
-        isinstance(lat, (float, int))
-        and isinstance(lon, (float, int))
-        and isinstance(alt, (float, int))
-    ):
-        return ""
-    lati = "-" if lat < 0 else "+"
-    loni = "-" if lon < 0 else "+"
-    alti = "-" if alt < 0 else "+"
-    iso6709 = (
-        lati
-        + str(abs(lat))
-        + loni
-        + str(abs(lon))
-        + alti
-        + str(alt)
-        + "CRS"
-        + crs
-        + "/"
-    )
-    return iso6709
 
 
 def publicip() -> str:

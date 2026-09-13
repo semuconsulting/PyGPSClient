@@ -93,6 +93,7 @@ class AppConfigDialog(ToplevelDialog):
         self._plotchans = StringVar()
         self._resizedialog = BooleanVar()
         self._transientdialog = BooleanVar()
+        self._showunused = BooleanVar()
 
         self._body()
         self._do_layout()
@@ -178,6 +179,14 @@ class AppConfigDialog(ToplevelDialog):
             text="",
             variable=self._transientdialog,
         )
+        self._lbl_showunused = Label(
+            self._frm_body, text="Show Sats With Null C/No", anchor=W
+        )
+        self._chk_showunused = Checkbutton(
+            self._frm_body,
+            text="",
+            variable=self._showunused,
+        )
         self._btn_save = Button(
             self._frm_body,
             command=self._on_save_updates,
@@ -210,7 +219,9 @@ class AppConfigDialog(ToplevelDialog):
         self._chk_resizedialog.grid(column=1, row=5, columnspan=2, sticky=W)
         self._lbl_transientdialog.grid(column=0, row=6, sticky=W)
         self._chk_transientdialog.grid(column=1, row=6, columnspan=2, sticky=W)
-        self._btn_save.grid(column=1, row=7, columnspan=2, padx=4, pady=3, sticky=E)
+        self._lbl_showunused.grid(column=0, row=7, sticky=W)
+        self._chk_showunused.grid(column=1, row=7, columnspan=2, sticky=W)
+        self._btn_save.grid(column=1, row=8, columnspan=2, padx=4, pady=3, sticky=E)
         self._frm_body.columnconfigure(2, weight=1)
 
     def _attach_events(self):
@@ -226,6 +237,7 @@ class AppConfigDialog(ToplevelDialog):
             self._plotchans,
             self._resizedialog,
             self._transientdialog,
+            self._showunused,
             self._mapkey,
         ):
             var.trace_update(TRACEMODE_WRITE, self._on_update, True)
@@ -248,6 +260,7 @@ class AppConfigDialog(ToplevelDialog):
         self._transientdialog.set(
             int(self.__app.configuration.get("transient_dialog_b"))
         )
+        self._showunused.set(int(self.__app.configuration.get("unusedsat_b")))
         self._enable_save_button(False)
         self.set_status_label("Update with caution! Restart after updating", ERRCOL)
 
@@ -281,6 +294,10 @@ class AppConfigDialog(ToplevelDialog):
             | (
                 self.__app.configuration.get("transient_dialog_b")
                 != int(self._transientdialog.get())
+            )
+            | (
+                self.__app.configuration.get("unusedsat_b")
+                != int(self._showunused.get())
             )
         )
         msg = "Settings updated" if updates else ""
@@ -334,6 +351,7 @@ class AppConfigDialog(ToplevelDialog):
         self.__app.configuration.set(
             "transient_dialog_b", int(self._transientdialog.get())
         )
+        self.__app.configuration.set("unusedsat_b", int(self._showunused.get()))
         self.set_status_label("Save configuration to file and restart", OKCOL)
         if self.__app.save_config() != "":
             self.set_status_label("Save cancelled", INFOCOL)
