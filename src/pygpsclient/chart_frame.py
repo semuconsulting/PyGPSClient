@@ -508,7 +508,6 @@ class ChartviewFrame(Frame):
                 break
 
         self._update_plot(self._chart_data)
-        self.update_idletasks()
 
     def init_frame(self):
         """
@@ -604,7 +603,6 @@ class ChartviewFrame(Frame):
                         chn=chn,
                         tags=(TAG_DATA,),
                     )
-                self.update_idletasks()
 
     def _on_clipboard(self, event):  # pylint: disable=unused-argument
         """

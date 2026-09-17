@@ -395,11 +395,11 @@ class ScatterViewFrame(Frame):
                 5, y, text=std, fill=PNTCOL, font=lbl_font, anchor=NW, tags=TAG_DATA
             )
             y += fh
-        np = len(self._points)
-        pts = f"Pts: {np} {'!' if np >= self._maxpoints else ''}"
-        self._canvas.create_text(
-            5, y, text=pts, fill=PNTCOL, font=lbl_font, anchor=NW, tags=TAG_DATA
-        )
+        # np = len(self._points)
+        # pts = f"Pts: {np} {'!' if np >= self._maxpoints else ''}"
+        # self._canvas.create_text(
+        #     5, y, text=pts, fill=PNTCOL, font=lbl_font, anchor=NW, tags=TAG_DATA
+        # )
 
     def _draw_point(self, position: Point, color: str = PNTCOL, size: int = 2):
         """
@@ -488,14 +488,13 @@ class ScatterViewFrame(Frame):
             return
 
         lp = len(self._points) - 1
+        col = PNTCOL
         for i, pnt in enumerate(self._points):
             if i == lp:
-                break
-            self._draw_point(pnt, PNTCOL)
-            self.update_idletasks()
+                col = PNTTOPCOL
+            self._draw_point(pnt, col)
         if self._fixed is not None:
             self._draw_point(self._fixed, FIXCOL, 3)
-        self._draw_point(self._points[-1], PNTTOPCOL)
 
         self._draw_stats(self._canvas.font)
 

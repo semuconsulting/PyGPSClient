@@ -256,8 +256,6 @@ class SysmonFrame(Frame):
                 font=self._font,
                 tags=TAG_DATA,
             )
-
-            self.update_idletasks()
         except KeyError:  # invalid sysmon-data or comms-data
             self.init_chart()
 

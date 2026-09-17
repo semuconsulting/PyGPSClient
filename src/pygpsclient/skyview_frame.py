@@ -144,7 +144,6 @@ class SkyviewFrame(Frame):
                     font=self._canvas.font,
                     tags=TAG_DATA,
                 )
-                self.update_idletasks()
             except ValueError:
                 pass
 

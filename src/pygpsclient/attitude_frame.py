@@ -13,7 +13,6 @@ Created 23 March 2023
 :license: BSD 3-Clause
 """
 
-import logging
 from tkinter import (
     EW,
     NSEW,
@@ -85,7 +84,6 @@ class AttitudeFrame(Frame):
         :param kwargs: Optional kwargs to pass to Frame parent class
         """
         self.__app = app
-        self.logger = logging.getLogger(__name__)
 
         super().__init__(parent, *args, **kwargs)
 
@@ -352,17 +350,8 @@ class AttitudeFrame(Frame):
                 tag=DATA,
             )
 
-            self.update_idletasks()
-
         except (KeyError, ValueError):
             self._canvas.delete(DATA)
-
-        # MEMORY LEAK DEBUG
-        # tot = len(self._canvas.find_all())
-        # tags = {}
-        # for tag in (TAG_DATA, TAG_WAIT):
-        #     tags[tag] = len(self._canvas.find_withtag(tag))
-        # self.logger.debug((tot, tags))
 
     def _flag_range(self, over: bool = False):
         """
