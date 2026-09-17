@@ -51,7 +51,7 @@ FIXES:
 
 CHANGES:
 
-1. [SPARTN Configuration Panel](https://github.com/semuconsulting/PyGPSClient/blob/master/SPARTN.md) removed. Recommend resaving any existing PyGPSClient json configuration files as several configuration settings referencing this panel will now be redundant.
+1. [SPARTN Configuration Panel](https://github.com/semuconsulting/PyGPSClient/blob/main/SPARTN.md) removed. Recommend resaving any existing PyGPSClient json configuration files as several configuration settings referencing this panel will now be redundant.
 
 ### RELEASE 1.7.1
 
@@ -70,7 +70,7 @@ ENHANCEMENTS:
 
 DEPRECATION NOTICE:
 
-1. Since u-blox discontinued their Thingstream PointPerfect L-Band and MQTT encrypted SPARTN services in October 2025, the [SPARTN Configuration Panel](https://github.com/semuconsulting/PyGPSClient/blob/master/SPARTN.md) is redundant. The panel and its associated package dependencies (including `paho-mqtt`) will be removed in the next version of PyGPSClient (provisionally 1.7.2). The NTRIP Client facility will continue to support unencrypted SPARTN NTRIP streams.
+1. Since u-blox discontinued their Thingstream PointPerfect L-Band and MQTT encrypted SPARTN services in October 2025, the [SPARTN Configuration Panel](https://github.com/semuconsulting/PyGPSClient/blob/main/SPARTN.md) is redundant. The panel and its associated package dependencies (including `paho-mqtt`) will be removed in the next version of PyGPSClient (provisionally 1.7.2). The NTRIP Client facility will continue to support unencrypted SPARTN NTRIP streams.
 
 ### RELEASE 1.7.0
 
@@ -217,7 +217,7 @@ ENHANCEMENTS:
 
 ENHANCEMENTS:
 
-1. Add TTY Config button to main Settings Panel and remove SPARTN Config button (SPARTN Config can still be accessed via Menu..Options..SPARTN Configuration but is now [deprecated](https://github.com/semuconsulting/PyGPSClient/blob/master/SPARTN.md)). TTY Config uses traditional TTY (ASCII) commands to configure devices such as the Septentrio Mosaic X5.
+1. Add TTY Config button to main Settings Panel and remove SPARTN Config button (SPARTN Config can still be accessed via Menu..Options..SPARTN Configuration but is now [deprecated](https://github.com/semuconsulting/PyGPSClient/blob/main/SPARTN.md)). TTY Config uses traditional TTY (ASCII) commands to configure devices such as the Septentrio Mosaic X5.
 1. UBX, NMEA and TTY user-defined preset configuration settings `"ubxpresets_l"`, `"nmeapresets_l"` and `"ttypresets_l"` are now pre-populated with an initial set of commands on startup. Once saved to a \*.json configuration file, these initial commands can be removed, amended or supplemented in accordance with the user's preferences.
 
    To reinstate the initial set of user-defined presets at a later date, insert the item `"INIT_PRESETS"` at the top of the `"ubxpresets_l"`. `"nmeapresets_l"` or `"ttypresets_l"` configuration setting.
@@ -290,7 +290,7 @@ ENHANCEMENTS:
 
    `brew install python-tk@3.13 libspatialite`
 
-   On Linux platforms which do not support sqlite3 extensions out of the box, it may be possible to compile from source a  suitable version of [Python](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/python_compile.sh) and/or [libspatialite](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/libspatialite_compile.sh).
+   On Linux platforms which do not support sqlite3 extensions out of the box, it may be possible to compile from source a  suitable version of [Python](https://github.com/semuconsulting/PyGPSClient/blob/main/examples/python_compile.sh) and/or [libspatialite](https://github.com/semuconsulting/PyGPSClient/blob/main/examples/libspatialite_compile.sh).
 2. BSD 3-Clause license attribution clarified in all modules.
 3. Enhance elevation profile and metadata rendering in GPX track viewer. Add support for route and waypoint elements in addition to track.
 4. Enhance NMEA Dynamic Configuration dialog to support additional NMEA command types, including Quectel proprietary $PAIR  (Quectel LCSERIES/LC79H), Garmin $PGRM, Locosys %PINV (limited) and u-Blox $PUBX (requires pynmeagps>=1.0.53).
@@ -361,7 +361,7 @@ ENHANCEMENTS:
    - **NB:** At present, with the exception of the SBF PVTGeodetic message, SBF data is not used to update the various user-selectable PyGPSClient widgets. This functionality may be enhanced in future releases.
    - **NB:** Serial connection must be disconnected before switching between SBF, UBX or TTY protocols.
 1. Enhancements to TTY Command mode - will now work with a wider variety of TTY-configured devices, including Septentrio Mosaic X5 Receiver and Feyman IM19 IMU.
-   - See [/examples/ttypresets_examples.py](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/ttypresets_examples.py) for examples of ASCII TTY commands for a variety of GNSS and related devices.
+   - See [/examples/ttypresets_examples.py](https://github.com/semuconsulting/PyGPSClient/blob/main/examples/ttypresets_examples.py) for examples of ASCII TTY commands for a variety of GNSS and related devices.
    - **NB:** For Septentrio devices, send an 'Initialise Command Mode' string (`"SSSSSSSSSS\r\n"`) before sending further commands.
 1. Delay checkbox added to TTY Preset Commands dialog - if checked, inserts small delay between individual TTY commands.
 

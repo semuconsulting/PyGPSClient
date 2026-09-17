@@ -109,7 +109,7 @@ For Arch-based distributions:
 sudo pacman -S tk libspatialite
 ```
 
-⁴ Support for the sqlite3 `mod_spatialite` extension may require a custom version of Python to be [compiled from source](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/python_compile.sh) if a suitable version is not available from any of the distribution's repos.
+⁴ Support for the sqlite3 `mod_spatialite` extension may require a custom version of Python to be [compiled from source](https://github.com/semuconsulting/PyGPSClient/blob/main/examples/python_compile.sh) if a suitable version is not available from any of the distribution's repos.
 
 ## <a name="userpriv">User Privileges</a>
 
@@ -187,14 +187,14 @@ python3 -c "import os,sysconfig;print(sysconfig.get_path('scripts'))"
 python3 -c "import os,sysconfig;print(sysconfig.get_path('scripts',f'{os.name}_user'))"
 ```
 
-**NB** The pip installation process does not automatically create a desktop application launcher, but this can be done manually - see [APPLAUNCH](https://github.com/semuconsulting/PyGPSClient/blob/master/APPLAUNCH.md).
+**NB** The pip installation process does not automatically create a desktop application launcher, but this can be done manually - see [APPLAUNCH](https://github.com/semuconsulting/PyGPSClient/blob/main/APPLAUNCH.md).
 
 ### Optional dependencies
 
 The following Python packages are optional:
 
-1. rasterio - required for automated extents detection in the PyGPSClient [Import Custom Map](https://github.com/semuconsulting/PyGPSClient/blob/master/images/importcustommap.png?raw=true) facility.
-1. cryptography - required to decrypt SPARTN messages in the PyGPSClient [console](https://github.com/semuconsulting/PyGPSClient/blob/master/images/spartn_consolelog.png?raw=true).
+1. rasterio - required for automated extents detection in the PyGPSClient [Import Custom Map](https://github.com/semuconsulting/PyGPSClient/blob/main/images/importcustommap.png?raw=true) facility.
+1. cryptography - required to decrypt SPARTN messages in the PyGPSClient [console](https://github.com/semuconsulting/PyGPSClient/blob/main/images/spartn_consolelog.png?raw=true).
 
 ```shell
 python3 -m pip install rasterio
@@ -226,34 +226,34 @@ pipx will typically create a virtual environment in the user's home folder e.g. 
 The following scripts require sudo/admin privileges and will prompt for the sudo password.
 
 ### Debian Linux
-An [installation shell script](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/pygpsclient_debian_install.sh) is available for use on most vanilla 64-bit Debian-based desktop environments, including Raspberry Pi OS Trixie and Ubuntu LTS. The script...
+An [installation shell script](https://github.com/semuconsulting/PyGPSClient/blob/main/examples/pygpsclient_debian_install.sh) is available for use on most vanilla 64-bit Debian-based desktop environments, including Raspberry Pi OS Trixie and Ubuntu LTS. The script...
 - Installs all necessary Python system libraries.
 - Installs PyGPSClient into a virtual environment in the user's home directory and adds this environment to the user's PATH.
 - Adds user to the relevant /dev/tty* group.
 - Creates a desktop application launcher which can be accessed from the Applications..Other menu.
 
 ```shell
-wget https://raw.githubusercontent.com/semuconsulting/PyGPSClient/refs/heads/master/examples/pygpsclient_debian_install.sh
+wget https://raw.githubusercontent.com/semuconsulting/PyGPSClient/refs/heads/main/examples/pygpsclient_debian_install.sh
 # or use curl -O ... if you prefer
 chmod +x pygpsclient_debian_install.sh
 ./pygpsclient_debian_install.sh
 ```
 
 ### Arch Linux
-A similar [installation shell script](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/pygpsclient_arch_install.sh) is available for use on most vanilla 64-bit Arch-based desktop environments (e.g. Xfce / LightDM):
+A similar [installation shell script](https://github.com/semuconsulting/PyGPSClient/blob/main/examples/pygpsclient_arch_install.sh) is available for use on most vanilla 64-bit Arch-based desktop environments (e.g. Xfce / LightDM):
 
 ```shell
-curl -O https://raw.githubusercontent.com/semuconsulting/PyGPSClient/refs/heads/master/examples/pygpsclient_arch_install.sh
+curl -O https://raw.githubusercontent.com/semuconsulting/PyGPSClient/refs/heads/main/examples/pygpsclient_arch_install.sh
 # or use wget ... if you prefer
 chmod +x pygpsclient_arch_install.sh
 ./pygpsclient_arch_install.sh
 ```
 
 ### MacOS
-A similar [installation shell script](https://github.com/semuconsulting/PyGPSClient/blob/master/examples/pygpsclient_macos_install.sh) is available for MacOS 13 or later running a ZSH shell (*Homebrew or MacPorts are **NOT** required*). This will also install the latest official version of Python 3 with tkinter 8.6:
+A similar [installation shell script](https://github.com/semuconsulting/PyGPSClient/blob/main/examples/pygpsclient_macos_install.sh) is available for MacOS 13 or later running a ZSH shell (*Homebrew or MacPorts are **NOT** required*). This will also install the latest official version of Python 3 with tkinter 8.6:
 
 ```shell
-curl -O https://raw.githubusercontent.com/semuconsulting/PyGPSClient/refs/heads/master/examples/pygpsclient_macos_install.sh
+curl -O https://raw.githubusercontent.com/semuconsulting/PyGPSClient/refs/heads/main/examples/pygpsclient_macos_install.sh
 chmod +x pygpsclient_macos_install.sh
 ./pygpsclient_macos_install.sh
 ```

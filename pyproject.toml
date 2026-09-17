@@ -69,7 +69,7 @@ pygpsclient = "pygpsclient.__main__:main"
 homepage = "https://github.com/semuconsulting/PyGPSClient"
 documentation = "https://www.semuconsulting.com/pygpsclient/"
 repository = "https://github.com/semuconsulting/PyGPSClient"
-changelog = "https://github.com/semuconsulting/PyGPSClient/blob/master/RELEASE_NOTES.md"
+changelog = "https://github.com/semuconsulting/PyGPSClient/blob/main/RELEASE_NOTES.md"
 
 [dependency-groups]
 optional = ["rasterio", "cryptography"]

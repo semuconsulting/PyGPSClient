@@ -9,4 +9,4 @@ The following versions are currently being supported with security updates.
 ## Reporting a Vulnerability
 
 Please report any suspected security vulnerabilities via the supplied
-[Issue Template](https://github.com/semuconsulting/PyGPSClient/blob/master/.github/ISSUE_TEMPLATE/bug_report.md).
+[Issue Template](https://github.com/semuconsulting/PyGPSClient/blob/main/.github/ISSUE_TEMPLATE/bug_report.md).

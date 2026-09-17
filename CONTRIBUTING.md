@@ -34,7 +34,7 @@ Please write unittest examples for new code you create and add them to the `/tes
 
 Please send a [GitHub Pull Request to PyGPSClient](https://github.com/semuconsulting/PyGPSClient/pulls) with a clear list of what you've done (read more about [pull requests](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/about-pull-requests)). Please follow our coding conventions (below) and make sure all of your commits are atomic (one feature per commit).
 
-Please use the supplied [Pull Request Template](https://github.com/semuconsulting/pygpsclient/blob/master/.github/pull_request_template.md).
+Please use the supplied [Pull Request Template](https://github.com/semuconsulting/pygpsclient/blob/main/.github/pull_request_template.md).
 
 Please sign all commits - see [Signing GitHub Commits](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits) for instructions.
 
