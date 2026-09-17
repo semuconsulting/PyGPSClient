@@ -1,0 +1,423 @@
+"""
+sysmon_frame.py
+
+System Monitor frame for PyGPSClient application.
+
+Shows cpu, memory, i/o status, core temperature and warning/error counts
+for u-blox devices which support the MON-SYS and/or MON-COMMS UBX message
+types.
+
+Created on 30 Apr 2023
+
+:author: semuadmin (Steve Smith)
+:copyright: 2020 semuadmin
+:license: BSD 3-Clause
+"""
+
+from tkinter import EW, NSEW, NW, Canvas, E, Frame, IntVar, Radiobutton, Tk, W
+
+from pyubx2 import BOOTTYPE, UBXMessage
+
+from pygpsclient.canvas_subclasses import TAG_DATA, TAG_WAIT
+from pygpsclient.globals import BGCOL, FGCOL, MAXWAIT, PNTCOL, SYSMONVIEW, WIDGETU2
+from pygpsclient.helpers import (
+    bytes2unit,
+    fitfont,
+    hsv2rgb,
+    secs2unit,
+    setubxrate,
+)
+from pygpsclient.strings import DLGNOMONSYS, DLGWAITMONSYS, NA
+
+ACTIVE = ""
+DASH = (5, 2)
+FONTSCALE = 25
+INSET = 4
+MAXLINES = 19
+MAXTEMP = 100  # °C
+PORTIDS = {
+    ("F9", 0x0000): "I2C",  # 0 I2C
+    ("F9", 0x0100): "UART1",  # 256 UART1
+    ("F9", 0x0101): "INT1",  # 257 inter-cpu connect
+    ("F9", 0x0200): "INT2",  # 512 inter-cpu connect
+    ("F9", 0x0201): "UART2",  # 513 UART2
+    ("F9", 0x0300): "USB",  # 768 USB
+    ("F9", 0x0400): "SPI",  # 1024 SPI
+    ("X20", 0x0000): "I2C",  # 0 I2C
+    ("X20", 0x0100): "UART1",  # 256 UART1
+    ("X20", 0x0101): "INT1",  # 257 inter-cpu connect
+    ("X20", 0x0200): "UART2",  # 512 UART2
+    ("X20", 0x0201): "INT2",  # 513 inter-cpu connect
+    ("X20", 0x0300): "USB",  # 768 USB
+    ("X20", 0x0400): "SPI",  # 1024 SPI
+    ("X20", 0x0500): "INT3",  # 1280 inter-cpu connect
+}
+SPACING = 2
+
+
+class SysmonFrame(Frame):
+    """
+    SysmonFrame class.
+    """
+
+    def __init__(self, app: Tk, parent: Frame, *args, **kwargs):
+        """
+        Constructor.
+
+        :param Tk app: reference to main tkinter application
+        :param Frame parent: reference to parent frame
+        :param args: optional args to pass to Frame parent class
+        :param kwargs: optional kwargs to pass to Frame parent class
+        """
+
+        self.__app = app  # Reference to main application class
+
+        super().__init__(parent, *args, **kwargs)
+
+        def_w, def_h = WIDGETU2
+        self.width = kwargs.get("width", def_w)
+        self.height = kwargs.get("height", def_h)
+        self._pending_confs = {}
+        self._maxtemp = 0
+        self._waits = 0
+        self._waiting = True
+        self._mode = IntVar()
+        self._mode.set(0)
+        self._font = self.__app.font_sm
+        self._fonth = self._font.metrics("linespace")
+        self._body()
+        self._attach_events()
+        self.enable_messages(True)
+
+    def _body(self):
+        """
+        Set up frame and widgets.
+        """
+
+        self._canvas = Canvas(self, width=self.width, height=self.height, bg=BGCOL)
+        self._frm_status = Frame(self, bg=BGCOL)
+        self._rad_actual = Radiobutton(
+            self._frm_status,
+            text="Actual I/O",
+            variable=self._mode,
+            value=0,
+            fg=PNTCOL,
+            bg=BGCOL,
+        )
+        self._rad_pending = Radiobutton(
+            self._frm_status,
+            text="Pending I/O",
+            variable=self._mode,
+            value=1,
+            fg=PNTCOL,
+            bg=BGCOL,
+        )
+        self._canvas.grid(column=0, row=0, padx=0, pady=0, sticky=NSEW)
+        self._frm_status.grid(column=0, row=1, padx=2, pady=2, sticky=EW)
+        self._rad_actual.grid(column=0, row=0, padx=0, pady=0, sticky=W)
+        self._rad_pending.grid(column=1, row=0, padx=0, pady=0, sticky=W)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+
+    def _attach_events(self):
+        """
+        Bind events to frame.
+        """
+
+        self.bind("<Configure>", self._on_resize)
+        self._canvas.bind("<Double-Button-1>", self._on_clear)
+
+    def init_chart(self):
+        """
+        Initialise sysmon chart.
+        """
+
+        self._canvas.delete(TAG_DATA)
+
+    def _on_clear(self, event):  # pylint: disable=unused-argument
+        """
+        Clear chart data and reinitialise canvas.
+
+        :param Event event: clear event
+        """
+
+        self.__app.gnss_status.sysmon_data = {}
+        self.__app.gnss_status.comms_data = {}
+        self._maxtemp = 0
+        self.init_chart()
+
+    def enable_messages(self, status: int):
+        """
+        Enable/disable UBX MON-SYS & MON-COMMS messages on
+        default port(s).
+
+        NB: CPU Load value only valid if rate = 1
+
+        :param int status: 0 = off, 1 = on
+        """
+
+        for msgid in ("MON-SYS", "MON-COMMS"):
+            setubxrate(self.__app, msgid, status)
+        for msgid in ("ACK-ACK", "ACK-NAK"):
+            self._set_pending(msgid, SYSMONVIEW)
+        self.init_chart()
+
+    def _set_pending(self, msgid: int, ubxfrm: int):
+        """
+        Set pending confirmation flag for sysmon widget to
+        signify that it's waiting for a confirmation message.
+
+        :param int msgid: UBX message identity
+        :param int ubxfrm: integer representing UBX configuration frame (0-13)
+        """
+
+        self._pending_confs[msgid] = ubxfrm
+
+    def update_pending(self, msg: UBXMessage):
+        """
+        Receives polled confirmation message from the ubx_handler and
+        updates sysmon status.
+
+        :param UBXMessage msg: UBX config message
+        """
+
+        pending = self._pending_confs.get(msg.identity, False)
+        if pending and msg.identity == "ACK-NAK":
+            self._pending_confs.pop("ACK-NAK")
+        if self._pending_confs.get("ACK-ACK", False):
+            self._pending_confs.pop("ACK-ACK")
+
+    def update_frame(self):
+        """
+        Plot MON-SPAN spectrum analysis.
+
+        If no updates received after a given number of trys,
+        assume receiver doesn't support MON-SYS or MON-COMMS.
+
+        sysmon_data is a list of sys monitor parms.
+        comms-data is a tuple of tx and rx values
+        """
+
+        sysdata = self.__app.gnss_status.sysmon_data
+        commsdata = self.__app.gnss_status.comms_data
+
+        if len(sysdata) + len(commsdata) == 0:
+            self._waits += 1
+            if self._waits >= MAXWAIT:
+                self._canvas.create_alert(DLGNOMONSYS, tags=TAG_WAIT)
+                self.init_chart()
+            return
+
+        self._waiting = False
+        self._canvas.delete(TAG_WAIT)
+        self._waits = 0
+        try:
+            bootType = BOOTTYPE[sysdata.get("bootType", 0)]
+            cpuLoad = sysdata.get("cpuLoad", NA)
+            cpuLoadMax = sysdata.get("cpuLoadMax", NA)
+            memUsage = sysdata.get("memUsage", NA)
+            memUsageMax = sysdata.get("memUsageMax", NA)
+            ioUsage = sysdata.get("ioUsage", NA)
+            ioUsageMax = sysdata.get("ioUsageMax", NA)
+            runTime = sysdata.get("runTime", NA)
+            noticeCount = sysdata.get("noticeCount", NA)
+            warnCount = sysdata.get("warnCount", NA)
+            errorCount = sysdata.get("errorCount", NA)
+            tempValue = sysdata.get("tempValue", NA)
+            if isinstance(tempValue, int):
+                tempValueP = tempValue * 100 / MAXTEMP
+                self._maxtemp = max(tempValue, self._maxtemp) * 100 / MAXTEMP
+            else:
+                tempValueP = NA
+
+            self.init_chart()
+            y = self._fonth
+            y = self._chart_parm(INSET, y, cpuLoadMax, cpuLoad, "CPU", "%")
+            y = self._chart_parm(INSET, y, memUsageMax, memUsage, "Memory", "%")
+            y = self._chart_parm(INSET, y, ioUsageMax, ioUsage, "I/O", "%")
+            for port, pdata in sorted(commsdata.items()):
+                y = self._chart_io(INSET, y, port, pdata)
+            y += SPACING
+            y = self._chart_parm(INSET, y, self._maxtemp, tempValueP, "Temp", "°C")
+
+            rtm, rtmu = secs2unit(runTime)
+            rtf = "" if rtmu == "secs" else ",.02f"
+            txt = (
+                f"Boot Type: {bootType}\n"
+                + f"Runtime: {rtm:{rtf}} {rtmu}\n"
+                + f"Notices: {noticeCount}, Warnings: {warnCount}, Errors: {errorCount}"
+            )
+            self._canvas.create_text(
+                INSET,
+                y,
+                text=txt,
+                fill=FGCOL,
+                anchor=NW,
+                font=self._font,
+                tags=TAG_DATA,
+            )
+        except KeyError:  # invalid sysmon-data or comms-data
+            self.init_chart()
+
+    def _chart_parm(
+        self,
+        xoffset: int,
+        y: int,
+        maxval: int,
+        val: int,
+        lbl: str,
+        unit: str,
+    ) -> int:
+        """
+        Draw caption and current/max bar charts on canvas.
+        """
+
+        scale = (self.width - (3 * xoffset)) / 100
+        x = xoffset
+        self._canvas.create_text(
+            x,
+            y,
+            text=f"{lbl}: {val} {unit}",
+            fill=FGCOL,
+            anchor=W,
+            font=self._font,
+            tags=TAG_DATA,
+        )
+        y += self._fonth
+        if isinstance(maxval, (int, float)):
+            self._canvas.create_line(
+                x,
+                y,
+                x + maxval * scale,
+                y,
+                fill=self._set_col(maxval),
+                dash=DASH,
+                width=self._fonth,
+                tags=TAG_DATA,
+            )
+        if isinstance(val, (int, float)):
+            self._canvas.create_line(
+                x,
+                y,
+                x + val * scale,
+                y,
+                fill=self._set_col(val),
+                width=self._fonth,
+                tags=TAG_DATA,
+            )
+            y += self._fonth + SPACING
+        return y
+
+    def _chart_io(self, xoffset: int, y: int, port: int, pdata: tuple):
+        """
+        Draw port I/O captions and tx/rx current/max bar charts on canvas.
+
+        I/O byte counts will display actual or pending, depending
+        on mode setting.
+
+        :param int xoffset: x axis offset
+        :param int y: y axis
+        :param int port: port id
+        :param tuple pdata: port data tx & rx
+        :param int mode: 0 = total bytes, 1 = pending bytes
+        """
+
+        mod = self._mode.get()
+        cap = self._font.measure("UART2 → 888.88 GB ← 888.88 GB: ⇄")
+        scale = (self.width - cap - (3 * xoffset)) / 100
+        x = xoffset
+        txb, txbu = bytes2unit(pdata[3 if mod else 2])  # total or pending
+        txf = "d" if txbu == "" else ".02f"
+        rxb, rxbu = bytes2unit(pdata[7 if mod else 6])
+        rxf = "d" if rxbu == "" else ".02f"
+        hw = (
+            "X20" if "X20" in self.__app.gnss_status.version_data["hwversion"] else "F9"
+        )
+        txt = f"{PORTIDS.get((hw,port), NA)} → {txb:{txf}} {txbu} ← {rxb:{rxf}} {rxbu}:"
+        self._canvas.create_text(  # port
+            x,
+            y,
+            text=txt,
+            fill=FGCOL,
+            anchor=W,
+            font=self._font,
+            tags=TAG_DATA,
+        )
+        self._canvas.create_text(  # port
+            x + cap - 1,
+            y,
+            text="⇄",
+            fill=FGCOL,
+            anchor=E,
+            font=self._font,
+            tags=TAG_DATA,
+        )
+        p = -1
+        for i in range(0, 8, 4):  # RX & TX
+            self._canvas.create_line(  # max
+                x + cap,
+                y + p,
+                x + cap + pdata[i + 1] * scale,
+                y + p,
+                fill=self._set_col(pdata[i + 1]),
+                dash=DASH,
+                width=2,
+                tags=TAG_DATA,
+            )
+            self._canvas.create_line(  # val
+                x + cap,
+                y + p,
+                x + cap + pdata[i] * scale,
+                y + p,
+                fill=self._set_col(pdata[i]),
+                width=2,
+                tags=TAG_DATA,
+            )
+            p += 4
+        y += self._fonth
+        return y
+
+    def _set_col(self, val: float) -> str:
+        """
+        Set bar chart line color
+        (green low, red high).
+
+        :param val: value as %
+        :return: color string
+        :rtype: str
+        """
+
+        return hsv2rgb((100 - min(100, val)) / 300, 0.8, 0.8)
+
+    def _on_resize(self, event):  # pylint: disable=unused-argument
+        """
+        Resize frame.
+
+        :param event event: resize event
+        """
+
+        self.width, self.height = self.get_size()
+        self._font, _, self._fonth, _ = fitfont(
+            "X" * FONTSCALE, self.width, int(self.height / MAXLINES)
+        )
+        self._on_waiting()
+
+    def _on_waiting(self):
+        """
+        Display 'waiting for data' alert.
+        """
+
+        if self._waiting:
+            txt = DLGNOMONSYS if self._waits > MAXWAIT else DLGWAITMONSYS
+            self._canvas.create_alert(txt, tags=TAG_WAIT)
+
+    def get_size(self):
+        """
+        Get current canvas size.
+
+        :return: window size (width, height)
+        :rtype: tuple
+        """
+
+        self.update_idletasks()  # Make sure we know about any resizing
+        return self._canvas.winfo_width(), self._canvas.winfo_height()

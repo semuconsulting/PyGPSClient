@@ -1,0 +1,293 @@
+{
+    // PyGPSClient VSCode workflow.
+    //
+    // These build, install and test tasks are targeted at a venv
+    // called 'pygpsclient' located in the user's home directory.
+    // Set your workspace default VSCode Python interpreter to
+    // this venv, i.e.
+    // "${userHome}/pygpsclient/bin/python3" on Linux/MacOS
+    // "C:/Users/user/pygpsclient/Scripts/python.exe" on Windows
+    //
+    // The "Test" task will initialise the venv and execute all
+    // necessary build and installation precursors.
+    //
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Delete Venv",
+            "type": "shell",
+            "command": "rm",
+            "args": [
+                "-rf",
+                "${config:venv}",
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Create Venv",
+            "type": "shell",
+            "command": "${config:python.systemPath}",
+            "args": [
+                "-m",
+                "venv",
+                "${config:venv}",
+            ],
+            "problemMatcher": [],
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Delete Venv",
+            ],
+        },
+        {
+            "label": "Activate Venv",
+            "type": "shell",
+            "command": "source",
+            "args": [
+                "~/pygpsclient/bin/activate",
+            ],
+            "problemMatcher": [],
+        },
+        {
+            "label": "Install Deploy Dependencies",
+            "type": "shell",
+            "command": "${config:python.defaultInterpreterPath}",
+            "args": [
+                "-m",
+                "pip",
+                "install",
+                "--upgrade",
+                "--group",
+                "deploy"
+            ],
+            "problemMatcher": [],
+        },
+        {
+            "label": "Install Optional Dependencies",
+            "type": "shell",
+            "command": "${config:python.defaultInterpreterPath}",
+            "args": [
+                "-m",
+                "pip",
+                "install",
+                "--upgrade",
+                "--group",
+                "optional"
+            ],
+            "problemMatcher": [],
+        },
+        {
+            "label": "Clean",
+            "type": "shell",
+            "command": "rm",
+            "args": [
+                "-rfvd",
+                "build",
+                "dist",
+                "htmlcov",
+                "docs/_build",
+                "${config:modulename}.egg-info",
+            ],
+            "windows": {
+                "command": "Remove-Item",
+                "args": [
+                    "-Recurse",
+                    "-Force",
+                    "-ErrorAction",
+                    "SilentlyContinue", // doesn't work! - stops on exit code 1 anyway
+                    "-Path",
+                    "'build','dist','htmlcov','docs/_build','src/${config:modulename}.egg-info'",
+                ]
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Sort Imports",
+            "type": "shell",
+            "command": "${config:python.defaultInterpreterPath}",
+            "args": [
+                "-m",
+                "isort",
+                "src",
+                "--jobs",
+                "-1"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Format",
+            "type": "shell",
+            "command": "${config:python.defaultInterpreterPath}",
+            "args": [
+                "-m",
+                "black",
+                "src"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Pylint",
+            "type": "process",
+            "command": "${config:python.defaultInterpreterPath}",
+            "args": [
+                "-m",
+                "pylint",
+                "src"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Security",
+            "type": "process",
+            "command": "bandit",
+            "args": [
+                "-c",
+                "pyproject.toml",
+                "-r",
+                "src/pygpsclient"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Build",
+            "type": "shell",
+            "command": "${config:python.defaultInterpreterPath}",
+            "args": [
+                "-m",
+                "build",
+                ".",
+                "--wheel",
+                "--sdist",
+            ],
+            "problemMatcher": [],
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                //"Create Venv",
+                "Install Deploy Dependencies",
+                "Install Optional Dependencies",
+                "Clean",
+                "Sort Imports",
+                "Format",
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Install", // into Virtual Environment
+            "type": "shell",
+            "command": "${config:python.defaultInterpreterPath}",
+            "args": [
+                "-m",
+                "pip",
+                "install",
+                "--force-reinstall",
+                // wildcard only works on Posix platforms
+                "${workspaceFolder}/dist/pygpsclient-*-py3-none-any.whl",
+            ],
+            "windows": {
+                "command": "${config:python.defaultInterpreterPath}",
+                "args": [
+                    "-m",
+                    "pip",
+                    "install",
+                    "--force-reinstall",
+                    "${workspaceFolder}/dist/pygpsclient-1.6.0-py3-none-any.whl",
+                ]
+            },
+            "problemMatcher": [],
+        },
+        {
+            "label": "Test",
+            "type": "shell",
+            "command": "${config:python.defaultInterpreterPath}",
+            "args": [
+                "-m",
+                "pytest"
+            ],
+            "problemMatcher": [],
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Activate Venv",
+                "Build",
+                "Install", // have to install before running pylint
+                "Pylint",
+                "Security",
+                "Sphinx HTML",
+            ],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Sphinx",
+            "type": "shell",
+            "command": "sphinx-apidoc",
+            "args": [
+                "--ext-autodoc",
+                "--ext-viewcode",
+                "--templatedir=docs",
+                "-f",
+                "-o",
+                "docs",
+                "src/${config:modulename}"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Sphinx HTML",
+            "type": "shell",
+            "command": "/usr/bin/make",
+            "windows": {
+                "command": "${workspaceFolder}/docs/make.bat"
+            },
+            "args": [
+                "html"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/docs"
+            },
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Sphinx"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Sphinx Deploy", // needs AWS S3 credentials
+            "type": "shell",
+            "command": "aws",
+            "args": [
+                "s3",
+                "cp",
+                "${workspaceFolder}/docs/_build/html",
+                "s3://www.semuconsulting.com/${config:modulename}/",
+                "--recursive"
+            ],
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Sphinx HTML"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Run from Source",
+            "type": "shell",
+            "command": "python3",
+            "args": [
+                "-m",
+                "pygpsclient",
+                //"--verbosity",
+                //"3"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/src"
+            },
+            "problemMatcher": []
+        },
+    ]
+}

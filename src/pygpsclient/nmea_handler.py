@@ -1,0 +1,549 @@
+"""
+nmea_handler.py
+
+NMEA Protocol handler - handles all incoming standard and
+proprietary NMEA sentences.
+
+Parses individual NMEA sentences (using pynmeagps library)
+and adds selected attribute values to the app.gnss_status
+data dictionary. This dictionary is then used to periodically
+update the various user-selectable widgets.
+
+Created on 30 Sep 2020
+
+:author: semuadmin (Steve Smith)
+:copyright: 2020 semuadmin
+:license: BSD 3-Clause
+"""
+
+import logging
+from math import degrees
+from time import time
+from tkinter import Tk
+
+from pynmeagps import NMEAMessage
+from pyubx2 import itow2utc
+
+from pygpsclient.dialog_state import DLGTSERVER
+from pygpsclient.globals import SAT_EXPIRY, TKGN
+from pygpsclient.helpers import fix2desc, hdg2yaw, kmph2ms, knots2ms, svid2gnssid
+from pygpsclient.strings import DLGTNMEA, NA
+
+
+class NMEAHandler:
+    """
+    NMEA handler class.
+    """
+
+    def __init__(self, app: Tk):
+        """
+        Constructor.
+
+        :param Tk app: reference to main tkinter application
+        """
+
+        self.__app = app  # Reference to main application class
+        self.logger = logging.getLogger(__name__)
+
+        self._raw_data = None
+        self._parsed_data = None
+
+    def process_data(self, raw_data: bytes, parsed_data: NMEAMessage):
+        """
+        Process relevant NMEA message types
+
+        :param bytes raw_data: raw_data
+        :param NMEAMessage parsed_data: parsed data
+        """
+        # pylint: disable=no-member
+
+        try:
+            if raw_data is None:
+                return
+            if (
+                self.__app.gnss_status.version_data["hwversion"] == NA
+                and "QTM" in parsed_data.msgID
+            ):
+                self.__app.gnss_status.version_data["hwversion"] = "Quectel"
+                self.__app.set_device_label(
+                    self.__app.gnss_status.version_data["hwversion"]
+                )
+            # self.logger.debug(f"data received {parsed_data.identity}")
+            if parsed_data.msgID in ("RMC", "RMCH"):  # Recommended minimum data for GPS
+                self._process_RMC(parsed_data)
+            elif parsed_data.msgID in (
+                "GGA",
+                "GGAH",
+            ):  # GPS Fix Data (H = Unicore Extended)
+                self._process_GGA(parsed_data)
+            elif parsed_data.msgID in ("GLL", "GLLH"):  # GPS Lat Lon Data
+                self._process_GLL(parsed_data)
+            elif parsed_data.msgID in ("GNS", "GNSH"):  # GNSS Fix Data
+                self._process_GNS(parsed_data)
+            elif parsed_data.msgID in (
+                "GSA",
+                "GSAH",
+            ):  # GPS DOP (Dilution of Precision)
+                self._process_GSA(parsed_data)
+            elif parsed_data.msgID in (
+                "VTG",
+                "VTGH",
+            ):  # GPS Vector track and Speed over Ground
+                self._process_VTG(parsed_data)
+            elif parsed_data.msgID in ("GSV", "GSVH"):  # GPS Satellites in View
+                self._process_GSV(parsed_data)
+            elif parsed_data.msgID == "ZDA":  # ZDA Time
+                self._process_ZDA(parsed_data)
+            elif parsed_data.msgID == "TXT":  # generic information message
+                self._process_TXT(parsed_data)
+            # proprietary GPS Lat/Lon & Acc
+            elif parsed_data.msgID == "UBX" and parsed_data.msgId == "00":
+                self._process_UBX00(parsed_data)
+            # proprietary GPS Lat/Lon & Acc
+            elif parsed_data.msgID == "UBX" and parsed_data.msgId == "03":
+                self._process_UBX03(parsed_data)
+            elif parsed_data.msgID == "QTMVERNO":  # LGSERIES hardware version
+                self._process_QTMVERNO(parsed_data)
+            elif parsed_data.msgID == "QTMVER":  # LGSERIES hardware version
+                self._process_QTMVER(parsed_data)
+            elif parsed_data.msgID == "QTMPVT":  # LGSERIES pos, vel, trk
+                self._process_QTMPVT(parsed_data)
+            elif parsed_data.msgID == "QTMSVINSTATUS":  # LGSERIES SVIN status
+                self._process_QTMSVINSTATUS(parsed_data)
+            elif parsed_data.msgID in (
+                "HPR",
+                "HPR2",
+                "HPD",
+                "TRA",
+                "TRA2",
+                "QTMDRPVA",
+                "QTMINS",
+                "QTMVEHATT",
+                "QTMTAR",
+                "INVMATTIT",
+                "STMDRPVA",
+            ):
+                self._process_IMU(parsed_data)
+            elif parsed_data.msgID == "FMI":  # Feyman IM19 IMU status
+                self._process_FMI(parsed_data)
+            elif parsed_data.msgID[0:3] == "QTM" and hasattr(parsed_data, "status"):
+                self._process_QTMACK(parsed_data)
+            elif parsed_data.msgID[0:3] == "AIR":
+                self._process_AIR(parsed_data)
+        except ValueError:
+            pass
+
+    def _process_RMC(self, data: NMEAMessage):
+        """
+        Process RMC sentence - Recommended minimum data for GPS.
+
+        :param pynmeagps.NMEAMessage data: parsed RMC sentence
+        """
+
+        self.__app.gnss_status.utc = data.time  # datetime.time
+        self.__app.gnss_status.lat = data.lat
+        self.__app.gnss_status.lon = data.lon
+        if hasattr(data, "posMode"):  # NMEA >= 2.3
+            self.__app.gnss_status.fix = fix2desc("RMC", data.posMode)
+        # only works for NMEA 4.10 and later...
+        # if data.posMode in ["F", "R"]:
+        #     self.__app.gnss_status.diff_corr = 1
+        if data.spd != "":
+            self.__app.gnss_status.speed = knots2ms(data.spd)  # convert to m/s
+        if data.cog != "":
+            self.__app.gnss_status.track = data.cog
+        self.__app.gnss_status.headvehvalid = 0
+
+    def _process_GGA(self, data: NMEAMessage):
+        """
+        Process GGA sentence - GPS Fix Data.
+
+        :param pynmeagps.NMEAMessage data: parsed GGA sentence
+        """
+
+        alt = data.alt if isinstance(data.alt, (float, int)) else 0
+        sep = data.sep if isinstance(data.sep, (float, int)) else 0
+        self.__app.gnss_status.utc = data.time  # datetime.time
+        self.__app.gnss_status.sip = data.numSV
+        self.__app.gnss_status.lat = data.lat
+        self.__app.gnss_status.lon = data.lon
+        self.__app.gnss_status.alt = alt
+        self.__app.gnss_status.hae = sep + alt
+        self.__app.gnss_status.hdop = data.HDOP
+        self.__app.gnss_status.fix = fix2desc("GGA", data.quality)
+        self.__app.gnss_status.diff_corr = 0 if data.diffAge == "" else 1
+        self.__app.gnss_status.diff_age = data.diffAge
+        self.__app.gnss_status.diff_station = data.diffStation
+
+    def _process_GLL(self, data: NMEAMessage):
+        """
+        Process GLL sentence - GPS Lat Lon.
+
+        :param pynmeagps.NMEAMessage data: parsed GLL sentence
+        """
+
+        self.__app.gnss_status.utc = data.time  # datetime.time
+        self.__app.gnss_status.lat = data.lat
+        self.__app.gnss_status.lon = data.lon
+        # self.__app.gnss_status.fix = fix2desc("GLL", data.posMode)
+        # only works for NMEA 4.10 and later...
+        # self.__app.gnss_status.diff_corr = 1 if data.posMode == "D" else 0
+
+    def _process_GNS(self, data: NMEAMessage):
+        """
+        Process GNS sentence - GNSS Fix
+
+        :param pynmeagps.NMEAMessage data: parsed GNS sentence
+        """
+
+        self.__app.gnss_status.utc = data.time  # datetime.time
+        self.__app.gnss_status.lat = data.lat
+        self.__app.gnss_status.lon = data.lon
+        self.__app.gnss_status.sip = data.numSV
+        self.__app.gnss_status.hdop = data.HDOP
+        self.__app.gnss_status.alt = data.alt
+        # GNS has four posMode values, one for each GNSS
+        # for dgps status, we pick the 'best' one
+        posMode = "N"
+        for val in ["R", "F", "D", "E", "A"]:
+            if data.posMode.find(val) >= 0:
+                posMode = val
+                break
+        # only works for NMEA 4.10 and later...
+        # if posMode in ["R", "F"]:
+        #     self.__app.gnss_status.diff_corr = 1
+        self.__app.gnss_status.diff_age = data.diffAge
+        self.__app.gnss_status.diff_corr = 0 if data.diffAge == "" else 1
+        self.__app.gnss_status.diff_station = data.diffStation
+        self.__app.gnss_status.fix = fix2desc("GNS", posMode)
+
+    def _process_GSA(self, data: NMEAMessage):
+        """
+        Process GSA sentence - GPS DOP (Dilution of Precision) and active satellites.
+
+        :param pynmeagps.NMEAMessage data: parsed GSA sentence
+        """
+
+        self.__app.gnss_status.pdop = data.PDOP
+        self.__app.gnss_status.hdop = data.HDOP
+        self.__app.gnss_status.vdop = data.VDOP
+        # doesn't support RTK fix modes so ignored...
+        # self.__app.gnss_status.fix = fix2desc("GSA", data.navMode)
+
+    def _process_GSV(self, data: NMEAMessage):
+        """
+        Process GSV sentences - GPS Satellites in View
+        These come in batches of 1-4 sentences, each containing the positions
+        of up to 4 satellites (16 satellites in total).
+        Modern receivers can send multiple batches corresponding to different
+        GNSS constellations (GPS 1-32, SBAS 33-64, GLONASS 65-96 etc.).
+
+        This function collates all received GSV data into a single gsv_data array,
+        removing any signals that have not been seen for more than a specified
+        number of seconds (set in SAT_EXPIRY). This array is then used to
+        populate the graphview and skyview widgets.
+
+        :param pynmeagps.NMEAMessage data: parsed GSV sentence
+        """
+
+        show_unused = self.__app.configuration.get("unusedsat_b")
+        gnss = TKGN.get(data.talker, 0)
+        now = time()
+
+        for i in range(4):
+            idx = f"_{i+1:02d}"
+            svid = getattr(data, "svid" + idx, "")
+            elev = getattr(data, "elv" + idx, 0)
+            azim = getattr(data, "az" + idx, 0)
+            cno = getattr(data, "cno" + idx, 0)
+            if not isinstance(cno, (int, float)):
+                cno = 0
+            if cno == 0 and not show_unused:  # ignore sats with zero cno
+                continue
+            if svid != "":
+                svid = int(svid)
+                if gnss == 0 and (120 <= svid <= 158):
+                    gnss = 1  # SBAS
+                self.__app.gnss_status.gsv_data[(gnss, svid)] = (
+                    gnss,
+                    svid,
+                    elev,
+                    azim,
+                    cno,
+                    now,
+                )
+
+        # discard sats that haven't been seen in a while
+        for key, (_, _, _, _, _, lastupdate) in list(
+            self.__app.gnss_status.gsv_data.items()
+        ):
+            if now - lastupdate > SAT_EXPIRY:
+                del self.__app.gnss_status.gsv_data[key]
+
+        self.__app.gnss_status.siv = len(self.__app.gnss_status.gsv_data)
+
+    def _process_VTG(self, data: NMEAMessage):
+        """
+        Process VTG sentence - GPS Vector track and Speed over the Ground.
+
+        :param pynmeagps.NMEAMessage data: parsed VTG sentence
+        """
+
+        self.__app.gnss_status.track = data.cogt
+        if data.sogk is not None:
+            self.__app.gnss_status.speed = kmph2ms(data.sogk)  # convert to m/s
+        self.__app.gnss_status.fix = fix2desc("VTG", data.posMode)
+        self.__app.gnss_status.headvehvalid = 0
+        # only works for NMEA 4.10 and later...
+        # self.__app.gnss_status.diff_corr = 1 if data.posMode == "D" else 0
+
+    def _process_ZDA(self, data: NMEAMessage):
+        """
+        Process ZDA sentence - GPS Time.
+
+        :param pynmeagps.NMEAMessage data: parsed ZDA sentence
+        """
+
+        self.__app.gnss_status.utc = data.time
+
+    def _process_TXT(self, data: NMEAMessage):
+        """
+        Process TXT sentence - Generic Information.
+
+        :param pynmeagps.NMEAMessage data: parsed TXT sentence
+        """
+
+        hw_version = ""
+        if (
+            "HW " in data.text
+            and self.__app.gnss_status.version_data["hwversion"] == NA
+        ):
+            hw_version = data.text.split(" ")
+            for hw in hw_version:
+                if hw not in ("HW", " ", ""):
+                    hw_version = hw.replace("UBX-", "u-blox ")
+                    break
+            self.__app.gnss_status.version_data["hwversion"] = hw_version
+            self.__app.set_device_label(
+                self.__app.gnss_status.version_data["hwversion"]
+            )
+        elif (
+            "ROM CORE " in data.text
+            and self.__app.gnss_status.version_data["fwversion"] == NA
+        ):
+            self.__app.gnss_status.version_data["fwversion"] = data.text[9:].split(
+                " ", 1
+            )[0]
+        elif (
+            "EXT CORE " in data.text
+            and self.__app.gnss_status.version_data["swversion"] == NA
+        ):
+            self.__app.gnss_status.version_data["swversion"] = data.text[9:]
+        elif (
+            "FWVER=" in data.text
+            and self.__app.gnss_status.version_data["fwversion"] == NA
+        ):
+            self.__app.gnss_status.version_data["fwversion"] = data.text[6:]
+        elif (
+            "PROTVER=" in data.text
+            and self.__app.gnss_status.version_data["romversion"] == NA
+        ):
+            self.__app.gnss_status.version_data["romversion"] = data.text[8:]
+
+    def _process_UBX00(self, data: NMEAMessage):
+        """
+        Process UXB00 sentence - Lat/Long position data.
+
+        :param pynmeagps.NMEAMessage data: parsed UBX,00 sentence
+        """
+
+        self.__app.gnss_status.lat = data.lat
+        self.__app.gnss_status.lon = data.lon
+        # self.__app.gnss_status.alt = data.altRef height above datum, not SL
+        self.__app.gnss_status.speed = data.SOG
+        self.__app.gnss_status.track = data.COG
+        self.__app.gnss_status.hdop = data.HDOP
+        self.__app.gnss_status.vdop = data.VDOP
+        self.__app.gnss_status.hacc = data.hAcc
+        self.__app.gnss_status.vacc = data.vAcc
+        self.__app.gnss_status.sip = data.numSVs
+
+    def _process_UBX03(self, data: NMEAMessage):
+        """
+        Process UXB03 sentence - NMEA Satellite Status.
+
+        NB: this message appears to use the legacy NMEA 2.n
+        SVID numbering scheme. This may conflict with GSV
+        satellite data if both message types are enabled.
+
+        :param pynmeagps.NMEAMessage data: parsed UBX,03 sentence
+        """
+        # pylint: disable=consider-using-dict-items
+
+        show_unused = self.__app.configuration.get("unusedsat_b")
+        self.__app.gnss_status.gsv_data = {}
+        now = time()
+        for i in range(data.numSv):
+            idx = f"_{i+1:02d}"
+            svid = getattr(data, "svid" + idx)
+            gnss = svid2gnssid(svid)
+            elev = getattr(data, "ele" + idx)
+            azim = getattr(data, "azi" + idx)
+            cno = getattr(data, "cno" + idx)
+            if not isinstance(cno, (int, float)):
+                cno = 0
+            if cno == 0 and not show_unused:
+                continue
+            # fudge to make PUBX03 svid numbering consistent with GSV
+            if gnss == 2 and svid > 210:  # Galileo
+                svid -= 210
+            if gnss == 3 and svid > 32:  # Beidou
+                svid -= 32
+            self.__app.gnss_status.gsv_data[(gnss, svid)] = (
+                gnss,
+                svid,
+                elev,
+                azim,
+                cno,
+                now,
+            )
+
+        self.__app.gnss_status.siv = len(self.__app.gnss_status.gsv_data)
+
+    def _process_QTMVERNO(self, data: NMEAMessage):
+        """
+        Process QTMVERNO sentence - Quectel Hardware Version.
+
+        :param pynmeagps.NMEAMessage data: parsed QTMVERNO sentence
+        """
+
+        self.__app.gnss_status.version_data["swversion"] = "N/A"
+        self.__app.gnss_status.version_data["hwversion"] = f"Quectel {data.verstr[0:8]}"
+        self.__app.gnss_status.version_data["fwversion"] = (
+            f"{data.verstr[8:]} {data.builddate}-{data.buildtime}"
+        )
+        self.__app.gnss_status.version_data["romversion"] = NA
+        self.__app.gnss_status.version_data["gnss"] = NA
+
+        if self.__app.dialog(DLGTNMEA) is not None:
+            self.__app.dialog(DLGTNMEA).update_pending(data)
+        self.__app.set_device_label(self.__app.gnss_status.version_data["hwversion"])
+
+    def _process_QTMVER(self, data: NMEAMessage):
+        """
+        Process QTMVER sentence - Quectel Hardware Version.
+        This gets sent whenever receiver is restarted.
+
+        :param pynmeagps.NMEAMessage data: parsed QTMVER sentence
+        """
+
+        self._process_QTMVERNO(data)
+
+        # notify socket server frame that receiver has restarted...
+        if self.__app.dialog(DLGTSERVER) is not None:
+            self.__app.dialog(DLGTSERVER).update_pending(data)
+
+    def _process_QTMPVT(self, data: NMEAMessage):
+        """
+        Process QTMPVT sentence - Quectel PVT.
+
+        :param pynmeagps.NMEAMessage data: parsed QTMPVT sentence
+        """
+
+        self.__app.gnss_status.utc = itow2utc(data.tow)
+        self.__app.gnss_status.lat = data.lat
+        self.__app.gnss_status.lon = data.lon
+        self.__app.gnss_status.speed = data.spd
+        self.__app.gnss_status.track = data.hdg
+        self.__app.gnss_status.hdop = data.hdop
+        self.__app.gnss_status.pdop = data.pdop
+        self.__app.gnss_status.alt = data.alt
+        self.__app.gnss_status.hae = data.sep + data.alt
+        self.__app.gnss_status.sip = data.numsv
+        self.__app.gnss_status.fix = ["NO FIX", "NO FIX", "2D", "3D"][data.fixtype]
+
+    def _process_QTMACK(self, data: NMEAMessage):
+        """
+        Process QTM acknowledgement.
+
+        :param pynmeagps.NMEAMessage data: parsed QTM*acknowledgement
+        """
+
+        if self.__app.dialog(DLGTNMEA) is not None:
+            self.__app.dialog(DLGTNMEA).update_pending(data)
+
+    def _process_QTMSVINSTATUS(self, data: NMEAMessage):
+        """
+        Process QTMSVINSTATUS sentence - Survey In Status.
+
+        :param NMEAMessage data:QTMSVINSTATUS parsed message
+        """
+
+        valid = 1 if data.valid == 2 else 0
+        active = data.valid == 1
+        if self.__app.dialog(DLGTSERVER) is not None:
+            self.__app.dialog(DLGTSERVER).svin_countdown(data.obs, valid, active)
+
+    def _process_FMI(self, data: NMEAMessage):
+        """
+        Process GMFMI sentence - Feyman IM19 IMU status.
+
+        Roll, Pitch and Yaw are in radians.
+
+        :param NMEAMessage data: GPFMI message
+        """
+
+        try:  # cater for pynmeagps<1.0.50
+            self.__app.gnss_status.utc = data.time  # datetime.time
+            self.__app.gnss_status.lat = data.lat
+            self.__app.gnss_status.lon = data.lon
+            self.__app.gnss_status.alt = data.alt
+            self.__app.gnss_status.sip = data.numSV
+            self.__app.gnss_status.diff_age = data.diffAge
+            ims = self.__app.gnss_status.imu_data
+            ims["source"] = data.identity
+            ims["roll"] = round(degrees(data.roll), 4)
+            ims["pitch"] = round(degrees(data.pitch), 4)
+            ims["yaw"] = round(degrees(data.yaw), 4)
+            ims["status"] = data.status
+        except (KeyError, AttributeError):
+            pass
+
+        self.__app.gnss_status.version_data["hwversion"] = "Feyman IM19"
+        self.__app.set_device_label(self.__app.gnss_status.version_data["hwversion"])
+
+    def _process_IMU(self, data: NMEAMessage):
+        """
+        Process IMU status from various proprietary NMEA sentences.
+
+        Roll, Pitch and Yaw (Heading) are in degrees.
+
+        :param NMEAMessage data: PQTM* message
+        """
+
+        try:
+            ims = self.__app.gnss_status.imu_data
+            ims["source"] = data.identity
+            ims["roll"] = round(getattr(data, "roll", 0), 4)
+            ims["pitch"] = round(getattr(data, "pitch", 0), 4)
+            ims["yaw"] = round(getattr(data, "yaw", 0), 4)
+            if hasattr(data, "heading"):  # range 0 - 360
+                ims["yaw"] = round(hdg2yaw(data.heading), 4)
+            ims["status"] = str(getattr(data, "quality", ""))
+        except (TypeError, KeyError, AttributeError):
+            pass
+
+    def _process_AIR(self, data: NMEAMessage):
+        """
+        Process PAIR sentences.
+
+        Quectel LC* series configuration or poll message.
+
+        :param NMEAMessage data: PAIR* message
+        """
+
+        try:
+            if self.__app.dialog(DLGTNMEA) is not None:
+                self.__app.dialog(DLGTNMEA).update_pending(data)
+        except (TypeError, KeyError, AttributeError):
+            pass

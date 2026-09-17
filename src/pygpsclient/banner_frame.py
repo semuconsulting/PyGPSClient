@@ -1,0 +1,707 @@
+"""
+banner_frame.py
+
+Banner frame class for PyGPSClient application.
+
+This handles the top banner which prominently displays the current coordinates and status.
+
+Created on 13 Sep 2020
+
+:author: semuadmin (Steve Smith)
+:copyright: 2020 semuadmin
+:license: BSD 3-Clause
+"""
+
+from os import getenv, getpid
+from tkinter import NE, NW, SUNKEN, Button, Frame, Label, N, Tk, W
+
+from PIL import Image, ImageTk
+from pynmeagps.nmeahelpers import latlon2dmm, latlon2dms, llh2ecef
+
+from pygpsclient.globals import (
+    BGCOL,
+    CLICK_CURSOR,
+    CONNECTED,
+    CONNECTED_FILE,
+    CONNECTED_NTRIP,
+    CONNECTED_SOCKET,
+    DMM,
+    DMS,
+    ECEF,
+    ERRCOL,
+    FGCOL,
+    ICON_BLANK,
+    ICON_CONN,
+    ICON_CONTRACT,
+    ICON_DISCONN,
+    ICON_EXPAND,
+    ICON_LOGREAD,
+    ICON_NOCLIENT,
+    ICON_NTRIPCONFIG,
+    ICON_SERIAL,
+    ICON_SETTINGS,
+    ICON_SOCKET,
+    ICON_TRANSMIT,
+    UI,
+    UIK,
+    UMK,
+)
+from pygpsclient.helpers import (
+    dop2str,
+    m2ft,
+    ms2kmph,
+    ms2knots,
+    ms2mph,
+    scale_font,
+    unused_sats,
+)
+from pygpsclient.strings import DGPSYES, NA
+
+PSSTATS = False
+try:
+    from psutil import Process
+
+    if int(getenv("PYGPSCLIENT_PSSTATS", "0")) & 1:
+        PSSTATS = True
+except ModuleNotFoundError:
+    pass
+
+M2MILES = 5280
+FONTBASE = 12
+FONTSCALE = 90
+
+
+class BannerFrame(Frame):
+    """
+    Banner frame class.
+    """
+
+    def __init__(self, app: Tk, *args, **kwargs):
+        """
+        Constructor.
+
+        :param Tk app: reference to main tkinter application
+        :param args: optional args to pass to Frame parent class
+        :param kwargs: optional kwargs to pass to Frame parent class
+        """
+
+        self.__app = app  # Reference to main application class
+
+        self._status = False
+        self._show_advanced = False
+        self._img_conn = ImageTk.PhotoImage(Image.open(ICON_CONN))
+        self._img_serial = ImageTk.PhotoImage(Image.open(ICON_SERIAL))
+        self._img_socket = ImageTk.PhotoImage(Image.open(ICON_SOCKET))
+        self._img_file = ImageTk.PhotoImage(Image.open(ICON_LOGREAD))
+        self._img_disconn = ImageTk.PhotoImage(Image.open(ICON_DISCONN))
+        self._img_expand = ImageTk.PhotoImage(Image.open(ICON_EXPAND))
+        self._img_contract = ImageTk.PhotoImage(Image.open(ICON_CONTRACT))
+        self._img_transmit = ImageTk.PhotoImage(Image.open(ICON_TRANSMIT))
+        self._img_noclient = ImageTk.PhotoImage(Image.open(ICON_NOCLIENT))
+        self._img_ntrip = ImageTk.PhotoImage(Image.open(ICON_NTRIPCONFIG))
+        self._img_blank = ImageTk.PhotoImage(Image.open(ICON_BLANK))
+        self._img_settings = ImageTk.PhotoImage(Image.open(ICON_SETTINGS))
+        self._sep = False
+        self._old_vms = 0
+
+        super().__init__(app, *args, **kwargs)
+
+        self.width, self.height = self.get_size()
+
+        self._body()
+        self._do_layout()
+        self._attach_events()
+
+    def _body(self):
+        """
+        Set up frame and widgets.
+        """
+
+        for i in range(2, 5):
+            self.grid_columnconfigure(i, weight=1)
+            self.grid_rowconfigure(0, weight=1)
+            self.grid_rowconfigure(1, weight=1)
+        self._frm_connect = Frame(self, bg=BGCOL)
+        self._frm_toggle = Frame(self, bg=BGCOL)
+        self._frm_basic = Frame(self, bg=BGCOL, relief=SUNKEN)
+        self._frm_advanced = Frame(self, bg=BGCOL)
+        self._frm_advanced2 = Frame(self, bg=BGCOL)
+
+        self._lbl_clients = Label(
+            self._frm_connect, bg=BGCOL, fg="green", width=2, anchor=W
+        )
+        self._lbl_ltime = Label(
+            self._frm_basic,
+            text="utc:",
+            bg=BGCOL,
+            fg=FGCOL,
+            anchor=N,
+        )
+        self._lbl_llat = Label(
+            self._frm_basic, text="lat:", bg=BGCOL, fg=FGCOL, anchor=N
+        )
+        self._lbl_llon = Label(
+            self._frm_basic, text="lon:", bg=BGCOL, fg=FGCOL, anchor=N
+        )
+        self._lbl_lfix = Label(
+            self._frm_basic, text="fix:", bg=BGCOL, fg=FGCOL, anchor=N
+        )
+        self._btn_settings = Button(
+            self._frm_toggle,
+            width=28,
+            height=22,
+            command=self._toggle_settings,
+            image=self._img_settings,
+            cursor=CLICK_CURSOR,
+        )
+        self._btn_toggle = Button(
+            self._frm_toggle,
+            width=28,
+            height=22,
+            command=self._toggle_advanced,
+            image=self._img_expand,
+            cursor=CLICK_CURSOR,
+        )
+        self._lbl_lhmsl = Label(
+            self._frm_advanced, text="hmsl:", bg=BGCOL, fg=FGCOL, anchor=N
+        )
+        self._lbl_lhae = Label(
+            self._frm_advanced,
+            text="hae:",
+            bg=BGCOL,
+            fg=FGCOL,
+            anchor=N,
+            cursor=CLICK_CURSOR,
+        )
+        self._lbl_lspd = Label(
+            self._frm_advanced, text="speed:", bg=BGCOL, fg=FGCOL, anchor=N
+        )
+        self._lbl_ltrk = Label(
+            self._frm_advanced, text="track:", bg=BGCOL, fg=FGCOL, anchor=N
+        )
+        self._lbl_lsiv = Label(
+            self._frm_advanced2, text="siv:", bg=BGCOL, fg=FGCOL, anchor=N
+        )
+        self._lbl_lsip = Label(
+            self._frm_advanced2, text="sip:", bg=BGCOL, fg=FGCOL, anchor=N
+        )
+        self._lbl_lpdop = Label(
+            self._frm_advanced2, text="pdop:", bg=BGCOL, fg=FGCOL, anchor=N
+        )
+        self._lbl_lacc = Label(
+            self._frm_advanced2, text="acc:", bg=BGCOL, fg=FGCOL, anchor=N
+        )
+        self._lbl_lcorr = Label(
+            self._frm_advanced2,
+            text="corr:",
+            bg=BGCOL,
+            fg=FGCOL,
+            anchor=N,
+        )
+
+        self._lbl_status_preset = Label(
+            self._frm_connect, bg=BGCOL, image=self._img_conn
+        )
+        self._lbl_rtk_preset = Label(self._frm_connect, bg=BGCOL, image=self._img_blank)
+        self._lbl_transmit_preset = Label(
+            self._frm_connect, bg=BGCOL, image=self._img_blank
+        )
+        self._lbl_time = Label(self._frm_basic, bg=BGCOL, fg="cyan", width=15, anchor=W)
+        self._lbl_lat = Label(
+            self._frm_basic, bg=BGCOL, fg="orange", width=16, anchor=W
+        )
+        self._lbl_lon = Label(
+            self._frm_basic, bg=BGCOL, fg="orange", width=17, anchor=W
+        )
+        self._lbl_fix = Label(self._frm_basic, bg=BGCOL, fg="white", width=10, anchor=W)
+        self._lbl_psstats = Label(self._frm_basic, bg=BGCOL, fg="yellow", anchor=W)
+        self._lbl_hmsl = Label(
+            self._frm_advanced, bg=BGCOL, fg="orange", width=13, anchor=W
+        )
+        self._lbl_hae = Label(
+            self._frm_advanced,
+            bg=BGCOL,
+            fg="orange",
+            width=13,
+            anchor=W,
+            cursor=CLICK_CURSOR,
+        )
+        self._lbl_spd = Label(
+            self._frm_advanced, bg=BGCOL, fg="deepskyblue", width=12, anchor=W
+        )
+        self._lbl_trk = Label(
+            self._frm_advanced, bg=BGCOL, fg="deepskyblue", width=8, anchor=W
+        )
+        self._lbl_siv = Label(
+            self._frm_advanced2, bg=BGCOL, fg="yellow", width=2, anchor=W
+        )
+        self._lbl_sip = Label(
+            self._frm_advanced2, bg=BGCOL, fg="yellow", width=2, anchor=W
+        )
+        self._lbl_pdop = Label(
+            self._frm_advanced2, bg=BGCOL, fg="mediumpurple1", width=14, anchor=W
+        )
+        self._lbl_diffcorr = Label(
+            self._frm_advanced2, bg=BGCOL, fg="hotpink", width=3, anchor=W
+        )
+
+        self._lbl_hvdop = Label(
+            self._frm_advanced2, bg=BGCOL, fg="mediumpurple1", width=11, anchor=W
+        )
+        self._lbl_hvacc = Label(
+            self._frm_advanced2, bg=BGCOL, fg="aquamarine2", width=11, anchor=W
+        )
+        self._lbl_lacc_u = Label(
+            self._frm_advanced2,
+            bg=BGCOL,
+            fg="aquamarine2",
+            anchor=NW,
+            width=2,
+        )
+        self._lbl_diffstat = Label(
+            self._frm_advanced2, bg=BGCOL, fg="hotpink", width=25, anchor=W
+        )
+
+    def _do_layout(self):
+        """
+        Position widgets in frame.
+        """
+
+        self._lbl_status_preset.grid(column=0, row=0, padx=2, pady=3, sticky=W)
+        self._lbl_rtk_preset.grid(column=1, row=0, padx=2, pady=3, sticky=W)
+        self._lbl_transmit_preset.grid(column=2, row=0, padx=1, pady=3, sticky=W)
+        self._lbl_clients.grid(column=3, row=0, padx=1, pady=3, sticky=W)
+        self._lbl_ltime.grid(column=1, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_time.grid(column=2, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_llat.grid(column=3, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_lat.grid(column=4, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_llon.grid(column=5, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_lon.grid(column=6, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_lfix.grid(column=7, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_fix.grid(column=8, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_psstats.grid(column=9, row=0, pady=0, padx=0, sticky=W)
+
+        self._lbl_lhmsl.grid(column=0, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_hmsl.grid(column=1, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_lhae.grid(column=2, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_hae.grid(column=3, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_lspd.grid(column=4, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_spd.grid(column=5, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_ltrk.grid(column=6, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_trk.grid(column=7, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_lsiv.grid(column=0, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_siv.grid(column=1, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_lsip.grid(column=2, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_sip.grid(column=3, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_lpdop.grid(column=4, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_pdop.grid(column=5, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_hvdop.grid(column=6, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_lacc.grid(column=7, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_hvacc.grid(column=8, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_lacc_u.grid(column=9, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_lcorr.grid(column=10, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_diffcorr.grid(column=11, row=0, pady=0, padx=0, sticky=W)
+        self._lbl_diffstat.grid(column=12, row=0, pady=0, padx=0, sticky=W)
+
+        self._btn_settings.grid(column=0, row=0, padx=4, pady=0, sticky=NE)
+        self._btn_toggle.grid(column=1, row=0, padx=0, pady=0, sticky=NE)
+
+        self._toggle_advanced()
+
+    def _attach_events(self):
+        """
+        Bind events to frame.
+        """
+
+        self.bind("<Configure>", self._on_resize)
+        self._lbl_lhae.bind("<Double-Button-1>", self._on_sep)
+        self._lbl_hae.bind("<Double-Button-1>", self._on_sep)
+
+    def _toggle_advanced(self):
+        """
+        Toggle advanced banner frame on or off.
+        """
+
+        self._frm_connect.grid(
+            column=0, row=0, rowspan=2, pady=3, ipadx=3, ipady=3, sticky=NW
+        )
+        self._frm_basic.grid(column=1, row=0, pady=2, sticky=W)
+        self._frm_toggle.grid(column=5, row=0, rowspan=2, pady=2, sticky=NE)
+        self._show_advanced = not self._show_advanced
+        if self._show_advanced:
+            self._frm_advanced.grid(column=1, row=1, pady=2, sticky=W)
+            self._frm_advanced2.grid(column=1, row=2, pady=2, sticky=W)
+            self._btn_toggle["image"] = self._img_contract
+        else:
+            self._frm_advanced.grid_forget()
+            self._frm_advanced2.grid_forget()
+            self._btn_toggle["image"] = self._img_expand
+
+    def _toggle_settings(self):
+        """
+        Toggle settings panel on or off.
+        """
+
+        self.__app.settings_dock()
+
+    def update_conn_status(self, status: int):
+        """
+        Update connection status icon
+
+        :param int status: connection status as integer (0,1,2)
+        """
+
+        if status == CONNECTED:
+            self._lbl_status_preset.configure(image=self._img_serial)
+        elif status == CONNECTED_SOCKET:
+            self._lbl_status_preset.configure(image=self._img_socket)
+        elif status == CONNECTED_FILE:
+            self._lbl_status_preset.configure(image=self._img_file)
+        else:
+            self._lbl_status_preset.configure(image=self._img_disconn)
+
+    def update_rtk_status(self, rtk: int = 0):
+        """
+        Update RTK status icon.
+
+        :param int rtk: rtk transmit status (none = 0, ntrip = 1, spartn = 2/4)
+        """
+
+        if rtk == CONNECTED_NTRIP:
+            self._lbl_rtk_preset.configure(image=self._img_ntrip)
+        else:
+            self._lbl_rtk_preset.configure(image=self._img_blank)
+
+    def update_transmit_status(self, transmit: int = 1):
+        """
+        Update socket server status icon.
+        - -1 = not transmitting
+        - 0 transmitting, no clients
+        - 1 transmitting with clients
+
+        :param int transmit: socket server transmit status
+        """
+
+        if transmit > 0:
+            self._lbl_transmit_preset.configure(image=self._img_transmit)
+            self._lbl_clients["text"] = transmit
+            self._lbl_clients["fg"] = "#6b8839"
+        elif transmit == 0:
+            self._lbl_transmit_preset.configure(image=self._img_noclient)
+            self._lbl_clients["text"] = transmit
+            self._lbl_clients["fg"] = "#e7b03e"
+        else:
+            self._lbl_transmit_preset.configure(image=self._img_blank)
+            self._lbl_clients["text"] = " "
+            self._lbl_clients["fg"] = BGCOL
+
+    def update_frame(self):
+        """
+        Sets text of banner from GNSSStatus object.
+        """
+
+        deg_format = self.__app.configuration.get("degreesformat_s")
+        units = self.__app.configuration.get("units_s")
+
+        self._update_time()
+        self._update_pos(deg_format, units)
+        self._update_track(units)
+        self._update_fix()
+        self._update_siv()
+        self._update_dop(units)
+        self._update_dgps(units)
+        self._update_psstats()
+
+    def _update_time(self):
+        """
+        Update GNSS time of week
+        """
+
+        self._lbl_time["text"] = str(self.__app.gnss_status.utc)
+
+    def _update_pos(self, pos_format, units):
+        """
+        Update position.
+
+        :param str pos_format: position display format as string (DMS, DMM, DDD, ECEF)
+        :param str units: distance units as string (UMM, UMK, UI, UIK)
+        """
+
+        lat = self.__app.gnss_status.lat
+        lon = self.__app.gnss_status.lon
+        alt = self.__app.gnss_status.alt  # hMSL
+        hae = self.__app.gnss_status.hae
+        self._lbl_llat["text"] = "lat:"
+        self._lbl_llon["text"] = "lon:"
+        self._lbl_lhmsl["text"] = "hmsl:"
+        lhae = "sep:" if self._sep else "hae:"
+        self._lbl_lhae["text"] = lhae
+        alt_u = "ft" if units in (UI, UIK) else "m"
+
+        try:
+            if pos_format == ECEF:
+                lat, lon, alt = llh2ecef(lat, lon, alt)
+                if units in (UI, UIK):
+                    lat, lon = (m2ft(x) for x in (lat, lon))
+                self._lbl_llat["text"] = "X:"
+                self._lbl_llon["text"] = "Y:"
+                self._lbl_lhmsl["text"] = "Z:"
+                self._lbl_lat["text"] = f"{lat:.4f}"
+                self._lbl_lon["text"] = f"{lon:.4f}"
+            else:
+                deg_f = "<15"
+                if pos_format == DMS:
+                    lat, lon = latlon2dms(lat, lon)
+                elif pos_format == DMM:
+                    lat, lon = latlon2dmm(lat, lon)
+                else:
+                    deg_f = ".9f"
+                if units in (UI, UIK):
+                    alt = m2ft(alt)
+                    hae = m2ft(hae)
+                self._lbl_lat["text"] = f"{lat:{deg_f}}"
+                self._lbl_lon["text"] = f"{lon:{deg_f}}"
+            self._lbl_hmsl["text"] = f"{alt:.4f} {alt_u}"
+            haev = hae - alt if self._sep else hae
+            self._lbl_hae["text"] = f"{haev:.4f} {alt_u}"
+        except (TypeError, ValueError):
+            self._lbl_lat["text"] = NA
+            self._lbl_lon["text"] = NA
+            self._lbl_hmsl["text"] = NA
+            self._lbl_hae["text"] = NA
+
+    def _update_track(self, units):
+        """
+        Update track and ground speed
+
+        :param str units: distance units as string (UMM, UMK, UI, UIK)
+        """
+
+        speed = self.__app.gnss_status.speed
+        speed_u = "m/s"
+        if isinstance(speed, (int, float)):
+            if units == UI:
+                speed = ms2mph(speed)
+                speed_u = "mph"
+            elif units == UIK:
+                speed = ms2knots(speed)
+                speed_u = "knots"
+            elif units == UMK:
+                speed = ms2kmph(speed)
+                speed_u = "kmph"
+            self._lbl_spd["text"] = f"{speed:.2f} {speed_u}"
+        else:
+            self._lbl_spd["text"] = NA
+        track = self.__app.gnss_status.track
+        if isinstance(track, (int, float)):
+            self._lbl_trk["text"] = f"{track:05.1f} °"
+        else:
+            self._lbl_trk["text"] = NA
+
+    def _update_fix(self):
+        """
+        Update fix type
+        """
+
+        fix = self.__app.gnss_status.fix
+        if fix in ("3D", "GNSS+DR", "RTK", "RTK FIXED", "RTK FLOAT"):
+            self._lbl_fix["fg"] = "green2"
+        elif fix in ("2D", "DR"):
+            self._lbl_fix["fg"] = "orange"
+        else:
+            self._lbl_fix["fg"] = ERRCOL
+        self._lbl_fix["text"] = fix
+
+    def _update_siv(self):
+        """
+        Update siv and sip.
+
+        Exclude unused sats (cno = 0) if show_unused is not set.
+        """
+
+        siv = self.__app.gnss_status.siv
+        siv = (
+            siv
+            if self.__app.configuration.get("unusedsat_b")
+            else siv - unused_sats(self.__app.gnss_status.gsv_data)
+        )
+        try:
+            self._lbl_siv["text"] = f"{siv:02d}"
+            self._lbl_sip["text"] = f"{self.__app.gnss_status.sip:02d}"
+        except (TypeError, ValueError):
+            self._lbl_siv["text"] = NA
+            self._lbl_sip["text"] = NA
+
+    def _update_dop(self, units):
+        """
+        Update precision and accuracy
+
+        :param str units: distance units as string (UMM, UMK, UI, UIK)
+        """
+
+        try:
+            pdop = self.__app.gnss_status.pdop
+            self._lbl_pdop["text"] = f"{pdop:.2f} {dop2str(pdop)}"
+        except (TypeError, ValueError):
+            self._lbl_pdop["text"] = NA
+
+        try:
+            self._lbl_hvdop["text"] = (
+                f"hdop {self.__app.gnss_status.hdop:.2f}\n"
+                + f"vdop {self.__app.gnss_status.vdop:.2f}"
+            )
+        except (TypeError, ValueError):
+            self._lbl_hvdop["text"] = f"hdop {NA}\nvdop {NA}"
+
+        try:
+            if units in (UI, UIK):
+                self._lbl_hvacc["text"] = (
+                    f"hacc {m2ft(self.__app.gnss_status.hacc):.3f}\n"
+                    + f"vacc {m2ft(self.__app.gnss_status.vacc):.3f}"
+                )
+                self._lbl_lacc_u["text"] = "ft"
+            else:
+                self._lbl_hvacc["text"] = (
+                    f"hacc {self.__app.gnss_status.hacc:.3f}\n"
+                    + f"vacc {self.__app.gnss_status.vacc:.3f}"
+                )
+                self._lbl_lacc_u["text"] = "m"
+        except (TypeError, ValueError):
+            self._lbl_hvacc["text"] = f"hacc {NA}\nvacc {NA}"
+
+    def _update_dgps(self, units):
+        """
+        Update DGPS status.
+
+        :param str units: distance units as string (UMM, UMK, UI, UIK)
+        """
+
+        self._lbl_diffcorr["text"] = DGPSYES if self.__app.gnss_status.diff_corr else NA
+        baseline = self.__app.gnss_status.rel_pos_length
+        bl = NA
+        bl_u = ""
+        if isinstance(baseline, (int, float)):
+            if baseline > 0.0:
+                if units in (UI, UIK):
+                    bl = m2ft(baseline / 100)  # cm to ft
+                    if bl > M2MILES:
+                        bl_u = "miles"
+                        bl = bl / M2MILES  # cm to miles
+                    else:
+                        bl_u = "ft"
+                else:
+                    if baseline > 100000:
+                        bl_u = "km"
+                        bl = baseline / 100000  # cm to km
+                    else:
+                        bl_u = "m"
+                        bl = baseline / 100  # cm to m
+
+        if self.__app.gnss_status.diff_corr:
+            age = self.__app.gnss_status.diff_age
+            station = self.__app.gnss_status.diff_station
+            if age in [None, "", 0]:
+                age = NA
+            else:
+                age = f"{age} s"
+            if station in [None, "", 0]:
+                station = NA
+            if bl == NA:
+                self._lbl_diffstat["text"] = f"age {age}\nid {station} - {bl}"
+            else:
+                self._lbl_diffstat["text"] = (
+                    f"age {age}\nid {station} - {bl:.2f} {bl_u}"
+                )
+        else:
+            self._lbl_diffstat["text"] = ""
+
+    def _update_psstats(self):
+        """
+        Update process statistics.
+        """
+
+        if PSSTATS:
+            pid = getpid()
+            process = Process(pid)
+            vms = int(process.memory_info().vms / 1024)
+            if self._old_vms == 0:
+                self._old_vms = vms
+            deltavms = vms - self._old_vms
+            self._lbl_psstats["text"] = f"pid: {pid}, vmsᵢ: {vms:,}, Δvms: {deltavms:,}"
+
+    def _set_fontsize(self):
+        """
+        Adjust font sizes according to frame size
+        """
+
+        for ctl in (
+            self._lbl_status_preset,
+            self._lbl_time,
+            self._lbl_lat,
+            self._lbl_lon,
+            self._lbl_hmsl,
+            self._lbl_hae,
+            self._lbl_spd,
+            self._lbl_trk,
+            self._lbl_pdop,
+            self._lbl_fix,
+            self._lbl_sip,
+            self._lbl_siv,
+            self._lbl_diffcorr,
+        ):
+            ctl["font"] = scale_font(self.width, FONTBASE, FONTSCALE)[0]
+
+        for ctl in (
+            self._lbl_ltime,
+            self._lbl_llat,
+            self._lbl_llon,
+            self._lbl_lhmsl,
+            self._lbl_lhae,
+            self._lbl_lspd,
+            self._lbl_ltrk,
+            self._lbl_lpdop,
+            self._lbl_lfix,
+            self._lbl_lsip,
+            self._lbl_lsiv,
+            self._lbl_lacc,
+            self._lbl_lcorr,
+            self._lbl_psstats,
+        ):
+            ctl["font"] = scale_font(self.width, FONTBASE - 2, FONTSCALE)[0]
+
+        for ctl in (
+            self._lbl_hvdop,
+            self._lbl_hvacc,
+            self._lbl_diffstat,
+        ):
+            ctl["font"] = scale_font(self.width, FONTBASE - 4, FONTSCALE)[0]
+
+    def _on_sep(self, event):  # pylint: disable=unused-argument
+        """
+        Toggle hae/sep display.
+
+        :param event event: mouse click event
+        """
+
+        self._sep = not self._sep
+
+    def _on_resize(self, event):  # pylint: disable=unused-argument
+        """
+        Resize frame.
+
+        :param event event: resize event
+        """
+
+        self.width, self.height = self.get_size()
+        self._set_fontsize()
+
+    def get_size(self):
+        """
+        Get current frame size.
+
+        :return: window size (width, height)
+        :rtype: tuple
+        """
+
+        self.update_idletasks()  # Make sure we know about any resizing
+        return self.winfo_width(), self.winfo_height()

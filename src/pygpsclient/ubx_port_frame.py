@@ -1,0 +1,255 @@
+"""
+ubx_port_frame.py
+
+UBX Configuration frame for CFG-PRT commands
+
+Created on 22 Dec 2020
+
+:author: semuadmin (Steve Smith)
+:copyright: 2020 semuadmin
+:license: BSD 3-Clause
+"""
+
+from tkinter import (
+    EW,
+    NE,
+    Button,
+    Checkbutton,
+    Frame,
+    IntVar,
+    Label,
+    Spinbox,
+    StringVar,
+    Tk,
+    W,
+)
+
+from pyubx2 import POLL, SET, UBXMessage
+
+from pygpsclient.globals import (
+    BPSRATES,
+    CLICK_CURSOR,
+    CONNECTED,
+    ERRCOL,
+    OKCOL,
+    PORTIDS,
+    READONLY,
+    UBX_CFGPRT,
+)
+from pygpsclient.strings import LBLCFGPRT
+
+
+class UBX_PORT_Frame(Frame):
+    """
+    UBX Port and Protocol configuration command panel.
+    """
+
+    def __init__(self, app: Tk, parent: Frame, *args, **kwargs):
+        """
+        Constructor.
+
+        :param Tk app: reference to main tkinter application
+        :param Frame parent: reference to parent frame (config-dialog)
+        :param args: optional args to pass to Frame parent class
+        :param kwargs: optional kwargs to pass to Frame parent class
+        """
+
+        self.__app = app  # Reference to main application class
+        self.__container = parent
+
+        super().__init__(parent.container, *args, **kwargs)
+
+        self._bpsrate = IntVar()
+        self._portid = StringVar()
+        self._inprot = (1, 1, 0, 1)
+        self._outprot = (1, 1, 0)
+        self._inprot_nmea = IntVar()
+        self._inprot_ubx = IntVar()
+        self._inprot_rtcm2 = IntVar()
+        self._inprot_rtcm3 = IntVar()
+        self._outprot_nmea = IntVar()
+        self._outprot_ubx = IntVar()
+        self._outprot_rtcm3 = IntVar()
+
+        self._body()
+        self._do_layout()
+        self._attach_events()
+
+    def _body(self):
+        """
+        Set up frame and widgets.
+        """
+
+        self._lbl_cfg_port = Label(self, text=LBLCFGPRT, anchor=W)
+        self._lbl_ubx_portid = Label(self, text="Port ID")
+        self._spn_ubx_portid = Spinbox(
+            self,
+            values=PORTIDS,
+            width=8,
+            state=READONLY,
+            wrap=True,
+            textvariable=self._portid,
+            command=lambda: self._on_select_portid(),  # pylint: disable=unnecessary-lambda
+        )
+        self._lbl_ubx_bpsrate = Label(self, text="Rate bps")
+        self._spn_ubx_bpsrate = Spinbox(
+            self,
+            values=(BPSRATES),
+            width=6,
+            state=READONLY,
+            wrap=True,
+            textvariable=self._bpsrate,
+        )
+        self._lbl_inprot = Label(self, text="Input")
+        self._chk_inprot_nmea = Checkbutton(
+            self, text="NMEA", variable=self._inprot_nmea
+        )
+        self._chk_inprot_ubx = Checkbutton(self, text="UBX", variable=self._inprot_ubx)
+        self._chk_inprot_rtcm2 = Checkbutton(
+            self, text="RTCM2", variable=self._inprot_rtcm2
+        )
+        self._chk_inprot_rtcm3 = Checkbutton(
+            self, text="RTCM3", variable=self._inprot_rtcm3
+        )
+        self._lbl_outprot = Label(self, text="Output")
+        self._chk_outprot_nmea = Checkbutton(
+            self, text="NMEA", variable=self._outprot_nmea
+        )
+        self._chk_outprot_ubx = Checkbutton(
+            self, text="UBX", variable=self._outprot_ubx
+        )
+        self._chk_outprot_rtcm3 = Checkbutton(
+            self, text="RTCM3", variable=self._outprot_rtcm3
+        )
+        self._lbl_send_command = Label(self, image=self.__container.img_none)
+        self._btn_send_command = Button(
+            self,
+            image=self.__container.img_send,
+            width=50,
+            command=self._on_send_port,
+            cursor=CLICK_CURSOR,
+        )
+
+    def _do_layout(self):
+        """
+        Layout widgets.
+        """
+
+        self._lbl_cfg_port.grid(column=0, row=0, columnspan=6, sticky=EW)
+        self._lbl_ubx_portid.grid(column=0, row=1, sticky=W)
+        self._spn_ubx_portid.grid(column=1, row=1, sticky=W)
+        self._lbl_ubx_bpsrate.grid(column=0, row=2, sticky=W)
+        self._spn_ubx_bpsrate.grid(column=1, row=2, sticky=W)
+        self._lbl_inprot.grid(column=0, row=3, sticky=W)
+        self._chk_inprot_nmea.grid(column=1, row=3, sticky=W)
+        self._chk_inprot_ubx.grid(column=2, row=3, sticky=W)
+        self._chk_inprot_rtcm2.grid(column=3, row=3, sticky=W)
+        self._chk_inprot_rtcm3.grid(column=4, row=3, sticky=W)
+        self._lbl_outprot.grid(column=0, row=4, sticky=W)
+        self._chk_outprot_nmea.grid(column=1, row=4, sticky=W)
+        self._chk_outprot_ubx.grid(column=2, row=4, sticky=W)
+        self._chk_outprot_rtcm3.grid(column=3, row=4, sticky=W)
+        self._btn_send_command.grid(
+            column=3, row=1, rowspan=2, ipadx=3, ipady=3, sticky=NE
+        )
+        self._lbl_send_command.grid(
+            column=4, row=1, rowspan=2, ipadx=3, ipady=3, sticky=NE
+        )
+
+    def _attach_events(self):
+        """
+        Bind events to widget.
+        """
+
+        # click mouse button to refresh information
+        self.bind("<Button>", self._do_poll_prt)
+
+    def reset(self):
+        """
+        Reset panel to initial settings
+        """
+
+        if self.__app.conn_status == CONNECTED:
+            self._do_poll_prt()
+
+    def update_status(self, msg: UBXMessage):
+        """
+        Update pending confirmation status.
+
+        :param UBXMessage msg: UBX config message
+        """
+
+        if msg.identity == "CFG-PRT":
+            self._bpsrate.set(msg.baudRate)
+            self._inprot_ubx.set(msg.inUBX)
+            self._inprot_nmea.set(msg.inNMEA)
+            self._inprot_rtcm2.set(msg.inRTCM)
+            self._inprot_rtcm3.set(msg.inRTCM3)
+            self._outprot_ubx.set(msg.outUBX)
+            self._outprot_nmea.set(msg.outNMEA)
+            self._outprot_rtcm3.set(msg.outRTCM3)
+            self._lbl_send_command["image"] = self.__container.img_confirmed
+            self.__container.set_status_label("CFG-PRT GET message received", OKCOL)
+
+        elif msg.identity == "ACK-NAK":
+            self.__container.set_status_label("CFG-PRT POLL message rejected", ERRCOL)
+            self._lbl_send_command["image"] = self.__container.img_warn
+
+    def _on_select_portid(self):
+        """
+        Handle portid selection.
+        """
+
+        self._do_poll_prt()
+
+    def _on_send_port(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Handle Send port config button press.
+        """
+
+        portID = int(self._portid.get()[0:1])
+        baudRate = int(self._bpsrate.get())
+        inUBX = self._inprot_ubx.get()
+        inNMEA = self._inprot_nmea.get()
+        inRTCM = self._inprot_rtcm2.get()
+        inRTCM3 = self._inprot_rtcm3.get()
+        outUBX = self._outprot_ubx.get()
+        outNMEA = self._outprot_nmea.get()
+        outRTCM3 = self._outprot_rtcm3.get()
+        msg = UBXMessage(
+            "CFG",
+            "CFG-PRT",
+            SET,
+            portID=portID,
+            charLen=3,  # 8 data bits
+            parity=4,  # none
+            nStopBits=0,  # 1 stop bit
+            baudRate=baudRate,
+            inUBX=inUBX,
+            inNMEA=inNMEA,
+            inRTCM=inRTCM,
+            inRTCM3=inRTCM3,
+            outUBX=outUBX,
+            outNMEA=outNMEA,
+            outRTCM3=outRTCM3,
+        )
+        self.__container.send_command(msg)
+        self._lbl_send_command["image"] = self.__container.img_pending
+        self.__container.set_status_label("CFG-PRT SET message sent")
+        for msgid in ("ACK-NAK", "ACK-NAK"):
+            self.__container.set_pending(msgid, UBX_CFGPRT)
+
+        self._do_poll_prt()
+
+    def _do_poll_prt(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Poll PRT message configuration.
+        """
+
+        portID = int(self._portid.get()[0:1])
+        msg = UBXMessage("CFG", "CFG-PRT", POLL, portID=portID)
+        self.__container.send_command(msg)
+        self._lbl_send_command["image"] = self.__container.img_pending
+        self.__container.set_status_label("CFG-PRT POLL message sent")
+        for msgid in ("CFG-PRT", "ACK-NAK"):
+            self.__container.set_pending(msgid, UBX_CFGPRT)

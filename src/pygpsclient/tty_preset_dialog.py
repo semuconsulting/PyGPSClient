@@ -1,0 +1,332 @@
+"""
+tty_preset_dialog.py
+
+TTY Configuration frame for user-defined TTY (AT+) commands
+
+Created on 7 May 2025
+
+:author: semuadmin (Steve Smith)
+:copyright: 2020 semuadmin
+:license: BSD 3-Clause
+"""
+
+from tkinter import (
+    EW,
+    HORIZONTAL,
+    LEFT,
+    NE,
+    NSEW,
+    VERTICAL,
+    Button,
+    Checkbutton,
+    E,
+    Entry,
+    Frame,
+    IntVar,
+    Label,
+    Listbox,
+    N,
+    S,
+    Scrollbar,
+    StringVar,
+    Tk,
+    W,
+    ttk,
+)
+
+from pygpsclient.confirm_box import ConfirmBox
+from pygpsclient.globals import (
+    ASCII,
+    BSR,
+    CLICK_CURSOR,
+    CMDPAUSE,
+    CRLF,
+    ERRCOL,
+    INFOCOL,
+    OKCOL,
+    TRACEMODE_WRITE,
+    TTYERR,
+    TTYMARKER,
+    TTYOK,
+    VALNONBLANK,
+)
+from pygpsclient.hardware_info_frame import Hardware_Info_Frame
+from pygpsclient.helpers import validate  # pylint: disable=unused-import
+from pygpsclient.strings import (
+    CONFIRM,
+    DLGACTION,
+    DLGACTIONCONFIRM,
+    DLGTTTY,
+)
+from pygpsclient.toplevel_dialog import ToplevelDialog
+
+CANCELLED = 0
+CONFIRMED = 1
+NOMINAL = 2
+
+
+class TTYPresetDialog(ToplevelDialog):
+    """
+    TTY Preset and User-defined configuration command dialog.
+    """
+
+    def __init__(self, app: Tk, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Constructor.
+
+        :param Tk app: reference to main tkinter application
+        :param args: optional args to pass to parent class (not currently used)
+        :param kwargs: optional kwargs to pass to Frame parent class
+        """
+
+        self.__app = app
+
+        super().__init__(app, DLGTTTY)
+        self._confirm = False
+        self._command = StringVar()
+        self._crlf = IntVar()
+        self._echo = IntVar()
+        self._delay = IntVar()
+        self._body()
+        self._do_layout()
+        self.reset()
+        self._attach_events()
+        self._finalise()
+
+    def _body(self):
+        """
+        Set up frame and widgets.
+        """
+
+        self.frm_device_info = Hardware_Info_Frame(
+            self.__app, self, protocol="TTY", borderwidth=2, relief="groove"
+        )
+        self._frm_body = Frame(self.container, borderwidth=2, relief="groove")
+        self._lbl_command = Label(
+            self._frm_body,
+            text="Command",
+        )
+        self._ent_command = Entry(
+            self._frm_body,
+            textvariable=self._command,
+            relief="sunken",
+            width=50,
+        )
+        self._chk_crlf = Checkbutton(
+            self._frm_body,
+            text="CRLF",
+            variable=self._crlf,
+        )
+        self._chk_echo = Checkbutton(
+            self._frm_body,
+            text="Echo",
+            variable=self._echo,
+        )
+        self._chk_delay = Checkbutton(
+            self._frm_body,
+            text="Delay",
+            variable=self._delay,
+        )
+        self._lbl_presets = Label(self._frm_body, text="Preset TTY Commands", anchor=W)
+        self._lbx_preset = Listbox(
+            self._frm_body,
+            border=2,
+            relief="sunken",
+            height=20,
+            width=55,
+            justify=LEFT,
+            exportselection=False,
+        )
+        self._scr_presetv = Scrollbar(self._frm_body, orient=VERTICAL)
+        self._scr_preseth = Scrollbar(self._frm_body, orient=HORIZONTAL)
+        self._lbx_preset["yscrollcommand"] = self._scr_presetv.set
+        self._lbx_preset["xscrollcommand"] = self._scr_preseth.set
+        self._scr_presetv["command"] = self._lbx_preset.yview
+        self._scr_preseth["command"] = self._lbx_preset.xview
+        self._lbl_send_command = Label(self._frm_body, image=self.img_none)
+        self._btn_send_command = Button(
+            self._frm_body,
+            image=self.img_send,
+            width=50,
+            command=self._on_send_command,
+            cursor=CLICK_CURSOR,
+        )
+
+    def _do_layout(self):
+        """
+        Layout widgets.
+        """
+
+        self.frm_device_info.grid(column=0, row=0, sticky=EW)
+        self._frm_body.grid(column=0, row=1, sticky=NSEW)
+        self._lbl_presets.grid(column=0, row=0, columnspan=4, sticky=EW)
+        self._lbl_command.grid(column=0, row=1, sticky=W)
+        self._ent_command.grid(column=1, row=1, columnspan=4, sticky=EW)
+        self._chk_crlf.grid(column=0, row=2, sticky=W)
+        self._chk_echo.grid(column=1, row=2, sticky=W)
+        self._chk_delay.grid(column=2, row=2, sticky=W)
+        ttk.Separator(self._frm_body).grid(column=0, row=3, columnspan=5, sticky=EW)
+        self._lbx_preset.grid(
+            column=0,
+            row=4,
+            columnspan=3,
+            sticky=NSEW,
+        )
+        self._scr_presetv.grid(column=2, row=4, sticky=(N, S, E))
+        self._scr_preseth.grid(column=0, row=5, columnspan=4, sticky=EW)
+        self._btn_send_command.grid(
+            column=3, row=4, padx=3, ipadx=3, ipady=3, sticky=NE
+        )
+        self._lbl_send_command.grid(
+            column=4, row=4, padx=3, ipadx=3, ipady=3, sticky=NE
+        )
+
+        self.container.grid_columnconfigure(0, weight=1)
+        self.container.grid_rowconfigure(1, weight=1)
+        colsp, _ = self._frm_body.grid_size()
+        for col in range(colsp - 2):
+            self._frm_body.grid_columnconfigure(col, weight=1)
+        self._frm_body.grid_rowconfigure(4, weight=1)
+
+    def _attach_events(self):
+        """
+        Bind listbox selection events.
+        """
+
+        self._command.trace_add(TRACEMODE_WRITE, self._on_update_command)
+        for setting in (self._crlf, self._echo):
+            setting.trace_add(TRACEMODE_WRITE, self._on_update_settings)
+        self._lbx_preset.bind("<<ListboxSelect>>", self._on_select_preset)
+        # self.bind("<Configure>", self._on_resize)
+
+    def reset(self):
+        """
+        Reset panel - Load user-defined presets if there are any.
+        """
+
+        self.frm_device_info.reset()
+        self._crlf.set(self.__app.configuration.get("ttycrlf_b"))
+        self._echo.set(self.__app.configuration.get("ttyecho_b"))
+        self._delay.set(self.__app.configuration.get("ttydelay_b"))
+        self.__app.configuration.init_presets("tty")
+        for i, preset in enumerate(self.__app.configuration.get("ttypresets_l")):
+            self._lbx_preset.insert(i, preset)
+
+    def _on_update_command(self, var, index, mode):  # pylint: disable=unused-argument
+        """
+        Command has been updated.
+        """
+
+        self._lbl_send_command["image"] = self.img_none
+
+    def _on_update_settings(self, var, index, mode):  # pylint: disable=unused-argument
+        """
+        Settings have been updated.
+        """
+
+        self.__app.configuration.set("ttycrlf_b", self._crlf.get())
+        self.__app.configuration.set("ttyecho_b", self._echo.get())
+        self.__app.configuration.set("ttydelay_b", self._delay.get())
+
+    def _on_select_preset(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Preset command has been selected.
+        """
+
+        try:
+            self.set_status_label("", INFOCOL)
+            idx = self._lbx_preset.curselection()
+            preset = self._lbx_preset.get(idx).split(";", 1)
+            self._confirm = CONFIRM in preset[0]
+            self._command.set(preset[1])
+        except IndexError:
+            self.set_status_label("Invalid preset format", ERRCOL)
+
+    def _on_send_command(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Preset command send button has been clicked.
+        """
+
+        if not self._ent_command.validate(VALNONBLANK):
+            self.set_status_label("Invalid command format", ERRCOL)
+            return
+
+        try:
+            if self._confirm:
+                if ConfirmBox(self, DLGACTION, DLGACTIONCONFIRM).show():
+                    self._parse_command(self._command.get())
+                    status = CONFIRMED
+                else:
+                    status = CANCELLED
+            else:
+                self._parse_command(self._command.get())
+                status = CONFIRMED
+            if status == CONFIRMED:
+                self._lbl_send_command["image"] = self.img_pending
+                self.set_status_label("Command(s) sent")
+            elif status == CANCELLED:
+                self.set_status_label("Command(s) cancelled")
+            elif status == NOMINAL:
+                self.set_status_label("Command(s) sent, no results")
+            self._confirm = False
+
+        except Exception as err:  # pylint: disable=broad-except
+            self.set_status_label(f"Error {err}", ERRCOL)
+            self._lbl_send_command["image"] = self.img_warn
+
+    def _parse_command(self, command: str):
+        """
+        Parse and send user-defined command(s).
+
+        This could result in any number of errors if the
+        ttypresets list contains garbage, so there's a broad
+        catch-all-exceptions in the calling routine.
+
+        :param str command: semicolon-delimited list of TTY commands
+        """
+
+        try:
+            cmds = []
+            for cmd in command.split(";"):
+                cmd = cmd.strip().encode(ASCII, errors=BSR)
+                if self._crlf.get():
+                    cmd += CRLF
+                self._record_command(cmd)
+                if self._echo.get():  # echo output command to console
+                    self.__app.consoledata.append(
+                        (cmd, cmd.decode(ASCII, errors=BSR), TTYMARKER)
+                    )
+                cmds.append(cmd)
+            self.__app.send_to_device(cmds, interval=self._delay.get() * CMDPAUSE)
+        except Exception as err:  # pylint: disable=broad-except
+            self.set_status_label(f"Error {err}", ERRCOL)
+            self._lbl_send_command["image"] = self.img_warn
+
+    def _record_command(self, msg: bytes):
+        """
+        Record command to memory if in 'record' mode.
+
+        :param bytes msg: configuration message
+        """
+
+        if self.__app.recording:
+            self.__app.recorded_commands = msg
+
+    def update_status(self, msg: bytes):
+        """
+        Update pending confirmation status.
+
+        :param bytes msg: ASCII config message
+        """
+
+        msgstr = msg.decode(ASCII, errors=BSR).upper()
+        for ack in TTYOK:
+            if ack in msgstr:
+                self._lbl_send_command["image"] = self.img_confirmed
+                self.set_status_label("Command(s) acknowledged", OKCOL)
+                return
+        for nak in TTYERR:
+            if nak in msgstr:
+                self._lbl_send_command["image"] = self.img_warn
+                self.set_status_label("Command(s) rejected", ERRCOL)
+                break

@@ -1,0 +1,399 @@
+"""
+rover_frame.py
+
+Rover frame class for PyGPS Application.
+
+This plots the relative 2D position of the rover in a
+fixed or moving base RTK configuration.
+
+Created on 22 Aug 2023
+
+:author: semuadmin (Steve Smith)
+:copyright: 2020 semuadmin
+:license: BSD 3-Clause
+"""
+
+# pylint: disable=invalid-name, no-member
+
+from random import randrange
+from tkinter import EW, NSEW, NW, SW, Frame, Label, Spinbox, StringVar, Tk, W
+
+from pygpsclient.canvas_subclasses import (
+    MODE_POL,
+    TAG_DATA,
+    TAG_GRID,
+    TAG_WAIT,
+    TAG_XLABEL,
+    CanvasCompass,
+)
+from pygpsclient.globals import (
+    BGCOL,
+    PNTCOL,
+    READONLY,
+    TRACEMODE_WRITE,
+    WIDGETU2,
+)
+from pygpsclient.helpers import setubxrate
+from pygpsclient.rtcm3_handler import RTCM56
+from pygpsclient.strings import DLGWAITRELPOS, NA
+
+CULLMID = True  # whether to cull random points from middle of array
+MAXPOINTS = 100
+INSET = 4
+TRKCOL = "#CD6600"
+TRKTOL = 5
+# setup ranges from 10cm to 5000km
+RANGES = [int(i * 10**n) for n in range(1, 9) for i in (1, 2, 5)]
+
+
+class RoverFrame(Frame):
+    """
+    Rover view frame class.
+    """
+
+    def __init__(self, app: Tk, parent: Frame, *args, **kwargs):
+        """
+        Constructor.
+
+        :param Tk app: reference to main tkinter application
+        :param Frame parent: reference to parent frame
+        :param args: Optional args to pass to Frame parent class
+        :param kwargs: Optional kwargs to pass to Frame parent class
+        """
+
+        self.__app = app
+
+        super().__init__(parent, *args, **kwargs)
+
+        def_w, def_h = WIDGETU2
+        self.width = kwargs.get("width", def_w)
+        self.height = kwargs.get("height", def_h)
+        self._source = StringVar()
+        self._range = 1
+        self._temprange = 1
+        self._scale_c = 1
+        self._scale_u = "cm"
+        self.points = []
+        self._redraw = True
+        self._maxdist = 0
+        self._waiting = True
+        self._body()
+        self.reset()
+        self._attach_events()
+        self.enable_messages(True)
+
+    def _body(self):
+        """Set up frame and widgets."""
+
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+        self._canvas = CanvasCompass(
+            self.__app, self, MODE_POL, width=self.width, height=self.height, bg=BGCOL
+        )
+        self._frm_options = Frame(self, bg=BGCOL)
+        self._lbl_options = Label(self._frm_options, text="Source", fg=PNTCOL, bg=BGCOL)
+        self._spn_options = Spinbox(
+            self._frm_options,
+            values=["NAV-RELPOSNED", "NAV-DAHEADING", RTCM56],
+            width=16,
+            wrap=True,
+            background=BGCOL,
+            readonlybackground=BGCOL,
+            foreground=PNTCOL,
+            buttonbackground=BGCOL,
+            textvariable=self._source,
+            state=READONLY,
+        )
+        self._canvas.grid(column=0, row=0, sticky=NSEW)
+        self._frm_options.grid(column=0, row=1, sticky=EW)
+        self._lbl_options.grid(column=0, row=0, sticky=W)
+        self._spn_options.grid(column=1, row=0, sticky=EW)
+
+    def reset(self):
+        """
+        Reset settings to saved configuration.
+        """
+
+        self._source.set(
+            self.__app.configuration.get("relposnedsettings_d")["source_s"]
+        )
+
+    def _attach_events(self):
+        """
+        Bind events to frame.
+        """
+
+        self.bind("<Configure>", self._on_resize)
+        self._canvas.bind("<Double-Button-1>", self._on_clear)
+        self._source.trace_add(TRACEMODE_WRITE, self._on_source)
+
+    def init_frame(self):
+        """
+        Initialize plot.
+        """
+
+        # only redraw the tags that have changed
+        tags = (TAG_GRID, TAG_XLABEL, TAG_WAIT) if self._redraw else ()
+        maxgrid = 10
+        scale = self._range / maxgrid / self._scale_c
+        self._canvas.create_compass(
+            radii=range(maxgrid, 1, -2),
+            unit=self._scale_u,
+            dp=1 if self._scale_u in ("m", "cm") else 0,
+            scale=scale,
+            tags=tags,
+        )
+        self._redraw = False
+
+    def update_frame(self):
+        """
+        Collect relative position data and update the plot.
+        """
+
+        src = self.__app.gnss_status.rel_pos_source
+        if src != self._source.get():
+            self._on_clear(None)
+            return
+
+        center_x = self.width / 2
+        center_y = self.height / 2
+        hdg = self.__app.gnss_status.rel_pos_heading
+        dis = self.__app.gnss_status.rel_pos_length
+        if hdg not in (0.0, "", None) and dis not in (0.0, "", None):
+            self._waiting = False
+        else:
+            return
+        acchdg = self.__app.gnss_status.acc_heading
+        accdis = self.__app.gnss_status.acc_length
+        try:
+            fixok, diffsoln, valrp, valhdg, carrsoln, moving = (
+                self.__app.gnss_status.rel_pos_flags[0],
+                self.__app.gnss_status.rel_pos_flags[1],
+                self.__app.gnss_status.rel_pos_flags[2],
+                self.__app.gnss_status.rel_pos_flags[7],
+                self.__app.gnss_status.rel_pos_flags[3],
+                self.__app.gnss_status.rel_pos_flags[4],
+            )
+        except IndexError:
+            valrp = moving = NA
+            fixok = hdg != 0
+            valhdg = hdg != 0
+            if "RTK-FIXED" in self.__app.gnss_status.fix:
+                carrsoln = 2
+                diffsoln = 1
+            elif "RTK" in self.__app.gnss_status.fix:
+                carrsoln = 1
+                diffsoln = 1
+            else:
+                carrsoln = 0
+                diffsoln = 0
+
+        self._store_track(hdg, dis)
+
+        self._set_range(dis)  # set range and scale automatically
+
+        self.init_frame()
+
+        # plot status information
+        fh = self._canvas.fnth
+        self._canvas.create_text(
+            INSET,
+            INSET,
+            text=f"Src {self.__app.gnss_status.rel_pos_source}",
+            fill=PNTCOL,
+            anchor=NW,
+            font=self._canvas.font,
+            tags=TAG_DATA,
+        )
+        self._canvas.create_text(
+            INSET,
+            INSET + fh,
+            text=f"Len {dis:,.2f} ± {accdis:.2f} cm",
+            fill=PNTCOL,
+            anchor=NW,
+            font=self._canvas.font,
+            tags=TAG_DATA,
+        )
+        self._canvas.create_text(
+            INSET,
+            INSET + fh * 2,
+            text=f"Hdg {hdg:.2f} ± {acchdg:.2f}",
+            fill=PNTCOL,
+            anchor=NW,
+            font=self._canvas.font,
+            tags=TAG_DATA,
+        )
+        fixok = {0: "NO FIX", 1: "FIX OK"}.get(fixok, "FIX NA")
+        diffsoln = {0: "NO DGPS", 1: "DGPS"}.get(diffsoln, "DGPS NA")
+        valrp = {0: "INVALID RP", 1: "VALID RP"}.get(valrp, "RP NA")
+        valhdg = {0: "INVALID HDG", 1: "VALID HDG"}.get(valhdg, "HDG NA")
+        carrsoln = {0: "NO RTK", 1: "RTK FLOAT", 2: "RTK FIXED"}.get(carrsoln, "RTK NA")
+        moving = {0: "STATIC", 1: "MOVING"}.get(moving, "MOVING NA")
+        self._canvas.create_text(
+            INSET,
+            self.height - INSET,
+            text=f"{fixok}\n{diffsoln}\n{valrp}\n{valhdg}\n{carrsoln}\n{moving}",
+            fill=PNTCOL,
+            anchor=SW,
+            font=self._canvas.font,
+            tags=TAG_DATA,
+        )
+
+        # plot historical relative position track
+        for thdg, tdis in self.points:
+            x, y = self._canvas.d2xy(thdg, tdis / self._scale_c)
+            self._canvas.create_circle(
+                x,
+                y,
+                2,
+                fill=TRKCOL,
+                outline=TRKCOL,
+                tags=TAG_DATA,
+            )
+
+        # plot latest relative position with accuracy radius
+        x, y = self._canvas.d2xy(hdg, dis / self._scale_c)
+        self._canvas.create_circle(
+            x,
+            y,
+            accdis / (self._range / 10 / self._scale_c),
+            outline=TRKCOL,
+            tags=TAG_DATA,
+        )
+        self._canvas.create_line(
+            center_x,
+            center_y,
+            x,
+            y,
+            fill=PNTCOL,
+            width=3,
+            tags=TAG_DATA,
+        )
+        self._canvas.create_circle(x, y, 3, fill=PNTCOL, outline=PNTCOL, tags=TAG_DATA)
+
+    def _set_range(self, distance: float):
+        """
+        Set range and scale.
+
+        :param float distance: distance in cm
+        """
+
+        self._temprange = self._range
+        # set range and scale automatically
+        self._maxdist = max(distance, self._maxdist)
+        r = RANGES[0]
+        for r in RANGES:
+            if self._maxdist < r:
+                break
+        self._range = r
+        if self._range >= 1e4:
+            self._scale_c = 1e5
+            self._scale_u = "km"
+        elif self._range >= 1e2:
+            self._scale_c = 1e2
+            self._scale_u = "m"
+        else:
+            self._scale_c = 1
+            self._scale_u = "cm"
+        # force redraw if range has changed
+        self._redraw = self._redraw | self._temprange != self._range
+
+    def _store_track(
+        self,
+        hdg: float,
+        dis: float,
+        mx: int = MAXPOINTS,
+        dp: int = TRKTOL,
+    ):
+        """
+        Append historical track of relative position.
+        Remove every nth point if track is full.
+
+        :param float hdg: heading in degrees
+        :param float dis: length in cm
+        :param int mx: maximum points in track
+        :param int dp: decimal places tolerance
+        """
+
+        if len(self.points) > 0:
+            hdg_1, dis_1 = self.points[-1]
+            if int(hdg) == int(hdg_1) and int(dis / 100) == int(dis_1 / 100):
+                return
+        self.points.append((hdg, dis))
+        if len(self.points) > mx:
+            self._limit_points()
+
+    def _limit_points(self):
+        """
+        Limit number of points in in-memory array.
+        """
+
+        if CULLMID:  # cull randomly from middle
+            self.points.pop(randrange(1, len(self.points) - int(MAXPOINTS / 10)))
+        else:  # cull from start
+            self.points.pop(0)
+
+    def enable_messages(self, status: int):
+        """
+        Enable/disable UBX NAV-RELPOSNED message on
+        default port(s).
+
+        :param int status: 0 = off, 1 = on
+        """
+
+        source = self.__app.configuration.get("relposnedsettings_d")["source_s"]
+        if source in ("NAV-RELPOSNED", "NAV-DAHEADING"):
+            setubxrate(self.__app, source, status, "UBX")
+        elif source == RTCM56:
+            setubxrate(self.__app, "TYPE1006", status, "RTCM_3X_TYPE")
+
+    def _on_source(self, var, index, mode):  # pylint: disable=unused-argument
+        """
+        Action on updating data source.
+        """
+
+        self.update()
+        self.__app.configuration.set(
+            "relposnedsettings_d", {"source_s": self._source.get()}
+        )
+
+    def _on_clear(self, event):  # pylint: disable=unused-argument
+        """ "
+        Clear plot.
+
+        :param Event event: clear event
+        """
+
+        self.points = []
+        self._maxdist = 0
+        self._redraw = True
+
+    def _on_resize(self, event):  # pylint: disable=unused-argument
+        """
+        Resize frame.
+
+        :param Event event: resize event
+        """
+
+        self.width, self.height = self.get_size()
+        self._redraw = True
+        self._on_waiting()
+
+    def _on_waiting(self):
+        """
+        Display 'waiting for data' alert.
+        """
+
+        if self._waiting:
+            self._canvas.create_alert(DLGWAITRELPOS, tags=TAG_WAIT)
+
+    def get_size(self) -> tuple:
+        """
+        Get current canvas size.
+
+        :return: window size (width, height)
+        :rtype: tuple
+        """
+
+        self.update_idletasks()  # Make sure we know about resizing
+        return self._canvas.winfo_width(), self._canvas.winfo_height()

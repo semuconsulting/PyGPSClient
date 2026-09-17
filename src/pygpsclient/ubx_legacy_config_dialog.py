@@ -1,0 +1,195 @@
+"""
+ubx_config_dialog.py
+
+UBX configuration container dialog
+
+This is the pop-up dialog containing the various
+UBX configuration command frames.
+
+Supply initial settings via `config` keyword argument.
+
+NB: Individual UBX configuration commands do not have uniquely
+identifiable synchronous or asynchronous responses (e.g. unique
+txn ID). The way we keep tabs on confirmation status is to
+maintain a list of all commands sent and the responses they're
+expecting. When we receive a response, we check against the list
+of awaited responses of the same type and flag the first one we
+find as 'confirmed'.
+
+Created on 19 Sep 2020
+
+:author: semuadmin (Steve Smith)
+:copyright: 2020 semuadmin
+:license: BSD 3-Clause
+"""
+
+from tkinter import NSEW
+
+from pyubx2 import SET, UBXMessage
+
+from pygpsclient.dynamic_config_frame import Dynamic_Config_Frame
+from pygpsclient.globals import (
+    CONNECTED,
+    CONNECTED_SIMULATOR,
+    CONNECTED_SOCKET,
+    ERRCOL,
+    ROMVER_NEW,
+    UBX_CFGMSG,
+    UBX_CFGOTHER,
+    UBX_CFGPRT,
+    UBX_MONHW,
+    UBX_MONRF,
+    UBX_MONVER,
+)
+from pygpsclient.hardware_info_frame import Hardware_Info_Frame
+from pygpsclient.strings import DLGTUBXLEGACY, NA, NOTCONN, ROMVERWARN
+from pygpsclient.toplevel_dialog import ToplevelDialog
+from pygpsclient.ubx_msgrate_frame import UBX_MSGRATE_Frame
+from pygpsclient.ubx_port_frame import UBX_PORT_Frame
+
+
+class UBXLegacyConfigDialog(ToplevelDialog):
+    """,
+    UBXLegacyConfigDialog class.
+    """
+
+    def __init__(self, app, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Constructor.
+
+        :param Tk app: reference to main tkinter application
+        :param args: optional args to pass to parent class (not currently used)
+        :param kwargs: optional kwargs to pass to parent class (not currently used)
+        """
+
+        self.__app = app  # Reference to main application class
+
+        super().__init__(app, DLGTUBXLEGACY)
+
+        self._cfg_msg_command = None
+        self._pending_confs = {}
+
+        self._body()
+        self._do_layout()
+        self._reset()
+        self._attach_events()
+        self._finalise()
+
+    def _body(self):
+        """
+        Set up frame and widgets.
+        """
+
+        # add configuration widgets
+        self.frm_device_info = Hardware_Info_Frame(
+            self.__app, self, protocol="UBX", borderwidth=2, relief="groove"
+        )
+        self._frm_config_port = UBX_PORT_Frame(
+            self.__app, self, borderwidth=2, relief="groove"
+        )
+        self._frm_config_msg = UBX_MSGRATE_Frame(
+            self.__app, self, borderwidth=2, relief="groove"
+        )
+        self._frm_config_dynamic = Dynamic_Config_Frame(
+            self.__app, self, protocol="UBX", borderwidth=2, relief="groove"
+        )
+
+    def _do_layout(self):
+        """
+        Position widgets in frame.
+        """
+
+        self.frm_device_info.grid(column=0, row=0, columnspan=3, sticky=NSEW)
+        self._frm_config_port.grid(column=0, row=1, sticky=NSEW)
+        self._frm_config_msg.grid(column=0, row=2, sticky=NSEW)
+        self._frm_config_dynamic.grid(column=1, row=1, rowspan=2, sticky=NSEW)
+
+        self.container.grid_columnconfigure(1, weight=1)
+        self.container.grid_rowconfigure(2, weight=1)
+        self._frm_config_msg.grid_rowconfigure(3, weight=1)
+        self._frm_config_dynamic.grid_columnconfigure(0, weight=1)
+        self._frm_config_dynamic.grid_rowconfigure(1, weight=1)
+
+    def _reset(self):
+        """
+        Reset configuration widgets.
+        """
+
+        if self.__app.conn_status not in (
+            CONNECTED,
+            CONNECTED_SOCKET,
+            CONNECTED_SIMULATOR,
+        ):
+            self.set_status_label(NOTCONN, ERRCOL)
+            return
+
+        # check for legacy ROM version
+        hwver = self.__app.gnss_status.version_data["hwversion"]
+        romver = self.__app.gnss_status.version_data["romversion"]
+        if "u-blox" not in hwver or (romver >= ROMVER_NEW and romver != NA):
+            self.set_status_label(ROMVERWARN.format(generation="legacy"), ERRCOL)
+        else:
+            self._frm_config_port.reset()
+            self._frm_config_dynamic.reset()
+            self.frm_device_info.reset()
+
+    def _attach_events(self):
+        """
+        Bind events to window.
+        """
+
+        # self.bind("<Configure>", self._on_resize)
+
+    def set_pending(self, msgid: int, ubxfrm: int):
+        """
+        Set pending confirmation flag for UBX configuration frame to
+        signify that it's waiting for a confirmation message.
+
+        :param int msgid: UBX message identity
+        :param int ubxfrm: integer representing UBX configuration frame (0-6)
+        """
+
+        self._pending_confs[msgid] = ubxfrm
+
+    def update_pending(self, msg: UBXMessage):
+        """
+        Receives polled confirmation message from the ubx_handler and
+        updates whichever UBX config frame is waiting for this confirmation.
+
+        :param UBXMessage msg: UBX config message
+        """
+
+        ubxfrm = self._pending_confs.get(msg.identity, None)
+
+        if ubxfrm is not None:
+            if ubxfrm in (UBX_MONVER, UBX_MONHW, UBX_MONRF):
+                self.frm_device_info.reset()
+            elif ubxfrm == UBX_CFGPRT:
+                self._frm_config_port.update_status(msg)
+            elif ubxfrm == UBX_CFGMSG:
+                self._frm_config_msg.update_status(msg)
+            elif ubxfrm == UBX_CFGOTHER:
+                self._frm_config_dynamic.update_status(msg)
+
+            # reset all confirmation flags for this frame
+            for msgid in (msg.identity, "ACK-ACK", "ACK-NAK"):
+                if self._pending_confs.get(msgid, None) == ubxfrm:
+                    self._pending_confs.pop(msgid)
+
+    def send_command(self, msg: UBXMessage):
+        """
+        Send command to receiver.
+        """
+
+        self.__app.send_to_device(msg.serialize())
+        self._record_command(msg)
+
+    def _record_command(self, msg: UBXMessage):
+        """
+        Record command to memory if in 'record' mode.
+
+        :param bytes msg: configuration message
+        """
+
+        if self.__app.recording and msg.msgmode == SET:
+            self.__app.recorded_commands = msg

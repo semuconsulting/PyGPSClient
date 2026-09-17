@@ -1,0 +1,480 @@
+"""
+ubx_cfgval_frame.py
+
+UBX Configuration frame for CFG-VAL commands.
+
+Created on 22 Dec 2020
+
+:author: semuadmin (Steve Smith)
+:copyright: 2020 semuadmin
+:license: BSD 3-Clause
+"""
+
+# pylint: disable=no-member
+
+from tkinter import (
+    EW,
+    HORIZONTAL,
+    LEFT,
+    NORMAL,
+    NSEW,
+    VERTICAL,
+    Button,
+    E,
+    Entry,
+    Frame,
+    IntVar,
+    Label,
+    Listbox,
+    N,
+    Radiobutton,
+    S,
+    Scrollbar,
+    Spinbox,
+    StringVar,
+    TclError,
+    Tk,
+    W,
+)
+
+from PIL import Image, ImageTk
+from pyubx2 import UBX_CONFIG_DATABASE, UBXMessage
+from pyubx2.ubxhelpers import attsiz, atttyp, cfgname2key
+
+from pygpsclient.globals import (
+    CLICK_CURSOR,
+    ERRCOL,
+    ICON_BLANK,
+    ICON_CONFIRMED,
+    ICON_PENDING,
+    ICON_SEND,
+    ICON_WARNING,
+    OKCOL,
+    READONLY,
+    TRACEMODE_WRITE,
+    UBX_CFGVAL,
+    VALBOOL,
+    VALCUSTOM,
+    VALFLOAT,
+    VALNONBLANK,
+    VALSIGNED,
+    VALUNSIGNED,
+)
+from pygpsclient.helpers import valid_hex
+
+VALSET = 0
+VALDEL = 1
+VALGET = 2
+ATTDICT = {
+    "U": "unsigned int",
+    "I": "signed int",
+    "R": "float",
+    "L": "bool",
+    "E": "unsigned int",
+    "X": "byte(s) as hex string",
+    "C": "char(s)",
+}
+
+
+class UBX_CFGVAL_Frame(Frame):
+    """
+    UBX CFG-VAL configuration command panel.
+    """
+
+    def __init__(self, app: Tk, parent: Frame, *args, **kwargs):
+        """
+        Constructor.
+
+        :param Tk app: reference to main tkinter application
+        :param Frame parent: reference to parent frame (config-dialog)
+        :param args: optional args to pass to Frame parent class
+        :param kwargs: optional kwargs to pass to Frame parent class
+        """
+
+        self.__app = app  # Reference to main application class
+        self.__container = parent
+
+        super().__init__(parent.container, *args, **kwargs)
+
+        self._img_send = ImageTk.PhotoImage(Image.open(ICON_SEND))
+        self._img_pending = ImageTk.PhotoImage(Image.open(ICON_PENDING))
+        self._img_confirmed = ImageTk.PhotoImage(Image.open(ICON_CONFIRMED))
+        self._img_warn = ImageTk.PhotoImage(Image.open(ICON_WARNING))
+        self._img_blank = ImageTk.PhotoImage(Image.open(ICON_BLANK))
+        self._cfgval_cat = None
+        self._cfgval_keyname = None
+        self._cfgval_keyid = None
+        self._cfgmode = IntVar()
+        self._cfgatt = StringVar()
+        self._cfgkeyid = StringVar()
+        self._cfgval = StringVar()
+        self._cfglayer = StringVar()
+
+        self._body()
+        self._do_layout()
+        self._attach_events()
+        self.reset()
+
+    def _body(self):
+        """
+        Set up frame and widgets.
+        """
+
+        self._lbl_configdb = Label(
+            self, text="CFG-VALSET/DEL/GET Configuration Interface", anchor=W
+        )
+        self._lbl_cat = Label(self, text="Category", anchor=W)
+        self._lbx_cat = Listbox(
+            self,
+            border=2,
+            relief="sunken",
+            height=10,
+            justify=LEFT,
+            exportselection=False,
+        )
+        self._scr_catv = Scrollbar(self, orient=VERTICAL)
+        self._scr_cath = Scrollbar(self, orient=HORIZONTAL)
+        self._lbx_cat["yscrollcommand"] = self._scr_catv.set
+        self._lbx_cat["xscrollcommand"] = self._scr_cath.set
+        self._scr_catv["command"] = self._lbx_cat.yview
+        self._scr_cath["command"] = self._lbx_cat.xview
+        self._lbl_parm = Label(self, text="Keyname", anchor=W)
+        self._lbx_parm = Listbox(
+            self,
+            border=2,
+            relief="sunken",
+            height=10,
+            justify=LEFT,
+            exportselection=False,
+        )
+        self._scr_parmv = Scrollbar(self, orient=VERTICAL)
+        self._scr_parmh = Scrollbar(self, orient=HORIZONTAL)
+        self._lbx_parm["yscrollcommand"] = self._scr_parmv.set
+        self._lbx_parm["xscrollcommand"] = self._scr_parmh.set
+        self._scr_parmv["command"] = self._lbx_parm.yview
+        self._scr_parmh["command"] = self._lbx_parm.xview
+
+        self._rad_cfgset = Radiobutton(
+            self, text="CFG-VALSET", variable=self._cfgmode, value=0
+        )
+        self._rad_cfgdel = Radiobutton(
+            self, text="CFG-VALDEL", variable=self._cfgmode, value=1
+        )
+        self._rad_cfgget = Radiobutton(
+            self, text="CFG-VALGET", variable=self._cfgmode, value=2
+        )
+        self._lbl_key = Label(self, text="KeyID")
+        self._lbl_keyid = Label(
+            self,
+            textvariable=self._cfgkeyid,
+            width=10,
+            border=1,
+            relief="sunken",
+        )
+        self._lbl_type = Label(self, text="Type")
+        self._lbl_att = Label(
+            self,
+            textvariable=self._cfgatt,
+            width=5,
+            border=1,
+            relief="sunken",
+        )
+        self._lbl_layer = Label(self, text="Layer")
+        self._spn_layer = Spinbox(
+            self,
+            textvariable=self._cfglayer,
+            values=("RAM", "BBR", "FLASH", "DEFAULT"),
+            wrap=True,
+            width=8,
+            state=READONLY,
+        )
+        self._lbl_val = Label(self, text="Value")
+        self._ent_val = Entry(
+            self,
+            textvariable=self._cfgval,
+            state=READONLY,
+            relief="sunken",
+        )
+
+        self._lbl_send_command = Label(self)
+        self._btn_send_command = Button(
+            self,
+            image=self._img_send,
+            width=50,
+            command=self._on_send_config,
+            cursor=CLICK_CURSOR,
+        )
+
+    def _do_layout(self):
+        """
+        Layout widgets.
+        """
+
+        self._lbl_configdb.grid(column=0, row=0, columnspan=5, sticky=EW)
+        self._lbl_cat.grid(column=0, row=1, sticky=EW)
+        self._lbx_cat.grid(column=0, row=2, rowspan=10, sticky=NSEW)
+        self._scr_catv.grid(column=0, row=2, rowspan=10, sticky=(N, S, E))
+        self._scr_cath.grid(column=0, row=12, sticky=EW)
+        self._lbl_parm.grid(column=1, row=1, columnspan=4, sticky=EW)
+        self._lbx_parm.grid(column=1, row=2, columnspan=4, rowspan=10, sticky=NSEW)
+        self._scr_parmv.grid(column=4, row=2, rowspan=10, sticky=(N, S, E))
+        self._scr_parmh.grid(column=1, row=12, columnspan=4, sticky=EW)
+        self._rad_cfgget.grid(column=0, row=13, sticky=W)
+        self._rad_cfgset.grid(column=0, row=14, sticky=W)
+        self._rad_cfgdel.grid(column=0, row=15, sticky=W)
+        self._lbl_key.grid(column=1, row=13, sticky=E)
+        self._lbl_keyid.grid(column=2, row=13, sticky=W)
+        self._lbl_type.grid(column=3, row=13, sticky=E)
+        self._lbl_att.grid(column=4, row=13, sticky=W)
+        self._lbl_layer.grid(column=1, row=14, sticky=E)
+        self._spn_layer.grid(column=2, row=14, sticky=W)
+        self._lbl_val.grid(column=1, row=15, sticky=E)
+        self._ent_val.grid(column=2, row=15, columnspan=3, sticky=EW)
+
+        self._btn_send_command.grid(
+            column=3, row=16, rowspan=2, ipadx=3, ipady=3, sticky=E
+        )
+        self._lbl_send_command.grid(
+            column=4, row=16, rowspan=2, ipadx=3, ipady=3, sticky=E
+        )
+
+    def _attach_events(self):
+        """
+        Bind events to widgets.
+        """
+
+        self._lbx_cat.bind("<<ListboxSelect>>", self._on_select_cat)
+        self._lbx_parm.bind("<<ListboxSelect>>", self._on_select_parm)
+        self._cfgmode.trace_add(TRACEMODE_WRITE, self._on_select_mode)
+
+    def reset(self):
+        """
+        Reset panel with sorted list of unique UBX Config Database key categories.
+        """
+
+        cdb_cats = []
+        for cdb in UBX_CONFIG_DATABASE:
+            cdbs = cdb.split("_", maxsplit=3)
+            cdbp = f"{cdbs[0]}_{cdbs[1]}"
+            if cdbs[1] == "MSGOUT":  # subdivide large MSGOUT category
+                cdbp += f"_{cdbs[2]}"
+            if cdbp not in cdb_cats:
+                cdb_cats.append(cdbp)
+
+        for i, cat in enumerate(cdb_cats):
+            self._lbx_cat.insert(i, cat)
+        self._cfgmode.set(2)
+        self._lbl_send_command["image"] = self._img_blank
+
+    def _on_select_mode(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Mode has been selected.
+        """
+
+        if self._cfgmode.get() == VALSET:
+            self._ent_val["state"] = NORMAL
+        else:
+            self._ent_val["state"] = READONLY
+        self._lbl_send_command["image"] = self._img_blank
+
+    def _on_select_cat(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Configuration category has been selected.
+        """
+
+        idx = self._lbx_cat.curselection()
+        self._cfgval_cat = self._lbx_cat.get(idx)
+
+        self._lbx_parm.delete(0, "end")
+        self._cfgkeyid.set("")
+        self._cfgatt.set("")
+        idx = 0
+        for keyname, (_, _) in UBX_CONFIG_DATABASE.items():
+            if self._cfgval_cat in keyname:
+                self._lbx_parm.insert(idx, keyname)
+                idx += 1
+        self._cfgval.set("")
+        self._lbl_send_command["image"] = self._img_blank
+
+    def _on_select_parm(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Configuration parameter (keyname) has been selected.
+        """
+
+        try:
+            idx = self._lbx_parm.curselection()
+            self._cfgval_keyname = self._lbx_parm.get(idx)
+
+            keyid, att = cfgname2key(self._cfgval_keyname)
+            self._cfgkeyid.set(hex(keyid))
+            self._cfgatt.set(att)
+            self._cfgval.set("")
+            self._lbl_send_command["image"] = self._img_blank
+        except TclError:
+            pass
+
+    def _on_send_config(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Config interface send button has been clicked.
+        """
+
+        self._lbl_send_command["image"] = self._img_blank
+        if self._cfgval_keyname is not None:
+            if self._cfgmode.get() == VALSET:
+                self._do_valset()
+            elif self._cfgmode.get() == VALDEL:
+                self._do_valdel()
+            else:
+                self._do_valget()
+
+    def _do_valset(self):
+        """
+        Send a CFG-VALSET message.
+
+        :return: valid entry flag
+        :rtype: bool
+        """
+
+        valid = True
+        att = atttyp(self._cfgatt.get())
+        try:
+            atts = attsiz(self._cfgatt.get())
+        except ValueError as err:
+            self._ent_val.validate(VALNONBLANK)
+            self.__container.set_status_label(f"INVALID ENTRY - {err}", ERRCOL)
+            return False
+        val = self._cfgval.get()
+        layers = self._cfglayer.get()
+        if layers == "BBR":
+            layers = 2
+        elif layers == "FLASH":
+            layers = 4
+        else:
+            layers = 1
+        try:
+            if att in ("C", "X"):  # byte or char
+                valid = self._ent_val.validate(
+                    VALCUSTOM,
+                    func=valid_hex,
+                    args=[
+                        atts,
+                    ],
+                )
+                if valid:
+                    val = int.to_bytes(int(val, 16), atts, "little")
+            elif att in ("E", "U"):  # unsigned integer
+                valid = self._ent_val.validate(VALUNSIGNED, atts * 8)
+                if valid:
+                    val = int(val)
+            elif att == "I":  # signed integer
+                valid = self._ent_val.validate(VALSIGNED, atts * 8)
+                if valid:
+                    val = int(val)
+            elif att == "L":  # bool
+                valid = self._ent_val.validate(VALBOOL)
+                if valid:
+                    val = int(val)
+            elif att == "R":  # floating point
+                valid = self._ent_val.validate(VALFLOAT)
+                if valid:
+                    val = float(val)
+            transaction = 0
+            cfgData = [
+                (self._cfgval_keyname, val),
+            ]
+        except ValueError:
+            valid = False
+
+        if valid:
+            msg = UBXMessage.config_set(layers, transaction, cfgData)
+            self.__container.send_command(msg)
+            self._lbl_send_command["image"] = self._img_pending
+            self.__container.set_status_label("CFG-VALSET SET message sent")
+            for msgid in ("ACK-ACK", "ACK-NAK"):
+                self.__container.set_pending(msgid, UBX_CFGVAL)
+        else:
+            # self._lbl_send_command["image"] = self._img_warn
+            typ = ATTDICT[att]
+            self.__container.set_status_label(
+                (
+                    "INVALID ENTRY - must conform to parameter "
+                    f"type {att} ({typ}) and size {atts} bytes"
+                ),
+                ERRCOL,
+            )
+
+        return valid
+
+    def _do_valdel(self):
+        """
+        Send a CFG-VALDEL message.
+        """
+
+        layers = self._cfglayer.get()
+        if layers == "BBR":
+            layers = 2
+        elif layers == "FLASH":
+            layers = 4
+        else:
+            layers = 1
+        transaction = 0
+        key = [
+            self._cfgval_keyname,
+        ]
+        msg = UBXMessage.config_del(layers, transaction, key)
+        self.__container.send_command(msg)
+        self._lbl_send_command["image"] = self._img_pending
+        self.__container.set_status_label("CFG-VALDEL SET message sent")
+        for msgid in ("ACK-ACK", "ACK-NAK"):
+            self.__container.set_pending(msgid, UBX_CFGVAL)
+
+    def _do_valget(self):
+        """
+        Send a CFG-VALGET message.
+        """
+
+        layers = self._cfglayer.get()
+        if layers == "BBR":
+            layers = 1
+        elif layers == "FLASH":
+            layers = 2
+        elif layers == "DEFAULT":
+            layers = 7
+        else:
+            layers = 0
+        transaction = 0
+        keys = [
+            self._cfgval_keyname,
+        ]
+        msg = UBXMessage.config_poll(layers, transaction, keys)
+        self.__container.send_command(msg)
+        self._lbl_send_command["image"] = self._img_pending
+        self.__container.set_status_label("CFG-VALGET POLL message sent")
+        for msgid in ("CFG-VALGET", "ACK-ACK", "ACK-NAK"):
+            self.__container.set_pending(msgid, UBX_CFGVAL)
+
+    def update_status(self, msg: UBXMessage):  # pylint: disable=unused-argument
+        """
+        Update pending confirmation status.
+
+        :param UBXMessage msg: UBX config message
+        """
+
+        if msg.identity == "CFG-VALGET":
+            self._lbl_send_command["image"] = self._img_confirmed
+            val = getattr(msg, self._cfgval_keyname, None)
+            if val is not None:
+                if isinstance(val, bytes):
+                    atts = attsiz(self._cfgatt.get())
+                    vali = int.from_bytes(val, "little")
+                    val = f"0x{vali:0{atts*2}x}"
+                self._cfgval.set(val)
+            self.__container.set_status_label("CFG-VALGET GET message received", OKCOL)
+
+        elif msg.identity == "ACK-ACK":
+            self._lbl_send_command["image"] = self._img_confirmed
+            self.__container.set_status_label("CFG-VAL command acknowledged", OKCOL)
+
+        elif msg.identity == "ACK-NAK":
+            self._lbl_send_command["image"] = self._img_warn
+            self.__container.set_status_label("CFG-VAL command rejected", ERRCOL)

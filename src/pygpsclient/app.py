@@ -1,0 +1,1231 @@
+"""
+app.py
+
+PyGPSClient - Main tkinter application class.
+
+Essentially the 'Controller' in a nominal MVC (Model-View-Controller)
+architecture.
+
+- Instantiates all frames and widgets via subclasses ('View').
+- Instantiates all protocol handlers.
+- Maintains central dictionary of current key navigation data as
+  `gnss_status`, for use by user-selectable widgets ('Model').
+- Maintains state of all user-selectable widgets.
+- Maintains state of all Toplevel dialogs.
+- Maintains state of all threaded protocol handler and server processes.
+- Maintains state of serial and RTK connections.
+- Handles configuration load, save and update.
+
+Global logging configuration is defined in __main__.py. To enable module
+logging, this and other subsidiary modules can use:
+
+```self.logger = logging.getLogger(__name__)```
+
+To override individual module loglevel, use e.g.
+
+```self.logger.setLevel(INFO)```
+
+Created on 12 Sep 2020
+
+:author: semuadmin (Steve Smith)
+:copyright: 2020 semuadmin
+:license: BSD 3-Clause
+"""
+
+# pylint: disable=no-member
+
+import logging
+from inspect import currentframe, getfile
+from os import getenv, path
+from queue import Empty, Queue
+from subprocess import CalledProcessError, run
+from sys import executable
+from threading import Lock, Thread
+from tkinter import EW, NSEW, NW, Frame, PhotoImage, Tk, Toplevel, font
+from types import NoneType
+
+from pygnssutils import GNSSNTRIPClient
+from pygnssutils.gnssreader import (
+    NMEA_PROTOCOL,
+    POLL,
+    QGC_PROTOCOL,
+    RTCM3_PROTOCOL,
+    SBF_PROTOCOL,
+    UBX_PROTOCOL,
+    UNI_PROTOCOL,
+)
+from pygnssutils.socket_server import ClientHandler, ClientHandlerTLS, SocketServer
+from pynmeagps import NMEAMessage
+from pyrtcm import RTCMMessage
+from pyspartn import SPARTNMessage
+from pyubx2 import UBXMessage
+from serial import SerialException, SerialTimeoutException
+
+from pygpsclient._version import __version__ as VERSION
+from pygpsclient.banner_frame import BannerFrame
+from pygpsclient.configuration import Configuration
+from pygpsclient.dialog_state import DLGTNMEA, DLGTTTY, DLGTUBX, DialogState
+from pygpsclient.file_handler import FileHandler
+from pygpsclient.globals import (
+    BGCOL,
+    CLASS,
+    CMDINITDELAY,
+    CMDPAUSE,
+    CONFIGFILE,
+    DISCONNECTED,
+    ERRCOL,
+    FRAME,
+    GNSS_EOF_EVENT,
+    GNSS_ERR_EVENT,
+    GNSS_TIMEOUT_EVENT,
+    ICON_APP128,
+    INFOCOL,
+    MAINSCALE,
+    NOPORTS,
+    NTRIP_EVENT,
+    OKCOL,
+    RTCMSTR,
+    SOCKSERVER_MAX_CLIENTS,
+    SPARTN_PROTOCOL,
+    STATUS_PRIORITY,
+    STATUS_TIMEOUT,
+    TTY_PROTOCOL,
+    UNDO,
+)
+from pygpsclient.gnss_status import GNSSStatus
+from pygpsclient.helpers import (
+    brew_installed,
+    check_for_updates,
+    check_latest,
+    set_geom,
+)
+from pygpsclient.menu_bar import MenuBar
+from pygpsclient.nmea_handler import NMEAHandler
+from pygpsclient.qgc_handler import QGCHandler
+from pygpsclient.rtcm3_handler import RTCM3Handler
+from pygpsclient.sbf_handler import SBFHandler
+from pygpsclient.settings_frame import SettingsFrame
+from pygpsclient.sqlite_handler import DBINMEM, SQLOK, SqliteHandler
+from pygpsclient.status_frame import StatusFrame
+from pygpsclient.stream_handler import StreamHandler
+from pygpsclient.strings import (
+    BREWUPDATE,
+    CONFIGERR,
+    DLG,
+    DLGSTOPRTK,
+    DLGTNTRIP,
+    DLGTRECORD,
+    DLGTSETTINGS,
+    ENDOFFILE,
+    INACTIVE_TIMEOUT,
+    INTROTXTNOPORTS,
+    KILLSWITCH,
+    NA,
+    NOTCONN,
+    SAVECONFIGBAD,
+    SAVECONFIGOK,
+    TITLE,
+    UPDATEERR,
+    UPDATEINPROG,
+    UPDATERESTART,
+    VERCHECK,
+)
+from pygpsclient.tty_handler import TTYHandler
+from pygpsclient.ubx_handler import UBXHandler
+from pygpsclient.uni_handler import UNIHandler
+from pygpsclient.widget_state import (
+    COLSPAN,
+    DEFAULT,
+    DOCK,
+    HIDE,
+    MAXSPAN,
+    SHOW,
+    UNDOCK,
+    VISIBLE,
+    WidgetState,
+)
+
+PSSTATS = False
+if int(getenv("PYGPSCLIENT_PSSTATS", "0")) & 2:
+    import tracemalloc
+
+    PSSTATS = True
+
+
+class App(Tk):
+    """
+    Main PyGPSClient GUI Application Class.
+    """
+
+    def __init__(self, **kwargs):
+        """
+        Set up main application and add frames.
+
+        :param tkinter.Tk master: reference to Tk root
+        :param args: optional args
+        :param kwargs: optional (CLI) kwargs
+        """
+
+        self.logger = logging.getLogger(__name__)
+
+        super().__init__()
+
+        # load config from json file
+        self.status_msg_timer = None
+        self._deferredmsg = None
+        self.widget_state = WidgetState()  # widget state
+        self.file_handler = FileHandler(self)
+        self.configuration = Configuration(self)  # configuration state
+        configfile = kwargs.pop("config", CONFIGFILE)
+        _, configerr = self.configuration.loadfile(configfile)
+        # load config from CLI arguments & env variables
+        self.configuration.loadcli(**kwargs)
+        if configerr == "":
+            self.update_widgets()  # set initial widget state
+
+        # initialise queues and protocol handlers
+        self._server_status = -1  # socket server status -1 = inactive
+        self.gnss_outqueue = Queue()  # data to GNSS receiver
+        self.ntrip_inqueue = Queue()  # data from NTRIP source
+        self.socket_inqueue = Queue()  # data from socket
+        self.socket_outqueue = Queue()  # data to socket
+        self.console_outqueue = Queue()  # data to console
+        self.chart_outqueue = Queue()  # data to chart plotter
+        self.gnssstatus_lock = Lock()  # thread lock for GNSS status data
+        self.datalog_lock = Lock()  # thread lock for datalog file
+        self.gpx_lock = Lock()  # thread lock for gpx file
+        self.dialog_state = DialogState()  # dialog state
+        self.gnss_status = GNSSStatus()  # holds latest GNSS readings
+        self.stream_handler = StreamHandler(self)
+        self.spartn_stream_handler = StreamHandler(self)
+        self.nmea_handler = NMEAHandler(self)
+        self.ubx_handler = UBXHandler(self)
+        self.sbf_handler = SBFHandler(self)
+        self.qgc_handler = QGCHandler(self)
+        self.uni_handler = UNIHandler(self)
+        self.rtcm_handler = RTCM3Handler(self)
+        self.tty_handler = TTYHandler(self)
+        self.ntrip_handler = GNSSNTRIPClient(self)
+        self.sqlite_handler = SqliteHandler(self)
+        self.font_sm = font.Font(size=10)
+        self.font_md = font.Font(size=12)
+        self.frm_settings = None
+        self._conn_status = DISCONNECTED
+        self._rtk_conn_status = DISCONNECTED
+        self._socket_thread = None
+        self._socket_server = None
+        self.consoledata = []
+        self.last_map_update = 0
+        self._recorded_commands = []  # captured by RecorderDialog
+        self.recording = False  # RecordDialog status
+        self.recording_type = 0  # 0 = TTY ONLY, 1 = UBX/NMEA
+        self.ntriprtcmstr = RTCMSTR
+        self._gui_refresh_int = int(
+            self.configuration.get("guiupdateinterval_f") * 1000
+        )
+
+        # open database if database recording enabled
+        dbpath = self.configuration.get("databasepath_s")
+        if self.configuration.get("database_b") and dbpath != "":
+            self._db_enabled = self.sqlite_handler.open(dbpath=dbpath)
+        else:
+            self._db_enabled = self.sqlite_handler.open(dbname=DBINMEM)
+        if self._db_enabled != SQLOK:
+            self.configuration.set("database_b", 0)
+
+        # create main application window
+        self._body()
+        self._do_layout()
+        self._attach_events()
+
+        # display initial connection status
+        self.frm_banner.update_conn_status(DISCONNECTED)
+        self.set_conn_label(NOTCONN)
+        self.set_device_label(NA)
+        if self.frm_settings.frm_serial.status == NOPORTS:
+            self.set_status_label(INTROTXTNOPORTS, ERRCOL)
+
+        # display any deferred status messages
+        if isinstance(self._deferredmsg, tuple):
+            msg, col = self._deferredmsg
+            self.set_status_label(msg, col)
+            self._deferredmsg = None
+
+        # check for more recent version (if enabled)
+        if self.configuration.get("checkforupdate_b") and configerr == "":
+            self._check_update()
+
+        if PSSTATS:
+            tracemalloc.start()  # pylint: disable=possibly-used-before-assignment
+            self.after(0, self.memory_monitor)
+
+    def _body(self):
+        """
+        Set up main application frame and widgets.
+        """
+
+        geom = self.configuration.get("screengeom_s")
+        if geom == "":
+            geom = set_geom(self, MAINSCALE)
+        self.geometry(geom)
+        self.protocol("WM_DELETE_WINDOW", self.on_exit)
+        self.title(TITLE)
+        self.iconphoto(True, PhotoImage(file=ICON_APP128))
+        self.menu = MenuBar(self)
+        self["menu"] = self.menu
+        self["bg"] = BGCOL
+
+        self.frm_banner = BannerFrame(self, borderwidth=1, relief="groove", bg=BGCOL)
+        self.frm_status = StatusFrame(self, borderwidth=1, relief="groove", bg=BGCOL)
+        self.frm_settings = SettingsFrame(self)
+        self.frm_widgets = Frame(self, bg=BGCOL)
+
+    def _do_layout(self):
+        """
+        Arrange and 'pack' visible widgets in main application frame and set
+        show/hide View menu labels.
+
+        Widget order, visibility and columnspan are defined in widget_state.
+        Visible widgets are gridded in sequence, left to right, top to bottom,
+        subject to a maximum columnspan defined in "maxcolumns_n" (default 4).
+        A widget columnspan of 0 (MAXSPAN) signifies the widget occupies a
+        full row.
+
+        NB: PyGPSClient uses 'grid' rather than 'pack' layout management throughout:
+
+        - grid col/row weight = 0 means non-expandable
+        - grid col/row weight > 0 and `sticky=NSEW` is equivalent to
+          `pack(fill = BOTH, expand = True)`
+
+        FYI: `grid.forget()` method has potential memory leak; use sparingly!
+        """
+
+        # do main layout
+        self.frm_banner.grid(column=0, row=0, columnspan=2, sticky=EW)
+        self.frm_widgets.grid(column=0, row=1, sticky=NSEW)
+        if isinstance(self.frm_settings, SettingsFrame):  # docked
+            men0 = UNDOCK
+            if self.configuration.get("showsettings_b"):
+                self.frm_settings.grid(column=1, row=1, sticky=NW)
+            else:
+                if self.frm_settings.winfo_ismapped():
+                    self.frm_settings.grid_forget()
+        else:
+            men0 = DOCK
+        self.frm_status.grid(column=0, row=2, columnspan=2, sticky=EW)
+
+        # update View menu labels for Settings (dock/undock, show/hide)
+        self.menu.view_menu.entryconfig(0, label=f"{men0} Settings")
+        men1 = (SHOW, HIDE)[self.configuration.get("showsettings_b")]
+        self.menu.view_menu.entryconfig(1, label=f"{men1} Settings")
+
+        # get column and row spans for frm_widgets
+        wcolspan, wrowspan = self.widget_spans()
+
+        # dynamically instantiate and position widgets in frm_widgets
+        col = 0
+        row = 0
+        i = 0
+        for name, state in self.widget_state.state.items():
+            # setup widget
+            frm = self.widget_setup(state)
+            # set corresponding View menu label to 'Show' or 'Hide'
+            self.menu.view_menu.entryconfig(
+                i + 2, label=f"{(SHOW, HIDE)[state[VISIBLE]]} {name}"
+            )
+            if state[VISIBLE]:
+                c = state.get(COLSPAN, 1)
+                cols = wcolspan if c == MAXSPAN else c
+                frmi = frm.grid_info()
+                if (
+                    frmi.get("column", None) != col
+                    or frmi.get("row", None) != row
+                    or frmi.get("columnspan", None) != cols
+                ):  # only grid if position has changed
+                    frm.grid(column=col, row=row, columnspan=cols, sticky=NSEW)
+                if c == MAXSPAN or c + col >= wcolspan:
+                    col = 0
+                    row += 1
+                else:
+                    col += c
+            i += 1
+
+        # set column and row weights to control 'pack' behaviour of main layout
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)
+        wcol, wrow = self.frm_widgets.grid_size()
+        for col in range(wcol):
+            w = 1 if col < wcolspan else 0
+            self.frm_widgets.grid_columnconfigure(col, weight=w)
+        for row in range(wrow):
+            w = 1 if row < wrowspan else 0
+            self.frm_widgets.grid_rowconfigure(row, weight=w)
+
+    def _attach_events(self):
+        """
+        Bind events to main application.
+        """
+
+        self.bind(GNSS_EOF_EVENT, self.on_gnss_eof)
+        self.bind(GNSS_TIMEOUT_EVENT, self.on_gnss_timeout)
+        self.bind(GNSS_ERR_EVENT, self.on_stream_error)
+        self.bind(NTRIP_EVENT, self.on_ntrip_read)
+        self.bind_all("<Control-q>", self.on_exit)
+        self.bind_all("<Control-k>", self.on_killswitch)
+        # <Control-u> also bound in check_updates
+
+    def settings_toggle(self):
+        """
+        Toggle settings visibility.
+        """
+
+        self.configuration.set(
+            "showsettings_b", not self.configuration.get("showsettings_b")
+        )
+        self._do_layout()
+
+    def settings_dock(self):
+        """
+        Toggle settings docking.
+
+        - If undocked, destroy any existing instance of SettingsFrame
+          and launch SettingsDialog instead.
+        - If docked, destroy SettingsDialog and instantiate SettingsFrame.
+        """
+
+        self.configuration.set(
+            "docksettings_b", not self.configuration.get("docksettings_b")
+        )
+        if self.configuration.get("docksettings_b"):
+            if self.dialog_state.state[DLGTSETTINGS][DLG] is not None:
+                self.dialog_state.state[DLGTSETTINGS][DLG].destroy()
+                self.dialog_state.state[DLGTSETTINGS][DLG] = None
+                self.frm_settings = SettingsFrame(self)
+        else:
+            if self.dialog_state.state[DLGTSETTINGS][DLG] is None:
+                if isinstance(self.frm_settings, SettingsFrame):
+                    self.frm_settings.grid_forget()
+                    self.frm_settings.destroy()
+                    self.frm_settings = None
+                self.start_dialog(DLGTSETTINGS)
+                self.frm_settings = self.dialog_state.state[DLGTSETTINGS][DLG]
+        self._do_layout()
+
+    def widget_setup(self, state: dict) -> Frame | NoneType:
+        """
+        Instantiate or destroy widget.
+
+        :param dict state: widget state dictionary
+        :return: instantiated widget or None
+        :rtype: Frame | NoneType
+        """
+
+        frm = state[FRAME]
+        visible = state[VISIBLE]
+        w = getattr(self, frm, None)
+        if visible and w is None:
+            setattr(
+                self,
+                frm,
+                state[CLASS](self, self.frm_widgets, borderwidth=1, relief="groove"),
+            )
+        elif not visible and w is not None:
+            w.grid_forget()
+            w.destroy()
+            w = None
+            setattr(self, frm, None)
+        return getattr(self, frm, None)
+
+    def widget_spans(self) -> tuple[int, int]:
+        """
+        Get overall column and row spans for frm_widgets
+        from latest widget_state dictionary.
+
+        :return: columnspan, rowspan
+        :rtype: tuple[int, int]
+        """
+
+        maxcols = self.configuration.get("maxcolumns_n")
+        wcolspan = 0
+        wrowspan = 0
+        cols = 0
+        wids = [
+            wdg.get(COLSPAN, 1)
+            for wdg in self.widget_state.state.values()
+            if wdg[VISIBLE]
+        ]
+        for c in wids:
+            if c == MAXSPAN or c + cols > maxcols:
+                wrowspan += 2 if c == MAXSPAN and cols > 0 else 1
+                cols = 0
+            cols += c
+            wcolspan = max(wcolspan, cols)
+        if cols > 0:
+            wrowspan += 1
+
+        return max(1, wcolspan), max(1, wrowspan)
+
+    def widget_toggle(self, name: str):
+        """
+        Toggle widget visibility and enable or disable any
+        UBX messages required by widget.
+
+        :param str name: widget name
+        """
+
+        self.widget_state.state[name][VISIBLE] = not self.widget_state.state[name][
+            VISIBLE
+        ]
+        self.configuration.set(name, self.widget_state.state[name][VISIBLE])
+        self._do_layout()
+
+    def reset_layout(self):
+        """
+        Reset to default layout.
+        """
+
+        for name, wdg in self.widget_state.state.items():
+            vis = wdg.get(DEFAULT, False)
+            wdg[VISIBLE] = vis
+            self.configuration.set(name, vis)
+        self.configuration.set("showsettings_b", True)
+        self.configuration.set("docksettings_b", True)
+        self._do_layout()
+
+    def set_event(self, evt: str):
+        """
+        Generate master event.
+
+        :param str evt: event type string
+        """
+
+        self.event_generate(evt)
+
+    def load_config(self) -> str:
+        """
+        Load configuration file menu option.
+
+        :return: error code
+        :rtype: str
+        """
+
+        # Warn if Streaming, NTRIP or SPARTN clients are running
+        if self.conn_status == DISCONNECTED and self.rtk_conn_status == DISCONNECTED:
+            self.set_status_label("", OKCOL)
+        else:
+            self.set_status_label(DLGSTOPRTK, ERRCOL)
+            return "cancelled"
+
+        _, err = self.configuration.loadfile()
+        if err == "":  # load succeeded
+            self.update_widgets()
+            for frm in (
+                self.frm_settings.frm_settings,
+                self.frm_settings.frm_serial,
+                self.frm_settings.frm_socketclient,
+            ):
+                frm.reset()
+            self._do_layout()
+        elif err == "cancelled":
+            pass
+        return err
+
+    def save_config(self) -> str:
+        """
+        Save configuration file menu option.
+
+        :return: error code
+        :rtype: str
+        """
+
+        # save current screen geometry
+        self.configuration.set("screengeom_s", self.geometry())
+
+        err = self.configuration.savefile()
+        if err == "":
+            self.set_status_label(SAVECONFIGOK, OKCOL)
+        elif err == "cancelled":
+            pass
+        else:  # save failed
+            self.set_status_label(SAVECONFIGBAD.format(err), ERRCOL)
+        return err
+
+    def update_widgets(self):
+        """
+        Update widget configuration (self.widget_state.state).
+
+        If no widgets are set as "visible" in the config file, enable
+        the status widget anyway to display a warning to this effect.
+        """
+
+        try:
+            for key, vals in self.widget_state.state.items():
+                vis = self.configuration.get(key)
+                vals[VISIBLE] = vis
+        except KeyError as err:
+            self.set_status_label(CONFIGERR.format(err), ERRCOL)
+
+    def refresh_widgets(self):
+        """
+        TIMER PROCESS WHILE CONNECTED
+
+        Refresh visible widgets with latest GNSSStatus data.
+        """
+
+        self.frm_banner.update_frame()
+        for _, wdgdata in self.widget_state.state.items():
+            frm = getattr(self, wdgdata[FRAME], None)
+            if frm is not None:
+                if hasattr(frm, "update_frame") and wdgdata[VISIBLE]:
+                    frm.update_frame()
+        self.update()
+        self.update_idletasks()
+
+        # update database if enabled (must be done in main App thread)
+        if self.configuration.get("database_b"):
+            self.sqlite_handler.load_data()
+
+        if self.conn_status != DISCONNECTED or self.rtk_conn_status != DISCONNECTED:
+            self.after(self._gui_refresh_int, self.refresh_widgets)
+
+    def start_dialog(self, dlg: str):
+        """
+        Open a top level dialog if the dialog is not already open.
+
+        :param str dlg: name of dialog
+        """
+
+        if self.dialog_state.state[dlg][DLG] is None:
+            cls = self.dialog_state.state[dlg][CLASS]
+            self.dialog_state.state[dlg][DLG] = cls(self)
+            self.update()
+
+    def dialog(self, dlg: str) -> Toplevel:
+        """
+        Getter for dialog instance.
+
+        :param str dlg: name of dialog
+        :return: dialog instance
+        :rtype: Toplevel
+        """
+
+        return self.dialog_state.state[dlg][DLG]
+
+    def sockserver_start(self, ntriprtcmstr: str = RTCMSTR):
+        """
+        Start socket server thread.
+
+        :param str ntriprtcmstr: source table string indicating RTCM3 types and intervals
+        """
+
+        cfg = self.configuration
+        ntripmode = cfg.get("sockmode_b")
+        host = cfg.get("sockhost_s")
+        if ntripmode:  # NTRIP CASTER
+            port = cfg.get("sockportntrip_n")
+        else:  # SOCKET SERVER
+            port = cfg.get("sockport_n")
+        https = cfg.get("sockhttps_b")
+        ntripuser = cfg.get("ntripcasteruser_s")
+        ntrippassword = cfg.get("ntripcasterpassword_s")
+        tlspempath = cfg.get("tlspempath_s")
+        self._socket_thread = Thread(
+            target=self._sockserver_thread,
+            args=(
+                ntripmode,
+                host,
+                port,
+                https,
+                tlspempath,
+                ntriprtcmstr,
+                ntripuser,
+                ntrippassword,
+                SOCKSERVER_MAX_CLIENTS,
+                self.socket_outqueue,
+            ),
+            daemon=True,
+        )
+        self._socket_thread.start()
+        self.server_status = 0  # 0 = active, no clients
+
+    def sockserver_stop(self):
+        """
+        Stop socket server thread.
+        """
+
+        if self._socket_server is not None:
+            self._socket_server.shutdown()
+        self.server_status = -1  # -1 = inactive
+
+    def _sockserver_thread(
+        self,
+        ntripmode: int,
+        host: str,
+        port: int,
+        https: int,
+        tlspempath: str,
+        ntriprtcmstr: str,
+        ntripuser: str,
+        ntrippassword: str,
+        maxclients: int,
+        socketqueue: Queue,
+    ):
+        """
+        THREADED PROCESS
+        Socket Server thread.
+
+        :param int ntripmode: 0 = open socket server, 1 = NTRIP server
+        :param str host: socket host name (0.0.0.0)
+        :param int port: socket port (50010)
+        :param int https: https enabled (0)
+        :param str tlspempath: path to TLS PEM file ("$HOME/pygnssutils.pem")
+        :param str ntriprtcmstr: NTRIP caster RTCM type(rate) sourcetable entry
+        :param int maxclients: max num of clients (5)
+        :param Queue socketqueue: socket server read queue
+        """
+
+        requesthandler = ClientHandlerTLS if https else ClientHandler
+        try:
+            with SocketServer(
+                self,
+                ntripmode,
+                maxclients,
+                socketqueue,
+                (host, port),
+                requesthandler,
+                ntripuser=ntripuser,
+                ntrippassword=ntrippassword,
+                tlspempath=tlspempath,
+                ntriprtcmstr=ntriprtcmstr,
+            ) as self._socket_server:
+                self._socket_server.serve_forever()
+        except OSError as err:
+            self.set_status_label(f"Error starting socket server {err}", ERRCOL)
+
+    def update_clients(self, clients: int):
+        """
+        Update number of connected clients in settings panel.
+        Called by pygnssutils.socket_server.
+
+        :param int clients: no of connected clients
+        """
+
+        self.server_status = clients
+
+    def _shutdown(self):
+        """
+        Shut down running handlers.
+        """
+
+        self.sockserver_stop()
+        self.stream_handler.stop()
+        self.sqlite_handler.close()
+        self.file_handler.close_logfile()
+        self.file_handler.close_trackfile()
+
+    def on_exit(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Quit application.
+        """
+
+        self._shutdown()
+        self.destroy()
+
+    def on_killswitch(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Ctrl-K (kill switch) clicked.
+        """
+
+        try:
+            self._shutdown()
+            for name, state in self.dialog_state.state.items():
+                if self.dialog(name) is not None:
+                    self.dialog(name).destroy()
+                    state[DLG] = None
+            self.conn_status = DISCONNECTED
+            self.rtk_conn_status = DISCONNECTED
+        except Exception as err:  # pylint: disable=broad-exception-caught
+            self.logger.error(err)
+        self.set_status_label(KILLSWITCH, ERRCOL)
+        self.logger.debug(KILLSWITCH)
+
+    def on_gnss_eof(self, event):  # pylint: disable=unused-argument
+        """
+        EVENT TRIGGERED
+        Action on <<sgnss_eof>> event - end of file.
+
+        :param event event: <<gnss_eof>> event
+        """
+
+        self.server_status = -1
+        # self._refresh_widgets()
+        self.conn_status = DISCONNECTED
+        self.set_status_label(ENDOFFILE, ERRCOL)
+
+    def on_gnss_timeout(self, event):  # pylint: disable=unused-argument
+        """
+        EVENT TRIGGERED
+        Action on <<sgnss_timeout>> event - stream inactivity timeout.
+
+        :param event event: <<gnss_timeout>> event
+        """
+
+        self.server_status = -1
+        # self._refresh_widgets()
+        self.conn_status = DISCONNECTED
+        self.set_status_label(INACTIVE_TIMEOUT, ERRCOL)
+
+    def on_stream_error(self, event):  # pylint: disable=unused-argument
+        """
+        EVENT TRIGGERED
+        Action on "<<gnss_error>>" event - connection streaming error.
+
+        :param event event: <<gnss_error>> event
+        """
+
+        # self._refresh_widgets()
+        self.conn_status = DISCONNECTED
+
+    def on_ntrip_read(self, event):  # pylint: disable=unused-argument
+        """
+        EVENT TRIGGERED
+        Action on <<ntrip_read>> event - data available on NTRIP queue.
+
+        :param event event: read event
+        """
+
+        inmask = False
+        try:
+            while True:
+                raw_data, parsed_data = self.ntrip_inqueue.get(False)
+                if (
+                    raw_data is not None
+                    and parsed_data is not None
+                    and isinstance(raw_data, bytes)
+                ):
+                    inmask = False
+                    if isinstance(parsed_data, RTCMMessage):
+                        self.send_to_device(raw_data)
+                        if self.protocol_mask & RTCM3_PROTOCOL:
+                            self.console_outqueue.put(
+                                (raw_data, parsed_data, "NTRIP>>")
+                            )
+                            inmask = True
+                    elif isinstance(parsed_data, SPARTNMessage):
+                        self.send_to_device(raw_data)
+                        if self.protocol_mask & SPARTN_PROTOCOL:
+                            self.console_outqueue.put(
+                                (raw_data, parsed_data, "NTRIP>>")
+                            )
+                            inmask = True
+                    elif isinstance(parsed_data, NMEAMessage):
+                        if self.protocol_mask & NMEA_PROTOCOL:
+                            self.console_outqueue.put(
+                                (raw_data, parsed_data, "NTRIP<<")
+                            )
+
+                # update log file if enabled
+                if self.configuration.get("datalog_b") and inmask:
+                    with self.datalog_lock:
+                        self.file_handler.write_logfile(raw_data, parsed_data)
+
+                self.ntrip_inqueue.task_done()
+        except Empty:
+            pass
+        except (SerialException, SerialTimeoutException) as err:
+            self.set_status_label(f"Error sending to device {err}", ERRCOL)
+
+    def update_ntrip_status(self, status: bool, msgt: tuple | NoneType = None):
+        """
+        Update NTRIP configuration dialog connection status.
+
+        :param bool status: connected to NTRIP server yes/no
+        :param tuple | None msgt: tuple of (message, color) or None
+        """
+
+        if self.dialog(DLGTNTRIP) is not None:
+            self.dialog(DLGTNTRIP).set_controls(status, msgt)
+
+    def get_coordinates(self) -> dict:
+        """
+        Supply current coordinates and fix data to any widget
+        that requests it (mirrors NMEA GGA format).
+        Called by pygnssutils.ntrip_client.
+
+        :return: dict of coords and fix data
+        :rtype: dict
+        """
+
+        try:
+            sep = self.gnss_status.hae - self.gnss_status.alt
+        except TypeError:
+            sep = 0
+        return {
+            "connection": self._conn_status,
+            "lat": self.gnss_status.lat,
+            "lon": self.gnss_status.lon,
+            "alt": self.gnss_status.alt,  # hmsl
+            "hae": self.gnss_status.hae,
+            "sep": sep,
+            "sip": self.gnss_status.sip,
+            "fix": self.gnss_status.fix,
+            "hdop": self.gnss_status.hdop,
+            "diffage": self.gnss_status.diff_age,
+            "diffstation": self.gnss_status.diff_station,
+        }
+
+    def send_to_device(
+        self, data: bytes | list[bytes], pause: int = 0, interval: int = 0
+    ):
+        """
+        Place one or more binary commands on output queue (they will be
+        processed in sequence when the device next connects).
+
+        :param bytes | list[bytes] data: raw GNSS data (NMEA, UBX, TTY, RTCM3, SPARTN)
+        :param int pause: pause in ms before sending first command
+            (to allow connection time to stabilise)
+        :param int interval: interval in ms between individual commands
+            (to allow receiver time to process = see CMDPAUSE global)
+        """
+
+        if not isinstance(data, list):
+            data = [
+                data,
+            ]
+        for i, cmd in enumerate(data):
+            # self.logger.debug(f"Sending message {cmd}")
+            self.after(
+                int(pause + interval * i), lambda c=cmd: self.gnss_outqueue.put(c)
+            )
+
+    def _check_update(self):
+        """
+        Check for updated version.
+        """
+
+        latest = check_latest(TITLE)
+        if latest not in (VERSION, NA):
+            if brew_installed():
+                hotkey = ""
+            else:
+                hotkey = " CTRL-U to update."
+                self.bind_all("<Control-u>", self.do_app_update)
+            self.set_status_label(
+                VERCHECK.format(title=TITLE, version=latest, hotkey=hotkey),
+                ERRCOL,
+            )
+        else:
+            self.unbind("<Control-u>")
+
+    def poll_version(self, protocol: int):
+        """
+        Poll hardware information message for device hardware & firmware version.
+
+        :param int protocol: protocol(s)
+        """
+
+        self.set_device_label(NA)
+        msgs = []
+        if protocol & UBX_PROTOCOL:
+            msgs.append(UBXMessage("MON", "MON-VER", POLL).serialize())
+        if protocol & SBF_PROTOCOL:
+            msgs.append(b"SSSSSSSSSS\r\n")
+            msgs.append(b"exeSBFOnce, COM1, ReceiverSetup\r\n")
+        if protocol & UNI_PROTOCOL:
+            msgs.append(b"VERSIONB\r\n")
+        if protocol & NMEA_PROTOCOL:
+            msgs.append(NMEAMessage("P", "QTMVERNO", POLL).serialize())
+
+        # pause for n seconds before sending first command to allow connection to stabilise
+        # allow a small interval between individual commands to allow receiver time to process
+        self.send_to_device(
+            msgs,
+            pause=CMDINITDELAY,
+            interval=self.configuration.get("ttydelay_b") * CMDPAUSE,
+        )
+
+    def set_conn_label(self, msg: str, col: str = INFOCOL):
+        """
+        Sets connection description in status bar.
+
+        :param str msg: connection descriptor
+        :param str col: color
+        """
+
+        # truncate very long connection description
+        if len(msg) > 80:
+            msg = f"{msg[0:80]}..."
+
+        if hasattr(self, "frm_status"):
+            self.frm_status.lbl_connection["text"] = msg
+            self.frm_status.lbl_connection["fg"] = col
+            self.frm_status.lbl_connection.update()
+            self.update_idletasks()
+
+    def set_device_label(self, msg: str, col: str = INFOCOL):
+        """
+        Sets device description in status bar.
+
+        :param str msg: connection descriptor
+        :param str col: color
+        """
+
+        # truncate very long device description
+        if len(msg) > 30:
+            msg = f"{msg[0:30]}..."
+
+        if hasattr(self, "frm_status"):
+            self.frm_status.lbl_device["text"] = msg
+            self.frm_status.lbl_device["fg"] = col
+            self.frm_status.lbl_device.update()
+            self.update_idletasks()
+
+        # update configuration panels
+        for dlg in (DLGTTTY, DLGTUBX, DLGTNMEA):
+            if self.dialog(dlg) is not None:
+                if hasattr(self.dialog(dlg), "frm_device_info"):
+                    self.dialog(dlg).frm_device_info.reset()
+
+    def set_status_label(self, msg: str = "", col: str = INFOCOL, expire: bool = True):
+        """
+        Sets status message, or defers if frm_status not yet instantiated.
+
+        :param str msg: status message
+        :param str col: color
+        :param bool expire: expire messages
+        """
+
+        def priority(col):
+            return STATUS_PRIORITY.get(col, 0)
+
+        if self.status_msg_timer is not None:
+            self.after_cancel(self.status_msg_timer)
+
+        # truncate very long messages
+        if len(msg) > 200:
+            msg = "..." + msg[-200:]
+
+        if hasattr(self, "frm_status"):
+            col = INFOCOL if col == "blue" else col
+            self.frm_status.lbl_status["text"] = msg
+            self.frm_status.lbl_status["fg"] = col
+            self.frm_status.lbl_status.update()
+            self.update_idletasks()
+        else:  # defer message until frm_status is instantiated
+            if isinstance(self._deferredmsg, tuple):
+                defpty = priority(self._deferredmsg[1])
+            else:
+                defpty = 0
+            if priority(col) > defpty:
+                self._deferredmsg = (msg, col)
+
+        if expire:
+            self.status_msg_timer = self.after(STATUS_TIMEOUT, self.set_status_label)
+
+    @property
+    def conn_status(self) -> int:
+        """
+        Getter for connection status.
+
+        :return: connection status e.g. 1 = CONNECTED
+        :rtype: int
+        """
+
+        return self._conn_status
+
+    @conn_status.setter
+    def conn_status(self, status: int):
+        """
+        Setter for connection status.
+
+        :param int status: connection status e.g. 1 = CONNECTED
+        """
+
+        self._conn_status = status
+        self.frm_banner.update_conn_status(status)
+        self.frm_settings.frm_settings.enable_controls(status)
+        if status == DISCONNECTED:
+            self.set_conn_label(NOTCONN, INFOCOL)
+            self.set_device_label(NA)
+            self.stream_handler.stop()
+        else:
+            self.refresh_widgets()
+
+    @property
+    def server_status(self) -> int:
+        """
+        Getter for socket server status.
+
+        :return: server status
+        :rtype: int
+        """
+
+        return self._server_status
+
+    @server_status.setter
+    def server_status(self, status: int):
+        """
+        Setter for socket server status.
+
+        :param int status: server status
+            -1 - inactive, 0 = active no clients, >0 = active clients
+        """
+
+        self._server_status = status
+        self.frm_banner.update_transmit_status(status)
+        self.configuration.set("sockserver_b", status >= 0)
+
+    @property
+    def rtk_conn_status(self) -> int:
+        """
+        Getter for RTK connection status.
+
+        :return: connection status
+        :rtype: int
+        """
+
+        return self._rtk_conn_status
+
+    @rtk_conn_status.setter
+    def rtk_conn_status(self, status: int):
+        """
+        Setter for RTK connection status.
+
+        :param int status: connection status
+        """
+
+        self._rtk_conn_status = status
+        self.frm_banner.update_rtk_status(status)
+
+    @property
+    def recorded_commands(self) -> list:
+        """
+        Getter for RTK connection status.
+
+        :return: connection status
+        :rtype: list
+        """
+
+        return self._recorded_commands
+
+    @recorded_commands.setter
+    def recorded_commands(self, msg: UBXMessage | NMEAMessage | str | NoneType = None):
+        """
+        Setter for recorded_commands.
+
+        :param UBXMessage | NMEAMessage | str | NoneType msg: configuration command or None
+        """
+
+        if msg is None:
+            self._recorded_commands = []
+            self.recording_type = 0  # 0 = TTY ONLY
+        elif msg == UNDO:
+            self._recorded_commands.pop()
+            if len(self._recorded_commands) == 0:
+                self.recording_type = 0  # 0 = TTY ONLY
+        else:
+            if isinstance(msg, (UBXMessage, NMEAMessage)):
+                self.recording_type = 1  # 0 = TTY ONLY, 1 = UBX/NMEA
+            self._recorded_commands.append(msg)
+
+        # update RecordDialog command count, if dialog is visible
+        if hasattr(self.dialog(DLGTRECORD), "update_count"):
+            self.dialog(DLGTRECORD).update_count()
+
+    @property
+    def protocol_mask(self) -> int:
+        """
+        Getter for protocol mask.
+
+        :return: protocol mask as integer
+        :rtype: int
+        """
+
+        cfg = self.configuration
+        mask = (
+            (cfg.get("nmeaprot_b") * NMEA_PROTOCOL)  # 1
+            + (cfg.get("ubxprot_b") * UBX_PROTOCOL)  # 2
+            + (cfg.get("rtcmprot_b") * RTCM3_PROTOCOL)  # 4
+            + (cfg.get("sbfprot_b") * SBF_PROTOCOL)  # 8
+            + (cfg.get("qgcprot_b") * QGC_PROTOCOL)  # 16
+            + (cfg.get("uniprot_b") * UNI_PROTOCOL)  # 32
+            + (cfg.get("spartnprot_b") * SPARTN_PROTOCOL)  # 256
+            + (cfg.get("ttyprot_b") * TTY_PROTOCOL)  # 1024
+        )
+        return mask
+
+    @property
+    def db_enabled(self) -> int | str:
+        """
+        Getter for database enabled status.
+
+        :return: database enabled status or err code
+        :rtype: int | str
+        """
+
+        return self._db_enabled
+
+    def do_app_update(self, *args, **kwargs) -> int:  # pylint: disable=unused-argument
+        """
+        Update outdated application packages to latest versions.
+
+        NB: Some platforms (e.g. Homebrew-installed Python environments)
+        may block Python subprocess calls ('run') on security grounds.
+
+        :return: return code 0 = error, 1 = OK
+        :rtype: int
+        """
+
+        if brew_installed():
+            self.set_status_label(BREWUPDATE, INFOCOL)
+            return 0
+
+        self.set_status_label(UPDATEINPROG, INFOCOL)
+        updates = [
+            nam for (nam, current, latest) in check_for_updates() if latest != current
+        ]
+        if len(updates) < 1:
+            return 1
+
+        pth = path.dirname(path.abspath(getfile(currentframe())))
+        if "pipx" in pth:  # installed into venv using pipx
+            cmd = [
+                "pipx",
+                "upgrade",
+                "pygpsclient",
+            ]
+        else:  # installed using pip
+            cmd = [
+                executable,  # i.e. python3 or python
+                "-m",
+                "pip",
+                "install",
+                "--upgrade",
+            ]
+            for name in updates:
+                cmd.append(name)
+
+        result = None
+        try:
+            self.logger.debug(f"{executable=} {pth=} {cmd=}")
+            result = run(cmd, check=True, capture_output=True)
+            self.set_status_label(UPDATERESTART, OKCOL)
+            self.logger.debug(result.stdout)
+            return 1
+        except CalledProcessError as err:
+            self.set_status_label(UPDATEERR.format(err=err), ERRCOL)
+            self.logger.error(result.stdout)
+            return 0
+
+    def memory_monitor(self):
+        """
+        FOR MEMORY DEBUG.
+        """
+
+        snapshot = tracemalloc.take_snapshot()
+        top_stats = snapshot.statistics("lineno")
+
+        for stat in top_stats[:10]:
+            self.logger.info(stat)
+
+        self.after(60000, self.memory_monitor)

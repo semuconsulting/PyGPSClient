@@ -1,0 +1,13 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata from this file."
+title: "PyGPSClient"
+abstract: "Python GNSS Testing, Diagnostic and Configuration GUI Utility."
+authors:
+  - family-names: "Smith"
+    given-names: "Steve"
+    orcid: "https://orcid.org/0009-0002-5751-8719"
+  - name: "semuadmin"
+version: 1.7.6
+date-released: 2020-10-04
+license: "BSD-3-Clause"
+repository-code: "https://github.com/semuconsulting/PyGPSClient"

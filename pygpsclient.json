@@ -1,0 +1,324 @@
+{
+    "version_s": "1.5.21",
+    "Banner": true,
+    "Settings": true,
+    "Status": true,
+    "Console": true,
+    "Satellites": true,
+    "Levels": true,
+    "Map": true,
+    "Spectrum": false,
+    "Scatter Plot": false,
+    "Rover Plot": false,
+    "Chart Plot": false,
+    "System Monitor": false,
+    "IMU Monitor": false,
+    "checkforupdate_b": 0,
+    "transient_dialog_b": 1,
+    "resize_dialog_b": 0,
+    "guiupdateinterval_f": 0.2,
+    "mapupdateinterval_n": 60,
+    "defaultport_s": "USB",
+    "mqapikey_s": "<======= YOUR MQ API KEY ======>",
+    "serialport_s": "/dev/ttyACM0",
+    "nmeaprot_b": 1,
+    "ubxprot_b": 1,
+    "rtcmprot_b": 1,
+    "sbfprot_b": 0,
+    "qgcprot_b": 0,
+    "spartnprot_b": 0,
+    "mqttprot_b": 1,
+    "ttyprot_b": 0,
+    "ttycrlf_b": 1,
+    "ttyecho_b": 0,
+    "ttydelay_b": 1,
+    "degreesformat_s": "DD.D",
+    "colortag_b": 0,
+    "units_s": "Metric m/s",
+    "autoscroll_b": 1,
+    "maxlines_n": 200,
+    "maxcolumns_n": 4,
+    "filedelay_n": 20,
+    "consoleformat_s": "Parsed",
+    "maptype_s": "world",
+    "mapzoom_n": 10,
+    "mapzoom_disabled_b": 0,
+    "gpxmaptype_s": "custom",
+    "gpxmapzoom_n": 10,
+    "gpxtype_s": "track",
+    "showtrack_b": 0,
+    "legend_b": true,
+    "unusedsat_b": false,
+    "datalog_b": 0,
+    "logformat_s": "Binary",
+    "logpath_s": "",
+    "logsize_n": 10485760,
+    "recordtrack_b": 0,
+    "trackpath_s": "",
+    "database_b": 0,
+    "databasepath_s": "",
+    "bpsrate_n": 9600,
+    "databits_n": 8,
+    "stopbits_f": 1.0,
+    "parity_s": "N",
+    "rtscts_b": 0,
+    "xonxoff_b": 0,
+    "timeout_f": 0.1,
+    "msgmode_n": 0,
+    "userport_s": "<== YOUR USER_DEFINED SERIAL PORT ==>",
+    "inactivity_timeout_n": 0,
+    "sockclienthost_s": "localhost",
+    "sockclientport_n": 50010,
+    "sockclienthttps_b": 0,
+    "sockclientselfsign_b": 0,
+    "sockclientprotocol_s": "TCP IPv4",
+    "sockserver_b": 0,
+    "sockhost_s": "0.0.0.0",
+    "sockport_n": 50012,
+    "sockportntrip_n": 2102,
+    "sockmode_b": 0,
+    "sockhttps_b": 0,
+    "ntripcasterbasemode_s": "SURVEY IN",
+    "ntripcasterrcvrtype_s": "u-blox ZED-F9",
+    "ntripcasteracclimit_f": 10,
+    "ntripcasterduration_n": 60,
+    "ntripcasterposmode_s": "LLH",
+    "ntripcasterfixedlat_f": 37.23345,
+    "ntripcasterfixedlon_f": -115.81513,
+    "ntripcasterfixedalt_f": 15.0,
+    "ntripcasterdisablenmea_b": 1,
+    "ntripcasteruser_s": "anon",
+    "ntripcasterpassword_s": "testpassword",
+    "ntripclientserver_s": "",
+    "ntripclientport_n": 2101,
+    "ntripclienthttps_b": 0,
+    "ntripclientselfsign_b": 0,
+    "ntripclientprotocol_s": "IPv4",
+    "ntripclientflowinfo_n": 0,
+    "ntripclientscopeid_n": 0,
+    "ntripclientmountpoint_s": "",
+    "ntripclientversion_s": "2.0",
+    "ntripclientdatatype_s": "RTCM",
+    "ntripclientuser_s": "anon",
+    "ntripclientpassword_s": "password",
+    "ntripclientggainterval_n": -1,
+    "ntripclientggamode_b": 1,
+    "ntripclientreflat_f": 37.23345,
+    "ntripclientreflon_f": -115.81513,
+    "ntripclientrefalt_f": 15.0,
+    "ntripclientrefsep_f": 0.0,
+    "spartndecode_b": 0,
+    "spartnkey_s": "abcd1234abcd1234abcd1234abcd1234",
+    "spartnbasedate_n": -1,
+    "scattersettings_d": {
+        "maxpoints_n": 2000,
+        "scatterautorange_b": 1,
+        "scattercenter_s": "Average",
+        "scatterinterval_n": 1,
+        "scatterscale_n": 12,
+        "scatterlat_f": 37.23345,
+        "scatterlon_f": -115.81513
+    },
+    "imusettings_d": {
+        "range_n": 30,
+        "option_s": "N/A"
+    },
+    "chartsettings_d": {
+        "numchn_n": 4,
+        "timrng_n": "240",
+        "maxpoints_n": "2000",
+        "0": {
+            "id_s": "NAV-PVT",
+            "name_s": "hAcc",
+            "scale_f": "100",
+            "miny_f": "0",
+            "maxy_f": "1"
+        },
+        "1": {
+            "id_s": "NAV-PVT",
+            "name_s": "pDOP",
+            "scale_f": "1",
+            "miny_f": "0",
+            "maxy_f": "10"
+        },
+        "2": {
+            "id_s": "NAV-PVT",
+            "name_s": "numSV",
+            "scale_f": "1",
+            "miny_f": "0",
+            "maxy_f": "50"
+        },
+        "3": {
+            "id_s": "NAV-PVT",
+            "name_s": "carrSoln",
+            "scale_f": "1",
+            "miny_f": "0",
+            "maxy_f": "5"
+        }
+    },
+    "ubxpresets_l": [
+        "INIT_PRESETS",
+        "Poll Message Rates, CFG, CFG-VALGET, 00000000ffff9120, 2, CFG, CFG-VALGET, 00004000ffff9120, 2, CFG, CFG-VALGET, 00008000ffff9120, 2",
+        "Poll Receiver Software Version, MON, MON-VER, , 2",
+        "Poll Datum, CFG, CFG-DAT, , 2",
+        "Poll GNSS config, CFG, CFG-GNSS, , 2",
+        "Poll NMEA config, CFG, CFG-NMEA, , 2",
+        "Poll Satellite-based Augmentation, CFG, CFG-SBAS, , 2",
+        "Poll Receiver Management, CFG, CFG-RXM, , 2",
+        "Poll RXM-SPARTN-KEY, RXM, RXM-SPARTN-KEY, , 2",
+        "Poll RXM-COR, RXM, RXM-COR, , 2",
+        "Poll Navigation Mode, CFG, CFG-NAV5, , 2",
+        "Poll Expert Navigation mode, CFG, CFG-NAVX5, , 2",
+        "Poll Geofencing, CFG, CFG-GEOFENCE, , 2",
+        "Poll Timepulse, CFG, CFG-TP5, , 2",
+        "Set NEO-M8T Timepulse to 1 Hz, CFG, CFG-TP5, 000100003200000001000000010000003200000032000000000000006f000000, 1",
+        "Set NEO-M8T Timepulse to 8 MHz, CFG, CFG-TP5, 000100003200000000127a0000127a003200000032000000000000006f000000, 1",
+        "Limit NMEA GNSS to GPS only, CFG, CFG-NMEA, 0040000276000000000000010000000000000000, 1",
+        "Limit NMEA GNSS to GLONASS only, CFG, CFG-NMEA, 0040000257000000000000010000000000000000, 1",
+        "Set NMEA GNSS to ALL, CFG, CFG-NMEA, 0040000200000000000000010000000000000000, 1",
+        "Limit UBX GNSS to GPS only, CFG, CFG-GNSS, 0020200700081000010001010101030000000101020408000000010103081000000001010400080000000103050003000000010506080E0000000101, 1",
+        "Limit UBX GNSS to GLONASS only, CFG, CFG-GNSS, 0020200700081000000001010101030000000101020408000000010103081000000001010400080000000103050003000000010506080E0001000101, 1",
+        "Set UBX GNSS to ALL, CFG, CFG-GNSS, 0020200700081000010001010101030001000101020408000000010103081000000001010400080000000103050003000100010506080E0001000101, 1"
+    ],
+    "nmeapresets_l": [
+        "INIT_PRESETS",
+        "Check UniqueID; P; QTMUNIQID; ; 1",
+        "Enable Debug; P; QTMDEBUGON; ; 1",
+        "Disable Debug; P; QTMDEBUGOFF; ; 1",
+        "Set Fix Rate to 1 Hz; P; QTMCFGFIXRATE; W,1000; 1; P; QTMHOT; ; 1",
+        "Set Fix Rate to 5 Hz; P; QTMCFGFIXRATE; W,200; 1; P; QTMHOT; ; 1",
+        "Set Fix Rate to 10 Hz; P; QTMCFGFIXRATE; W,100; 1; P; QTMHOT; ; 1",
+        "LGSERIES Set Base Mode Survey-In; P; QTMCFGRCVRMODE; W,2; 1; P; QTMCFGSVIN; W,1,60,3000,0.0,0.0,0.0; 1; P; QTMCFGMSGRATE; W,PQTMSVINSTATUS,1,1; 1; P; QTMSAVEPAR; ; 1; P; QTMSRR; ; 1",
+        "LGSERIES Set Base Mode Fixed; P; QTMCFGRCVRMODE; W,2; 1; P; QTMCFGSVIN; W,2,0,0,-2213540.321087019,-4577229.071167925,3838042.2419518335; 1; P; QTMSAVEPAR; ; 1; P; QTMSRR; ; 1",
+        "LGSERIES Set Normal (Rover) Mode; P; QTMCFGRCVRMODE; W,1; 1; P; QTMSAVEPAR; ; 1; P; QTMSRR; ; 1",
+        "Enable SVIN Status message; P; QTMCFGMSGRATE; W,PQTMSVINSTATUS,1,1; 1",
+        "Disable SVIN Status message; P; QTMCFGMSGRATE; W,PQTMSVINSTATUS,0,1; 1",
+        "Set current UART baudrate to 460800; P; QTMCFGUART; W,460800; 1",
+        "Set UART2 baudrate to 115200; P; QTMCFGUART; W,2,115200; 1",
+        "Configure current UART; P; QTMCFGUART; W,460800,8,0,1,0; 1",
+        "Configure UART2; P; QTMCFGUART; W,2,115200,8,0,0,0; 1",
+        "Set PQTMPVT message rate to 1; P; QTMCFGMSGRATE; W,PQTMPVT,1,1; 1",
+        "Enable all PQTM* output messages; P; QTMCFGMSGRATE; W,PQTMDOP,1,1; 1; P; QTMCFGMSGRATE; W,PQTMEPE,1,2; 1; P; QTMCFGMSGRATE; W,PQTMODO,1,1; 1; P; QTMCFGMSGRATE; W,PQTMPL,1,1; 1; P; QTMCFGMSGRATE; W,PQTMPVT,1,1; 1; P; QTMCFGMSGRATE; W,PQTMVEL,1,1; 1",
+        "Reset Odometer; P; QTMRESETODO; ; 1",
+        "Configure Constellations; P; QTMCFGCNST; W,1,1,1,1,0,0; 1; P; QTMHOT; ; 1",
+        "Set Reference Station ID to 1024; P; QTMCFGRSID; W,1024; 1",
+        "Set Protocol Masks; P; QTMCFGPROT; W,1,1,00000005,00000005; 1",
+        "Set NMEA Precision; P; QTMCFGNMEADP; W,3,8,3,2,3,2; 1",
+        "Set Odometer Initial Distance to 10.5; P; QTMCFGODO; W,1,10.5; 1",
+        "Configure PPS (Pulse Per Second); P; QTMCFGPPS; W,1,1,100,1,1,0; 1",
+        "Disable PPS; P; QTMCFGPPS; W,1,0; 1",
+        "Set RTK Mode; P; QTMCFGRTK; W,1,1; 1",
+        "Configure Satellite Masks (Low); P; QTMCFGSAT; W,1,1,FFFFFFFF; 1; P; QTMHOT; ; 1",
+        "Configure Satellite Masks (Low and High); P; QTMCFGSAT; W,4,1,BFFCBFFF,1C003FFF; 1; P; QTMHOT; ; 1",
+        "Configure Signal Masks; P; QTMCFGSIGNAL; W,7,3,F,3F,7,1; 1; P; QTMHOT; ; 1",
+        "Poll Geofence configuration; P; QTMCFGGEOFENCE; R,0; 1; P; QTMCFGGEOFENCE; R,1; 1; P; QTMCFGGEOFENCE; R,2; 1; P; QTMCFGGEOFENCE; R,3; 1",
+        "Configure Geofence (Circle); P; QTMCFGGEOFENCE; W,0,1,0,0,31.451248,117.451245,100.5; 1",
+        "Configure Geofence (Polygon); P; QTMCFGGEOFENCE; W,0,1,0,3,31.451248,117.451245,100.5,12.36,85.24,118.72,56.45,140.13; 1",
+        "Disable Geofence; P; QTMCFGGEOFENCE; W,0,0; 1",
+        "LG580P Enable OGC RAW-PPPB2B output;P; QTMCFGMSGRATE; W,1,1,0AB2,1,1;1",
+        "LG580P Enable OGC RAW-QZSSL6 output;P; QTMCFGMSGRATE; W,1,1,0AB6,1,1;1",
+        "LG580P Enable OGC RAW-HASE6 output;P; QTMCFGMSGRATE; W,1,1,0AE6,1,1;1"
+    ],
+    "ttypresets_l": [
+        "INIT_PRESETS",
+        "IM19 Tilt Survey Setup; AT+LOAD_DEFAULT; AT+GNSS_PORT=PHYSICAL_UART2; AT+NASC_OUTPUT=UART1,ON; AT+LEVER_ARM2=0.0057,-0.0732,-0.0645; AT+CLUB_VECTOR=0,0,1.865; AT+INSTALL_ANGLE=0,180,0; AT+GNSS_CARD=OEM; AT+WORK_MODE=408; AT+CORRECT_HOLDER=ENABLE; AT+SET_PPS_EDGE=RISING; AT+AHRS=ENABLE; AT+MAG_AUTO_SAVE=ENABLE; AT+SAVE_ALL",
+        "IM19 System reset CONFIRM; AT+SYSTEM_RESET",
+        "IM19 Save the parameters; CONFIRM AT+SAVE_ALL",
+        "IM19 Update module firmware, see attachment for protocols; AT+UPDATE_APP",
+        "IM19 Update Bootloader, see attachment for protocols; AT+UPDATE_BOOT",
+        "IM19 Set the GNSS RTK receiver type; AT+GNSS_CARD=OEM",
+        "IM19 Read parameters (SYSTEM/ALL); AT+READ_PARA=SYSTEM/ALL",
+        "IM19 Loading default parameters; AT+LOAD_DEFAULT"
+    ],
+    "usermaps_l": [
+        [
+            "/home/myuser/maps/mymap01.tif",
+            [
+                52.48903090029343,
+                13.376796709434993,
+                52.428992219505325,
+                13.513273402895
+            ]
+        ],
+        [
+            "/home/myuser/maps/mymap02.tif",
+            [
+                52.43227595237385,
+                13.499564532600285,
+                52.37215985772205,
+                13.636041225870589
+            ]
+        ],
+        [
+            "/home/myuser/maps/mymap03.tif",
+            [
+                52.37776419675291,
+                13.625147570124257,
+                52.31757380344052,
+                13.761624263584265
+            ]
+        ]
+    ],
+    "colortags_l": [
+        [
+            "NMEA",
+            "lightblue1"
+        ],
+        [
+            "UBX",
+            "green3"
+        ],
+        [
+            "SBF",
+            "cyan"
+        ],
+        [
+            "QGC",
+            "turquoise1"
+        ],
+        [
+            "RTCM",
+            "coral1"
+        ],
+        [
+            "SPARTN",
+            "maroon1"
+        ],
+        [
+            "TTY<<",
+            "khaki"
+        ],
+        [
+            "NTRIP",
+            "#9f30c1"
+        ],
+        [
+            "MQTT",
+            "#a53570"
+        ],
+        [
+            "LBAND",
+            "#a53570"
+        ],
+        [
+            "txbuf alloc",
+            "red"
+        ],
+        [
+            "UNKNOWN PROTOCOL",
+            "red"
+        ],
+        [
+            "ERROR",
+            "red"
+        ],
+        [
+            "carrSoln=2",
+            "green"
+        ],
+        [
+            "carrSoln=1",
+            "deepskyblue"
+        ]
+    ]
+}

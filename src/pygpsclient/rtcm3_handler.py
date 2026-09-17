@@ -1,0 +1,101 @@
+"""
+rtcm3_handler.py
+
+RTCM Protocol handler - handles all incoming RTCM messages.
+
+Parses individual RTCM3 sentences (using pyrtcm library).
+
+Created on 10 Apr 2022
+
+:author: semuadmin (Steve Smith)
+:copyright: 2020 semuadmin
+:license: BSD 3-Clause
+"""
+
+import logging
+
+from pynmeagps import bearing, ecef2llh, haversine
+from pyrtcm import RTCMMessage
+
+from pygpsclient.dialog_state import DLGTSERVER
+
+RTCM56 = "RTCM 1005/6"  # antenna reference point message used by Rover Plot
+
+
+class RTCM3Handler:
+    """
+    RTCM3 handler class.
+    """
+
+    def __init__(self, app):
+        """
+        Constructor.
+
+        :param Tk app: reference to main tkinter application
+        """
+
+        self.__app = app  # Reference to main application class
+        self.logger = logging.getLogger(__name__)
+
+        self._raw_data = None
+        self._parsed_data = None
+
+    def process_data(self, raw_data: bytes, parsed_data: object):
+        """
+        Process relevant RTCM message types
+
+        :param bytes raw_data: raw_data
+        :param RTCMMessage parsed_data: parsed data
+        """
+        # pylint: disable=no-member
+
+        try:
+            if raw_data is None:
+                return
+
+            if parsed_data.identity in ("1005", "1006"):
+                self._process_1005(parsed_data)
+
+        except ValueError:
+            pass
+
+    def _process_1005(self, parsed: RTCMMessage):
+        """
+        Process 1005/1006 ARP information message.
+
+        :param RTCMMessage parsed: 1005/1006 message
+        """
+
+        try:
+            self.__app.gnss_status.diff_station = parsed.DF003
+            self.__app.gnss_status.base_ecefx = parsed.DF025
+            self.__app.gnss_status.base_ecefy = parsed.DF026
+            self.__app.gnss_status.base_ecefz = parsed.DF027
+
+            # update Survey-In base station location
+            if self.__app.dialog(DLGTSERVER) is not None:
+                self.__app.dialog(DLGTSERVER).update_base_location()
+
+            if (
+                self.__app.configuration.get("relposnedsettings_d")["source_s"]
+                != RTCM56
+            ):
+                return
+
+            self.__app.gnss_status.rel_pos_source = RTCM56
+            lat2, lon2, _ = ecef2llh(parsed.DF025, parsed.DF026, parsed.DF027)
+            self.__app.gnss_status.rel_pos_length = (
+                haversine(
+                    self.__app.gnss_status.lat,
+                    self.__app.gnss_status.lon,
+                    lat2,
+                    lon2,
+                )
+                * 100000
+            )  # km to cm
+            self.__app.gnss_status.rel_pos_heading = bearing(
+                lat2, lon2, self.__app.gnss_status.lat, self.__app.gnss_status.lon
+            )
+
+        except (AttributeError, TypeError, ValueError):
+            pass

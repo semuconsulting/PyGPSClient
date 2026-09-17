@@ -1,0 +1,61 @@
+{
+    "MQTT": {
+        "Connectivity": {
+            "Name": "dummymqtt",
+            "ClientID": "dummy123-1234-1234-1234-abcdefghijkl",
+            "Protocol": "MQTT 3.1.1",
+            "ServerURI": "ssl://pp.services.u-blox.com:8883",
+            "ClientCredentials": {
+                "Type": "X.509",
+                "Key": "dummykey",
+                "Cert": "dummycert",
+                "RootCA": "dummyrootca"
+            },
+            "CleanSession": true,
+            "ConnectionTimeout": 30,
+            "KeepAliveInterval": 3600,
+            "SSL": {
+                "Mode": "BASIC",
+                "Protocol": "TLSv1.2"
+            }
+        },
+        "Subscriptions": {
+            "Key": {
+                "QoS": 1,
+                "KeyTopics": [
+                    "/pp/ubx/0236/ip"
+                ]
+            },
+            "AssistNow": {
+                "QoS": 1,
+                "AssistNowTopics": [
+                    "/pp/ubx/mga"
+                ]
+            },
+            "Data": {
+                "QoS": 0,
+                "DataTopics": [
+                    "/pp/ip/eu",
+                    "/pp/ip/eu/gad;/pp/ip/eu/hpac;/pp/ip/eu/ocb;/pp/ip/eu/clk",
+                    "/pp/ip/us",
+                    "/pp/ip/us/gad;/pp/ip/us/hpac;/pp/ip/us/ocb;/pp/ip/us/clk",
+                    "/pp/ip/kr",
+                    "/pp/ip/kr/gad;/pp/ip/kr/hpac;/pp/ip/kr/ocb;/pp/ip/kr/clk",
+                    "/pp/ip/au"
+                ]
+            }
+        },
+        "dynamickeys": {
+            "current": {
+                "start": 1676159982000,
+                "duration": 2419199999,
+                "value": "abc123def456ghi789jkl901mno234pq"
+            },
+            "next": {
+                "start": 1678579182000,
+                "duration": 3023999999,
+                "value": "def456ghi789jkl901mno234pqr567st"
+            }
+        }
+    }
+}

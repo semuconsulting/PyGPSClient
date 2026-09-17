@@ -1,0 +1,117 @@
+"""
+CLI Entry point for PyGPSClient Application.
+
+Created on 12 Sep 2020
+
+:author: semuadmin (Steve Smith)
+:copyright: 2020 semuadmin
+:license: BSD 3-Clause
+"""
+
+from argparse import SUPPRESS, ArgumentDefaultsHelpFormatter, ArgumentParser
+from logging import getLogger
+
+from pygnssutils import (
+    VERBOSITY_CRITICAL,
+    VERBOSITY_DEBUG,
+    VERBOSITY_HIGH,
+    VERBOSITY_LOW,
+    VERBOSITY_MEDIUM,
+    set_logging,
+)
+
+from pygpsclient._version import __version__ as VERSION
+from pygpsclient.app import App
+from pygpsclient.globals import APPNAME, CONFIGFILE
+from pygpsclient.strings import EPILOG
+
+
+def main():
+    """The main tkinter loop."""
+
+    ap = ArgumentParser(
+        epilog=f"\033[1m\033[91m{EPILOG}\033[0m",
+        formatter_class=ArgumentDefaultsHelpFormatter,
+        description="Command line arguments will override configuration file",
+    )
+    ap.add_argument("-V", "--version", action="version", version="%(prog)s " + VERSION)
+    ap.add_argument(
+        "-C",
+        "--config",
+        help="Fully-qualified path to configuration file",
+        default=CONFIGFILE,
+    )
+    ap.add_argument(
+        "-U",
+        "--userport",
+        help="User-defined GNSS receiver port",
+        default=SUPPRESS,
+    )
+    ap.add_argument(
+        "--mqapikey",
+        help="MapQuest API Key",
+        default=SUPPRESS,
+    )
+    ap.add_argument(
+        "--ntripcasteruser",
+        help="NTRIP Caster authentication user",
+        default=SUPPRESS,
+    )
+    ap.add_argument(
+        "--ntripcasterpassword",
+        help="NTRIP Caster authentication password",
+        default=SUPPRESS,
+    )
+    ap.add_argument(
+        "--tlspempath",
+        help="Fully qualified path to TLS PEM (private key/certificate) file used by socket server",
+        default=SUPPRESS,
+    )
+    ap.add_argument(
+        "--tlscrtpath",
+        help="Fully qualified path to TLS CRT (certificate) file used by socket client",
+        default=SUPPRESS,
+    )
+    ap.add_argument(
+        "--verbosity",
+        help=(
+            f"Log message verbosity "
+            f"{VERBOSITY_CRITICAL} = critical, "
+            f"{VERBOSITY_LOW} = low (error), "
+            f"{VERBOSITY_MEDIUM} = medium (warning), "
+            f"{VERBOSITY_HIGH} = high (info), "
+            f"{VERBOSITY_DEBUG} = debug"
+        ),
+        type=int,
+        choices=[
+            VERBOSITY_LOW,
+            VERBOSITY_MEDIUM,
+            VERBOSITY_HIGH,
+            VERBOSITY_DEBUG,
+            VERBOSITY_CRITICAL,
+        ],
+        default=VERBOSITY_CRITICAL,
+    )
+    ap.add_argument(
+        "--logtofile",
+        help="fully qualified log file name, or '' for no log file",
+        default="",
+    )
+    kwargs = vars(ap.parse_args())
+
+    # set up global logging configuration
+    verbosity = int(kwargs.pop("verbosity", VERBOSITY_CRITICAL))
+    logtofile = kwargs.pop("logtofile", "")
+    logger = getLogger(APPNAME)  # "pygpsclient"
+    logger_utils = getLogger("pygnssutils")
+    logger_pyubx2 = getLogger("pyubx2")
+    for logr in (logger, logger_utils, logger_pyubx2):
+        set_logging(logr, verbosity, logtofile)
+
+    app = App(**kwargs)
+    app.mainloop()
+
+
+if __name__ == "__main__":
+
+    main()
