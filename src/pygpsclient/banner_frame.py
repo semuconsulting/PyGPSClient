@@ -411,7 +411,6 @@ class BannerFrame(Frame):
         self._update_dop(units)
         self._update_dgps(units)
         self._update_psstats()
-        self.update_idletasks()
 
     def _update_time(self):
         """

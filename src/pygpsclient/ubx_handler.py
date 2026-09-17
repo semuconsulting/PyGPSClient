@@ -18,10 +18,10 @@ Created on 30 Sep 2020
 import logging
 from time import time
 
-from pyubx2 import UBXMessage, itow2utc
+from pyubx2 import LASTCORRECTIONAGE, UBXMessage, itow2utc
 
 from pygpsclient.globals import BSR, GLONASS_NMEA, UTF8
-from pygpsclient.helpers import corrage2int, fix2desc, hdg2yaw, ned2vector, svid2gnssid
+from pygpsclient.helpers import fix2desc, hdg2yaw, ned2vector, svid2gnssid
 from pygpsclient.strings import DLGTSERVER, DLGTUBX, DLGTUBXLEGACY, NA
 from pygpsclient.widget_state import VISIBLE, WDGSIGNALS, WDGSPECTRUM, WDGSYSMON
 
@@ -296,7 +296,9 @@ class UBXHandler:
         elif hasattr(data, "diffSoln"):
             self.__app.gnss_status.diff_corr = data.diffSoln
         if data.lastCorrectionAge != 0:
-            self.__app.gnss_status.diff_age = corrage2int(data.lastCorrectionAge)
+            self.__app.gnss_status.diff_age = LASTCORRECTIONAGE.get(
+                data.lastCorrectionAge, 0
+            )
 
         ims = self.__app.gnss_status.imu_data
         if data.headVehValid == 1:

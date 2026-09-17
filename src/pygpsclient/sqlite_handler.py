@@ -187,15 +187,15 @@ class SqliteHandler:
             return SQLOK
         except AttributeError as err:
             self.__app.set_status_label(DLGDBSQLERR.format(err), errcol)
-            self.logger.debug(traceback.format_exc())
+            # self.logger.debug(traceback.format_exc())
             return NOEXT  # extensions not supported
         except sqlite3.OperationalError as err:
             self.__app.set_status_label(DLGDBSQLERR.format(err), errcol)
-            self.logger.debug(traceback.format_exc())
+            # self.logger.debug(traceback.format_exc())
             return NOMODS  # no mod_spatial extension found
         except sqlite3.Error as err:
             self.__app.set_status_label(DLGDBSQLERR.format(err), errcol)
-            self.logger.debug(traceback.format_exc())
+            # self.logger.debug(traceback.format_exc())
             return SQLERR  # other sqlite error
 
     def close(self):

@@ -136,7 +136,6 @@ GNSS_EOF_EVENT = "<<gnss_eof>>"
 GNSS_ERR_EVENT = "<<gnss_error>>"
 GNSS_EVENT = "<<gnss_read>>"
 GNSS_TIMEOUT_EVENT = "<<gnss_timeout>>"
-GPSEPOCH0 = datetime(1980, 1, 6)  # for Wno and Tow calculations
 GPX_NS = (
     'xmlns="http://www.topografix.com/GPX/1/1" '
     'creator="PyGPSClient" version="1.1" '

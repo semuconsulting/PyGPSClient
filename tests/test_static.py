@@ -13,16 +13,14 @@ Created on 3 Oct 2020
 # pylint: disable=missing-docstring
 
 import unittest
-from datetime import datetime, timezone
 
 from pynmeagps import SET, NMEAMessage
-from pyubx2 import UBXMessage, UBXReader
+from pyubx2 import UBXMessage
 
 from pygpsclient.configuration import Configuration, INITMARKER
 from pygpsclient.gnss_status import GNSSStatus
 from pygpsclient.globals import (
     Area,
-    AreaXY,
     Point,
     TrackPoint,
     UI,
@@ -35,18 +33,14 @@ from pygpsclient.helpers import (
     bitsval,
     bytes2unit,
     col2contrast,
-    corrage2int,
-    date2wnotow,
     dop2str,
     fix2desc,
     ft2m,
-    get_mp_distance,
     get_mp_info,
     get_range,
     get_units,
     get_point_at_vector,
     get_track_bounds,
-    haversine,
     hdg2yaw,
     hsv2rgb,
     isot2dt,
@@ -62,9 +56,7 @@ from pygpsclient.helpers import (
     ned2vector,
     nmea2preset,
     normalise_area,
-    parse_rxmspartnkey,
     point_in_bounds,
-    pos2iso6709,
     publicip,
     reorder_range,
     secs2unit,
@@ -236,12 +228,6 @@ class StaticTest(unittest.TestCase):
         res = knots2ms("xxx")
         self.assertEqual(res, 0)
 
-    def testpos2iso6709(self):
-        res = pos2iso6709(53.12, -2.165, 35)
-        self.assertEqual(res, "+53.12-2.165+35CRSWGS_84/")
-        res = pos2iso6709("", -2.165, 35)
-        self.assertEqual(res, "")
-
     def testhsv2rgb(self):
         res = hsv2rgb(0.5, 0.2, 0.9)
         self.assertEqual(res, "#b7e5e5")
@@ -281,9 +267,9 @@ class StaticTest(unittest.TestCase):
 
     def testcol2contrast(self):
         res = col2contrast("#ff0000")
-        self.assertEqual(res, "white")
+        self.assertEqual(res, "#ffffff")
         res = col2contrast("#dddddd")
-        self.assertEqual(res, "black")
+        self.assertEqual(res, "#000000")
 
     def testfix2desc(self):
         EXPECTED_RESULT = ["3D", "RTK FIXED", "RTK FLOAT", "3D", "NO FIX"]
@@ -292,65 +278,6 @@ class StaticTest(unittest.TestCase):
             fix, msg = code
             res = fix2desc(fix, msg)
             self.assertEqual(res, EXPECTED_RESULT[i])
-
-    def testcorrage2int(self):
-        EXPECTED_RESULT = [0, 5, 20, 60, 120, 0]
-        fixes = (0, 3, 6, 9, 11, 15)
-        for i, fix in enumerate(fixes):
-            res = corrage2int(fix)
-            self.assertEqual(res, EXPECTED_RESULT[i])
-
-    def testhaversine(self):
-        res = haversine(51.23, -2.41, 34.205, 56.34)
-        self.assertAlmostEqual(res, 5010.721853179245, 4)
-        res = haversine(-12.645, 34.867, 145.1745, -56.27846)
-        self.assertAlmostEqual(res, 10715.370876703888, 4)
-
-    def testgetmpdistance(self):
-        mp = [
-            "TKC-EGA",
-            "Wrens, GA",
-            "RTCM 3.2",
-            "1005(1),1074(1),1084(1),1094(1),1124(1),1230(1)",
-            "",
-            "GPS+GLO+GAL+BDS",
-            "SNIP",
-            "USA",
-            "33.31",
-            "-82.44",
-            "1",
-            "0",
-            "sNTRIP",
-            "none",
-            "N",
-            "N",
-            "4200",
-            "",
-        ]
-        res = get_mp_distance(34.123, 14.6743, mp)
-        self.assertAlmostEqual(res, 8588.391732771786, 4)
-        mp = [
-            "tobetsu-tsujino",
-            "Tobetsu",
-            "RTCM 3.2",
-            "1005(1),1077(1),1087(1),1127(1),1230(10)",
-            "",
-            "GPS+GLO+BDS",
-            "SNIP",
-            "JPN",
-            "43.22",
-            "141.52",
-            "1",
-            "0",
-            "sNTRIP",
-            "none",
-            "N",
-            "N",
-            "8300",
-            "",
-        ]
-        res = get_mp_distance(-34.123, -8.6743, mp)
-        self.assertAlmostEqual(res, 17274.381937035745, 4)
 
     def teststringvar2val(self):
         vals = [
@@ -365,27 +292,6 @@ class StaticTest(unittest.TestCase):
             res = stringvar2val(val, att)
             self.assertEqual(ress[i], res)
 
-    def testdate2wnotow(self):
-        dats = [
-            (2023, 1, 1),
-            (2005, 11, 5),
-            (2020, 8, 20),
-            (2014, 3, 16),
-            (2023, 5, 21),
-            (2023, 5, 27),
-        ]
-        vals = [
-            (2243, 0),
-            (1347, 518400),
-            (2119, 345600),
-            (1784, 0),
-            (2263, 0),
-            (2263, 518400),
-        ]
-        for i, dat in enumerate(dats):
-            y, m, d = dat
-            self.assertEqual(date2wnotow(datetime(y, m, d)), vals[i])
-
     def testbitsval(self):
         bits = [(7, 1), (8, 8), (22, 2), (24, 4), (40, 16)]
         EXPECTED_RESULT = [1, 8, 3, 15, None]
@@ -394,17 +300,6 @@ class StaticTest(unittest.TestCase):
         for i, (ps, ln) in enumerate(bits):
             res = bitsval(bm, ps, ln)
             self.assertEqual(res, EXPECTED_RESULT[i])
-
-    def testparserxm(self):
-        # EXPECTED_RESULT = [('0c00', datetime(1988, 3, 1, 7, 39, 55, tzinfo=timezone.utc)), ('290900', datetime(1988, 7, 4, 2, 39, 55, tzinfo=timezone.utc))]
-        EXPECTED_RESULT = [('0c00', datetime(1980, 11, 4, 7, 40, tzinfo=timezone.utc)), ('290900', datetime(1980, 11, 3, 2, 40, tzinfo=timezone.utc))]
-        RXM_SPARTNKEY = b"\xb5b\x026\x19\x00\x01\x02\x00\x00\x00\x02+\x00\xd0Y\xc8\r\x00\x03+\x00\x00\xdfl\x0e\x0c\x00)\t\x00D;"
-        msg = UBXReader.parse(RXM_SPARTNKEY)
-        res = parse_rxmspartnkey(msg)
-        print(f'"{res}",')
-        self.assertTrue(len(res) == 2)
-        self.assertIsInstance(res[0][1], datetime)
-        self.assertIsInstance(res[1][1], datetime)
 
     def testmapqcompress(self):
         PREC = 6

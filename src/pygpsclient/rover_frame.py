@@ -270,7 +270,6 @@ class RoverFrame(Frame):
             tags=TAG_DATA,
         )
         self._canvas.create_circle(x, y, 3, fill=PNTCOL, outline=PNTCOL, tags=TAG_DATA)
-        self.update_idletasks()
 
     def _set_range(self, distance: float):
         """

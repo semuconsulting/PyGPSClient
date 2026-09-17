@@ -89,7 +89,7 @@ from pygpsclient.globals import (
     UBXSIMULATOR,
 )
 from pygpsclient.strings import WARNING
-from pygpsclient.widget_state import FRAME, VISIBLE, WDGCHART, WDGCONSOLE
+from pygpsclient.widget_state import VISIBLE, WDGCHART, WDGCONSOLE
 
 
 class StreamHandler:
