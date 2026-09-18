@@ -1,11 +1,22 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.7.7
+
+1. Minor improvements to status messaging.
+
 ### RELEASE 1.7.6
 
 1. Widget performance improvements.
 1. Add Python 3.15 classifier to pyproject.toml.
 1. Update github actions to latest versions.
 1. Add Chart plotter channels to App Configuration dialog.
+
+The PyGPSClient repo has been rebased following this release. The following contributions to older versions are acknowledged with thanks:
+
+- @davidtlascelles - Jun 25, 2025 - Set N/A for invalid precision and accuracy values.
+- @Williangalvani - Feb 13, 2024 - Send an empty datagram to establish connection to udp servers.
+- @nmichaels-qualinx - Mar 24, 2023 - Add a scatterplot view.
+- @NicholasZolton - Jul 21, 2022 - Updated README to reflect About section.
 
 ### RELEASE 1.7.5
 

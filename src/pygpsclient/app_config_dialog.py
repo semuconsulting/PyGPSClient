@@ -300,7 +300,7 @@ class AppConfigDialog(ToplevelDialog):
                 != int(self._showunused.get())
             )
         )
-        msg = "Settings updated" if updates else ""
+        msg = "Save updated settings and restart" if updates else ""
         if int(self._maprefresh.get()) < 60:
             msg += ". Check MapQuest Fees!"
         self._enable_save_button(updates)
