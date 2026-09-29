@@ -41,7 +41,7 @@ from pynmeagps import planar
 from requests import ConnectionError as ConnError
 from requests import ConnectTimeout, RequestException, get
 
-from pygpsclient.canvas_subclasses import create_circle  # pylint: disable=unused-import
+from pygpsclient.custom_classes import create_circle  # pylint: disable=unused-import
 from pygpsclient.globals import (
     BGCOL,
     CUSTOM,

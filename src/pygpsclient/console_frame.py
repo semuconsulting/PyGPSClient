@@ -19,19 +19,17 @@ Created on 12 Sep 2020
 
 from queue import Empty
 from tkinter import (
+    DISABLED,
     END,
-    EW,
-    HORIZONTAL,
     NONE,
-    NS,
     NSEW,
-    VERTICAL,
     Frame,
-    Scrollbar,
-    Text,
     Tk,
 )
 
+from PIL import Image, ImageTk
+
+from pygpsclient.custom_classes import ScrollableText
 from pygpsclient.globals import (
     BGCOL,
     DISCONNECTED,
@@ -44,14 +42,12 @@ from pygpsclient.globals import (
     FORMAT_HEXSTR,
     FORMAT_HEXTAB,
     FORMAT_PARSED,
-    INFOCOL,
+    HALT,
+    ICON_CLIPBOARD,
     WIDGETU3,
 )
 from pygpsclient.helpers import hextable
-from pygpsclient.strings import CONTENTCOPIED, HALTTAGWARN
-
-HALT = "HALT"
-CONSOLELINES = 20
+from pygpsclient.strings import HALTTAGWARN
 
 
 class ConsoleFrame(Frame):
@@ -77,6 +73,9 @@ class ConsoleFrame(Frame):
         self.width = kwargs.get("width", def_w)
         self.height = kwargs.get("height", def_h)
         self._colortags = self.__app.configuration.get("colortags_l")
+        self._img_clipboard = ImageTk.PhotoImage(
+            Image.open(ICON_CLIPBOARD).resize((16, 16))
+        )
         self._body()
         self._do_layout()
         self._attach_events()
@@ -87,45 +86,34 @@ class ConsoleFrame(Frame):
         Set up frame and widgets.
         """
 
-        self.option_add("*Font", self.__app.font_sm)
-        self._console_fg = FGCOL
-        self._console_bg = BGCOL
+        self._frm_console = ScrollableText(
+            self.__app,
+            self.__app,
+            self,
+            state=DISABLED,
+            bg=BGCOL,
+            fg=FGCOL,
+            wrap=NONE,
+            height=15,
+        )
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=0)
         self.grid_rowconfigure(1, weight=0)
-        self.sblogv = Scrollbar(self, orient=VERTICAL)
-        self.sblogh = Scrollbar(self, orient=HORIZONTAL)
-        self.txt_console = Text(
-            self,
-            bg=self._console_bg,
-            fg=self._console_fg,
-            yscrollcommand=self.sblogv.set,
-            xscrollcommand=self.sblogh.set,
-            wrap=NONE,
-            height=15,
-        )
-        self.sblogh["command"] = self.txt_console.xview
-        self.sblogv["command"] = self.txt_console.yview
-
-        # making the textbox read only and fixed width font
-        self.txt_console.configure(state="disabled")
 
         # set up color tagging
         for match, color in self._colortags:
             if color == HALT:
                 color = ERRCOL
                 match = HALT
-            self.txt_console.tag_config(match, foreground=color)
+            self._frm_console.text.tag_config(match, foreground=color)
 
     def _do_layout(self):
         """
         Set position of widgets in frame
         """
 
-        self.txt_console.grid(column=0, row=0, pady=1, padx=1, sticky=NSEW)
-        self.sblogv.grid(column=1, row=0, sticky=NS)
-        self.sblogh.grid(column=0, row=1, sticky=EW)
+        self._frm_console.grid(column=0, row=0, pady=1, padx=1, sticky=NSEW)
 
     def _attach_events(self):
         """
@@ -133,9 +121,9 @@ class ConsoleFrame(Frame):
         """
 
         self.bind("<Configure>", self._on_resize)
-        self.txt_console.bind("<Double-Button-1>", self._on_clipboard)
-        self.txt_console.bind("<Double-Button-2>", self._on_clipboard)
-        self.txt_console.bind("<Double-Button-3>", self._on_clipboard)
+        self._frm_console.text.bind("<Double-Button-1>", self._frm_console.on_clipboard)
+        self._frm_console.text.bind("<Double-Button-2>", self._frm_console.on_clipboard)
+        self._frm_console.text.bind("<Double-Button-3>", self._frm_console.on_clipboard)
         # self.txt_console.tag_bind(HALT, "<1>", self._on_halt) # doesn't seem to work on MacOS
 
     def update_frame(self):
@@ -158,7 +146,7 @@ class ConsoleFrame(Frame):
         consoleformat = self.__app.configuration.get("consoleformat_s")
         maxlines = self.__app.configuration.get("maxlines_n")
         self._halt = ""
-        self.txt_console["font"] = (
+        self._frm_console.text["font"] = (
             FONT_TEXT if consoleformat in (FORMAT_BINARY, FORMAT_PARSED) else FONT_FIXED
         )
         raw_data = None
@@ -184,31 +172,29 @@ class ConsoleFrame(Frame):
                 break
 
         consolestr = "".join(lines[-maxlines:])
-        numlinesbefore = self.numlines
-        self.txt_console.configure(state="normal")
+        numlinesbefore = self._frm_console.numlines
 
+        self._frm_console.state(True)  # enable text insertion
         if len(lines) >= maxlines:
-            self.txt_console.delete("1.0", "end")
-            self.txt_console.insert("1.0", consolestr)
+            self._frm_console.set(consolestr, insert=0)
             numlinesbefore = 0
         else:
-            excess = self.numlines + len(lines) - maxlines
+            excess = self._frm_console.numlines + len(lines) - maxlines
             if excess > 0:
-                self.txt_console.delete("1.0", f"{excess}.0")
+                self._frm_console.set(consolestr, insert=excess)
                 numlinesbefore -= excess
-            self.txt_console.insert(END, consolestr)
+            else:
+                self._frm_console.set(consolestr, insert=-1)
 
         if self.__app.configuration.get("colortag_b"):
-            self._tag_line(self.txt_console, numlinesbefore, self.numlines)
+            self._tag_line(
+                self._frm_console.text, numlinesbefore, self._frm_console.numlines
+            )
             if self._halt != "":
-                self._on_halt(None)
+                self.__app.conn_status = DISCONNECTED
+                self.__app.set_status_label(HALTTAGWARN.format(self._halt), ERRCOL)
 
-        while self.numlines > maxlines:
-            self.txt_console.delete("1.0", "2.0")  # delete top line
-
-        self.txt_console.see("end")
-        self.txt_console.configure(state="disabled")
-        self.update_idletasks()
+        self._frm_console.state(False)  # disable text insertion
 
     def _tag_line(self, con, startline: int, endline: int):
         """
@@ -232,40 +218,6 @@ class ConsoleFrame(Frame):
                         self._halt = match
                         match = HALT
                     con.tag_add(match, f"{lineidx}.{start}", f"{lineidx}.{end}")
-
-    @property
-    def numlines(self) -> int:
-        """
-        Get number of lines in console.
-
-        :return: nmber of lines
-        :type: int
-        """
-
-        return int(self.txt_console.index("end-1c").split(".", 1)[0])
-
-    def _on_halt(self, event):  # pylint: disable=unused-argument
-        """
-        Halt streaming.
-
-        :param event event: HALT event
-        """
-
-        self.__app.stream_handler.stop()
-        self.__app.set_status_label(HALTTAGWARN.format(self._halt), ERRCOL)
-        self.__app.conn_status = DISCONNECTED
-
-    def _on_clipboard(self, event):  # pylint: disable=unused-argument
-        """
-        Copy console content to clipboard.
-
-        :param event event: double click event
-        """
-
-        self.__app.clipboard_clear()
-        self.__app.clipboard_append(self.txt_console.get("1.0", END))
-        self.__app.update()
-        self.__app.set_status_label(CONTENTCOPIED.format("console"), INFOCOL)
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """

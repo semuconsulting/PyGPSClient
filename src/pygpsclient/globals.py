@@ -145,9 +145,11 @@ GPX_NS = (
 )
 GPX_TRACK_INTERVAL = 1  # minimum GPS track update interval (seconds)
 GUI_UPDATE_INTERVAL = 0.5  # GUI widget update interval (seconds)
+HALT = "HALT"
 ICON_APP128 = path.join(DIRNAME, "resources/app-128.png")
 ICON_BLANK = path.join(DIRNAME, "resources/blank-1-24.png")
 ICON_CANCEL = path.join(DIRNAME, "resources/iconmonstr-x-mark-9-24.png")
+ICON_CLIPBOARD = path.join(DIRNAME, "resources/iconmonstr-clipboard-13-24.png")
 ICON_CONFIRMED = path.join(DIRNAME, "resources/iconmonstr-check-mark-8-24.png")
 ICON_CONN = path.join(DIRNAME, "resources/iconmonstr-media-control-48-24.png")
 ICON_CONTRACT = path.join(DIRNAME, "resources/iconmonstr-triangle-1-16.png")
@@ -160,6 +162,7 @@ ICON_EYEON = path.join(DIRNAME, "resources/iconmonstr-eye-lined-16.png")
 ICON_EYEOFF = path.join(DIRNAME, "resources/iconmonstr-eye-off-lined-16.png")
 ICON_GITHUB = path.join(DIRNAME, "resources/github-256.png")
 ICON_IMPORT = path.join(DIRNAME, "resources/iconmonstr-import-24.png")
+ICON_INFO = path.join(DIRNAME, "resources/iconmonstr-info-lined-24.png")
 ICON_LEFT = path.join(DIRNAME, "resources/iconmonstr-caret-left-filled-32.png")
 ICON_LOAD = path.join(DIRNAME, "resources/iconmonstr-folder-18-24.png")
 ICON_LOGREAD = path.join(DIRNAME, "resources/binary-1-24.png")
@@ -192,6 +195,7 @@ ICON_UBXCONFIGLEGACY = path.join(
 )
 ICON_UNDO = path.join(DIRNAME, "resources/iconmonstr-undo-24.png")
 ICON_UNKNOWN = path.join(DIRNAME, "resources/clear-1-24.png")
+ICON_UPDATE = path.join(DIRNAME, "resources/iconmonstr-refresh-lined-1-24.png")
 ICON_WARNING = path.join(DIRNAME, "resources/iconmonstr-warning-1-24.png")
 IMG_WORLD = path.join(DIRNAME, "resources/world.png")
 IMG_WORLD_BOUNDS = Area(-90, -180, 90, 180)
@@ -259,6 +263,7 @@ TIME0 = datetime(1970, 1, 1)  # basedate for time()
 TIMEOUTS = ("0.1", "0.2", "0.5", "1", "2", "5", "10", "20", "None", "0")
 # map nmea talker to gnss_id
 TKGN = {"GN": 0, "GP": 0, "GA": 2, "GB": 3, "BD": 3, "GQ": 5, "GL": 6, "GI": 7}
+TOP = "1.0"  # first line of Text widget
 TOPIC_IP = "/pp/ip/{}"
 TOPIC_MGA = "/pp/ubx/mga"
 TOPIC_RXM = "/pp/ubx/0236/ip"

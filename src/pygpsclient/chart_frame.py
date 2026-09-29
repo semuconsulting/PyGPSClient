@@ -21,6 +21,8 @@ from tkinter import (
     EW,
     NORMAL,
     NSEW,
+    Button,
+    E,
     Entry,
     Frame,
     Label,
@@ -31,7 +33,9 @@ from tkinter import (
     font,
 )
 
-from pygpsclient.canvas_subclasses import (
+from PIL import Image, ImageTk
+
+from pygpsclient.custom_classes import (
     TAG_DATA,
     TAG_GRID,
     TAG_XLABEL,
@@ -40,8 +44,10 @@ from pygpsclient.canvas_subclasses import (
 )
 from pygpsclient.globals import (
     BGCOL,
+    CLICK_CURSOR,
     ERRCOL,
     FGCOL,
+    ICON_CLIPBOARD,
     INFOCOL,
     PLOTCOLS,
     READONLY,
@@ -131,6 +137,9 @@ class ChartviewFrame(Frame):
             self._num_chans += 1
         self._plotcols = PLOTCOLS
         self._font = self.__app.font_sm
+        self._img_clipboard = ImageTk.PhotoImage(
+            Image.open(ICON_CLIPBOARD).resize((16, 16))
+        )
         # generate random plot colours for channels > 4
         if self._num_chans > 4:
             self._plotcols += tuple(
@@ -295,6 +304,12 @@ class ChartviewFrame(Frame):
             readonlybackground=BGCOL,
             buttonbackground=BGCOL,
         )
+        self._btn_clipboard = Button(
+            self,
+            image=self._img_clipboard,
+            command=self._on_clipboard,
+            cursor=CLICK_CURSOR,
+        )
 
     def _do_layout(self):
         """
@@ -317,6 +332,7 @@ class ChartviewFrame(Frame):
         self._spn_timrange.grid(column=5, row=2, sticky=EW)
         self._lbl_maxpoints.grid(column=5, row=3, sticky=EW)
         self._spn_maxpoints.grid(column=5, row=4, sticky=EW)
+        self._btn_clipboard.grid(column=5, row=5, sticky=E)
 
     def _attach_events(self):
         """
@@ -604,7 +620,7 @@ class ChartviewFrame(Frame):
                         tags=(TAG_DATA,),
                     )
 
-    def _on_clipboard(self, event):  # pylint: disable=unused-argument
+    def _on_clipboard(self, *args):  # pylint: disable=unused-argument
         """
         Copy chart data to clipboard in CSV format.
 

@@ -14,9 +14,11 @@ Created on 13 Sep 2020
 
 # pylint: disable = no-member
 
+import logging
+from copy import deepcopy
 from tkinter import NSEW, Frame, Tk
 
-from pygpsclient.canvas_subclasses import (
+from pygpsclient.custom_classes import (
     MODE_CEL,
     TAG_DATA,
     TAG_GRID,
@@ -53,6 +55,7 @@ class SkyviewFrame(Frame):
         """
 
         self.__app = app  # Reference to main application class
+        self.logger = logging.getLogger(__name__)
 
         super().__init__(parent, *args, **kwargs)
 
@@ -108,18 +111,23 @@ class SkyviewFrame(Frame):
         Plot satellites' elevation and azimuth position.
         """
 
-        data = self.__app.gnss_status.gsv_data
-        siv = len(data)
-        sel = sum(1 for (_, _, ele, _, _, _) in data.values() if ele not in ("", None))
-        # ignore if elevation values are all null
-        if siv <= 0 or sel <= 0:
-            return
+        try:
+            data = deepcopy(
+                self.__app.gnss_status.gsv_data
+            )  # to avoid thread contention
+            siv = len(data)
+            sel = sum(
+                1 for (_, _, ele, _, _, _) in data.values() if ele not in ("", None)
+            )
+            # ignore if elevation values are all null
+            if siv <= 0 or sel <= 0:
+                return
 
-        self._waiting = False
-        self.init_frame()
-
-        for val in sorted(data.values(), key=lambda x: x[4]):  # sort by ascending C/N0
-            try:
+            self._waiting = False
+            self.init_frame()
+            for val in sorted(
+                data.values(), key=lambda x: x[4]
+            ):  # sort by ascending C/N0
                 gnssId, prn, ele, azi, cno, _ = val
                 if ele in ("", None) or azi in ("", None):
                     continue
@@ -144,8 +152,10 @@ class SkyviewFrame(Frame):
                     font=self._canvas.font,
                     tags=TAG_DATA,
                 )
-            except ValueError:
-                pass
+        except ValueError:
+            pass
+        except RuntimeError as err:
+            self.logger.exception(err)
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """

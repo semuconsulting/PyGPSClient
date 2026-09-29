@@ -52,14 +52,6 @@ pygpsclient.canvas\_map module
    :undoc-members:
    :show-inheritance:
 
-pygpsclient.canvas\_subclasses module
--------------------------------------
-
-.. automodule:: pygpsclient.canvas_subclasses
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 pygpsclient.chart\_frame module
 -------------------------------
 
@@ -88,6 +80,14 @@ pygpsclient.console\_frame module
 ---------------------------------
 
 .. automodule:: pygpsclient.console_frame
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pygpsclient.custom\_classes module
+----------------------------------
+
+.. automodule:: pygpsclient.custom_classes
    :members:
    :undoc-members:
    :show-inheritance:

@@ -34,7 +34,7 @@ from tkinter import (
 
 from PIL import Image, ImageTk
 
-from pygpsclient.canvas_subclasses import CanvasContainer
+from pygpsclient.custom_classes import CanvasContainer
 from pygpsclient.globals import (
     APPNAME,
     CLICK_CURSOR,

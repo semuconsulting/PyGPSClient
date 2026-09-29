@@ -12,11 +12,15 @@
 #
 import os
 import sys
+try:
+    GIL = "" if sys._is_gil_enabled() else "t"
+except ImportError:
+    GIL = ""
 
 # get path to site-packages (source) folder within venv
 pypath = (
     f"{os.path.expanduser("~")}/pygpsclient/lib/python"
-    f"{sys.version_info.major}.{sys.version_info.minor}/site-packages"
+    f"{sys.version_info.major}.{sys.version_info.minor}{GIL}/site-packages"
 )
 print(f"\n\033[1mUsing absolute path:\033[0m \033[95m{pypath}\033[0m\n")
 sys.path.insert(0, os.path.abspath(pypath))
@@ -26,7 +30,7 @@ from pygpsclient import version as VERSION
 # -- Project information -----------------------------------------------------
 
 project = "PyGPSClient"
-copyright = "2021 semuadmin (Steve Smith)"
+copyright = "2020-2026 semuadmin (Steve Smith)"
 author = "semuadmin (Steve Smith)"
 
 # The full version, including alpha/beta/rc tags

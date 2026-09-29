@@ -3,6 +3,9 @@ about_dialog.py
 
 About Dialog Box class for PyGPSClient application.
 
+Includes functionality to display system information and
+check for Python application package updates.
+
 Created on 20 Sep 2020
 
 :author: semuadmin (Steve Smith)
@@ -11,35 +14,51 @@ Created on 20 Sep 2020
 """
 
 import logging
-from platform import machine, python_version
+from datetime import datetime
+from platform import python_version, uname
 from tkinter import (
     CENTER,
+    DISABLED,
     EW,
+    NONE,
+    NORMAL,
     NSEW,
     Button,
     Checkbutton,
     Frame,
     IntVar,
     Label,
+    N,
+    S,
     Tcl,
+    W,
     ttk,
 )
 from webbrowser import open_new_tab
 
 from PIL import Image, ImageTk
 
+from pygpsclient.custom_classes import ScrollableText
 from pygpsclient.globals import (
     CLICK_CURSOR,
     ERRCOL,
+    FONT_FIXED,
     ICON_APP128,
+    ICON_CLIPBOARD,
+    ICON_INFO,
     ICON_SPONSOR,
+    ICON_UPDATE,
     INFOCOL,
     LICENSE_URL,
     OKCOL,
     SPONSOR_URL,
     TRACEMODE_WRITE,
 )
-from pygpsclient.helpers import LIBVERSIONS, brew_installed, check_for_updates
+from pygpsclient.helpers import (
+    brew_installed,
+    check_for_updates,
+    secs2unit,
+)
 from pygpsclient.sqlite_handler import SQLSTATUS
 from pygpsclient.strings import (
     ABOUTTXT,
@@ -54,6 +73,15 @@ from pygpsclient.strings import (
     UPDATERESTART,
 )
 from pygpsclient.toplevel_dialog import ToplevelDialog
+
+try:
+    from sys import _is_gil_enabled
+
+    IGE = True
+except ImportError:
+    IGE = False
+
+NSW = (N, S, W)
 
 
 class AboutDialog(ToplevelDialog):
@@ -71,9 +99,14 @@ class AboutDialog(ToplevelDialog):
         self.__app = app  # Reference to main application class
         self.logger = logging.getLogger(__name__)
         self._img_icon = ImageTk.PhotoImage(Image.open(ICON_APP128).resize((64, 64)))
+        self._img_clipboard = ImageTk.PhotoImage(Image.open(ICON_CLIPBOARD))
+        self._img_info = ImageTk.PhotoImage(Image.open(ICON_INFO))
         self._img_sponsor = ImageTk.PhotoImage(Image.open(ICON_SPONSOR))
+        self._img_update = ImageTk.PhotoImage(Image.open(ICON_UPDATE))
         self._checkonstartup = IntVar()
         self._checkonstartup.set(self.__app.configuration.get("checkforupdate_b"))
+        self._sysinfo = ""
+        self._updates_available = False
 
         super().__init__(app, DLGTABOUT)
 
@@ -81,6 +114,7 @@ class AboutDialog(ToplevelDialog):
         self._do_layout()
         self._attach_events()
         self._finalise()
+        self.after(50, self._reset)
 
     def _body(self):
         """
@@ -89,7 +123,10 @@ class AboutDialog(ToplevelDialog):
 
         self._frm_body = Frame(self.container)
         self._lbl_icon = Label(
-            self._frm_body, image=self._img_icon, borderwidth=0, anchor=CENTER
+            self._frm_body,
+            image=self._img_icon,
+            borderwidth=0,
+            anchor=CENTER,
         )
         self._lbl_desc = Label(
             self._frm_body,
@@ -105,32 +142,29 @@ class AboutDialog(ToplevelDialog):
             cursor=CLICK_CURSOR,
             anchor=CENTER,
         )
-        tkv = Tcl().call("info", "patchlevel")
-        self._lbl_python_version = Label(
+        self.frm_sysinfo = ScrollableText(
+            self.__app,
+            self,
             self._frm_body,
-            text=(
-                f"Arch: {machine()}  "
-                f"Python: {python_version()}  Tk: {tkv}  "
-                f"Spatial: {SQLSTATUS[self.__app.db_enabled]}"
-            ),
-            anchor=CENTER,
+            font=FONT_FIXED,
+            state=DISABLED,
+            wrap=NONE,
+            height=10,
+            width=53,
         )
-        self._lbl_lib_versions = []
-        for nam, ver in LIBVERSIONS.items():
-            self._lbl_lib_versions.append(
-                Label(
-                    self._frm_body,
-                    text=f"{nam}: {ver}",
-                    anchor=CENTER,
-                    border=0,
-                    highlightthickness=0,
-                )
-            )
-        self._btn_checkupdate = Button(
+        self._btn_info = Button(
             self._frm_body,
-            text="",
+            image=self._img_info,
             width=16,
             cursor=CLICK_CURSOR,
+            command=self._reset,
+        )
+        self._btn_update = Button(
+            self._frm_body,
+            image=self._img_update,
+            width=16,
+            command=self._on_update,
+            state=DISABLED,
         )
         self._chk_checkupdate = Checkbutton(
             self._frm_body,
@@ -157,32 +191,24 @@ class AboutDialog(ToplevelDialog):
         """
 
         self._frm_body.grid(column=0, row=0, ipadx=2, ipady=2, sticky=NSEW)
-        self._lbl_icon.grid(column=0, row=0, columnspan=2, padx=3, pady=0, sticky=EW)
-        self._lbl_desc.grid(column=0, row=1, columnspan=2, padx=3, pady=0, sticky=EW)
-        self._lbl_github.grid(column=0, row=2, columnspan=2, padx=3, pady=0, sticky=EW)
+        self._lbl_icon.grid(column=0, row=0, columnspan=4, padx=3, pady=0, sticky=EW)
+        self._lbl_desc.grid(column=0, row=1, columnspan=4, padx=3, pady=0, sticky=EW)
+        self._lbl_github.grid(column=0, row=2, columnspan=4, padx=3, pady=0, sticky=EW)
         ttk.Separator(self._frm_body).grid(
-            column=0, row=3, columnspan=2, padx=3, pady=3, sticky=EW
+            column=0, row=3, columnspan=4, padx=3, pady=3, sticky=EW
         )
-        self._lbl_python_version.grid(
-            column=0, row=4, columnspan=2, padx=3, pady=1, sticky=EW
-        )
-        for i, lbl in enumerate(self._lbl_lib_versions):
-            lbl.grid(column=0, row=5 + i, columnspan=2, padx=2, pady=0, sticky=EW)
-        lv = len(self._lbl_lib_versions)
-        self._btn_checkupdate.grid(
-            column=0, row=6 + lv, ipadx=3, ipady=3, padx=3, pady=3
-        )
-        self._chk_checkupdate.grid(
-            column=1, row=6 + lv, ipadx=3, ipady=3, padx=3, pady=3
-        )
+        self.frm_sysinfo.grid(column=0, row=4, columnspan=3, sticky=NSEW)
+        self._btn_info.grid(column=0, row=6, ipadx=3, ipady=3, padx=3, pady=3)
+        self._btn_update.grid(column=1, row=6, ipadx=3, ipady=3, padx=3, pady=3)
+        self._chk_checkupdate.grid(column=2, row=6, ipadx=3, ipady=3, padx=3, pady=3)
         ttk.Separator(self._frm_body).grid(
-            column=0, row=7 + lv, columnspan=2, padx=3, pady=3, sticky=EW
+            column=0, row=7, columnspan=4, padx=3, pady=3, sticky=EW
         )
         self._lbl_sponsoricon.grid(
-            column=0, row=8 + lv, columnspan=2, padx=3, pady=3, sticky=EW
+            column=0, row=8, columnspan=4, padx=3, pady=3, sticky=EW
         )
         self._lbl_copyright.grid(
-            column=0, row=9 + lv, columnspan=2, padx=3, pady=3, sticky=EW
+            column=0, row=9, columnspan=4, padx=3, pady=3, sticky=EW
         )
 
     def _attach_events(self):
@@ -190,12 +216,57 @@ class AboutDialog(ToplevelDialog):
         Bind events to dialog.
         """
 
-        self._set_update_btn_mode(False)
         self._lbl_github.bind("<Button>", self._on_github)
         self._lbl_sponsoricon.bind("<Button>", self._on_sponsor)
         self._lbl_copyright.bind("<Button>", self._on_license)
+        self._btn_info.bind("<Enter>", self._on_info_enter)
+        self._btn_info.bind("<Leave>", self._on_info_leave)
+        self._btn_update.bind("<Enter>", self._on_update_enter)
+        self._btn_update.bind("<Leave>", self._on_update_leave)
         self._checkonstartup.trace_add(TRACEMODE_WRITE, self._on_update_startup)
         self._btn_exit.focus_set()
+
+    def _reset(self):
+        """
+        Refresh system information.
+        """
+
+        self._refresh_sysinfo()
+        self._btn_update["state"] = NORMAL if self._updates_available else DISABLED
+        self.frm_sysinfo.state(True)
+        self.frm_sysinfo.set(self._sysinfo, insert=0, scroll=0)
+        self.frm_sysinfo.state(False)
+
+    def _on_info_enter(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Info button enter (mouseover) event.
+        """
+
+        self.set_status_label("Refresh System Info")
+
+    def _on_info_leave(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Info button leave event.
+        """
+
+        if not self._updates_available:
+            self.set_status_label("")
+
+    def _on_update_enter(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Update button enter (mouseover) event.
+        """
+
+        if self._btn_update["state"] == NORMAL:
+            self.set_status_label("Update Python Application Package(s)")
+
+    def _on_update_leave(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Update button leave event.
+        """
+
+        if self._btn_update["state"] == NORMAL:
+            self.set_status_label("")
 
     def _on_update_startup(self, var, index, mode):  # pylint: disable=unused-argument
         """
@@ -242,34 +313,7 @@ class AboutDialog(ToplevelDialog):
         open_new_tab(LICENSE_URL)
         self.on_exit()
 
-    def _check_for_update(self, *args, **kwargs):  # pylint: disable=unused-argument
-        """
-        Check for updates.
-        """
-
-        self.set_status_label("Checking for updates...", INFOCOL)
-        versions = check_for_updates()
-        for i, (nam, current, latest) in enumerate(versions):
-            txt = f"{nam}: {current}"
-            if latest == current:
-                txt += " ✓"
-                col = OKCOL
-            elif latest == NA:
-                txt += " - Info not available!"
-                col = ERRCOL
-            else:
-                txt += f" - Latest version is {latest}"
-                col = ERRCOL
-            self._lbl_lib_versions[i]["text"] = txt
-            self._lbl_lib_versions[i]["foreground"] = col
-        updates = [nam for (nam, current, latest) in versions if latest != current]
-        if len(updates) > 0:
-            self.set_status_label("Updates available", OKCOL)
-            self._set_update_btn_mode(True)
-        else:
-            self.set_status_label("No updates available", INFOCOL)
-
-    def _do_update(self, *args, **kwargs):  # pylint: disable=unused-argument
+    def _on_update(self):
         """
         Run python update.
         """
@@ -284,21 +328,62 @@ class AboutDialog(ToplevelDialog):
             self.set_status_label(UPDATERESTART, OKCOL)
         else:
             self.set_status_label(UPDATEERR.format(err=rc), ERRCOL)
-        self._set_update_btn_mode(False)
 
-    def _set_update_btn_mode(self, update: bool):
+    def _refresh_sysinfo(self):
         """
-        Set Check for update button label and binding.
-
-        :param bool update: False = check, True = update
+        Refresh system information.
         """
 
-        if update:
-            self._btn_checkupdate["text"] = "UPDATE"
-            self._btn_checkupdate["foreground"] = OKCOL
-            self._btn_checkupdate.bind("<Button>", self._do_update)
+        self.set_status_label("Refreshing System Info...", INFOCOL)
+        sys, nod, rel, ver, mcn, pro = tuple(uname())
+        sys = sys.replace("Darwin", "MacOS")
+        tki = Tcl().call("info", "patchlevel")
+        now = datetime.now()
+        runtime, rununit = secs2unit((now - self.__app.starttime).total_seconds())
+        versions = check_for_updates()
+        self._sysinfo = "Python Application Packages:\n\n"
+        self._updates_available = False
+        for mod, cver, lver in versions:
+            mod = f"{mod}:"
+            if lver == NA:
+                lts = " ?"
+            elif lver == cver:
+                lts = " ✓"
+            else:
+                self._updates_available = True
+                lts = f" Update Available: {lver:<6}"
+            self._sysinfo += f"{mod:<14}{cver:<6}{lts}\n"
+        if IGE:
+            gil = "GIL" if _is_gil_enabled() else "free threading"
         else:
-            self._btn_checkupdate["text"] = "CHECK FOR UPDATES"
-            self._btn_checkupdate["foreground"] = INFOCOL
-            self._btn_checkupdate.bind("<Button>", self._check_for_update)
-        self.__app.update_idletasks()
+            gil = "GIL"
+        spl = SQLSTATUS[self.__app.db_enabled]
+        hw = self.__app.gnss_status.version_data["hwversion"]
+        sw = self.__app.gnss_status.version_data["swversion"]
+        fw = self.__app.gnss_status.version_data["fwversion"]
+        rom = self.__app.gnss_status.version_data["romversion"]
+        self._sysinfo += (
+            "\nSystem Information:\n\n"
+            f"{'Datetime:':<14}{now}\n"
+            f"{'Runtime:':<14}{round(runtime,2)} {rununit}\n"
+            f"{'System:':<14}{sys}\n"
+            f"{'Node:':<14}{nod}\n"
+            f"{'Release:':<14}{rel}\n"
+            f"{'Version:':<14}{ver}\n"
+            f"{'Machine:':<14}{mcn}\n"
+            f"{'Processor:':<14}{pro}\n"
+            f"{'Python:':<14}{python_version()} {gil}\n"
+            f"{'Tkinter:':<14}{tki}\n"
+            f"{'Spatialite:':<14}{spl}\n"
+            "\nReceiver Information (if available):\n\n"
+            f"{'Hardware:':<14}{hw}\n"
+            f"{'Software:':<14}{sw}\n"
+            f"{'Firmware:':<14}{fw}\n"
+            f"{'Protocol:':<14}{rom}\n"
+        )
+        if self._updates_available:
+            self.set_status_label("Application Update(s) Available", ERRCOL)
+            self._btn_update["cursor"] = CLICK_CURSOR
+        else:
+            self.set_status_label("", INFOCOL)
+            self._btn_update["cursor"] = ""

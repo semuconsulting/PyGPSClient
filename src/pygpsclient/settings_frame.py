@@ -14,7 +14,7 @@ Created on 12 Sep 2020
 
 from tkinter import Frame, Tk
 
-from pygpsclient.canvas_subclasses import CanvasContainer
+from pygpsclient.custom_classes import CanvasContainer
 from pygpsclient.settings_child_frame import SettingsChildFrame
 
 

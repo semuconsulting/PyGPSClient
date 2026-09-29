@@ -1,5 +1,5 @@
 {
-    "version_s": "1.5.21",
+    "version_s": "1.7.6",
     "Banner": true,
     "Settings": true,
     "Status": true,
@@ -16,7 +16,7 @@
     "checkforupdate_b": 0,
     "transient_dialog_b": 1,
     "resize_dialog_b": 0,
-    "guiupdateinterval_f": 0.2,
+    "guiupdateinterval_f": 0.5,
     "mapupdateinterval_n": 60,
     "defaultport_s": "USB",
     "mqapikey_s": "<======= YOUR MQ API KEY ======>",

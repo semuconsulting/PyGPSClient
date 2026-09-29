@@ -85,7 +85,7 @@ Normally installs without any additional steps.
 
 ⁵ The version of Python supplied with some older Apple MacOS platforms includes a [deprecated version of tkinter](https://www.python.org/download/mac/tcltk/) (8.5). Use an official [Python for MacOS](https://www.python.org/downloads/macos) installation package instead. 
 
-⁶ The version of tkinter supplied with the very latest official versions of [Python for MacOS](https://www.python.org/downloads/macos) (`>= 3.14.5`), and with Homebrew formula `python-tk >= 3.12`, include a new version of tkinter (9.0). There appear to be some performance and compatibility issues with this version on MacOS Sonoma and Tahoe which may render the PyGPSClient UI somewhat sluggish or unresponsive. Until this is resolved, MacOS users are recommended to use official Python <= 3.14.4 or Homebrew formula `python-tk = 3.11`.
+⁶ The version of tkinter supplied with the very latest official versions of [Python for MacOS](https://www.python.org/downloads/macos) (`>= 3.14.5`), and with Homebrew formula `python-tk >= 3.12`, include a new version of tkinter (9.0). There have been reports of compatibility issues with tkinter 9.0 with certain platform configurations which *may* render the PyGPSClient UI somewhat sluggish or unresponsive. If you experience any issues, consider using an official Python <= 3.14.4 or Homebrew formula `python-tk = 3.11`.
 
 If you wish to install Python using [Homebrew](https://brew.sh/) to take advantage of certain non-default configurations (*e.g. support for sqlite3 extensions*), use the `python-tk` formula rather than `python`, e.g. 
 

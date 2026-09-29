@@ -16,11 +16,12 @@ Created on 24 Dec 2025
 # pylint: disable=no-member, unused-variable, duplicate-code
 
 import logging
+from copy import deepcopy
 from tkinter import ALL, NSEW, NW, SE, Frame, N, S, Tk, font
 
 from pyubx2 import CORRSOURCE, SIGID, UBXMessage
 
-from pygpsclient.canvas_subclasses import (
+from pygpsclient.custom_classes import (
     TAG_DATA,
     TAG_GRID,
     TAG_WAIT,
@@ -276,73 +277,79 @@ class SignalsviewFrame(Frame):
         Automatically adjust y axis according to number of satellites in view.
         """
 
-        data = self.__app.gnss_status.sig_data
-        if len(data) == 0:
-            if self._waits >= MAXWAIT:
-                self._canvas.create_alert(DLGNONAVSIG, tags=TAG_WAIT)
+        try:
+            data = deepcopy(
+                self.__app.gnss_status.sig_data
+            )  # to avoid thread contention
+            if len(data) == 0:
+                if self._waits >= MAXWAIT:
+                    self._canvas.create_alert(DLGNONAVSIG, tags=TAG_WAIT)
+                else:
+                    self._waits += 1
             else:
-                self._waits += 1
-        else:
-            self._waiting = False
-            self._waits = 0
-        show_unused = self.__app.configuration.get("unusedsat_b")
-        siv = len(data)
-        siv = siv if show_unused else siv - unused_sigs(data)
-        if siv <= 0:
-            return
+                self._waiting = False
+                self._waits = 0
+            show_unused = self.__app.configuration.get("unusedsat_b")
+            siv = len(data)
+            siv = siv if show_unused else siv - unused_sigs(data)
+            if siv <= 0:
+                return
 
-        w, h = self.width, self.height
-        self.init_frame()
+            w, h = self.width, self.height
+            self.init_frame()
 
-        offset = self._canvas.xoffl
-        colwidth = (w - self._canvas.xoffl - self._canvas.xoffr + 1) / siv
-        xfnt, _, _, _ = fitfont(
-            XLBLFMT,
-            colwidth * 1.66,
-            self._canvas.yoffb,
-            XLBLANGLE,
-        )
-        for val in sorted(data.values()):  # sort by ascending gnssid, svid, sigid
-            gnssId, prn, sigid, cno, corrsource, quality, flags, _ = val
-            if cno == 0 and not show_unused:
-                continue
-            sig = SIGID.get((gnssId, sigid), sigid)
-            snr_y = int(cno) * (h - self._canvas.yoffb - 1) / MAX_SNR
-            _, ol_col = GNSS_LIST[gnssId]
-            prn = f"{int(prn):02}"
-            self._canvas.create_rectangle(
-                offset,
-                h - self._canvas.yoffb - 1,
-                offset + colwidth - OL_WID,
-                h - self._canvas.yoffb - snr_y - 1,
-                outline=GRIDMAJCOL,
-                fill=ol_col,
-                width=OL_WID,
-                tags=TAG_DATA,
+            offset = self._canvas.xoffl
+            colwidth = (w - self._canvas.xoffl - self._canvas.xoffr + 1) / siv
+            xfnt, _, _, _ = fitfont(
+                XLBLFMT,
+                colwidth * 1.66,
+                self._canvas.yoffb,
+                XLBLANGLE,
             )
-            # xlabel prn - sigid
-            self._canvas.create_text(
-                offset + colwidth,
-                h - self._canvas.yoffb + 3,
-                text=f"{prn} {sig}",
-                fill=FGCOL,
-                font=xfnt,
-                angle=XLBLANGLE,
-                anchor=SE,
-                tags=TAG_DATA,
-            )
-            # xcaption corrsource if > 0
-            if corrsource:
-                self._canvas.create_text(
-                    offset + colwidth / 2,
-                    h - self._canvas.yoffb - snr_y + 2,
-                    text=corrsource,
-                    fill=col2contrast(ol_col),
-                    font=xfnt,
-                    anchor=N,
+
+            for val in sorted(data.values()):  # sort by ascending gnssid, svid, sigid
+                gnssId, prn, sigid, cno, corrsource, quality, flags, _ = val
+                if cno == 0 and not show_unused:
+                    continue
+                sig = SIGID.get((gnssId, sigid), sigid)
+                snr_y = int(cno) * (h - self._canvas.yoffb - 1) / MAX_SNR
+                _, ol_col = GNSS_LIST[gnssId]
+                prn = f"{int(prn):02}"
+                self._canvas.create_rectangle(
+                    offset,
+                    h - self._canvas.yoffb - 1,
+                    offset + colwidth - OL_WID,
+                    h - self._canvas.yoffb - snr_y - 1,
+                    outline=GRIDMAJCOL,
+                    fill=ol_col,
+                    width=OL_WID,
                     tags=TAG_DATA,
                 )
-            offset += colwidth
+                # xlabel prn - sigid
+                self._canvas.create_text(
+                    offset + colwidth,
+                    h - self._canvas.yoffb + 3,
+                    text=f"{prn} {sig}",
+                    fill=FGCOL,
+                    font=xfnt,
+                    angle=XLBLANGLE,
+                    anchor=SE,
+                    tags=TAG_DATA,
+                )
+                # xcaption corrsource if > 0
+                if corrsource:
+                    self._canvas.create_text(
+                        offset + colwidth / 2,
+                        h - self._canvas.yoffb - snr_y + 2,
+                        text=corrsource,
+                        fill=col2contrast(ol_col),
+                        font=xfnt,
+                        anchor=N,
+                        tags=TAG_DATA,
+                    )
+                offset += colwidth
+        except RuntimeError as err:
+            self.logger.exception(err)
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """

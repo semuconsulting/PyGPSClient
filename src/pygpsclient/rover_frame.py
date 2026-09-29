@@ -18,7 +18,7 @@ Created on 22 Aug 2023
 from random import randrange
 from tkinter import EW, NSEW, NW, SW, Frame, Label, Spinbox, StringVar, Tk, W
 
-from pygpsclient.canvas_subclasses import (
+from pygpsclient.custom_classes import (
     MODE_POL,
     TAG_DATA,
     TAG_GRID,

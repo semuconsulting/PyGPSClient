@@ -2,7 +2,10 @@
 
 ### RELEASE 1.7.7
 
-1. Minor improvements to status messaging.
+1. Refactor About dialog. Add scrollable system info text box and ability to copy system info to clipboard e.g. for inclusion in Bug Reports or Discussion queries.
+1. Rationalise customer tkinter classes into single custom_classes.py module.
+1. Python 3.15.0-rc.2 (GIL and free-threading) added to build and test workflows.
+1. Dependency versions updated (includes minor performance enhancements.
 
 ### RELEASE 1.7.6
 

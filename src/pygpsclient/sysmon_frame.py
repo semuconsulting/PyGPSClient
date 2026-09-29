@@ -18,7 +18,7 @@ from tkinter import EW, NSEW, NW, Canvas, E, Frame, IntVar, Radiobutton, Tk, W
 
 from pyubx2 import BOOTTYPE, UBXMessage
 
-from pygpsclient.canvas_subclasses import TAG_DATA, TAG_WAIT
+from pygpsclient.custom_classes import TAG_DATA, TAG_WAIT
 from pygpsclient.globals import BGCOL, FGCOL, MAXWAIT, PNTCOL, SYSMONVIEW, WIDGETU2
 from pygpsclient.helpers import (
     bytes2unit,

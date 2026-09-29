@@ -1,11 +1,13 @@
 """
-canvas_subclasses.py
+subclasses.py
 
-Various custom canvas methods and subclasses (see also canvas_map.py).
+Various custom tkinter subclasses and methods (see also canvas_map.py).
 
-- CanvasContainer: scrollable and resizeable container for Toplevel dialogs
-- CanvasGraph: configurable x,y graph plotter
-- CanvasCompass: configurable compass plotter
+- CanvasContainer(Canvas): scrollable and resizeable container for Toplevel dialogs
+- CanvasGraph(Canvas): configurable x,y graph plotter
+- CanvasCompass(Canvas): configurable compass plotter
+- PasswordButton(Button): Button to hide/show password in associated Entry field
+- ScrollableText(Frame): Frame containing scrollable Text widget with clipboard copy
 
 Created on 20 Nov 2025
 
@@ -21,28 +23,50 @@ from math import ceil, cos, radians, sin
 from tkinter import (
     ALL,
     CENTER,
+    DISABLED,
+    END,
     EW,
     HORIZONTAL,
     NE,
+    NORMAL,
     NS,
     NSEW,
     NW,
     SE,
     VERTICAL,
+    Button,
     Canvas,
     E,
+    Entry,
     Frame,
     N,
     S,
     Scrollbar,
+    Text,
     Tk,
     W,
     font,
 )
-from typing import Literal
+from typing import Any, Literal
 
-from pygpsclient.globals import GRIDLEGEND, GRIDMAJCOL, GRIDMINCOL, PNTCOL, SQRT2, TIME0
+from PIL import Image, ImageTk
+
+from pygpsclient.globals import (
+    CLICK_CURSOR,
+    GRIDLEGEND,
+    GRIDMAJCOL,
+    GRIDMINCOL,
+    ICON_CLIPBOARD,
+    ICON_EYEOFF,
+    ICON_EYEON,
+    INFOCOL,
+    PNTCOL,
+    SQRT2,
+    TIME0,
+    TOP,
+)
 from pygpsclient.helpers import fitfont
+from pygpsclient.strings import LINESCOPIED
 
 TAG_DATA = "dat"
 TAG_GRID = "grd"
@@ -664,3 +688,186 @@ class CanvasCompass(Canvas):
         """
 
         return self._mode
+
+
+class PasswordButton(Button):
+    """
+    Custom Password Show/Hide Button class.
+
+    Hides or reveals password in associated Entry widget.
+    """
+
+    def __init__(self, parent: Frame, password: Entry, **kwargs):
+        """
+        Constructor.
+
+        :param Frame parent: parent Frame
+        :param Entry password: associated password Entry field
+        """
+
+        self._ent_password = password
+        self._show_password = False
+        self._img_eyeon = ImageTk.PhotoImage(Image.open(ICON_EYEON))
+        self._img_eyeoff = ImageTk.PhotoImage(Image.open(ICON_EYEOFF))
+
+        super().__init__(
+            parent,
+            width=20,
+            height=20,
+            command=self.toggle_password,
+            cursor=CLICK_CURSOR,
+            image=self._img_eyeon,
+            **kwargs,
+        )
+
+    def toggle_password(self):
+        """
+        Toggle password visibility.
+        """
+
+        self._show_password = not self._show_password
+        if self._show_password:
+            self._ent_password["show"] = ""
+            self["image"] = self._img_eyeoff
+        else:
+            self._ent_password["show"] = "*"
+            self["image"] = self._img_eyeon
+
+
+class ScrollableText(Frame):
+    """
+    Scrollable Text Frame class.
+
+    Frame containing expandable display-only Text widget with horizontal and
+    vertical Scrollbars and (optional) Button to copy contents to clipboard.
+    """
+
+    def __init__(
+        self, app: Tk, dialog: Any, parent: Frame, clip: bool = True, **kwargs
+    ):
+        """
+        Constructor.
+
+        :param Tk app: reference to main Tkinter application
+        :param Any dialog: reference to host dialog or frame
+        :param Frame parent: parent Frame
+        :param bool clip: copy to clipboard button enabled
+        :param dict kwargs: Text widget keyword arguments
+        """
+
+        self.__app = app
+        self.__dialog = dialog
+
+        super().__init__(parent)
+
+        self._sbv = Scrollbar(self, orient=VERTICAL)
+        self._sbh = Scrollbar(self, orient=HORIZONTAL)
+        self._txt = Text(
+            self,
+            yscrollcommand=self._sbv.set,
+            xscrollcommand=self._sbh.set,
+            **kwargs,
+        )
+        self._sbv["command"] = self._txt.yview
+        self._sbh["command"] = self._txt.xview
+        self._txt.grid(column=0, row=0, sticky=NSEW)
+        self._sbv.grid(column=1, row=0, sticky=(N, S, W))
+        self._sbh.grid(column=0, row=1, sticky=EW)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+        if clip:
+            self._img_clipboard = ImageTk.PhotoImage(
+                Image.open(ICON_CLIPBOARD).resize((16, 16))
+            )
+            self._btn_clipboard = Button(
+                self,
+                image=self._img_clipboard,
+                command=self.on_clipboard,
+                cursor=CLICK_CURSOR,
+            )
+            self._btn_clipboard.grid(column=1, row=1)
+        else:
+            self._btn_clipboard = {}
+
+    def state(self, writeable: bool = True):
+        """
+        Enable or disable text insertion - use before and after set().
+
+        :param bool writeable: allow insertion true/false
+        """
+
+        self._txt["state"] = NORMAL if writeable else DISABLED
+
+    def get(self, start: str = TOP, end: str = END) -> str:
+        """
+        Getter for text lines.
+
+        :param str start: start line
+        :param str end: end line
+        :return: text line(s)
+        :rtype: str
+        """
+
+        return self._txt.get(start, end)
+
+    def set(
+        self,
+        txt: str,
+        insert: int = 0,
+        scroll: int = -1,
+    ):
+        """
+        Setter for text lines.
+
+        :param str txt: formatted text string
+        :param int insert: position of inserted text (0 top, n middle, -1 end)
+        :param int scroll: scroll position (0 top, -1 end)
+        """
+
+        self._btn_clipboard["state"] = DISABLED
+        if insert == 0:
+            self._txt.delete(TOP, END)  # delete all
+        elif insert > 0:
+            self._txt.delete(TOP, f"{insert}.0")  # delete first n
+        self._txt.insert(END, txt)
+        self._txt.see(END if scroll else TOP)
+        self._btn_clipboard["state"] = NORMAL
+
+    @property
+    def text(self) -> Text:
+        """
+        Getter for Text widget.
+
+        :return: reference to Text widget
+        :rtype: Text
+        """
+
+        return self._txt
+
+    @property
+    def numlines(self) -> int:
+        """
+        Getter for number of text lines.
+
+        :return: number of lines in Text widget.
+        :rtype: int
+        """
+
+        return int(self._txt.index("end-1c").split(".", 1)[0])
+
+    def on_clipboard(self, *args, **kwargs):  # pylint: disable=unused-argument
+        """
+        Copy content of Text widget to clipboard.
+        """
+
+        content = self.get()
+        if len(content) == 0 or content.isspace():
+            return
+        self.__app.clipboard_clear()
+        self.__app.clipboard_append(content)
+        self.__app.update()
+        if self.__dialog is not None:
+            if hasattr(self.__dialog, "set_status_label"):
+                self.__dialog.set_status_label(
+                    LINESCOPIED.format(numlines=self.numlines), INFOCOL
+                )

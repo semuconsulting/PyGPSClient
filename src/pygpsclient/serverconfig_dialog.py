@@ -46,6 +46,7 @@ from tkinter.ttk import Progressbar
 from PIL import Image, ImageTk
 from pynmeagps import NMEAMessage, ecef2llh, llh2ecef
 
+from pygpsclient.custom_classes import PasswordButton
 from pygpsclient.globals import (
     CLICK_CURSOR,
     CMDPAUSE,
@@ -72,7 +73,6 @@ from pygpsclient.globals import (
 )
 from pygpsclient.helpers import (
     MAXPORT,
-    PasswordButton,
     lanip,
     publicip,
 )
