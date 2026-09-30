@@ -24,9 +24,11 @@
 set -e
 
 # set required Python major and minor version e.g. 3.13.10
-PYVER="3.14.3"
+PYVER="3.14.7"
 # NB: uncomment this line to install this version alongside existing versions
 # ALTINSTALL=1
+# NB: uncomment this line to disable GIL for versions that support free-threading (>=13.3)
+# DISABLEGIL=1
 
 # download and unzip source code
 sudo apt install vim wget screen -y
@@ -34,17 +36,29 @@ wget https://www.python.org/ftp/python/${PYVER}/Python-${PYVER}.tgz
 tar zvxf Python-${PYVER}.tgz
 
 # enable the Debian source repos
-SRCDEB="/etc/apt/sources.list"
+SRCDEBOLD="/etc/apt/sources.list"
+SRCDEB="/etc/apt/sources.list.d/debian.sources"
 SRCUBU="/etc/apt/sources.list.d/ubuntu.sources"
-# Debian, including Raspberry Pi OS:
+SRCRPI="/etc/apt/sources.list.d/raspi.sources"
+# Legacy Debian:
+if test -f $SRCDEBOLD
+then
+sudo sed -i -e 's/#deb-src/deb-src/g' $SRCDEBOLD
+fi
+# Debian, including Trixie:
 if test -f $SRCDEB
 then
-sudo sed -i -e 's/#deb-src/deb-src/g' $SRCDEB
+sudo sed -i 's/^Types: deb$/Types: deb deb-src/' $SRCDEB 
 fi
 # Ubuntu, including 24.04 LTS:
 if test -f $SRCUBU
 then
 sudo sed -i 's/^Types: deb$/Types: deb deb-src/' $SRCUBU 
+fi
+# Raspi:
+if test -f $SRCRPI
+then
+sudo sed -i 's/^Types: deb$/Types: deb deb-src/' $SRCRPI
 fi
 
 # install build dependencies
@@ -66,7 +80,12 @@ sudo apt install libsqlite3-mod-spatialite || true
 
 # compile source and install - this will take several minutes
 cd Python-${PYVER}
+if [z ${DISABLEGIL+x} ]
+then
+./configure --enable-optimizations --enable-loadable-sqlite-extensions --disable-gil
+else
 ./configure --enable-optimizations --enable-loadable-sqlite-extensions
+fi
 make
 # make test
 if [ -z ${ALTINSTALL+x} ]

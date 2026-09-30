@@ -32,6 +32,7 @@ from tkinter import (
 
 from PIL import Image, ImageTk
 
+from pygpsclient.custom_classes import PasswordButton
 from pygpsclient.globals import (
     CLICK_CURSOR,
     ERRCOL,
@@ -43,7 +44,6 @@ from pygpsclient.globals import (
     TRACEMODE_WRITE,
 )
 from pygpsclient.helpers import (  # pylint: disable=unused-import
-    PasswordButton,
     trace_update,
 )
 from pygpsclient.strings import DLGGUIOPTIONS
@@ -52,6 +52,7 @@ from pygpsclient.toplevel_dialog import ToplevelDialog
 GUI_INTERVALS = (
     "100",
     "200",
+    "250",
     "300",
     "400",
     "500",
@@ -300,7 +301,7 @@ class AppConfigDialog(ToplevelDialog):
                 != int(self._showunused.get())
             )
         )
-        msg = "Settings updated" if updates else ""
+        msg = "Save updated settings and restart" if updates else ""
         if int(self._maprefresh.get()) < 60:
             msg += ". Check MapQuest Fees!"
         self._enable_save_button(updates)

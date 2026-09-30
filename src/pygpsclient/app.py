@@ -35,6 +35,7 @@ Created on 12 Sep 2020
 # pylint: disable=no-member
 
 import logging
+from datetime import datetime
 from inspect import currentframe, getfile
 from os import getenv, path
 from queue import Empty, Queue
@@ -167,6 +168,7 @@ class App(Tk):
         """
 
         self.logger = logging.getLogger(__name__)
+        self.starttime = datetime.now()  # for runtime calculation
 
         super().__init__()
 

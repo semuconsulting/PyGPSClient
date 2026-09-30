@@ -14,9 +14,11 @@ Created on 14 Sep 2020
 
 # pylint: disable=no-member
 
+import logging
+from copy import deepcopy
 from tkinter import NE, NSEW, Frame, Tk, font
 
-from pygpsclient.canvas_subclasses import (
+from pygpsclient.custom_classes import (
     TAG_DATA,
     TAG_GRID,
     TAG_WAIT,
@@ -57,6 +59,7 @@ class LevelsviewFrame(Frame):
         """
 
         self.__app = app  # Reference to main application class
+        self.logger = logging.getLogger(__name__)
 
         super().__init__(parent, *args, **kwargs)
 
@@ -162,45 +165,50 @@ class LevelsviewFrame(Frame):
         Automatically adjust y axis according to number of satellites in view.
         """
 
-        show_unused = self.__app.configuration.get("unusedsat_b")
-        data = self.__app.gnss_status.gsv_data
-        siv = len(data)
-        siv = siv if show_unused else siv - unused_sats(data)
-        if siv <= 0:
-            return
+        try:
+            show_unused = self.__app.configuration.get("unusedsat_b")
+            data = deepcopy(
+                self.__app.gnss_status.gsv_data
+            )  # to avoid thread contention
+            siv = len(data)
+            siv = siv if show_unused else siv - unused_sats(data)
+            if siv <= 0:
+                return
 
-        self._waiting = False
-        w, h = self.width, self.height
-        self.init_frame()
+            self._waiting = False
+            w, h = self.width, self.height
+            self.init_frame()
 
-        offset = self._canvas.xoffl
-        colwidth = (w - self._canvas.xoffl - self._canvas.xoffr + 1) / siv
-        xfnt, _, _, _ = fitfont(XLBLFMT, colwidth, self._canvas.yoffb, XLBLANGLE)
-        for val in sorted(data.values()):  # sort by ascending gnssid, svid
-            gnssId, svid, _, _, cno, _ = val
-            snr_y = int(cno) * (h - self._canvas.yoffb - 1) / MAX_SNR
-            _, ol_col = GNSS_LIST[gnssId]
-            self._canvas.create_rectangle(
-                offset,
-                h - self._canvas.yoffb - 1,
-                offset + colwidth - OL_WID,
-                h - self._canvas.yoffb - 1 - snr_y,
-                outline=GRIDMAJCOL,
-                fill=ol_col,
-                width=OL_WID,
-                tags=TAG_DATA,
-            )
-            self._canvas.create_text(
-                offset + colwidth / 2,
-                h - self._canvas.yoffb - 1,
-                text=f"{int(svid):02}",
-                fill=FGCOL,
-                font=xfnt,
-                angle=XLBLANGLE,
-                anchor=NE,
-                tags=TAG_DATA,
-            )
-            offset += colwidth
+            offset = self._canvas.xoffl
+            colwidth = (w - self._canvas.xoffl - self._canvas.xoffr + 1) / siv
+            xfnt, _, _, _ = fitfont(XLBLFMT, colwidth, self._canvas.yoffb, XLBLANGLE)
+            for val in sorted(data.values()):  # sort by ascending gnssid, svid
+                gnssId, svid, _, _, cno, _ = val
+                snr_y = int(cno) * (h - self._canvas.yoffb - 1) / MAX_SNR
+                _, ol_col = GNSS_LIST[gnssId]
+                self._canvas.create_rectangle(
+                    offset,
+                    h - self._canvas.yoffb - 1,
+                    offset + colwidth - OL_WID,
+                    h - self._canvas.yoffb - 1 - snr_y,
+                    outline=GRIDMAJCOL,
+                    fill=ol_col,
+                    width=OL_WID,
+                    tags=TAG_DATA,
+                )
+                self._canvas.create_text(
+                    offset + colwidth / 2,
+                    h - self._canvas.yoffb - 1,
+                    text=f"{int(svid):02}",
+                    fill=FGCOL,
+                    font=xfnt,
+                    angle=XLBLANGLE,
+                    anchor=NE,
+                    tags=TAG_DATA,
+                )
+                offset += colwidth
+        except RuntimeError as err:
+            self.logger.exception(err)
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """

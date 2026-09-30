@@ -47,7 +47,7 @@ except (ImportError, ModuleNotFoundError):
 
 from random import randrange
 
-from pygpsclient.canvas_subclasses import (
+from pygpsclient.custom_classes import (
     MODE_POL,
     TAG_DATA,
     TAG_GRID,

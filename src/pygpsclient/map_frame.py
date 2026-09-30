@@ -38,7 +38,7 @@ from tkinter import (
 )
 
 from pygpsclient.canvas_map import HYB, MAP, MAPTYPES, SAT, TAG_CLOCK, CanvasMap
-from pygpsclient.canvas_subclasses import TAG_WAIT
+from pygpsclient.custom_classes import TAG_WAIT
 from pygpsclient.globals import (
     BGCOL,
     ERRCOL,

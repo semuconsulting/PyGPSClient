@@ -76,6 +76,19 @@
             "problemMatcher": [],
         },
         {
+            "label": "Install dill 0.4.2.dev for Python 3.15",
+            "type": "shell",
+            "command": "${config:python.defaultInterpreterPath}",
+            "args": [
+                "-m",
+                "pip",
+                "install",
+                "--force-reinstall",
+                "git+https://github.com/uqfoundation/dill.git",
+            ],
+            "problemMatcher": [],
+        },
+        {
             "label": "Clean",
             "type": "shell",
             "command": "rm",
@@ -167,6 +180,7 @@
                 //"Create Venv",
                 "Install Deploy Dependencies",
                 "Install Optional Dependencies",
+                "Install dill 0.4.2.dev for Python 3.15",
                 "Clean",
                 "Sort Imports",
                 "Format",

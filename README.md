@@ -12,6 +12,7 @@
 [NTRIP Caster/Socket Server](#socketserver) |
 [GPX Track Viewer](#gpxviewer) |
 [RINEX Conversion](#rinex) |
+[About](#about) |
 [Mapquest API Key](#mapquestapi) |
 [User-defined Presets](#userdefined) |
 [CLI Utilities](#cli) |
@@ -20,7 +21,7 @@
 [Author Information](#author)
 
 PyGPSClient is a free, open-source, multi-platform graphical GNSS/GPS testing, diagnostic and configuration application written entirely by volunteers in Python and tkinter. 
-* Runs on any platform which supports a Python 3 interpreter (>=3.10) and tkinter (>=8.6) GUI framework, including Windows, MacOS and Linux.
+* Runs on any Windows, MacOS or Linux platform which supports a Python 3 interpreter (>=3.10) and tkinter (>=8.6) GUI framework, including popular single-board computers like Raspberry Pi, BeagleBoard and Jetson.
 * Supports NMEA, UBX (u-blox binary), SBF (Septentrio binary), UNI (Unicore binary), QGC (Quectel binary), RTCM3, SPARTN, NTRIP and TTY (ASCII text) protocols¹.
 * Capable of reading from a variety of GNSS data streams: Serial (USB / UART), Socket (TCP / UDP), binary data stream (terminal or file capture) and binary recording (e.g. u-center \*.ubx).
 * Provides [NTRIP client](#ntripconfig) facilities for both RTCM3 and SPARTN NTRIP services.
@@ -141,9 +142,9 @@ For more comprehensive installation instructions, please refer to [INSTALLATION.
       pygpsclient -C myconfig.json
       ```
 
-#### <a name="updates">Checking for the latest version</a>
+#### <a name="updates">About Dialog and Checking for the latest version</a>
 
-16. The About dialog (Menu..Help..About) includes a facility to check the latest available versions of PyGPSClient and its subsidiary modules, and initiate an automatic update. Tick the 'Check on startup' box to perform this check on startup (*note that this requires internet access, which may result in slower startup times on platforms with low bandwidth / high latency internet connections*). The facility may be unavailable in certain Homebrew-installed Python environments due to security constraints. The application must be closed and restarted for any update to take effect.
+16. The [About dialog (Menu..Help..About)](#about) displays current homepage, sponsor, license and system information. It includes a facility to check the latest available versions of PyGPSClient and its subsidiary packages and, if any updates are available, initiate an automatic update. The facility may be unavailable in certain Homebrew-installed Python environments due to security constraints.
 
 #### <a name="datalog">Datalogging, GPX Track Recording and Database</a>
 
@@ -182,7 +183,9 @@ For more comprehensive installation instructions, please refer to [INSTALLATION.
 
 #### <a name="refreshrate">GUI refresh rate setting</a>
 
-31. PyGPSClient processes all incoming GNSS data in 'real time' but, by default, the GUI is only refreshed every 0.5 seconds. The refresh rate can be manually configured via the `guiupdateinterval_f` setting in the json configuration file or Menu..Options..App Configuration dialog (*save configuration and restart after any changes*). **NB:** PyGPSClient may become unresponsive on slower platforms (e.g. Raspberry Pi and similar SBCs) at high message rates if the GUI update interval is less than 0.2 seconds - set a value commensurate with the performance of your platform.
+31. PyGPSClient processes all incoming GNSS data in 'real time' but, by default, the GUI is only refreshed every 500 ms. The refresh rate can be manually configured via the `guiupdateinterval_f` setting in the json configuration file or Menu..Options..App Configuration dialog (*save configuration and restart after any changes*).
+
+    **NB:** The GUI refresh rate should be set to a value commensurate with the performance of your platform. For example, on slower platforms (*e.g. Raspberry Pi 4 and similar Single Board Computers*) a value of less than 250 ms may result in the GUI becoming sluggish or unresponsive. On more capable platforms (*e.g. MacBook Pro 10-core M1 Max with [Python free threading](https://docs.python.org/3/howto/free-threading-python.html) enabled*), the refresh rate can be happily set to 100 ms.
 
 #### <a name="transient">Toplevel ('pop-up') dialog setting</a>
 
@@ -197,7 +200,7 @@ For more comprehensive installation instructions, please refer to [INSTALLATION.
 | Widget | To show or hide the various widgets, go to Menu..View and click on the relevant hide/show option. |
 |---------------------------|---------------------------------------------------------------------------------------------------|
 |![banner widget](https://github.com/semuconsulting/PyGPSClient/blob/main/images/banner_widget.png?raw=true)| Expandable banner showing key navigation status information based on messages received from receiver. To expand or collapse the banner or serial port configuration widgets, click the ![expand icon](https://github.com/semuconsulting/PyGPSClient/blob/main/src/pygpsclient/resources/iconmonstr-arrow-80-16.png?raw=true)/![expand icon](https://github.com/semuconsulting/PyGPSClient/blob/main/src/pygpsclient/resources/iconmonstr-triangle-1-16.png?raw=true) buttons. Double-click the "hae" label or value to toggle between hae (height above ellipsoid) and sep (separation) values. **NB**: some fields (e.g. hdop/vdop, hacc/vacc) are only available from proprietary NMEA or UBX messages and may not be output by default. The minimum messages required to populate all available fields are: NMEA: GGA, GSA, GSV, RMC, UBX00 (proprietary); UBX: NAV-DOP, NAV-PVT, NAV-SAT; UNI: BESTNAV, SATSINFO, STADOP. |
-|![console widget](https://github.com/semuconsulting/PyGPSClient/blob/main/images/console_widget.png?raw=true)| Configurable serial console widget showing incoming GNSS data streams in either parsed, binary or tabular hexadecimal formats. Double-right-click to copy contents of console to the clipboard. The scroll behaviour and number of lines retained in the console can be configured via the settings panel. Supports user-configurable color tagging of selected strings for easy identification. Color tags are loaded from the `"colortag_b":` value (`0` = disable, `1` = enable) and `"colortags_l":` list (`[string, color]` pairs) in your json configuration file (see example provided). If color is set to "HALT", streaming will halt on any match and a warning displayed. NB: color tagging does impose a small performance overhead - turning it off will improve console response times at very high transaction rates.|
+|![console widget](https://github.com/semuconsulting/PyGPSClient/blob/main/images/console_widget.png?raw=true)| Configurable serial console widget showing incoming GNSS data streams in either parsed, binary or tabular hexadecimal formats. Click ![clipboard icon](https://github.com/semuconsulting/PyGPSClient/blob/main/src/pygpsclient/resources/iconmonstr-clipboard-13-24.png?raw=true) to copy contents to the clipboard. The scroll behaviour and number of lines retained in the console can be configured via the settings panel. Supports user-configurable color tagging of selected strings for easy identification. Color tags are loaded from the `"colortag_b":` value (`0` = disable, `1` = enable) and `"colortags_l":` list (`[string, color]` pairs) in your json configuration file (see example provided). If color is set to "HALT", streaming will halt on any match and a warning displayed. NB: color tagging does impose a small performance overhead - turning it off will improve console response times at very high transaction rates.|
 |![skyview widget](https://github.com/semuconsulting/PyGPSClient/blob/main/images/skyview_widget.png?raw=true)| Skyview widget showing current satellite visibility and position (elevation / azimuth). Satellite icon borders are colour-coded to distinguish between different GNSS constellations. For consistency between NMEA and UBX data sources, will display GLONASS NMEA SVID (65-96) rather than slot (1-24). A manually-edited boolean configuration parameter `unusedsat_b` determines whether or not to include satellites where CNo = 0; default = 0. |
 |![levelsview widget](https://github.com/semuconsulting/PyGPSClient/blob/main/images/graphview_widget.png?raw=true)| Levels view widget showing current satellite carrier-to-noise (C/No) levels for each GNSS constellation. Double-click to toggle legend.|
 |![signalsview widget](https://github.com/semuconsulting/PyGPSClient/blob/main/images/signalsview_widget.png?raw=true)| Signals view widget showing current svid/signal carrier-to-noise (C/No) level and (where applicable) correction source for each GNSS svid/signal received (*GNSS receiver must be capable of outputting UBX NAV-SIG messages*). Signal identifiers are in RINEX format e.g. `L1_C/A`, `E5_aQ`, etc. Double-click to toggle legend. Double-right-click to toggle signals where C/No = 0 dbHz. |
@@ -209,7 +212,7 @@ For more comprehensive installation instructions, please refer to [INSTALLATION.
 |![sysmon widget](https://github.com/semuconsulting/PyGPSClient/blob/main/images/sysmon_widget.png?raw=true)| System Monitor widget showing device cpu, memory and I/O utilisation (*GNSS receiver must be capable of outputting UBX MON-SYS/MON-COMMS or SBF ReceiverStatus messages*). Tick checkbox to toggle between actual (cumulative) I/O stats and pending I/O. Primarily intended for u-blox modules, but can display limited system information for other devices. |
 |![scatterplot widget](https://github.com/semuconsulting/PyGPSClient/blob/main/images/scatterplot_widget.png?raw=true)| Scatterplot widget showing variability in position reporting over time. (Optional) Enter fixed reference position. Select Average to center plot on dynamic average position (*displayed at top left*), or Fixed to center on fixed reference position (*if entered*). Check Autorange to set plot range automatically. Set the update interval (e.g. 4 = every 4th navigation solution). Use the range slider or mouse wheel to adjust plot range. Right-click to set fixed reference point to the current mouse cursor position. Double-click to clear the existing data. |
 |![rover widget](https://github.com/semuconsulting/PyGPSClient/blob/main/images/rover_widget.png?raw=true) | Relative Position (formerly 'Rover') widget plots relative 2D bearing, distance, track and status information for the following configurations:  (i) NAV-RELPOSNED - position of roving receiver relative to a fixed or moving RTK base (including an NTRIP mountpoint); (ii) RTCM 1005/6 - position of roving receiver relative to a fixed RTK NTRIP antenna reference point (ARP);  (iii) NAV-DAHEADING - static heading ('yaw') from a dual-antenna receiver e.g. u-blox ZED-X20D. Double-click to clear existing plot. |
-|![chart view](https://github.com/semuconsulting/PyGPSClient/blob/main/images/chart_widget.png?raw=true) | Chart widget acts as a multi-channel "plotter", allowing the user to plot a series of named numeric data attributes from any parsed GNSS data source, with configurable y (value) and x (time) axes. By default, the number of channels is set to 4, but this can be manually edited by the user via the json configuration file setting `chartsettings_d["numchn_n"]` or Menu..Options..App Configuration dialog (*save configuration and restart after any changes*). For each channel, user can select: (*optional*) identity of message source e.g. `NAV-PVT`; attribute name e.g. `hAcc`; scaling factor (divisor) e.g. 1000; y axis range e.g. 0 - 5. Wildcards are available for attribute groups - "\*" (average of group values), "+" (maximum of group values), "-" (minimum of group values) e.g. `cno*` will plot the average `cno` value for a group of satellites. Double-click to clear the existing data. Double-right-click to save the current chart data to the clipboard in CSV format, which can be directly pasted into a spreadsheet application. |
+|![chart view](https://github.com/semuconsulting/PyGPSClient/blob/main/images/chart_widget.png?raw=true) | Chart widget acts as a multi-channel "plotter", allowing the user to plot a series of named numeric data attributes from any parsed GNSS data source, with configurable y (value) and x (time) axes. By default, the number of channels is set to 4, but this can be manually edited by the user via the json configuration file setting `chartsettings_d["numchn_n"]` or Menu..Options..App Configuration dialog (*save configuration and restart after any changes*). For each channel, user can select: (*optional*) identity of message source e.g. `NAV-PVT`; attribute name e.g. `hAcc`; scaling factor (divisor) e.g. 1000; y axis range e.g. 0 - 5. Wildcards are available for attribute groups - "\*" (average of group values), "+" (maximum of group values), "-" (minimum of group values) e.g. `cno*` will plot the average `cno` value for a group of satellites. Double-click to clear the existing data. Click ![clipboard icon](https://github.com/semuconsulting/PyGPSClient/blob/main/src/pygpsclient/resources/iconmonstr-clipboard-13-24.png?raw=true) to copy the current chart data to the clipboard in CSV format, which can be directly pasted into a spreadsheet application. |
 |![attitude widget](https://github.com/semuconsulting/PyGPSClient/blob/main/images/attitude_widget.png?raw=true) |  Attitude Monitor widget (*formerly "IMU Monitor"*) showing current orientation/attitude (roll, pitch, yaw *aka 'static heading'*) and status from a variety of IMU, Dead Reckoning, Dual Antenna or other 2D/3D attitude message sources. Select range in degrees (from ±1 to ±180 degrees). |
 
 ---
@@ -416,7 +419,7 @@ The GPX Track Viewer can display any valid GPX file containing track point (`trk
 Click ![refresh icon](https://github.com/semuconsulting/PyGPSClient/blob/main/src/pygpsclient/resources/iconmonstr-refresh-lined-24.png?raw=true) to refresh the display after any changes (e.g. resizing, zooming or change of units). The location marker indicates the nominal center point of the track.
 
 ---
-## <a name="rinex">RINEX Conversion</a>
+## <a name="rinex">RINEX Conversion (Beta)</a>
 
 ![rinex screenshot](https://github.com/semuconsulting/PyGPSClient/blob/main/images/rinex_dialog.png?raw=true)
 
@@ -438,6 +441,17 @@ The RINEX Conversion Dialog supports the conversion of raw observation, navigati
 8. (Optional) Expand the advanced panel ![start icon](https://github.com/semuconsulting/PyGPSClient/blob/main/src/pygpsclient/resources/iconmonstr-caret-right-filled-32.png?raw=true) to enter details of the marker, antenna, receiver, observer and any user-defined comments.
 9. Click ![start icon](https://github.com/semuconsulting/PyGPSClient/blob/main/src/pygpsclient/resources/iconmonstr-media-control-48-24.png?raw=true) to process the file. A progress bar will be displayed and, when complete, the output file names (*.rnx) and record counts will be displayed at the foot of the dialog.
 10. Processing can be cancelled by clicking ![cancel icon](https://github.com/semuconsulting/PyGPSClient/blob/main/src/pygpsclient/resources/iconmonstr-x-mark-9-24.png?raw=true).
+
+---
+## <a name="about">About (System Information)</a>
+
+![about screenshot](https://github.com/semuconsulting/PyGPSClient/blob/main/images/about_dialog.png?raw=true)
+
+The About dialog displays homepage, sponsor and license links along with system information which can be copied to the clipboard e.g. for inclusion in bug reports or discussion queries.
+
+- Click ![info icon](https://github.com/semuconsulting/PyGPSClient/blob/main/src/pygpsclient/resources/iconmonstr-info-lined-24.png?raw=true) to refresh the system information. 
+- Click ![update icon](https://github.com/semuconsulting/PyGPSClient/blob/main/src/pygpsclient/resources/iconmonstr-refresh-1-24.png?raw=true) to initiate a Python application package update (if available). The application must be closed and restarted for any update to take effect.
+- Click on ![clipboard icon](https://github.com/semuconsulting/PyGPSClient/blob/main/src/pygpsclient/resources/iconmonstr-clipboard-13-24.png?raw=true) to copy the current system information and package versions to the clipboard e.g. for inclusion in bug reports or discussion queries.
 
 ---
 ## <a name="mapquestapi">MapQuest API Key</a>
@@ -516,7 +530,7 @@ For further details, refer to the `pygnssutils` homepage at [https://github.com/
 ---
 ## <a name="troubleshoot">Troubleshooting and Known Issues</a>
 
-1. Recent versions of Python for MacOS (>=3.14.5) come with a new version of tkinter (9.0). Early iterations (3.14.5, 3.14.6) exhibited various performance issues on MacOS. The issues appear to have been resolved in version >=3.14.7 (tkinter 9.0.4), but if you experience any compatibility or performance problems, consider reverting to Python <=3.14.4 (tkinter 8.6). The issues do *not* appear to affect other operating systems or Python apps not using tkinter.
+1. Recent versions of Python for MacOS (>=3.14.5) come with a new version of tkinter (9.0). Early iterations (3.14.5, 3.14.6) exhibited various performance issues. The issues appear to have been resolved in version >=3.14.7 (tkinter 9.0.4), but if you experience any compatibility or performance problems, consider reverting to Python <=3.14.4 (tkinter 8.6).
 
 2. If you encounter persistent `WARNING>>Error parsing data stream Serial stream terminated unexpectedly` messages in the console, this may be indicative of insufficient serial port bandwidth (baudrate or timeout) for the current output message cohort (*particularly if this includes raw Ephemerides or Observation data*). Try increasing the baudrate in the first instance.
 
@@ -527,6 +541,8 @@ For further details, refer to the `pygnssutils` homepage at [https://github.com/
 5. Applying a display scale factor on some Linux Wayland platforms (e.g. Ubuntu, but *not* Arch) may cause tkinter rendering artefacts e.g. non-resizeable panels exceeding the display dimensions. Setting `resizeable_dialog_b` to '1' provides a workaround for such issues. 
 
 6. Some Homebrew-installed Python environments on MacOS can give rise to critical segmentation errors (*illegal memory access*) when shell subprocesses are invoked, due to MacOS security constraints. For this reason, application updates via the  About..Update button are disabled on MacOS Homebrew environments; use the CLI `python3 -m pip install --upgrade pygpsclient` command instead.
+
+7. **FYI** Free-threading mode (*i.e. with GIL or global interpreter lock disabled*), where supported by the platform, may afford a worthwhile performance improvement (since a number of PyGPSClient background processes run in separate threads) [but note caveats](https://docs.python.org/3/howto/free-threading-python.html). The Python 3.15 free-threading interpreter (`python3.15t`) is now installed by default on MacOS platforms and is available as an option in Python>=3.13 on other platforms.
 
 ---
 ## <a name="license">License</a>

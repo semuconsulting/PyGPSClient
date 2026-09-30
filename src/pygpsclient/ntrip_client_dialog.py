@@ -51,6 +51,7 @@ from types import NoneType
 from pygnssutils import NOGGA
 from pygnssutils.helpers import find_mp_distance
 
+from pygpsclient.custom_classes import PasswordButton
 from pygpsclient.globals import (
     CLICK_CURSOR,
     CONNECTED_NTRIP,
@@ -70,7 +71,7 @@ from pygpsclient.globals import (
     UIK,
     VALFLOAT,
 )
-from pygpsclient.helpers import MAXALT, PasswordButton, get_mp_info
+from pygpsclient.helpers import MAXALT, get_mp_info
 from pygpsclient.socketconfig_ntrip_frame import SocketConfigNtripFrame
 from pygpsclient.strings import (
     DLGTNTRIP,

@@ -30,10 +30,8 @@ from socket import AF_INET, SOCK_DGRAM, socket
 from time import strftime
 from tkinter import (
     BooleanVar,
-    Button,
     DoubleVar,
     Entry,
-    Frame,
     IntVar,
     Spinbox,
     StringVar,
@@ -43,7 +41,6 @@ from tkinter import (
 from types import FunctionType, MethodType, NoneType
 from typing import Any, Literal
 
-from PIL import Image, ImageTk
 from pygnssutils import version as PGVERSION
 from pynmeagps import WGS84_SMAJ_AXIS, NMEAMessage
 from pynmeagps import version as NMEAVERSION
@@ -68,11 +65,8 @@ from requests import get
 from pygpsclient._version import __version__ as VERSION
 from pygpsclient.globals import (
     BSR,
-    CLICK_CURSOR,
     ERRCOL,
     FIXLOOKUP,
-    ICON_EYEOFF,
-    ICON_EYEON,
     M2FT,
     M2KM,
     M2MIL,
@@ -235,48 +229,6 @@ for var in (BooleanVar, DoubleVar, IntVar, StringVar):
     var.trace_update = trace_update
 
 
-class PasswordButton(Button):
-    """
-    Custom password show/hide button.
-    """
-
-    def __init__(self, parent: Frame, password: Entry, **kwargs):
-        """
-        Constructor.
-
-        :param Frame parent: parent Frame
-        :param Entry password: associated password Entry field
-        """
-
-        self._ent_password = password
-        self._show_password = False
-        self._img_eyeon = ImageTk.PhotoImage(Image.open(ICON_EYEON))
-        self._img_eyeoff = ImageTk.PhotoImage(Image.open(ICON_EYEOFF))
-
-        super().__init__(
-            parent,
-            width=20,
-            height=20,
-            command=self.toggle_password,
-            cursor=CLICK_CURSOR,
-            image=self._img_eyeon,
-            **kwargs,
-        )
-
-    def toggle_password(self):
-        """
-        Toggle password visibility.
-        """
-
-        self._show_password = not self._show_password
-        if self._show_password:
-            self._ent_password["show"] = ""
-            self["image"] = self._img_eyeoff
-        else:
-            self._ent_password["show"] = "*"
-            self["image"] = self._img_eyeon
-
-
 # ****************************************************************
 # End of Custom Tkinter Class Extensions
 # ****************************************************************
@@ -339,12 +291,12 @@ def brew_installed() -> bool:
     return path.isfile("/opt/homebrew/bin/python3")
 
 
-def bytes2unit(valb: int) -> tuple:
+def bytes2unit(valb: int) -> tuple[int, str]:
     """Format bytes as KB, MB, GB etc
     such that value < 100.
 
     :param int valb: bytes
-    :return: tuple of (value, units)
+    :return: tuple[int,str]
     """
 
     if not isinstance(valb, (int, float)):
@@ -394,7 +346,9 @@ def check_for_updates() -> list[tuple[str, str, str]]:
     return updates
 
 
-def check_lowres(master: Tk, dim: tuple, overscan: float = OVERSCAN) -> tuple:
+def check_lowres(
+    master: Tk, dim: tuple, overscan: float = OVERSCAN
+) -> tuple[float, tuple[float, float]]:
     """
     Check if dialog dimensions exceed effective screen resolution.
 
@@ -402,7 +356,7 @@ def check_lowres(master: Tk, dim: tuple, overscan: float = OVERSCAN) -> tuple:
     :param tuple dim: dialog dimensions in pixels (height, width)
     :param float overscan: screen 'overscan' allowance
     :return: low resolution yes/no and effective resolution
-    :rtype: tuple (boolean, (screen height/width))
+    :rtype: tuple[float, tuple[float, float]]
     """
 
     sh, sw = [int(i / overscan) for i in screenres(master)]
@@ -610,13 +564,13 @@ def get_range(val: float, rng: tuple):
     return rng[next(x[0] for x in enumerate(rng) if x[1] > val)]
 
 
-def get_track_bounds(track: list) -> tuple:
+def get_track_bounds(track: list) -> tuple[Area, Point]:
     """
     Get bounds and centre point of track list.
 
     :param list track: list of TrackPoints
     :return: bounds of track, center point
-    :rtype: (Area, Point)
+    :rtype: tuple[Area, Point]
     """
 
     minlat = minlon = 400
@@ -631,14 +585,14 @@ def get_track_bounds(track: list) -> tuple:
     )
 
 
-def get_units(units: str) -> tuple:
+def get_units(units: str) -> tuple[str, float, str, float, str, float]:
     """
     Get speed and elevation units and conversions.
     Default is metric - meters and meters per second.
 
     :param str unit: unit
     :return: tuple of (dst_u, dst_c, ele_u, ele_C, spd_u, spd_c)
-    :rtype: tuple
+    :rtype: tuple[str,float,str,float,str,float]
     """
 
     if units == UI:
@@ -818,7 +772,7 @@ def lanip() -> str:
             return "N/A"
 
 
-def ll2xy(width: int, height: int, bounds: Area, position: Point) -> tuple:
+def ll2xy(width: int, height: int, bounds: Area, position: Point) -> tuple[int, int]:
     """
     Convert lat/lon to canvas x/y.
 
@@ -827,7 +781,7 @@ def ll2xy(width: int, height: int, bounds: Area, position: Point) -> tuple:
     :param Area bounds: lat/lon bounds of canvas
     :param Point coordinate: lat/lon
     :return: x,y canvas coordinates
-    :rtype: tuple
+    :rtype: tuple[int,int]
     """
 
     lw = bounds.lon2 - bounds.lon1
@@ -915,7 +869,7 @@ def ms2mph(ms: float) -> float:
     return ms * 2.23693674
 
 
-def ned2vector(n: float, e: float, d: float) -> tuple:
+def ned2vector(n: float, e: float, d: float) -> tuple[float, float]:
     """
     Convert N,E,D relative position to 2D heading and distance.
 
@@ -923,7 +877,7 @@ def ned2vector(n: float, e: float, d: float) -> tuple:
     :param float e: east coordinate
     :param float d: down coordinate
     :return: tuple of distance, heading
-    :rtype: tuple
+    :rtype: tuple[float, float]
     """
 
     dis = sqrt(n**2 + e**2 + d**2)
@@ -1061,7 +1015,11 @@ def rgb2str(r: int, g: int, b: int) -> str:
 
 
 def scale_font(
-    width: int, basesize: int, txtwidth: int, maxsize: int = 0, fnt: font.Font = None
+    width: int,
+    basesize: int,
+    txtwidth: int,
+    maxsize: int = 0,
+    fnt: font.Font | NoneType = None,
 ) -> tuple:
     """
     Scale font size to widget width.
@@ -1070,7 +1028,7 @@ def scale_font(
     :param int bassiz: base font size
     :param int txtwidth: reference text width
     :param int maxsiz: max font size
-    :param Font fnt: default font
+    :param Font | NoneType fnt: default font
     :return: tuple of scaled font, font height
     :rtype: tuple
     """
@@ -1081,26 +1039,26 @@ def scale_font(
     return fnt, fnt.metrics("linespace")
 
 
-def screenres(master: Tk) -> tuple:
+def screenres(master: Tk) -> tuple[int, int]:
     """
     Get effective screen resolution.
 
     :param tkinter.Tk master: reference to root
     :return: screen resolution in pixels (height, width)
-    :rtype: tuple
+    :rtype: tuple[int,int]
     """
 
     return (master.winfo_screenheight(), master.winfo_screenwidth())
 
 
-def secs2unit(secs: int) -> tuple:
+def secs2unit(secs: int) -> tuple[float, str]:
     """
     Format seconds as secs, mins, hours or days
     such that value is > 100.
 
     :param int secs: seconds
     :return: tuple of (value, units)
-    :rtype: tuple
+    :rtype: tuple[float, str]
     """
 
     if not isinstance(secs, (int, float)):
@@ -1111,15 +1069,13 @@ def secs2unit(secs: int) -> tuple:
 
     i = 0
     val = secs
-    while val > 100:
+    while val > 100 and i < 3:
         val = secs / SECSDIV[i]
         i += 1
-        if i > 2:
-            break
     return val, SECSUNITS[i]
 
 
-def set_filename(fpath: str, mode: str, ext: str) -> tuple:
+def set_filename(fpath: str, mode: str, ext: str) -> tuple[str, str]:
     """
     Return timestamped file name and fully qualified file path.
 
@@ -1127,7 +1083,7 @@ def set_filename(fpath: str, mode: str, ext: str) -> tuple:
     :param mode: the type of file being created ('data', 'track') as str
     :param ext: the file extension ('log', 'gpx') as str
     :return: fully qualified filename and path
-    :rtype: tuple of (filename, filepath)
+    :rtype: tuple[str, str]
     """
 
     filename = f"pygps{mode}-{strftime('%Y%m%d%H%M%S')}.{ext}"
@@ -1237,13 +1193,13 @@ def snr2col(snr: int) -> str:
     return hsv2rgb(snr / (MAX_SNR * 2.5), 0.8, 0.8)
 
 
-def str2rgb(col: str) -> tuple:
+def str2rgb(col: str) -> tuple[int, int, int]:
     """
     Convert RGB color string to R,G,B values.
 
     :param str col: RGB color string e.g. "#032a4e"
     :return: tuple of (r,g,b) as integers
-    :rtype: tuple
+    :rtype: tuple[int,int,int]
     """
 
     r = int(col[1:3], 16)
@@ -1252,14 +1208,14 @@ def str2rgb(col: str) -> tuple:
     return (r, g, b)
 
 
-def stringvar2val(val: str, att: str) -> object:
+def stringvar2val(val: str, att: str) -> Any:
     """
     Convert StringVar entry to appropriate attribute value type.
 
     :param str val: StringVar value
     :param str att: attribute type e.g. 'U004'
     :return: converted value
-    :rtype: object (int, float or bytes)
+    :rtype: Any
     """
 
     if att in ("DE", "LA", "LN"):  # NMEA float
@@ -1401,7 +1357,7 @@ def ubx2preset(
     return preset
 
 
-def val2sphp(val: float, scale: float) -> tuple:
+def val2sphp(val: float, scale: float) -> tuple[float, float]:
     """
     Convert a float value into separate
     standard and high precisions components,
@@ -1413,7 +1369,7 @@ def val2sphp(val: float, scale: float) -> tuple:
     :param float val: value as float
     :param float scale: scaling factor e.g. 1e-7
     :return: tuple of (standard precision, high precision)
-    :rtype: tuple
+    :rtype: tuple[float,float]
     """
 
     val = val / scale

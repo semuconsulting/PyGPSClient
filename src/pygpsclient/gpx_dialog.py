@@ -35,7 +35,7 @@ from xml.parsers import expat
 from pynmeagps import haversine, planar
 
 from pygpsclient.canvas_map import HYB, MAP, SAT, CanvasMap
-from pygpsclient.canvas_subclasses import CanvasGraph
+from pygpsclient.custom_classes import CanvasGraph
 from pygpsclient.globals import (
     BGCOL,
     CLICK_CURSOR,

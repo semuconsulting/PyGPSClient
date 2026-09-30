@@ -22,7 +22,7 @@
     "python.analysis.addHoverSummaries": false,
     "python-envs.defaultEnvManager": "ms-python.python:venv",
     "python.venvPath": "${userHome}/pygpsclient/bin/python3",
-    "python.systemPath": "/usr/local/bin/python3.14",
+    "python.systemPath": "/usr/local/bin/python3.15t", // free-threading version
     "python.defaultInterpreterPath": "${userHome}/pygpsclient/bin/python3",
     //"python.defaultInterpreterPath": "C:/Users/steve/pygpsclient/Scripts/python.exe",
     "python.testing.unittestEnabled": false,

@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14", "3.15.0-rc.2"]
 
     steps:
       - uses: actions/checkout@v7
@@ -22,6 +22,8 @@ jobs:
         run: pip install --group deploy
       - name: Install code dependencies
         run: pip install .
+      - name: Install dill 0.4.2.dev for Python 3.15
+        run: pip install --force-reinstall git+https://github.com/uqfoundation/dill.git
       - name: Lint with pylint
         run: pylint -E src
       - name: Security vulnerability analysis with bandit

@@ -15,12 +15,14 @@ Created on 23 Dec 2022
 
 # pylint: disable=no-member, unused-argument
 
+import logging
+from copy import deepcopy
 from tkinter import ALL, CENTER, EW, NSEW, NW, Checkbutton, Frame, IntVar, N, S, Tk, W
 from types import NoneType
 
 from pyubx2 import UBXMessage
 
-from pygpsclient.canvas_subclasses import (
+from pygpsclient.custom_classes import (
     TAG_DATA,
     TAG_GRID,
     TAG_WAIT,
@@ -106,6 +108,7 @@ class SpectrumviewFrame(Frame):
         """
 
         self.__app = app  # Reference to main application class
+        self.logger = logging.getLogger(__name__)
 
         super().__init__(parent, *args, **kwargs)
 
@@ -241,19 +244,24 @@ class SpectrumviewFrame(Frame):
         one item per RF block.
         """
 
-        rfblocks = self.__app.gnss_status.spectrum_data
-        if len(rfblocks) == 0:
-            if self._waits >= MAXWAIT:
-                self._canvas.create_alert(DLGNOMONSPAN, tags=TAG_WAIT)
-            else:
-                self._waits += 1
-            return
-        self._waits = 0
-        self._waiting = False
-        self._update_plot(rfblocks)
+        try:
+            rfblocks = deepcopy(
+                self.__app.gnss_status.spectrum_data
+            )  # to avoid thread contention
+            if len(rfblocks) == 0:
+                if self._waits >= MAXWAIT:
+                    self._canvas.create_alert(DLGNOMONSPAN, tags=TAG_WAIT)
+                else:
+                    self._waits += 1
+                return
+            self._waits = 0
+            self._waiting = False
+            self._update_plot(rfblocks)
 
-        if self._spectrum_snapshot != []:
-            self._update_plot(self._spectrum_snapshot, MODESNAP, RF_LIST_SNAPSHOT)
+            if self._spectrum_snapshot != []:
+                self._update_plot(self._spectrum_snapshot, MODESNAP, RF_LIST_SNAPSHOT)
+        except RuntimeError as err:
+            self.logger.exception(err)
 
     def init_frame(self):
         """
@@ -307,6 +315,7 @@ class SpectrumviewFrame(Frame):
                 self._plot_RF_FREQS(mode)
 
         # for each RF block in MON-SPAN message
+
         for i, rfblock in enumerate(specxy):
             rf = len(specxy) - i - 1
             col = colors[rf % len(colors)]

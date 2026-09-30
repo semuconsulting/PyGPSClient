@@ -31,7 +31,7 @@ from tkinter import (
 from pynmeagps import FMI_STATUS
 from pyubx2 import ESFALG_STATUS
 
-from pygpsclient.canvas_subclasses import TAG_WAIT
+from pygpsclient.custom_classes import TAG_WAIT
 from pygpsclient.globals import (
     BGCOL,
     ERRCOL,

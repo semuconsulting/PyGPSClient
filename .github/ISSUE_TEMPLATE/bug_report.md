@@ -33,19 +33,16 @@ Steps to reproduce the behaviour:
 
 A clear and concise description of what you expected to happen.
 
-**Desktop (please complete the following information):**
+**System Information (please complete the following information):**
 
-- The operating system you're using [e.g. Windows 11, MacOS Ventura, Ubuntu Kinetic]
-- The version of Python you're using (e.g. Python 3.11.1)
+- The operating system you're using [e.g. Windows 11, MacOS 27.0, Ubuntu 26.04]
+- The version of Python and Tkinter you're using (e.g. Python 3.14.7, Tkinter 9.0.4)
 - The type of serial connection [e.g. USB, UART1]
-
-**GNSS/GPS Device (please complete the following information as best you can):**
-
 - Device Model/Generation: [e.g. u-blox ZED-F9P]
 - Firmware Version: [e.g. HPG 1.32]
 - Protocol: [e.g. 32.00]
  
-This information is typically output by the device at startup via a series of NMEA TXT messages. It can also be found by polling the device with a UBX MON-VER message. If you're using the PyGPSClient GUI, a screenshot of the UBXConfig window should suffice.
+**FYI** Click on ![clipboard icon](https://github.com/semuconsulting/PyGPSClient/blob/main/src/pygpsclient/resources/iconmonstr-clipboard-13-24.png?raw=true) in the About dialog (Menu..Help..About) to copy the current system information and package versions to the clipboard e.g. for inclusion in bug reports or discussion queries.
 
 **Additional context**
 
