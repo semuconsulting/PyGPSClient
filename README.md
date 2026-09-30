@@ -450,7 +450,7 @@ The RINEX Conversion Dialog supports the conversion of raw observation, navigati
 The About dialog displays homepage, sponsor and license links along with system information which can be copied to the clipboard e.g. for inclusion in bug reports or discussion queries.
 
 - Click ![info icon](https://github.com/semuconsulting/PyGPSClient/blob/main/src/pygpsclient/resources/iconmonstr-info-lined-24.png?raw=true) to refresh the system information. 
-- Click ![update icon](https://github.com/semuconsulting/PyGPSClient/blob/main/src/pygpsclient/resources/iconmonstr-refresh-1-24.png?raw=true) to initiate a Python application package update (if available). The application must be closed and restarted for any update to take effect.
+- Click ![update icon](https://github.com/semuconsulting/PyGPSClient/blob/main/src/pygpsclient/resources/iconmonstr-refresh-lined-1-24.png?raw=true) to initiate a Python application package update (if available). The application must be closed and restarted for any update to take effect.
 - Click on ![clipboard icon](https://github.com/semuconsulting/PyGPSClient/blob/main/src/pygpsclient/resources/iconmonstr-clipboard-13-24.png?raw=true) to copy the current system information and package versions to the clipboard e.g. for inclusion in bug reports or discussion queries.
 
 ---
