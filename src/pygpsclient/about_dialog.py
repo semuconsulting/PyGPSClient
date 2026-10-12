@@ -16,6 +16,8 @@ Created on 20 Sep 2020
 import logging
 from datetime import datetime
 from platform import python_version, uname
+from queue import Empty, Queue
+from threading import Event, Thread
 from tkinter import (
     CENTER,
     DISABLED,
@@ -82,6 +84,7 @@ except ImportError:
     IGE = False
 
 NSW = (N, S, W)
+SYSINFO_EVENT = "<<sysinfo_event>>"
 
 
 class AboutDialog(ToplevelDialog):
@@ -105,8 +108,8 @@ class AboutDialog(ToplevelDialog):
         self._img_update = ImageTk.PhotoImage(Image.open(ICON_UPDATE))
         self._checkonstartup = IntVar()
         self._checkonstartup.set(self.__app.configuration.get("checkforupdate_b"))
-        self._sysinfo = ""
-        self._updates_available = False
+        self._updates_available = Event()
+        self._sysinfo_queue = Queue()
 
         super().__init__(app, DLGTABOUT)
 
@@ -114,7 +117,7 @@ class AboutDialog(ToplevelDialog):
         self._do_layout()
         self._attach_events()
         self._finalise()
-        self.after(50, self._reset)
+        self._reset()
 
     def _body(self):
         """
@@ -224,18 +227,24 @@ class AboutDialog(ToplevelDialog):
         self._btn_update.bind("<Enter>", self._on_update_enter)
         self._btn_update.bind("<Leave>", self._on_update_leave)
         self._checkonstartup.trace_add(TRACEMODE_WRITE, self._on_update_startup)
+        self.bind(SYSINFO_EVENT, self._on_refresh_sysinfo)
         self._btn_exit.focus_set()
 
     def _reset(self):
         """
-        Refresh system information.
+        Refresh system information asynchronously.
         """
 
-        self._refresh_sysinfo()
-        self._btn_update["state"] = NORMAL if self._updates_available else DISABLED
-        self.frm_sysinfo.state(True)
-        self.frm_sysinfo.set(self._sysinfo, insert=0, scroll=0)
-        self.frm_sysinfo.state(False)
+        self.set_status_label("Refreshing System Info...", INFOCOL)
+        Thread(
+            target=self._get_sysinfo,
+            args=(
+                self,
+                self._sysinfo_queue,
+                self._updates_available,
+            ),
+            daemon=True,
+        ).start()
 
     def _on_info_enter(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -249,7 +258,7 @@ class AboutDialog(ToplevelDialog):
         Info button leave event.
         """
 
-        if not self._updates_available:
+        if not self._updates_available.is_set():
             self.set_status_label("")
 
     def _on_update_enter(self, *args, **kwargs):  # pylint: disable=unused-argument
@@ -329,30 +338,60 @@ class AboutDialog(ToplevelDialog):
         else:
             self.set_status_label(UPDATEERR.format(err=rc), ERRCOL)
 
-    def _refresh_sysinfo(self):
+    def _on_refresh_sysinfo(self, event):  # pylint: disable=unused-argument
         """
-        Refresh system information.
+        EVENT-DRIVEN PROCESS
+        Refresh package versions and system info using queued response
+        from _get_sysinfo.
         """
 
-        self.set_status_label("Refreshing System Info...", INFOCOL)
+        try:
+            while not self._sysinfo_queue.empty():
+                sysinfo = self._sysinfo_queue.get()
+                self.frm_sysinfo.state(True)
+                self.frm_sysinfo.set(sysinfo, insert=0, scroll=0)
+                self.frm_sysinfo.state(False)
+                self._sysinfo_queue.task_done()
+        except Empty:
+            pass
+
+        if self._updates_available.is_set():
+            self._btn_update["state"] = NORMAL
+            self._btn_update["cursor"] = CLICK_CURSOR
+            self.set_status_label("Application Update(s) Available", OKCOL)
+        else:
+            self._btn_update["state"] = DISABLED
+            self._btn_update["cursor"] = ""
+            self.set_status_label("", INFOCOL)
+        self._updates_available.clear()
+
+    def _get_sysinfo(self, parent: Frame, sysinfoq: Queue, updates: Event):
+        """
+        THREADED PROCESS
+        Retrieve package versions and system information.
+
+        :param Frame parent: reference to parent frame
+        :param Queue sysinfoq: queue for results string
+        :param Event updates: updates available event
+        """
+
         sys, nod, rel, ver, mcn, pro = tuple(uname())
         sys = sys.replace("Darwin", "MacOS")
         tki = Tcl().call("info", "patchlevel")
         now = datetime.now()
         runtime, rununit = secs2unit((now - self.__app.starttime).total_seconds())
-        versions = check_for_updates()
-        self._sysinfo = "Python Application Packages:\n\n"
-        self._updates_available = False
+        versions = check_for_updates()  # blocking function
+        sysinfo = "Python Application Packages:\n\n"
+        updates.clear()
         for mod, cver, lver in versions:
-            mod = f"{mod}:"
             if lver == NA:
                 lts = " ?"
             elif lver == cver:
                 lts = " ✓"
             else:
-                self._updates_available = True
+                updates.set()
                 lts = f" Update Available: {lver:<6}"
-            self._sysinfo += f"{mod:<14}{cver:<6}{lts}\n"
+            sysinfo += f"{mod+':':<14}{cver:<6}{lts}\n"
         if IGE:
             gil = "GIL" if _is_gil_enabled() else "free threading"
         else:
@@ -362,7 +401,7 @@ class AboutDialog(ToplevelDialog):
         sw = self.__app.gnss_status.version_data["swversion"]
         fw = self.__app.gnss_status.version_data["fwversion"]
         rom = self.__app.gnss_status.version_data["romversion"]
-        self._sysinfo += (
+        sysinfo += (
             "\nSystem Information:\n\n"
             f"{'Datetime:':<14}{now}\n"
             f"{'Runtime:':<14}{round(runtime,2)} {rununit}\n"
@@ -381,9 +420,6 @@ class AboutDialog(ToplevelDialog):
             f"{'Firmware:':<14}{fw}\n"
             f"{'Protocol:':<14}{rom}\n"
         )
-        if self._updates_available:
-            self.set_status_label("Application Update(s) Available", ERRCOL)
-            self._btn_update["cursor"] = CLICK_CURSOR
-        else:
-            self.set_status_label("", INFOCOL)
-            self._btn_update["cursor"] = ""
+
+        sysinfoq.put(sysinfo)
+        parent.event_generate(SYSINFO_EVENT)

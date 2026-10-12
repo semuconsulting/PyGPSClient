@@ -12,7 +12,7 @@ Created on 13 Sep 2020
 :license: BSD 3-Clause
 """
 
-from os import getenv, getpid
+from os import getpid
 from tkinter import NE, NW, SUNKEN, Button, Frame, Label, N, Tk, W
 
 from PIL import Image, ImageTk
@@ -42,6 +42,7 @@ from pygpsclient.globals import (
     ICON_SETTINGS,
     ICON_SOCKET,
     ICON_TRANSMIT,
+    PSSTATS,
     UI,
     UIK,
     UMK,
@@ -57,14 +58,12 @@ from pygpsclient.helpers import (
 )
 from pygpsclient.strings import DGPSYES, NA
 
-PSSTATS = False
-try:
-    from psutil import Process
+if PSSTATS:
+    try:
+        from psutil import Process
 
-    if int(getenv("PYGPSCLIENT_PSSTATS", "0")) & 1:
-        PSSTATS = True
-except ModuleNotFoundError:
-    pass
+    except ModuleNotFoundError:
+        PSSTATS = False
 
 M2MILES = 5280
 FONTBASE = 12
@@ -410,7 +409,8 @@ class BannerFrame(Frame):
         self._update_siv()
         self._update_dop(units)
         self._update_dgps(units)
-        self._update_psstats()
+        if PSSTATS:
+            self._update_psstats()
 
     def _update_time(self):
         """
@@ -617,17 +617,18 @@ class BannerFrame(Frame):
 
     def _update_psstats(self):
         """
-        Update process statistics.
+        Update process statistics (if PSSTATS).
         """
 
-        if PSSTATS:
-            pid = getpid()
-            process = Process(pid)
-            vms = int(process.memory_info().vms / 1024)
-            if self._old_vms == 0:
-                self._old_vms = vms
-            deltavms = vms - self._old_vms
-            self._lbl_psstats["text"] = f"pid: {pid}, vmsᵢ: {vms:,}, Δvms: {deltavms:,}"
+        pid = getpid()
+        process = Process(pid)  # pylint: disable=possibly-used-before-assignment
+        vms = int(process.memory_info().vms / 1024)
+        if self._old_vms == 0:
+            self._old_vms = vms
+        deltavms = vms - self._old_vms
+        self._lbl_psstats["text"] = (
+            f"pid: {pid}, vmsᵢ: {vms:,}, Δvms: {deltavms:,}, tₚ: {self.__app.proctime/1e6:.0f}"
+        )
 
     def _set_fontsize(self):
         """

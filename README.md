@@ -21,7 +21,7 @@
 [Author Information](#author)
 
 PyGPSClient is a free, open-source, multi-platform graphical GNSS/GPS testing, diagnostic and configuration application written entirely by volunteers in Python and tkinter. 
-* Runs on any Windows, MacOS or Linux platform which supports a Python 3 interpreter (>=3.10) and tkinter (>=8.6) GUI framework, including popular single-board computers like Raspberry Pi, BeagleBoard and Jetson.
+* Runs on any platform which supports a Python 3 interpreter (>=3.10) and tkinter (>=8.6) GUI framework, including Windows, MacOS and Linux and popular single-board computers like Raspberry Pi, BeagleBoard and Jetson.
 * Supports NMEA, UBX (u-blox binary), SBF (Septentrio binary), UNI (Unicore binary), QGC (Quectel binary), RTCM3, SPARTN, NTRIP and TTY (ASCII text) protocols¹.
 * Capable of reading from a variety of GNSS data streams: Serial (USB / UART), Socket (TCP / UDP), binary data stream (terminal or file capture) and binary recording (e.g. u-center \*.ubx).
 * Provides [NTRIP client](#ntripconfig) facilities for both RTCM3 and SPARTN NTRIP services.
@@ -109,13 +109,13 @@ For more comprehensive installation instructions, please refer to [INSTALLATION.
 
 1. By default, the Settings panel is displayed to the right of the main application window. It can be hidden or shown via Menu..View..Hide/Show Settings. The panel can also be 'undocked' from the main application window via Menu..View..Undock Settings. Exiting the undocked dialog, or selecting Menu..View..Dock Settings, or clicking the ![dock icon](https://github.com/semuconsulting/PyGPSClient/blob/main/src/pygpsclient/resources/iconmonstr-gear-2-24.png?raw=true) in the topmost banner panel, will toggle the docked state.
 2. Protocols Shown - Select which message protocols to display in the console; NMEA, UBX (*u-blox binary*), SBF (*Septentrio binary*), UNI (*Unicore binary*), QGC (*Quectel binary*), RTCM3, SPARTN or TTY (*terminal*). NB: this only changes the *displayed* protocols - to change the actual protocols output by the receiver, use the relevant configuration command(s).
-    - **NB:** Serial connection must be stopped before changing to or from TTY (terminal) protocol mode. Enabling TTY (terminal) mode will disable all other protocols.
+    - **NB:** Serial connection must be stopped before changing to or from TTY protocol mode. Enabling TTY mode will disable all other protocols.
 3. To connect to a GNSS receiver via USB or UART port, select the device from the listbox, set the appropriate serial connection parameters and click 
 ![connect icon](https://github.com/semuconsulting/PyGPSClient/blob/main/src/pygpsclient/resources/usbport-1-24.png?raw=true). The application will endeavour to pre-select a recognised GNSS/GPS device but this is platform and device dependent. Press the ![refresh](https://github.com/semuconsulting/PyGPSClient/blob/main/src/pygpsclient/resources/iconmonstr-refresh-6-16.png?raw=true) button to refresh the list of connected devices at any point. 
     - `Rate bps` (baud rate) is typically the only setting that might need adjusting, but tweaking the `timeout` setting may improve performance on certain platforms. 
     - If you get a permissions error on attempting to connect to a serial port e.g. `[Errno 13] permission denied /dev/ttyACM0`, refer to the [Installation Guidelines - User Privileges](https://github.com/semuconsulting/PyGPSClient/blob/main/INSTALLATION.md#user-privileges).
     - When the connection is first established, PyGPSClient will poll various hardware information messages (*one for each selected protocol*) in an attempt to establish the receiver's manufacturer, model and firmware version. You may see a handful of 'unknown protocol' warnings in response to some of these queries - these can be disregarded. **NB:** Some receivers will not output hardware information messages at low baud rates (<38,400).
-    - The `Msg Mode` parameter defaults to `GET` i.e., periodic or poll response messages *from* a receiver. If you wish to parse streams of command or poll messages being sent *to* a receiver, set the `Msg Mode` to `SET` or `POLL`. An optional serial or socket stream inactivity timeout can also be set (in seconds; 0 = no timeout).
+    - The `Msg Mode` parameter defaults to `GET` i.e. periodic or poll response messages *from* a receiver. If you wish to parse streams of command or poll messages being sent *to* a receiver, set the `Msg Mode` to `SET` or `POLL`. An optional serial or socket stream inactivity timeout can also be set (in seconds; 0 = no timeout).
 4. A custom user-defined serial port can also be passed via the json configuration file setting `"userport_s":`, via environment variable `PYGPSCLIENT_USERPORT` or as a command line argument `--userport`. A special userport value of "ubxsimulator" invokes the experimental [`pyubxutils.UBXSimulator`](https://github.com/semuconsulting/pyubxutils/blob/main/src/pyubxutils/ubxsimulator.py) utility to emulate a GNSS NMEA/UBX serial stream. 
 5. To connect to a TCP or UDP socket, enter the server URL and port, select the protocol (defaults to TCP) and click 
 ![connect socket icon](https://github.com/semuconsulting/PyGPSClient/blob/main/src/pygpsclient/resources/ethernet-1-24.png?raw=true). For encrypted TLS connections, tick the 'TLS' checkbox. Tick the 'Self Sign' checkbox to accommodate self-signed TLS certification (*typically for test or demonstration services*).
@@ -183,9 +183,13 @@ For more comprehensive installation instructions, please refer to [INSTALLATION.
 
 #### <a name="refreshrate">GUI refresh rate setting</a>
 
-31. PyGPSClient processes all incoming GNSS data in 'real time' but, by default, the GUI is only refreshed every 500 ms. The refresh rate can be manually configured via the `guiupdateinterval_f` setting in the json configuration file or Menu..Options..App Configuration dialog (*save configuration and restart after any changes*).
-
-    **NB:** The GUI refresh rate should be set to a value commensurate with the performance of your platform. For example, on slower platforms (*e.g. Raspberry Pi 4 and similar Single Board Computers*) a value of less than 250 ms may result in the GUI becoming sluggish or unresponsive. On more capable platforms (*e.g. MacBook Pro 10-core M1 Max with [Python free threading](https://docs.python.org/3/howto/free-threading-python.html) enabled*), the refresh rate can be happily set to 100 ms.
+31. PyGPSClient processes all incoming GNSS data in 'real time' but, by default, the GUI is only refreshed every 500 ms. The refresh rate can be manually configured via the `guiupdateinterval_f` setting in the json configuration file or Menu..Options..App Configuration dialog (*save configuration and restart after any changes*). The minimum permissible value is 100 ms, but **NB** the minimum viable GUI refresh rate for any given platform depends on a number of factors, including:
+    - the performance of the platform (CPU, I/O, etc.)
+    - screen resolution
+    - the GNSS message rate
+    - the number of active PyGPSClient 'widgets'
+    
+    For example, on slower platforms (*e.g. Raspberry Pi 4 and similar Single Board Computers*) at average NMEA message rates, a value of less than 500 ms may result in the GUI becoming sluggish or unresponsive. On more capable platforms (*e.g. MacBook Pro 10-core M1 Max with [Python free threading](https://docs.python.org/3/howto/free-threading-python.html) enabled*), the refresh rate may be set as low as 100 ms.
 
 #### <a name="transient">Toplevel ('pop-up') dialog setting</a>
 
@@ -564,6 +568,6 @@ semuadmin@semuconsulting.com
 
 `PyGPSClient` is maintained entirely by unpaid volunteers. It receives no funding from advertising or corporate sponsorship. If you find the utility useful, please consider sponsoring the project with the price of a coffee...
 
-[![Sponsor](https://github.com/semuconsulting/pyubx2/blob/main/images/sponsor.png?raw=true)](https://buymeacoffee.com/semuconsulting)
+[![Sponsor](https://github.com/semuconsulting/pygpsclient/blob/main/images/sponsor.png?raw=true)](https://buymeacoffee.com/semuconsulting)
 
 [![Freedom for Ukraine](https://github.com/semuadmin/sandpit/blob/main/src/semuadmin_sandpit/resources/ukraine200.jpg?raw=true)](https://u24.gov.ua/)

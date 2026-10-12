@@ -508,14 +508,11 @@ class ScatterViewFrame(Frame):
             return
 
         lat, lon = self.__app.gnss_status.lat, self.__app.gnss_status.lon
-        try:
-            lat = float(lat)
-            lon = float(lon)
-        except ValueError:
-            return  # Invalid values for lat/lon get ignored.
-
+        if not isinstance(lat, float) or not isinstance(lon, float):
+            return
         if lat == 0.0 and lon == 0.0:  # assume no fix
             return
+
         self._waiting = False
         pos = Point(lat, lon)
 

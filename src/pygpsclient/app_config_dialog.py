@@ -254,7 +254,12 @@ class AppConfigDialog(ToplevelDialog):
         self._maprefresh.set(self.__app.configuration.get("mapupdateinterval_n"))
         self._logsize.set(int(self.__app.configuration.get("logsize_n") / 1048576))
         self._plotchans.set(
-            int(self.__app.configuration.get("chartsettings_d")["numchn_n"])
+            int(
+                self.__app.configuration.get("chartsettings_d").get(
+                    "numchn_n",
+                    self.__app.configuration.get("chartsettings_d").get("numchn", 4),
+                )
+            )
         )
         self._mapkey.set(self.__app.configuration.get("mqapikey_s"))
         self._resizedialog.set(int(self.__app.configuration.get("resizeable_dialog_b")))
@@ -284,7 +289,10 @@ class AppConfigDialog(ToplevelDialog):
                 != int(self._logsize.get()) * 1048576
             )
             | (
-                self.__app.configuration.get("chartsettings_d")["numchn_n"]
+                self.__app.configuration.get("chartsettings_d").get(
+                    "numchn_n",
+                    (self.__app.configuration.get("chartsettings_d").get("numchn", 4)),
+                )
                 != int(self._plotchans.get())
             )
             | (self.__app.configuration.get("mqapikey_s") != self._mapkey.get())
@@ -336,14 +344,8 @@ class AppConfigDialog(ToplevelDialog):
         )
         self.__app.configuration.set("mapupdateinterval_n", int(self._maprefresh.get()))
         self.__app.configuration.set("logsize_n", int(self._logsize.get()) * 1048576)
-        chartsettings = self.__app.configuration.get("chartsettings_d")
-        self.__app.configuration.set(
-            "chartsettings_d",
-            {
-                "numchn_n": int(self._plotchans.get()),
-                "timrng_n": chartsettings["timrng_n"],
-                "maxpoints_n": chartsettings["maxpoints_n"],
-            },
+        self.__app.configuration.setdict(
+            "chartsettings_d", "numchn_n", int(self._plotchans.get())
         )
         self.__app.configuration.set("mqapikey_s", self._mapkey.get())
         self.__app.configuration.set(

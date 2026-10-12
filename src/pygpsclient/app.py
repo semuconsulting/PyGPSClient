@@ -37,7 +37,8 @@ Created on 12 Sep 2020
 import logging
 from datetime import datetime
 from inspect import currentframe, getfile
-from os import getenv, path
+from os import path
+from pathlib import Path
 from queue import Empty, Queue
 from subprocess import CalledProcessError, run
 from sys import executable
@@ -85,6 +86,7 @@ from pygpsclient.globals import (
     NOPORTS,
     NTRIP_EVENT,
     OKCOL,
+    PSSTATS,
     RTCMSTR,
     SOCKSERVER_MAX_CLIENTS,
     SPARTN_PROTOCOL,
@@ -146,11 +148,12 @@ from pygpsclient.widget_state import (
     WidgetState,
 )
 
-PSSTATS = False
-if int(getenv("PYGPSCLIENT_PSSTATS", "0")) & 2:
-    import tracemalloc
-
-    PSSTATS = True
+if PSSTATS:
+    try:
+        import tracemalloc
+        from time import process_time_ns
+    except ModuleNotFoundError:
+        PSSTATS = False
 
 
 class App(Tk):
@@ -178,14 +181,15 @@ class App(Tk):
         self.widget_state = WidgetState()  # widget state
         self.file_handler = FileHandler(self)
         self.configuration = Configuration(self)  # configuration state
-        configfile = kwargs.pop("config", CONFIGFILE)
-        _, configerr = self.configuration.loadfile(configfile)
+        self.configfile = Path(kwargs.pop("config", CONFIGFILE))
+        _, configerr = self.configuration.loadfile(self.configfile)
         # load config from CLI arguments & env variables
         self.configuration.loadcli(**kwargs)
         if configerr == "":
             self.update_widgets()  # set initial widget state
 
         # initialise queues and protocol handlers
+        self.proctime = 0  # widget refresh process time ns (if PSSTATS)
         self._server_status = -1  # socket server status -1 = inactive
         self.gnss_outqueue = Queue()  # data to GNSS receiver
         self.ntrip_inqueue = Queue()  # data from NTRIP source
@@ -225,7 +229,6 @@ class App(Tk):
         self._gui_refresh_int = int(
             self.configuration.get("guiupdateinterval_f") * 1000
         )
-
         # open database if database recording enabled
         dbpath = self.configuration.get("databasepath_s")
         if self.configuration.get("database_b") and dbpath != "":
@@ -257,7 +260,7 @@ class App(Tk):
         if self.configuration.get("checkforupdate_b") and configerr == "":
             self._check_update()
 
-        if PSSTATS:
+        if PSSTATS & 2:
             tracemalloc.start()  # pylint: disable=possibly-used-before-assignment
             self.after(0, self.memory_monitor)
 
@@ -518,8 +521,9 @@ class App(Tk):
             self.set_status_label(DLGSTOPRTK, ERRCOL)
             return "cancelled"
 
-        _, err = self.configuration.loadfile()
+        configfile, err = self.configuration.loadfile()
         if err == "":  # load succeeded
+            self.configfile = configfile
             self.update_widgets()
             for frm in (
                 self.frm_settings.frm_settings,
@@ -543,7 +547,7 @@ class App(Tk):
         # save current screen geometry
         self.configuration.set("screengeom_s", self.geometry())
 
-        err = self.configuration.savefile()
+        err = self.configuration.savefile(self.configfile)
         if err == "":
             self.set_status_label(SAVECONFIGOK, OKCOL)
         elif err == "cancelled":
@@ -574,6 +578,9 @@ class App(Tk):
         Refresh visible widgets with latest GNSSStatus data.
         """
 
+        if PSSTATS & 1:
+            t0 = process_time_ns()  # pylint: disable=possibly-used-before-assignment
+
         self.frm_banner.update_frame()
         for _, wdgdata in self.widget_state.state.items():
             frm = getattr(self, wdgdata[FRAME], None)
@@ -586,6 +593,11 @@ class App(Tk):
         # update database if enabled (must be done in main App thread)
         if self.configuration.get("database_b"):
             self.sqlite_handler.load_data()
+
+        if PSSTATS & 1:
+            self.proctime = (
+                process_time_ns() - t0
+            )  # pylint: disable=possibly-used-before-assignment
 
         if self.conn_status != DISCONNECTED or self.rtk_conn_status != DISCONNECTED:
             self.after(self._gui_refresh_int, self.refresh_widgets)
@@ -932,7 +944,9 @@ class App(Tk):
             msgs.append(UBXMessage("MON", "MON-VER", POLL).serialize())
         if protocol & SBF_PROTOCOL:
             msgs.append(b"SSSSSSSSSS\r\n")
-            msgs.append(b"exeSBFOnce, COM1, ReceiverSetup\r\n")
+            # msgs.append(b"lstInternalFile, Identification\r\n")  # TTY response
+            msgs.append(b"exeSBFOnce, COM1, ReceiverSetup\r\n")  # SBF response
+            msgs.append(b"exeSBFOnce, USB1, ReceiverSetup\r\n")  # SBF response
         if protocol & UNI_PROTOCOL:
             msgs.append(b"VERSIONB\r\n")
         if protocol & NMEA_PROTOCOL:
@@ -1098,6 +1112,8 @@ class App(Tk):
 
         self._rtk_conn_status = status
         self.frm_banner.update_rtk_status(status)
+        if status != DISCONNECTED and self.conn_status == DISCONNECTED:
+            self.refresh_widgets()
 
     @property
     def recorded_commands(self) -> list:

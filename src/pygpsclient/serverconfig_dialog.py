@@ -61,7 +61,8 @@ from pygpsclient.globals import (
     QUECTEL_LGSERIES,
     READONLY,
     RTCMSTR,
-    SEPTENTRIO_MOSAIC,
+    SEPTENTRIO_MOSAIC_UART,
+    SEPTENTRIO_MOSAIC_USB,
     SERVERCONFIG,
     TRACEMODE_WRITE,
     UBLOX_ZEDF9,
@@ -145,7 +146,8 @@ RTKDEVICES = (
     UNICORE_UM980,
     QUECTEL_LGSERIES,
     QUECTEL_LCSERIES,
-    SEPTENTRIO_MOSAIC,
+    SEPTENTRIO_MOSAIC_UART,
+    SEPTENTRIO_MOSAIC_USB,
     UBLOX_ZEDX20,
 )
 DURATIONS = (60, 1200, 600, 300, 240, 180, 120, 90)
@@ -325,7 +327,7 @@ class ServerConfigDialog(ToplevelDialog):
         self._spn_rcvrtype = Spinbox(
             self._frm_advanced,
             values=RTKDEVICES,
-            width=20,
+            width=22,
             state=READONLY,
             wrap=True,
             textvariable=self.receiver_type,
@@ -482,6 +484,8 @@ class ServerConfigDialog(ToplevelDialog):
             receiver_type = "Unicore UM9* Series"
         elif receiver_type == "Septentrio Mosaic X3/X5":
             receiver_type = "Septentrio Mosaic Series"
+        elif receiver_type == "Septentrio Mosaic G5":
+            receiver_type = "Septentrio Mosaic Series"
         self.receiver_type.set(receiver_type)
         cfg.set("ntripcasterrcvrtype_s", receiver_type)
         self.acclimit.set(cfg.get("ntripcasteracclimit_f"))
@@ -628,7 +632,10 @@ class ServerConfigDialog(ToplevelDialog):
             ntriprtcmstr = "1005(10),1012(10),1019(10),1020(10),1033(10),1042(10),1046(10),1077(1),1087(1),1097(1),1127(1)"
         elif self.receiver_type.get() == QUECTEL_LGSERIES:
             ntriprtcmstr = "1005(10),1012(10),1019(10),1020(10),1033(10),1077(1),1087(1),1097(1),1127(1),1137(1)"
-        elif self.receiver_type.get() == SEPTENTRIO_MOSAIC:
+        elif self.receiver_type.get() in (
+            SEPTENTRIO_MOSAIC_UART,
+            SEPTENTRIO_MOSAIC_USB,
+        ):
             ntriprtcmstr = "1006(5),1013(5),1019(5),1020(5),1033(5),1077(1),1087(1),1097(1),1127(1),1230(1)"
         else:
             ntriprtcmstr = RTCMSTR
@@ -738,7 +745,7 @@ class ServerConfigDialog(ToplevelDialog):
             self.__app.send_to_device(cmd, pause=CMDPAUSE * i)
 
         if (
-            self.receiver_type.get() == SEPTENTRIO_MOSAIC
+            self.receiver_type.get() in (SEPTENTRIO_MOSAIC_UART, SEPTENTRIO_MOSAIC_USB)
             and self.base_mode == BASE_SVIN
         ):
             self.set_status_label(SEPTENTRIOSVIN)  # receiver surveying message
@@ -1072,8 +1079,10 @@ class ServerConfigDialog(ToplevelDialog):
             return config_disable_quectel_lgseries(disablenmea)
         if self.receiver_type.get() == QUECTEL_LCSERIES:
             return config_disable_quectel_lcseries(disablenmea)
-        if self.receiver_type.get() == SEPTENTRIO_MOSAIC:
-            return config_disable_septentrio(disablenmea)
+        if self.receiver_type.get() == SEPTENTRIO_MOSAIC_UART:
+            return config_disable_septentrio(disablenmea, "COM1")
+        if self.receiver_type.get() == SEPTENTRIO_MOSAIC_USB:
+            return config_disable_septentrio(disablenmea, "USB1")
         if self.receiver_type.get() == UNICORE_UM980:
             return config_disable_unicore(disablenmea)
         return config_disable_ublox(disablenmea)
@@ -1095,8 +1104,10 @@ class ServerConfigDialog(ToplevelDialog):
             return config_svin_quectel_lgseries(acc_limit, svin_min_dur, disablenmea)
         if self.receiver_type.get() == QUECTEL_LCSERIES:
             return config_svin_quectel_lcseries(acc_limit, svin_min_dur, disablenmea)
-        if self.receiver_type.get() == SEPTENTRIO_MOSAIC:
-            return config_svin_septentrio(acc_limit, svin_min_dur, disablenmea)
+        if self.receiver_type.get() == SEPTENTRIO_MOSAIC_UART:
+            return config_svin_septentrio(acc_limit, svin_min_dur, disablenmea, "COM1")
+        if self.receiver_type.get() == SEPTENTRIO_MOSAIC_USB:
+            return config_svin_septentrio(acc_limit, svin_min_dur, disablenmea, "USB1")
         if self.receiver_type.get() == UNICORE_UM980:
             return config_svin_unicore(acc_limit, svin_min_dur, disablenmea)
         return config_svin_ublox(acc_limit, svin_min_dur, disablenmea)
@@ -1131,9 +1142,13 @@ class ServerConfigDialog(ToplevelDialog):
             return config_fixed_quectel_lcseries(
                 acc_limit, lat, lon, height, posmode, disablenmea
             )
-        if self.receiver_type.get() == SEPTENTRIO_MOSAIC:
+        if self.receiver_type.get() == SEPTENTRIO_MOSAIC_UART:
             return config_fixed_septentrio(
-                acc_limit, lat, lon, height, posmode, disablenmea
+                acc_limit, lat, lon, height, posmode, disablenmea, "COM1"
+            )
+        if self.receiver_type.get() == SEPTENTRIO_MOSAIC_USB:
+            return config_fixed_septentrio(
+                acc_limit, lat, lon, height, posmode, disablenmea, "USB1"
             )
         if self.receiver_type.get() == UNICORE_UM980:
             return config_fixed_unicore(

@@ -125,15 +125,15 @@ class SkyviewFrame(Frame):
 
             self._waiting = False
             self.init_frame()
-            for val in sorted(
+            for gnssId, svid, ele, azi, cno, _ in sorted(
                 data.values(), key=lambda x: x[4]
             ):  # sort by ascending C/N0
-                gnssId, prn, ele, azi, cno, _ = val
-                if ele in ("", None) or azi in ("", None):
+                if not isinstance(ele, (int, float)) or not isinstance(
+                    azi, (int, float)
+                ):
                     continue
-                x, y = self._canvas.d2xy(int(azi), int(ele))
+                x, y = self._canvas.d2xy(azi, ele)
                 _, ol_col = GNSS_LIST[gnssId]
-                prn = f"{int(prn):02}"
                 bg_col = snr2col(cno)
                 self._canvas.create_circle(
                     x,
@@ -147,12 +147,12 @@ class SkyviewFrame(Frame):
                 self._canvas.create_text(
                     x,
                     y,
-                    text=prn,
+                    text=f"{svid:02}",
                     fill=col2contrast(bg_col),
                     font=self._canvas.font,
                     tags=TAG_DATA,
                 )
-        except ValueError:
+        except ValueError:  # some values can be null on startup
             pass
         except RuntimeError as err:
             self.logger.exception(err)

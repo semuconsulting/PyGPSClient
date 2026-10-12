@@ -48,6 +48,19 @@
             "problemMatcher": [],
         },
         {
+            "label": "Upgrade pip", // for --group argument support
+            "type": "shell",
+            "command": "${config:python.defaultInterpreterPath}",
+            "args": [
+                "-m",
+                "pip",
+                "install",
+                "--upgrade",
+                "pip",
+            ],
+            "problemMatcher": [],
+        },
+        {
             "label": "Install Deploy Dependencies",
             "type": "shell",
             "command": "${config:python.defaultInterpreterPath}",
@@ -141,6 +154,13 @@
             "problemMatcher": []
         },
         {
+            // NB: for this task to work a PATH must exist to any imported modules
+            // e.g. in vscode settings.json:
+            // "python.autoComplete.extraPaths": [
+            //    "${env:HOME}/pygpsclient/lib/python3.14/site-packages",
+            // ]
+            // or in shell profile:
+            // export PATH="${HOME}/pygpsclient/lib/python3.14/site-packages:${PATH}"
             "label": "Pylint",
             "type": "process",
             "command": "${config:python.defaultInterpreterPath}",
@@ -177,10 +197,6 @@
             "problemMatcher": [],
             "dependsOrder": "sequence",
             "dependsOn": [
-                //"Create Venv",
-                "Install Deploy Dependencies",
-                "Install Optional Dependencies",
-                "Install dill 0.4.2.dev for Python 3.15",
                 "Clean",
                 "Sort Imports",
                 "Format",
@@ -209,7 +225,7 @@
                     "pip",
                     "install",
                     "--force-reinstall",
-                    "${workspaceFolder}/dist/pygpsclient-1.6.0-py3-none-any.whl",
+                    "${workspaceFolder}/dist/pygpsclient-1.7.8-py3-none-any.whl",
                 ]
             },
             "problemMatcher": [],
@@ -225,7 +241,12 @@
             "problemMatcher": [],
             "dependsOrder": "sequence",
             "dependsOn": [
+                "Create Venv",
                 "Activate Venv",
+                "Upgrade pip",
+                "Install Deploy Dependencies",
+                "Install Optional Dependencies",
+                "Install dill 0.4.2.dev for Python 3.15",
                 "Build",
                 "Install", // have to install before running pylint
                 "Pylint",

@@ -16,10 +16,13 @@ Created on 14 Sep 2020
 
 from collections import namedtuple
 from datetime import datetime
-from os import path
+from os import getenv, path
 from pathlib import Path
 
 from pyubx2 import GET, POLL, SET, SETPOLL
+
+# PSSTATS: 1 = vms & process time, 2 = tracemalloc logging, 3 = both
+PSSTATS = int(getenv("PYGPSCLIENT_PSSTATS", "0"))
 
 # Type Declarations
 Point = namedtuple("Point", ["lat", "lon"])
@@ -80,7 +83,7 @@ CLICK_CURSOR = "hand2"  # cursor displayed for clickable widgets
 CMDINITDELAY = 3000  # initial delay before sending commands to new connection
 CMDPAUSE = 100  # pause between sent commands in ms
 COLORTAGS = "colortags"
-CONFIGFILE = path.join(HOME, f"{APPNAME}.json")
+CONFIGFILE = Path.joinpath(HOME, f"{APPNAME}.json")
 CONNECTED = 1
 CONNECTED_FILE = 4
 CONNECTED_NTRIP = 8
@@ -215,7 +218,8 @@ MAXWAIT = 10  # maximum number of update cycles while waiting for data
 MIN_GUI_UPDATE_INTERVAL = 0.1  # minimum GUI widget update interval (seconds)
 MINFLOAT = -MAXFLOAT
 MINDIM = "mindim"
-SEPTENTRIO_MOSAIC = "Septentrio Mosaic Series"
+SEPTENTRIO_MOSAIC_UART = "Septentrio Mosaic Series UART"
+SEPTENTRIO_MOSAIC_USB = "Septentrio Mosaic Series USB"
 MQAPIKEY = "mqapikey"
 MQTTIPMODE = 0
 MQTTLBANDMODE = 1
@@ -269,7 +273,7 @@ TOPIC_MGA = "/pp/ubx/mga"
 TOPIC_RXM = "/pp/ubx/0236/ip"
 TRACK = "track"
 TRACEMODE_WRITE = "write"
-TTYOK = ("OK", "$R:")
+TTYOK = ("OK", "$R:", "$R;", "HWPLATFORM")
 TTYERR = ("ERROR", "$R?", "FAIL", "CAN'T FOUND DEVICE")
 TTYMARKER = "TTY<<"
 UBXPRESETS = "ubxpresets"

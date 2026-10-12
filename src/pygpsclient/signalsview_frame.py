@@ -307,14 +307,14 @@ class SignalsviewFrame(Frame):
                 XLBLANGLE,
             )
 
-            for val in sorted(data.values()):  # sort by ascending gnssid, svid, sigid
-                gnssId, prn, sigid, cno, corrsource, quality, flags, _ = val
+            for gnssId, svid, sigid, cno, corrsource, quality, flags, _ in sorted(
+                data.values()
+            ):  # sort by ascending gnssid, svid, sigid
                 if cno == 0 and not show_unused:
                     continue
                 sig = SIGID.get((gnssId, sigid), sigid)
                 snr_y = int(cno) * (h - self._canvas.yoffb - 1) / MAX_SNR
                 _, ol_col = GNSS_LIST[gnssId]
-                prn = f"{int(prn):02}"
                 self._canvas.create_rectangle(
                     offset,
                     h - self._canvas.yoffb - 1,
@@ -326,10 +326,11 @@ class SignalsviewFrame(Frame):
                     tags=TAG_DATA,
                 )
                 # xlabel prn - sigid
+                sv = f"{int(svid):02}"
                 self._canvas.create_text(
                     offset + colwidth,
                     h - self._canvas.yoffb + 3,
-                    text=f"{prn} {sig}",
+                    text=f"{sv} {sig}",
                     fill=FGCOL,
                     font=xfnt,
                     angle=XLBLANGLE,
@@ -348,6 +349,8 @@ class SignalsviewFrame(Frame):
                         tags=TAG_DATA,
                     )
                 offset += colwidth
+        except ValueError:  # some values can be null on startup
+            pass
         except RuntimeError as err:
             self.logger.exception(err)
 

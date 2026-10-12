@@ -14,12 +14,12 @@ import os
 import sys
 try:
     GIL = "" if sys._is_gil_enabled() else "t"
-except ImportError:
+except (ImportError, AttributeError):
     GIL = ""
 
 # get path to site-packages (source) folder within venv
 pypath = (
-    f"{os.path.expanduser("~")}/pygpsclient/lib/python"
+    f"{os.path.expanduser('~')}/pygpsclient/lib/python"
     f"{sys.version_info.major}.{sys.version_info.minor}{GIL}/site-packages"
 )
 print(f"\n\033[1mUsing absolute path:\033[0m \033[95m{pypath}\033[0m\n")

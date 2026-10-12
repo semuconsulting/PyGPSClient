@@ -55,6 +55,25 @@ The exact location of the site_packages and binary directories will depend on th
 
 ³ The `pygpsclient` executable does not actually contain compiled Python source code - it is simply an executable form of the standard `python -m pygpsclient` command.
 
+### <a name="gil">free-threading vs global interpreter lock (GIL)</a>
+
+For various technical reasons, Python has historically implemented what is known as a [global interpreter lock (GIL)](https://docs.python.org/3/glossary.html#term-global-interpreter-lock), which effectively means only one thread can execute Python [byte-code](https://docs.python.org/3/glossary.html#term-bytecode) at a time. Python versions since 13.3 include *optional* support for [free-threading](https://docs.python.org/3/howto/free-threading-python.html) whereby the GIL is disabled, allowing genuine thread concurrency on multi-core machines (**[with some caveats](https://docs.python.org/3/howto/free-threading-python.html#known-limitations)**). Free-threading support has become progressively more mature with Python versions 3.14 and 3.15.
+
+To utilise the free-threading version of Python, append the letter 't' to the Python version, e.g.:
+```shell
+python3.15t -m pip install --upgrade pygpsclient
+```
+
+To check whether an installed version of Python supports free-threading:
+```shell
+python3.15 -VV
+python3.10 -VV
+```
+```
+Python 3.15.0 free-threading build (v3.15.0:d220409a13b, Oct  9 2026, 08:28:39) [Clang 21.0.0 (clang-2100.1.1.101)]
+Python 3.10.8 (v3.10.8:aaaf517424, Oct 11 2022, 10:14:40) [Clang 13.0.0 (clang-1300.0.29.30)]
+```
+
 ## <a name="prereqs">Prerequisites</a>
 
 ### All platforms
@@ -64,6 +83,7 @@ In the following, `python3` & `pip` refer to the Python 3 executables. You may n
 - Graphical User Interface (window system / manager)
 - Python >= 3.10⁴
 - Tk (tkinter) >= 8.6⁵⁶ (*tkinter is a commonly used library for developing Graphical User Interfaces (GUI) in Python*)
+- At least 500 MB usable memory
 - Screen resolution >= 640 x 480 (VGA); Ideally 1920 x 1080, though at lower screen resolutions (<= 1024 width), top level dialogs will be resizable and scrollable.
 
 **NB** It is highly recommended to use the latest official [Python.org](https://www.python.org/downloads/) installation package for your platform, rather than any pre-installed version.
@@ -75,6 +95,7 @@ In the following, `python3` & `pip` refer to the Python 3 executables. You may n
    - The Python environment must support the loading of sqlite3 extensions i.e. it must have been compiled with the `--enable-loadable-sqlite-extensions` option. This is true by default for most Windows and Linux platforms but **NOT** for most MacOS platforms. 
    - The mod_spatialite module (.so, .dll or .dylib) must be installed and in the `PATH` (or `LD_LIBRARY_PATH` on Linux).
 
+
 ### Windows 10 or later
 
 Normally installs without any additional steps.
@@ -84,8 +105,6 @@ Normally installs without any additional steps.
 **NB:** PyGPSClient does ***NOT*** normally require Homebrew or MacPorts to be installed on MacOS (either Intel or Apple Silicon). The Python organisation provides serviceable [64-bit universal MacOS installation packages](https://www.python.org/downloads/macos/) for all current and legacy versions of Python, including release candidates. Note, however, the following caveats:
 
 ⁵ The version of Python supplied with some older Apple MacOS platforms includes a [deprecated version of tkinter](https://www.python.org/download/mac/tcltk/) (8.5). Use an official [Python for MacOS](https://www.python.org/downloads/macos) installation package instead. 
-
-⁶ The version of tkinter supplied with the very latest official versions of [Python for MacOS](https://www.python.org/downloads/macos) (`>= 3.14.5`), and with Homebrew formula `python-tk >= 3.12`, include a new version of tkinter (9.0). There have been reports of compatibility issues with tkinter 9.0 with certain platform configurations which *may* render the PyGPSClient UI somewhat sluggish or unresponsive. If you experience any issues, consider using an official Python <= 3.14.4 or Homebrew formula `python-tk = 3.11`.
 
 If you wish to install Python using [Homebrew](https://brew.sh/) to take advantage of certain non-default configurations (*e.g. support for sqlite3 extensions*), use the `python-tk` formula rather than `python`, e.g. 
 

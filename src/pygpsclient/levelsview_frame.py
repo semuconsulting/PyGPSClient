@@ -182,8 +182,9 @@ class LevelsviewFrame(Frame):
             offset = self._canvas.xoffl
             colwidth = (w - self._canvas.xoffl - self._canvas.xoffr + 1) / siv
             xfnt, _, _, _ = fitfont(XLBLFMT, colwidth, self._canvas.yoffb, XLBLANGLE)
-            for val in sorted(data.values()):  # sort by ascending gnssid, svid
-                gnssId, svid, _, _, cno, _ = val
+            for gnssId, svid, _, _, cno, _ in sorted(
+                data.values()
+            ):  # sort by ascending gnssid, svid
                 snr_y = int(cno) * (h - self._canvas.yoffb - 1) / MAX_SNR
                 _, ol_col = GNSS_LIST[gnssId]
                 self._canvas.create_rectangle(
@@ -199,7 +200,7 @@ class LevelsviewFrame(Frame):
                 self._canvas.create_text(
                     offset + colwidth / 2,
                     h - self._canvas.yoffb - 1,
-                    text=f"{int(svid):02}",
+                    text=f"{svid:02}",
                     fill=FGCOL,
                     font=xfnt,
                     angle=XLBLANGLE,
@@ -207,6 +208,8 @@ class LevelsviewFrame(Frame):
                     tags=TAG_DATA,
                 )
                 offset += colwidth
+        except ValueError:  # some values can be null on startup
+            pass
         except RuntimeError as err:
             self.logger.exception(err)
 
