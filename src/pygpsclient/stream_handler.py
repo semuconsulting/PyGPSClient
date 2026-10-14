@@ -47,7 +47,6 @@ from pygnssutils import (
     SBF_PROTOCOL,
     UBX_PROTOCOL,
     UNI_PROTOCOL,
-    GNSSError,
     GNSSReader,
 )
 
@@ -57,13 +56,13 @@ except ImportError:
     PARSE_FULL = 1
     PARSE_META = 2
     GNSSMessage = None
-from pynmeagps import NMEAMessage, NMEAMessageError, NMEAParseError, NMEAStreamError
-from pyqgc import QGCMessage, QGCMessageError, QGCParseError, QGCStreamError
-from pyrtcm import RTCMMessage, RTCMMessageError, RTCMParseError, RTCMStreamError
-from pysbf2 import SBFMessage, SBFMessageError, SBFParseError, SBFStreamError
+from pynmeagps import NMEAMessage
+from pyqgc import QGCMessage
+from pyrtcm import RTCMMessage
+from pysbf2 import SBFMessage
 from pyspartn import SPARTNMessage
-from pyubx2 import ERR_LOG, UBXMessage, UBXMessageError, UBXParseError, UBXStreamError
-from pyunigps import UNIMessage, UNIMessageError, UNIParseError, UNIStreamError
+from pyubx2 import ERR_LOG, UBXMessage
+from pyunigps import UNIMessage
 
 try:
     from pyubxutils import UBXSimulator
@@ -287,6 +286,15 @@ class StreamHandler:
                 # use after(0) to avoid tkinter main thread contention
                 # status.after(0, status.config, {"text": f"{err} {fnam}", "fg": ERRCOL})
 
+    def _errorhandler(self, err: Exception):
+        """
+        Stream error handler.
+
+        :param Exception err: error
+        """
+
+        self.logger.exception(err)
+
     def _readloop(
         self,
         stopevent: Event,
@@ -307,16 +315,6 @@ class StreamHandler:
         :param int inactivity: inactivity timeout (s)
         """
 
-        def _errorhandler(err: Exception):
-            """
-            Stream error handler.
-
-            :param Exception err: error
-            """
-
-            parsed_data = f"Error parsing data stream {err}"
-            self._process_message(None, parsed_data)
-
         conntype = settings["conntype"]
 
         ubr = GNSSReader(
@@ -331,67 +329,42 @@ class StreamHandler:
             parsing=PARSE_FULL,
             bufsize=DEFAULT_BUFSIZE,
             msgmode=settings["msgmode"],
-            errorhandler=_errorhandler,
+            errorhandler=self._errorhandler,
         )
 
         raw_data = None
         parsed_data = None
         lastevent = datetime.now()
         while not stopevent.is_set():
-            try:
-                if conntype in (CONNECTED, CONNECTED_SOCKET, CONNECTED_FILE):
-                    raw_data, parsed_data = ubr.read()
-                    if raw_data is not None:
-                        self._process_message(raw_data, parsed_data)
-                        lastevent = datetime.now()
-                    else:  # timeout or eof
-                        if conntype == CONNECTED_FILE:
-                            raise EOFError
-                        if inactivity and datetime.now() > lastevent + timedelta(
-                            seconds=inactivity
-                        ):
-                            raise TimeoutError
+            if conntype in (CONNECTED, CONNECTED_SOCKET, CONNECTED_FILE):
+                raw_data, parsed_data = ubr.read()
+                if raw_data is not None:
+                    self._process_message(raw_data, parsed_data)
+                    lastevent = datetime.now()
+                else:  # timeout or eof
                     if conntype == CONNECTED_FILE:
-                        # sleep between file reads to keep UI responsive
-                        sleep(self.__app.configuration.get("filedelay_n") / 1000)
+                        raise EOFError
+                    if inactivity and datetime.now() > lastevent + timedelta(
+                        seconds=inactivity
+                    ):
+                        raise TimeoutError
+                if conntype == CONNECTED_FILE:
+                    # sleep between file reads to keep UI responsive
+                    sleep(self.__app.configuration.get("filedelay_n") / 1000)
 
-                    # write any queued output data to serial stream
-                    # e.g. receiver configuration commands or polls
-                    if conntype in (CONNECTED, CONNECTED_SOCKET):
-                        try:
-                            while not settings["outqueue"].empty():
-                                data = settings["outqueue"].get(False)
-                                if data is not None:
-                                    ubr.datastream.write(data)
-                                settings["outqueue"].task_done()
-                        except Empty:
-                            pass
+                # write any queued output data to serial stream
+                # e.g. receiver configuration commands or polls
+                if conntype in (CONNECTED, CONNECTED_SOCKET):
+                    try:
+                        while not settings["outqueue"].empty():
+                            data = settings["outqueue"].get(False)
+                            if data is not None:
+                                ubr.datastream.write(data)
+                            settings["outqueue"].task_done()
+                    except Empty:
+                        pass
 
-                    sleep(STREAMDELAY)
-
-            except (
-                UBXMessageError,
-                UBXParseError,
-                UBXStreamError,
-                NMEAMessageError,
-                NMEAParseError,
-                NMEAStreamError,
-                RTCMMessageError,
-                RTCMParseError,
-                RTCMStreamError,
-                SBFMessageError,
-                SBFParseError,
-                SBFStreamError,
-                QGCMessageError,
-                QGCParseError,
-                QGCStreamError,
-                UNIMessageError,
-                UNIParseError,
-                UNIStreamError,
-                GNSSError,
-            ) as err:
-                _errorhandler(err)
-                continue
+                sleep(STREAMDELAY)
 
     def _readlooptty(
         self,
@@ -409,16 +382,6 @@ class StreamHandler:
         :param dict settings: settings dictionary
         :param float delay: delay between commands (secs)
         """
-
-        def _errorhandler(err: Exception):
-            """
-            Stream error handler.
-
-            :param Exception err: error
-            """
-
-            parsed_data = f"Error parsing data stream {err}"
-            self._process_message(None, parsed_data)
 
         raw_data = None
         while not stopevent.is_set():
@@ -450,7 +413,7 @@ class StreamHandler:
                 sleep(STREAMDELAY)
 
             except (ValueError, SerialException) as err:
-                _errorhandler(err)
+                self._errorhandler(err)
                 continue
 
     def _process_message(

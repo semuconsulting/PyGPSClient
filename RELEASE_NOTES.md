@@ -1,5 +1,15 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.7.8
+
+1. Fix `KeyError` issue when using App Config dialog to update chart `numchan` setting in older config files.
+1. Add option for Septentrio Mosaic USB (USB1) in addition to UART (COM1) in NTRIP Caster configuration panel
+(tested on Mosaic X5 and G5 breakout boards with UART and USB ports).
+1. Show active RTK (NTRIP) stream in console regardless of receiver connection state.
+1. Remember most recent config file path in Save and Load Config dialogs.
+1. Make About dialog system info refresh asynchronous rather than blocking.
+1. Minor enhancements to TTY Preset panel to accommodate Septentrio `lstInternalFile` response strings (additional firmware info).
+
 ### RELEASE 1.7.7
 
 1. Refactor About dialog. Add scrollable system info text box and ability to copy system info to clipboard e.g. for inclusion in Bug Reports or Discussion queries.

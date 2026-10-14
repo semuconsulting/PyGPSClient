@@ -58,3 +58,7 @@ class TTYHandler:
                 if self.__app.dialog(DLGTTTY) is not None:
                     self.__app.dialog(DLGTTTY).update_status(raw_data)
                 break
+
+        # Septentrio lif,identification response
+        if "<hwplatform product" in parsed_data:
+            self.__app.sbf_handler.process_lif(parsed_data)

@@ -107,11 +107,12 @@ def config_disable_quectel_lcseries(disablenmea: bool = False) -> list[bytes]:
     return msgs
 
 
-def config_disable_septentrio(disablenmea: bool = False) -> list:
+def config_disable_septentrio(disablenmea: bool = False, port: str = "COM1") -> list:
     """
     Disable base station mode for Septentrio receivers.
 
     :param bool disablenmea: disable NMEA sentences
+    :paramm str port: port (COM, USB)
     :return: ASCII TTY commands
     :rtype: list
     """
@@ -120,11 +121,17 @@ def config_disable_septentrio(disablenmea: bool = False) -> list:
     msgs = []
     msgs.append(b"SSSSSSSSSS\r\n")
     msgs.append(b"setPVTMode, Rover, all, auto\r\n")
-    msgs.append(b"setRTCMv3Output, COM1, none\r\n")
+    msgs.append(f"setRTCMv3Output, {port}, none\r\n".encode(ASCII, errors=BSR))
     if not disablenmea:
-        msgs.append(f"setDataInOut, COM1, auto, {do}\r\n".encode(ASCII, errors=BSR))
-        msgs.append(b"setNMEAOutput, Stream1, COM1, GGA+GSA+GLL+RMC+VTG, sec1\r\n")
-        msgs.append(b"setNMEAOutput, Stream2, COM1, GSV, sec5\r\n")
+        msgs.append(f"setDataInOut, {port}, auto, {do}\r\n".encode(ASCII, errors=BSR))
+        msgs.append(
+            f"setNMEAOutput, Stream1, {port}, GGA+GSA+GLL+RMC+VTG, sec1\r\n".encode(
+                ASCII, errors=BSR
+            )
+        )
+        msgs.append(
+            f"setNMEAOutput, Stream2, {port}, GSV, sec5\r\n".encode(ASCII, errors=BSR)
+        )
     # msgs.append(b"exeResetReceiver,soft,none\r\n")
     return msgs
 
@@ -291,14 +298,15 @@ def config_svin_quectel() -> bytes:
 
 
 def config_svin_septentrio(
-    acc_limit: int, svin_min_dur: int, disablenmea: bool = True
+    acc_limit: int, svin_min_dur: int, disablenmea: bool = True, port: str = "COM1"
 ) -> list[bytes]:
     """
     Configure Survey-In mode with specified accuracy limit for Septentrio receivers.
 
-    :param bool disablenmea: disable NMEA sentences
     :param int acc_limit: accuracy limit in cm
     :param int svin_min_dur: survey minimimum duration
+    :param bool disablenmea: disable NMEA sentences
+    :param str port: port (COM, USB)
     :return: ASCII TTY commands
     :rtype: list[bytes]
     """
@@ -306,10 +314,12 @@ def config_svin_septentrio(
     do = "RTCMv3+SBF" if disablenmea else "RTCMv3+SBF+NMEA"
     msgs = []
     msgs.append(b"SSSSSSSSSS\r\n")
-    msgs.append(f"setDataInOut, COM1, auto, {do}\r\n".encode(ASCII, errors=BSR))
+    msgs.append(f"setDataInOut, {port}, auto, {do}\r\n".encode(ASCII, errors=BSR))
     msgs.append(b"setRTCMv3Formatting, 1234\r\n")
     msgs.append(
-        b"setRTCMv3Output, COM1, RTCM1006+RTCM1013+RTCM1019+RTCM1020+RTCM1033+MSM7+RTCM1230\r\n"
+        f"setRTCMv3Output, {port}, RTCM1006+RTCM1013+RTCM1019+RTCM1020+RTCM1033+MSM7+RTCM1230\r\n".encode(
+            ASCII, errors=BSR
+        )
     )
     msgs.append(b"setRTCMv3Interval, MSM7+RTCM1230, 1\r\n")
     msgs.append(
@@ -527,16 +537,18 @@ def config_fixed_septentrio(
     height: float,
     posmode: str,
     disablenmea: bool = True,
+    port: str = "COM1",
 ) -> list[bytes]:
     """
     Configure Fixed mode with specified coordinates for Septentrio receivers.
 
-    :param bool disablenmea: disable NMEA sentences
     :param int acc_limit: accuracy limit in cm
     :param float lat: lat or X in m
     :param float lon: lon or Y in m
     :param float height: height or Z in m
     :param str posmode: "LLH" or "ECEF"
+    :param bool disablenmea: disable NMEA sentences
+    :param str port: port (COM, USB)
     :return: ASCII TTY commands
     :rtype: list[bytes]
     """
@@ -544,10 +556,12 @@ def config_fixed_septentrio(
     do = "RTCMv3+SBF" if disablenmea else "RTCMv3+SBF+NMEA"
     msgs = []
     msgs.append(b"SSSSSSSSSS\r\n")
-    msgs.append(f"setDataInOut, COM1, auto,{do}\r\n".encode(ASCII, errors=BSR))
+    msgs.append(f"setDataInOut, {port}, auto,{do}\r\n".encode(ASCII, errors=BSR))
     msgs.append(b"setRTCMv3Formatting, 1234\r\n")
     msgs.append(
-        b"setRTCMv3Output, COM1, RTCM1006+RTCM1013+RTCM1019+RTCM1020+RTCM1033+MSM7+RTCM1230\r\n"
+        f"setRTCMv3Output, {port}, RTCM1006+RTCM1013+RTCM1019+RTCM1020+RTCM1033+MSM7+RTCM1230\r\n".encode(
+            ASCII, errors=BSR
+        )
     )
     msgs.append(b"setRTCMv3Interval, MSM7+RTCM1230, 1\r\n")
     msgs.append(

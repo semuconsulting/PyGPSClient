@@ -57,7 +57,6 @@ from pygpsclient.globals import (
     GNSS_ERR_EVENT,
     GNSS_EVENT,
     GNSS_TIMEOUT_EVENT,
-    HOME,
     ICON_CONN,
     ICON_DISCONN,
     ICON_LOGREAD,
@@ -134,9 +133,9 @@ class SettingsChildFrame(Frame):
         super().__init__(parent, *args, **kwargs)
 
         self.infilepath = None
-        self.logpath = HOME
-        self.trackpath = HOME
-        self.databasepath = HOME
+        self.logpath = None
+        self.trackpath = None
+        self.databasepath = None
         self._prot_nmea = IntVar()
         self._prot_ubx = IntVar()
         self._prot_sbf = IntVar()
@@ -573,10 +572,13 @@ class SettingsChildFrame(Frame):
         self._console_format.set(cfg.get("consoleformat_s"))
         self._logformat.set(cfg.get("logformat_s"))
         self._datalog.set(cfg.get("datalog_b"))
-        self.logpath = cfg.get("logpath_s")
+        logpath = cfg.get("logpath_s")
+        self.logpath = None if logpath == "" else logpath
         self._record_track.set(cfg.get("recordtrack_b"))
-        self.trackpath = cfg.get("trackpath_s")
-        self.databasepath = cfg.get("databasepath_s")
+        trackpath = cfg.get("trackpath_s")
+        self.trackpath = None if trackpath == "" else trackpath
+        databasepath = cfg.get("databasepath_s")
+        self.databasepath = None if databasepath == "" else databasepath
         if self.__app.db_enabled == SQLOK:
             self._record_database.set(cfg.get("database_b"))
         else:
@@ -738,7 +740,7 @@ class SettingsChildFrame(Frame):
         """
 
         if self._datalog.get() == 1:
-            if self.logpath in ("", None):
+            if self.logpath is None:
                 self.logpath = self.__app.file_handler.set_logfile_path()
             if self.logpath is not None:
                 self.__app.configuration.set("datalog_b", 1)
@@ -767,7 +769,7 @@ class SettingsChildFrame(Frame):
         """
 
         if self._record_track.get() == 1:
-            if self.trackpath in ("", None):
+            if self.trackpath is None:
                 self.trackpath = self.__app.file_handler.set_trackfile_path()
             if self.trackpath is not None:
                 self.__app.configuration.set("recordtrack_b", 1)
@@ -793,7 +795,7 @@ class SettingsChildFrame(Frame):
         """
 
         if self._record_database.get() == 1:
-            if self.databasepath in ("", None):
+            if self.databasepath is None:
                 self.databasepath = self.__app.file_handler.set_database_path()
             if self.databasepath is not None:
                 rc = self.__app.sqlite_handler.open(dbpath=self.databasepath)

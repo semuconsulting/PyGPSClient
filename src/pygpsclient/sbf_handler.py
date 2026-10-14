@@ -20,6 +20,7 @@ from math import degrees
 
 from pysbf2 import SBFMessage, itow2utc
 
+from pygpsclient.dialog_state import DLGTTTY
 from pygpsclient.globals import ASCII, BSR
 from pygpsclient.helpers import fix2desc
 from pygpsclient.strings import NA
@@ -119,18 +120,64 @@ class SBFHandler:
         :param SBFMessage data: ReceiverSetup message
         """
 
-        hwver = data.ProductName.decode(ASCII, errors=BSR).replace("\x00", "")
+        hwver = (
+            data.ProductName.decode(ASCII, errors=BSR)
+            .replace("\x00", "")
+            .replace("amosaic", "mosaic")
+            .replace("0mosaic", "mosaic")
+        )
         self.__app.gnss_status.version_data["hwversion"] = f"Septentrio {hwver}"
         self.__app.gnss_status.version_data["swversion"] = (
-            data.RxVersion.decode(ASCII, errors=BSR)
-            .replace("\x00", "")
-            .replace("Unknown", "")
-        )
-        self.__app.gnss_status.version_data["fwversion"] = (
             data.GNSSFWVersion.decode(ASCII, errors=BSR)
             .replace("\x00", "")
             .replace("Unknown", "")
         )
-        self.__app.gnss_status.version_data["romversion"] = NA
+        self.__app.gnss_status.version_data["romversion"] = (
+            data.RxVersion.decode(ASCII, errors=BSR)
+            .replace("\x00", "")
+            .replace("Unknown", "")
+        )
         self.__app.gnss_status.version_data["gnss"] = NA
         self.__app.set_device_label(self.__app.gnss_status.version_data["hwversion"])
+
+    def process_lif(self, data: str):
+        """
+        Parse output of lstInternalFile,identification poll,
+        - an XML construct of hardware and firmware data.
+
+        :param str data: ASCII text response
+        """
+
+        def gettag(line: str, tag: str) -> str:
+            st = line.find(tag) + len(tag) + 1
+            return line[st : line.find('"', st)]
+
+        hw = rom = sw = fw = ""
+        for line in data.split("\n"):
+            tag = "<hwplatform product="
+            if tag in line:
+                hw = "Septentrio " + gettag(line, tag)
+            tag = "name="
+            if tag in line:
+                rom = gettag(line, tag)
+            tag = "gnssfw version="
+            if tag in line:
+                sw = gettag(line, tag)
+            tag = "<firmware version="
+            if tag in line:
+                fw = gettag(line, tag)
+                fw += " " + gettag(line, "date=")
+
+        if hw != "":
+            self.__app.gnss_status.version_data["hwversion"] = hw
+            self.__app.set_device_label(
+                self.__app.gnss_status.version_data["hwversion"]
+            )
+        if fw != "":
+            self.__app.gnss_status.version_data["fwversion"] = fw
+        if sw != "":
+            self.__app.gnss_status.version_data["swversion"] = sw
+        if rom != "":
+            self.__app.gnss_status.version_data["romversion"] = rom
+        if self.__app.dialog(DLGTTTY):
+            self.__app.dialog(DLGTTTY).frm_device_info.reset()

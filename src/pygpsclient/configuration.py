@@ -14,6 +14,7 @@ Created on 18 Apr 2025
 
 import logging
 from os import getenv
+from pathlib import Path
 from types import NoneType
 from typing import Any
 
@@ -50,6 +51,7 @@ from pygpsclient.globals import (
     UMM,
     WORLD,
 )
+from pygpsclient.helpers import valid_geom
 from pygpsclient.init_presets import INIT_PRESETS
 from pygpsclient.mapquest_handler import MAP_UPDATE_INTERVAL
 from pygpsclient.serverconfig_dialog import BASE_SVIN
@@ -230,20 +232,61 @@ class Configuration:
             "colortags_l": [],
         }
 
-    def loadfile(self, filename: str | NoneType = None) -> tuple:
+    def validate_config(self, config: dict) -> str:
+        """
+        Validate configuration file using type designators.
+
+        :param dict config: unvalidated config dict
+        :return: error message ("" = valid)
+        :rtype: str
+        """
+
+        err = ""
+        for key, value in config.items():
+            ctype = key[-2:]
+            valstr = f'"{value}"' if isinstance(value, str) else value
+            if key == "screengeom_s" and not valid_geom(value):
+                err = f"Invalid geometry format for {key}: {valstr}"
+                break
+            if ctype == "_n" and not isinstance(value, int):
+                err = f"Invalid int value for {key}: {valstr}"
+                break
+            if ctype == "_f" and not isinstance(value, (int, float)):
+                err = f"Invalid float value for {key}: {valstr}"
+                break
+            if ctype == "_b" and value not in (0, 1):
+                err = f"Invalid bool value for {key}: {valstr}"
+                break
+            if ctype == "_d" and not isinstance(value, dict):
+                err = f"Invalid dict value for {key}: {valstr}"
+                break
+            if ctype == "_l" and not isinstance(value, list):
+                err = f"Invalid list value for {key}: {valstr}"
+                break
+            if ctype == "_t" and not isinstance(value, tuple):
+                err = f"Invalid tuple value for {key}: {valstr}"
+                break
+            if ctype == "_s" and not isinstance(value, str):
+                err = f"Invalid str value for {key}: {valstr}"
+                break
+        return err
+
+    def loadfile(self, filepath: Path | NoneType = None) -> tuple[Path | NoneType, str]:
         """
         Load configuration from json file.
 
-        :param str | NoneType filename: config file name
+        :param Path | NoneType filename: config file name
         :return: tuple of filename and err message (or "" if OK)
-        :rtype: tuple
+        :rtype: tuple[Path | NoneType,str]
         """
 
-        fname, config, err = self.__app.file_handler.load_config(filename)
+        fname, config, err = self.__app.file_handler.load_config(filepath)
+        if err == "":
+            err = self.validate_config(config)
         key = ""
         val = 0
         resave = False
-        if err == "":  # load succeeded
+        if err == "":  # load succeeded and config valid
             for key, val in config.items():
                 if key == "version_s" and val != version:
                     resave = True
@@ -258,7 +301,7 @@ class Configuration:
                     continue
         else:
             if err == "cancelled":  # user cancelled
-                return filename, err
+                return filepath, err
             if "No such file or directory" in err:
                 err = LOADCONFIGNONE.format(fname)
             else:
@@ -272,7 +315,7 @@ class Configuration:
 
         return fname, err
 
-    def savefile(self, filename: str | NoneType = None) -> str:
+    def savefile(self, filepath: Path | NoneType = None) -> str:
         """
         Save configuration to json file.
 
@@ -282,7 +325,7 @@ class Configuration:
         """
 
         self.set("version_s", version)
-        return self.__app.file_handler.save_config(self.settings, filename)
+        return self.__app.file_handler.save_config(self.settings, filepath)
 
     def loadcli(self, **kwargs):
         """
@@ -339,7 +382,19 @@ class Configuration:
 
         _ = self.settings[name]
         self.settings[name] = value
-        # self.logger.debug(f"{name=} {value=}")
+
+    def setdict(self, dic: dict, name: str, value: Any):
+        """
+        Set individual value of dict.
+
+        :param dict dic: name of dictionary
+        :param str name: name of setting within dictionary
+        :param Any value: value of setting
+        :raises: KeyError if dictionary does not exist
+        """
+
+        _ = self.settings[dic]
+        self.settings[dic].update({name: value})
 
     def get(self, name: str) -> Any:
         """

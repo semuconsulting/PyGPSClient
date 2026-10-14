@@ -27,7 +27,6 @@ from types import NoneType
 from pyubx2 import hextable
 
 from pygpsclient.globals import (
-    APPNAME,
     CONFIGFILE,
     ERRCOL,
     FORMAT_BINARY,
@@ -40,7 +39,7 @@ from pygpsclient.globals import (
     HOME,
     XML_HDR,
 )
-from pygpsclient.helpers import set_filename, valid_geom
+from pygpsclient.helpers import set_filename
 from pygpsclient.strings import CONFIGTITLE, GITHUB_URL, SAVETITLE
 
 DEFEXT = ("all files", "*.*")
@@ -86,10 +85,10 @@ class FileHandler:
 
     def open_file(
         self,
-        parent: Frame | Toplevel,
+        parent: Frame | Toplevel | NoneType,
         mode: str,
         exts: tuple = DEFEXT,
-    ) -> str | NoneType:
+    ) -> Path | NoneType:
         """
         Generic routine to open specified file type.
 
@@ -97,7 +96,7 @@ class FileHandler:
         :param str mode: type of file e.g. "config", "gpxtrack" etc.
         :param tuple exts: tuple of file types ("description", "ext")
         :return: fully qualified path to file, or None if user cancelled
-        :rtype: str | NoneType
+        :rtype: Path | NoneType
         """
 
         fil = filedialog.askopenfilename(
@@ -109,21 +108,23 @@ class FileHandler:
         if fil in ((), ""):
             return None  # User cancelled
         self._initdir[mode] = Path(fil).parent  # remember last directory
-        return fil
+        return Path(fil)
 
-    def load_config(self, filename: Path | str = CONFIGFILE) -> tuple:
+    def load_config(
+        self, filepath: Path | NoneType = CONFIGFILE
+    ) -> tuple[Path | NoneType, dict | NoneType, str]:
         """
         Load configuration file. If filename is not provided, defaults
         to $HOME/pygpsclient.json, otherwise user is prompted for path.
 
-        :param Path | str filename: fully qualified filename, or None for prompt
+        :param Path | NoneType filename: fully qualified filename, or None for prompt
         :return: filename, saved settings as dictionary and any error message
-        :rtype: tuple
+        :rtype: tuple[Path | NoneType, dict | NoneType, str]
         """
 
         try:
-            if filename is None:
-                filename = self.open_file(
+            if filepath is None:
+                filepath = self.open_file(
                     None,
                     "config",
                     (
@@ -131,82 +132,43 @@ class FileHandler:
                         ("all files", "*.*"),
                     ),
                 )
-                if filename is None:
+                if filepath is None:
                     return (None, None, "cancelled")  # User cancelled
+            else:
+                self._initdir["config"] = filepath.parent
 
-            with open(filename, "r", encoding="utf-8") as jsonfile:
+            with open(filepath, "r", encoding="utf-8") as jsonfile:
                 config = json.load(jsonfile)
-                err = self.validate_config(config)
-                if err != "":
-                    raise ValueError(err)
-        except (ValueError, OSError, json.JSONDecodeError) as err:
-            return (filename, None, str(err))
+        except (OSError, json.JSONDecodeError) as err:
+            return (filepath, None, str(err))
 
-        return (filename, config, "")
+        return (filepath, config, "")
 
-    def validate_config(self, config: dict) -> str:
-        """
-        Validate configuration file using type designators.
-
-        :param dict config: unvalidated config dict
-        :return: error message ("" = valid)
-        :rtype: str
-        """
-
-        err = ""
-        for key, value in config.items():
-            ctype = key[-2:]
-            valstr = f'"{value}"' if isinstance(value, str) else value
-            if key == "screengeom_s" and not valid_geom(value):
-                err = f"Invalid geometry format for {key}: {valstr}"
-                break
-            if ctype == "_n" and not isinstance(value, int):
-                err = f"Invalid int value for {key}: {valstr}"
-                break
-            if ctype == "_f" and not isinstance(value, (int, float)):
-                err = f"Invalid float value for {key}: {valstr}"
-                break
-            if ctype == "_b" and value not in (0, 1):
-                err = f"Invalid bool value for {key}: {valstr}"
-                break
-            if ctype == "_d" and not isinstance(value, dict):
-                err = f"Invalid dict value for {key}: {valstr}"
-                break
-            if ctype == "_l" and not isinstance(value, list):
-                err = f"Invalid list value for {key}: {valstr}"
-                break
-            if ctype == "_t" and not isinstance(value, tuple):
-                err = f"Invalid tuple value for {key}: {valstr}"
-                break
-            if ctype == "_s" and not isinstance(value, str):
-                err = f"Invalid str value for {key}: {valstr}"
-                break
-        return err
-
-    def save_config(self, config: dict, filename: Path | str = CONFIGFILE) -> str:
+    def save_config(self, config: dict, filepath: Path | NoneType = CONFIGFILE) -> str:
         """
         Save configuration file. If filename is not provided, defaults to
         $HOME/pygpsclient.json, otherwise user is prompted for filename.
 
         :param dict config: configuration settings as dictionary
-        :param Path | str filename: fully qualified path to config file, or None for prompt
+        :param Path | NoneType filename: fully qualified path to config file, or None for default
         :return: return code "" = success, err str = failure
         :rtype: str
         """
 
         try:
-            if filename is None:
-                filename = filedialog.asksaveasfilename(
-                    title=CONFIGTITLE,
-                    initialdir=HOME,
-                    initialfile=f"{APPNAME}.json",
-                    filetypes=(
-                        ("config files", "*.json"),
-                        ("all files", "*.*"),
-                    ),
-                )
-                if filename in ((), ""):
-                    return "cancelled"  # User cancelled
+            if filepath is None:
+                filepath = CONFIGFILE
+            filename = filedialog.asksaveasfilename(
+                title=CONFIGTITLE,
+                initialdir=filepath.parent,
+                initialfile=filepath.name,
+                filetypes=(
+                    ("config files", "*.json"),
+                    ("all files", "*.*"),
+                ),
+            )
+            if filename in ((), ""):
+                return "cancelled"  # User cancelled
 
             with open(filename, "w", encoding="utf-8") as file:
                 cfgstr = json.dumps(config)
@@ -215,7 +177,7 @@ class FileHandler:
         except (OSError, json.JSONDecodeError) as err:
             return str(err)
 
-    def set_logfile_path(self, initdir=HOME) -> Path | str | NoneType:
+    def set_logfile_path(self, initdir=HOME) -> str | NoneType:
         """
         Set file path.
 
@@ -224,11 +186,12 @@ class FileHandler:
         :rtype: str | NoneType
         """
 
-        self._logpath = filedialog.askdirectory(
+        logpath = filedialog.askdirectory(
             title=SAVETITLE, initialdir=initdir, mustexist=True
         )
-        if self._logpath in ((), ""):
+        if logpath in ((), ""):
             return None  # User cancelled
+        self._logpath = logpath
         return self._logpath
 
     def open_logfile(self) -> int:
@@ -299,7 +262,7 @@ class FileHandler:
         except IOError:
             pass
 
-    def set_trackfile_path(self, initdir=HOME) -> Path:
+    def set_trackfile_path(self, initdir=HOME) -> str | NoneType:
         """
         Set track directory.
 
@@ -308,11 +271,12 @@ class FileHandler:
         :rtype: str
         """
 
-        self._trackpath = filedialog.askdirectory(
+        trackpath = filedialog.askdirectory(
             title=SAVETITLE, initialdir=initdir, mustexist=True
         )
-        if self._trackpath in ((), ""):
+        if trackpath in ((), ""):
             return None  # User cancelled
+        self._trackpath = trackpath
         return self._trackpath
 
     def open_trackfile(self) -> int:
@@ -487,9 +451,10 @@ class FileHandler:
         :rtype: str | NoneType
         """
 
-        self._databasepath = filedialog.askdirectory(
+        databasepath = filedialog.askdirectory(
             title=SAVETITLE, initialdir=initdir, mustexist=True
         )
-        if self._databasepath in ((), ""):
+        if databasepath in ((), ""):
             return None  # User cancelled
+        self._databasepath = databasepath
         return self._databasepath

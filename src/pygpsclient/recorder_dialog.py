@@ -435,8 +435,6 @@ class RecorderDialog(ToplevelDialog):
                 if isinstance(msg, (UBXMessage, NMEAMessage)):
                     msg = msg.serialize()
                 file.write(msg)
-        self.__app.recorded_commands = None
-        self.update_count()
         self.set_status_label(
             f"{i + 1} command{'s' if i > 0 else ''} saved to {fname}",
             OKCOL,

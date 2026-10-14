@@ -104,8 +104,7 @@ def main():
     logtofile = kwargs.pop("logtofile", "")
     logger = getLogger(APPNAME)  # "pygpsclient"
     logger_utils = getLogger("pygnssutils")
-    logger_pyubx2 = getLogger("pyubx2")
-    for logr in (logger, logger_utils, logger_pyubx2):
+    for logr in (logger, logger_utils):
         set_logging(logr, verbosity, logtofile)
 
     app = App(**kwargs)

@@ -1,7 +1,7 @@
 """
 helpers.py
 
-Collection of helper methods and tkinter class extensions.
+Collection of stand-alone helper methods and tkinter class extensions.
 
 Created on 17 Apr 2021
 
@@ -958,10 +958,8 @@ def point_in_bounds(bounds: Area, point: Point) -> bool:
         return False
 
     return (
-        point.lat >= bounds.lat1
-        and point.lat <= bounds.lat2
-        and point.lon >= bounds.lon1
-        and point.lon <= bounds.lon2
+        bounds.lat1 <= point.lat <= bounds.lat2
+        and bounds.lon1 <= point.lon <= bounds.lon2
     )
 
 
