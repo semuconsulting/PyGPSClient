@@ -3,10 +3,11 @@ uni_handler.py
 
 Unicore GNSS Protocol handler - handles all incoming UNI messages
 
-Parses individual UNI (Unicore UM98n GNSS) messages (using pyunignss library)
-and adds selected attribute values to the app.gnss_status
-data dictionary. This dictionary is then used to periodically
-update the various user-selectable widget panels.
+Parses individual UNI (proprietary Unicore binary) messages
+(using pyunignss library) and adds selected attribute values
+to the app.gnss_status data dictionary. This dictionary is
+then used to periodically update the various user-selectable
+widget panels.
 
 Created on 27 Jan 2026
 
@@ -72,35 +73,38 @@ class UNIHandler:
         :param UNIMessage parsed_data: parsed data
         """
 
-        if raw_data is None:
-            return
-        if self.__app.gnss_status.version_data["hwversion"] == NA:
-            self.__app.gnss_status.version_data["hwversion"] = "Unicore"
-            self.__app.set_device_label(
-                self.__app.gnss_status.version_data["hwversion"]
-            )
-        # self.logger.debug(f"data received {parsed_data.identity}")
-        self._process_utc(parsed_data)
-        if parsed_data.identity in ("BESTNAV", "BESTNAVH"):
-            self._process_BESTNAV(parsed_data)
-        elif parsed_data.identity in ("PVTSLN",):
-            self._process_PVTSLN(parsed_data)
-        elif parsed_data.identity in (
-            "ADRNAV",
-            "ADRNAVH",
-            "PPPNAV",
-            "SPPNAV",
-            "SPPNAVH",
-        ):
-            self._process_ADRNAV(parsed_data)
-        elif parsed_data.identity in ("SATSINFO",):
-            self._process_SATSINFO(parsed_data)
-        elif parsed_data.identity in ("SATELLITE",):
-            self._process_SATELLITE(parsed_data)
-        elif parsed_data.identity in ("STADOP", "ADRDOP", "PPPDOP"):
-            self._process_STADOP(parsed_data)
-        elif parsed_data.identity == "VERSION":
-            self._process_VERSION(parsed_data)
+        try:
+            if raw_data is None:
+                return
+            if self.__app.gnss_status.version_data["hwversion"] == NA:
+                self.__app.gnss_status.version_data["hwversion"] = "Unicore"
+                self.__app.set_device_label(
+                    self.__app.gnss_status.version_data["hwversion"]
+                )
+            # self.logger.debug(f"data received {parsed_data.identity}")
+            self._process_utc(parsed_data)
+            if parsed_data.identity in ("BESTNAV", "BESTNAVH"):
+                self._process_BESTNAV(parsed_data)
+            elif parsed_data.identity in ("PVTSLN",):
+                self._process_PVTSLN(parsed_data)
+            elif parsed_data.identity in (
+                "ADRNAV",
+                "ADRNAVH",
+                "PPPNAV",
+                "SPPNAV",
+                "SPPNAVH",
+            ):
+                self._process_ADRNAV(parsed_data)
+            elif parsed_data.identity in ("SATSINFO",):
+                self._process_SATSINFO(parsed_data)
+            elif parsed_data.identity in ("SATELLITE",):
+                self._process_SATELLITE(parsed_data)
+            elif parsed_data.identity in ("STADOP", "ADRDOP", "PPPDOP"):
+                self._process_STADOP(parsed_data)
+            elif parsed_data.identity == "VERSION":
+                self._process_VERSION(parsed_data)
+        except Exception as err:  # pylint: disable=broad-exception-caught
+            self.logger.exception(err)
 
     def _process_utc(self, data: UNIMessage):
         """

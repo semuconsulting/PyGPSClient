@@ -132,6 +132,8 @@ class NMEAHandler:
                 self._process_AIR(parsed_data)
         except ValueError:
             pass
+        except Exception as err:  # pylint: disable=broad-exception-caught
+            self.logger.exception(err)
 
     def _process_RMC(self, data: NMEAMessage):
         """

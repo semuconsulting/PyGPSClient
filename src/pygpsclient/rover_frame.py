@@ -94,7 +94,7 @@ class RoverFrame(Frame):
         self._lbl_options = Label(self._frm_options, text="Source", fg=PNTCOL, bg=BGCOL)
         self._spn_options = Spinbox(
             self._frm_options,
-            values=["NAV-RELPOSNED", "NAV-DAHEADING", RTCM56],
+            values=["UBX NAV-RELPOSNED", "UBX NAV-DAHEADING", RTCM56, "SBF BaseVector"],
             width=16,
             wrap=True,
             background=BGCOL,
@@ -227,7 +227,14 @@ class RoverFrame(Frame):
         diffsoln = {0: "NO DGPS", 1: "DGPS"}.get(diffsoln, "DGPS NA")
         valrp = {0: "INVALID RP", 1: "VALID RP"}.get(valrp, "RP NA")
         valhdg = {0: "INVALID HDG", 1: "VALID HDG"}.get(valhdg, "HDG NA")
-        carrsoln = {0: "NO RTK", 1: "RTK FLOAT", 2: "RTK FIXED"}.get(carrsoln, "RTK NA")
+        carrsoln = {
+            0: "NO RTK",
+            1: "RTK FLOAT",
+            2: "RTK FIXED",
+            3: "DGPS",
+            4: "SBAS",
+            5: "PPP",
+        }.get(carrsoln, "NA")
         moving = {0: "STATIC", 1: "MOVING"}.get(moving, "MOVING NA")
         self._canvas.create_text(
             INSET,
