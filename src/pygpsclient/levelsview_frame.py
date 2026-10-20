@@ -16,7 +16,7 @@ Created on 14 Sep 2020
 
 import logging
 from copy import deepcopy
-from tkinter import NE, NSEW, Frame, Tk, font
+from tkinter import CENTER, NE, NSEW, Frame, Tk, font
 
 from pygpsclient.custom_classes import (
     TAG_DATA,
@@ -182,9 +182,13 @@ class LevelsviewFrame(Frame):
             offset = self._canvas.xoffl
             colwidth = (w - self._canvas.xoffl - self._canvas.xoffr + 1) / siv
             xfnt, _, _, _ = fitfont(XLBLFMT, colwidth, self._canvas.yoffb, XLBLANGLE)
-            for gnssId, svid, _, _, cno, _ in sorted(
-                data.values()
-            ):  # sort by ascending gnssid, svid
+            nfont = font.Font(size=int(min(self.width, self.height) / 30))
+            nominal = False
+            # sort by ascending gnssid, svid
+            for gnssId, svid, _, _, cno, _ in sorted(data.values()):
+                if cno < 0:  # nominal C/No
+                    cno = abs(cno)
+                    nominal = True
                 snr_y = int(cno) * (h - self._canvas.yoffb - 1) / MAX_SNR
                 _, ol_col = GNSS_LIST[gnssId]
                 self._canvas.create_rectangle(
@@ -207,6 +211,16 @@ class LevelsviewFrame(Frame):
                     anchor=NE,
                     tags=TAG_DATA,
                 )
+                if nominal:
+                    self._canvas.create_text(
+                        self._canvas.width / 2,
+                        self._canvas.height / 1.5,
+                        text="C/No NOMINAL",
+                        font=nfont,
+                        fill=FGCOL,
+                        anchor=CENTER,
+                        tags=TAG_DATA,
+                    )
                 offset += colwidth
         except ValueError:  # some values can be null on startup
             pass

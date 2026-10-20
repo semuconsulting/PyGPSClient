@@ -134,7 +134,7 @@ class SkyviewFrame(Frame):
                     continue
                 x, y = self._canvas.d2xy(azi, ele)
                 _, ol_col = GNSS_LIST[gnssId]
-                bg_col = snr2col(cno)
+                bg_col = snr2col(abs(cno))
                 self._canvas.create_circle(
                     x,
                     y,

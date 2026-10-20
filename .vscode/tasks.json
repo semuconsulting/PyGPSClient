@@ -21,6 +21,17 @@
                 "-rf",
                 "${config:venv}",
             ],
+            "windows": {
+                "command": "Remove-Item",
+                "args": [
+                    "-Path",
+                    "${config:venv}",
+                    "-Recurse",
+                    "-Force",
+                    "-ErrorAction",
+                    "SilentlyContinue" // doesn't work - exit code 1
+                ],
+            },
             "problemMatcher": []
         },
         {
@@ -45,6 +56,9 @@
             "args": [
                 "~/pygpsclient/bin/activate",
             ],
+            "windows": {
+                "command": "~/pygpsclient/Scripts/activate"
+            },
             "problemMatcher": [],
         },
         {
@@ -119,9 +133,9 @@
                     "-Recurse",
                     "-Force",
                     "-ErrorAction",
-                    "SilentlyContinue", // doesn't work! - stops on exit code 1 anyway
+                    "SilentlyContinue", // doesn't work - exit code 1
                     "-Path",
-                    "'build','dist','htmlcov','docs/_build','src/${config:modulename}.egg-info'",
+                    "'dist'",
                 ]
             },
             "options": {

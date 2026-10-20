@@ -332,13 +332,13 @@ class StreamHandler:
             errorhandler=self._errorhandler,
         )
 
-        raw_data = None
+        raw_data = b""
         parsed_data = None
         lastevent = datetime.now()
         while not stopevent.is_set():
             if conntype in (CONNECTED, CONNECTED_SOCKET, CONNECTED_FILE):
                 raw_data, parsed_data = ubr.read()
-                if raw_data is not None:
+                if raw_data != b"":
                     self._process_message(raw_data, parsed_data)
                     lastevent = datetime.now()
                 else:  # timeout or eof
@@ -416,9 +416,7 @@ class StreamHandler:
                 self._errorhandler(err)
                 continue
 
-    def _process_message(
-        self, raw_data: bytes | NoneType, parsed_data: Any, marker: str = ""
-    ):
+    def _process_message(self, raw_data: bytes, parsed_data: Any, marker: str = ""):
         """
         THREADED PROCESS
 
@@ -426,7 +424,7 @@ class StreamHandler:
 
         Update the gnss_status dictionary with parsed attribute values.
 
-        :param bytes | NoneType raw_data: raw message data
+        :param bytes raw_data: raw message data
         :param object parsed data: NMEAMessage, UBXMessage or RTCMMessage
         :param str marker: string prepended to console entries e.g. "NTRIP>>"
         """

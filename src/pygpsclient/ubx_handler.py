@@ -3,10 +3,10 @@ ubx_handler.py
 
 UBX Protocol handler - handles all incoming UBX messages
 
-Parses individual UBX messages (using pyubx2 library)
-and adds selected attribute values to the app.gnss_status
-data dictionary. This dictionary is then used to periodically
-update the various user-selectable widget panels.
+Parses individual UBX (proprietary u-blox binary) messages
+(using pyubx2 library) and adds selected attribute values
+to the app.gnss_status data dictionary. This dictionary is
+then used to periodically update the various user-selectable widget panels.
 
 Created on 30 Sep 2020
 
@@ -61,60 +61,63 @@ class UBXHandler:
         :param UBXMessage parsed_data: parsed data
         """
 
-        if raw_data is None:
-            return
-        if self.__app.gnss_status.version_data["hwversion"] == NA:
-            self.__app.gnss_status.version_data["hwversion"] = "u-blox"
-            self.__app.set_device_label(
-                self.__app.gnss_status.version_data["hwversion"]
-            )
-        # self.logger.debug(f"data received {parsed_data.identity}")
-        if parsed_data.identity[0:3] in ("ACK", "CFG"):
-            self._process_ACK(parsed_data)
-        elif parsed_data.identity == "ESF-ALG":
-            self._process_ESF_ALG(parsed_data)
-        elif parsed_data.identity == "HNR-ATT":
-            self._process_HNR_ATT(parsed_data)
-        elif parsed_data.identity == "HNR-PVT":
-            self._process_HNR_PVT(parsed_data)
-        elif parsed_data.identity == "NAV-ATT":
-            self._process_NAV_ATT(parsed_data)
-        elif parsed_data.identity in ("NAV-DOP", "NAV2-DOP"):
-            self._process_NAV_DOP(parsed_data)
-        elif parsed_data.identity in ("NAV-POSLLH", "NAV-HPPOSLLH"):
-            self._process_NAV_POSLLH(parsed_data)
-        elif parsed_data.identity in ("NAV-PVT", "NAV2-PVT"):
-            self._process_NAV_PVT(parsed_data)
-        elif parsed_data.identity in ("NAV-PVAT", "NAV2-PVAT"):
-            self._process_NAV_PVAT(parsed_data)
-        elif parsed_data.identity in ("NAV-RELPOSNED",):
-            self._process_NAV_RELPOSNED(parsed_data)
-        elif parsed_data.identity in ("NAV-DAHEADING",):
-            self._process_NAV_DAHEADING(parsed_data)
-        elif parsed_data.identity in ("NAV-SAT", "NAV2-SAT"):
-            self._process_NAV_SAT(parsed_data)
-        elif parsed_data.identity in ("NAV-SIG", "NAV2-SIG"):
-            self._process_NAV_SIG(parsed_data)
-        elif parsed_data.identity in ("NAV-STATUS", "NAV2-STATUS"):
-            self._process_NAV_STATUS(parsed_data)
-        elif parsed_data.identity == "NAV-SVIN":
-            self._process_NAV_SVIN(parsed_data)
-        elif parsed_data.identity == "NAV-SVINFO":
-            self._process_NAV_SVINFO(parsed_data)
-        elif parsed_data.identity == "NAV-SOL":
-            self._process_NAV_SOL(parsed_data)
-        elif parsed_data.identity == "NAV-VELNED":
-            self._process_NAV_VELNED(parsed_data)
-        elif parsed_data.identity == "MON-COMMS":
-            self._process_MON_COMMS(parsed_data)
-        elif parsed_data.identity == "MON-SPAN":
-            self._process_MON_SPAN(parsed_data)
-        elif parsed_data.identity == "MON-SYS":
-            self._process_MON_SYS(parsed_data)
-        elif parsed_data.identity == "MON-VER":
-            self._process_MONVER(parsed_data)
-        elif parsed_data.identity == "RXM-RTCM":
-            self._process_RXM_RTCM(parsed_data)
+        try:
+            if raw_data is None:
+                return
+            if self.__app.gnss_status.version_data["hwversion"] == NA:
+                self.__app.gnss_status.version_data["hwversion"] = "u-blox"
+                self.__app.set_device_label(
+                    self.__app.gnss_status.version_data["hwversion"]
+                )
+            # self.logger.debug(f"data received {parsed_data.identity}")
+            if parsed_data.identity[0:3] in ("ACK", "CFG"):
+                self._process_ACK(parsed_data)
+            elif parsed_data.identity == "ESF-ALG":
+                self._process_ESF_ALG(parsed_data)
+            elif parsed_data.identity == "HNR-ATT":
+                self._process_HNR_ATT(parsed_data)
+            elif parsed_data.identity == "HNR-PVT":
+                self._process_HNR_PVT(parsed_data)
+            elif parsed_data.identity == "NAV-ATT":
+                self._process_NAV_ATT(parsed_data)
+            elif parsed_data.identity in ("NAV-DOP", "NAV2-DOP"):
+                self._process_NAV_DOP(parsed_data)
+            elif parsed_data.identity in ("NAV-POSLLH", "NAV-HPPOSLLH"):
+                self._process_NAV_POSLLH(parsed_data)
+            elif parsed_data.identity in ("NAV-PVT", "NAV2-PVT"):
+                self._process_NAV_PVT(parsed_data)
+            elif parsed_data.identity in ("NAV-PVAT", "NAV2-PVAT"):
+                self._process_NAV_PVAT(parsed_data)
+            elif parsed_data.identity in ("NAV-RELPOSNED",):
+                self._process_NAV_RELPOSNED(parsed_data)
+            elif parsed_data.identity in ("NAV-DAHEADING",):
+                self._process_NAV_DAHEADING(parsed_data)
+            elif parsed_data.identity in ("NAV-SAT", "NAV2-SAT"):
+                self._process_NAV_SAT(parsed_data)
+            elif parsed_data.identity in ("NAV-SIG", "NAV2-SIG"):
+                self._process_NAV_SIG(parsed_data)
+            elif parsed_data.identity in ("NAV-STATUS", "NAV2-STATUS"):
+                self._process_NAV_STATUS(parsed_data)
+            elif parsed_data.identity == "NAV-SVIN":
+                self._process_NAV_SVIN(parsed_data)
+            elif parsed_data.identity == "NAV-SVINFO":
+                self._process_NAV_SVINFO(parsed_data)
+            elif parsed_data.identity == "NAV-SOL":
+                self._process_NAV_SOL(parsed_data)
+            elif parsed_data.identity == "NAV-VELNED":
+                self._process_NAV_VELNED(parsed_data)
+            elif parsed_data.identity == "MON-COMMS":
+                self._process_MON_COMMS(parsed_data)
+            elif parsed_data.identity == "MON-SPAN":
+                self._process_MON_SPAN(parsed_data)
+            elif parsed_data.identity == "MON-SYS":
+                self._process_MON_SYS(parsed_data)
+            elif parsed_data.identity == "MON-VER":
+                self._process_MONVER(parsed_data)
+            elif parsed_data.identity == "RXM-RTCM":
+                self._process_RXM_RTCM(parsed_data)
+        except Exception as err:  # pylint: disable=broad-exception-caught
+            self.logger.exception(err)
 
     def _process_ACK(self, msg: UBXMessage):
         """
@@ -533,7 +536,7 @@ class UBXHandler:
 
         if (
             self.__app.configuration.get("relposnedsettings_d")["source_s"]
-            != data.identity
+            != "UBX NAV-RELPOSNED"
         ):
             return
 
@@ -555,7 +558,7 @@ class UBXHandler:
                 data.accHeading,
             )
 
-        self.__app.gnss_status.rel_pos_source = data.identity
+        self.__app.gnss_status.rel_pos_source = "UBX NAV-RELPOSNED"
         self.__app.gnss_status.rel_pos_heading = relPosHeading
         self.__app.gnss_status.rel_pos_length = relPosLength
         self.__app.gnss_status.acc_heading = accHeading
@@ -585,7 +588,7 @@ class UBXHandler:
 
         if (
             self.__app.configuration.get("relposnedsettings_d")["source_s"]
-            != data.identity
+            != "UBX NAV-HEADING"
         ):
             return
 
@@ -604,7 +607,7 @@ class UBXHandler:
                 data.accHeading,
             )
 
-        self.__app.gnss_status.rel_pos_source = data.identity
+        self.__app.gnss_status.rel_pos_source = "UBX NAV-HEADING"
         self.__app.gnss_status.rel_pos_heading = relPosHeading
         self.__app.gnss_status.rel_pos_length = relPosLength
         self.__app.gnss_status.acc_heading = accHeading

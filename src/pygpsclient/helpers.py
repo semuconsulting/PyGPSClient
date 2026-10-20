@@ -38,8 +38,8 @@ from tkinter import (
     Tk,
     font,
 )
-from types import FunctionType, MethodType, NoneType
-from typing import Any, Literal
+from types import NoneType
+from typing import Any, Callable, Literal
 
 from pygnssutils import version as PGVERSION
 from pynmeagps import WGS84_SMAJ_AXIS, NMEAMessage
@@ -129,7 +129,7 @@ def validate(
     low: int | float = MINFLOAT,
     high: int | float = MAXFLOAT,
     regex: str | NoneType = None,
-    func: MethodType | FunctionType | NoneType = None,
+    func: Callable | NoneType = None,
     args: tuple = (),
 ) -> bool:
     """
@@ -142,7 +142,7 @@ def validate(
         bits for VALSIGNED/VALUNSIGNED
     :param int | float high: optional max value
     :param str | NoneType regex: regex expression
-    :param MethodType | FunctionType | NoneType func: custom validation function
+    :param Callable | NoneType func: custom validation function
     :param Any args: optional function arguments
 
     :return: True/False
@@ -205,7 +205,7 @@ for wdg in (Entry, Spinbox):
 def trace_update(
     self: IntVar | StringVar | DoubleVar | BooleanVar,
     mode: Literal["array", "read", "write", "unset"],
-    callback: object,
+    callback: Callable,
     add: bool = True,
 ) -> str | NoneType:
     """
@@ -256,24 +256,6 @@ def area_in_bounds(
         and extents.lon1 >= bounds.lon1
         and extents.lon2 <= bounds.lon2
     )
-
-
-def bitsval(bitfield: bytes, position: int, length: int) -> int:
-    """
-    Get unisgned integer value of masked bits in bitfield.
-
-    :param bytes bitfield: bytes
-    :param int position: position in bitfield, from leftmost bit
-    :param int length: length of masked bits
-    :return: value
-    :rtype: int
-    """
-
-    lbb = len(bitfield) * 8
-    if position + length > lbb:
-        return None
-
-    return int.from_bytes(bitfield, "big") >> (lbb - position - length) & 2**length - 1
 
 
 def brew_installed() -> bool:
@@ -1012,6 +994,41 @@ def rgb2str(r: int, g: int, b: int) -> str:
     return f"#{r:02x}{g:02x}{b:02x}"
 
 
+def sbfsvid2svid(svid: int) -> tuple[int, int]:
+    """
+    Convert Septentrio SVID to standardised SVID
+
+    :return tuple of gnssid, svid
+    :rtype: tuple[int, int]
+    """
+
+    if 1 <= svid <= 37:
+        return (0, svid)
+    if 38 <= svid <= 61:
+        return (6, svid - 37)
+    if 63 <= svid <= 68:
+        return (6, svid - 38)
+    if 71 <= svid <= 106:
+        return (2, svid - 70)
+    if 120 <= svid <= 140:
+        return (1, svid - 100)
+    if 141 <= svid <= 180:
+        return (3, svid - 140)
+    if 181 <= svid <= 190:
+        return (5, svid - 180)
+    if 191 <= svid <= 197:
+        return (7, svid - 190)
+    if 198 <= svid <= 215:
+        return (1, svid - 157)
+    if 216 <= svid <= 222:
+        return (7, svid - 208)
+    if 223 <= svid <= 245:
+        return (3, svid - 182)
+    if 250 <= svid <= 251:
+        return (1, svid - 212)
+    return 0, 0
+
+
 def scale_font(
     width: int,
     basesize: int,
@@ -1216,28 +1233,28 @@ def stringvar2val(val: str, att: str) -> Any:
     :rtype: Any
     """
 
+    valt = val
     if att in ("DE", "LA", "LN"):  # NMEA float
-        val = float(val)
+        valt = float(val)
     elif att in ("CH", "DT", "HX", "LAD", "LND", "TM"):  # NMEA str, hex
         pass
     elif att == "IN":  # NMEA int
-        val = int(val)
+        valt = int(val)
     elif atttyp(att) in ("E", "I", "L", "U"):  # integer
         if val.find(".") != -1:  # ignore scaling decimals
-            val = val[0 : val.find(".")]
-        val = int(val)
+            valt = val[0 : val.find(".")]
+        valt = int(valt)
     elif atttyp(att) == "X":  # bytes
         if val[0:2] in ("0x", "0X"):  # allow for hex representation
             mod = 16
         else:
             mod = 10
-        val = int(val, mod).to_bytes(attsiz(att), "big")
+        valt = int(val, mod).to_bytes(attsiz(att), "big")
     elif atttyp(att) == "C":  # char
-        val = bytes(val, "utf-8")
+        valt = bytes(val, "utf-8")
     elif atttyp(att) == "R":  # float
-        val = float(val)
-
-    return val
+        valt = float(val)
+    return valt
 
 
 def svid2gnssid(svid) -> int:

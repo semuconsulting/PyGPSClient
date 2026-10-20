@@ -49,6 +49,7 @@ class GNSSStatus:
         self.pdop = 0.0  # dilution of precision DOP
         self.hdop = 0.0  # horizontal DOP
         self.vdop = 0.0  # vertical DOP
+        self.tdop = 0.0  # time DOP
         self.hacc = 0.0  # horizontal accuracy m
         self.vacc = 0.0  # vertical accuracy m
         self.diff_corr = 0  # DGPS correction status True/False

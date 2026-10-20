@@ -1,5 +1,11 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.7.9
+
+1. Enhance Septentrio SBF message handling.
+1. Update minimum dependency versions.
+1. Add Python 3.15 to workflows.
+
 ### RELEASE 1.7.8
 
 1. Fix `KeyError` issue when using App Config dialog to update chart `numchan` setting in older config files.

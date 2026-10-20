@@ -30,7 +30,6 @@ from pygpsclient.globals import (
 )
 from pygpsclient.helpers import (
     area_in_bounds,
-    bitsval,
     bytes2unit,
     col2contrast,
     dop2str,
@@ -59,6 +58,7 @@ from pygpsclient.helpers import (
     point_in_bounds,
     publicip,
     reorder_range,
+    sbfsvid2svid,
     secs2unit,
     snr2col,
     str2rgb,
@@ -292,14 +292,6 @@ class StaticTest(unittest.TestCase):
             res = stringvar2val(val, att)
             self.assertEqual(ress[i], res)
 
-    def testbitsval(self):
-        bits = [(7, 1), (8, 8), (22, 2), (24, 4), (40, 16)]
-        EXPECTED_RESULT = [1, 8, 3, 15, None]
-
-        bm = b"\x01\x08\x03\xf0\xff"
-        for i, (ps, ln) in enumerate(bits):
-            res = bitsval(bm, ps, ln)
-            self.assertEqual(res, EXPECTED_RESULT[i])
 
     def testmapqcompress(self):
         PREC = 6
@@ -789,6 +781,21 @@ class StaticTest(unittest.TestCase):
         )
         self.assertAlmostEqual(center.lat, 53.367617, 7)
         self.assertAlmostEqual(center.lon, -1.815437, 7)
+
+    def testsbfsvid2svid(self):
+
+        res = sbfsvid2svid(218)
+        self.assertEqual(res, (7, 10))
+        res = sbfsvid2svid(64)
+        self.assertEqual(res, (6, 26))
+        res = sbfsvid2svid(150)
+        self.assertEqual(res, (3, 10))
+        res = sbfsvid2svid(2)
+        self.assertEqual(res, (0, 2))
+        res = sbfsvid2svid(199)
+        self.assertEqual(res, (1, 42))
+        res = sbfsvid2svid(223)
+        self.assertEqual(res, (3, 41))
 
     def testunusedsats(self):
         gsv_data = {
