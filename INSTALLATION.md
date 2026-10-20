@@ -82,7 +82,7 @@ In the following, `python3` & `pip` refer to the Python 3 executables. You may n
 
 - Graphical User Interface (window system / manager)
 - Python >= 3.10⁴
-- Tk (tkinter) >= 8.6⁵⁶ (*tkinter is a commonly used library for developing Graphical User Interfaces (GUI) in Python*)
+- Tk (tkinter) >= 8.6⁵ (*tkinter is a commonly used library for developing Graphical User Interfaces (GUI) in Python*)
 - At least 500 MB usable memory
 - Screen resolution >= 640 x 480 (VGA); Ideally 1920 x 1080, though at lower screen resolutions (<= 1024 width), top level dialogs will be resizable and scrollable.
 
