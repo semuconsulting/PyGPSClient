@@ -4,6 +4,8 @@ GAL_OSNMA_command_generation.py
 This Python script illustrates how to generate Galileo OSNMA Merkle and PublicKey
 MGA commands using PyGPSClient's ubx2preset utility.
 
+Ensure OSNMA is enabled via the CFG_GAL_USE_OSNMA configuration key (CFG-VALSET).
+
 *** Use the latest keys from the relevant u-blox XML OSNMA credentials file ***
 
 The serialized messages can be sent directly to the receiver.
@@ -12,6 +14,8 @@ Alternatively, the preset command string can be inserted into the "ubxpresets_l"
 the PyGPSClient json configuration file and invoked from the UBX Configuration dialog via a
 'single-click'.
 
+OSNMA status can be queried via the UBX SEC-OSNMA message type.
+
 https://content.u-blox.com/sites/default/files/documents/OSNMA_configuration_using_u-center_AppNote_UBXDOC-963802114-12194.pdf
 
 Created by semuadmin on 10 Oct 2026.
@@ -19,7 +23,7 @@ Created by semuadmin on 10 Oct 2026.
 
 # pylint: disable=line-too-long
 
-from pyubx2 import UBXMessage, SET
+from pyubx2 import UBXMessage, SET, escapeall
 from pygpsclient import ubx2preset
 
 # Merkle as defined in XML file as space-delimited hexadecimal string
@@ -42,11 +46,13 @@ msg2 = UBXMessage(
     "MGA-GAL-OSNMA-PUBKEY",
     SET,
     type=0x07,
-    pubKeyId=0x12, # amend as required
+    pubKeyId=0x12,  # amend as required
     pubKeyType=0,
     pubKeyPoint=pubkeypoint,
 )
 
-print(f"\nSerialized UBX Messages:\n{msg1.serialize()}\n{msg2.serialize()}")
+print(
+    f"\nSerialized UBX Messages:\n{escapeall(msg1.serialize())}\n{escapeall(msg2.serialize())}"
+)
 preset = ubx2preset((msg1, msg2), "Upload Galileo OSNMA Merkle & Public Key")
 print(f"\nPreset command string:\n{preset}")

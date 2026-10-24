@@ -73,6 +73,16 @@ def main():
         default=SUPPRESS,
     )
     ap.add_argument(
+        "--spartnkey",
+        help="SPARTN decryption key",
+        default=SUPPRESS,
+    )
+    ap.add_argument(
+        "--spartnbasedate",
+        help="SPARTN decryption basedate (as integer - use pyspartn.date2timetag to convert datetime)",
+        default=SUPPRESS,
+    )
+    ap.add_argument(
         "--verbosity",
         help=(
             f"Log message verbosity "

@@ -828,6 +828,8 @@ class SettingsChildFrame(Frame):
             "msgmode": self.frm_serial.msgmode,
             "inactivity_timeout": self.frm_serial.inactivity_timeout,
             "tlscrtpath": self.__app.configuration.get("tlscrtpath_s"),
+            "spartnkey": self.__app.configuration.get("spartnkey_s"),
+            "spartnbasedate": self.__app.configuration.get("spartnbasedate_n"),
         }
 
         if conntype == DISCONNECTED:
@@ -859,6 +861,7 @@ class SettingsChildFrame(Frame):
                 (
                     ("datalog files", "*.log"),
                     ("u-center logs", "*.ubx"),
+                    ("binary files", "*.bin"),
                     ("all files", "*.*"),
                 ),
             )

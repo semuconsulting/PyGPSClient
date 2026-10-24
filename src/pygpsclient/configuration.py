@@ -46,6 +46,7 @@ from pygpsclient.globals import (
     SOCKSERVER_HOST,
     SOCKSERVER_NTRIP_PORT,
     SOCKSERVER_PORT,
+    SPARTN_DEFAULT_KEY,
     TRACK,
     UBLOX_ZEDF9,
     UMM,
@@ -203,7 +204,7 @@ class Configuration:
             "ntripclientrefalt_f": 0.0,
             "ntripclientrefsep_f": 0.0,
             "spartndecode_b": 0,
-            "spartnkey_s": "abcd1234abcd1234abcd1234abcd1234",
+            "spartnkey_s": SPARTN_DEFAULT_KEY,
             "spartnbasedate_n": -1,
             "relposnedsettings_d": {
                 "source_s": "NAV-RELPOSNED",
@@ -346,10 +347,10 @@ class Configuration:
         arg = kwargs.pop("mqttclientid", getenv("MQTTCLIENTID", None))
         if arg is not None:
             self.set("mqttclientid_s", arg)
-        arg = kwargs.pop("spartnkey", getenv("MQTTKEY", None))
+        arg = kwargs.pop("spartnkey", getenv("SPARTNKEY", SPARTN_DEFAULT_KEY))
         if arg is not None:
             self.set("spartnkey_s", arg)
-        arg = kwargs.pop("spartnbasedate", getenv("SPARTNBASEDATE", None))
+        arg = kwargs.pop("spartnbasedate", getenv("SPARTNBASEDATE", 0))
         if arg is not None:
             self.set("spartnbasedate_n", int(arg))
         arg = kwargs.pop("mqttclientregion", getenv("MQTTCLIENTREGION", None))
