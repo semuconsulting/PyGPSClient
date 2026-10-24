@@ -1,5 +1,12 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.8.0
+
+1. Add support for parsing and logging unencrypted or encrypted SPARTN output direct from receiver (*in addition to existing NTRIP SPARTN parsing capability*). See [pyspartn](https://github.com/semuconsulting/pyspartn#encrypted-payloads) for more information about SPARTN decryption.
+1. Indicate cryptography support in About panel system information.
+1. Fix minor font size issue in banner panel.
+1. Fix issue with ubx2presets utility failing to recognise MGA commmand types.
+
 ### RELEASE 1.7.9
 
 1. Enhance Septentrio SBF message handling.

@@ -316,7 +316,6 @@ class StreamHandler:
         """
 
         conntype = settings["conntype"]
-
         ubr = GNSSReader(
             stream,
             protfilter=NMEA_PROTOCOL
@@ -324,12 +323,15 @@ class StreamHandler:
             | SBF_PROTOCOL
             | QGC_PROTOCOL
             | RTCM3_PROTOCOL
-            | UNI_PROTOCOL,
+            | UNI_PROTOCOL
+            | SPARTN_PROTOCOL,
             quitonerror=ERR_LOG,
             parsing=PARSE_FULL,
             bufsize=DEFAULT_BUFSIZE,
             msgmode=settings["msgmode"],
             errorhandler=self._errorhandler,
+            spartnkey=settings["spartnkey"],
+            spartnbasedate=settings["spartnbasedate"],
         )
 
         raw_data = b""

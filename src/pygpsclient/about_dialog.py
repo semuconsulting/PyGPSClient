@@ -39,6 +39,7 @@ from tkinter import (
 from webbrowser import open_new_tab
 
 from PIL import Image, ImageTk
+from pyspartn import HASCRYPTO
 
 from pygpsclient.custom_classes import ScrollableText
 from pygpsclient.globals import (
@@ -414,6 +415,7 @@ class AboutDialog(ToplevelDialog):
             f"{'Python:':<14}{python_version()} {gil}\n"
             f"{'Tkinter:':<14}{tki}\n"
             f"{'Spatialite:':<14}{spl}\n"
+            f"{'Cryptography:':<14}{HASCRYPTO if HASCRYPTO else 'Not installed'}\n"
             "\nReceiver Information (if available):\n\n"
             f"{'Hardware:':<14}{hw}\n"
             f"{'Software:':<14}{sw}\n"
