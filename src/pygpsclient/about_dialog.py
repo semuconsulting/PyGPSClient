@@ -15,6 +15,7 @@ Created on 20 Sep 2020
 
 import logging
 from datetime import datetime
+from pathlib import Path
 from platform import python_version, uname
 from queue import Empty, Queue
 from threading import Event, Thread
@@ -412,6 +413,7 @@ class AboutDialog(ToplevelDialog):
             f"{'Version:':<14}{ver}\n"
             f"{'Machine:':<14}{mcn}\n"
             f"{'Processor:':<14}{pro}\n"
+            f"{'Path:':<14}{Path(__file__).parent}\n"
             f"{'Python:':<14}{python_version()} {gil}\n"
             f"{'Tkinter:':<14}{tki}\n"
             f"{'Spatialite:':<14}{spl}\n"

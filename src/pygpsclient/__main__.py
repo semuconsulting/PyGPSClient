@@ -79,7 +79,11 @@ def main():
     )
     ap.add_argument(
         "--spartnbasedate",
-        help="SPARTN decryption basedate (as integer - use pyspartn.date2timetag to convert datetime)",
+        help=(
+            "SPARTN decryption basedate (as integer - "
+            "use pyspartn.date2timetag to convert datetime)"
+        ),
+        type=int,
         default=SUPPRESS,
     )
     ap.add_argument(

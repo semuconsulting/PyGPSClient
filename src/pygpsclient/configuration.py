@@ -350,7 +350,7 @@ class Configuration:
         arg = kwargs.pop("spartnkey", getenv("SPARTNKEY", SPARTN_DEFAULT_KEY))
         if arg is not None:
             self.set("spartnkey_s", arg)
-        arg = kwargs.pop("spartnbasedate", getenv("SPARTNBASEDATE", 0))
+        arg = kwargs.pop("spartnbasedate", getenv("SPARTNBASEDATE", "0"))
         if arg is not None:
             self.set("spartnbasedate_n", int(arg))
         arg = kwargs.pop("mqttclientregion", getenv("MQTTCLIENTREGION", None))

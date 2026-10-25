@@ -546,7 +546,9 @@ For further details, refer to the `pygnssutils` homepage at [https://github.com/
 
 6. Some Homebrew-installed Python environments on MacOS can give rise to critical segmentation errors (*illegal memory access*) when shell subprocesses are invoked, due to MacOS security constraints. For this reason, application updates via the  About..Update button are disabled on MacOS Homebrew environments; use the CLI `python3 -m pip install --upgrade pygpsclient` command instead.
 
-7. **FYI** PyGPSClient runs fine under a [free-threading Python interpreter](https://docs.python.org/3/howto/free-threading-python.html) (*i.e. with GIL or global interpreter lock disabled*), but is typically some 4-5% *slower*. This because the decrease in overall runtime performance generally outweighs the benefits of thread concurrency. However, results may vary - feel free to compare the two on your own platform. The Python 3.15 free-threading interpreter (`python3.15t`) is now installed by default on MacOS platforms and is available as an option in Python>=3.13 on other platforms.
+7. If PyGPSClient becomes unresponsive or slow while streaming data, this generally means the [GUI refresh interval](#refreshrate) or (*if reading from a file*) File Delay settings are too low for the current computational load on your platform. Try increasing these settings and restarting PyGPSClient.
+
+8. **FYI** PyGPSClient runs fine under a [free-threading Python interpreter](https://docs.python.org/3/howto/free-threading-python.html) (*i.e. with GIL or global interpreter lock disabled*), but is typically some 4-5% *slower*. This because the decrease in overall runtime performance generally outweighs the benefits of thread concurrency. However, results may vary - feel free to compare the two on your own platform. The Python 3.15 free-threading interpreter (`python3.15t`) is now installed by default on MacOS platforms and is available as an option in Python>=3.13 on other platforms.
 
 ---
 ## <a name="license">License</a>

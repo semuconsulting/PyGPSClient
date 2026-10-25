@@ -1,8 +1,8 @@
 """
-GAL_OSNMA_command_generation.py
+gal_osnma_key_generation.py
 
 This Python script illustrates how to generate Galileo OSNMA Merkle and PublicKey
-MGA commands using PyGPSClient's ubx2preset utility.
+MGA commands using pyubx2 and PyGPSClient's ubx2preset utility.
 
 Ensure OSNMA is enabled via the CFG_GAL_USE_OSNMA configuration key (CFG-VALSET).
 
@@ -23,24 +23,29 @@ Created by semuadmin on 10 Oct 2026.
 
 # pylint: disable=line-too-long
 
-from pyubx2 import UBXMessage, SET, escapeall
 from pygpsclient import ubx2preset
+
+from pyubx2 import SET, UBXMessage, escapeall
+
+
+def hex2int(hexstr: str) -> int:
+    """Convert space-delimited hex string to little-endian integer"""
+    return int.from_bytes(bytes.fromhex(hexstr.replace(" ", "")), "little")
+
 
 # Merkle as defined in XML file as space-delimited hexadecimal string
 MERKLE = "83 2E 15 ED E5 56 55 EA C6 E3 99 A5 39 47 7B 7C 03 4C CE 24 C3 C9 3F FC 90 4A CD 9B F8 42 F0 4E"
-treenode = int.from_bytes(bytes.fromhex(MERKLE.replace(" ", "")), "little")
 msg1 = UBXMessage(
     "MGA",
     "MGA-GAL-OSNMA-MERKLE",
     SET,
     type=0x08,
     applicabilityTime=1,
-    treeNode=treenode,
+    treeNode=hex2int(MERKLE),
 )
 
 # Public Key as defined in XML file as space-delimited hexadecimal string
 PUBKEY = "02 21 92 04 B5 CA 6C 46 B6 23 EE ED 6C DD 2C DD B1 F7 D6 A7 53 27 67 E5 B8 DA 0D E1 EB D6 95 FC 99"
-pubkeypoint = int.from_bytes(bytes.fromhex(PUBKEY.replace(" ", "")), "little")
 msg2 = UBXMessage(
     "MGA",
     "MGA-GAL-OSNMA-PUBKEY",
@@ -48,11 +53,11 @@ msg2 = UBXMessage(
     type=0x07,
     pubKeyId=0x12,  # amend as required
     pubKeyType=0,
-    pubKeyPoint=pubkeypoint,
+    pubKeyPoint=hex2int(PUBKEY),
 )
 
 print(
     f"\nSerialized UBX Messages:\n{escapeall(msg1.serialize())}\n{escapeall(msg2.serialize())}"
 )
 preset = ubx2preset((msg1, msg2), "Upload Galileo OSNMA Merkle & Public Key")
-print(f"\nPreset command string:\n{preset}")
+print(f"\nPyGPSClient preset command string:\n{preset}")
