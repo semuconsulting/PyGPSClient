@@ -1339,7 +1339,7 @@ def unused_sats(data: dict) -> int:
 
 
 def ubx2preset(
-    msgs: UBXMessage | tuple[UBXMessage] | list[UBXMessage], desc: str = ""
+    msgs: UBXMessage | tuple[UBXMessage, ...] | list[UBXMessage], desc: str = ""
 ) -> str:
     """
     Convert one or more UBXMessages to format suitable for adding to user-defined
@@ -1365,8 +1365,12 @@ def ubx2preset(
         else desc
     )
     for msg in msgs:
+        if msg.msg_cls == b"\x13" and msg.msg_id not in (b"\x10", b"\x80"):
+            typ = msg.payload[0:1]  # MGA messages with type
+        else:
+            typ = b""
         preset += (
-            f", {UBX_CLASSES[msg.msg_cls]}, {UBX_MSGIDS[msg.msg_cls + msg.msg_id]}, "
+            f", {UBX_CLASSES[msg.msg_cls]}, {UBX_MSGIDS[msg.msg_cls + msg.msg_id + typ]}, "
             f"{msg.payload.hex()}, {msg.msgmode}"
         )
     return preset

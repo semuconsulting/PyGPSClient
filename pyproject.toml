@@ -63,14 +63,14 @@ classifiers = [
 dependencies = [
     "certifi>=2026.0.0",
     "pillow>=12.0.0",
-    "pygnssutils>=1.3.0",
+    "pygnssutils>=1.3.1",
     "pynmeagps>=1.1.8",
     "pyqgc>=1.0.1",
     "pyrtcm>=1.2.1",
     "pysbf2>=1.0.7",
     "pyserial>=3.5",
     "pyspartn>=1.1.0",
-    "pyubx2>=1.3.9",
+    "pyubx2>=1.4.0",
     "pyubxutils>=1.0.6",
     "pyunigps>=1.0.1",
     "requests>=2.34.0",
@@ -86,7 +86,7 @@ repository = "https://github.com/semuconsulting/PyGPSClient"
 changelog = "https://github.com/semuconsulting/PyGPSClient/blob/main/RELEASE_NOTES.md"
 
 [dependency-groups]
-optional = ["rasterio", "psutil"]
+optional = ["rasterio", "psutil", "cryptography>=45.0.0"]
 build = [
     "awscli",
     "build",

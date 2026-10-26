@@ -23,6 +23,7 @@ import logging
 import ssl
 from datetime import datetime, timedelta
 from io import BufferedReader
+from os import getenv
 from queue import Empty
 from socket import (
     AF_INET,
@@ -36,7 +37,6 @@ from socket import (
 from threading import Event, Thread
 from time import sleep
 from tkinter import Frame, Tk
-from types import NoneType
 from typing import Any
 
 from certifi import where as findcacerts
@@ -49,13 +49,7 @@ from pygnssutils import (
     UNI_PROTOCOL,
     GNSSReader,
 )
-
-try:
-    from pygnssutils.gnssreader import PARSE_FULL, GNSSMessage
-except ImportError:
-    PARSE_FULL = 1
-    PARSE_META = 2
-    GNSSMessage = None
+from pygnssutils.gnssreader import PARSE_FULL, PARSE_META, GNSSMessage
 from pynmeagps import NMEAMessage
 from pyqgc import QGCMessage
 from pyrtcm import RTCMMessage
@@ -110,6 +104,7 @@ class StreamHandler:
         self._stream_thread = None
         self._stopevent = Event()
         self._ttyevent = Event()
+        self._metaonly = int(getenv("PYGPSCLIENT_METAONLY", "0"))
 
     def start(self, caller: Frame, settings: dict):
         """
@@ -316,7 +311,6 @@ class StreamHandler:
         """
 
         conntype = settings["conntype"]
-
         ubr = GNSSReader(
             stream,
             protfilter=NMEA_PROTOCOL
@@ -324,12 +318,15 @@ class StreamHandler:
             | SBF_PROTOCOL
             | QGC_PROTOCOL
             | RTCM3_PROTOCOL
-            | UNI_PROTOCOL,
+            | UNI_PROTOCOL
+            | SPARTN_PROTOCOL,
             quitonerror=ERR_LOG,
-            parsing=PARSE_FULL,
+            parsing=PARSE_META if self._metaonly else PARSE_FULL,
             bufsize=DEFAULT_BUFSIZE,
             msgmode=settings["msgmode"],
             errorhandler=self._errorhandler,
+            spartnkey=settings["spartnkey"],
+            spartnbasedate=settings["spartnbasedate"],
         )
 
         raw_data = b""

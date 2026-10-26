@@ -674,6 +674,7 @@ class BannerFrame(Frame):
             self._lbl_hvdop,
             self._lbl_hvacc,
             self._lbl_diffstat,
+            self._lbl_lacc_u,
         ):
             ctl["font"] = scale_font(self.width, FONTBASE - 4, FONTSCALE)[0]
 

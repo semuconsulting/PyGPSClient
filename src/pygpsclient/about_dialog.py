@@ -15,6 +15,7 @@ Created on 20 Sep 2020
 
 import logging
 from datetime import datetime
+from pathlib import Path
 from platform import python_version, uname
 from queue import Empty, Queue
 from threading import Event, Thread
@@ -39,6 +40,7 @@ from tkinter import (
 from webbrowser import open_new_tab
 
 from PIL import Image, ImageTk
+from pyspartn import HASCRYPTO
 
 from pygpsclient.custom_classes import ScrollableText
 from pygpsclient.globals import (
@@ -411,9 +413,11 @@ class AboutDialog(ToplevelDialog):
             f"{'Version:':<14}{ver}\n"
             f"{'Machine:':<14}{mcn}\n"
             f"{'Processor:':<14}{pro}\n"
+            f"{'Path:':<14}{Path(__file__).parent}\n"
             f"{'Python:':<14}{python_version()} {gil}\n"
             f"{'Tkinter:':<14}{tki}\n"
             f"{'Spatialite:':<14}{spl}\n"
+            f"{'Cryptography:':<14}{HASCRYPTO if HASCRYPTO else 'Not installed'}\n"
             "\nReceiver Information (if available):\n\n"
             f"{'Hardware:':<14}{hw}\n"
             f"{'Software:':<14}{sw}\n"

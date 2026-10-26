@@ -145,7 +145,7 @@ class StaticTest(unittest.TestCase):
     def testinitpresets(self):
         cfg = Configuration(DummyApp())
         cfg.init_presets("ubx")
-        self.assertEqual(len(cfg.get("ubxpresets_l")), 47)
+        self.assertEqual(len(cfg.get("ubxpresets_l")), 48)
         cfg.set(
             "ubxpresets_l",
             [
@@ -156,7 +156,7 @@ class StaticTest(unittest.TestCase):
             ],
         )
         cfg.init_presets("ubx")
-        self.assertEqual(len(cfg.get("ubxpresets_l")), 50)
+        self.assertEqual(len(cfg.get("ubxpresets_l")), 51)
 
     def testmakeval(self):
         self.assertEqual(makeval(""), 0.0)
@@ -633,13 +633,27 @@ class StaticTest(unittest.TestCase):
             maxTrkCh_02=24,
             flags_02=b"\x00\x00\x40\x00",
         )
+        PEXAMPLE =  "03 97 EB 43 78 9A A0 F6 D0 52 A6 38 46 8E CF 52 78 E6 F6 DF 84 65 EC B8 D8 B8 4B 8C 7A 35 01 F7 3B"
+        pubkeypoint = int.from_bytes(bytes.fromhex(PEXAMPLE.replace(" ","")),"little")
+        msg3 = UBXMessage(
+                "MGA",
+                "MGA-GAL-OSNMA-PUBKEY",
+                SET,
+                type=0x07,
+                pubKeyId=12,
+                pubKeyType=1,
+                pubKeyPoint=pubkeypoint
+            )
+        res1 = ubx2preset((msg1), "Configure GNSS")
         self.assertEqual(
-            ubx2preset(msg1, "Configure GNSS"),
+            res1,
             "Configure GNSS, CFG, CFG-GNSS, 0002040200042000010004000603180000004000, 1",
         )
+        res2 = ubx2preset((msg1, msg2, msg3), "Configure GNSS")
+        # print(f'"{res2}"')
         self.assertEqual(
-            ubx2preset((msg1, msg2), "Configure GNSS"),
-            "Configure GNSS, CFG, CFG-GNSS, 0002040200042000010004000603180000004000, 1, CFG, CFG-GNSS, 0002040200042000010004000503180000004000, 1",
+            res2,
+            "Configure GNSS, CFG, CFG-GNSS, 0002040200042000010004000603180000004000, 1, CFG, CFG-GNSS, 0002040200042000010004000503180000004000, 1, MGA, MGA-GAL-OSNMA-PUBKEY, 07001c000397eb43789aa0f6d052a638468ecf5278e6f6df8465ecb8d8b84b8c7a3501f73b0000000000000000000000000000000000000000000000000000000000000000000000, 1",
         )
 
     def testdop2str(self):
