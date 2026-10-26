@@ -80,8 +80,8 @@ def main():
     ap.add_argument(
         "--spartnbasedate",
         help=(
-            "SPARTN decryption basedate (as integer - "
-            "use pyspartn.date2timetag to convert datetime)"
+            "SPARTN decryption basedate as integer (0 = use data stream, -1 = current UTC, "
+            "use pyspartn.date2timetag to convert other datetime)"
         ),
         type=int,
         default=SUPPRESS,

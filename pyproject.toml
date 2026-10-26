@@ -49,7 +49,6 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "Intended Audience :: End Users/Desktop",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -113,10 +112,10 @@ deploy = [{ include-group = "build" }, { include-group = "test" }]
 version = { attr = "pygpsclient._version.__version__" }
 
 [tool.black]
-target-version = ['py310']
+target-version = ['py311']
 
 [tool.isort]
-py_version = 310
+py_version = 311
 profile = "black"
 
 [tool.bandit]
@@ -134,7 +133,7 @@ skips = [
 jobs = 0
 reports = "y"
 recursive = "y"
-py-version = "3.10"
+py-version = "3.11"
 fail-under = "9.9"
 fail-on = "E,F"
 clear-cache-post-run = "y"

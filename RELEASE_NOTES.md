@@ -1,5 +1,9 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.8.1
+
+1. Remove Python 3.10 from build and test workflows - now End of Life as at 2026/10/01.
+
 ### RELEASE 1.8.0
 
 1. Add support for parsing and logging unencrypted (`eaf`=0) or encrypted (`eaf`=1) SPARTN output direct from a receiver or datalog file (*in addition to existing NTRIP SPARTN parsing capability*). Encrypted SPARTN data will require valid `--spartnkey` and `--spartnbasedate` command line arguments e.g.
