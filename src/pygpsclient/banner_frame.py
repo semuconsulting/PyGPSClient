@@ -67,7 +67,7 @@ if PSSTATS:
 
 M2MILES = 5280
 FONTBASE = 12
-FONTSCALE = 90
+FONTSCALE = 70
 
 
 class BannerFrame(Frame):
@@ -429,7 +429,7 @@ class BannerFrame(Frame):
 
         lat = self.__app.gnss_status.lat
         lon = self.__app.gnss_status.lon
-        alt = self.__app.gnss_status.alt  # hMSL
+        hmsl = self.__app.gnss_status.alt  # hMSL
         hae = self.__app.gnss_status.hae
         self._lbl_llat["text"] = "lat:"
         self._lbl_llon["text"] = "lon:"
@@ -440,14 +440,15 @@ class BannerFrame(Frame):
 
         try:
             if pos_format == ECEF:
-                lat, lon, alt = llh2ecef(lat, lon, alt)
+                x, y, z = llh2ecef(lat, lon, hae)
                 if units in (UI, UIK):
-                    lat, lon = (m2ft(x) for x in (lat, lon))
+                    x, y, z = (m2ft(n) for n in (x, y, z))
                 self._lbl_llat["text"] = "X:"
                 self._lbl_llon["text"] = "Y:"
                 self._lbl_lhmsl["text"] = "Z:"
-                self._lbl_lat["text"] = f"{lat:.4f}"
-                self._lbl_lon["text"] = f"{lon:.4f}"
+                self._lbl_lat["text"] = f"{x:.4f}"
+                self._lbl_lon["text"] = f"{y:.4f}"
+                self._lbl_hmsl["text"] = f"{z:.4f}"
             else:
                 deg_f = "<15"
                 if pos_format == DMS:
@@ -457,12 +458,11 @@ class BannerFrame(Frame):
                 else:
                     deg_f = ".9f"
                 if units in (UI, UIK):
-                    alt = m2ft(alt)
-                    hae = m2ft(hae)
+                    hmsl, hae = (m2ft(n) for n in (hmsl, hae))
                 self._lbl_lat["text"] = f"{lat:{deg_f}}"
                 self._lbl_lon["text"] = f"{lon:{deg_f}}"
-            self._lbl_hmsl["text"] = f"{alt:.4f} {alt_u}"
-            haev = hae - alt if self._sep else hae
+                self._lbl_hmsl["text"] = f"{hmsl:.4f} {alt_u}"
+            haev = hae - hmsl if self._sep else hae
             self._lbl_hae["text"] = f"{haev:.4f} {alt_u}"
         except (TypeError, ValueError):
             self._lbl_lat["text"] = NA
@@ -650,7 +650,9 @@ class BannerFrame(Frame):
             self._lbl_siv,
             self._lbl_diffcorr,
         ):
-            ctl["font"] = scale_font(self.width, FONTBASE, FONTSCALE)[0]
+            ctl["font"] = scale_font(
+                width=self.width, basesize=FONTBASE, txtwidth=FONTSCALE, maxsize=14
+            )[0]
 
         for ctl in (
             self._lbl_ltime,
@@ -668,7 +670,9 @@ class BannerFrame(Frame):
             self._lbl_lcorr,
             self._lbl_psstats,
         ):
-            ctl["font"] = scale_font(self.width, FONTBASE - 2, FONTSCALE)[0]
+            ctl["font"] = scale_font(
+                width=self.width, basesize=FONTBASE - 2, txtwidth=FONTSCALE, maxsize=12
+            )[0]
 
         for ctl in (
             self._lbl_hvdop,
@@ -676,7 +680,9 @@ class BannerFrame(Frame):
             self._lbl_diffstat,
             self._lbl_lacc_u,
         ):
-            ctl["font"] = scale_font(self.width, FONTBASE - 4, FONTSCALE)[0]
+            ctl["font"] = scale_font(
+                width=self.width, basesize=FONTBASE - 4, txtwidth=FONTSCALE, maxsize=10
+            )[0]
 
     def _on_sep(self, event):  # pylint: disable=unused-argument
         """
