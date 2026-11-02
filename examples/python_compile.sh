@@ -24,7 +24,7 @@
 set -e
 
 # set required Python major and minor version e.g. 3.13.10
-PYVER="3.14.7"
+PYVER="3.15.0"
 # NB: uncomment this line to install this version alongside existing versions
 # ALTINSTALL=1
 # NB: uncomment this line to disable GIL for versions that support free-threading (>=13.3)
@@ -80,7 +80,7 @@ sudo apt install libsqlite3-mod-spatialite || true
 
 # compile source and install - this will take several minutes
 cd Python-${PYVER}
-if [z ${DISABLEGIL+x} ]
+if [ -z ${DISABLEGIL+x} ]
 then
 ./configure --enable-optimizations --enable-loadable-sqlite-extensions --disable-gil
 else

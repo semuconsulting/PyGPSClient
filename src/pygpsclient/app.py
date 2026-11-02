@@ -91,7 +91,6 @@ from pygpsclient.globals import (
     SOCKSERVER_MAX_CLIENTS,
     SPARTN_PROTOCOL,
     STATUS_PRIORITY,
-    STATUS_TIMEOUT,
     TTY_PROTOCOL,
     UNDO,
 )
@@ -176,7 +175,6 @@ class App(Tk):
         super().__init__()
 
         # load config from json file
-        self.status_msg_timer = None
         self._deferredmsg = None
         self.widget_state = WidgetState()  # widget state
         self.file_handler = FileHandler(self)
@@ -968,15 +966,7 @@ class App(Tk):
         :param str col: color
         """
 
-        # truncate very long connection description
-        if len(msg) > 80:
-            msg = f"{msg[0:80]}..."
-
-        if hasattr(self, "frm_status"):
-            self.frm_status.lbl_connection["text"] = msg
-            self.frm_status.lbl_connection["fg"] = col
-            self.frm_status.lbl_connection.update()
-            self.update_idletasks()
+        self.frm_status.set_connection(msg, col)
 
     def set_device_label(self, msg: str, col: str = INFOCOL):
         """
@@ -986,15 +976,7 @@ class App(Tk):
         :param str col: color
         """
 
-        # truncate very long device description
-        if len(msg) > 30:
-            msg = f"{msg[0:30]}..."
-
-        if hasattr(self, "frm_status"):
-            self.frm_status.lbl_device["text"] = msg
-            self.frm_status.lbl_device["fg"] = col
-            self.frm_status.lbl_device.update()
-            self.update_idletasks()
+        self.frm_status.set_device(msg, col)
 
         # update configuration panels
         for dlg in (DLGTTTY, DLGTUBX, DLGTNMEA):
@@ -1011,32 +993,18 @@ class App(Tk):
         :param bool expire: expire messages
         """
 
-        def priority(col):
-            return STATUS_PRIORITY.get(col, 0)
-
-        if self.status_msg_timer is not None:
-            self.after_cancel(self.status_msg_timer)
-
-        # truncate very long messages
-        if len(msg) > 200:
-            msg = "..." + msg[-200:]
-
         if hasattr(self, "frm_status"):
-            col = INFOCOL if col == "blue" else col
-            self.frm_status.lbl_status["text"] = msg
-            self.frm_status.lbl_status["fg"] = col
-            self.frm_status.lbl_status.update()
-            self.update_idletasks()
+            self.frm_status.set_status(
+                msg, INFOCOL if col == "blue" else col, expire=expire
+            )
         else:  # defer message until frm_status is instantiated
             if isinstance(self._deferredmsg, tuple):
-                defpty = priority(self._deferredmsg[1])
+                defpty = STATUS_PRIORITY.get(self._deferredmsg[1], 0)
             else:
                 defpty = 0
-            if priority(col) > defpty:
+            # check msg has higher priority than any already deferred
+            if STATUS_PRIORITY.get(col, 0) > defpty:
                 self._deferredmsg = (msg, col)
-
-        if expire:
-            self.status_msg_timer = self.after(STATUS_TIMEOUT, self.set_status_label)
 
     @property
     def conn_status(self) -> int:
@@ -1200,7 +1168,7 @@ class App(Tk):
 
         self.set_status_label(UPDATEINPROG, INFOCOL)
         updates = [
-            nam for (nam, current, latest) in check_for_updates() if latest != current
+            nam for (nam, current, latest) in check_for_updates() if latest > current
         ]
         if len(updates) < 1:
             return 1

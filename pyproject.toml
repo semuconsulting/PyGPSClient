@@ -27,6 +27,7 @@ keywords = [
     "PyGPSClient",
     "Quectel",
     "QZSS",
+    "RINEX",
     "RTCM",
     "RTK",
     "Septentrio",
@@ -68,8 +69,8 @@ dependencies = [
     "pyrtcm>=1.2.1",
     "pysbf2>=1.0.7",
     "pyserial>=3.5",
-    "pyspartn>=1.1.0",
-    "pyubx2>=1.4.0",
+    "pyspartn>=1.1.2",
+    "pyubx2>=1.4.1",
     "pyubxutils>=1.0.6",
     "pyunigps>=1.0.1",
     "requests>=2.34.0",
@@ -90,7 +91,7 @@ build = [
     "awscli",
     "build",
     "packaging>=24.2",
-    "pip>=25.1",
+    "pip>=26.2.2",
     "setuptools>=75.0.0",
     "twine>=6.1.0",
     "wheel",
@@ -98,7 +99,7 @@ build = [
 test = [
     "bandit",
     "black",
-    "certifi",
+    "certifi>=2026.10.19",
     "isort",
     "pylint",
     "pytest",
@@ -158,7 +159,7 @@ disable = """
 
 [tool.pytest.ini_options]
 minversion = "7.0"
-addopts = "--cov --cov-report html --cov-fail-under 17"
+addopts = "--cov --cov-report html --cov-fail-under 23"
 pythonpath = ["src"]
 testpaths = ["tests"]
 
@@ -169,7 +170,7 @@ source = ["src"]
 source = ["src"]
 
 [tool.coverage.report]
-fail_under = 17
+fail_under = 23
 
 [tool.coverage.html]
 directory = "htmlcov"

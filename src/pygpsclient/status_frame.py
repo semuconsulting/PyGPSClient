@@ -14,7 +14,7 @@ Created on 12 Sep 2020
 
 from tkinter import EW, NS, VERTICAL, Frame, Label, Tk, W, ttk
 
-from pygpsclient.globals import BGCOL
+from pygpsclient.globals import BGCOL, INFOCOL, STATUS_TIMEOUT
 
 
 class StatusFrame(Frame):
@@ -36,6 +36,7 @@ class StatusFrame(Frame):
         super().__init__(app, *args, **kwargs)
 
         self.width, self.height = self.get_size()
+        self._status_msg_timer = None
         self._body()
         self._do_layout()
         self._attach_events()
@@ -87,3 +88,61 @@ class StatusFrame(Frame):
 
         self.update_idletasks()  # Make sure we know about any resizing
         return self.winfo_width(), self.winfo_height()
+
+    def _set_label(self, label: Label, msg: str, col: str, maxlen: int = 80):
+        """
+        Update label.
+
+        :param Label label: label
+        :param str msg: message
+        :param str col: color
+        :param int maxlen: maximum length
+        """
+
+        if len(msg) > maxlen:
+            msg = f"...{msg[-maxlen:]}"
+        label["text"] = msg
+        label["fg"] = col
+        label.update()
+
+    def set_connection(self, msg: str = "", col: str = INFOCOL, maxlen: int = 80):
+        """
+        Update connection label.
+
+        :param str msg: message
+        :param str col: color
+        :param int maxlen: maximum length
+        """
+
+        self._set_label(self.lbl_connection, msg, col, maxlen)
+
+    def set_device(self, msg: str = "", col: str = INFOCOL, maxlen: int = 30):
+        """
+        Update device label.
+
+        :param str msg: message
+        :param str col: color
+        :param int maxlen: maximum length
+        """
+
+        self._set_label(self.lbl_device, msg, col, maxlen)
+
+    def set_status(
+        self, msg: str = "", col: str = INFOCOL, maxlen: int = 200, expire: bool = True
+    ):
+        """
+        Update status label.
+
+        :param str msg: message
+        :param str col: color
+        :param int maxlen: maximum length
+        :param bool expire: message expires (blanks)
+        """
+
+        if self._status_msg_timer is not None:
+            self.after_cancel(self._status_msg_timer)
+
+        self._set_label(self.lbl_status, msg, col, maxlen)
+
+        if expire and msg.strip() != "":
+            self._status_msg_timer = self.after(STATUS_TIMEOUT, self.set_status)

@@ -67,7 +67,7 @@ if PSSTATS:
 
 M2MILES = 5280
 FONTBASE = 12
-FONTSCALE = 70
+FONTSCALE = 90
 
 
 class BannerFrame(Frame):
@@ -651,7 +651,7 @@ class BannerFrame(Frame):
             self._lbl_diffcorr,
         ):
             ctl["font"] = scale_font(
-                width=self.width, basesize=FONTBASE, txtwidth=FONTSCALE, maxsize=14
+                width=self.width, basesize=FONTBASE, txtwidth=FONTSCALE
             )[0]
 
         for ctl in (
@@ -671,7 +671,7 @@ class BannerFrame(Frame):
             self._lbl_psstats,
         ):
             ctl["font"] = scale_font(
-                width=self.width, basesize=FONTBASE - 2, txtwidth=FONTSCALE, maxsize=12
+                width=self.width, basesize=FONTBASE - 2, txtwidth=FONTSCALE
             )[0]
 
         for ctl in (
@@ -681,7 +681,7 @@ class BannerFrame(Frame):
             self._lbl_lacc_u,
         ):
             ctl["font"] = scale_font(
-                width=self.width, basesize=FONTBASE - 4, txtwidth=FONTSCALE, maxsize=10
+                width=self.width, basesize=FONTBASE - 4, txtwidth=FONTSCALE
             )[0]
 
     def _on_sep(self, event):  # pylint: disable=unused-argument

@@ -390,6 +390,8 @@ class AboutDialog(ToplevelDialog):
                 lts = " ?"
             elif lver == cver:
                 lts = " ✓"
+            elif lver < cver:
+                lts = " Pre-release Version"
             else:
                 updates.set()
                 lts = f" Update Available: {lver:<6}"

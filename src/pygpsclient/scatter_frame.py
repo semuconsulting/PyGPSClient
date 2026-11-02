@@ -83,7 +83,7 @@ FIXCOL = "#00EE00"
 PNTTOPCOL = "#FF0000"
 CULLMID = False  # whether to cull random points from middle of array
 FIXINAUTO = False  # whether to include fixed ref point in autorange
-MAXPOINTS = 500  # maximum number of in-memory points before truncation
+MAXPOINTS = 1000  # maximum number of in-memory points before truncation
 PNT = "pnt"
 STDINT = 10  # standard deviation calculation interval
 

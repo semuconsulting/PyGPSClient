@@ -26,7 +26,7 @@ HELPTXT = "Help..About - display About dialog."
 ABOUTTXT = (
     f"{TITLE} is a free, open-source GNSS diagnostic and configuration "
     "application written entirely by human volunteers in Python and tkinter. "
-    "It supports NMEA, UBX, SBF, UNI, QGC, RTCM3, NTRIP & SPARTN protocols."
+    "It supports NMEA, UBX, SBF, UNI, QGC, RTCM3, NTRIP, SPARTN & RINEX protocols."
 )
 NA = "N/A"
 

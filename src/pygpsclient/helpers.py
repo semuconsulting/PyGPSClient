@@ -59,6 +59,7 @@ from pyubx2 import (
     atttyp,
 )
 from pyubx2 import version as UBXVERSION
+from pyubxutils import version as UBXUTILSVERSION
 from pyunigps import version as UNIVERSION
 from requests import get
 
@@ -116,6 +117,7 @@ LIBVERSIONS = {
     "pyspartn": SPARTNVERSION,
     "pyubx2": UBXVERSION,
     "pyunigps": UNIVERSION,
+    "pyubxutils": UBXUTILSVERSION,
 }
 
 # ****************************************************************
