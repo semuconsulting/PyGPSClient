@@ -40,7 +40,7 @@ from inspect import currentframe, getfile
 from os import path
 from pathlib import Path
 from queue import Empty, Queue
-from subprocess import CalledProcessError, run
+from subprocess import CalledProcessError, run  # nosec
 from sys import executable
 from threading import Lock, Thread
 from tkinter import EW, NSEW, NW, Frame, PhotoImage, Tk, Toplevel, font
@@ -1194,7 +1194,7 @@ class App(Tk):
         result = None
         try:
             self.logger.debug(f"{executable=} {pth=} {cmd=}")
-            result = run(cmd, check=True, capture_output=True)
+            result = run(cmd, check=True, capture_output=True)  # nosec
             self.set_status_label(UPDATERESTART, OKCOL)
             self.logger.debug(result.stdout)
             return 1

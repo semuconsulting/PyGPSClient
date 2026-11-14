@@ -711,4 +711,4 @@ class CanvasMap(Canvas):  # pylint: disable=too-many-ancestors
             self._track.append(Point(location.lat, location.lon))
         # limit size of track list
         while len(self._track) > POINTLIMIT:
-            self._track.pop(randrange(1, len(self._track) - 1))
+            self._track.pop(randrange(1, len(self._track) - 1))  # nosec

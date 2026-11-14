@@ -557,7 +557,8 @@ class ScatterViewFrame(Frame):
         """
 
         if CULLMID:  # cull randomly from middle
-            self._points.pop(randrange(1, len(self._points) - int(MAXPOINTS / 10)))
+            ur = len(self._points) - int(MAXPOINTS / 10)
+            self._points.pop(randrange(1, ur))  # nosec
         else:  # cull from start
             self._points.pop(0)
 

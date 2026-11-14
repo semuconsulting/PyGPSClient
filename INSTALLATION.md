@@ -81,7 +81,7 @@ Python 3.10.8 (v3.10.8:aaaf517424, Oct 11 2022, 10:14:40) [Clang 13.0.0 (clang-1
 In the following, `python3` & `pip` refer to the Python 3 executables. You may need to substitute `python` for `python3`, depending on your particular environment (*on Windows it's generally `python`*). 
 
 - Graphical User Interface (window system / manager)
-- Python >= 3.10⁴
+- Python >= 3.11⁴
 - Tk (tkinter) >= 8.6⁵ (*tkinter is a commonly used library for developing Graphical User Interfaces (GUI) in Python*)
 - At least 500 MB usable memory
 - Screen resolution >= 640 x 480 (VGA); Ideally 1920 x 1080, though at lower screen resolutions (<= 1024 width), top level dialogs will be resizable and scrollable.

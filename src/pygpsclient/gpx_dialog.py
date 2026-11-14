@@ -29,7 +29,7 @@ from tkinter import (
     Tk,
     W,
 )
-from xml.dom import minidom
+from xml.dom import minidom  # nosec
 from xml.parsers import expat
 
 from pynmeagps import haversine, planar
@@ -376,7 +376,7 @@ class GPXViewerDialog(ToplevelDialog):
         ptyp = GPXTYPES[self._gpxtype.get()]
         with open(self._gpxfile, "r", encoding="utf-8") as gpx:
             try:
-                parser = minidom.parse(gpx)
+                parser = minidom.parse(gpx)  # nosec
                 trkpts = parser.getElementsByTagName(f"{ptyp}")
                 self._process_track(trkpts, ptyp)
             except (TypeError, AttributeError, expat.ExpatError) as err:

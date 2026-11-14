@@ -615,7 +615,7 @@ def hextable(raw: bytes, cols: int = 8) -> list:
     """
     Formats raw (binary) message in tabular hexadecimal format e.g.
 
-    000: 2447 4e47 5341 2c41 2c33 2c33 342c 3233 | b'$GNGSA,A,3,34,23' |
+    0000: 2447 4e47 5341 2c41 2c33 2c33 342c 3233 | b'$GNGSA,A,3,34,23' |
 
     :param bytes raw: raw (binary) data
     :param int cols: number of columns in hex table (8)
@@ -630,7 +630,7 @@ def hextable(raw: bytes, cols: int = 8) -> list:
     rawh = raw.hex()
     for i in range(0, len(rawh), colw):
         rawl = rawh[i : i + colw].ljust(colw, " ")
-        hextbl = f"{int(i/2):03}: "
+        hextbl = f"{int(i/2):04}: "
         for col in range(0, colw, 4):
             hextbl += f"{rawl[col : col + 4]} "
         bfh = str(bytes.fromhex(rawl))

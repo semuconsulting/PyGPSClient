@@ -12,7 +12,7 @@ Created on 3 Oct 2020
 
 # pylint: disable=line-too-long, invalid-name, missing-docstring, no-member
 
-from subprocess import run, PIPE
+from subprocess import run, PIPE  #nosec
 import unittest
 
 
@@ -25,7 +25,7 @@ class StreamTest(unittest.TestCase):
 
     def testpygpsclient(self):
         try:
-            res = run(["pygpsclient", "-h"], stdout=PIPE, check=False)
+            res = run(["pygpsclient", "-h"], stdout=PIPE, check=False)  #nosec
             res = res.stdout.decode("utf-8")
             self.assertEqual(res[0:18], "usage: pygpsclient")
         except FileNotFoundError:

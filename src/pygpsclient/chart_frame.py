@@ -143,7 +143,7 @@ class ChartviewFrame(Frame):
         # generate random plot colours for channels > 4
         if self._num_chans > 4:
             self._plotcols += tuple(
-                "#" + "".join([choice("9ABCDEF") for j in range(6)])
+                "#" + "".join([choice("9ABCDEF") for j in range(6)])  # nosec
                 for i in range(self._num_chans - 4)
             )
         self._data_id = [None] * self._num_chans

@@ -193,7 +193,7 @@
                 "-c",
                 "pyproject.toml",
                 "-r",
-                "src/pygpsclient"
+                "."
             ],
             "problemMatcher": []
         },

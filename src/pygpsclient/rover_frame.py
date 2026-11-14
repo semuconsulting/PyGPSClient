@@ -336,7 +336,8 @@ class RoverFrame(Frame):
         """
 
         if CULLMID:  # cull randomly from middle
-            self.points.pop(randrange(1, len(self.points) - int(MAXPOINTS / 10)))
+            ur = len(self.points) - int(MAXPOINTS / 10)
+            self.points.pop(randrange(1, ur))  # nosec
         else:  # cull from start
             self.points.pop(0)
 
