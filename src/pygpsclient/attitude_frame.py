@@ -41,10 +41,9 @@ from pygpsclient.globals import (
     PNTCOL,
     READONLY,
     TRACEMODE_WRITE,
-    WIDGETU2,
 )
 from pygpsclient.helpers import rgb2str, scale_font
-from pygpsclient.strings import DLGWAITATTITUDE
+from pygpsclient.widget_frame import WidgetFrame
 
 OFFSETX = 5
 OFFSETY = 10
@@ -69,7 +68,7 @@ RANGES = (
 OPTIONS = ("N/A",)
 
 
-class AttitudeFrame(Frame):
+class AttitudeFrame(WidgetFrame):
     """
     Attitude (3D orientation) frame class.
     """
@@ -83,32 +82,17 @@ class AttitudeFrame(Frame):
         :param args: Optional args to pass to Frame parent class
         :param kwargs: Optional kwargs to pass to Frame parent class
         """
+
         self.__app = app
-
-        super().__init__(parent, *args, **kwargs)
-
-        def_w, def_h = WIDGETU2
-
-        self.width = kwargs.get("width", def_w)
-        self.height = kwargs.get("height", def_h)
-        self._font = self.__app.font_md
-        self._fonth = self._font.metrics("linespace")
         self._range = IntVar()
         self._option = StringVar()
         self._range.set(RANGES[0])
-        self._waiting = True
-        self._body()
-        self.reset()
-        self._attach_events()
+
+        super().__init__(app, parent, *args, **kwargs)
 
     def _body(self):
         """Set up frame and widgets."""
 
-        for i in range(4):
-            self.grid_columnconfigure(i, weight=1, uniform="ent")
-        self.grid_rowconfigure(0, weight=1)
-        self.grid_rowconfigure(1, weight=0)
-        self.grid_rowconfigure(2, weight=0)
         self._canvas = Canvas(self, width=self.width, height=self.height, bg=BGCOL)
         self._lbl_range = Label(self, text="Range", fg=FGCOL, bg=BGCOL, anchor=W)
         self._spn_range = Spinbox(
@@ -136,12 +120,23 @@ class AttitudeFrame(Frame):
             textvariable=self._option,
             state=READONLY,
         )
-        self._canvas.grid(column=0, row=0, columnspan=4, sticky=NSEW)
 
+    def _do_layout(self):
+        """
+        Arrange frame and widgets in grid.
+        """
+
+        self._canvas.grid(column=0, row=0, columnspan=4, sticky=NSEW)
         self._lbl_range.grid(column=0, row=1, sticky=EW)
         self._spn_range.grid(column=1, row=1, sticky=EW)
         self._lbl_option.grid(column=2, row=1, sticky=EW)
         self._spn_option.grid(column=3, row=1, sticky=EW)
+
+        for i in range(4):
+            self.grid_columnconfigure(i, weight=1, uniform="ent")
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=0)
+        self.grid_rowconfigure(2, weight=0)
 
     def reset(self):
         """
@@ -157,7 +152,6 @@ class AttitudeFrame(Frame):
         Bind events to frame.
         """
 
-        self.bind("<Configure>", self._on_resize)
         self._canvas.bind("<Double-Button-1>", self._on_clear)
         for setting in (self._range, self._option):
             setting.trace_add(TRACEMODE_WRITE, self._on_update_config)
@@ -367,22 +361,6 @@ class AttitudeFrame(Frame):
         else:
             self._spn_range.configure(fg=PNTCOL, bg=BGCOL, readonlybackground=BGCOL)
 
-    def _redraw(self):
-        """
-        Redraw frame.
-        """
-
-        self.update_frame()
-
-    def _on_clear(self, event):  # pylint: disable=unused-argument
-        """
-        Clear frame.
-
-        :param Event event: clear event
-        """
-
-        self.init_frame()
-
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """
         Resize frame.
@@ -390,27 +368,8 @@ class AttitudeFrame(Frame):
         :param Event event: resize event
         """
 
-        self.width, self.height = self.get_size()
+        self.width, self.height = super().get_size()
         self._font, self._fonth = scale_font(self.width, 12, 25, 30)
         self.init_frame()
-        self._redraw()
+        self.update_frame()
         self._on_waiting()
-
-    def _on_waiting(self):
-        """
-        Display 'waiting for data' alert.
-        """
-
-        if self._waiting:
-            self._canvas.create_alert(DLGWAITATTITUDE, tags=TAG_WAIT)
-
-    def get_size(self) -> tuple:
-        """
-        Get current canvas size.
-
-        :return: window size (width, height)
-        :rtype: tuple
-        """
-
-        self.update_idletasks()  # Make sure we know about resizing
-        return self._canvas.winfo_width(), self._canvas.winfo_height()

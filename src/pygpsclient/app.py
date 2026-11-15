@@ -93,6 +93,7 @@ from pygpsclient.globals import (
     STATUS_PRIORITY,
     TTY_PROTOCOL,
     UNDO,
+    WIDGETU2,
 )
 from pygpsclient.gnss_status import GNSSStatus
 from pygpsclient.helpers import (
@@ -137,11 +138,14 @@ from pygpsclient.ubx_handler import UBXHandler
 from pygpsclient.uni_handler import UNIHandler
 from pygpsclient.widget_state import (
     COLSPAN,
+    DATA,
     DEFAULT,
     DOCK,
+    FONTSIZE,
     HIDE,
     MAXSPAN,
     SHOW,
+    SIZE,
     UNDOCK,
     VISIBLE,
     WidgetState,
@@ -424,13 +428,25 @@ class App(Tk):
         """
 
         frm = state[FRAME]
-        visible = state[VISIBLE]
+        visible = state.get(VISIBLE, False)
+        width, height = state.get(SIZE, WIDGETU2)
+        fontsize = state.get(FONTSIZE, 12)
+        data = state.get(DATA, "")
         w = getattr(self, frm, None)
         if visible and w is None:
             setattr(
                 self,
                 frm,
-                state[CLASS](self, self.frm_widgets, borderwidth=1, relief="groove"),
+                state[CLASS](
+                    self,
+                    self.frm_widgets,
+                    borderwidth=1,
+                    relief="groove",
+                    width=width,
+                    height=height,
+                    fontsize=fontsize,
+                    data=data,
+                ),
             )
         elif not visible and w is not None:
             w.grid_forget()

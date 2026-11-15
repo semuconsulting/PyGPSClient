@@ -15,9 +15,8 @@ Created on 24 Dec 2025
 
 # pylint: disable=no-member, unused-variable, duplicate-code
 
-import logging
 from copy import deepcopy
-from tkinter import ALL, NSEW, NW, SE, Frame, N, S, Tk, font
+from tkinter import ALL, NSEW, NW, SE, Frame, N, Tk, font
 
 from pyubx2 import CORRSOURCE, SIGID, UBXMessage
 
@@ -36,12 +35,10 @@ from pygpsclient.globals import (
     GRIDMAJCOL,
     MAX_SNR,
     MAXWAIT,
-    PNTCOL,
     SIGNALSVIEW,
-    WIDGETU3,
 )
 from pygpsclient.helpers import col2contrast, fitfont, setubxrate
-from pygpsclient.strings import DLGNONAVSIG, DLGWAITNAVSIG
+from pygpsclient.widget_frame import WidgetFrame
 
 OL_WID = 1
 FONTSCALELG = 40
@@ -66,7 +63,7 @@ def unused_sigs(data: dict) -> int:
     return sum(1 for (_, _, _, cno, _, _, _, _) in data.values() if cno == 0)
 
 
-class SignalsviewFrame(Frame):
+class SignalsviewFrame(WidgetFrame):
     """
     Signalsview frame class.
     """
@@ -82,39 +79,34 @@ class SignalsviewFrame(Frame):
         """
 
         self.__app = app  # Reference to main application class
-        self.logger = logging.getLogger(__name__)
-
-        super().__init__(parent, *args, **kwargs)
-
-        def_w, def_h = WIDGETU3
-        self.width = kwargs.get("width", def_w)
-        self.height = kwargs.get("height", def_h)
-        self._redraw = True
         self._pending_confs = {}
         self._waits = 0
-        self._waiting = True
-        self._body()
-        self._attach_events()
-        self.enable_messages(True)
+
+        super().__init__(app, parent, *args, **kwargs)
 
     def _body(self):
         """
         Set up frame and widgets.
         """
 
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(0, weight=1)
         self._canvas = CanvasGraph(
             self.__app, self, width=self.width, height=self.height, bg=BGCOL
         )
+
+    def _do_layout(self):
+        """
+        Arrange frame and widgets in grid.
+        """
+
         self._canvas.grid(column=0, row=0, sticky=NSEW)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
 
     def _attach_events(self):
         """
         Bind events to frame.
         """
 
-        self.bind("<Configure>", self._on_resize)
         self._canvas.bind("<Double-Button-1>", self._on_legend)
         self._canvas.bind("<Double-Button-2>", self._on_cno0)
         self._canvas.bind("<Double-Button-3>", self._on_cno0)
@@ -143,7 +135,7 @@ class SignalsviewFrame(Frame):
         )
         self._redraw = True
 
-    def enable_messages(self, status: bool):
+    def enable_messages(self, status: bool = True):
         """
         Enable/disable UBX NAV-SIG message.
 
@@ -177,15 +169,8 @@ class SignalsviewFrame(Frame):
 
         if pending and msg.identity == "ACK-NAK":
             self.reset()
-            w, h = self.width, self.height
-            self._canvas.create_text(
-                w / 2,
-                h / 2,
-                text=DLGNONAVSIG,
-                fill=PNTCOL,
-                anchor=S,
-                tags=TAG_DATA,
-            )
+            self._waits = MAXWAIT + 1
+            self._on_waiting()
             self._pending_confs.pop("ACK-NAK")
 
         if self._pending_confs.get("ACK-ACK", False):
@@ -283,7 +268,7 @@ class SignalsviewFrame(Frame):
             )  # to avoid thread contention
             if len(data) == 0:
                 if self._waits >= MAXWAIT:
-                    self._canvas.create_alert(DLGNONAVSIG, tags=TAG_WAIT)
+                    self._on_waiting()
                 else:
                     self._waits += 1
             else:
@@ -353,34 +338,3 @@ class SignalsviewFrame(Frame):
             pass
         except RuntimeError as err:
             self.logger.exception(err)
-
-    def _on_resize(self, event):  # pylint: disable=unused-argument
-        """
-        Resize frame
-
-        :param event event: resize event
-        """
-
-        self.width, self.height = self.get_size()
-        self._redraw = True
-        self._on_waiting()
-
-    def _on_waiting(self):
-        """
-        Display 'waiting for data' alert.
-        """
-
-        if self._waiting:
-            txt = DLGNONAVSIG if self._waits >= MAXWAIT else DLGWAITNAVSIG
-            self._canvas.create_alert(txt, tags=TAG_WAIT)
-
-    def get_size(self):
-        """
-        Get current canvas size.
-
-        :return: window size (width, height)
-        :rtype: tuple
-        """
-
-        self.update_idletasks()  # Make sure we know about any resizing
-        return self._canvas.winfo_width(), self._canvas.winfo_height()

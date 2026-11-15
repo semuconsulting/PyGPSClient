@@ -31,11 +31,11 @@ from pygpsclient.globals import (
     PNTCOL,
     READONLY,
     TRACEMODE_WRITE,
-    WIDGETU2,
 )
 from pygpsclient.helpers import setubxrate
 from pygpsclient.rtcm3_handler import RTCM56
-from pygpsclient.strings import DLGWAITRELPOS, NA
+from pygpsclient.strings import NA
+from pygpsclient.widget_frame import WidgetFrame
 
 CULLMID = True  # whether to cull random points from middle of array
 MAXPOINTS = 100
@@ -46,7 +46,7 @@ TRKTOL = 5
 RANGES = [int(i * 10**n) for n in range(1, 9) for i in (1, 2, 5)]
 
 
-class RoverFrame(Frame):
+class RoverFrame(WidgetFrame):
     """
     Rover view frame class.
     """
@@ -62,31 +62,19 @@ class RoverFrame(Frame):
         """
 
         self.__app = app
-
-        super().__init__(parent, *args, **kwargs)
-
-        def_w, def_h = WIDGETU2
-        self.width = kwargs.get("width", def_w)
-        self.height = kwargs.get("height", def_h)
         self._source = StringVar()
         self._range = 1
         self._temprange = 1
         self._scale_c = 1
         self._scale_u = "cm"
         self.points = []
-        self._redraw = True
         self._maxdist = 0
-        self._waiting = True
-        self._body()
-        self.reset()
-        self._attach_events()
-        self.enable_messages(True)
+
+        super().__init__(app, parent, *args, **kwargs)
 
     def _body(self):
         """Set up frame and widgets."""
 
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(0, weight=1)
         self._canvas = CanvasCompass(
             self.__app, self, MODE_POL, width=self.width, height=self.height, bg=BGCOL
         )
@@ -104,10 +92,18 @@ class RoverFrame(Frame):
             textvariable=self._source,
             state=READONLY,
         )
+
+    def _do_layout(self):
+        """
+        Arrange frame and widgets in grid.
+        """
+
         self._canvas.grid(column=0, row=0, sticky=NSEW)
         self._frm_options.grid(column=0, row=1, sticky=EW)
         self._lbl_options.grid(column=0, row=0, sticky=W)
         self._spn_options.grid(column=1, row=0, sticky=EW)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
 
     def reset(self):
         """
@@ -123,7 +119,6 @@ class RoverFrame(Frame):
         Bind events to frame.
         """
 
-        self.bind("<Configure>", self._on_resize)
         self._canvas.bind("<Double-Button-1>", self._on_clear)
         self._source.trace_add(TRACEMODE_WRITE, self._on_source)
 
@@ -341,12 +336,12 @@ class RoverFrame(Frame):
         else:  # cull from start
             self.points.pop(0)
 
-    def enable_messages(self, status: int):
+    def enable_messages(self, status: bool = True):
         """
         Enable/disable UBX NAV-RELPOSNED message on
         default port(s).
 
-        :param int status: 0 = off, 1 = on
+        :param bool status: 0 = off, 1 = on
         """
 
         source = self.__app.configuration.get("relposnedsettings_d")["source_s"]
@@ -375,33 +370,3 @@ class RoverFrame(Frame):
         self.points = []
         self._maxdist = 0
         self._redraw = True
-
-    def _on_resize(self, event):  # pylint: disable=unused-argument
-        """
-        Resize frame.
-
-        :param Event event: resize event
-        """
-
-        self.width, self.height = self.get_size()
-        self._redraw = True
-        self._on_waiting()
-
-    def _on_waiting(self):
-        """
-        Display 'waiting for data' alert.
-        """
-
-        if self._waiting:
-            self._canvas.create_alert(DLGWAITRELPOS, tags=TAG_WAIT)
-
-    def get_size(self) -> tuple:
-        """
-        Get current canvas size.
-
-        :return: window size (width, height)
-        :rtype: tuple
-        """
-
-        self.update_idletasks()  # Make sure we know about resizing
-        return self._canvas.winfo_width(), self._canvas.winfo_height()

@@ -14,7 +14,6 @@ Created on 14 Sep 2020
 
 # pylint: disable=no-member
 
-import logging
 from copy import deepcopy
 from tkinter import CENTER, NE, NSEW, Frame, Tk, font
 
@@ -32,10 +31,9 @@ from pygpsclient.globals import (
     GNSS_LIST,
     GRIDMAJCOL,
     MAX_SNR,
-    WIDGETU2,
 )
 from pygpsclient.helpers import col2contrast, fitfont, unused_sats
-from pygpsclient.strings import DLGWAITCNO
+from pygpsclient.widget_frame import WidgetFrame
 
 OL_WID = 1
 FONTSCALELG = 40
@@ -43,7 +41,7 @@ XLBLANGLE = 35
 XLBLFMT = "000"
 
 
-class LevelsviewFrame(Frame):
+class LevelsviewFrame(WidgetFrame):
     """
     Levelsview frame class.
     """
@@ -59,36 +57,32 @@ class LevelsviewFrame(Frame):
         """
 
         self.__app = app  # Reference to main application class
-        self.logger = logging.getLogger(__name__)
 
-        super().__init__(parent, *args, **kwargs)
-
-        def_w, def_h = WIDGETU2
-        self.width = kwargs.get("width", def_w)
-        self.height = kwargs.get("height", def_h)
-        self._redraw = True
-        self._waiting = True
-        self._body()
-        self._attach_events()
+        super().__init__(app, parent, *args, **kwargs)
 
     def _body(self):
         """
         Set up frame and widgets.
         """
 
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(0, weight=1)
         self._canvas = CanvasGraph(
             self.__app, self, width=self.width, height=self.height, bg=BGCOL
         )
+
+    def _do_layout(self):
+        """
+        Arrange frame and widgets in grid.
+        """
+
         self._canvas.grid(column=0, row=0, sticky=NSEW)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
 
     def _attach_events(self):
         """
         Bind events to frame.
         """
 
-        self.bind("<Configure>", self._on_resize)
         self._canvas.bind("<Double-Button-1>", self._on_legend)
 
     def _on_legend(self, event):  # pylint: disable=unused-argument
@@ -226,33 +220,3 @@ class LevelsviewFrame(Frame):
             pass
         except RuntimeError as err:
             self.logger.exception(err)
-
-    def _on_resize(self, event):  # pylint: disable=unused-argument
-        """
-        Resize frame
-
-        :param event event: resize event
-        """
-
-        self.width, self.height = self.get_size()
-        self._redraw = True
-        self._on_waiting()
-
-    def _on_waiting(self):
-        """
-        Display 'waiting for data' alert.
-        """
-
-        if self._waiting:
-            self._canvas.create_alert(DLGWAITCNO, tags=TAG_WAIT)
-
-    def get_size(self):
-        """
-        Get current canvas size.
-
-        :return: window size (width, height)
-        :rtype: tuple
-        """
-
-        self.update_idletasks()  # Make sure we know about any resizing
-        return self._canvas.winfo_width(), self._canvas.winfo_height()

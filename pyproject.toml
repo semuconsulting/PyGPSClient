@@ -142,6 +142,7 @@ disable = """
     deprecated-pragma,
     use-symbolic-message-instead,
     too-many-instance-attributes,
+    too-many-ancestors,
     unused-private-member,
     too-few-public-methods,
     too-many-public-methods,

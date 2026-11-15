@@ -516,6 +516,14 @@ pygpsclient.uni\_handler module
    :undoc-members:
    :show-inheritance:
 
+pygpsclient.widget\_frame module
+--------------------------------
+
+.. automodule:: pygpsclient.widget_frame
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pygpsclient.widget\_state module
 --------------------------------
 

@@ -61,7 +61,6 @@ from pygpsclient.globals import (
     PNTCOL,
     READONLY,
     TRACEMODE_WRITE,
-    WIDGETU1,
     Area,
     Point,
 )
@@ -72,7 +71,7 @@ from pygpsclient.helpers import (
     reorder_range,
     xy2ll,
 )
-from pygpsclient.strings import DLGWAITPOS
+from pygpsclient.widget_frame import WidgetFrame
 
 AVG = "avg"
 CTRAVG = "Average"
@@ -88,7 +87,7 @@ PNT = "pnt"
 STDINT = 10  # standard deviation calculation interval
 
 
-class ScatterViewFrame(Frame):
+class ScatterViewFrame(WidgetFrame):
     """
     Scatterplot view frame class.
     """
@@ -104,14 +103,6 @@ class ScatterViewFrame(Frame):
         """
 
         self.__app = app
-
-        super().__init__(parent, *args, **kwargs)
-
-        def_w, def_h = WIDGETU1
-
-        self.width = kwargs.get("width", def_w)
-        self.height = kwargs.get("height", def_h)
-        self._redraw = True
         self._maxpoints = 0
         self._points = []
         self._average = None
@@ -153,18 +144,11 @@ class ScatterViewFrame(Frame):
             0.01,
         )  # scale factors represent plot radius in meters
 
-        self._body()
-        self.reset()
-        self._attach_events()
+        super().__init__(app, parent, *args, **kwargs)
 
     def _body(self):
         """Set up frame and widgets."""
 
-        for i in range(3):
-            self.grid_columnconfigure(i, weight=1, uniform="ent")
-        self.grid_rowconfigure(0, weight=1)
-        self.grid_rowconfigure(1, weight=0)
-        self.grid_rowconfigure(2, weight=0)
         self._canvas = CanvasCompass(
             self.__app, self, MODE_POL, width=self.width, height=self.height, bg=BGCOL
         )
@@ -225,6 +209,12 @@ class ScatterViewFrame(Frame):
             variable=self._scale,
             showvalue=False,
         )
+
+    def _do_layout(self):
+        """
+        Arrange frame and widgets in grid.
+        """
+
         self._canvas.grid(column=0, row=0, columnspan=3, sticky=NSEW)
         self._ent_reflat.grid(column=0, row=1, sticky=EW)
         self._ent_reflon.grid(column=1, row=1, sticky=EW)
@@ -232,6 +222,11 @@ class ScatterViewFrame(Frame):
         self._chk_autorange.grid(column=0, row=2, sticky=EW)
         self._spn_interval.grid(column=1, row=2, sticky=EW)
         self._scl_range.grid(column=2, row=2, sticky=EW)
+        for i in range(3):
+            self.grid_columnconfigure(i, weight=1, uniform="ent")
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=0)
+        self.grid_rowconfigure(2, weight=0)
 
     def reset(self):
         """
@@ -257,7 +252,6 @@ class ScatterViewFrame(Frame):
         Bind events to frame.
         """
 
-        self.bind("<Configure>", self._on_resize)
         self._canvas.bind("<Double-Button-1>", self._on_clear)
         self._canvas.bind("<Button-2>", self._on_recenter)  # mac
         self._canvas.bind("<Button-3>", self._on_recenter)  # win
@@ -587,33 +581,3 @@ class ScatterViewFrame(Frame):
             if out:
                 self._scale.set(self._scale.get() - 1)
                 self._set_bounds(middle)
-
-    def _on_resize(self, event):  # pylint: disable=unused-argument
-        """
-        Resize frame.
-
-        :param Event event: resize event
-        """
-
-        self.width, self.height = self.get_size()
-        self._redraw = True
-        self._on_waiting()
-
-    def _on_waiting(self):
-        """
-        Display 'waiting for data' alert.
-        """
-
-        if self._waiting:
-            self._canvas.create_alert(DLGWAITPOS, tags=TAG_WAIT)
-
-    def get_size(self) -> tuple:
-        """
-        Get current canvas size.
-
-        :return: window size (width, height)
-        :rtype: tuple
-        """
-
-        self.update_idletasks()  # Make sure we know about resizing
-        return self._canvas.winfo_width(), self._canvas.winfo_height()

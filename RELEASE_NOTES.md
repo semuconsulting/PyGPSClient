@@ -3,6 +3,7 @@
 ### RELEASE 1.8.1
 
 1. Remove Python 3.10 from build and test workflows - now End of Life as at 2026/10/01.
+1. Streamline widget code - add abstract `WidgetFrame` class from which all user-selectable widget subclasses inherit.
 
 ### RELEASE 1.8.0
 

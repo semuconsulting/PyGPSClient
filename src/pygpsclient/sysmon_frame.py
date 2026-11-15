@@ -19,7 +19,7 @@ from tkinter import EW, NSEW, NW, Canvas, E, Frame, IntVar, Radiobutton, Tk, W
 from pyubx2 import BOOTTYPE, UBXMessage
 
 from pygpsclient.custom_classes import TAG_DATA, TAG_WAIT
-from pygpsclient.globals import BGCOL, FGCOL, MAXWAIT, PNTCOL, SYSMONVIEW, WIDGETU2
+from pygpsclient.globals import BGCOL, FGCOL, MAXWAIT, PNTCOL, SYSMONVIEW
 from pygpsclient.helpers import (
     bytes2unit,
     fitfont,
@@ -27,7 +27,8 @@ from pygpsclient.helpers import (
     secs2unit,
     setubxrate,
 )
-from pygpsclient.strings import DLGNOMONSYS, DLGWAITMONSYS, NA
+from pygpsclient.strings import NA
+from pygpsclient.widget_frame import WidgetFrame
 
 ACTIVE = ""
 DASH = (5, 2)
@@ -55,7 +56,7 @@ PORTIDS = {
 SPACING = 2
 
 
-class SysmonFrame(Frame):
+class SysmonFrame(WidgetFrame):
     """
     SysmonFrame class.
     """
@@ -71,23 +72,14 @@ class SysmonFrame(Frame):
         """
 
         self.__app = app  # Reference to main application class
-
-        super().__init__(parent, *args, **kwargs)
-
-        def_w, def_h = WIDGETU2
-        self.width = kwargs.get("width", def_w)
-        self.height = kwargs.get("height", def_h)
         self._pending_confs = {}
         self._maxtemp = 0
         self._waits = 0
         self._waiting = True
         self._mode = IntVar()
         self._mode.set(0)
-        self._font = self.__app.font_sm
-        self._fonth = self._font.metrics("linespace")
-        self._body()
-        self._attach_events()
-        self.enable_messages(True)
+
+        super().__init__(app, parent, *args, **kwargs)
 
     def _body(self):
         """
@@ -112,6 +104,12 @@ class SysmonFrame(Frame):
             fg=PNTCOL,
             bg=BGCOL,
         )
+
+    def _do_layout(self):
+        """
+        Arrange frame and widgets in grid.
+        """
+
         self._canvas.grid(column=0, row=0, padx=0, pady=0, sticky=NSEW)
         self._frm_status.grid(column=0, row=1, padx=2, pady=2, sticky=EW)
         self._rad_actual.grid(column=0, row=0, padx=0, pady=0, sticky=W)
@@ -124,7 +122,6 @@ class SysmonFrame(Frame):
         Bind events to frame.
         """
 
-        self.bind("<Configure>", self._on_resize)
         self._canvas.bind("<Double-Button-1>", self._on_clear)
 
     def init_chart(self):
@@ -146,14 +143,14 @@ class SysmonFrame(Frame):
         self._maxtemp = 0
         self.init_chart()
 
-    def enable_messages(self, status: int):
+    def enable_messages(self, status: bool = True):
         """
         Enable/disable UBX MON-SYS & MON-COMMS messages on
         default port(s).
 
         NB: CPU Load value only valid if rate = 1
 
-        :param int status: 0 = off, 1 = on
+        :param bool status: 0 = off, 1 = on
         """
 
         for msgid in ("MON-SYS", "MON-COMMS"):
@@ -204,7 +201,7 @@ class SysmonFrame(Frame):
         if len(sysdata) + len(commsdata) == 0:
             self._waits += 1
             if self._waits >= MAXWAIT:
-                self._canvas.create_alert(DLGNOMONSYS, tags=TAG_WAIT)
+                self._on_waiting()
                 self.init_chart()
             return
 
@@ -401,23 +398,3 @@ class SysmonFrame(Frame):
             "X" * FONTSCALE, self.width, int(self.height / MAXLINES)
         )
         self._on_waiting()
-
-    def _on_waiting(self):
-        """
-        Display 'waiting for data' alert.
-        """
-
-        if self._waiting:
-            txt = DLGNOMONSYS if self._waits > MAXWAIT else DLGWAITMONSYS
-            self._canvas.create_alert(txt, tags=TAG_WAIT)
-
-    def get_size(self):
-        """
-        Get current canvas size.
-
-        :return: window size (width, height)
-        :rtype: tuple
-        """
-
-        self.update_idletasks()  # Make sure we know about any resizing
-        return self._canvas.winfo_width(), self._canvas.winfo_height()
