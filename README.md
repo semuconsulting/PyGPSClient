@@ -181,9 +181,19 @@ For more comprehensive installation instructions, please refer to [INSTALLATION.
 29. [Configuration Command Recorder](#recorder) facility which allows the user to record, save, load, import (*as a preset*) and replay UBX, NMEA or TTY configuration commands sent to a receiver. To display the Command Record Facility dialog, go to Menu..Options..Configuration Command Recorder.
 30. App Configuration facility which allows the user to amend certain internal configuration parameters, such as the GUI refresh interval, Toplevel window behaviour and maximum log file size. Updates must be saved and the application restarted for any changes to take effect. **NB:** Exercise caution when updating these values and ensure settings are commensurate with your platform's performance and capacity constraints.
 
+#### <a name="localisation">Localisation (international language support)</a>
+
+31. The PyGPSClient GUI supports multiple languages via standard Python localisation libraries. The display language can be set via the `PYGPSCLIENT_LOCALE` environment variable e.g.
+
+    ```shell
+    export PYGPSCLIENT_LOCALE=<locale> # where <locale> is the relevant national code e.g. de, fr, es, zh, ja, etc.
+    ```
+
+    **NB: Language support is dependent on contributions from translators**. See https://github.com/semuconsulting/PyGPSClient/blob/main/CONTRIBUTING.md#localisation for instructions on how to add localisation support for your language.
+
 #### <a name="refreshrate">GUI refresh rate setting</a>
 
-31. PyGPSClient processes all incoming GNSS data in 'real time' but, by default, the GUI is only refreshed every 500 ms. The refresh rate can be manually configured via the `guiupdateinterval_f` setting in the json configuration file or Menu..Options..App Configuration dialog (*save configuration and restart after any changes*). The minimum permissible value is 100 ms, but **NB** the minimum viable GUI refresh rate for any given platform depends on a number of factors, including:
+32. PyGPSClient processes all incoming GNSS data in 'real time' but, by default, the GUI is only refreshed every 500 ms. The refresh rate can be manually configured via the `guiupdateinterval_f` setting in the json configuration file or Menu..Options..App Configuration dialog (*save configuration and restart after any changes*). The minimum permissible value is 100 ms, but **NB** the minimum viable GUI refresh rate for any given platform depends on a number of factors, including:
     - the performance of the platform (CPU, I/O, etc.)
     - screen resolution
     - the GNSS message cohort and rate
@@ -193,7 +203,7 @@ For more comprehensive installation instructions, please refer to [INSTALLATION.
 
 #### <a name="transient">Toplevel ('pop-up') dialog setting</a>
 
-32. The behaviour of Toplevel ('pop-up') dialogs will depend on the screen resolution and 'transient' setting. If the width or height of a Toplevel dialog exceeds the screen resolution, the dialog will be displayed in a scrollable, resizeable window. Otherwise, the dialog is displayed as a fixed, non-resizeable panel.
+33. The behaviour of Toplevel ('pop-up') dialogs will depend on the screen resolution and 'transient' setting. If the width or height of a Toplevel dialog exceeds the screen resolution, the dialog will be displayed in a scrollable, resizeable window. Otherwise, the dialog is displayed as a fixed, non-resizeable panel.
     - A boolean configuration setting `transient_dialog_b` governs whether Toplevel dialogs are 'transient' (i.e. always on top of main application dialog) or not. Changing this setting to `0` allows Toplevel dialogs to be minimised independently of the main application window, but be mindful that some dialogs may end up hidden behind others e.g. "Open file/folder" dialogs. **If a file open button appears unresponsive, check that the "Open file/folder" panel isn't already open but obscured**. 
     - If you're accessing the desktop via a VNC session (e.g. to a headless Raspberry Pi) it is recommended to keep the setting at the default `1`, as VNC may not recognise keystrokes on overlaid non-transient windows.
     - A boolean configuration setting `resizeable_dialog_b` governs whether *all* Toplevel dialogs are resizeable, irrespective of the default setting in `DialogState`. Setting this to '1' provides a workaround for issues with some scaled Linux Wayland displays.

@@ -14,7 +14,7 @@ Created on 07 Apr 2022
 
 from datetime import datetime, timezone
 
-from pygpsclient.strings import NA
+from pygpsclient.globals import NA
 
 
 class GNSSStatus:

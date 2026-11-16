@@ -25,7 +25,7 @@ Created on 30 Apr 2023
 from pygpsclient.attitude_frame import AttitudeFrame
 from pygpsclient.chart_frame import ChartviewFrame
 from pygpsclient.console_frame import ConsoleFrame
-from pygpsclient.globals import CLASS, FRAME, WIDGETU1, WIDGETU3, WIDGETU6
+from pygpsclient.globals import CLASS, FRAME, WIDGETU1, WIDGETU3, WIDGETU6, _
 from pygpsclient.levelsview_frame import LevelsviewFrame
 from pygpsclient.map_frame import MapviewFrame
 from pygpsclient.rover_frame import RoverFrame
@@ -38,28 +38,28 @@ from pygpsclient.sysmon_frame import SysmonFrame
 COLSPAN = "colspan"
 DATA = "data"  # output data required by widget
 DEFAULT = "def"
-DOCK = "Dock"
+DOCK = _("Dock")
 FONTSIZE = "fontsize"  # defaults to 12
-HIDE = "Hide"
+HIDE = _("Hide")
 MAXCOLSPAN = 4  # max no of widget columns
 MAXSPAN = 0  # always occupy the full row
 MAXROWSPAN = 4  # max no of widget rows
 RESET = "rst"
-SHOW = "Show"
-SIZE = "Size"
-UNDOCK = "Undock"
+SHOW = _("Show")
+SIZE = "size"
+UNDOCK = _("Undock")
 VISIBLE = "vis"
-WDGCONSOLE = "Console"
-WDGLEVELS = "Levels"
-WDGMAP = "Map"
-WDGROVER = "Relative Position"
-WDGSATS = "Satellites"
-WDGSCATTER = "Scatter Plot"
-WDGSPECTRUM = "Spectrum"
-WDGSYSMON = "System Monitor"
-WDGCHART = "Chart Plot"
-WDGATTMON = "Attitude Monitor"
-WDGSIGNALS = "Signals"
+WDGCONSOLE = _("Console")
+WDGLEVELS = _("Levels")
+WDGMAP = _("Map")
+WDGROVER = _("Relative Position")
+WDGSATS = _("Satellites")
+WDGSCATTER = _("Scatter Plot")
+WDGSPECTRUM = _("Spectrum")
+WDGSYSMON = _("System Monitor")
+WDGCHART = _("Chart Plot")
+WDGATTMON = _("Attitude Monitor")
+WDGSIGNALS = _("Signals")
 
 
 class WidgetState:

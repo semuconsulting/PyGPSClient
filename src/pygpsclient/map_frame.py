@@ -46,13 +46,13 @@ from pygpsclient.globals import (
     TRACEMODE_WRITE,
     WORLD,
     Point,
+    _,
 )
 from pygpsclient.mapquest_handler import (
     MAX_ZOOM,
     MIN_UPDATE_INTERVAL,
     MIN_ZOOM,
 )
-from pygpsclient.strings import LBLSHOWTRACK
 from pygpsclient.widget_frame import WidgetFrame
 
 ZOOMCOL = ERRCOL
@@ -138,7 +138,7 @@ class MapviewFrame(WidgetFrame):
         )
         self._chk_showtrack = Checkbutton(
             self._frm_options,
-            text=LBLSHOWTRACK,
+            text=_("Track"),
             variable=self._showtrack,
             background=BGCOL,
             foreground=PNTCOL,

@@ -60,7 +60,10 @@ def unused_sigs(data: dict) -> int:
     :rtype: int
     """
 
-    return sum(1 for (_, _, _, cno, _, _, _, _) in data.values() if cno == 0)
+    try:
+        return sum(1 for (_, _, _, cno, _, _, _, _) in data.values() if cno == 0)
+    except AttributeError:
+        return 0
 
 
 class SignalsviewFrame(WidgetFrame):

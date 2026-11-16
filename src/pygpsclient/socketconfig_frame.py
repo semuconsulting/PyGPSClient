@@ -43,6 +43,7 @@ from pygpsclient.globals import (
     VALINT,
     VALNONBLANK,
     VALURL,
+    _,
 )
 from pygpsclient.helpers import MAXPORT
 
@@ -100,7 +101,7 @@ class SocketConfigFrame(Frame):
         """
 
         self._frm_basic = Frame(self)
-        self._lbl_server = Label(self._frm_basic, text="Server")
+        self._lbl_server = Label(self._frm_basic, text=_("Server"))
         self.ent_server = Entry(
             self._frm_basic,
             textvariable=self.server,
@@ -108,14 +109,14 @@ class SocketConfigFrame(Frame):
             width=32,
         )
 
-        self._lbl_port = Label(self._frm_basic, text="Port")
+        self._lbl_port = Label(self._frm_basic, text=_("Port"))
         self.ent_port = Entry(
             self._frm_basic,
             textvariable=self.port,
             relief="sunken",
             width=6,
         )
-        self._lbl_protocol = Label(self._frm_basic, text="Protocol")
+        self._lbl_protocol = Label(self._frm_basic, text=_("Protocol"))
         self._spn_protocol = Spinbox(
             self._frm_basic,
             textvariable=self.protocol,
@@ -126,7 +127,7 @@ class SocketConfigFrame(Frame):
         )
         self._chk_https = Checkbutton(self._frm_basic, variable=self.https, text="TLS")
         self._chk_selfsign = Checkbutton(
-            self._frm_basic, variable=self.selfsign, text="Self Sign"
+            self._frm_basic, variable=self.selfsign, text=_("Self Sign")
         )
 
     def _do_layout(self):

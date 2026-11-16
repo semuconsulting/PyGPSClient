@@ -75,6 +75,10 @@ from pygpsclient.globals import (
     CMDPAUSE,
     CONFIGFILE,
     DISCONNECTED,
+    DLG,
+    DLGTNTRIP,
+    DLGTRECORD,
+    DLGTSETTINGS,
     ERRCOL,
     FRAME,
     GNSS_EOF_EVENT,
@@ -83,7 +87,9 @@ from pygpsclient.globals import (
     ICON_APP128,
     INFOCOL,
     MAINSCALE,
+    NA,
     NOPORTS,
+    NOTCONN,
     NTRIP_EVENT,
     OKCOL,
     PSSTATS,
@@ -91,9 +97,11 @@ from pygpsclient.globals import (
     SOCKSERVER_MAX_CLIENTS,
     SPARTN_PROTOCOL,
     STATUS_PRIORITY,
+    TITLE,
     TTY_PROTOCOL,
     UNDO,
     WIDGETU2,
+    _,
 )
 from pygpsclient.gnss_status import GNSSStatus
 from pygpsclient.helpers import (
@@ -111,28 +119,6 @@ from pygpsclient.settings_frame import SettingsFrame
 from pygpsclient.sqlite_handler import DBINMEM, SQLOK, SqliteHandler
 from pygpsclient.status_frame import StatusFrame
 from pygpsclient.stream_handler import StreamHandler
-from pygpsclient.strings import (
-    BREWUPDATE,
-    CONFIGERR,
-    DLG,
-    DLGSTOPRTK,
-    DLGTNTRIP,
-    DLGTRECORD,
-    DLGTSETTINGS,
-    ENDOFFILE,
-    INACTIVE_TIMEOUT,
-    INTROTXTNOPORTS,
-    KILLSWITCH,
-    NA,
-    NOTCONN,
-    SAVECONFIGBAD,
-    SAVECONFIGOK,
-    TITLE,
-    UPDATEERR,
-    UPDATEINPROG,
-    UPDATERESTART,
-    VERCHECK,
-)
 from pygpsclient.tty_handler import TTYHandler
 from pygpsclient.ubx_handler import UBXHandler
 from pygpsclient.uni_handler import UNIHandler
@@ -173,6 +159,7 @@ class App(Tk):
         :param kwargs: optional (CLI) kwargs
         """
 
+        self.__locale = kwargs.pop("locale", "en")
         self.logger = logging.getLogger(__name__)
         self.starttime = datetime.now()  # for runtime calculation
 
@@ -184,7 +171,7 @@ class App(Tk):
         self.file_handler = FileHandler(self)
         self.configuration = Configuration(self)  # configuration state
         self.configfile = Path(kwargs.pop("config", CONFIGFILE))
-        _, configerr = self.configuration.loadfile(self.configfile)
+        filename, configerr = self.configuration.loadfile(self.configfile)
         # load config from CLI arguments & env variables
         self.configuration.loadcli(**kwargs)
         if configerr == "":
@@ -250,7 +237,7 @@ class App(Tk):
         self.set_conn_label(NOTCONN)
         self.set_device_label(NA)
         if self.frm_settings.frm_serial.status == NOPORTS:
-            self.set_status_label(INTROTXTNOPORTS, ERRCOL)
+            self.set_status_label(_("No comms ports found"), ERRCOL)
 
         # display any deferred status messages
         if isinstance(self._deferredmsg, tuple):
@@ -532,7 +519,10 @@ class App(Tk):
         if self.conn_status == DISCONNECTED and self.rtk_conn_status == DISCONNECTED:
             self.set_status_label("", OKCOL)
         else:
-            self.set_status_label(DLGSTOPRTK, ERRCOL)
+            self.set_status_label(
+                _("WARNING! Stop all active connections before loading configuration"),
+                ERRCOL,
+            )
             return "cancelled"
 
         configfile, err = self.configuration.loadfile()
@@ -563,11 +553,11 @@ class App(Tk):
 
         err = self.configuration.savefile(self.configfile)
         if err == "":
-            self.set_status_label(SAVECONFIGOK, OKCOL)
+            self.set_status_label(_("Configuration saved OK"), OKCOL)
         elif err == "cancelled":
             pass
         else:  # save failed
-            self.set_status_label(SAVECONFIGBAD.format(err), ERRCOL)
+            self.set_status_label(_("Configuration not saved") + f" {err}", ERRCOL)
         return err
 
     def update_widgets(self):
@@ -583,7 +573,7 @@ class App(Tk):
                 vis = self.configuration.get(key)
                 vals[VISIBLE] = vis
         except KeyError as err:
-            self.set_status_label(CONFIGERR.format(err), ERRCOL)
+            self.set_status_label(_("Invalid configuration data") + f" {err}", ERRCOL)
 
     def refresh_widgets(self):
         """
@@ -637,6 +627,8 @@ class App(Tk):
         :rtype: Toplevel
         """
 
+        if dlg == "NTRIP Configuration":  # pygnssutils uses unlocalised literal
+            dlg = DLGTNTRIP
         return self.dialog_state.state[dlg][DLG]
 
     def sockserver_start(self, ntriprtcmstr: str = RTCMSTR):
@@ -774,8 +766,7 @@ class App(Tk):
             self.rtk_conn_status = DISCONNECTED
         except Exception as err:  # pylint: disable=broad-exception-caught
             self.logger.error(err)
-        self.set_status_label(KILLSWITCH, ERRCOL)
-        self.logger.debug(KILLSWITCH)
+        self.set_status_label(_("Running processes terminated by user"), ERRCOL)
 
     def on_gnss_eof(self, event):  # pylint: disable=unused-argument
         """
@@ -788,7 +779,7 @@ class App(Tk):
         self.server_status = -1
         # self._refresh_widgets()
         self.conn_status = DISCONNECTED
-        self.set_status_label(ENDOFFILE, ERRCOL)
+        self.set_status_label(_("End of file reached"), ERRCOL)
 
     def on_gnss_timeout(self, event):  # pylint: disable=unused-argument
         """
@@ -801,7 +792,7 @@ class App(Tk):
         self.server_status = -1
         # self._refresh_widgets()
         self.conn_status = DISCONNECTED
-        self.set_status_label(INACTIVE_TIMEOUT, ERRCOL)
+        self.set_status_label(_("Inactivity timeout"), ERRCOL)
 
     def on_stream_error(self, event):  # pylint: disable=unused-argument
         """
@@ -936,10 +927,10 @@ class App(Tk):
             if brew_installed():
                 hotkey = ""
             else:
-                hotkey = " CTRL-U to update."
+                hotkey = _(" CTRL-U to update.")
                 self.bind_all("<Control-u>", self.do_app_update)
             self.set_status_label(
-                VERCHECK.format(title=TITLE, version=latest, hotkey=hotkey),
+                _("Newer version of {} available: {}.{}").format(TITLE, latest, hotkey),
                 ERRCOL,
             )
         else:
@@ -1179,10 +1170,12 @@ class App(Tk):
         """
 
         if brew_installed():
-            self.set_status_label(BREWUPDATE, INFOCOL)
+            self.set_status_label(
+                _("In-app update not available under Homebrew. Use terminal."), INFOCOL
+            )
             return 0
 
-        self.set_status_label(UPDATEINPROG, INFOCOL)
+        self.set_status_label(_("Updating application..."), INFOCOL)
         updates = [
             nam for (nam, current, latest) in check_for_updates() if latest > current
         ]
@@ -1211,11 +1204,11 @@ class App(Tk):
         try:
             self.logger.debug(f"{executable=} {pth=} {cmd=}")
             result = run(cmd, check=True, capture_output=True)  # nosec
-            self.set_status_label(UPDATERESTART, OKCOL)
+            self.set_status_label(_("Application updated. Close and Restart"), OKCOL)
             self.logger.debug(result.stdout)
             return 1
         except CalledProcessError as err:
-            self.set_status_label(UPDATEERR.format(err=err), ERRCOL)
+            self.set_status_label(_("Error updating application") + f" {err}", ERRCOL)
             self.logger.error(result.stdout)
             return 0
 

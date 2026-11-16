@@ -2,6 +2,12 @@
 
 ### RELEASE 1.8.1
 
+1. Add support for string localisation via environment variable `PYGPSCLIENT_LOCALE`.
+
+   See https://github.com/semuconsulting/PyGPSClient/blob/main/CONTRIBUTING.md#localisation
+   for instructions on how to add localisation support for your language.
+
+   A simple Python script [translate_po.py](https://github.com/semuconsulting/PyGPSClient/blob/main/examples/translate_po.py) is available to machine translate messages.po files, but the results will invariably need refinement.
 1. Remove Python 3.10 from build and test workflows - now End of Life as at 2026/10/01.
 1. Streamline widget code - add abstract `WidgetFrame` class from which all user-selectable widget subclasses inherit.
 

@@ -44,9 +44,9 @@ from pygpsclient.globals import (
     FORMAT_PARSED,
     HALT,
     ICON_CLIPBOARD,
+    _,
 )
 from pygpsclient.helpers import hextable
-from pygpsclient.strings import HALTTAGWARN
 from pygpsclient.widget_frame import WidgetFrame
 
 
@@ -184,7 +184,9 @@ class ConsoleFrame(WidgetFrame):
             )
             if self._halt != "":
                 self.__app.conn_status = DISCONNECTED
-                self.__app.set_status_label(HALTTAGWARN.format(self._halt), ERRCOL)
+                self.__app.set_status_label(
+                    _("HALTED ON USER TAG MATCH:") + f" {self._halt}", ERRCOL
+                )
 
         self._frm_console.state(False)  # disable text insertion
 

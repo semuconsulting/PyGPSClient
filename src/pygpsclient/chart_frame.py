@@ -54,9 +54,9 @@ from pygpsclient.globals import (
     TRACEMODE_WRITE,
     VALFLOAT,
     VALNONSPACE,
+    _,
 )
 from pygpsclient.helpers import time2str
-from pygpsclient.strings import CONTENTCOPIED
 from pygpsclient.widget_frame import WidgetFrame
 
 OL_WID = 1
@@ -637,7 +637,7 @@ class ChartviewFrame(WidgetFrame):
         self.__app.clipboard_clear()
         self.__app.clipboard_append(csv)
         self.__app.update()
-        self.__app.set_status_label(CONTENTCOPIED.format("chart"), INFOCOL)
+        self.__app.set_status_label(_("Contents of chart copied to clipboard"), INFOCOL)
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """

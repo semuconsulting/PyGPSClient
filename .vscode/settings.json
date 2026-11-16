@@ -11,6 +11,8 @@
     "editor.formatOnSave": true,
     "modulename": "pygpsclient", // "${workspaceFolderBasename}",
     "distname": "pygpsclient",
+    "locales": "src/pygpsclient/locales",
+    "locale": "en",
     "venv": "${userHome}/pygpsclient",
     "python.testing.pytestArgs": [
         "tests"

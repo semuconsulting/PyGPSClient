@@ -45,8 +45,11 @@ from pyspartn import HASCRYPTO
 from pygpsclient.custom_classes import ScrollableText
 from pygpsclient.globals import (
     CLICK_CURSOR,
+    COPYRIGHT,
+    DLGTABOUT,
     ERRCOL,
     FONT_FIXED,
+    GITHUB_URL,
     ICON_APP128,
     ICON_CLIPBOARD,
     ICON_INFO,
@@ -54,9 +57,11 @@ from pygpsclient.globals import (
     ICON_UPDATE,
     INFOCOL,
     LICENSE_URL,
+    NA,
     OKCOL,
     SPONSOR_URL,
     TRACEMODE_WRITE,
+    _,
 )
 from pygpsclient.helpers import (
     brew_installed,
@@ -64,18 +69,6 @@ from pygpsclient.helpers import (
     secs2unit,
 )
 from pygpsclient.sqlite_handler import SQLSTATUS
-from pygpsclient.strings import (
-    ABOUTTXT,
-    BREWUPDATE,
-    BREWWARN,
-    COPYRIGHT,
-    DLGTABOUT,
-    GITHUB_URL,
-    NA,
-    UPDATEERR,
-    UPDATEINPROG,
-    UPDATERESTART,
-)
 from pygpsclient.toplevel_dialog import ToplevelDialog
 
 try:
@@ -87,6 +80,10 @@ except ImportError:
 
 NSW = (N, S, W)
 SYSINFO_EVENT = "<<sysinfo_event>>"
+BREWWARN = _("Function unavailable under Homebrew")
+ABOUTTXT = _(
+    "PyGPSClient is a free, open-source GNSS diagnostic and configuration application written entirely by human volunteers in Python and tkinter. It supports NMEA, UBX, SBF, UNI, QGC, RTCM3, NTRIP, SPARTN & RINEX protocols."
+)
 
 
 class AboutDialog(ToplevelDialog):
@@ -173,7 +170,7 @@ class AboutDialog(ToplevelDialog):
         )
         self._chk_checkupdate = Checkbutton(
             self._frm_body,
-            text="Check on startup",
+            text=_("Check on startup"),
             variable=self._checkonstartup,
         )
         self._lbl_sponsoricon = Label(
@@ -237,7 +234,7 @@ class AboutDialog(ToplevelDialog):
         Refresh system information asynchronously.
         """
 
-        self.set_status_label("Refreshing System Info...", INFOCOL)
+        self.set_status_label(_("Refreshing System Info..."), INFOCOL)
         Thread(
             target=self._get_sysinfo,
             args=(
@@ -253,7 +250,7 @@ class AboutDialog(ToplevelDialog):
         Info button enter (mouseover) event.
         """
 
-        self.set_status_label("Refresh System Info")
+        self.set_status_label(_("Refresh System Info"))
 
     def _on_info_leave(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -269,7 +266,7 @@ class AboutDialog(ToplevelDialog):
         """
 
         if self._btn_update["state"] == NORMAL:
-            self.set_status_label("Update Python Application Package(s)")
+            self.set_status_label(_("Update Python Application Package(s)"))
 
     def _on_update_leave(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -330,15 +327,17 @@ class AboutDialog(ToplevelDialog):
         """
 
         if brew_installed():
-            self.set_status_label(BREWUPDATE, INFOCOL)
+            self.set_status_label(
+                _("In-app update not available under Homebrew. Use terminal."), INFOCOL
+            )
             return
 
-        self.set_status_label(UPDATEINPROG, INFOCOL)
+        self.set_status_label(_("Updating application..."), INFOCOL)
         rc = self.__app.do_app_update()
         if rc:
-            self.set_status_label(UPDATERESTART, OKCOL)
+            self.set_status_label(_("Application updated. Close and Restart"), OKCOL)
         else:
-            self.set_status_label(UPDATEERR.format(err=rc), ERRCOL)
+            self.set_status_label(_("Error updating application") + f" {rc}", ERRCOL)
 
     def _on_refresh_sysinfo(self, event):  # pylint: disable=unused-argument
         """
@@ -360,7 +359,7 @@ class AboutDialog(ToplevelDialog):
         if self._updates_available.is_set():
             self._btn_update["state"] = NORMAL
             self._btn_update["cursor"] = CLICK_CURSOR
-            self.set_status_label("Application Update(s) Available", OKCOL)
+            self.set_status_label(_("Application Update(s) Available"), OKCOL)
         else:
             self._btn_update["state"] = DISABLED
             self._btn_update["cursor"] = ""

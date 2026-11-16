@@ -28,13 +28,13 @@ from pygpsclient.custom_classes import (
 )
 from pygpsclient.globals import (
     BGCOL,
+    NA,
     PNTCOL,
     READONLY,
     TRACEMODE_WRITE,
 )
 from pygpsclient.helpers import setubxrate
 from pygpsclient.rtcm3_handler import RTCM56
-from pygpsclient.strings import NA
 from pygpsclient.widget_frame import WidgetFrame
 
 CULLMID = True  # whether to cull random points from middle of array

@@ -25,9 +25,8 @@ from pynmeagps import NMEAMessage
 from pyubx2 import itow2utc
 
 from pygpsclient.dialog_state import DLGTSERVER
-from pygpsclient.globals import SAT_EXPIRY, TKGN
+from pygpsclient.globals import DLGTNMEA, NA, SAT_EXPIRY, TKGN
 from pygpsclient.helpers import fix2desc, hdg2yaw, kmph2ms, knots2ms, svid2gnssid
-from pygpsclient.strings import DLGTNMEA, NA
 
 
 class NMEAHandler:

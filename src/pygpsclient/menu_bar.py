@@ -14,9 +14,8 @@ Created on 12 Sep 2020
 
 from tkinter import Menu
 
-from pygpsclient.strings import (
+from pygpsclient.globals import (
     DLGGUIOPTIONS,
-    DLGTABOUT,
     DLGTGPX,
     DLGTIMPORTMAP,
     DLGTNMEA,
@@ -27,15 +26,7 @@ from pygpsclient.strings import (
     DLGTTTY,
     DLGTUBX,
     DLGTUBXLEGACY,
-    MENUABOUT,
-    MENUEXIT,
-    MENUFILE,
-    MENUHELP,
-    MENULOAD,
-    MENUOPTION,
-    MENURESET,
-    MENUSAVE,
-    MENUVIEW,
+    _,
 )
 
 DIALOGS = (
@@ -74,30 +65,30 @@ class MenuBar(Menu):
         # Create a pull-down menu for file operations
         self.file_menu = Menu(self, tearoff=False)
         self.file_menu.add_command(
-            label=MENUSAVE, underline=5, command=self.__app.save_config
+            label=_("Save Configuration"), underline=5, command=self.__app.save_config
         )
         self.file_menu.add_command(
-            label=MENULOAD, underline=5, command=self.__app.load_config
+            label=_("Load Configuration"), underline=5, command=self.__app.load_config
         )
         self.file_menu.add_command(
-            label=MENUEXIT,
+            label=_("Exit"),
             underline=1,
             accelerator="Ctrl-Q",
             command=self.__app.on_exit,
         )
-        self.add_cascade(menu=self.file_menu, label=MENUFILE)
+        self.add_cascade(menu=self.file_menu, label=_("File"))
 
         # Create a pull-down menu for view operations
         # Menu labels are set in app._grid_widgets() function
         self.view_menu = Menu(self, tearoff=False)
         self.view_menu.add_command(
             underline=1,
-            label="Undock Settings",
+            label=_("Undock Settings"),
             command=self.__app.settings_dock,
         )
         self.view_menu.add_command(
             underline=1,
-            label="Hide Settings",
+            label=_("Hide Settings"),
             command=self.__app.settings_toggle,
         )
         for nam in self.__app.widget_state.state:
@@ -106,10 +97,10 @@ class MenuBar(Menu):
             )
         self.view_menu.add_command(
             underline=1,
-            label=MENURESET,
+            label=_("Reset Layout"),
             command=lambda: self.__app.reset_layout(),  # pylint: disable=unnecessary-lambda
         )
-        self.add_cascade(menu=self.view_menu, label=MENUVIEW)
+        self.add_cascade(menu=self.view_menu, label=_("View"))
 
         # Create a pull-down menu for view operations
         dialogs = DIALOGS
@@ -120,13 +111,13 @@ class MenuBar(Menu):
                 underline=1,
                 command=lambda i=dlg: self.__app.start_dialog(i),
             )
-        self.add_cascade(menu=self.options_menu, label=MENUOPTION)
+        self.add_cascade(menu=self.options_menu, label=_("Options"))
 
         # Create a pull-down menu for help operations
         self.help_menu = Menu(self, tearoff=False)
         self.help_menu.add_command(
-            label=MENUABOUT,
+            label=_("About"),
             underline=1,
-            command=lambda: self.__app.start_dialog(DLGTABOUT),
+            command=lambda: self.__app.start_dialog(_("About PyGPSClient")),
         )
-        self.add_cascade(menu=self.help_menu, label=MENUHELP)
+        self.add_cascade(menu=self.help_menu, label=_("Help"))

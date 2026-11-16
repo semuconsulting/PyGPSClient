@@ -37,15 +37,13 @@ from pyubx2 import UBXMessage
 from pygpsclient.confirm_box import ConfirmBox
 from pygpsclient.globals import (
     CLICK_CURSOR,
-    ERRCOL,
-    OKCOL,
-    UBX_PRESET,
-)
-from pygpsclient.strings import (
     CONFIRM,
     DLGACTION,
     DLGACTIONCONFIRM,
-    LBLUBXPRESET,
+    ERRCOL,
+    OKCOL,
+    UBX_PRESET,
+    _,
 )
 
 CANCELLED = 0
@@ -99,7 +97,9 @@ class UBX_PRESET_Frame(Frame):
             relief="sunken",
             width=40,
         )
-        self._lbl_presets = Label(self, text=LBLUBXPRESET, anchor=W)
+        self._lbl_presets = Label(
+            self, text=_("Preset UBX Configuration Commands"), anchor=W
+        )
         self._lbx_preset = Listbox(
             self,
             border=2,
@@ -188,13 +188,13 @@ class UBX_PRESET_Frame(Frame):
 
             if status == CONFIRMED:
                 self._lbl_send_command["image"] = self.__container.img_pending
-                self.__container.set_status_label("Command(s) sent")
+                self.__container.set_status_label(_("Command(s) sent"))
                 for msgid in confids:
                     self.__container.set_pending(msgid, UBX_PRESET)
             elif status == CANCELLED:
-                self.__container.set_status_label("Command(s) cancelled")
+                self.__container.set_status_label(_("Command(s) cancelled"))
             elif status == NOMINAL:
-                self.__container.set_status_label("Command(s) sent, no results")
+                self.__container.set_status_label(_("Command(s) sent, no results"))
 
         except Exception as err:  # pylint: disable=broad-except
             self.__container.set_status_label(f"Error {err}", ERRCOL)
@@ -225,7 +225,7 @@ class UBX_PRESET_Frame(Frame):
                     msg = UBXMessage(ubx_class, ubx_id, mode)
                 self.__container.send_command(msg)
         except Exception as err:  # pylint: disable=broad-except
-            self.__container.set_status_label(f"Error {err}", ERRCOL)
+            self.__container.set_status_label(_("Error") + str(err), ERRCOL)
             self._lbl_send_command["image"] = self.__container.img_warn
 
     def update_status(self, msg: UBXMessage):
@@ -237,7 +237,9 @@ class UBX_PRESET_Frame(Frame):
 
         if msg.identity in ("ACK-ACK", "MON-VER"):
             self._lbl_send_command["image"] = self.__container.img_confirmed
-            self.__container.set_status_label("Preset command(s) acknowledged", OKCOL)
+            self.__container.set_status_label(
+                _("Preset command(s) acknowledged"), OKCOL
+            )
         elif msg.identity == "ACK-NAK":
             self._lbl_send_command["image"] = self.__container.img_warn
-            self.__container.set_status_label("Preset command(s) rejected", ERRCOL)
+            self.__container.set_status_label(_("Preset command(s) rejected"), ERRCOL)

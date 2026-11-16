@@ -34,13 +34,15 @@ from pygpsclient.globals import (
     FORMAT_HEXSTR,
     FORMAT_HEXTAB,
     FORMAT_PARSED,
+    GITHUB_URL,
     GPX_NS,
     GPX_TRACK_INTERVAL,
     HOME,
+    SAVETITLE,
     XML_HDR,
+    _,
 )
 from pygpsclient.helpers import set_filename
-from pygpsclient.strings import CONFIGTITLE, GITHUB_URL, SAVETITLE
 
 DEFEXT = ("all files", "*.*")
 
@@ -159,7 +161,7 @@ class FileHandler:
             if filepath is None:
                 filepath = CONFIGFILE
             filename = filedialog.asksaveasfilename(
-                title=CONFIGTITLE,
+                title=_("Config File"),
                 initialdir=filepath.parent,
                 initialfile=filepath.name,
                 filetypes=(
