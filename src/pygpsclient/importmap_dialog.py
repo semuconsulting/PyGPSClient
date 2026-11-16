@@ -43,15 +43,16 @@ from pygpsclient.canvas_map import CanvasMap
 from pygpsclient.globals import (
     BGCOL,
     CLICK_CURSOR,
+    DLGTIMPORTMAP,
     ERRCOL,
     IMPORT,
     INFOCOL,
     OKCOL,
     VALFLOAT,
     Area,
+    _,
 )
 from pygpsclient.helpers import validate  # pylint: disable=unused-import
-from pygpsclient.strings import DLGTIMPORTMAP
 from pygpsclient.toplevel_dialog import ToplevelDialog
 
 
@@ -111,9 +112,9 @@ class ImportMapDialog(ToplevelDialog):
             cursor=CLICK_CURSOR,
         )
         self._chk_first = Checkbutton(
-            self._frm_controls, text="First?", variable=self._first
+            self._frm_controls, text=_("First?"), variable=self._first
         )
-        self._lbl_min = Label(self._frm_controls, text="Minimum:")
+        self._lbl_min = Label(self._frm_controls, text=_("Minimum:"))
         self._lbl_minlat = Label(self._frm_controls, text="Latitude")
         self._ent_minlat = Entry(
             self._frm_controls, width=10, textvariable=self._latmin
@@ -122,7 +123,7 @@ class ImportMapDialog(ToplevelDialog):
         self._ent_minlon = Entry(
             self._frm_controls, width=10, textvariable=self._lonmin
         )
-        self._lbl_max = Label(self._frm_controls, text="Maximum:")
+        self._lbl_max = Label(self._frm_controls, text=_("Maximum:"))
         self._lbl_maxlat = Label(self._frm_controls, text="Latitude")
         self._ent_maxlat = Entry(
             self._frm_controls, width=10, textvariable=self._latmax
@@ -179,8 +180,9 @@ class ImportMapDialog(ToplevelDialog):
         # self._btn_import["state"]=DISABLED
         if not HASRASTERIO:
             self.set_status_label(
-                "Rasterio library is not installed - "
-                "extents must be entered manually",
+                _(
+                    "Rasterio library is not installed - extents must be entered manually"
+                ),
                 INFOCOL,
             )
         else:
@@ -203,7 +205,7 @@ class ImportMapDialog(ToplevelDialog):
             self.set_status_label("")
             self._btn_import["state"] = NORMAL
         else:
-            self.set_status_label("Error: invalid entry", ERRCOL)
+            self.set_status_label(_("Error: invalid entry"), ERRCOL)
             self._btn_import["state"] = DISABLED
         return valid
 
@@ -268,11 +270,11 @@ class ImportMapDialog(ToplevelDialog):
                 lonmin, latmin, lonmax, latmax = extents
             except AttributeError:
                 self.set_status_label(
-                    "Image is not georeferenced - extents must be entered manually",
+                    _("Image is not georeferenced - extents must be entered manually"),
                     ERRCOL,
                 )
             except RasterioIOError:
-                self.set_status_label("Image is not a supported file format", ERRCOL)
+                self.set_status_label(_("Image is not a supported file format"), ERRCOL)
             except Exception as err:  # pylint: disable=broad-exception-caught
                 self.set_status_label(str(err), ERRCOL)
 
@@ -301,10 +303,10 @@ class ImportMapDialog(ToplevelDialog):
         latmax = float(self._latmax.get())
 
         if lonmax + 180 <= lonmin + 180 or latmax + 90 <= latmin + 90:
-            self.set_status_label("Error: minimum must be less than maximum", ERRCOL)
+            self.set_status_label(_("Error: minimum must be less than maximum"), ERRCOL)
         else:
             usermaps = self.__app.configuration.get("usermaps_l")
             idx = 0 if self._first.get() else len(usermaps) + 1
             usermaps.insert(idx, [self._custommap, [latmin, lonmin, latmax, lonmax]])
             self.__app.configuration.set("usermaps_l", usermaps)
-            self.set_status_label("Custom map imported", OKCOL)
+            self.set_status_label(_("Custom map imported"), OKCOL)

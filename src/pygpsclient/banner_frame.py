@@ -25,6 +25,7 @@ from pygpsclient.globals import (
     CONNECTED_FILE,
     CONNECTED_NTRIP,
     CONNECTED_SOCKET,
+    DGPSYES,
     DMM,
     DMS,
     ECEF,
@@ -42,10 +43,12 @@ from pygpsclient.globals import (
     ICON_SETTINGS,
     ICON_SOCKET,
     ICON_TRANSMIT,
+    NA,
     PSSTATS,
     UI,
     UIK,
     UMK,
+    _,
 )
 from pygpsclient.helpers import (
     dop2str,
@@ -56,7 +59,6 @@ from pygpsclient.helpers import (
     scale_font,
     unused_sats,
 )
-from pygpsclient.strings import DGPSYES, NA
 
 if PSSTATS:
     try:
@@ -131,19 +133,19 @@ class BannerFrame(Frame):
         )
         self._lbl_ltime = Label(
             self._frm_basic,
-            text="utc:",
+            text=_("utc:"),
             bg=BGCOL,
             fg=FGCOL,
             anchor=N,
         )
         self._lbl_llat = Label(
-            self._frm_basic, text="lat:", bg=BGCOL, fg=FGCOL, anchor=N
+            self._frm_basic, text=_("lat:"), bg=BGCOL, fg=FGCOL, anchor=N
         )
         self._lbl_llon = Label(
-            self._frm_basic, text="lon:", bg=BGCOL, fg=FGCOL, anchor=N
+            self._frm_basic, text=_("lon:"), bg=BGCOL, fg=FGCOL, anchor=N
         )
         self._lbl_lfix = Label(
-            self._frm_basic, text="fix:", bg=BGCOL, fg=FGCOL, anchor=N
+            self._frm_basic, text=_("fix:"), bg=BGCOL, fg=FGCOL, anchor=N
         )
         self._btn_settings = Button(
             self._frm_toggle,
@@ -162,37 +164,37 @@ class BannerFrame(Frame):
             cursor=CLICK_CURSOR,
         )
         self._lbl_lhmsl = Label(
-            self._frm_advanced, text="hmsl:", bg=BGCOL, fg=FGCOL, anchor=N
+            self._frm_advanced, text=_("hmsl:"), bg=BGCOL, fg=FGCOL, anchor=N
         )
         self._lbl_lhae = Label(
             self._frm_advanced,
-            text="hae:",
+            text=_("hae:"),
             bg=BGCOL,
             fg=FGCOL,
             anchor=N,
             cursor=CLICK_CURSOR,
         )
         self._lbl_lspd = Label(
-            self._frm_advanced, text="speed:", bg=BGCOL, fg=FGCOL, anchor=N
+            self._frm_advanced, text=_("speed:"), bg=BGCOL, fg=FGCOL, anchor=N
         )
         self._lbl_ltrk = Label(
-            self._frm_advanced, text="track:", bg=BGCOL, fg=FGCOL, anchor=N
+            self._frm_advanced, text=_("track:"), bg=BGCOL, fg=FGCOL, anchor=N
         )
         self._lbl_lsiv = Label(
-            self._frm_advanced2, text="siv:", bg=BGCOL, fg=FGCOL, anchor=N
+            self._frm_advanced2, text=_("siv:"), bg=BGCOL, fg=FGCOL, anchor=N
         )
         self._lbl_lsip = Label(
-            self._frm_advanced2, text="sip:", bg=BGCOL, fg=FGCOL, anchor=N
+            self._frm_advanced2, text=_("sip:"), bg=BGCOL, fg=FGCOL, anchor=N
         )
         self._lbl_lpdop = Label(
-            self._frm_advanced2, text="pdop:", bg=BGCOL, fg=FGCOL, anchor=N
+            self._frm_advanced2, text=_("pdop:"), bg=BGCOL, fg=FGCOL, anchor=N
         )
         self._lbl_lacc = Label(
-            self._frm_advanced2, text="acc:", bg=BGCOL, fg=FGCOL, anchor=N
+            self._frm_advanced2, text=_("acc:"), bg=BGCOL, fg=FGCOL, anchor=N
         )
         self._lbl_lcorr = Label(
             self._frm_advanced2,
-            text="corr:",
+            text=_("corr:"),
             bg=BGCOL,
             fg=FGCOL,
             anchor=N,
@@ -431,10 +433,10 @@ class BannerFrame(Frame):
         lon = self.__app.gnss_status.lon
         hmsl = self.__app.gnss_status.alt  # hMSL
         hae = self.__app.gnss_status.hae
-        self._lbl_llat["text"] = "lat:"
-        self._lbl_llon["text"] = "lon:"
-        self._lbl_lhmsl["text"] = "hmsl:"
-        lhae = "sep:" if self._sep else "hae:"
+        self._lbl_llat["text"] = _("lat:")
+        self._lbl_llon["text"] = _("lon:")
+        self._lbl_lhmsl["text"] = _("hmsl:")
+        lhae = _("sep:") if self._sep else _("hae:")
         self._lbl_lhae["text"] = lhae
         alt_u = "ft" if units in (UI, UIK) else "m"
 

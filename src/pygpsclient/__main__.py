@@ -22,8 +22,7 @@ from pygnssutils import (
 
 from pygpsclient._version import __version__ as VERSION
 from pygpsclient.app import App
-from pygpsclient.globals import APPNAME, CONFIGFILE
-from pygpsclient.strings import EPILOG
+from pygpsclient.globals import APPNAME, CONFIGFILE, EPILOG
 
 
 def main():

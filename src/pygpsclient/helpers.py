@@ -78,6 +78,7 @@ from pygpsclient.globals import (
     MPS2KNT,
     MPS2KPH,
     MPS2MPH,
+    NA,
     OVERSCAN,
     PUBLICIP_URL,
     ROMVER_NEW,
@@ -102,7 +103,6 @@ from pygpsclient.globals import (
     Area,
     Point,
 )
-from pygpsclient.strings import NA
 
 # validation type flags
 MAXPORT = 65535

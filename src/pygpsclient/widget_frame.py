@@ -17,8 +17,7 @@ from abc import ABC, abstractmethod
 from tkinter import Frame, Tk, font
 
 from pygpsclient.custom_classes import TAG_WAIT
-from pygpsclient.globals import MAXWAIT
-from pygpsclient.strings import DLGNODATA, DLGWAITDATA
+from pygpsclient.globals import MAXWAIT, _
 
 
 class WidgetFrame(Frame, ABC):
@@ -120,9 +119,9 @@ class WidgetFrame(Frame, ABC):
         """
 
         txt = (
-            DLGNODATA.format(data=self._data)
+            _("This receiver does not appear to\nsupport") + f" {self._data}"
             if self._waits > MAXWAIT
-            else DLGWAITDATA.format(data=self._data)
+            else _("Waiting for data") + f" {self._data}"
         )
         if self._waiting and hasattr(self, "_canvas"):
             self._canvas.create_alert(txt, tags=TAG_WAIT)

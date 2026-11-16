@@ -19,7 +19,7 @@ from tkinter import EW, NSEW, NW, Canvas, E, Frame, IntVar, Radiobutton, Tk, W
 from pyubx2 import BOOTTYPE, UBXMessage
 
 from pygpsclient.custom_classes import TAG_DATA, TAG_WAIT
-from pygpsclient.globals import BGCOL, FGCOL, MAXWAIT, PNTCOL, SYSMONVIEW
+from pygpsclient.globals import BGCOL, FGCOL, MAXWAIT, NA, PNTCOL, SYSMONVIEW
 from pygpsclient.helpers import (
     bytes2unit,
     fitfont,
@@ -27,7 +27,6 @@ from pygpsclient.helpers import (
     secs2unit,
     setubxrate,
 )
-from pygpsclient.strings import NA
 from pygpsclient.widget_frame import WidgetFrame
 
 ACTIVE = ""

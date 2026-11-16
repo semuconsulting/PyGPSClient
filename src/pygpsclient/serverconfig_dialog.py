@@ -51,6 +51,7 @@ from pygpsclient.globals import (
     CLICK_CURSOR,
     CMDPAUSE,
     DISCONNECTED,
+    DLGTSERVER,
     ERRCOL,
     ICON_CONTRACT,
     ICON_EXPAND,
@@ -71,6 +72,7 @@ from pygpsclient.globals import (
     VALFLOAT,
     VALINT,
     VALNONBLANK,
+    _,
 )
 from pygpsclient.helpers import (
     MAXPORT,
@@ -94,26 +96,6 @@ from pygpsclient.receiver_config_handler import (
     config_svin_septentrio,
     config_svin_ublox,
     config_svin_unicore,
-)
-from pygpsclient.strings import (
-    DLGNOTLS,
-    DLGTSERVER,
-    LBLACCURACY,
-    LBLCONFIGBASE,
-    LBLDISNMEA,
-    LBLDURATIONS,
-    LBLLANIP,
-    LBLPUBLICIP,
-    LBLSERVERHOST,
-    LBLSERVERMODE,
-    LBLSERVERPORT,
-    LBLSOCKSERVE,
-    QUECTELRST1,
-    QUECTELRST2,
-    SEPTENTRIOSVIN,
-    SVINERR,
-    SVINOK,
-    SVINSTART,
 )
 from pygpsclient.toplevel_dialog import ToplevelDialog
 
@@ -205,6 +187,7 @@ class ServerConfigDialog(ToplevelDialog):
         self._fixed_hae_temp = 0
         self._pending_confs = {}
         self._quectel_restart = 0  # keep track of Quectel receiver restarts
+        self._survey_in_progress = False
 
         self._body()
         self._do_layout()
@@ -222,13 +205,13 @@ class ServerConfigDialog(ToplevelDialog):
         self._frm_basic = Frame(self._frm_body)
         self._chk_socketserve = Checkbutton(
             self._frm_basic,
-            text=LBLSOCKSERVE,
+            text=_("Socket Server /\nNTRIP Caster   "),  # padded to align
             variable=self._socket_serve,
             state=NORMAL,
         )
         self._lbl_sockmode = Label(
             self._frm_basic,
-            text=LBLSERVERMODE,
+            text=_("Mode"),
         )
         self._spn_sockmode = Spinbox(
             self._frm_basic,
@@ -240,7 +223,7 @@ class ServerConfigDialog(ToplevelDialog):
         )
         self._lbl_sockhost = Label(
             self._frm_basic,
-            text=LBLSERVERHOST,
+            text=_("Host IP"),
         )
         self._ent_sockhost = Entry(
             self._frm_basic,
@@ -255,7 +238,7 @@ class ServerConfigDialog(ToplevelDialog):
         )
         self._lbl_publicipl = Label(
             self._frm_basic,
-            text=LBLPUBLICIP,
+            text=_("Public IP"),
         )
         self._lbl_publicip = Label(
             self._frm_basic,
@@ -263,7 +246,7 @@ class ServerConfigDialog(ToplevelDialog):
         )
         self._lbl_lanipl = Label(
             self._frm_basic,
-            text=LBLLANIP,
+            text=_("LAN IP"),
         )
         self._lbl_lanip = Label(
             self._frm_basic,
@@ -271,7 +254,7 @@ class ServerConfigDialog(ToplevelDialog):
         )
         self._lbl_sockport = Label(
             self._frm_basic,
-            text=LBLSERVERPORT,
+            text=_("Port"),
         )
         self._ent_sockport = Entry(
             self._frm_basic,
@@ -313,7 +296,7 @@ class ServerConfigDialog(ToplevelDialog):
         self._btn_password = PasswordButton(self._frm_advanced, self._ent_password)
         self._lbl_configure_base = Label(
             self._frm_advanced,
-            text=LBLCONFIGBASE,
+            text=_("Configure Base"),
             anchor=E,
         )
         self._btn_configure_base = Button(
@@ -347,7 +330,7 @@ class ServerConfigDialog(ToplevelDialog):
         )
         self._lbl_acclimit = Label(
             self._frm_advanced,
-            text=LBLACCURACY,
+            text=_("Accuracy (cm)"),
             anchor=E,
         )
         self._spn_acclimit = Spinbox(
@@ -360,12 +343,12 @@ class ServerConfigDialog(ToplevelDialog):
         )
         self._lbl_duration = Label(
             self._frm_advanced,
-            text=LBLDURATIONS,
+            text=_("Duration (s)"),
             anchor=E,
         )
         self._chk_disablenmea = Checkbutton(
             self._frm_advanced,
-            text=LBLDISNMEA,
+            text=_("Disable NMEA"),
             variable=self.disable_nmea,
         )
         self._spn_duration = Spinbox(
@@ -500,7 +483,7 @@ class ServerConfigDialog(ToplevelDialog):
         https = cfg.get("sockhttps_b")
         pem = cfg.get("tlspempath_s")
         if https and not Path(pem).exists():
-            err = DLGNOTLS.format(hostpem=pem)
+            err = _("TLS PEM file not found") + f" {pem}"
             self.set_status_label(err, ERRCOL)
             self.logger.error(err)
             cfg.set("sockhttps_b", 0)
@@ -706,6 +689,8 @@ class ServerConfigDialog(ToplevelDialog):
         """
 
         if self.sock_mode.get() == SOCK_NTRIP:
+            if self.base_mode.get() == BASE_SVIN:
+                self._survey_in_progress = True
             self.set_status_label("")
             self._quectel_restart = 0
             self._config_receiver()
@@ -748,9 +733,13 @@ class ServerConfigDialog(ToplevelDialog):
             self.receiver_type.get() in (SEPTENTRIO_MOSAIC_UART, SEPTENTRIO_MOSAIC_USB)
             and self.base_mode == BASE_SVIN
         ):
-            self.set_status_label(SEPTENTRIOSVIN)  # receiver surveying message
+            self.set_status_label(
+                _("Survey-in observations in progress...")
+            )  # receiver surveying message
         if self.receiver_type.get() == QUECTEL_LGSERIES:
-            self.set_status_label(QUECTELRST1)  # receiver will restart message
+            self.set_status_label(
+                _("Receiver will restart...")
+            )  # receiver will restart message
             # poll for confirmation that rcvr has restarted,
             # then resend configuration commands a 2nd time
             self._pending_confs[PQTMVER] = SERVERCONFIG
@@ -919,7 +908,7 @@ class ServerConfigDialog(ToplevelDialog):
 
         pem = self.__app.configuration.get("tlspempath_s")
         if self.https.get() and not Path(pem).exists():
-            err = DLGNOTLS.format(hostpem=pem)
+            err = _("TLS PEM file not found") + f" {pem}"
             self.set_status_label(err, ERRCOL)
             self.logger.error(err)
             self._attach_events(False)
@@ -1166,7 +1155,9 @@ class ServerConfigDialog(ToplevelDialog):
         if self.base_mode.get() in (BASE_SVIN, BASE_FIXED):
             # if first restart, send config commands a 2nd time
             if self._quectel_restart == 1:
-                self.set_status_label(QUECTELRST2)  # receiver restart again message
+                self.set_status_label(
+                    _("Receiver will restart again...")
+                )  # receiver restart again message
                 self._config_receiver()
                 return
             # if second restart and survey-in mode, enable SVIN status message
@@ -1185,8 +1176,16 @@ class ServerConfigDialog(ToplevelDialog):
         :param bool active: SVIN active status
         """
 
+        if not self._survey_in_progress:
+            return
+
         dur = self.duration.get()
-        self.after(0, self.set_status_label(SVINSTART.format(100 * ela / dur)))
+        self.after(
+            0,
+            self.set_status_label(
+                _("Survey-in observations in progress") + f" {(100 * ela / dur):.0f}%"
+            ),
+        )
         if self.base_mode.get() == BASE_SVIN and active and not valid:
             self._lbl_elapsed.grid_forget()
             self._pgb_elapsed.grid(
@@ -1194,13 +1193,15 @@ class ServerConfigDialog(ToplevelDialog):
             )
             self._pgb_elapsed["value"] = 100 * (dur - ela) / dur
             if ela >= dur:
-                self.set_status_label(SVINERR, ERRCOL)
+                self.set_status_label(_("Survey-in failed - accuracy not met"), ERRCOL)
+                self._survey_in_progress = False
         elif self.base_mode.get() == BASE_SVIN and valid:
             self._pgb_elapsed.grid_forget()
             self._lbl_elapsed.grid(
                 column=2, row=2, columnspan=2, padx=2, pady=1, sticky=W
             )
-            self.set_status_label(SVINOK, OKCOL)
+            self.set_status_label(_("Survey-in completed"), OKCOL)
+            self._survey_in_progress = False
         else:
             self._lbl_elapsed.grid_forget()
             self._pgb_elapsed.grid_forget()

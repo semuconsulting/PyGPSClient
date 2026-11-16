@@ -20,9 +20,10 @@ from pygpsclient.globals import (
     ICON_SEND,
     ICON_WARNING,
     INFOCOL,
+    NA,
     OKCOL,
+    _,
 )
-from pygpsclient.strings import HWREPOLL, HWRESET, NA
 
 
 class Hardware_Info_Frame(Frame):
@@ -61,15 +62,15 @@ class Hardware_Info_Frame(Frame):
         Set up frame and widgets.
         """
 
-        self._lbl_hwverl = Label(self, text="Hardware")
+        self._lbl_hwverl = Label(self, text=_("Hardware"))
         self._lbl_hwver = Label(self, anchor=W)
-        self._lbl_swverl = Label(self, text="Software")
+        self._lbl_swverl = Label(self, text=_("Software"))
         self._lbl_swver = Label(self, anchor=W)
-        self._lbl_fwverl = Label(self, text="Firmware")
+        self._lbl_fwverl = Label(self, text=_("Firmware"))
         self._lbl_fwver = Label(self, anchor=W)
-        self._lbl_romverl = Label(self, text="Protocol")
+        self._lbl_romverl = Label(self, text=_("Protocol"))
         self._lbl_romver = Label(self, anchor=W)
-        self._lbl_gnssl = Label(self, text="GNSS/AS")
+        self._lbl_gnssl = Label(self, text=_("GNSS/AS"))
         self._lbl_gnss = Label(self, anchor=W)
 
     def _do_layout(self):
@@ -105,7 +106,9 @@ class Hardware_Info_Frame(Frame):
         """
 
         self.__app.poll_version(self.__app.protocol_mask)
-        self.__container.set_status_label(HWREPOLL, INFOCOL)
+        self.__container.set_status_label(
+            _("Hardware information re-polled..."), INFOCOL
+        )
 
     def reset(self, event=None):  # pylint: disable=unused-argument):):
         """
@@ -125,4 +128,4 @@ class Hardware_Info_Frame(Frame):
             "romversion", NA
         )
         self._lbl_gnss["text"] = self.__app.gnss_status.version_data.get("gnss", NA)
-        self.__container.set_status_label(HWRESET, OKCOL)
+        self.__container.set_status_label(_("Hardware information reset"), OKCOL)

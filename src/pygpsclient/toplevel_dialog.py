@@ -38,6 +38,7 @@ from pygpsclient.custom_classes import CanvasContainer
 from pygpsclient.globals import (
     APPNAME,
     CLICK_CURSOR,
+    DLG,
     ERRCOL,
     ICON_BLANK,
     ICON_CANCEL,
@@ -59,7 +60,6 @@ from pygpsclient.globals import (
     RESIZE,
 )
 from pygpsclient.helpers import check_lowres
-from pygpsclient.strings import DLG
 
 
 class ToplevelDialog(Toplevel):

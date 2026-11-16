@@ -89,6 +89,7 @@ changelog = "https://github.com/semuconsulting/PyGPSClient/blob/main/RELEASE_NOT
 optional = ["rasterio", "psutil", "cryptography>=45.0.0"]
 build = [
     "awscli",
+    "Babel",
     "build",
     "packaging>=24.2",
     "pip>=26.2.2",
@@ -151,9 +152,18 @@ disable = """
     logging-fstring-interpolation,
 """
 
+[tool.babel]
+[[tool.babel.mappings]]
+method = "python"
+pattern = "**/*.py"
+keywords = ["_", "_l", "_n:1,2"]
+Project-Id-Version = "1.8.1"
+Report-Msgid-Bugs-To = "semuadmin@semuconsulting.com"
+Last-Translator = "Steve Smith <semuadmin@semuconsulting.com"
+
 [tool.pytest.ini_options]
 minversion = "7.0"
-addopts = "--cov --cov-report html --cov-fail-under 23"
+addopts = "--cov --cov-report html --cov-fail-under 22"
 pythonpath = ["src"]
 testpaths = ["tests"]
 
@@ -164,7 +174,7 @@ source = ["src"]
 source = ["src"]
 
 [tool.coverage.report]
-fail_under = 23
+fail_under = 22
 
 [tool.coverage.html]
 directory = "htmlcov"

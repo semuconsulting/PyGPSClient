@@ -35,6 +35,7 @@ from PIL import Image, ImageTk
 from pygpsclient.custom_classes import PasswordButton
 from pygpsclient.globals import (
     CLICK_CURSOR,
+    DLGGUIOPTIONS,
     ERRCOL,
     ICON_SAVE,
     ICON_SAVE_DISABLED,
@@ -42,11 +43,11 @@ from pygpsclient.globals import (
     OKCOL,
     READONLY,
     TRACEMODE_WRITE,
+    _,
 )
 from pygpsclient.helpers import (  # pylint: disable=unused-import
     trace_update,
 )
-from pygpsclient.strings import DLGGUIOPTIONS
 from pygpsclient.toplevel_dialog import ToplevelDialog
 
 GUI_INTERVALS = (
@@ -109,7 +110,7 @@ class AppConfigDialog(ToplevelDialog):
 
         self._frm_body = Frame(self.container)
         self._lbl_guirefresh = Label(
-            self._frm_body, text="GUI Refresh Interval", anchor=W
+            self._frm_body, text=_("GUI Refresh Interval"), anchor=W
         )
         self._lbl_guirefreshu = Label(self._frm_body, text="ms", anchor=W)
         self._spn_guirefresh = Spinbox(
@@ -121,7 +122,7 @@ class AppConfigDialog(ToplevelDialog):
             textvariable=self._guirefresh,
         )
         self._lbl_maprefresh = Label(
-            self._frm_body, text="MapQuest Refresh Interval", anchor=W
+            self._frm_body, text=_("MapQuest Refresh Interval"), anchor=W
         )
         self._lbl_maprefreshu = Label(self._frm_body, text="s", anchor=W)
         self._spn_maprefresh = Spinbox(
@@ -133,7 +134,7 @@ class AppConfigDialog(ToplevelDialog):
             textvariable=self._maprefresh,
         )
         self._frm_mapkey = Frame(self._frm_body)
-        self._lbl_mapkey = Label(self._frm_mapkey, text="MapQuest API Key", anchor=W)
+        self._lbl_mapkey = Label(self._frm_mapkey, text=_("MapQuest API Key"), anchor=W)
         self._ent_mapkey = Entry(
             self._frm_body,
             width=35,
@@ -142,7 +143,7 @@ class AppConfigDialog(ToplevelDialog):
         )
         self._btn_mapkey = PasswordButton(self._frm_mapkey, self._ent_mapkey)
         self._lbl_logsize = Label(
-            self._frm_body, text="Datalog Max File Size", anchor=W
+            self._frm_body, text=_("Datalog Max File Size"), anchor=W
         )
         self._lbl_logsizeu = Label(self._frm_body, text="MB", anchor=W)
         self._spn_logsize = Spinbox(
@@ -154,7 +155,7 @@ class AppConfigDialog(ToplevelDialog):
             textvariable=self._logsize,
         )
         self._lbl_plotchans = Label(
-            self._frm_body, text="Chart Plotter Channels", anchor=W
+            self._frm_body, text=_("Chart Plotter Channels"), anchor=W
         )
         self._spn_plotchans = Spinbox(
             self._frm_body,
@@ -165,7 +166,7 @@ class AppConfigDialog(ToplevelDialog):
             textvariable=self._plotchans,
         )
         self._lbl_resizedialog = Label(
-            self._frm_body, text="Resizeable TopLevel Dialogs", anchor=W
+            self._frm_body, text=_("Resizeable TopLevel Dialogs"), anchor=W
         )
         self._chk_resizedialog = Checkbutton(
             self._frm_body,
@@ -173,7 +174,7 @@ class AppConfigDialog(ToplevelDialog):
             variable=self._resizedialog,
         )
         self._lbl_transientdialog = Label(
-            self._frm_body, text="Transient TopLevel Dialogs", anchor=W
+            self._frm_body, text=_("Transient TopLevel Dialogs"), anchor=W
         )
         self._chk_transientdialog = Checkbutton(
             self._frm_body,
@@ -181,7 +182,7 @@ class AppConfigDialog(ToplevelDialog):
             variable=self._transientdialog,
         )
         self._lbl_showunused = Label(
-            self._frm_body, text="Show Sats With Null C/No", anchor=W
+            self._frm_body, text=_("Show Sats With Null C/No"), anchor=W
         )
         self._chk_showunused = Checkbutton(
             self._frm_body,
@@ -268,7 +269,7 @@ class AppConfigDialog(ToplevelDialog):
         )
         self._showunused.set(int(self.__app.configuration.get("unusedsat_b")))
         self._enable_save_button(False)
-        self.set_status_label("Update with caution! Restart after updating", ERRCOL)
+        self.set_status_label(_("Update with caution! Restart after updating"), ERRCOL)
 
     def _on_update(self, var, index, mode):
         """
@@ -309,9 +310,9 @@ class AppConfigDialog(ToplevelDialog):
                 != int(self._showunused.get())
             )
         )
-        msg = "Save updated settings and restart" if updates else ""
+        msg = _("Save updated settings and restart") if updates else ""
         if int(self._maprefresh.get()) < 60:
-            msg += ". Check MapQuest Fees!"
+            msg += _(". Check MapQuest Fees!")
         self._enable_save_button(updates)
         self.set_status_label(msg, INFOCOL)
 
@@ -355,9 +356,9 @@ class AppConfigDialog(ToplevelDialog):
             "transient_dialog_b", int(self._transientdialog.get())
         )
         self.__app.configuration.set("unusedsat_b", int(self._showunused.get()))
-        self.set_status_label("Save configuration to file and restart", OKCOL)
+        self.set_status_label(_("Save configuration to file and restart"), OKCOL)
         if self.__app.save_config() != "":
-            self.set_status_label("Save cancelled", INFOCOL)
+            self.set_status_label(_("Save cancelled"), INFOCOL)
         else:
-            self.set_status_label("Restart app", OKCOL)
+            self.set_status_label(_("Restart app"), OKCOL)
             self._enable_save_button(False)

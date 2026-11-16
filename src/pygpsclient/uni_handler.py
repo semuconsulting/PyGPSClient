@@ -22,8 +22,8 @@ from time import time
 from pynmeagps import wnotow2utc
 from pyunigps import DEVICE, UNIMessage
 
+from pygpsclient.globals import NA
 from pygpsclient.helpers import fix2desc
-from pygpsclient.strings import NA
 
 SATSINFO_GNSSID = {
     0: 0,  # GPS

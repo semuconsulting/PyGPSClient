@@ -69,38 +69,16 @@ except ImportError:
 
 from pygpsclient.globals import (
     CLICK_CURSOR,
+    DLGTRINEX,
     ERRCOL,
     INFOCOL,
+    NA,
     OKCOL,
     READONLY,
     TRACEMODE_WRITE,
+    _,
 )
 from pygpsclient.helpers import VALCUSTOM, VALFLOAT, VALNONBLANK, validate
-from pygpsclient.strings import (
-    DLGTRINEX,
-    LBLRINEXANTENNA,
-    LBLRINEXANTENNAHED,
-    LBLRINEXCOMMENT,
-    LBLRINEXCOUNTRY,
-    LBLRINEXDOI,
-    LBLRINEXGNSSTYPES,
-    LBLRINEXINPUTFILE,
-    LBLRINEXLICENSE,
-    LBLRINEXMARKER,
-    LBLRINEXOBSERVER,
-    LBLRINEXOBSTYPES,
-    LBLRINEXOUTPUTS,
-    LBLRINEXRCVR,
-    LBLRINEXSTARTTIME,
-    LBLRINEXSTATION,
-    LBLRINEXSVCODES,
-    LBLRINEXTYPES,
-    LBLRINEXVER,
-    NA,
-    RINEXFILEINVALID,
-    RINEXFILEVALID,
-    RINEXFILEVALIDATING,
-)
 from pygpsclient.toplevel_dialog import ToplevelDialog
 
 RINEXVERSIONS = ("3.05", "4.02")
@@ -208,7 +186,7 @@ class RINEXDialog(ToplevelDialog):
         self._frm_body = Frame(self)
         self._frm_basic = Frame(self._frm_body, borderwidth=1, relief="groove")
         self._frm_advanced = Frame(self._frm_body, borderwidth=1, relief="groove")
-        self._lbl_infile = Label(self._frm_basic, text=LBLRINEXINPUTFILE)
+        self._lbl_infile = Label(self._frm_basic, text=_("GNSS Binary Data Log File:"))
         self._ent_infilepath = Entry(
             self._frm_basic,
             textvariable=self._infilepath,
@@ -247,7 +225,7 @@ class RINEXDialog(ToplevelDialog):
             image=self._img_expandh,
             cursor=CLICK_CURSOR,
         )
-        self._lbl_rinexver = Label(self._frm_basic, text=LBLRINEXVER)
+        self._lbl_rinexver = Label(self._frm_basic, text=_("RINEX Version:"))
         self._spn_rinexver = Spinbox(
             self._frm_basic,
             values=RINEXVERSIONS,
@@ -258,7 +236,9 @@ class RINEXDialog(ToplevelDialog):
             repeatdelay=1000,
             repeatinterval=1000,
         )
-        self._lbl_outtypes = Label(self._frm_basic, text=LBLRINEXTYPES)
+        self._lbl_outtypes = Label(
+            self._frm_basic, text=_("RINEX Output File Types and Data Sources:")
+        )
         self._chk_rinexobs = Checkbutton(
             self._frm_basic,
             text="Observation",
@@ -307,7 +287,7 @@ class RINEXDialog(ToplevelDialog):
             repeatdelay=1000,
             repeatinterval=1000,
         )
-        self._lbl_gnsstypes = Label(self._frm_basic, text=LBLRINEXGNSSTYPES)
+        self._lbl_gnsstypes = Label(self._frm_basic, text=_("GNSS Constellations:"))
         self._chk_rxgps = Checkbutton(
             self._frm_basic,
             text="GPS",
@@ -369,14 +349,20 @@ class RINEXDialog(ToplevelDialog):
             variable=self._eopcorrflag,
             state=NORMAL,
         )
-        self._lbl_obstypes = Label(self._frm_basic, text=LBLRINEXOBSTYPES)
+        self._lbl_obstypes = Label(
+            self._frm_basic,
+            text=_("Observation Codes (comma-separated, blank for ALL):"),
+        )
         self._ent_obstypes = Entry(
             self._frm_basic,
             textvariable=self._obstypes,
             state=NORMAL,
             relief="sunken",
         )
-        self._lbl_svcodes = Label(self._frm_basic, text=LBLRINEXSVCODES)
+        self._lbl_svcodes = Label(
+            self._frm_basic,
+            text=_("Satellite (PRN) Codes (comma-separated, blank for ALL):"),
+        )
         self._ent_svcodes = Entry(
             self._frm_basic,
             textvariable=self._svcodes,
@@ -389,7 +375,9 @@ class RINEXDialog(ToplevelDialog):
             mode="determinate",
             length=100,
         )
-        self._lbl_outputs = Label(self._frm_basic, text=LBLRINEXOUTPUTS.format(path=""))
+        self._lbl_outputs = Label(
+            self._frm_basic, text=_("Output files and process counts:")
+        )
         self._lbl_output_labels = {}
         for rt in RINEXTYPES:
             self._lbl_output_labels[rt] = Label(
@@ -397,7 +385,9 @@ class RINEXDialog(ToplevelDialog):
                 textvariable=self._outputlabels[rt],
                 anchor=W,
             )
-        self._lbl_marker = Label(self._frm_advanced, text=LBLRINEXMARKER, anchor=W)
+        self._lbl_marker = Label(
+            self._frm_advanced, text=_("Marker Number / Name / Type:"), anchor=W
+        )
         self._ent_markernum = Entry(
             self._frm_advanced,
             width=10,
@@ -422,7 +412,9 @@ class RINEXDialog(ToplevelDialog):
             repeatdelay=1000,
             repeatinterval=1000,
         )
-        self._lbl_antenna = Label(self._frm_advanced, text=LBLRINEXANTENNA, anchor=W)
+        self._lbl_antenna = Label(
+            self._frm_advanced, text=_("Antenna Number / Type:"), anchor=W
+        )
         self._ent_antennanum = Entry(
             self._frm_advanced,
             width=10,
@@ -438,7 +430,7 @@ class RINEXDialog(ToplevelDialog):
             relief="sunken",
         )
         self._lbl_antennahed = Label(
-            self._frm_advanced, text=LBLRINEXANTENNAHED, anchor=W
+            self._frm_advanced, text=_("Antenna Delta H / E / D:"), anchor=W
         )
         self._ent_antennah = Entry(
             self._frm_advanced,
@@ -461,7 +453,9 @@ class RINEXDialog(ToplevelDialog):
             state=NORMAL,
             relief="sunken",
         )
-        self._lbl_receiver = Label(self._frm_advanced, text=LBLRINEXRCVR, anchor=W)
+        self._lbl_receiver = Label(
+            self._frm_advanced, text=_("Receiver Number / Name / Version:"), anchor=W
+        )
         self._ent_rcvrnum = Entry(
             self._frm_advanced,
             width=10,
@@ -483,7 +477,9 @@ class RINEXDialog(ToplevelDialog):
             state=NORMAL,
             relief="sunken",
         )
-        self._lbl_observer = Label(self._frm_advanced, text=LBLRINEXOBSERVER, anchor=W)
+        self._lbl_observer = Label(
+            self._frm_advanced, text=_("Observer / Agency:"), anchor=W
+        )
         self._ent_observer = Entry(
             self._frm_advanced,
             width=30,
@@ -491,7 +487,7 @@ class RINEXDialog(ToplevelDialog):
             state=NORMAL,
             relief="sunken",
         )
-        self._lbl_country = Label(self._frm_advanced, text=LBLRINEXCOUNTRY, anchor=W)
+        self._lbl_country = Label(self._frm_advanced, text=_("Country Code:"), anchor=W)
         self._ent_country = Entry(
             self._frm_advanced,
             width=5,
@@ -499,7 +495,9 @@ class RINEXDialog(ToplevelDialog):
             state=NORMAL,
             relief="sunken",
         )
-        self._lbl_doi = Label(self._frm_advanced, text=LBLRINEXDOI, anchor=W)
+        self._lbl_doi = Label(
+            self._frm_advanced, text=_("Digital Object Identifier:"), anchor=W
+        )
         self._ent_doi = Entry(
             self._frm_advanced,
             width=60,
@@ -507,7 +505,9 @@ class RINEXDialog(ToplevelDialog):
             state=NORMAL,
             relief="sunken",
         )
-        self._lbl_license = Label(self._frm_advanced, text=LBLRINEXLICENSE, anchor=W)
+        self._lbl_license = Label(
+            self._frm_advanced, text=_("License of Use:"), anchor=W
+        )
         self._ent_license = Entry(
             self._frm_advanced,
             width=60,
@@ -515,7 +515,9 @@ class RINEXDialog(ToplevelDialog):
             state=NORMAL,
             relief="sunken",
         )
-        self._lbl_station = Label(self._frm_advanced, text=LBLRINEXSTATION, anchor=W)
+        self._lbl_station = Label(
+            self._frm_advanced, text=_("Station Metadata:"), anchor=W
+        )
         self._ent_station = Entry(
             self._frm_advanced,
             width=60,
@@ -523,9 +525,13 @@ class RINEXDialog(ToplevelDialog):
             state=NORMAL,
             relief="sunken",
         )
-        self._lbl_comments = Label(self._frm_advanced, text=LBLRINEXCOMMENT, anchor=W)
+        self._lbl_comments = Label(
+            self._frm_advanced, text=_("User Comments:"), anchor=W
+        )
         self._lbl_starttime = Label(
-            self._frm_advanced, text=LBLRINEXSTARTTIME, anchor=W
+            self._frm_advanced,
+            text=_("Approximate Start Time of RTCM 3 Data:"),
+            anchor=W,
         )
         self._ent_starttime = Entry(
             self._frm_advanced,
@@ -754,7 +760,7 @@ class RINEXDialog(ToplevelDialog):
         Run conversion.
         """
 
-        self.set_status_label(f"Processing {self._infile_path.name}")
+        self.set_status_label(_("Processing") + f" {self._infile_path.name}")
         for rt in RINEXTYPES:
             self._outputlabels[rt].set("")
         self._do_conversion()
@@ -791,24 +797,24 @@ class RINEXDialog(ToplevelDialog):
         self._ent_infilepath.update()
         validate(self._ent_infilepath, valmode=VALNONBLANK)
         self.set_status_label(
-            RINEXFILEVALIDATING.format(path=self._infile_path.name),
+            _("Validating") + f" {self._infile_path.name}...",
             OKCOL,
         )
         i = 0
         try:
             with open(self._infile_path, "rb") as infile:
                 gnr = GNSSReader(infile, parsing=False)
-                for raw, _ in gnr:
+                for raw, parsed in gnr:
                     if raw is not None:
                         i += 1
             if i == 0:
                 self.set_status_label(
-                    RINEXFILEINVALID.format(path=self._infile_path.name),
+                    f"{self._infile_path.name} " + _("invalid; contains 0 records"),
                     ERRCOL,
                 )
             else:
                 self.set_status_label(
-                    RINEXFILEVALID.format(path=self._infile_path.name, count=i),
+                    _("{} validated; {:,} records").format(self._infile_path.name, i),
                     INFOCOL,
                 )
             self._filecount = i
@@ -877,7 +883,7 @@ class RINEXDialog(ToplevelDialog):
             valid = valid & validate(self._ent_antennae, valmode=VALFLOAT)
             valid = valid & validate(self._ent_antennad, valmode=VALFLOAT)
             if not valid:
-                self.set_status_label("Invalid Parameters", ERRCOL)
+                self.set_status_label(_("Invalid Parameters"), ERRCOL)
                 return
 
             rinex_version = self._rinexver.get()
@@ -889,7 +895,9 @@ class RINEXDialog(ToplevelDialog):
             if self._rinexmet.get():
                 rinex_types += (MET,)
             if rinex_types == ():
-                self.set_status_label("Select at least one RINEX output type", ERRCOL)
+                self.set_status_label(
+                    _("Select at least one RINEX output type"), ERRCOL
+                )
                 valid = False
             gnss_filter = ()
             if self._rxgps.get():
@@ -909,7 +917,7 @@ class RINEXDialog(ToplevelDialog):
             if len(gnss_filter) == 7:
                 gnss_filter = ("",)
             if gnss_filter == ():
-                self.set_status_label("Select at least one GNSS", ERRCOL)
+                self.set_status_label(_("Select at least one GNSS"), ERRCOL)
                 valid = False
             if not valid:
                 return
@@ -995,7 +1003,7 @@ class RINEXDialog(ToplevelDialog):
             rct.start()
 
         except (TclError, KeyboardInterrupt):
-            self.set_status_label("Conversion Failed", ERRCOL)
+            self.set_status_label(_("Conversion Failed"), ERRCOL)
 
     def _process_input(
         self,
@@ -1028,19 +1036,21 @@ class RINEXDialog(ToplevelDialog):
                         f"{rt}: {outputs[rt][0].name}: {outputs[rt][1]}"
                     )
             if tot > 1:
-                self.set_status_label("Conversion successful", OKCOL)
+                self.set_status_label(_("Conversion successful"), OKCOL)
             else:
-                self.set_status_label("No usable information in input", ERRCOL)
+                self.set_status_label(_("No usable information in input"), ERRCOL)
             parts = self._infile_path.parts
             path = f" (...{parts[-2]}/) " if len(parts) > 1 else " (.../)"
-            self._lbl_outputs["text"] = LBLRINEXOUTPUTS.format(path=path)
+            self._lbl_outputs["text"] = (
+                _("Output files and process counts") + f" {path}:"
+            )
 
         elif res == RINEX_CANCELLED:
-            self.set_status_label("Conversion cancelled", ERRCOL)
+            self.set_status_label(_("Conversion cancelled"), ERRCOL)
         elif res == RINEX_NORECS:
-            self.set_status_label("No parsable records in input", ERRCOL)
+            self.set_status_label(_("No parsable records in input"), ERRCOL)
         else:
-            self.set_status_label("Conversion failed - see log", ERRCOL)
+            self.set_status_label(_("Conversion failed - see log"), ERRCOL)
 
     def _prog_callback_threaded(self, progress: int):
         """

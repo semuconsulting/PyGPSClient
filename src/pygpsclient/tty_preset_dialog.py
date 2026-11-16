@@ -40,7 +40,11 @@ from pygpsclient.globals import (
     BSR,
     CLICK_CURSOR,
     CMDPAUSE,
+    CONFIRM,
     CRLF,
+    DLGACTION,
+    DLGACTIONCONFIRM,
+    DLGTTTY,
     ERRCOL,
     INFOCOL,
     OKCOL,
@@ -49,15 +53,10 @@ from pygpsclient.globals import (
     TTYMARKER,
     TTYOK,
     VALNONBLANK,
+    _,
 )
 from pygpsclient.hardware_info_frame import Hardware_Info_Frame
 from pygpsclient.helpers import validate  # pylint: disable=unused-import
-from pygpsclient.strings import (
-    CONFIRM,
-    DLGACTION,
-    DLGACTIONCONFIRM,
-    DLGTTTY,
-)
 from pygpsclient.toplevel_dialog import ToplevelDialog
 
 CANCELLED = 0
@@ -240,7 +239,7 @@ class TTYPresetDialog(ToplevelDialog):
             self._confirm = CONFIRM in preset[0]
             self._command.set(preset[1])
         except IndexError:
-            self.set_status_label("Invalid preset format", ERRCOL)
+            self.set_status_label(_("Invalid preset format"), ERRCOL)
 
     def _on_send_command(self, *args, **kwargs):  # pylint: disable=unused-argument
         """
@@ -248,7 +247,7 @@ class TTYPresetDialog(ToplevelDialog):
         """
 
         if not self._ent_command.validate(VALNONBLANK):
-            self.set_status_label("Invalid command format", ERRCOL)
+            self.set_status_label(_("Invalid command format"), ERRCOL)
             return
 
         try:
@@ -263,11 +262,11 @@ class TTYPresetDialog(ToplevelDialog):
                 status = CONFIRMED
             if status == CONFIRMED:
                 self._lbl_send_command["image"] = self.img_pending
-                self.set_status_label("Command(s) sent")
+                self.set_status_label(_("Command(s) sent"))
             elif status == CANCELLED:
-                self.set_status_label("Command(s) cancelled")
+                self.set_status_label(_("Command(s) cancelled"))
             elif status == NOMINAL:
-                self.set_status_label("Command(s) sent, no results")
+                self.set_status_label(_("Command(s) sent, no results"))
             self._confirm = False
 
         except Exception as err:  # pylint: disable=broad-except
@@ -323,10 +322,10 @@ class TTYPresetDialog(ToplevelDialog):
         for ack in TTYOK:
             if ack in msgstr:
                 self._lbl_send_command["image"] = self.img_confirmed
-                self.set_status_label("Command(s) acknowledged", OKCOL)
+                self.set_status_label(_("Command(s) acknowledged"), OKCOL)
                 return
         for nak in TTYERR:
             if nak in msgstr:
                 self._lbl_send_command["image"] = self.img_warn
-                self.set_status_label("Command(s) rejected", ERRCOL)
+                self.set_status_label(_("Command(s) rejected"), ERRCOL)
                 break

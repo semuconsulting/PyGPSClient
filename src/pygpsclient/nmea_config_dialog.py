@@ -24,6 +24,7 @@ from pygpsclient.globals import (
     CONNECTED,
     CONNECTED_SIMULATOR,
     CONNECTED_SOCKET,
+    DLGTNMEA,
     ERRCOL,
     NMEA_CFGOTHER,
     NMEA_MONHW,
@@ -31,7 +32,6 @@ from pygpsclient.globals import (
 )
 from pygpsclient.hardware_info_frame import Hardware_Info_Frame
 from pygpsclient.nmea_preset_frame import NMEA_PRESET_Frame
-from pygpsclient.strings import DLGTNMEA
 from pygpsclient.toplevel_dialog import ToplevelDialog
 
 
