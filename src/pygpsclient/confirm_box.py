@@ -15,6 +15,8 @@ Created on 17 Apr 2021
 
 from tkinter import Button, Label, Toplevel, W
 
+from pygpsclient.globals import _
+
 
 class ConfirmBox(Toplevel):
     """
@@ -42,10 +44,10 @@ class ConfirmBox(Toplevel):
         Label(self, text=prompt, anchor=W).grid(
             row=0, column=0, columnspan=2, padx=3, pady=5
         )
-        Button(self, command=self._on_ok, text="OK", width=8).grid(
+        Button(self, command=self._on_ok, text=_("OK"), width=8).grid(
             row=1, column=0, padx=3, pady=3
         )
-        Button(self, command=self._on_cancel, text="Cancel", width=8).grid(
+        Button(self, command=self._on_cancel, text=_("Cancel"), width=8).grid(
             row=1, column=1, padx=3, pady=3
         )
         self.lift()  # Put on top of

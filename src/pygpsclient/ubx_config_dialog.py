@@ -31,16 +31,19 @@ from pygpsclient.globals import (
     CONNECTED,
     CONNECTED_SIMULATOR,
     CONNECTED_SOCKET,
+    DLGTUBX,
     ERRCOL,
+    NA,
+    NOTCONN,
     ROMVER_NEW,
     UBX_CFGVAL,
     UBX_MONHW,
     UBX_MONRF,
     UBX_MONVER,
     UBX_PRESET,
+    _,
 )
 from pygpsclient.hardware_info_frame import Hardware_Info_Frame
-from pygpsclient.strings import DLGTUBX, NA, NOTCONN, ROMVERWARN
 from pygpsclient.toplevel_dialog import ToplevelDialog
 from pygpsclient.ubx_cfgval_frame import UBX_CFGVAL_Frame
 from pygpsclient.ubx_preset_frame import UBX_PRESET_Frame
@@ -128,7 +131,10 @@ class UBXConfigDialog(ToplevelDialog):
         hwver = self.__app.gnss_status.version_data["hwversion"]
         romver = self.__app.gnss_status.version_data["romversion"]
         if "u-blox" not in hwver or (romver < ROMVER_NEW and romver != NA):
-            self.set_status_label(ROMVERWARN.format(generation="modern"), ERRCOL)
+            self.set_status_label(
+                _("Warning - this device may not support modern UBX configuration"),
+                ERRCOL,
+            )
         else:
             self.frm_device_info.reset()
 

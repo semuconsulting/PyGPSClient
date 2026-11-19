@@ -44,13 +44,13 @@ from pygpsclient.globals import (
     FORMAT_PARSED,
     HALT,
     ICON_CLIPBOARD,
-    WIDGETU3,
+    _,
 )
 from pygpsclient.helpers import hextable
-from pygpsclient.strings import HALTTAGWARN
+from pygpsclient.widget_frame import WidgetFrame
 
 
-class ConsoleFrame(Frame):
+class ConsoleFrame(WidgetFrame):
     """
     Console frame class.
     """
@@ -66,20 +66,13 @@ class ConsoleFrame(Frame):
         """
 
         self.__app = app  # Reference to main application class
-
-        super().__init__(parent, *args, **kwargs)
-
-        def_w, def_h = WIDGETU3
-        self.width = kwargs.get("width", def_w)
-        self.height = kwargs.get("height", def_h)
         self._colortags = self.__app.configuration.get("colortags_l")
         self._img_clipboard = ImageTk.PhotoImage(
             Image.open(ICON_CLIPBOARD).resize((16, 16))
         )
-        self._body()
-        self._do_layout()
-        self._attach_events()
         self._halt = ""
+
+        super().__init__(app, parent, *args, **kwargs)
 
     def _body(self):
         """
@@ -110,17 +103,16 @@ class ConsoleFrame(Frame):
 
     def _do_layout(self):
         """
-        Set position of widgets in frame
+        Set position of widgets in frame.
         """
 
         self._frm_console.grid(column=0, row=0, pady=1, padx=1, sticky=NSEW)
 
     def _attach_events(self):
         """
-        Bind events to frame
+        Bind events to frame.
         """
 
-        self.bind("<Configure>", self._on_resize)
         self._frm_console.text.bind("<Double-Button-1>", self._frm_console.on_clipboard)
         self._frm_console.text.bind("<Double-Button-2>", self._frm_console.on_clipboard)
         self._frm_console.text.bind("<Double-Button-3>", self._frm_console.on_clipboard)
@@ -192,7 +184,9 @@ class ConsoleFrame(Frame):
             )
             if self._halt != "":
                 self.__app.conn_status = DISCONNECTED
-                self.__app.set_status_label(HALTTAGWARN.format(self._halt), ERRCOL)
+                self.__app.set_status_label(
+                    _("HALTED ON USER TAG MATCH:") + f" {self._halt}", ERRCOL
+                )
 
         self._frm_console.state(False)  # disable text insertion
 
@@ -218,23 +212,3 @@ class ConsoleFrame(Frame):
                         self._halt = match
                         match = HALT
                     con.tag_add(match, f"{lineidx}.{start}", f"{lineidx}.{end}")
-
-    def _on_resize(self, event):  # pylint: disable=unused-argument
-        """
-        Resize frame
-
-        :param event event: resize event
-        """
-
-        self.width, self.height = self.get_size()
-
-    def get_size(self):
-        """
-        Get current object size.
-
-        :return: window size (width, height)
-        :rtype: tuple
-        """
-
-        self.update_idletasks()  # Make sure we know about any resizing
-        return self.winfo_width(), self.winfo_height()

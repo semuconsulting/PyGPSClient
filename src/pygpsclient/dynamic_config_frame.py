@@ -69,9 +69,9 @@ from pygpsclient.globals import (
     NMEA_CFGOTHER,
     OKCOL,
     UBX_CFGOTHER,
+    _,
 )
 from pygpsclient.helpers import stringvar2val
-from pygpsclient.strings import LBLCFGGENERIC, LBLCFGGENERICNMEA
 
 # dimensions of scrollable attribute window
 SCROLLX = 370
@@ -186,7 +186,11 @@ class Dynamic_Config_Frame(Frame):
 
         self._lbl_cfg_dyn = Label(
             self,
-            text=LBLCFGGENERICNMEA if self._protocol == "NMEA" else LBLCFGGENERIC,
+            text=(
+                _("NMEA Command Configuration")
+                if self._protocol == "NMEA"
+                else _("UBX Legacy Command Configuration")
+            ),
             anchor=W,
         )
         self._lbx_cfg_cmd = Listbox(

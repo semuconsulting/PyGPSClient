@@ -54,10 +54,10 @@ from pygpsclient.globals import (
     TRACEMODE_WRITE,
     VALFLOAT,
     VALNONSPACE,
-    WIDGETU6,
+    _,
 )
 from pygpsclient.helpers import time2str
-from pygpsclient.strings import CONTENTCOPIED
+from pygpsclient.widget_frame import WidgetFrame
 
 OL_WID = 1
 LBLCOL = "white"
@@ -103,7 +103,7 @@ def gen_yrange() -> tuple:
     return srange, yrange
 
 
-class ChartviewFrame(Frame):
+class ChartviewFrame(WidgetFrame):
     """
     CHartview frame class.
     """
@@ -119,14 +119,7 @@ class ChartviewFrame(Frame):
         """
 
         self.__app = app  # Reference to main application class
-
-        super().__init__(parent, *args, **kwargs)
-
         self.chartsettings = self.__app.configuration.get("chartsettings_d")
-        def_w, def_h = WIDGETU6
-        self.width = kwargs.get("width", def_w)
-        self.height = kwargs.get("height", def_h)
-        self.configure(bg=BGCOL)
         self._xoff = 20  # chart X offset for labels
         self._yoff = 20  # chart Y offset for labels
         self._chart_data = {}
@@ -136,14 +129,13 @@ class ChartviewFrame(Frame):
         if self._num_chans % 2:  # no channels must be even
             self._num_chans += 1
         self._plotcols = PLOTCOLS
-        self._font = self.__app.font_sm
         self._img_clipboard = ImageTk.PhotoImage(
             Image.open(ICON_CLIPBOARD).resize((16, 16))
         )
         # generate random plot colours for channels > 4
         if self._num_chans > 4:
             self._plotcols += tuple(
-                "#" + "".join([choice("9ABCDEF") for j in range(6)])
+                "#" + "".join([choice("9ABCDEF") for j in range(6)])  # nosec
                 for i in range(self._num_chans - 4)
             )
         self._data_id = [None] * self._num_chans
@@ -153,7 +145,6 @@ class ChartviewFrame(Frame):
         self._data_maxy = [None] * self._num_chans
         self._mintim = 0
         self._maxtim = 0
-        self._redraw = True
         self._timrange = StringVar()
         self._maxpoints = StringVar()
         for chn in range(self._num_chans):
@@ -162,10 +153,8 @@ class ChartviewFrame(Frame):
             self._data_scale[chn] = StringVar()
             self._data_miny[chn] = StringVar()
             self._data_maxy[chn] = StringVar()
-        self._body()
-        self._do_layout()
-        self.reset()
-        self._attach_events()
+
+        super().__init__(app, parent, *args, **kwargs)
 
     def _body(self):
         """
@@ -339,7 +328,6 @@ class ChartviewFrame(Frame):
         Bind events to frame.
         """
 
-        self.bind("<Configure>", self._on_resize)
         self._canvas.bind("<Double-Button-1>", self._on_clear)
         self._canvas.bind("<Double-Button-2>", self._on_clipboard)
         self._canvas.bind("<Double-Button-3>", self._on_clipboard)
@@ -649,7 +637,7 @@ class ChartviewFrame(Frame):
         self.__app.clipboard_clear()
         self.__app.clipboard_append(csv)
         self.__app.update()
-        self.__app.set_status_label(CONTENTCOPIED.format("chart"), INFOCOL)
+        self.__app.set_status_label(_("Contents of chart copied to clipboard"), INFOCOL)
 
     def _on_resize(self, event):  # pylint: disable=unused-argument
         """
@@ -661,14 +649,3 @@ class ChartviewFrame(Frame):
         self.width, self.height = self.get_size()
         self._font = font.Font(size=int(min(self.width, self.height) / FONTSCALE))
         self._redraw = True
-
-    def get_size(self):
-        """
-        Get current canvas size.
-
-        :return: window size (width, height)
-        :rtype: tuple
-        """
-
-        self.update_idletasks()  # Make sure we know about any resizing
-        return self._canvas.winfo_width(), self._canvas.winfo_height()

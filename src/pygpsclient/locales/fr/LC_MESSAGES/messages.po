@@ -1,0 +1,1267 @@
+# French translations for PyGPSClient.
+# Copyright (C) 2026 Steve Smith <semuadmin@semuconsulting.com>
+# This file is distributed under the same license as the PyGPSClient
+# project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PyGPSClient VERSION\n"
+"Report-Msgid-Bugs-To: semuadmin@semuconsulting.com\n"
+"POT-Creation-Date: 2026-11-19 20:18+0000\n"
+"PO-Revision-Date: 2026-11-18 02:16+0000\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: fr\n"
+"Language-Team: fr <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: src/pygpsclient/about_dialog.py:83
+msgid "Function unavailable under Homebrew"
+msgstr "Fonction non disponible sous Homebrew"
+
+#: src/pygpsclient/about_dialog.py:85
+msgid ""
+"PyGPSClient is a free, open-source GNSS diagnostic and configuration "
+"application written entirely by human volunteers in Python and tkinter. "
+"It supports NMEA, UBX, SBF, UNI, QGC, RTCM3, NTRIP, SPARTN & RINEX "
+"protocols."
+msgstr ""
+"PyGPSClient est une application gratuite et open source de diagnostic et "
+"de configuration GNSS, entièrement écrite par des bénévoles en Python et "
+"tkinter. Il prend en charge les protocoles NMEA, UBX, SBF, UNI, QGC, "
+"RTCM3, NTRIP, SPARTN et RINEX."
+
+#: src/pygpsclient/about_dialog.py:173
+msgid "Check on startup"
+msgstr "Relever le courriel au démarrage"
+
+#: src/pygpsclient/about_dialog.py:331 src/pygpsclient/app.py:1174
+msgid "In-app update not available under Homebrew. Use terminal."
+msgstr ""
+"La mise à jour intégrée à l’application n’est pas disponible sous "
+"Homebrew. Utilisez le terminal."
+
+#: src/pygpsclient/about_dialog.py:335 src/pygpsclient/app.py:1178
+msgid "Updating application..."
+msgstr "Mise à jour de l'application"
+
+#: src/pygpsclient/about_dialog.py:338 src/pygpsclient/app.py:1207
+msgid "Application updated. Close and Restart"
+msgstr "Application mise à jour. Fermer et redémarrer"
+
+#: src/pygpsclient/about_dialog.py:340 src/pygpsclient/app.py:1211
+msgid "Error updating application"
+msgstr "Erreur lors de la mise à jour de l'application"
+
+#: src/pygpsclient/app.py:240
+#, fuzzy
+msgid "No comms ports found"
+msgstr "Bienvenue sur PyGPSClient. Aucun port de communication trouvé"
+
+#: src/pygpsclient/app.py:523
+msgid "WARNING! Stop all active connections before loading configuration"
+msgstr ""
+"AVERTISSEMENT ! Arrêtez toutes les connexions actives avant de charger la"
+" configuration"
+
+#: src/pygpsclient/app.py:556
+msgid "Configuration saved OK"
+msgstr "La configuration a été sauvegardée"
+
+#: src/pygpsclient/app.py:560
+msgid "Configuration not saved"
+msgstr "Configuration NON enregistrée !"
+
+#: src/pygpsclient/app.py:576
+msgid "Invalid configuration data"
+msgstr "Configuration non valide"
+
+#: src/pygpsclient/app.py:769
+msgid "Running processes terminated by user"
+msgstr "Processus en cours d’exécution terminés par l’utilisateur"
+
+#: src/pygpsclient/app.py:782
+msgid "End of file reached"
+msgstr "Fin du fichier atteinte"
+
+#: src/pygpsclient/app.py:795
+msgid "Inactivity timeout"
+msgstr "Timeout d'inactivité"
+
+#: src/pygpsclient/app.py:933
+#, python-brace-format
+msgid "Newer version of {} available: {}.{}"
+msgstr "Une version plus récente de {} est disponible: {}.{}"
+
+#: src/pygpsclient/app_config_dialog.py:113
+msgid "GUI Refresh Interval"
+msgstr "Actualiser l’intervalle GUI"
+
+#: src/pygpsclient/app_config_dialog.py:125
+msgid "MapQuest Refresh Interval"
+msgstr "Intervalle de rafraîchissement MapQuest"
+
+#: src/pygpsclient/app_config_dialog.py:137
+msgid "MapQuest API Key"
+msgstr "Clé API MapQuest"
+
+#: src/pygpsclient/app_config_dialog.py:146
+msgid "Datalog Max File Size"
+msgstr "Taille max. du fichier de journal de données"
+
+#: src/pygpsclient/app_config_dialog.py:158
+msgid "Chart Plotter Channels"
+msgstr "Canaux du traceur de cartes"
+
+#: src/pygpsclient/app_config_dialog.py:169
+msgid "Resizeable TopLevel Dialogs"
+msgstr "Boîtes de dialogue de niveau supérieur redimensionnables"
+
+#: src/pygpsclient/app_config_dialog.py:177
+msgid "Transient TopLevel Dialogs"
+msgstr "Boîtes de dialogue transitoires de niveau supérieur"
+
+#: src/pygpsclient/app_config_dialog.py:185
+msgid "Show Sats With Null C/No"
+msgstr "Afficher les satellites avec Null C/No"
+
+#: src/pygpsclient/app_config_dialog.py:272
+msgid "Update with caution! Restart after updating"
+msgstr "Mettez à jour avec prudence ! Redémarrez après la mise à jour."
+
+#: src/pygpsclient/app_config_dialog.py:313
+msgid "Save updated settings and restart"
+msgstr "Enregistrer les paramètres mis à jour et redémarrer"
+
+#: src/pygpsclient/app_config_dialog.py:315
+msgid ". Check MapQuest Fees!"
+msgstr ". Consultez les frais MapQuest!"
+
+#: src/pygpsclient/app_config_dialog.py:359
+msgid "Save configuration to file and restart"
+msgstr "Enregistrer la configuration dans un fichier et redémarrer"
+
+#: src/pygpsclient/app_config_dialog.py:361
+msgid "Save cancelled"
+msgstr "Enregistrement annulé"
+
+#: src/pygpsclient/app_config_dialog.py:363
+msgid "Restart app"
+msgstr "Redémarrer l\\'application"
+
+#: src/pygpsclient/banner_frame.py:136
+msgid "utc:"
+msgstr "utc:"
+
+#: src/pygpsclient/banner_frame.py:142 src/pygpsclient/banner_frame.py:436
+msgid "lat:"
+msgstr "lat:"
+
+#: src/pygpsclient/banner_frame.py:145 src/pygpsclient/banner_frame.py:437
+msgid "lon:"
+msgstr "lon:"
+
+#: src/pygpsclient/banner_frame.py:148
+msgid "fix:"
+msgstr "fix:"
+
+#: src/pygpsclient/banner_frame.py:167 src/pygpsclient/banner_frame.py:438
+msgid "hmsl:"
+msgstr "hmsl:"
+
+#: src/pygpsclient/banner_frame.py:171 src/pygpsclient/banner_frame.py:439
+msgid "hae:"
+msgstr "hae:"
+
+#: src/pygpsclient/banner_frame.py:178
+msgid "speed:"
+msgstr "vitesse:"
+
+#: src/pygpsclient/banner_frame.py:181
+msgid "track:"
+msgstr "suivi:"
+
+#: src/pygpsclient/banner_frame.py:184
+msgid "siv:"
+msgstr "siv:"
+
+#: src/pygpsclient/banner_frame.py:187
+msgid "sip:"
+msgstr "sip:"
+
+#: src/pygpsclient/banner_frame.py:190
+msgid "pdop:"
+msgstr "pdop:"
+
+#: src/pygpsclient/banner_frame.py:193
+msgid "acc:"
+msgstr "acc:"
+
+#: src/pygpsclient/banner_frame.py:197
+msgid "corr:"
+msgstr "corr:"
+
+#: src/pygpsclient/banner_frame.py:439
+msgid "sep:"
+msgstr "sep"
+
+#: src/pygpsclient/canvas_map.py:220
+msgid ""
+"Map out of bounds\n"
+"Try increasing zoom level"
+msgstr ""
+"Carte hors limites\n"
+"Essayez d’augmenter le niveau de zoom"
+
+#: src/pygpsclient/canvas_map.py:255
+msgid "No custom map available for unknown"
+msgstr "Aucune carte personnalisée disponible pour inconnu"
+
+#: src/pygpsclient/canvas_map.py:268
+msgid "No custom map available for"
+msgstr "Aucune carte personnalisée disponible pour"
+
+#: src/pygpsclient/canvas_map.py:278
+msgid "Custom map configuration error"
+msgstr "Erreur de configuration de la carte personnalisée"
+
+#: src/pygpsclient/canvas_map.py:281
+msgid "Permission denied to open custom map"
+msgstr "Autorisation refusée pour ouvrir la carte personnalisée"
+
+#: src/pygpsclient/canvas_map.py:284
+msgid "Unable to open custom map"
+msgstr "Impossible d’ouvrir la carte personnalisée"
+
+#: src/pygpsclient/canvas_map.py:372
+msgid "NO CONNECTION"
+msgstr "PAS DE CONNEXION"
+
+#: src/pygpsclient/canvas_map.py:382
+msgid ""
+"Unable to display map.\n"
+"MQAPIKEY not found or invalid"
+msgstr ""
+"Impossible d’afficher la carte.\n"
+"MQAPIKEY introuvable ou non valide"
+
+#: src/pygpsclient/canvas_map.py:393
+msgid ""
+"Unable to display map.\n"
+"No satellite fix."
+msgstr ""
+"Impossible d’afficher la carte.\n"
+"Aucune localisation par satellite."
+
+#: src/pygpsclient/canvas_map.py:428
+msgid ""
+"Unable to display map.\n"
+"Check internet connection."
+msgstr ""
+"Impossible d’afficher la carte.\n"
+"Vérifiez votre connexion Internet."
+
+#: src/pygpsclient/canvas_map.py:431
+#, python-brace-format
+msgid ""
+"Unable to display map.\n"
+"Bad HTTP response: {}.\n"
+"Check MQAPIKEY.\n"
+msgstr ""
+"Impossible d’afficher la carte.\n"
+"Réponse HTTP incorrecte: {}.\n"
+"Vérifiez MQAPIKEY.\n"
+
+#: src/pygpsclient/chart_frame.py:640
+msgid "Contents of chart copied to clipboard"
+msgstr "Contenu du graphique copié dans le presse-papiers"
+
+#: src/pygpsclient/configuration.py:295
+#, python-brace-format
+msgid "Unrecognised configuration setting '{}: {}'"
+msgstr "Paramètre de configuration non reconnu '{}: {}'"
+
+#: src/pygpsclient/configuration.py:305
+#, python-brace-format
+msgid "Configuration file not found {}. Using defaults"
+msgstr ""
+"Fichier de configuration introuvable {}. Utilisation des valeurs par "
+"défaut"
+
+#: src/pygpsclient/configuration.py:307
+#, python-brace-format
+msgid "Configuration not loaded {} {}. Using defaults"
+msgstr "Configuration non chargée {} {}. Utilisation des valeurs par défaut"
+
+#: src/pygpsclient/configuration.py:312
+msgid ". Consider re-saving"
+msgstr ". Envisagez de l’enregistrer à nouveau"
+
+#: src/pygpsclient/configuration.py:314
+msgid "Configuration loaded"
+msgstr "Configuration chargée"
+
+#: src/pygpsclient/confirm_box.py:47
+msgid "OK"
+msgstr "OK"
+
+#: src/pygpsclient/confirm_box.py:50
+msgid "Cancel"
+msgstr "Annuler"
+
+#: src/pygpsclient/console_frame.py:188
+msgid "HALTED ON USER TAG MATCH:"
+msgstr "ARRÊT SUR LA CORRESPONDANCE DE L’ÉTIQUETTE UTILISATEUR:"
+
+#: src/pygpsclient/custom_classes.py:872
+msgid "lines copied to clipboard"
+msgstr "lignes copiées dans le presse-papiers"
+
+#: src/pygpsclient/dynamic_config_frame.py:190
+msgid "NMEA Command Configuration"
+msgstr "Configuration de la commande"
+
+#: src/pygpsclient/dynamic_config_frame.py:192
+msgid "UBX Legacy Command Configuration"
+msgstr "Configuration des commandes UBX Legacy"
+
+#: src/pygpsclient/file_handler.py:164
+msgid "Config File"
+msgstr "Fichier de Configuration"
+
+#: src/pygpsclient/globals.py:79
+msgid "App Configuration"
+msgstr "Configuration de l'application"
+
+#: src/pygpsclient/globals.py:80 src/pygpsclient/menu_bar.py:121
+#, fuzzy
+msgid "About PyGPSClient"
+msgstr "Bienvenue sur PyGPSClient"
+
+#: src/pygpsclient/globals.py:81
+msgid "GPX Track Viewer"
+msgstr "Visualiseur de parcours GPX"
+
+#: src/pygpsclient/globals.py:82
+msgid "Import Custom Map"
+msgstr "Importer une carte personnalisée"
+
+#: src/pygpsclient/globals.py:83
+msgid "NMEA Configuration"
+msgstr "Configuration NMEA"
+
+#: src/pygpsclient/globals.py:84
+msgid "NTRIP Configuration"
+msgstr "Configuration NTRIP"
+
+#: src/pygpsclient/globals.py:85
+msgid "Configuration Command Recorder"
+msgstr "Enregistreur de commandes de configuration"
+
+#: src/pygpsclient/globals.py:86
+msgid "RINEX Conversion (BETA)"
+msgstr "Conversion RINEX (BÊTA)"
+
+#: src/pygpsclient/globals.py:87
+msgid "Server Configuration"
+msgstr "Configuration Serveur"
+
+#: src/pygpsclient/globals.py:88
+msgid "Settings"
+msgstr "Paramètres"
+
+#: src/pygpsclient/globals.py:89
+msgid "TTY Configuration"
+msgstr "Configuration TTY"
+
+#: src/pygpsclient/globals.py:90
+msgid "UBX Configuration"
+msgstr "Configuration UBX"
+
+#: src/pygpsclient/globals.py:91
+msgid "UBX Legacy Configuration"
+msgstr "Configuration UBX Legacy"
+
+#: src/pygpsclient/globals.py:144
+msgid "Confirm Command"
+msgstr "Confirmer la commande"
+
+#: src/pygpsclient/globals.py:145
+msgid "Are you sure?"
+msgstr "Êtes-vous sûr?"
+
+#: src/pygpsclient/globals.py:261
+msgid "N/A"
+msgstr "N/A"
+
+#: src/pygpsclient/globals.py:263
+msgid "Not connected"
+msgstr "Non connecté"
+
+#: src/pygpsclient/globals.py:280
+msgid "Select Directory"
+msgstr "Sélectionner un annuaire"
+
+#: src/pygpsclient/gpx_dialog.py:302
+msgid "Click folder icon to open GPX Track file"
+msgstr "Cliquez sur l’icône du dossier pour ouvrir le fichier de tracé GPX"
+
+#: src/pygpsclient/gpx_dialog.py:333
+msgid "Redrawing..."
+msgstr "Redessiner..."
+
+#: src/pygpsclient/gpx_dialog.py:363
+msgid "Loading GPX file ..."
+msgstr "Chargement du fichier GPX ..."
+
+#: src/pygpsclient/gpx_dialog.py:378
+msgid "GPX Parsing Error!"
+msgstr "Erreur d&apos; analyse GPX"
+
+#: src/pygpsclient/gpx_dialog.py:394
+#, fuzzy
+msgid "No elements in GPX File:"
+msgstr "Aucun élément dans le fichier GPX:"
+
+#: src/pygpsclient/gpx_dialog.py:456
+msgid "GPX data processed"
+msgstr "Données traitées"
+
+#: src/pygpsclient/gpx_dialog.py:569
+msgid "time and speed axes are nominal"
+msgstr "les axes du temps et de la vitesse sont nominaux"
+
+#: src/pygpsclient/hardware_info_frame.py:65
+msgid "Hardware"
+msgstr "Équipement"
+
+#: src/pygpsclient/hardware_info_frame.py:67
+msgid "Software"
+msgstr "Logiciel"
+
+#: src/pygpsclient/hardware_info_frame.py:69
+msgid "Firmware"
+msgstr "Micrologiciel"
+
+#: src/pygpsclient/hardware_info_frame.py:71
+#: src/pygpsclient/socketconfig_frame.py:119
+msgid "Protocol"
+msgstr "Protocole"
+
+#: src/pygpsclient/hardware_info_frame.py:73
+msgid "GNSS/AS"
+msgstr "GNSS/AS"
+
+#: src/pygpsclient/hardware_info_frame.py:110
+msgid "Hardware information re-polled..."
+msgstr "Nouvelle interrogation des informations matérielles..."
+
+#: src/pygpsclient/hardware_info_frame.py:131
+msgid "Hardware information reset"
+msgstr "Réinitialisation des informations matérielles"
+
+#: src/pygpsclient/importmap_dialog.py:115
+msgid "First?"
+msgstr "Premier"
+
+#: src/pygpsclient/importmap_dialog.py:117
+msgid "Minimum:"
+msgstr "Minimum:"
+
+#: src/pygpsclient/importmap_dialog.py:126
+msgid "Maximum:"
+msgstr "Maximale:"
+
+#: src/pygpsclient/importmap_dialog.py:184
+msgid "Rasterio library is not installed - extents must be entered manually"
+msgstr ""
+"La bibliothèque Rasterio n’est pas installée: les étendues doivent être "
+"saisies manuellement"
+
+#: src/pygpsclient/importmap_dialog.py:208
+msgid "Error: invalid entry"
+msgstr "Erreur: saisie non valide"
+
+#: src/pygpsclient/importmap_dialog.py:273
+msgid "Image is not georeferenced - extents must be entered manually"
+msgstr ""
+"L’image n’est pas géoréférencée – les étendues doivent être saisies "
+"manuellement"
+
+#: src/pygpsclient/importmap_dialog.py:277
+msgid "Image is not a supported file format"
+msgstr "L’image n’est pas dans un format de fichier pris en charge"
+
+#: src/pygpsclient/importmap_dialog.py:306
+msgid "Error: minimum must be less than maximum"
+msgstr "Erreur: le minimum doit être inférieur au maximum"
+
+#: src/pygpsclient/importmap_dialog.py:312
+msgid "Custom map imported"
+msgstr "Carte personnalisée importée"
+
+#: src/pygpsclient/map_frame.py:141
+msgid "Track"
+msgstr "Suivre"
+
+#: src/pygpsclient/menu_bar.py:68
+msgid "Save Configuration"
+msgstr "Sauvegarder la configuration"
+
+#: src/pygpsclient/menu_bar.py:71
+msgid "Load Configuration"
+msgstr "Charger la Configuration"
+
+#: src/pygpsclient/menu_bar.py:74
+msgid "Exit"
+msgstr "Quitter"
+
+#: src/pygpsclient/menu_bar.py:79
+msgid "File"
+msgstr "Dossier"
+
+#: src/pygpsclient/menu_bar.py:86
+msgid "Undock Settings"
+msgstr "Désactiver les paramètres"
+
+#: src/pygpsclient/menu_bar.py:91
+msgid "Hide Settings"
+msgstr "Masquer les paramètres"
+
+#: src/pygpsclient/menu_bar.py:100
+msgid "Reset Layout"
+msgstr "Réinitialiser la mise en page"
+
+#: src/pygpsclient/menu_bar.py:103
+msgid "View"
+msgstr "Afficher"
+
+#: src/pygpsclient/menu_bar.py:114
+msgid "Options"
+msgstr "Options"
+
+#: src/pygpsclient/menu_bar.py:119
+msgid "About"
+msgstr "À propos"
+
+#: src/pygpsclient/menu_bar.py:123
+msgid "Help"
+msgstr "Aide"
+
+#: src/pygpsclient/nmea_preset_frame.py:112
+msgid "Preset NMEA Configuration Commands"
+msgstr "Commandes de configuration NMEA prédéfinies"
+
+#: src/pygpsclient/ntrip_client_dialog.py:156
+msgid "Mountpoint"
+msgstr "Mountpoint"
+
+#: src/pygpsclient/ntrip_client_dialog.py:170
+msgid "Sourcetable"
+msgstr "Sourcetable"
+
+#: src/pygpsclient/ntrip_client_dialog.py:184
+msgid "NTRIP Version"
+msgstr "Version NTRIP"
+
+#: src/pygpsclient/ntrip_client_dialog.py:193
+msgid "Data Type"
+msgstr "Type de données"
+
+#: src/pygpsclient/ntrip_client_dialog.py:202
+msgid "User"
+msgstr "Utilisateur"
+
+#: src/pygpsclient/ntrip_client_dialog.py:210
+msgid "Password"
+msgstr "Mot de passe"
+
+#: src/pygpsclient/ntrip_client_dialog.py:220
+msgid "GGA Interval s"
+msgstr "Intervalle GGA s"
+
+#: src/pygpsclient/ntrip_client_dialog.py:230
+msgid "Receiver"
+msgstr "Récepteur"
+
+#: src/pygpsclient/ntrip_client_dialog.py:234
+msgid "Fixed Reference"
+msgstr "Référence fixe"
+
+#: src/pygpsclient/recorder_dialog.py:311
+msgid "Loading commands..."
+msgstr "Chargement des commandes…"
+
+#: src/pygpsclient/recorder_dialog.py:323
+msgid "ERROR parsing "
+msgstr "Erreur lors de l&apos; analyse"
+
+#: src/pygpsclient/recorder_dialog.py:330
+msgid " Commands loaded from "
+msgstr "Commandes chargées depuis"
+
+#: src/pygpsclient/recorder_dialog.py:424
+msgid "Nothing to save"
+msgstr "Rien à sauvegarder"
+
+#: src/pygpsclient/recorder_dialog.py:436
+msgid "Saving commands..."
+msgstr "Enregistrement des commandes..."
+
+#: src/pygpsclient/recorder_dialog.py:444
+msgid " commands saved to "
+msgstr " commandes enregistrées dans "
+
+#: src/pygpsclient/recorder_dialog.py:457
+msgid "Nothing to send"
+msgstr "Rien à envoyer"
+
+#: src/pygpsclient/recorder_dialog.py:472
+msgid " commands sent to device"
+msgstr " commandes envoyées à l’appareil"
+
+#: src/pygpsclient/recorder_dialog.py:491
+msgid "started"
+msgstr "commencer"
+
+#: src/pygpsclient/recorder_dialog.py:491
+msgid "stopped"
+msgstr "arrêté"
+
+#: src/pygpsclient/recorder_dialog.py:492
+msgid "Recording "
+msgstr "Enregistrement en cours"
+
+#: src/pygpsclient/recorder_dialog.py:504
+msgid "Stop recording first"
+msgstr "Arrêtez d’abord l’enregistrement"
+
+#: src/pygpsclient/recorder_dialog.py:508
+msgid "Nothing to import"
+msgstr "Rien à importer"
+
+#: src/pygpsclient/recorder_dialog.py:512
+msgid "Enter preset description, then click Save "
+msgstr "Saisissez la description du préréglage, puis cliquez sur Enregistrer"
+
+#: src/pygpsclient/recorder_dialog.py:549
+msgid " commands imported as "
+msgstr " commandes importées en tant que"
+
+#: src/pygpsclient/recorder_dialog.py:551
+msgid " presets"
+msgstr " préréglages"
+
+#: src/pygpsclient/recorder_dialog.py:556
+msgid "Recorded commands must be of same type"
+msgstr "Les commandes enregistrées doivent être du même type"
+
+#: src/pygpsclient/recorder_dialog.py:573
+msgid "Nothing to undo"
+msgstr "Rien à défaire!"
+
+#: src/pygpsclient/recorder_dialog.py:579
+msgid "Last command undone"
+msgstr "Dernière commande annulée"
+
+#: src/pygpsclient/recorder_dialog.py:593
+msgid "Nothing to delete"
+msgstr "Rien à supprimer"
+
+#: src/pygpsclient/recorder_dialog.py:597
+msgid " commands deleted"
+msgstr " commandes supprimées"
+
+#: src/pygpsclient/recorder_dialog.py:634
+msgid "RECORDING"
+msgstr "ENREGISTREMENT"
+
+#: src/pygpsclient/recorder_dialog.py:655
+msgid "Unknown device"
+msgstr "Périphérique inconnu"
+
+#: src/pygpsclient/rinex_dialog.py:189
+msgid "GNSS Binary Data Log File:"
+msgstr "Fichier journal de données binaires GNSS:"
+
+#: src/pygpsclient/rinex_dialog.py:228
+msgid "RINEX Version:"
+msgstr "Version RINEX:"
+
+#: src/pygpsclient/rinex_dialog.py:240
+msgid "RINEX Output File Types and Data Sources:"
+msgstr "Types de fichiers de sortie RINEX et sources de données:"
+
+#: src/pygpsclient/rinex_dialog.py:290
+msgid "GNSS Constellations:"
+msgstr "Constellations GNSS:"
+
+#: src/pygpsclient/rinex_dialog.py:354
+msgid "Observation Codes (comma-separated, blank for ALL):"
+msgstr "Codes d’observation (séparés par des virgules, vides pour TOUS):"
+
+#: src/pygpsclient/rinex_dialog.py:364
+msgid "Satellite (PRN) Codes (comma-separated, blank for ALL):"
+msgstr "Codes satellite (PRN) (séparés par des virgules, vides pour TOUS):"
+
+#: src/pygpsclient/rinex_dialog.py:379
+#, fuzzy
+msgid "Output files and process counts:"
+msgstr "Fichiers de sortie et nombre de processus:"
+
+#: src/pygpsclient/rinex_dialog.py:389
+msgid "Marker Number / Name / Type:"
+msgstr "Numéro / Nom / Type de Marqueur:"
+
+#: src/pygpsclient/rinex_dialog.py:416
+msgid "Antenna Number / Type:"
+msgstr "Numéro/type d’antenne:"
+
+#: src/pygpsclient/rinex_dialog.py:433
+msgid "Antenna Delta H / E / D:"
+msgstr "Antenne Delta H / E / D:"
+
+#: src/pygpsclient/rinex_dialog.py:457
+msgid "Receiver Number / Name / Version:"
+msgstr "Numéro/nom/version du récepteur:"
+
+#: src/pygpsclient/rinex_dialog.py:481
+msgid "Observer / Agency:"
+msgstr "Observateur / Agence:"
+
+#: src/pygpsclient/rinex_dialog.py:490
+msgid "Country Code:"
+msgstr "Code du pays:"
+
+#: src/pygpsclient/rinex_dialog.py:499
+msgid "Digital Object Identifier:"
+msgstr "Digital Object Identifier"
+
+#: src/pygpsclient/rinex_dialog.py:509
+msgid "License of Use:"
+msgstr "Licence d’utilisation"
+
+#: src/pygpsclient/rinex_dialog.py:519
+msgid "Station Metadata:"
+msgstr "Métadonnées de la station:"
+
+#: src/pygpsclient/rinex_dialog.py:529
+msgid "User Comments:"
+msgstr "Commentaires du client:"
+
+#: src/pygpsclient/rinex_dialog.py:533
+msgid "Approximate Start Time of RTCM 3 Data:"
+msgstr "Heure de début approximative des données RTCM 3:"
+
+#: src/pygpsclient/rinex_dialog.py:763
+msgid "Processing"
+msgstr "Traitement"
+
+#: src/pygpsclient/rinex_dialog.py:800
+msgid "Validating"
+msgstr "Validation"
+
+#: src/pygpsclient/rinex_dialog.py:812
+msgid "invalid; contains 0 records"
+msgstr "non valide ; contient 0 enregistrement"
+
+#: src/pygpsclient/rinex_dialog.py:817
+#, python-brace-format
+msgid "{} validated; {:,} records"
+msgstr "{} validés; {:,} enregistrements"
+
+#: src/pygpsclient/rinex_dialog.py:886
+msgid "Invalid Parameters"
+msgstr "Paramètres Invalides"
+
+#: src/pygpsclient/rinex_dialog.py:899
+msgid "Select at least one RINEX output type"
+msgstr "Sélectionner au moins un type de sortie RINEX"
+
+#: src/pygpsclient/rinex_dialog.py:920
+msgid "Select at least one GNSS"
+msgstr "Sélectionnez au moins une"
+
+#: src/pygpsclient/rinex_dialog.py:1006
+msgid "Conversion Failed"
+msgstr "Échec de la conversion"
+
+#: src/pygpsclient/rinex_dialog.py:1039
+msgid "Conversion successful"
+msgstr "Conversion réussie"
+
+#: src/pygpsclient/rinex_dialog.py:1041
+msgid "No usable information in input"
+msgstr "Aucune information utilisable dans la saisie"
+
+#: src/pygpsclient/rinex_dialog.py:1045
+#, fuzzy
+msgid "Output files and process counts"
+msgstr "Fichiers de sortie et nombre de processus"
+
+#: src/pygpsclient/rinex_dialog.py:1049
+msgid "Conversion cancelled"
+msgstr "Conversion annulée"
+
+#: src/pygpsclient/rinex_dialog.py:1051
+msgid "No parsable records in input"
+msgstr "Aucun enregistrement analysable dans les données saisies"
+
+#: src/pygpsclient/rinex_dialog.py:1053
+msgid "Conversion failed - see log"
+msgstr "Échec de la conversion - voir le journal"
+
+#: src/pygpsclient/serialconfig_frame.py:387
+msgid "SAVED PORT"
+msgstr "PORT ENREGISTRÉ"
+
+#: src/pygpsclient/serialconfig_frame.py:390
+msgid "USER-DEFINED PORT"
+msgstr "PORT PERSONNALISÉ"
+
+#: src/pygpsclient/serverconfig_dialog.py:208
+msgid ""
+"Socket Server /\n"
+"NTRIP Caster   "
+msgstr ""
+"Serveur de sockets /\n"
+"NTRIP Caster   "
+
+#: src/pygpsclient/serverconfig_dialog.py:214
+msgid "Mode"
+msgstr "Mode"
+
+#: src/pygpsclient/serverconfig_dialog.py:226
+msgid "Host IP"
+msgstr "Adresse IP du serveur"
+
+#: src/pygpsclient/serverconfig_dialog.py:241
+msgid "Public IP"
+msgstr "IP Publique"
+
+#: src/pygpsclient/serverconfig_dialog.py:249
+msgid "LAN IP"
+msgstr "IP LAN"
+
+#: src/pygpsclient/serverconfig_dialog.py:257
+#: src/pygpsclient/socketconfig_frame.py:112
+msgid "Port"
+msgstr "Port"
+
+#: src/pygpsclient/serverconfig_dialog.py:299
+msgid "Configure Base"
+msgstr "Configurer la base"
+
+#: src/pygpsclient/serverconfig_dialog.py:333
+msgid "Accuracy (cm)"
+msgstr "Précision (cm)"
+
+#: src/pygpsclient/serverconfig_dialog.py:346
+msgid "Duration (s)"
+msgstr "Durée (s)"
+
+#: src/pygpsclient/serverconfig_dialog.py:351
+msgid "Disable NMEA"
+msgstr "Désactiver NMEA"
+
+#: src/pygpsclient/serverconfig_dialog.py:486
+#: src/pygpsclient/serverconfig_dialog.py:911
+#, fuzzy
+msgid "TLS PEM file not found"
+msgstr "Fichier TLS PEM introuvable"
+
+#: src/pygpsclient/serverconfig_dialog.py:737
+msgid "Survey-in observations in progress..."
+msgstr "Observations de relevé en cours..."
+
+#: src/pygpsclient/serverconfig_dialog.py:741
+msgid "Receiver will restart..."
+msgstr "Le récepteur va redémarrer."
+
+#: src/pygpsclient/serverconfig_dialog.py:1159
+msgid "Receiver will restart again..."
+msgstr "Le récepteur va redémarrer..."
+
+#: src/pygpsclient/serverconfig_dialog.py:1186
+msgid "Survey-in observations in progress"
+msgstr "Observations de relevé en cours"
+
+#: src/pygpsclient/serverconfig_dialog.py:1196
+msgid "Survey-in failed - accuracy not met"
+msgstr "Échec de l’enregistrement: précision insuffisante"
+
+#: src/pygpsclient/serverconfig_dialog.py:1203
+msgid "Survey-in completed"
+msgstr "Enquête d’entrée terminée"
+
+#: src/pygpsclient/settings_child_frame.py:236
+msgid "Protocols"
+msgstr "Protocoles"
+
+#: src/pygpsclient/settings_child_frame.py:277
+msgid "Format"
+msgstr "Format"
+
+#: src/pygpsclient/settings_child_frame.py:291
+msgid "Units"
+msgstr "Unités"
+
+#: src/pygpsclient/settings_child_frame.py:309
+msgid "Autoscroll"
+msgstr "Défilement Auto"
+
+#: src/pygpsclient/settings_child_frame.py:321
+msgid "File Delay"
+msgstr "Délai Fichier"
+
+#: src/pygpsclient/settings_child_frame.py:335
+msgid "Datalog"
+msgstr "Datalog"
+
+#: src/pygpsclient/settings_child_frame.py:348
+msgid "GPX Track"
+msgstr "Piste GPX"
+
+#: src/pygpsclient/settings_child_frame.py:353
+msgid "Database"
+msgstr "Base de données"
+
+#: src/pygpsclient/settings_child_frame.py:359
+msgid ""
+"UBX\n"
+"Config"
+msgstr ""
+"Config\n"
+"UBX"
+
+#: src/pygpsclient/settings_child_frame.py:370
+msgid ""
+"UBX\n"
+"Legacy"
+msgstr ""
+"Ancien\n"
+"UBX"
+
+#: src/pygpsclient/settings_child_frame.py:381
+msgid ""
+"NMEA\n"
+"Config"
+msgstr ""
+"Config\n"
+"NMEA"
+
+#: src/pygpsclient/settings_child_frame.py:393
+msgid ""
+"TTY\n"
+"Config"
+msgstr ""
+"Config\n"
+"TTY"
+
+#: src/pygpsclient/settings_child_frame.py:405
+msgid ""
+"NTRIP\n"
+"Client"
+msgstr ""
+"Client\n"
+"NTRIP"
+
+#: src/pygpsclient/settings_child_frame.py:417
+msgid ""
+"Server\n"
+"Config"
+msgstr ""
+"Config\n"
+"Serveur"
+
+#: src/pygpsclient/settings_child_frame.py:734
+msgid "Data logging enabled:"
+msgstr "Journalisation activée"
+
+#: src/pygpsclient/settings_child_frame.py:748
+msgid "Data logging disabled"
+msgstr "Enregistrement désactivé."
+
+#: src/pygpsclient/settings_child_frame.py:763
+msgid "Track recording enabled:"
+msgstr "Enregistrement de parcours activé:"
+
+#: src/pygpsclient/settings_child_frame.py:775
+msgid "Track recording disabled"
+msgstr "Enregistrement de parcours désactivé"
+
+#: src/pygpsclient/settings_child_frame.py:795
+msgid "Database recording disabled"
+msgstr "Enregistrement dans la base de données désactivé"
+
+#: src/pygpsclient/settings_child_frame.py:837
+msgid "ERROR - invalid settings"
+msgstr "ERREUR – Paramètres non valides"
+
+#: src/pygpsclient/socketconfig_frame.py:104
+msgid "Server"
+msgstr "Serveur"
+
+#: src/pygpsclient/socketconfig_frame.py:130
+msgid "Self Sign"
+msgstr "Auto-signe"
+
+#: src/pygpsclient/sqlite_handler.py:135
+#, fuzzy
+msgid "Database initialising - this could take up to a minute..."
+msgstr ""
+"Initialisation de la base de données – cela peut prendre jusqu’à une "
+"minute..."
+
+#: src/pygpsclient/sqlite_handler.py:146
+#, fuzzy
+msgid "Error initialising spatial database"
+msgstr "Erreur lors de l’initialisation de la base de données spatiale"
+
+#: src/pygpsclient/sqlite_handler.py:192
+#, fuzzy
+msgid "Database opened"
+msgstr "Base de données ouverte"
+
+#: src/pygpsclient/sqlite_handler.py:196 src/pygpsclient/sqlite_handler.py:200
+#: src/pygpsclient/sqlite_handler.py:204 src/pygpsclient/sqlite_handler.py:269
+#, fuzzy
+msgid "SQL error"
+msgstr "Erreur SQL"
+
+#: src/pygpsclient/stream_handler.py:466
+msgid "WARNING"
+msgstr "AVERTISSEMENT"
+
+#: src/pygpsclient/tty_preset_dialog.py:242
+msgid "Invalid preset format"
+msgstr "Format de préréglage non valide"
+
+#: src/pygpsclient/tty_preset_dialog.py:250
+msgid "Invalid command format"
+msgstr "Format de commande non valide"
+
+#: src/pygpsclient/tty_preset_dialog.py:265
+#: src/pygpsclient/ubx_preset_frame.py:191
+msgid "Command(s) sent"
+msgstr "Commande(s) envoyée(s)"
+
+#: src/pygpsclient/tty_preset_dialog.py:267
+#: src/pygpsclient/ubx_preset_frame.py:195
+msgid "Command(s) cancelled"
+msgstr "Commande(s) annulée(s)"
+
+#: src/pygpsclient/tty_preset_dialog.py:269
+#: src/pygpsclient/ubx_preset_frame.py:197
+msgid "Command(s) sent, no results"
+msgstr "Commande(s) envoyée(s), aucun résultat"
+
+#: src/pygpsclient/tty_preset_dialog.py:325
+msgid "Command(s) acknowledged"
+msgstr "Commande(s) prise(s) en compte"
+
+#: src/pygpsclient/tty_preset_dialog.py:330
+msgid "Command(s) rejected"
+msgstr "Commande(s) rejetée(s)"
+
+#: src/pygpsclient/ubx_cfgval_frame.py:125
+msgid "CFG-VALSET/DEL/GET Configuration Interface"
+msgstr "Interface de configuration CFG-VALSET/DEL/GET"
+
+#: src/pygpsclient/ubx_cfgval_frame.py:345
+msgid "INVALID ENTRY - "
+msgstr "ENTRÉE INVALIDE - "
+
+#: src/pygpsclient/ubx_cfgval_frame.py:393
+msgid "CFG-VALSET SET message sent"
+msgstr "Message CFG-VALSET SET envoyé"
+
+#: src/pygpsclient/ubx_cfgval_frame.py:401
+#, fuzzy
+msgid "INVALID ENTRY - must conform to parameter type and bytes size in bytes:"
+msgstr ""
+"ENTRÉE INVALIDE - doit respecter le type de paramètre et la taille en "
+"bytes:"
+
+#: src/pygpsclient/ubx_cfgval_frame.py:428
+msgid "CFG-VALDEL SET message sent"
+msgstr "Message CFG-VALDEL SET envoyé"
+
+#: src/pygpsclient/ubx_cfgval_frame.py:453
+msgid "CFG-VALGET POLL message sent"
+msgstr "Message CFG-VALGET POLL envoyé"
+
+#: src/pygpsclient/ubx_cfgval_frame.py:474
+msgid "CFG-VALGET GET message received"
+msgstr "Message CFG-VALGET GET reçu"
+
+#: src/pygpsclient/ubx_cfgval_frame.py:479
+msgid "CFG-VAL command acknowledged"
+msgstr "Commande CFG-VAL acquittée"
+
+#: src/pygpsclient/ubx_cfgval_frame.py:483
+msgid "CFG-VAL command rejected"
+msgstr "Commande CFG-VAL rejetée"
+
+#: src/pygpsclient/ubx_config_dialog.py:135
+msgid "Warning - this device may not support modern UBX configuration"
+msgstr ""
+"Avertissement: cet appareil peut ne pas prendre en charge la "
+"configuration UBX moderne"
+
+#: src/pygpsclient/ubx_legacy_config_dialog.py:134
+msgid "Warning - this device may not support legacy UBX configuration"
+msgstr ""
+"Avertissement: cet appareil peut ne pas prendre en charge la "
+"configuration UBX existante"
+
+#: src/pygpsclient/ubx_msgrate_frame.py:86
+msgid "CFG-MSG Message Rate Configuration"
+msgstr "CFG-MSG Configuration du taux de messages"
+
+#: src/pygpsclient/ubx_msgrate_frame.py:201
+msgid "CFG-MSG GET message received"
+msgstr "Message CFG-MSG GET reçu"
+
+#: src/pygpsclient/ubx_msgrate_frame.py:211
+msgid "CFG-MSG POLL message rejected"
+msgstr "Message CFG-MSG POLL rejeté"
+
+#: src/pygpsclient/ubx_msgrate_frame.py:254
+msgid "CFG-MSG SET message sent"
+msgstr "Message CFG-MSG SET envoyé"
+
+#: src/pygpsclient/ubx_msgrate_frame.py:270
+msgid "CFG-MSG POLL message sent"
+msgstr "Message CFG-MSG POLL envoyé"
+
+#: src/pygpsclient/ubx_port_frame.py:84
+msgid "CFG-PRT Protocol Configuration"
+msgstr "Configuration du protocole CFG-PRT"
+
+#: src/pygpsclient/ubx_port_frame.py:86
+msgid "Port ID"
+msgstr "ID du port"
+
+#: src/pygpsclient/ubx_port_frame.py:96
+msgid "Rate bps"
+msgstr "Taux en points de base"
+
+#: src/pygpsclient/ubx_port_frame.py:105
+msgid "Input"
+msgstr "Entrée"
+
+#: src/pygpsclient/ubx_port_frame.py:116
+msgid "Output"
+msgstr "Sortie"
+
+#: src/pygpsclient/ubx_port_frame.py:194
+msgid "CFG-PRT GET message received"
+msgstr "Message CFG-PRT GET reçu"
+
+#: src/pygpsclient/ubx_port_frame.py:198
+msgid "CFG-PRT POLL message rejected"
+msgstr "Message CFG-PRT POLL rejeté"
+
+#: src/pygpsclient/ubx_port_frame.py:242
+msgid "CFG-PRT SET message sent"
+msgstr "Message CFG-PRT SET envoyé"
+
+#: src/pygpsclient/ubx_port_frame.py:257
+msgid "CFG-PRT POLL message sent"
+msgstr "Message CFG-PRT POLL envoyé"
+
+#: src/pygpsclient/ubx_preset_frame.py:101
+msgid "Preset UBX Configuration Commands"
+msgstr "Commandes de configuration UBX prédéfinies"
+
+#: src/pygpsclient/ubx_preset_frame.py:228
+msgid "Error"
+msgstr "Erreur"
+
+#: src/pygpsclient/ubx_preset_frame.py:241
+msgid "Preset command(s) acknowledged"
+msgstr "Commande(s) de préréglage confirmée(s)"
+
+#: src/pygpsclient/ubx_preset_frame.py:245
+msgid "Preset command(s) rejected"
+msgstr "Commande(s) de préréglage rejetée(s)"
+
+#: src/pygpsclient/widget_frame.py:122
+#, fuzzy
+msgid ""
+"This receiver does not appear to\n"
+"support"
+msgstr ""
+"Ce destinataire ne semble pas\n"
+"prendre en charge les messages"
+
+#: src/pygpsclient/widget_frame.py:124
+#, fuzzy
+msgid "Waiting for data"
+msgstr "Attente des données"
+
+#: src/pygpsclient/widget_state.py:41
+msgid "Dock"
+msgstr "Dock"
+
+#: src/pygpsclient/widget_state.py:43
+msgid "Hide"
+msgstr "Masquer"
+
+#: src/pygpsclient/widget_state.py:48
+msgid "Show"
+msgstr "Afficher"
+
+#: src/pygpsclient/widget_state.py:50
+msgid "Undock"
+msgstr "Détacher"
+
+#: src/pygpsclient/widget_state.py:52
+msgid "Console"
+msgstr "Console"
+
+#: src/pygpsclient/widget_state.py:53
+msgid "Levels"
+msgstr "Niveaux"
+
+#: src/pygpsclient/widget_state.py:54
+msgid "Map"
+msgstr "Carte"
+
+#: src/pygpsclient/widget_state.py:55
+msgid "Relative Position"
+msgstr "Position relative"
+
+#: src/pygpsclient/widget_state.py:56
+msgid "Satellites"
+msgstr "Satellites"
+
+#: src/pygpsclient/widget_state.py:57
+msgid "Scatter Plot"
+msgstr "Nuage de points"
+
+#: src/pygpsclient/widget_state.py:58
+msgid "Spectrum"
+msgstr "Spectre"
+
+#: src/pygpsclient/widget_state.py:59
+msgid "System Monitor"
+msgstr "Surveillance du système"
+
+#: src/pygpsclient/widget_state.py:60
+msgid "Chart Plot"
+msgstr "Graphique"
+
+#: src/pygpsclient/widget_state.py:61
+msgid "Attitude Monitor"
+msgstr "Moniteur d’attitude"
+
+#: src/pygpsclient/widget_state.py:62
+msgid "Signals"
+msgstr "Signaux"
+

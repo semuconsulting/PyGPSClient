@@ -38,6 +38,9 @@ from pynmeagps import NMEAMessage
 from pygpsclient.confirm_box import ConfirmBox
 from pygpsclient.globals import (
     CLICK_CURSOR,
+    CONFIRM,
+    DLGACTION,
+    DLGACTIONCONFIRM,
     ERRCOL,
     ICON_CONFIRMED,
     ICON_PENDING,
@@ -46,14 +49,9 @@ from pygpsclient.globals import (
     NMEA_PRESET,
     OKCOL,
     VALREGEX,
+    _,
 )
 from pygpsclient.helpers import validate  # pylint: disable=unused-import
-from pygpsclient.strings import (
-    CONFIRM,
-    DLGACTION,
-    DLGACTIONCONFIRM,
-    LBLNMEAPRESET,
-)
 
 CANCELLED = 0
 CONFIRMED = 1
@@ -110,7 +108,9 @@ class NMEA_PRESET_Frame(Frame):
             relief="sunken",
             width=40,
         )
-        self._lbl_presets = Label(self, text=LBLNMEAPRESET, anchor=W)
+        self._lbl_presets = Label(
+            self, text=_("Preset NMEA Configuration Commands"), anchor=W
+        )
         self._lbx_preset = Listbox(
             self,
             border=2,

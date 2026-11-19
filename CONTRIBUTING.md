@@ -30,6 +30,61 @@ We use Python's native unittest framework for local unit testing, complemented b
 
 Please write unittest examples for new code you create and add them to the `/tests` folder following the naming convention `test_*.py`.
 
+## <a name="localisation">Adding Localisation Support</a>
+
+PyGPSClient uses the standard native [gettext](https://docs.python.org/3/library/gettext.html) library for localisation. We use and recommend the Python Babel command line utilities (`pybabel`) to set up the necessary raw (`*.po`) and compiled (`*.mo`) message catalogs. Various VSCode tasks are provided to facilitate the workflow.
+
+```shell
+python3 -m pip install Babel
+```
+
+![pybabel localisation workflow](https://github.com/semuconsulting/PyGPSClient/blob/main/images/localisation.png?raw=true)
+
+0. (**step only required if any source `*.py` files have changed**) To extract the message catalog template `messages.pot` from `src/*.py`:
+
+   ```shell
+   pybabel extract src --project PyGPSClient --output-file src/pygpsclient/locales/messages.pot --no-wrap
+   ```
+
+   (*or run the VSCode "Babel_Extract" task via Terminal..Run Task*)
+
+1. To create or update a language message catalog `messages.po`:
+
+   ```shell
+   pybabel update -l <locale> --input-file src/pygpsclient/locales/messages.pot --output-dir /src/pygpsclient/locales          --init-missing --update-header-comment
+   ```
+
+   where `<locale>` is the relevant locale code e.g. 'de', 'fr', 'es', etc.
+
+   (*or run the VSCode "Babel_Update" task, having set the required `locale` code in `settings.json`*)
+
+   This will create or update a `messages.po` text file in the `../<locale>/LC_MESSAGES` directory.
+
+   Manually edit the `msgstr` entries in this file (or use a third-party PO file editor) to add the relevant string translations, and raise a PR to submit the changes. Take care to ensure any Python braces {} are correctly transcribed
+   in the translated string.
+
+   A simple Python script [translate_po.py](https://github.com/semuconsulting/PyGPSClient/blob/main/examples/translate_po.py) is available to machine translate messages.po files, but the results will invariably need refinement.
+
+   ```
+   #: src/pygpsclient/strings.py:58
+   msgid "End of file reached"
+   msgstr "Fin du dossier atteint"
+   ```
+
+3. To compile the saved `messages.po` text files into runtime `messages.mo` binary files:
+
+   ```shell
+   pybabel compile --directory src/pygpsclient/locales --use-fuzzy
+   ```
+
+   (*or run the VSCode "Babel_Compile" task*)
+
+4. To set the runtime localisation code:
+
+   ```shell
+   export PYGPSCLIENT_LOCALE=<locale> # where <locale> is the relevant locale code e.g. 'de', 'fr', 'es', etc.
+   ```
+
 ## Submitting changes
 
 Please send a [GitHub Pull Request to PyGPSClient](https://github.com/semuconsulting/PyGPSClient/pulls) with a clear list of what you've done (read more about [pull requests](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/about-pull-requests)). Please follow our coding conventions (below) and make sure all of your commits are atomic (one feature per commit).
@@ -43,8 +98,6 @@ Always write a clear log message for your commits. One-line messages are fine fo
     $ git commit -m "A brief summary of the commit
     > 
     > A paragraph describing what changed and its impact."
-
-
 
 Thanks,
 

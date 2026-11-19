@@ -23,9 +23,8 @@ from pynmeagps import bearing, ecef2llh, haversine, llh2ecef
 from pysbf2 import SBFMessage, itow2utc
 
 from pygpsclient.dialog_state import DLGTTTY
-from pygpsclient.globals import ASCII, BSR
+from pygpsclient.globals import ASCII, BSR, NA
 from pygpsclient.helpers import fix2desc, hdg2yaw, sbfsvid2svid
-from pygpsclient.strings import NA
 
 CARRSOLN = {
     4: 2,  # RTK-FIXED

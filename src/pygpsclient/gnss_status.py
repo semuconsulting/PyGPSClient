@@ -14,7 +14,7 @@ Created on 07 Apr 2022
 
 from datetime import datetime, timezone
 
-from pygpsclient.strings import NA
+from pygpsclient.globals import NA
 
 
 class GNSSStatus:
@@ -39,7 +39,7 @@ class GNSSStatus:
         self.lat = 0.0  # latitude as decimal
         self.lon = 0.0  # longitude as decimal
         self.alt = 0.0  # height above sea level m
-        self.hae = 0.0  # height above ellipsoid m
+        self.hae = 0.0  # height above ellipsoid m (sep = hae - alt)
         self.speed = 0.0  # speed m/s
         self.track = 0.0  # track (heading of motion or course over ground) degrees
         self.headvehvalid = 0  # 0 = heading of motion, 1 = static heading (yaw)

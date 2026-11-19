@@ -14,7 +14,6 @@ Created on 13 Sep 2020
 
 # pylint: disable = no-member
 
-import logging
 from copy import deepcopy
 from tkinter import NSEW, Frame, Tk
 
@@ -26,20 +25,15 @@ from pygpsclient.custom_classes import (
     TAG_XLABEL,
     CanvasCompass,
 )
-from pygpsclient.globals import (
-    BGCOL,
-    FGCOL,
-    GNSS_LIST,
-    WIDGETU2,
-)
+from pygpsclient.globals import BGCOL, GNSS_LIST
 from pygpsclient.helpers import col2contrast, snr2col
-from pygpsclient.strings import DLGWAITAZI
+from pygpsclient.widget_frame import WidgetFrame
 
 OL_WID = 4
 FONTSCALE = 30
 
 
-class SkyviewFrame(Frame):
+class SkyviewFrame(WidgetFrame):
     """
     Skyview frame class.
     """
@@ -55,43 +49,31 @@ class SkyviewFrame(Frame):
         """
 
         self.__app = app  # Reference to main application class
-        self.logger = logging.getLogger(__name__)
 
-        super().__init__(parent, *args, **kwargs)
-
-        def_w, def_h = WIDGETU2
-        self.width = kwargs.get("width", def_w)
-        self.height = kwargs.get("height", def_h)
-        self.bg_col = BGCOL
-        self.fg_col = FGCOL
-        self._redraw = True
-        self._waiting = True
-        self._body()
-        self._attach_events()
+        super().__init__(app, parent, *args, **kwargs)
 
     def _body(self):
         """
         Set up frame and widgets.
         """
 
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(0, weight=1)
         self._canvas = CanvasCompass(
             self.__app,
             self,
             MODE_CEL,
             width=self.width,
             height=self.height,
-            bg=self.bg_col,
+            bg=BGCOL,
         )
+
+    def _do_layout(self):
+        """
+        Arrange frame and widgets in grid.
+        """
+
         self._canvas.grid(column=0, row=0, sticky=NSEW)
-
-    def _attach_events(self):
-        """
-        Bind events to frame.
-        """
-
-        self.bind("<Configure>", self._on_resize)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
 
     def init_frame(self):
         """
@@ -156,33 +138,3 @@ class SkyviewFrame(Frame):
             pass
         except RuntimeError as err:
             self.logger.exception(err)
-
-    def _on_resize(self, event):  # pylint: disable=unused-argument
-        """
-        Resize frame
-
-        :param event event: resize event
-        """
-
-        self.width, self.height = self.get_size()
-        self._redraw = True
-        self._on_waiting()
-
-    def _on_waiting(self):
-        """
-        Display 'waiting for data' alert.
-        """
-
-        if self._waiting:
-            self._canvas.create_alert(DLGWAITAZI, tags=TAG_WAIT)
-
-    def get_size(self):
-        """
-        Get current canvas size.
-
-        :return: window size (width, height)
-        :rtype: tuple
-        """
-
-        self.update_idletasks()  # Make sure we know about any resizing
-        return self._canvas.winfo_width(), self._canvas.winfo_height()

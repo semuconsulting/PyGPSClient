@@ -14,8 +14,8 @@ Created on 14 Jan 2026
 
 from tkinter import NSEW, Tk
 
+from pygpsclient.globals import DLGTSETTINGS
 from pygpsclient.settings_child_frame import SettingsChildFrame
-from pygpsclient.strings import DLGTSETTINGS
 from pygpsclient.toplevel_dialog import ToplevelDialog
 
 

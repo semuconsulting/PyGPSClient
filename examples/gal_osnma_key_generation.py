@@ -30,7 +30,7 @@ from pyubx2 import SET, UBXMessage, escapeall
 
 def hex2int(hexstr: str) -> int:
     """Convert space-delimited hex string to little-endian integer"""
-    return int.from_bytes(bytes.fromhex(hexstr.replace(" ", "")), "little")
+    return int.from_bytes(bytes.fromhex(hexstr), "little")
 
 
 # Merkle as defined in XML file as space-delimited hexadecimal string

@@ -12,8 +12,7 @@ Created on 18 May 2025
 
 import logging
 
-from pygpsclient.globals import TTYERR, TTYOK
-from pygpsclient.strings import DLGTTTY
+from pygpsclient.globals import DLGTTTY, TTYERR, TTYOK
 
 
 class TTYStreamError(Exception):

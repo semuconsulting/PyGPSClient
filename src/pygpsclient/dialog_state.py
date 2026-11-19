@@ -17,16 +17,8 @@ Created on 16 Aug 2023
 
 from pygpsclient.about_dialog import AboutDialog
 from pygpsclient.app_config_dialog import AppConfigDialog
-from pygpsclient.globals import CLASS, RESIZE
-from pygpsclient.gpx_dialog import GPXViewerDialog
-from pygpsclient.importmap_dialog import ImportMapDialog
-from pygpsclient.nmea_config_dialog import NMEAConfigDialog
-from pygpsclient.ntrip_client_dialog import NTRIPConfigDialog
-from pygpsclient.recorder_dialog import RecorderDialog
-from pygpsclient.rinex_dialog import RINEXDialog
-from pygpsclient.serverconfig_dialog import ServerConfigDialog
-from pygpsclient.settings_dialog import SettingsDialog
-from pygpsclient.strings import (
+from pygpsclient.globals import (
+    CLASS,
     DLG,
     DLGGUIOPTIONS,
     DLGTABOUT,
@@ -41,7 +33,16 @@ from pygpsclient.strings import (
     DLGTTTY,
     DLGTUBX,
     DLGTUBXLEGACY,
+    RESIZE,
 )
+from pygpsclient.gpx_dialog import GPXViewerDialog
+from pygpsclient.importmap_dialog import ImportMapDialog
+from pygpsclient.nmea_config_dialog import NMEAConfigDialog
+from pygpsclient.ntrip_client_dialog import NTRIPConfigDialog
+from pygpsclient.recorder_dialog import RecorderDialog
+from pygpsclient.rinex_dialog import RINEXDialog
+from pygpsclient.serverconfig_dialog import ServerConfigDialog
+from pygpsclient.settings_dialog import SettingsDialog
 from pygpsclient.tty_preset_dialog import TTYPresetDialog
 from pygpsclient.ubx_config_dialog import UBXConfigDialog
 from pygpsclient.ubx_legacy_config_dialog import UBXLegacyConfigDialog

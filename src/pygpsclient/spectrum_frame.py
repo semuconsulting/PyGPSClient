@@ -15,9 +15,8 @@ Created on 23 Dec 2022
 
 # pylint: disable=no-member, unused-argument
 
-import logging
 from copy import deepcopy
-from tkinter import ALL, CENTER, EW, NSEW, NW, Checkbutton, Frame, IntVar, N, S, Tk, W
+from tkinter import ALL, CENTER, EW, NSEW, NW, Checkbutton, Frame, IntVar, N, Tk, W
 from types import NoneType
 
 from pyubx2 import UBXMessage
@@ -38,10 +37,9 @@ from pygpsclient.globals import (
     PLOTCOLS,
     PNTCOL,
     SPECTRUMVIEW,
-    WIDGETU2,
 )
 from pygpsclient.helpers import setubxrate
-from pygpsclient.strings import DLGNOMONSPAN, DLGWAITMONSPAN
+from pygpsclient.widget_frame import WidgetFrame
 
 # Graph dimensions
 OL_WID = 1
@@ -92,7 +90,7 @@ GHZ = 1e9
 FONTSCALE = 35
 
 
-class SpectrumviewFrame(Frame):
+class SpectrumviewFrame(WidgetFrame):
     """
     Spectrumview frame class.
     """
@@ -108,13 +106,6 @@ class SpectrumviewFrame(Frame):
         """
 
         self.__app = app  # Reference to main application class
-        self.logger = logging.getLogger(__name__)
-
-        super().__init__(parent, *args, **kwargs)
-
-        def_w, def_h = WIDGETU2
-        self.width = kwargs.get("width", def_w)
-        self.height = kwargs.get("height", def_h)
         self._mindb = MIN_DB
         self._maxdb = MAX_DB
         self._minhz = MIN_HZ
@@ -124,21 +115,14 @@ class SpectrumviewFrame(Frame):
         self._chartpos = None
         self._spectrum_snapshot = []
         self._pgaoffset = IntVar()
-        self._waits = 0
-        self._redraw = True
-        self._waiting = True
-        self._body()
-        self._attach_events()
-        self.enable_messages(True)
+
+        super().__init__(app, parent, *args, **kwargs)
 
     def _body(self):
         """
         Set up frame and widgets.
         """
 
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(0, weight=1)
-        self.grid_rowconfigure(1, weight=0)
         self._canvas = CanvasGraph(
             self.__app, self, width=self.width, height=self.height, bg=BGCOL
         )
@@ -150,15 +134,23 @@ class SpectrumviewFrame(Frame):
             variable=self._pgaoffset,
             anchor=W,
         )
+
+    def _do_layout(self):
+        """
+        Arrange frame and widgets in grid.
+        """
+
         self._canvas.grid(column=0, row=0, columnspan=3, sticky=NSEW)
         self.chk_pgaoffset.grid(column=0, row=1, sticky=EW)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=0)
 
     def _attach_events(self):
         """
         Bind events to frame.
         """
 
-        self.bind("<Configure>", self._on_resize)
         self._canvas.bind("<Button-1>", self._on_click)
         self._canvas.bind("<Double-Button-1>", self._on_toggle_rf)
         self._canvas.bind("<Button-2>", self._on_snapshot)
@@ -189,7 +181,7 @@ class SpectrumviewFrame(Frame):
             self._maxdb = MAX_DB
         self._redraw = True
 
-    def enable_messages(self, status: bool):
+    def enable_messages(self, status: bool = True):
         """
         Enable/disable UBX MON-SPAN message.
 
@@ -223,14 +215,8 @@ class SpectrumviewFrame(Frame):
 
         if pending and msg.identity == "ACK-NAK":
             self.reset()
-            w, h = self.width, self.height
-            self._canvas.create_text(
-                w / 2,
-                h / 2,
-                text=DLGNOMONSPAN,
-                fill="orange",
-                anchor=S,
-            )
+            self._waits = MAXWAIT + 1
+            self._on_waiting()
             self._pending_confs.pop("ACK-NAK")
 
         if self._pending_confs.get("ACK-ACK", False):
@@ -250,7 +236,7 @@ class SpectrumviewFrame(Frame):
             )  # to avoid thread contention
             if len(rfblocks) == 0:
                 if self._waits >= MAXWAIT:
-                    self._canvas.create_alert(DLGNOMONSPAN, tags=TAG_WAIT)
+                    self._on_waiting()
                 else:
                     self._waits += 1
                 return
@@ -529,23 +515,3 @@ class SpectrumviewFrame(Frame):
         self._chartpos = None
         self._redraw = True
         self._on_waiting()
-
-    def _on_waiting(self):
-        """
-        Display 'waiting for data' alert.
-        """
-
-        if self._waiting:
-            txt = DLGNOMONSPAN if self._waits >= MAXWAIT else DLGWAITMONSPAN
-            self._canvas.create_alert(txt, tags=TAG_WAIT)
-
-    def get_size(self):
-        """
-        Get current canvas size.
-
-        :return: window size (width, height)
-        :rtype: tuple
-        """
-
-        self.update_idletasks()  # Make sure we know about any resizing
-        return self._canvas.winfo_width(), self._canvas.winfo_height()

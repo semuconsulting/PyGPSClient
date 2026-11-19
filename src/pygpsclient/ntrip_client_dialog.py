@@ -56,6 +56,7 @@ from pygpsclient.globals import (
     CLICK_CURSOR,
     CONNECTED_NTRIP,
     DISCONNECTED,
+    DLGTNTRIP,
     ERRCOL,
     INFOCOL,
     READONLY,
@@ -70,21 +71,10 @@ from pygpsclient.globals import (
     UI,
     UIK,
     VALFLOAT,
+    _,
 )
 from pygpsclient.helpers import MAXALT, get_mp_info
 from pygpsclient.socketconfig_ntrip_frame import SocketConfigNtripFrame
-from pygpsclient.strings import (
-    DLGTNTRIP,
-    LBLDATATYPE,
-    LBLGGAFIXED,
-    LBLGGALIVE,
-    LBLNTRIPGGAINT,
-    LBLNTRIPMOUNT,
-    LBLNTRIPPWD,
-    LBLNTRIPSTR,
-    LBLNTRIPUSER,
-    LBLNTRIPVERSION,
-)
 from pygpsclient.toplevel_dialog import ToplevelDialog
 
 GGA_INTERVALS = ("None", "2", "5", "10", "60", "120")
@@ -163,7 +153,7 @@ class NTRIPConfigDialog(ToplevelDialog):
             protocols=[TCPIPV4, TCPIPV6],
             server_callback=self._on_server,
         )
-        self._lbl_mountpoint = Label(self._frm_body, text=LBLNTRIPMOUNT)
+        self._lbl_mountpoint = Label(self._frm_body, text=_("Mountpoint"))
         self._ent_mountpoint = Entry(
             self._frm_body,
             textvariable=self._ntrip_mountpoint,
@@ -177,7 +167,7 @@ class NTRIPConfigDialog(ToplevelDialog):
             width=30,
             anchor=W,
         )
-        self._lbl_sourcetable = Label(self._frm_body, text=LBLNTRIPSTR)
+        self._lbl_sourcetable = Label(self._frm_body, text=_("Sourcetable"))
         self._lbx_sourcetable = Listbox(
             self._frm_body,
             height=4,
@@ -191,7 +181,7 @@ class NTRIPConfigDialog(ToplevelDialog):
         self._scr_sourcetablev["command"] = self._lbx_sourcetable.yview
         self._scr_sourcetableh["command"] = self._lbx_sourcetable.xview
 
-        self._lbl_ntripversion = Label(self._frm_body, text=LBLNTRIPVERSION)
+        self._lbl_ntripversion = Label(self._frm_body, text=_("NTRIP Version"))
         self._spn_ntripversion = Spinbox(
             self._frm_body,
             values=(NTRIP_VERSIONS),
@@ -200,7 +190,7 @@ class NTRIPConfigDialog(ToplevelDialog):
             textvariable=self._ntrip_version,
             state=READONLY,
         )
-        self._lbl_datatype = Label(self._frm_body, text=LBLDATATYPE)
+        self._lbl_datatype = Label(self._frm_body, text=_("Data Type"))
         self._spn_datatype = Spinbox(
             self._frm_body,
             values=(RTCM, SPARTN),
@@ -209,7 +199,7 @@ class NTRIPConfigDialog(ToplevelDialog):
             textvariable=self._ntrip_datatype,
             state=READONLY,
         )
-        self._lbl_user = Label(self._frm_body, text=LBLNTRIPUSER)
+        self._lbl_user = Label(self._frm_body, text=_("User"))
         self._ent_user = Entry(
             self._frm_body,
             textvariable=self._ntrip_user,
@@ -217,7 +207,7 @@ class NTRIPConfigDialog(ToplevelDialog):
             relief="sunken",
             width=30,
         )
-        self._lbl_password = Label(self._frm_body, text=LBLNTRIPPWD)
+        self._lbl_password = Label(self._frm_body, text=_("Password"))
         self._ent_password = Entry(
             self._frm_body,
             textvariable=self._ntrip_password,
@@ -227,7 +217,7 @@ class NTRIPConfigDialog(ToplevelDialog):
             show="*",
         )
         self._btn_password = PasswordButton(self._frm_body, self._ent_password)
-        self._lbl_ntripggaint = Label(self._frm_body, text=LBLNTRIPGGAINT)
+        self._lbl_ntripggaint = Label(self._frm_body, text=_("GGA Interval s"))
         self._spn_ntripggaint = Spinbox(
             self._frm_body,
             values=(GGA_INTERVALS),
@@ -237,11 +227,11 @@ class NTRIPConfigDialog(ToplevelDialog):
             state=READONLY,
         )
         self._rad_ggalive = Radiobutton(
-            self._frm_body, text=LBLGGALIVE, variable=self._ntrip_gga_mode, value=0
+            self._frm_body, text=_("Receiver"), variable=self._ntrip_gga_mode, value=0
         )
         self._rad_ggafixed = Radiobutton(
             self._frm_body,
-            text=LBLGGAFIXED,
+            text=_("Fixed Reference"),
             variable=self._ntrip_gga_mode,
             value=1,
         )

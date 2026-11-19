@@ -17,17 +17,17 @@ import unittest
 from pynmeagps import SET, NMEAMessage
 from pyubx2 import UBXMessage
 
-from pygpsclient.configuration import Configuration, INITMARKER
-from pygpsclient.gnss_status import GNSSStatus
+from pygpsclient.configuration import INITMARKER, Configuration
 from pygpsclient.globals import (
+    UI,
+    UIK,
+    UMK,
+    UMM,
     Area,
     Point,
     TrackPoint,
-    UI,
-    UMM,
-    UIK,
-    UMK,
 )
+from pygpsclient.gnss_status import GNSSStatus
 from pygpsclient.helpers import (
     area_in_bounds,
     bytes2unit,
@@ -36,19 +36,20 @@ from pygpsclient.helpers import (
     fix2desc,
     ft2m,
     get_mp_info,
-    get_range,
-    get_units,
     get_point_at_vector,
+    get_range,
     get_track_bounds,
+    get_units,
     hdg2yaw,
+    hextable,
     hsv2rgb,
     isot2dt,
     kmph2ms,
     knots2ms,
     lanip,
     ll2xy,
-    makeval,
     m2ft,
+    makeval,
     ms2kmph,
     ms2knots,
     ms2mph,
@@ -228,6 +229,20 @@ class StaticTest(unittest.TestCase):
         res = knots2ms("xxx")
         self.assertEqual(res, 0)
 
+    def testhex2table(self):
+        EXPECTED_RESULT = [
+            "0000: 3b3b 3b61 6f73 3837 7039 7765 3871 656e  | b';;;aos87p9we8qen'                                                 |\n",
+            "0016: 7670 3971 7738 3765 7261 7364 6668 7020  | b'vp9qw87erasdfhp '                                                 |\n",
+            "0032: 6e39 6173 3864 3774 7072 3965 3865 3761  | b'n9as8d7tpr9e8e7a'                                                 |\n",
+            "0048: 6539 7364 3966 6e61 7339 6438 7237 6573  | b'e9sd9fnas9d8r7es'                                                 |\n",
+            "0064: 6176 6a3b 636b 7678 7a6e 6270 6977       | b'avj;ckvxznbpiw'                                                   |\n",
+        ]
+        res = hextable(
+            b";;;aos87p9we8qenvp9qw87erasdfhp n9as8d7tpr9e8e7ae9sd9fnas9d8r7esavj;ckvxznbpiw"
+        )
+        # print(res)
+        self.assertEqual(res, EXPECTED_RESULT)
+
     def testhsv2rgb(self):
         res = hsv2rgb(0.5, 0.2, 0.9)
         self.assertEqual(res, "#b7e5e5")
@@ -291,7 +306,6 @@ class StaticTest(unittest.TestCase):
         for i, (val, att) in enumerate(vals):
             res = stringvar2val(val, att)
             self.assertEqual(ress[i], res)
-
 
     def testmapqcompress(self):
         PREC = 6
@@ -633,17 +647,17 @@ class StaticTest(unittest.TestCase):
             maxTrkCh_02=24,
             flags_02=b"\x00\x00\x40\x00",
         )
-        PEXAMPLE =  "03 97 EB 43 78 9A A0 F6 D0 52 A6 38 46 8E CF 52 78 E6 F6 DF 84 65 EC B8 D8 B8 4B 8C 7A 35 01 F7 3B"
-        pubkeypoint = int.from_bytes(bytes.fromhex(PEXAMPLE.replace(" ","")),"little")
+        PEXAMPLE = "03 97 EB 43 78 9A A0 F6 D0 52 A6 38 46 8E CF 52 78 E6 F6 DF 84 65 EC B8 D8 B8 4B 8C 7A 35 01 F7 3B"
+        pubkeypoint = int.from_bytes(bytes.fromhex(PEXAMPLE.replace(" ", "")), "little")
         msg3 = UBXMessage(
-                "MGA",
-                "MGA-GAL-OSNMA-PUBKEY",
-                SET,
-                type=0x07,
-                pubKeyId=12,
-                pubKeyType=1,
-                pubKeyPoint=pubkeypoint
-            )
+            "MGA",
+            "MGA-GAL-OSNMA-PUBKEY",
+            SET,
+            type=0x07,
+            pubKeyId=12,
+            pubKeyType=1,
+            pubKeyPoint=pubkeypoint,
+        )
         res1 = ubx2preset((msg1), "Configure GNSS")
         self.assertEqual(
             res1,
@@ -860,15 +874,15 @@ class StaticTest(unittest.TestCase):
             self.assertEqual(valid_geom(geom[0]), geom[1])
 
     def testhdg2yaw(self):
-        self.assertEqual(hdg2yaw(45.0),45.0)
-        self.assertEqual(hdg2yaw(170.0),170.0)
-        self.assertEqual(hdg2yaw(270.0),-90.0)
-        self.assertEqual(hdg2yaw(300.0),-60.0)
-        self.assertEqual(hdg2yaw(0),0)
-        self.assertEqual(hdg2yaw(180.0),180.0)
-        self.assertEqual(hdg2yaw(181.0),-179.0)
-        self.assertEqual(hdg2yaw(375.0),15.0)
-        self.assertEqual(hdg2yaw(715.0),-5.0)
+        self.assertEqual(hdg2yaw(45.0), 45.0)
+        self.assertEqual(hdg2yaw(170.0), 170.0)
+        self.assertEqual(hdg2yaw(270.0), -90.0)
+        self.assertEqual(hdg2yaw(300.0), -60.0)
+        self.assertEqual(hdg2yaw(0), 0)
+        self.assertEqual(hdg2yaw(180.0), 180.0)
+        self.assertEqual(hdg2yaw(181.0), -179.0)
+        self.assertEqual(hdg2yaw(375.0), 15.0)
+        self.assertEqual(hdg2yaw(715.0), -5.0)
 
     def testvalidhex(self):
 
@@ -878,6 +892,7 @@ class StaticTest(unittest.TestCase):
         self.assertTrue(valid_hex("0x1122334455667788", 8))
         self.assertFalse(valid_hex("asdfttwergazz", 4))
         self.assertFalse(valid_hex("", 4))
+
 
 if __name__ == "__main__":
     # import sys;sys.argv = ['', 'Test.testName']

@@ -56,6 +56,7 @@ from pygpsclient.globals import (
     Area,
     AreaXY,
     Point,
+    _,
 )
 from pygpsclient.helpers import (
     area_in_bounds,
@@ -72,18 +73,6 @@ from pygpsclient.mapquest_handler import (
     POINTLIMIT,
     SAT,
     format_mapquest_request,
-)
-from pygpsclient.strings import (
-    DLGGPXOOB,
-    MAPCONFIGERR,
-    MAPOPENERR,
-    MAPPERMERR,
-    NOCONN,
-    NOWEBMAPCONN,
-    NOWEBMAPFIX,
-    NOWEBMAPHTTP,
-    NOWEBMAPKEY,
-    OUTOFBOUNDS,
 )
 
 ZOOM = 10
@@ -228,7 +217,7 @@ class CanvasMap(Canvas):  # pylint: disable=too-many-ancestors
             self._last_image = image
             self._last_bounds = self._bounds
         if image is None:
-            self.draw_msg(DLGGPXOOB, ERRCOL)
+            self.draw_msg(_("Map out of bounds\nTry increasing zoom level"), ERRCOL)
             return
         self._img = ImageTk.PhotoImage(image.resize((self.width, self.height)))
         self.create_image(
@@ -263,7 +252,7 @@ class CanvasMap(Canvas):  # pylint: disable=too-many-ancestors
         :rtype: str
         """
 
-        err = OUTOFBOUNDS.format("unknown")
+        err = _("No custom map available for unknown")
         mpath = None
         try:
             if maptype == IMPORT:
@@ -275,7 +264,10 @@ class CanvasMap(Canvas):  # pylint: disable=too-many-ancestors
             else:
                 mpath = self._find_offline_map(location, bounds)
             if mpath is None:
-                err = OUTOFBOUNDS.format("bounds" if bounds is not None else "location")
+                err = (
+                    _("No custom map available for")
+                    + f" {'bounds' if bounds is not None else 'location'})"
+                )
             elif self._lastmappath == mpath:  # don't bother opening again
                 err = ""
             else:
@@ -283,11 +275,13 @@ class CanvasMap(Canvas):  # pylint: disable=too-many-ancestors
                 self._lastmappath = mpath
                 err = ""
         except (ValueError, IndexError):
-            err = MAPCONFIGERR
+            err = _("Custom map configuration error")
         except PermissionError:
-            err = MAPPERMERR.format(mpath.split("/")[-1])
+            err = (
+                _("Permission denied to open custom map") + f": {mpath.split('/')[-1]}"
+            )
         except (FileNotFoundError, UnidentifiedImageError):
-            err = MAPOPENERR.format(mpath.split("/")[-1])
+            err = _("Unable to open custom map") + f": {mpath.split('/')[-1]}"
 
         return err
 
@@ -375,7 +369,7 @@ class CanvasMap(Canvas):  # pylint: disable=too-many-ancestors
         :param int zoom: zoom level
         """
 
-        sc = NOCONN
+        sc = _("NO CONNECTION")
         err = ""
         hacc = hacc if isinstance(hacc, (float, int)) else 0
 
@@ -384,7 +378,9 @@ class CanvasMap(Canvas):  # pylint: disable=too-many-ancestors
 
         mqapikey = self.__app.configuration.get("mqapikey_s")
         if mqapikey == "":
-            self.draw_msg(NOWEBMAPKEY, ERRCOL)
+            self.draw_msg(
+                _("Unable to display map.\nMQAPIKEY not found or invalid"), ERRCOL
+            )
             return
 
         if track is not None:
@@ -394,7 +390,7 @@ class CanvasMap(Canvas):  # pylint: disable=too-many-ancestors
                 location,
             ]
         else:
-            self.draw_msg(NOWEBMAPFIX, ERRCOL)
+            self.draw_msg(_("Unable to display map.\nNo satellite fix."), ERRCOL)
             return
 
         if bounds is None:
@@ -429,9 +425,11 @@ class CanvasMap(Canvas):  # pylint: disable=too-many-ancestors
                 self.update_idletasks()
                 return
         except (ConnError, ConnectTimeout):
-            err = NOWEBMAPCONN
+            err = _("Unable to display map.\nCheck internet connection.")
         except RequestException:
-            err = NOWEBMAPHTTP.format(sc)
+            err = _(
+                "Unable to display map.\nBad HTTP response: {}.\nCheck MQAPIKEY.\n"
+            ).format(sc)
 
         self.draw_msg(err, ERRCOL)
 
@@ -711,4 +709,4 @@ class CanvasMap(Canvas):  # pylint: disable=too-many-ancestors
             self._track.append(Point(location.lat, location.lon))
         # limit size of track list
         while len(self._track) > POINTLIMIT:
-            self._track.pop(randrange(1, len(self._track) - 1))
+            self._track.pop(randrange(1, len(self._track) - 1))  # nosec

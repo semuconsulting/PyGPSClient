@@ -48,6 +48,12 @@ from pygpsclient.globals import (
     CONNECTED_SOCKET,
     DDD,
     DISCONNECTED,
+    DLGTNMEA,
+    DLGTNTRIP,
+    DLGTSERVER,
+    DLGTTTY,
+    DLGTUBX,
+    DLGTUBXLEGACY,
     DMM,
     DMS,
     ECEF,
@@ -81,32 +87,11 @@ from pygpsclient.globals import (
     UIK,
     UMK,
     UMM,
+    _,
 )
 from pygpsclient.serialconfig_frame import SerialConfigFrame
 from pygpsclient.socketconfig_frame import SocketConfigFrame
 from pygpsclient.sqlite_handler import SQLOK
-from pygpsclient.strings import (
-    DLGTNMEA,
-    DLGTNTRIP,
-    DLGTSERVER,
-    DLGTTTY,
-    DLGTUBX,
-    DLGTUBXLEGACY,
-    LBLAUTOSCROLL,
-    LBLDATABASERECORD,
-    LBLDATADISP,
-    LBLDATALOG,
-    LBLDEGFORMAT,
-    LBLFILEDELAY,
-    LBLNMEACONFIG,
-    LBLNTRIPCONFIG,
-    LBLPROTDISP,
-    LBLSERVERCONFIG,
-    LBLTRACKRECORD,
-    LBLTTYCONFIG,
-    LBLUBXCONFIG,
-    LBLUBXLEGACYCONFIG,
-)
 
 MAXLINES = ("200", "500", "1000", "2000", "100")
 FILEDELAYS = ("5", "10", "20", "50", "100", "200", "500", "1000", "2000")  # ms
@@ -248,7 +233,7 @@ class SettingsChildFrame(Frame):
         # Other configuration options
         self._frm_options = Frame(self.__container)
         self._frm_options_btns = Frame(self._frm_options)
-        self._lbl_protocol = Label(self._frm_options, text=LBLPROTDISP)
+        self._lbl_protocol = Label(self._frm_options, text=_("Protocols"))
         self._chk_nmea = Checkbutton(
             self._frm_options,
             text="NMEA",
@@ -289,7 +274,7 @@ class SettingsChildFrame(Frame):
             text="TTY",
             variable=self._prot_tty,
         )
-        self._lbl_consoledisplay = Label(self._frm_options, text=LBLDATADISP)
+        self._lbl_consoledisplay = Label(self._frm_options, text=_("Format"))
         self._spn_conformat = Spinbox(
             self._frm_options,
             values=FORMATS,
@@ -303,7 +288,7 @@ class SettingsChildFrame(Frame):
             text="Tags",
             variable=self._colortag,
         )
-        self._lbl_format = Label(self._frm_options, text=LBLDEGFORMAT)
+        self._lbl_format = Label(self._frm_options, text=_("Units"))
         self._spn_format = Spinbox(
             self._frm_options,
             values=(DDD, DMS, DMM, ECEF),
@@ -321,7 +306,7 @@ class SettingsChildFrame(Frame):
             textvariable=self._units,
         )
         self._chk_scroll = Checkbutton(
-            self._frm_options, text=LBLAUTOSCROLL, variable=self._autoscroll
+            self._frm_options, text=_("Autoscroll"), variable=self._autoscroll
         )
         self._spn_maxlines = Spinbox(
             self._frm_options,
@@ -333,7 +318,7 @@ class SettingsChildFrame(Frame):
         )
         self._lbl_filedelay = Label(
             self._frm_options,
-            text=LBLFILEDELAY,
+            text=_("File Delay"),
         )
         self._spn_filedelay = Spinbox(
             self._frm_options,
@@ -347,7 +332,7 @@ class SettingsChildFrame(Frame):
         )
         self._chk_datalog = Checkbutton(
             self._frm_options,
-            text=LBLDATALOG,
+            text=_("Datalog"),
             variable=self._datalog,
         )
         self._spn_datalog = Spinbox(
@@ -360,18 +345,18 @@ class SettingsChildFrame(Frame):
         )
         self._chk_recordtrack = Checkbutton(
             self._frm_options,
-            text=LBLTRACKRECORD,
+            text=_("GPX Track"),
             variable=self._record_track,
         )
         self._chk_recorddatabase = Checkbutton(
             self._frm_options,
-            text=LBLDATABASERECORD,
+            text=_("Database"),
             variable=self._record_database,
         )
         # configuration panel buttons
         self._lbl_ubxconfig = Label(
             self._frm_options_btns,
-            text=LBLUBXCONFIG,
+            text=_("UBX\nConfig"),
         )
         self._btn_ubxconfig = Button(
             self._frm_options_btns,
@@ -382,7 +367,7 @@ class SettingsChildFrame(Frame):
         )
         self._lbl_ubxlegacyconfig = Label(
             self._frm_options_btns,
-            text=LBLUBXLEGACYCONFIG,
+            text=_("UBX\nLegacy"),
         )
         self._btn_ubxlegacyconfig = Button(
             self._frm_options_btns,
@@ -393,7 +378,7 @@ class SettingsChildFrame(Frame):
         )
         self._lbl_nmeaconfig = Label(
             self._frm_options_btns,
-            text=LBLNMEACONFIG,
+            text=_("NMEA\nConfig"),
         )
         self._btn_nmeaconfig = Button(
             self._frm_options_btns,
@@ -405,7 +390,7 @@ class SettingsChildFrame(Frame):
         )
         self._lbl_ttyconfig = Label(
             self._frm_options_btns,
-            text=LBLTTYCONFIG,
+            text=_("TTY\nConfig"),
         )
         self._btn_ttyconfig = Button(
             self._frm_options_btns,
@@ -417,7 +402,7 @@ class SettingsChildFrame(Frame):
         )
         self._lbl_ntripconfig = Label(
             self._frm_options_btns,
-            text=LBLNTRIPCONFIG,
+            text=_("NTRIP\nClient"),
         )
         self._btn_ntripconfig = Button(
             self._frm_options_btns,
@@ -429,7 +414,7 @@ class SettingsChildFrame(Frame):
         )
         self._lbl_serverconfig = Label(
             self._frm_options_btns,
-            text=LBLSERVERCONFIG,
+            text=_("Server\nConfig"),
         )
         self._btn_serverconfig = Button(
             self._frm_options_btns,
@@ -746,7 +731,7 @@ class SettingsChildFrame(Frame):
                 self.__app.configuration.set("datalog_b", 1)
                 self.__app.configuration.set("logpath_s", self.logpath)
                 self.__app.set_status_label(
-                    f"Data logging enabled: {self.logpath}",
+                    _("Data logging enabled:") + f" {self.logpath}",
                     INFOCOL,
                 )
                 if not self.__app.file_handler.open_logfile():
@@ -760,7 +745,7 @@ class SettingsChildFrame(Frame):
             self.__app.configuration.set("datalog_b", 0)
             self._datalog.set(0)
             self.__app.file_handler.close_logfile()
-            self.__app.set_status_label("Data logging disabled", INFOCOL)
+            self.__app.set_status_label(_("Data logging disabled"), INFOCOL)
             self._spn_datalog["state"] = READONLY
 
     def _on_record_track(self, var, index, mode):
@@ -775,7 +760,7 @@ class SettingsChildFrame(Frame):
                 self.__app.configuration.set("recordtrack_b", 1)
                 self.__app.configuration.set("trackpath_s", self.trackpath)
                 self.__app.set_status_label(
-                    f"Track recording enabled: {self.trackpath}"
+                    _("Track recording enabled:") + f" {self.trackpath}"
                 )
                 if not self.__app.file_handler.open_trackfile():
                     self.trackpath = ""
@@ -787,7 +772,7 @@ class SettingsChildFrame(Frame):
             self._record_track.set(0)
             self.__app.configuration.set("recordtrack_b", 0)
             self.__app.file_handler.close_trackfile()
-            self.__app.set_status_label("Track recording disabled")
+            self.__app.set_status_label(_("Track recording disabled"))
 
     def _on_record_database(self, var, index, mode):
         """
@@ -805,8 +790,9 @@ class SettingsChildFrame(Frame):
                 self.databasepath = ""
                 self._record_database.set(0)
         else:
+            self.__app.sqlite_handler.close()
             self.__app.configuration.set("database_b", 0)
-            self.__app.set_status_label("Database recording disabled")
+            self.__app.set_status_label(_("Database recording disabled"))
 
     def _on_connect(self, conntype: int):
         """
@@ -848,7 +834,7 @@ class SettingsChildFrame(Frame):
         elif conntype == CONNECTED_SOCKET:
             frm = self.frm_socketclient
             if not frm.valid_settings():
-                self.__app.set_status_label("ERROR - invalid settings", ERRCOL)
+                self.__app.set_status_label(_("ERROR - invalid settings"), ERRCOL)
                 return
             connstr = f"{frm.server.get()}:{frm.port.get()}"
             conndict = dict(conndict, **{"socket_settings": frm})

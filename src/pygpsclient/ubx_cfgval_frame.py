@@ -59,6 +59,7 @@ from pygpsclient.globals import (
     VALNONBLANK,
     VALSIGNED,
     VALUNSIGNED,
+    _,
 )
 from pygpsclient.helpers import valid_hex
 
@@ -121,7 +122,7 @@ class UBX_CFGVAL_Frame(Frame):
         """
 
         self._lbl_configdb = Label(
-            self, text="CFG-VALSET/DEL/GET Configuration Interface", anchor=W
+            self, text=_("CFG-VALSET/DEL/GET Configuration Interface"), anchor=W
         )
         self._lbl_cat = Label(self, text="Category", anchor=W)
         self._lbx_cat = Listbox(
@@ -341,7 +342,7 @@ class UBX_CFGVAL_Frame(Frame):
             atts = attsiz(self._cfgatt.get())
         except ValueError as err:
             self._ent_val.validate(VALNONBLANK)
-            self.__container.set_status_label(f"INVALID ENTRY - {err}", ERRCOL)
+            self.__container.set_status_label(_("INVALID ENTRY - ") + str(err), ERRCOL)
             return False
         val = self._cfgval.get()
         layers = self._cfglayer.get()
@@ -389,17 +390,17 @@ class UBX_CFGVAL_Frame(Frame):
             msg = UBXMessage.config_set(layers, transaction, cfgData)
             self.__container.send_command(msg)
             self._lbl_send_command["image"] = self._img_pending
-            self.__container.set_status_label("CFG-VALSET SET message sent")
+            self.__container.set_status_label(_("CFG-VALSET SET message sent"))
             for msgid in ("ACK-ACK", "ACK-NAK"):
                 self.__container.set_pending(msgid, UBX_CFGVAL)
         else:
             # self._lbl_send_command["image"] = self._img_warn
             typ = ATTDICT[att]
             self.__container.set_status_label(
-                (
-                    "INVALID ENTRY - must conform to parameter "
-                    f"type {att} ({typ}) and size {atts} bytes"
-                ),
+                _(
+                    "INVALID ENTRY - must conform to parameter type and bytes size in bytes:"
+                )
+                + f" {att} ({typ}), {atts}",
                 ERRCOL,
             )
 
@@ -424,7 +425,7 @@ class UBX_CFGVAL_Frame(Frame):
         msg = UBXMessage.config_del(layers, transaction, key)
         self.__container.send_command(msg)
         self._lbl_send_command["image"] = self._img_pending
-        self.__container.set_status_label("CFG-VALDEL SET message sent")
+        self.__container.set_status_label(_("CFG-VALDEL SET message sent"))
         for msgid in ("ACK-ACK", "ACK-NAK"):
             self.__container.set_pending(msgid, UBX_CFGVAL)
 
@@ -449,7 +450,7 @@ class UBX_CFGVAL_Frame(Frame):
         msg = UBXMessage.config_poll(layers, transaction, keys)
         self.__container.send_command(msg)
         self._lbl_send_command["image"] = self._img_pending
-        self.__container.set_status_label("CFG-VALGET POLL message sent")
+        self.__container.set_status_label(_("CFG-VALGET POLL message sent"))
         for msgid in ("CFG-VALGET", "ACK-ACK", "ACK-NAK"):
             self.__container.set_pending(msgid, UBX_CFGVAL)
 
@@ -469,12 +470,14 @@ class UBX_CFGVAL_Frame(Frame):
                     vali = int.from_bytes(val, "little")
                     val = f"0x{vali:0{atts*2}x}"
                 self._cfgval.set(val)
-            self.__container.set_status_label("CFG-VALGET GET message received", OKCOL)
+            self.__container.set_status_label(
+                _("CFG-VALGET GET message received"), OKCOL
+            )
 
         elif msg.identity == "ACK-ACK":
             self._lbl_send_command["image"] = self._img_confirmed
-            self.__container.set_status_label("CFG-VAL command acknowledged", OKCOL)
+            self.__container.set_status_label(_("CFG-VAL command acknowledged"), OKCOL)
 
         elif msg.identity == "ACK-NAK":
             self._lbl_send_command["image"] = self._img_warn
-            self.__container.set_status_label("CFG-VAL command rejected", ERRCOL)
+            self.__container.set_status_label(_("CFG-VAL command rejected"), ERRCOL)
