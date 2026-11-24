@@ -32,7 +32,7 @@ Please write unittest examples for new code you create and add them to the `/tes
 
 ## <a name="localisation">Adding Localisation Support</a>
 
-PyGPSClient uses the standard native [gettext](https://docs.python.org/3/library/gettext.html) library for localisation. We use and recommend the Python Babel command line utilities (`pybabel`) to set up the necessary raw (`*.po`) and compiled (`*.mo`) message catalogs. Various VSCode tasks are provided to facilitate the workflow.
+PyGPSClient uses the standard native [gettext](https://docs.python.org/3/library/gettext.html) library for localisation. We use and recommend the [Python Babel](https://babel.pocoo.org/en/latest/) command line utilities (`pybabel`) to set up the necessary raw (`*.po`) and compiled (`*.mo`) message catalogs. Various VSCode tasks are provided to facilitate the workflow.
 
 ```shell
 python3 -m pip install Babel

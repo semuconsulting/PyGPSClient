@@ -37,7 +37,7 @@ try:
 except FileNotFoundError as err:
     raise FileNotFoundError(
         f"Translations are not currently available for the '{LOCALE}' locale.\n"
-        f"'{LOCALEDIR}/{LOCALE}/LC_MESSAGES/messages.po' not found.\nRefer to "
+        f"'{LOCALEDIR}/{LOCALE}/LC_MESSAGES/messages.mo' not found.\nRefer to "
         "https://github.com/semuconsulting/PyGPSClient/blob/main/CONTRIBUTING.md#localisation"
         " for guidance on how to add localisation support for your language."
     ) from err
