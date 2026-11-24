@@ -17,7 +17,7 @@ Created on 6 Oct 2025
 
 import logging
 
-from pygpsclient.strings import NA
+from pygpsclient.globals import NA
 
 
 class QGCHandler:

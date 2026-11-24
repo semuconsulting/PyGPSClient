@@ -51,18 +51,12 @@ from pygpsclient.globals import (
     UBLOX_ZEDF9,
     UMM,
     WORLD,
+    _,
 )
 from pygpsclient.helpers import valid_geom
 from pygpsclient.init_presets import INIT_PRESETS
 from pygpsclient.mapquest_handler import MAP_UPDATE_INTERVAL
 from pygpsclient.serverconfig_dialog import BASE_SVIN
-from pygpsclient.strings import (
-    LOADCONFIGBAD,
-    LOADCONFIGNK,
-    LOADCONFIGNONE,
-    LOADCONFIGOK,
-    LOADCONFIGRESAVE,
-)
 from pygpsclient.widget_state import MAXCOLSPAN, VISIBLE
 
 INITMARKER = "INIT_PRESETS"
@@ -297,20 +291,28 @@ class Configuration:
                 try:
                     self.set(key, val)
                 except KeyError:  # ignore unrecognised setting
-                    self.logger.info(LOADCONFIGNK.format(key, val))
+                    self.logger.info(
+                        _("Unrecognised configuration setting '{}: {}'").format(
+                            key, val
+                        )
+                    )
                     resave = True
                     continue
         else:
             if err == "cancelled":  # user cancelled
                 return filepath, err
             if "No such file or directory" in err:
-                err = LOADCONFIGNONE.format(fname)
+                err = _("Configuration file not found {}. Using defaults").format(fname)
             else:
-                err = LOADCONFIGBAD.format(fname, err)
+                err = _("Configuration not loaded {} {}. Using defaults").format(
+                    fname, err
+                )
 
         if err == "":  # config valid
-            rs = LOADCONFIGRESAVE if resave else ""
-            self.__app.set_status_label(LOADCONFIGOK.format(fname, rs), OKCOL)
+            rs = _(". Consider re-saving") if resave else ""
+            self.__app.set_status_label(
+                _("Configuration loaded") + f" {fname} {rs}", OKCOL
+            )
         else:
             self.__app.set_status_label(err, ERRCOL)
 

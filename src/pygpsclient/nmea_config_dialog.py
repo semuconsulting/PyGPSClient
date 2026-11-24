@@ -24,14 +24,15 @@ from pygpsclient.globals import (
     CONNECTED,
     CONNECTED_SIMULATOR,
     CONNECTED_SOCKET,
+    DLGTNMEA,
     ERRCOL,
     NMEA_CFGOTHER,
     NMEA_MONHW,
     NMEA_PRESET,
+    _,
 )
 from pygpsclient.hardware_info_frame import Hardware_Info_Frame
 from pygpsclient.nmea_preset_frame import NMEA_PRESET_Frame
-from pygpsclient.strings import DLGTNMEA
 from pygpsclient.toplevel_dialog import ToplevelDialog
 
 
@@ -112,7 +113,7 @@ class NMEAConfigDialog(ToplevelDialog):
             CONNECTED_SOCKET,
             CONNECTED_SIMULATOR,
         ):
-            self.set_status_label("Device not connected", ERRCOL)
+            self.set_status_label(_("Not connected"), ERRCOL)
 
     def _attach_events(self):
         """

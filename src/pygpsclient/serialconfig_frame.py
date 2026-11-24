@@ -56,11 +56,11 @@ from pygpsclient.globals import (
     ICON_REFRESH,
     READONLY,
     TRACEMODE_WRITE,
+    _,
 )
 
 # import helpers for Entry.validate class override
 from pygpsclient.helpers import trace_update  # pylint: disable=unused-import
-from pygpsclient.strings import LBLSPORT, LBLUDPORT
 
 ADVOFF = "\u25bc"
 ADVON = "\u25b2"
@@ -384,13 +384,13 @@ class SerialConfigFrame(Frame):
         userp = self.user_defined_port.get()
         # insert any previously saved port name
         if self._port.get() != "" and self._port.get() not in pnames:
-            self._ports.insert(0, (self._port.get(), LBLSPORT, None))
+            self._ports.insert(0, (self._port.get(), _("SAVED PORT"), None))
         # insert any user-defined port name
         if userp != "" and userp not in pnames:
-            self._ports.insert(0, (userp, LBLUDPORT, None))
+            self._ports.insert(0, (userp, _("USER-DEFINED PORT"), None))
 
         if len(self._ports) > 0:
-            for idx, (port, desc, _) in enumerate(self._ports):
+            for idx, (port, desc, unused) in enumerate(self._ports):
                 self._lbx_port.insert(idx, f"{port}: {desc}")
                 # pre-select any recognised GNSS port description
                 if not recognised:
@@ -400,7 +400,7 @@ class SerialConfigFrame(Frame):
                         self._port_desc.set(desc)
                         recognised = True
             if not recognised:  # if none recognised, pre-select first listed port
-                port, desc, _ = self._ports[0]
+                port, desc, unused = self._ports[0]
                 self._port.set(port)
                 self._port_desc.set(desc if desc != "" else "device")
 

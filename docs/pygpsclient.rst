@@ -412,14 +412,6 @@ pygpsclient.stream\_handler module
    :undoc-members:
    :show-inheritance:
 
-pygpsclient.strings module
---------------------------
-
-.. automodule:: pygpsclient.strings
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 pygpsclient.sysmon\_frame module
 --------------------------------
 
@@ -512,6 +504,14 @@ pygpsclient.uni\_handler module
 -------------------------------
 
 .. automodule:: pygpsclient.uni_handler
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pygpsclient.widget\_frame module
+--------------------------------
+
+.. automodule:: pygpsclient.widget_frame
    :members:
    :undoc-members:
    :show-inheritance:

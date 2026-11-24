@@ -80,8 +80,8 @@ from pygpsclient.globals import (
     STREAMDELAY,
     TTY_PROTOCOL,
     UBXSIMULATOR,
+    _,
 )
-from pygpsclient.strings import WARNING
 from pygpsclient.widget_state import VISIBLE, WDGCHART, WDGCONSOLE
 
 
@@ -463,7 +463,7 @@ class StreamHandler:
                     self.__app.tty_handler.process_data(raw_data, parsed_data)
                 else:
                     msgprot = -1
-                    marker = WARNING
+                    marker = _("WARNING") + ">>"
 
         # if console is visible and protocol not filtered, place raw and parsed
         # data on console input queue

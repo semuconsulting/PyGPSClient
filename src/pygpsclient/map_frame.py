@@ -38,23 +38,22 @@ from tkinter import (
 )
 
 from pygpsclient.canvas_map import HYB, MAP, MAPTYPES, SAT, TAG_CLOCK, CanvasMap
-from pygpsclient.custom_classes import TAG_WAIT
 from pygpsclient.globals import (
     BGCOL,
     ERRCOL,
     PNTCOL,
     READONLY,
     TRACEMODE_WRITE,
-    WIDGETU2,
     WORLD,
     Point,
+    _,
 )
 from pygpsclient.mapquest_handler import (
     MAX_ZOOM,
     MIN_UPDATE_INTERVAL,
     MIN_ZOOM,
 )
-from pygpsclient.strings import DLGWAITPOS, LBLSHOWTRACK
+from pygpsclient.widget_frame import WidgetFrame
 
 ZOOMCOL = ERRCOL
 ZOOMEND = "lightgray"
@@ -63,7 +62,7 @@ TRK_COL = "magenta"  # color of track
 INSET = 4
 
 
-class MapviewFrame(Frame):
+class MapviewFrame(WidgetFrame):
     """
     Map frame class.
     """
@@ -79,12 +78,6 @@ class MapviewFrame(Frame):
         """
 
         self.__app = app  # Reference to main application class
-
-        super().__init__(parent, *args, **kwargs)
-
-        def_w, def_h = WIDGETU2
-        self.width = kwargs.get("width", def_w)
-        self.height = kwargs.get("height", def_h)
         self._img = None
         self.__app.last_map_update = 0
         self._lastmaptype = ""
@@ -97,10 +90,8 @@ class MapviewFrame(Frame):
         self._showtrack.set(self.__app.configuration.get("showtrack_b"))
         self._mapzoom = IntVar()
         self._mapzoom.set(self.__app.configuration.get("mapzoom_n"))
-        self._body()
-        self._do_layout()
-        self._reset()
-        self._attach_events()
+
+        super().__init__(app, parent, *args, **kwargs)
 
     def _body(self):
         """
@@ -147,7 +138,7 @@ class MapviewFrame(Frame):
         )
         self._chk_showtrack = Checkbutton(
             self._frm_options,
-            text=LBLSHOWTRACK,
+            text=_("Track"),
             variable=self._showtrack,
             background=BGCOL,
             foreground=PNTCOL,
@@ -174,7 +165,6 @@ class MapviewFrame(Frame):
         Bind events to frame.
         """
 
-        self.bind("<Configure>", self._on_resize)
         self._maptype.trace_add(TRACEMODE_WRITE, self.on_maptype)
         self._mapzoom.trace_add(TRACEMODE_WRITE, self.on_mapzoom)
         self._showtrack.trace_add(TRACEMODE_WRITE, self.on_showtrack)
@@ -315,32 +305,3 @@ class MapviewFrame(Frame):
             self._spn_zoom["highlightthickness"] = 3
 
         self.update_idletasks()
-
-    def _on_resize(self, event):  # pylint: disable=unused-argument
-        """
-        Resize frame
-
-        :param event event: resize event
-        """
-
-        self.width, self.height = self.get_size()
-        self._on_waiting()
-
-    def _on_waiting(self):
-        """
-        Display 'waiting for data' alert.
-        """
-
-        if self._waiting:
-            self._canvas.create_alert(DLGWAITPOS, tags=TAG_WAIT)
-
-    def get_size(self):
-        """
-        Get current canvas size.
-
-        :return: window size (width, height)
-        :rtype: tuple
-        """
-
-        self.update_idletasks()  # Make sure we know about any resizing
-        return self._canvas.winfo_width(), self._canvas.winfo_height()

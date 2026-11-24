@@ -25,7 +25,7 @@ Created on 30 Apr 2023
 from pygpsclient.attitude_frame import AttitudeFrame
 from pygpsclient.chart_frame import ChartviewFrame
 from pygpsclient.console_frame import ConsoleFrame
-from pygpsclient.globals import CLASS, FRAME
+from pygpsclient.globals import CLASS, FRAME, WIDGETU1, WIDGETU3, WIDGETU6, _
 from pygpsclient.levelsview_frame import LevelsviewFrame
 from pygpsclient.map_frame import MapviewFrame
 from pygpsclient.rover_frame import RoverFrame
@@ -36,27 +36,30 @@ from pygpsclient.spectrum_frame import SpectrumviewFrame
 from pygpsclient.sysmon_frame import SysmonFrame
 
 COLSPAN = "colspan"
+DATA = "data"  # output data required by widget
 DEFAULT = "def"
-DOCK = "Dock"
-HIDE = "Hide"
+DOCK = _("Dock")
+FONTSIZE = "fontsize"  # defaults to 12
+HIDE = _("Hide")
 MAXCOLSPAN = 4  # max no of widget columns
 MAXSPAN = 0  # always occupy the full row
 MAXROWSPAN = 4  # max no of widget rows
 RESET = "rst"
-SHOW = "Show"
-UNDOCK = "Undock"
+SHOW = _("Show")
+SIZE = "size"
+UNDOCK = _("Undock")
 VISIBLE = "vis"
-WDGCONSOLE = "Console"
-WDGLEVELS = "Levels"
-WDGMAP = "Map"
-WDGROVER = "Relative Position"
-WDGSATS = "Satellites"
-WDGSCATTER = "Scatter Plot"
-WDGSPECTRUM = "Spectrum"
-WDGSYSMON = "System Monitor"
-WDGCHART = "Chart Plot"
-WDGATTMON = "Attitude Monitor"
-WDGSIGNALS = "Signals"
+WDGCONSOLE = _("Console")
+WDGLEVELS = _("Levels")
+WDGMAP = _("Map")
+WDGROVER = _("Relative Position")
+WDGSATS = _("Satellites")
+WDGSCATTER = _("Scatter Plot")
+WDGSPECTRUM = _("Spectrum")
+WDGSYSMON = _("System Monitor")
+WDGCHART = _("Chart Plot")
+WDGATTMON = _("Attitude Monitor")
+WDGSIGNALS = _("Signals")
 
 
 class WidgetState:
@@ -76,24 +79,29 @@ class WidgetState:
                 FRAME: "frm_console",
                 VISIBLE: True,
                 COLSPAN: MAXSPAN,
+                SIZE: WIDGETU3,
             },
             WDGSATS: {
                 DEFAULT: True,
                 CLASS: SkyviewFrame,
                 FRAME: "frm_satview",
                 VISIBLE: True,
+                DATA: "ELV/AZI",
             },
             WDGLEVELS: {
                 DEFAULT: True,
                 CLASS: LevelsviewFrame,
                 FRAME: "frm_levelsview",
                 VISIBLE: True,
+                DATA: "CNO",
             },
             WDGSIGNALS: {
                 CLASS: SignalsviewFrame,
                 FRAME: "frm_signalsview",
                 VISIBLE: False,
                 COLSPAN: 2,
+                SIZE: WIDGETU3,
+                DATA: "UBX NAV-SIG",
             },
             WDGMAP: {
                 DEFAULT: True,
@@ -101,39 +109,49 @@ class WidgetState:
                 FRAME: "frm_mapview",
                 VISIBLE: True,
                 RESET: True,
+                DATA: "LAT/LON",
             },
             WDGSPECTRUM: {
                 CLASS: SpectrumviewFrame,
                 FRAME: "frm_spectrumview",
                 VISIBLE: False,
                 RESET: True,
+                DATA: "UBX MON-SPAN",
             },
             WDGSCATTER: {
                 CLASS: ScatterViewFrame,
                 FRAME: "frm_scatterview",
                 VISIBLE: False,
+                SIZE: WIDGETU1,
+                DATA: "LAT/LON",
             },
             WDGROVER: {
                 DEFAULT: False,
                 CLASS: RoverFrame,
                 FRAME: "frm_roverview",
                 VISIBLE: False,
+                DATA: "RELPOS",
             },
             WDGSYSMON: {
                 CLASS: SysmonFrame,
                 FRAME: "frm_sysmon",
                 VISIBLE: False,
+                FONTSIZE: 10,
+                DATA: "UBX MON-SYS",
             },
             WDGATTMON: {
                 CLASS: AttitudeFrame,
                 FRAME: "frm_attitudemon",
                 VISIBLE: False,
+                DATA: "Attitude",
             },
             WDGCHART: {
                 CLASS: ChartviewFrame,
                 FRAME: "frm_chartview",
                 VISIBLE: False,
                 COLSPAN: MAXSPAN,
+                SIZE: WIDGETU6,
+                FONTSIZE: 10,
             },
             # add any new widgets here
         }

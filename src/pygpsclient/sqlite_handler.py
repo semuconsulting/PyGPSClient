@@ -31,9 +31,8 @@ from types import NoneType
 
 from pynmeagps import ecef2llh
 
-from pygpsclient.globals import ERRCOL, HOME, INFOCOL, OKCOL
+from pygpsclient.globals import ERRCOL, HOME, INFOCOL, NA, OKCOL, _
 from pygpsclient.helpers import makeval
-from pygpsclient.strings import DLGDBINIT, DLGDBINITERR, DLGDBOPEN, DLGDBSQLERR, NA
 
 # path to mod_spatialite module, if required
 # SLPATH = "C:/Program Files/QGIS 3.44.1/bin"
@@ -131,7 +130,11 @@ class SqliteHandler:
         """
 
         try:
-            self.__app.set_status_label(DLGDBINIT.format(self._db), INFOCOL)
+            self.__app.set_status_label(
+                f"{self._db} "
+                + _("Database initialising - this could take up to a minute..."),
+                INFOCOL,
+            )
             self.logger.debug("Spatial metadata initialisation in progress...")
             self._connection.execute(SQLINIT)
             self.logger.debug("Spatial metadata initialisation complete")
@@ -139,7 +142,9 @@ class SqliteHandler:
             self._cursor.executescript(SQLC1.format(table=tbname))
             return SQLOK
         except sqlite3.Error as err:
-            self.__app.set_status_label(DLGDBINITERR.format(err), ERRCOL)
+            self.__app.set_status_label(
+                _("Error initialising spatial database") + f" {err}", ERRCOL
+            )
             self.logger.debug(traceback.format_exc())
             return SQLERR
 
@@ -183,18 +188,20 @@ class SqliteHandler:
             if testing:
                 self._connection.close()
             else:
-                self.__app.set_status_label(DLGDBOPEN.format(self._db), OKCOL)
+                self.__app.set_status_label(
+                    f"{self._db} " + _("Database opened"), OKCOL
+                )
             return SQLOK
         except AttributeError as err:
-            self.__app.set_status_label(DLGDBSQLERR.format(err), errcol)
+            self.__app.set_status_label(_("SQL error") + f" {err}", errcol)
             # self.logger.debug(traceback.format_exc())
             return NOEXT  # extensions not supported
         except sqlite3.OperationalError as err:
-            self.__app.set_status_label(DLGDBSQLERR.format(err), errcol)
+            self.__app.set_status_label(_("SQL error") + f" {err}", errcol)
             # self.logger.debug(traceback.format_exc())
             return NOMODS  # no mod_spatial extension found
         except sqlite3.Error as err:
-            self.__app.set_status_label(DLGDBSQLERR.format(err), errcol)
+            self.__app.set_status_label(_("SQL error") + f" {err}", errcol)
             # self.logger.debug(traceback.format_exc())
             return SQLERR  # other sqlite error
 
@@ -259,7 +266,7 @@ class SqliteHandler:
             self.logger.debug(f"Executed SQL statement {sql}")
             return SQLOK
         except sqlite3.Error as err:
-            self.__app.set_status_label(DLGDBSQLERR.format(err), ERRCOL)
+            self.__app.set_status_label(_("SQL error") + f" {err}", ERRCOL)
             self.logger.debug(traceback.format_exc())
             return SQLERR
 

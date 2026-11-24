@@ -20,9 +20,16 @@ from time import time
 
 from pyubx2 import LASTCORRECTIONAGE, UBXMessage, itow2utc
 
-from pygpsclient.globals import BSR, GLONASS_NMEA, UTF8
+from pygpsclient.globals import (
+    BSR,
+    DLGTSERVER,
+    DLGTUBX,
+    DLGTUBXLEGACY,
+    GLONASS_NMEA,
+    NA,
+    UTF8,
+)
 from pygpsclient.helpers import fix2desc, hdg2yaw, ned2vector, svid2gnssid
-from pygpsclient.strings import DLGTSERVER, DLGTUBX, DLGTUBXLEGACY, NA
 from pygpsclient.widget_state import VISIBLE, WDGSIGNALS, WDGSPECTRUM, WDGSYSMON
 
 UBXMODELS = {

@@ -16,10 +16,31 @@ Created on 14 Sep 2020
 
 from collections import namedtuple
 from datetime import datetime
+from gettext import bindtextdomain, textdomain, translation
 from os import getenv, path
 from pathlib import Path
 
 from pyubx2 import GET, POLL, SET, SETPOLL
+
+# set up localisation
+MO = "messages"
+DIRNAME = path.dirname(__file__)
+# set runtime locale from environment variable
+LOCALE = getenv("PYGPSCLIENT_LOCALE", "en")
+LOCALEDIR = path.join(DIRNAME, "locales")
+try:
+    bindtextdomain(MO, LOCALEDIR)
+    textdomain(MO)
+    lang = translation(MO, localedir=LOCALEDIR, languages=[LOCALE])
+    lang.install()
+    _ = lang.gettext
+except FileNotFoundError as err:
+    raise FileNotFoundError(
+        f"Translations are not currently available for the '{LOCALE}' locale.\n"
+        f"'{LOCALEDIR}/{LOCALE}/LC_MESSAGES/messages.po' not found.\nRefer to "
+        "https://github.com/semuconsulting/PyGPSClient/blob/main/CONTRIBUTING.md#localisation"
+        " for guidance on how to add localisation support for your language."
+    ) from err
 
 # PSSTATS: 1 = vms & process time, 2 = tracemalloc logging, 3 = both
 PSSTATS = int(getenv("PYGPSCLIENT_PSSTATS", "0"))
@@ -61,9 +82,25 @@ MQTT_PROTOCOL = 512
 TTY_PROTOCOL = 1024
 GNSS_PROTOCOL = 2048
 
+# Dialog Titles
+DLG = "dlg"
+DLGGUIOPTIONS = _("App Configuration")
+DLGTABOUT = _("About PyGPSClient")
+DLGTGPX = _("GPX Track Viewer")
+DLGTIMPORTMAP = _("Import Custom Map")
+DLGTNMEA = _("NMEA Configuration")
+DLGTNTRIP = _("NTRIP Configuration")
+DLGTRECORD = _("Configuration Command Recorder")
+DLGTRINEX = _("RINEX Conversion (BETA)")
+DLGTSERVER = _("Server Configuration")
+DLGTSETTINGS = _("Settings")
+DLGTTTY = _("TTY Configuration")
+DLGTUBX = _("UBX Configuration")
+DLGTUBXLEGACY = _("UBX Legacy Configuration")
+
 # Various global constants - please keep in ascending alphabetical order
 HOME = Path.home()
-APPNAME = __name__.split(".", 1)[0]  # i.e. "pygpsclient"
+APPNAME = "pygpsclient"
 ASCII = "ascii"
 BPSRATES = (
     9600,
@@ -84,6 +121,7 @@ CMDINITDELAY = 3000  # initial delay before sending commands to new connection
 CMDPAUSE = 100  # pause between sent commands in ms
 COLORTAGS = "colortags"
 CONFIGFILE = Path.joinpath(HOME, f"{APPNAME}.json")
+CONFIRM = "CONFIRM"
 CONNECTED = 1
 CONNECTED_FILE = 4
 CONNECTED_NTRIP = 8
@@ -98,6 +136,7 @@ CONNMODES = {
     3: "no serial devices",
     4: "socket",
 }
+COPYRIGHT = "\u00a9 2020-2026 semuadmin (Steve Smith) BSD 3-Clause License"
 CRLF = b"\x0d\x0a"
 CUSTOM = "custom"
 DDD = "DD.D"
@@ -108,8 +147,10 @@ DEFAULT_REGION = "eu"
 DEFAULT_SERVER = "localhost"
 DEFAULT_TLS_PORTS = (443, 2102, 8443, 50443, 58443)
 DEFAULT_USER = "anon"
-DIRNAME = path.dirname(__file__)
+DGPSYES = "\u2713"  # tick symbol
 DISCONNECTED = 0
+DLGACTION = _("Confirm Command")
+DLGACTIONCONFIRM = _("Are you sure?")
 DMM = "DM.M"
 DMS = "D.M.S"
 ECEF = "ECEF"
@@ -133,6 +174,7 @@ FORMATS = (
 )
 FRAME = "frm"
 GITHUB_URL = "https://github.com/semuconsulting/PyGPSClient"
+EPILOG = f"{COPYRIGHT} - {GITHUB_URL}"
 GLONASS_NMEA = True  # use GLONASS NMEA SVID (65-96) rather than slot (1-24)
 GNSS = "GNSS"
 GNSS_EOF_EVENT = "<<gnss_eof>>"
@@ -224,7 +266,9 @@ MQAPIKEY = "mqapikey"
 MQTTIPMODE = 0
 MQTTLBANDMODE = 1
 MSGMODES = {"GET": GET, "SET": SET, "POLL": POLL, "SETPOLL": SETPOLL}
+NA = _("N/A")
 NOPORTS = 3
+NOTCONN = _("Not connected")
 NTRIP = "NTRIP"
 NTRIP_EVENT = "<<ntrip_read>>"
 OVERSCAN = 1.1  # 'overscan' allowance for low resolution screens
@@ -241,9 +285,10 @@ ROUTE = "route"
 RTCMSTR = "1002(1),1006(5),1077(1),1087(1),1097(1),1127(1),1230(1)"
 RXMMSG = "RXM-SPARTN-KEY"
 SAT_EXPIRY = 10  # how long passed satellites are kept in the sky and graph view
+SAVETITLE = _("Select Directory")
 SOCKCLIENT_HOST = "localhost"
 SOCKCLIENT_PORT = 50010
-SOCKSERVER_HOST = "0.0.0.0"  # i.e. bind to all host IP addresses
+SOCKSERVER_HOST = "0.0.0.0"  # i.e. bind to all host IP addresses #nosec
 SOCKSERVER_MAX_CLIENTS = 5
 SOCKSERVER_NTRIP_PORT = 2101
 SOCKSERVER_PORT = 50012
@@ -266,6 +311,7 @@ STATUS_TIMEOUT = 15000  # timeout for stale status messages in milliseconds
 TIME0 = datetime(1970, 1, 1)  # basedate for time()
 TIMEOUTS = ("0.1", "0.2", "0.5", "1", "2", "5", "10", "20", "None", "0")
 # map nmea talker to gnss_id
+TITLE = "PyGPSClient"
 TKGN = {"GN": 0, "GP": 0, "GA": 2, "GB": 3, "BD": 3, "GQ": 5, "GL": 6, "GI": 7}
 TOP = "1.0"  # first line of Text widget
 TOPIC_IP = "/pp/ip/{}"

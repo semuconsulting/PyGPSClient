@@ -66,10 +66,10 @@ class GNSSServer(StreamRequestHandler):
             validDate=1,
             validTime=1,
             fixType=3,
-            lat=random.uniform(-90.0, 90.0),
-            lon=random.uniform(-180.0, 180.0),
-            hMSL=random.randint(0, 100000),
-            numSV=random.randint(1, 26),
+            lat=random.uniform(-90.0, 90.0),  #nosec
+            lon=random.uniform(-180.0, 180.0),  #nosec
+            hMSL=random.randint(0, 100000),  #nosec
+            numSV=random.randint(1, 26),  #nosec
         )
         return msg.serialize()
         # or use live stream from receiver (clunky) ...
@@ -85,8 +85,8 @@ class GNSSServer(StreamRequestHandler):
         """
         # pylint: disable=invalid-name
 
-        lat = random.uniform(-90.0, 90.0)
-        lon = random.uniform(-180.0, 180.0)
+        lat = random.uniform(-90.0, 90.0)  #nosec
+        lon = random.uniform(-180.0, 180.0)  #nosec
         msg = NMEAMessage(
             "GN",
             "GLL",
@@ -123,9 +123,9 @@ class GNSSServer(StreamRequestHandler):
                 # put multiple random msgs on buffer, mixed in with junk
                 # to exercise the clients' parsing routine
                 data = bytearray()
-                n = random.randint(1, 5)
+                n = random.randint(1, 5)  #nosec
                 for _ in range(n):
-                    r = random.randint(1, 7)
+                    r = random.randint(1, 7)  #nosec
                     if r in (1, 2, 3):
                         data += self.create_NMEA_msg() + b"\x04\x05\x06"
                     elif r == 4:

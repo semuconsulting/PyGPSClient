@@ -35,8 +35,8 @@ from pygpsclient.globals import (
     PORTIDS,
     READONLY,
     UBX_CFGPRT,
+    _,
 )
-from pygpsclient.strings import LBLCFGPRT
 
 
 class UBX_PORT_Frame(Frame):
@@ -80,8 +80,10 @@ class UBX_PORT_Frame(Frame):
         Set up frame and widgets.
         """
 
-        self._lbl_cfg_port = Label(self, text=LBLCFGPRT, anchor=W)
-        self._lbl_ubx_portid = Label(self, text="Port ID")
+        self._lbl_cfg_port = Label(
+            self, text=_("CFG-PRT Protocol Configuration"), anchor=W
+        )
+        self._lbl_ubx_portid = Label(self, text=_("Port ID"))
         self._spn_ubx_portid = Spinbox(
             self,
             values=PORTIDS,
@@ -91,7 +93,7 @@ class UBX_PORT_Frame(Frame):
             textvariable=self._portid,
             command=lambda: self._on_select_portid(),  # pylint: disable=unnecessary-lambda
         )
-        self._lbl_ubx_bpsrate = Label(self, text="Rate bps")
+        self._lbl_ubx_bpsrate = Label(self, text=_("Rate bps"))
         self._spn_ubx_bpsrate = Spinbox(
             self,
             values=(BPSRATES),
@@ -100,7 +102,7 @@ class UBX_PORT_Frame(Frame):
             wrap=True,
             textvariable=self._bpsrate,
         )
-        self._lbl_inprot = Label(self, text="Input")
+        self._lbl_inprot = Label(self, text=_("Input"))
         self._chk_inprot_nmea = Checkbutton(
             self, text="NMEA", variable=self._inprot_nmea
         )
@@ -111,7 +113,7 @@ class UBX_PORT_Frame(Frame):
         self._chk_inprot_rtcm3 = Checkbutton(
             self, text="RTCM3", variable=self._inprot_rtcm3
         )
-        self._lbl_outprot = Label(self, text="Output")
+        self._lbl_outprot = Label(self, text=_("Output"))
         self._chk_outprot_nmea = Checkbutton(
             self, text="NMEA", variable=self._outprot_nmea
         )
@@ -189,10 +191,12 @@ class UBX_PORT_Frame(Frame):
             self._outprot_nmea.set(msg.outNMEA)
             self._outprot_rtcm3.set(msg.outRTCM3)
             self._lbl_send_command["image"] = self.__container.img_confirmed
-            self.__container.set_status_label("CFG-PRT GET message received", OKCOL)
+            self.__container.set_status_label(_("CFG-PRT GET message received"), OKCOL)
 
         elif msg.identity == "ACK-NAK":
-            self.__container.set_status_label("CFG-PRT POLL message rejected", ERRCOL)
+            self.__container.set_status_label(
+                _("CFG-PRT POLL message rejected"), ERRCOL
+            )
             self._lbl_send_command["image"] = self.__container.img_warn
 
     def _on_select_portid(self):
@@ -235,7 +239,7 @@ class UBX_PORT_Frame(Frame):
         )
         self.__container.send_command(msg)
         self._lbl_send_command["image"] = self.__container.img_pending
-        self.__container.set_status_label("CFG-PRT SET message sent")
+        self.__container.set_status_label(_("CFG-PRT SET message sent"))
         for msgid in ("ACK-NAK", "ACK-NAK"):
             self.__container.set_pending(msgid, UBX_CFGPRT)
 
@@ -250,6 +254,6 @@ class UBX_PORT_Frame(Frame):
         msg = UBXMessage("CFG", "CFG-PRT", POLL, portID=portID)
         self.__container.send_command(msg)
         self._lbl_send_command["image"] = self.__container.img_pending
-        self.__container.set_status_label("CFG-PRT POLL message sent")
+        self.__container.set_status_label(_("CFG-PRT POLL message sent"))
         for msgid in ("CFG-PRT", "ACK-NAK"):
             self.__container.set_pending(msgid, UBX_CFGPRT)

@@ -64,9 +64,9 @@ from pygpsclient.globals import (
     SQRT2,
     TIME0,
     TOP,
+    _,
 )
 from pygpsclient.helpers import fitfont
-from pygpsclient.strings import LINESCOPIED
 
 TAG_DATA = "dat"
 TAG_GRID = "grd"
@@ -869,5 +869,5 @@ class ScrollableText(Frame):
         if self.__dialog is not None:
             if hasattr(self.__dialog, "set_status_label"):
                 self.__dialog.set_status_label(
-                    LINESCOPIED.format(numlines=self.numlines), INFOCOL
+                    f"{self.numlines} " + _("lines copied to clipboard"), INFOCOL
                 )

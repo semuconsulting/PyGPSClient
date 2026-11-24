@@ -29,7 +29,7 @@ from tkinter import (
     Tk,
     W,
 )
-from xml.dom import minidom
+from xml.dom import minidom  # nosec
 from xml.parsers import expat
 
 from pynmeagps import haversine, planar
@@ -40,10 +40,12 @@ from pygpsclient.globals import (
     BGCOL,
     CLICK_CURSOR,
     CUSTOM,
+    DLGTGPX,
     ERRCOL,
     FGCOL,
     HOME,
     INFOCOL,
+    NA,
     PLOTCOLS,
     READONLY,
     ROUTE,
@@ -53,19 +55,9 @@ from pygpsclient.globals import (
     Area,
     Point,
     TrackPoint,
+    _,
 )
 from pygpsclient.helpers import get_range, get_units, isot2dt
-from pygpsclient.strings import (
-    DLGGPXERROR,
-    DLGGPXLOAD,
-    DLGGPXLOADED,
-    DLGGPXNOMINAL,
-    DLGGPXNULL,
-    DLGGPXOPEN,
-    DLGGPXWAIT,
-    DLGTGPX,
-    NA,
-)
 from pygpsclient.toplevel_dialog import ToplevelDialog
 
 MD_LINES = 3  # number of lines of metadata
@@ -306,7 +298,9 @@ class GPXViewerDialog(ToplevelDialog):
         self._gpxtype.set(self.__app.configuration.get("gpxtype_s"))
         for i in range(MD_LINES):
             self._info[i].set("")
-        self._can_mapview.draw_msg(DLGGPXOPEN, INFOCOL)
+        self._can_mapview.draw_msg(
+            _("Click folder icon to open GPX Track file"), INFOCOL
+        )
 
     def _on_maptype(self, var, index, mode):  # pylint: disable=unused-argument
         """
@@ -336,7 +330,7 @@ class GPXViewerDialog(ToplevelDialog):
         Handle redraw button press.
         """
 
-        self.set_status_label(DLGGPXWAIT, INFOCOL)
+        self.set_status_label(_("Redrawing..."), INFOCOL)
         self._detach_events()
         self._reset()
         self._spn_zoom["highlightbackground"] = "gray90"
@@ -366,7 +360,7 @@ class GPXViewerDialog(ToplevelDialog):
         self._gpxfile = self._open_gpxfile()
         if self._gpxfile is None:  # user cancelled
             return
-        self.set_status_label(DLGGPXLOAD, INFOCOL)
+        self.set_status_label(_("Loading GPX file ..."), INFOCOL)
         self._parse_gpx()
 
     def _parse_gpx(self):
@@ -376,11 +370,13 @@ class GPXViewerDialog(ToplevelDialog):
         ptyp = GPXTYPES[self._gpxtype.get()]
         with open(self._gpxfile, "r", encoding="utf-8") as gpx:
             try:
-                parser = minidom.parse(gpx)
+                parser = minidom.parse(gpx)  # nosec
                 trkpts = parser.getElementsByTagName(f"{ptyp}")
                 self._process_track(trkpts, ptyp)
             except (TypeError, AttributeError, expat.ExpatError) as err:
-                self.set_status_label(f"{DLGGPXERROR}\n{repr(err)}", ERRCOL)
+                self.set_status_label(
+                    _("GPX Parsing Error!") + f"\n{repr(err)}", ERRCOL
+                )
                 self.logger.error(traceback.format_exc())
 
     def _process_track(self, trkpts: list, ptyp: str):
@@ -395,7 +391,7 @@ class GPXViewerDialog(ToplevelDialog):
         self._no_time = False
         self._no_ele = False
         if self._rng == 0:
-            self.set_status_label(DLGGPXNULL.format(ptyp), ERRCOL)
+            self.set_status_label(_("No elements in GPX File:") + f" <{ptyp}>", ERRCOL)
             return
 
         minlat = minlon = 400
@@ -457,7 +453,7 @@ class GPXViewerDialog(ToplevelDialog):
         self._draw_map()
         self._draw_profile()
         self._draw_metadata()
-        self.set_status_label(DLGGPXLOADED, INFOCOL)
+        self.set_status_label(_("GPX data processed"), INFOCOL)
 
     def _draw_map(self):
         """
@@ -570,7 +566,7 @@ class GPXViewerDialog(ToplevelDialog):
         self._can_profile.create_text(
             self._can_profile.winfo_width() / 2,
             2,
-            text=DLGGPXNOMINAL,
+            text=_("time and speed axes are nominal"),
             fill=FGCOL,
             font=self._can_profile.font,
             anchor=N,

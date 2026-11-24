@@ -25,6 +25,7 @@ from pygpsclient.globals import (
     CONNECTED_FILE,
     CONNECTED_NTRIP,
     CONNECTED_SOCKET,
+    DGPSYES,
     DMM,
     DMS,
     ECEF,
@@ -42,10 +43,12 @@ from pygpsclient.globals import (
     ICON_SETTINGS,
     ICON_SOCKET,
     ICON_TRANSMIT,
+    NA,
     PSSTATS,
     UI,
     UIK,
     UMK,
+    _,
 )
 from pygpsclient.helpers import (
     dop2str,
@@ -56,7 +59,6 @@ from pygpsclient.helpers import (
     scale_font,
     unused_sats,
 )
-from pygpsclient.strings import DGPSYES, NA
 
 if PSSTATS:
     try:
@@ -131,19 +133,19 @@ class BannerFrame(Frame):
         )
         self._lbl_ltime = Label(
             self._frm_basic,
-            text="utc:",
+            text=_("utc:"),
             bg=BGCOL,
             fg=FGCOL,
             anchor=N,
         )
         self._lbl_llat = Label(
-            self._frm_basic, text="lat:", bg=BGCOL, fg=FGCOL, anchor=N
+            self._frm_basic, text=_("latitude:"), bg=BGCOL, fg=FGCOL, anchor=N
         )
         self._lbl_llon = Label(
-            self._frm_basic, text="lon:", bg=BGCOL, fg=FGCOL, anchor=N
+            self._frm_basic, text=_("longitude:"), bg=BGCOL, fg=FGCOL, anchor=N
         )
         self._lbl_lfix = Label(
-            self._frm_basic, text="fix:", bg=BGCOL, fg=FGCOL, anchor=N
+            self._frm_basic, text=_("fix:"), bg=BGCOL, fg=FGCOL, anchor=N
         )
         self._btn_settings = Button(
             self._frm_toggle,
@@ -162,37 +164,53 @@ class BannerFrame(Frame):
             cursor=CLICK_CURSOR,
         )
         self._lbl_lhmsl = Label(
-            self._frm_advanced, text="hmsl:", bg=BGCOL, fg=FGCOL, anchor=N
+            self._frm_advanced,
+            text=_("height above mean sea level:"),
+            bg=BGCOL,
+            fg=FGCOL,
+            anchor=N,
         )
         self._lbl_lhae = Label(
             self._frm_advanced,
-            text="hae:",
+            text=_("height above ellipsoid:"),
             bg=BGCOL,
             fg=FGCOL,
             anchor=N,
             cursor=CLICK_CURSOR,
         )
         self._lbl_lspd = Label(
-            self._frm_advanced, text="speed:", bg=BGCOL, fg=FGCOL, anchor=N
+            self._frm_advanced, text=_("speed:"), bg=BGCOL, fg=FGCOL, anchor=N
         )
         self._lbl_ltrk = Label(
-            self._frm_advanced, text="track:", bg=BGCOL, fg=FGCOL, anchor=N
+            self._frm_advanced,
+            text=_("course over ground:"),
+            bg=BGCOL,
+            fg=FGCOL,
+            anchor=N,
         )
         self._lbl_lsiv = Label(
-            self._frm_advanced2, text="siv:", bg=BGCOL, fg=FGCOL, anchor=N
+            self._frm_advanced2,
+            text=_("satellites in view:"),
+            bg=BGCOL,
+            fg=FGCOL,
+            anchor=N,
         )
         self._lbl_lsip = Label(
-            self._frm_advanced2, text="sip:", bg=BGCOL, fg=FGCOL, anchor=N
+            self._frm_advanced2,
+            text=_("satellites in position:"),
+            bg=BGCOL,
+            fg=FGCOL,
+            anchor=N,
         )
         self._lbl_lpdop = Label(
-            self._frm_advanced2, text="pdop:", bg=BGCOL, fg=FGCOL, anchor=N
+            self._frm_advanced2, text=_("pdop:"), bg=BGCOL, fg=FGCOL, anchor=N
         )
         self._lbl_lacc = Label(
-            self._frm_advanced2, text="acc:", bg=BGCOL, fg=FGCOL, anchor=N
+            self._frm_advanced2, text=_("accuracy:"), bg=BGCOL, fg=FGCOL, anchor=N
         )
         self._lbl_lcorr = Label(
             self._frm_advanced2,
-            text="corr:",
+            text=_("correction:"),
             bg=BGCOL,
             fg=FGCOL,
             anchor=N,
@@ -429,25 +447,26 @@ class BannerFrame(Frame):
 
         lat = self.__app.gnss_status.lat
         lon = self.__app.gnss_status.lon
-        alt = self.__app.gnss_status.alt  # hMSL
+        hmsl = self.__app.gnss_status.alt  # hMSL
         hae = self.__app.gnss_status.hae
-        self._lbl_llat["text"] = "lat:"
-        self._lbl_llon["text"] = "lon:"
-        self._lbl_lhmsl["text"] = "hmsl:"
-        lhae = "sep:" if self._sep else "hae:"
+        self._lbl_llat["text"] = _("latitude:")
+        self._lbl_llon["text"] = _("longitude:")
+        self._lbl_lhmsl["text"] = _("height above mean sea level:")
+        lhae = _("separation:") if self._sep else _("height above ellipsoid:")
         self._lbl_lhae["text"] = lhae
         alt_u = "ft" if units in (UI, UIK) else "m"
 
         try:
             if pos_format == ECEF:
-                lat, lon, alt = llh2ecef(lat, lon, alt)
+                x, y, z = llh2ecef(lat, lon, hae)
                 if units in (UI, UIK):
-                    lat, lon = (m2ft(x) for x in (lat, lon))
+                    x, y, z = (m2ft(n) for n in (x, y, z))
                 self._lbl_llat["text"] = "X:"
                 self._lbl_llon["text"] = "Y:"
                 self._lbl_lhmsl["text"] = "Z:"
-                self._lbl_lat["text"] = f"{lat:.4f}"
-                self._lbl_lon["text"] = f"{lon:.4f}"
+                self._lbl_lat["text"] = f"{x:.4f}"
+                self._lbl_lon["text"] = f"{y:.4f}"
+                self._lbl_hmsl["text"] = f"{z:.4f}"
             else:
                 deg_f = "<15"
                 if pos_format == DMS:
@@ -457,12 +476,11 @@ class BannerFrame(Frame):
                 else:
                     deg_f = ".9f"
                 if units in (UI, UIK):
-                    alt = m2ft(alt)
-                    hae = m2ft(hae)
+                    hmsl, hae = (m2ft(n) for n in (hmsl, hae))
                 self._lbl_lat["text"] = f"{lat:{deg_f}}"
                 self._lbl_lon["text"] = f"{lon:{deg_f}}"
-            self._lbl_hmsl["text"] = f"{alt:.4f} {alt_u}"
-            haev = hae - alt if self._sep else hae
+                self._lbl_hmsl["text"] = f"{hmsl:.4f} {alt_u}"
+            haev = hae - hmsl if self._sep else hae
             self._lbl_hae["text"] = f"{haev:.4f} {alt_u}"
         except (TypeError, ValueError):
             self._lbl_lat["text"] = NA
@@ -650,7 +668,9 @@ class BannerFrame(Frame):
             self._lbl_siv,
             self._lbl_diffcorr,
         ):
-            ctl["font"] = scale_font(self.width, FONTBASE, FONTSCALE)[0]
+            ctl["font"] = scale_font(
+                width=self.width, basesize=FONTBASE, txtwidth=FONTSCALE
+            )[0]
 
         for ctl in (
             self._lbl_ltime,
@@ -668,7 +688,9 @@ class BannerFrame(Frame):
             self._lbl_lcorr,
             self._lbl_psstats,
         ):
-            ctl["font"] = scale_font(self.width, FONTBASE - 2, FONTSCALE)[0]
+            ctl["font"] = scale_font(
+                width=self.width, basesize=FONTBASE - 2, txtwidth=FONTSCALE
+            )[0]
 
         for ctl in (
             self._lbl_hvdop,
@@ -676,7 +698,9 @@ class BannerFrame(Frame):
             self._lbl_diffstat,
             self._lbl_lacc_u,
         ):
-            ctl["font"] = scale_font(self.width, FONTBASE - 4, FONTSCALE)[0]
+            ctl["font"] = scale_font(
+                width=self.width, basesize=FONTBASE - 4, txtwidth=FONTSCALE
+            )[0]
 
     def _on_sep(self, event):  # pylint: disable=unused-argument
         """

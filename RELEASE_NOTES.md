@@ -1,10 +1,21 @@
 # PyGPSClient Release Notes
 
+### RELEASE 1.8.1
+
+1. Add support for string localisation via environment variable `PYGPSCLIENT_LOCALE`.
+
+   See https://github.com/semuconsulting/PyGPSClient/blob/main/CONTRIBUTING.md#localisation
+   for instructions on how to add localisation support for your language.
+
+   A simple Python script [translate_po.py](https://github.com/semuconsulting/PyGPSClient/blob/main/examples/translate_po.py) is available to machine translate messages.po files, but the results will invariably need refinement.
+1. Remove Python 3.10 from build and test workflows - now End of Life as at 2026/10/01.
+1. Streamline widget code - add abstract `WidgetFrame` class from which all user-selectable widget subclasses inherit.
+
 ### RELEASE 1.8.0
 
 1. Add support for parsing and logging unencrypted (`eaf`=0) or encrypted (`eaf`=1) SPARTN output direct from a receiver or datalog file (*in addition to existing NTRIP SPARTN parsing capability*). Encrypted SPARTN data will require valid `--spartnkey` and `--spartnbasedate` command line arguments e.g.
    ```shell
-   pygpsclient --spartnkey=bc75cdd919406d61c3df9e26c2f7e77a --spartnbasedate=0
+   pygpsclient --spartnkey bc75cdd919406d61c3df9e26c2f7e77a --spartnbasedate 0
    ```
 
    Refer to [pyspartn](https://github.com/semuconsulting/pyspartn#encrypted-payloads) for more information about SPARTN decryption. **NB:** SPARTN decryption is computationally expensive (i.e. relatively slow) in Python. In practice this is only likely to be an issue if you're reading binary datalog files from legacy encrypted SPARTN services (*such as the now-discontinued u-blox PointPerfect L-Band or MQTT SPARTN services*) and have the File Delay set to less than, say, 20ms.
