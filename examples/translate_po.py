@@ -3,7 +3,13 @@ translate_po.py
 
 Simple script to add machine translations to messages.po localisation files.
 
-Edit the messages.po.txt output file and then rename to messages.po.
+Edit the messages.po.txt output file as required and then rename to messages.po.
+
+The messages.po text file must then be compiled via the pybabel CLI utility
+to create the final messages.mo runtime binary file.
+
+See https://github.com/semuconsulting/PyGPSClient/blob/main/CONTRIBUTING.md#localisation
+for further instructions.
 
 May provide a reasonable 'first pass' but will invariably require refinement.
 Pay particular attention to:

@@ -6,7 +6,7 @@ If you're intending to make significant changes, please raise them in the [Discu
 
 Being one of our contributors, you agree and confirm that:
 
-* The work is all your own. For the avoidance of doubt, this means **no AI coding agents such as Copilot**.
+* The work is all your own. For the avoidance of doubt, this means **no AI coding agents such as Copilot** without clear attribution.
 * Your work will be distributed under a BSD 3-Clause License once your pull request is merged.
 * You submitted work fulfils or mostly fulfils our styles and standards.
 
@@ -51,7 +51,7 @@ python3 -m pip install Babel
 1. To create or update a language message catalog `messages.po`:
 
    ```shell
-   pybabel update -l <locale> --input-file src/pygpsclient/locales/messages.pot --output-dir /src/pygpsclient/locales --init-missing --ignore-obsolete --update-header-comment
+   pybabel update -l <locale> --input-file src/pygpsclient/locales/messages.pot --output-dir src/pygpsclient/locales --init-missing --ignore-obsolete --update-header-comment
    ```
 
    where `<locale>` is the relevant locale code e.g. 'de', 'fr', 'es', etc.
